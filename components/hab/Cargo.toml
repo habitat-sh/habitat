@@ -19,6 +19,7 @@ chrono = {version = "*", features = ["serde"]}
 dirs = "*"
 env_logger = "*"
 flate2 = "*"
+futures = { version = "0.3.1" }
 glob = "*"
 habitat_api_client = { path = "../builder-api-client" }
 habitat_common = { path = "../common" }

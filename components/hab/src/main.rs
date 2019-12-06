@@ -48,6 +48,7 @@ use habitat_common::{self as common,
 #[cfg(windows)]
 use habitat_core::crypto::dpapi::encrypt;
 
+use futures::stream::StreamExt;
 use habitat_core::{crypto::{init,
                             keys::PairType,
                             BoxKeyPair,
@@ -1057,9 +1058,8 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                         .map(ToString::to_string)
                         .unwrap_or_else(|| "UNKNOWN".to_string()),))?;
     ui.status(Status::Creating, "service configuration")?;
-    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
-    let mut response = client.request(validate).await?;
-    while let Some(message_result) = response.recv().await {
+    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, validate).await?;
+    while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
             "NetOk" => (),
@@ -1079,9 +1079,8 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))?;
     // We could potentially reuse the client defined previously, but the server closes the TCP
     // connection after every request.
-    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
-    let mut response = client.request(set).await?;
-    while let Some(message_result) = response.recv().await {
+    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, set).await?;
+    while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
             "NetOk" => (),
@@ -1104,9 +1103,8 @@ async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcGetDefaultCfg::default();
     msg.ident = Some(ident.into());
-    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
-    let mut response = client.request(msg).await?;
-    while let Some(message_result) = response.recv().await {
+    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
             "ServiceCfg" => {
@@ -1131,9 +1129,8 @@ async fn sub_svc_load(m: &ArgMatches<'_>) -> Result<()> {
     let mut msg = svc_load_from_input(m)?;
     let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
     msg.ident = Some(ident.into());
-    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
-    let mut response = client.request(msg).await?;
-    while let Some(message_result) = response.recv().await {
+    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    while let Some(message_result) = response.next().await {
         let reply = message_result?;
         handle_ctl_reply(&reply)?;
     }
@@ -1150,9 +1147,8 @@ async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
 
     let msg = sup_proto::ctl::SvcUnload { ident: Some(ident.into()),
                                           timeout_in_seconds };
-    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
-    let mut response = client.request(msg).await?;
-    while let Some(message_result) = response.recv().await {
+    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    while let Some(message_result) = response.next().await {
         let reply = message_result?;
         handle_ctl_reply(&reply)?;
     }
@@ -1166,9 +1162,8 @@ async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcStart::default();
     msg.ident = Some(ident.into());
-    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
-    let mut response = client.request(msg).await?;
-    while let Some(message_result) = response.recv().await {
+    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    while let Some(message_result) = response.next().await {
         let reply = message_result?;
         handle_ctl_reply(&reply)?;
     }
@@ -1184,17 +1179,16 @@ async fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
         msg.ident = Some(PackageIdent::from_str(pkg)?.into());
     }
 
-    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
     let mut out = TabWriter::new(io::stdout());
-    let mut response = client.request(msg).await?;
+    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
     // Ensure there is at least one result from the server otherwise produce an error
-    if let Some(message_result) = response.recv().await {
+    if let Some(message_result) = response.next().await {
         let reply = message_result?;
         print_svc_status(&mut out, &reply, true)?;
     } else {
         return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into());
     }
-    while let Some(message_result) = response.recv().await {
+    while let Some(message_result) = response.next().await {
         let reply = message_result?;
         print_svc_status(&mut out, &reply, true)?;
     }
@@ -1212,9 +1206,8 @@ async fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
 
     let msg = sup_proto::ctl::SvcStop { ident: Some(ident.into()),
                                         timeout_in_seconds };
-    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
-    let mut response = client.request(msg).await?;
-    while let Some(message_result) = response.recv().await {
+    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    while let Some(message_result) = response.next().await {
         let reply = message_result?;
         handle_ctl_reply(&reply)?;
     }
@@ -1264,11 +1257,10 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
         }
         _ => msg.content = Some(buf.to_vec()),
     }
-    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
     ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
       .unwrap();
-    let mut response = client.request(msg).await?;
-    while let Some(message_result) = response.recv().await {
+    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
             "NetOk" => (),
@@ -1297,7 +1289,6 @@ async fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
     let mut msg = sup_proto::ctl::SupDepart::default();
     msg.member_id = Some(m.value_of("MEMBER_ID").unwrap().to_string());
 
-    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
     ui.begin(format!("Permanently marking {} as departed",
                      msg.member_id
                         .as_ref()
@@ -1306,8 +1297,8 @@ async fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
       .unwrap();
     ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
       .unwrap();
-    let mut response = client.request(msg).await?;
-    while let Some(message_result) = response.recv().await {
+    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
             "NetOk" => (),
@@ -1827,9 +1818,8 @@ async fn supervisor_services() -> Result<Vec<PackageIdent>> {
     let msg = sup_proto::ctl::SvcStatus::default();
 
     let mut out: Vec<PackageIdent> = vec![];
-    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
-    let mut response = client.request(msg).await?;
-    while let Some(message_result) = response.recv().await {
+    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
             "ServiceStatus" => {
