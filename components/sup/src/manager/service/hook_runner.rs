@@ -10,15 +10,14 @@
 
 use super::{hook_timer,
             Pkg};
-use futures::channel::oneshot;
 use habitat_common::templating::hooks::Hook;
 use habitat_core::service::ServiceGroup;
 use std::{clone::Clone,
-          io,
           sync::Arc,
-          thread,
           time::{Duration,
                  Instant}};
+use tokio::{task,
+            task::JoinError};
 
 pub struct HookRunner<H: Hook + Sync> {
     hook:          Arc<H>,
@@ -67,32 +66,20 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
         }
     }
 
-    pub async fn into_future(self) -> Result<(Option<H::ExitValue>, Duration), io::Error> {
-        let (tx, rx) = oneshot::channel();
-
-        // TODO (CM): Consider using a short abbreviation for the hook
-        // name in the thread name (e.g. "HC" for "health_check", "I"
-        // for "init", etc.
-
+    pub async fn into_future(self) -> Result<(Option<H::ExitValue>, Duration), JoinError> {
         // TODO (CM): May want to consider adding a configurable
         // timeout to how long this hook is allowed to run.
-        thread::Builder::new().name(format!("{}-{}", H::file_name(), self.service_group))
-                              .spawn(move || {
-                                  // _timer is for Prometheus metrics, but we also want
-                                  // the runtime for other purposes. Unfortunately,
-                                  // we're not able to use the same timer for both :(
-                                  let _timer = hook_timer(H::file_name());
-                                  let start = Instant::now();
-                                  let exit_value =
-                                      self.hook
-                                          .run(&self.service_group, &self.pkg, self.passwd.as_ref())
-                                          .ok();
-                                  let run_time = start.elapsed();
-                                  tx.send((exit_value, run_time))
-                                    .expect("Couldn't send oneshot signal from HookRunner: \
-                                             receiver went away");
-                              })?;
-
-        Ok(rx.await.expect("to receive oneshot signal from HookRunner"))
+        task::spawn_blocking(move || {
+            // _timer is for Prometheus metrics, but we also want
+            // the runtime for other purposes. Unfortunately,
+            // we're not able to use the same timer for both :(
+            let _timer = hook_timer(H::file_name());
+            let start = Instant::now();
+            let exit_value = self.hook
+                                 .run(&self.service_group, &self.pkg, self.passwd.as_ref())
+                                 .ok();
+            let run_time = start.elapsed();
+            (exit_value, run_time)
+        }).await
     }
 }

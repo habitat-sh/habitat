@@ -25,6 +25,7 @@ use std::{env,
           str,
           string,
           sync::mpsc};
+use tokio::task::JoinError;
 use toml;
 
 /// Our result type alias, for easy coding.
@@ -64,6 +65,7 @@ pub enum Error {
     InvalidTopology(String),
     InvalidUpdateStrategy(String),
     Io(io::Error),
+    TaskJoin(JoinError),
     Launcher(habitat_launcher_client::Error),
     MissingRequiredBind(Vec<String>),
     MissingRequiredIdent,
@@ -174,6 +176,7 @@ impl fmt::Display for Error {
             Error::InvalidTopology(ref t) => format!("Invalid topology: {}", t),
             Error::InvalidUpdateStrategy(ref s) => format!("Invalid update strategy: {}", s),
             Error::Io(ref err) => err.to_string(),
+            Error::TaskJoin(ref err) => err.to_string(),
             Error::Launcher(ref err) => err.to_string(),
             Error::MissingRequiredBind(ref e) => {
                 format!("Missing required bind(s), {}", e.join(", "))
@@ -317,6 +320,10 @@ impl From<ffi::NulError> for Error {
 
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error { Error::Io(err) }
+}
+
+impl From<JoinError> for Error {
+    fn from(err: JoinError) -> Error { Error::TaskJoin(err) }
 }
 
 impl From<env::JoinPathsError> for Error {
