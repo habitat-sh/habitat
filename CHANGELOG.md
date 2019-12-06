@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.42 -->
-## [0.90.42](https://github.com/habitat-sh/habitat/tree/0.90.42) (2019-12-04)
+<!-- latest_release 0.90.43 -->
+## [0.90.43](https://github.com/habitat-sh/habitat/tree/0.90.43) (2019-12-06)
 
 #### Merged Pull Requests
-- [web] Update links to point to packages.chef.io instead of Bintray [#7255](https://github.com/habitat-sh/habitat/pull/7255) ([christophermaier](https://github.com/christophermaier))
+- auto bump rustfmt version post release [#7258](https://github.com/habitat-sh/habitat/pull/7258) ([jeremymv2](https://github.com/jeremymv2))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -17,6 +17,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- auto bump rustfmt version post release [#7258](https://github.com/habitat-sh/habitat/pull/7258) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.43 -->
 - [web] Update links to point to packages.chef.io instead of Bintray [#7255](https://github.com/habitat-sh/habitat/pull/7255) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.42 -->
 - [chore] Remove some old TravisCI cruft [#7257](https://github.com/habitat-sh/habitat/pull/7257) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.41 -->
 - some minor windows service improvements [#7251](https://github.com/habitat-sh/habitat/pull/7251) ([mwrock](https://github.com/mwrock)) <!-- 0.90.40 -->
