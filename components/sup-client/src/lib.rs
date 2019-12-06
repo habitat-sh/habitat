@@ -135,8 +135,6 @@ impl SrvClient {
         secret_key: &str,
         request: impl Into<SrvMessage> + fmt::Debug)
         -> Result<impl Stream<Item = Result<SrvMessage, io::Error>>, SrvClientError> {
-        println!("IN NEW request");
-
         let socket = TcpStream::connect(address.as_ref()).await?;
         let mut socket = Framed::new(socket, SrvCodec::new());
         let mut current_transaction = SrvTxn::default();
