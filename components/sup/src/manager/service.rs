@@ -92,7 +92,6 @@ use std::{self,
           sync::{Arc,
                  Mutex}};
 use time::Timespec;
-use tokio::runtime::Handle;
 
 static LOGKEY: &str = "SR";
 
@@ -373,7 +372,7 @@ impl Service {
         Ok(())
     }
 
-    fn start(&mut self, launcher: &LauncherCli, executor: &Handle) {
+    fn start(&mut self, launcher: &LauncherCli) {
         debug!("Starting service {}", self.pkg.ident);
         let result = self.supervisor
                          .lock()
@@ -385,7 +384,7 @@ impl Service {
         match result {
             Ok(_) => {
                 self.needs_restart = false;
-                self.start_health_checks(executor);
+                self.start_health_checks();
             }
             Err(e) => {
                 outputln!(preamble self.service_group, "Service start failed: {}", e);
@@ -413,7 +412,7 @@ impl Service {
 
     /// Initiate an endless future that performs periodic health
     /// checks for the service
-    fn start_health_checks(&mut self, executor: &Handle) {
+    fn start_health_checks(&mut self) {
         debug!("Starting health checks for {}", self.pkg.ident);
         self.health_state().init_gateway_state_gsw();
         let (f, handle) = future::abortable(self.health_state().check_repeatedly_gsw());
@@ -421,9 +420,9 @@ impl Service {
         self.health_check_handle = Some(handle);
 
         let service_group = self.service_group.clone();
-        executor.spawn(f.map(move |_| {
-                            outputln!(preamble service_group, "Health checking has been stopped");
-                        }));
+        tokio::spawn(f.map(move |_| {
+                          outputln!(preamble service_group, "Health checking has been stopped");
+                      }));
     }
 
     /// Stop the endless future that performs health checks for the
@@ -440,10 +439,10 @@ impl Service {
     ///
     /// This is mainly good for "resetting" the checks, and will
     /// initiate a new health check immediately.
-    fn restart_health_checks(&mut self, executor: &Handle) {
+    fn restart_health_checks(&mut self) {
         debug!("Restarting health checks for {}", self.pkg.ident);
         self.stop_health_checks();
-        self.start_health_checks(executor);
+        self.start_health_checks();
     }
 
     /// Called when the Supervisor reattaches itself to an already
@@ -451,10 +450,10 @@ impl Service {
     /// processes, futures, etc.
     ///
     /// This should generally be the opposite of `Service::detach`.
-    fn reattach(&mut self, executor: &Handle) {
+    fn reattach(&mut self) {
         outputln!("Reattaching to {}", self.service_group);
         *self.initialization_state.write() = InitializationState::Initialized;
-        self.restart_health_checks(executor);
+        self.restart_health_checks();
         // We intentionally do not restart the `post_run` retry future. Currently, there is not
         // a way to track if `post_run` ran successfully following a Supervisor restart.
         // See https://github.com/habitat-sh/habitat/issues/6739
@@ -512,11 +511,7 @@ impl Service {
     /// Performs updates and executes hooks.
     ///
     /// Returns `true` if the service was marked to be restarted or reconfigured.
-    pub fn tick(&mut self,
-                census_ring: &CensusRing,
-                launcher: &LauncherCli,
-                executor: &Handle)
-                -> bool {
+    pub async fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> bool {
         // We may need to block the service from starting until all
         // its binds are satisfied
         if !self.initialized() {
@@ -549,7 +544,7 @@ impl Service {
 
         match self.topology {
             Topology::Standalone => {
-                self.execute_hooks(launcher, executor, &template_update);
+                self.execute_hooks(launcher, &template_update);
             }
             Topology::Leader => {
                 let census_group =
@@ -589,7 +584,7 @@ impl Service {
                                       leader_id.to_string());
                             self.last_election_status = census_group.election_status;
                         }
-                        self.execute_hooks(launcher, executor, &template_update);
+                        self.execute_hooks(launcher, &template_update);
                     }
                 }
             }
@@ -829,7 +824,7 @@ impl Service {
     }
 
     /// Run initialization hook if present.
-    fn initialize(&mut self, executor: &Handle) {
+    fn initialize(&mut self) {
         outputln!(preamble self.service_group, "Initializing");
         *self.initialization_state.write() = InitializationState::Initializing;
         if let Some(ref hook) = self.hooks.init {
@@ -858,7 +853,7 @@ impl Service {
             };
             let (f, handle) = future::abortable(f);
             self.initialize_handle = Some(handle);
-            executor.spawn(f);
+            tokio::spawn(f);
         } else {
             *self.initialization_state.write() = InitializationState::InitializerFinished;
         }
@@ -871,7 +866,7 @@ impl Service {
     }
 
     /// Run reconfigure hook if present.
-    fn reconfigure(&mut self, executor: &Handle) {
+    fn reconfigure(&mut self) {
         let _timer = hook_timer("reconfigure");
 
         if let Some(ref hook) = self.hooks.reload {
@@ -889,11 +884,11 @@ impl Service {
             // The intention here is to do a health check soon after a service's configuration
             // changes, as a way to (among other things) detect potential impacts when bound
             // services change exported configuration.
-            self.restart_health_checks(executor);
+            self.restart_health_checks();
         }
     }
 
-    fn post_run(&mut self, executor: &Handle) {
+    fn post_run(&mut self) {
         if let Some(ref hook) = self.hooks.post_run {
             let hook_runner = HookRunner::new(Arc::clone(&hook),
                                               self.service_group.clone(),
@@ -902,7 +897,7 @@ impl Service {
             let f = HookRunner::retryable_future(hook_runner);
             let (f, handle) = future::abortable(f);
             self.post_run_handle = Some(handle);
-            executor.spawn(f);
+            tokio::spawn(f);
         }
     }
 
@@ -1016,11 +1011,7 @@ impl Service {
     }
 
     /// Returns `true` if the service was marked to be restarted or reconfigured.
-    fn execute_hooks(&mut self,
-                     launcher: &LauncherCli,
-                     executor: &Handle,
-                     template_update: &TemplateUpdate)
-                     -> bool {
+    fn execute_hooks(&mut self, launcher: &LauncherCli, template_update: &TemplateUpdate) -> bool {
         let up = self.check_process(launcher);
         // It is ok that we do not hold this lock while we are performing the match. If we
         // transistion states while we are matching, we will catch the new state on the next tick.
@@ -1031,17 +1022,17 @@ impl Service {
                 // Supervisor was restarted and we just have to reattach to the
                 // process.
                 if up {
-                    self.reattach(executor);
+                    self.reattach();
                 } else {
-                    self.initialize(executor);
+                    self.initialize();
                 }
             }
             InitializationState::Initializing => {
                 // Wait until the initializer finishes running
             }
             InitializationState::InitializerFinished => {
-                self.start(launcher, executor);
-                self.post_run(executor);
+                self.start(launcher);
+                self.post_run();
                 *self.initialization_state.write() = InitializationState::Initialized;
             }
             InitializationState::Initialized => {
@@ -1056,7 +1047,7 @@ impl Service {
                     return true;
                 } else if template_update.needs_reconfigure() {
                     // Only reconfigure if we did NOT restart the service
-                    self.reconfigure(executor);
+                    self.reconfigure();
                     return true;
                 }
             }

@@ -12,7 +12,7 @@ use nats::{native_tls::TlsConnector,
 use std::{thread,
           time::{Duration,
                  Instant}};
-use tokio::runtime::Runtime;
+use tokio::runtime::Handle;
 
 const NATS_SCHEME: &str = "nats://";
 const EVENT_CHANNEL_SIZE: usize = 1024;
@@ -30,7 +30,7 @@ fn nats_uri(uri: &str, auth_token: &str) -> String {
 }
 
 pub(super) fn init_stream(conn_info: EventStreamConnectionInfo,
-                          runtime: &mut Runtime)
+                          runtime: &Handle)
                           -> Result<EventStream> {
     let (event_tx, mut event_rx) = futures_mpsc::channel::<EventPacket>(EVENT_CHANNEL_SIZE);
 

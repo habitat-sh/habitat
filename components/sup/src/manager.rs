@@ -618,12 +618,11 @@ impl Manager {
                 sys_ip: IpAddr)
                 -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
-        let mut runtime =
-            RuntimeBuilder::new().threaded_scheduler()
-                                 .num_threads(TokioThreadCount::configured_value().into())
-                                 .enable_all()
-                                 .build()
-                                 .expect("Couldn't build Tokio Runtime!");
+        let runtime = RuntimeBuilder::new().threaded_scheduler()
+                                           .num_threads(TokioThreadCount::configured_value().into())
+                                           .enable_all()
+                                           .build()
+                                           .expect("Couldn't build Tokio Runtime!");
         let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
         outputln!("{} ({})", SUP_PKG_IDENT, current);
         let cfg_static = cfg.clone();
@@ -692,7 +691,7 @@ impl Manager {
             let ec = EventCore::new(&es_config, &sys, fqdn);
             // unwrap won't fail here; if there were an issue, from_env()
             // would have already propagated an error up the stack.
-            event::init_stream(es_config, ec, &mut runtime)?;
+            event::init_stream(es_config, ec, runtime.handle())?;
         }
 
         let pid_source = ServicePidSource::determine_source(cfg.feature_flags, &launcher);
@@ -1138,7 +1137,18 @@ impl Manager {
                 // this var goes out of scope
                 #[allow(unused_variables)]
                 let service_timer = service_hist.start_timer();
-                if service.tick(&self.census_ring, &self.launcher, self.runtime.handle()) {
+                // The service tick function is itentially async even though we could make it
+                // sychronous. We then block on executing the returned future essentially turning it
+                // back into a synchronous call. We do this for two reasons:
+                // 1. It allows us to use tokio::spawn within the Service code instead of passing
+                // around handles to the runtime.
+                // 2. It is a small, yet significant, step away from the event loop architecture
+                // towards a future per service architecture. TODO: (DM) It would be
+                // staightforward to join every tick into a single future and block on the joined
+                // future allowing each service to "tick" concurrently.
+                if self.runtime
+                       .block_on(service.tick(&self.census_ring, &self.launcher))
+                {
                     self.gossip_latest_service_rumor_rsw_mlw_rhw(&service);
                 }
             }

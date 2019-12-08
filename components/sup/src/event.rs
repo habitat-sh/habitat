@@ -45,7 +45,7 @@ use state::Container;
 use std::{net::SocketAddr,
           sync::Once,
           time::Duration};
-use tokio::runtime::Runtime;
+use tokio::runtime::Handle;
 
 const SERVICE_STARTED_SUBJECT: &str = "habitat.event.service_started";
 const SERVICE_STOPPED_SUBJECT: &str = "habitat.event.service_stopped";
@@ -68,9 +68,12 @@ type EventStreamContainer = Mutex<EventStream>;
 /// server. Stashes the handle to the stream, as well as the core
 /// event information that will be a part of all events, in a global
 /// static reference for access later.
+///
+/// TODO (DM): It is unfortunate we have to pass a handle to the tokio runtime here. It would be
+/// more idiomatic if we spawned a single top level future and used tokio::spawn within that future.
 pub fn init_stream(config: EventStreamConfig,
                    event_core: EventCore,
-                   runtime: &mut Runtime)
+                   runtime: &Handle)
                    -> Result<()> {
     // call_once can't return a Result (or anything), so we'll fake it
     // by hanging onto any error we might receive.

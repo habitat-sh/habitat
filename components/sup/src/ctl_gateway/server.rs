@@ -40,10 +40,8 @@ use std::{error,
           pin::Pin,
           sync::{Arc,
                  Mutex},
-          thread,
           time::Duration};
 use tokio::{net::TcpListener,
-            runtime::Runtime,
             time};
 use tokio_util::codec::Decoder;
 
