@@ -46,7 +46,8 @@ use cpu_time::ProcessTime;
 use futures::{channel::{mpsc as fut_mpsc,
                         oneshot},
               future,
-              prelude::*};
+              prelude::*,
+              stream::FuturesUnordered};
 use habitat_butterfly::{member::Member,
                         server::{timing::Timing,
                                  ServerProxy,
@@ -97,7 +98,8 @@ use std::{collections::{HashMap,
                BufReader,
                Read,
                Write},
-          iter::IntoIterator,
+          iter::{FromIterator,
+                 IntoIterator},
           net::{IpAddr,
                 SocketAddr},
           path::{Path,
@@ -1197,20 +1199,21 @@ impl Manager {
                 outputln!("Gracefully departing from butterfly network.");
                 self.butterfly.set_departed_mlw_smw_rhw();
 
-                for svc in self.state.services.lock_msw().drain_services() {
-                    self.runtime.spawn(self.stop_service_future_gsw(svc, None));
-                }
+                let service_stop_futures =
+                    FuturesUnordered::from_iter(self.state
+                                                    .services
+                                                    .lock_msw()
+                                                    .drain_services()
+                                                    .map(|svc| {
+                                                        self.stop_service_future_gsw(svc, None)
+                                                    }));
+                // Wait while all services are stopped
+                self.runtime
+                    .block_on(service_stop_futures.collect::<Vec<_>>());
             }
         }
 
-        // Allow all existing futures to run to completion.
         event::stop_stream();
-        // TODO: There is no equivalent of this in tokio 0.2. See discussion here
-        // https://github.com/tokio-rs/tokio/issues/1156
-        // self.runtime
-        //     .shutdown_on_idle()
-        //     .wait()
-        //    .expect("Error waiting on Tokio runtime to shutdown");
 
         release_process_lock(&self.fs_cfg);
         self.butterfly.persist_data_rsr_mlr();
