@@ -18,7 +18,6 @@ use futures::{channel::mpsc,
               ready,
               task::{Context,
                      Poll}};
-use habitat_common::liveliness_checker;
 use habitat_core::crypto;
 use habitat_sup_protocol::{self as protocol,
                            codec::{SrvCodec,
@@ -345,13 +344,12 @@ impl Future for SrvHandler {
     /// # Locking (see locking.md)
     /// * `GatewayState::inner` (read)
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
-        let _: liveliness_checker::ThreadUnregistered = loop {
-            let checked_thread = liveliness_checker::mark_thread_alive();
+        loop {
             match self.state {
                 SrvHandlerState::Receiving => {
                     match ready!(self.io.poll_next_unpin(cx)) {
                         None => {
-                            break checked_thread.unregister(Ok(()));
+                            break;
                         }
                         Some(Ok(msg)) => {
                             self.start_timer(&msg.message_id());
@@ -363,7 +361,7 @@ impl Future for SrvHandler {
                             {
                                 Ok(cmd) => cmd,
                                 Err(_) => {
-                                    break checked_thread.unregister(Ok(()));
+                                    break;
                                 }
                             };
                             if let Err(err) = futures::ready!(self.mgr_sender.poll_ready(cx)) {
@@ -428,10 +426,10 @@ impl Future for SrvHandler {
                         timer.observe_duration();
                     }
                     trace!("OnMessage complete");
-                    break checked_thread.unregister(Ok(()));
+                    break;
                 }
             }
-        };
+        }
         Poll::Ready(Ok(()))
     }
 }
