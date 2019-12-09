@@ -132,7 +132,12 @@ purge_fastly_cache() {
 	local service_key="${1}"
 	local channel="${2:-}"
 	local token
-	token=$(fastly_token)
+
+	if [ -n "${FASTLY_API_KEY:-}" ]; then
+		token="$FASTLY_API_KEY"
+	else
+		token=$(fastly_token)
+	fi
 
 	if [ -n "$channel" ]; then
 		curl -X POST -H "Fastly-Key: ${token}" "https://api.fastly.com/service/$service_key/purge/${channel}/habitat/latest"

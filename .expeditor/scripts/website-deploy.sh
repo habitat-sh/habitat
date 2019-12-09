@@ -4,7 +4,15 @@
 
 set -euo pipefail
 
-source .expeditor/scripts/shared.sh
+# Explicitly get the current directory rather than assuming this is being run
+# from the root of the habitat project, because this script is called from
+# multiple places.
+mydir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+
+echo "mydir = $mydir"
+
+# shellcheck source=/dev/null
+source "$mydir/shared.sh"
 
 env="${1:-}"
 
@@ -20,7 +28,7 @@ elif [ "$env" == "production" ]; then
 fi
 
 # verify that all the environment variables are properly set
-vars=(AWS_BUCKET AWS_DEFAULT_REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY FASTLY_API_KEY FASTLY_SERVICE_KEY)
+vars=(AWS_BUCKET AWS_DEFAULT_REGION FASTLY_SERVICE_KEY)
 for var in "${vars[@]}"
 do
   if [ -z "${!var:-}" ]; then
@@ -29,8 +37,10 @@ do
   fi
 done
 
-cd www
+(
+cd "$mydir/../../www"
 make build
 cd build
 s3_sync "." "s3://$AWS_BUCKET"
 purge_fastly_cache "$FASTLY_SERVICE_KEY"
+)

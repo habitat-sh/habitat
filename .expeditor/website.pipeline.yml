@@ -17,7 +17,7 @@ expeditor:
 steps:
   - label: "Deploy the website :pen:"
     command:
-      - .expeditor/scripts/verify/website-deploy.sh production
+      - .expeditor/scripts/website-deploy.sh production
     expeditor:
       executor:
         docker:
