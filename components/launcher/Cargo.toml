@@ -21,7 +21,7 @@ ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt
 libc = "*"
 log = "*"
 # Must use fork see https://github.com/habitat-sh/habitat/issues/7270
-prost = { git = "https://github.com/dingelish/prost" }
+prost = { git = "https://github.com/habitat-sh/prost" }
 semver = "*"
 time = "*"
 
