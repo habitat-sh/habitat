@@ -5,12 +5,8 @@
 # with the new version pin and any code base formatting changes from the
 # new version.
 #
-# Once an rustfmt nightly toolchain version is selected, we use the same
+# Once a rustfmt nightly toolchain version is selected, we use the same
 # toolchain version for the RUST_NIGHTLY_VERSION version pin.
-# The RUST_NIGHTLY_VERSION file defines the toolchain used for cargo test.
-# Since simply running `cargo test` does not require the installation
-# of any additional rust components, using the same toolchain selected
-# for rustfmt suffices.
 
 # Assumptions:
 # 1. This script runs on a x86_64-unknown-linux-gnu target
