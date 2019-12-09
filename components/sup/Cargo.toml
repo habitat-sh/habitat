@@ -42,6 +42,7 @@ nats = { git = "https://github.com/habitat-sh/rust-nats", rev = "a4c24be66fc54c0
 notify = "*"
 num_cpus = "*"
 parking_lot = "*"
+pin-project = "*"
 prometheus = "*"
 # Must use fork see https://github.com/habitat-sh/habitat/issues/7270
 prost = { git = "https://github.com/dingelish/prost" }

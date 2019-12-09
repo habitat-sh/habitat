@@ -28,6 +28,7 @@ use habitat_sup_protocol::{self as protocol,
                                  ErrCode,
                                  NetErr,
                                  NetResult}};
+use pin_project::pin_project;
 use prometheus::{HistogramTimer,
                  HistogramVec,
                  IntCounterVec};
@@ -201,13 +202,15 @@ impl Client {
 
 /// A `Future` that will resolve into a stream of one or more `SrvMessage` replies.
 #[must_use = "futures do nothing unless polled"]
+#[pin_project]
 struct SrvHandler {
-    io:           SrvStream,
-    state:        SrvHandlerState,
-    mgr_sender:   MgrSender,
+    #[pin]
+    io: SrvStream,
+    state: SrvHandlerState,
+    mgr_sender: MgrSender,
     ctl_receiver: CtlReceiver,
-    ctl_sender:   CtlSender,
-    timer:        Option<HistogramTimer>,
+    ctl_sender: CtlSender,
+    timer: Option<HistogramTimer>,
 }
 
 impl SrvHandler {
@@ -399,14 +402,15 @@ impl Future for SrvHandler {
                             if msg.is_complete() {
                                 self.state = SrvHandlerState::Sent;
                             }
-                            if let Err(err) = futures::ready!(Pin::new(&mut self.io).poll_ready(cx))
+                            if let Err(err) =
+                                futures::ready!(self.as_mut().project().io.poll_ready(cx))
                             {
                                 return Poll::Ready(Err(HandlerError::from(err)));
                             }
-                            match Pin::new(&mut self.io).start_send(msg) {
+                            match self.as_mut().project().io.start_send(msg) {
                                 Ok(()) => {
                                     if let Err(err) =
-                                        futures::ready!(Pin::new(&mut self.io).poll_flush(cx))
+                                        futures::ready!(self.as_mut().project().io.poll_flush(cx))
                                     {
                                         return Poll::Ready(Err(HandlerError::from(err)));
                                     }
