@@ -939,9 +939,6 @@ report_env_vars() {
   if [ -n "${no_proxy:-}" ]; then
     info "Exported: no_proxy=$no_proxy"
   fi
-  if [ -n "${SSL_CERT_FILE:-}" ]; then
-    info "Exported: SSL_CERT_FILE=$SSL_CERT_FILE"
-  fi
 
   for secret_name in $(load_secrets | $bb cut -d = -f 1); do
     info "Exported: $secret_name=[redacted]"
