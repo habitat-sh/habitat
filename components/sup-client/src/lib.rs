@@ -44,9 +44,14 @@ use habitat_common as common;
 use std::{error,
           fmt,
           io,
-          path::PathBuf};
-use tokio::net::TcpStream;
+          path::PathBuf,
+          time::Duration};
+use tokio::{net::TcpStream,
+            time};
 use tokio_util::codec::Framed;
+
+/// Time to wait in milliseconds for a client connection to timeout.
+pub const REQ_TIMEOUT: u64 = 10_000;
 
 /// Error types returned by a [`SrvClient`].
 #[derive(Debug)]
@@ -146,10 +151,15 @@ impl SrvClient {
         message.set_transaction(current_transaction);
         socket.send(message).await?;
 
-        // Verify the handshake response
-        socket.next()
-              .await
-              .ok_or(SrvClientError::ConnectionClosed)??;
+        // Verify the handshake response. There are three kinds of errors we could encounter:
+        // 1. The handshake timedout
+        // 2. The `socket.next()` call returns `None` indicating the connection was unexpectedly
+        // closed by the server
+        // 3. Any other socket io error
+        let handshake_result =
+            time::timeout(Duration::from_millis(REQ_TIMEOUT), socket.next()).await;
+        handshake_result.map_err(|_| io::Error::new(io::ErrorKind::TimedOut, "client timed out"))?
+                        .ok_or(SrvClientError::ConnectionClosed)??;
 
         // Send the actual request message
         current_transaction.increment();

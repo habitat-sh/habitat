@@ -162,11 +162,6 @@ impl Client {
     /// Initiate a handshake with the connected client before allowing future requests. A failed
     /// handshake will close the connection.
     async fn handshake(&self, socket: &mut SrvStream) -> Result<(), HandlerError> {
-        let secret_key = self.state
-                             .lock()
-                             .expect("SrvState mutex poisoned")
-                             .secret_key
-                             .to_string();
         let message = socket.next()
                             .await
                             .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))??;
@@ -179,6 +174,11 @@ impl Client {
             match message.parse::<protocol::ctl::Handshake>() {
                 Ok(decoded) => {
                     trace!("Received handshake, {:?}", decoded);
+                    let secret_key = self.state
+                                         .lock()
+                                         .expect("SrvState mutex poisoned")
+                                         .secret_key
+                                         .to_string();
                     let decoded_key = decoded.secret_key.unwrap_or_default();
                     crypto::secure_eq(decoded_key, secret_key)
                 }
@@ -464,7 +464,13 @@ pub async fn run(listen_addr: SocketAddr, secret_key: String, mgr_sender: MgrSen
     while let Some(tcp_stream) = incoming.next().await {
         match tcp_stream {
             Ok(tcp_stream) => {
-                let addr = tcp_stream.peer_addr().expect("Couldn't get peer address!");
+                let addr = match tcp_stream.peer_addr() {
+                    Ok(addr) => addr,
+                    Err(e) => {
+                        debug!("Client peer address not available from socket, err {}", e);
+                        continue;
+                    }
+                };
                 let io = SrvCodec::new().framed(tcp_stream);
                 let client = Client { state: Arc::clone(&state), };
                 tokio::spawn(async move {
