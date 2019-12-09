@@ -23,6 +23,10 @@ fi
 # All the remaining args are passed to cargo test +"$toolchain"
 
 install_rustup
+# In this context we are installing a nightly toolchain and do not
+# require any additional components, we'll set a minimal profile.
+# https://blog.rust-lang.org/2019/10/15/Rustup-1.20.0.html#profiles
+rustup set profile minimal
 install_rust_toolchain "$toolchain"
 
 # TODO: fix this upstream, it looks like it's not saving correctly.
@@ -62,7 +66,7 @@ TESTING_FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
 
 export RUST_BACKTRACE=1
 
-echo "--- Running cargo +$toolchain test with on $scope with $*"
+echo "--- Running cargo +$toolchain test with scope '$scope' and args '$*'"
 
 if [[ -n ${component:-} ]]; then
   cd "components/$component"

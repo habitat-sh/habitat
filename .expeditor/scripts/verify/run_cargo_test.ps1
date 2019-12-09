@@ -28,6 +28,10 @@ If($Features) {
 
 # Set cargo test invocation
 Install-Rustup $toolchain
+# In this context we are installing a nightly toolchain and do not
+# require any additional components, we'll set a minimal profile.
+# https://blog.rust-lang.org/2019/10/15/Rustup-1.20.0.html#profiles
+rustup set profile minimal
 Install-RustToolchain $toolchain
 $CargoTestCommand = "cargo +$toolchain test $FeatureString -- $TestOptions"
 
