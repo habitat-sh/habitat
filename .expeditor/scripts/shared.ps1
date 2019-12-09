@@ -78,7 +78,31 @@ function Install-Rustup($Toolchain) {
   } else {
       Write-Host "Installing rustup and $toolchain-x86_64-pc-windows-msvc Rust."
       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-      invoke-restmethod -usebasicparsing 'https://static.rust-lang.org/rustup/dist/i686-pc-windows-gnu/rustup-init.exe' -outfile 'rustup-init.exe'
+      # We occasionally would see the following error in CI, which would fail our builds and abort the pipeline: 
+      #     invoke-restmethod : Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host.
+      # Wrap the dowload in a retry loop to prevent the issue if it was an transient network issue, 
+      # and try/catch to allow us to print out some potentially useful information about the failure. 
+      $RetryCount = 0
+      while( $RetryCount -lt 5 ) {
+        try { 
+          $RetryCount += 1
+          Invoke-RestMethod -UseBasicParsing 'https://static.rust-lang.org/rustup/dist/i686-pc-windows-gnu/rustup-init.exe' `
+                            -OutFile 'rustup-init.exe' 
+          break
+        } catch {
+          Write-Host "--- (Tries: $RetryCount) Unable to install rustup"
+          # Dig into the exception to get the Response details.
+          Write-Host "StatusCode:" $_.Exception.Response.StatusCode.value__ 
+          Write-Host "StatusDescription:" $_.Exception.Response.StatusDescription
+          Write-Host "$($_ | Format-List * -force | Out-String)"
+          Start-Sleep -seconds 5
+        }
+      } 
+      if( $RetryCount -ge 5) {
+        Write-Host "--- Unable to install rustup after 5 tries"
+        exit 1
+      }
+
       ./rustup-init.exe -y --default-toolchain $toolchain-x86_64-pc-windows-msvc --no-modify-path --profile=minimal
       $env:path += ";$env:USERPROFILE\.cargo\bin"
   }
