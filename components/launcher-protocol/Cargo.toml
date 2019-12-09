@@ -7,14 +7,14 @@ build = "build.rs"
 workspace = "../../"
 
 [dependencies]
-bytes = "0.5.0"
-# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+bytes = "*"
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
 prost = { git = "https://github.com/dingelish/prost" }
-# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
 prost-derive = { git = "https://github.com/dingelish/prost" }
 serde = "*"
 serde_derive = "*"
 
 [build-dependencies]
-# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
 prost-build = { git = "https://github.com/dingelish/prost" }

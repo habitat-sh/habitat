@@ -1148,6 +1148,7 @@ impl Manager {
                 // towards a future per service architecture. TODO: (DM) It would be
                 // staightforward to join every tick into a single future and block on the joined
                 // future allowing each service to "tick" concurrently.
+                // See https://github.com/habitat-sh/habitat/issues/7112
                 if self.runtime
                        .block_on(service.tick(&self.census_ring, &self.launcher))
                 {

@@ -15,13 +15,15 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-bytes = "0.5.0"
+bytes = "*"
 actix-web = { version = "*", default-features = false, features = [ "rust-tls" ] }
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 cpu-time = "*"
+# futures 0.1 is needed because actix-web has not yet upgraded to futures 0.3.
+# We must hardcode the new version of futures here because we also depened on futures 0.1
+# See https://github.com/habitat-sh/habitat/issues/7271
 futures = { version = "0.3.1" }
-# futures 0.1 is needed because actix-web has not yet upgraded to futures 0.3
 futures01 = { package = "futures", version = "0.1" }
 glob = "*"
 hab = { path = "../hab" }
@@ -41,11 +43,11 @@ notify = "*"
 num_cpus = "*"
 parking_lot = "*"
 prometheus = "*"
-# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
 prost = { git = "https://github.com/dingelish/prost" }
-# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
 prost-derive = { git = "https://github.com/dingelish/prost" }
-# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
 prost-types = { git = "https://github.com/dingelish/prost" }
 rand = "*"
 regex = "*"
@@ -60,8 +62,8 @@ tempfile = "*"
 termcolor = "*"
 time = "*"
 toml = { version = "*", default-features = false }
-tokio = { version = "0.2", features = ["full"] }
-tokio-util = { version = "0.2", features = ["full"] }
+tokio = { version = "*", features = ["full"] }
+tokio-util = { version = "*", features = ["full"] }
 url = "*"
 valico = "*"
 
@@ -85,7 +87,7 @@ hyper = "*"
 json = "*"
 
 [build-dependencies]
-# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
 prost-build = { git = "https://github.com/dingelish/prost" }
 
 [features]

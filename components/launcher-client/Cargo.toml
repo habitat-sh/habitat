@@ -14,6 +14,6 @@ habitat_common = { path = "../common" }
 ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }
 libc = "*"
 log = "*"
-# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
 prost = { git = "https://github.com/dingelish/prost" }
 serde = "*"

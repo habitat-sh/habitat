@@ -21,9 +21,9 @@ log = "*"
 lazy_static = "*"
 prometheus = "*"
 parking_lot = "*"
-# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
 prost = { git = "https://github.com/dingelish/prost" }
-# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
 prost-derive = { git = "https://github.com/dingelish/prost" }
 rand = "*"
 serde = { version = "*", features = ["rc"] }
@@ -42,9 +42,9 @@ mktemp = "*"
 [build-dependencies]
 heck = "*"
 pkg-config = "*"
-# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
 prost = { git = "https://github.com/dingelish/prost" }
-# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
 prost-build = { git = "https://github.com/dingelish/prost" }
 tempfile = "*"
 
