@@ -13,8 +13,7 @@ toolchain="$(get_toolchain)"
 install_rustup
 rustup install "$toolchain"
 
-echo "--- :ruby: Install hub"
-gem install hub
+install_hub
 
 echo "--- :habicat: Installing and configuring build dependencies"
 hab pkg install core/libsodium core/libarchive core/openssl core/zeromq
@@ -51,6 +50,6 @@ if [ "$update_status" == "failure" ]; then
 fi
 echo "$pr_message"
 echo "--- :github: Open Pull Request"
-hub pull-request --no-edit --draft "$pr_message" --labels "$pr_labels"
+hub pull-request --push --no-edit --draft "$pr_message" --labels "$pr_labels"
 
 
