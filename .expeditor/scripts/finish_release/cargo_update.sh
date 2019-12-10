@@ -39,17 +39,24 @@ git add Cargo.lock
 
 git commit -s -m "Update Cargo.lock"
 
-pr_message=""
 pr_labels=""
+pr_message=""
 if [ "$update_status" == "failure" ]; then 
-  reason="Unable to update Cargo.lock!"
-  details="For details on the failure, please visit ${BUILDKITE_BUILD_URL:-No Buildkite url}#${BUILDKITE_JOB_ID:-No Buildkite job id}"
-
-  pr_message="--message \"$reason\" --message \"$details\""
   pr_labels="T-DO-NOT-MERGE"
+
+  # read always exits 1 if it can't find a delimeter
+  # -d '' will always trigger this case as there is no delimeter to fine, 
+  # but that is required in order to write the entire message into a single PR 
+  # preserving newlines.
+  read -r -d '' pr_message <<EOM || true
+Unable to update Cargo.lock!
+
+For details on the failure, please visit ${BUILDKITE_BUILD_URL:-No Buildkite url}#${BUILDKITE_JOB_ID:-No Buildkite job id}
+EOM
+
 fi
 echo "$pr_message"
-echo "--- :github: Open Pull Request"
-hub pull-request --push --no-edit --draft "$pr_message" --labels "$pr_labels"
-
+hub pull-request --push --no-edit --draft --labels "$pr_labels" --file - <<EOM
+"$pr_message"
+EOM
 
