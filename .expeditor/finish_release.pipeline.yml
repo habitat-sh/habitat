@@ -9,42 +9,42 @@ expeditor:
         PIPELINE_HAB_BLDR_URL: "https://bldr.habitat.sh"
 
 steps:
-  - label: ":github: Create GitHub Release"
-    command:
-      - .expeditor/scripts/finish_release/create_github_release.sh
-    expeditor:
-      secrets:
-        GITHUB_TOKEN:
-          account: github
-          field: token
-      executor:
-        docker:
-
-  - label: ":chocolate_bar: Publish Chocolatey package"
-    command:
-      - powershell .expeditor/scripts/finish_release/publish_to_chocolatey.ps1
-    expeditor:
-      secrets:
-        CHOCO_API_KEY:
-          path: account/static/chocolatey/habitat
-          field: api_key
-      executor:
-        docker:
-          host_os: windows
-          environment:
-
-  - label: ":rust: Check for new nightly rustfmt version"
-    command:
-      - .expeditor/scripts/finish_release/bump_rustfmt.sh
-    expeditor:
-      secrets:
-        GITHUB_TOKEN:
-          account: github
-          field: token
-      executor:
-        linux:
-          privileged: true
-    soft_fail: true
+  # - label: ":github: Create GitHub Release"
+    # command:
+      # - .expeditor/scripts/finish_release/create_github_release.sh
+    # expeditor:
+      # secrets:
+        # GITHUB_TOKEN:
+          # account: github
+          # field: token
+      # executor:
+        # docker:
+#
+  # - label: ":chocolate_bar: Publish Chocolatey package"
+    # command:
+      # - powershell .expeditor/scripts/finish_release/publish_to_chocolatey.ps1
+    # expeditor:
+      # secrets:
+        # CHOCO_API_KEY:
+          # path: account/static/chocolatey/habitat
+          # field: api_key
+      # executor:
+        # docker:
+          # host_os: windows
+          # environment:
+#
+  # - label: ":rust: Check for new nightly rustfmt version"
+    # command:
+      # - .expeditor/scripts/finish_release/bump_rustfmt.sh
+    # expeditor:
+      # secrets:
+        # GITHUB_TOKEN:
+          # account: github
+          # field: token
+      # executor:
+        # linux:
+          # privileged: true
+    # soft_fail: true
   
   - label: ":rust: Cargo update"
     command:
