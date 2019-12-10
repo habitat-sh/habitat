@@ -12,8 +12,8 @@ clean:
 run: build
 	BUILDER_WEB_URL="http://localhost:3000" GITHUB_APP_URL="https://github.com/apps/habitat-builder" bundle exec middleman serve
 
-deploy_prod: check-env
-	../.expeditor/scripts/website-deploy.sh production
+deploy_live: check-env
+	../.expeditor/scripts/website-deploy.sh live
 .PHONY: deploy_prod
 
 deploy_acceptance: check-env

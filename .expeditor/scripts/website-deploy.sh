@@ -16,16 +16,12 @@ source "$mydir/shared.sh"
 
 env="${1:-}"
 
-if [[ "$env" != "acceptance" && "$env" != "production"  ]]; then
-  echo "The argument to this script should be either 'acceptance' or 'production'"
+if [[ "$env" != "acceptance" && "$env" != "live"  ]]; then
+  echo "The argument to this script should be either 'acceptance' or 'live'"
   exit 1
 fi
 
-if [ "$env" == "acceptance" ]; then
-  export AWS_BUCKET="habitat-www-acceptance"
-elif [ "$env" == "production" ]; then
-  export AWS_BUCKET="habitat-www-live"
-fi
+export AWS_BUCKET="habitat-www-$env"
 
 # verify that all the environment variables are properly set
 vars=(AWS_BUCKET AWS_DEFAULT_REGION FASTLY_SERVICE_KEY)
