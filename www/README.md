@@ -37,7 +37,8 @@ In some cases, you may need to install `gawk` in order to obtain the `ffi` gem. 
 
 ## How-To: Deploy
 
-This happens automatically now as part of our CI pipeline. When a PR is opened,
-if files inside the `www` directory were modified, then the web site will be
-deployed to acceptance. When a PR merges to master, the same check is done, and
-the web site will be deployed to production, if necessary.
+This happens automatically now as part of our CI pipeline.  When a PR merges
+to master, the web site will automatically be deployed to production. Deploys
+of the web site to acceptance is still a manual process, accomplished by
+running `make deploy_acceptance`. If you need to deploy the web site to
+production manually, you can run `make deploy_live`.
