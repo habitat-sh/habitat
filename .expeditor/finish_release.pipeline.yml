@@ -45,3 +45,15 @@ steps:
         linux:
           privileged: true
     soft_fail: true
+  
+  - label: ":rust: Cargo update"
+    command:
+      - .expeditor/scripts/finish_release/cargo_update.sh
+    expeditor:
+      secrets:
+        GITHUB_TOKEN:
+          account: github
+          field: token
+      executor:
+        docker:
+    soft_fail: true
