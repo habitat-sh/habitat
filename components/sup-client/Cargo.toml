@@ -6,7 +6,7 @@ authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 workspace = "../../"
 
 [dependencies]
-futures = "*"
+futures = "0.1"
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 habitat_common = { path = "../common" }
 log = "*"

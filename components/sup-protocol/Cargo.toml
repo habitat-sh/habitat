@@ -9,7 +9,7 @@ workspace = "../../"
 [dependencies]
 base64 = "*"
 bytes = "*"
-futures = "*"
+futures = "0.1"
 habitat_core = { path = "../core" }
 lazy_static = "*"
 log = "*"
