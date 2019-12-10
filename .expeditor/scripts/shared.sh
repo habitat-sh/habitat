@@ -324,3 +324,18 @@ install_hub() {
   chmod a+x /bin/hub
   rm -rf hub-linux-amd64*
 }
+
+# Push the current branch to the project origin
+push_current_branch() {
+  repo=$(git remote get-url origin | sed -rn  's/.+github\.com[\/\:](.*)\.git/\1/p')
+  head=$(git rev-parse --abbrev-ref HEAD)
+
+  if [ "$head" == "master" ]; then 
+    echo "Error: Attempting to push to master!"
+    exit 1
+  fi
+
+  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${repo}.git" "$head"
+}
+
+
