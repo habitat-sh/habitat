@@ -56,4 +56,6 @@ steps:
           field: token
       executor:
         docker:
+          environment:
+            - GITHUB_USER=chef-ci
     soft_fail: true
