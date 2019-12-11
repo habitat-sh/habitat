@@ -20,7 +20,8 @@ use crate::{api_client::{self,
                          UI},
             error::{Error,
                     Result},
-            hcore::{package::PackageArchive,
+            hcore::{crypto::{keys::parse_name_with_rev,
+                             PUBLIC_SIG_KEY_VERSION},
                     ChannelIdent},
             PRODUCT,
             VERSION};
@@ -53,6 +54,8 @@ pub fn start(ui: &mut UI,
     let artifact_paths =
         vec_from_glob_with(&artifact_path.join("*.hart").display().to_string(), OPTIONS);
 
+    let pub_keys_paths = vec_from_glob_with(&key_path.join("*.pub").display().to_string(), OPTIONS);
+
     ui.begin(format!("Preparing to upload artifacts to the '{}' channel on {}",
                      additional_release_channel.clone()
                                                .unwrap_or_else(ChannelIdent::unstable),
@@ -64,12 +67,19 @@ pub fn start(ui: &mut UI,
     ui.status(Status::Found,
               format!("{} artifact(s) for upload.", artifact_paths.len()))?;
     ui.status(Status::Discovering,
-              String::from("origin names from local artifact cache"))?;
+              String::from("origin names from local key cache"))?;
 
     let mut origins = BTreeSet::new();
-    for artifact_path in &artifact_paths {
-        let ident = PackageArchive::new(&artifact_path).ident()?;
-        origins.insert(ident.origin);
+    for pub_key_path in pub_keys_paths {
+        // We discover origin names from the public signing keys as opposed to building the
+        // list from the packages themselves. Previously, we looped through all the artifacts
+        // using PackageArchive::new() but that proves too expensive an operation at any sort of
+        // scale.
+        debug!("Parsing public signing key {}", pub_key_path.display());
+        let name_with_rev =
+            command::origin::key::get_name_with_rev(&pub_key_path, PUBLIC_SIG_KEY_VERSION)?;
+        let (name, _rev) = parse_name_with_rev(name_with_rev)?;
+        origins.insert(name);
     }
     let mut origins_to_create: Vec<String> = Vec::new();
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
