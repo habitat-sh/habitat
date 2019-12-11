@@ -4,6 +4,9 @@
 # When found, it bumps the repo rustfmt version and submits a new PR
 # with the new version pin and any code base formatting changes from the
 # new version.
+#
+# Once a rustfmt nightly toolchain version is selected, we use the same
+# toolchain version for the RUST_NIGHTLY_VERSION version pin.
 
 # Assumptions:
 # 1. This script runs on a x86_64-unknown-linux-gnu target
@@ -63,15 +66,15 @@ run_fmt_open_pr() {
   readonly branch="expeditor/rustfmt_${version_underbar}"
   maybe_run git checkout -b "${branch}"
 
-  # update the rustfmt version pin file
-  echo "${FOUND_VERSION}" > RUSTFMT_VERSION
+  # update the version pin files
+  echo "${FOUND_VERSION}" | tee RUSTFMT_VERSION RUST_NIGHTLY_VERSION
 
   # sweep the codebase
   echo "--- :rust: Running new rustfmt"
   cargo +"$(< RUSTFMT_VERSION)" fmt --all
 
   git add --update
-  maybe_run git commit --signoff --message "\"Bump rustfmt to ${FOUND_VERSION}\""
+  maybe_run git commit --signoff --message "\"Bump nightly toolchain to ${FOUND_VERSION}\""
 
   # This script runs from a pipeline step, thus we do not
   # have access to expeditor's open_pull_request bash

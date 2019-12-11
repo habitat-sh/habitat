@@ -73,7 +73,7 @@ You would run:
 cargo +nightly-2019-05-10 fmt
 ```
 
-You may also be able to configure your editor to automatically run rustfmt every time you save. The [./support/rustfmt_nightly.sh](./support/rustfmt_nightly.sh) script may be helpful. 
+You may also be able to configure your editor to automatically run rustfmt every time you save. The [./support/rustfmt_nightly.sh](./support/rustfmt_nightly.sh) script may be helpful.
 
 # Compiling habitat binaries
 
@@ -140,6 +140,25 @@ export HAB_SUP_BINARY=/path/to/habitat/target/debug/hab-sup
 or setting the value upon execution of the `hab` binary:
 ```
 env HAB_SUP_BINARY=/path/to/habitat/target/debug/hab-sup hab sup status
+```
+
+## Running Unit Tests
+
+In order to exercise the project's unit tests you can either leverage one of the existing platform specific CI scripts or use `cargo test` on the CLI.
+
+Linux CI script
+```
+$ .expeditor/scripts/verify/run_cargo_test.sh
+```
+
+Windows CI script
+```
+$ .expeditor/scripts/verify/run_cargo_test.ps1
+```
+
+Using cargo
+```
+$ cargo +$(<RUST_NIGHTLY_VERSION) test
 ```
 
 ## Always test the habitat package

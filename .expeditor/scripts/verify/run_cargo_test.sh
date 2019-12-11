@@ -62,7 +62,7 @@ TESTING_FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
 
 export RUST_BACKTRACE=1
 
-echo "--- Running cargo +$toolchain test with on $scope with $*"
+echo "--- Running cargo +$toolchain test with scope '$scope' and args '$*'"
 
 if [[ -n ${component:-} ]]; then
   cd "components/$component"

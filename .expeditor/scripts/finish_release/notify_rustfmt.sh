@@ -26,7 +26,7 @@ send_notification() {
   local url="${1?url argument required}"
   local message
   message=$(cat <<MSG
-Hi @habitat-team, there is a rustfmt version bump PR ready for review! :jumping-habicat:
+Hi @habitat-team, there is a nightly toolchain version bump PR ready for review! :jumping-habicat:
 
 ${url}
 
