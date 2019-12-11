@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.46 -->
-## [0.90.46](https://github.com/habitat-sh/habitat/tree/0.90.46) (2019-12-11)
+<!-- latest_release 0.90.47 -->
+## [0.90.47](https://github.com/habitat-sh/habitat/tree/0.90.47) (2019-12-11)
 
 #### Merged Pull Requests
-- Unpin reqwest [#7277](https://github.com/habitat-sh/habitat/pull/7277) ([chefsalim](https://github.com/chefsalim))
+- Update release documentation [#7263](https://github.com/habitat-sh/habitat/pull/7263) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -17,6 +17,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Update release documentation [#7263](https://github.com/habitat-sh/habitat/pull/7263) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.47 -->
 - Unpin reqwest [#7277](https://github.com/habitat-sh/habitat/pull/7277) ([chefsalim](https://github.com/chefsalim)) <!-- 0.90.46 -->
 - mirror RUSTFMT_VERSION in RUST_NIGHTLY_VERSION [#7274](https://github.com/habitat-sh/habitat/pull/7274) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.45 -->
 - Retry installation of rustup in CI for Windows [#7262](https://github.com/habitat-sh/habitat/pull/7262) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.44 -->
