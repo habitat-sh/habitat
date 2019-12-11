@@ -35,6 +35,7 @@ cargo +"$toolchain" update
 echo "--- :rust: Cargo Check"
 cargo +"$toolchain" check --all --tests && update_status=$? || update_status=$?
 
+echo "--- :git: Publishing updated Cargo.lock"
 git add Cargo.lock
 
 git commit -s -m "Update Cargo.lock"
@@ -56,6 +57,7 @@ EOM
 
 fi
 echo "$pr_message"
+export GITHUB_USER="chef-ci"
 hub pull-request --push --no-edit --draft --labels "$pr_labels" --file - <<EOM
 "$pr_message"
 EOM
