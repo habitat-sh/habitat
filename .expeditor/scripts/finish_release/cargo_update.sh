@@ -57,7 +57,7 @@ EOM
 
 fi
 echo "$pr_message"
-export GITHUB_USER="chef-ci"
+HUB_VERBOSE=true
 hub pull-request --push --no-edit --draft --labels "$pr_labels" --file - <<EOM
 "$pr_message"
 EOM
