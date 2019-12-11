@@ -20,7 +20,7 @@ actix-web = { version = "*", default-features = false, features = [ "rust-tls" ]
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 cpu-time = "*"
-futures = "*"
+futures = "0.1"
 glob = "*"
 hab = { path = "../hab" }
 habitat_butterfly = { path = "../butterfly", default-features = false }
