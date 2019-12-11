@@ -157,16 +157,6 @@ docs: image ## build the docs
 		cp -r images ./target/doc/habitat_sup; \
 		echo "<meta http-equiv=refresh content=0;url=habitat_sup/index.html>" > target/doc/index.html;'
 
-tag-release:
-	git tag $(VERSION)
-	git push origin $(VERSION)
-
-delete-release-tag:
-	git tag -d $(VERSION)
-	git push origin :$(VERSION)
-
-re-tag-release: delete-release-tag tag-release
-
 define BUILD
 build-$1: image ## builds the $1 component
 	$(run) sh -c 'cd components/$1 && cargo build $(CARGO_FLAGS)'
