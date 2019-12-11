@@ -33,7 +33,7 @@ cargo clean
 cargo +"$toolchain" update
 
 echo "--- :rust: Cargo Check"
-cargo +"$toolchain" check --all --tests && update_status="success" || update_status="failure"
+cargo +"$toolchain" check --all --tests && update_status=$? || update_status=$?
 
 git add Cargo.lock
 
@@ -41,11 +41,11 @@ git commit -s -m "Update Cargo.lock"
 
 pr_labels=""
 pr_message=""
-if [ "$update_status" == "failure" ]; then 
+if [ "$update_status" -ne 0 ]; then 
   pr_labels="T-DO-NOT-MERGE"
 
   # read always exits 1 if it can't find a delimeter
-  # -d '' will always trigger this case as there is no delimeter to fine, 
+  # -d '' will always trigger this case as there is no delimeter to find, 
   # but that is required in order to write the entire message into a single PR 
   # preserving newlines.
   read -r -d '' pr_message <<EOM || true
@@ -60,3 +60,4 @@ hub pull-request --push --no-edit --draft --labels "$pr_labels" --file - <<EOM
 "$pr_message"
 EOM
 
+exit "$update_status"

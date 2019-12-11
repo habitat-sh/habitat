@@ -51,11 +51,8 @@ steps:
       - .expeditor/scripts/finish_release/cargo_update.sh
     expeditor:
       secrets:
-        GITHUB_USER:
-          account: github
-          field: user
         GITHUB_TOKEN:
-          account: github
+          account: github/chef-ci
           field: token
       executor:
         docker:
