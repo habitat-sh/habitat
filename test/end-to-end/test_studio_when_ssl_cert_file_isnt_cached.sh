@@ -19,7 +19,9 @@ rm -f ~/.hab/cache/ssl/*
 # the auto-installation of the studio on first-run triggers
 # the behavior we're attempting to test
 echo "--- Uninstalling any existing studio packages"
-hab pkg uninstall core/hab-studio || true
+while hab pkg uninstall core/hab-studio; do 
+  :; # no-op
+done
 
 echo "--- Test SSL_CERT_FILE remains unset inside the studio"
 hab studio run "echo \$SSL_CERT_FILE && test ! -v SSL_CERT_FILE"
