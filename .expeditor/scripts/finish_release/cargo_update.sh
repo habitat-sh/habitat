@@ -56,8 +56,7 @@ For details on the failure, please visit ${BUILDKITE_BUILD_URL:-No Buildkite url
 EOM
 
 fi
-echo "$pr_message"
-HUB_VERBOSE=true
+export HUB_VERBOSE=true
 hub pull-request --push --no-edit --draft --labels "$pr_labels" --file - <<EOM
 "$pr_message"
 EOM
