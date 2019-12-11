@@ -1,9 +1,5 @@
 extern crate clap;
 extern crate habitat_sup as sup;
-#[cfg(unix)]
-extern crate jemalloc_ctl;
-#[cfg(unix)]
-extern crate jemallocator;
 #[macro_use]
 extern crate log;
 #[cfg(test)]
@@ -75,7 +71,7 @@ use tempfile::TempDir;
 /// Our output key
 static LOGKEY: &str = "MN";
 
-#[cfg(unix)]
+#[cfg(all(feature = "jemalloc", unix))]
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 

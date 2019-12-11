@@ -1905,7 +1905,7 @@ fn get_fd_count() -> std::io::Result<usize> {
     Ok(fs::read_dir(FD_DIR)?.count())
 }
 
-#[cfg(unix)]
+#[cfg(all(feature = "jemalloc", unix))]
 fn track_memory_stats() {
     // We'd like to track some memory stats, but these stats are cached and only refreshed
     // when the epoch is advanced. We manually advance it here to ensure our stats are
@@ -1944,8 +1944,8 @@ fn track_memory_stats() {
                                                          .to_i64());
 }
 
-// This is a no-op on purpose because windows doesn't support jemalloc
-#[cfg(windows)]
+// This is a no-op on purpose if we do not support jemalloc
+#[cfg(not(all(feature = "jemalloc", unix)))]
 fn track_memory_stats() {}
 
 #[cfg(test)]
