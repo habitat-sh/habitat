@@ -129,7 +129,7 @@ fn paths_with_extension<P>(path: P, pattern: &str) -> Vec<PathBuf>
                                        require_literal_leading_dot: true, };
     glob_with(&path.as_ref().join(pattern).display().to_string(), options).expect("Failed to read \
                                                                                    glob pattern")
-                                                                          .filter_map(|x| x.ok())
+                                                                          .filter_map(std::result::Result::ok)
                                                                           .collect()
 }
 
