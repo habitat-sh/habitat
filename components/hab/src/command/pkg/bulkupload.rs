@@ -21,6 +21,7 @@ use crate::{api_client::{self,
             error::{Error,
                     Result},
             hcore::{crypto::{keys::parse_name_with_rev,
+                             PUBLIC_KEY_SUFFIX,
                              PUBLIC_SIG_KEY_VERSION},
                     ChannelIdent},
             PRODUCT,
@@ -49,7 +50,7 @@ pub fn start(ui: &mut UI,
              key_path: &Path)
              -> Result<()> {
     let artifact_paths = paths_with_extension(artifact_path, "hart");
-    let pub_keys_paths = paths_with_extension(key_path, "pub");
+    let pub_keys_paths = paths_with_extension(key_path, PUBLIC_KEY_SUFFIX);
 
     ui.begin(format!("Preparing to upload artifacts to the '{}' channel on {}",
                      additional_release_channel.clone()
@@ -121,16 +122,17 @@ pub fn start(ui: &mut UI,
     Ok(())
 }
 
-fn paths_with_extension<P>(path: P, pattern: &str) -> Vec<PathBuf>
+fn paths_with_extension<P>(path: P, suffix: &str) -> Vec<PathBuf>
     where P: AsRef<Path>
 {
     let options = glob::MatchOptions { case_sensitive:              true,
                                        require_literal_separator:   true,
                                        require_literal_leading_dot: true, };
-    glob_with(&path.as_ref().join(pattern).display().to_string(), options).expect("Failed to read \
-                                                                                   glob pattern")
-                                                                          .filter_map(std::result::Result::ok)
-                                                                          .collect()
+    let pattern = format!("*.{}", suffix);
+    glob_with(&path.as_ref().join(pattern).display().to_string(),
+              options).expect("Failed to read glob pattern")
+                      .filter_map(std::result::Result::ok)
+                      .collect()
 }
 
 fn ask_create_origins(ui: &mut UI) -> Result<bool> {
