@@ -92,3 +92,6 @@ plan_path = "components/pkg-mesosize"
 
 [simple-hooks]
 plan_path = "test/fixtures/plans/simple-hooks"
+
+[test-probe]
+plan_path = "test-services/test-probe"
