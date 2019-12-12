@@ -573,6 +573,19 @@ steps:
 # still build. - Linux
 #######################################################################
 
+  - label: "[build] :linux: test-probe"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+    command:
+      - hab pkg build test-services/test-probe
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[build] :linux: backline"
     env:
       HAB_LICENSE: "accept-no-persist"
