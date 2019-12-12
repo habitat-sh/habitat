@@ -340,7 +340,7 @@ impl Decoder for SrvCodec {
         buf.copy_to_slice(&mut self.recv_buf[0..header.body_len()]);
         let position = buf.position() as usize;
         let bytes = buf.into_inner();
-        bytes.split_to(position);
+        bytes.advance(position);
         Ok(Some(SrvMessage { header,
                              transaction: txn,
                              message_id,
