@@ -13,11 +13,11 @@ run: build
 	BUILDER_WEB_URL="http://localhost:3000" GITHUB_APP_URL="https://github.com/apps/habitat-builder" bundle exec middleman serve
 
 deploy_live: check-env
-	../.expeditor/scripts/website-deploy.sh live
-.PHONY: deploy_prod
+	cd ..; .expeditor/scripts/website-deploy.sh live
+.PHONY: deploy_live
 
 deploy_acceptance: check-env
-	../.expeditor/scripts/website-deploy.sh acceptance
+	cd ..; .expeditor/scripts/website-deploy.sh acceptance
 .PHONY: deploy_acceptance
 
 cli_docs:

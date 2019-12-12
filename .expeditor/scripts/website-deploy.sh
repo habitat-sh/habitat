@@ -4,15 +4,7 @@
 
 set -euo pipefail
 
-# Explicitly get the current directory rather than assuming this is being run
-# from the root of the habitat project, because this script is called from
-# multiple places.
-mydir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-
-echo "mydir = $mydir"
-
-# shellcheck source=/dev/null
-source "$mydir/shared.sh"
+source .expeditor/scripts/shared.sh
 
 env="${1:-}"
 
@@ -34,9 +26,11 @@ do
 done
 
 (
-cd "$mydir/../../www"
+cd www
 make build
 cd build
 s3_sync "." "s3://$AWS_BUCKET"
+# This is purging the cache for either www.habitat.sh or www.acceptance.habitat.sh,
+# depending on which service key was provided.
 purge_fastly_cache "$FASTLY_SERVICE_KEY"
 )
