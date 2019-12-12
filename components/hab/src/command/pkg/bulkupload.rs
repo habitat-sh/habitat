@@ -48,13 +48,8 @@ pub fn start(ui: &mut UI,
              auto_create_origins: bool,
              key_path: &Path)
              -> Result<()> {
-    const OPTIONS: glob::MatchOptions = glob::MatchOptions { case_sensitive:              true,
-                                                             require_literal_separator:   true,
-                                                             require_literal_leading_dot: true, };
-    let artifact_paths =
-        vec_from_glob_with(&artifact_path.join("*.hart").display().to_string(), OPTIONS);
-
-    let pub_keys_paths = vec_from_glob_with(&key_path.join("*.pub").display().to_string(), OPTIONS);
+    let artifact_paths = paths_with_extension(artifact_path, "hart");
+    let pub_keys_paths = paths_with_extension(key_path, "pub");
 
     ui.begin(format!("Preparing to upload artifacts to the '{}' channel on {}",
                      additional_release_channel.clone()
@@ -74,7 +69,7 @@ pub fn start(ui: &mut UI,
         // We discover origin names from the public signing keys as opposed to building the
         // list from the packages themselves. Previously, we looped through all the artifacts
         // using PackageArchive::new() but that proves too expensive an operation at any sort of
-        // scale.
+        // scale. Relevant: https://github.com/habitat-sh/habitat/issues/5153
         debug!("Parsing public signing key {}", pub_key_path.display());
         let name_with_rev =
             command::origin::key::get_name_with_rev(&pub_key_path, PUBLIC_SIG_KEY_VERSION)?;
@@ -126,10 +121,16 @@ pub fn start(ui: &mut UI,
     Ok(())
 }
 
-fn vec_from_glob_with(pattern: &str, options: glob::MatchOptions) -> Vec<PathBuf> {
-    glob_with(pattern, options).unwrap()
-                               .map(std::result::Result::unwrap)
-                               .collect()
+fn paths_with_extension<P>(path: P, pattern: &str) -> Vec<PathBuf>
+    where P: AsRef<Path>
+{
+    let options = glob::MatchOptions { case_sensitive:              true,
+                                       require_literal_separator:   true,
+                                       require_literal_leading_dot: true, };
+    glob_with(&path.as_ref().join(pattern).display().to_string(), options).expect("Failed to read \
+                                                                                   glob pattern")
+                                                                          .filter_map(|x| x.ok())
+                                                                          .collect()
 }
 
 fn ask_create_origins(ui: &mut UI) -> Result<bool> {
