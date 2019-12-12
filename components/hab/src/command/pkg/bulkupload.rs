@@ -20,7 +20,9 @@ use crate::{api_client::{self,
                          UI},
             error::{Error,
                     Result},
-            hcore::{package::PackageArchive,
+            hcore::{crypto::{keys::parse_name_with_rev,
+                             PUBLIC_KEY_SUFFIX,
+                             PUBLIC_SIG_KEY_VERSION},
                     ChannelIdent},
             PRODUCT,
             VERSION};
@@ -47,11 +49,8 @@ pub fn start(ui: &mut UI,
              auto_create_origins: bool,
              key_path: &Path)
              -> Result<()> {
-    const OPTIONS: glob::MatchOptions = glob::MatchOptions { case_sensitive:              true,
-                                                             require_literal_separator:   true,
-                                                             require_literal_leading_dot: true, };
-    let artifact_paths =
-        vec_from_glob_with(&artifact_path.join("*.hart").display().to_string(), OPTIONS);
+    let artifact_paths = paths_with_extension(artifact_path, "hart");
+    let pub_keys_paths = paths_with_extension(key_path, PUBLIC_KEY_SUFFIX);
 
     ui.begin(format!("Preparing to upload artifacts to the '{}' channel on {}",
                      additional_release_channel.clone()
@@ -64,12 +63,19 @@ pub fn start(ui: &mut UI,
     ui.status(Status::Found,
               format!("{} artifact(s) for upload.", artifact_paths.len()))?;
     ui.status(Status::Discovering,
-              String::from("origin names from local artifact cache"))?;
+              String::from("origin names from local key cache"))?;
 
     let mut origins = BTreeSet::new();
-    for artifact_path in &artifact_paths {
-        let ident = PackageArchive::new(&artifact_path).ident()?;
-        origins.insert(ident.origin);
+    for pub_key_path in pub_keys_paths {
+        // We discover origin names from the public signing keys as opposed to building the
+        // list from the packages themselves. Previously, we looped through all the artifacts
+        // using PackageArchive::new() but that proves too expensive an operation at any sort of
+        // scale. Relevant: https://github.com/habitat-sh/habitat/issues/5153
+        debug!("Parsing public signing key {}", pub_key_path.display());
+        let name_with_rev =
+            command::origin::key::get_name_with_rev(&pub_key_path, PUBLIC_SIG_KEY_VERSION)?;
+        let (name, _rev) = parse_name_with_rev(name_with_rev)?;
+        origins.insert(name);
     }
     let mut origins_to_create: Vec<String> = Vec::new();
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
@@ -116,10 +122,17 @@ pub fn start(ui: &mut UI,
     Ok(())
 }
 
-fn vec_from_glob_with(pattern: &str, options: glob::MatchOptions) -> Vec<PathBuf> {
-    glob_with(pattern, options).unwrap()
-                               .map(std::result::Result::unwrap)
-                               .collect()
+fn paths_with_extension<P>(path: P, suffix: &str) -> Vec<PathBuf>
+    where P: AsRef<Path>
+{
+    let options = glob::MatchOptions { case_sensitive:              true,
+                                       require_literal_separator:   true,
+                                       require_literal_leading_dot: true, };
+    let pattern = format!("*.{}", suffix);
+    glob_with(&path.as_ref().join(pattern).display().to_string(),
+              options).expect("Failed to read glob pattern")
+                      .filter_map(std::result::Result::ok)
+                      .collect()
 }
 
 fn ask_create_origins(ui: &mut UI) -> Result<bool> {

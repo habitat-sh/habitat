@@ -14,8 +14,7 @@ use crate::{error::{Error,
                     Result},
             hcore};
 
-// shared between origin::key::upload and origin::key::upload_latest
-fn get_name_with_rev(keyfile: &Path, expected_vsn: &str) -> Result<String> {
+pub fn get_name_with_rev(keyfile: &Path, expected_vsn: &str) -> Result<String> {
     let f = File::open(&keyfile)?;
     let f = BufReader::new(f);
     let mut lines = f.lines();
