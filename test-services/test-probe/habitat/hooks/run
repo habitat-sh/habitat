@@ -1,0 +1,20 @@
+#!{{pkgPathFor "core/bash"}}/bin/bash
+
+
+exec 2>&1
+
+echo "Running {{pkg.ident}}" # (PID: $$, PPID: $PPID, PGID: $(ps h -o pgid -p $$))"
+{{ #if bind.thing_with_a_port }}
+echo "*************************************************************"
+echo "Running with a bound service group for 'thing_with_a_port'"
+{{ #each bind.thing_with_a_port.members as |m| ~}}
+echo "- {{m.sys.hostname}}"
+{{/each ~}}
+echo "*************************************************************"
+{{ else }}
+echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+echo "Running WITHOUT a bound service group for 'thing_with_a_port'"
+echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+{{ /if }}
+
+exec test-probe -c "{{pkg.svc_config_path}}/config.toml"

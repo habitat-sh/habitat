@@ -1,0 +1,14 @@
+[package]
+name = "test-probe"
+version = "0.1.0"
+edition = "2018"
+authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+workspace = "../../"
+
+[dependencies]
+actix-web = { version = "*", default-features = false, features = [ "rust-tls" ] }
+clap = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+toml = "*"
