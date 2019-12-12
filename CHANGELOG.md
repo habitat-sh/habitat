@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.47 -->
-## [0.90.47](https://github.com/habitat-sh/habitat/tree/0.90.47) (2019-12-11)
+<!-- latest_release 0.90.48 -->
+## [0.90.48](https://github.com/habitat-sh/habitat/tree/0.90.48) (2019-12-12)
 
-#### Merged Pull Requests
-- Update release documentation [#7263](https://github.com/habitat-sh/habitat/pull/7263) ([christophermaier](https://github.com/christophermaier))
+#### New Features & Enhancements
+- bulkupload: discover origins from signing keys [#7279](https://github.com/habitat-sh/habitat/pull/7279) ([jeremymv2](https://github.com/jeremymv2))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
 ### Changes since 0.90.6 release
 
 #### New Features & Enhancements
+- bulkupload: discover origins from signing keys [#7279](https://github.com/habitat-sh/habitat/pull/7279) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.48 -->
 - Add PIDS_FROM_LAUNCHER feature to eliminate service PID files [#7214](https://github.com/habitat-sh/habitat/pull/7214) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.22 -->
 
 #### Bug Fixes
