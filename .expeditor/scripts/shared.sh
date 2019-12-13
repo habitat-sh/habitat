@@ -308,6 +308,34 @@ cache_git_credentials() {
   repo="$(git remote get-url origin | sed -rn  's/.+github\.com[\/\:](.*)\.git/\1/p')"
 
   git config credential.helper 'cache --timeout 60'
-  git config credential.https://github.com/"$repo".git.username "x-access-token:$GITHUB_TOKEN"
+  git config credential.https://github.com/"$repo".git.username "$GITHUB_TOKEN:x-oauth-basic"
 }
 
+# Open a Pull Request against the current project
+#
+# $1: Message (optional)
+# https://github.com/chef/expeditor/blob/master/components/lita-worker-image/helper_functions.sh
+open_pull_request() {
+  repo=$(git remote get-url origin | sed -rn  's/.+github\.com[\/\:](.*)\.git/\1/p')
+  head=$(git rev-parse --abbrev-ref HEAD)
+  title=$(git log --oneline --pretty=%s -1)
+
+  base="master"
+  message="${1:-}"
+
+
+  # Be safe - don't attempt to open a PR on base
+  if [[ "$head" == "$base" ]]
+  then
+    echo "ERROR: You cannot open a pull request with the same head and base."
+    exit 1
+  fi
+
+  # Push the Branch
+  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${repo}.git" "$head"
+
+  # Open the PR
+  curl --header "Authorization: token $GITHUB_TOKEN" \
+       --data "{\"title\":\"$title\",\"head\":\"$head\",\"base\":\"$base\",\"maintainer_can_modify\":true,\"message\":\"$message\",\"draft\":true,}" \
+       -XPOST "https://api.github.com/repos/$repo/pulls"
+}
