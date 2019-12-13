@@ -2,7 +2,7 @@
 
 set -eou pipefail
 
-component=${1?component argument required}
+package_path=${1?package_path argument required}
 
 # Since we are only verifying we don't have build failures, make everything
 # temp!
@@ -16,5 +16,5 @@ HAB_CACHE_KEY_PATH="$JOB_TEMP_ROOT/keys"
 
 echo "--- :key: Generating fake origin key"
 hab origin key generate
-echo "--- :hab: Running hab pkg build for $component"
-hab pkg build -D components/"$component"
+echo "--- :hab: Running hab pkg build for $package_path"
+hab pkg build -D "$package_path"

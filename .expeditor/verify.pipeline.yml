@@ -577,10 +577,10 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - hab pkg build test-services/test-probe
+      - .expeditor/scripts/verify/build_package.sh test-services/test-probe
     expeditor:
       executor:
-        docker:
+        linux:
           privileged: true
     retry:
       automatic:
@@ -590,7 +590,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.sh backline
+      - .expeditor/scripts/verify/build_package.sh components/backline
     expeditor:
       executor:
         linux:
@@ -603,7 +603,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.sh hab
+      - .expeditor/scripts/verify/build_package.sh components/hab
     expeditor:
       executor:
         linux:
@@ -616,7 +616,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.sh launcher
+      - .expeditor/scripts/verify/build_package.sh components/launcher
     expeditor:
       executor:
         linux:
@@ -629,7 +629,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.sh pkg-aci
+      - .expeditor/scripts/verify/build_package.sh components/pkg-aci
     expeditor:
       executor:
         linux:
@@ -642,7 +642,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.sh pkg-cfize
+      - .expeditor/scripts/verify/build_package.sh components/pkg-cfize
     expeditor:
       executor:
         linux:
@@ -655,7 +655,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.sh pkg-dockerize
+      - .expeditor/scripts/verify/build_package.sh components/pkg-dockerize
     expeditor:
       executor:
         linux:
@@ -668,7 +668,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.sh pkg-export-docker
+      - .expeditor/scripts/verify/build_package.sh components/pkg-export-docker
     expeditor:
       executor:
         linux:
@@ -681,7 +681,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.sh pkg-export-helm
+      - .expeditor/scripts/verify/build_package.sh components/pkg-export-helm
     expeditor:
       executor:
         linux:
@@ -694,7 +694,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.sh pkg-export-kubernetes
+      - .expeditor/scripts/verify/build_package.sh components/pkg-export-kubernetes
     expeditor:
       executor:
         linux:
@@ -707,7 +707,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.sh pkg-export-tar
+      - .expeditor/scripts/verify/build_package.sh components/pkg-export-tar
     expeditor:
       executor:
         linux:
@@ -720,7 +720,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.sh pkg-mesosize
+      - .expeditor/scripts/verify/build_package.sh components/pkg-mesosize
     expeditor:
       executor:
         linux:
@@ -733,7 +733,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.sh plan-build
+      - .expeditor/scripts/verify/build_package.sh components/plan-build
     expeditor:
       executor:
         linux:
@@ -746,7 +746,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.sh studio
+      - .expeditor/scripts/verify/build_package.sh components/studio
     expeditor:
       executor:
         linux:
@@ -759,7 +759,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.sh sup
+      - .expeditor/scripts/verify/build_package.sh components/sup
     expeditor:
       executor:
         linux:
@@ -778,7 +778,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.ps1 hab
+      - .expeditor/scripts/verify/build_package.ps1 components/hab
     expeditor:
       executor:
         docker:
@@ -793,7 +793,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.ps1 launcher
+      - .expeditor/scripts/verify/build_package.ps1 components/launcher
     expeditor:
       executor:
         docker:
@@ -807,7 +807,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.ps1 pkg-export-docker
+      - .expeditor/scripts/verify/build_package.ps1 components/pkg-export-docker
     expeditor:
       executor:
         docker:
@@ -821,7 +821,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.ps1 pkg-export-tar
+      - .expeditor/scripts/verify/build_package.ps1 components/pkg-export-tar
     expeditor:
       executor:
         docker:
@@ -836,7 +836,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.ps1 plan-build-ps1
+      - .expeditor/scripts/verify/build_package.ps1 components/plan-build-ps1
     expeditor:
       executor:
         docker:
@@ -850,7 +850,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.ps1 studio
+      - .expeditor/scripts/verify/build_package.ps1 components/studio
     expeditor:
       executor:
         docker:
@@ -864,7 +864,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.ps1 sup
+      - .expeditor/scripts/verify/build_package.ps1 components/sup
     expeditor:
       executor:
         docker:
@@ -878,7 +878,7 @@ steps:
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_component.ps1 windows-service
+      - .expeditor/scripts/verify/build_package.ps1 components/windows-service
     expeditor:
       executor:
         docker:
