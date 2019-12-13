@@ -197,7 +197,26 @@ impl ServiceUpdater {
                                                                        0);
                                 *st = RollingState::InElection
                             }
-                            _ => return None,
+                            (Some(_), None) => {
+                                debug!("No leader present; rolling Update cannot proceed until \
+                                        the {} group election finishes",
+                                       &service.service_group);
+                                return None;
+                            }
+                            (..) => {
+                                // It looks like a Supervisor finds
+                                // out "who it is" by being told by
+                                // the rest of the network. While this
+                                // does have the advantage of unifying
+                                // code paths, it could result in some
+                                // counter-intuitive situations (like
+                                // census_group.me() returning None!)
+                                error!("Supervisor does not know its own identity; rolling \
+                                        update of {} cannot proceed! Please notify the Habitat \
+                                        core team!",
+                                       service.service_group);
+                                return None;
+                            }
                         }
                     } else {
                         debug!("Rolling update, using default suitability");
