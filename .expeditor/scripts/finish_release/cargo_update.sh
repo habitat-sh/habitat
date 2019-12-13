@@ -13,7 +13,7 @@ toolchain="$(get_toolchain)"
 install_rustup
 rustup install "$toolchain"
 
-#install_hub
+install_hub
 
 echo "--- :habicat: Installing and configuring build dependencies"
 hab pkg install core/libsodium core/libarchive core/openssl core/zeromq
