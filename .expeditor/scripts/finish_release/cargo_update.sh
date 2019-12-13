@@ -49,16 +49,20 @@ if [ "$update_status" -ne 0 ]; then
   # -d '' will always trigger this case as there is no delimeter to find, 
   # but this is required in order to write the entire message into a single PR 
   # preserving newlines.
-  # read -r -d '' pr_message <<EOM || true
-# Unable to update Cargo.lock!
-#
-# For details on the failure, please visit ${BUILDKITE_BUILD_URL:-No Buildkite url}#${BUILDKITE_JOB_ID:-No Buildkite job id}
-# EOM
+   read -r -d '' pr_message <<EOM || true
+Unable to update Cargo.lock!
 
-  pr_message="Unable to update Cargo.lock!\n\nFor details on the failure, please visit ${BUILDKITE_BUILD_URL:-No Buildkite url}#${BUILDKITE_JOB_ID:-No Buildkite job id}"
+For details on the failure, please visit ${BUILDKITE_BUILD_URL:-No Buildkite url}#${BUILDKITE_JOB_ID:-No Buildkite job id}
+EOM
 fi
-response="$(open_pull_request)"
-echo "$response" | jq
 
+# Use shell to push the current branch so we can authenticate without scribbling secrets to disk
+#   or being prompted by git.
+# Hub provides better mechanisms than curl for opening a pr with a message and setting labels,
+# the latter requires multiple curl commands and parsing json responses and error handling at each step.
+push_current_branch
+hub pull-request --no-edit --draft --labels "$pr_labels" --file - <<EOF
+ "$pr_message"
+EOF
 
 exit "$update_status"
