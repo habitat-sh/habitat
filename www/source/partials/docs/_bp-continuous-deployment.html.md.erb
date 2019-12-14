@@ -1,8 +1,8 @@
-# <a name="continuous-deployment" id="continuous-deployment" data-magellan-target="continuous-deployment">Continuous deployment with Chef Habitat</a>
+## <a name="continuous-deployment" id="continuous-deployment" data-magellan-target="continuous-deployment">Continuous deployment with Chef Habitat</a>
 
 Chef Habitat provides a number of built-in features to support _continuous deployment_. Continuous deployment is the "last mile" of continuous delivery. Now that you have high-quality artifacts that have passed all tests, checked for compliance, and integrated with other components, there is still the problem of actually deploying them into production while maintaining service uptime and accounting for interdependencies over a network. For example, many applications may depend on a database cluster (with a write leader and many read followers) to be up and running. How do you upgrade the various components of that database cluster while maintaining availability to the clients?
 
-## Philosophy
+### Philosophy
 
 Many solutions take an orchestration-oriented approach to this problem. They coordinate deployments from a central point, and instruct the different entities on what to do in order. For example, we must quiesce and then terminate the write leader, wait for a failover to a follower, and then publish the fact that the old read follower is now the write leader to all the applications. We might need to signal the applications to reload themselves. Then we must upgrade the old write leader to the new version, and join it back to the cluster as a read follower. Then we must orchestrate the upgrades of all the other members, including the new write leader, and so on. The list of instructions becomes very complex, and accounting for all the possible error conditions becomes even more complex, if it is even possible.
 
@@ -10,11 +10,11 @@ More often than not, an unexpected error occurs during a complicated orchestrati
 
 As described in our article, [Why Package the App and Automation Together?](/about/why-package-automation-with-app/), we bind automation directly to the application, thereby imbuing it with autonomy to converge on a desired state. In sum, continuous deployment in Chef Habitat takes a promise-based approach rather than an obligation-based approach. We merely change the underlying condition -- the version of the application that should be running in a particular service group -- and the service group, plus all other service groups that depend on configuration values about that service group, automatically start responding to the change in configuration. They roll out those configuration changes according to the update strategies defined by the operator for that group.
 
-## Implementation
+### Implementation
 
-Continuous deployment with Chef Habitat uses two major features: materialized channels in the depot, and update strategies. 
+Continuous deployment with Chef Habitat uses two major features: materialized channels in the depot, and update strategies.
 
-### Pre-Artifact
+#### Pre-Artifact
 
 | Phase    | Description                                                                                                                    |
 |----------|--------------------------------------------------------------------------------------------------------------------------------|
@@ -36,6 +36,6 @@ Each of these phases runs per environment (acceptance, union, rehearsal, deliver
 | Smoke      | No default action. Intended to be overridden by the user if desired.                                                                                                                                                                                                                                        |
 | Functional | No default action. Intended to be overridden by the user if desired.                                                                                                                                                                                                                                        |
 
-### Supervisor Configuration
+#### Supervisor Configuration
 
 In order to enable automatic deployment in each environment during the provision stage, you should [configure the Supervisor](/docs/using-habitat/#using-updates) to use a named channel, and set its update strategy. The default channels every Chef Habitat Builder package has are "stable" and "unstable," but you can create any number of channels and subscribe different application environments and service groups to those channels, to facilitate continuous deployment and blue/green deploys.

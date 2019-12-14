@@ -111,7 +111,7 @@ Running the `hab svc load` subcommand multiple times with different package iden
 $ hab svc load core/redis
 ```
 
-## Unloading a service
+### Unloading a service
 
 To remove a service from a Supervisor, you use the `hab svc unload` subcommand. If the service is was running, then it will be stopped first, then removed. This means that the next time the Supervisor is started (or restarted), it will not run this unloaded service. For example, to remove the `yourorigin/yourname` service:
 
@@ -127,7 +127,7 @@ Sometimes you need to stop a running service for a period of time, for example d
 $ hab svc stop core/redis
 ```
 
-## Restarting a stopped service
+### Restarting a stopped service
 
 To resume running a service which has been loaded but stopped (via the `hab svc stop` subcommand explained above), you use the `hab svc start` subcommand. Let's resume our `core/redis` service with:
 
@@ -154,7 +154,7 @@ The following exit codes are emitted by the `status` command:
 * `2` - A service identifier was passed to `hab svc status` and that service is not loaded by the Supervisor
 * `3` - There is no local running Supervisor
 
-##<a name="monitor-services" id="monitor-services" data-magellan-target="monitor-services">Monitoring Services</a>
+## <a name="monitor-services" id="monitor-services" data-magellan-target="monitor-services">Monitoring Services</a>
 
 Use the HTTP API to monitor services. When a service starts, the Supervisor exposes the status of its services' health and other information through an HTTP API endpoint. This information can be useful in monitoring service health, results of leader elections, and so on.
 
@@ -529,7 +529,7 @@ Files can be encrypted for the service group they are intended. To do so, pass t
 It will then be stored encrypted in memory, and decrypted on disk.
 
 ---
-##<a name="using-encryption" id="using-encryption" data-magellan-target="using-encryption">Supervisor and Encryption</a>
+## <a name="using-encryption" id="using-encryption" data-magellan-target="using-encryption">Supervisor and Encryption</a>
 
 By default, a Supervisor runs unsecured. It communicates with other Supervisors in cleartext, and it allows any user to apply new configuration without authentication. While this is beneficial for demonstrating the concepts of Chef Habitat, users will want to provide external security on production deployments of Chef Habitat Supervisor networks.
 

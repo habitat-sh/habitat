@@ -65,7 +65,7 @@ On Windows, you can run the Supervisor as a Windows Service. You can use the `wi
 PS C:\\> hab pkg install core/windows-service
 ```
 ---
-##<a name="running-habitat-linux-containers" id="running-habitat-linux-containers" data-magellan-target="running-habitat-linux-containers">Running Chef Habitat Linux Containers</a>
+## <a name="running-habitat-linux-containers" id="running-habitat-linux-containers" data-magellan-target="running-habitat-linux-containers">Running Chef Habitat Linux Containers</a>
 
 ### Container Setup and Assumptions
 
@@ -171,15 +171,15 @@ Exported Windows images use `microsoft/windowsservercore` as their base. This is
 
 The `microsoft/windowsservercore` image is approximately 5GB. Due to this large size, you can expect that the first time you run an exported Chef Habitat service, pulling down the image may take several minutes. This wait should only occur on the very first `docker run` of any Chef Habitat Windows service. Additionally, depending on the Windows host operating system, running the container may also take considerably longer than what one is accustomed to with Linux based containers. This startup time will be highly influenced by the container isolation mode described below.
 
-### Windows containers and host kernel isolation
+### Windows Containers and Host Kernel Isolation
 
 There are two types of Windows containers and each runs under a different level of kernel isolation.
 
-#### Windows Server containers
+#### Windows Server Containers
 
 These containers, like their Linux counterparts, share the host's kernel. You can expect these containers to start pretty quickly and this is the default container type on Windows Server 2016 hosts.
 
-#### Hyper-V containers
+#### Hyper-V Containers
 
 Windows Hyper-V containers run inside of a very minimal Hyper-V VM. As a result, they do not share the host's kernel and offer a higher level of security and isolation. The cost of this isolation is that it will take longer for the container to start - perhaps a noticeable delay. Also be aware that the VM is provisioned with a default 1 GB limit of memory. If your service requires more than a gigabyte of memory, you can use the `--memory` argument with `docker run` and pass a larger limit.
 
@@ -193,7 +193,7 @@ On a Windows 10 host, Windows containers will always run inside of Hyper-V isola
 docker run --isolation hyperv -it core/mysql
 ```
 
-### Host loopback network
+### Host Loopback Network
 
 A common container pattern is to forward the container port to a local port and then access the container application by accessing `localhost` on the forwarded port. With Windows containers, published ports cannot be accessed using `localhost`. You will instead need to use the IP address of the host or the IP of the individual container to access the application's endpoint.
 
@@ -246,7 +246,7 @@ Defining a few Supervisors to be "permanent peers" _will_ provide a robust netwo
 
 If your permanent peer Supervisors are not running any services, they will be less subject to the pressures that would cause service-running Supervisors to come and go. They can exist solely to anchor the entire Supervisor network.
 
-### Pulling it all Together: A robust Supervisor network
+### Pulling It All Together: A Robust Supervisor Network
 
 With all this, we can come up with a robust Chef Habitat network architecture. In fact, this is the same architecture the Chef Habitat team uses to run the public [Builder service](https://bldr.habitat.sh).
 
@@ -288,7 +288,7 @@ For those that like to keep things succinct, the above advice can be summed up t
 2. Never run services on those Supervisors
 3. Peer all other Supervisors to those first three
 
-### Related reading
+### Related Reading
 
 If you would like additional details, the following technical journal articles describe the algorithms that form the basis of Chef Habitat's gossip system:
 
@@ -296,7 +296,7 @@ If you would like additional details, the following technical journal articles d
 * [A Robust and Scalable Peer-to-Peer Gossiping Protocol](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.8773&rep=rep1&type=pdf) by Spyros Voulgaris, Mark Jelasity, and Maarten van Steen.
 
 ---
-## <a name="container-orchestration" id="container-orchestration" data-magellan-target="container-orchestration">Container orchestration with Chef Habitat</a>
+## <a name="container-orchestration" id="container-orchestration" data-magellan-target="container-orchestration">Container Orchestration with Chef Habitat</a>
 
 Chef Habitat packages may be exported with the Supervisor directly into a [a variety of container formats](/docs/developing-packages/#pkg-exports), but frequently the container is running in a container orchestrator such as Kubernetes or Mesos. Container orchestrators provide scheduling and resource allocation, ensuring workloads are running and available. Containerized Chef Habitat packages can run within these runtimes, managing the applications while the runtimes handle the environment surrounding the application (ie. compute, networking, security).
 
@@ -306,7 +306,7 @@ Chef Habitat packages may be exported with the Supervisor directly into a [a var
 [Kubernetes](http://kubernetes.io/) is an open source container cluster manager that is available as a stand-alone platform or embedded in several distributed platforms including [Google's Container Engine](https://cloud.google.com/container-engine/), [AWS Elastic Kubernetes Service](https://aws.amazon.com/eks/), [Azure Kubernetes Service](https://azure.microsoft.com/en-us/services/kubernetes-service/), and [Red Hat OpenShift](https://openshift.com/).
 Chef Habitat and Kubernetes are complementary. While Kubernetes provides a platform for deployment, scaling, and operations of application containers across clusters of hosts, Chef Habitat manages the build pipeline and lifecycle of those application containers.
 
-## Chef Habitat on Kubernetes
+### Chef Habitat on Kubernetes
 
 Chef Habitat can export your package as a Docker container that runs on Kubernetes in the form of a pod.
 Additionally, a Chef Habitat bastion pod provides essential gossip ring features like service discovery (binds), secrets and the required [initial peer](/docs/best-practices/#robust-supervisor-networks) to all other pods.
@@ -420,7 +420,7 @@ The `readinessProbe` signals to Kubernetes that the pod has started up successfu
 
 All of the Habitat Supervisor's state data is stored under `/hab/sup` - we mount this on a persistent volume so it gets re-attached if the pod is ever rescheduled. The data persists!
 
-### Create a Kubernetes Deployment that works with the Bastion
+### Create a Kubernetes Deployment That Works with the Bastion
 
 The following is an example of a Kubernetes `Stateful Set` built from the CockroachDB plan. The Bastion pattern uses the `--peer hab-bastion` configuration arguments to instruct the Kubernetes pods to use the `hab-bastion` service as a DNS-resolvable host name.
 
@@ -474,7 +474,7 @@ spec:
           storage: 10Gi
 ```
 
-## Bare Kubernetes
+### Bare Kubernetes
 
 If your packages don't require communication with the Chef Habitat Supervisor ring, such as binds, secrets, etc., then you can execute your packages directly on the cluster. You can deploy Chef Habitat packages exported as containers to Kubernetes with the [`kubectl` command](http://kubernetes.io/docs/user-guide/pods/single-container/). Using the [Docker exporter](/docs/developing-packages#pkg-exports) to create a containerized application, you can launch the container like this example:
 
@@ -492,11 +492,11 @@ $ kubectl get pods -l run=mytutorial
 
 Chef Habitat packages can be exported in both Docker and ACI formats (as well as others). Kubernetes currently supports the Docker runtime and integration of the rkt container runtime (an implementation of the App Container spec) is under active development.
 
-### Environment variables and networking
+### Environment Variables and Networking
 
 Kubernetes supports passing [environment variables](http://kubernetes.io/docs/user-guide/environment-guide/) into containers, which can be done [via the Chef Habitat Operator](https://github.com/habitat-sh/habitat-operator/tree/master/examples/env-vars).
 
-### Multi-container pods
+### Multi-container Pods
 
 Multi-container pod support through Chef Habitat is still under active development as part of the Chef Habitat Operator.
 
@@ -513,7 +513,8 @@ Multi-container pod support through Chef Habitat is still under active developme
 is a fully managed Kubernetes service running on the Azure platform. It supports running Chef Habitat
 packages using the [Chef Habitat Kubernetes Operator](https://github.com/habitat-sh/habitat-operator).
 
-@## Azure Container Registry (ACR)
+### Azure Container Registry (ACR)
+
 Azure Container Registry is a managed Docker container registry service used for storing
 private Docker container images. It’s a fully managed Azure resource and gives you local,
 network-close storage of your container images when deploying to AKS. Chef Habitat Builder has
@@ -545,7 +546,8 @@ echo "  Password : $BLDR_PRINCIPAL_PASSWORD"
 Note: The unique Service Principal Name (the UUID) should be provided in the Chef Habitat Builder
 configuration.
 
-## Connecting ACR and AKS for Chef Habitat Operator
+### Connecting ACR and AKS for Chef Habitat Operator
+
 Since ACR is a private Docker registry, AKS must be authorized to pull images from it. The best way is to
 create a role assignment on the Service Principal that is automatically created for AKS, granting it
 `Reader` access on your ACR instance.
@@ -563,18 +565,18 @@ ACR_NAME=myACRRegistry
 # Get the id of the service principal configured for AKS
 CLIENT_ID=$(az aks show --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME --query "servicePrincipalProfile.clientId" --output tsv)
 
-# Get the ACR registry resource id
+# Get the ACR Registry Resource ID
 ACR_ID=$(az acr show --name $ACR_NAME --resource-group $ACR_RESOURCE_GROUP --query "id" --output tsv)
 
-# Create role assignment
+# Create Role Assignment
 az role assignment create --assignee $CLIENT_ID --role Reader --scope $ACR_ID
 ```
 
-### Chef Habitat updater
+### Chef Habitat Updater
 As for any other Kubernetes cluster, you should use the [Chef Habitat Kubernetes Updater](https://github.com/habitat-sh/habitat-updater) if you want automatic updates
 of Chef Habitat packages on AKS.
 
-### Related reading
+### Related Reading
 
 * [Chef Habitat Kubernetes Operator](https://github.com/habitat-sh/habitat-operator)
 * [Chef Habitat Kubernetes Updater](https://github.com/habitat-sh/habitat-updater)
@@ -623,7 +625,7 @@ From the example, the ```mongo``` and ```national-parks``` services use the Dock
 
 The ```command``` entry for the National Parks Tomcat application allows the Chef Habitat Supervisor to ```--peer``` to the ```mongo``` gossip ring and ```--bind``` applies ```database``` entries to its Mongo configuration.
 
-### Related reading
+### Related Reading
 
 * [Blog: A Journey with Chef Habitat on Amazon ECS, Part 1](/blog/2017/09/a-journey-with-habitat-on-amazon-ecs-part1/)
 * [Blog: A Journey with Chef Habitat on Amazon ECS, Part 2](/blog/2017/09/a-journey-with-habitat-on-amazon-ecs-part2/)
@@ -717,7 +719,7 @@ Mesos has support for [containerizers](http://mesos.apache.org/documentation/lat
 
 [Marathon](https://mesosphere.github.io/marathon/) is a container orchestration platform for Mesos and DC/OS, handling the scheduling and deployment of applications. [Marathon applications](https://mesosphere.github.io/marathon/docs/application-basics.html) support Docker and the Mesos container formats, wrapping them in JSON metadata describing the resources needed to deploy the application. Once the application has been deployed to Marathon, it schedules it across the Mesos cluster and ensures the application is running optimally.
 
-#### Export to a Mesos container and Marathon application
+#### Export to a Mesos Container and Marathon Application
 
 You can create native Mesos containers from Chef Habitat packages by following these steps:
 
@@ -796,7 +798,7 @@ A well written plan consists of well-formed:
 - [Package Name Conventions](#package-name-conventions)
 - [Plan syntax](#plan-syntax)
 
-### Package metadata
+### Package Metadata
 
 Each package plan should contain a value adhering to the guidelines for each of the following elements:
 
@@ -809,7 +811,7 @@ Each package plan should contain a value adhering to the guidelines for each of 
 - `pkg_upstream_url`
 - `pkg_version` must be the complete version number of the software
 
-### Package name conventions
+### Package Name Conventions
 
 Each package is identified by a unique string containing four sub-strings separated
 by a forward slash (`/`) called a [PackageIdent](/docs/glossary/#glossary-artifacts).
@@ -832,13 +834,13 @@ Packages meeting this exception will always have their latest major version foun
 
 > Example: the [bison project](https://www.gnu.org/software/bison/) releases the 4.x line and is continuing to support Bison 3.x. The `bison` package is copied to `bison3` and the `bison` package is updated to build Bison 4.x.
 
-### Plan syntax
+### Plan Syntax
 
 You can review the entire [plan syntax guide here](/docs/developing-packages/).
 
 Please note that the following conditions must be observed for any plan to be merged into core plans (and are important best practices for any plan):
 
-#### Plan basic settings
+#### Plan Basic Settings
 
 You can read more about [basic plan settings](/docs/developing-packages/#write-plans) here. The minimum requirements for a core plan are:
 
@@ -864,7 +866,7 @@ You can read more about [callbacks](/docs/reference/#reference-callbacks) here. 
 - You should not call any function or helper that begin with an underscore, for example `_dont_call_this_function()`. Those are internal only functions that are not supported for external use and will break your plan if you call them.
 - Don't run any code or run anything outside of a build phase or a function.
 
-##### Application lifecycle hooks
+##### Application Lifecycle Hooks
 
 The Supervisor dynamically invokes hooks at run-time, triggered by an application lifecycle event. You can read more about [hooks](/docs/reference/#reference-hooks) here.
 

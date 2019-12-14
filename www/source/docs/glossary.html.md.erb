@@ -56,7 +56,7 @@ If the Chef Habitat artifact identifier isn't fully qualified (having fewer than
 
 - `core/glibc/2.22/20160310192356` only refers to the specific Chef Habitat artifact 20160310192356.
 
-## Chef Habitat Artifact Export Formats
+## ## <a name="artifact-export-format" id="artifact-export-format" data-magellan-target="artifact-export-format" type="anchor">Chef Habitat Artifact Export Formats</a>
 
 Chef Habitat `.hart` files can be exported in a number of different formats depending on what you need and where you need it. This is powerful because you can use the same immutable Chef Habitat artifact by exporting it into a format that you need for a specific job. For example, when you can use one format for iterating locally in a Docker container, another to deploy that Chef Habitat artifact to an environment running Kubernetes, and a third to deploy it to a data center that's running virtual machines, but the Chef Habitat artifact is identical in each location---it's simply exported to the correct format for the job you are trying to do.
 
@@ -67,11 +67,11 @@ You can read more about how to export Chef Habitat artifacts, and what exporters
 
 Chef Habitat Builder consists of the Builder service and the Depot.
 
-## Chef Habitat Builder
+### Chef Habitat Builder
 
 Users have the option to connect their GitHub repositories to Builder to enable continuous builds of their plans. Checking in new code to GitHub initiates a new build through a GitHub hook. If you've added your Chef Habitat plan to the root of your source code repository and your project depends on any of the Chef Habitat Core Packages (for example, openssl, ruby, or node), when these packages are updated, Builder automatically rebuilds your software and posts the updated package to your project's `unstable` channel, where it will wait until you review and promote it according to your regular release procedure.
 
-## Depot
+### Depot
 
 The Depot is a searchable repository that stores artifacts for use in Chef Habitat.
 
@@ -113,7 +113,7 @@ The Launcher enables the Supervisor to update itself without shutting down or re
 
 Chef Habitat has strong cryptography built into Chef Habitat Builder, the Supervisor, and the `hab` CLI commands. This means there are several different kinds of keys.
 
-## Origin Key Pairs
+### Origin Key Pairs
 
 Every Chef Habitat artifact belongs to an [origin](/docs/glossary/#glossary-artifacts) and is cryptographically signed with that origin's private key. Chef Habitat requires the private key for producing artifacts and requires the public key for verification of artifacts before installation. If it is present on Builder, Chef Habitat will automatically download the public key for an origin when necessary.
 
@@ -135,7 +135,7 @@ curl <URL_THAT_RETURNS_KEY> | hab origin key import
 
 See the [hab origin key](docs/habitat-cli/#hab-origin-key) command documentation for more information about working with origin keys from the command line.
 
-## User and Service Group Keys
+### User and Service Group Keys
 
 User and service group keys are used to set up trust relationships between these two entities. Service groups can be set up to reject communication (e.g. applying new configuration via `hab config apply`) from untrusted users.
 
@@ -143,7 +143,7 @@ By default, service groups will trust *any* communication, so for a production d
 
 User and service group keys also utilize asymmetric cryptography. To apply configuration changes to service groups when running in this mode, a user uses their own private key to encrypt configuration information for a service group, using that service group's public key. The service group then uses its private key to decrypt the configuration information, and the user's public key to verify.
 
-## Ring Encryption Key
+### Ring Encryption Key
 
 A Supervisor network can be optionally set up to encrypt *all* supervisor-to-supervisor communication. This requires the use of a symmetric, pre-shared key.
 
@@ -159,7 +159,7 @@ Chef Habitat's build phase defaults can be overidden using [callbacks](/docs/ref
 
 Chef Habitat scaffoldings are standardized plans for automated building and running your application. Each scaffolding is tuned to the way your application was built, which allows it to create the appropriate [application lifecycle hooks](/docs/glossary/#glossary-hooks) and add in the correct runtime dependencies when building the package for your application. Scaffoldings also provide some default health check hooks where appropriate to ensure your application is functioning reliably. Customized Scaffolding can be created to facilitate re-usability of common patterns in your organization for developing, building, and running your applications.
 
-## Available Scaffolding
+### Automated Scaffolding
 
 While we are targeting many platforms for automated scaffolding we currently support Ruby, Node.js and Gradle.
 
@@ -167,15 +167,15 @@ While we are targeting many platforms for automated scaffolding we currently sup
 * [core/scaffolding-node](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-node)
 * [core/scaffolding-gradle](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-gradle)
 
-## Variables
+### Variables
 
-Scaffoldings provide certain overrideable variables for language-specific behavior. Please see the appropriate scaffolding documentation for details.
+Scaffolding provides certain customizable variables for language-specific behavior. Please see the appropriate scaffolding documentation for details.
 
-## Overriding Scaffolding Callbacks
+#### Overriding Scaffolding Callbacks
 
 If you want to override phases of a scaffold's build in your plans, make sure to override the main `do_xxx` phase, not the callback directly. ex override `do_install()` instead of `do_default_install` or `do_node_install`.
 
-## Scaffolding Internals
+#### Scaffolding Internals
 
 A language or framework scaffolding is shipped as a Chef Habitat package, which means that each scaffolding runtime dependency becomes a build dependency for the application being built.
 
@@ -204,7 +204,7 @@ The point of scaffoldings is to handle complexity for you, and make it easy to s
 
 A service in Chef Habitat is defined as a Chef Habitat package running under a Chef Habitat Supervisor.
 
-## Service Group
+### Service Group
 
 A set of one or more running services with a shared configuration and topology makes up a service group. If a service is started without explicitly naming the group, it's assigned to the `default` group for the name of that package. For example:
 
@@ -212,7 +212,7 @@ A set of one or more running services with a shared configuration and topology m
 - `postgres.financialdb` (possibly running in a cluster)
 - `postgres.userdb` (possibly running in a cluster)
 
-## Topology
+### Topology
 
 Chef Habitat allows you to define the topology of your service groups, which bakes in certain behaviors.
 
@@ -236,7 +236,7 @@ The Chef Habitat Studio is a clean, self-contained, minimal environment in which
 
 The Supervisor is a process manager that has two primary responsibilities. First, it starts and monitors child services defined in the plan it is running. Second, it receives and acts upon information from the other Supervisors to which it is connected. A service will be reconfigured through application lifecycle hooks if its configuration has changed.
 
-## The Supervisor Ring
+### The Supervisor Ring
 
 Supervisors typically run in a network, which we refer to as a *ring* (although it is more like a peer-to-peer network rather than a circular ring). The ring can be very large; it could contain hundreds or thousands of supervisors. The membership list of this ring is maintained independently by each Supervisor and is known as the *census*.
 
