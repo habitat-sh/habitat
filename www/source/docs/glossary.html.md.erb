@@ -56,7 +56,7 @@ If the Chef Habitat artifact identifier isn't fully qualified (having fewer than
 
 - `core/glibc/2.22/20160310192356` only refers to the specific Chef Habitat artifact 20160310192356.
 
-## ## <a name="artifact-export-format" id="artifact-export-format" data-magellan-target="artifact-export-format" type="anchor">Chef Habitat Artifact Export Formats</a>
+## <a name="artifact-export-format" id="artifact-export-format" data-magellan-target="artifact-export-format" type="anchor">Chef Habitat Artifact Export Formats</a>
 
 Chef Habitat `.hart` files can be exported in a number of different formats depending on what you need and where you need it. This is powerful because you can use the same immutable Chef Habitat artifact by exporting it into a format that you need for a specific job. For example, when you can use one format for iterating locally in a Docker container, another to deploy that Chef Habitat artifact to an environment running Kubernetes, and a third to deploy it to a data center that's running virtual machines, but the Chef Habitat artifact is identical in each location---it's simply exported to the correct format for the job you are trying to do.
 

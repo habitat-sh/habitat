@@ -15,7 +15,7 @@ In Chef Habitat the unit of automation is the application itself. This chapter i
   - [Troubleshooting Builds](#debug-builds)
   - [Package Export Formats](#pkg-exports)
 
-## <a name="write-plans" id="write-plans" data-magellan-target="write-plans" type="anchor">Writing plans</a>
+## <a name="write-plans" id="write-plans" data-magellan-target="write-plans" type="anchor">Writing Plans</a>
 
 Artifacts are the cryptographically-signed tarballs that are uploaded, downloaded, unpacked, and installed in Chef Habitat. They are built from shell scripts known as plans, but may also include application lifecycle hooks and service configuration files that describe the behavior and configuration of a running service.
 
@@ -96,7 +96,7 @@ All plans must have a `plan.sh` or `plan.ps1` at the root of the plan context. T
 
 When writing a plan, it's important to understand that you are defining both how the package is built and the actions Chef Habitat will take when the Supervisor starts and manages the child processes in the package. The following sections explain what you need to do for each phase.
 
-### Buildtime workflow
+### Buildtime Workflow
 
 For buildtime installation and configuration, workflow steps need to be included in the plan file to define how you will install your application source files into a package. Before writing your plan, you should know and understand how your application binaries are currently built, installed, what their dependencies are, and where your application or software library expects to find those dependencies.
 
@@ -110,7 +110,7 @@ The main steps in the buildtime workflow are the following:
 
 The following sections describe each of these steps in more detail.
 
-#### Create your package identifier
+#### Create your Package Identifier
 
 The origin is a place for you to set default privacy rules, store your packages, and collaborate with teammates. For example, the "core" origin is where the core maintainers of Chef Habitat share packages that are foundational to building other packages. If you would like to browse them, they are located in the [core-plans repo](https://github.com/habitat-sh/core-plans), and on [Chef Habitat Builder's Core Origin](https://bldr.habitat.sh/#/pkgs/core).
 
@@ -118,7 +118,7 @@ Creating artifacts for a specific origin requires that you have access to the th
 
 The next important part of your package identifier is the name of the package. Standard naming convention is to base the name of the package off of the name of the source or project you download and install into the package.
 
-#### Add licensing and contact information
+#### Add Licensing and Contact Information
 
 You should enter your contact information in your plan.
 
@@ -126,7 +126,7 @@ Most importantly, you should update the `pkg_license` value to indicate the type
 
 > Note: Because all arrays in the pkg_* settings are shell arrays, they are whitespace delimited.
 
-#### Download and unpack your source files
+#### Download and Unpack Your Source Files
 
 Add in the `pkg_source` value that points to where your source files are located at. Any `wget` url will work; however, unless you're downloading a tarball from a public endpoint, you may need to modify how you download your source files and where in your plan.sh you perform the download operation.
 
@@ -165,7 +165,7 @@ After you have either specified your source in `pkg_source`, or overridden the *
 
 If your package does not download any application or service source files, then you will need to override the **do_download()**, **do_verify()**, and **do_unpack()** callbacks. See [Callbacks](/docs/reference#reference-callbacks) for more details.
 
-#### Define your dependencies
+#### Define Your Dependencies
 
 Applications have two types of dependencies: buildtime and runtime.
 
@@ -175,7 +175,7 @@ The package `core/glibc` is typically listed as a run dependency and `core/coreu
 
 There is a third type of dependencies, transitive dependencies, that are the run dependencies of either the build or run dependencies listed in your plan. You do not need to explicitly declare transitive dependencies, but they are included in the list of files when your package is built. See [Package contents](/docs/reference/#package-contents) for more information.
 
-#### Override any build phase with callbacks
+#### Override Build Phase Defaults with Callbacks
 
 As shown in an example above, there are occasions when you want to override the default behavior of the hab-plan-build script. The Plan syntax guide lists the default implementations for [build phase callbacks](/docs/reference/#reference-callbacks), but if you need to reference specific packages in the process of building your applications or services, then you need to override the default implementations as in the example below.
 
@@ -234,7 +234,7 @@ Here the plan is building an application written in Rust. So it overrides `Invok
 
 When overriding any callbacks, you may use any of the variables, settings, or functions in the [Plan syntax guide](/docs/reference/), except for the runtime template data. Those can only be used in Application Lifecycle hooks once a Chef Habitat service is running.
 
-### Runtime workflow
+### Runtime Workflow
 
 Similar to defining the setup and installation experience at buildtime, behavior for your application or service needs to be defined for the Supervisor. This is done at runtime through Application lifecycle hooks. See [Application Lifecycle hooks](/docs/reference/#reference-hooks) for more information and examples.
 
@@ -244,8 +244,7 @@ You can use any of the [runtime configuration settings](/docs/reference/#templat
 
 Once you are done writing your plan, use the studio to [build your package](/docs/developing-packages/#plan-builds).
 
-
-##
+### Related Resources
 
 - [Write plans](/docs/developing-packages/#write-plans): Describes what a plan is and how to create one.
 - [Add configuration to plans](/docs/developing-packages/#add-configuration): Learn how to make your running service configurable by templatizing configuration files in your plan.
@@ -300,7 +299,7 @@ With runtime binding, a consumer service can use a "binding name" of their choos
 
 Let's look at how we set up this relationship in detail.
 
-### Defining the producer contract
+### Defining the Producer Contract
 
 A producer service defines its contract by "exporting" a subset of its runtime configuration. This is done by defining values in the `pkg_exports` associative array defined in your package's `plan.sh`. For example, a database server named `amnesia` might define the following exports:
 
@@ -326,7 +325,7 @@ Producer services export only the *subset* of their configuration that is define
 
 Additionally, the internal structure of the producer's configuration is independent of the exported interface it presents. In our example, `ssl-port` originally comes from a deeply-nested `network.ssl.port` value. However, the exported interface is _flat_, effectively a non-nested set of key-value pairs.
 
-### Defining the consumer contract
+### Defining the Consumer Contract
 
 The consumer service defines a "binding name" as a handle to refer to a service group from which it receives configuration data. However, it must do more than just name the bind, it must also state the configuration values it expects from the service group. Chef Habitat will make sure that whatever service group is bound actually exports the expected values to the consumer service.
 
@@ -344,7 +343,7 @@ A bound service group may export additional values, but they cannot export less 
 
 Chef Habitat only matches services up at the syntactic, not semantic, level of this contract. If you bind to a service that exports a "port", Chef Habitat only knows that the service exports something called "port"; it could be the port for a PostgreSQL database, or it could be the port of an application server. You will need to ensure that you connect the correct services together; Chef Habitat's binds provide the means by which you express these relationships. You are, however, free to create bind names and export names that are meaningful for you.
 
-#### The difference between _pkg\_binds_ and _pkg\_binds\_optional_
+#### The Difference Between _pkg\_binds_ and _pkg\_binds\_optional_
 
 In addition to the `pkg_binds` array, Plan authors may also specify `pkg_binds_optional`. It has exactly the same structure as `pkg_binds`, but, as the name implies, these bindings are _optional_; however, it is worth examining exactly what is meant by "optional" in this case.
 
@@ -360,19 +359,19 @@ There are several scenarios where optional binds may be useful:
 
 * A service may can optionally bind one of several services; if bind “X” is mapped, operate _this_ way; if “Y” is mapped, operate _that_ way. An application that could use either a Redis backend or a PostgreSQL backend, depending on the deployment scenario, could declare optional "redis" and "postgresql" bindings, and pick which one to map at service load-time. If this is your use case, Chef Habitat does not have a way to encode the fact that "one and only one of these optional bindings should be mapped", so you will have to manage that on your own.
 
-### Service start-up behavior
+### Service Start-up Behavior
 
 Prior to Chef Habitat 0.56.0, if the service group that you bound to was not present in the Supervisor network census, or had no live members, your service would not start until the group was present with live members. While this can be desirable behavior in some cases, as with running certain legacy applications, it is not always desirable, particularly for modern microservice applications, which should be able to gracefully cope with the absence of their networked dependencies.
 
 With 0.56.0, however, this behavior can be modified using the new runtime service option `--binding-mode`. By setting `--binding-mode=relaxed` when loading a service, that service can start immediately, whether there are any members of a bound service group present or not. (Setting `--binding-mode=strict` will give you the previous, start-only-after-all-bound-groups-are-present behavior. This is also the current default, though `relaxed` will be the eventual default for Chef Habitat 1.0.0.). Such a service should have configuration and lifecycle hook templates written in such a way that the service can remain operational (though perhaps with reduced functionality) when there are no live members of a bound service group present in the network census.
 
-#### The difference between required binds, optional binds, and binding mode
+#### The Difference Between Required Binds, Optional Binds, and Binding Mode
 
 While there is a bit of overlap in these concepts, they are distinct. It's best to think of required and optional binds as defining "how applications can be wired together" (specifically, which "wires" must be connected in order to provide the minimal amount of information needed to run a service). Binding mode, on the other hand, defines how the application's start-up behavior is affected the presence or absence of its networked dependencies.
 
 Another useful thing to keep in mind when thinking about required and optional binds is that service group mappings currently cannot be dynamically changed at runtime. They can only be changed by stopping a service, reloading the service with a new set of options, and then starting it up again. This constraint (which may change in future versions of Chef Habitat) may help guide your choice between what should be a required bind, and what should be optional, particularly when using the relaxed binding mode.
 
-### Using runtime binds with consumer services
+### Using Runtime Binds with Consumer Services
 
 Once you've defined both ends of the contract, you can leverage the bind in any of your package's hooks or configuration files. Given the two example services above, a section of a configuration file for `session-server` might look like this:
 
@@ -387,7 +386,7 @@ Here, `bind.<BINDING_NAME>` will be "truthy" (and can thus be used in boolean ex
 
 (Prior to Chef Habitat 0.56.0, `bind.<BINDING_NAME>` was always present, and `bind.<BINDING_NAME>.members` had _all_ members, even ones that had left the Supervisor network long ago. This necessitated using the `eachAlive` helper function, instead of just `each`.)
 
-### Starting a consumer service
+### Starting a Consumer Service
 
 Since your application server defined `database` as a required bind, you'll need to provide the name of a service group running a package which fulfills the contract using the `--bind` parameter to the Supervisor. For example, running the following:
 
@@ -414,7 +413,7 @@ The `hab-origin` subcommand will place the origin key files, originname-_timesta
 
 Because the private key is used to sign your artifact, it should not be shared freely; however, if anyone wants to download and use your artifact, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. If the origin's public key is not present, Chef Habitat attempts to download it from the Builder endpoint specified by the `--url` argument (https://bldr.habitat.sh by default) to `hab pkg install`.
 
-### Passing origin keys into the Studio
+### Passing Origin Keys into the Studio
 
 The Habitat Studio is a self-contained and minimal environment, which means that you'll need to share your private origin keys with the Studio to sign artifacts. You can do this in three ways:
 
@@ -444,7 +443,7 @@ The Habitat Studio is a self-contained and minimal environment, which means that
 
 After you create or receive your private origin key, you can start up the Studio and build your artifact.
 
-### Interactive build
+### Interactive Build
 
 Any build that you perform from a Chef Habitat Studio is an interactive build. Studio interactive builds allow you to examine the build environment before, during, and after the build.
 
@@ -467,7 +466,7 @@ The directory where your plan is located is known as the plan context.
 
 4. If the package builds successfully, it is placed into a `results` directory at the same level as your plan.
 
-#### Managing the Studio type (Docker/Linux/Windows)
+#### Managing the Studio Type (Docker/Linux/Windows)
 
 Depending on the platform of your host and your Docker configuration, the behavior of `hab studio enter` may vary. Here is the default behavior listed by host platform:
 
@@ -477,7 +476,7 @@ Depending on the platform of your host and your Docker configuration, the behavi
 
 > Note: For more details related to Windows containers see [Running Chef Habitat Windows Containers](/docs/best-practices/#running-habitat-windows-containers).
 
-#### Building dependent plans in the Studio
+#### Building Dependent Plans in the Studio
 
 Writing plans for multiple packages that are dependent on each other can prove cumbersome when using multiple studios, as you need update dependencies frequently. On the other hand, using a single studio allows you to quickly test your changes by using locally built packages. To do so, you should use a folder structure like this:
 
@@ -490,7 +489,7 @@ projects/
 
 This way, you can `hab studio enter` in `projects/`. If `project-b` depends on `project-a`, you can call `build project-a && build project-b` for example.
 
-### Non-interactive build
+### Non-interactive Build
 
 A non-interactive build is one in which Chef Habitat creates a Studio for you, builds the package inside it, and then destroys the Studio, leaving the resulting `.hart` on your computer. Use a non-interactive build when you are sure the build will succeed, or in conjunction with a continuous integration system.
 
@@ -649,7 +648,7 @@ You can create a Docker container image for any package by performing the follow
 
 1. Please note that when you run this docker container, you will need to pass the `HAB_LICENSE` environment variable into the container in order to accept the Habitat license. If you don't, your container will abort at a license acceptance prompt. One way to do this would be `docker run --env HAB_LICENSE=accept-no-persist IMAGE`. Alternatively, if you use a scheduler to run these docker containers, you should add that environment variable to your scheduler configuration.
 
-### Exporting to a tarball
+### Exporting to a Tarball
 
 1. Enter the Chef Habitat studio by using `hab studio enter`.
 
@@ -811,7 +810,7 @@ The Kubernetes exporter is an additional command line subcommand to the standard
     kubectl create -f ./service.yml
     ```
 
-### Export to a Helm chart
+### Export to a Helm Chart
 
 The Helm exporter is an additional command line subcommand to the standard Chef Habitat CLI interface. It is very similar to the Kubernetes exporter but it takes you even further. It also leverages the existing Docker image export functionality but unlike the Kubernetes exporter, instead of generating a Kubernetes manifest, it creates a distributable Helm chart directory. This chart directory can not only be deployed in your local Kubernetes cluster, but also easily packaged and distributed.
 
@@ -870,7 +869,7 @@ Additionally, the Kubernetes Chef Habitat operator is automatically added to the
 
 Packages can be exported to run in a [Cloud Foundry platform](https://www.cloudfoundry.org/certified-platforms/) through the use of a Docker image that contains additional layers meant to handle mapping from the Cloud Foundry environment to a Chef Habitat default.toml file.
 
-#### Setting up Docker support in Cloud Foundry
+#### Setting up Docker Support in Cloud Foundry
 
 If you have not done so already, you must enable Docker support for Cloud Foundry before you can upload your Cloud Foundry-specific Docker image.
 
@@ -883,7 +882,7 @@ To do so, make sure you have done the following:
    $ cf enable-feature-flag diego_docker
    ```
 
-#### Creating a mapping file
+#### Creating a Mapping File
 
 The mapping file is a TOML file that can add Bash-interpolated variables and scripts. The Bash code will have access to:
 
@@ -912,7 +911,7 @@ The helper methods are designed to extract information from the standard Cloud F
 * `service <service-name> <jq-expression>` will extract the JSON associated with the given service-name from the `VCAP_SERVICES` environment variable and apply the jq-expression to it.
 * `application <jq-expression>` will apply the jq-expression to the `VCAP_APPLICATION` environment variable
 
-### Exporting and pushing to Cloud Foundry endpoint
+### Exporting and Pushing to a Cloud Foundry Endpoint
 
 1. Create a mapping.toml file using the format specified above and place that file in your local project repo.
 

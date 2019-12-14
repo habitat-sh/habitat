@@ -122,7 +122,7 @@ Because Chef Habitat is an eventually-consistent distributed system, the role of
 
 Services grouped using a leader need to have a minimum of three supervisors in order to break ties. It is also strongly recommended that you do not run the service group with an even number of members. Otherwise, in the event of a network partition with equal members on each side, both sides will elect a new leader, causing a full split-brain from which the algorithm cannot recover. Supervisors in a service group will warn you if you are using leader election and have an even number of supervisors.
 
-### Protocol for electing a leader
+### Protocol for Electing a Leader
 
 When a service group starts in a leader topology, it will wait until there are sufficient members to form a quorum (at least three). At this point, an election cycle can happen. Each Supervisor injects an election rumor into ring, targeted at the service group, with the _exact same_ rumor, which demands an election and insists that the peer itself is the leader. This algorithm is known as [Bully](https://en.wikipedia.org/wiki/Bully_algorithm).
 
@@ -130,7 +130,7 @@ Every peer that receives this rumor does a simple lexicographic comparison of it
 
 An election ends when a candidate peer X gets a rumor back from the ring saying that it (X) is the winner, with all members voting. At this point, it sends out a rumor saying it is the declared winner, and the election cycle ends.
 
-### Related reading
+### Related Reading
 
 * For more information about the Bully algorithm, see [Elections in a Distributed Computing System](http://dl.acm.org/citation.cfm?id=1309451) by Héctor García-Molina.
 
@@ -139,7 +139,7 @@ An election ends when a candidate peer X gets a rumor back from the ring saying 
 
 Chef Habitat implements cryptography using a Rust [implementation](https://github.com/jedisct1/libsodium) of [NaCl](https://nacl.cr.yp.to/) called `libsodium`. `libsodium` provides a fast, modern framework for encryption, decryption, signing, and verification.
 
-Chef Habitat uses both symmetric encryption (for wire encryption) and asymmetric encryption (for everything else). If you are not familiar with the difference between the two, please consult [this article](https://support.microsoft.com/en-us/kb/246071).
+Chef Habitat uses both symmetric encryption (for wire encryption) and asymmetric encryption (for everything else). If you are not familiar with the difference between the two, please consult [this article](https://support.microsoft.com/kb/246071).
 
 ### Message Encryption
 
@@ -206,7 +206,7 @@ Note: In order to build large amounts of software in the fastest way possible, w
 
 ### Part II: Stage 0
 
-#### Creating the stage1 tarball
+#### Creating the stage1 Tarball
 
 If you need to build the stage1 tarball from scratch, we will be following the [Linux from Scratch](http://www.linuxfromscratch.org/lfs/) guide, specifically from the start to the end of section II.5. ("Constructing a Temporary System"). By this point, you should be the `root` user with a `/mnt/lfs/tools` directory containing the cross compiled minimal toolchain. From here, we create a tarball of the `tools/` directory and append our Chef Habitat-specific software into it:
 
@@ -246,7 +246,7 @@ $ xz --compress -9 --threads=0 --verbose $TARFILE
 $ cp -v ${TARFILE}.xz /tmp/
 ```
 
-#### Freshening the stage1 tarball
+#### Freshening the stage1 Tarball
 
 Alternatively, from time to time and especially with breaking changes to `hab`’s core behavior it is a good idea to update the software in the `habitat-studio-stage1` tarball, even if that means skipping the work of rebuilding the toolchain.
 
@@ -289,7 +289,7 @@ If you upload a new version of this tarball for broader use with the Studio soft
 
 and finally, place this tarball under `/tmp` which will help the Studio code find this tarball as if it was previously downloaded, and it will be used directly.
 
-### Part III: Preparing to build
+### Part III: Preparing to Build
 
 In this stage, we rebuild all the base packages needed by Chef Habitat using the tools (compiler, etc.) from the existing tools tarball. You will need a copy of the [habitat](https://github.com/habitat-sh/habitat) and [core-plans](https://github.com/habitat-sh/core-plans) repos on your local disk. For our work, we will assume that everything is being run under a common parent directory called `habitat-sh/`. Assuming we want to rebuild the Chef Habitat software as of the last release tag (we'll use `0.56.0` here) and the core plans from latest, here's how to get set up:
 
@@ -401,7 +401,7 @@ $ exit
 $ mv ./results ./results-stage2
 ```
 
-### Part VI: Remaining packages in world
+### Part VI: Rebuild the World
 
 At this point we have a solid set of base packages which can be used to built anything and everything else. As such, it makes sense to at least attempt to rebuild all the other core packages that haven't been touched to this point. The first task here is to generate the build list order of all remaining packages in our "world" and exclude all the base packages so that we can avoid building them yet another time (for no additional benefit). Luckily, there is a `build-order.rb` program in the `core-plans` repository that will generate such a list. The reason that this program is in Ruby is to take advantage of the topological sorting library in Ruby's stdlib (called `tsort`). If you've ever used `rake` before with tasks and dependencies, `tsort` is the magic which powers it.
 
@@ -501,7 +501,7 @@ $ exit
 $ mv ./results ./results-stage3
 ```
 
-### Part VIII: Cleaning up
+### Part VIII: Cleaning Up
 
 While you don't have to wait for the end to completely clean up, it can be beneficial to be able to enter any of the stage1/stage2/stage3 Studios for reference. However, if and when you feel like you're finished with any of these Studio instances, you can clean them up with the associated Studio wrapper script. For example, to clean up all the staging Studio instances:
 
@@ -511,7 +511,7 @@ $ ./core-plans/bin/bootstrap/stage2-studio.sh rm
 $ ./core-plans/bin/bootstrap/stage3-studio.sh rm
 ```
 
-### Part IX: Next steps
+### Part IX: Next Steps
 
 There is more to write here once you have your local artifacts in the various `results-stage*` directories. However next steps to consider are:
 
