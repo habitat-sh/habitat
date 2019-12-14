@@ -4,7 +4,7 @@ description: Documentation for writing Chef Habitat Plan files including configu
 ---
 # <a name="developing-packages" id="developing-packages" data-magellan-target="developing-packages">Develop Packages</a>
 
-In Chef Habitat the unit of automation is the application itself. This chapter includes content related specifically to the process and workflow of developing a plan that will instruct Chef Habitat in how to to build, deploy, and manage your application.
+In Chef Habitat the unit of automation is the application itself. This chapter includes content related specifically to the process and workflow of developing a plan that will instruct Chef Habitat in how to build, deploy, and manage your application.
 
 ## Table of Contents
 
@@ -368,7 +368,7 @@ With 0.56.0, however, this behavior can be modified using the new runtime servic
 
 #### The difference between required binds, optional binds, and binding mode
 
-While there is a bit of overlap in these concepts, they are distinct. It's best to think of required and optional binds as defining "how applications can be wired together" (specifically, which "wires" must be connected in order to provide the minimal amount of information needed to run a service). Binding mode, on the other hand, defines how the application's start-up behavior is affected the the presence or absence of its networked dependencies.
+While there is a bit of overlap in these concepts, they are distinct. It's best to think of required and optional binds as defining "how applications can be wired together" (specifically, which "wires" must be connected in order to provide the minimal amount of information needed to run a service). Binding mode, on the other hand, defines how the application's start-up behavior is affected the presence or absence of its networked dependencies.
 
 Another useful thing to keep in mind when thinking about required and optional binds is that service group mappings currently cannot be dynamically changed at runtime. They can only be changed by stopping a service, reloading the service with a new set of options, and then starting it up again. This constraint (which may change in future versions of Chef Habitat) may help guide your choice between what should be a required bind, and what should be optional, particularly when using the relaxed binding mode.
 
