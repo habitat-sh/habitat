@@ -78,8 +78,7 @@ pub fn init_stream(config: EventStreamConfig,
     let mut return_value: Result<()> = Ok(());
 
     INIT.call_once(|| {
-            let conn_info = EventStreamConnectionInfo::new(&event_core.supervisor_id, config);
-            match nats_message_stream::init(conn_info, runtime) {
+            match nats_message_stream::init(&event_core.supervisor_id, config, runtime) {
                 Ok(stream) => {
                     NATS_MESSAGE_STREAM.set(stream);
                     EVENT_CORE.set(event_core);
@@ -121,28 +120,6 @@ impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
                                                  .expect("Required option for EventStream feature"),
                             connect_method:     EventStreamConnectMethod::from(m),
                             server_certificate: EventStreamServerCertificate::from_arg_matches(m), }
-    }
-}
-
-/// All the information needed to establish a connection to a NATS
-/// Streaming server.
-pub struct EventStreamConnectionInfo {
-    pub name:               String,
-    pub verbose:            bool,
-    pub cluster_uri:        String,
-    pub auth_token:         AutomateAuthToken,
-    pub connect_method:     EventStreamConnectMethod,
-    pub server_certificate: Option<EventStreamServerCertificate>,
-}
-
-impl EventStreamConnectionInfo {
-    pub fn new(supervisor_id: &str, config: EventStreamConfig) -> Self {
-        EventStreamConnectionInfo { name:               format!("hab_client_{}", supervisor_id),
-                                    verbose:            true,
-                                    cluster_uri:        config.url,
-                                    auth_token:         config.token,
-                                    connect_method:     config.connect_method,
-                                    server_certificate: config.server_certificate, }
     }
 }
 

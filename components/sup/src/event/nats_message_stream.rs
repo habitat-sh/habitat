@@ -1,5 +1,5 @@
 use crate::event::{Error,
-                   EventStreamConnectionInfo,
+                   EventStreamConfig,
                    Result};
 use futures::{channel::{mpsc as futures_mpsc,
                         mpsc::UnboundedSender},
@@ -55,18 +55,19 @@ fn nats_uri(uri: &str, auth_token: &str) -> String {
     }
 }
 
-pub(super) fn init(conn_info: EventStreamConnectionInfo,
+pub(super) fn init(supervisor_id: &str,
+                   config: EventStreamConfig,
                    runtime: &Handle)
                    -> Result<NatsMessageStream> {
     let (event_tx, mut event_rx) = futures_mpsc::unbounded::<NatsMessage>();
 
-    let EventStreamConnectionInfo { name,
-                                    verbose,
-                                    cluster_uri,
-                                    auth_token,
-                                    connect_method,
-                                    server_certificate, } = conn_info;
-    let uri = nats_uri(&cluster_uri, &auth_token.to_string());
+    let name = format!("hab_client_{}", supervisor_id);
+    let EventStreamConfig { url,
+                            token,
+                            connect_method,
+                            server_certificate,
+                            .. } = config;
+    let uri = nats_uri(&url, &token.to_string());
 
     let mut tls_config = TlsConnector::builder();
     for certificate in habitat_http_client::certificates(None)? {
@@ -86,7 +87,7 @@ pub(super) fn init(conn_info: EventStreamConnectionInfo,
     // in we will try to reconnect.
     let mut client = Client::new(uri.as_ref())?;
     client.set_name(&name);
-    client.set_synchronous(verbose);
+    client.set_synchronous(true);
     client.set_tls_config(tls_config);
 
     // Try to establish an intial connection to the NATS server.
