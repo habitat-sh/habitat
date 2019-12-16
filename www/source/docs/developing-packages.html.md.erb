@@ -79,7 +79,7 @@ All plans must have a `plan.sh` or `plan.ps1` at the root of the plan context. T
     $ hab plan init
     ```
 
-    will result in a new `habitat` directory located at `/path/to/<reponame>/habitat`. A plan file will be created and the `pkg_name` variable will be set to _\<reponame\>_. Also, any environment variables that you have previouly set (such as `HAB_ORIGIN`) will be used to populate the respective `pkg_*` variables.
+    will result in a new `habitat` directory located at `/path/to/<reponame>/habitat`. A plan file will be created and the `pkg_name` variable will be set to _\<reponame\>_. Also, any environment variables that you have previously set (such as `HAB_ORIGIN`) will be used to populate the respective `pkg_*` variables.
 
     If you want to auto-populate more of the `pkg_*` variables, you also have the option of setting them when calling `hab plan init`, as shown in the following example:
 
@@ -286,7 +286,7 @@ recv_buffer = 128
 All templates located in a package's `config` folder are rendered to a config directory, `/hab/svc/<pkg_name>/config`, for the running service. The templates are re-written whenever configuration values change.
 The path to this directory is available at build time in the plan as the variable `$pkg_svc_config_path` and available at runtime in templates and hooks as `{{pkg.svc_config_path}}`.
 
-All templates located in a package's `config_install` folder are rendered to a config_install directory, `/hab/svc/<pkg_name>/config_install`. These templates are only accesible to the execution of an `install` hook and any changes to the values referenced by these templates at runtime will not result in re-rendering the template.
+All templates located in a package's `config_install` folder are rendered to a config_install directory, `/hab/svc/<pkg_name>/config_install`. These templates are only accessible to the execution of an `install` hook and any changes to the values referenced by these templates at runtime will not result in re-rendering the template.
 The path to this directory is available at build time in the plan as the variable `$pkg_svc_config_install_path` and available at runtime in templates and `install` hooks as `{{pkg.svc_config_install_path}}`.
 
 Chef Habitat not only allows you to use Handlebars-based tunables in your plan, but you can also use both built-in Handlebars helpers as well as Chef Habitat-specific helpers to define your configuration logic. See [Reference](/reference/#helpers) for more information.

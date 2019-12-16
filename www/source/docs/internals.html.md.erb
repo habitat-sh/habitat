@@ -61,7 +61,7 @@ Butterfly servers keep track of what members are present in a ring, and are cons
 * Alive: this member is responding to health checks.
 * Suspect: this member has stopped responding to our health check, and will be marked confirmed if we do not receive proof it is still alive soon.
 * Confirmed: this member has been un-responsive long enough that we can cease attempting to check its health.
-* Departed: this member has been intentionally kicked out of the ring for behavior unbecoming of a Supervisor, and is not allowed to rejoin. This is done via a human operator using the `hab` CLI commands.
+* Departed: this member has been intentionally kicked out of the ring for behavior unbecoming of a Supervisor, and is prevented from rejoining. This is done via a human operator using the `hab` CLI commands.
 
 The essential flow is:
 
@@ -262,7 +262,7 @@ These commands assume you are running in a Docker container and are missing some
 # Install xz tools
 $ apt-get update && apt-get install -y xz-utils
 
-# Uncompress the tarball and remove old version of hab
+# Decompress the tarball and remove old version of hab
 $ tarxz=/src/habitat-studio-stage1-20160612022150.tar.xz
 $ xz --decompress --keep $tarxz
 $ tar --delete --file=${tarxz/.xz/} tools/bin/hab
