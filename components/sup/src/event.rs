@@ -40,7 +40,7 @@ use habitat_core::{package::ident::PackageIdent,
 use nats_message_stream::{NatsMessage,
                           NatsMessageStream};
 use prost_types::Duration as ProstDuration;
-use state::Container;
+use state::Storage;
 use std::{net::SocketAddr,
           sync::Once,
           time::Duration};
@@ -57,9 +57,9 @@ lazy_static! {
     // this lazy_static call.
 
     /// Reference to the event stream.
-    static ref NATS_MESSAGE_STREAM: Container = Container::new();
+    static ref NATS_MESSAGE_STREAM: Storage<NatsMessageStream> = Storage::new();
     /// Core information that is shared between all events.
-    static ref EVENT_CORE: Container = Container::new();
+    static ref EVENT_CORE: Storage<EventCore> = Storage::new();
 }
 
 /// Starts a new thread for sending events to a NATS Streaming
@@ -244,7 +244,7 @@ pub fn health_check(metadata: ServiceMetadata,
 /// Internal helper function to know whether or not to go to the trouble of
 /// creating event structures. If the event stream hasn't been
 /// initialized, then we shouldn't need to do anything.
-fn stream_initialized() -> bool { NATS_MESSAGE_STREAM.try_get::<NatsMessageStream>().is_some() }
+fn stream_initialized() -> bool { NATS_MESSAGE_STREAM.try_get().is_some() }
 
 /// Publish an event. This is the main interface that client code will
 /// use.
@@ -252,7 +252,7 @@ fn stream_initialized() -> bool { NATS_MESSAGE_STREAM.try_get::<NatsMessageStrea
 /// If `init_stream` has not been called already, this function will
 /// be a no-op.
 fn publish(subject: &'static str, mut event: impl EventMessage) {
-    if let Some(stream) = NATS_MESSAGE_STREAM.try_get::<NatsMessageStream>() {
+    if let Some(stream) = NATS_MESSAGE_STREAM.try_get() {
         // TODO (CM): Yeah... this is looking pretty gross. The
         // intention is to be able to timestamp the events right as
         // they go out.
@@ -267,7 +267,7 @@ fn publish(subject: &'static str, mut event: impl EventMessage) {
         debug!("Publishing to event stream: event {:?} ", event);
         event.event_metadata(EventMetadata { occurred_at:
                                                  Some(std::time::SystemTime::now().into()),
-                                             ..EVENT_CORE.get::<EventCore>().to_event_metadata() });
+                                             ..EVENT_CORE.get().to_event_metadata() });
 
         let packet = NatsMessage::new(subject, event.to_bytes());
         stream.send(packet);
