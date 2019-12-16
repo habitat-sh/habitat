@@ -69,8 +69,9 @@ lazy_static! {
 ///
 /// TODO (DM): It is unfortunate we have to pass a handle to the tokio runtime here. It would be
 /// more idiomatic if we spawned a single top level future and used tokio::spawn within that future.
-pub fn init_stream(config: EventStreamConfig,
-                   event_core: EventCore,
+pub fn init_stream(sys: &Sys,
+                   fqdn: String,
+                   config: EventStreamConfig,
                    runtime: &Handle)
                    -> Result<()> {
     // call_once can't return a Result (or anything), so we'll fake it
@@ -78,7 +79,10 @@ pub fn init_stream(config: EventStreamConfig,
     let mut return_value: Result<()> = Ok(());
 
     INIT.call_once(|| {
-            match NatsMessageStream::new(&event_core.supervisor_id, config, runtime) {
+            let supervisor_id = sys.member_id.clone();
+            let ip_address = sys.gossip_listen();
+            let event_core = EventCore::new(&supervisor_id, ip_address, &fqdn, &config);
+            match NatsMessageStream::new(&supervisor_id, config, runtime) {
                 Ok(stream) => {
                     NATS_MESSAGE_STREAM.set(stream);
                     EVENT_CORE.set(event_core);
@@ -120,39 +124,6 @@ impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
                                                  .expect("Required option for EventStream feature"),
                             connect_method:     EventStreamConnectMethod::from(m),
                             server_certificate: EventStreamServerCertificate::from_arg_matches(m), }
-    }
-}
-
-/// A collection of data that will be present in all events. Rather
-/// than baking this into the structure of each event, we represent it
-/// once and merge the information into the final rendered form of the
-/// event.
-///
-/// This prevents us from having to thread information throughout the
-/// system, just to get it to the places where the events are
-/// generated (e.g., not all code has direct access to the
-/// Supervisor's ID).
-#[derive(Clone, Debug)]
-pub struct EventCore {
-    /// The unique identifier of the Supervisor sending the event.
-    supervisor_id: String,
-    ip_address: SocketAddr,
-    fqdn: String,
-    application: String,
-    environment: String,
-    site: Option<String>,
-    meta: EventStreamMetadata,
-}
-
-impl EventCore {
-    pub fn new(config: &EventStreamConfig, sys: &Sys, fqdn: String) -> Self {
-        EventCore { supervisor_id: sys.member_id.clone(),
-                    ip_address: sys.gossip_listen(),
-                    fqdn,
-                    environment: config.environment.clone(),
-                    application: config.application.clone(),
-                    site: config.site.clone(),
-                    meta: config.meta.clone() }
     }
 }
 
@@ -217,6 +188,43 @@ pub fn health_check(metadata: ServiceMetadata,
 }
 
 ////////////////////////////////////////////////////////////////////////
+
+/// A collection of data that will be present in all events. Rather
+/// than baking this into the structure of each event, we represent it
+/// once and merge the information into the final rendered form of the
+/// event.
+///
+/// This prevents us from having to thread information throughout the
+/// system, just to get it to the places where the events are
+/// generated (e.g., not all code has direct access to the
+/// Supervisor's ID).
+#[derive(Clone, Debug)]
+struct EventCore {
+    /// The unique identifier of the Supervisor sending the event.
+    supervisor_id: String,
+    ip_address: SocketAddr,
+    fqdn: String,
+    application: String,
+    environment: String,
+    site: Option<String>,
+    meta: EventStreamMetadata,
+}
+
+impl EventCore {
+    fn new(supervisor_id: &str,
+           ip_address: SocketAddr,
+           fqdn: &str,
+           config: &EventStreamConfig)
+           -> Self {
+        EventCore { supervisor_id: String::from(supervisor_id),
+                    ip_address,
+                    fqdn: String::from(fqdn),
+                    environment: config.environment.clone(),
+                    application: config.application.clone(),
+                    site: config.site.clone(),
+                    meta: config.meta.clone() }
+    }
+}
 
 /// Internal helper function to know whether or not to go to the trouble of
 /// creating event structures. If the event stream hasn't been

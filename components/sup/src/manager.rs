@@ -38,7 +38,6 @@ use crate::{census::{CensusRing,
             error::{Error,
                     Result},
             event::{self,
-                    EventCore,
                     EventStreamConfig},
             http_gateway,
             VERSION};
@@ -690,10 +689,9 @@ impl Manager {
             let fqdn = habitat_core::os::net::fqdn().unwrap_or_else(|| sys.hostname.clone());
             outputln!("Event FQDN {}", fqdn);
 
-            let ec = EventCore::new(&es_config, &sys, fqdn);
             // unwrap won't fail here; if there were an issue, from_env()
             // would have already propagated an error up the stack.
-            event::init_stream(es_config, ec, runtime.handle())?;
+            event::init_stream(&sys, fqdn, es_config, runtime.handle())?;
         }
 
         let pid_source = ServicePidSource::determine_source(cfg.feature_flags, &launcher);
