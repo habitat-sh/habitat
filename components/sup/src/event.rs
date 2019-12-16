@@ -31,14 +31,13 @@ use crate::manager::{service::{HealthCheckHookStatus,
 use clap::ArgMatches;
 pub use error::{Error,
                 Result};
-use futures::channel::mpsc::Sender;
+use futures::channel::mpsc::UnboundedSender;
 use habitat_common::types::{AutomateAuthToken,
                             EventStreamConnectMethod,
                             EventStreamMetadata,
                             EventStreamServerCertificate};
 use habitat_core::{package::ident::PackageIdent,
                    service::HealthCheckInterval};
-use parking_lot::Mutex;
 use prost_types::Duration as ProstDuration;
 use state::Container;
 use std::{net::SocketAddr,
@@ -61,7 +60,6 @@ lazy_static! {
     /// Core information that is shared between all events.
     static ref EVENT_CORE: Container = Container::new();
 }
-type EventStreamContainer = Mutex<EventStream>;
 
 /// Starts a new thread for sending events to a NATS Streaming
 /// server. Stashes the handle to the stream, as well as the core
@@ -82,7 +80,7 @@ pub fn init_stream(config: EventStreamConfig,
             let conn_info = EventStreamConnectionInfo::new(&event_core.supervisor_id, config);
             match stream::init_stream(conn_info, runtime) {
                 Ok(event_stream) => {
-                    EVENT_STREAM.set(EventStreamContainer::new(event_stream));
+                    EVENT_STREAM.set(event_stream);
                     EVENT_CORE.set(event_core);
                 }
                 Err(e) => return_value = Err(e),
@@ -245,7 +243,7 @@ pub fn health_check(metadata: ServiceMetadata,
 /// Internal helper function to know whether or not to go to the trouble of
 /// creating event structures. If the event stream hasn't been
 /// initialized, then we shouldn't need to do anything.
-fn stream_initialized() -> bool { EVENT_STREAM.try_get::<EventStreamContainer>().is_some() }
+fn stream_initialized() -> bool { EVENT_STREAM.try_get::<EventStream>().is_some() }
 
 /// Publish an event. This is the main interface that client code will
 /// use.
@@ -253,7 +251,7 @@ fn stream_initialized() -> bool { EVENT_STREAM.try_get::<EventStreamContainer>()
 /// If `init_stream` has not been called already, this function will
 /// be a no-op.
 fn publish(subject: &'static str, mut event: impl EventMessage) {
-    if let Some(e) = EVENT_STREAM.try_get::<EventStreamContainer>() {
+    if let Some(event_stream) = EVENT_STREAM.try_get::<EventStream>() {
         // TODO (CM): Yeah... this is looking pretty gross. The
         // intention is to be able to timestamp the events right as
         // they go out.
@@ -271,7 +269,7 @@ fn publish(subject: &'static str, mut event: impl EventMessage) {
                                              ..EVENT_CORE.get::<EventCore>().to_event_metadata() });
 
         let packet = EventPacket::new(subject, event.to_bytes());
-        e.lock().send(packet);
+        event_stream.send(packet);
     }
 }
 
@@ -288,19 +286,15 @@ impl EventPacket {
 
 /// A lightweight handle for the event stream. All events get to the
 /// event stream through this.
-struct EventStream {
-    sender: Sender<EventPacket>,
-}
+struct EventStream(UnboundedSender<EventPacket>);
 
 impl EventStream {
-    fn new(sender: Sender<EventPacket>) -> Self { Self { sender } }
+    fn new(sender: UnboundedSender<EventPacket>) -> Self { Self(sender) }
 
     /// Queues an event to be sent out.
-    fn send(&mut self, event_packet: EventPacket) {
+    fn send(&self, event_packet: EventPacket) {
         trace!("About to queue an event: {:?}", event_packet);
-        // If the server is down, the event stream channel may fill up. If this happens we are ok
-        // dropping events.
-        if let Err(e) = self.sender.try_send(event_packet) {
+        if let Err(e) = self.0.unbounded_send(event_packet) {
             error!("Failed to queue event: {}", e);
         }
     }
@@ -324,7 +318,7 @@ mod tests {
     async fn health_check_event() {
         let (tx, rx) = futures_mpsc::channel(4);
         let event_stream = EventStream { sender: tx };
-        EVENT_STREAM.set(EventStreamContainer::new(event_stream));
+        EVENT_STREAM.set(event_stream);
         EVENT_CORE.set(EventCore { supervisor_id: String::from("supervisor_id"),
                                    ip_address:    "127.0.0.1:8080".parse().unwrap(),
                                    fqdn:          String::from("fqdn"),

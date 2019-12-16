@@ -14,7 +14,6 @@ use std::{thread,
 use tokio::runtime::Handle;
 
 const NATS_SCHEME: &str = "nats://";
-const EVENT_CHANNEL_SIZE: usize = 1024;
 
 fn nats_uri(uri: &str, auth_token: &str) -> String {
     // Unconditionally, remove the scheme. We will add it back.
@@ -31,7 +30,7 @@ fn nats_uri(uri: &str, auth_token: &str) -> String {
 pub(super) fn init_stream(conn_info: EventStreamConnectionInfo,
                           runtime: &Handle)
                           -> Result<EventStream> {
-    let (event_tx, mut event_rx) = futures_mpsc::channel::<EventPacket>(EVENT_CHANNEL_SIZE);
+    let (event_tx, mut event_rx) = futures_mpsc::unbounded::<EventPacket>();
 
     let EventStreamConnectionInfo { name,
                                     verbose,
