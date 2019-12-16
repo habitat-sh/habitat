@@ -29,10 +29,72 @@ impl NatsMessage {
 
 /// A lightweight handle for the event stream. All events get to the
 /// event stream through this.
-pub struct NatsMessageStream(UnboundedSender<NatsMessage>);
+pub struct NatsMessageStream(pub(super) UnboundedSender<NatsMessage>);
 
 impl NatsMessageStream {
-    pub fn new(sender: UnboundedSender<NatsMessage>) -> Self { Self(sender) }
+    pub fn new(supervisor_id: &str,
+               config: EventStreamConfig,
+               runtime: &Handle)
+               -> Result<NatsMessageStream> {
+        let (event_tx, mut event_rx) = futures_mpsc::unbounded::<NatsMessage>();
+
+        let name = format!("hab_client_{}", supervisor_id);
+        let EventStreamConfig { url,
+                                token,
+                                connect_method,
+                                server_certificate,
+                                .. } = config;
+        let uri = nats_uri(&url, &token.to_string());
+
+        let mut tls_config = TlsConnector::builder();
+        for certificate in habitat_http_client::certificates(None)? {
+            tls_config.add_root_certificate(certificate);
+        }
+        if let Some(certificate) = server_certificate {
+            tls_config.add_root_certificate(certificate.into());
+        }
+        let tls_config = tls_config.build()?;
+
+        // Note: With the way we are using the client, we will not respond to pings from the
+        // server (https://nats-io.github.io/docs/nats_protocol/nats-protocol.html#pingpong).
+        // Instead, we rely on publishing events to keep us connected to the server. This is
+        // completely valid according to the protocol, and in fact, the server will
+        // not send pings if there is other traffic from a client. If we have no
+        // events for an extended period of time, we will be automatically
+        // disconnected (because we do not respond to pings). When the next event comes
+        // in we will try to reconnect.
+        let mut client = Client::new(uri.as_ref())?;
+        client.set_name(&name);
+        client.set_synchronous(true);
+        client.set_tls_config(tls_config);
+
+        // Try to establish an intial connection to the NATS server.
+        let start = Instant::now();
+        let maybe_timeout = connect_method.into();
+        while let Err(e) = client.connect() {
+            if let Some(timeout) = maybe_timeout {
+                if Instant::now() > start + timeout {
+                    return Err(Error::ConnectEventServer);
+                }
+                error!("Failed to connect to NATS server '{}'. Retrying...", e);
+            } else {
+                warn!("Failed to connect to NATS server '{}'.", e);
+                break;
+            }
+            thread::sleep(Duration::from_secs(1));
+        }
+
+        let event_handler = async move {
+            while let Some(packet) = event_rx.next().await {
+                if let Err(e) = client.publish(packet.subject, packet.payload()) {
+                    error!("Failed to publish event to '{}', '{}'", packet.subject, e);
+                }
+            }
+        };
+        runtime.spawn(event_handler);
+
+        Ok(NatsMessageStream(event_tx))
+    }
 
     /// Queues an event to be sent out.
     pub fn send(&self, event_packet: NatsMessage) {
@@ -53,69 +115,6 @@ fn nats_uri(uri: &str, auth_token: &str) -> String {
     } else {
         format!("{}{}@{}", NATS_SCHEME, auth_token, uri)
     }
-}
-
-pub(super) fn init(supervisor_id: &str,
-                   config: EventStreamConfig,
-                   runtime: &Handle)
-                   -> Result<NatsMessageStream> {
-    let (event_tx, mut event_rx) = futures_mpsc::unbounded::<NatsMessage>();
-
-    let name = format!("hab_client_{}", supervisor_id);
-    let EventStreamConfig { url,
-                            token,
-                            connect_method,
-                            server_certificate,
-                            .. } = config;
-    let uri = nats_uri(&url, &token.to_string());
-
-    let mut tls_config = TlsConnector::builder();
-    for certificate in habitat_http_client::certificates(None)? {
-        tls_config.add_root_certificate(certificate);
-    }
-    if let Some(certificate) = server_certificate {
-        tls_config.add_root_certificate(certificate.into());
-    }
-    let tls_config = tls_config.build()?;
-
-    // Note: With the way we are using the client, we will not respond to pings from the server
-    // (https://nats-io.github.io/docs/nats_protocol/nats-protocol.html#pingpong).
-    // Instead, we rely on publishing events to keep us connected to the server. This is completely
-    // valid according to the protocol, and in fact, the server will not send pings if there is
-    // other traffic from a client. If we have no events for an extended period of time, we will
-    // be automatically disconnected (because we do not respond to pings). When the next event comes
-    // in we will try to reconnect.
-    let mut client = Client::new(uri.as_ref())?;
-    client.set_name(&name);
-    client.set_synchronous(true);
-    client.set_tls_config(tls_config);
-
-    // Try to establish an intial connection to the NATS server.
-    let start = Instant::now();
-    let maybe_timeout = connect_method.into();
-    while let Err(e) = client.connect() {
-        if let Some(timeout) = maybe_timeout {
-            if Instant::now() > start + timeout {
-                return Err(Error::ConnectEventServer);
-            }
-            error!("Failed to connect to NATS server '{}'. Retrying...", e);
-        } else {
-            warn!("Failed to connect to NATS server '{}'.", e);
-            break;
-        }
-        thread::sleep(Duration::from_secs(1));
-    }
-
-    let event_handler = async move {
-        while let Some(packet) = event_rx.next().await {
-            if let Err(e) = client.publish(packet.subject, packet.payload()) {
-                error!("Failed to publish event to '{}', '{}'", packet.subject, e);
-            }
-        }
-    };
-    runtime.spawn(event_handler);
-
-    Ok(NatsMessageStream::new(event_tx))
 }
 
 #[cfg(test)]

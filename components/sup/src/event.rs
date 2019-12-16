@@ -78,7 +78,7 @@ pub fn init_stream(config: EventStreamConfig,
     let mut return_value: Result<()> = Ok(());
 
     INIT.call_once(|| {
-            match nats_message_stream::init(&event_core.supervisor_id, config, runtime) {
+            match NatsMessageStream::new(&event_core.supervisor_id, config, runtime) {
                 Ok(stream) => {
                     NATS_MESSAGE_STREAM.set(stream);
                     EVENT_CORE.set(event_core);
@@ -269,7 +269,7 @@ mod tests {
     #[cfg(any(unix, windows))]
     async fn health_check_event() {
         let (tx, rx) = futures_mpsc::unbounded();
-        NATS_MESSAGE_STREAM.set(NatsMessageStream::new(tx));
+        NATS_MESSAGE_STREAM.set(NatsMessageStream(tx));
         EVENT_CORE.set(EventCore { supervisor_id: String::from("supervisor_id"),
                                    ip_address:    "127.0.0.1:8080".parse().unwrap(),
                                    fqdn:          String::from("fqdn"),
