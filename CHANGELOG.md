@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.48 -->
-## [0.90.48](https://github.com/habitat-sh/habitat/tree/0.90.48) (2019-12-12)
+<!-- latest_release 0.90.49 -->
+## [0.90.49](https://github.com/habitat-sh/habitat/tree/0.90.49) (2019-12-16)
 
-#### New Features & Enhancements
-- bulkupload: discover origins from signing keys [#7279](https://github.com/habitat-sh/habitat/pull/7279) ([jeremymv2](https://github.com/jeremymv2))
+#### Merged Pull Requests
+- ONE: Normalize markdown [#7289](https://github.com/habitat-sh/habitat/pull/7289) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -18,6 +18,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- ONE: Normalize markdown [#7289](https://github.com/habitat-sh/habitat/pull/7289) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.49 -->
 - Update release documentation [#7263](https://github.com/habitat-sh/habitat/pull/7263) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.47 -->
 - Unpin reqwest [#7277](https://github.com/habitat-sh/habitat/pull/7277) ([chefsalim](https://github.com/chefsalim)) <!-- 0.90.46 -->
 - mirror RUSTFMT_VERSION in RUST_NIGHTLY_VERSION [#7274](https://github.com/habitat-sh/habitat/pull/7274) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.45 -->
