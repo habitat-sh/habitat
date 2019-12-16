@@ -1214,8 +1214,6 @@ impl Manager {
             }
         }
 
-        event::stop_stream();
-
         release_process_lock(&self.fs_cfg);
         self.butterfly.persist_data_rsr_mlr();
 

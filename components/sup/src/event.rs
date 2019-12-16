@@ -31,8 +31,7 @@ use crate::manager::{service::{HealthCheckHookStatus,
 use clap::ArgMatches;
 pub use error::{Error,
                 Result};
-use futures::{channel::mpsc::Sender,
-              future::AbortHandle};
+use futures::channel::mpsc::Sender;
 use habitat_common::types::{AutomateAuthToken,
                             EventStreamConnectMethod,
                             EventStreamMetadata,
@@ -91,19 +90,6 @@ pub fn init_stream(config: EventStreamConfig,
         });
 
     return_value
-}
-
-/// Stop the event stream future so we can gracefully shutdown the runtime.
-///
-/// `init_stream` and `stop_stream` cannot be called more than once. The singleton event stream can
-/// only be set once. If `init_stream` is called after calling `stop_stream` no new event stream
-/// will be started.
-pub fn stop_stream() {
-    if let Some(e) = EVENT_STREAM.try_get::<EventStreamContainer>() {
-        if let Some(h) = e.lock().handle.take() {
-            h.abort();
-        }
-    }
 }
 
 /// Captures all event stream-related configuration options that would
@@ -304,14 +290,10 @@ impl EventPacket {
 /// event stream through this.
 struct EventStream {
     sender: Sender<EventPacket>,
-    handle: Option<AbortHandle>,
 }
 
 impl EventStream {
-    fn new(sender: Sender<EventPacket>, handle: AbortHandle) -> Self {
-        Self { sender,
-               handle: Some(handle) }
-    }
+    fn new(sender: Sender<EventPacket>) -> Self { Self { sender } }
 
     /// Queues an event to be sent out.
     fn send(&mut self, event_packet: EventPacket) {
@@ -341,8 +323,7 @@ mod tests {
     #[cfg(any(unix, windows))]
     async fn health_check_event() {
         let (tx, rx) = futures_mpsc::channel(4);
-        let event_stream = EventStream { sender: tx,
-                                         handle: None, };
+        let event_stream = EventStream { sender: tx };
         EVENT_STREAM.set(EventStreamContainer::new(event_stream));
         EVENT_CORE.set(EventCore { supervisor_id: String::from("supervisor_id"),
                                    ip_address:    "127.0.0.1:8080".parse().unwrap(),

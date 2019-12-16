@@ -4,7 +4,6 @@ use crate::event::{Error,
                    EventStreamConnectionInfo,
                    Result};
 use futures::{channel::mpsc as futures_mpsc,
-              future,
               stream::StreamExt};
 use habitat_http_client;
 use nats::{native_tls::TlsConnector,
@@ -86,10 +85,9 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo,
             }
         }
     };
-    let (event_handler, handle) = future::abortable(event_handler);
     runtime.spawn(event_handler);
 
-    Ok(EventStream::new(event_tx, handle))
+    Ok(EventStream::new(event_tx))
 }
 
 #[cfg(test)]
