@@ -12,7 +12,7 @@
 //! [1]:https://github.com/nats-io/nats-server
 
 mod error;
-mod stream;
+mod nats_message_stream;
 mod types;
 
 pub(crate) use self::types::ServiceMetadata;
@@ -78,7 +78,7 @@ pub fn init_stream(config: EventStreamConfig,
 
     INIT.call_once(|| {
             let conn_info = EventStreamConnectionInfo::new(&event_core.supervisor_id, config);
-            match stream::init_stream(conn_info, runtime) {
+            match nats_message_stream::init(conn_info, runtime) {
                 Ok(event_stream) => {
                     EVENT_STREAM.set(event_stream);
                     EVENT_CORE.set(event_core);
@@ -243,7 +243,7 @@ pub fn health_check(metadata: ServiceMetadata,
 /// Internal helper function to know whether or not to go to the trouble of
 /// creating event structures. If the event stream hasn't been
 /// initialized, then we shouldn't need to do anything.
-fn stream_initialized() -> bool { EVENT_STREAM.try_get::<EventStream>().is_some() }
+fn stream_initialized() -> bool { EVENT_STREAM.try_get::<NatsMessageStream>().is_some() }
 
 /// Publish an event. This is the main interface that client code will
 /// use.
@@ -251,7 +251,7 @@ fn stream_initialized() -> bool { EVENT_STREAM.try_get::<EventStream>().is_some(
 /// If `init_stream` has not been called already, this function will
 /// be a no-op.
 fn publish(subject: &'static str, mut event: impl EventMessage) {
-    if let Some(event_stream) = EVENT_STREAM.try_get::<EventStream>() {
+    if let Some(event_stream) = EVENT_STREAM.try_get::<NatsMessageStream>() {
         // TODO (CM): Yeah... this is looking pretty gross. The
         // intention is to be able to timestamp the events right as
         // they go out.
@@ -268,31 +268,31 @@ fn publish(subject: &'static str, mut event: impl EventMessage) {
                                                  Some(std::time::SystemTime::now().into()),
                                              ..EVENT_CORE.get::<EventCore>().to_event_metadata() });
 
-        let packet = EventPacket::new(subject, event.to_bytes());
+        let packet = NatsMessage::new(subject, event.to_bytes());
         event_stream.send(packet);
     }
 }
 
 /// The subject and payload of an event message.
 #[derive(Debug)]
-struct EventPacket {
+struct NatsMessage {
     subject: &'static str,
     payload: Vec<u8>,
 }
 
-impl EventPacket {
-    fn new(subject: &'static str, payload: Vec<u8>) -> Self { Self { subject, payload } }
+impl NatsMessage {
+    fn new(subject: &'static str, payload: Vec<u8>) -> Self { NatsMessage { subject, payload } }
 }
 
 /// A lightweight handle for the event stream. All events get to the
 /// event stream through this.
-struct EventStream(UnboundedSender<EventPacket>);
+struct NatsMessageStream(UnboundedSender<NatsMessage>);
 
-impl EventStream {
-    fn new(sender: UnboundedSender<EventPacket>) -> Self { Self(sender) }
+impl NatsMessageStream {
+    fn new(sender: UnboundedSender<NatsMessage>) -> Self { Self(sender) }
 
     /// Queues an event to be sent out.
-    fn send(&self, event_packet: EventPacket) {
+    fn send(&self, event_packet: NatsMessage) {
         trace!("About to queue an event: {:?}", event_packet);
         if let Err(e) = self.0.unbounded_send(event_packet) {
             error!("Failed to queue event: {}", e);

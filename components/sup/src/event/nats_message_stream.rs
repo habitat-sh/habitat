@@ -1,7 +1,7 @@
 use crate::event::{Error,
-                   EventPacket,
-                   EventStream,
                    EventStreamConnectionInfo,
+                   NatsMessage,
+                   NatsMessageStream,
                    Result};
 use futures::{channel::mpsc as futures_mpsc,
               stream::StreamExt};
@@ -27,10 +27,10 @@ fn nats_uri(uri: &str, auth_token: &str) -> String {
     }
 }
 
-pub(super) fn init_stream(conn_info: EventStreamConnectionInfo,
-                          runtime: &Handle)
-                          -> Result<EventStream> {
-    let (event_tx, mut event_rx) = futures_mpsc::unbounded::<EventPacket>();
+pub(super) fn init(conn_info: EventStreamConnectionInfo,
+                   runtime: &Handle)
+                   -> Result<NatsMessageStream> {
+    let (event_tx, mut event_rx) = futures_mpsc::unbounded::<NatsMessage>();
 
     let EventStreamConnectionInfo { name,
                                     verbose,
@@ -86,7 +86,7 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo,
     };
     runtime.spawn(event_handler);
 
-    Ok(EventStream::new(event_tx))
+    Ok(NatsMessageStream::new(event_tx))
 }
 
 #[cfg(test)]
