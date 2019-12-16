@@ -26,7 +26,7 @@ description: Uploading, building, and deploying application packages with Chef H
 
 Setting up your Chef Habitat account is easy! All you need is a valid [GitHub account](https://github.com/join).
 
-### Sign-in and authorize Chef Habitat
+### Sign-in and Authorize Chef Habitat
 
 Use the button below to simultaneously sign in to Builder and create your account. Chef Habitat Builder uses GitHub for authorization, so you'll see the prompt below authorizing the application.
 
@@ -112,11 +112,11 @@ From the My Origins page in the Chef Habitat Builder web app, click the **Create
 
 <img src="/images/screenshots/create-origin.png">
 
-### Choose an origin name
+### Choose an Origin Name
 
 Pick an origin that is your company name, team name, personal name, or some other unique name that you want to associate with a given set of packages. It's important to note that once you have uploaded a package into the depot, the origin that you chose when building that package can neither be edited nor deleted.
 
-### Choose privacy setting
+### Choose a Privacy Setting
 
 This is the default privacy setting applied to new packages. You can override this setting on individual packages when uploading or connecting a plan file.
 
@@ -135,13 +135,13 @@ Habitat uses the public origin key to verify the integrity of a downloaded Habit
 
 Habitat only installs artifacts for which it has the public origin key.
 
-## Finding origin keys on Builder
+## Finding Origin Keys on Builder
 
 You can find your origin keys on the Builder site by navigating to the relevant origin and selecting the **Keys** tab.
 
 <img src="/images/screenshots/origin-keys.png">
 
-### Finding origin keys locally
+### Finding Origin Keys Locally
 
 You'll find your saved private and public origin keys at `~/.hab/cache/keys` on your host(local) machine and  at `/hab/cache/keys` inside the studio environment. To see your existing origin keys, from your host command line, run:
 
@@ -163,9 +163,9 @@ ls -la /hab/cache/keys
 Get-ChildItem C:\hab\cache\keys
 ```
 
-### Creating origin keys
+### Creating Origin Keys
 
-Creating an origin key pair on on the Habitat Builder site automatically generates two keys, a private origin key and a public origin key. Habitat will use the private origin key to sign your Habitat artifacts when they are created and the public origin key to verify the integrity of artifacts for the origin when they are installed.
+Creating an origin key pair on the Habitat Builder site automatically generates two keys, a private origin key and a public origin key. Habitat will use the private origin key to sign your Habitat artifacts when they are created and the public origin key to verify the integrity of artifacts for the origin when they are installed.
 
 You can create an origin key pair during your initial Habitat installation by following the instructions in the `hab cli setup` interaction.
 If you've already installed Habitat, you can create keys for additional origins by running `hab origin key generate <ORIGIN>`, where <ORIGIN> is the name for your new Habitat origin, from either the host machine or from within the studio.
@@ -187,7 +187,7 @@ test-origin-20190416223046.sig.key
 
 In this case, the origin is named "test-origin". The string of numbers, "20190416223046" show the date and time the key was created, in this case, 2019-04-16 22:30:46. The public key has the file extension `.pub` and the private key has `.sig.key`, since the private key is used for cryptographically signing Habitat artifacts.
 
-### Download origin keys from Builder
+### Download Origin Keys from Builder
 
 To download your private or public origin key, select the download icon from the right end of the key details, under the "Actions" heading.
 
@@ -199,7 +199,7 @@ To get your public origin key from Builder from the command line, use the comman
 hab origin key download <ORIGIN>
 ```
 
-### Upload origin keys to Builder
+### Upload Origin Keys to Builder
 
 When you create Habitat origin keys on your workstation or in the Studio with `hab origin key generate <ORIGIN>`, your origin key pairs are stored in that environment. Habitat Builder cannot access origin keys stored on your workstation or in the Studio, which means that you need to upload keys to Builder either to upload or download your Habitat origins.
 
@@ -207,7 +207,7 @@ At the very least, Builder requires the public origin key to verify the integrit
 
 Upload origin keys through the Builder web interface, or by using the `hab origin key upload` command. Uploading origin keys uses the Habitat access token for authentication.
 
-#### Upload command
+#### Upload Command
 
 The simplest method for uploading your keys is to use the commands:
 
@@ -222,7 +222,7 @@ To upload both origin keys at the same time, use:
 hab origin key upload  --secfile <PATH_TO_PRIVATE_KEY> --pubfile <PATH_TO_PUBLIC_KEY>
 ```
 
-#### Import command
+#### Import Command
 
 Use `hab origin key import` to read the key from a standard input stream:
 
@@ -322,21 +322,21 @@ You interact with Chef Habitat Builder by:
 
 Chef Habitat Builder supports both public and private origins, packages, and Github repositories.
 
-### Create a Builder account
+### Create a Builder Account
 
 If you haven't created an account yet, see the [Create a Builder Account](/docs/using-builder/#builder-account) section above.
 
-### Create or join an existing origin
+### Create or Join an Existing Origin
 
 You can create your own origin in Builder or be invited to join an existing one. If you already built some Chef Habitat packages on your local computer prior to signing up for an account, you must rename your local packages' `pkg_origin` if the origin you want already exists.
 
-### Set up hab to authenticate to Builder
+### Set up Chef Habitat to Authenticate to Builder
 
 When you upload a package to Builder, you are required to supply an auth token as part of the `hab pkg upload` subcommand. You can generate a Chef Habitat personal access token via the Builder site [Profile page](https://bldr.habitat.sh/#/profile) for use with the `hab` command-line utility.
 
 Once you have this token, you can set the `HAB_AUTH_TOKEN` [environment variable](/docs/reference#environment-variables) to this value, so that any commands requiring authentication will use it.
 
-### Create an origin key pair
+### Create an Origin Key Pair
 
 After finishing the basic account creation steps, you need to create your origin key pair. Habitat will use the private origin key to sign the artifacts (`.hart` files) created by building your plan and verify the integrity of your artifacts with the public origin key.
 
@@ -344,17 +344,17 @@ You can create an origin key pair by running `hab cli setup` from your host mach
 
 Your public and private origin keys are located at `~/.hab/cache/keys` on your host machine and at `/hab/cache/keys` inside the studio environment.
 
-### Upload the keys for your origin
+### Upload Your Origin Keys
 
 If you created a new Habitat origin from your host machine or from the Studio, Builder will not have either of the origin keys corresponding to your artifact. Builder will not accept uploaded artifacts without first having the correct origin public key.
 
 You can upload keys for the origin through the web interface for Builder, or by using the `hab origin key upload` command. You must have the access token for authentication, as described earlier, before you can upload keys.
 
-### Upload packages to Builder
+### Upload Packages to Builder
 
 As long as you are already a member of the Habitat origin, once Builder possesses at least the public origin key, then you may upload one or more artifacts to that origin with the `hab pkg upload` command. After Habitat validates the cryptographic integrity of the artifact, it is then uploaded and stored on Builder. Uploading artifacts is a privileged operation for which you must have the access token.
 
-### Promote packages
+### Promote Packages
 
 <%= partial "/partials/global/channel-overview" %>
 
@@ -368,7 +368,7 @@ $ hab pkg promote -z <TOKEN> origin/package/version/release stable
 
 For more information on how to use channels, see [Continuous Deployment Using Channels](/docs/using-habitat/#continuous-deployment).
 
-### Running packages from Builder
+### Running Packages from Builder
 
 > **Note:** When running private packages from Builder, it's necessary to add your [Chef Habitat access token](/docs/using-builder/#builder-token) to the machine where you intend to deploy the package, via `export HAB_AUTH_TOKEN=<token>`.
 
@@ -387,7 +387,7 @@ You may also supply a `--channel` argument to instruct the Supervisor to use a d
 $ hab svc load core/postgresql --channel unstable
 ```
 
-### Running packages from exported tarballs
+### Running Packages from Exported Tarballs
 
 An exported tarball package contains the Chef Habitat client/binary as well as dependencies specified by your artifact.
 
@@ -480,7 +480,7 @@ To enable this functionality, do the following:
 
 By connecting a plan file in <a href="https://bldr.habitat.sh/#/sign-in" class="link-external" target="_blank">Chef Habitat Builder</a>, you can trigger both manual (via the web UI, or via the `hab` command line) as well as automated package rebuilds whenever a change is merged into the `master` branch of the repository containing your Chef Habitat plan, or when a dependent package updates (rebuilds).
 
-### Connect a plan
+### Connect a Plan
 
 To connect a plan to Builder, view one of your origins (while signed in), click the **Connect a plan file** button, and complete the following steps:
 
@@ -490,7 +490,7 @@ To connect a plan to Builder, view one of your origins (while signed in), click 
   - Specify container-registry publishing settings (optional)
   - Specify auto-build option (default is off)
 
-#### Auto-build option
+#### Auto-build Option
 
 The auto-build option controls whether or not your package will get automatically re-built. This option is a useful capability to have - for example, if you have a demo app that doesn’t need to be kept constantly up to date when some underlying dependency updates. Auto-build encompasses both builds that are triggered by Github web hooks (on commits to master), as well as builds that are triggered by a dependency updating.
 
