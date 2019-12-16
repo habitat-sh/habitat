@@ -43,7 +43,6 @@ use prost_types::Duration as ProstDuration;
 use state::Storage;
 use std::{net::SocketAddr,
           time::Duration};
-use tokio::runtime::Handle;
 
 const SERVICE_STARTED_SUBJECT: &str = "habitat.event.service_started";
 const SERVICE_STOPPED_SUBJECT: &str = "habitat.event.service_stopped";
@@ -64,16 +63,13 @@ lazy_static! {
 /// server. Stashes the handle to the stream, as well as the core
 /// event information that will be a part of all events, in a global
 /// static reference for access later.
-///
-/// TODO (DM): It is unfortunate we have to pass a handle to the tokio runtime here. It would be
-/// more idiomatic if we spawned a single top level future and used tokio::spawn within that future.
-pub fn init(sys: &Sys, fqdn: String, config: EventStreamConfig, runtime: &Handle) -> Result<()> {
+pub async fn init(sys: &Sys, fqdn: String, config: EventStreamConfig) -> Result<()> {
     // Only initialize once
     if !initialized() {
         let supervisor_id = sys.member_id.clone();
         let ip_address = sys.gossip_listen();
         let event_core = EventCore::new(&supervisor_id, ip_address, &fqdn, &config);
-        let stream = NatsMessageStream::new(&supervisor_id, config, runtime)?;
+        let stream = NatsMessageStream::new(&supervisor_id, config).await?;
         NATS_MESSAGE_STREAM.set(stream);
         EVENT_CORE.set(event_core);
     }

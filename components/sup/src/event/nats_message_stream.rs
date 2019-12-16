@@ -10,7 +10,6 @@ use nats::{native_tls::TlsConnector,
 use std::{thread,
           time::{Duration,
                  Instant}};
-use tokio::runtime::Handle;
 
 const NATS_SCHEME: &str = "nats://";
 
@@ -32,10 +31,7 @@ impl NatsMessage {
 pub struct NatsMessageStream(pub(super) UnboundedSender<NatsMessage>);
 
 impl NatsMessageStream {
-    pub fn new(supervisor_id: &str,
-               config: EventStreamConfig,
-               runtime: &Handle)
-               -> Result<NatsMessageStream> {
+    pub async fn new(supervisor_id: &str, config: EventStreamConfig) -> Result<NatsMessageStream> {
         let (event_tx, mut event_rx) = futures_mpsc::unbounded::<NatsMessage>();
 
         let name = format!("hab_client_{}", supervisor_id);
@@ -91,7 +87,7 @@ impl NatsMessageStream {
                 }
             }
         };
-        runtime.spawn(event_handler);
+        tokio::spawn(event_handler);
 
         Ok(NatsMessageStream(event_tx))
     }

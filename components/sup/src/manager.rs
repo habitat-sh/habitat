@@ -619,11 +619,12 @@ impl Manager {
                 sys_ip: IpAddr)
                 -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
-        let runtime = RuntimeBuilder::new().threaded_scheduler()
-                                           .num_threads(TokioThreadCount::configured_value().into())
-                                           .enable_all()
-                                           .build()
-                                           .expect("Couldn't build Tokio Runtime!");
+        let mut runtime =
+            RuntimeBuilder::new().threaded_scheduler()
+                                 .num_threads(TokioThreadCount::configured_value().into())
+                                 .enable_all()
+                                 .build()
+                                 .expect("Couldn't build Tokio Runtime!");
         let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
         outputln!("{} ({})", SUP_PKG_IDENT, current);
         let cfg_static = cfg.clone();
@@ -689,7 +690,7 @@ impl Manager {
             let fqdn = habitat_core::os::net::fqdn().unwrap_or_else(|| sys.hostname.clone());
             outputln!("Event FQDN {}", fqdn);
 
-            event::init(&sys, fqdn, es_config, runtime.handle())?;
+            runtime.block_on(event::init(&sys, fqdn, es_config))?;
         }
 
         let pid_source = ServicePidSource::determine_source(cfg.feature_flags, &launcher);
