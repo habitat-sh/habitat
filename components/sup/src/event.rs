@@ -42,7 +42,6 @@ use nats_message_stream::{NatsMessage,
 use prost_types::Duration as ProstDuration;
 use state::Storage;
 use std::{net::SocketAddr,
-          sync::Once,
           time::Duration};
 use tokio::runtime::Handle;
 
@@ -51,7 +50,6 @@ const SERVICE_STOPPED_SUBJECT: &str = "habitat.event.service_stopped";
 const SERVICE_UPDATE_STARTED_SUBJECT: &str = "habitat.event.service_update_started";
 const HEALTHCHECK_SUBJECT: &str = "habitat.event.healthcheck";
 
-static INIT: Once = Once::new();
 lazy_static! {
     // TODO (CM): When const fn support lands in stable, we can ditch
     // this lazy_static call.
@@ -69,29 +67,17 @@ lazy_static! {
 ///
 /// TODO (DM): It is unfortunate we have to pass a handle to the tokio runtime here. It would be
 /// more idiomatic if we spawned a single top level future and used tokio::spawn within that future.
-pub fn init_stream(sys: &Sys,
-                   fqdn: String,
-                   config: EventStreamConfig,
-                   runtime: &Handle)
-                   -> Result<()> {
-    // call_once can't return a Result (or anything), so we'll fake it
-    // by hanging onto any error we might receive.
-    let mut return_value: Result<()> = Ok(());
-
-    INIT.call_once(|| {
-            let supervisor_id = sys.member_id.clone();
-            let ip_address = sys.gossip_listen();
-            let event_core = EventCore::new(&supervisor_id, ip_address, &fqdn, &config);
-            match NatsMessageStream::new(&supervisor_id, config, runtime) {
-                Ok(stream) => {
-                    NATS_MESSAGE_STREAM.set(stream);
-                    EVENT_CORE.set(event_core);
-                }
-                Err(e) => return_value = Err(e),
-            }
-        });
-
-    return_value
+pub fn init(sys: &Sys, fqdn: String, config: EventStreamConfig, runtime: &Handle) -> Result<()> {
+    // Only initialize once
+    if !initialized() {
+        let supervisor_id = sys.member_id.clone();
+        let ip_address = sys.gossip_listen();
+        let event_core = EventCore::new(&supervisor_id, ip_address, &fqdn, &config);
+        let stream = NatsMessageStream::new(&supervisor_id, config, runtime)?;
+        NATS_MESSAGE_STREAM.set(stream);
+        EVENT_CORE.set(event_core);
+    }
+    Ok(())
 }
 
 /// Captures all event stream-related configuration options that would
@@ -129,7 +115,7 @@ impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
 
 /// Send an event for the start of a Service.
 pub fn service_started(service: &Service) {
-    if stream_initialized() {
+    if initialized() {
         publish(SERVICE_STARTED_SUBJECT,
                 ServiceStartedEvent { service_metadata: Some(service.to_service_metadata()),
                                       event_metadata:   None, });
@@ -138,7 +124,7 @@ pub fn service_started(service: &Service) {
 
 /// Send an event for the stop of a Service.
 pub fn service_stopped(service: &Service) {
-    if stream_initialized() {
+    if initialized() {
         publish(SERVICE_STOPPED_SUBJECT,
                 ServiceStoppedEvent { service_metadata: Some(service.to_service_metadata()),
                                       event_metadata:   None, });
@@ -147,7 +133,7 @@ pub fn service_stopped(service: &Service) {
 
 /// Send an event at the start of a Service update.
 pub fn service_update_started(service: &Service, update: &PackageIdent) {
-    if stream_initialized() {
+    if initialized() {
         publish(SERVICE_UPDATE_STARTED_SUBJECT,
                 ServiceUpdateStartedEvent { event_metadata:       None,
                                             service_metadata:
@@ -163,7 +149,7 @@ pub fn health_check(metadata: ServiceMetadata,
                     health_check_result: HealthCheckResult,
                     health_check_hook_status: HealthCheckHookStatus,
                     health_check_interval: HealthCheckInterval) {
-    if stream_initialized() {
+    if initialized() {
         let health_check_result: types::HealthCheckResult = health_check_result.into();
         let maybe_duration = health_check_hook_status.maybe_duration();
         let maybe_process_output = health_check_hook_status.maybe_process_output();
@@ -229,7 +215,7 @@ impl EventCore {
 /// Internal helper function to know whether or not to go to the trouble of
 /// creating event structures. If the event stream hasn't been
 /// initialized, then we shouldn't need to do anything.
-fn stream_initialized() -> bool { NATS_MESSAGE_STREAM.try_get().is_some() }
+fn initialized() -> bool { NATS_MESSAGE_STREAM.try_get().is_some() }
 
 /// Publish an event. This is the main interface that client code will
 /// use.

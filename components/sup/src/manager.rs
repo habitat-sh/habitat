@@ -689,9 +689,7 @@ impl Manager {
             let fqdn = habitat_core::os::net::fqdn().unwrap_or_else(|| sys.hostname.clone());
             outputln!("Event FQDN {}", fqdn);
 
-            // unwrap won't fail here; if there were an issue, from_env()
-            // would have already propagated an error up the stack.
-            event::init_stream(&sys, fqdn, es_config, runtime.handle())?;
+            event::init(&sys, fqdn, es_config, runtime.handle())?;
         }
 
         let pid_source = ServicePidSource::determine_source(cfg.feature_flags, &launcher);
