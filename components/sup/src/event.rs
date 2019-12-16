@@ -31,13 +31,14 @@ use crate::manager::{service::{HealthCheckHookStatus,
 use clap::ArgMatches;
 pub use error::{Error,
                 Result};
-use futures::channel::mpsc::UnboundedSender;
 use habitat_common::types::{AutomateAuthToken,
                             EventStreamConnectMethod,
                             EventStreamMetadata,
                             EventStreamServerCertificate};
 use habitat_core::{package::ident::PackageIdent,
                    service::HealthCheckInterval};
+use nats_message_stream::{NatsMessage,
+                          NatsMessageStream};
 use prost_types::Duration as ProstDuration;
 use state::Container;
 use std::{net::SocketAddr,
@@ -56,7 +57,7 @@ lazy_static! {
     // this lazy_static call.
 
     /// Reference to the event stream.
-    static ref EVENT_STREAM: Container = Container::new();
+    static ref NATS_MESSAGE_STREAM: Container = Container::new();
     /// Core information that is shared between all events.
     static ref EVENT_CORE: Container = Container::new();
 }
@@ -79,8 +80,8 @@ pub fn init_stream(config: EventStreamConfig,
     INIT.call_once(|| {
             let conn_info = EventStreamConnectionInfo::new(&event_core.supervisor_id, config);
             match nats_message_stream::init(conn_info, runtime) {
-                Ok(event_stream) => {
-                    EVENT_STREAM.set(event_stream);
+                Ok(stream) => {
+                    NATS_MESSAGE_STREAM.set(stream);
                     EVENT_CORE.set(event_core);
                 }
                 Err(e) => return_value = Err(e),
@@ -243,7 +244,7 @@ pub fn health_check(metadata: ServiceMetadata,
 /// Internal helper function to know whether or not to go to the trouble of
 /// creating event structures. If the event stream hasn't been
 /// initialized, then we shouldn't need to do anything.
-fn stream_initialized() -> bool { EVENT_STREAM.try_get::<NatsMessageStream>().is_some() }
+fn stream_initialized() -> bool { NATS_MESSAGE_STREAM.try_get::<NatsMessageStream>().is_some() }
 
 /// Publish an event. This is the main interface that client code will
 /// use.
@@ -251,7 +252,7 @@ fn stream_initialized() -> bool { EVENT_STREAM.try_get::<NatsMessageStream>().is
 /// If `init_stream` has not been called already, this function will
 /// be a no-op.
 fn publish(subject: &'static str, mut event: impl EventMessage) {
-    if let Some(event_stream) = EVENT_STREAM.try_get::<NatsMessageStream>() {
+    if let Some(stream) = NATS_MESSAGE_STREAM.try_get::<NatsMessageStream>() {
         // TODO (CM): Yeah... this is looking pretty gross. The
         // intention is to be able to timestamp the events right as
         // they go out.
@@ -269,40 +270,14 @@ fn publish(subject: &'static str, mut event: impl EventMessage) {
                                              ..EVENT_CORE.get::<EventCore>().to_event_metadata() });
 
         let packet = NatsMessage::new(subject, event.to_bytes());
-        event_stream.send(packet);
-    }
-}
-
-/// The subject and payload of an event message.
-#[derive(Debug)]
-struct NatsMessage {
-    subject: &'static str,
-    payload: Vec<u8>,
-}
-
-impl NatsMessage {
-    fn new(subject: &'static str, payload: Vec<u8>) -> Self { NatsMessage { subject, payload } }
-}
-
-/// A lightweight handle for the event stream. All events get to the
-/// event stream through this.
-struct NatsMessageStream(UnboundedSender<NatsMessage>);
-
-impl NatsMessageStream {
-    fn new(sender: UnboundedSender<NatsMessage>) -> Self { Self(sender) }
-
-    /// Queues an event to be sent out.
-    fn send(&self, event_packet: NatsMessage) {
-        trace!("About to queue an event: {:?}", event_packet);
-        if let Err(e) = self.0.unbounded_send(event_packet) {
-            error!("Failed to queue event: {}", e);
-        }
+        stream.send(packet);
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{nats_message_stream::NatsMessageStream,
+                *};
     use crate::prost::Message;
     use futures::{channel::mpsc as futures_mpsc,
                   stream::StreamExt};
@@ -316,9 +291,8 @@ mod tests {
     #[tokio::test]
     #[cfg(any(unix, windows))]
     async fn health_check_event() {
-        let (tx, rx) = futures_mpsc::channel(4);
-        let event_stream = EventStream { sender: tx };
-        EVENT_STREAM.set(event_stream);
+        let (tx, rx) = futures_mpsc::unbounded();
+        NATS_MESSAGE_STREAM.set(NatsMessageStream::new(tx));
         EVENT_CORE.set(EventCore { supervisor_id: String::from("supervisor_id"),
                                    ip_address:    "127.0.0.1:8080".parse().unwrap(),
                                    fqdn:          String::from("fqdn"),
@@ -360,7 +334,7 @@ mod tests {
                      HealthCheckInterval::default());
         let events = rx.take(4).collect::<Vec<_>>().await;
 
-        let event = HealthCheckEvent::decode(events[0].payload.as_slice()).unwrap();
+        let event = HealthCheckEvent::decode(events[0].payload()).unwrap();
         assert_eq!(event.result, 0);
         assert_eq!(event.execution, None);
         assert_eq!(event.exit_status, None);
@@ -373,14 +347,14 @@ mod tests {
 
         assert_eq!(event.interval, prost_interval_option);
 
-        let event = HealthCheckEvent::decode(events[1].payload.as_slice()).unwrap();
+        let event = HealthCheckEvent::decode(events[1].payload()).unwrap();
         assert_eq!(event.result, 1);
         assert_eq!(event.execution.unwrap().seconds, 5);
         assert_eq!(event.exit_status, None);
         assert_eq!(event.stdout, None);
         assert_eq!(event.stderr, None);
 
-        let event = HealthCheckEvent::decode(events[2].payload.as_slice()).unwrap();
+        let event = HealthCheckEvent::decode(events[2].payload()).unwrap();
         assert_eq!(event.result, 2);
         assert_eq!(event.execution.unwrap().seconds, 10);
         #[cfg(windows)]
@@ -391,7 +365,7 @@ mod tests {
         assert_eq!(event.stdout, Some(String::from("stdout")));
         assert_eq!(event.stderr, Some(String::from("stderr")));
 
-        let event = HealthCheckEvent::decode(events[3].payload.as_slice()).unwrap();
+        let event = HealthCheckEvent::decode(events[3].payload()).unwrap();
         assert_eq!(event.result, 3);
         assert_eq!(event.execution.unwrap().seconds, 15);
         #[cfg(windows)]

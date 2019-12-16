@@ -1,9 +1,8 @@
 use crate::event::{Error,
                    EventStreamConnectionInfo,
-                   NatsMessage,
-                   NatsMessageStream,
                    Result};
-use futures::{channel::mpsc as futures_mpsc,
+use futures::{channel::{mpsc as futures_mpsc,
+                        mpsc::UnboundedSender},
               stream::StreamExt};
 use habitat_http_client;
 use nats::{native_tls::TlsConnector,
@@ -14,6 +13,35 @@ use std::{thread,
 use tokio::runtime::Handle;
 
 const NATS_SCHEME: &str = "nats://";
+
+/// The subject and payload of an event message.
+#[derive(Debug)]
+pub struct NatsMessage {
+    subject: &'static str,
+    payload: Vec<u8>,
+}
+
+impl NatsMessage {
+    pub fn new(subject: &'static str, payload: Vec<u8>) -> Self { NatsMessage { subject, payload } }
+
+    pub fn payload(&self) -> &[u8] { self.payload.as_slice() }
+}
+
+/// A lightweight handle for the event stream. All events get to the
+/// event stream through this.
+pub struct NatsMessageStream(UnboundedSender<NatsMessage>);
+
+impl NatsMessageStream {
+    pub fn new(sender: UnboundedSender<NatsMessage>) -> Self { Self(sender) }
+
+    /// Queues an event to be sent out.
+    pub fn send(&self, event_packet: NatsMessage) {
+        trace!("About to queue an event: {:?}", event_packet);
+        if let Err(e) = self.0.unbounded_send(event_packet) {
+            error!("Failed to queue event: {}", e);
+        }
+    }
+}
 
 fn nats_uri(uri: &str, auth_token: &str) -> String {
     // Unconditionally, remove the scheme. We will add it back.
@@ -79,7 +107,7 @@ pub(super) fn init(conn_info: EventStreamConnectionInfo,
 
     let event_handler = async move {
         while let Some(packet) = event_rx.next().await {
-            if let Err(e) = client.publish(packet.subject, &packet.payload) {
+            if let Err(e) = client.publish(packet.subject, packet.payload()) {
                 error!("Failed to publish event to '{}', '{}'", packet.subject, e);
             }
         }
