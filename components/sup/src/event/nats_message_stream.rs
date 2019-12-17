@@ -1,136 +1,108 @@
-use crate::event::{Error,
-                   EventStreamConfig,
+use crate::event::{EventStreamConfig,
                    Result};
 use futures::{channel::{mpsc as futures_mpsc,
                         mpsc::UnboundedSender},
               stream::StreamExt};
 use habitat_http_client;
-use nats::{native_tls::TlsConnector,
-           Client};
-use std::{thread,
-          time::{Duration,
-                 Instant}};
+use rants::{error::Error as RantsError,
+            native_tls::TlsConnector,
+            Client,
+            Subject};
+use tokio::time;
 
-const NATS_SCHEME: &str = "nats://";
-
-/// The subject and payload of an event message.
+/// The subject and payload of a NATS message.
 #[derive(Debug)]
 pub struct NatsMessage {
-    subject: &'static str,
+    subject: &'static Subject,
     payload: Vec<u8>,
 }
 
 impl NatsMessage {
-    pub fn new(subject: &'static str, payload: Vec<u8>) -> Self { NatsMessage { subject, payload } }
+    pub fn new(subject: &'static Subject, payload: Vec<u8>) -> Self {
+        NatsMessage { subject, payload }
+    }
 
     pub fn payload(&self) -> &[u8] { self.payload.as_slice() }
 }
 
-/// A lightweight handle for the event stream. All events get to the
-/// event stream through this.
+/// A lightweight handle for the NATS message stream. All events are converted into a NatsMessage
+/// and sent into this stream to be published.
+///
+/// An UnboundedSender should be ok here. Messages are continously processed even if the client is
+/// not currently connected.
 pub struct NatsMessageStream(pub(super) UnboundedSender<NatsMessage>);
 
 impl NatsMessageStream {
     pub async fn new(supervisor_id: &str, config: EventStreamConfig) -> Result<NatsMessageStream> {
-        let (event_tx, mut event_rx) = futures_mpsc::unbounded::<NatsMessage>();
-
-        let name = format!("hab_client_{}", supervisor_id);
         let EventStreamConfig { url,
                                 token,
                                 connect_method,
                                 server_certificate,
                                 .. } = config;
-        let uri = nats_uri(&url, &token.to_string());
 
-        let mut tls_config = TlsConnector::builder();
+        // TODO: validate in cli arg parsing
+        let address = url.parse()?;
+        let mut client = Client::new(vec![address]);
+
+        // Configure the client connect message
+        client.connect_mut()
+              .await
+              .name(format!("hab_client_{}", supervisor_id))
+              .verbose(true)
+              .token(token.to_string());
+
+        // Configure the tls connector
+        let mut tls_connector = TlsConnector::builder();
         for certificate in habitat_http_client::certificates(None)? {
-            tls_config.add_root_certificate(certificate);
+            tls_connector.add_root_certificate(certificate);
         }
         if let Some(certificate) = server_certificate {
-            tls_config.add_root_certificate(certificate.into());
+            tls_connector.add_root_certificate(certificate.into());
         }
-        let tls_config = tls_config.build()?;
+        let tls_connector = tls_connector.build()?;
+        client.set_tls_connector(tls_connector).await;
 
-        // Note: With the way we are using the client, we will not respond to pings from the
-        // server (https://nats-io.github.io/docs/nats_protocol/nats-protocol.html#pingpong).
-        // Instead, we rely on publishing events to keep us connected to the server. This is
-        // completely valid according to the protocol, and in fact, the server will
-        // not send pings if there is other traffic from a client. If we have no
-        // events for an extended period of time, we will be automatically
-        // disconnected (because we do not respond to pings). When the next event comes
-        // in we will try to reconnect.
-        let mut client = Client::new(uri.as_ref())?;
-        client.set_name(&name);
-        client.set_synchronous(true);
-        client.set_tls_config(tls_config);
-
-        // Try to establish an intial connection to the NATS server.
-        let start = Instant::now();
-        let maybe_timeout = connect_method.into();
-        while let Err(e) = client.connect() {
-            if let Some(timeout) = maybe_timeout {
-                if Instant::now() > start + timeout {
-                    return Err(Error::ConnectEventServer);
-                }
-                error!("Failed to connect to NATS server '{}'. Retrying...", e);
-            } else {
-                warn!("Failed to connect to NATS server '{}'.", e);
-                break;
-            }
-            thread::sleep(Duration::from_secs(1));
+        // Connect to the server. If a timeout was set, we want to ensure we establish a connection
+        // before exiting the function. If we do not connect within the timeout we return an error.
+        // If we do not have a timeout, we dont care if we can immediately connect. Instead we spawn
+        // a future that will resolve when a connection is possible. Once we establish a
+        // connection, the client will handle reconnecting if necessary.
+        if let Some(timeout) = connect_method.into() {
+            time::timeout(timeout, client.connect()).await?;
+        } else {
+            let client = Client::clone(&client);
+            tokio::spawn(async move { client.connect().await });
         }
 
-        let event_handler = async move {
-            while let Some(packet) = event_rx.next().await {
-                if let Err(e) = client.publish(packet.subject, packet.payload()) {
-                    error!("Failed to publish event to '{}', '{}'", packet.subject, e);
+        let (tx, mut rx) = futures_mpsc::unbounded::<NatsMessage>();
+
+        // Spawn a task to handle publishing received messages
+        tokio::spawn(async move {
+            while let Some(packet) = rx.next().await {
+                if let Err(e) = client.publish(packet.subject, packet.payload()).await {
+                    // We do not retry any messages. If we are not connected when the message is
+                    // processed or there is an error in publishing the message, the message will
+                    // never be sent.
+                    if let RantsError::NotConnected = e {
+                        trace!("Failed to publish message to subject '{}' because the client is \
+                                not connected",
+                               packet.subject);
+                    } else {
+                        error!("Failed to publish message to subject '{}', err: {}",
+                               packet.subject, e);
+                    }
                 }
             }
-        };
-        tokio::spawn(event_handler);
+        });
 
-        Ok(NatsMessageStream(event_tx))
+        Ok(NatsMessageStream(tx))
     }
 
-    /// Queues an event to be sent out.
+    /// Queues a NATS message to be published
     pub fn send(&self, event_packet: NatsMessage) {
-        trace!("About to queue an event: {:?}", event_packet);
+        trace!("Queueing message: {:?}", event_packet);
         if let Err(e) = self.0.unbounded_send(event_packet) {
-            error!("Failed to queue event: {}", e);
+            error!("Failed to queue message, err: {}", e);
         }
-    }
-}
-
-fn nats_uri(uri: &str, auth_token: &str) -> String {
-    // Unconditionally, remove the scheme. We will add it back.
-    let uri = String::from(uri).replace(NATS_SCHEME, "");
-    // If the uri contains credentials or the auth token is empty use the uri as is. Otherwise, add
-    // the auth token.
-    if uri.contains('@') || auth_token.is_empty() {
-        format!("{}{}", NATS_SCHEME, uri)
-    } else {
-        format!("{}{}@{}", NATS_SCHEME, auth_token, uri)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::nats_uri;
-
-    #[test]
-    fn test_nats_uri() {
-        assert_eq!(&nats_uri("nats://127.0.0.1:4222", ""),
-                   "nats://127.0.0.1:4222");
-        assert_eq!(&nats_uri("127.0.0.1:4222", ""), "nats://127.0.0.1:4222");
-        assert_eq!(&nats_uri("username:password@127.0.0.1:4222", "some_token"),
-                   "nats://username:password@127.0.0.1:4222");
-        assert_eq!(&nats_uri("127.0.0.1:4222", "some_token"),
-                   "nats://some_token@127.0.0.1:4222");
-        assert_eq!(&nats_uri("nats://127.0.0.1:4222", "some_token"),
-                   "nats://some_token@127.0.0.1:4222");
-        assert_eq!(&nats_uri("nats://existing_token@127.0.0.1:4222", "not_used_token"),
-                   "nats://existing_token@127.0.0.1:4222");
-        assert_eq!(&nats_uri("existing_token@127.0.0.1:4222", "not_used_token"),
-                   "nats://existing_token@127.0.0.1:4222");
     }
 }

@@ -40,18 +40,24 @@ use habitat_core::{package::ident::PackageIdent,
 use nats_message_stream::{NatsMessage,
                           NatsMessageStream};
 use prost_types::Duration as ProstDuration;
+use rants::Subject;
 use state::Storage;
 use std::{net::SocketAddr,
           time::Duration};
 
-const SERVICE_STARTED_SUBJECT: &str = "habitat.event.service_started";
-const SERVICE_STOPPED_SUBJECT: &str = "habitat.event.service_stopped";
-const SERVICE_UPDATE_STARTED_SUBJECT: &str = "habitat.event.service_update_started";
-const HEALTHCHECK_SUBJECT: &str = "habitat.event.healthcheck";
-
 lazy_static! {
     // TODO (CM): When const fn support lands in stable, we can ditch
     // this lazy_static call.
+
+    // NATS subject names
+    static ref SERVICE_STARTED_SUBJECT: Subject =
+        "habitat.event.service_started".parse().expect("valid NATS subject");
+    static ref SERVICE_STOPPED_SUBJECT: Subject =
+        "habitat.event.service_stopped".parse().expect("valid NATS subject");
+    static ref SERVICE_UPDATE_STARTED_SUBJECT: Subject =
+        "habitat.event.service_update_started".parse().expect("valid NATS subject");
+    static ref HEALTHCHECK_SUBJECT: Subject =
+        "habitat.event.healthcheck".parse().expect("valid NATS subject");
 
     /// Reference to the event stream.
     static ref NATS_MESSAGE_STREAM: Storage<NatsMessageStream> = Storage::new();
@@ -59,7 +65,7 @@ lazy_static! {
     static ref EVENT_CORE: Storage<EventCore> = Storage::new();
 }
 
-/// Starts a new thread for sending events to a NATS Streaming
+/// Starts a new task for sending events to a NATS Streaming
 /// server. Stashes the handle to the stream, as well as the core
 /// event information that will be a part of all events, in a global
 /// static reference for access later.
@@ -112,7 +118,7 @@ impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
 /// Send an event for the start of a Service.
 pub fn service_started(service: &Service) {
     if initialized() {
-        publish(SERVICE_STARTED_SUBJECT,
+        publish(&SERVICE_STARTED_SUBJECT,
                 ServiceStartedEvent { service_metadata: Some(service.to_service_metadata()),
                                       event_metadata:   None, });
     }
@@ -121,7 +127,7 @@ pub fn service_started(service: &Service) {
 /// Send an event for the stop of a Service.
 pub fn service_stopped(service: &Service) {
     if initialized() {
-        publish(SERVICE_STOPPED_SUBJECT,
+        publish(&SERVICE_STOPPED_SUBJECT,
                 ServiceStoppedEvent { service_metadata: Some(service.to_service_metadata()),
                                       event_metadata:   None, });
     }
@@ -130,7 +136,7 @@ pub fn service_stopped(service: &Service) {
 /// Send an event at the start of a Service update.
 pub fn service_update_started(service: &Service, update: &PackageIdent) {
     if initialized() {
-        publish(SERVICE_UPDATE_STARTED_SUBJECT,
+        publish(&SERVICE_UPDATE_STARTED_SUBJECT,
                 ServiceUpdateStartedEvent { event_metadata:       None,
                                             service_metadata:
                                                 Some(service.to_service_metadata()),
@@ -157,7 +163,7 @@ pub fn health_check(metadata: ServiceMetadata,
 
         let prost_interval = ProstDuration::from(Duration::from(health_check_interval));
 
-        publish(HEALTHCHECK_SUBJECT,
+        publish(&HEALTHCHECK_SUBJECT,
                 HealthCheckEvent { service_metadata: Some(metadata),
                                    event_metadata: None,
                                    result: i32::from(health_check_result),
@@ -218,7 +224,7 @@ fn initialized() -> bool { NATS_MESSAGE_STREAM.try_get().is_some() }
 ///
 /// If `init_stream` has not been called already, this function will
 /// be a no-op.
-fn publish(subject: &'static str, mut event: impl EventMessage) {
+fn publish(subject: &'static Subject, mut event: impl EventMessage) {
     if let Some(stream) = NATS_MESSAGE_STREAM.try_get() {
         // TODO (CM): Yeah... this is looking pretty gross. The
         // intention is to be able to timestamp the events right as
