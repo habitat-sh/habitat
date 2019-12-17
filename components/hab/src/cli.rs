@@ -1296,7 +1296,7 @@ fn add_event_stream_options(app: App<'static, 'static>) -> App<'static, 'static>
                                                    .required(false)
                                                    .takes_value(true)
                                                    .env(ConnectMethod::ENVVAR)
-                                                   .default_value("5")
+                                                   .default_value("0")
                                                    .validator(valid_numeric::<u64>))
        .arg(Arg::with_name("EVENT_STREAM_URL").help("The event stream connection string \
                                                      (host:port) used by this Supervisor to send \
