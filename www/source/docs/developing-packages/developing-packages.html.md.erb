@@ -6,15 +6,6 @@ description: Documentation for writing Chef Habitat Plan files including configu
 
 In Chef Habitat the unit of automation is the application itself. This chapter includes content related specifically to the process and workflow of developing a plan that will instruct Chef Habitat in how to build, deploy, and manage your application.
 
-## Table of Contents
-
-  - [Writing a Plan](#write-plans)
-  - [Configuration Templates](#add-configuration)
-  - [Runtime Binds and Exports](#pkg-binds)
-  - [Plan Builds](#plan-builds)
-  - [Troubleshooting Builds](#debug-builds)
-  - [Package Export Formats](#pkg-exports)
-
 ## <a name="write-plans" id="write-plans" data-magellan-target="write-plans" type="anchor">Writing Plans</a>
 
 Artifacts are the cryptographically-signed tarballs that are uploaded, downloaded, unpacked, and installed in Chef Habitat. They are built from shell scripts known as plans, but may also include application lifecycle hooks and service configuration files that describe the behavior and configuration of a running service.
