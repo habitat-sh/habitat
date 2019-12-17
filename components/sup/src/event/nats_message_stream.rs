@@ -40,9 +40,7 @@ impl NatsMessageStream {
                                 server_certificate,
                                 .. } = config;
 
-        // TODO: validate in cli arg parsing
-        let address = url.parse()?;
-        let mut client = Client::new(vec![address]);
+        let mut client = Client::new(vec![url]);
 
         // Configure the client connect message
         client.connect_mut()

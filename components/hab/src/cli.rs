@@ -32,6 +32,7 @@ use habitat_core::{crypto::{keys::PairType,
                              ServiceGroup},
                    ChannelIdent};
 use habitat_sup_protocol;
+use rants::Address as NatsAddress;
 use std::{net::{Ipv4Addr,
                 SocketAddr},
           path::Path,
@@ -1303,7 +1304,7 @@ fn add_event_stream_options(app: App<'static, 'static>) -> App<'static, 'static>
                                               .long("event-stream-url")
                                               .required(true)
                                               .takes_value(true)
-                                              .validator(non_empty))
+                                              .validator(nats_address))
        .arg(Arg::with_name("EVENT_STREAM_SITE").help("The name of the site where this Supervisor \
                                                       is running. It is used for event stream \
                                                       purposes.")
@@ -1525,6 +1526,14 @@ fn valid_shutdown_timeout(val: String) -> result::Result<(), String> {
                          {}",
                         val, e))
         }
+    }
+}
+
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
+fn nats_address(val: String) -> result::Result<(), String> {
+    match NatsAddress::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("'{}' is not a valid event stream address", val)),
     }
 }
 

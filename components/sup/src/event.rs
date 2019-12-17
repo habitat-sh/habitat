@@ -40,7 +40,8 @@ use habitat_core::{package::ident::PackageIdent,
 use nats_message_stream::{NatsMessage,
                           NatsMessageStream};
 use prost_types::Duration as ProstDuration;
-use rants::Subject;
+use rants::{Address,
+            Subject};
 use state::Storage;
 use std::{net::SocketAddr,
           time::Duration};
@@ -91,7 +92,7 @@ pub struct EventStreamConfig {
     site:               Option<String>,
     meta:               EventStreamMetadata,
     token:              AutomateAuthToken,
-    url:                String,
+    url:                Address,
     connect_method:     EventStreamConnectMethod,
     server_certificate: Option<EventStreamServerCertificate>,
 }
@@ -108,8 +109,9 @@ impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
                             meta:               EventStreamMetadata::from(m),
                             token:              AutomateAuthToken::from(m),
                             url:                m.value_of("EVENT_STREAM_URL")
-                                                 .map(str::to_string)
-                                                 .expect("Required option for EventStream feature"),
+                                                 .expect("Required option for EventStream feature")
+                                                 .parse()
+                                                 .expect("To parse NATS address"),
                             connect_method:     EventStreamConnectMethod::from(m),
                             server_certificate: EventStreamServerCertificate::from_arg_matches(m), }
     }
