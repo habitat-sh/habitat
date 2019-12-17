@@ -5,193 +5,204 @@ sidebar_links:
   - title: Docs Home
     link: "/docs"
   - title: Install Chef Habitat
-    link: "/docs/install-habitat"
+    link: "/docs/install-habitat/install-habitat"
     sub_links:
     - title: Download the Chef Habitat CLI
-      link: "/docs/install-habitat/#install-habitat"
+      link: "/docs/install-habitat/install-habitat/#install-habitat"
     - title: Accept the License
-      link: "/docs/install-habitat/#accept-the-license"
+      link: "/docs/install-habitat/install-habitat/#accept-the-license"
     - title: Configure Your Workstation
-      link: "/docs/install-habitat/#configure-workstation"
+      link: "/docs/install-habitat/install-habitat/#configure-workstation"
     - title: Download and Install FAQ
-      link: "/docs/install-habitat/#install-faq"
+      link: "/docs/install-habitat/install-habitat/#install-faq"
   - title: Developing Packages
-    link: "/docs/developing-packages"
+    link: "/docs/developing-packages/developing-packages"
     sub_links:
     - title: Writing a Plan
-      link: "/docs/developing-packages/#write-plans"
+      link: "/docs/developing-packages/developing-packages/#write-plans"
     - title: Config Templates
-      link: "/docs/developing-packages/#add-configuration"
+      link: "/docs/developing-packages/developing-packages/#add-configuration"
     - title: Binds and Exports
-      link: "/docs/developing-packages/#pkg-binds"
+      link: "/docs/developing-packages/developing-packages/#pkg-binds"
     - title: Plan Builds
-      link: "/docs/developing-packages/#plan-builds"
+      link: "/docs/developing-packages/developing-packages/#plan-builds"
     - title: Troubleshooting Builds
-      link: "/docs/developing-packages/#debug-builds"
+      link: "/docs/developing-packages/developing-packages/#debug-builds"
     - title: Package Export Formats
-      link: "/docs/developing-packages/#pkg-exports"
+      link: "/docs/developing-packages/developing-packages/#pkg-exports"
   - title: Working with Builder
-    link: "/docs/using-builder"
+    link: "/docs/using-builder/using-builder"
     sub_links:
     - title: Create an Account
-      link: "/docs/using-builder/#builder-account"
+      link: "/docs/using-builder/using-builder/#builder-account"
     - title: Create an Origin
-      link: "/docs/using-builder/#builder-origin"
+      link: "/docs/using-builder/using-builder/#builder-origin"
     - title: Generate an Access Token
-      link: "/docs/using-builder/#builder-token"
+      link: "/docs/using-builder/using-builder/#builder-token"
     - title: Using Origin Keys
-      link: "/docs/using-builder/#origin-keys"
+      link: "/docs/using-builder/using-builder/#origin-keys"
     - title: Using Origin Secrets
-      link: "/docs/using-builder/#origin-secrets"
+      link: "/docs/using-builder/using-builder/#origin-secrets"
     - title: Upload and Promote
-      link: "/docs/using-builder/#sharing-pkgs"
+      link: "/docs/using-builder/using-builder/#sharing-pkgs"
     - title: Using Multiple Plans
-      link: "/docs/using-builder/#multiple-plans-builder"
+      link: "/docs/using-builder/using-builder/#multiple-plans-builder"
     - title: Set up Automated Builds
-      link: "/docs/using-builder/#automated-builds"
+      link: "/docs/using-builder/using-builder/#automated-builds"
     - title: Using Custom Certificates
-      link: "/docs/using-builder/#using-custom-certs"
+      link: "/docs/using-builder/using-builder/#using-custom-certs"
   - title: Managing Services
-    link: "/docs/using-habitat"
+    link: "/docs/using-habitat/using-habitat"
     sub_links:
     - title: Overview
-      link: "/docs/using-habitat/#overview"
+      link: "/docs/using-habitat/using-habitat/#overview"
     - title: Using Chef Habitat Packages
-      link: "/docs/using-habitat/#using-packages"
+      link: "/docs/using-habitat/using-habitat/#using-packages"
     - title: Setting up a Ring
-      link: "/docs/using-habitat/#setting-up-a-ring"
+      link: "/docs/using-habitat/using-habitat/#setting-up-a-ring"
     - title: Monitor Services
-      link: "/docs/using-habitat/#monitor-services"
+      link: "/docs/using-habitat/using-habitat/#monitor-services"
     - title: Service Groups
-      link: "/docs/using-habitat/#service-groups"
+      link: "/docs/using-habitat/using-habitat/#service-groups"
     - title: Topologies
-      link: "/docs/using-habitat/#topologies"
+      link: "/docs/using-habitat/using-habitat/#topologies"
     - title: Config Updates
-      link: "/docs/using-habitat/#config-updates"
+      link: "/docs/using-habitat/using-habitat/#config-updates"
     - title: File Uploads
-      link: "/docs/using-habitat/#file-uploads"
+      link: "/docs/using-habitat/using-habitat/#file-uploads"
     - title: Encryption
-      link: "/docs/using-habitat/#using-encryption"
+      link: "/docs/using-habitat/using-habitat/#using-encryption"
     - title: Update Strategies
-      link: "/docs/using-habitat/#using-updates"
+      link: "/docs/using-habitat/using-habitat/#using-updates"
     - title: Continuous Deployment
-      link: "/docs/using-habitat/#continuous-deployment"
+      link: "/docs/using-habitat/using-habitat/#continuous-deployment"
   - title: Chef Habitat and Other Software
-    link: "/docs/habitat-and-other-software"
+    link: "/docs/habitat-and-other-software/habitat-and-other-software"
+    sub_links:
+    - title: Chef Habitat and Provisioning Tools
+      link: "/docs/habitat-and-other-software/habitat-and-other-software/#habitat-and-provisioning"
+    - title: Chef Habitat and Containers
+      link: "/docs/habitat-and-other-software/habitat-and-other-software/#habitat-and-containers"
+    - title: Chef Habitat and Container Orchestration
+      link: "/docs/habitat-and-other-software/habitat-and-other-software/#habitat-and-orchestration"
+    - title: Chef Habitat and Continuous Integration
+      link: "/docs/habitat-and-other-software/habitat-and-other-software/#habitat-and-continuous-integration"
+    - title: Chef Habitat and Configuration Management
+      link: "/docs/habitat-and-other-software/habitat-and-other-software/#habitat-and-configuration-management"
   - title: CLI Commands
     link: "/docs/habitat-cli"
   - title: Reference
-    link: "/docs/reference"
+    link: "/docs/reference/reference"
     sub_links:
     - title: Environment Variables
-      link: "/docs/reference/#environment-variables"
+      link: "/docs/reference/reference/#environment-variables"
     - title: Plan Settings
-      link: "/docs/reference/#plan-settings"
+      link: "/docs/reference/reference/#plan-settings"
     - title: Plan Variables
-      link: "/docs/reference/#plan-variables"
+      link: "/docs/reference/reference/#plan-variables"
     - title: Plan Helper Functions
-      link: "/docs/reference/#utility-functions"
+      link: "/docs/reference/reference/#utility-functions"
     - title: Build Phase Callbacks
-      link: "/docs/reference/#reference-callbacks"
+      link: "/docs/reference/reference/#reference-callbacks"
     - title: Application Lifecycle Hooks
-      link: "/docs/reference/#reference-hooks"
+      link: "/docs/reference/reference/#reference-hooks"
     - title: Handlebars Helpers
-      link: "/docs/reference/#helpers"
+      link: "/docs/reference/reference/#helpers"
     - title: Template Data
-      link: "/docs/reference/#template-data"
+      link: "/docs/reference/reference/#template-data"
     - title: Package Contents
-      link: "/docs/reference/#package-contents"
+      link: "/docs/reference/reference/#package-contents"
     - title: Supervisor Log Configuration
-      link: "/docs/reference/#sup-log-configuration"
+      link: "/docs/reference/reference/#sup-log-configuration"
     - title: Supervisor Log Keys
-      link: "/docs/reference/#sup-log-keys"
+      link: "/docs/reference/reference/#sup-log-keys"
   - title: Diagrams
-    link: "/docs/diagrams"
+    link: "/docs/diagrams/diagrams"
     sub_links:
     - title: Architecture Overview
-      link: "/docs/diagrams/#architecture-overview"
+      link: "/docs/diagrams/diagrams/#architecture-overview"
     - title: Initial Package Build Flow
-      link: "/docs/diagrams/#initial-package-build-flow"
+      link: "/docs/diagrams/diagrams/#initial-package-build-flow"
     - title: Dependency Update Flow
-      link: "/docs/diagrams/#dependency-update-flow"
+      link: "/docs/diagrams/diagrams/#dependency-update-flow"
     - title: Application Rebuild Flow
-      link: "/docs/diagrams/#application-rebuild-flow"
+      link: "/docs/diagrams/diagrams/#application-rebuild-flow"
     - title: Initial Docker Container Publishing Flow
-      link: "/docs/diagrams/#initial-docker-container-publishing-flow"
+      link: "/docs/diagrams/diagrams/#initial-docker-container-publishing-flow"
     - title: Automated Docker Container Publishing Flow
-      link: "/docs/diagrams/#automated-docker-container-publishing-flow"
+      link: "/docs/diagrams/diagrams/#automated-docker-container-publishing-flow"
     - title: Promote Packages Through Channels
-      link: "/docs/diagrams/#promote-packages-through-channels"
+      link: "/docs/diagrams/diagrams/#promote-packages-through-channels"
     - title: Runtime Services Group Binding
-      link: "/docs/diagrams/#runtime-services-group-binding"
+      link: "/docs/diagrams/diagrams/#runtime-services-group-binding"
     - title: Builder Architecture
-      link: "/docs/diagrams/#builder-architecture"
+      link: "/docs/diagrams/diagrams/#builder-architecture"
     - title: On-Premises Builder Depot Flow
-      link: "/docs/diagrams/#on-premises-builder-depot-flow"
+      link: "/docs/diagrams/diagrams/#on-premises-builder-depot-flow"
     - title: Chef Habitat and Kubernetes
-      link: "/docs/diagrams/#habitat-and-kubernetes"
+      link: "/docs/diagrams/diagrams/#habitat-and-kubernetes"
   - title: Best Practice Guides
-    link: "/docs/best-practices"
+    link: "/docs/best-practices/best-practices"
     sub_links:
     - title: Running Chef Habitat on Servers
-      link: "/docs/best-practices/#running-habitat-servers"
+      link: "/docs/best-practices/best-practices/#running-habitat-servers"
     - title: Running Chef Habitat Linux Containers
-      link: "/docs/best-practices/#running-habitat-linux-containers"
+      link: "/docs/best-practices/best-practices/#running-habitat-linux-containers"
     - title: Running Chef Habitat Windows Containers
-      link: "/docs/best-practices/#running-habitat-windows-containers"
+      link: "/docs/best-practices/best-practices/#running-habitat-windows-containers"
     - title: Robust Supervisor Networks
-      link: "/docs/best-practices/#robust-supervisor-networks"
+      link: "/docs/best-practices/best-practices/#robust-supervisor-networks"
     - title: Container Orchestration
-      link: "/docs/best-practices/#container-orchestration"
+      link: "/docs/best-practices/best-practices/#container-orchestration"
     - title: Kubernetes
-      link: "/docs/best-practices/#kubernetes"
+      link: "/docs/best-practices/best-practices/#kubernetes"
     - title: "AKS and Chef Habitat"
-      link: "/docs/best-practices/#aks-and-habitat"
+      link: "/docs/best-practices/best-practices/#aks-and-habitat"
     - title: "ECS and Chef Habitat"
-      link: "/docs/best-practices/#ecs-and-habitat"
+      link: "/docs/best-practices/best-practices/#ecs-and-habitat"
     - title: "Apache Mesos and DC/OS"
-      link: "/docs/best-practices/#mesos-dcos"
+      link: "/docs/best-practices/best-practices/#mesos-dcos"
     - title: "Advanced Plan Writing"
-      link: "/docs/best-practices/#planwriting-guide"
+      link: "/docs/best-practices/best-practices/#planwriting-guide"
     - title: Iterative Development
-      link: "/docs/best-practices/#iterative-development"
+      link: "/docs/best-practices/best-practices/#iterative-development"
     - title: "Binary Wrapper Packages"
-      link: "/docs/best-practices/#binary-wrapper"
+      link: "/docs/best-practices/best-practices/#binary-wrapper"
   - title: Glossary
-    link: "/docs/glossary"
+    link: "/docs/glossary/glossary"
     sub_links:
     - title: Application Lifecycle Hooks
-      link: "/docs/glossary/#glossary-hooks"
+      link: "/docs/glossary/glossary/#glossary-hooks"
     - title: Artifacts
-      link: "/docs/glossary/#glossary-artifacts"
+      link: "/docs/glossary/glossary/#glossary-artifacts"
     - title: Builder
-      link: "/docs/glossary/#glossary-builder"
+      link: "/docs/glossary/glossary/#glossary-builder"
     - title: Hab
-      link: "/docs/glossary/#glossary-hab"
+      link: "/docs/glossary/glossary/#glossary-hab"
     - title: Keys
-      link: "/docs/glossary/#glossary-keys"
+      link: "/docs/glossary/glossary/#glossary-keys"
     - title: Launcher
-      link: "/docs/glossary/#glossary-launcher"
+      link: "/docs/glossary/glossary/#glossary-launcher"
     - title: Plans
-      link: "/docs/glossary/#glossary-plan"
+      link: "/docs/glossary/glossary/#glossary-plan"
     - title: Scaffolding
-      link: "/docs/glossary/#glossary-scaffolding"
+      link: "/docs/glossary/glossary/#glossary-scaffolding"
     - title: Services
-      link: "/docs/glossary/#glossary-services"
+      link: "/docs/glossary/glossary/#glossary-services"
     - title: Studio
-      link: "/docs/glossary/#glossary-studio"
+      link: "/docs/glossary/glossary/#glossary-studio"
     - title: Supervisor
-      link: "/docs/glossary/#glossary-supervisor"
+      link: "/docs/glossary/glossary/#glossary-supervisor"
   - title: Internals
     link: "/docs/internals"
     sub_links:
     - title: Supervisor
-      link: "/docs/internals/#supervisor-internals"
+      link: "/docs/internals/internals/#supervisor-internals"
     - title: Leader Election
-      link: "/docs/internals/#election-internals"
+      link: "/docs/internals/internals/#election-internals"
     - title: Crypto
-      link: "/docs/internals/#crypto-internals"
+      link: "/docs/internals/internals/#crypto-internals"
     - title: Bootstrapping Chef Habitat
-      link: "/docs/internals/#bootstrap-internals"
+      link: "/docs/internals/internals/#bootstrap-internals"
   - title: Contribute
-    link: "/docs/contribute"
+    link: "/docs/contribute/contribute"
