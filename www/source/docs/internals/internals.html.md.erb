@@ -7,13 +7,6 @@ description: Chef Habitat Supervisor topologies, cryptography, and bootstrapping
 
 This section will dive into the implementation details of important Chef Habitat components. These topics are for advanced users. It is not necessary to learn these concepts in order to use Chef Habitat.
 
-## Table of Contents
-
-  - [Supervisor](#supervisor-internals)
-  - [Leader Election](#election-internals)
-  - [Cryptography](#crypto-internals)
-  - [Bootstrapping Chef Habitat](#bootstrap-internals)
-
 ## <a name="supervisor-internals" id="supervisor-internals" data-magellan-target="supervisor-internals" type="anchor">Supervisor Internals</a>
 
 The Chef Habitat Supervisor is similar in some ways to well-known process supervisors like [systemd](https://www.freedesktop.org/wiki/Software/systemd/), [runit](http://smarden.org/runit/) or [smf](https://en.wikipedia.org/wiki/Service_Management_Facility). It accepts and passes POSIX signals to its child processes, restarts child processes if and when they fail, ensures that children processes terminate cleanly, and so on.
