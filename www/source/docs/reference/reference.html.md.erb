@@ -1260,13 +1260,46 @@ Packages are installed in the `/hab/pkgs/` directory, and then further organized
 ---
 ## <a name="sup-log-configuration" id="sup-log-configuration" data-magellan-target="sup-log-configuration">Supervisor Log Configuration Reference</a>
 
-With the 0.83.0 release of the Chef Habitat Supervisor, it is possible to have greater control over logging output, including the ability to dynamically adjust the logging configuration of a running Supervisor. There are two main ways of configuring logging, each of which has their own strengths and weaknesses: using environment variables, and using a configuration file.
+With the 0.83.0 release of the Chef Habitat Supervisor, it is possible to have greater control over logging output, including the ability to dynamically adjust the logging configuration of a running Supervisor. There are three ways of configuring logging, each of which has their own strengths and weaknesses: as part of the `hab` command, by using environment variables, and by using a configuration file.
 
-### Environment Variable Configuration
+### RUST_LOG with a command
+
+Use `RUST_LOG=debug RUST_BACKTRACE=1` to see an individual command's debug and backtrace.
+
+    ```bash
+    # Linux/MacOS
+    # replace "hab sup run" with your command
+    RUST_LOG=debug RUST_BACKTRACE=1 hab sup run
+    ```
+
+### RUST_LOG as an Environment Variable Configuration
+
+Use `RUST_LOG=debug RUST_BACKTRACE=1` to see an individual command's debug and backtrace.
+
+    ```bash
+    # Linux/MacOS
+    # replace "hab sup run" with your command
+    RUST_LOG=debug RUST_BACKTRACE=1 hab sup run
+    ```
 
 It is still possible to configure logging via the `RUST_LOG` environment variable. This approach is often useful for quickly re-configuring logging (requiring a restart), or for easily configuring logging in container-based deployments.
 
-The configuration scheme is essentially the same as that described in the documentation of the Rust [env_logger](https://docs.rs/env_logger/0.6.1/env_logger/#enabling-logging) crate, with the exception that we do not allow additional regular expression-based filtering. The configuration values the Supervisor recognizes are described below:
+```powershell
+export HAB_FEAT_EVENT_STREAM = “1”
+export RUST_LOG=“debug”
+export RUST_BACKTRACE=1
+```
+
+
+```powershell
+$env:HAB_FEAT_EVENT_STREAM = “1”
+$env:RUST_LOG=“debug”
+$env:RUST_BACKTRACE=1
+```
+
+### RUST_LOG in a Configuration File
+
+The configuration scheme is the same as that described in the documentation of the Rust [env_logger](https://docs.rs/env_logger/0.6.1/env_logger/#enabling-logging) crate, with the exception that Chef Habitat does not support additional regular expression-based filtering. The configuration values the Supervisor recognizes are described below:
 
 #### Simple Logging Levels
 
@@ -1280,7 +1313,7 @@ This is much finer grained than the simple logging levels above, and to fully le
 
 For example, `RUST_LOG=habitat_sup::manager=info` will cause all log messages at the `info` level or more severe (i.e., `error`, `warn`, and `info`) originating anywhere in the module hierarchy rooted at `habitat_sup::manager`.
 
-Note that Rust modules are identified first by the crate (or library) they come from, followed by a `::`-delimited path of module names.
+Rust modules are identified first by the crate (or library) they come from, followed by a `::`-delimited path of module names.
 
 #### Variations
 
