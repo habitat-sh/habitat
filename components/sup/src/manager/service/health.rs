@@ -225,9 +225,18 @@ impl State {
                  }
              };
 
+             let interval = if health_check_result == HealthCheckResult::Ok {
+                 // routine health check
+                 nominal_interval
+             } else {
+                 // special health check interval
+                 HealthCheckInterval::default()
+             };
+
              event::health_check(service_event_metadata,
                                  health_check_result,
-                                 health_check_hook_status);
+                                 health_check_hook_status,
+                                 interval);
 
              debug!("Caching HealthCheckResult = '{}' for '{}'",
                     health_check_result, service_group);
@@ -236,14 +245,6 @@ impl State {
                  health_check_result;
              gateway_state.lock_gsw()
                           .set_health_of(service_group.deref().clone(), health_check_result);
-
-             let interval = if health_check_result == HealthCheckResult::Ok {
-                 // routine health check
-                 nominal_interval
-             } else {
-                 // special health check interval
-                 HealthCheckInterval::default()
-             };
 
              trace!("Next health check for {} in {}", service_group, interval);
 
