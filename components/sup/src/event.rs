@@ -16,7 +16,6 @@ mod stream;
 mod types;
 
 pub(crate) use self::types::ServiceMetadata;
-use prost_types::Duration as ProstDuration;
 use self::types::{EventMessage,
                   EventMetadata,
                   HealthCheckEvent,
@@ -41,6 +40,7 @@ use habitat_common::types::{AutomateAuthToken,
 use habitat_core::{package::ident::PackageIdent,
                    service::HealthCheckInterval};
 use parking_lot::Mutex;
+use prost_types::Duration as ProstDuration;
 use state::Container;
 use std::{net::SocketAddr,
           sync::Once,
