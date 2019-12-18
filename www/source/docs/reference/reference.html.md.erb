@@ -1284,12 +1284,11 @@ Use `RUST_LOG=debug RUST_BACKTRACE=1` to see an individual command's debug and b
 
 It is still possible to configure logging via the `RUST_LOG` environment variable. This approach is often useful for quickly re-configuring logging (requiring a restart), or for easily configuring logging in container-based deployments.
 
-```powershell
+```bash
 export HAB_FEAT_EVENT_STREAM = “1”
 export RUST_LOG=“debug”
 export RUST_BACKTRACE=1
 ```
-
 
 ```powershell
 $env:HAB_FEAT_EVENT_STREAM = “1”
