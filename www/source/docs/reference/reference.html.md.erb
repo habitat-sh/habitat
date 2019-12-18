@@ -1273,12 +1273,12 @@ Use `RUST_LOG=debug RUST_BACKTRACE=1` to see an individual command's debug and b
     ```
 
     ```powershell
+    # Windows
+    # replace "hab sup run" with your command
     $env:RUST_LOG="debug"; $env:RUST_BACKTRACE=1; hab sup run
     ```
 
 ### RUST_LOG as an Environment Variable Configuration
-
-Use `RUST_LOG=debug RUST_BACKTRACE=1` to see an individual command's debug and backtrace.
 
 It is still possible to configure logging via the `RUST_LOG` environment variable. This approach is often useful for quickly re-configuring logging (requiring a restart), or for easily configuring logging in container-based deployments.
 
