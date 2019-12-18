@@ -55,6 +55,16 @@ body.circles {
 }
 
 .main-sidebar {
+
+  // position: sticky;
+  // top: rem-calc(10);
+  // width: rem-calc(280);
+  // overflow-y: visible;
+  width: rem-calc(260);
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+
   a {
     display: block;
     position: relative;
@@ -82,7 +92,7 @@ body.circles {
   .sticky {
     width: rem-calc(260);
 
-    &.is-at-top, &.is-anchored {
+    &.is-at-bottom, &.is-anchored {
       max-height: 100%;
       overflow-y: auto;
     }
