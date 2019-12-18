@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.51 -->
-## [0.90.51](https://github.com/habitat-sh/habitat/tree/0.90.51) (2019-12-17)
+<!-- latest_release 0.90.52 -->
+## [0.90.52](https://github.com/habitat-sh/habitat/tree/0.90.52) (2019-12-18)
 
 #### Merged Pull Requests
-- Remove TOCs [#7292](https://github.com/habitat-sh/habitat/pull/7292) ([kagarmoe](https://github.com/kagarmoe))
+- Add health check interval to event stream [#7266](https://github.com/habitat-sh/habitat/pull/7266) ([nellshamrell](https://github.com/nellshamrell))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -18,6 +18,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Add health check interval to event stream [#7266](https://github.com/habitat-sh/habitat/pull/7266) ([nellshamrell](https://github.com/nellshamrell)) <!-- 0.90.52 -->
 - Remove TOCs [#7292](https://github.com/habitat-sh/habitat/pull/7292) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.51 -->
 - TWO: Makes docs subdirs and moves pages [#7284](https://github.com/habitat-sh/habitat/pull/7284) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.50 -->
 - ONE: Normalize markdown [#7289](https://github.com/habitat-sh/habitat/pull/7289) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.49 -->
