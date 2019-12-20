@@ -75,7 +75,7 @@ In this case, the `rake` RubyGem was detected in the `Gemfile.lock`, a `Rakefile
    habirails: No user-defined init hook found, generating init hook
 ```
 
-Based on the app detection above, the Ruby Scaffolding can generate a suitable [init hook](/docs/reference#reference-hooks) which checks to see that the Rails' [secret key base](http://guides.rubyonrails.org/security.html#session-storage) is set and will even test your database connection--all before the Supervisor even attempts to boot the app itself.
+Based on the app detection above, the Ruby Scaffolding can generate a suitable [init hook](/docs/reference/application-lifecycle-hooks) which checks to see that the Rails' [secret key base](http://guides.rubyonrails.org/security.html#session-storage) is set and will even test your database connection--all before the Supervisor even attempts to boot the app itself.
 
 There are a lot more features and goodies that Scaffolding packages provide for your app and it is worth reading the reference docs for the [Ruby](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-ruby/doc/reference.md) and [Node.js](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-node/doc/reference.md) implementations.
 

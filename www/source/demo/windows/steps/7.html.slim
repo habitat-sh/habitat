@@ -3,7 +3,7 @@ section
 
  p Each plan can specify lifecycle event handlers, or hooks, to perform certain actions during a service's runtime. Each hook is a #{link_to 'Powershell Core', 'https://github.com/PowerShell/Powershell'} script.
 
- p The #{link_to 'reference documentation', '/docs/reference#reference-hooks'} contains the complete list of application lifecycle hooks; however, the only required hook is the <code>run</code> hook, and if you are only calling a built binary, you can specify that through a <code>pkg_svc_run</code> setting. Anything more complicated than running a binary and pointing to a local configuration file in the <code>config</code> directory will require you to create a custom <code>run</code> hook.
+ p The #{link_to 'reference documentation', '/docs/reference/application-lifecycle-hooks'} contains the complete list of application lifecycle hooks; however, the only required hook is the <code>run</code> hook, and if you are only calling a built binary, you can specify that through a <code>pkg_svc_run</code> setting. Anything more complicated than running a binary and pointing to a local configuration file in the <code>config</code> directory will require you to create a custom <code>run</code> hook.
 
  h2 Init Hook
 
@@ -18,7 +18,7 @@ section
  h2 Run Hook
 
  p Create a <code>run</code> file in your plan's <code>hooks</code> directory and place the following code in that file. There is a lot to digest here so have a good look at the comments.
-   
+
  = code(:bash) do
    |
      # The Powershell Progress stream can sometimes interfere
@@ -81,5 +81,5 @@ section
      }
 
  p This applies our DSC configuration which should complete with IIS running our application. It also sets necessary permissions on our config file to ensure the IIS app pool user can access it. The hook then spins endlessly in a loop as long as the application is responsive or until it is explicitly shut down via a <code>stop</code> or <code>unload</code> command.
- 
+
 = link_to 'Next: Build and Test', "/demo/windows/steps/8", class: 'button cta'
