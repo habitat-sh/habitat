@@ -3,13 +3,13 @@ title: "Google Kubernetes Engine (GKE)"
 description:
 ---
 
-## <a name="gke-and-habitat" id="gke-and-habitat" data-magellan-target="gke-and-habitat">Google Kubernetes Engine (GKE)</a>
+# <a name="gke-and-habitat" id="gke-and-habitat" data-magellan-target="gke-and-habitat">Google Kubernetes Engine (GKE)</a>
 
 [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) is a fully managed Kubernetes service running on the Google Cloud Platform. It supports running Chef Habitat
 packages using the [Chef Habitat Kubernetes Operator](https://github.com/habitat-sh/habitat-operator).
 
 
-### Google Container Registry (GCR)
+## Google Container Registry (GCR)
 
 [Google Container Registry](https://cloud.google.com/container-registry/) is a private Docker repository that
 works with popular continuous delivery systems. It runs on GCP to provide consistent uptime on an infrastructure
@@ -33,7 +33,7 @@ $ docker tag habskp/hab-gcr-demo:latest eu.gcr.io/user-project/hab-gcr-demo:late
 $ docker push eu.gcr.io/user-project/hab-gcr-demo:latest
 ```
 
-### Google Kubernetes Engine (GKE)
+## Google Kubernetes Engine (GKE)
 
 After images have been pushed to the Container Registry, they may be deployed to GKE in the same project without any further configuration changes. To
 make images available publicly or across projects, see [this documentation](https://cloud.google.com/container-registry/docs/access-control).
@@ -73,9 +73,7 @@ This also creates a Kubernetes load balancer service to expose port `8080` from 
 This example assumes [Chef Habitat Operator](https://github.com/habitat-sh/habitat-operator) is running on the Kubernetes cluster but it
 is also possible to deploy using `kubectl` for Chef Habitat packages exported as containers.
 
-### Related Reading
+## Related Reading
 
 * [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/)
 * [Google Container Registry](https://cloud.google.com/container-registry/)
-
----

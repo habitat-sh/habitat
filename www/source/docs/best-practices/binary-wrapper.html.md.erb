@@ -3,13 +3,13 @@ title: "Binary Wrapper Packages"
 description:
 ---
 
-## <a name="binary-wrapper" id="binary-wrapper" data-magellan-target="binary-wrapper">Binary Wrapper Packages</a>
+# <a name="binary-wrapper" id="binary-wrapper" data-magellan-target="binary-wrapper">Binary Wrapper Packages</a>
 
 While Chef Habitat provides the best behavior for applications that can be compiled from source into the Chef Habitat ecosystem, it can also bring the same management benefits to applications distributed in binary-only form.
 
 You can write plans to package up these binary artifacts with minimal special handling. This article covers some tips and tricks for getting this software into Chef Habitat.
 
-### Override The Build Phases You Don't Need
+## Override The Build Phases You Don't Need
 
 A Chef Habitat package build proceeds in phases: download, verification, unpacking (where you would also patch source code, if you had it), build, and finally installation. Each of these phases has [default behavior](/docs/reference/#reference-callbacks) within the build system.
 
@@ -29,7 +29,7 @@ do_install() {
 }
 ```
 
-### Relocate Hard-Coded Library Dependencies If Possible
+## Relocate Hard-Coded Library Dependencies If Possible
 
 On Linux, many binaries hardcode library dependencies to `/lib` or `/lib64` inside their ELF symbol table. Unfortunately, this means that Chef Habitat is unable to provide dependency isolation guarantees if packages are dependent on any operating system's libraries in those directories. These Chef Habitat packages will also fail to run in minimal environments like containers built using `hab-pkg-export-docker`, because there will not be a `glibc` inside `/lib` or `/lib64`.
 
@@ -55,7 +55,7 @@ patchelf --interpreter "$(pkg_path_for core/glibc)/lib/ld-linux-x86-64.so.2" \
 
 4. For more information, please see the [patchelf](https://nixos.org/patchelf.html) documentation.
 
-### Relocating library dependencies
+## Relocating library dependencies
 
 In some situations it will be impossible for you to relocate library dependencies using `patchelf` as above. For example, if the version of `glibc` the software requires is different than that provided by an available version of `glibc` in a Chef Habitat package, attempting to `patchelf` the program will cause execution to fail due to ABI incompatibility.
 
@@ -63,7 +63,7 @@ Your software vendor's support policy might also prohibit you from modifying sof
 
 In these situations, you will have to give up Chef Habitat's guarantees of complete dependency isolation and continue to rely on the library dependencies provided by the host operating system. However, you can continue to use the features of the Chef Habitat Supervisor that provide uniform manageability across your entire fleet of applications.
 
-### Fixing hardcoded interpreters
+## Fixing hardcoded interpreters
 
 Binary packages often come with other utility scripts that have their interpreter, or "shebang", line (first line of a script) hardcoded to a path that will not exist under Chef Habitat. Examples are: `#!/bin/sh`, `#!/bin/bash`, `#!/bin/env` or `#!/usr/bin/perl`. It is necessary to modify these to point to the Chef Habitat-provided versions, and also declare a runtime dependency in your plan on the corresponding Chef Habitat package (for example, `core/perl`).
 

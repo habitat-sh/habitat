@@ -3,13 +3,13 @@ title: "Azure Container Services (AKS)"
 description:
 ---
 
-## <a name="aks-and-habitat" id="aks-and-habitat" data-magellan-target="aks-and-habitat">Azure Container Services (AKS)</a>
+# <a name="aks-and-habitat" id="aks-and-habitat" data-magellan-target="aks-and-habitat">Azure Container Services (AKS)</a>
 
 [Azure Container Services (AKS)](https://azure.microsoft.com/services/container-service/)
 is a fully managed Kubernetes service running on the Azure platform. It supports running Chef Habitat
 packages using the [Chef Habitat Kubernetes Operator](https://github.com/habitat-sh/habitat-operator).
 
-### Azure Container Registry (ACR)
+## Azure Container Registry (ACR)
 
 Azure Container Registry is a managed Docker container registry service used for storing
 private Docker container images. It’s a fully managed Azure resource and gives you local,
@@ -42,7 +42,7 @@ echo "  Password : $BLDR_PRINCIPAL_PASSWORD"
 Note: The unique Service Principal Name (the UUID) should be provided in the Chef Habitat Builder
 configuration.
 
-### Connecting ACR and AKS for Chef Habitat Operator
+## Connecting ACR and AKS for Chef Habitat Operator
 
 Since ACR is a private Docker registry, AKS must be authorized to pull images from it. The best way is to
 create a role assignment on the Service Principal that is automatically created for AKS, granting it
@@ -68,14 +68,12 @@ ACR_ID=$(az acr show --name $ACR_NAME --resource-group $ACR_RESOURCE_GROUP --que
 az role assignment create --assignee $CLIENT_ID --role Reader --scope $ACR_ID
 ```
 
-### Chef Habitat Updater
+## Chef Habitat Updater
 As for any other Kubernetes cluster, you should use the [Chef Habitat Kubernetes Updater](https://github.com/habitat-sh/habitat-updater) if you want automatic updates
 of Chef Habitat packages on AKS.
 
-### Related Reading
+## Related Reading
 
 * [Chef Habitat Kubernetes Operator](https://github.com/habitat-sh/habitat-operator)
 * [Chef Habitat Kubernetes Updater](https://github.com/habitat-sh/habitat-updater)
 * [Authenticate with Azure Container Registry from Azure Container Service](https://docs.microsoft.com/azure/container-registry/container-registry-auth-aks#grant-aks-access-to-acr)
-
----

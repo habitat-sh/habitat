@@ -3,19 +3,19 @@ title: "Kubernetes"
 description:
 ---
 
-## <a name="kubernetes" id="kubernetes" data-magellan-target="kubernetes">Kubernetes</a>
+# <a name="kubernetes" id="kubernetes" data-magellan-target="kubernetes">Kubernetes</a>
 
 [Kubernetes](http://kubernetes.io/) is an open source container cluster manager that is available as a stand-alone platform or embedded in several distributed platforms including [Google's Container Engine](https://cloud.google.com/container-engine/), [AWS Elastic Kubernetes Service](https://aws.amazon.com/eks/), [Azure Kubernetes Service](https://azure.microsoft.com/services/kubernetes-service/), and [Red Hat OpenShift](https://openshift.com/).
 Chef Habitat and Kubernetes are complementary. While Kubernetes provides a platform for deployment, scaling, and operations of application containers across clusters of hosts, Chef Habitat manages the build pipeline and lifecycle of those application containers.
 
-### Chef Habitat on Kubernetes
+## Chef Habitat on Kubernetes
 
 Chef Habitat can export your package as a Docker container that runs on Kubernetes in the form of a pod.
 Additionally, a Chef Habitat bastion pod provides essential gossip ring features like service discovery (binds), secrets and the required [initial peer](/docs/best-practices/robust-supervisor-networks) to all other pods.
 
 Chef Habitat robustly deploys the bastion pod with a Kubernetes stateful set, persistent volume, and liveness checking, which ensures node availability and ring data persistence. The Kubernetes stateful set comes with an attached Kubernetes service that makes discoverable with DNS. Each namespace should contain a single service and stateful set.
 
-### Deploy the Chef Habitat Bastion on Kubernetes
+## Deploy the Chef Habitat Bastion on Kubernetes
 
 Complete examples may be downloaded from [this folder](https://www.habitat.sh/docs/examples/kubernetes_hab_bastion/)
 
@@ -122,7 +122,7 @@ The `readinessProbe` signals to Kubernetes that the pod has started up successfu
 
 All of the Habitat Supervisor's state data is stored under `/hab/sup` - we mount this on a persistent volume so it gets re-attached if the pod is ever rescheduled. The data persists!
 
-### Create a Kubernetes Deployment That Works with the Bastion
+## Create a Kubernetes Deployment That Works with the Bastion
 
 The following is an example of a Kubernetes `Stateful Set` built from the CockroachDB plan. The Bastion pattern uses the `--peer hab-bastion` configuration arguments to instruct the Kubernetes pods to use the `hab-bastion` service as a DNS-resolvable host name.
 
@@ -176,7 +176,7 @@ spec:
           storage: 10Gi
 ```
 
-### Bare Kubernetes
+## Bare Kubernetes
 
 If your packages don't require communication with the Chef Habitat Supervisor ring, such as binds, secrets, etc., then you can execute your packages directly on the cluster. You can deploy Chef Habitat packages exported as containers to Kubernetes with the [`kubectl` command](http://kubernetes.io/docs/user-guide/pods/single-container/). Using the [Docker exporter](/docs/developing-packages#pkg-exports) to create a containerized application, you can launch the container like this example:
 
@@ -190,22 +190,20 @@ Assuming you're using the Docker image pulled from `myorigin/mytutorial`, port 8
 $ kubectl get pods -l run=mytutorial
 ```
 
-### Docker and ACI
+## Docker and ACI
 
 Chef Habitat packages can be exported in both Docker and ACI formats (as well as others). Kubernetes currently supports the Docker runtime and integration of the rkt container runtime (an implementation of the App Container spec) is under active development.
 
-### Environment Variables and Networking
+## Environment Variables and Networking
 
 Kubernetes supports passing [environment variables](http://kubernetes.io/docs/user-guide/environment-guide/) into containers, which can be done [via the Chef Habitat Operator](https://github.com/habitat-sh/habitat-operator/tree/master/examples/env-vars).
 
-### Multi-container Pods
+## Multi-container Pods
 
 Multi-container pod support through Chef Habitat is still under active development as part of the Chef Habitat Operator.
 
-### Related Reading
+## Related Reading
 
 * [Chef Habitat Kubernetes Operator](https://github.com/habitat-sh/habitat-operator)
 * [Export a Chef Habitat package](/docs/developing-packages/#pkg-exports)
 * [Chef Habitat CLI](/docs/habitat-cli)
-
----
