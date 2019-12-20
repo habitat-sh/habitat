@@ -3,7 +3,7 @@ title: "Advanced Plan Writing Guide"
 description:
 ---
 
-## <a name="planwriting-guide" id="planwriting-guide" data-magellan-target="planwriting-guide">Advanced Plan Writing Guide</a>
+# <a name="planwriting-guide" id="planwriting-guide" data-magellan-target="planwriting-guide">Advanced Plan Writing Guide</a>
 
 The following is a best practice guide to how to write a production quality plan. These best practices are reflected in the requirements for a user to contribute a plan to the Chef Habitat [Core Plans](https://github.com/habitat-sh/core-plans/).
 
@@ -15,7 +15,7 @@ A well written plan consists of well-formed:
 - [Package Name Conventions](#package-name-conventions)
 - [Plan syntax](#plan-syntax)
 
-### Package Metadata
+## Package Metadata
 
 Each package plan should contain a value adhering to the guidelines for each of the following elements:
 
@@ -28,7 +28,7 @@ Each package plan should contain a value adhering to the guidelines for each of 
 - `pkg_upstream_url`
 - `pkg_version` must be the complete version number of the software
 
-### Package Name Conventions
+## Package Name Conventions
 
 Each package is identified by a unique string containing four sub-strings separated
 by a forward slash (`/`) called a [PackageIdent](/docs/glossary/#glossary-artifacts).
@@ -51,13 +51,13 @@ Packages meeting this exception will always have their latest major version foun
 
 > Example: the [bison project](https://www.gnu.org/software/bison/) releases the 4.x line and is continuing to support Bison 3.x. The `bison` package is copied to `bison3` and the `bison` package is updated to build Bison 4.x.
 
-### Plan Syntax
+## Plan Syntax
 
 You can review the entire [plan syntax guide here](/docs/developing-packages/).
 
 Please note that the following conditions must be observed for any plan to be merged into core plans (and are important best practices for any plan):
 
-#### Plan Basic Settings
+### Plan Basic Settings
 
 You can read more about [basic plan settings](/docs/developing-packages/#write-plans) here. The minimum requirements for a core plan are:
 
@@ -66,15 +66,15 @@ You can read more about [basic plan settings](/docs/developing-packages/#write-p
 - pkg_shasum is set
 - pkg_description is set
 
-##### Callbacks
+#### Callbacks
 
 You can read more about [callbacks](/docs/reference/#reference-callbacks) here. The minimum requirement for a core plan are:
 
-##### Do's
+#### Do's
 
 - `do_prepare()` (`Invoke-Prepare` in a `plan.ps1`) is a good place to set environment variables and set the table to build the software. Think of it as a good place to do patches.
 
-##### Don't's
+#### Don't's
 
 - You should never call `exit` within a build phase. In a `plan.sh`, you should instead return an exit code such as `return 1` for failure, and `return 0` for success. In a `plan.ps1` you should call `Write-Exception` or `throw` an exception upon failure.
 - If you clone a repo from git, you must override `do_verify()` to `return 0` in a `plan.sh` or if you are authoring a `plan.ps1` then override `Invoke-Verify` with an empty implementation.
@@ -83,7 +83,7 @@ You can read more about [callbacks](/docs/reference/#reference-callbacks) here. 
 - You should not call any function or helper that begin with an underscore, for example `_dont_call_this_function()`. Those are internal only functions that are not supported for external use and will break your plan if you call them.
 - Don't run any code or run anything outside of a build phase or a function.
 
-##### Application Lifecycle Hooks
+#### Application Lifecycle Hooks
 
 The Supervisor dynamically invokes hooks at run-time, triggered by an application lifecycle event. You can read more about [hooks](/docs/reference/#reference-hooks) here.
 
@@ -99,7 +99,7 @@ The Supervisor dynamically invokes hooks at run-time, triggered by an applicatio
   - No one should ever edit anything in `/hab/` directly.
   - No one should write to anything in `/hab/` directly.
 
-##### README.md
+#### README.md
 
 All plans should have a README.md. Items to strongly consider including:
 
@@ -112,5 +112,3 @@ All plans should have a README.md. Items to strongly consider including:
 - Instructions on how to monitor the health of the service at the application layer.
 - Can a user simply call the package as a dependency of their application?
 - How does the package integrate into their application
-
----

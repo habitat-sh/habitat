@@ -3,11 +3,11 @@ title: "Robust Supervisor Networks"
 description:
 ---
 
-## <a name="robust-supervisor-networks" id="robust-supervisor-networks" data-magellan-target="robust-supervisor-networks">Robust Supervisor Networks</a>
+# <a name="robust-supervisor-networks" id="robust-supervisor-networks" data-magellan-target="robust-supervisor-networks">Robust Supervisor Networks</a>
 
 Chef Habitat Supervisors communicate amongst each other using "gossip" algorithms, which underpin the membership management, leadership election, and service discovery mechanics of Chef Habitat. By simply being "peered" to a single existing Supervisor, a new Supervisor will gradually come to know about _all_ the Supervisors in a Chef Habitat network. The gossip algorithm has built-in features to counteract brief network splits, but care must be taken to set up a robust Supervisor network.
 
-### The Initial Peer
+## The Initial Peer
 
 While a Chef Habitat Supervisor does not need to connect with any other Supervisors in order to be useful, leveraging a network of Supervisors unlocks the full potential of Chef Habitat as a platform. In order to do this, a Supervisor must be given the address of at least one other Supervisor in this network when it starts up; this is known as the "initial peer problem". You might think of a Supervisor network as an exclusive members-only club; you must first know a member in order to become a member yourself.
 
@@ -25,7 +25,7 @@ hab sup run --peer=192.168.0.1 --peer=192.168.0.2 --peer=192.168.0.3
 
 It should be noted that peering is symmetric. Even though our first Supervisor above did not start out peered with any other Supervisors, it can still become part of a Supervisor network if some other Supervisor declares it to be a peer.
 
-### Managing Membership with SWIM
+## Managing Membership with SWIM
 
 In order for Chef Habitat's network functionality to work, the Supervisors must first know which other Supervisors they can communicate with. This is a problem of maintaining "membership lists", and is achieved using the membership protocol known as [SWIM][SWIM]. As detailed above, we must first "seed" a Supervisor's membership list with at least one "peer"; that is, another Supervisor that it can communicate with.
 
@@ -39,23 +39,23 @@ If, on the other hand, Supervisor B is started back up again, it can rejoin the 
 
 This mechanism forms the foundation of the Chef Habitat network, but cannot by itself provide a completely robust network. For that, we need something additional.
 
-### Permanent Peers
+## Permanent Peers
 
 An important thing to keep in mind about the basic SWIM mechanism is that if two Supervisors are separated from each other for a long enough amount of time, they will each come to view the other as being dead, and will not try to reestablish contact. While this is the behavior you want when you legitimately shut a Supervisor down, it is definitely _not_ the behavior you want if your Chef Habitat network experiences an extended network incident. In such a case, you could end up with two (or more!) smaller Supervisor networks that are all still _internally_ connected, but completely disconnected _from each other_. Supervisors in "Network A" would view those in "Network B" as dead, and vice versa. Once network connectivity had been restored, you would continue to have a fractured network, because each network would collectively consider the other to still be dead.
 
 By starting a few Supervisors in the network using the `--permanent-peer` option, an additional bit of information is gossipped about these Supervisors. In effect, it tells all other Supervisors it communicates with to _always_ try to reestablish contact with it, even if that Supervisor considers the "permanent" Supervisor to be dead. This provides a mechanism by which split networks can stitch themselves together again after the split has been resolved.
 
-### The "Bastion Ring"
+## The "Bastion Ring"
 
 Defining a few Supervisors to be "permanent peers" _will_ provide a robust network, but unless done with care, it can be less than ideal. We recommend running a small number of Supervisors as permanent peers, but _to run no services on those Supervisors_. In modern dynamic architectures, it's common for nodes to come and go; VMs may get shut down, containers can be rescheduled, and so on. If you were to go to the extreme and have _all_ your Supervisors be permanent peers, you would end up with unnecessary network traffic as the Supervisors come and go as the infrastructure evolves across time. Each Supervisor would try to maintain contact with every Supervisor that had ever been a member of the network!
 
 If your permanent peer Supervisors are not running any services, they will be less subject to the pressures that would cause service-running Supervisors to come and go. They can exist solely to anchor the entire Supervisor network.
 
-### Pulling It All Together: A Robust Supervisor Network
+## Pulling It All Together: A Robust Supervisor Network
 
 With all this, we can come up with a robust Chef Habitat network architecture. In fact, this is the same architecture the Chef Habitat team uses to run the public [Builder service](https://bldr.habitat.sh).
 
-#### Create the Bastion Ring
+### Create the Bastion Ring
 
 First, set up three Supervisors as permanent peers, all mutually peered to each other (The labels "A", "B", and "C" are stand-ins for the IP addresses at which these Supervisors are reachable):
 
@@ -72,7 +72,7 @@ hab sup run --permanent-peer --peer=A --peer=B
 
 These Supervisors should never be used to run services. They _can_ however, serve as convenient, well-known, and stable entry points to the network for doing things like injecting configurations using `hab config apply`, adding files using `hab file upload`, or departing Supervisors using `hab sup depart`.
 
-#### Peer Additional Supervisors to the Bastion Supervisors
+### Peer Additional Supervisors to the Bastion Supervisors
 
 Each additional Supervisor you add to the network should be peered to _at least one_ of the bastion ring Supervisors. Technically speaking, only one peer is necessary, as that provides access to the rest of the network. However, it could be possible to not fully connect to all of them if, say, the Supervisor joined _during_ a network split event. Out of convention and redundancy, we peer to _all_ the bastion ring Supervisors, like so:
 
@@ -83,7 +83,7 @@ hab sup run --peer=A --peer=B --peer=C
 
 This Supervisor _should_ be used to run services, but _should not_ be started as a permanent peer.
 
-### Conclusion
+## Conclusion
 
 Hopefully, the above discussion has given you a better idea of how Chef Habitat's networking works, and how you can best take advantage of it to provide a robust network foundation for the services you run.
 
@@ -93,11 +93,9 @@ For those that like to keep things succinct, the above advice can be summed up t
 2. Never run services on those Supervisors
 3. Peer all other Supervisors to those first three
 
-### Related Reading
+## Related Reading
 
 If you would like additional details, the following technical journal articles describe the algorithms that form the basis of Chef Habitat's gossip system:
 
 * [SWIM: Scalable Weakly-consistent Infection-style Process Group Membership Protocol](http://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf) by Abhinandan Das, Indranil Gupta, Ashish Motivala.
 * [A Robust and Scalable Peer-to-Peer Gossiping Protocol](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.8773&rep=rep1&type=pdf) by Spyros Voulgaris, Mark Jelasity, and Maarten van Steen.
-
----
