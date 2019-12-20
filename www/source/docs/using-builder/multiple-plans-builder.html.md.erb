@@ -1,0 +1,73 @@
+---
+title: Building Multiple Packages
+description:
+---
+
+# <a name="multiple-plans-builder" id="multiple-plans-builder" data-magellan-target="multiple-plans-builder">Building Multiple Packages</a>
+
+If you have a GitHub repository with multiple components inside, you will most likely also have individual plans for those components that are located inside of component subfolders. By default, Builder will only look for a package plan in either the root of the repository, or in a `habitat` subfolder at the root. If it does not find a plan file in those locations, it will not automatically issue builds when it detects file changes in the repository.
+
+In order to tell Builder about the location of the individual plan files, and in order provide more fine-grained control over when component packages are built, you can programmatically customize how and when Builder will build your plans by specifying build behavior in a `.bldr.toml` file at the root of the repository that you connect to Builder.
+
+Using this file, Builder only builds packages when source files or directories are updated in paths specified in `.bldr.toml`. This allows you to configure the building, publishing, and post-processing phases of a plan build in Builder.
+
+To enable this functionality, do the following:
+
+1. Create a `.bldr.toml` in the root of your repository.
+
+2. Open it and add an entry for each component package that you want to build.
+
+    The `.bldr.toml` file is in TOML format, so create a TOML table specifying the `$pkg_name` value for that plan and then add a `plan_path` field specifying the path to your `plan.sh` file (you do not need to include plan.sh explicitly in the path). If all the files related to the plan are under the plan path, then you are done. Otherwise, you will need an additional 'paths' field specifying Unix-style path globs to files that are associated with the plan you specified in the 'plan_path'. File or directory changes made in these path locations determine which packages will be rebuilt. Basically, when a file is committed, Builder will check to see whether it falls underneath the `plan_path` hierarchy, or matches one of the globs in the `paths` field if it was specified - if the answer is yes, then Builder will issue a build for that commit.
+
+    It's important to note that the entries for `plan_path` and `paths` do not behave the same. If you have something like `plan_path = "habitat"`, that behaves as if you had written `plan_path = "habitat/*"` - that is, it will automatically check every file under the `habitat` directory. However, if you have something like `paths = [ "src" ]`, that is _not_ automatically expanded to `src/*`. That line will only watch for changes to a file called `src`. If you're wanting to watch for changes to any file inside the `src` directory, then you must explicitly specify the glob, like so: `paths = [ "src/*" ]`.
+
+    For example, in the Chef Habitat repository itself, this TOML states that the `hab-launcher`, `hab-studio`, and `hab-sup` packages will be rebuilt if there are any changes in any of the specified `components` sub-directories. Note that `hab-studio` does not need to specify a `path` because all of it's files are within the `plan_path` hierarchy, but that is not the case for the other projects.
+
+    ```toml
+    # .bldr.toml
+    [hab-launcher]
+    plan_path = "components/launcher/habitat"
+    paths = [
+      "components/launcher/*",
+      "components/launcher-protocol/*",
+      "support/ci/builder-base-plan.sh",
+    ]
+
+    [hab-studio]
+    plan_path = "components/studio"
+
+    [hab-sup]
+    plan_path = "components/sup"
+    paths = [
+      "components/sup/*",
+      "components/eventsrv-client/*",
+      "components/launcher-client/*",
+      "components/butterfly/*",
+      "components/core/*",
+      "components/builder-depot-client/*",
+    ]
+    ```
+
+    Notice that in order to specify that we're interested in all files inside of the directories in our `paths` entries, we had to add the `/*` glob to the end manually.
+
+    It's also worth pointing out that there are multiple wildcard characters you can use when specifying path components.
+
+* `?` will match any single character.
+* `*` will match any (possibly empty) sequence of characters
+* `**` matches the current directory and arbitrary subdirectories. This sequence must form a single path component, so both `**a` and `b**` are invalid. More than two consecutive `*` characters is also invalid.
+* `[...]` matches any character inside the brackets. You can also specify a range, such as `[0-9]` to match any digit or `[a-z]` to match any lowercase letter.
+* `[!...]` is the negation of `[...]` so it will match any character *not* in the brackets.
+
+    Note that while the above set of rules bears a remarkable resemblance to regular expressions, we do not support full regular expression syntax. Only what's shown here is supported. Here is an example.
+
+    ```toml
+    # .bldr.toml
+    [hab-sup]
+    plan_path = "components/sup"          # automatically checks every file inside the 'sup' directory
+    paths = [
+      "components/sup/?",                 # matches any file with a single character file name inside the 'sup' directory
+      "components/eventsrv-client/*",     # matches any file inside the 'eventsrv-client' directory
+      "components/launcher-client/**/*",  # matches any file inside the 'launcher-client' directory and also any of its sub-directories
+      "components/butterfly/[0-9]*"       # matches any file inside the 'butterfly' directory that begins with a number
+    ]
+    ```

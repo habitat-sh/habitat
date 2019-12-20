@@ -30,27 +30,29 @@ sidebar_links:
       link: "/docs/developing-packages/developing-packages/#debug-builds"
     - title: Package Export Formats
       link: "/docs/developing-packages/developing-packages/#pkg-exports"
-  - title: Working with Builder
+  - title: Builder
     link: "/docs/using-builder/using-builder"
     sub_links:
     - title: Create an Account
-      link: "/docs/using-builder/using-builder/#builder-account"
+      link: "/docs/using-builder/builder-account"
     - title: Create an Origin
-      link: "/docs/using-builder/using-builder/#builder-origin"
+      link: "/docs/using-builder/builder-origin"
     - title: Generate an Access Token
-      link: "/docs/using-builder/using-builder/#builder-token"
+      link: "/docs/using-builder/builder-token"
     - title: Using Origin Keys
-      link: "/docs/using-builder/using-builder/#origin-keys"
+      link: "/docs/using-builder/origin-keys"
     - title: Using Origin Secrets
-      link: "/docs/using-builder/using-builder/#origin-secrets"
-    - title: Upload and Promote
-      link: "/docs/using-builder/using-builder/#sharing-pkgs"
-    - title: Using Multiple Plans
-      link: "/docs/using-builder/using-builder/#multiple-plans-builder"
-    - title: Set up Automated Builds
-      link: "/docs/using-builder/using-builder/#automated-builds"
-    - title: Using Custom Certificates
-      link: "/docs/using-builder/using-builder/#using-custom-certs"
+      link: "/docs/using-builder/origin-secrets"
+    - title: Upload and Promote Packages
+      link: "/docs/using-builder/sharing-pkgs"
+    - title: Building Multiple Packages
+      link: "/docs/using-builder/multiple-plans-builder"
+    - title: Automated Builds
+      link: "/docs/using-builder/automated-builds"
+    - title: Builder on-prem
+      link: "/docs/using-builder/on-prem"
+    - title: Using Custom Certificates on-prem
+      link: "/docs/using-builder/using-custom-certs"
   - title: Managing Services
     link: "/docs/using-habitat/using-habitat"
     sub_links:
