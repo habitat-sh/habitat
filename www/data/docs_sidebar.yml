@@ -120,27 +120,27 @@ sidebar_links:
     link: "/docs/diagrams/diagrams"
     sub_links:
     - title: Architecture Overview
-      link: "/docs/diagrams/diagrams/#architecture-overview"
+      link: "/docs/diagrams/architecture-overview"
     - title: Initial Package Build Flow
-      link: "/docs/diagrams/diagrams/#initial-package-build-flow"
+      link: "/docs/diagrams/package-build-flow"
     - title: Dependency Update Flow
-      link: "/docs/diagrams/diagrams/#dependency-update-flow"
+      link: "/docs/diagrams/dependency-update-flow"
     - title: Application Rebuild Flow
-      link: "/docs/diagrams/diagrams/#application-rebuild-flow"
+      link: "/docs/diagrams/application-rebuild-flow"
     - title: Initial Docker Container Publishing Flow
-      link: "/docs/diagrams/diagrams/#initial-docker-container-publishing-flow"
+      link: "/docs/diagrams/docker-flow"
     - title: Automated Docker Container Publishing Flow
-      link: "/docs/diagrams/diagrams/#automated-docker-container-publishing-flow"
+      link: "/docs/diagrams/docker-automated-flow"
     - title: Promote Packages Through Channels
-      link: "/docs/diagrams/diagrams/#promote-packages-through-channels"
+      link: "/docs/diagrams/promote-packages"
     - title: Runtime Services Group Binding
-      link: "/docs/diagrams/diagrams/#runtime-services-group-binding"
+      link: "/docs/diagrams/runtime-binding"
     - title: Builder Architecture
-      link: "/docs/diagrams/diagrams/#builder-architecture"
+      link: "/docs/diagrams/builder-architecture"
     - title: On-Premises Builder Depot Flow
-      link: "/docs/diagrams/diagrams/#on-premises-builder-depot-flow"
+      link: "/docs/diagrams/on-prem-flow"
     - title: Chef Habitat and Kubernetes
-      link: "/docs/diagrams/diagrams/#habitat-and-kubernetes"
+      link: "/docs/diagrams/kubernetes-flow"
   - title: Best Practice Guides
     link: "/docs/best-practices/best-practices"
     sub_links:
