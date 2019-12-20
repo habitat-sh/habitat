@@ -33,7 +33,7 @@ You can use Chef Habitat to help manage the components that set up your Kubernet
 
 ## Chef Habitat Builder: Automated Kubernetes Deploys
 
-Chef Habitat Builder was [announced in early access in October](https://www.habitat.sh/blog/2017/10/Habitat-Builder-for-the-People/) and allows you to programmatically and automatically build all of your applications and services as you update your application code on Github, and as your application's depenencies have upstream changes. Using Chef Habitat's [channel promotion](https://www.habitat.sh/docs/using-habitat/#continuous-deployment), you can automatically deploy updates to development environments and then promote to production environments when ready. 
+Chef Habitat Builder was [announced in early access in October](https://www.habitat.sh/blog/2017/10/Habitat-Builder-for-the-People/) and allows you to programmatically and automatically build all of your applications and services as you update your application code on Github, and as your application's depenencies have upstream changes. Using Chef Habitat's [channel promotion](https://www.habitat.sh/docs/using-habitat/continuous-deployment), you can automatically deploy updates to development environments and then promote to production environments when ready.
 
 Today, learn how to leverage Chef Habitat Builder for [Automated Kubernetes Deploys](https://kinvolk.io/blog/2017/12/automated-build-to-kubernetes-with-habitat-builder/).
 

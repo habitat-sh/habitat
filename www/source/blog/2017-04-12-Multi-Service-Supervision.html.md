@@ -73,6 +73,6 @@ To resume running a service that was stopped with the `hab svc stop` subcommand 
 $ hab svc start core/redis
 ```
 
-If you're a user that's leveraging your host's init system to kick off the Supervisor, hopefully this has given you an idea for how to tweak your init files. For more information on this subject [check out our docs on Multi-Service Supervision](/docs/using-habitat/#run-multiple-services-with-one-supervisor)
+If you're a user that's leveraging your host's init system to kick off the Supervisor, hopefully this has given you an idea for how to tweak your init files. For more information on this subject [check out our docs on Multi-Service Supervision](/docs/using-habitat/run-multiple-services-with-one-supervisor)
 
 Thanks for following along and as always Happy Chef Habitat-ing!
