@@ -15,7 +15,7 @@ Because the basic functionality of process supervision is well-known, this docum
 
 ### Architecture
 
-Supervisors are configured to form a network by using the `--peer` argument and pointing them at peers that already exist. In a real-life deployment scenario, Supervisors in a network may also have a shared encryption key, so that inter-Supervisor traffic is encrypted. (See the [security](/docs/glossary/#glossary-keys) documentation for more details.)
+Supervisors are configured to form a network by using the `--peer` argument and pointing them at peers that already exist. In a real-life deployment scenario, Supervisors in a network may also have a shared encryption key, so that inter-Supervisor traffic is encrypted. (See the [security](/docs/glossary/glossary-keys) documentation for more details.)
 
 Supervisor rings can be very large, comprising thousands of supervisors. The Supervisor communication protocol is low-bandwidth and designed to not interfere with your application's actual production traffic.
 
@@ -109,7 +109,7 @@ Protocol](http://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf) b
 ---
 ## <a name="election-internals" id="election-internals" data-magellan-target="election-internals" type="anchor">Leader Election</a>
 
-The Chef Habitat Supervisor performs leader election natively for service group [topologies](/docs/glossary/#glossary-services) that require one, such as _leader-follower_.
+The Chef Habitat Supervisor performs leader election natively for service group [topologies](/docs/glossary/glossary-services) that require one, such as _leader-follower_.
 
 Because Chef Habitat is an eventually-consistent distributed system, the role of the leader is different than in strongly-consistent systems. It only serves as the leader for *application level semantics*, e.g. a database write leader. The fact that a Supervisor is a leader has no bearing upon other operations in the Chef Habitat system, including rumor dissemination for configuration updates. It is _not_ akin to a [Raft](https://raft.github.io/) leader, through which writes must all be funneled. This allows for very high scalability of the Chef Habitat Supervisor ring.
 
