@@ -72,7 +72,7 @@ section
  = code(:shell) do
    | PS C:\contosouniversity> docker run --env HAB_LICENSE="accept-no-persist" -p 80:8099 -it myorigin/contosouniversity
 
- p The `--env HAB_LICENSE="accept-no-persist"` accepts the Chef license, but does not persist that decision for future runs. The license has allowances for demo and trial purproses. 
+ p The `--env HAB_LICENSE="accept-no-persist"` accepts the Chef license, but does not persist that decision for future runs. The license has allowances for demo and trial purproses.
 
  p Setting `-p 80:8099` maps port 8099 from the app running within the Docker container to port 80 on your host machine. Please ensure that you don't have any other applications running listening on port 80.
 
@@ -88,7 +88,7 @@ section
 
  p If you have to customize how your web application is built, such as overriding build phases through callbacks, it is helpful to know what environment variables are available to you, to make sure you have successfully copied/referenced files, or performed the business logic you intended to at that specific point in the build.
 
- p There are several #{link_to 'built-in functions','/docs/reference#utility-functions'} you can call in your plan.ps1 to help you with these issues, but you will likely find Powershell's own <code>#{link_to 'Set-PSBreakpoint','https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/set-psbreakpoint?view=powershell-6'}</code> to be the most helpful. You can use its <code>-Command</code> argument and set it to any of the build phase callback functions. When that function is invoked, you will be dropped into an interactive prompt where you can examine variables and files to debug your build.
+ p There are several #{link_to 'built-in functions','/docs/reference/plan-helpers'} you can call in your plan.ps1 to help you with these issues, but you will likely find Powershell's own <code>#{link_to 'Set-PSBreakpoint','https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/set-psbreakpoint?view=powershell-6'}</code> to be the most helpful. You can use its <code>-Command</code> argument and set it to any of the build phase callback functions. When that function is invoked, you will be dropped into an interactive prompt where you can examine variables and files to debug your build.
 
  h3 Debugging at runtime
 
