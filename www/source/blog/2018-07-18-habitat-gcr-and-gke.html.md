@@ -148,5 +148,5 @@ In this walkthrough you saw how to push a Chef Habitat managed application to GC
 ### Read more:
 * [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/)
 * [Google Container Registry](https://cloud.google.com/container-registry/)
-* [Best Practices for Chef Habitat and GKE](https://www.habitat.sh/docs/best-practices/#gke-and-habitat)
+* [Best Practices for Chef Habitat and GKE](https://www.habitat.sh/docs/best-practices/gke-and-habitat)
 * [Sample code on GitHub](https://github.com/chef-partners/hab-gcr-demo)

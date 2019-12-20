@@ -145,29 +145,29 @@ sidebar_links:
     link: "/docs/best-practices/best-practices"
     sub_links:
     - title: Running Chef Habitat on Servers
-      link: "/docs/best-practices/best-practices/#running-habitat-servers"
+      link: "/docs/best-practices/running-habitat-servers"
     - title: Running Chef Habitat Linux Containers
-      link: "/docs/best-practices/best-practices/#running-habitat-linux-containers"
+      link: "/docs/best-practices/running-habitat-linux-containers"
     - title: Running Chef Habitat Windows Containers
-      link: "/docs/best-practices/best-practices/#running-habitat-windows-containers"
+      link: "/docs/best-practices/running-habitat-windows-containers"
     - title: Robust Supervisor Networks
-      link: "/docs/best-practices/best-practices/#robust-supervisor-networks"
+      link: "/docs/best-practices/robust-supervisor-networks"
     - title: Container Orchestration
-      link: "/docs/best-practices/best-practices/#container-orchestration"
+      link: "/docs/best-practices/container-orchestration"
     - title: Kubernetes
-      link: "/docs/best-practices/best-practices/#kubernetes"
+      link: "/docs/best-practices/kubernetes"
     - title: "AKS and Chef Habitat"
-      link: "/docs/best-practices/best-practices/#aks-and-habitat"
+      link: "/docs/best-practices/aks-and-habitat"
     - title: "ECS and Chef Habitat"
-      link: "/docs/best-practices/best-practices/#ecs-and-habitat"
+      link: "/docs/best-practices/ecs-and-habitat"
     - title: "Apache Mesos and DC/OS"
-      link: "/docs/best-practices/best-practices/#mesos-dcos"
+      link: "/docs/best-practices/mesos-dcos"
     - title: "Advanced Plan Writing"
-      link: "/docs/best-practices/best-practices/#planwriting-guide"
+      link: "/docs/best-practices/planwriting-guide"
     - title: Iterative Development
-      link: "/docs/best-practices/best-practices/#iterative-development"
+      link: "/docs/best-practices/iterative-development"
     - title: "Binary Wrapper Packages"
-      link: "/docs/best-practices/best-practices/#binary-wrapper"
+      link: "/docs/best-practices/binary-wrapper"
   - title: Glossary
     link: "/docs/glossary/glossary"
     sub_links:

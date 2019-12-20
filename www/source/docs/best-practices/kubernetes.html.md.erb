@@ -1,3 +1,8 @@
+---
+title: "Kubernetes"
+description:
+---
+
 ## <a name="kubernetes" id="kubernetes" data-magellan-target="kubernetes">Kubernetes</a>
 
 [Kubernetes](http://kubernetes.io/) is an open source container cluster manager that is available as a stand-alone platform or embedded in several distributed platforms including [Google's Container Engine](https://cloud.google.com/container-engine/), [AWS Elastic Kubernetes Service](https://aws.amazon.com/eks/), [Azure Kubernetes Service](https://azure.microsoft.com/services/kubernetes-service/), and [Red Hat OpenShift](https://openshift.com/).
@@ -6,7 +11,7 @@ Chef Habitat and Kubernetes are complementary. While Kubernetes provides a platf
 ### Chef Habitat on Kubernetes
 
 Chef Habitat can export your package as a Docker container that runs on Kubernetes in the form of a pod.
-Additionally, a Chef Habitat bastion pod provides essential gossip ring features like service discovery (binds), secrets and the required [initial peer](/docs/best-practices/#robust-supervisor-networks) to all other pods.
+Additionally, a Chef Habitat bastion pod provides essential gossip ring features like service discovery (binds), secrets and the required [initial peer](/docs/best-practices/robust-supervisor-networks) to all other pods.
 
 Chef Habitat robustly deploys the bastion pod with a Kubernetes stateful set, persistent volume, and liveness checking, which ensures node availability and ring data persistence. The Kubernetes stateful set comes with an attached Kubernetes service that makes discoverable with DNS. Each namespace should contain a single service and stateful set.
 
