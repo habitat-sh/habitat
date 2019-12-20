@@ -239,7 +239,7 @@ Once you are done writing your plan, use the studio to [build your package](/doc
 
 - [Write plans](/docs/developing-packages/#write-plans): Describes what a plan is and how to create one.
 - [Add configuration to plans](/docs/developing-packages/#add-configuration): Learn how to make your running service configurable by templatizing configuration files in your plan.
-- [Binary-only packages](/docs/best-practices/#binary-wrapper): Learn how to create packages from software that comes only in binary form, like off-the-shelf or legacy programs.
+- [Binary-only packages](/docs/best-practices/binary-wrapper): Learn how to create packages from software that comes only in binary form, like off-the-shelf or legacy programs.
 
 You may also find the [plan syntax guide](/docs/reference/) useful. It lists the settings, variables, and functions that you can use when creating your plan.
 
@@ -465,7 +465,7 @@ Depending on the platform of your host and your Docker configuration, the behavi
 * **Mac** - A Docker container based Linux Studio
 * **Windows** - A local Windows studio. You can force a Docker based studio by adding the `-D` flag to the `hab studio enter` command. The platform of the spawned container depends on the mode your Docker service is running, which can be toggled between Linux Containers and Windows Containers. Make sure your Docker service is running in the correct mode for the kind of studio you wish to enter.
 
-> Note: For more details related to Windows containers see [Running Chef Habitat Windows Containers](/docs/best-practices/#running-habitat-windows-containers).
+> Note: For more details related to Windows containers see [Running Chef Habitat Windows Containers](/docs/best-practices/running-habitat-windows-containers).
 
 #### Building Dependent Plans in the Studio
 
@@ -854,7 +854,7 @@ Additionally, the Kubernetes Chef Habitat operator is automatically added to the
 
 5. Note that the default resource allocation for the application is very small: 0.5 units of CPU, no disk, one instance, and 256MB of memory. To change these resource allocations, pass different values to the Mesos exporter as command line options (defaults are documented with `--help`).
 
-6. See the article [Apaches Mesos and DC/OS](/docs/best-practices/#mesos-dcos) for more information on getting your application running on Mesos.
+6. See the article [Apaches Mesos and DC/OS](/docs/best-practices/mesos-dcos) for more information on getting your application running on Mesos.
 
 ### Exporting to Cloud Foundry
 
