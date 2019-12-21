@@ -194,7 +194,7 @@ sidebar_links:
     - title: Supervisor
       link: "/docs/glossary/glossary-supervisor"
   - title: Internals
-    link: "/docs/internals"
+    link: "/docs/internals/internals"
     sub_links:
     - title: Supervisor
       link: "/docs/internals/supervisor-internals"
