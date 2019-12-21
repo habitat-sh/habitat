@@ -195,7 +195,7 @@ redirect 'docs/reference/hooks/index.html', to: '/docs/reference/reference-hooks
 redirect 'docs/reference/runtime-settings/index.html', to: '/docs/reference/template-data'
 redirect 'docs/reference/utility-functions/index.html', to: '/docs/reference/utility-functions'
 redirect 'docs/reference/environment-vars/index.html', to: '/docs/reference/environment-variables'
-redirect 'docs/reference/package-contents/index.html', to: '/docs/reference/package-contents'
+# redirect 'docs/reference/package-contents/index.html', to: '/docs/reference/package-contents'
 redirect 'docs/reference/log-keys/index.html', to: '/docs/reference/sup-log-keys'
 redirect 'docs/reference/habitat-infographics/index.html', to: '/docs/diagrams'
 redirect 'docs/contribute-help-build/index.html', to: '/docs/contribute'

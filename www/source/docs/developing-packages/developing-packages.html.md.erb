@@ -164,7 +164,7 @@ Declare any build dependencies in `pkg_build_deps` and any run dependencies in `
 
 The package `core/glibc` is typically listed as a run dependency and `core/coreutils` as a build dependency, however, you should not take any inference from this. There are no standard dependencies that every package must have. For example, the mytutorialapp package only includes the `core/node` as a run dependency. You should include dependencies that would natively be part of the build or runtime dependencies your application or service would normally depend on.
 
-There is a third type of dependencies, transitive dependencies, that are the run dependencies of either the build or run dependencies listed in your plan. You do not need to explicitly declare transitive dependencies, but they are included in the list of files when your package is built. See [Package contents](/docs/reference/package-contents) for more information.
+There is a third type of dependencies, transitive dependencies, that are the run dependencies of either the build or run dependencies listed in your plan. You do not need to explicitly declare transitive dependencies, but they are included in the list of files when your package is built. See [Package Contents](/docs/reference/package-contents) for more information.
 
 #### Override Build Phase Defaults with Callbacks
 
@@ -497,7 +497,7 @@ A non-interactive build is one in which Chef Habitat creates a Studio for you, b
 
 By default, the Studio is reset to a clean state after the package is built; however, *if you are using the Linux version of `hab`*, you can reuse a previous Studio when building your package by specifying the `-R` option when calling the `hab pkg build` subcommand.
 
-For information on the contents of an installed package, see [Package contents](/docs/reference/package-contents).
+For information on the contents of an installed package, see [Package Contents](/docs/reference/package-contents).
 
 ---
 ## <a name="debug-builds" id="debug-builds" data-magellan-target="debug-builds" type="anchor">Troubleshooting Builds</a>

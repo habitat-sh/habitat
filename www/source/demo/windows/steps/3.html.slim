@@ -15,17 +15,17 @@ section
     $pkg_build_deps=@("core/nuget")
 
  p This will allow the <code>nuget.exe</code> command line tool to be available at build time which includes functionality for populating nuget package dependencies. However there is no need for that tool at run time. We will be relying on the <code>core/dsc-core</code> package in our runtime hooks which we will cover in more detail later.
- 
+
  p If you require additional runtime or buildtime dependencies, you can add them into your plan.ps1 using the <code>$pkg_deps</code> and <code>$pkg_build_deps</code> settings, respectively. For example, if you wanted to implement a custom <code>Invoke-Download</code> callback to pull your application source from a git repository, you would need to add another build time dependency on <code>core/git</code> to your <code>plan.ps1</code>.
 
- p There is a third type of dependency, transitive dependencies, that do not need to be explicitly declared in your plan file. They are automatically included in the list of files when your package is built. See #{link_to 'Package contents','/docs/reference/package-contents/'} for more information.
+ p There is a third type of dependency, transitive dependencies, that do not need to be explicitly declared in your plan file. They are automatically included in the list of files when your package is built. See #{link_to 'Package Contents','/docs/reference/package-contents'} for more information.
 
  h2 Where are the IIS and .NET Framework dependencies!?
 
  p There are some dependencies in Windows that present unique challenges when trying to build a fully portable and isolatable package. The .NET framework and services like IIS are good examples of such dependencies. These represent monolithic, single tenant installations that cannot simply be downloaded to a specific place on disk and run in an isolated fashion. So we employ different patterns to deal with each of these.
- 
+
  h3 .NET Framework
- 
+
  p If this were a .NET Core application, we could simply declare a dependency on <code>core/dotnet-core</code> which would put <code>dotnet.exe</code> on our path and we just point that to our built binary and we are done. The .NET "full framework" on the other hand wants to be in a very specific place on disk, has a key component called the Gloabal Assembly Cache (note "global") and requires some Windows registry entries to be friendly. We will deal with this by leaving the responsibility of installing the correct version of the .NET framework up to our provisioning or configuration management layer. Our ASP.NET application plan will simply assume the presense of the .NET framework in the environment where it is running. The fact of the matter is that any fully patched version of Windows that Chef Habitat supports will have a v4 .NET CLR installed - so often the requirement of the .NET framework will already be present on a fresh Windows image. However it might be a version or two behind the latest version of the .NET 4 runtime and if your application depends on new features in those versions, then you will need to make sure to have them installed before running your application in Chef Habitat.
 
  h3 IIS
