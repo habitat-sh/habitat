@@ -77,18 +77,18 @@ sidebar_links:
     - title: Continuous Deployment
       link: "/docs/using-habitat/using-habitat/#continuous-deployment"
   - title: Chef Habitat and Other Software
-    link: "/docs/habitat-and-other-software/habitat-and-other-software"
+    link: "/docs/habitat-and-other-software/habitat-and-others"
     sub_links:
     - title: Chef Habitat and Provisioning Tools
-      link: "/docs/habitat-and-other-software/habitat-and-other-software/#habitat-and-provisioning"
+      link: "/docs/habitat-and-other-software/habitat-and-provisioning"
     - title: Chef Habitat and Containers
-      link: "/docs/habitat-and-other-software/habitat-and-other-software/#habitat-and-containers"
+      link: "/docs/habitat-and-other-software/habitat-and-containers"
     - title: Chef Habitat and Container Orchestration
-      link: "/docs/habitat-and-other-software/habitat-and-other-software/#habitat-and-orchestration"
+      link: "/docs/habitat-and-other-software/habitat-and-orchestration"
     - title: Chef Habitat and Continuous Integration
-      link: "/docs/habitat-and-other-software/habitat-and-other-software/#habitat-and-continuous-integration"
+      link: "/docs/habitat-and-other-software/habitat-and-continuous-integration"
     - title: Chef Habitat and Configuration Management
-      link: "/docs/habitat-and-other-software/habitat-and-other-software/#habitat-and-configuration-management"
+      link: "/docs/habitat-and-other-software/habitat-and-configuration-management"
   - title: CLI Commands
     link: "/docs/habitat-cli"
   - title: Reference
