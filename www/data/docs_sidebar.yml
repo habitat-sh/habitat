@@ -7,8 +7,8 @@ sidebar_links:
   - title: Install Chef Habitat
     link: "/docs/install-habitat/install-habitat"
     sub_links:
-    - title: Download the Chef Habitat CLI
-      link: "/docs/install-habitat/install-habitat"
+    - title: Get Chef Habitat
+      link: "/docs/install-habitat/installing-packages"
     - title: Accept the License
       link: "/docs/install-habitat/accept-the-license"
     - title: Configure Your Workstation
