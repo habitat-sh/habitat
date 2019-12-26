@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.54 -->
-## [0.90.54](https://github.com/habitat-sh/habitat/tree/0.90.54) (2019-12-20)
+<!-- latest_release 0.90.55 -->
+## [0.90.55](https://github.com/habitat-sh/habitat/tree/0.90.55) (2019-12-26)
 
 #### Merged Pull Requests
-- Updated Foundation &amp; JQuery [#7302](https://github.com/habitat-sh/habitat/pull/7302) ([kagarmoe](https://github.com/kagarmoe))
+- Revert &quot;Updated Foundation &amp; JQuery&quot; [#7315](https://github.com/habitat-sh/habitat/pull/7315) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -18,6 +18,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Revert &quot;Updated Foundation &amp; JQuery&quot; [#7315](https://github.com/habitat-sh/habitat/pull/7315) ([mwrock](https://github.com/mwrock)) <!-- 0.90.55 -->
 - Updated Foundation &amp; JQuery [#7302](https://github.com/habitat-sh/habitat/pull/7302) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.54 -->
 - Bump rack from 2.0.7 to 2.0.8 in /www [#7300](https://github.com/habitat-sh/habitat/pull/7300) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 0.90.53 -->
 - Add health check interval to event stream [#7266](https://github.com/habitat-sh/habitat/pull/7266) ([nellshamrell](https://github.com/nellshamrell)) <!-- 0.90.52 -->
