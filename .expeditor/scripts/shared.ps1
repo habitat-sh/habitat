@@ -35,7 +35,7 @@ function Get-RustfmtToolchain {
   # break the way rustfmt uses rustc. Therefore, before updating the pin below, double check
   # that the nightly version you're going to update it to includes rustfmt. You can do that
   # using https://mexus.github.io/rustup-components-history/x86_64-unknown-linux-gnu.html
-  Get-Content "$PSScriptRoot\..\..\RUSTFMT_VERSION"
+  "$(Get-Content $PSScriptRoot\..\..\RUSTFMT_VERSION)-x86_64-pc-windows-msvc"
 }
 
 function Install-Habitat {
@@ -47,7 +47,7 @@ function Install-Habitat {
 }
 
 function Get-Toolchain {
-  "$(Get-Content $PSScriptRoot\..\..\rust-toolchain)"
+  "$(Get-Content $PSScriptRoot\..\..\rust-toolchain)-x86_64-pc-windows-msvc"
 }
 
 function New-PathString([string]$StartingPath, [string]$Path) {
@@ -76,7 +76,7 @@ function Install-Rustup($Toolchain) {
       rustup set default-host x86_64-pc-windows-msvc
       rustup default stable-x86_64-pc-windows-msvc
   } else {
-      Write-Host "Installing rustup and $toolchain-x86_64-pc-windows-msvc Rust."
+      Write-Host "Installing rustup and $toolchain Rust."
       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
       # We occasionally would see the following error in CI, which would fail our builds and abort the pipeline: 
       #     invoke-restmethod : Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host.
@@ -103,7 +103,7 @@ function Install-Rustup($Toolchain) {
         exit 1
       }
 
-      ./rustup-init.exe -y --default-toolchain $toolchain-x86_64-pc-windows-msvc --no-modify-path --profile=minimal
+      ./rustup-init.exe -y --default-toolchain $toolchain --no-modify-path --profile=minimal
       $env:path += ";$env:USERPROFILE\.cargo\bin"
   }
 }
