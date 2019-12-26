@@ -2,7 +2,7 @@
 
 # This tests that removing the leader from a functioning leader topology
 # service group that has enough nodes to maintain quorum after the leader is
-# lost, it will continue to perform a succesful roaming update after a new
+# lost, it will continue to perform a succesful rolling update after a new
 # leader is elected.
 #
 # We will load services on three nodes and then stop the supervisor on
@@ -14,12 +14,11 @@
 
 set -xeuo pipefail
 
-hab pkg install core/jq-static -b
+readonly test_channel=rolling-$(date '+%s%3N')
+readonly test_ident_v1="habitat-testing/nginx/1.17.4/20191115184838"
+readonly test_ident_v2="habitat-testing/nginx/1.17.4/20191115185900"
 
-test_channel=rolling-$(date '+%s%3N')
-test_ident=habitat-testing/nginx/1.17.4/20191115184838
-
-hab pkg promote ${test_ident} "${test_channel}"
+hab pkg promote ${test_ident_v1} "${test_channel}"
 
 for server in alpha beta gamma; do
     hab svc load habitat-testing/nginx --topology leader --strategy rolling --channel "${test_channel}" --remote-sup=${server}.habitat.dev
@@ -29,13 +28,14 @@ cleanup () {
     hab bldr channel destroy "${test_channel}" --origin habitat-testing
 }
 
+trap cleanup INT TERM EXIT
+
 sleep 15
 
 for server in alpha beta gamma; do
     current_ident=$(curl -s "${server}.habitat.dev:9631/services/nginx/default" | jq -r '.pkg.ident')
-    if [[ "${current_ident}" != "${test_ident}" ]]; then
-        echo "Expected nginx ident ${test_ident} on ${server}; got ${current_ident} instead!"
-        cleanup
+    if [[ "${current_ident}" != "${test_ident_v1}" ]]; then
+        echo "Initial load failed. Expected nginx ident ${test_ident_v1} on ${server}; got ${current_ident} instead!"
         exit 1
     fi
 done
@@ -46,19 +46,15 @@ leader_name=$(echo "${body}" | jq -r ".census_groups.\"nginx.default\".populatio
 docker exec "${COMPOSE_PROJECT_NAME}_${leader_name}_1" hab sup term
 sleep 5
 
-test_ident=habitat-testing/nginx/1.17.4/20191115185900
-hab pkg promote ${test_ident} "${test_channel}"
+hab pkg promote ${test_ident_v2} "${test_channel}"
 sleep 15
 
 for server in alpha beta gamma; do
     if [[ "${server}" != "${leader_name}" ]]; then
         current_ident=$(curl -s ${server}.habitat.dev:9631/services/nginx/default | jq -r '.pkg.ident')
-        if [[ "${current_ident}" != "${test_ident}" ]]; then
-            echo "Expected nginx ident ${test_ident} on ${server}; got ${current_ident} instead!"
-            cleanup
+        if [[ "${current_ident}" != "${test_ident_v2}" ]]; then
+            echo "Update failed. Expected nginx ident ${test_ident_v2} on ${server}; got ${current_ident} instead!"
             exit 1
         fi
     fi
 done
-
-cleanup

@@ -12,12 +12,12 @@
 
 set -xeuo pipefail
 
-hab pkg install core/jq-static -b
+readonly test_channel=rolling-$(date '+%s%3N')
+readonly test_ident_v1="habitat-testing/nginx/1.17.4/20191115184838"
+readonly test_ident_v2="habitat-testing/nginx/1.17.4/20191115185517"
+readonly test_ident_v3="habitat-testing/nginx/1.17.4/20191115185900"
 
-test_channel=rolling-$(date '+%s%3N')
-test_ident=habitat-testing/nginx/1.17.4/20191115184838
-
-hab pkg promote ${test_ident} "${test_channel}"
+hab pkg promote ${test_ident_v1} "${test_channel}"
 
 for server in alpha beta gamma; do
     hab svc load habitat-testing/nginx --topology leader --strategy rolling --channel "${test_channel}" --remote-sup=${server}.habitat.dev
@@ -27,13 +27,14 @@ cleanup () {
     hab bldr channel destroy "${test_channel}" --origin habitat-testing
 }
 
+trap cleanup INT TERM EXIT
+
 sleep 15
 
 for server in alpha beta gamma; do
     current_ident=$(curl -s "${server}.habitat.dev:9631/services/nginx/default" | jq -r '.pkg.ident')
-    if [[ "${current_ident}" != "${test_ident}" ]]; then
-        echo "Expected nginx ident ${test_ident} on ${server}; got ${current_ident} instead!"
-        cleanup
+    if [[ "${current_ident}" != "${test_ident_v1}" ]]; then
+        echo "Initial load failed. Expected nginx ident ${test_ident_v1} on ${server}; got ${current_ident} instead!"
         exit 1
     fi
 done
@@ -54,8 +55,7 @@ docker exec "${COMPOSE_PROJECT_NAME}_${follower_name}_1" hab sup term
 sleep 5
 
 # perform an update
-test_ident=habitat-testing/nginx/1.17.4/20191115185517
-hab pkg promote ${test_ident} "${test_channel}"
+hab pkg promote ${test_ident_v2} "${test_channel}"
 sleep 15
 
 # we expect everyone to be updated now but prior to
@@ -64,17 +64,15 @@ sleep 15
 for server in alpha beta gamma; do
     if [[ "${server}" != "${follower_name}" ]]; then
         current_ident=$(curl -s ${server}.habitat.dev:9631/services/nginx/default | jq -r '.pkg.ident')
-        if [[ "${current_ident}" != "${test_ident}" ]]; then
-            echo "Expected nginx ident ${test_ident} on ${server}; got ${current_ident} instead!"
-            cleanup
+        if [[ "${current_ident}" != "${test_ident_v2}" ]]; then
+            echo "First promotion failed. Expected nginx ident ${test_ident_v2} on ${server}; got ${current_ident} instead!"
             exit 1
         fi
     fi
 done
 
 # update again
-test_ident=habitat-testing/nginx/1.17.4/20191115185900
-hab pkg promote ${test_ident} "${test_channel}"
+hab pkg promote ${test_ident_v3} "${test_channel}"
 sleep 15
 
 # if the leader is not stuck waiting for dead members for the previous update,
@@ -82,12 +80,9 @@ sleep 15
 for server in alpha beta gamma; do
     if [[ "${server}" != "${follower_name}" ]]; then
         current_ident=$(curl -s ${server}.habitat.dev:9631/services/nginx/default | jq -r '.pkg.ident')
-        if [[ "${current_ident}" != "${test_ident}" ]]; then
-            echo "Expected nginx ident ${test_ident} on ${server}; got ${current_ident} instead!"
-            cleanup
+        if [[ "${current_ident}" != "${test_ident_v3}" ]]; then
+            echo "Second promotion failed. Expected nginx ident ${test_ident_v3} on ${server}; got ${current_ident} instead!"
             exit 1
         fi
     fi
 done
-
-cleanup
