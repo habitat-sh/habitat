@@ -331,6 +331,18 @@ steps:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_ORIGIN
 
+  - label: "[:windows: test_studio_can_build_packages_with_pkg_version_function]"
+    command:
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_can_build_packages_with_pkg_version_function
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+            - HAB_ORIGIN
+
   - label: "[:linux: test_custom_ssl_cert_is_available_in_studio]"
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh dev
