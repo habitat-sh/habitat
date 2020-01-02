@@ -463,12 +463,14 @@ impl BuilderAPIProvider for BuilderAPIClient {
 
         let path = format!("depot/origins/{}/secret/{}", origin, key_name);
 
-        // We expect NO_CONTENT, because the origin must be empty to delete
+        // Originally, we only returned an Ok result if the response was StatusCode::NO_CONTENT
+        // (HTTP 204). However the Bldr API appears to always have returned HTTP 200. We'll accept
+        // either as indicators of a successful operation moving forward.
         self.0
             .delete(&path)
             .bearer_auth(token)
             .send()?
-            .ok_if(&[StatusCode::OK])
+            .ok_if(&[StatusCode::NO_CONTENT, StatusCode::OK])
     }
 
     /// Check an origin exists
