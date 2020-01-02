@@ -203,7 +203,7 @@ impl ServiceUpdater {
                                        &service.service_group);
                                 return None;
                             }
-                            (..) => {
+                            (None, _) => {
                                 // It looks like a Supervisor finds
                                 // out "who it is" by being told by
                                 // the rest of the network. While this
