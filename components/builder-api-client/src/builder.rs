@@ -468,7 +468,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
             .delete(&path)
             .bearer_auth(token)
             .send()?
-            .ok_if(&[StatusCode::NO_CONTENT])
+            .ok_if(&[StatusCode::OK])
     }
 
     /// Check an origin exists
