@@ -237,11 +237,42 @@ function New-Studio {
     $secret_keys = @()
     $public_keys = @()
     $env:HAB_ORIGIN_KEYS.Split(" ") | % {
-      $pk = & hab origin key export $_ --type=public | Out-String
       $sk = & hab origin key export $_ --type=secret | Out-String
-      # hab key import does not like carriage returns
-      $secret_keys += $sk.Replace("`r", "")
-      $public_keys += $pk.Replace("`r", "")
+      if($LASTEXITCODE -eq 0) {
+        # hab key import does not like carriage returns
+        $secret_keys += $sk.Replace("`r", "")
+      } else {
+        Write-Warning "Error exporting $_ key"
+        Write-Host "Habitat was unable to export your secret signing key. Please"
+        Write-Host "verify that you have a signing key for $_ present in either"
+        Write-Host "$(Resolve-Path ~/.hab/cache/keys) (if running in a non-elevated console) or c:\hab\cache\keys"
+        Write-Host "(if running as an Administrator). You can test this by running:"
+        Write-Host ""
+        Write-Host "    hab origin key export --type secret $_"
+        Write-Host ""
+        Write-Host "This test will print your signing key to the console or error"
+        Write-Host "if it cannot find the key. To create a signing key, you can run: "
+        Write-Host ""
+        Write-Host "    hab origin key generate $_"
+        Write-Host ""
+        Write-Host "You'll also be prompted to create an origin signing key when "
+        Write-Host "you run 'hab setup'."
+        Write-Host ""
+        Write-Host "Note that if you run 'hab setup' in an elevated console as an"
+        Write-Host "administrator, the created signing key will only be used in a"
+        Write-Host "Studio launched in an elevated console. Likewise a signing key"
+        Write-Host "created during 'hab setup' in a non-elevated console is only"
+        Write-Host "accesible to a non-elevated Studio."
+        Write-Host ""
+        Write-Error "Aborting Studio"
+      }
+      $pk = & hab origin key export $_ --type=public | Out-String
+      if($LASTEXITCODE -eq 0) {
+        # hab key import does not like carriage returns
+        $public_keys += $pk.Replace("`r", "")
+      } else {
+        Write-Warning "Tried to import '$_' public origin key, but key was not found"
+      }
     }
 
     $env:FS_ROOT=$HAB_STUDIO_ROOT
@@ -250,8 +281,22 @@ function New-Studio {
     $secret_keys | % { $_ | & hab origin key import }
   }
   else {
+    Write-Warning "No secret keys imported! Did you mean to set `$env:HAB_ORIGIN?"
+    Write-Host "To specify a HAB_ORIGIN, either set the HAB_ORIGIN environment"
+    Write-Host "variable to your origin name or run 'hab setup' and specify a"
+    Write-Host "default origin."
+    Write-Host ""
+    Write-Host "Note that if you ran 'hab setup' in an elevated console as an"
+    Write-Host "administrator, the default origin specified will only be used in a"
+    Write-Host "Studio launched in an elevated console. Likewise a default origin"
+    Write-Host "specified during 'hab setup' in a non-elevated console is only"
+    Write-Host "accesible to a non-elevated Studio."
     $env:FS_ROOT=$HAB_STUDIO_ROOT
     $env:HAB_CACHE_KEY_PATH = Join-Path $env:FS_ROOT "hab\cache\keys"
+  }
+
+  if (!(Test-Path $env:HAB_CACHE_KEY_PATH)) {
+    mkdir $env:HAB_CACHE_KEY_PATH | Out-Null
   }
 
   $env:HAB_CACHE_SSL_PATH = Join-Path $env:FS_ROOT "hab\cache\ssl"
