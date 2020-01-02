@@ -240,8 +240,17 @@ impl ServiceUpdater {
                                 *st = RollingState::Follower(FollowerState::Waiting);
                             }
                         }
-                        (Some(_), None) => return None,
-                        _ => return None,
+                        (Some(_), None) => {
+                            debug!("No update leader for {} present yet",
+                                   &service.service_group);
+                            return None;
+                        }
+                        (None, _) => {
+                            error!("Supervisor does not know its own identity; rolling update of \
+                                    {} cannot proceed! Please notify the Habitat core team!",
+                                   service.service_group);
+                            return None;
+                        }
                     }
                 }
             }
