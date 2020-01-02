@@ -4,8 +4,9 @@ use std::{path::Path,
           result};
 
 #[cfg(windows)]
-use crate::common::cli::{DEFAULT_BINLINK_DIR,
-                         FS_ROOT};
+use crate::{common::cli::{DEFAULT_BINLINK_DIR,
+                          FS_ROOT},
+            hcore::fs};
 use crate::{common::ui::{UIReader,
                          UIWriter,
                          UI},
@@ -169,10 +170,17 @@ pub fn start(ui: &mut UI, cache_path: &Path) -> Result<()> {
                  environment. However, you will want this directory on your machine's \
                  persistent 'PATH' in order to access binlinks outside of a Studio.")?;
         if ui.prompt_yes_no("Add binlink directory to PATH?", Some(true))? {
-            set_binlink_path(&binlink_path)?;
-            ui.para(&format!("{} has been added to your path. You will need to open a new \
-                              console window for this added entry to take effect.",
-                             binlink_path.display()))?;
+            if !fs::am_i_root() {
+                ui.fatal("You must be in an elevated console running as an administrator in \
+                          order to set the machine's PATH. Please open a new console running as \
+                          administrator and run setup again to add the Habitat binlink \
+                          directory to your path.")?;
+            } else {
+                set_binlink_path(&binlink_path)?;
+                ui.para(&format!("{} has been added to your path. You will need to open a new \
+                                  console window for this added entry to take effect.",
+                                 binlink_path.display()))?;
+            }
         } else {
             ui.para("Okay, maybe another time.")?;
         }
