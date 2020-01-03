@@ -1126,6 +1126,8 @@ function __resolve_version_placeholder($original, $real_version){
 
 # Replace all instances of the "__pkg__version__unset__" placeholder
 # in the values of the given hashtable with the real version number.
+# Rhe environment tables contain nested hash tables that hold the
+# string we want to modify under the 'value' key
 function __resolve_all_version_placeholders_for_environment($env_table, $real_version) {
     $new_table = @{}
     foreach($k in $env_table.keys) {
@@ -1140,6 +1142,8 @@ function __resolve_all_version_placeholders_for_environment($env_table, $real_ve
 
 # Replace all instances of the "__pkg__version__unset__" placeholder
 # in the values of the given hashtable with the real version number.
+# The provenance tables are hold key/value pairs with the value being
+# what we want to modify
 function __resolve_all_version_placeholders_for_provenance($provenance_table, $real_version) {
   $new_table = @{}
   foreach($k in $provenance_table.keys) {
