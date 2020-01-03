@@ -507,10 +507,10 @@ pub fn find_command<T>(command: T) -> Option<PathBuf>
         Some(paths) => {
             for path in env::split_paths(&paths) {
                 let candidate = PathBuf::from(&path).join(command.as_ref());
-                if candidate.is_file() {
-                    return Some(candidate);
-                } else if let Some(result) = find_command_with_pathext(&candidate) {
+                if let Some(result) = find_command_with_pathext(&candidate) {
                     return Some(result);
+                } else if candidate.is_file() {
+                    return Some(candidate);
                 }
             }
             None
@@ -540,10 +540,10 @@ pub fn find_command_in_pkg<T, U>(command: T,
                     panic!("Package path missing / prefix {}", path.to_string_lossy())
                 });
         let candidate = fs_root_path.as_ref().join(stripped).join(command.as_ref());
-        if candidate.is_file() {
-            return Ok(Some(path.join(command.as_ref())));
-        } else if let Some(result) = find_command_with_pathext(&candidate) {
+        if let Some(result) = find_command_with_pathext(&candidate) {
             return Ok(Some(result));
+        } else if candidate.is_file() {
+            return Ok(Some(path.join(command.as_ref())));
         }
     }
     Ok(None)
@@ -821,7 +821,9 @@ mod test_find_command {
 
     #[allow(dead_code)]
     fn setup_pathext() {
-        let path_bufs = vec![PathBuf::from(".COM"), PathBuf::from(".EXE")];
+        let path_bufs = vec![PathBuf::from(".BAT"),
+                             PathBuf::from(".COM"),
+                             PathBuf::from(".EXE")];
         let new_path = env::join_paths(path_bufs).unwrap();
         env::set_var("PATHEXT", &new_path);
     }
@@ -960,6 +962,14 @@ mod test_find_command {
                 let result = find_command("win95_dominator");
                 assert_eq!(result.is_some(), false);
             }
+
+            #[test]
+            #[allow(non_snake_case)]
+            fn command_exists_with_extension_in_PATHEXT_and_without_extension() {
+                setup_environment();
+                let result = find_command("binstub");
+                assert_eq!(result.unwrap().file_name().unwrap(), "binstub.BAT");
+            }
         }
 
         mod argument_with_extension {
@@ -995,6 +1005,14 @@ mod test_find_command {
                 let result = find_command("plan.sh");
                 let found_path = result.unwrap();
                 assert_eq!(found_path, target_path);
+            }
+
+            #[test]
+            #[allow(non_snake_case)]
+            fn command_exists_with_extension_in_PATHEXT_and_without_extension() {
+                setup_environment();
+                let result = find_command("binstub.bat");
+                assert_eq!(result.unwrap().file_name().unwrap(), "binstub.bat");
             }
         }
     }
