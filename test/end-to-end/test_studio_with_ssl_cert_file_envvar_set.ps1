@@ -1,61 +1,64 @@
-#!/bin/bash
-
 # Test that SSL_CERT_FILE is persisted into the studio and 
 # set to the correct internal path. 
 $ErrorActionPreference="stop" 
 
-$studio_flags = ""
-if( $env:DOCKER_STUDIO_TEST -eq $true) {
-    studio_flags = "-D"
-}
-
 function Cleanup-CachedCertificate {
-  $hab_ssl_cache="$env:SYSTEM_DRIVE\hab\cache\ssl"
-  Remove-Item -Force "$hab_ssl_cache\*" -ErrorAction SilentlyContinue
+  $hab_ssl_cache="/hab/cache/ssl"
+  Remove-Item -Force "$hab_ssl_cache/*" -ErrorAction SilentlyContinue
 }
 
-function New-TemporaryDirectory {
-  $parent = [System.IO.Path]::GetTempPath()
-  [string] $name = [System.Guid]::NewGuid()
-  New-Item -ItemType Directory -Path (Join-Path $parent $name)
-}
-
-Write-Host "--- Generating a signing key"
 hab origin key generate "$env:HAB_ORIGIN"
-
-Write-Host "--- Generating self-signed ssl certificate"
 
 $tempdir = New-TemporaryDirectory
 $e2e_certname = "e2e-ssl.pem"
 hab pkg install core/openssl 
 hab pkg exec core/openssl openssl req -newkey rsa:2048 -batch -nodes -keyout key.pem -x509 -days 365 -out (Join-Path $tempdir $e2e_certname)
 
-Write-Host "--- Testing valid SSL_CERT_FILE in the studio"
+if($IsLinux) {
+    $sslCertFileCheck = "test -f `$SSL_CERT_FILE"
+    $sslCertFilePrint = "echo `$SSL_CERT_FILE"
+    $sslCacheCertFileCheck = "test -f '/hab/cache/ssl/$e2e_certname'"
+} else {
+    $sslCertFileCheck = "exit (!(Test-Path `$env:SSL_CERT_FILE))"
+    $sslCertFilePrint = "`$env:SSL_CERT_FILE.Replace('\','/')"
+    $sslCacheCertFileCheck = "exit (!(Test-Path '/hab/cache/ssl/$e2e_certname'))"
+}
 
 Context "SSL_CERT_FILE is passed into the studio" {
     BeforeEach { 
-        $result = hab studio rm
+        hab studio rm
         Cleanup-CachedCertificate
     }
 
     Describe "SSL_CERT_FILE is a valid certificate" {
         $env:SSL_CERT_FILE = (Join-Path $tempdir $e2e_certname)
         It "Sets env:SSL_CERT_FILE in the studio"  {
-            $expected = "\hab\cache\ssl\$e2e_certname"
-            $result = hab studio run '(Get-ChildItem env:SSL_CERT_FILE).Value'
+            $expected = "/hab/cache/ssl/$e2e_certname"
+            $result = Invoke-StudioRun $sslCertFilePrint
             $result[-1] | Should -BeLike "*$expected"
         }
 
         It "Copies the certificate described by SSL_CERT_FILE into the studio" {
-            $result = hab studio run 'Write-Host $env:SSL_CERT_FILE'
-            $result
-            $result = hab studio run '(Test-Path $env:SSL_CERT_FILE).ToString()'
-            $result[-1] | Should -Be "True"
+            Invoke-StudioRun $sslCertFileCheck
+            $LASTEXITCODE | Should -Be 0
         }
 
         It "Can search builder for packages when SSL_CERT_FILE is set" {
-            $result = hab studio run "hab pkg search core/nginx"
+            $result = Invoke-StudioRun "hab pkg search core/nginx"
             $result | Should -Contain "core/nginx"
+        }
+    }
+
+    Describe "Custom SSL cert" {
+        if($IsLinux) {
+            sudo cp $(Join-Path $tempdir $e2e_certname) /hab/cache/ssl/
+        } else {
+            Copy-Item (Join-Path $tempdir $e2e_certname) /hab/cache/ssl/
+        }
+
+        It "is available in studio" {
+            Invoke-StudioRun $sslCacheCertFileCheck
+            $LASTEXITCODE | Should -Be 0
         }
     }
 
@@ -64,7 +67,20 @@ Context "SSL_CERT_FILE is passed into the studio" {
         Set-Content -Path $env:SSL_CERT_FILE -Value "I am not a certificate"
 
         It "Can still search packages on builder" {
-            $result = hab studio run "hab pkg search core/nginx"
+            $result = Invoke-StudioRun "hab pkg search core/nginx"
+            $result | Should -Contain "core/nginx"
+        }
+    }
+
+    Describe "SSL_CERT_FILE is an invalid cached certificate" {
+        if($IsLinux) {
+            sudo sh -c 'echo "I am not a certificate" > /hab/cache/ssl/invalid-ssl-cert.pem'
+        } else {
+            Set-Content -Path /hab/cache/ssl/invalid-ssl-cert.pem -Value "I am not a certificate"
+        }
+
+        It "Can still search packages on builder" {
+            $result = Invoke-StudioRun "hab pkg search core/nginx"
             $result | Should -Contain "core/nginx"
         }
     }
@@ -74,12 +90,12 @@ Context "SSL_CERT_FILE is passed into the studio" {
         New-Item -ItemType Directory -Force -Path $env:SSL_CERT_FILE
 
         It "Should not copy the directory into the studio" {
-            $result = hab studio run '(Test-Path $env:SSL_CERT_FILE).ToString()'
-            $result[-1] | Should -Be "False"
+            Invoke-StudioRun $sslCertFileCheck
+            $LASTEXITCODE | Should -Be 1
         }
 
         It "Can still search packages on builder" {
-            $result = hab studio run "hab pkg search core/nginx"
+            $result = Invoke-StudioRun "hab pkg search core/nginx"
             $result | Should -Contain "core/nginx"
         }
     }
@@ -91,12 +107,12 @@ Context "SSL_CERT_FILE is passed into the studio" {
         }
 
         It "Should not copy the file into the studio" {
-            $result = hab studio run '(Test-Path $env:SSL_CERT_FILE).ToString()'
-            $result[-1] | Should -Be "False"
+            Invoke-StudioRun $sslCertFileCheck
+            $LASTEXITCODE | Should -Be 1
         }
 
         It "Can still search packages on builder" {
-            $result = hab studio run "hab pkg search core/nginx"
+            $result = Invoke-StudioRun "hab pkg search core/nginx"
             $result | Should -Contain "core/nginx"
         }
     }
