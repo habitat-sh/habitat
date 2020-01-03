@@ -134,7 +134,7 @@ impl SpecWatcher {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use habitat_common::locked_env_var;
+    use habitat_core::locked_env_var;
     use std::{fs::File,
               io::{Error as IoError,
                    Write},

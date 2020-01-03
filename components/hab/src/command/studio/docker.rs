@@ -374,7 +374,7 @@ mod tests {
                         package::target}};
 
     use lazy_static::lazy_static;
-    habitat_common::locked_env_var!(SSL_CERT_FILE, lock_ssl_cert_file_env_var);
+    habitat_core::locked_env_var!(SSL_CERT_FILE, lock_ssl_cert_file_env_var);
 
     #[test]
     #[cfg(feature = "supported_targets")]

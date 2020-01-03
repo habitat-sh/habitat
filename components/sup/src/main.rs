@@ -500,10 +500,10 @@ fn svc_load_from_input(m: &ArgMatches) -> Result<sup_proto::ctl::SvcLoad> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use habitat_common::{locked_env_var,
-                         types::{GossipListenAddr,
-                                 HttpListenAddr,
-                                 ListenCtlAddr}};
+    use habitat_common::types::{GossipListenAddr,
+                                HttpListenAddr,
+                                ListenCtlAddr};
+    use habitat_core::locked_env_var;
 
     fn no_feature_flags() -> FeatureFlag { FeatureFlag::empty() }
 

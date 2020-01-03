@@ -291,11 +291,11 @@ fn stream_output<T>(out: T, log_file: &PathBuf, preamble_str: &str)
 #[cfg(test)]
 mod test {
     use super::*;
-    use habitat_common::{locked_env_var,
-                         templating::{package::Pkg,
-                                      test_helpers::{create_with_content,
-                                                     file_content}}};
-    use habitat_core::{os::process,
+    use habitat_common::templating::{package::Pkg,
+                                     test_helpers::{create_with_content,
+                                                    file_content}};
+    use habitat_core::{locked_env_var,
+                       os::process,
                        package::{PackageIdent,
                                  PackageInstall},
                        service::ServiceGroup};

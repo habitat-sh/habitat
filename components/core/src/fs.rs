@@ -814,24 +814,18 @@ mod tests {
 
 #[cfg(test)]
 mod test_find_command {
-
     pub use super::find_command;
+    use crate::locked_env_var::LockedEnvVar;
     use std::{env,
               path::PathBuf};
 
     #[allow(dead_code)]
-    fn setup_pathext() {
+    fn setup_pathext(lock: &LockedEnvVar) {
         let path_bufs = vec![PathBuf::from(".BAT"),
                              PathBuf::from(".COM"),
                              PathBuf::from(".EXE")];
         let new_path = env::join_paths(path_bufs).unwrap();
-        env::set_var("PATHEXT", &new_path);
-    }
-
-    fn setup_empty_pathext() {
-        if env::var("PATHEXT").is_ok() {
-            env::remove_var("PATHEXT")
-        }
+        lock.set(&new_path);
     }
 
     fn setup_path() {
@@ -847,35 +841,37 @@ mod test_find_command {
 
     mod without_pathext_set {
         pub use super::find_command;
-        use super::{setup_empty_pathext,
-                    setup_path};
-
-        fn setup_environment() {
-            setup_path();
-            setup_empty_pathext();
-        }
+        use super::setup_path;
 
         mod argument_without_extension {
             use super::{find_command,
-                        setup_environment};
+                        setup_path};
+
+            crate::locked_env_var!(PATHEXT, lock_pathext);
 
             #[test]
             fn command_exists() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                lock.unset();
                 let result = find_command("bin_with_no_extension");
                 assert_eq!(result.is_some(), true);
             }
 
             #[test]
             fn command_does_not_exist() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                lock.unset();
                 let result = find_command("missing");
                 assert_eq!(result.is_some(), false);
             }
 
             #[test]
             fn command_exists_with_extension() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                lock.unset();
                 let result = find_command("win95_dominator");
                 assert_eq!(result.is_some(), false);
             }
@@ -883,33 +879,43 @@ mod test_find_command {
 
         mod argument_with_extension {
             use super::{find_command,
-                        setup_environment};
+                        setup_path};
             use std::path::PathBuf;
+
+            crate::locked_env_var!(PATHEXT, lock_pathext);
 
             #[test]
             fn command_exists() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                lock.unset();
                 let result = find_command("bin_with_extension.exe");
                 assert_eq!(result.is_some(), true);
             }
 
             #[test]
             fn command_does_not_exist() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                lock.unset();
                 let result = find_command("missing.com");
                 assert_eq!(result.is_some(), false);
             }
 
             #[test]
             fn command_different_extension_does_exist() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                lock.unset();
                 let result = find_command("bin_with_extension.com");
                 assert_eq!(result.is_some(), false);
             }
 
             #[test]
             fn first_command_on_path_found() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                lock.unset();
                 let target_path = PathBuf::from("tests/fixtures/plan.sh");
                 let result = find_command("plan.sh");
                 let found_path = result.unwrap();
@@ -924,25 +930,27 @@ mod test_find_command {
         use super::{setup_path,
                     setup_pathext};
 
-        fn setup_environment() {
-            setup_path();
-            setup_pathext();
-        }
-
         mod argument_without_extension {
             use super::{find_command,
-                        setup_environment};
+                        setup_path,
+                        setup_pathext};
+
+            crate::locked_env_var!(PATHEXT, lock_pathext);
 
             #[test]
             fn command_exists() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                setup_pathext(&lock);
                 let result = find_command("bin_with_no_extension");
                 assert_eq!(result.is_some(), true);
             }
 
             #[test]
             fn command_does_not_exist() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                setup_pathext(&lock);
                 let result = find_command("missing");
                 assert_eq!(result.is_some(), false);
             }
@@ -950,7 +958,9 @@ mod test_find_command {
             #[test]
             #[allow(non_snake_case)]
             fn command_exists_with_extension_in_PATHEXT() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                setup_pathext(&lock);
                 let result = find_command("bin_with_extension");
                 assert_eq!(result.is_some(), true);
             }
@@ -958,7 +968,9 @@ mod test_find_command {
             #[test]
             #[allow(non_snake_case)]
             fn command_exists_with_extension_not_in_PATHEXT() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                setup_pathext(&lock);
                 let result = find_command("win95_dominator");
                 assert_eq!(result.is_some(), false);
             }
@@ -966,7 +978,9 @@ mod test_find_command {
             #[test]
             #[allow(non_snake_case)]
             fn command_exists_with_extension_in_PATHEXT_and_without_extension() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                setup_pathext(&lock);
                 let result = find_command("binstub");
                 assert_eq!(result.unwrap().file_name().unwrap(), "binstub.BAT");
             }
@@ -974,33 +988,44 @@ mod test_find_command {
 
         mod argument_with_extension {
             use super::{find_command,
-                        setup_environment};
+                        setup_path,
+                        setup_pathext};
             use std::path::PathBuf;
+
+            crate::locked_env_var!(PATHEXT, lock_pathext);
 
             #[test]
             fn command_exists() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                setup_pathext(&lock);
                 let result = find_command("bin_with_extension.exe");
                 assert_eq!(result.is_some(), true);
             }
 
             #[test]
             fn command_does_not_exist() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                setup_pathext(&lock);
                 let result = find_command("missing.com");
                 assert_eq!(result.is_some(), false);
             }
 
             #[test]
             fn command_different_extension_does_exist() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                setup_pathext(&lock);
                 let result = find_command("bin_with_extension.com");
                 assert_eq!(result.is_some(), false);
             }
 
             #[test]
             fn first_command_on_path_found() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                setup_pathext(&lock);
                 let target_path = PathBuf::from("tests/fixtures/plan.sh");
                 let result = find_command("plan.sh");
                 let found_path = result.unwrap();
@@ -1010,7 +1035,9 @@ mod test_find_command {
             #[test]
             #[allow(non_snake_case)]
             fn command_exists_with_extension_in_PATHEXT_and_without_extension() {
-                setup_environment();
+                setup_path();
+                let lock = lock_pathext();
+                setup_pathext(&lock);
                 let result = find_command("binstub.bat");
                 assert_eq!(result.unwrap().file_name().unwrap(), "binstub.bat");
             }

@@ -371,7 +371,8 @@ mod tests {
     }
 
     mod env_config {
-        use habitat_core::env::Config as EnvConfig;
+        use habitat_core::{env::Config as EnvConfig,
+                           locked_env_var};
         use std::{env,
                   num::ParseIntError,
                   result,
@@ -393,7 +394,7 @@ mod tests {
             }
         }
 
-        crate::locked_env_var!(HAB_TESTING_THINGIE, lock_hab_testing_thingie);
+        locked_env_var!(HAB_TESTING_THINGIE, lock_hab_testing_thingie);
 
         impl EnvConfig for Thingie {
             const ENVVAR: &'static str = "HAB_TESTING_THINGIE";
