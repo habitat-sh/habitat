@@ -1112,10 +1112,10 @@ function Set-PkgVersion {
     # environment). We are implicitly assuming that any other instances
     # of the version placeholder are not going to need to be propagated
     # back into the active environment.
-    __resolve_all_version_placeholders $env["Runtime"] $pkg_version
-    __resolve_all_version_placeholders $env["Buildtime"] $pkg_version
-    __resolve_all_version_placeholders $provenance["Runtime"] $pkg_version
-    __resolve_all_version_placeholders $provenance["Buildtime"] $pkg_version
+    __resolve_all_version_placeholders_for_environment $env["Runtime"] $pkg_version
+    __resolve_all_version_placeholders_for_environment $env["Buildtime"] $pkg_version
+    __resolve_all_version_placeholders_for_provenance $provenance["Runtime"] $pkg_version
+    __resolve_all_version_placeholders_for_provenance $provenance["Buildtime"] $pkg_version
 }
 
 # Replace all instances of the "__pkg__version__unset__" placeholder
@@ -1126,7 +1126,9 @@ function __resolve_version_placeholder($original, $real_version){
 
 # Replace all instances of the "__pkg__version__unset__" placeholder
 # in the values of the given hashtable with the real version number.
-function __resolve_all_version_placeholders($env_table, $real_version) {
+# Rhe environment tables contain nested hash tables that hold the
+# string we want to modify under the 'value' key
+function __resolve_all_version_placeholders_for_environment($env_table, $real_version) {
     $new_table = @{}
     foreach($k in $env_table.keys) {
         $new_table[$k] = $env_table[$k]
@@ -1136,6 +1138,21 @@ function __resolve_all_version_placeholders($env_table, $real_version) {
     foreach($k in $new_table.keys) {
         $env_table[$k] = $new_table[$k]
     }
+}
+
+# Replace all instances of the "__pkg__version__unset__" placeholder
+# in the values of the given hashtable with the real version number.
+# The provenance tables are hold key/value pairs with the value being
+# what we want to modify
+function __resolve_all_version_placeholders_for_provenance($provenance_table, $real_version) {
+  $new_table = @{}
+  foreach($k in $provenance_table.keys) {
+      $new_table[$k] = (__resolve_version_placeholder $provenance_table[$k] $real_version)
+  }
+
+  foreach($k in $new_table.keys) {
+      $provenance_table[$k] = $new_table[$k]
+  }
 }
 
 # Will run post-compile tests and checks, provided 2 conditions are true:
