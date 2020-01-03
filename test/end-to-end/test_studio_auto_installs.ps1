@@ -1,4 +1,3 @@
-#!/bin/bash
 # This test is designed to catch the regression described in 
 # https://github.com/habitat-sh/habitat/issues/6771
 # 
@@ -9,18 +8,17 @@
 # ensure we're using the correct version, this behavior needs to be exercised 
 # as its own test. 
 
-set -euo pipefail
-
 # Ensure there are no studios installed
-while [ -d /hab/pkgs/core/hab-studio ]; do 
+if(Test-Path /hab/pkgs/core/hab-studio) {
   hab pkg uninstall core/hab-studio
-done
+}
 
-# 'studio enter' requires a signing key to be present for the current origin
-echo "--- Generating signing key for $HAB_ORIGIN"
-hab origin key generate "$HAB_ORIGIN" 
+Describe "Studio install" {
+  # 'studio enter' requires a signing key to be present for the current origin
+  hab origin key generate "$HAB_ORIGIN"
 
-echo "--- Creating new studio"
-hab studio new
-
-echo "--- $(hab studio version)"
+  It "can create a new studio when no studio package is installed" {
+    hab studio new
+    $LASTEXITCODE | Should -Be 0
+  }
+}

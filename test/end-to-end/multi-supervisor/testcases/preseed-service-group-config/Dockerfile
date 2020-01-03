@@ -1,5 +1,4 @@
 FROM habitat_integration_base
 
-COPY run_test.sh /run_test.sh
-RUN chmod a+x /run_test.sh
-CMD /run_test.sh
+COPY run_test.ps1 /run_test.ps1
+CMD pwsh /scripts/end_to_end/run_e2e_test_core.ps1 /run_test.ps1

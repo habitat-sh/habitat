@@ -8,8 +8,7 @@ function Get-Ident($pkg, $tar) {
 Describe "hab pkg export tar core/nginx" {
     hab pkg export tar core/nginx --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
     $tar = get-item core-nginx-*.tar.gz
-    $version = (Get-ChildItem c:\hab\pkgs\core\hab)[-1].Name
-
+    $version = ((((hab --version) -split " ")[1]) -split "/")[0]
     It "Creates tarball" {
         $tar | Should -Not -Be $null
     }

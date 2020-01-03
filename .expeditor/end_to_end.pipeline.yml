@@ -32,8 +32,7 @@ steps:
 
   - label: "[:linux: test_hab_help_doesnt_install_hab_sup]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_hab_help_doesnt_install_hab_sup.sh /bin/hab
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_hab_help_doesnt_install_hab_sup
     expeditor:
       executor:
         docker:
@@ -122,8 +121,9 @@ steps:
 
   - label: "[:linux: test_launcher_checks_supervisor_version]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_launcher_checks_supervisor_version.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_launcher_checks_supervisor_version
+    artifact_paths:
+      - sup.log
     soft_fail: true
     expeditor:
       executor:
@@ -136,8 +136,9 @@ steps:
 
   - label: "[:linux: test_launcher_exits_on_supervisor_connection_failure]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_launcher_exits_on_supervisor_connection_failure.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_launcher_exits_on_supervisor_connection_failure
+    artifact_paths:
+      - sup.log
     expeditor:
       executor:
         docker:
@@ -147,8 +148,7 @@ steps:
 
   - label: "[:linux: test_launcher_exits_on_supervisor_startup_failure]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_launcher_exits_on_supervisor_startup_failure.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_launcher_exits_on_supervisor_startup_failure
     artifact_paths:
       - sup.log
     expeditor:
@@ -160,8 +160,7 @@ steps:
 
   - label: "[:linux: test_launcher_restarts_supervisor]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_launcher_restarts_supervisor.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_launcher_restarts_supervisor
     artifact_paths:
       - sup.log
     expeditor:
@@ -173,8 +172,7 @@ steps:
 
   - label: "[:linux: test_socket_file_cleanup]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_socket_file_cleanup.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_socket_file_cleanup
     expeditor:
       executor:
         docker:
@@ -184,8 +182,7 @@ steps:
 
   - label: "[:linux: test_tar_export]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_tar_export.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_tar_export
     expeditor:
       executor:
         docker:
@@ -206,8 +203,7 @@ steps:
 
   - label: "[:linux: test_studio_auto_installs]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_studio_auto_installs.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_auto_installs
     expeditor:
       executor:
         docker:
@@ -219,8 +215,7 @@ steps:
 
   - label: "[:linux: test_studio_with_ssl_cert_file_envvar_set]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_studio_with_ssl_cert_file_envvar_set.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_with_ssl_cert_file_envvar_set
     expeditor:
       executor:
         docker:
@@ -244,8 +239,7 @@ steps:
 
   - label: "[:linux: :docker: test_studio_with_ssl_cert_file_envvar_set]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_studio_with_ssl_cert_file_envvar_set.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_with_ssl_cert_file_envvar_set
     env:
       BUILD_PKG_TARGET: x86_64-linux
       STUDIO_DOCKER_TEST: true
@@ -255,49 +249,9 @@ steps:
           single-use: true
           privileged: true
 
-  - label: "[:linux: test_studio_when_ssl_cert_file_is_invalid_cert]"
-    command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_studio_when_ssl_cert_file_is_invalid_cert.sh
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL
-            - HAB_ORIGIN
-
-  - label: "[:linux: test_studio_when_ssl_cert_file_is_nonexistant_file]"
-    command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_studio_when_ssl_cert_file_is_nonexistant_file.sh
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL
-            - HAB_ORIGIN
-
-  - label: "[:linux: test_studio_when_ssl_cert_file_is_directory]"
-    command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_studio_when_ssl_cert_file_is_directory.sh
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL
-            - HAB_ORIGIN
-
   - label: "[:linux: test_fresh_install_can_communicate_with_builder]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_fresh_install_can_communicate_with_builder.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_fresh_install_can_communicate_with_builder
     expeditor:
       executor:
         docker:
@@ -305,30 +259,28 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_BLDR_URL
-
-  - label: "[:linux: test_invalid_cached_certificates_are_ignored_by_hab]"
-    command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_invalid_cached_certificates_are_ignored_by_hab.sh
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL
-            - HAB_ORIGIN
 
   - label: "[:linux: test_studio_can_build_packages]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_studio_can_build_packages.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_can_build_packages
     expeditor:
       executor:
         docker:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
+            - HAB_ORIGIN
+
+  - label: "[:windows: test_studio_can_build_packages]"
+    command:
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_can_build_packages
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
             - HAB_ORIGIN
 
   - label: "[:windows: test_studio_can_build_packages_with_pkg_version_function]"
@@ -343,22 +295,9 @@ steps:
             - BUILDKITE_AGENT_ACCESS_TOKEN
             - HAB_ORIGIN
 
-  - label: "[:linux: test_custom_ssl_cert_is_available_in_studio]"
-    command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_custom_ssl_cert_is_available_in_studio.sh
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_ORIGIN
-
   - label: "[:linux: test_studio_hab_is_expected_version]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_studio_hab_is_expected_version.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_hab_is_expected_version
     expeditor:
       executor:
         docker:
@@ -367,10 +306,21 @@ steps:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_ORIGIN
 
+  - label: "[:windows: test_studio_hab_is_expected_version]"
+    command:
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_hab_is_expected_version
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+            - HAB_ORIGIN
+  
   - label: "[:linux: test_studio_unmount_with_long_filesystem]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_studio_unmount_with_long_filesystem.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_unmount_with_long_filesystem
     env:
       BUILD_PKG_TARGET: x86_64-linux
     expeditor:
@@ -381,8 +331,7 @@ steps:
 
   - label: "[:linux: test_self_signed_cert_is_loaded_by_hab]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_self_signed_cert_is_loaded_by_hab.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_self_signed_cert_is_loaded_by_hab
     expeditor:
       executor:
         docker:
@@ -415,8 +364,7 @@ steps:
 
   - label: "[:linux: test_pkg_download]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_pkg_download.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_pkg_download
     expeditor:
       executor:
         docker:
@@ -426,8 +374,7 @@ steps:
 
   - label: "[:linux: test_pkg_bulkupload]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_pkg_bulkupload.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_pkg_bulkupload
     expeditor:
       executor:
         docker:
@@ -460,8 +407,7 @@ steps:
 
   - label: "[:linux: test PIDS_FROM_LAUNCHER feature]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_PIDS_FROM_LAUNCHER_feature.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_PIDS_FROM_LAUNCHER_feature
     expeditor:
       executor:
         docker:
@@ -471,8 +417,7 @@ steps:
 
   - label: "[:linux: test PIDS_FROM_LAUNCHER feature with old Launcher]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_PIDS_FROM_LAUNCHER_feature_old_launcher.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_PIDS_FROM_LAUNCHER_feature_old_launcher
     expeditor:
       executor:
         docker:
@@ -482,8 +427,7 @@ steps:
 
   - label: "[:linux: test PIDS_FROM_LAUNCHER disabled]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_PIDS_FROM_LAUNCHER_feature_disabled.sh
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_PIDS_FROM_LAUNCHER_feature_disabled
     expeditor:
       executor:
         docker:

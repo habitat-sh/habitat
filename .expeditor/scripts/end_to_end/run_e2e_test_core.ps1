@@ -5,7 +5,7 @@ param (
     [string]$BuilderUrl = $env:HAB_BLDR_URL
 )
 
-. .expeditor/scripts/shared.ps1
+. $PSScriptroot/../shared.ps1
 
 $ErrorActionPreference = "stop"
 
@@ -62,16 +62,25 @@ function Wait-Supervisor($Timeout = 1) {
     Write-Host "Supervisor is now running."
 }
 
-function Start-Supervisor($Timeout = 1) {
-    hab sup run --no-color &
-    Wait-Supervisor -Timeout $Timeout
+function Start-Supervisor($Timeout = 1, $LogFile = (New-TemporaryFile)) {
+    Add-Type -TypeDefinition (Get-Content "$PSScriptroot/SupervisorRunner.cs" | Out-String)
+    $sup = New-Object SupervisorRunner
+    $supPid = $sup.Run($LogFile)
+    try {
+        Wait-Supervisor -Timeout $Timeout
+        $supPid
+    } catch {
+        if(!$supPid.HasExited) { $supPid.Kill() }
+        throw $_
+    }
 }
 
-function Wait-SupervisorService($ServiceName, $Timeout = 1) {
+function Wait-SupervisorService($ServiceName, $Timeout = 20, $Remote) {
     Write-Host "Waiting up to $Timeout seconds for Supervisor to start $ServiceName ..."
+    if(!$Remote) { $Remote = "localhost" }
     $testScript = { 
         try {
-            $status = (Invoke-WebRequest "http://localhost:9631/services/$ServiceName/default" |
+            $status = (Invoke-WebRequest "http://${Remote}:9631/services/$ServiceName/default" |
                 ConvertFrom-Json).process.state
             $status -eq "up"
         }
@@ -82,10 +91,20 @@ function Wait-SupervisorService($ServiceName, $Timeout = 1) {
     Write-Host "$ServiceName is now up."
 }
   
-function Load-SupervisorService($PackageName, $Timeout = 1) {
+function Load-SupervisorService($PackageName, $Timeout = 20, $Remote, $Bind) {
     $svcName = ($PackageName -split "/")[1]
-    $_ = Invoke-NativeCommand hab svc load $PackageName --url="$BuilderUrl"
-    Wait-SupervisorService $svcName -Timeout $Timeout
+    $commandArgs = @("hab", "svc", "load", $PackageName)
+    if($BuilderUrl) {
+        $commandArgs += @("--url", $BuilderUrl)
+    }
+    if($Remote) {
+        $commandArgs += @("--remote-sup", $Remote)
+    }
+    if($Bind) {
+        $commandArgs += @("--bind", $Bind)
+    }
+    $_ = Invoke-NativeCommand @commandArgs
+    Wait-SupervisorService $svcName -Timeout $Timeout -Remote $Remote
     $svcName
 }
   
@@ -112,15 +131,44 @@ function Unload-SupervisorService($PackageName, $Timeout = 1) {
     Wait-SupervisorServiceUnload $svcName -Timeout $Timeout
 }
 
+function Invoke-StudioRun {
+    if($env:DOCKER_STUDIO_TEST) {
+        hab studio run -D @args
+    } else {
+        hab studio run @args
+    }
+}
+
+function New-TemporaryDirectory {
+    $parent = [System.IO.Path]::GetTempPath()
+    [string] $name = [System.Guid]::NewGuid()
+    New-Item -ItemType Directory -Path (Join-Path $parent $name)
+}  
+
+function Restart-Supervisor {
+    if ($IsLinux) {
+        pkill --signal=HUP hab-launch
+        Start-Sleep 3 # wait for the signal to be processed
+    } else {
+        Stop-Process | Get-Process hab-sup
+    }
+    Wait-Supervisor -Timeout 5 # 5 seconds should be plenty of time
+}
+
+function Wait-Process($ProcessName, $Timeout = 1) {
+    $testScript =  { Get-Process $ProcessName -ErrorAction SilentlyContinue }
+    $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for $ProcessName to start" }
+    Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
+}
+
 ###################################################################################################
 
-Write-Host "--- Installing latest core/pester from $env:HAB_BLDR_URL, stable channel"
-Invoke-NativeCommand hab pkg install core/pester `
-    --channel=stable `
-    --url="$BuilderUrl"
 $pesterPath = Join-Path $(hab pkg path core/pester) module Pester.psd1
 Import-Module $pesterPath
-Write-Host "---"
 
-$testPath = Join-Path test end-to-end "$($TestName).ps1"
+if(Test-Path $TestName) {
+    $testPath = $TestName
+} else {
+    $testPath = Join-Path test end-to-end "$($TestName).ps1"
+}
 Invoke-Pester $testPath -EnableExit

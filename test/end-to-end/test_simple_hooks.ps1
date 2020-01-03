@@ -1,4 +1,5 @@
-$supervisor = Start-Supervisor -Timeout 45
+$sup_log = New-TemporaryFile
+$supervisor = Start-Supervisor -LogFile $sup_log -Timeout 45
 
 $pkg = "$EndToEndTestingOrigin/simple-hooks"
 
@@ -19,7 +20,7 @@ Describe "Simple hooks output" {
     }
 
     It "Has correct 'run' hook stdout" {
-        $out = Receive-Job -Job $supervisor -ErrorAction SilentlyContinue
+        $out = Get-Content $sup_log
         $out | Should -Contain "$svc.default(O): run hook $svc"
     }
 

@@ -28,3 +28,8 @@ Invoke-NativeCommand hab pkg install core/powershell `
     --channel=stable `
     --url="$BuilderUrl"
 Write-Host "--- Using core/powershell $(pwsh --version)"
+
+Write-Host "--- Installing latest core/pester from $env:HAB_BLDR_URL, stable channel"
+Invoke-NativeCommand hab pkg install core/pester `
+    --channel=stable `
+    --url="$BuilderUrl"
