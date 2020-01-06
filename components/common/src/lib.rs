@@ -28,7 +28,6 @@ pub mod cli;
 pub mod command;
 pub mod error;
 pub mod liveliness_checker;
-pub mod locked_env_var;
 pub mod output;
 pub mod package_graph;
 pub mod templating;

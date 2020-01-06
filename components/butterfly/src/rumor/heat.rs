@@ -196,8 +196,8 @@ pub(crate) mod sync {
                     rumor::{service::{Service,
                                       SysInfo},
                             RumorKey}};
-        use habitat_common::locked_env_var;
-        use habitat_core::{package::PackageIdent,
+        use habitat_core::{locked_env_var,
+                           package::PackageIdent,
                            service::ServiceGroup};
 
         locked_env_var!(HAB_RUMOR_SHARE_LIMIT, lock_rumor_limit);
@@ -388,7 +388,7 @@ mod tests {
                 rumor::{Rumor,
                         RumorKey,
                         RumorType}};
-    use habitat_common::locked_env_var;
+    use habitat_core::locked_env_var;
     use uuid::Uuid;
 
     locked_env_var!(HAB_RUMOR_SHARE_LIMIT, lock_rumor_limit);

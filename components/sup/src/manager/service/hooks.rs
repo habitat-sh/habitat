@@ -655,7 +655,6 @@ mod tests {
                                     service_file::ServiceFile as ServiceFileRumor,
                                     RumorStore}};
     use habitat_common::{cli::FS_ROOT,
-                         locked_env_var,
                          templating::{config::Cfg,
                                       package::Pkg,
                                       test_helpers::*},
@@ -663,6 +662,7 @@ mod tests {
                                  HttpListenAddr,
                                  ListenCtlAddr}};
     use habitat_core::{fs::cache_key_path,
+                       locked_env_var,
                        package::{PackageIdent,
                                  PackageInstall},
                        service::{ServiceBind,

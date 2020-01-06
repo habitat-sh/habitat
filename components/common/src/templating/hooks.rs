@@ -784,13 +784,14 @@ echo "The message is Hello"
     #[test]
     #[cfg(not(windows))]
     fn hook_output() {
+        use habitat_core::locked_env_var;
         use std::{fs as stdfs,
                   fs::DirBuilder,
                   process::{Command,
                             Stdio}};
 
-        crate::locked_env_var!(HAB_HOOK_STANDARD_STREAM_BYTE_LIMIT,
-                               hab_hook_standard_stream_byte_limit);
+        locked_env_var!(HAB_HOOK_STANDARD_STREAM_BYTE_LIMIT,
+                        hab_hook_standard_stream_byte_limit);
 
         let tmp_dir = TempDir::new().expect("create temp dir");
         let logs_dir = tmp_dir.path().join("logs");

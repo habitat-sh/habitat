@@ -2046,7 +2046,7 @@ mod test {
     mod binlink_dest_dir_from_matches {
         use super::*;
 
-        habitat_common::locked_env_var!(HAB_BINLINK_DIR, lock_binlink_env_var);
+        habitat_core::locked_env_var!(HAB_BINLINK_DIR, lock_binlink_env_var);
 
         #[test]
         fn no_binlink_arg() {

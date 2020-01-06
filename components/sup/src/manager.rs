@@ -2025,7 +2025,7 @@ mod test {
 
     mod tokio_thread_count {
         use super::*;
-        use habitat_common::locked_env_var;
+        use habitat_core::locked_env_var;
 
         locked_env_var!(HAB_TOKIO_THREAD_COUNT, lock_thread_count);
 

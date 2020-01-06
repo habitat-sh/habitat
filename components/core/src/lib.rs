@@ -1,4 +1,7 @@
 // Convenience importing of `debug!`/`info!` macros for entire crate.
+#[cfg(test)]
+#[macro_use]
+extern crate lazy_static;
 #[macro_use]
 extern crate log;
 
@@ -11,6 +14,7 @@ pub mod crypto;
 pub mod env;
 pub mod error;
 pub mod fs;
+pub mod locked_env_var;
 pub mod os;
 pub mod package;
 pub mod service;
