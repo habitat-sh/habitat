@@ -102,16 +102,15 @@ impl Hook for HealthCheckHook {
         let err_path = hooks::stderr_log_path::<Self>(package_name);
         #[cfg(windows)]
         let path = pair.path.to_path_buf();
-        #[allow(clippy::redundant_clone)]
         HealthCheckHook { render_pair:                 pair,
-                          stdout_log_path:             out_path.clone(),
-                          stderr_log_path:             err_path.clone(),
                           #[cfg(windows)]
                           pipe_client:
                               PipeHookClient::new(Self::file_name().to_string(),
                                                   path,
-                                                  out_path,
-                                                  err_path), }
+                                                  out_path.clone(),
+                                                  err_path.clone()),
+                          stdout_log_path:             out_path,
+                          stderr_log_path:             err_path, }
     }
 
     #[cfg(windows)]
