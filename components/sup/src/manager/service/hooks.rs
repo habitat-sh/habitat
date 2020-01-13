@@ -102,6 +102,7 @@ impl Hook for HealthCheckHook {
         let err_path = hooks::stderr_log_path::<Self>(package_name);
         #[cfg(windows)]
         let path = pair.path.to_path_buf();
+        #[allow(clippy::redundant_clone)]
         HealthCheckHook { render_pair:                 pair,
                           stdout_log_path:             out_path.clone(),
                           stderr_log_path:             err_path.clone(),
@@ -718,7 +719,7 @@ mod tests {
                                       service_group.service(),
                                       Some("1.0.0"),
                                       Some("20170712000000"));
-        let pkg_install = PackageInstall::new_from_parts(pg_id.clone(),
+        let pkg_install = PackageInstall::new_from_parts(pg_id,
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"));

@@ -217,7 +217,7 @@ impl Write for CtlRequest {
 
 fn color_to_string(color: Option<&Color>) -> Option<String> {
     match color {
-        Some(c) => Some(format!("{:?}", c).to_string()),
+        Some(c) => Some(format!("{:?}", c)),
         None => None,
     }
 }

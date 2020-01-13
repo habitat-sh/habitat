@@ -716,7 +716,7 @@ two = 2
         svc_member_cfg.insert("foo".into(), "bar".into());
 
         let mut me = default_svc_member();
-        me.pkg = Cow::Owned(Some(ident.clone()));
+        me.pkg = Cow::Owned(Some(ident));
         me.cfg = Cow::Owned(svc_member_cfg);
 
         let svc = Svc { service_group:          Cow::Owned(group),

@@ -203,7 +203,7 @@ mod test {
 
     pub fn toml_to_json(value: toml::Value) -> serde_json::Value {
         match value {
-            toml::Value::String(s) => serde_json::Value::String(s.to_string()),
+            toml::Value::String(s) => serde_json::Value::String(s),
             toml::Value::Integer(i) => serde_json::Value::from(i as i64),
             toml::Value::Float(i) => serde_json::Value::from(i as f64),
             toml::Value::Boolean(b) => serde_json::Value::Bool(b),
@@ -405,7 +405,7 @@ test: something"#
         let pg_id = PackageIdent::new("testing", "test", Some("1.0.0"), Some("20170712000000"));
 
         let pkg_install =
-            PackageInstall::new_from_parts(pg_id.clone(), root.clone(), root.clone(), root.clone());
+            PackageInstall::new_from_parts(pg_id, root.clone(), root.clone(), root.clone());
 
         let toml_path = root.join("default.toml");
         create_with_content(toml_path, "message = \"Hello\"");

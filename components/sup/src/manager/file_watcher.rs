@@ -1249,7 +1249,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
     // Simplified means that it is without `.` and `..`.
     fn watcher_path(p: PathBuf) -> Result<PathBuf> {
         let abs_path = if p.is_absolute() {
-            p.clone()
+            p
         } else {
             let cwd = env::current_dir().map_err(Error::Io)?;
             cwd.join(p)
@@ -2855,7 +2855,6 @@ mod tests {
                                                  self.debug_info,)
                                       })
                                       .path()
-                                      .to_owned()
                                })
                                .collect()
         }

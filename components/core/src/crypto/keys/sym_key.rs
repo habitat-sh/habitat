@@ -101,14 +101,12 @@ impl SymKey {
     /// use std::fs::File;
     /// use tempfile::Builder;
     ///
-    /// fn main() {
-    ///     let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-    ///     let secret_file = cache.path().join("beyonce-20160504220722.sym.key");
-    ///     let _ = File::create(&secret_file).unwrap();
+    /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+    /// let secret_file = cache.path().join("beyonce-20160504220722.sym.key");
+    /// let _ = File::create(&secret_file).unwrap();
     ///
-    ///     let path = SymKey::get_secret_key_path("beyonce-20160504220722", cache.path()).unwrap();
-    ///     assert_eq!(path, secret_file);
-    /// }
+    /// let path = SymKey::get_secret_key_path("beyonce-20160504220722", cache.path()).unwrap();
+    /// assert_eq!(path, secret_file);
     /// ```
     ///
     /// # Errors
@@ -140,12 +138,10 @@ impl SymKey {
     /// use habitat_core::crypto::SymKey;
     /// use tempfile::Builder;
     ///
-    /// fn main() {
-    ///     let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-    ///     let sym_key = SymKey::generate_pair_for_ring("beyonce").unwrap();
+    /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+    /// let sym_key = SymKey::generate_pair_for_ring("beyonce").unwrap();
     ///
-    ///     let (nonce, ciphertext) = sym_key.encrypt("Guess who?".as_bytes()).unwrap();
-    /// }
+    /// let (nonce, ciphertext) = sym_key.encrypt("Guess who?".as_bytes()).unwrap();
     /// ```
     ///
     /// # Errors
@@ -172,14 +168,12 @@ impl SymKey {
     /// use habitat_core::crypto::SymKey;
     /// use tempfile::Builder;
     ///
-    /// fn main() {
-    ///     let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-    ///     let sym_key = SymKey::generate_pair_for_ring("beyonce").unwrap();
-    ///     let (nonce, ciphertext) = sym_key.encrypt("Guess who?".as_bytes()).unwrap();
+    /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+    /// let sym_key = SymKey::generate_pair_for_ring("beyonce").unwrap();
+    /// let (nonce, ciphertext) = sym_key.encrypt("Guess who?".as_bytes()).unwrap();
     ///
-    ///     let message = sym_key.decrypt(&nonce, &ciphertext).unwrap();
-    ///     assert_eq!(message, "Guess who?".to_string().into_bytes());
-    /// }
+    /// let message = sym_key.decrypt(&nonce, &ciphertext).unwrap();
+    /// assert_eq!(message, "Guess who?".to_string().into_bytes());
     /// ```
     ///
     /// # Errors
@@ -257,20 +251,18 @@ impl SymKey {
     ///                            SymKey};
     /// use tempfile::Builder;
     ///
-    /// fn main() {
-    ///     let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-    ///     let content = "SYM-SEC-1
+    /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+    /// let content = "SYM-SEC-1
     /// beyonce-20160504220722
     ///
     /// RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
     ///
-    ///     let (pair, pair_type) = SymKey::write_file_from_str(content, cache.path()).unwrap();
-    ///     assert_eq!(pair_type, PairType::Secret);
-    ///     assert_eq!(pair.name_with_rev(), "beyonce-20160504220722");
-    ///     assert!(cache.path()
-    ///                  .join("beyonce-20160504220722.sym.key")
-    ///                  .is_file());
-    /// }
+    /// let (pair, pair_type) = SymKey::write_file_from_str(content, cache.path()).unwrap();
+    /// assert_eq!(pair_type, PairType::Secret);
+    /// assert_eq!(pair.name_with_rev(), "beyonce-20160504220722");
+    /// assert!(cache.path()
+    ///              .join("beyonce-20160504220722.sym.key")
+    ///              .is_file());
     /// ```
     ///
     /// # Errors

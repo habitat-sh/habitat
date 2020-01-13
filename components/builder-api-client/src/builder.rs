@@ -287,7 +287,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
                     (ident, target): (&PackageIdent, PackageTarget),
                     package_only: bool,
                     token: &str)
-                    -> Result<(String)> {
+                    -> Result<String> {
         debug!("Scheduling job for {}, {}", ident, target);
 
         let path = format!("depot/pkgs/schedule/{}/{}", ident.origin(), ident.name());

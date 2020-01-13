@@ -364,16 +364,14 @@ pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, String)>
 /// use habitat_core::crypto::keys::{parse_key_str,
 ///                                  PairType};
 ///
-/// fn main() {
-///     let content = "SIG-PUB-1
+/// let content = "SIG-PUB-1
 /// unicorn-20160517220007
 ///
 /// J+FGYVKgragA+dzQHCGORd2oLwCc2EvAnT9roz9BJh0=";
-///     let (pair_type, name_with_rev, key_body) = parse_key_str(content).unwrap();
-///     assert_eq!(pair_type, PairType::Public);
-///     assert_eq!(name_with_rev, "unicorn-20160517220007");
-///     assert_eq!(key_body, "J+FGYVKgragA+dzQHCGORd2oLwCc2EvAnT9roz9BJh0=");
-/// }
+/// let (pair_type, name_with_rev, key_body) = parse_key_str(content).unwrap();
+/// assert_eq!(pair_type, PairType::Public);
+/// assert_eq!(name_with_rev, "unicorn-20160517220007");
+/// assert_eq!(key_body, "J+FGYVKgragA+dzQHCGORd2oLwCc2EvAnT9roz9BJh0=");
 /// ```
 ///
 /// With a secret key:
@@ -384,14 +382,12 @@ pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, String)>
 /// use habitat_core::crypto::keys::{parse_key_str,
 ///                                  PairType};
 ///
-/// fn main() {
-///     let content = "SIG-SEC-1
+/// let content = "SIG-SEC-1
 /// unicorn-20160517220007
 ///
 /// jjQaaphB5+CHw7QzDWqMMuwhWmrrHH+SzQAgRrHfQ8sn4UZhUqCtqAD53NAcIY5F3agvAJzYS8CdP2ujP0EmHQ==";
 ///
-///     let (pair_type, name_with_rev, key_body) = parse_key_str(content).unwrap();
-/// }
+/// let (pair_type, name_with_rev, key_body) = parse_key_str(content).unwrap();
 /// ```
 ///
 /// # Errors

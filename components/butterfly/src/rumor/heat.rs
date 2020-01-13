@@ -574,7 +574,7 @@ mod tests {
         // cold_rumor should be completely out, and the cooler
         // rumor sorts before the hotter one.
         let rumors = heat.lock_rhr().currently_hot_rumors(&member);
-        let expected_hot_rumors = &[warm_key.clone(), hot_key.clone()];
+        let expected_hot_rumors = &[warm_key, hot_key];
         assert_eq!(rumors, expected_hot_rumors);
     }
 }

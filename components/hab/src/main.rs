@@ -1501,7 +1501,7 @@ fn auth_token_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
 /// secret set and return a copy of that value.
 fn ctl_secret_key(config: &Config) -> Result<String> {
     match henv::var(CTL_SECRET_ENVVAR) {
-        Ok(v) => Ok(v.to_string()),
+        Ok(v) => Ok(v),
         Err(_) => {
             match config.ctl_secret {
                 Some(ref v) => Ok(v.to_string()),

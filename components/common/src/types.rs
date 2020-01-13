@@ -67,7 +67,7 @@ impl EventStreamMetadata {
     fn split_raw(raw: &str) -> result::Result<(String, String), String> {
         match raw.split('=').collect::<Vec<_>>().as_slice() {
             [key, value] if !key.is_empty() && !value.is_empty() => {
-                Ok((key.to_string(), value.to_string()))
+                Ok(((*key).to_string(), (*value).to_string()))
             }
             _ => {
                 Err(format!("Invalid key-value pair given (must be \

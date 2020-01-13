@@ -808,7 +808,7 @@ mod tests {
         let service_three = ServiceRumor::new("member-a".to_string(),
                                               &pg_id,
                                               sg_two.clone(),
-                                              sys_info.clone(),
+                                              sys_info,
                                               None);
 
         service_store.insert_rsw(service_one);

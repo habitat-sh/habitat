@@ -102,7 +102,7 @@ impl<'a> BuildSpec<'a> {
         Ok((workdir, created_ident))
     }
 
-    fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<(PackageIdent)> {
+    fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<PackageIdent> {
         ui.status(Status::Creating, "root filesystem")?;
         rootfs::create(&rootfs)?;
         self.create_symlink_to_artifact_cache(ui, &rootfs)?;

@@ -30,7 +30,8 @@ use ipc_channel::ipc::{IpcOneShotServer,
 use libc;
 use semver::{Version,
              VersionReq};
-use std::{collections::HashMap,
+use std::{cmp::Ordering,
+          collections::HashMap,
           fs,
           io::Write,
           path::PathBuf,
@@ -312,21 +313,25 @@ impl Server {
             // signals sent to a Supervisor; only when the Supervisor
             // process ends somehow.
             let res = unsafe { libc::waitpid(-1, &mut waitpid_status, libc::WNOHANG) };
-            if res > 0 {
-                // Some child process ended; let's see if it was the Supervisor
-                if res == self.supervisor.id() as libc::pid_t {
-                    debug!("Reaped supervisor process, PID {}", res);
-                    // Note: from_raw is a Unix-only call
-                    reaped_sup_status = Some(ExitStatus::from_raw(waitpid_status));
-                } else {
-                    debug!("Reaped a non-supervisor child process, PID {}", res);
+            match res.cmp(&0) {
+                Ordering::Greater => {
+                    // Some child process ended; let's see if it was the Supervisor
+                    if res == self.supervisor.id() as libc::pid_t {
+                        debug!("Reaped supervisor process, PID {}", res);
+                        // Note: from_raw is a Unix-only call
+                        reaped_sup_status = Some(ExitStatus::from_raw(waitpid_status));
+                    } else {
+                        debug!("Reaped a non-supervisor child process, PID {}", res);
+                    }
                 }
-            } else if res == 0 {
-                // There are no more children waiting
-                break;
-            } else {
-                warn!("Error waiting for child process: {}", res);
-                break;
+                Ordering::Less => {
+                    warn!("Error waiting for child process: {}", res);
+                    break;
+                }
+                Ordering::Equal => {
+                    // There are no more children waiting
+                    break;
+                }
             }
         }
 
