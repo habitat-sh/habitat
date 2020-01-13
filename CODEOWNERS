@@ -1,17 +1,17 @@
 .expeditor @christophermaier @smacfarlane
-components/builder-api-client @chefsalim @raskchanky
-components/butterfly* @christophermaier @raskchanky
-components/core @christophermaier @chefsalim @raskchanky
-components/common @raskchanky @christophermaier
-components/hab @christophermaier @chefsalim @raskchanky @eeyun
-components/http-client @chefsalim @raskchanky
-components/launcher* @christophermaier @raskchanky
+components/builder-api-client @chefsalim
+components/butterfly* @christophermaier
+components/core @christophermaier @chefsalim
+components/common @christophermaier
+components/hab @christophermaier @chefsalim @eeyun
+components/http-client @chefsalim
+components/launcher* @christophermaier
 components/pkg-* @christophermaier @eeyun
 components/plan-build @christophermaier
 components/studio @eeyun
-components/sup* @christophermaier @raskchanky
+components/sup* @christophermaier
 components/win-users @mwrock
-support @christophermaier @raskchanky
-tools @chefsalim @christophermaier @eeyun @raskchanky
+support @christophermaier
+tools @chefsalim @christophermaier @eeyun
 www @chef/automate-ui-team @kagarmoe @mjingle @ianmadd
 UX_PRINCIPLES.md @apriofrost
