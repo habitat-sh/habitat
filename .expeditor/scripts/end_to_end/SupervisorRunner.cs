@@ -5,6 +5,10 @@ using System.IO;
 public class SupervisorRunner {
     private String logPath = null;
 
+    public Process Run(string logPath) {
+        return Run(logPath, new string[]{});
+    }
+
     public Process Run(string logPath, string[] args) {
         this.logPath = logPath;
         var proc = new Process();
