@@ -91,6 +91,11 @@ Function Get-PackagesChefioArchive($channel, $version) {
     if(!$version -Or $version -eq "latest") {
       $hab_url="$url/$channel/habitat/latest/hab-x86_64-windows.zip"
     } else {
+      $version,$_release = $version -split "/",2,"SimpleMatch"
+      if($_release -ne $null) {
+        Write-Warning "packages.chef.io does not support 'version/release' format. Using $version for the version"
+      }
+
       $hab_url="$url/habitat/${version}/hab-x86_64-windows.zip"
     }
     $sha_url="$hab_url.sha256sum"

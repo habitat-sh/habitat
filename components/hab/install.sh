@@ -231,7 +231,7 @@ validate_target() {
 download_packages_chef_io_archive() {
   need_cmd mv
   
-  local -r _version="${1:-latest}"
+  local _version="${1:-latest}"
   local -r _channel="${2:?}"
   local -r _target="${3:?}"
   local url
@@ -239,6 +239,11 @@ download_packages_chef_io_archive() {
   if [ "$_version" == "latest" ]; then
     url="${pcio_root}/${_channel}/habitat/latest/hab-${_target}.${ext}"
   else 
+    local -r _release="$(echo "${_version}" |cut -d'/' -f2)"
+    if [ "${_release:+release}" == "release" ]; then
+      _version="$(echo "${_version}" |cut -d'/' -f1)"
+      info "packages.chef.io does not support 'version/release' format. Using $_version for the version"
+    fi
     url="${pcio_root}/habitat/${_version}/hab-${_target}.${ext}"
   fi
   
