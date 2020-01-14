@@ -17,7 +17,7 @@ pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str, account: &s
 
     match api_client.transfer_origin(origin, token, account) {
         Ok(_) => {
-            ui.status(Status::Transferred, format!("ownership successfully!"))
+            ui.status(Status::Transferred, "ownership successfully!".to_string())
               .map_err(Error::from)
         }
         Err(api_client::Error::APIError(StatusCode::FORBIDDEN, msg)) => {
