@@ -56,6 +56,7 @@ steps:
       - .expeditor/scripts/release_habitat/build_mac_hab_binary.sh
     env:
       BUILD_PKG_TARGET: "x86_64-darwin"
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
     expeditor:
       executor:
         macos:
