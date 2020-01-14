@@ -43,9 +43,9 @@ $publish_cmd = "choco push habitat.$Version.nupkg --timeout 600"
 try {
     if($env:BUILDKITE_BUILD_CREATOR -eq $valid_build_creator) {
         Invoke-Expression $pack_cmd
-        if (-not $?) { throw "unable to choco pack" }
+        if ($LASTEXITCODE -ne 0) { throw "unable to choco pack" }
         Invoke-Expression $publish_cmd " --key " $env:CHOCO_API_KEY
-        if (-not $?) { throw "unable to publish Chocolatey package" }
+        if ($LASTEXITCODE -ne 0) { throw "unable to publish Chocolatey package" }
     } else {
         Write-Host "--- NOT PUBLISHING: Build triggered by $env:BUILDKITE_BUILD_CREATOR and not $valid_build_creator"
         Write-Host $pack_cmd
