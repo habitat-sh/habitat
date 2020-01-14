@@ -1,4 +1,5 @@
-use crate::event::{EventStreamConfig,
+use crate::event::{Error,
+                   EventStreamConfig,
                    Result};
 use futures::{channel::{mpsc as futures_mpsc,
                         mpsc::UnboundedSender},
@@ -66,7 +67,8 @@ impl NatsMessageStream {
         // a future that will resolve when a connection is possible. Once we establish a
         // connection, the client will handle reconnecting if necessary.
         if let Some(timeout) = connect_method.into() {
-            time::timeout(timeout, client.connect()).await?;
+            time::timeout(timeout, client.connect()).await
+                                                    .map_err(|_| Error::ConnectNatsServer)?;
         } else {
             let client = Client::clone(&client);
             tokio::spawn(async move { client.connect().await });
