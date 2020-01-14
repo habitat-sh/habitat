@@ -273,10 +273,11 @@ impl ServiceUpdater {
                     }
                     LeaderState::Waiting => {
                         match census_ring.census_group_for(&service.service_group) {
-                            Some(census_group) => {
-                                if census_group.members()
-                                               .any(|cm| cm.pkg != census_group.me().unwrap().pkg)
-                                {
+                            Some(cg) => {
+                                // Note that it is possible that the followers have a later
+                                // version if this leader just joined the group that had no
+                                // quorum. If so, do not wait for the followers until we catch up
+                                if cg.active_members().any(|c| c.pkg < cg.me().unwrap().pkg) {
                                     debug!("Update leader still waiting for followers...");
                                     return None;
                                 }
@@ -307,6 +308,20 @@ impl ServiceUpdater {
                                        census_group.me())
                                 {
                                     (Some(leader), Some(peer), Some(me)) => {
+                                        // if the current leader is no longer live
+                                        // it is possible that this follower is now
+                                        // a leader
+                                        if leader.member_id == me.member_id {
+                                            debug!("I'm a leader now");
+                                            self.states
+                                                .insert(service.service_group.clone(), UpdaterState::Rolling(RollingState::Leader(LeaderState::Waiting)));
+                                            return None;
+                                        }
+                                        if leader.pkg < me.pkg {
+                                            debug!("Leader has an outdated package and needs to \
+                                                    update");
+                                            return None;
+                                        }
                                         if leader.pkg == me.pkg {
                                             debug!("We're not in an update");
                                             return None;

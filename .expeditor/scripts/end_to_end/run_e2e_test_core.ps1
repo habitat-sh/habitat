@@ -91,7 +91,7 @@ function Wait-SupervisorService($ServiceName, $Timeout = 20, $Remote) {
     Write-Host "$ServiceName is now up."
 }
   
-function Load-SupervisorService($PackageName, $Timeout = 20, $Remote, $Bind, $HealthCheckInterval) {
+function Load-SupervisorService($PackageName, $Timeout = 20, $Remote, $Bind, $Channel, $Topology, $Strategy, $HealthCheckInterval) {
     $svcName = ($PackageName -split "/")[1]
     $commandArgs = @("hab", "svc", "load", $PackageName)
     if($BuilderUrl) {
@@ -102,6 +102,15 @@ function Load-SupervisorService($PackageName, $Timeout = 20, $Remote, $Bind, $He
     }
     if($Bind) {
         $commandArgs += @("--bind", $Bind)
+    }
+    if($Channel) {
+        $commandArgs += @("--channel", $Channel)
+    }
+    if($Topology) {
+        $commandArgs += @("--topology", $Topology)
+    }
+    if($Strategy) {
+        $commandArgs += @("--strategy", $Strategy)
     }
     if($HealthCheckInterval) {
         $commandArgs += @("--health-check-interval", $HealthCheckInterval)
@@ -170,6 +179,31 @@ function Wait-Process($ProcessName, $Timeout = 1) {
     $testScript =  { Get-Process $ProcessName -ErrorAction SilentlyContinue }
     $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for $ProcessName to start" }
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
+}
+
+function Wait-Release($Ident, $Remote, $Timeout = 20) {
+    $serviceName = ($Ident.Split("/"))[1]
+    $testScript =  {
+        $currentIdent = (Invoke-WebRequest "http://${Remote}.habitat.dev:9631/services/$serviceName/default" | ConvertFrom-Json).pkg.ident
+        $currentIdent -eq $Ident
+    }
+    $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for $Remote to Update to $Release" }
+    Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
+}
+
+function Get-Leader($Remote, $ServiceGroup) {
+    $json = (Invoke-WebRequest "http://$Remote.habitat.dev:9631/census" | ConvertFrom-Json)
+    $id = $json.census_groups.$ServiceGroup.leader_id
+    $name = $json.census_groups.$ServiceGroup.population.$id.sys.hostname
+    @{
+        Id = $id;
+        Name = $name
+    }
+}
+
+function Stop-ComposeSupervisor($Remote) {
+    Invoke-NativeCommand docker exec "${env:COMPOSE_PROJECT_NAME}_${Remote}_1" hab sup term
+    Start-Sleep 5
 }
 
 ###################################################################################################

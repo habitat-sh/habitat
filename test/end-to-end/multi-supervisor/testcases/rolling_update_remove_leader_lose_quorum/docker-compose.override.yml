@@ -1,0 +1,39 @@
+version: '2.4'
+services:
+  tester:
+    extends:
+      service: test_base
+    environment:
+      HAB_AUTH_TOKEN: ${PIPELINE_HAB_AUTH_TOKEN}
+    depends_on:
+      - bastion
+      - alpha
+      - beta
+      - gamma
+
+  alpha:
+    environment:
+      HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
+      HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+      RUST_LOG: habitat_sup::manager::service_updater=debug
+
+  beta:
+    environment:
+      HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
+      HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+      RUST_LOG: habitat_sup::manager::service_updater=debug
+
+  gamma:
+    extends:
+      service: sup_base
+    hostname: gamma
+    environment:
+      HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
+      HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+      RUST_LOG: habitat_sup::manager::service_updater=debug
+    networks:
+      default:
+        aliases:
+        - gamma.habitat.dev
+    depends_on:
+      - bastion
