@@ -6,12 +6,12 @@ authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 workspace = "../../"
 
 [dependencies]
-futures = "0.1"
+futures = { version = "*" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 habitat_common = { path = "../common" }
 log = "*"
-prost = "*"
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
+prost = { git = "https://github.com/habitat-sh/prost" }
 termcolor = "*"
-tokio = "*"
-tokio-core = "*"
-tokio-codec = "*"
+tokio = { version = "*", features = ["full"] }
+tokio-util = { version = "*", features = ["full"] }

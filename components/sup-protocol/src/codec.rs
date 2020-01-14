@@ -47,7 +47,6 @@ use bytes::{Buf,
             BufMut,
             Bytes,
             BytesMut};
-use futures;
 use prost::{self,
             Message};
 use std::{fmt,
@@ -55,9 +54,9 @@ use std::{fmt,
                Cursor},
           str};
 use tokio::net::TcpStream;
-use tokio_codec::{Decoder,
-                  Encoder,
-                  Framed};
+use tokio_util::codec::{Decoder,
+                        Encoder,
+                        Framed};
 
 const BODY_LEN_MASK: u32 = 0xF_FFFF;
 const HEADER_LEN: usize = 4;
@@ -76,17 +75,17 @@ const COMPLETE_MASK: u32 = 0x1;
 /// client and server speak.
 pub type SrvStream = Framed<TcpStream, SrvCodec>;
 
-/// Sending half of `SrvStream`.
-pub type SrvSink = futures::stream::SplitSink<SrvStream>;
+// The type of the transaction id.
+pub type TxnId = u32;
 
 /// An unsigned 32-bit integer packed with transaction information which is present if a request
 /// should receive a response from the destination.
 #[derive(Default, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct SrvTxn(u32);
+pub struct SrvTxn(TxnId);
 
 impl SrvTxn {
     /// The contained transaction ID.
-    pub fn id(self) -> u32 { self.0 & TXN_ID_MASK }
+    pub fn id(self) -> TxnId { self.0 & TXN_ID_MASK }
 
     /// Update the transaction ID to the next valid value.
     pub fn increment(&mut self) {
@@ -111,8 +110,8 @@ impl SrvTxn {
     pub fn set_response(&mut self) { self.0 |= 1 << RESPONSE_OFFSET; }
 }
 
-impl From<u32> for SrvTxn {
-    fn from(value: u32) -> Self { SrvTxn(value) }
+impl From<TxnId> for SrvTxn {
+    fn from(value: TxnId) -> Self { SrvTxn(value) }
 }
 
 impl fmt::Debug for SrvTxn {
@@ -189,10 +188,10 @@ pub struct SrvMessage {
 
 impl SrvMessage {
     /// Returns a reference to the encoded bytes of the protocol message.
-    pub fn body(&self) -> &Bytes { &self.body }
+    fn body(&self) -> &[u8] { &self.body }
 
     /// Returns the header frame of the protocol message.
-    pub fn header(&self) -> SrvHeader { self.header }
+    fn header(&self) -> SrvHeader { self.header }
 
     /// Returns true if the message is non-transactional or if the message is transactional and
     /// if this message is the last in a message stream. Returns false if this is not the last
@@ -201,14 +200,6 @@ impl SrvMessage {
         match self.transaction {
             Some(txn) => txn.is_complete(),
             None => true,
-        }
-    }
-
-    /// Returns true if the message is a response to a transactional request and false otherwise.
-    pub fn is_response(&self) -> bool {
-        match self.transaction {
-            Some(txn) => txn.is_response(),
-            None => false,
         }
     }
 
@@ -235,7 +226,7 @@ impl SrvMessage {
     pub fn parse<T>(&self) -> Result<T, prost::DecodeError>
         where T: Message + MessageStatic + Default
     {
-        T::decode(&self.body)
+        T::decode(self.body())
     }
 
     /// Update the message as a reply for the given transaction. The `complete` argument will
@@ -324,13 +315,13 @@ impl Decoder for SrvCodec {
         }
         trace!("Decoding SrvMessage\n  -> Bytes: {:?}", bytes);
         let mut buf = Cursor::new(bytes);
-        let header = SrvHeader(buf.get_u32_be());
+        let header = SrvHeader(buf.get_u32());
         trace!("  -> SrvHeader: {:?}", header);
         let txn = if header.is_transaction() {
             if buf.remaining() < TXN_LEN {
                 return Ok(None);
             }
-            let t = SrvTxn(buf.get_u32_be());
+            let t = SrvTxn(buf.get_u32());
             trace!("  -> SrvTxn: {:?}", t);
             Some(t)
         } else {
@@ -349,12 +340,12 @@ impl Decoder for SrvCodec {
         buf.copy_to_slice(&mut self.recv_buf[0..header.body_len()]);
         let position = buf.position() as usize;
         let bytes = buf.into_inner();
-        bytes.split_to(position);
+        bytes.advance(position);
         Ok(Some(SrvMessage { header,
                              transaction: txn,
                              message_id,
                              body:
-                                 Bytes::from(&self.recv_buf[0..header.body_len()]) }))
+                                 Bytes::copy_from_slice(&self.recv_buf[0..header.body_len()]) }))
     }
 }
 
@@ -364,9 +355,9 @@ impl Encoder for SrvCodec {
 
     fn encode(&mut self, msg: Self::Item, buf: &mut BytesMut) -> io::Result<()> {
         buf.reserve(msg.size());
-        buf.put_u32_be(msg.header().0);
+        buf.put_u32(msg.header().0);
         if let Some(txn) = msg.transaction {
-            buf.put_u32_be(txn.0);
+            buf.put_u32(txn.0);
         }
         buf.put_slice(msg.message_id().as_bytes());
         buf.put_slice(msg.body());

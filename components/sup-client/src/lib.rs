@@ -1,58 +1,57 @@
 //! Client for connecting and communicating with a server listener which speaks SrvProtocol.
 //!
-//! Currently all functions will block and wait for a response from the remote. This is likely to
-//! change to a futures based implementation as our needs increase.
-//!
 //! # RPC Call Example
 //!
-//! ```
-//! # use futures::future::Future as _;
-//! # use futures::stream::Stream as _;
-//! # use habitat_sup_client::SrvClient;
-//! # use habitat_sup_protocol as protocols;
-//! # use habitat_common::types::ListenCtlAddr;
-//! # let listen_addr = ListenCtlAddr::default();
-//! # let secret_key = "seekrit";
-//! let conn = SrvClient::connect(&listen_addr, secret_key);
-//! let msg = protocols::ctl::SvcGetDefaultCfg::default();
-//! conn.and_then(|conn| {
-//!         conn.call(msg).for_each(|reply| {
-//!                           match reply.message_id() {
-//!                               "ServiceCfg" => {
-//!                                   let m =
-//!                                       reply.parse::<protocols::types::ServiceCfg>().unwrap();
-//!                                   println!("{}", m.default.unwrap_or_default());
-//!                               }
-//!                               "NetErr" => {
-//!                                   let m = reply.parse::<protocols::net::NetErr>().unwrap();
-//!                                   println!("{}", m);
-//!                               }
-//!                               _ => (),
-//!                           }
-//!                           Ok(())
-//!                       })
-//!     });
+//! ```rust no_run
+//! use habitat_common::types::ListenCtlAddr;
+//! use habitat_sup_client::SrvClient;
+//! use habitat_sup_protocol as protocols;
+//! use futures::stream::StreamExt;
+//!
+//! #[tokio::main]
+//! async fn main() {
+//!     let listen_addr = ListenCtlAddr::default();
+//!     let secret_key = "seekrit";
+//!     let msg = protocols::ctl::SvcGetDefaultCfg::default();
+//!     let mut response = SrvClient::request(&listen_addr, secret_key, msg).await.unwrap();
+//!     while let Some(message_result) = response.next().await {
+//!         let reply = message_result.unwrap();
+//!         match reply.message_id() {
+//!             "ServiceCfg" => {
+//!                 let m = reply.parse::<protocols::types::ServiceCfg>().unwrap();
+//!                 println!("{}", m.default.unwrap_or_default());
+//!             }
+//!             "NetErr" => {
+//!                 let m = reply.parse::<protocols::net::NetErr>().unwrap();
+//!                 println!("{}", m);
+//!             }
+//!             _ => (),
+//!         }
+//!     }
+//! }
 //! ```
 
-#[macro_use]
-extern crate futures;
 use habitat_sup_protocol as protocol;
 #[macro_use]
 extern crate log;
 use crate::{common::types::ListenCtlAddr,
             protocol::{codec::*,
                        net::NetErr}};
-use futures::{prelude::*,
-              sink};
+use futures::{sink::SinkExt,
+              stream::{Stream,
+                       StreamExt}};
 use habitat_common as common;
 use std::{error,
           fmt,
           io,
-          path::PathBuf};
-use tokio::net::TcpStream;
-use tokio_codec::Framed;
+          path::PathBuf,
+          time::Duration};
+use tokio::{net::TcpStream,
+            time};
+use tokio_util::codec::Framed;
 
-pub type SrvSend = sink::Send<SrvStream>;
+/// Time to wait in milliseconds for a client connection to timeout.
+pub const REQ_TIMEOUT: u64 = 10_000;
 
 /// Error types returned by a [`SrvClient`].
 #[derive(Debug)]
@@ -127,47 +126,50 @@ impl From<termcolor::ParseColorError> for SrvClientError {
     fn from(err: termcolor::ParseColorError) -> Self { SrvClientError::ParseColor(err) }
 }
 
-/// Client for connecting and communicating with a server listener which speaks SrvProtocol.
+/// Client for connecting and communicating with a server speaking SrvProtocol.
 ///
 /// See module doc for usage.
-pub struct SrvClient {
-    /// Sending and receiving framed socket pair for connecting and communicating to a remote
-    /// server.
-    socket: SrvStream,
-    /// Transaction ID counter.
-    ///
-    /// Useful for determining the next transaction ID in sequence embed in
-    /// the next transactional message sent.
-    current_txn: SrvTxn,
-}
+pub struct SrvClient;
 
 impl SrvClient {
-    /// Connect to the given remote server and authenticate with the given secret_key.
-    pub fn connect(addr: &ListenCtlAddr,
-                   secret_key: &str)
-                   -> Box<dyn Future<Item = SrvClient, Error = SrvClientError> + 'static> {
-        let secret_key = secret_key.to_string();
-        let conn = TcpStream::connect(addr.as_ref()).map_err(SrvClientError::from)
-                                                    .and_then(move |socket| {
-                                                        let client = Self::new(socket, None);
-                                                        let mut request =
-                                                            protocol::ctl::Handshake::default();
-                                                        request.secret_key = Some(secret_key);
-                                                        client.call(request)
-                                                              .into_future()
-                                                              .map_err(|(err, _)| err)
-                                                              .and_then(move |(m, io)| {
-                                                                  m.map_or_else(
-                            || Err(SrvClientError::ConnectionClosed),
-                            move |m| {
-                                m.try_ok()
-                                    .map_err(SrvClientError::from)
-                                    .and_then(|()| Ok(io.into_inner()))
-                            },
-                        )
-                                                              })
-                                                    });
-        Box::new(conn)
+    /// Connect to the remote server with the given secret_key and make a request.
+    ///
+    /// Returns a stream of `SrvMessage`'s representing the server response.
+    pub async fn request(
+        address: &ListenCtlAddr,
+        secret_key: &str,
+        request: impl Into<SrvMessage> + fmt::Debug)
+        -> Result<impl Stream<Item = Result<SrvMessage, io::Error>>, SrvClientError> {
+        let socket = TcpStream::connect(address.as_ref()).await?;
+        let mut socket = Framed::new(socket, SrvCodec::new());
+        let mut current_transaction = SrvTxn::default();
+
+        // Send the handshake message to the server
+        let mut handshake = protocol::ctl::Handshake::default();
+        handshake.secret_key = Some(String::from(secret_key));
+        let mut message = SrvMessage::from(handshake);
+        message.set_transaction(current_transaction);
+        socket.send(message).await?;
+
+        // Verify the handshake response. There are three kinds of errors we could encounter:
+        // 1. The handshake timedout
+        // 2. The `socket.next()` call returns `None` indicating the connection was unexpectedly
+        // closed by the server
+        // 3. Any other socket io error
+        let handshake_result =
+            time::timeout(Duration::from_millis(REQ_TIMEOUT), socket.next()).await;
+        handshake_result.map_err(|_| io::Error::new(io::ErrorKind::TimedOut, "client timed out"))?
+                        .ok_or(SrvClientError::ConnectionClosed)??;
+
+        // Send the actual request message
+        current_transaction.increment();
+        let mut message = request.into();
+        message.set_transaction(current_transaction);
+        trace!("Sending SrvMessage -> {:?}", message);
+        socket.send(message).await?;
+
+        // Return the socket for use as a Stream of responses
+        Ok(socket)
     }
 
     pub fn read_secret_key() -> Result<String, SrvClientError> {
@@ -176,90 +178,4 @@ impl SrvClient {
             .map_err(SrvClientError::from)?;
         Ok(buf)
     }
-
-    fn new(socket: TcpStream, current_txn: Option<SrvTxn>) -> Self {
-        SrvClient { socket:      Framed::new(socket, SrvCodec::new()),
-                    current_txn: current_txn.unwrap_or_default(), }
-    }
-
-    /// Send a transactional request to the connected server. The returned `SrvReply` is a Stream
-    /// containing one or more `SrvMessage` responses for the given request.
-    pub fn call<T>(mut self, request: T) -> SrvReply
-        where T: Into<SrvMessage> + fmt::Debug
-    {
-        self.current_txn.increment();
-        let mut msg: SrvMessage = request.into();
-        msg.set_transaction(self.current_txn);
-        trace!("Sending SrvMessage -> {:?}", msg);
-        SrvReply::new(self.socket.send(msg), self.current_txn)
-    }
-
-    /// Send a non-transactional request to the connected server.
-    pub fn cast<T>(self, request: T) -> SrvSend
-        where T: Into<SrvMessage> + fmt::Debug
-    {
-        let message: SrvMessage = request.into();
-        self.socket.send(message)
-    }
-}
-
-/// A `Future` that will resolve into a stream of one or more `SrvMessage` replies.
-#[must_use = "futures do nothing unless polled"]
-pub struct SrvReply {
-    io:     sink::Send<SrvStream>,
-    state:  SrvReplyState,
-    txn_id: SrvTxn,
-}
-
-impl SrvReply {
-    fn new(io: sink::Send<SrvStream>, txn_id: SrvTxn) -> Self {
-        SrvReply { io,
-                   state: SrvReplyState::Sending,
-                   txn_id }
-    }
-
-    /// Consume the `SrvReply` and return the contained `SrvClient`.
-    pub fn into_inner(self) -> SrvClient {
-        match self.state {
-            SrvReplyState::Receiving(io, true) => {
-                SrvClient::new(io.into_inner(), Some(self.txn_id))
-            }
-            _ => panic!("into_inner called before complete"),
-        }
-    }
-}
-
-impl Stream for SrvReply {
-    type Error = SrvClientError;
-    type Item = SrvMessage;
-
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        loop {
-            match self.state {
-                SrvReplyState::Sending => {
-                    let io = try_ready!(self.io.poll());
-                    self.state = SrvReplyState::Receiving(io, false);
-                    continue;
-                }
-                SrvReplyState::Receiving(_, true) => return Ok(Async::Ready(None)),
-                SrvReplyState::Receiving(ref mut io, ref mut complete) => {
-                    match try_ready!(io.poll()) {
-                        Some(msg) => {
-                            *complete = msg.is_complete();
-                            return Ok(Async::Ready(Some(msg)));
-                        }
-                        None => return Err(SrvClientError::ConnectionClosed),
-                    }
-                }
-            }
-        }
-    }
-}
-
-enum SrvReplyState {
-    /// Request is sending.
-    Sending,
-    /// Request is sent and awaiting message(s). Receiving is complete when the bool at `self.1`
-    /// is true.
-    Receiving(SrvStream, bool),
 }

@@ -9,23 +9,15 @@
 //! this seems to do the trick.
 
 use super::{hook_timer,
-            spawned_future::SpawnedFuture,
             Pkg};
-use crate::{error::Error,
-            sup_futures::{self,
-                          FutureHandle}};
-use futures::{future::{self,
-                       Loop},
-              sync::oneshot,
-              Future,
-              IntoFuture};
 use habitat_common::templating::hooks::Hook;
 use habitat_core::service::ServiceGroup;
 use std::{clone::Clone,
           sync::Arc,
-          thread,
           time::{Duration,
                  Instant}};
+use tokio::{task,
+            task::JoinError};
 
 pub struct HookRunner<H: Hook + Sync> {
     hook:          Arc<H>,
@@ -58,63 +50,36 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
                      passwd }
     }
 
-    pub fn retryable_future(&self) -> (FutureHandle, impl Future<Item = (), Error = ()>) {
-        let f = future::loop_fn(self.clone(), |hook_runner| {
-            hook_runner.clone()
-                       .into_future()
-                       .map(move |(maybe_exit_value, _duration)| {
-                           // If we did not get an exit value always retry
-                           if maybe_exit_value.as_ref().map_or(true, H::should_retry) {
-                               debug!("retrying the '{}' hook", H::file_name());
-                               Loop::Continue(hook_runner)
-                           } else {
-                               Loop::Break(())
-                           }
-                       })
-                       .map_err(|_| ())
-        });
-        let (handle, f) = sup_futures::cancelable_future(f);
-        (handle, f.map_err(|_| ()))
+    pub async fn retryable_future(self) {
+        loop {
+            match self.clone().into_future().await {
+                Ok((maybe_exit_value, _duration)) => {
+                    // If we did not get an exit value always retry
+                    if maybe_exit_value.as_ref().map_or(true, H::should_retry) {
+                        debug!("Retrying the '{}' hook", H::file_name());
+                    } else {
+                        break;
+                    }
+                }
+                Err(e) => error!("Error running the '{}' hook: {:?}", H::file_name(), e),
+            }
+        }
     }
-}
 
-impl<H: Hook + Sync + 'static> IntoFuture for HookRunner<H> {
-    type Error = Error;
-    type Future = SpawnedFuture<Self::Item>;
-    type Item = (Option<H::ExitValue>, Duration);
-
-    fn into_future(self) -> Self::Future {
-        let (tx, rx) = oneshot::channel();
-
-        // TODO (CM): Consider using a short abbreviation for the hook
-        // name in the thread name (e.g. "HC" for "health_check", "I"
-        // for "init", etc.
-
+    pub async fn into_future(self) -> Result<(Option<H::ExitValue>, Duration), JoinError> {
         // TODO (CM): May want to consider adding a configurable
         // timeout to how long this hook is allowed to run.
-        let handle_result =
-            thread::Builder::new().name(format!("{}-{}", H::file_name(), self.service_group))
-                                  .spawn(move || {
-                                      // _timer is for Prometheus metrics, but we also want
-                                      // the runtime for other purposes. Unfortunately,
-                                      // we're not able to use the same timer for both :(
-                                      let _timer = hook_timer(H::file_name());
-                                      let start = Instant::now();
-                                      let exit_value =
-                                          self.hook
-                                              .run(&self.service_group,
-                                                   &self.pkg,
-                                                   self.passwd.as_ref())
-                                              .ok();
-                                      let run_time = start.elapsed();
-                                      tx.send((exit_value, run_time))
-                                        .expect("Couldn't send oneshot signal from HookRunner: \
-                                                 receiver went away");
-                                  });
-
-        match handle_result {
-            Ok(_handle) => rx.into(),
-            Err(io_err) => io_err.into(),
-        }
+        task::spawn_blocking(move || {
+            // _timer is for Prometheus metrics, but we also want
+            // the runtime for other purposes. Unfortunately,
+            // we're not able to use the same timer for both :(
+            let _timer = hook_timer(H::file_name());
+            let start = Instant::now();
+            let exit_value = self.hook
+                                 .run(&self.service_group, &self.pkg, self.passwd.as_ref())
+                                 .ok();
+            let run_time = start.elapsed();
+            (exit_value, run_time)
+        }).await
     }
 }

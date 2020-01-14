@@ -9,8 +9,6 @@ use crate::{error::{Error,
                     Result},
             manager::{ServicePidSource,
                       ShutdownConfig}};
-use futures::{future,
-              Future};
 use habitat_common::{outputln,
                      templating::package::Pkg,
                      types::UserInfo};
@@ -218,7 +216,7 @@ impl Supervisor {
     }
 
     /// Returns a future that stops a service asynchronously.
-    pub fn stop(&self, shutdown_config: ShutdownConfig) -> impl Future<Item = (), Error = Error> {
+    pub fn stop(&self, shutdown_config: ShutdownConfig) {
         let service_group = self.service_group.clone();
 
         if let Some(pid) = self.pid {
@@ -226,18 +224,19 @@ impl Supervisor {
             if pid == 0 {
                 warn!(target: "pidfile_tracing", "Cowardly refusing to stop {}, because we think it has a PID of 0, which makes no sense",
                       service_group);
-                return future::Either::B(future::ok(()));
+            } else {
+                tokio::spawn(async move {
+                    if terminator::terminate_service(pid, service_group.clone(),
+                        shutdown_config).await  .is_err()
+                    {
+                    error!(target: "pidfile_tracing", "Failed to to stop service {}", service_group);
+                    };
+                });
+                // Only delete the pidfile if we're actually using one.
+                if let Some(pid_file) = pid_file {
+                    Self::cleanup_pidfile(pid_file);
+                }
             }
-
-            future::Either::A(terminator::terminate_service(pid, service_group, shutdown_config).and_then(
-                |_shutdown_method| {
-                    // Only delete the pidfile if we're actually using one.
-                    if let Some(pid_file) = pid_file {
-                        Self::cleanup_pidfile(pid_file);
-                    }
-                    Ok(())
-                },
-            ))
         } else {
             // Not quite sure how we'd get down here without a PID...
 
@@ -246,7 +245,6 @@ impl Supervisor {
             // just to help with debugging. The overall logging
             // message can stay, however.
             warn!(target: "pidfile_tracing", "Cowardly refusing to stop {}, because we mysteriously have no PID!", service_group);
-            future::Either::B(future::ok(()))
         }
     }
 

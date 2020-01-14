@@ -12,7 +12,6 @@ pub mod server;
 
 use crate::error::{Error,
                    Result};
-use futures::prelude::*;
 use habitat_api_client::DisplayProgress;
 use habitat_common::{output::{self,
                               OutputContext,
@@ -111,7 +110,11 @@ impl CtlRequest {
         }
         let mut wire: habitat_sup_protocol::codec::SrvMessage = msg.into();
         wire.reply_for(self.transaction.unwrap(), complete);
-        self.tx.as_ref().unwrap().start_send(wire).ok(); // ignore Err return
+        self.tx
+            .as_mut()
+            .expect("CtlRequest send to exist")
+            .start_send(wire)
+            .ok(); // ignore Err return
     }
 }
 

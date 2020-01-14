@@ -22,17 +22,17 @@ use self::types::{EventMessage,
                   ServiceStartedEvent,
                   ServiceStoppedEvent,
                   ServiceUpdateStartedEvent};
-use crate::{manager::{service::{HealthCheckHookStatus,
-                                HealthCheckResult,
-                                ProcessOutput,
-                                Service,
-                                StandardStreams},
-                      sys::Sys},
-            sup_futures::FutureHandle};
+use crate::manager::{service::{HealthCheckHookStatus,
+                               HealthCheckResult,
+                               ProcessOutput,
+                               Service,
+                               StandardStreams},
+                     sys::Sys};
 use clap::ArgMatches;
 pub use error::{Error,
                 Result};
-use futures::sync::mpsc::Sender;
+use futures::{channel::mpsc::Sender,
+              future::AbortHandle};
 use habitat_common::types::{AutomateAuthToken,
                             EventStreamConnectMethod,
                             EventStreamMetadata,
@@ -45,7 +45,7 @@ use state::Container;
 use std::{net::SocketAddr,
           sync::Once,
           time::Duration};
-use tokio::runtime::Runtime;
+use tokio::runtime::Handle;
 
 const SERVICE_STARTED_SUBJECT: &str = "habitat.event.service_started";
 const SERVICE_STOPPED_SUBJECT: &str = "habitat.event.service_stopped";
@@ -68,9 +68,12 @@ type EventStreamContainer = Mutex<EventStream>;
 /// server. Stashes the handle to the stream, as well as the core
 /// event information that will be a part of all events, in a global
 /// static reference for access later.
+///
+/// TODO (DM): It is unfortunate we have to pass a handle to the tokio runtime here. It would be
+/// more idiomatic if we spawned a single top level future and used tokio::spawn within that future.
 pub fn init_stream(config: EventStreamConfig,
                    event_core: EventCore,
-                   runtime: &mut Runtime)
+                   runtime: &Handle)
                    -> Result<()> {
     // call_once can't return a Result (or anything), so we'll fake it
     // by hanging onto any error we might receive.
@@ -98,7 +101,7 @@ pub fn init_stream(config: EventStreamConfig,
 pub fn stop_stream() {
     if let Some(e) = EVENT_STREAM.try_get::<EventStreamContainer>() {
         if let Some(h) = e.lock().handle.take() {
-            h.terminate();
+            h.abort();
         }
     }
 }
@@ -301,11 +304,11 @@ impl EventPacket {
 /// event stream through this.
 struct EventStream {
     sender: Sender<EventPacket>,
-    handle: Option<FutureHandle>,
+    handle: Option<AbortHandle>,
 }
 
 impl EventStream {
-    fn new(sender: Sender<EventPacket>, handle: FutureHandle) -> Self {
+    fn new(sender: Sender<EventPacket>, handle: AbortHandle) -> Self {
         Self { sender,
                handle: Some(handle) }
     }
@@ -325,9 +328,8 @@ impl EventStream {
 mod tests {
     use super::*;
     use crate::prost::Message;
-    use futures::{future::Future,
-                  stream::Stream,
-                  sync::mpsc as futures_mpsc};
+    use futures::{channel::mpsc as futures_mpsc,
+                  stream::StreamExt};
     #[cfg(windows)]
     use habitat_core::os::process::windows_child::ExitStatus;
     use habitat_core::service::HealthCheckInterval;
@@ -335,9 +337,9 @@ mod tests {
     use std::{os::unix::process::ExitStatusExt,
               process::ExitStatus};
 
-    #[test]
+    #[tokio::test]
     #[cfg(any(unix, windows))]
-    fn health_check_event() {
+    async fn health_check_event() {
         let (tx, rx) = futures_mpsc::channel(4);
         let event_stream = EventStream { sender: tx,
                                          handle: None, };
@@ -381,9 +383,9 @@ mod tests {
                      HealthCheckResult::Unknown,
                      HealthCheckHookStatus::Ran(process_output, Duration::from_secs(15)),
                      HealthCheckInterval::default());
-        let events = rx.take(4).collect().wait().unwrap();
+        let events = rx.take(4).collect::<Vec<_>>().await;
 
-        let event = HealthCheckEvent::decode(&events[0].payload).unwrap();
+        let event = HealthCheckEvent::decode(events[0].payload.as_slice()).unwrap();
         assert_eq!(event.result, 0);
         assert_eq!(event.execution, None);
         assert_eq!(event.exit_status, None);
@@ -396,14 +398,14 @@ mod tests {
 
         assert_eq!(event.interval, prost_interval_option);
 
-        let event = HealthCheckEvent::decode(&events[1].payload).unwrap();
+        let event = HealthCheckEvent::decode(events[1].payload.as_slice()).unwrap();
         assert_eq!(event.result, 1);
         assert_eq!(event.execution.unwrap().seconds, 5);
         assert_eq!(event.exit_status, None);
         assert_eq!(event.stdout, None);
         assert_eq!(event.stderr, None);
 
-        let event = HealthCheckEvent::decode(&events[2].payload).unwrap();
+        let event = HealthCheckEvent::decode(events[2].payload.as_slice()).unwrap();
         assert_eq!(event.result, 2);
         assert_eq!(event.execution.unwrap().seconds, 10);
         #[cfg(windows)]
@@ -414,7 +416,7 @@ mod tests {
         assert_eq!(event.stdout, Some(String::from("stdout")));
         assert_eq!(event.stderr, Some(String::from("stderr")));
 
-        let event = HealthCheckEvent::decode(&events[3].payload).unwrap();
+        let event = HealthCheckEvent::decode(events[3].payload.as_slice()).unwrap();
         assert_eq!(event.result, 3);
         assert_eq!(event.execution.unwrap().seconds, 15);
         #[cfg(windows)]

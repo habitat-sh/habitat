@@ -13,12 +13,11 @@ use super::{CtlRequest,
 use crate::manager::{action::ActionSender,
                      commands,
                      ManagerState};
-use futures::{future::{self,
-                       Either},
+use futures::{channel::mpsc,
               prelude::*,
-              sync::mpsc,
-              try_ready};
-use habitat_common::liveliness_checker;
+              ready,
+              task::{Context,
+                     Poll}};
 use habitat_core::crypto;
 use habitat_sup_protocol::{self as protocol,
                            codec::{SrvCodec,
@@ -29,22 +28,22 @@ use habitat_sup_protocol::{self as protocol,
                                  ErrCode,
                                  NetErr,
                                  NetResult}};
+use pin_project::pin_project;
 use prometheus::{HistogramTimer,
                  HistogramVec,
                  IntCounterVec};
 use prost;
-use std::{cell::RefCell,
-          error,
+use std::{error,
           fmt,
           io,
           net::SocketAddr,
-          rc::Rc,
-          thread,
+          pin::Pin,
+          sync::{Arc,
+                 Mutex},
           time::Duration};
-use tokio::net::TcpListener;
-use tokio_codec::Decoder;
-use tokio_core::{reactor,
-                 try_nb};
+use tokio::{net::TcpListener,
+            time};
+use tokio_util::codec::Decoder;
 
 lazy_static! {
     static ref RPC_CALLS: IntCounterVec = register_int_counter_vec!("hab_sup_rpc_call_total",
@@ -74,7 +73,7 @@ pub enum HandlerError {
     Decode(prost::DecodeError),
     Io(io::Error),
     NetErr(NetErr),
-    SendError(mpsc::SendError<CtlCommand>),
+    SendError(mpsc::SendError),
 }
 
 impl error::Error for HandlerError {}
@@ -103,8 +102,8 @@ impl From<prost::DecodeError> for HandlerError {
     fn from(err: prost::DecodeError) -> Self { HandlerError::Decode(err) }
 }
 
-impl From<mpsc::SendError<CtlCommand>> for HandlerError {
-    fn from(err: mpsc::SendError<CtlCommand>) -> Self { HandlerError::SendError(err) }
+impl From<mpsc::SendError> for HandlerError {
+    fn from(err: mpsc::SendError) -> Self { HandlerError::SendError(err) }
 }
 
 /// A wrapper around a [`ctl_gateway.CtlRequest`] and a closure for the main thread to execute.
@@ -141,103 +140,77 @@ impl CtlCommand {
 
 /// Server's client representation. Each new connection will allocate a new Client.
 struct Client {
-    handle: reactor::Handle,
-    state:  Rc<RefCell<SrvState>>,
+    state: Arc<Mutex<SrvState>>,
 }
 
 impl Client {
     /// Serve the client from the given framed socket stream.
-    pub fn serve(self, socket: SrvStream) -> impl Future<Item = (), Error = HandlerError> {
-        let mgr_sender = self.state.borrow().mgr_sender.clone();
-        self.handshake(socket)
-            .and_then(|socket| SrvHandler::new(socket, mgr_sender))
+    pub async fn serve(self, mut socket: SrvStream) -> Result<(), HandlerError> {
+        let mgr_sender = self.state
+                             .lock()
+                             .expect("SrvState mutex poisoned")
+                             .mgr_sender
+                             .clone();
+        let handshake_with_timeout = time::timeout(Duration::from_millis(REQ_TIMEOUT),
+                                                   self.handshake(&mut socket));
+        handshake_with_timeout.await
+                              .map_err(|_| {
+                                  io::Error::new(io::ErrorKind::TimedOut, "client timed out")
+                              })??;
+        SrvHandler::new(socket, mgr_sender).await
     }
 
     /// Initiate a handshake with the connected client before allowing future requests. A failed
     /// handshake will close the connection.
-    fn handshake(&self, socket: SrvStream) -> impl Future<Item = SrvStream, Error = HandlerError> {
-        let secret_key = self.state.borrow().secret_key.to_string();
-        let handshake = socket.into_future()
-                              .map_err(|(err, _)| HandlerError::from(err))
-                              .and_then(move |(m, io)| {
-                                  m.map_or_else(
-                    || {
-                        Err(HandlerError::from(io::Error::from(
-                            io::ErrorKind::UnexpectedEof,
-                        )))
-                    },
-                    move |m| {
-                        if m.message_id() != "Handshake" {
-                            debug!("No handshake");
-                            Err(HandlerError::from(io::Error::from(
-                                io::ErrorKind::ConnectionAborted,
-                            )))
-                        } else if !m.is_transaction() {
-                            Err(HandlerError::from(io::Error::from(
-                                io::ErrorKind::ConnectionAborted,
-                            )))
-                        } else {
-                            match m.parse::<protocol::ctl::Handshake>() {
-                                Ok(decoded) => {
-                                    trace!("Received handshake, {:?}", decoded);
-                                    let decoded_key = decoded.secret_key.unwrap_or_default();
-                                    Ok((m, crypto::secure_eq(decoded_key, secret_key), io))
-                                }
-                                Err(err) => {
-                                    warn!("Handshake error, {:?}", err);
-                                    Err(HandlerError::from(io::Error::from(
-                                        io::ErrorKind::ConnectionAborted,
-                                    )))
-                                }
-                            }
-                        }
-                    },
-                )
-                              })
-                              .and_then(|(msg, success, socket)| {
-                                  let mut reply = if success {
-                                      SrvMessage::from(net::ok())
-                                  } else {
-                                      SrvMessage::from(net::err(ErrCode::Unauthorized,
-                                                                "secret key mismatch"))
-                                  };
-                                  reply.reply_for(msg.transaction().unwrap(), true);
-                                  socket.send(reply)
-                                        .map_err(HandlerError::from)
-                                        .and_then(move |io| Ok((io, success)))
-                              });
-        handshake.select2(self.timeout(REQ_TIMEOUT)).then(|res| {
-                                                        match res {
-                Ok(Either::A(((io, true), _to))) => future::ok(io),
-                Ok(Either::A(((_, false), _to))) => future::err(HandlerError::from(
-                    io::Error::new(io::ErrorKind::ConnectionAborted, "handshake failed"),
-                )),
-                Ok(Either::B((_to, _hs))) => future::err(HandlerError::from(io::Error::new(
-                    io::ErrorKind::TimedOut,
-                    "client timed out",
-                ))),
-                Err(Either::A((err, _))) => future::err(err),
-                Err(Either::B((err, _))) => future::err(HandlerError::from(err)),
+    async fn handshake(&self, socket: &mut SrvStream) -> Result<(), HandlerError> {
+        let message = socket.next()
+                            .await
+                            .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))??;
+        let success = if message.message_id() != "Handshake" {
+            debug!("No handshake");
+            return Err(HandlerError::from(io::Error::from(io::ErrorKind::ConnectionAborted)));
+        } else if !message.is_transaction() {
+            return Err(HandlerError::from(io::Error::from(io::ErrorKind::ConnectionAborted)));
+        } else {
+            match message.parse::<protocol::ctl::Handshake>() {
+                Ok(decoded) => {
+                    trace!("Received handshake, {:?}", decoded);
+                    let secret_key = self.state
+                                         .lock()
+                                         .expect("SrvState mutex poisoned")
+                                         .secret_key
+                                         .to_string();
+                    let decoded_key = decoded.secret_key.unwrap_or_default();
+                    crypto::secure_eq(decoded_key, secret_key)
+                }
+                Err(err) => {
+                    warn!("Handshake error, {:?}", err);
+                    return Err(HandlerError::from(io::Error::from(io::ErrorKind::ConnectionAborted)));
+                }
             }
-                                                    })
-    }
-
-    /// Generate a new timeout future with the given duration in milliseconds.
-    fn timeout(&self, millis: u64) -> reactor::Timeout {
-        reactor::Timeout::new(Duration::from_millis(millis), &self.handle)
-            .expect("failed to generate timeout future")
+        };
+        let mut reply = if success {
+            SrvMessage::from(net::ok())
+        } else {
+            SrvMessage::from(net::err(ErrCode::Unauthorized, "secret key mismatch"))
+        };
+        reply.reply_for(message.transaction().unwrap(), true);
+        socket.send(reply).await?;
+        Ok(())
     }
 }
 
 /// A `Future` that will resolve into a stream of one or more `SrvMessage` replies.
 #[must_use = "futures do nothing unless polled"]
+#[pin_project]
 struct SrvHandler {
-    io:           SrvStream,
-    state:        SrvHandlerState,
-    mgr_sender:   MgrSender,
+    #[pin]
+    io: SrvStream,
+    state: SrvHandlerState,
+    mgr_sender: MgrSender,
     ctl_receiver: CtlReceiver,
-    ctl_sender:   CtlSender,
-    timer:        Option<HistogramTimer>,
+    ctl_sender: CtlSender,
+    timer: Option<HistogramTimer>,
 }
 
 impl SrvHandler {
@@ -369,22 +342,19 @@ impl SrvHandler {
 }
 
 impl Future for SrvHandler {
-    type Error = HandlerError;
-    type Item = ();
+    type Output = Result<(), HandlerError>;
 
     /// # Locking (see locking.md)
     /// * `GatewayState::inner` (read)
-    fn poll(&mut self) -> Poll<(), Self::Error> {
-        let _: liveliness_checker::ThreadUnregistered = loop {
-            let checked_thread = liveliness_checker::mark_thread_alive();
-
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
+        loop {
             match self.state {
                 SrvHandlerState::Receiving => {
-                    match try_ready!(self.io.poll()) {
+                    match ready!(self.io.poll_next_unpin(cx)) {
                         None => {
-                            break checked_thread.unregister(Ok(()));
+                            break;
                         }
-                        Some(msg) => {
+                        Some(Ok(msg)) => {
                             self.start_timer(&msg.message_id());
                             trace!("OnMessage, {}", msg.message_id());
 
@@ -394,16 +364,17 @@ impl Future for SrvHandler {
                             {
                                 Ok(cmd) => cmd,
                                 Err(_) => {
-                                    break checked_thread.unregister(Ok(()));
+                                    break;
                                 }
                             };
-
+                            if let Err(err) = futures::ready!(self.mgr_sender.poll_ready(cx)) {
+                                return Poll::Ready(Err(HandlerError::from(err)));
+                            }
                             match self.mgr_sender.start_send(cmd) {
-                                Ok(AsyncSink::Ready) => {
+                                Ok(()) => {
                                     self.state = SrvHandlerState::Sending;
                                     continue;
                                 }
-                                Ok(AsyncSink::NotReady(_)) => return Ok(Async::NotReady),
                                 Err(err) => {
                                     // An error here means that the
                                     // receiving end of this channel went
@@ -414,28 +385,44 @@ impl Future for SrvHandler {
                                     // shutdown and no longer wish to
                                     // process incoming commands.
                                     warn!("ManagerReceiver err: {}", err);
-                                    return Err(HandlerError::from(err));
+                                    return Poll::Ready(Err(HandlerError::from(err)));
                                 }
                             }
+                        }
+                        Some(Err(err)) => {
+                            error!("SrvHandler failed to receive message, err: {}", err);
+                            return Poll::Ready(Err(HandlerError::from(err)));
                         }
                     }
                 }
                 SrvHandlerState::Sending => {
-                    match self.ctl_receiver.poll() {
-                        Ok(Async::Ready(Some(msg))) => {
+                    match futures::ready!(self.ctl_receiver.poll_next_unpin(cx)) {
+                        Some(msg) => {
                             trace!("MgrSender -> SrvHandler, {:?}", msg);
                             if msg.is_complete() {
                                 self.state = SrvHandlerState::Sent;
                             }
-                            try_nb!(self.io.start_send(msg));
-                            try_ready!(self.io.poll_complete());
-                            continue;
+                            if let Err(err) =
+                                futures::ready!(self.as_mut().project().io.poll_ready(cx))
+                            {
+                                return Poll::Ready(Err(HandlerError::from(err)));
+                            }
+                            match self.as_mut().project().io.start_send(msg) {
+                                Ok(()) => {
+                                    if let Err(err) =
+                                        futures::ready!(self.as_mut().project().io.poll_flush(cx))
+                                    {
+                                        return Poll::Ready(Err(HandlerError::from(err)));
+                                    }
+                                    continue;
+                                }
+                                Err(e) if e.kind() == ::std::io::ErrorKind::WouldBlock => {
+                                    return Poll::Pending;
+                                }
+                                Err(err) => return Poll::Ready(Err(HandlerError::from(err))),
+                            }
                         }
-                        Ok(Async::Ready(None)) => self.state = SrvHandlerState::Sent,
-                        Ok(Async::NotReady) => return Ok(Async::NotReady),
-                        Err(()) => {
-                            break checked_thread.unregister(Ok(()));
-                        }
+                        None => self.state = SrvHandlerState::Sent,
                     }
                 }
                 SrvHandlerState::Sent => {
@@ -443,11 +430,11 @@ impl Future for SrvHandler {
                         timer.observe_duration();
                     }
                     trace!("OnMessage complete");
-                    break checked_thread.unregister(Ok(()));
+                    break;
                 }
             }
-        };
-        Ok(Async::Ready(()))
+        }
+        Poll::Ready(Ok(()))
     }
 }
 
@@ -470,43 +457,32 @@ struct SrvState {
 ///
 /// New connections will be authenticated using `secret_key`. Messages from the main thread
 /// will be sent over the channel `mgr_sender`.
-pub fn run(listen_addr: SocketAddr, secret_key: String, mgr_sender: MgrSender) {
-    let tb = thread::Builder::new().name("ctl-gateway".to_string());
-    tb.spawn(move || {
-          let mut core = reactor::Core::new().unwrap();
-          let handle = core.handle();
-          let state = SrvState { secret_key,
-                                 mgr_sender };
-          let state = Rc::new(RefCell::new(state));
-          let server =
-              TcpListener::bind(&listen_addr).expect("Could not bind ctl gateway listen address!")
-                                             .incoming()
-                                             // Filter out instances where there is no peer address
-                                             // on the socket. peer_addr() can be Err when a client
-                                             // disregards the protocol such as from a `netcat -z`
-                                             // connection.
-                                             .filter_map(|tcp_stream| {
-                                                 if let Ok(addr) = tcp_stream.peer_addr() {
-                                                     let io = SrvCodec::new().framed(tcp_stream);
-                                                     let client = Client { handle: handle.clone(),
-                                                                           state:  state.clone(), };
-                                                     Some((client.serve(io), addr))
-                                                 } else {
-                                                     debug!("Client peer address not available from socket!");
-                                                     None
-                                                 }
-                                             })
-                                             .for_each(|(client, addr)| {
-                                                 handle.spawn(client.then(move |res| {
-                                                                        debug!("DISCONNECTED \
-                                                                                from {:?} with \
-                                                                                result {:?}",
-                                                                               addr, res);
-                                                                        future::ok(())
-                                                                    }));
-                                                 Ok(())
-                                             });
-          core.run(server)
-      })
-      .expect("ctl-gateway thread start failure");
+pub async fn run(listen_addr: SocketAddr, secret_key: String, mgr_sender: MgrSender) {
+    let state = SrvState { secret_key,
+                           mgr_sender };
+    let state = Arc::new(Mutex::new(state));
+    let mut listner =
+        TcpListener::bind(&listen_addr).await
+                                       .expect("Could not bind ctl gateway listen address!");
+    let mut incoming = listner.incoming();
+    while let Some(tcp_stream) = incoming.next().await {
+        match tcp_stream {
+            Ok(tcp_stream) => {
+                let addr = match tcp_stream.peer_addr() {
+                    Ok(addr) => addr,
+                    Err(e) => {
+                        debug!("Client peer address not available from socket, err {}", e);
+                        continue;
+                    }
+                };
+                let io = SrvCodec::new().framed(tcp_stream);
+                let client = Client { state: Arc::clone(&state), };
+                tokio::spawn(async move {
+                    let res = client.serve(io).await;
+                    debug!("DISCONNECTED from {:?} with result {:?}", addr, res);
+                });
+            }
+            Err(e) => error!("SrvHandler failed to connect, err: {}", e),
+        }
+    }
 }

@@ -20,7 +20,11 @@ actix-web = { version = "*", default-features = false, features = [ "rust-tls" ]
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 cpu-time = "*"
-futures = "0.1"
+# futures 0.1 is needed because actix-web has not yet upgraded to futures 0.3.
+# We must hardcode the new version of futures here because we also depened on futures 0.1
+# See https://github.com/habitat-sh/habitat/issues/7271
+futures = { version = "0.3.1" }
+futures01 = { package = "futures", version = "0.1" }
 glob = "*"
 hab = { path = "../hab" }
 habitat_butterfly = { path = "../butterfly", default-features = false }
@@ -38,10 +42,14 @@ nats = { git = "https://github.com/habitat-sh/rust-nats", rev = "a4c24be66fc54c0
 notify = "*"
 num_cpus = "*"
 parking_lot = "*"
+pin-project = "*"
 prometheus = "*"
-prost = "*"
-prost-derive = "*"
-prost-types = "0.5.0" # This is current stable, but for some reason gets pulled in as 0.4.0 if we use "*" (2019-03-28)
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
+prost = { git = "https://github.com/habitat-sh/prost" }
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
+prost-derive = { git = "https://github.com/habitat-sh/prost" }
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
+prost-types = { git = "https://github.com/habitat-sh/prost" }
 rand = "*"
 regex = "*"
 rustls = "*"
@@ -55,10 +63,8 @@ tempfile = "*"
 termcolor = "*"
 time = "*"
 toml = { version = "*", default-features = false }
-tokio = "*"
-tokio-core = "*"
-tokio-codec = "*"
-tokio-timer = "*"
+tokio = { version = "*", features = ["full"] }
+tokio-util = { version = "*", features = ["full"] }
 url = "*"
 valico = "*"
 
@@ -82,7 +88,8 @@ hyper = "*"
 json = "*"
 
 [build-dependencies]
-prost-build = "*"
+# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
+prost-build = { git = "https://github.com/habitat-sh/prost" }
 
 [features]
 default = []
