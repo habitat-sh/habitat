@@ -10,11 +10,17 @@
 <!-- release_rollup since=0.90.6 -->
 ### Changes since 0.90.6 release
 
+#### Behavioral Changes
+- The initial event stream connection attempt no longer blocks by default. Set --event-stream-connect-timeout if blocking is desired. [#7293](https://github.com/habitat-sh/habitat/pull/7293) ([davidMcneil](https://github.com/davidMcneil))
+
 #### New Features & Enhancements
+- Event stream connection backoff strategy [#7293](https://github.com/habitat-sh/habitat/pull/7293) ([davidMcneil](https://github.com/davidMcneil))
 - bulkupload: discover origins from signing keys [#7279](https://github.com/habitat-sh/habitat/pull/7279) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.48 -->
 - Add PIDS_FROM_LAUNCHER feature to eliminate service PID files [#7214](https://github.com/habitat-sh/habitat/pull/7214) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.22 -->
 
 #### Bug Fixes
+- The initial event stream connect attempt will not block the main thread when --event-stream-connect-timeout=0 [#7293](https://github.com/habitat-sh/habitat/pull/7293) ([davidMcneil](https://github.com/davidMcneil))
+- Event stream messages are always immediately processed (even when disconnected). This prevents a "thundering herd" of messages on reconnect. [#7293](https://github.com/habitat-sh/habitat/pull/7293) ([davidMcneil](https://github.com/davidMcneil))
 - do not attempt to set binlink path if not in an elevated console [#7319](https://github.com/habitat-sh/habitat/pull/7319) ([mwrock](https://github.com/mwrock)) <!-- 0.90.58 -->
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 

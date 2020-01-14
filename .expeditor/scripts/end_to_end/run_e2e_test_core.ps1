@@ -62,10 +62,10 @@ function Wait-Supervisor($Timeout = 1) {
     Write-Host "Supervisor is now running."
 }
 
-function Start-Supervisor($Timeout = 1, $LogFile = (New-TemporaryFile)) {
+function Start-Supervisor($Timeout = 1, $LogFile = (New-TemporaryFile), $SupArgs = @()) {
     Add-Type -TypeDefinition (Get-Content "$PSScriptroot/SupervisorRunner.cs" | Out-String)
     $sup = New-Object SupervisorRunner
-    $supPid = $sup.Run($LogFile)
+    $supPid = $sup.Run($LogFile, $SupArgs)
     try {
         Wait-Supervisor -Timeout $Timeout
         $supPid
@@ -91,7 +91,7 @@ function Wait-SupervisorService($ServiceName, $Timeout = 20, $Remote) {
     Write-Host "$ServiceName is now up."
 }
   
-function Load-SupervisorService($PackageName, $Timeout = 20, $Remote, $Bind) {
+function Load-SupervisorService($PackageName, $Timeout = 20, $Remote, $Bind, $HealthCheckInterval) {
     $svcName = ($PackageName -split "/")[1]
     $commandArgs = @("hab", "svc", "load", $PackageName)
     if($BuilderUrl) {
@@ -102,6 +102,9 @@ function Load-SupervisorService($PackageName, $Timeout = 20, $Remote, $Bind) {
     }
     if($Bind) {
         $commandArgs += @("--bind", $Bind)
+    }
+    if($HealthCheckInterval) {
+        $commandArgs += @("--health-check-interval", $HealthCheckInterval)
     }
     $_ = Invoke-NativeCommand @commandArgs
     Wait-SupervisorService $svcName -Timeout $Timeout -Remote $Remote
@@ -153,6 +156,14 @@ function Restart-Supervisor {
         Stop-Process | Get-Process hab-sup
     }
     Wait-Supervisor -Timeout 5 # 5 seconds should be plenty of time
+}
+
+function Stop-Supervisor {
+    if ($IsLinux) {
+        pkill --signal=KILL hab-launch
+    } else {
+        Stop-Process | Get-Process hab-launch
+    }
 }
 
 function Wait-Process($ProcessName, $Timeout = 1) {

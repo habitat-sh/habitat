@@ -12,7 +12,7 @@
 //! [1]:https://github.com/nats-io/nats-server
 
 mod error;
-mod stream;
+mod nats_message_stream;
 mod types;
 
 pub(crate) use self::types::ServiceMetadata;
@@ -31,79 +31,56 @@ use crate::manager::{service::{HealthCheckHookStatus,
 use clap::ArgMatches;
 pub use error::{Error,
                 Result};
-use futures::{channel::mpsc::Sender,
-              future::AbortHandle};
 use habitat_common::types::{AutomateAuthToken,
                             EventStreamConnectMethod,
                             EventStreamMetadata,
                             EventStreamServerCertificate};
 use habitat_core::{package::ident::PackageIdent,
                    service::HealthCheckInterval};
-use parking_lot::Mutex;
+use nats_message_stream::{NatsMessage,
+                          NatsMessageStream};
 use prost_types::Duration as ProstDuration;
-use state::Container;
+use rants::{Address,
+            Subject};
+use state::Storage;
 use std::{net::SocketAddr,
-          sync::Once,
           time::Duration};
-use tokio::runtime::Handle;
 
-const SERVICE_STARTED_SUBJECT: &str = "habitat.event.service_started";
-const SERVICE_STOPPED_SUBJECT: &str = "habitat.event.service_stopped";
-const SERVICE_UPDATE_STARTED_SUBJECT: &str = "habitat.event.service_update_started";
-const HEALTHCHECK_SUBJECT: &str = "habitat.event.healthcheck";
-
-static INIT: Once = Once::new();
 lazy_static! {
     // TODO (CM): When const fn support lands in stable, we can ditch
     // this lazy_static call.
 
-    /// Reference to the event stream.
-    static ref EVENT_STREAM: Container = Container::new();
-    /// Core information that is shared between all events.
-    static ref EVENT_CORE: Container = Container::new();
-}
-type EventStreamContainer = Mutex<EventStream>;
+    // NATS subject names
+    static ref SERVICE_STARTED_SUBJECT: Subject =
+        "habitat.event.service_started".parse().expect("valid NATS subject");
+    static ref SERVICE_STOPPED_SUBJECT: Subject =
+        "habitat.event.service_stopped".parse().expect("valid NATS subject");
+    static ref SERVICE_UPDATE_STARTED_SUBJECT: Subject =
+        "habitat.event.service_update_started".parse().expect("valid NATS subject");
+    static ref HEALTHCHECK_SUBJECT: Subject =
+        "habitat.event.healthcheck".parse().expect("valid NATS subject");
 
-/// Starts a new thread for sending events to a NATS Streaming
+    /// Reference to the event stream.
+    static ref NATS_MESSAGE_STREAM: Storage<NatsMessageStream> = Storage::new();
+    /// Core information that is shared between all events.
+    static ref EVENT_CORE: Storage<EventCore> = Storage::new();
+}
+
+/// Starts a new task for sending events to a NATS Streaming
 /// server. Stashes the handle to the stream, as well as the core
 /// event information that will be a part of all events, in a global
 /// static reference for access later.
-///
-/// TODO (DM): It is unfortunate we have to pass a handle to the tokio runtime here. It would be
-/// more idiomatic if we spawned a single top level future and used tokio::spawn within that future.
-pub fn init_stream(config: EventStreamConfig,
-                   event_core: EventCore,
-                   runtime: &Handle)
-                   -> Result<()> {
-    // call_once can't return a Result (or anything), so we'll fake it
-    // by hanging onto any error we might receive.
-    let mut return_value: Result<()> = Ok(());
-
-    INIT.call_once(|| {
-            let conn_info = EventStreamConnectionInfo::new(&event_core.supervisor_id, config);
-            match stream::init_stream(conn_info, runtime) {
-                Ok(event_stream) => {
-                    EVENT_STREAM.set(EventStreamContainer::new(event_stream));
-                    EVENT_CORE.set(event_core);
-                }
-                Err(e) => return_value = Err(e),
-            }
-        });
-
-    return_value
-}
-
-/// Stop the event stream future so we can gracefully shutdown the runtime.
-///
-/// `init_stream` and `stop_stream` cannot be called more than once. The singleton event stream can
-/// only be set once. If `init_stream` is called after calling `stop_stream` no new event stream
-/// will be started.
-pub fn stop_stream() {
-    if let Some(e) = EVENT_STREAM.try_get::<EventStreamContainer>() {
-        if let Some(h) = e.lock().handle.take() {
-            h.abort();
-        }
+pub async fn init(sys: &Sys, fqdn: String, config: EventStreamConfig) -> Result<()> {
+    // Only initialize once
+    if !initialized() {
+        let supervisor_id = sys.member_id.clone();
+        let ip_address = sys.gossip_listen();
+        let event_core = EventCore::new(&supervisor_id, ip_address, &fqdn, &config);
+        let stream = NatsMessageStream::new(&supervisor_id, config).await?;
+        NATS_MESSAGE_STREAM.set(stream);
+        EVENT_CORE.set(event_core);
     }
+    Ok(())
 }
 
 /// Captures all event stream-related configuration options that would
@@ -115,7 +92,7 @@ pub struct EventStreamConfig {
     site:               Option<String>,
     meta:               EventStreamMetadata,
     token:              AutomateAuthToken,
-    url:                String,
+    url:                Address,
     connect_method:     EventStreamConnectMethod,
     server_certificate: Option<EventStreamServerCertificate>,
 }
@@ -132,72 +109,18 @@ impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
                             meta:               EventStreamMetadata::from(m),
                             token:              AutomateAuthToken::from(m),
                             url:                m.value_of("EVENT_STREAM_URL")
-                                                 .map(str::to_string)
-                                                 .expect("Required option for EventStream feature"),
+                                                 .expect("Required option for EventStream feature")
+                                                 .parse()
+                                                 .expect("To parse NATS address"),
                             connect_method:     EventStreamConnectMethod::from(m),
                             server_certificate: EventStreamServerCertificate::from_arg_matches(m), }
     }
 }
 
-/// All the information needed to establish a connection to a NATS
-/// Streaming server.
-pub struct EventStreamConnectionInfo {
-    pub name:               String,
-    pub verbose:            bool,
-    pub cluster_uri:        String,
-    pub auth_token:         AutomateAuthToken,
-    pub connect_method:     EventStreamConnectMethod,
-    pub server_certificate: Option<EventStreamServerCertificate>,
-}
-
-impl EventStreamConnectionInfo {
-    pub fn new(supervisor_id: &str, config: EventStreamConfig) -> Self {
-        EventStreamConnectionInfo { name:               format!("hab_client_{}", supervisor_id),
-                                    verbose:            true,
-                                    cluster_uri:        config.url,
-                                    auth_token:         config.token,
-                                    connect_method:     config.connect_method,
-                                    server_certificate: config.server_certificate, }
-    }
-}
-
-/// A collection of data that will be present in all events. Rather
-/// than baking this into the structure of each event, we represent it
-/// once and merge the information into the final rendered form of the
-/// event.
-///
-/// This prevents us from having to thread information throughout the
-/// system, just to get it to the places where the events are
-/// generated (e.g., not all code has direct access to the
-/// Supervisor's ID).
-#[derive(Clone, Debug)]
-pub struct EventCore {
-    /// The unique identifier of the Supervisor sending the event.
-    supervisor_id: String,
-    ip_address: SocketAddr,
-    fqdn: String,
-    application: String,
-    environment: String,
-    site: Option<String>,
-    meta: EventStreamMetadata,
-}
-
-impl EventCore {
-    pub fn new(config: &EventStreamConfig, sys: &Sys, fqdn: String) -> Self {
-        EventCore { supervisor_id: sys.member_id.clone(),
-                    ip_address: sys.gossip_listen(),
-                    fqdn,
-                    environment: config.environment.clone(),
-                    application: config.application.clone(),
-                    site: config.site.clone(),
-                    meta: config.meta.clone() }
-    }
-}
-
 /// Send an event for the start of a Service.
 pub fn service_started(service: &Service) {
-    if stream_initialized() {
-        publish(SERVICE_STARTED_SUBJECT,
+    if initialized() {
+        publish(&SERVICE_STARTED_SUBJECT,
                 ServiceStartedEvent { service_metadata: Some(service.to_service_metadata()),
                                       event_metadata:   None, });
     }
@@ -205,8 +128,8 @@ pub fn service_started(service: &Service) {
 
 /// Send an event for the stop of a Service.
 pub fn service_stopped(service: &Service) {
-    if stream_initialized() {
-        publish(SERVICE_STOPPED_SUBJECT,
+    if initialized() {
+        publish(&SERVICE_STOPPED_SUBJECT,
                 ServiceStoppedEvent { service_metadata: Some(service.to_service_metadata()),
                                       event_metadata:   None, });
     }
@@ -214,8 +137,8 @@ pub fn service_stopped(service: &Service) {
 
 /// Send an event at the start of a Service update.
 pub fn service_update_started(service: &Service, update: &PackageIdent) {
-    if stream_initialized() {
-        publish(SERVICE_UPDATE_STARTED_SUBJECT,
+    if initialized() {
+        publish(&SERVICE_UPDATE_STARTED_SUBJECT,
                 ServiceUpdateStartedEvent { event_metadata:       None,
                                             service_metadata:
                                                 Some(service.to_service_metadata()),
@@ -230,7 +153,7 @@ pub fn health_check(metadata: ServiceMetadata,
                     health_check_result: HealthCheckResult,
                     health_check_hook_status: HealthCheckHookStatus,
                     health_check_interval: HealthCheckInterval) {
-    if stream_initialized() {
+    if initialized() {
         let health_check_result: types::HealthCheckResult = health_check_result.into();
         let maybe_duration = health_check_hook_status.maybe_duration();
         let maybe_process_output = health_check_hook_status.maybe_process_output();
@@ -242,7 +165,7 @@ pub fn health_check(metadata: ServiceMetadata,
 
         let prost_interval = ProstDuration::from(Duration::from(health_check_interval));
 
-        publish(HEALTHCHECK_SUBJECT,
+        publish(&HEALTHCHECK_SUBJECT,
                 HealthCheckEvent { service_metadata: Some(metadata),
                                    event_metadata: None,
                                    result: i32::from(health_check_result),
@@ -256,18 +179,55 @@ pub fn health_check(metadata: ServiceMetadata,
 
 ////////////////////////////////////////////////////////////////////////
 
+/// A collection of data that will be present in all events. Rather
+/// than baking this into the structure of each event, we represent it
+/// once and merge the information into the final rendered form of the
+/// event.
+///
+/// This prevents us from having to thread information throughout the
+/// system, just to get it to the places where the events are
+/// generated (e.g., not all code has direct access to the
+/// Supervisor's ID).
+#[derive(Clone, Debug)]
+struct EventCore {
+    /// The unique identifier of the Supervisor sending the event.
+    supervisor_id: String,
+    ip_address: SocketAddr,
+    fqdn: String,
+    application: String,
+    environment: String,
+    site: Option<String>,
+    meta: EventStreamMetadata,
+}
+
+impl EventCore {
+    fn new(supervisor_id: &str,
+           ip_address: SocketAddr,
+           fqdn: &str,
+           config: &EventStreamConfig)
+           -> Self {
+        EventCore { supervisor_id: String::from(supervisor_id),
+                    ip_address,
+                    fqdn: String::from(fqdn),
+                    environment: config.environment.clone(),
+                    application: config.application.clone(),
+                    site: config.site.clone(),
+                    meta: config.meta.clone() }
+    }
+}
+
 /// Internal helper function to know whether or not to go to the trouble of
 /// creating event structures. If the event stream hasn't been
 /// initialized, then we shouldn't need to do anything.
-fn stream_initialized() -> bool { EVENT_STREAM.try_get::<EventStreamContainer>().is_some() }
+fn initialized() -> bool { NATS_MESSAGE_STREAM.try_get().is_some() }
 
 /// Publish an event. This is the main interface that client code will
 /// use.
 ///
 /// If `init_stream` has not been called already, this function will
 /// be a no-op.
-fn publish(subject: &'static str, mut event: impl EventMessage) {
-    if let Some(e) = EVENT_STREAM.try_get::<EventStreamContainer>() {
+fn publish(subject: &'static Subject, mut event: impl EventMessage) {
+    if let Some(stream) = NATS_MESSAGE_STREAM.try_get() {
         // TODO (CM): Yeah... this is looking pretty gross. The
         // intention is to be able to timestamp the events right as
         // they go out.
@@ -282,51 +242,17 @@ fn publish(subject: &'static str, mut event: impl EventMessage) {
         debug!("Publishing to event stream: event {:?} ", event);
         event.event_metadata(EventMetadata { occurred_at:
                                                  Some(std::time::SystemTime::now().into()),
-                                             ..EVENT_CORE.get::<EventCore>().to_event_metadata() });
+                                             ..EVENT_CORE.get().to_event_metadata() });
 
-        let packet = EventPacket::new(subject, event.to_bytes());
-        e.lock().send(packet);
-    }
-}
-
-/// The subject and payload of an event message.
-#[derive(Debug)]
-struct EventPacket {
-    subject: &'static str,
-    payload: Vec<u8>,
-}
-
-impl EventPacket {
-    fn new(subject: &'static str, payload: Vec<u8>) -> Self { Self { subject, payload } }
-}
-
-/// A lightweight handle for the event stream. All events get to the
-/// event stream through this.
-struct EventStream {
-    sender: Sender<EventPacket>,
-    handle: Option<AbortHandle>,
-}
-
-impl EventStream {
-    fn new(sender: Sender<EventPacket>, handle: AbortHandle) -> Self {
-        Self { sender,
-               handle: Some(handle) }
-    }
-
-    /// Queues an event to be sent out.
-    fn send(&mut self, event_packet: EventPacket) {
-        trace!("About to queue an event: {:?}", event_packet);
-        // If the server is down, the event stream channel may fill up. If this happens we are ok
-        // dropping events.
-        if let Err(e) = self.sender.try_send(event_packet) {
-            error!("Failed to queue event: {}", e);
-        }
+        let packet = NatsMessage::new(subject, event.to_bytes());
+        stream.send(packet);
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{nats_message_stream::NatsMessageStream,
+                *};
     use crate::prost::Message;
     use futures::{channel::mpsc as futures_mpsc,
                   stream::StreamExt};
@@ -340,10 +266,8 @@ mod tests {
     #[tokio::test]
     #[cfg(any(unix, windows))]
     async fn health_check_event() {
-        let (tx, rx) = futures_mpsc::channel(4);
-        let event_stream = EventStream { sender: tx,
-                                         handle: None, };
-        EVENT_STREAM.set(EventStreamContainer::new(event_stream));
+        let (tx, rx) = futures_mpsc::unbounded();
+        NATS_MESSAGE_STREAM.set(NatsMessageStream(tx));
         EVENT_CORE.set(EventCore { supervisor_id: String::from("supervisor_id"),
                                    ip_address:    "127.0.0.1:8080".parse().unwrap(),
                                    fqdn:          String::from("fqdn"),
@@ -385,7 +309,7 @@ mod tests {
                      HealthCheckInterval::default());
         let events = rx.take(4).collect::<Vec<_>>().await;
 
-        let event = HealthCheckEvent::decode(events[0].payload.as_slice()).unwrap();
+        let event = HealthCheckEvent::decode(events[0].payload()).unwrap();
         assert_eq!(event.result, 0);
         assert_eq!(event.execution, None);
         assert_eq!(event.exit_status, None);
@@ -398,14 +322,14 @@ mod tests {
 
         assert_eq!(event.interval, prost_interval_option);
 
-        let event = HealthCheckEvent::decode(events[1].payload.as_slice()).unwrap();
+        let event = HealthCheckEvent::decode(events[1].payload()).unwrap();
         assert_eq!(event.result, 1);
         assert_eq!(event.execution.unwrap().seconds, 5);
         assert_eq!(event.exit_status, None);
         assert_eq!(event.stdout, None);
         assert_eq!(event.stderr, None);
 
-        let event = HealthCheckEvent::decode(events[2].payload.as_slice()).unwrap();
+        let event = HealthCheckEvent::decode(events[2].payload()).unwrap();
         assert_eq!(event.result, 2);
         assert_eq!(event.execution.unwrap().seconds, 10);
         #[cfg(windows)]
@@ -416,7 +340,7 @@ mod tests {
         assert_eq!(event.stdout, Some(String::from("stdout")));
         assert_eq!(event.stderr, Some(String::from("stderr")));
 
-        let event = HealthCheckEvent::decode(events[3].payload.as_slice()).unwrap();
+        let event = HealthCheckEvent::decode(events[3].payload()).unwrap();
         assert_eq!(event.result, 3);
         assert_eq!(event.execution.unwrap().seconds, 15);
         #[cfg(windows)]

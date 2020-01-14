@@ -38,7 +38,6 @@ use crate::{census::{CensusRing,
             error::{Error,
                     Result},
             event::{self,
-                    EventCore,
                     EventStreamConfig},
             http_gateway,
             VERSION};
@@ -620,11 +619,12 @@ impl Manager {
                 sys_ip: IpAddr)
                 -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
-        let runtime = RuntimeBuilder::new().threaded_scheduler()
-                                           .num_threads(TokioThreadCount::configured_value().into())
-                                           .enable_all()
-                                           .build()
-                                           .expect("Couldn't build Tokio Runtime!");
+        let mut runtime =
+            RuntimeBuilder::new().threaded_scheduler()
+                                 .num_threads(TokioThreadCount::configured_value().into())
+                                 .enable_all()
+                                 .build()
+                                 .expect("Couldn't build Tokio Runtime!");
         let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
         outputln!("{} ({})", SUP_PKG_IDENT, current);
         let cfg_static = cfg.clone();
@@ -690,10 +690,7 @@ impl Manager {
             let fqdn = habitat_core::os::net::fqdn().unwrap_or_else(|| sys.hostname.clone());
             outputln!("Event FQDN {}", fqdn);
 
-            let ec = EventCore::new(&es_config, &sys, fqdn);
-            // unwrap won't fail here; if there were an issue, from_env()
-            // would have already propagated an error up the stack.
-            event::init_stream(es_config, ec, runtime.handle())?;
+            runtime.block_on(event::init(&sys, fqdn, es_config))?;
         }
 
         let pid_source = ServicePidSource::determine_source(cfg.feature_flags, &launcher);
@@ -1213,8 +1210,6 @@ impl Manager {
                     .block_on(service_stop_futures.collect::<Vec<_>>());
             }
         }
-
-        event::stop_stream();
 
         release_process_lock(&self.fs_cfg);
         self.butterfly.persist_data_rsr_mlr();
