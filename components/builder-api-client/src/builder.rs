@@ -510,6 +510,27 @@ impl BuilderAPIProvider for BuilderAPIClient {
             .ok_if(&[StatusCode::NO_CONTENT])
     }
 
+    /// Transfer ownership of an origin to a new account
+    ///
+    ///  # Failures
+    ///
+    ///  * Remote builder is not available
+    ///  * Origin is not owned by the account of auth token
+    ///  * Account is not a member of the origin
+    ///  * Account does not exist
+    ///  * Origin does not exist
+    fn transfer_origin(&self, origin: &str, token: &str, account: &str) -> Result<()> {
+        debug!("Transferring ownership of {} origin to {}", origin, account);
+
+        let path = format!("depot/origins/{}/transfer/{}", origin, account);
+
+        self.0
+            .post(&path)
+            .bearer_auth(token)
+            .send()?
+            .ok_if(&[StatusCode::NO_CONTENT])
+    }
+
     /// List all secrets keys for an origin
     ///
     /// # Failures
