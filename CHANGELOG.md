@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.64 -->
-## [0.90.64](https://github.com/habitat-sh/habitat/tree/0.90.64) (2020-01-14)
+<!-- latest_release 0.90.65 -->
+## [0.90.65](https://github.com/habitat-sh/habitat/tree/0.90.65) (2020-01-14)
 
 #### Merged Pull Requests
-- Disable brew cleanup for mac builds [#7333](https://github.com/habitat-sh/habitat/pull/7333) ([smacfarlane](https://github.com/smacfarlane))
+- Fix setting SSL_CERT_FILE in studio when the cert isn&#39;t cached [#7259](https://github.com/habitat-sh/habitat/pull/7259) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -19,12 +19,14 @@
 - Add PIDS_FROM_LAUNCHER feature to eliminate service PID files [#7214](https://github.com/habitat-sh/habitat/pull/7214) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.22 -->
 
 #### Bug Fixes
+- Fix rolling updates after the death of group members [#7167](https://github.com/habitat-sh/habitat/pull/7167) ([mwrock](https://github.com/mwrock)) <!-- 0.90.65 -->
 - The initial event stream connect attempt will not block the main thread when --event-stream-connect-timeout=0 [#7293](https://github.com/habitat-sh/habitat/pull/7293) ([davidMcneil](https://github.com/davidMcneil))
 - Event stream messages are always immediately processed (even when disconnected). This prevents a "thundering herd" of messages on reconnect. [#7293](https://github.com/habitat-sh/habitat/pull/7293) ([davidMcneil](https://github.com/davidMcneil))
 - do not attempt to set binlink path if not in an elevated console [#7319](https://github.com/habitat-sh/habitat/pull/7319) ([mwrock](https://github.com/mwrock)) <!-- 0.90.58 -->
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Fix setting SSL_CERT_FILE in studio when the cert isn&#39;t cached [#7259](https://github.com/habitat-sh/habitat/pull/7259) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.65 -->
 - Disable brew cleanup for mac builds [#7333](https://github.com/habitat-sh/habitat/pull/7333) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.64 -->
 - Ignore &#39;release&#39; component of version if downloading from packages.chef.io [#7299](https://github.com/habitat-sh/habitat/pull/7299) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.63 -->
 - Catch choco pack n publish errors [#7330](https://github.com/habitat-sh/habitat/pull/7330) ([mwrock](https://github.com/mwrock)) <!-- 0.90.62 -->
