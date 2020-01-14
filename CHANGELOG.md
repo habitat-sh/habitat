@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.62 -->
-## [0.90.62](https://github.com/habitat-sh/habitat/tree/0.90.62) (2020-01-14)
+<!-- latest_release 0.90.63 -->
+## [0.90.63](https://github.com/habitat-sh/habitat/tree/0.90.63) (2020-01-14)
 
 #### Merged Pull Requests
-- Catch choco pack n publish errors [#7330](https://github.com/habitat-sh/habitat/pull/7330) ([mwrock](https://github.com/mwrock))
+- Ignore &#39;release&#39; component of version if downloading from packages.chef.io [#7299](https://github.com/habitat-sh/habitat/pull/7299) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -25,6 +25,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Ignore &#39;release&#39; component of version if downloading from packages.chef.io [#7299](https://github.com/habitat-sh/habitat/pull/7299) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.63 -->
 - Catch choco pack n publish errors [#7330](https://github.com/habitat-sh/habitat/pull/7330) ([mwrock](https://github.com/mwrock)) <!-- 0.90.62 -->
 - Update event stream to use rants client library [#7293](https://github.com/habitat-sh/habitat/pull/7293) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.61 -->
 - Deploy the web site with expeditor [#7273](https://github.com/habitat-sh/habitat/pull/7273) ([raskchanky](https://github.com/raskchanky)) <!-- 0.90.60 -->
