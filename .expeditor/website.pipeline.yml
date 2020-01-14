@@ -16,7 +16,7 @@ expeditor:
 steps:
   - label: "Deploy the website :pen:"
     command:
-      - AWS_PROFILE=habitat .expeditor/scripts/website-deploy.sh production
+      - AWS_PROFILE=habitat .expeditor/scripts/website-deploy.sh live
     expeditor:
       executor:
         docker:
