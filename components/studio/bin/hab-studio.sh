@@ -883,8 +883,12 @@ chroot_env() {
 
   if [ -n "${SSL_CERT_FILE:-}" ] \
   && [ -z "${NO_MOUNT}" ] \
-  && [ -z "${NO_CERT_PATH}" ]; then 
-    env="$env SSL_CERT_FILE=${HAB_CACHE_CERT_PATH}/$($bb basename "$SSL_CERT_FILE")"
+  && [ -z "${NO_CERT_PATH}" ]; then
+    studio_ssl_cert_file="${HAB_CACHE_CERT_PATH}/$($bb basename "$SSL_CERT_FILE")"
+    # Only set SSL_CERT_FILE inside the studio if the file is present in the cache
+    if [ -f "${HAB_STUDIO_ROOT}/${studio_ssl_cert_file}" ]; then
+      env="$env SSL_CERT_FILE=${studio_ssl_cert_file}"
+    fi
   fi
 
   env="$env $(load_secrets)"

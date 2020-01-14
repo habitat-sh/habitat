@@ -117,3 +117,23 @@ Context "SSL_CERT_FILE is passed into the studio" {
         }
     }
 }
+
+Write-Host "--- Testing SSL_CERT_FILE is not set"
+
+Context "SSL_CERT_FILE isn't set" {
+    BeforeEach { 
+        Cleanup-CachedCertificate
+        # Ensure SSL_CERT_FILE isn't set
+        Remove-Item Env:\SSL_CERT_FILE
+        hab studio rm
+        hab pkg uninstall core/hab-studio
+    }
+
+    Describe "Studio is auto-installed on first run" {
+
+        It "Should not set SSL_CERT_FILE in the studio" {
+            $result = hab studio run '$env:SSL_CERT_FILE -eq $null'
+            $result[-1]| Should -be "True"
+        }
+    }
+}
