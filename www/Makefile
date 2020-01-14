@@ -12,24 +12,13 @@ clean:
 run: build
 	BUILDER_WEB_URL="http://localhost:3000" GITHUB_APP_URL="https://github.com/apps/habitat-builder" bundle exec middleman serve
 
-sync: build check-env
-	bundle exec middleman s3_sync
-.PHONY: sync
+deploy_live: check-env
+	cd ..; .expeditor/scripts/website-deploy.sh live
+.PHONY: deploy_live
 
-purge_cache: check-env
-	curl -H "Fastly-Key: ${FASTLY_API_KEY}" -X POST "https://api.fastly.com/service/${FASTLY_SERVICE_KEY}/purge_all"
-
-prep:
-	sed -i'' '/^Disallow:/ s/$$/ \//' build/robots.txt
-	zip -r website.zip build
-
-deploy: build sync purge_cache
-
-acceptance: build prep
-	curl -H "Content-Type: application/zip" \
-    -H "Authorization: Bearer $(NETLIFYKEY)" \
-    --data-binary "@website.zip" \
-    --url "https://api.netlify.com/api/v1/sites/habitat-acceptance.netlify.com/deploys"
+deploy_acceptance: check-env
+	cd ..; .expeditor/scripts/website-deploy.sh acceptance
+.PHONY: deploy_acceptance
 
 cli_docs:
 	hab studio run "hab pkg install core/hab-studio && \
@@ -49,14 +38,8 @@ template_reference:
 	rm -rf tmp
 
 check-env:
-ifndef AWS_BUCKET
-	$(error AWS_BUCKET is undefined)
-endif
 ifndef AWS_DEFAULT_REGION
 	$(error AWS_DEFAULT_REGION is undefined)
-endif
-ifndef FASTLY_API_KEY
-	$(error FASTLY_API_KEY is undefined)
 endif
 ifndef FASTLY_SERVICE_KEY
 	$(error FASTLY_SERVICE_KEY is undefined)

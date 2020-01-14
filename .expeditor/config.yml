@@ -28,7 +28,6 @@ pipelines:
       description: Pull Request validation tests
   - website:
       description: Deploy the website
-      trigger: pull_request
   - release_habitat:
       description: Habitat release process
   - end_to_end:
@@ -55,6 +54,8 @@ subscriptions:
       - built_in:bump_version
       - built_in:update_changelog
       - trigger_pipeline:release_habitat:
+          only_if: built_in:bump_version
+      - trigger_pipeline:website:
           only_if: built_in:bump_version
 
   # Responses to Release Pipeline

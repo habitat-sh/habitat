@@ -1,15 +1,25 @@
+expeditor:
+  secrets:
+    FASTLY_API_KEY:
+      path: account/static/fastly/eng-services-ops
+      field: token
+  accounts:
+    - aws/chef-cd
+    - aws/habitat
+  defaults:
+    buildkite:
+      timeout_in_minutes: 30
+      env:
+        FASTLY_SERVICE_KEY: "T32H9RqMWpCV9qhp3S9xq"
+        AWS_DEFAULT_REGION: "us-west-2"
+
 steps:
   - label: "Deploy the website :pen:"
     command:
-      - echo "No op! Enable the pipeline"
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+      - AWS_PROFILE=habitat .expeditor/scripts/website-deploy.sh live
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
     retry:
       automatic:
