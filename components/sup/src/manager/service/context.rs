@@ -313,10 +313,6 @@ impl<'a> Serialize for Svc<'a> {
         map.serialize_entry("service", &self.service_group.service())?;
         map.serialize_entry("group", &self.service_group.group())?;
         map.serialize_entry("org", &self.service_group.org())?;
-        // TODO (CM): need to add application, environment (to
-        // maintain parity with SvcMember; see below), as well as the
-        // complete service_group as a string.
-
         map.serialize_entry("election_is_running",
                             &(self.election_status.as_ref()
                               == &ElectionStatus::ElectionInProgress))?;

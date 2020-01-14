@@ -327,7 +327,6 @@ mod test {
         let toml = r#"
             ident = "origin/name/1.2.3/20170223130020"
             group = "jobs"
-            application_environment = "theinternet.preprod"
             bldr_url = "http://example.com/depot"
             topology = "leader"
             update_strategy = "rolling"
@@ -470,7 +469,6 @@ mod test {
         let toml = r#"
             ident = "origin/name/1.2.3/20170223130020"
             group = "jobs"
-            application_environment = "theinternet.preprod"
             bldr_url = "http://example.com/depot"
             topology = "leader"
             update_strategy = "rolling"
@@ -511,7 +509,6 @@ mod test {
         let toml = r#"
             ident = "origin/name/1.2.3/20170223130020"
             group = "jobs"
-            application_environment = "theinternet.preprod"
             bldr_url = "http://example.com/depot"
             topology = "leader"
             update_strategy = "rolling"
@@ -725,5 +722,46 @@ mod test {
             }
             Ok(_) => panic!("Spec should not validate"),
         }
+    }
+
+    /// This is to support backward compatibility with the old
+    /// application/environment functionality that is being removed.
+    #[test]
+    fn service_spec_with_app_env_is_properly_upgraded_from_str() {
+        let toml = r#"
+            ident = "origin/name/1.2.3/20170223130020"
+            group = "jobs"
+            application_environment = "theinternet.preprod"
+            bldr_url = "http://example.com/depot"
+            topology = "leader"
+            update_strategy = "rolling"
+            binds = ["cache:app.env#redis.cache@acmecorp", "db:app.env#postgres.app@acmecorp"]
+            config_from = "/only/for/development"
+
+            [health_check_interval]
+            secs = 5
+            nanos = 0
+            "#;
+
+        // The presence of application_environment is fine, and is
+        // basically ignored.
+        let spec = ServiceSpec::from_str(toml).unwrap();
+
+        assert_eq!(spec.ident,
+                   PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap());
+        assert_eq!(spec.group, String::from("jobs"));
+
+        assert_eq!(spec.bldr_url, String::from("http://example.com/depot"));
+        assert_eq!(spec.topology, Topology::Leader);
+        assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
+
+        // Any app/env in binds are removed.
+        assert_eq!(spec.binds,
+                   vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
+                        ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),]);
+        assert_eq!(spec.config_from,
+                   Some(PathBuf::from("/only/for/development")));
+        assert_eq!(spec.health_check_interval,
+                   HealthCheckInterval::from_str("5").unwrap());
     }
 }

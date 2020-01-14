@@ -12,6 +12,14 @@ use std::{fmt,
           time::Duration};
 
 lazy_static::lazy_static! {
+    // Note that the application_environment portion of the patern is
+    // here only for a bit of backward compatibility as we remove that
+    // old feature. It is NOT to actually be used anymore.
+    //
+    // By keeping it around, we're able to "translate" names that
+    // contained application and environment information into ones
+    // that don't. In other words, this allows us to ignore that
+    // information.
     static ref SG_FROM_STR_RE: Regex =
         Regex::new(r"\A((?P<application_environment>[^#@]+)#)?(?P<service>[^#@.]+)\.(?P<group>[^#@.]+)(@(?P<organization>[^#@.]+))?\z").unwrap();
 
@@ -304,24 +312,6 @@ mod test {
     }
 
     #[test]
-    fn service_group_from_str_with_app() {
-        let x = ServiceGroup::from_str("oz.prod#foo.bar").unwrap();
-        assert_eq!(x.service(), "foo");
-        assert_eq!(x.group(), "bar");
-        assert!(x.org().is_none());
-    }
-
-    #[test]
-    fn service_group_from_str_with_app_and_org() {
-        let x = ServiceGroup::from_str("oz.prod#foo.bar@baz").unwrap();
-        assert_eq!(x.service(), "foo");
-        assert_eq!(x.group(), "bar");
-        assert_eq!(x.org(), Some("baz"));
-
-        assert!(ServiceGroup::from_str("f#o#o.bar@baz").is_err());
-    }
-
-    #[test]
     fn service_group_from_str_no_group() {
         let group = "foo@baz";
         match ServiceGroup::from_str(group) {
@@ -421,12 +411,12 @@ mod test {
 
     #[test]
     fn service_bind_from_str() {
-        let bind_str = "name:app.env#service.group@organization";
+        let bind_str = "name:service.group@organization";
         let bind = ServiceBind::from_str(bind_str).unwrap();
 
         assert_eq!(bind.name, String::from("name"));
         assert_eq!(bind.service_group,
-                   ServiceGroup::from_str("app.env#service.group@organization").unwrap());
+                   ServiceGroup::from_str("service.group@organization").unwrap());
     }
 
     #[test]
@@ -498,13 +488,12 @@ mod test {
             key: ServiceBind,
         }
         let toml = r#"
-            key = "redis:cache.redis#service.group@organization"
+            key = "redis:service.group@organization"
             "#;
         let data: Data = toml::from_str(toml).unwrap();
 
         assert_eq!("redis", data.key.name());
-        let sg = ServiceGroup::from_str("cache.redis#service.group@organization")
-            .expect("good service group");
+        let sg = ServiceGroup::from_str("service.group@organization").expect("good service group");
         assert_eq!(sg, *data.key.service_group());
     }
 
@@ -544,5 +533,55 @@ mod test {
     fn health_check_interval_display() {
         assert_eq!("(5s)".to_owned(),
                    format!("{}", HealthCheckInterval::from_str("5").unwrap()));
+    }
+
+    /// This ensures that we can safely transition from the old
+    /// application/environment formulation of service group
+    /// names. Once this has been in the wild for a while, we can
+    /// remove it.
+    #[test]
+    fn service_group_with_app_and_env_is_converted_to_one_without() {
+        let sg = ServiceGroup::from_str("app.env#foo.bar@baz").expect("should still be able to \
+                                                                       accommodate app/env in \
+                                                                       service group name");
+        assert_eq!(sg.service(), "foo");
+        assert_eq!(sg.group(), "bar");
+        assert_eq!(sg.org(), Some("baz"));
+
+        assert_eq!(sg,
+                   ServiceGroup::from_str("foo.bar@baz").unwrap(),
+                   "should be the same as a service group without app/env (i.e., app/env is \
+                    ignored");
+    }
+
+    /// This just ensures backward compatibility as we remove the
+    /// application/environment feature
+    #[test]
+    fn service_bind_with_app_env_from_str_still_works() {
+        let bind_str = "name:app.env#service.group@organization";
+        let bind = ServiceBind::from_str(bind_str).unwrap();
+
+        assert_eq!(bind.name, String::from("name"));
+        assert_eq!(bind.service_group,
+                   ServiceGroup::from_str("service.group@organization").unwrap());
+    }
+
+    /// This just ensures backward compatibility as we remove the
+    /// application/environment feature
+    #[test]
+    fn service_bind_with_app_env_toml_deserialize_still_works() {
+        #[derive(Deserialize)]
+        struct Data {
+            key: ServiceBind,
+        }
+        let toml = r#"
+            key = "redis:app.env#service.group@organization"
+            "#;
+        let data: Data = toml::from_str(toml).unwrap();
+
+        assert_eq!("redis", data.key.name());
+        let sg = ServiceGroup::from_str("service.group@organization").expect("good service group \
+                                                                              without app/env");
+        assert_eq!(sg, *data.key.service_group());
     }
 }

@@ -196,7 +196,8 @@
                 "service",
                 "group",
                 "org"
-            ]
+            ],
+            "additionalProperties": false
         }
     },
     "properties": {

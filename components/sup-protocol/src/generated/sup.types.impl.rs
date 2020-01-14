@@ -1,5 +1,8 @@
 use crate::message;
 
+impl message::MessageStatic for ApplicationEnvironment {
+    const MESSAGE_ID: &'static str = "ApplicationEnvironment";
+}
 impl message::MessageStatic for PackageIdent {
     const MESSAGE_ID: &'static str = "PackageIdent";
 }
