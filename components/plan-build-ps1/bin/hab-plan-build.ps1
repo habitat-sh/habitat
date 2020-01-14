@@ -90,10 +90,15 @@ $script:pkg_name = ""
 $script:pkg_version = ""
 # Each release is a timestamp - `YYYYMMDDhhmmss`
 $script:pkg_release = "$(Get-Date -UFormat "%Y%m%d%H%M%S")"
+
+# pkg_deps and pkg_build_deps are given the AllScope option so that
+# they can be set in scaffolding plans without the need to specify
+# the Script scope
 # The default build deps setting - an empty array
-$script:pkg_build_deps = @()
+New-Variable pkg_build_deps -Scope Script -Option AllScope -Value @()
 # The default runtime deps setting - an empty array
-$script:pkg_deps = @()
+New-Variable pkg_deps -Scope Script -Option AllScope -Value @()
+
 # The path inside a package that contains libraries - used in `LD_RUN_PATH` and
 # `LD_FLAGS`.
 $script:pkg_lib_dirs = @()
