@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.58 -->
-## [0.90.58](https://github.com/habitat-sh/habitat/tree/0.90.58) (2020-01-14)
+<!-- latest_release 0.90.59 -->
+## [0.90.59](https://github.com/habitat-sh/habitat/tree/0.90.59) (2020-01-14)
 
 #### Merged Pull Requests
-- Update futures ecosystem [#7256](https://github.com/habitat-sh/habitat/pull/7256) ([davidMcneil](https://github.com/davidMcneil))
+- ensure dep variables are properly scoped for scaffolding access [#7329](https://github.com/habitat-sh/habitat/pull/7329) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -19,6 +19,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- ensure dep variables are properly scoped for scaffolding access [#7329](https://github.com/habitat-sh/habitat/pull/7329) ([mwrock](https://github.com/mwrock)) <!-- 0.90.59 -->
 - Update futures ecosystem [#7256](https://github.com/habitat-sh/habitat/pull/7256) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.58 -->
 - command with extension takes precedence over extensionless [#7322](https://github.com/habitat-sh/habitat/pull/7322) ([mwrock](https://github.com/mwrock)) <!-- 0.90.58 -->
 - fix erroneous client output when API response is HTTP 200 [#7321](https://github.com/habitat-sh/habitat/pull/7321) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.58 -->
