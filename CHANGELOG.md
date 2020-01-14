@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.57 -->
-## [0.90.57](https://github.com/habitat-sh/habitat/tree/0.90.57) (2020-01-02)
+<!-- latest_release 0.90.58 -->
+## [0.90.58](https://github.com/habitat-sh/habitat/tree/0.90.58) (2020-01-14)
 
 #### Merged Pull Requests
-- emit helpful and actionable output when keys/origins are not found creating a studio [#7320](https://github.com/habitat-sh/habitat/pull/7320) ([mwrock](https://github.com/mwrock))
+- Update futures ecosystem [#7256](https://github.com/habitat-sh/habitat/pull/7256) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -15,9 +15,18 @@
 - Add PIDS_FROM_LAUNCHER feature to eliminate service PID files [#7214](https://github.com/habitat-sh/habitat/pull/7214) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.22 -->
 
 #### Bug Fixes
+- do not attempt to set binlink path if not in an elevated console [#7319](https://github.com/habitat-sh/habitat/pull/7319) ([mwrock](https://github.com/mwrock)) <!-- 0.90.58 -->
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Update futures ecosystem [#7256](https://github.com/habitat-sh/habitat/pull/7256) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.58 -->
+- command with extension takes precedence over extensionless [#7322](https://github.com/habitat-sh/habitat/pull/7322) ([mwrock](https://github.com/mwrock)) <!-- 0.90.58 -->
+- fix erroneous client output when API response is HTTP 200 [#7321](https://github.com/habitat-sh/habitat/pull/7321) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.58 -->
+- fixes #6992 building windows plans with pkg_version function and environment setup [#7318](https://github.com/habitat-sh/habitat/pull/7318) ([mwrock](https://github.com/mwrock)) <!-- 0.90.58 -->
+- Migrates e2e bash tests to powershell [#7310](https://github.com/habitat-sh/habitat/pull/7310) ([mwrock](https://github.com/mwrock)) <!-- 0.90.58 -->
+- fix broken find_command unit test [#7323](https://github.com/habitat-sh/habitat/pull/7323) ([mwrock](https://github.com/mwrock)) <!-- 0.90.58 -->
+- Add some additional logging around update elections [#7288](https://github.com/habitat-sh/habitat/pull/7288) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.58 -->
+- Remove @raskchanky as code owner [#7326](https://github.com/habitat-sh/habitat/pull/7326) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.58 -->
 - emit helpful and actionable output when keys/origins are not found creating a studio [#7320](https://github.com/habitat-sh/habitat/pull/7320) ([mwrock](https://github.com/mwrock)) <!-- 0.90.57 -->
 - force msvc toolchain on windows to fix clippy [#7316](https://github.com/habitat-sh/habitat/pull/7316) ([mwrock](https://github.com/mwrock)) <!-- 0.90.56 -->
 - Revert &quot;Updated Foundation &amp; JQuery&quot; [#7315](https://github.com/habitat-sh/habitat/pull/7315) ([mwrock](https://github.com/mwrock)) <!-- 0.90.55 -->
