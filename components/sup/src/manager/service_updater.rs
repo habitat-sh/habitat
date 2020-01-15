@@ -167,7 +167,7 @@ impl ServiceUpdater {
             Some(&mut UpdaterState::AtOnce(ref mut rx, ref mut kill_tx)) => {
                 match rx.try_recv() {
                     Ok(package) => {
-                        return Some(package.ident.clone());
+                        return Some(package.ident);
                     }
                     Err(TryRecvError::Empty) => return None,
                     Err(TryRecvError::Disconnected) => {
@@ -260,7 +260,7 @@ impl ServiceUpdater {
                         match rx.try_recv() {
                             Ok(package) => {
                                 debug!("Rolling Update, polling found a new package");
-                                ident = Some(package.ident.clone());
+                                ident = Some(package.ident);
                             }
                             Err(TryRecvError::Empty) => return None,
                             Err(TryRecvError::Disconnected) => {
@@ -351,7 +351,7 @@ impl ServiceUpdater {
                             Some(census_group) => {
                                 match rx.try_recv() {
                                     Ok(package) => {
-                                        ident = Some(package.ident.clone());
+                                        ident = Some(package.ident);
                                     }
                                     Err(TryRecvError::Empty) => return None,
                                     Err(TryRecvError::Disconnected) => {

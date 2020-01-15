@@ -1500,10 +1500,10 @@ mod tests {
         let member_list = MemberList::new();
         let rumor_heat = RumorHeat::default();
 
-        member_list.insert_mlw(alive_member.clone(), Health::Alive);
+        member_list.insert_mlw(alive_member, Health::Alive);
         member_list.insert_mlw(confirmed_member.clone(), Health::Confirmed);
 
-        Server::insert_service_impl(confirmed_member_service_rumor.clone(),
+        Server::insert_service_impl(confirmed_member_service_rumor,
                                     &service_store,
                                     &member_list,
                                     &rumor_heat,
@@ -1512,7 +1512,7 @@ mod tests {
         assert_eq!(member_list.health_of_mlr(&confirmed_member),
                    Some(Health::Confirmed));
 
-        Server::insert_service_impl(alive_member_service_rumor.clone(),
+        Server::insert_service_impl(alive_member_service_rumor,
                                     &service_store,
                                     &member_list,
                                     &rumor_heat,
@@ -1532,7 +1532,7 @@ mod tests {
         let member_list = MemberList::new();
         let rumor_heat = RumorHeat::default();
 
-        member_list.insert_mlw(alive_member.clone(), Health::Alive);
+        member_list.insert_mlw(alive_member, Health::Alive);
         // This member will become confirmed later. If it's already Confirmed
         // when inserted, it could be departed immediately
         member_list.insert_mlw(confirmed_member.clone(), Health::Alive);
@@ -1543,7 +1543,7 @@ mod tests {
                                     &rumor_heat,
                                     check_quorum_returns(false));
 
-        Server::insert_service_impl(confirmed_member_service_rumor.clone(),
+        Server::insert_service_impl(confirmed_member_service_rumor,
                                     &service_store,
                                     &member_list,
                                     &rumor_heat,
@@ -1573,10 +1573,10 @@ mod tests {
         let member_list = MemberList::new();
         let rumor_heat = RumorHeat::default();
 
-        member_list.insert_mlw(alive_member.clone(), Health::Alive);
+        member_list.insert_mlw(alive_member, Health::Alive);
         member_list.insert_mlw(confirmed_member.clone(), Health::Confirmed);
 
-        Server::insert_service_impl(confirmed_member_service_rumor.clone(),
+        Server::insert_service_impl(confirmed_member_service_rumor,
                                     &service_store,
                                     &member_list,
                                     &rumor_heat,
@@ -1585,7 +1585,7 @@ mod tests {
         assert_eq!(member_list.health_of_mlr(&confirmed_member),
                    Some(Health::Confirmed));
 
-        Server::insert_service_impl(alive_member_service_rumor.clone(),
+        Server::insert_service_impl(alive_member_service_rumor,
                                     &service_store,
                                     &member_list,
                                     &rumor_heat,

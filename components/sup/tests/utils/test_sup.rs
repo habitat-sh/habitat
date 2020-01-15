@@ -228,7 +228,7 @@ impl TestSup {
         TestSup { hab_root: fs_root.as_ref().to_path_buf(),
                   origin_name: origin,
                   package_name: pkg_name,
-                  service_group: service_group.to_string(),
+                  service_group,
                   http_port,
                   butterfly_port,
                   control_port,

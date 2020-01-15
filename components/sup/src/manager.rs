@@ -1329,7 +1329,7 @@ impl Manager {
         }
 
         if service_states != self.service_states {
-            self.service_states = service_states.clone();
+            self.service_states = service_states;
             true
         } else {
             false
@@ -2063,7 +2063,7 @@ mod test {
         #[test]
         fn identical_specs_yield_no_changes() {
             let specs = vec![new_spec("core/foo"), new_spec("core/bar")];
-            assert!(Manager::specs_to_operations(specs.clone(), specs.clone()).is_empty());
+            assert!(Manager::specs_to_operations(specs.clone(), specs).is_empty());
         }
 
         #[test]
@@ -2185,25 +2185,24 @@ mod test {
             // This should get shut down
             let svc_6_running = new_spec("core/lolwut");
 
-            let running = vec![svc_1_running.clone(),
+            let running = vec![svc_1_running,
                                svc_2_running.clone(),
                                svc_3_running.clone(),
                                svc_6_running.clone(),];
 
-            let on_disk = vec![svc_1_on_disk.clone(),
-                               svc_2_on_disk.clone(),
+            let on_disk = vec![svc_1_on_disk,
+                               svc_2_on_disk,
                                svc_3_on_disk.clone(),
-                               svc_4_on_disk.clone(),
+                               svc_4_on_disk,
                                svc_5_on_disk.clone(),];
 
             let operations = Manager::specs_to_operations(running, on_disk);
 
-            let expected_operations =
-                vec![ServiceOperation::Stop(svc_2_running.clone()),
-                     ServiceOperation::Restart { to_stop:  svc_3_running.clone(),
-                                                 to_start: svc_3_on_disk.clone(), },
-                     ServiceOperation::Start(svc_5_on_disk.clone()),
-                     ServiceOperation::Stop(svc_6_running.clone()),];
+            let expected_operations = vec![ServiceOperation::Stop(svc_2_running),
+                                           ServiceOperation::Restart { to_stop:  svc_3_running,
+                                                                       to_start: svc_3_on_disk, },
+                                           ServiceOperation::Start(svc_5_on_disk),
+                                           ServiceOperation::Stop(svc_6_running),];
 
             // Ideally, we'd just sort `operations` and
             // `expected_operations`, but we can't, since that would

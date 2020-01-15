@@ -254,7 +254,7 @@ pub trait BuilderAPIProvider: Sync + Send {
                     ident_and_target: (&PackageIdent, PackageTarget),
                     package_only: bool,
                     token: &str)
-                    -> Result<(String)>;
+                    -> Result<String>;
 
     fn fetch_rdeps(&self, ident_and_target: (&PackageIdent, PackageTarget)) -> Result<Vec<String>>;
 

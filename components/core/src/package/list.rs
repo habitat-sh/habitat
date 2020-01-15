@@ -120,7 +120,7 @@ pub fn package_list_for_ident(base_pkg_path: &Path,
                                                             active_target,
                                                             &package_path)
             {
-                package_list.push(new_ident.clone())
+                package_list.push(new_ident)
             }
         }
     }
@@ -271,7 +271,7 @@ fn package_ident_from_dir(origin: &str,
 }
 
 fn filename_from_entry(entry: &fs::DirEntry) -> String {
-    entry.file_name().to_string_lossy().into_owned().to_string()
+    entry.file_name().to_string_lossy().into_owned()
 }
 
 fn is_existing_dir(path: &Path) -> Result<bool> {

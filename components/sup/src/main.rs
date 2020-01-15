@@ -353,7 +353,7 @@ fn get_ring_key(m: &ArgMatches, cache_key_path: &Path) -> Result<Option<SymKey>>
 /// (failing those) a default value.
 fn bldr_url(m: &ArgMatches) -> String {
     match bldr_url_from_input(m) {
-        Some(url) => url.to_string(),
+        Some(url) => url,
         None => default_bldr_url(),
     }
 }
@@ -428,7 +428,7 @@ fn get_config_from_input(m: &ArgMatches) -> Option<String> {
         warn!("WARNING: Setting '--config-from' should only be used in development, not \
                production!");
         warn!("");
-        Some(config_from.to_string())
+        Some((*config_from).to_string())
     } else {
         None
     }

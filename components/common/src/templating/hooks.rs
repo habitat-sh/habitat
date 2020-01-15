@@ -735,7 +735,7 @@ echo "The message is Hola Mundo"
                                       Some("1.0.0"),
                                       Some("20170712000000"));
 
-        let pkg_install = PackageInstall::new_from_parts(pg_id.clone(),
+        let pkg_install = PackageInstall::new_from_parts(pg_id,
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"));

@@ -1039,6 +1039,7 @@ mod tests {
                                 Incarnation,
                                 Member,
                                 MemberList};
+            use std::cmp::Ordering;
 
             fn assert_cannot_insert_member_rumor_of_lower_incarnation(from_health: Health,
                                                                       to_health: Health)
@@ -1310,60 +1311,65 @@ mod tests {
 
                 let update_counter_before = ml.get_update_counter();
 
-                if from_health == to_health {
-                    assert!(!ml.insert_mlw(member_one.clone(), to_health),
-                            "Transitioning from {:?} to {:?} (i.e., no change) should be a no-op",
-                            from_health,
-                            to_health);
-                    assert_eq!(ml.get_update_counter(),
-                               update_counter_before,
-                               "Transitioning from {:?} to {:?} (i.e., no change) should not \
-                                increment update counter",
-                               from_health,
-                               to_health);
-                    assert_eq!(ml.health_of_mlr(&member_one)
-                                 .expect("Expected member to exist in health after update, but \
-                                          it didn't"),
-                               from_health,
-                               "Member should have still have initial health {:?}",
-                               from_health);
-                } else if to_health > from_health {
-                    assert!(ml.insert_mlw(member_one.clone(), to_health),
-                            "Transitioning from {:?} to {:?} (i.e., worse health) should NOT be \
-                             a no-op",
-                            from_health,
-                            to_health);
-                    assert_eq!(ml.get_update_counter(),
-                               update_counter_before + 1,
-                               "Transitioning from {:?} to {:?} (i.e., different health) should \
-                                increment update counter by one",
-                               from_health,
-                               to_health);
-                    assert_eq!(ml.health_of_mlr(&member_one)
-                                 .expect("Expected member to exist in health after update, but \
-                                          it didn't"),
-                               to_health,
-                               "Member should have changed health from {:?} to {:?}",
-                               from_health,
-                               to_health);
-                } else {
-                    assert!(!ml.insert_mlw(member_one.clone(), to_health),
-                            "Transitioning from {:?} to {:?} (i.e., no worse health) should be a \
-                             no-op",
-                            from_health,
-                            to_health);
-                    assert_eq!(ml.get_update_counter(),
-                               update_counter_before,
-                               "Transitioning from {:?} to {:?} (i.e., no worse health) should \
-                                not increment update counter",
-                               from_health,
-                               to_health);
-                    assert_eq!(ml.health_of_mlr(&member_one)
-                                 .expect("Expected member to exist in health after update, but \
-                                          it didn't"),
-                               from_health,
-                               "Member should have retained old health {:?}",
-                               from_health);
+                match from_health.cmp(&to_health) {
+                    Ordering::Greater => {
+                        assert!(!ml.insert_mlw(member_one.clone(), to_health),
+                                "Transitioning from {:?} to {:?} (i.e., no worse health) should \
+                                 be a no-op",
+                                from_health,
+                                to_health);
+                        assert_eq!(ml.get_update_counter(),
+                                   update_counter_before,
+                                   "Transitioning from {:?} to {:?} (i.e., no worse health) \
+                                    should not increment update counter",
+                                   from_health,
+                                   to_health);
+                        assert_eq!(ml.health_of_mlr(&member_one)
+                                     .expect("Expected member to exist in health after update, \
+                                              but it didn't"),
+                                   from_health,
+                                   "Member should have retained old health {:?}",
+                                   from_health);
+                    }
+                    Ordering::Less => {
+                        assert!(ml.insert_mlw(member_one.clone(), to_health),
+                                "Transitioning from {:?} to {:?} (i.e., worse health) should NOT \
+                                 be a no-op",
+                                from_health,
+                                to_health);
+                        assert_eq!(ml.get_update_counter(),
+                                   update_counter_before + 1,
+                                   "Transitioning from {:?} to {:?} (i.e., different health) \
+                                    should increment update counter by one",
+                                   from_health,
+                                   to_health);
+                        assert_eq!(ml.health_of_mlr(&member_one)
+                                     .expect("Expected member to exist in health after update, \
+                                              but it didn't"),
+                                   to_health,
+                                   "Member should have changed health from {:?} to {:?}",
+                                   from_health,
+                                   to_health);
+                    }
+                    Ordering::Equal => {
+                        assert!(!ml.insert_mlw(member_one.clone(), to_health),
+                                "Transitioning from {:?} to {:?} (i.e., no change) should be a \
+                                 no-op",
+                                from_health,
+                                to_health);
+                        assert_eq!(ml.get_update_counter(),
+                                   update_counter_before,
+                                   "Transitioning from {:?} to {:?} (i.e., no change) should not \
+                                    increment update counter",
+                                   from_health,
+                                   to_health);
+                        assert_eq!(ml.health_of_mlr(&member_one)
+                                     .expect("Expected member to exist in health after update, \
+                                              but it didn't"),
+                                   from_health,
+                                   "Member should have still have initial health {:?}",
+                                   from_health);
+                    }
                 }
             }
 

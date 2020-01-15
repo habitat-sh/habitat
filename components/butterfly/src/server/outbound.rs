@@ -381,7 +381,7 @@ pub fn ping_mlr_smr_rhw(server: &Server,
                           forward_to: forward_to.cloned(), /* TODO: see if we can eliminate this
                                                             * clone */ };
     let swim = populate_membership_rumors_mlr_rhw(server, target, ping_msg);
-    let bytes = match swim.clone().encode() {
+    let bytes = match swim.encode() {
         Ok(bytes) => bytes,
         Err(e) => {
             error!("Generating protocol message failed: {}", e);
@@ -486,7 +486,7 @@ pub fn ack_mlr_smr_rhw(server: &Server,
                         forward_to: forward_to.map(Member::from), };
     let member_id = ack_msg.from.id.clone();
     let swim = populate_membership_rumors_mlr_rhw(server, target, ack_msg);
-    let bytes = match swim.clone().encode() {
+    let bytes = match swim.encode() {
         Ok(bytes) => bytes,
         Err(e) => {
             error!("Generating protocol message failed: {}", e);

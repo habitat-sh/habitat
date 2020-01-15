@@ -817,7 +817,7 @@ impl Service {
         let mut rumor = ServiceRumor::new(self.sys.member_id.as_str(),
                                           &self.pkg.ident,
                                           self.service_group.clone(),
-                                          self.sys.as_sys_info().clone(),
+                                          self.sys.as_sys_info(),
                                           exported);
         rumor.incarnation = incarnation;
         rumor

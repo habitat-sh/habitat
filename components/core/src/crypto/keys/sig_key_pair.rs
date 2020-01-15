@@ -134,23 +134,21 @@ impl SigKeyPair {
     ///           io::Read};
     /// use tempfile::Builder;
     ///
-    /// fn main() {
-    ///     let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-    ///     let content = "SIG-PUB-1
+    /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+    /// let content = "SIG-PUB-1
     /// unicorn-20160517220007
     ///
     /// J+FGYVKgragA+dzQHCGORd2oLwCc2EvAnT9roz9BJh0=";
-    ///     let key_path = cache.path().join("unicorn-20160517220007.pub");
+    /// let key_path = cache.path().join("unicorn-20160517220007.pub");
     ///
-    ///     let (pair, pair_type) = SigKeyPair::write_file_from_str(content, cache.path()).unwrap();
-    ///     assert_eq!(pair_type, PairType::Public);
-    ///     assert_eq!(pair.name_with_rev(), "unicorn-20160517220007");
-    ///     assert!(key_path.is_file());
-    ///     let mut f = File::open(key_path).unwrap();
-    ///     let mut key_content = String::new();
-    ///     f.read_to_string(&mut key_content).unwrap();
-    ///     assert_eq!(&key_content, content);
-    /// }
+    /// let (pair, pair_type) = SigKeyPair::write_file_from_str(content, cache.path()).unwrap();
+    /// assert_eq!(pair_type, PairType::Public);
+    /// assert_eq!(pair.name_with_rev(), "unicorn-20160517220007");
+    /// assert!(key_path.is_file());
+    /// let mut f = File::open(key_path).unwrap();
+    /// let mut key_content = String::new();
+    /// f.read_to_string(&mut key_content).unwrap();
+    /// assert_eq!(&key_content, content);
     /// ```
     ///
     /// With a secret key:
@@ -165,23 +163,21 @@ impl SigKeyPair {
     ///           io::Read};
     /// use tempfile::Builder;
     ///
-    /// fn main() {
-    ///     let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-    ///     let content = "SIG-SEC-1
+    /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+    /// let content = "SIG-SEC-1
     /// unicorn-20160517220007
     ///
     /// jjQaaphB5+CHw7QzDWqMMuwhWmrrHH+SzQAgRrHfQ8sn4UZhUqCtqAD53NAcIY5F3agvAJzYS8CdP2ujP0EmHQ==";
-    ///     let key_path = cache.path().join("unicorn-20160517220007.sig.key");
+    /// let key_path = cache.path().join("unicorn-20160517220007.sig.key");
     ///
-    ///     let (pair, pair_type) = SigKeyPair::write_file_from_str(content, cache.path()).unwrap();
-    ///     assert_eq!(pair_type, PairType::Secret);
-    ///     assert_eq!(pair.name_with_rev(), "unicorn-20160517220007");
-    ///     assert!(key_path.is_file());
-    ///     let mut f = File::open(key_path).unwrap();
-    ///     let mut key_content = String::new();
-    ///     f.read_to_string(&mut key_content).unwrap();
-    ///     assert_eq!(&key_content, content);
-    /// }
+    /// let (pair, pair_type) = SigKeyPair::write_file_from_str(content, cache.path()).unwrap();
+    /// assert_eq!(pair_type, PairType::Secret);
+    /// assert_eq!(pair.name_with_rev(), "unicorn-20160517220007");
+    /// assert!(key_path.is_file());
+    /// let mut f = File::open(key_path).unwrap();
+    /// let mut key_content = String::new();
+    /// f.read_to_string(&mut key_content).unwrap();
+    /// assert_eq!(&key_content, content);
     /// ```
     ///
     /// # Errors

@@ -293,7 +293,7 @@ two = 2
                             origin:                  Cow::Owned(ident.origin.clone()),
                             name:                    Cow::Owned(ident.name.clone()),
                             version:                 Cow::Owned(ident.version.clone().unwrap()),
-                            release:                 Cow::Owned(ident.release.clone().unwrap()),
+                            release:                 Cow::Owned(ident.release.unwrap()),
                             deps:                    Cow::Owned(deps),
                             env:                     Cow::Owned(env_hash.into()),
                             exposes:                 Cow::Owned(vec!["1234".into(),

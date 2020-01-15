@@ -41,7 +41,7 @@ pub fn start(ui: &mut UI,
     ui.br()?;
 
     let (root, name) = match maybe_name {
-        Some(name) => (name.clone(), name.clone()),
+        Some(name) => (name.clone(), name),
         // The name of the current working directory.
         None => {
             ("habitat".into(),
