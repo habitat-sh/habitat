@@ -7,14 +7,14 @@ sidebar_links:
   - title: Install Chef Habitat
     link: "/docs/install-habitat/install-habitat"
     sub_links:
-    - title: Download the Chef Habitat CLI
-      link: "/docs/install-habitat/install-habitat/#install-habitat"
+    - title: Get Chef Habitat
+      link: "/docs/install-habitat/installing-packages"
     - title: Accept the License
-      link: "/docs/install-habitat/install-habitat/#accept-the-license"
+      link: "/docs/install-habitat/accept-the-license"
     - title: Configure Your Workstation
-      link: "/docs/install-habitat/install-habitat/#configure-workstation"
+      link: "/docs/install-habitat/configure-workstation"
     - title: Download and Install FAQ
-      link: "/docs/install-habitat/install-habitat/#install-faq"
+      link: "/docs/install-habitat/install-faq"
   - title: Developing Packages
     link: "/docs/developing-packages/developing-packages"
     sub_links:
