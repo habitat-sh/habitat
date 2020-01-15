@@ -22,10 +22,7 @@ pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str, account: &s
         }
         Err(api_client::Error::APIError(StatusCode::FORBIDDEN, msg)) => {
             ui.fatal("Failed to transfer origin ownership!")?;
-            // TODO: remove the "the operation has already been completed" phrase
-            // when this issue is closed: https://github.com/habitat-sh/builder/issues/1273
-            ui.fatal("Either you are not the current owner, the operation requested has already \
-                      been completed, or the new owner is not yet a member.")?;
+            ui.fatal("Either you are not the current owner or the new owner is not yet a member.")?;
             Err(Error::APIClient(api_client::Error::APIError(StatusCode::FORBIDDEN, msg)))
         }
         Err(api_client::Error::APIError(StatusCode::UNAUTHORIZED, msg)) => {
