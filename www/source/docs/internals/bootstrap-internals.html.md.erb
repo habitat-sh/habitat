@@ -1,180 +1,15 @@
 ---
-title: Chef Habitat Internals
-description: Chef Habitat Supervisor topologies, cryptography, and bootstrapping
+title: Bootstrapping Chef Habitat
+description:
 ---
 
-# <a name="internals" id="internals" data-magellan-target="internals">Internals</a>
-
-This section will dive into the implementation details of important Chef Habitat components. These topics are for advanced users. It is not necessary to learn these concepts in order to use Chef Habitat.
-
-<<<<<<< HEAD
-## <a name="supervisor-internals" id="supervisor-internals" data-magellan-target="supervisor-internals" type="anchor">Supervisor Internals</a>
-
-The Chef Habitat Supervisor is similar in some ways to well-known process supervisors like [systemd](https://www.freedesktop.org/wiki/Software/systemd/), [runit](http://smarden.org/runit/) or [smf](https://en.wikipedia.org/wiki/Service_Management_Facility). It accepts and passes POSIX signals to its child processes, restarts child processes if and when they fail, ensures that children processes terminate cleanly, and so on.
-
-Because the basic functionality of process supervision is well-known, this document does not discuss those details. Instead, this document focuses strictly on the internals of the feature that makes the Chef Habitat Supervisor special: the fact that each Supervisor is connected to others in a peer-to-peer, masterless network which we refer to as a _ring_. This allows Supervisors to share configuration data with one another and adapt to changing conditions in the ring by modifying their own configuration.
-
-### Architecture
-
-Supervisors are configured to form a network by using the `--peer` argument and pointing them at peers that already exist. In a real-life deployment scenario, Supervisors in a network may also have a shared encryption key, so that inter-Supervisor traffic is encrypted. (See the [security](/docs/glossary/glossary-keys) documentation for more details.)
-
-Supervisor rings can be very large, comprising thousands of supervisors. The Supervisor communication protocol is low-bandwidth and designed to not interfere with your application's actual production traffic.
-
-Rings are divided into _service groups_, each of which has a name. All Supervisors within a service group share the same configuration and topology.
-
-#### Butterfly
-
-Chef Habitat uses a gossip protocol named "Butterfly". It is a variant of [SWIM](http://prakhar.me/articles/swim) for membership and failure detection (over UDP), and a ZeroMQ based variant of [Newscast](http://www.cs.unibo.it/bison/publications/ap2pc03.pdf) for gossip. This protocol provides failure detection, service discovery, and leader election to the Chef Habitat Supervisor.
-
-Butterfly is an eventually consistent system - it says, with a very high degree of probability, that a given piece of information will be received by every member of the network. It makes no guarantees as to when that state will arrive; in practice, the answer is usually "quite quickly".
-
-#### Vocabulary
-
-* _Members_: Butterfly keeps track of "members"; each Chef Habitat Supervisor is a single member.
-* _Peer_: All the members a given member is connected to are its "peers". A member is seeded with a list of "initial peers".
-* _Health_: The status of a given member, from the perspective of its peers.
-* _Rumor_: A piece of data shared with all the members of a ring; examples are election, membership, services, or configuration.
-* _Heat_: How many times a given rumor has been shared with a given member.
-* _Ring_: All the members connected to one another form a Ring.
-* _Incarnation_: A counter used to determine which message is "newer".
-
-#### Transport Protocols
-
-Supervisors communicate with each other using UDP and ZeroMQ, over port 9638.
-
-#### Information Security
-
-Butterfly encrypts traffic on the wire using Curve25519 and a symmetric key. If a ring is configured to use transport level encryption, only members with a matching key are allowed to communicate.
-
-Service Configuration and Files can both be encrypted with public keys.
-
-#### Membership and Failure Detection
-
-Butterfly servers keep track of what members are present in a ring, and are constantly checking each other for failure. Any given member is in one of four health states:
-
-* Alive: this member is responding to health checks.
-* Suspect: this member has stopped responding to our health check, and will be marked confirmed if we do not receive proof it is still alive soon.
-* Confirmed: this member has been un-responsive long enough that we can cease attempting to check its health.
-* Departed: this member has been intentionally kicked out of the ring for behavior unbecoming of a Supervisor, and is prevented from rejoining. This is done via a human operator using the `hab` CLI commands.
-
-The essential flow is:
-
-* Randomize the list of all known members who are not Confirmed or Departed.
-* Every 3.1 seconds, pop a member off the list, and send it a "PING" message.
-* If we receive an "ACK" message before 1 second elapses, the member remains Alive.
-* If we do not receive an "ACK" in 1 second, choose 5 peers (the "PINGREQ targets"), and send them a "PINGREQ(member)" message for the member who failed the PING.
-* If any of our PINGREQ targets receive an ACK, they forward it to us, and the member remains Alive.
-* If we do not receive an ACK via PINGREQ with 2.1 seconds, we mark the member as Suspect, and set an expiration timer of 9.3 seconds.
-* If we do not receive an Alive status for the member within the 9.3 second suspicion expiration window, the member is marked as Confirmed.
-* Move on to the next member, until the list is exhausted; start the process again.
-
-When a Supervisor sends the PING, ACK and PINGREQ messages, it includes information about the 5 most recent members. This enables membership to be gossiped through the failure protocol itself.
-
-This process provides several nice attributes:
-
-* It is resilient to partial network partitions.
-* Due to the expiration of suspected members, confirmation of death spreads quickly.
-* The amount of network traffic generated by a given node is constant, regardless of network size.
-* The protocol uses single UDP packets which fit within 512 bytes.
-
-Butterfly differs from SWIM in the following ways:
-
-* Rather than sending messages to update member state, we send the entire member.
-* We support encryption on the wire.
-* Payloads are protocol buffers.
-* We support "persistent" members - these are members who will continue to have the failure detection protocol run against them, even if they are confirmed dead. This enables the system to heal from long-lived total partitions.
-* Members who are confirmed dead, but who later receive a membership rumor about themselves being suspected or confirmed, respond by spreading an Alive rumor with a higher incarnation. This allows members who return from a partition to re-join the ring gracefully.
-
-#### Gossip
-
-Butterfly uses ZeroMQ to disseminate rumors throughout the network. Its flow:
-
-* Randomize the list of all known members who are not Confirmed dead.
-* Every second, take 5 members from the list.
-* Send each member every rumor that has a Heat lower than 3; update the heat for each rumor sent.
-* When the list is exhausted, start the loop again.
-
-Whats good about this system:
-
-* ZeroMQ provides a scalable PULL socket, that processes incoming messages from multiple peers as a single fair-queue.
-* It has no back-chatter - messages are PUSH-ed to members, but require no receipt acknowledgement.
-* Messages are sent over TCP, giving them some durability guarantees.
-* In common use, the gossip protocol becomes inactive; if there are no rumors to send to a given member, nothing is sent.
-
-### Related reading
-
-* [SWIM: Scalable Weakly-consistent Infection-style Process Group Membership
-Protocol](http://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf) by Abhinandan Das, Indranil Gupta, and Ashish Motivala.
-* [A Robust and Scalable Peer-to-Peer Gossiping Protocol](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.8773&rep=rep1&type=pdf) by Spyros Voulgaris, Mark Jelasity, and Maarten van Steen.
-
----
-## <a name="election-internals" id="election-internals" data-magellan-target="election-internals" type="anchor">Leader Election</a>
-
-The Chef Habitat Supervisor performs leader election natively for service group [topologies](/docs/glossary/glossary-services) that require one, such as _leader-follower_.
-
-Because Chef Habitat is an eventually-consistent distributed system, the role of the leader is different than in strongly-consistent systems. It only serves as the leader for *application level semantics*, e.g. a database write leader. The fact that a Supervisor is a leader has no bearing upon other operations in the Chef Habitat system, including rumor dissemination for configuration updates. It is _not_ akin to a [Raft](https://raft.github.io/) leader, through which writes must all be funneled. This allows for very high scalability of the Chef Habitat Supervisor ring.
-
-Services grouped using a leader need to have a minimum of three supervisors in order to break ties. It is also strongly recommended that you do not run the service group with an even number of members. Otherwise, in the event of a network partition with equal members on each side, both sides will elect a new leader, causing a full split-brain from which the algorithm cannot recover. Supervisors in a service group will warn you if you are using leader election and have an even number of supervisors.
-
-### Protocol for Electing a Leader
-
-When a service group starts in a leader topology, it will wait until there are sufficient members to form a quorum (at least three). At this point, an election cycle can happen. Each Supervisor injects an election rumor into ring, targeted at the service group, with the _exact same_ rumor, which demands an election and insists that the peer itself is the leader. This algorithm is known as [Bully](https://en.wikipedia.org/wiki/Bully_algorithm).
-
-Every peer that receives this rumor does a simple lexicographic comparison of its GUID with the GUID of the peer contained in that rumor. The winner is the peer whose GUID is higher. The peer then adds a vote for the GUID of the winner, and shares the rumor with others, including the total number of votes of anyone who previously voted for this winner.
-
-An election ends when a candidate peer X gets a rumor back from the ring saying that it (X) is the winner, with all members voting. At this point, it sends out a rumor saying it is the declared winner, and the election cycle ends.
-
-### Related Reading
-
-* For more information about the Bully algorithm, see [Elections in a Distributed Computing System](http://dl.acm.org/citation.cfm?id=1309451) by Héctor García-Molina.
-
----
-## <a name="crypto-internals" id="crypto-internals" data-magellan-target="crypto-internals" type="anchor">Cryptography</a>
-
-Chef Habitat implements cryptography using a Rust [implementation](https://github.com/jedisct1/libsodium) of [NaCl](https://nacl.cr.yp.to/) called `libsodium`. `libsodium` provides a fast, modern framework for encryption, decryption, signing, and verification.
-
-Chef Habitat uses both symmetric encryption (for wire encryption) and asymmetric encryption (for everything else). If you are not familiar with the difference between the two, please consult [this article](https://support.microsoft.com/kb/246071).
-
-### Message Encryption
-
-When you have either wire encryption or service group encryption turned on, the messages use the Curve25519, Salsa20, and Poly1305 ciphers specified in [Cryptography in NaCl](http://nacl.cr.yp.to/valid.html).
-
-### Package Signing
-
-Chef Habitat packages are signed using [BLAKE2b](https://blake2.net/) checksums. BLAKE2b is a cryptographic hash function faster than MD5, SHA-1, SHA-2 and SHA3, yet provides at least as much security as the latest standard SHA-3.
-
-You can examine the first four lines of a `.hart` file to extract the signature from it, because it is an `xz`-compressed tarball with a metadata header. The `hab pkg header` command will do this for you.
-
-```bash
-$ hab pkg header somefile.hart
-```
-
-outputs:
-
-```bash
-» Reading package header for somefile.hart
-
-Package        : somefile.hart
-Format Version : HART-1
-Key Name       : myorigin-19780608081445
-Hash Type      : BLAKE2b
-Raw Signature  : a8yDoiA0Mv0CcW6xVyfkSOIZ0LW0beef4RPtvKL56MxemgG6dMVlKG1Ibplp7DUByr5az0kI5dmJKXgK6KURDzM1N2Y2MGMxYWJiMTNlYjQxMjliZTMzNGY0MWJlYTAzYmI4NDZlZzM2MDRhM2Y5M2VlMDkyNDFlYmVmZDk1Yzk=
-```
-
-The `.hart` file format is designed in this way to allow you to extract both the signature and the payload separately for inspection. To extract only the `xz`-compressed content, bypassing the signature, you could type this:
-
-```bash
-$ tail -n +6 somefile.hart | xzcat | tar x
-```
-
----
-## <a name="bootstrap-internals" id="bootstrap-internals" data-magellan-target="bootstrap-internals" type="anchor">Bootstrapping Chef Habitat</a>
+# <a name="bootstrap-internals" id="bootstrap-internals" data-magellan-target="bootstrap-internals" type="anchor">Bootstrapping Chef Habitat</a>
 
 This document provides developer documentation on how the Chef Habitat system becomes self-sustaining. It is built upon the work from the [Linux from Scratch](http://www.linuxfromscratch.org/lfs/) project.
 
 This instructions in this document may become rapidly out-of-date as we develop Chef Habitat further. Should you have questions, please join us in [Slack](http://slack.habitat.sh/).
 
-### Part I: Background
+## Part I: Background
 
 In order to bootstrap the system from scratch, you should be familiar with how the Linux From Scratch project works.
 
@@ -198,9 +33,9 @@ The entire tarball of bootstrap "tools" lives inside the [stage1 studio](http://
 
 Note: In order to build large amounts of software in the fastest way possible, we recommend you use a powerful machine, such as a `c4.4xlarge` on Amazon Web Services (AWS). While it may be possible to run these builds in Docker containers, in workstation virtual machines, or on older hosts, it's well worth it to spend a few dollars to save potentially dozens of hours of wait time.
 
-### Part II: Stage 0
+## Part II: Stage 0
 
-#### Creating the stage1 Tarball
+### Creating the stage1 Tarball
 
 If you need to build the stage1 tarball from scratch, we will be following the [Linux from Scratch](http://www.linuxfromscratch.org/lfs/) guide, specifically from the start to the end of section II.5. ("Constructing a Temporary System"). By this point, you should be the `root` user with a `/mnt/lfs/tools` directory containing the cross compiled minimal toolchain. From here, we create a tarball of the `tools/` directory and append our Chef Habitat-specific software into it:
 
@@ -240,7 +75,7 @@ $ xz --compress -9 --threads=0 --verbose $TARFILE
 $ cp -v ${TARFILE}.xz /tmp/
 ```
 
-#### Freshening the stage1 Tarball
+### Freshening the stage1 Tarball
 
 Alternatively, from time to time and especially with breaking changes to `hab`’s core behavior it is a good idea to update the software in the `habitat-studio-stage1` tarball, even if that means skipping the work of rebuilding the toolchain.
 
@@ -283,7 +118,7 @@ If you upload a new version of this tarball for broader use with the Studio soft
 
 and finally, place this tarball under `/tmp` which will help the Studio code find this tarball as if it was previously downloaded, and it will be used directly.
 
-### Part III: Preparing to Build
+## Part III: Preparing to Build
 
 In this stage, we rebuild all the base packages needed by Chef Habitat using the tools (compiler, etc.) from the existing tools tarball. You will need a copy of the [habitat](https://github.com/habitat-sh/habitat) and [core-plans](https://github.com/habitat-sh/core-plans) repos on your local disk. For our work, we will assume that everything is being run under a common parent directory called `habitat-sh/`. Assuming we want to rebuild the Chef Habitat software as of the last release tag (we'll use `0.56.0` here) and the core plans from latest, here's how to get set up:
 
@@ -316,7 +151,7 @@ Finally, it's a good idea to clear out any work that might have been left over f
 $ sudo rm -rf ./results ./tmp/*.db
 ```
 
-### Part IV: Stage 1
+## Part IV: Stage 1
 
 To simplify the process of setting up and entering a `stage1` Studio, use this [stage1 Studio](https://github.com/habitat-sh/core-plans/blob/master/bin/bootstrap/stage1-studio.sh) wrapper:
 
@@ -346,7 +181,7 @@ $ sudo hab install ./results-stage1/core-hab-studio-*.hart
 
 Now we're ready to use the stage1 packages to make a set of packages that are completely decoupled from the stage1 `tools/` infrastructure, which we'll call a "stage2" build.
 
-### Part V: Stage 2
+## Part V: Stage 2
 
 In this stage, we rebuild all the base packages needed by Chef Habitat using the tools (compiler, etc.) from the previous stage, thus making the system self-hosted. This phase involves not using existing packages that are published in any existing Builder API, so we're going to more carefully create a `default`-type Studio. If we use a fully-qualified package identifier and use the `HAB_STUDIO_BACKLINE_PKG` environment variable, this will skip the call back to a Builder instance.
 
@@ -395,7 +230,7 @@ $ exit
 $ mv ./results ./results-stage2
 ```
 
-### Part VI: Rebuild the World
+## Part VI: Rebuild the World
 
 At this point we have a solid set of base packages which can be used to built anything and everything else. As such, it makes sense to at least attempt to rebuild all the other core packages that haven't been touched to this point. The first task here is to generate the build list order of all remaining packages in our "world" and exclude all the base packages so that we can avoid building them yet another time (for no additional benefit). Luckily, there is a `build-order.rb` program in the `core-plans` repository that will generate such a list. The reason that this program is in Ruby is to take advantage of the topological sorting library in Ruby's stdlib (called `tsort`). If you've ever used `rake` before with tasks and dependencies, `tsort` is the magic which powers it.
 
@@ -495,7 +330,7 @@ $ exit
 $ mv ./results ./results-stage3
 ```
 
-### Part VIII: Cleaning Up
+## Part VIII: Cleaning Up
 
 While you don't have to wait for the end to completely clean up, it can be beneficial to be able to enter any of the stage1/stage2/stage3 Studios for reference. However, if and when you feel like you're finished with any of these Studio instances, you can clean them up with the associated Studio wrapper script. For example, to clean up all the staging Studio instances:
 
@@ -505,10 +340,8 @@ $ ./core-plans/bin/bootstrap/stage2-studio.sh rm
 $ ./core-plans/bin/bootstrap/stage3-studio.sh rm
 ```
 
-### Part IX: Next Steps
+## Part IX: Next Steps
 
 There is more to write here once you have your local artifacts in the various `results-stage*` directories. However next steps to consider are:
 
 * Uploading the stage2 and stage3 artifacts to a Depot and possibly promote them to the stable channel
-=======
->>>>>>> Internals Reorg

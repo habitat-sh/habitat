@@ -194,16 +194,16 @@ sidebar_links:
     - title: Supervisor
       link: "/docs/glossary/glossary-supervisor"
   - title: Internals
-    link: "/docs/internals"
+    link: "/docs/internals/internals"
     sub_links:
     - title: Supervisor
-      link: "/docs/internals/internals/#supervisor-internals"
+      link: "/docs/internals/supervisor-internals"
     - title: Leader Election
-      link: "/docs/internals/internals/#election-internals"
+      link: "/docs/internals/election-internals"
     - title: Crypto
-      link: "/docs/internals/internals/#crypto-internals"
+      link: "/docs/internals/crypto-internals"
     - title: Bootstrapping Chef Habitat
-      link: "/docs/internals/internals/#bootstrap-internals"
+      link: "/docs/internals/bootstrap-internals"
   - title: Contribute
     link: "/docs/contribute/contribute"
 
