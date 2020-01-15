@@ -126,9 +126,11 @@ pub fn module(file: &FileDescriptorProto) -> Module {
 }
 
 fn add_message(msg: &DescriptorProto, buf: &mut String) {
-    buf.push_str(&format!("impl message::MessageStatic for {} {{\n", msg.name()));
-    buf.push_str(&format!("    const MESSAGE_ID: &'static str = \"{}\";\n", msg.name()));
-    buf.push_str("}\n");
+    if msg.name() != "ApplicationEnvironment" {
+        buf.push_str(&format!("impl message::MessageStatic for {} {{\n", msg.name()));
+        buf.push_str(&format!("    const MESSAGE_ID: &'static str = \"{}\";\n", msg.name()));
+        buf.push_str("}\n");
+    }
 }
 
 /// Converts a `camelCase` or `SCREAMING_SNAKE_CASE` identifier to a `lower_snake` case Rust field
