@@ -479,7 +479,8 @@ fn sub_origin_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_origin_transfer_ownership(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").expect("required ORIGIN");
-    let account = m.value_of("ACCOUNT").expect("required ACCOUNT");
+    let account = m.value_of("NEW_OWNER_ACCOUNT")
+                   .expect("required NEW_OWNER_ACCOUNT");
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
     command::origin::transfer::start(ui, &url, &token, &origin, &account)
