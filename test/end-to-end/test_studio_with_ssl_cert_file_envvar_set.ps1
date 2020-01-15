@@ -18,10 +18,12 @@ if($IsLinux) {
     $sslCertFileCheck = "test -f `$SSL_CERT_FILE"
     $sslCertFilePrint = "echo `$SSL_CERT_FILE"
     $sslCacheCertFileCheck = "test -f '/hab/cache/ssl/$e2e_certname'"
+    $sslCertFileNotSetCheck = "test ! -v SSL_CERT_FILE"
 } else {
     $sslCertFileCheck = "exit (!(Test-Path `$env:SSL_CERT_FILE))"
     $sslCertFilePrint = "`$env:SSL_CERT_FILE.Replace('\','/')"
     $sslCacheCertFileCheck = "exit (!(Test-Path '/hab/cache/ssl/$e2e_certname'))"
+    $sslCertFileNotSetCheck = "exit (`$env:SSL_CERT_FILE -eq `$null)"
 }
 
 Context "SSL_CERT_FILE is passed into the studio" {
@@ -89,8 +91,18 @@ Context "SSL_CERT_FILE is passed into the studio" {
         $env:SSL_CERT_FILE = (Join-Path $tempdir "cert-as-directory")
         New-Item -ItemType Directory -Force -Path $env:SSL_CERT_FILE
 
+        It "Should not set SSL_CERT_FILE" {
+            Invoke-StudioRun $sslCertFileNotSetCheck
+            $LASTEXITCODE | Should -Be 0
+        }
+
         It "Should not copy the directory into the studio" {
-            Invoke-StudioRun $sslCertFileCheck
+            if($isLinux) {
+              Invoke-StudioRun "test -e /hab/cache/ssl/cert-as-directory"
+            } else { 
+              Invoke-StudioRun $sslCertFileCheck
+            }
+
             $LASTEXITCODE | Should -Be 1
         }
 
@@ -107,8 +119,17 @@ Context "SSL_CERT_FILE is passed into the studio" {
         }
 
         It "Should not copy the file into the studio" {
-            Invoke-StudioRun $sslCertFileCheck
+            if($isLinux) {
+              Invoke-StudioRun "test -e /hab/cache/ssl/non-existant-file"
+            } else { 
+              Invoke-StudioRun $sslCertFileCheck
+            }
             $LASTEXITCODE | Should -Be 1
+        }
+
+        It "Should not set SSL_CERT_FILE" {
+            Invoke-StudioRun $sslCertFileNotSetCheck
+            $LASTEXITCODE | Should -Be 0
         }
 
         It "Can still search packages on builder" {
@@ -130,10 +151,9 @@ Context "SSL_CERT_FILE isn't set" {
     }
 
     Describe "Studio is auto-installed on first run" {
-
         It "Should not set SSL_CERT_FILE in the studio" {
-            $result = hab studio run '$env:SSL_CERT_FILE -eq $null'
-            $result[-1]| Should -be "True"
+            Invoke-StudioRun $sslCertFileNotSetCheck
+            $LASTEXITCODE | Should -Be 0
         }
     }
 }
