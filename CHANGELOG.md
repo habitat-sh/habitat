@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.65 -->
-## [0.90.65](https://github.com/habitat-sh/habitat/tree/0.90.65) (2020-01-14)
+<!-- latest_release 0.90.66 -->
+## [0.90.66](https://github.com/habitat-sh/habitat/tree/0.90.66) (2020-01-15)
 
 #### Merged Pull Requests
-- Fix setting SSL_CERT_FILE in studio when the cert isn&#39;t cached [#7259](https://github.com/habitat-sh/habitat/pull/7259) ([smacfarlane](https://github.com/smacfarlane))
+- Bump excon from 0.66.0 to 0.71.1 in /www [#7334](https://github.com/habitat-sh/habitat/pull/7334) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -26,6 +26,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Bump excon from 0.66.0 to 0.71.1 in /www [#7334](https://github.com/habitat-sh/habitat/pull/7334) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 0.90.66 -->
 - Fix setting SSL_CERT_FILE in studio when the cert isn&#39;t cached [#7259](https://github.com/habitat-sh/habitat/pull/7259) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.65 -->
 - Disable brew cleanup for mac builds [#7333](https://github.com/habitat-sh/habitat/pull/7333) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.64 -->
 - Ignore &#39;release&#39; component of version if downloading from packages.chef.io [#7299](https://github.com/habitat-sh/habitat/pull/7299) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.63 -->
