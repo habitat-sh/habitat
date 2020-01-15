@@ -212,7 +212,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 }
                 ("create", Some(m)) => sub_origin_create(ui, m)?,
                 ("delete", Some(m)) => sub_origin_delete(ui, m)?,
-                ("transfer", Some(m)) => sub_origin_transfer(ui, m)?,
+                ("transfer", Some(m)) => sub_origin_transfer_ownership(ui, m)?,
                 _ => unreachable!(),
             }
         }
@@ -477,7 +477,7 @@ fn sub_origin_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     command::origin::delete::start(ui, &url, &token, &origin)
 }
 
-fn sub_origin_transfer(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+fn sub_origin_transfer_ownership(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").expect("required ORIGIN");
     let account = m.value_of("ACCOUNT").expect("required ACCOUNT");
     let url = bldr_url_from_matches(&m)?;

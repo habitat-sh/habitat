@@ -15,7 +15,7 @@ pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str, account: &s
     ui.status(Status::Transferring,
               format!("ownership of origin {} to {}.", origin, account))?;
 
-    match api_client.transfer_origin(origin, token, account) {
+    match api_client.transfer_origin_ownership(origin, token, account) {
         Ok(_) => {
             ui.status(Status::Transferred, "ownership successfully!".to_string())
               .map_err(Error::from)

@@ -519,7 +519,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///  * Account is not a member of the origin
     ///  * Account does not exist
     ///  * Origin does not exist
-    fn transfer_origin(&self, origin: &str, token: &str, account: &str) -> Result<()> {
+    fn transfer_origin_ownership(&self, origin: &str, token: &str, account: &str) -> Result<()> {
         debug!("Transferring ownership of {} origin to {}", origin, account);
 
         let path = format!("depot/origins/{}/transfer/{}", origin, account);
