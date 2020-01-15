@@ -20,26 +20,25 @@ pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str, account: &s
             ui.status(Status::Transferred, "ownership successfully!".to_string())
               .or(Ok(()))
         }
-        Err(api_client::Error::APIError(StatusCode::FORBIDDEN, msg)) => {
+        Err(err @ api_client::Error::APIError(StatusCode::FORBIDDEN, _)) => {
             ui.fatal("Failed to transfer origin ownership!")?;
             ui.fatal("Either you are not the current owner or the new owner is not yet a member.")?;
-            Err(Error::APIClient(api_client::Error::APIError(StatusCode::FORBIDDEN, msg)))
+            Err(Error::APIClient(err))
         }
-        Err(api_client::Error::APIError(StatusCode::UNAUTHORIZED, msg)) => {
+        Err(err @ api_client::Error::APIError(StatusCode::UNAUTHORIZED, _)) => {
             ui.fatal("Failed to transfer origin ownership!")?;
-            Err(Error::APIClient(api_client::Error::APIError(StatusCode::UNAUTHORIZED, msg)))
+            Err(Error::APIClient(err))
         }
-        Err(api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, msg)) => {
+        Err(err @ api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
             ui.fatal("Failed to transfer origin ownership!")?;
             ui.fatal("This situation could arise if, for example, you attempted to transfer \
                       ownership to yourself.")?;
-            Err(Error::APIClient(api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY,
-                                                             msg)))
+            Err(Error::APIClient(err))
         }
-        Err(api_client::Error::APIError(StatusCode::NOT_FOUND, msg)) => {
+        Err(err @ api_client::Error::APIError(StatusCode::NOT_FOUND, _)) => {
             ui.fatal("Failed to transfer origin ownership!")?;
             ui.fatal("The origin or the new origin owner account (or both) does not exist.")?;
-            Err(Error::APIClient(api_client::Error::APIError(StatusCode::NOT_FOUND, msg)))
+            Err(Error::APIClient(err))
         }
         Err(e) => {
             ui.fatal(format!("Failed to transfer origin {} ownership to {}, {:?}",
