@@ -8,7 +8,6 @@
       "population": {
         "0d262679fc604664825ad916de6a399c": {
           "alive": true,
-          "application": null,
           "cfg": {
             "port": 80,
             "ssl-port": 443,
@@ -19,7 +18,6 @@
           "election_is_finished": false,
           "election_is_no_quorum": false,
           "election_is_running": false,
-          "environment": null,
           "follower": false,
           "group": "default",
           "leader": false,
@@ -65,7 +63,6 @@
       "population": {
         "be57ce74c75d4b29a4d8602c28397364": {
           "alive": true,
-          "application": null,
           "cfg": {
             "port": 9636
           },
@@ -74,7 +71,6 @@
           "election_is_finished": false,
           "election_is_no_quorum": false,
           "election_is_running": false,
-          "environment": null,
           "follower": false,
           "group": "default",
           "leader": false,
@@ -182,7 +178,6 @@
       "population": {
         "b2c535a80ba5463a8e43672801fd803b": {
           "alive": true,
-          "application": null,
           "cfg": {
             "port": 5432
           },
@@ -191,7 +186,6 @@
           "election_is_finished": false,
           "election_is_no_quorum": false,
           "election_is_running": false,
-          "environment": null,
           "follower": false,
           "group": "default",
           "leader": false,
@@ -237,7 +231,6 @@
       "population": {
         "c2ca91559a1f4114a819a1ca283cf10a": {
           "alive": true,
-          "application": null,
           "cfg": {
             "log_port": 5568,
             "worker_heartbeat": 5567,
@@ -248,7 +241,6 @@
           "election_is_finished": false,
           "election_is_no_quorum": false,
           "election_is_running": false,
-          "environment": null,
           "follower": false,
           "group": "default",
           "leader": false,
@@ -294,14 +286,12 @@
       "population": {
         "f723be0d353e45c7bfa097aa586b8795": {
           "alive": true,
-          "application": null,
           "cfg": {},
           "confirmed": false,
           "departed": false,
           "election_is_finished": false,
           "election_is_no_quorum": false,
           "election_is_running": false,
-          "environment": null,
           "follower": false,
           "group": "default",
           "leader": false,
@@ -347,14 +337,12 @@
       "population": {
         "96a40a37ce2549b59d1190fd4574f6c8": {
           "alive": true,
-          "application": null,
           "cfg": {},
           "confirmed": false,
           "departed": false,
           "election_is_finished": false,
           "election_is_no_quorum": false,
           "election_is_running": false,
-          "environment": null,
           "follower": false,
           "group": "default",
           "leader": false,
@@ -400,7 +388,6 @@
       "population": {
         "1154ec64a1714cdca5c885a181e41737": {
           "alive": true,
-          "application": null,
           "cfg": {
             "port": 5562
           },
@@ -409,7 +396,6 @@
           "election_is_finished": false,
           "election_is_no_quorum": false,
           "election_is_running": false,
-          "environment": null,
           "follower": false,
           "group": "default",
           "leader": false,
@@ -455,14 +441,12 @@
       "population": {
         "08e6fd8bcf094ddb88a95f7a008f9215": {
           "alive": true,
-          "application": null,
           "cfg": {},
           "confirmed": false,
           "departed": false,
           "election_is_finished": false,
           "election_is_no_quorum": false,
           "election_is_running": false,
-          "environment": null,
           "follower": false,
           "group": "default",
           "leader": false,
@@ -508,14 +492,12 @@
       "population": {
         "2b017714c38a430f89516e9b2b90d067": {
           "alive": true,
-          "application": null,
           "cfg": {},
           "confirmed": false,
           "departed": false,
           "election_is_finished": false,
           "election_is_no_quorum": false,
           "election_is_running": false,
-          "environment": null,
           "follower": false,
           "group": "default",
           "leader": false,

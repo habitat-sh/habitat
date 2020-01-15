@@ -7,8 +7,7 @@ use habitat_core::{fs::atomic_write,
                    os::process::ShutdownTimeout,
                    package::{PackageIdent,
                              PackageInstall},
-                   service::{ApplicationEnvironment,
-                             HealthCheckInterval,
+                   service::{HealthCheckInterval,
                              ServiceBind},
                    url::DEFAULT_BLDR_URL,
                    util::serde_string,
@@ -75,28 +74,12 @@ impl From<DesiredState> for i32 {
     }
 }
 
-pub fn deserialize_application_environment<'de, D>(
-    d: D)
-    -> result::Result<Option<ApplicationEnvironment>, D::Error>
-    where D: serde::Deserializer<'de>
-{
-    let s: Option<String> = Option::deserialize(d)?;
-    if let Some(s) = s {
-        Ok(Some(FromStr::from_str(&s).map_err(serde::de::Error::custom)?))
-    } else {
-        Ok(None)
-    }
-}
-
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(default = "ServiceSpec::deserialization_base")]
 pub struct ServiceSpec {
     #[serde(with = "serde_string")]
     pub ident: PackageIdent,
     pub group: String,
-    #[serde(deserialize_with = "deserialize_application_environment",
-            skip_serializing_if = "Option::is_none")]
-    pub application_environment: Option<ApplicationEnvironment>,
     pub bldr_url: String,
     pub channel: ChannelIdent,
     pub topology: Topology,
@@ -123,7 +106,6 @@ impl ServiceSpec {
     pub fn new(ident: PackageIdent) -> Self {
         Self { ident,
                group: DEFAULT_GROUP.to_string(),
-               application_environment: None,
                bldr_url: DEFAULT_BLDR_URL.to_string(),
                channel: ChannelIdent::stable(),
                topology: Topology::default(),
@@ -236,9 +218,6 @@ impl ServiceSpec {
         if let Some(group) = svc_load.group {
             self.group = group;
         }
-        if let Some(application_environment) = svc_load.application_environment {
-            self.application_environment = Some(application_environment.into());
-        }
         if let Some(bldr_url) = svc_load.bldr_url {
             self.bldr_url = bldr_url;
         }
@@ -317,8 +296,7 @@ mod test {
     use tempfile::TempDir;
 
     use habitat_core::{package::PackageIdent,
-                       service::{ApplicationEnvironment,
-                                 HealthCheckInterval}};
+                       service::HealthCheckInterval};
 
     use super::*;
     use crate::error::Error::*;
@@ -365,8 +343,6 @@ mod test {
         assert_eq!(spec.ident,
                    PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap());
         assert_eq!(spec.group, String::from("jobs"));
-        assert_eq!(spec.application_environment,
-                   Some(ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),));
         assert_eq!(spec.bldr_url, String::from("http://example.com/depot"));
         assert_eq!(spec.topology, Topology::Leader);
         assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
@@ -434,30 +410,27 @@ mod test {
     #[test]
     fn service_spec_to_toml_string() {
         let spec =
-            ServiceSpec { ident:
-                              PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
-                          group:                   String::from("jobs"),
-                          application_environment:
-                              Some(ApplicationEnvironment::from_str("theinternet.preprod").unwrap()),
-                          bldr_url:                String::from("http://example.com/depot"),
-                          channel:                 ChannelIdent::unstable(),
-                          topology:                Topology::Leader,
-                          update_strategy:         UpdateStrategy::AtOnce,
-                          binds:                   vec![
-                ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
-                ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
-            ],
-                          binding_mode:            BindingMode::Relaxed,
-                          health_check_interval:   HealthCheckInterval::from_str("123").unwrap(),
-                          config_from:             Some(PathBuf::from("/only/for/development")),
-                          desired_state:           DesiredState::Down,
-                          svc_encrypted_password:  None,
-                          shutdown_timeout:        Some(ShutdownTimeout::from_str("10").unwrap()), };
+            ServiceSpec { ident:                  PackageIdent::from_str("origin/name/1.2.3/\
+                                                                          20170223130020").unwrap(),
+                          group:                  String::from("jobs"),
+                          bldr_url:               String::from("http://example.com/depot"),
+                          channel:                ChannelIdent::unstable(),
+                          topology:               Topology::Leader,
+                          update_strategy:        UpdateStrategy::AtOnce,
+                          binds:                  vec![ServiceBind::from_str("cache:redis.cache@\
+                                                                              acmecorp").unwrap(),
+                                                       ServiceBind::from_str("db:postgres.app@\
+                                                                              acmecorp").unwrap(),],
+                          binding_mode:           BindingMode::Relaxed,
+                          health_check_interval:  HealthCheckInterval::from_str("123").unwrap(),
+                          config_from:            Some(PathBuf::from("/only/for/development")),
+                          desired_state:          DesiredState::Down,
+                          svc_encrypted_password: None,
+                          shutdown_timeout:       Some(ShutdownTimeout::from_str("10").unwrap()), };
         let toml = spec.to_toml_string().unwrap();
 
         assert!(toml.contains(r#"ident = "origin/name/1.2.3/20170223130020""#,));
         assert!(toml.contains(r#"group = "jobs""#));
-        assert!(toml.contains(r#"application_environment = "theinternet.preprod""#,));
         assert!(toml.contains(r#"bldr_url = "http://example.com/depot""#));
         assert!(toml.contains(r#"channel = "unstable""#));
         assert!(toml.contains(r#"topology = "leader""#));
@@ -516,8 +489,6 @@ mod test {
         assert_eq!(spec.group, String::from("jobs"));
         assert_eq!(spec.bldr_url, String::from("http://example.com/depot"));
         assert_eq!(spec.topology, Topology::Leader);
-        assert_eq!(spec.application_environment,
-                   Some(ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),));
         assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
         assert_eq!(spec.binds,
                    vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
@@ -609,31 +580,28 @@ mod test {
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("name.spec");
         let spec =
-            ServiceSpec { ident:
-                              PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
-                          group:                   String::from("jobs"),
-                          application_environment:
-                              Some(ApplicationEnvironment::from_str("theinternet.preprod").unwrap()),
-                          bldr_url:                String::from("http://example.com/depot"),
-                          channel:                 ChannelIdent::unstable(),
-                          topology:                Topology::Leader,
-                          update_strategy:         UpdateStrategy::AtOnce,
-                          binds:                   vec![
-                ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
-                ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
-            ],
-                          binding_mode:            BindingMode::Relaxed,
-                          health_check_interval:   HealthCheckInterval::from_str("23").unwrap(),
-                          config_from:             Some(PathBuf::from("/only/for/development")),
-                          desired_state:           DesiredState::Down,
-                          svc_encrypted_password:  None,
-                          shutdown_timeout:        Some(ShutdownTimeout::default()), };
+            ServiceSpec { ident:                  PackageIdent::from_str("origin/name/1.2.3/\
+                                                                          20170223130020").unwrap(),
+                          group:                  String::from("jobs"),
+                          bldr_url:               String::from("http://example.com/depot"),
+                          channel:                ChannelIdent::unstable(),
+                          topology:               Topology::Leader,
+                          update_strategy:        UpdateStrategy::AtOnce,
+                          binds:                  vec![ServiceBind::from_str("cache:redis.cache@\
+                                                                              acmecorp").unwrap(),
+                                                       ServiceBind::from_str("db:postgres.app@\
+                                                                              acmecorp").unwrap(),],
+                          binding_mode:           BindingMode::Relaxed,
+                          health_check_interval:  HealthCheckInterval::from_str("23").unwrap(),
+                          config_from:            Some(PathBuf::from("/only/for/development")),
+                          desired_state:          DesiredState::Down,
+                          svc_encrypted_password: None,
+                          shutdown_timeout:       Some(ShutdownTimeout::default()), };
         spec.to_file(&path).unwrap();
         let toml = string_from_file(path);
 
         assert!(toml.contains(r#"ident = "origin/name/1.2.3/20170223130020""#,));
         assert!(toml.contains(r#"group = "jobs""#));
-        assert!(toml.contains(r#"application_environment = "theinternet.preprod""#,));
         assert!(toml.contains(r#"bldr_url = "http://example.com/depot""#));
         assert!(toml.contains(r#"channel = "unstable""#));
         assert!(toml.contains(r#"topology = "leader""#));

@@ -165,7 +165,7 @@ mod tests {
     fn create_service_file(member_id: &str, filename: &str, body: &str) -> ServiceFile {
         let body_bytes: Vec<u8> = Vec::from(body);
         ServiceFile::new(member_id,
-                         ServiceGroup::new(None, "neurosis", "production", None).unwrap(),
+                         ServiceGroup::new("neurosis", "production", None).unwrap(),
                          filename,
                          body_bytes)
     }

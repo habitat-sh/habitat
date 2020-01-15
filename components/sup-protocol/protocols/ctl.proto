@@ -70,8 +70,6 @@ message SvcLoad {
   // Package identifier for the service to load. Using a more qualified identifier will load a
   // more specific package.
   optional sup.types.PackageIdent ident = 1;
-  // An application environment to place the service in.
-  optional sup.types.ApplicationEnvironment application_environment = 2;
   // List of service binds to use when configuring the service.
   optional ServiceBindList binds = 3;
   // Set to true if any binds were set by the caller. This field is needed because a blank list

@@ -1979,7 +1979,6 @@ fn svc_load_from_input(m: &ArgMatches) -> Result<sup_proto::ctl::SvcLoad> {
     let mut msg = sup_proto::ctl::SvcLoad::default();
     msg.bldr_url = bldr_url_from_input(m);
     msg.bldr_channel = channel_from_matches(m).map(|c| c.to_string());
-    msg.application_environment = None;
     msg.binds = get_binds_from_input(m)?;
     if m.is_present("FORCE") {
         msg.force = Some(true);

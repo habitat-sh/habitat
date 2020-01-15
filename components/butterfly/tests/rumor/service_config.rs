@@ -26,7 +26,7 @@ fn service_config_via_client() {
         Client::new(&net[0].gossip_addr().to_string(), None).expect("Cannot create Butterfly \
                                                                      Client");
     let payload = b"I want to get lost in you, tokyo";
-    client.send_service_config(ServiceGroup::new(None, "witcher", "prod", None).unwrap(),
+    client.send_service_config(ServiceGroup::new("witcher", "prod", None).unwrap(),
                                0,
                                payload,
                                false)

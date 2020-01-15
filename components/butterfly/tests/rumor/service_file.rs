@@ -27,7 +27,7 @@ fn service_file_via_client() {
         Client::new(&net[0].gossip_addr().to_string(), None).expect("Cannot create Butterfly \
                                                                      Client");
     let payload = b"I want to get lost in you, tokyo";
-    client.send_service_file(ServiceGroup::new(None, "witcher", "prod", None).unwrap(),
+    client.send_service_file(ServiceGroup::new("witcher", "prod", None).unwrap(),
                              "devil-wears-prada.txt",
                              0,
                              payload,

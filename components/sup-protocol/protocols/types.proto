@@ -41,11 +41,6 @@ enum BindingMode {
   Strict = 1;
 }
 
-message ApplicationEnvironment {
-  required string application = 1;
-  required string environment = 2;
-}
-
 message PackageIdent {
   required string origin = 1;
   required string name = 2;
@@ -81,7 +76,6 @@ message ServiceCfg {
 message ServiceGroup {
   required string service = 1;
   required string group = 2;
-  optional ApplicationEnvironment application_environment = 3;
   optional string organization = 4;
 }
 

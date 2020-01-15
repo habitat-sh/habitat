@@ -429,7 +429,7 @@ impl SwimNet {
     pub fn add_service(&mut self, member: usize, package: &str) {
         let ident = PackageIdent::from_str(package).expect("package needs to be a fully \
                                                             qualified package identifier");
-        let sg = ServiceGroup::new(None, ident.name(), "prod", None).unwrap();
+        let sg = ServiceGroup::new(ident.name(), "prod", None).unwrap();
         let s = Service::new(self[member].member_id().to_string(),
                              &ident,
                              sg,
@@ -441,7 +441,7 @@ impl SwimNet {
     pub fn add_service_config(&mut self, member: usize, service: &str, config: &str) {
         let config_bytes: Vec<u8> = Vec::from(config);
         let s = ServiceConfig::new(self[member].member_id(),
-                                   ServiceGroup::new(None, service, "prod", None).unwrap(),
+                                   ServiceGroup::new(service, "prod", None).unwrap(),
                                    config_bytes);
         self[member].insert_service_config_rsw_rhw(s);
     }
@@ -449,7 +449,7 @@ impl SwimNet {
     pub fn add_service_file(&mut self, member: usize, service: &str, filename: &str, body: &str) {
         let body_bytes: Vec<u8> = Vec::from(body);
         let s = ServiceFile::new(self[member].member_id(),
-                                 ServiceGroup::new(None, service, "prod", None).unwrap(),
+                                 ServiceGroup::new(service, "prod", None).unwrap(),
                                  filename,
                                  body_bytes);
         self[member].insert_service_file_rsw_rhw(s);
@@ -461,7 +461,7 @@ impl SwimNet {
     }
 
     pub fn add_election(&mut self, member: usize, service: &str) {
-        self[member].start_election_rsw_mlr_rhw_msr(&ServiceGroup::new(None, service, "prod",
+        self[member].start_election_rsw_mlr_rhw_msr(&ServiceGroup::new(service, "prod",
                                                                        None).unwrap(),
                                                     0);
     }

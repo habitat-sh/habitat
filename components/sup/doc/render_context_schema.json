@@ -171,20 +171,6 @@
                         { "type": "string" },
                         { "type": "null" }
                     ]
-                },
-                "application": {
-                    "description": "The application portion of a service group specification. Unused at this time.",
-                    "oneOf": [
-                        { "type": "string" },
-                        { "type": "null" }
-                    ]
-                },
-                "environment": {
-                    "description": "The environment portion of a service group specification. Unused at this time.",
-                    "oneOf": [
-                        { "type": "string" },
-                        { "type": "null" }
-                    ]
                 }
             },
             "required": [
@@ -209,9 +195,7 @@
                 "persistent",
                 "service",
                 "group",
-                "org",
-                "application",
-                "environment"
+                "org"
             ]
         }
     },

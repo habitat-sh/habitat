@@ -566,8 +566,7 @@ mod tests {
     fn rendered_hooks_path() -> TempDir { TempDir::new().expect("create temp dir") }
 
     fn service_group() -> ServiceGroup {
-        ServiceGroup::new(None, "test_service", "test_group", None).expect("couldn't create \
-                                                                            ServiceGroup")
+        ServiceGroup::new("test_service", "test_group", None).expect("couldn't create ServiceGroup")
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -811,8 +810,7 @@ echo "The message is Hello"
                                 .join(format!("{}.stderr.log", InstallHook::file_name()));
         let mut hook_output = HookOutput::new(&stdout_log, &stderr_log);
         let service_group =
-            ServiceGroup::new(None, "dummy", "service", None).expect("couldn't create \
-                                                                      ServiceGroup");
+            ServiceGroup::new("dummy", "service", None).expect("couldn't create ServiceGroup");
 
         hook_output.output_standard_streams::<InstallHook>(&service_group, &mut child);
 

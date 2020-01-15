@@ -346,7 +346,7 @@ fn config_without_org_gsr(path: Path<(String, String)>, state: Data<AppState>) -
 /// # Locking (see locking.md)
 /// * `GatewayState::inner` (read)
 fn config_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) -> HttpResponse {
-    let service_group = match ServiceGroup::new(None, svc, group, org) {
+    let service_group = match ServiceGroup::new(svc, group, org) {
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
@@ -380,7 +380,7 @@ fn health_without_org_gsr(path: Path<(String, String)>, state: Data<AppState>) -
 /// # Locking (see locking.md)
 /// * `GatewayState::inner` (read)
 fn health_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) -> HttpResponse {
-    let service_group = match ServiceGroup::new(None, svc, group, org) {
+    let service_group = match ServiceGroup::new(svc, group, org) {
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
@@ -428,7 +428,7 @@ fn service_without_org_gsr(path: Path<(String, String)>, state: Data<AppState>) 
 /// # Locking (see locking.md)
 /// * `GatewayState::inner` (read)
 fn service_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) -> HttpResponse {
-    let service_group = match ServiceGroup::new(None, svc, group, org) {
+    let service_group = match ServiceGroup::new(svc, group, org) {
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };

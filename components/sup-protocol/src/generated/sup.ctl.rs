@@ -106,9 +106,6 @@ pub struct SvcLoad {
     /// more specific package.
     #[prost(message, optional, tag="1")]
     pub ident: ::std::option::Option<super::types::PackageIdent>,
-    /// An application environment to place the service in.
-    #[prost(message, optional, tag="2")]
-    pub application_environment: ::std::option::Option<super::types::ApplicationEnvironment>,
     /// List of service binds to use when configuring the service.
     #[prost(message, optional, tag="3")]
     pub binds: ::std::option::Option<ServiceBindList>,

@@ -52,8 +52,7 @@ impl Client {
 
         let incarnation = Self::new_incarnation();
         self.butterfly_client
-            .send_service_config(ServiceGroup::new(None,
-                                                   &self.package_name,
+            .send_service_config(ServiceGroup::new(&self.package_name,
                                                    &self.service_group,
                                                    None).unwrap(),
                                  incarnation,

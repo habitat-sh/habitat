@@ -390,8 +390,6 @@ impl<'a> BindGroup<'a> {
 struct SvcMember<'a> {
     member_id: Cow<'a, MemberId>,
     pkg: Cow<'a, Option<PackageIdent>>,
-    application: Cow<'a, Option<String>>,
-    environment: Cow<'a, Option<String>>,
     service: Cow<'a, String>,
     group: Cow<'a, String>,
     org: Cow<'a, Option<String>>,
@@ -418,8 +416,6 @@ impl<'a> SvcMember<'a> {
     fn from_census_member(c: &'a CensusMember) -> Self {
         SvcMember { member_id: Cow::Borrowed(&c.member_id),
                     pkg: Cow::Borrowed(&c.pkg),
-                    application: Cow::Borrowed(&c.application),
-                    environment: Cow::Borrowed(&c.environment),
                     service: Cow::Borrowed(&c.service),
                     group: Cow::Borrowed(&c.group),
                     org: Cow::Borrowed(&c.org),
@@ -474,8 +470,6 @@ impl<'a> Serialize for SvcMember<'a> {
         // single string
         map.serialize_entry("service", &self.service)?;
         map.serialize_entry("group", &self.group)?;
-        map.serialize_entry("application", &self.application)?;
-        map.serialize_entry("environment", &self.environment)?;
         map.serialize_entry("org", &self.org)?;
 
         // TODO (CM): add an "is_permanent" field to make it clear
@@ -621,8 +615,6 @@ two = 2
         let ident = PackageIdent::new("core", "test_pkg", Some("1.0.0"), Some("20180321150416"));
         SvcMember { member_id: Cow::Owned("MEMBER_ID".into()),
                     pkg: Cow::Owned(Some(ident)),
-                    application: Cow::Owned(None),
-                    environment: Cow::Owned(None),
                     service: Cow::Owned("foo".into()),
                     group: Cow::Owned("default".into()),
                     org: Cow::Owned(None),
