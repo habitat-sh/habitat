@@ -437,6 +437,16 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
+  - label: "[:linux: test_even_stream]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_even_stream
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
   - wait
 
   - label: "[:habicat: Promote to Acceptance]"

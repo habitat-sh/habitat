@@ -5,7 +5,6 @@ $natsPkg = "$EndToEndTestingOrigin/nats-event-stream-test"
 $authToken = "my_token="
 
 Describe "event stream connection to nats" {
-    $env:HAB_FEAT_EVENT_STREAM = 1
     $env:RUST_LOG = "rants=trace"
 
     It "fails to start with no NATS server and --event-stream-connect-timeout set" { 
