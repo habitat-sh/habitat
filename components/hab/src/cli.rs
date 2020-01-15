@@ -1593,13 +1593,37 @@ mod tests {
         use super::*;
 
         #[test]
-        fn run_requires_app_and_env_and_token_and_url() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec!["run"]);
+        fn app_and_env_and_token_options_required_if_url_option() {
+            let matches =
+                sub_sup_run(no_feature_flags()).get_matches_from_safe(vec!["run",
+                                                                           "--event-stream-url",
+                                                                           "127.0.0.1:4222",]);
             assert!(matches.is_err());
-            assert_eq!(matches.unwrap_err().kind,
-                       clap::ErrorKind::MissingRequiredArgument);
-
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::MissingRequiredArgument);
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::MissingRequiredArgument);
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::MissingRequiredArgument);
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-stream-application",
                 "MY_APP",
@@ -1614,28 +1638,8 @@ mod tests {
         }
 
         #[test]
-        fn app_and_env_and_token_and_url_options_require_event_stream_feature() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-            ]);
-            assert!(matches.is_err());
-            let error = matches.unwrap_err();
-            assert_eq!(error.kind, clap::ErrorKind::UnknownArgument);
-            assert_eq!(error.info,
-                       Some(vec!["--event-stream-application".to_string()]));
-        }
-
-        #[test]
         fn app_option_must_take_a_value() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-stream-application",
                 "--event-stream-environment",
@@ -1654,7 +1658,7 @@ mod tests {
 
         #[test]
         fn app_option_cannot_be_empty() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-stream-application",
                 "",
@@ -1672,7 +1676,7 @@ mod tests {
 
         #[test]
         fn env_option_must_take_a_value() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-stream-application",
                 "MY_APP",
@@ -1691,7 +1695,7 @@ mod tests {
 
         #[test]
         fn env_option_cannot_be_empty() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-stream-application",
                 "MY_APP",
@@ -1708,29 +1712,8 @@ mod tests {
         }
 
         #[test]
-        fn event_meta_flag_requires_event_stream_feature() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-meta",
-                "foo=bar",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-            ]);
-            assert!(matches.is_err());
-            let error = matches.unwrap_err();
-            assert_eq!(error.kind, clap::ErrorKind::UnknownArgument);
-            assert_eq!(error.info, Some(vec!["--event-meta".to_string()]));
-        }
-
-        #[test]
         fn event_meta_can_be_repeated() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-meta",
                 "foo=bar",
@@ -1757,7 +1740,7 @@ mod tests {
 
         #[test]
         fn event_meta_cannot_be_empty() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-meta",
                 "--event-stream-application",
@@ -1775,7 +1758,7 @@ mod tests {
 
         #[test]
         fn event_meta_must_have_an_equal_sign() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-meta",
                 "foobar",
@@ -1794,7 +1777,7 @@ mod tests {
 
         #[test]
         fn event_meta_key_cannot_be_empty() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-meta",
                 "=bar",
@@ -1813,7 +1796,7 @@ mod tests {
 
         #[test]
         fn event_meta_value_cannot_be_empty() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-meta",
                 "foo=",
@@ -1832,7 +1815,7 @@ mod tests {
 
         #[test]
         fn token_option_must_take_a_value() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-stream-application",
                 "MY_APP",
@@ -1851,7 +1834,7 @@ mod tests {
 
         #[test]
         fn token_option_cannot_be_empty() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-stream-application",
                 "MY_APP",
@@ -1869,7 +1852,7 @@ mod tests {
 
         #[test]
         fn site_option_must_take_a_value() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-stream-application",
                 "MY_APP",
@@ -1889,7 +1872,7 @@ mod tests {
 
         #[test]
         fn site_option_cannot_be_empty() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-stream-application",
                 "MY_APP",
@@ -1909,7 +1892,7 @@ mod tests {
 
         #[test]
         fn url_option_must_take_a_value() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-stream-application",
                 "MY_APP",
@@ -1927,7 +1910,7 @@ mod tests {
 
         #[test]
         fn url_option_cannot_be_empty() {
-            let matches = sub_sup_run(FeatureFlag::empty()).get_matches_from_safe(vec![
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
                 "run",
                 "--event-stream-application",
                 "MY_APP",
