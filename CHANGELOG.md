@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.67 -->
-## [0.90.67](https://github.com/habitat-sh/habitat/tree/0.90.67) (2020-01-15)
+<!-- latest_release 0.90.68 -->
+## [0.90.68](https://github.com/habitat-sh/habitat/tree/0.90.68) (2020-01-15)
 
 #### Merged Pull Requests
-- Adds issue template for features that redirects to aha [#7062](https://github.com/habitat-sh/habitat/pull/7062) ([eeyun](https://github.com/eeyun))
+- Update to 1.40.0 [#7325](https://github.com/habitat-sh/habitat/pull/7325) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -26,6 +26,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Update to 1.40.0 [#7325](https://github.com/habitat-sh/habitat/pull/7325) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.68 -->
 - Adds issue template for features that redirects to aha [#7062](https://github.com/habitat-sh/habitat/pull/7062) ([eeyun](https://github.com/eeyun)) <!-- 0.90.67 -->
 - Bump excon from 0.66.0 to 0.71.1 in /www [#7334](https://github.com/habitat-sh/habitat/pull/7334) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 0.90.66 -->
 - Fix setting SSL_CERT_FILE in studio when the cert isn&#39;t cached [#7259](https://github.com/habitat-sh/habitat/pull/7259) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.65 -->
