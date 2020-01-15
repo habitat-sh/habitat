@@ -252,7 +252,7 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
                                -> Result<ManagerConfig> {
     let cache_key_path = cache_key_path_from_matches(m);
 
-    let event_stream_config = if feature_flags.contains(FeatureFlag::EVENT_STREAM) {
+    let event_stream_config = if m.value_of("EVENT_STREAM_URL").is_some() {
         Some(EventStreamConfig::from(m))
     } else {
         None

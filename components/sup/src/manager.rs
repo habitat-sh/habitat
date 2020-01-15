@@ -666,23 +666,12 @@ impl Manager {
 
         let spec_watcher = SpecWatcher::run(&spec_dir)?;
 
-        if cfg.feature_flags.contains(FeatureFlag::EVENT_STREAM) {
-            // Putting configuration of the stream behind a feature
-            // flag for now. If the flag isn't set, just don't
-            // initialize the stream; everything else will turn into a
-            // no-op automatically.
-
-            // TODO: Determine what the actual connection parameters
-            // should be, and process them at some point before here.
-            let es_config =
-                cfg.event_stream_config
-                   .expect("Config should be present if the EventStream feature is enabled");
-
+        if let Some(config) = cfg.event_stream_config {
             // Collect the FQDN of the running machine
             let fqdn = habitat_core::os::net::fqdn().unwrap_or_else(|| sys.hostname.clone());
             outputln!("Event FQDN {}", fqdn);
 
-            runtime.block_on(event::init(&sys, fqdn, es_config))?;
+            runtime.block_on(event::init(&sys, fqdn, config))?;
         }
 
         let pid_source = ServicePidSource::determine_source(&launcher);
