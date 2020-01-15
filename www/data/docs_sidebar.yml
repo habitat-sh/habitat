@@ -172,27 +172,27 @@ sidebar_links:
     link: "/docs/glossary/glossary"
     sub_links:
     - title: Application Lifecycle Hooks
-      link: "/docs/glossary/glossary/#glossary-hooks"
+      link: "/docs/glossary/glossary-hooks"
     - title: Artifacts
-      link: "/docs/glossary/glossary/#glossary-artifacts"
+      link: "/docs/glossary/glossary-artifacts"
     - title: Builder
-      link: "/docs/glossary/glossary/#glossary-builder"
+      link: "/docs/glossary/glossary-builder"
     - title: Hab
-      link: "/docs/glossary/glossary/#glossary-hab"
+      link: "/docs/glossary/glossary-hab"
     - title: Keys
-      link: "/docs/glossary/glossary/#glossary-keys"
+      link: "/docs/glossary/glossary-keys"
     - title: Launcher
-      link: "/docs/glossary/glossary/#glossary-launcher"
+      link: "/docs/glossary/glossary-launcher"
     - title: Plans
-      link: "/docs/glossary/glossary/#glossary-plan"
+      link: "/docs/glossary/glossary-plan"
     - title: Scaffolding
-      link: "/docs/glossary/glossary/#glossary-scaffolding"
+      link: "/docs/glossary/glossary-scaffolding"
     - title: Services
-      link: "/docs/glossary/glossary/#glossary-services"
+      link: "/docs/glossary/glossary-services"
     - title: Studio
-      link: "/docs/glossary/glossary/#glossary-studio"
+      link: "/docs/glossary/glossary-studio"
     - title: Supervisor
-      link: "/docs/glossary/glossary/#glossary-supervisor"
+      link: "/docs/glossary/glossary-supervisor"
   - title: Internals
     link: "/docs/internals"
     sub_links:
@@ -206,3 +206,4 @@ sidebar_links:
       link: "/docs/internals/internals/#bootstrap-internals"
   - title: Contribute
     link: "/docs/contribute/contribute"
+
