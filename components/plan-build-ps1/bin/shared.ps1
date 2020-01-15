@@ -72,7 +72,7 @@ function Resolve-HabPkgPath($unresolved) {
 }
 
 # Returns the path with the studio directory stripped.
-# So c:\hab\studios\my-studio\hab\pkgs would unroot to 
+# So c:\hab\studios\my-studio\hab\pkgs would unroot to
 # \hab\pkgs
 function _Get-UnrootedPath($path) {
     # Make sure $path is absolute and cannonicalized
@@ -81,10 +81,10 @@ function _Get-UnrootedPath($path) {
       $path = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($path)
     }
     finally { Pop-Location }
-  
+
     # Find the Studio directory
     $prefixDrive = (Resolve-Path $originalPath).Drive.Root
-  
+
     # Strip the studio directory
     $strippedPrefix = $path
     if($path.StartsWith($prefixDrive)) {
@@ -93,4 +93,3 @@ function _Get-UnrootedPath($path) {
     if(!$strippedPrefix.StartsWith('\')) { $strippedPrefix = "\$strippedPrefix" }
     $strippedPrefix
 }
-  

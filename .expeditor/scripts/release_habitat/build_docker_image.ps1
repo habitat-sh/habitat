@@ -49,7 +49,7 @@ try {
         "core/hab-sup",
         "core/windows-service --ignore-install-hook"
     )
-    $InstallHarts | % {
+    $InstallHarts | ForEach-Object {
         Invoke-Expression "hab pkg install $_ --channel=$ReleaseChannel --url=$BldrUrl"
         if ($LASTEXITCODE -ne 0) {
             Write-Error "hab install failed for $_, aborting"

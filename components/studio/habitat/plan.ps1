@@ -19,7 +19,7 @@ function Invoke-Before {
 }
 
 function Invoke-Build {
-  Get-Content "$PLAN_CONTEXT/../bin/hab-studio.ps1" | % {
+  Get-Content "$PLAN_CONTEXT/../bin/hab-studio.ps1" | ForEach-Object {
     $_.Replace("@author@", $pkg_maintainer).Replace("@version@", $pkg_version)
   } | Add-Content -Path hab-studio.ps1
 }

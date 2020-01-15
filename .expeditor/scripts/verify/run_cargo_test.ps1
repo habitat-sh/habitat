@@ -18,7 +18,7 @@ $ErrorActionPreference="stop"
 $toolchain = Get-Toolchain
 if($Nightly) { $toolchain = Get-NightlyToolchain }
 
-Setup-Environment
+Initialize-Environment
 
 If($Features) {
     $FeatureString = "--features `"$Features`""
@@ -36,7 +36,7 @@ if(!$Component) {
     $scope = "habitat workspace"
 } else {
     $scope = $Component
-    cd components/$Component
+    Set-Location components/$Component
 }
 Write-Host "--- Running cargo +$toolchain test on $scope with command: '$CargoTestCommand'"
 

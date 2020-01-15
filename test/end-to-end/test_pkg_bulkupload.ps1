@@ -78,10 +78,10 @@ Describe "hab pkg bulkupload" {
         if((Get-ChildItem (Join-Path $cacheDir "artifacts")).Count -eq 0) {
             hab origin key download --secret --url $env:HAB_BLDR_URL --cache-key-path (Join-Path $cacheDir "keys") $env:HAB_ORIGIN
             hab origin key download --url $env:HAB_BLDR_URL --cache-key-path (Join-Path $cacheDir "keys") $env:HAB_ORIGIN
-            @($testPkg1Dir, $testPkg2Dir) | % {
+            @($testPkg1Dir, $testPkg2Dir) | ForEach-Object {
                 # Build the packages and sign them with HAB_ORIGIN key from HAB_CACHE_KEY_PATH set above.
                 hab pkg build $_
-                Get-Content "results/last_build.env" | % { Add-Content "results/last_build.ps1" -Value "`$$($_.Replace("=", '="'))`"" }
+                Get-Content "results/last_build.env" | ForEach-Object { Add-Content "results/last_build.ps1" -Value "`$$($_.Replace("=", '="'))`"" }
                 . results/last_build.ps1
                 Copy-Item (Join-Path "results" $pkg_artifact) (Join-Path $cacheDir "artifacts")
             }

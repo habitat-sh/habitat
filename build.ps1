@@ -18,7 +18,7 @@ param (
     # When specified, a cargo clean will be invoked.
     [switch]$Clean,
     # Cargo command to invoke
-    [ValidateSet("Build","Test","Check","Clippy","Fmt")] 
+    [ValidateSet("Build","Test","Check","Clippy","Fmt")]
     [string]$command="Build",
     # When specified a build will not be run.
     [switch]$SkipBuild,
@@ -90,7 +90,7 @@ function Invoke-Build([string]$Path, [switch]$Clean, [string]$Command, [switch]$
             Install-Rustup $toolchain
             Install-RustToolchain $toolchain
             rustup component add --toolchain $Toolchain rustfmt
-            Setup-Environment
+            Initialize-Environment
             Invoke-Expression "cargo +$ToolChain $Command --all"
             break
         }
@@ -113,13 +113,13 @@ function Invoke-Build([string]$Path, [switch]$Clean, [string]$Command, [switch]$
         "build" {
             Install-Rustup $toolchain
             Install-RustToolchain $toolchain
-            Setup-Environment
+            Initialize-Environment
             Invoke-Expression "cargo +$ToolChain $Command $(if ($Release) { '--release' }) $FeatureString"
         }
         "check" {
             Install-Rustup $toolchain
             Install-RustToolchain $toolchain
-            Setup-Environment
+            Initialize-Environment
             Invoke-Expression "cargo +$ToolChain $Command $(if ($Release) { '--release' }) $FeatureString"
         }
     }

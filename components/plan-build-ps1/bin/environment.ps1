@@ -265,7 +265,7 @@ function push_to_path($item, $path, $separator = ";") {
 
 function dedupe_path($path, $separator = ";"){
     $pathArray = $path.Split($separator)
-    $pathArray = $pathArray | Select -Unique
+    $pathArray = $pathArray | Select-Object -Unique
     [String]::Join($separator, $pathArray)
 }
 
@@ -385,14 +385,14 @@ function _Assemble-RuntimePath() {
     # prepend the full path to this release so everything resolves
     # properly once the package is installed.
     $strippedPrefix = _Get-UnrootedPath $pkg_prefix
-  
+
     $paths = @()
-  
+
     # Add element for each entry in `$pkg_bin_dirs[@]` first
     foreach($dir in $pkg_bin_dirs) {
       $paths += "$strippedPrefix\$dir"
     }
-  
+
     # Iterate through all direct direct run dependencies following by all
     # remaining transitive run dependencies and for each, append each path entry
     # onto the result, assuming it hasn't already been added. In this way, all
@@ -414,7 +414,7 @@ function _Assemble-RuntimePath() {
         # of Habitat between 0.53.0 (released 2018-02-05) and up to including
         # 0.55.0 (released 2018-03-20).
         $strippedPrefix = _Get-UnrootedPath $dep_prefix
-  
+
         foreach ($line in (Get-Content (Join-Path $dep_prefix "RUNTIME_ENVIRONMENT"))) {
             $varval = $line.split("=")
             if ($varval[0] -eq "PATH") {
@@ -429,11 +429,11 @@ function _Assemble-RuntimePath() {
         }
       }
     }
-  
+
     # Return the elements of the result, joined with a colon
     $paths -join ';'
 }
-  
+
 function Write-EnvironmentFiles {
     $runtime_path = _Assemble-RuntimePath
     if ($runtime_path) {
@@ -454,7 +454,7 @@ function Write-EnvironmentFiles {
         "$($var.Key)=$($var.Value.Value)" | Out-File "$pkg_prefix\RUNTIME_ENVIRONMENT" -Encoding ascii -Append
     }
 
-    $env.Runtime.GetEnumerator() | ? { $_.Value.IsPath } | % {
+    $env.Runtime.GetEnumerator() | Where-Object { $_.Value.IsPath } | ForEach-Object {
         "$($_.Key)=$($_.Value.Value)" | Out-File "$pkg_prefix\RUNTIME_ENVIRONMENT_PATHS" -Encoding ascii -Append
     }
 
@@ -466,7 +466,7 @@ function Write-EnvironmentFiles {
         "$($var.Key)=$($var.Value.Value)" | Out-File "$pkg_prefix\BUILDTIME_ENVIRONMENT" -Encoding ascii -Append
     }
 
-    $env.Buildtime.GetEnumerator() | ? { $_.Value.IsPath } | % {
+    $env.Buildtime.GetEnumerator() | Where-Object { $_.Value.IsPath } | ForEach-Object {
         "$($_.Key)=$($_.Value.Value)" | Out-File "$pkg_prefix\BUILDTIME_ENVIRONMENT_PATHS" -Encoding ascii -Append
     }
 

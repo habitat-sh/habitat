@@ -1,9 +1,9 @@
 . $PSScriptRoot\..\shared.ps1
 
 function Install-HabPkg([string[]]$idents) {
-  $idents | % {
+  $idents | ForEach-Object {
       $id = $_
-      $installedPkgs=hab pkg list $id | ? { $_.StartsWith($id)}
+      $installedPkgs=hab pkg list $id | Where-Object { $_.StartsWith($id)}
 
       if($installedPkgs){
           Write-host "$id already installed"
@@ -13,7 +13,7 @@ function Install-HabPkg([string[]]$idents) {
   }
 }
 
-function Setup-Environment {
+function Initialize-Environment {
   $env:HAB_LICENSE = "accept-no-persist"
   Install-Habitat
 

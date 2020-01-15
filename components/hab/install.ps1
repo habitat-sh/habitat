@@ -30,7 +30,7 @@ Function Get-BintrayVersion($version, $channel) {
 
     # bintray expects a '-' to separate version and release and not '/'
     $version = $version.Replace("/", "-")
-    
+
     if(!$version) {
         $version = "%24latest"
     } elseif([System.Reflection.Assembly]::LoadWithPartialName("System.Web.Extensions")) {
@@ -40,7 +40,7 @@ Function Get-BintrayVersion($version, $channel) {
         Get-File "https://api.bintray.com/packages/habitat/$channel/hab-x86_64-windows" $jsonFile
         $ser = New-Object System.Web.Script.Serialization.JavaScriptSerializer
         $versions = $ser.DeserializeObject((Get-Content $jsonFile)).versions
-        $rev = $versions | ? { $_.StartsWith($version) }
+        $rev = $versions | Where-Object { $_.StartsWith($version) }
         if(!$rev) {
             $e =  "Version '$version' could not used or version doesn't exist."
             $e += " Please provide a simple version like: '0.15.0'"
@@ -92,7 +92,7 @@ Function Get-PackagesChefioArchive($channel, $version) {
       $hab_url="$url/$channel/habitat/latest/hab-x86_64-windows.zip"
     } else {
       $version,$_release = $version -split "/",2,"SimpleMatch"
-      if($_release -ne $null) {
+      if($null -ne $_release) {
         Write-Warning "packages.chef.io does not support 'version/release' format. Using $version for the version"
       }
 
@@ -108,7 +108,7 @@ Function Get-PackagesChefioArchive($channel, $version) {
     # Note that this will fail on versions less than 0.71.0
     # when we did not upload shasum files to bintray.
     # NOTE: This is left in place because, while we don't ship <0.71.0
-    # from s3 today, the intent is to move old releases over 
+    # from s3 today, the intent is to move old releases over
     try {
         Get-File $sha_url $sha_dest
         $result["shasum"] = (Get-Content $sha_dest).Split()[0]
@@ -160,8 +160,10 @@ Function Get-Sha256($src) {
     }
     finally {
         # Older .Net versions do not expose Dispose()
-        try { $converter.Dispose() } catch {}
-        if ($in -ne $null) { $in.Dispose() }
+        if($PSVersionTable.PSEdition -eq 'Core' -Or ($PSVersionTable.CLRVersion.Major -ge 4)) {
+            $converter.Dispose()
+        }
+        if ($null -ne $in) { $in.Dispose() }
     }
 }
 
@@ -243,8 +245,8 @@ Function Assert-Habitat($ident) {
 
 Function Test-UsePackagesChefio($version) {
     # The $_patch may contain the /release string as well.
-    # This is fine because we only care about major/minor for this 
-    # comparison. 
+    # This is fine because we only care about major/minor for this
+    # comparison.
 
     $_major,$_minor,$_patch = $version -split ".",3,"SimpleMatch"
     $v1 = New-Object -TypeName Version -ArgumentList $_major,$_minor
@@ -257,7 +259,7 @@ Write-Host "Installing Habitat 'hab' program"
 $workdir = Get-WorkDir
 New-Item $workdir -ItemType Directory -Force | Out-Null
 try {
-    if(Test-UsePackagesChefio($Version)) { 
+    if(Test-UsePackagesChefio($Version)) {
       $archive = Get-PackagesChefioArchive $channel $version
     } else {
       $Version = Get-BintrayVersion $Version $Channel

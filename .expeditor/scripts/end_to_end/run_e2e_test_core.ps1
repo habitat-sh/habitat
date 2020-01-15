@@ -1,5 +1,5 @@
 # This script expects `setup_environment.sh` or `setup_environment.ps1` to be sourced before execution
-
+[Diagnostics.CodeAnalysis.SuppressMessage("PSUseApprovedVerbs", '', Scope="function", Target="*Load-SupervisorService")]
 param (
     [string]$TestName,
     [string]$BuilderUrl = $env:HAB_BLDR_URL
@@ -15,8 +15,8 @@ if (!$IsCoreCLR) {
 
 ###################################################################################################
 
-$EndToEndTestingOrigin = "habitat-testing"
-$TestStartTime = Get-Date
+Function Get-EndToEndTestingOrigin { "habitat-testing" }
+
 if ($IsLinux -Or $IsMacOS) {
     $env:SystemDrive = "/"
 }
@@ -55,8 +55,8 @@ function Wait-PathHasContent($Path, $Time, $Timeout) {
 }
 
 function Wait-PathHasContentUpdatedAfter($Path, $Time, $Timeout) {
-    Wait-PathHasContent $Path $Time $Timeout
-    Wait-PathUpdatedAfter $Path $Time $Timeout
+    Wait-PathHasContent @PSBoundParameters
+    Wait-PathUpdatedAfter @PSBoundParameters
 }
 
 function Wait-Supervisor($Timeout = 1) {
@@ -83,13 +83,13 @@ function Start-Supervisor($Timeout = 1, $LogFile = (New-TemporaryFile), $SupArgs
 function Wait-SupervisorService($ServiceName, $Timeout = ($DefaultServiceTimeout), $Remote) {
     Write-Host "Waiting up to $Timeout seconds for Supervisor to start $ServiceName ..."
     if(!$Remote) { $Remote = "localhost" }
-    $testScript = { 
+    $testScript = {
         try {
             $status = (Invoke-WebRequest "http://${Remote}:9631/services/$ServiceName/default" |
                 ConvertFrom-Json).process.state
             $status -eq "up"
         }
-        catch { } # We ignore 404s and other unsuccesful codes
+        catch { $false } # We ignore 404s and other unsuccesful codes
     }
     $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for Supervisor to start $ServiceName" }
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
@@ -124,10 +124,10 @@ function Load-SupervisorService($PackageName, $Timeout = ($DefaultServiceTimeout
     Wait-SupervisorService $svcName -Timeout $Timeout -Remote $Remote
     $svcName
 }
-  
+
 function Wait-SupervisorServiceUnload($ServiceName, $Timeout = 1) {
     Write-Host "Waiting up to $Timeout seconds for Supervisor to unload $ServiceName ..."
-    $testScript = { 
+    $testScript = {
         try {
             $_ = Invoke-WebRequest "http://localhost:9631/services/$ServiceName/default"
             $false
@@ -160,7 +160,7 @@ function New-TemporaryDirectory {
     $parent = [System.IO.Path]::GetTempPath()
     [string] $name = [System.Guid]::NewGuid()
     New-Item -ItemType Directory -Path (Join-Path $parent $name)
-}  
+}
 
 function Restart-Supervisor {
     if ($IsLinux) {
@@ -213,12 +213,11 @@ function Stop-ComposeSupervisor($Remote) {
 
 ###################################################################################################
 
-$pesterPath = Join-Path $(hab pkg path core/pester) module Pester.psd1
-Import-Module $pesterPath
+Import-Module (Join-Path -Path $(hab pkg path core/pester) module Pester.psd1)
 
 if(Test-Path $TestName) {
     $testPath = $TestName
 } else {
-    $testPath = Join-Path test end-to-end "$($TestName).ps1"
+    $testPath = Join-Path -Path test end-to-end "$($TestName).ps1"
 }
 Invoke-Pester $testPath -EnableExit

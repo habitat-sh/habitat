@@ -7,7 +7,7 @@ function Install-BuildkiteAgent() {
   # do artifact uploads, or to manipulate pipeline metadata), then
   # you'll need to install it in the container as well.
   Write-Host "--- Installing buildkite agent in container"
-  iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/buildkite/agent/master/install.ps1')) | Out-Null
+  Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/buildkite/agent/master/install.ps1')) | Out-Null
 }
 
 function Install-LatestHabitat() {
@@ -15,7 +15,7 @@ function Install-LatestHabitat() {
   $env:HAB_LICENSE = "accept-no-persist"
   Write-Host "--- :habicat: Installing latest hab binary for $Env:HAB_PACKAGE_TARGET using install.ps1"
   Set-ExecutionPolicy Bypass -Scope Process -Force
-  iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1')) | Out-Null
+  Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1')) | Out-Null
   $baseHabExe="$Env:ProgramData\Habitat\hab.exe"
 
   $HabVersion=GetLatestPkgVersionFromChannel("hab")
@@ -30,7 +30,6 @@ function Install-LatestHabitat() {
     Invoke-Expression "$baseHabExe pkg install core/hab-studio --binlink --force --channel $Env:HAB_BLDR_CHANNEL" | Out-Null
     # This is weird. Why does binlinking go here but the install.ps1 go to ProgramData?
     $baseHabExe="C:\hab\bin\hab"
-    $NewVersion=Invoke-Expression "$baseHabExe --version"
   }
   else {
     write-host "-- Hab and studio versions did not match. hab: $HabVersion - studio: $StudioVersion"
@@ -44,7 +43,7 @@ function GetLatestPkgVersionFromChannel($PackageName) {
   }
   $ReleaseChannel="habitat-release-$Env:BUILDKITE_BUILD_ID"
   try {
-    $version=(Invoke-Webrequest -UseBasicParsing "$Env:HAB_BLDR_URL/v1/depot/channels/core/$ReleaseChannel/pkgs/$PackageName/latest?target=$Env:BUILD_PKG_TARGET").Content | jq -r '.ident | .version'
+    $version=(Invoke-Webrequest "$Env:HAB_BLDR_URL/v1/depot/channels/core/$ReleaseChannel/pkgs/$PackageName/latest?target=$Env:BUILD_PKG_TARGET" -UseBasicParsing).Content | jq -r '.ident | .version'
     Write-Host "Found version of ${PackageName} - $version"
   }
   catch {

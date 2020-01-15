@@ -7,7 +7,7 @@ Describe "Invoke-SetupEnvironmentWrapper" {
     $envvars = @{}
 
     Mock New-Item { $envvars[$name] = $value } -ParameterFilter {$Path -eq "Env:"}
-    
+
     $script:HAB_PKG_PATH = Join-Path $env:FS_ROOT "hab\pkgs"
     $script:originalPath = "TestDrive:\src"
     $script:pkg_origin = "testorigin"
@@ -26,9 +26,9 @@ Describe "Invoke-SetupEnvironmentWrapper" {
             Push-RuntimeEnv -IsPath "test_push_run_var" "$unrooted\test_push_run_var2"
             Push-BuildtimeEnv -IsPath "test_push_build_var" "$unrooted\test_push_build_var2"
         }
-        
+
         Invoke-SetupEnvironmentWrapper
-    
+
         It "Should set runtime var to the rooted value" {
             $envvars["test_set_run_var"] | Should -Be "$pkg_prefix\test_set_run_var"
         }
@@ -73,9 +73,9 @@ Describe "Invoke-SetupEnvironmentWrapper" {
             Push-RuntimeEnv -IsPath "test_push_run_var" "$pkg_prefix\test_push_run_var2"
             Push-BuildtimeEnv -IsPath "test_push_build_var" "$pkg_prefix\test_push_build_var2"
         }
-        
+
         Invoke-SetupEnvironmentWrapper
-    
+
         It "Should set runtime var to the rooted value" {
             $envvars["test_set_run_var"] | Should -Be "$pkg_prefix\test_set_run_var"
         }
@@ -120,9 +120,9 @@ Describe "Invoke-SetupEnvironmentWrapper" {
             Push-RuntimeEnv "test_push_run_var" "$pkg_prefix\test_push_run_var2"
             Push-BuildtimeEnv "test_push_build_var" "$pkg_prefix\test_push_build_var2"
         }
-        
+
         Invoke-SetupEnvironmentWrapper
-    
+
         It "Should set runtime var to the given value" {
             $envvars["test_set_run_var"] | Should -Be "$pkg_prefix\test_set_run_var"
         }
@@ -162,8 +162,8 @@ Describe "Invoke-SetupEnvironmentWrapper" {
 
         $script:pkg_deps = @("core/run-dep")
         $script:pkg_build_deps = @("core/build-dep")
-        
-        ($pkg_deps + $pkg_build_deps) | % {
+
+        ($pkg_deps + $pkg_build_deps) | ForEach-Object {
             $pkg_path = Join-path $HAB_PKG_PATH "$_\0.1.0\111"
             $unrooted_pkg_path = Join-path "\hab\pkgs" "$_\0.1.0\111"
             $pkg_all_deps_resolved += $pkg_path
@@ -179,9 +179,9 @@ Describe "Invoke-SetupEnvironmentWrapper" {
         function Invoke-SetupEnvironment {
             Push-RuntimeEnv -IsPath "run-dep_path" "$pkg_prefix\run_dir"
         }
-        
+
         Invoke-SetupEnvironmentWrapper
-    
+
         It "Should set rooted runtime env from dep and push setup value" {
             $envvars["run-dep_path"] | Should -Be "$pkg_prefix\run_dir;$HAB_PKG_PATH\core\run-dep\0.1.0\111\run"
         }
@@ -203,8 +203,8 @@ Describe "Invoke-SetupEnvironmentWrapper" {
 
         $script:pkg_deps = @("core/run-dep")
         $script:pkg_build_deps = @("core/build-dep")
-        
-        ($pkg_deps + $pkg_build_deps) | % {
+
+        ($pkg_deps + $pkg_build_deps) | ForEach-Object {
             $pkg_path = Join-path $HAB_PKG_PATH "$_\0.1.0\111"
             $unrooted_pkg_path = Join-path "\hab\pkgs" "$_\0.1.0\111"
             $pkg_all_deps_resolved += $pkg_path
@@ -215,9 +215,9 @@ Describe "Invoke-SetupEnvironmentWrapper" {
             "${dep_name}_build_path=$unrooted_pkg_path\build" | Out-File "$pkg_path\BUILDTIME_ENVIRONMENT" -Append
         }
         function Invoke-SetupEnvironment { }
-        
+
         Invoke-SetupEnvironmentWrapper
-    
+
         It "Should set unrooted runtime env from dep" {
             $envvars["run-dep_path"] | Should -Be "\hab\pkgs\core\run-dep\0.1.0\111\run"
         }
@@ -242,13 +242,12 @@ Describe "Invoke-SetupEnvironmentWrapper" {
 
         $script:pkg_deps = @("core/run-dep")
         $script:pkg_build_deps = @("core/build-dep")
-        
-        ($pkg_deps + $pkg_build_deps) | % {
+
+        ($pkg_deps + $pkg_build_deps) | ForEach-Object {
             $pkg_path = Join-path $HAB_PKG_PATH "$_\0.1.0\111"
             $unrooted_pkg_path = Join-path "\hab\pkgs" "$_\0.1.0\111"
             $pkg_all_deps_resolved += $pkg_path
             mkdir $pkg_path -Force | Out-Null
-            $dep_name = ($_ -split "/")[1]
             "$_/0.1.0/111" | Out-File "$pkg_path\IDENT"
             "PSModulePath=$unrooted_pkg_path\modules" | Out-File "$pkg_path\RUNTIME_ENVIRONMENT" -Append
             "PSModulePath=$unrooted_pkg_path\build_modules" | Out-File "$pkg_path\BUILDTIME_ENVIRONMENT" -Append
@@ -257,9 +256,9 @@ Describe "Invoke-SetupEnvironmentWrapper" {
             Push-RuntimeEnv -IsPath "PSModulePath" "$unrooted\modules"
             Push-BuildtimeEnv -IsPath "PSModulePath" "$unrooted\build_modules"
         }
-        
+
         Invoke-SetupEnvironmentWrapper
-    
+
         It "Should layer all rooted assignments" {
             $envvars["PSModulePath"] | Should -Be "$pkg_prefix\build_modules;$HAB_PKG_PATH\core\build-dep\0.1.0\111\build_modules;$pkg_prefix\modules;$HAB_PKG_PATH\core\run-dep\0.1.0\111\modules"
         }
@@ -271,7 +270,7 @@ Describe "Write-EnvironmentFiles" {
     $env:FS_ROOT = (Get-PSDrive TestDrive).Root
 
     Mock New-Item { } -ParameterFilter {$Path -eq "Env:"}
-    
+
     $script:HAB_PKG_PATH = Join-Path $env:FS_ROOT "hab\pkgs"
     $script:originalPath = "TestDrive:\src"
     $script:pkg_origin = "testorigin"
@@ -299,7 +298,7 @@ Describe "Write-EnvironmentFiles" {
             Set-RuntimeEnv -IsPath "test_set_run_var" "$pkg_prefix\test_set_run_var"
             Set-BuildtimeEnv -IsPath "test_set_build_var" "$pkg_prefix\test_set_build_var"
         }
-        
+
         Invoke-SetupEnvironmentWrapper
         Write-EnvironmentFiles
 
@@ -331,7 +330,7 @@ Describe "Write-EnvironmentFiles" {
             Set-RuntimeEnv "test_set_run_var" "$pkg_prefix\test_set_run_var"
             Set-BuildtimeEnv "test_set_build_var" "$pkg_prefix\test_set_build_var"
         }
-        
+
         Invoke-SetupEnvironmentWrapper
         Write-EnvironmentFiles
 

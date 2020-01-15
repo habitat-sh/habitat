@@ -236,7 +236,7 @@ function New-Studio {
   if($env:HAB_ORIGIN_KEYS) {
     $secret_keys = @()
     $public_keys = @()
-    $env:HAB_ORIGIN_KEYS.Split(" ") | % {
+    $env:HAB_ORIGIN_KEYS.Split(" ") | ForEach-Object {
       $sk = & hab origin key export $_ --type=secret | Out-String
       if($LASTEXITCODE -eq 0) {
         # hab key import does not like carriage returns
@@ -277,8 +277,8 @@ function New-Studio {
 
     $env:FS_ROOT=$HAB_STUDIO_ROOT
     $env:HAB_CACHE_KEY_PATH = Join-Path $env:FS_ROOT "hab\cache\keys"
-    $public_keys | % { $_ | & hab origin key import }
-    $secret_keys | % { $_ | & hab origin key import }
+    $public_keys | ForEach-Object { $_ | & hab origin key import }
+    $secret_keys | ForEach-Object { $_ | & hab origin key import }
   }
   else {
     Write-Warning "No secret keys imported! Did you mean to set `$env:HAB_ORIGIN?"
@@ -309,7 +309,7 @@ function New-Studio {
     Copy-Item -Path $env:CERT_PATH\* -Destination $env:HAB_CACHE_SSL_PATH
   }
 
-  Set-Secrets
+  Set-SecretsFromEnvironment
   Update-SslCertFile
 
   New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $HAB_STUDIO_ROOT -Scope Script | Out-Null
@@ -387,7 +387,7 @@ function Enter-Studio {
       & "$env:STUDIO_SCRIPT_ROOT\hab-plan-build.ps1" @args
     }
     function Test-InContainer {
-      (Get-Service -Name cexecsvc -ErrorAction SilentlyContinue) -ne $null
+      $null -ne (Get-Service -Name cexecsvc -ErrorAction SilentlyContinue)
     }
 
     function Get-SupervisorLog {
@@ -481,20 +481,20 @@ function Remove-Studio {
 }
 
 function Test-InContainer {
-  (Get-Service -Name cexecsvc -ErrorAction SilentlyContinue) -ne $null
+  $null -ne (Get-Service -Name cexecsvc -ErrorAction SilentlyContinue)
 }
 
-function Remove-UnsafeSecrets {
-  @('HAB_ORIGIN', 'PATH') | ForEach-Object {
+function Remove-UnsafeSecret($secretList) {
+  $secretList | ForEach-Object {
     if(Test-Path "env:\HAB_STUDIO_SECRET_$_") {
       Remove-Item "env:\HAB_STUDIO_SECRET_$_"
     }
   }
 }
 
-function Set-Secrets {
-  Remove-UnsafeSecrets
-  Get-ChildItem env: | ? { $_.Name.StartsWith('HAB_STUDIO_SECRET_') } | % {
+function Set-SecretsFromEnvironment {
+  Remove-UnsafeSecret @('HAB_ORIGIN', 'PATH')
+  Get-ChildItem env: | Where-Object { $_.Name.StartsWith('HAB_STUDIO_SECRET_') } | ForEach-Object {
     New-Item -Name $_.Name.Replace('HAB_STUDIO_SECRET_', '') -Value $_.Value -Path Env: -Force | Out-Null
     Remove-Item -Path "Env:\$($_.Name)" -Force
   }

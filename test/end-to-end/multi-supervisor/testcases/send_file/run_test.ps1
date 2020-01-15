@@ -2,7 +2,7 @@ Describe "hab file upload" {
     hab pkg install core/redis
     Load-SupervisorService "core/redis" -Remote "alpha.habitat.dev"
     Load-SupervisorService "core/redis" -Remote "beta.habitat.dev"
-    
+
     $message = "Hello from Habitat!"
     Set-Content message.txt -Value $message
     hab file upload `
@@ -12,7 +12,7 @@ Describe "hab file upload" {
         --remote-sup=bastion.habitat.dev
     start-sleep 5
 
-    @("alpha", "beta") | % {
+    @("alpha", "beta") | ForEach-Object {
        It "should upload the file to $_" {
          $uploadedMessage = docker exec "${env:COMPOSE_PROJECT_NAME}_${_}_1" cat /hab/svc/redis/files/message.txt
          $uploadedMessage | Should -Be $message

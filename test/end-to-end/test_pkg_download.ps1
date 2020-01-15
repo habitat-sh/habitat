@@ -22,13 +22,13 @@
 $cacheDir = "test-cache"
 
 function Test-IdentDownloaded($FilePrefix) {
-    $path = Join-Path $cacheDir "artifacts" "$FilePrefix-*"
+    $path = Join-Path -Path $cacheDir "artifacts" "$FilePrefix-*"
     if(!(Test-Path $path)) {
         Write-Error "$path was not found."
     }
 }
 
-function Test-GzipIdents {
+function Test-GzipIdent {
     Test-IdentDownloaded "core-gzip"
     Test-IdentDownloaded "core-glibc"
     Test-IdentDownloaded "core-gcc-libs"
@@ -43,7 +43,7 @@ function Test-GzipIdents {
     }
 }
 
-function Test-RustIdents {
+function Test-RustIdent {
     Test-IdentDownloaded "core-rust"
     Test-IdentDownloaded "core-visual-cpp-redist-2015"
     Test-IdentDownloaded "core-visual-cpp-build-tools-2015"
@@ -65,26 +65,26 @@ Describe "hab pkg download" {
 
     It "'hab pkg download --channel stable --download-directory $cacheDir core/gzip' succeeds" {
         hab pkg download --channel stable --download-directory $cacheDir core/gzip
-        Test-GzipIdents
+        Test-GzipIdent
     }
     It "'hab pkg download --channel stable --download-directory $cacheDir --file $identFile' succeeds" {
         Set-Content $identFile -Value "core/gzip"
         hab pkg download --channel stable --download-directory $cacheDir --file $identFile
-        Test-GzipIdents
+        Test-GzipIdent
     }
     It "'hab pkg download --channel stable --download-directory $cacheDir --file $identFile' succeeds with comments and empty lines" {
         Set-Content $identFile -Value @"
 # this is a series
 # of comments, followed by empty lines and whitespaces
 
- core/gzip 
+ core/gzip
 "@
         hab pkg download --channel stable --download-directory $cacheDir --file $identFile
-        Test-GzipIdents
+        Test-GzipIdent
     }
     It "'hab pkg download --channel stable --download-directory $cacheDir core/rust --target=x86_64-windows' succeeds" {
         hab pkg download --channel stable --download-directory $cacheDir core/rust --target=x86_64-windows
-        Test-RustIdents
+        Test-RustIdent
     }
     It "fails when package is invalid" {
         hab pkg download --download-directory $cacheDir arglebargle

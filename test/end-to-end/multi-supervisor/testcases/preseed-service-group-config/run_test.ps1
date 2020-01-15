@@ -14,7 +14,7 @@ Describe "preseeded service group config" {
         --remote-sup=bastion.habitat.dev
     hab pkg install core/redis
     Load-SupervisorService "core/redis" -Remote "alpha.habitat.dev"
-    
+
     It "should call redis cli SET on applied port" {
         hab pkg exec core/redis redis-cli -h "alpha.habitat.dev" -p $new_port SET secret_message "Hello World"
         $LASTEXITCODE | Should -Be 0

@@ -1,5 +1,5 @@
-﻿function Install-HabService {
-	if((Get-Service Habitat -ErrorAction SilentlyContinue) -ne $null) {
+function Install-HabService {
+	if($null -ne (Get-Service Habitat -ErrorAction SilentlyContinue)) {
 		Write-Error "The Habitat service is already installed. Please run 'hab exec core/windows-service uninstall' first if you wish to reinstall."
 		return
 	}
@@ -32,12 +32,11 @@
 }
 
 function Uninstall-HabService {
-	if((Get-Service Habitat -ErrorAction SilentlyContinue) -eq $null) {
+	if($null -eq (Get-Service Habitat -ErrorAction SilentlyContinue)) {
 		Write-Error "The Habitat service is not installed."
 		return
 	}
 
-	$svcPath = $env:SystemDrive -join "hab\svc\windows-service"
 	Stop-Service Habitat
 	while((Get-Service Habitat).Status -ne "Stopped") {
 		Start-Sleep -Seconds 1
