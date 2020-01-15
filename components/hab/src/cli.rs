@@ -1116,10 +1116,6 @@ pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
                                                                        the Supervisor startup specified by a package identifier \
                                                                        (ex: core/redis) or filepath to a Habitat Artifact \
                                                                        (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).")
-                            (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
-                             "Application name; [default: not set].")
-                            (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
-                             "Environment name; [default: not set].")
                             (@arg GROUP: --group +takes_value
                              "The service group; shared config and topology [default: default].")
                             (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
@@ -1217,10 +1213,6 @@ fn sub_svc_load() -> App<'static, 'static> {
             identifier, a suitable package will be installed from Builder.")
         (@arg PKG_IDENT: +required +takes_value {valid_ident}
             "A Habitat package identifier (ex: core/redis)")
-        (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
-            "Application name; [default: not set].")
-        (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
-            "Environment name; [default: not set].")
         (@arg CHANNEL: --channel +takes_value default_value[stable]
             "Receive package updates from the specified release channel")
         (@arg GROUP: --group +takes_value
@@ -1267,12 +1259,6 @@ fn sub_svc_unload() -> App<'static, 'static> {
     add_shutdown_timeout_option(sub)
 }
 
-// TODO (CM): yeah, this is uuuuuuuuuugly. Ideally, we'd just not have
-// the `--application` and `--environment` flags, or they would become
-// this, and then disappear from the `hab svc load` command.
-//
-// For now, though, these at least provide a place to supply the
-// information; we can revise as we go.
 fn add_event_stream_options(app: App<'static, 'static>) -> App<'static, 'static> {
     // Create shorter alias so formating works correctly
     type ConnectMethod = EventStreamConnectMethod;

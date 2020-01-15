@@ -2614,7 +2614,6 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 **OPTIONS**
 
 ```
--a, --application <APPLICATION>                        Application name; [default: not set].
     --bind <BIND>...                                   One or more service groups to bind to a configuration
     --binding-mode <BINDING_MODE> Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] [values: relaxed, strict]
 -u, --url <BLDR_URL> Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
@@ -2625,7 +2624,6 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 
     --config-from <CONFIG_DIR> Use package config from this path, rather than the package itself
 
--e, --environment <ENVIRONMENT>                        Environment name; [default: not set].
     --group <GROUP> The service group; shared config and topology [default: default].
 
 -i, --health-check-interval <HEALTH_CHECK_INTERVAL> The interval (seconds) on which to run health checks [default: 30]
@@ -2920,13 +2918,11 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
 **OPTIONS**
 
 ```
--a, --application <APPLICATION>                        Application name; [default: not set].
     --bind <BIND>...                                   One or more service groups to bind to a configuration
     --binding-mode <BINDING_MODE> Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] [values: relaxed, strict]
 -u, --url <BLDR_URL> Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
     --channel <CHANNEL> Receive package updates from the specified release channel [default: stable]
 
--e, --environment <ENVIRONMENT>                        Environment name; [default: not set].
     --group <GROUP> The service group; shared config and topology [default: default].
 
 -i, --health-check-interval <HEALTH_CHECK_INTERVAL> The interval (seconds) on which to run health checks [default: 30]

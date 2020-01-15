@@ -52,8 +52,7 @@ use habitat_launcher_client::{LauncherCli,
                               ERR_NO_RETRY_EXCODE};
 use habitat_sup_protocol::{self as sup_proto,
                            ctl::ServiceBindList,
-                           types::{ApplicationEnvironment,
-                                   BindingMode,
+                           types::{BindingMode,
                                    ServiceBind,
                                    Topology,
                                    UpdateStrategy}};
@@ -382,17 +381,6 @@ fn get_group_from_input(m: &ArgMatches) -> Option<String> {
     m.value_of("GROUP").map(ToString::to_string)
 }
 
-/// If the user provides both --application and --environment options,
-/// parse and set the value on the spec.
-fn get_app_env_from_input(m: &ArgMatches) -> Result<Option<ApplicationEnvironment>> {
-    if let (Some(app), Some(env)) = (m.value_of("APPLICATION"), m.value_of("ENVIRONMENT")) {
-        Ok(Some(ApplicationEnvironment { application: app.to_string(),
-                                         environment: env.to_string(), }))
-    } else {
-        Ok(None)
-    }
-}
-
 fn get_topology_from_input(m: &ArgMatches) -> Option<Topology> {
     m.value_of("TOPOLOGY")
      .and_then(|f| Topology::from_str(f).ok())
@@ -481,7 +469,7 @@ fn svc_load_from_input(m: &ArgMatches) -> Result<sup_proto::ctl::SvcLoad> {
     let mut msg = sup_proto::ctl::SvcLoad::default();
     msg.bldr_url = Some(bldr_url(m));
     msg.bldr_channel = Some(channel(m).to_string());
-    msg.application_environment = get_app_env_from_input(m)?;
+    msg.application_environment = None;
     msg.binds = get_binds_from_input(m)?;
     msg.config_from = get_config_from_input(m);
     if m.is_present("FORCE") {
