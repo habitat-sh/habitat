@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.69 -->
-## [0.90.69](https://github.com/habitat-sh/habitat/tree/0.90.69) (2020-01-16)
+<!-- latest_release 0.90.70 -->
+## [0.90.70](https://github.com/habitat-sh/habitat/tree/0.90.70) (2020-01-16)
 
-#### New Features & Enhancements
-- origin ownership transfer subcommand [#7331](https://github.com/habitat-sh/habitat/pull/7331) ([jeremymv2](https://github.com/jeremymv2))
+#### Merged Pull Requests
+- Add a &quot;test-probe&quot; service [#7283](https://github.com/habitat-sh/habitat/pull/7283) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -27,6 +27,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Add a &quot;test-probe&quot; service [#7283](https://github.com/habitat-sh/habitat/pull/7283) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.70 -->
 - Update to 1.40.0 [#7325](https://github.com/habitat-sh/habitat/pull/7325) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.68 -->
 - Adds issue template for features that redirects to aha [#7062](https://github.com/habitat-sh/habitat/pull/7062) ([eeyun](https://github.com/eeyun)) <!-- 0.90.67 -->
 - Bump excon from 0.66.0 to 0.71.1 in /www [#7334](https://github.com/habitat-sh/habitat/pull/7334) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 0.90.66 -->
