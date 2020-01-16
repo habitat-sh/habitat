@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.68 -->
-## [0.90.68](https://github.com/habitat-sh/habitat/tree/0.90.68) (2020-01-15)
+<!-- latest_release 0.90.69 -->
+## [0.90.69](https://github.com/habitat-sh/habitat/tree/0.90.69) (2020-01-16)
 
-#### Merged Pull Requests
-- Update to 1.40.0 [#7325](https://github.com/habitat-sh/habitat/pull/7325) ([davidMcneil](https://github.com/davidMcneil))
+#### New Features & Enhancements
+- origin ownership transfer subcommand [#7331](https://github.com/habitat-sh/habitat/pull/7331) ([jeremymv2](https://github.com/jeremymv2))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -14,6 +14,7 @@
 - The initial event stream connection attempt no longer blocks by default. Set --event-stream-connect-timeout if blocking is desired. [#7293](https://github.com/habitat-sh/habitat/pull/7293) ([davidMcneil](https://github.com/davidMcneil))
 
 #### New Features & Enhancements
+- origin ownership transfer subcommand [#7331](https://github.com/habitat-sh/habitat/pull/7331) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.69 -->
 - Event stream connection backoff strategy [#7293](https://github.com/habitat-sh/habitat/pull/7293) ([davidMcneil](https://github.com/davidMcneil))
 - bulkupload: discover origins from signing keys [#7279](https://github.com/habitat-sh/habitat/pull/7279) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.48 -->
 - Add PIDS_FROM_LAUNCHER feature to eliminate service PID files [#7214](https://github.com/habitat-sh/habitat/pull/7214) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.22 -->
