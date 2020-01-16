@@ -204,5 +204,14 @@ sidebar_links:
       link: "/docs/internals/#crypto-internals"
     - title: Bootstrapping Chef Habitat
       link: "/docs/internals/#bootstrap-internals"
+  - title: Habitat Pattern Library
+    link: "/docs/pattern-library/pattern-library"
+    sub_links:
+    - title: Plan.sh Pattern
+      link: "/docs/pattern-library/pattern-library/#hab-plan-sh"
+    - title: Bastion Ring Pattern
+      link: "/docs/pattern-library/pattern-library/#hab-bastion"
+    - title: Bastion Ring Consumer Pattern
+      link: "/docs/pattern-library/pattern-library/#hab-bastion-consumer"
   - title: Contribute
     link: "/docs/contribute"
