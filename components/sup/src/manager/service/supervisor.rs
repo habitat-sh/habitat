@@ -39,11 +39,11 @@ pub struct Supervisor {
     // TODO (CM): make this private
     pub state_entered: Timespec,
     pid: Option<Pid>,
-    /// If the Supervisor is being run with the PIDS_FROM_LAUNCHER
-    /// feature enabled, this will be `None`, otherwise it will be
-    /// `Some(path)`. Client code should use the `Some`/`None` status
-    /// of this field as an indicator of which mode the Supervisor is
-    /// running in.
+    /// If the Supervisor is being run with an newer Launcher that
+    /// can provide service PIDs, this will be `None`, otherwise it
+    /// will be `Some(path)`. Client code should use the `Some`/`None`
+    /// status of this field as an indicator of which mode the
+    /// Supervisor is running in.
     pid_file: Option<PathBuf>,
 }
 
@@ -51,8 +51,9 @@ impl Supervisor {
     /// Create a new instance for `service_group`.
     ///
     /// The `pid_source` governs how we determine the PID of the
-    /// supervised process. Once the PIDS_FROM_LAUNCHER feature flag
-    /// goes away, this can be removed.
+    /// supervised process. Once the we decide to no longer support
+    /// the older Launchers that can't provide service PIDs, this can
+    /// be removed.
     pub fn new(service_group: &ServiceGroup, pid_source: ServicePidSource) -> Supervisor {
         let pid_file = match pid_source {
             ServicePidSource::Files => Some(fs::svc_pid_file(service_group.service())),

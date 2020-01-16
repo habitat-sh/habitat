@@ -417,9 +417,9 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
-  - label: "[:linux: test PIDS_FROM_LAUNCHER feature]"
+  - label: "[:linux: test pids from Launcher with compatible Launcher]"
     command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_PIDS_FROM_LAUNCHER_feature
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_service_pids_come_from_new_launcher
     expeditor:
       executor:
         docker:
@@ -427,19 +427,9 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  - label: "[:linux: test PIDS_FROM_LAUNCHER feature with old Launcher]"
+  - label: "[:linux: test service PID files with old Launcher]"
     command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_PIDS_FROM_LAUNCHER_feature_old_launcher
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
-
-  - label: "[:linux: test PIDS_FROM_LAUNCHER disabled]"
-    command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_PIDS_FROM_LAUNCHER_feature_disabled
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_service_pids_written_to_file_using_old_launcher
     expeditor:
       executor:
         docker:

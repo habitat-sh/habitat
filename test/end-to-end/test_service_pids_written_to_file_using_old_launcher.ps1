@@ -1,13 +1,17 @@
-# When the PIDS_FROM_LAUNCHER feature is not enabled, we should still
-# be using PID files for services.
+# When using an old Launcher that cannot provide service PIDs to the
+# Supervisor, we should still be using PID files for individual
+# services.
 
-Describe "PIDS_FROM_LAUNCHER feature is disabled" {
-    $env:HAB_FEAT_PIDS_FROM_LAUNCHER=$null
+Describe "Using a Launcher that cannot provide service PIDs" {
+    # This was the last stable Linux Launcher prior to the Launcher
+    # being able to provide service PIDs to the Supervisor directly.
+    hab pkg install core/hab-launcher/12605/20191112144831
+
     Start-Supervisor -Timeout 20
     Load-SupervisorService -PackageName "core/redis" -Timeout 20
     Wait-Process redis-server -Timeout 10
 
-    It "should not create PID file" {
+    It "should create PID file" {
         Test-Path "/hab/svc/redis/PID" | Should -Be $true
     }
 

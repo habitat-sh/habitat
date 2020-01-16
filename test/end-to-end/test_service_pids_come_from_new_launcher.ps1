@@ -1,9 +1,7 @@
-# When using a current Launcher and enabling the PIDS_FROM_LAUNCHER
-# feature, the Supervisor should not create PID files for the services
-# it manages.
+# When using a current Launcher the Supervisor should not create PID
+# files for the services it manages.
 
-Describe "PIDS_FROM_LAUNCHER feature" {
-    $env:HAB_FEAT_PIDS_FROM_LAUNCHER=1
+Describe "Service PIDs from Launcher feature" {
     Start-Supervisor -Timeout 20
     Load-SupervisorService -PackageName "core/redis" -Timeout 20
     Wait-Process redis-server -Timeout 10

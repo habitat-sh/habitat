@@ -158,32 +158,24 @@ pub enum ServicePidSource {
 }
 
 impl ServicePidSource {
-    /// This check is to determine if the user has both opted-in to
-    /// the new "no pidfiles" feature AND is running a Launcher
-    /// that can support it. If either of those conditions are not
-    /// met, we will continue to use the old pidfile logic.
+    /// This check is to determine if the user is working with a
+    /// Launcher that can provide service PIDs. If not, we will
+    /// continue to use the old pidfile logic.
     ///
     /// You should call this function once early in the Supservisor's
     /// lifecycle and cache the results. We only want to incur the
     /// timeout hit when we check to see if the launcher can answer
     /// our query once. Otherwise, if we were using an older launcher,
     /// we would incur that hit each time we start a new service.
-    fn determine_source(feature_flags: FeatureFlag, launcher: &LauncherCli) -> Self {
-        if feature_flags.contains(FeatureFlag::PIDS_FROM_LAUNCHER) {
-            if launcher.pid_of("fake_service.just_to_see_if_the_launcher_can_handle_this_message")
-                       .is_err()
-            {
-                warn!("Opted in to PIDS_FROM_LAUNCHER feature, but you do not appear to be \
-                       running a compatible Launcher. Continuing to use pidfiles for services.");
-                ServicePidSource::Files
-            } else {
-                outputln!("PIDS_FROM_LAUNCHER feature enabled: Not using pidfiles for services!");
-                ServicePidSource::Launcher
-            }
-        } else {
-            // This is the pre-existing "normal" behavior; no reason
-            // to call attention to it with logging output.
+    fn determine_source(launcher: &LauncherCli) -> Self {
+        if launcher.pid_of("fake_service.just_to_see_if_the_launcher_can_handle_this_message")
+                   .is_err()
+        {
+            warn!("You do not appear to be running a Launcher that can provide service PIDs to \
+                   the Supervisor. Using pidfiles for services instead.");
             ServicePidSource::Files
+        } else {
+            ServicePidSource::Launcher
         }
     }
 }
@@ -693,7 +685,7 @@ impl Manager {
             runtime.block_on(event::init(&sys, fqdn, es_config))?;
         }
 
-        let pid_source = ServicePidSource::determine_source(cfg.feature_flags, &launcher);
+        let pid_source = ServicePidSource::determine_source(&launcher);
 
         Ok(Manager { state: Arc::new(ManagerState { cfg: cfg_static,
                                                     services,
