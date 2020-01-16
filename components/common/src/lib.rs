@@ -82,7 +82,6 @@ bitflags::bitflags! {
         const REDACT_HTTP          = 0b0000_0000_1000;
         const OFFLINE_INSTALL      = 0b0000_0100_0000;
         const IGNORE_LOCAL         = 0b0000_1000_0000;
-        const EVENT_STREAM         = 0b0001_0000_0000;
         const TRIGGER_ELECTION     = 0b0010_0000_0000;
     }
 }
@@ -95,7 +94,6 @@ lazy_static! {
                            (FeatureFlag::REDACT_HTTP, "HAB_FEAT_REDACT_HTTP"),
                            (FeatureFlag::OFFLINE_INSTALL, "HAB_FEAT_OFFLINE_INSTALL"),
                            (FeatureFlag::IGNORE_LOCAL, "HAB_FEAT_IGNORE_LOCAL"),
-                           (FeatureFlag::EVENT_STREAM, "HAB_FEAT_EVENT_STREAM"),
                            (FeatureFlag::TRIGGER_ELECTION, "HAB_FEAT_TRIGGER_ELECTION"),];
 
         HashMap::from_iter(mapping)

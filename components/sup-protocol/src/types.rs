@@ -26,22 +26,6 @@ impl ServiceGroup {
     }
 }
 
-impl<T, U> From<(T, U)> for ApplicationEnvironment
-    where T: ToString,
-          U: ToString
-{
-    fn from(value: (T, U)) -> ApplicationEnvironment {
-        Self { application: value.0.to_string(),
-               environment: value.1.to_string(), }
-    }
-}
-
-impl fmt::Display for ApplicationEnvironment {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}.{}", self.application, self.environment)
-    }
-}
-
 impl fmt::Display for BindingMode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = match *self {
@@ -172,9 +156,6 @@ impl FromStr for ServiceGroup {
 impl fmt::Display for ServiceGroup {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut value = format!("{}.{}", self.service, self.group);
-        if let Some(ref app_env) = self.application_environment {
-            value.insert_str(0, &format!("{}#", app_env));
-        }
         if let Some(ref organization) = self.organization {
             value.push_str(&format!("@{}", organization));
         }
@@ -186,19 +167,6 @@ impl fmt::Display for ServiceGroup {
 // concrete Rust types defined in the core crate will go away eventually. We need to put the
 // core crate back into the Supervisor's repository and untangle our dependency hell before
 // that can happen.
-
-impl From<core::service::ApplicationEnvironment> for ApplicationEnvironment {
-    fn from(app_env: core::service::ApplicationEnvironment) -> Self {
-        Self { application: app_env.application().to_string(),
-               environment: app_env.environment().to_string(), }
-    }
-}
-
-impl Into<core::service::ApplicationEnvironment> for ApplicationEnvironment {
-    fn into(self) -> core::service::ApplicationEnvironment {
-        core::service::ApplicationEnvironment::new(self.application, self.environment).unwrap()
-    }
-}
 
 impl From<core::service::HealthCheckInterval> for HealthCheckInterval {
     fn from(h: core::service::HealthCheckInterval) -> Self { Self { seconds: h.into() } }
@@ -249,9 +217,6 @@ impl Into<core::service::BindingMode> for BindingMode {
 impl From<core::service::ServiceGroup> for ServiceGroup {
     fn from(service_group: core::service::ServiceGroup) -> Self {
         let mut proto = ServiceGroup::default();
-        if let Some(app_env) = service_group.application_environment() {
-            proto.application_environment = Some(app_env.into());
-        }
         proto.group = service_group.group().to_string();
         proto.service = service_group.service().to_string();
         if let Some(organization) = service_group.org() {
@@ -263,14 +228,7 @@ impl From<core::service::ServiceGroup> for ServiceGroup {
 
 impl Into<core::service::ServiceGroup> for ServiceGroup {
     fn into(self) -> core::service::ServiceGroup {
-        let app_env = if let Some(app_env) = self.application_environment {
-            Some(core::service::ApplicationEnvironment::new(app_env.application,
-                                                            app_env.environment).unwrap())
-        } else {
-            None
-        };
-        core::service::ServiceGroup::new(app_env.as_ref(),
-                                         self.service,
+        core::service::ServiceGroup::new(self.service,
                                          self.group,
                                          self.organization.as_ref().map(String::as_str)).unwrap()
     }

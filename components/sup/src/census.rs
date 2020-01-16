@@ -563,8 +563,6 @@ impl Serialize for CensusGroup {
 pub struct CensusMember {
     pub member_id: MemberId,
     pub pkg: Option<PackageIdent>,
-    pub application: Option<String>,
-    pub environment: Option<String>,
     pub service: String,
     pub group: String,
     pub org: Option<String>,
@@ -599,10 +597,6 @@ impl CensusMember {
         self.group = sg.group().to_string();
         if let Some(org) = sg.org() {
             self.org = Some(org.to_string());
-        }
-        if let Some(appenv) = sg.application_environment() {
-            self.application = Some(appenv.application().to_string());
-            self.environment = Some(appenv.environment().to_string());
         }
         match PackageIdent::from_str(&rumor.pkg) {
             Ok(ident) => self.pkg = Some(ident),
@@ -694,8 +688,6 @@ impl<'a> Serialize for CensusMemberProxy<'a> {
             strukt.serialize_field("package", &None::<String>)?;
         }
 
-        strukt.serialize_field("application", &self.0.application)?;
-        strukt.serialize_field("environment", &self.0.environment)?;
         strukt.serialize_field("service", &self.0.service)?;
         strukt.serialize_field("group", &self.0.group)?;
         strukt.serialize_field("org", &self.0.org)?;
@@ -791,7 +783,7 @@ mod tests {
                                       "shield",
                                       Some("0.10.4"),
                                       Some("20170419115548"));
-        let sg_one = ServiceGroup::new(None, "shield", "one", None).unwrap();
+        let sg_one = ServiceGroup::new("shield", "one", None).unwrap();
 
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();
         let service_one = ServiceRumor::new("member-a".to_string(),
@@ -799,7 +791,7 @@ mod tests {
                                             sg_one.clone(),
                                             sys_info.clone(),
                                             None);
-        let sg_two = ServiceGroup::new(None, "shield", "two", None).unwrap();
+        let sg_two = ServiceGroup::new("shield", "two", None).unwrap();
         let service_two = ServiceRumor::new("member-b".to_string(),
                                             &pg_id,
                                             sg_two.clone(),
@@ -853,8 +845,6 @@ mod tests {
     fn test_census_member(id: &str, health: Health) -> CensusMember {
         CensusMember { member_id: id.into(),
                        pkg: None,
-                       application: None,
-                       environment: None,
                        service: "test_service".to_string(),
                        group: "default".to_string(),
                        org: None,

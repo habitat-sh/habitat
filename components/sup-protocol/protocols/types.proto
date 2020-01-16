@@ -42,6 +42,7 @@ enum BindingMode {
 }
 
 message ApplicationEnvironment {
+  option deprecated = true;
   required string application = 1;
   required string environment = 2;
 }
@@ -81,7 +82,7 @@ message ServiceCfg {
 message ServiceGroup {
   required string service = 1;
   required string group = 2;
-  optional ApplicationEnvironment application_environment = 3;
+  optional ApplicationEnvironment application_environment = 3 [deprecated=true];
   optional string organization = 4;
 }
 

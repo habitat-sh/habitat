@@ -206,7 +206,6 @@
     "election_is_running": false,
     "first": {
       "alive": true,
-      "application": null,
       "cfg": {
         "blah": "foo",
         "port": 2112
@@ -216,7 +215,6 @@
       "election_is_finished": false,
       "election_is_no_quorum": false,
       "election_is_running": false,
-      "environment": null,
       "follower": false,
       "group": "default",
       "leader": false,
@@ -251,7 +249,6 @@
     "leader": null,
     "me": {
       "alive": true,
-      "application": null,
       "cfg": {
         "blah": "foo",
         "port": 2112
@@ -261,7 +258,6 @@
       "election_is_finished": false,
       "election_is_no_quorum": false,
       "election_is_running": false,
-      "environment": null,
       "follower": false,
       "group": "default",
       "leader": false,
@@ -295,7 +291,6 @@
     "members": [
       {
         "alive": true,
-        "application": null,
         "cfg": {
           "blah": "foo",
           "port": 2112
@@ -305,7 +300,6 @@
         "election_is_finished": false,
         "election_is_no_quorum": false,
         "election_is_running": false,
-        "environment": null,
         "follower": false,
         "group": "default",
         "leader": false,
@@ -348,7 +342,6 @@
     "router": {
       "first": {
         "alive": true,
-        "application": null,
         "cfg": {
           "port": 5562
         },
@@ -357,7 +350,6 @@
         "election_is_finished": false,
         "election_is_no_quorum": false,
         "election_is_running": false,
-        "environment": null,
         "follower": false,
         "group": "default",
         "leader": false,
@@ -392,7 +384,6 @@
       "members": [
         {
           "alive": true,
-          "application": null,
           "cfg": {
             "port": 5562
           },
@@ -401,7 +392,6 @@
           "election_is_finished": false,
           "election_is_no_quorum": false,
           "election_is_running": false,
-          "environment": null,
           "follower": false,
           "group": "default",
           "leader": false,

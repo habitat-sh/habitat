@@ -1,15 +1,6 @@
 #[derive(Clone, PartialEq, ::prost::Message)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub struct ApplicationEnvironment {
-    #[prost(string, required, tag="1")]
-    pub application: std::string::String,
-    #[prost(string, required, tag="2")]
-    pub environment: std::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
 pub struct PackageIdent {
     #[prost(string, required, tag="1")]
     pub origin: std::string::String,
@@ -69,8 +60,6 @@ pub struct ServiceGroup {
     pub service: std::string::String,
     #[prost(string, required, tag="2")]
     pub group: std::string::String,
-    #[prost(message, optional, tag="3")]
-    pub application_environment: ::std::option::Option<ApplicationEnvironment>,
     #[prost(string, optional, tag="4")]
     pub organization: ::std::option::Option<std::string::String>,
 }

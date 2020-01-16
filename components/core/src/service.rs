@@ -12,6 +12,14 @@ use std::{fmt,
           time::Duration};
 
 lazy_static::lazy_static! {
+    // Note that the application_environment portion of the patern is
+    // here only for a bit of backward compatibility as we remove that
+    // old feature. It is NOT to actually be used anymore.
+    //
+    // By keeping it around, we're able to "translate" names that
+    // contained application and environment information into ones
+    // that don't. In other words, this allows us to ignore that
+    // information.
     static ref SG_FROM_STR_RE: Regex =
         Regex::new(r"\A((?P<application_environment>[^#@]+)#)?(?P<service>[^#@.]+)\.(?P<group>[^#@.]+)(@(?P<organization>[^#@.]+))?\z").unwrap();
 
@@ -142,38 +150,22 @@ impl serde::Serialize for ServiceBind {
 pub struct ServiceGroup(String);
 
 impl ServiceGroup {
-    pub fn new<S1, S2>(app_env: Option<&ApplicationEnvironment>,
-                       service: S1,
-                       group: S2,
-                       organization: Option<&str>)
-                       -> Result<Self>
+    pub fn new<S1, S2>(service: S1, group: S2, organization: Option<&str>) -> Result<Self>
         where S1: AsRef<str>,
               S2: AsRef<str>
     {
-        let formatted = Self::format(app_env, service, group, organization);
+        let formatted = Self::format(service, group, organization);
         Self::validate(&formatted)?;
         Ok(ServiceGroup(formatted))
     }
 
-    fn format<S1, S2>(app_env: Option<&ApplicationEnvironment>,
-                      service: S1,
-                      group: S2,
-                      organization: Option<&str>)
-                      -> String
+    fn format<S1, S2>(service: S1, group: S2, organization: Option<&str>) -> String
         where S1: AsRef<str>,
               S2: AsRef<str>
     {
-        match (app_env, organization) {
-            (Some(app_env), Some(org)) => {
-                format!("{}#{}.{}@{}",
-                        app_env,
-                        service.as_ref(),
-                        group.as_ref(),
-                        org)
-            }
-            (Some(app_env), None) => format!("{}#{}.{}", app_env, service.as_ref(), group.as_ref()),
-            (None, Some(org)) => format!("{}.{}@{}", service.as_ref(), group.as_ref(), org),
-            (None, None) => format!("{}.{}", service.as_ref(), group.as_ref()),
+        match organization {
+            Some(org) => format!("{}.{}@{}", service.as_ref(), group.as_ref(), org),
+            None => format!("{}.{}", service.as_ref(), group.as_ref()),
         }
     }
 
@@ -187,16 +179,6 @@ impl ServiceGroup {
             return Err(Error::InvalidServiceGroup(value.to_string()));
         }
         Ok(())
-    }
-
-    pub fn application_environment(&self) -> Option<ApplicationEnvironment> {
-        SG_FROM_STR_RE.captures(&self.0)
-                      .unwrap()
-                      .name("application_environment")
-                      .map(|v| {
-                          ApplicationEnvironment::from_str(v.as_str())
-                        .expect("ApplicationEnvironment is valid and parses.")
-                      })
     }
 
     pub fn service(&self) -> &str {
@@ -226,10 +208,7 @@ impl ServiceGroup {
     ///
     /// This is useful if the organization was lazily loaded or added after creation.
     pub fn set_org<T: AsRef<str>>(&mut self, org: T) {
-        self.0 = Self::format(self.application_environment().as_ref(),
-                              self.service(),
-                              self.group(),
-                              Some(org.as_ref()));
+        self.0 = Self::format(self.service(), self.group(), Some(org.as_ref()));
     }
 }
 
@@ -267,106 +246,11 @@ impl FromStr for ServiceGroup {
             Some(g) => g.as_str(),
             None => return Err(Error::InvalidServiceGroup(value.to_string())),
         };
-        let app_env = match caps.name("application_environment") {
-            Some(a) => Some(ApplicationEnvironment::from_str(a.as_str())?),
-            None => None,
-        };
         let org = match caps.name("organization") {
             Some(o) => Some(o.as_str()),
             None => None,
         };
-        Ok(ServiceGroup(ServiceGroup::format(app_env.as_ref(),
-                                             service,
-                                             group,
-                                             org)))
-    }
-}
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
-pub struct ApplicationEnvironment(String);
-
-impl ApplicationEnvironment {
-    pub fn new<S1, S2>(app: S1, env: S2) -> Result<Self>
-        where S1: AsRef<str>,
-              S2: AsRef<str>
-    {
-        let formatted = Self::format(app, env);
-        Self::validate(&formatted)?;
-        Ok(ApplicationEnvironment(formatted))
-    }
-
-    fn format<S1, S2>(app: S1, env: S2) -> String
-        where S1: AsRef<str>,
-              S2: AsRef<str>
-    {
-        format!("{}.{}", app.as_ref(), env.as_ref())
-    }
-
-    pub fn validate(value: &str) -> Result<()> {
-        let caps =
-            AE_FROM_STR_RE.captures(value)
-                          .ok_or_else(|| Error::InvalidApplicationEnvironment(value.to_string()))?;
-        if caps.name("application").is_none() {
-            return Err(Error::InvalidApplicationEnvironment(value.to_string()));
-        }
-        if caps.name("environment").is_none() {
-            return Err(Error::InvalidApplicationEnvironment(value.to_string()));
-        }
-        Ok(())
-    }
-
-    pub fn application(&self) -> &str {
-        AE_FROM_STR_RE.captures(&self.0)
-                      .unwrap()
-                      .name("application")
-                      .unwrap()
-                      .as_str()
-    }
-
-    pub fn environment(&self) -> &str {
-        AE_FROM_STR_RE.captures(&self.0)
-                      .unwrap()
-                      .name("environment")
-                      .unwrap()
-                      .as_str()
-    }
-}
-
-impl AsRef<str> for ApplicationEnvironment {
-    fn as_ref(&self) -> &str { &self.0 }
-}
-
-impl Deref for ApplicationEnvironment {
-    type Target = String;
-
-    fn deref(&self) -> &String { &self.0 }
-}
-
-impl DerefMut for ApplicationEnvironment {
-    fn deref_mut(&mut self) -> &mut String { &mut self.0 }
-}
-
-impl fmt::Display for ApplicationEnvironment {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.0) }
-}
-
-impl FromStr for ApplicationEnvironment {
-    type Err = Error;
-
-    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
-        let caps = match AE_FROM_STR_RE.captures(value) {
-            Some(c) => c,
-            None => return Err(Error::InvalidApplicationEnvironment(value.to_string())),
-        };
-        let app = match caps.name("application") {
-            Some(s) => s.as_str(),
-            None => return Err(Error::InvalidApplicationEnvironment(value.to_string())),
-        };
-        let env = match caps.name("environment") {
-            Some(g) => g.as_str(),
-            None => return Err(Error::InvalidApplicationEnvironment(value.to_string())),
-        };
-        Ok(ApplicationEnvironment(ApplicationEnvironment::format(app, env)))
+        Ok(ServiceGroup(ServiceGroup::format(service, group, org)))
     }
 }
 
@@ -415,40 +299,16 @@ mod test {
     #[test]
     fn service_group_from_str_with_org() {
         let x = ServiceGroup::from_str("foo.bar").unwrap();
-        assert!(x.application_environment().is_none());
         assert_eq!(x.service(), "foo");
         assert_eq!(x.group(), "bar");
         assert!(x.org().is_none());
 
         let y = ServiceGroup::from_str("foo.bar@baz").unwrap();
-        assert!(x.application_environment().is_none());
         assert_eq!(y.service(), "foo");
         assert_eq!(y.group(), "bar");
         assert_eq!(y.org(), Some("baz"));
 
         assert!(ServiceGroup::from_str("foo@baz").is_err());
-    }
-
-    #[test]
-    fn service_group_from_str_with_app() {
-        let x = ServiceGroup::from_str("oz.prod#foo.bar").unwrap();
-        assert_eq!(x.application_environment(),
-                   Some(ApplicationEnvironment::from_str("oz.prod").unwrap()));
-        assert_eq!(x.service(), "foo");
-        assert_eq!(x.group(), "bar");
-        assert!(x.org().is_none());
-    }
-
-    #[test]
-    fn service_group_from_str_with_app_and_org() {
-        let x = ServiceGroup::from_str("oz.prod#foo.bar@baz").unwrap();
-        assert_eq!(x.application_environment(),
-                   Some(ApplicationEnvironment::from_str("oz.prod").unwrap()));
-        assert_eq!(x.service(), "foo");
-        assert_eq!(x.group(), "bar");
-        assert_eq!(x.org(), Some("baz"));
-
-        assert!(ServiceGroup::from_str("f#o#o.bar@baz").is_err());
     }
 
     #[test]
@@ -551,12 +411,12 @@ mod test {
 
     #[test]
     fn service_bind_from_str() {
-        let bind_str = "name:app.env#service.group@organization";
+        let bind_str = "name:service.group@organization";
         let bind = ServiceBind::from_str(bind_str).unwrap();
 
         assert_eq!(bind.name, String::from("name"));
         assert_eq!(bind.service_group,
-                   ServiceGroup::from_str("app.env#service.group@organization").unwrap());
+                   ServiceGroup::from_str("service.group@organization").unwrap());
     }
 
     #[test]
@@ -628,13 +488,12 @@ mod test {
             key: ServiceBind,
         }
         let toml = r#"
-            key = "redis:cache.redis#service.group@organization"
+            key = "redis:service.group@organization"
             "#;
         let data: Data = toml::from_str(toml).unwrap();
 
         assert_eq!("redis", data.key.name());
-        let sg = ServiceGroup::from_str("cache.redis#service.group@organization")
-            .expect("good service group");
+        let sg = ServiceGroup::from_str("service.group@organization").expect("good service group");
         assert_eq!(sg, *data.key.service_group());
     }
 
@@ -650,69 +509,6 @@ mod test {
             key = "name"
             "#;
         let _data: Data = toml::from_str(toml).unwrap();
-    }
-
-    #[test]
-    fn application_environment_new() {
-        let x = ApplicationEnvironment::new("application", "environment").unwrap();
-        assert_eq!(x.application(), "application");
-        assert_eq!(x.environment(), "environment");
-        assert_eq!(x.as_str(), "application.environment");
-    }
-
-    #[test]
-    fn application_environment_from_str() {
-        let x = ApplicationEnvironment::from_str("foo.bar").unwrap();
-        assert_eq!(x.application(), "foo");
-        assert_eq!(x.environment(), "bar");
-    }
-
-    #[test]
-    #[should_panic(expected = "oh-noes")]
-    fn application_environment_from_str_missing_period() {
-        ApplicationEnvironment::from_str("oh-noes").unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "only.one.period.allowed")]
-    fn application_environment_from_str_too_many_periods() {
-        ApplicationEnvironment::from_str("only.one.period.allowed").unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "@not.allowed")]
-    fn application_environment_from_str_with_ats_front() {
-        ApplicationEnvironment::from_str("@not.allowed").unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "not.allowed@")]
-    fn application_environment_from_str_with_ats_end() {
-        ApplicationEnvironment::from_str("not.allowed@").unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "ats.not@allowed")]
-    fn application_environment_from_str_with_ats_middle() {
-        ApplicationEnvironment::from_str("ats.not@allowed").unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "#not.allowed")]
-    fn application_environment_from_str_with_hashes_front() {
-        ApplicationEnvironment::from_str("#not.allowed").unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "not.allowed#")]
-    fn application_environment_from_str_with_hashes_end() {
-        ApplicationEnvironment::from_str("not.allowed#").unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "hashes.not#allowed")]
-    fn application_environment_from_str_with_hashes_middle() {
-        ApplicationEnvironment::from_str("hashes.not#allowed").unwrap();
     }
 
     #[test]
@@ -737,5 +533,55 @@ mod test {
     fn health_check_interval_display() {
         assert_eq!("(5s)".to_owned(),
                    format!("{}", HealthCheckInterval::from_str("5").unwrap()));
+    }
+
+    /// This ensures that we can safely transition from the old
+    /// application/environment formulation of service group
+    /// names. Once this has been in the wild for a while, we can
+    /// remove it.
+    #[test]
+    fn service_group_with_app_and_env_is_converted_to_one_without() {
+        let sg = ServiceGroup::from_str("app.env#foo.bar@baz").expect("should still be able to \
+                                                                       accommodate app/env in \
+                                                                       service group name");
+        assert_eq!(sg.service(), "foo");
+        assert_eq!(sg.group(), "bar");
+        assert_eq!(sg.org(), Some("baz"));
+
+        assert_eq!(sg,
+                   ServiceGroup::from_str("foo.bar@baz").unwrap(),
+                   "should be the same as a service group without app/env (i.e., app/env is \
+                    ignored");
+    }
+
+    /// This just ensures backward compatibility as we remove the
+    /// application/environment feature
+    #[test]
+    fn service_bind_with_app_env_from_str_still_works() {
+        let bind_str = "name:app.env#service.group@organization";
+        let bind = ServiceBind::from_str(bind_str).unwrap();
+
+        assert_eq!(bind.name, String::from("name"));
+        assert_eq!(bind.service_group,
+                   ServiceGroup::from_str("service.group@organization").unwrap());
+    }
+
+    /// This just ensures backward compatibility as we remove the
+    /// application/environment feature
+    #[test]
+    fn service_bind_with_app_env_toml_deserialize_still_works() {
+        #[derive(Deserialize)]
+        struct Data {
+            key: ServiceBind,
+        }
+        let toml = r#"
+            key = "redis:app.env#service.group@organization"
+            "#;
+        let data: Data = toml::from_str(toml).unwrap();
+
+        assert_eq!("redis", data.key.name());
+        let sg = ServiceGroup::from_str("service.group@organization").expect("good service group \
+                                                                              without app/env");
+        assert_eq!(sg, *data.key.service_group());
     }
 }

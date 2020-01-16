@@ -709,8 +709,7 @@ mod tests {
     fn rendered_hooks_path() -> TempDir { TempDir::new().expect("create temp dir") }
 
     fn service_group() -> ServiceGroup {
-        ServiceGroup::new(None, "test_service", "test_group", None).expect("couldn't create \
-                                                                            ServiceGroup")
+        ServiceGroup::new("test_service", "test_group", None).expect("couldn't create ServiceGroup")
     }
 
     fn pkg(service_group: &ServiceGroup) -> Pkg {

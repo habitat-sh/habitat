@@ -83,8 +83,6 @@ pub enum Error {
     /// but a non-qualified identifier (e.g. "foo/bar" or
     /// "foo/bar/1.0.0") was given instead.
     FullyQualifiedPackageIdentRequired(String),
-    /// Occurs when an application environment string cannot be successfully parsed.
-    InvalidApplicationEnvironment(String),
     /// Occurs when a service binding cannot be successfully parsed.
     InvalidBinding(String),
     /// Occurs when a package identifier string cannot be successfully parsed.
@@ -260,11 +258,6 @@ impl fmt::Display for Error {
             Error::FullyQualifiedPackageIdentRequired(ref ident) => {
                 format!("Fully-qualified package identifier was expected, but found: {:?}",
                         ident)
-            }
-            Error::InvalidApplicationEnvironment(ref e) => {
-                format!("Invalid application environment: {}. A valid application environment \
-                         string is in the form application.environment (example: twitter.prod)",
-                        e)
             }
             Error::InvalidBinding(ref binding) => {
                 format!("Invalid binding '{}', must be of the form <NAME>:<SERVICE_GROUP> where \

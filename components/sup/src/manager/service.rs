@@ -260,10 +260,7 @@ impl Service {
         let all_pkg_binds = package.all_binds()?;
         let pkg = Self::resolve_pkg(&package, &spec)?;
         let spec_file = manager_fs_cfg.specs_path.join(spec.file());
-        let service_group = ServiceGroup::new(spec.application_environment.as_ref(),
-                                              &pkg.name,
-                                              spec.group,
-                                              organization)?;
+        let service_group = ServiceGroup::new(&pkg.name, spec.group, organization)?;
         let config_root = Self::config_root(&pkg, spec.config_from.as_ref());
         let hooks_root = Self::hooks_root(&pkg, spec.config_from.as_ref());
         Ok(Service { sys,
@@ -595,9 +592,6 @@ impl Service {
     pub fn to_spec(&self) -> ServiceSpec {
         let mut spec = ServiceSpec::new(self.spec_ident.clone());
         spec.group = self.service_group.group().to_string();
-        if let Some(appenv) = self.service_group.application_environment() {
-            spec.application_environment = Some(appenv)
-        }
         spec.bldr_url = self.bldr_url.clone();
         spec.channel = self.channel.clone();
         spec.topology = self.topology;

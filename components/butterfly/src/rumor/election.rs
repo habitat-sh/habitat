@@ -301,7 +301,7 @@ mod tests {
 
     fn create_election(member_id: &str, suitability: u64) -> Election {
         Election::new(member_id,
-                      &ServiceGroup::new(None, "tdep", "prod", None).unwrap(),
+                      &ServiceGroup::new("tdep", "prod", None).unwrap(),
                       Term::default(),
                       suitability,
                       true /* has_quorum */)
@@ -309,7 +309,7 @@ mod tests {
 
     fn create_election_update(member_id: &str, suitability: u64) -> ElectionUpdate {
         ElectionUpdate::new(member_id,
-                            &ServiceGroup::new(None, "tdep", "prod", None).unwrap(),
+                            &ServiceGroup::new("tdep", "prod", None).unwrap(),
                             Term::default(),
                             suitability,
                             true /* has_quorum */)

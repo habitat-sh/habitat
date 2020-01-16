@@ -36,13 +36,6 @@
                   "description": "Whether the member is alive",
                   "type": "boolean"
                 },
-                "application": {
-                  "description": "The application portion of a service group specification",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
                 "cfg": {
                   "additionalProperties": {
                     "type": [
@@ -75,13 +68,6 @@
                 "election_is_running": {
                   "description": "Whether there is a leader election running for this service",
                   "type": "boolean"
-                },
-                "environment": {
-                  "description": "The environment portion of a service group specification",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
                 },
                 "follower": {
                   "description": "Whether this member is a follower",
