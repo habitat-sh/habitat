@@ -20,5 +20,6 @@ reqwest = { version = "*", features = ["blocking", "json"] }
 serde = "*"
 serde_derive = "*"
 serde_json = "*"
+tabwriter = "*"
 tee = "*"
 url = "*"
