@@ -23,7 +23,7 @@ if($IsLinux) {
     $sslCertFileCheck = "exit (!(Test-Path `$env:SSL_CERT_FILE))"
     $sslCertFilePrint = "`$env:SSL_CERT_FILE.Replace('\','/')"
     $sslCacheCertFileCheck = "exit (!(Test-Path '/hab/cache/ssl/$e2e_certname'))"
-    $sslCertFileNotSetCheck = "exit (Test-Path `$env:SSL_CERT_FILE)"
+    $sslCertFileNotSetCheck = "exit `$(If(`$env:SSL_CERT_FILE -eq `$null) { 0 } else { 1 })"
 }
 
 Context "SSL_CERT_FILE is passed into the studio" {
@@ -90,7 +90,7 @@ Context "SSL_CERT_FILE is passed into the studio" {
     Describe "SSL_CERT_FILE is a directory" {
         $env:SSL_CERT_FILE = (Join-Path $tempdir "cert-as-directory")
         New-Item -ItemType Directory -Force -Path $env:SSL_CERT_FILE
-
+        
         It "Should not set SSL_CERT_FILE" {
             Invoke-StudioRun $sslCertFileNotSetCheck
             $LASTEXITCODE | Should -Be 0
@@ -102,7 +102,7 @@ Context "SSL_CERT_FILE is passed into the studio" {
             } else { 
               Invoke-StudioRun $sslCertFileCheck
             }
-
+            
             $LASTEXITCODE | Should -Be 1
         }
 
