@@ -11,6 +11,8 @@
 ### Changes since 0.90.6 release
 
 #### Behavioral Changes
+- Remove the `HAB_FEAT_EVENT_STREAM` feature flag. The event stream is now enabled with `--event-stream-url`. [#7335](https://github.com/habitat-sh/habitat/pull/7335) ([davidMcneil](https://github.com/davidMcneil))
+- Deprecate and ignore the `--application` and `--environment` flags from `hab svc load` and `hab sup run` commands. [#7335](https://github.com/habitat-sh/habitat/pull/7335) ([davidMcneil](https://github.com/davidMcneil))
 - The initial event stream connection attempt no longer blocks by default. Set --event-stream-connect-timeout if blocking is desired. [#7293](https://github.com/habitat-sh/habitat/pull/7293) ([davidMcneil](https://github.com/davidMcneil))
 
 #### New Features & Enhancements
