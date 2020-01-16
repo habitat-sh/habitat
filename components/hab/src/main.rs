@@ -1976,6 +1976,11 @@ fn ui() -> UI {
 /// Set all fields for an `SvcLoad` message that we can from the given opts. This function
 /// populates all *shared* options between `run` and `load`.
 fn svc_load_from_input(m: &ArgMatches) -> Result<sup_proto::ctl::SvcLoad> {
+    // TODO (DM): This check can eventually be removed.
+    // See https://github.com/habitat-sh/habitat/issues/7339
+    if m.is_present("APPLICATION") || m.is_present("ENVIRONMENT") {
+        ui().warn("--application and --environment flags are deprecated.")?;
+    }
     let mut msg = sup_proto::ctl::SvcLoad::default();
     msg.bldr_url = bldr_url_from_input(m);
     msg.bldr_channel = channel_from_matches(m).map(|c| c.to_string());

@@ -1116,6 +1116,10 @@ pub fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                                                                        the Supervisor startup specified by a package identifier \
                                                                        (ex: core/redis) or filepath to a Habitat Artifact \
                                                                        (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).")
+                            // TODO (DM): These flags can eventually be removed.
+                            // See https://github.com/habitat-sh/habitat/issues/7339
+                            (@arg APPLICATION: --application -a +hidden +takes_value requires[ENVIRONMENT] "DEPRECATED")
+                            (@arg ENVIRONMENT: --environment -e +hidden +takes_value requires[APPLICATION] "DEPRECATED")
                             (@arg GROUP: --group +takes_value
                              "The service group; shared config and topology [default: default].")
                             (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
@@ -1209,6 +1213,10 @@ fn sub_svc_load() -> App<'static, 'static> {
             identifier, a suitable package will be installed from Builder.")
         (@arg PKG_IDENT: +required +takes_value {valid_ident}
             "A Habitat package identifier (ex: core/redis)")
+        // TODO (DM): These flags can eventually be removed.
+        // See https://github.com/habitat-sh/habitat/issues/7339
+        (@arg APPLICATION: --application -a +hidden +takes_value requires[ENVIRONMENT] "DEPRECATED")
+        (@arg ENVIRONMENT: --environment -e +hidden +takes_value requires[APPLICATION] "DEPRECATED")
         (@arg CHANNEL: --channel +takes_value default_value[stable]
             "Receive package updates from the specified release channel")
         (@arg GROUP: --group +takes_value
@@ -1558,6 +1566,23 @@ mod tests {
     fn no_feature_flags() -> FeatureFlag { FeatureFlag::empty() }
 
     use super::*;
+
+    #[test]
+    fn legacy_appliction_and_environment_args() {
+        let r = get(no_feature_flags()).get_matches_from_safe(vec!["hab",
+                                                                   "sup",
+                                                                   "run",
+                                                                   "--application=app",
+                                                                   "--environment=env"]);
+        assert!(r.is_ok());
+        let r = get(no_feature_flags()).get_matches_from_safe(vec!["hab",
+                                                                   "svc",
+                                                                   "load",
+                                                                   "--application=app",
+                                                                   "--environment=env",
+                                                                   "pkg/ident"]);
+        assert!(r.is_ok());
+    }
 
     mod sup_commands {
 

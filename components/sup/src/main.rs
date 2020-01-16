@@ -35,7 +35,8 @@ use habitat_common::{cli::cache_key_path_from_matches,
                               OutputVerbosity},
                      outputln,
                      types::GossipListenAddr,
-                     ui::{NONINTERACTIVE_ENVVAR,
+                     ui::{UIWriter,
+                          NONINTERACTIVE_ENVVAR,
                           UI},
                      FeatureFlag};
 #[cfg(windows)]
@@ -176,6 +177,12 @@ fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m: &ArgMatches,
                                         feature_flags: FeatureFlag)
                                         -> Result<()> {
     set_supervisor_logging_options(m);
+
+    // TODO (DM): This check can eventually be removed.
+    // See https://github.com/habitat-sh/habitat/issues/7339
+    if m.is_present("APPLICATION") || m.is_present("ENVIRONMENT") {
+        ui().warn("--application and --environment flags are deprecated.")?;
+    }
 
     let cfg = mgrcfg_from_sup_run_matches(m, feature_flags)?;
 
