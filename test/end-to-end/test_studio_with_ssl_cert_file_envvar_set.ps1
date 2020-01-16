@@ -23,7 +23,8 @@ if($IsLinux) {
     $sslCertFileCheck = "exit (!(Test-Path `$env:SSL_CERT_FILE))"
     $sslCertFilePrint = "`$env:SSL_CERT_FILE.Replace('\','/')"
     $sslCacheCertFileCheck = "exit (!(Test-Path '/hab/cache/ssl/$e2e_certname'))"
-    $sslCertFileNotSetCheck = "exit `$(If(`$env:SSL_CERT_FILE -eq `$null) { 0 } else { 1 })"
+    # $sslCertFileNotSetCheck = "exit `$(If(`$env:SSL_CERT_FILE -eq `$null) { 0 } else { 1 })"
+    $sslCertFIleNotSetCheck = "exit `$(!!(`$env:SSL_CERT_FILE))"
 }
 
 Context "SSL_CERT_FILE is passed into the studio" {
