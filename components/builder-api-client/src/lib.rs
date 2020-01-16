@@ -290,6 +290,8 @@ pub trait BuilderAPIProvider: Sync + Send {
 
     fn delete_origin(&self, origin: &str, token: &str) -> Result<()>;
 
+    fn transfer_origin_ownership(&self, origin: &str, token: &str, account: &str) -> Result<()>;
+
     fn list_origin_secrets(&self, origin: &str, token: &str) -> Result<Vec<String>>;
 
     fn put_package(&self,

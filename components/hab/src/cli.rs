@@ -278,7 +278,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             )
         )
         (@subcommand origin =>
-            (about: "Commands relating to Habitat origin keys")
+            (about: "Commands relating to Habitat Builder origins")
             (aliases: &["o", "or", "ori", "orig", "origi"])
             (@setting ArgRequiredElseHelp)
             (@subcommand create =>
@@ -300,6 +300,16 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                      be taken from the `HAB_BLDR_URL environment variable if defined. (default: \
                      https://bldr.habitat.sh)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+            )
+            (@subcommand transfer =>
+                (about: "Transfers ownership of an origin to another member of that origin")
+                (@arg ORIGIN: +required {valid_origin} "The origin name")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                     "Specify an alternate Builder endpoint. If not specified, the value will \
+                     be taken from the `HAB_BLDR_URL` environment variable if defined. (default: \
+                     https://bldr.habitat.sh)")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+                (@arg NEW_OWNER_ACCOUNT: +required +takes_value {non_empty} "The account name of the new origin owner")
             )
             (@subcommand key =>
                 (about: "Commands relating to Habitat origin key maintenance")
