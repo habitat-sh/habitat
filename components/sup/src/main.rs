@@ -181,7 +181,7 @@ fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m: &ArgMatches,
     // TODO (DM): This check can eventually be removed.
     // See https://github.com/habitat-sh/habitat/issues/7339
     if m.is_present("APPLICATION") || m.is_present("ENVIRONMENT") {
-        ui().warn("--application and --environment flags are deprecated.")?;
+        ui().warn("--application and --environment flags are deprecated and ignored.")?;
     }
 
     let cfg = mgrcfg_from_sup_run_matches(m, feature_flags)?;

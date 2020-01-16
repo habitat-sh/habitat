@@ -1979,7 +1979,7 @@ fn svc_load_from_input(m: &ArgMatches) -> Result<sup_proto::ctl::SvcLoad> {
     // TODO (DM): This check can eventually be removed.
     // See https://github.com/habitat-sh/habitat/issues/7339
     if m.is_present("APPLICATION") || m.is_present("ENVIRONMENT") {
-        ui().warn("--application and --environment flags are deprecated.")?;
+        ui().warn("--application and --environment flags are deprecated and ignored.")?;
     }
     let mut msg = sup_proto::ctl::SvcLoad::default();
     msg.bldr_url = bldr_url_from_input(m);

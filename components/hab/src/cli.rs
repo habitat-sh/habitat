@@ -1118,8 +1118,8 @@ pub fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                                                                        (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).")
                             // TODO (DM): These flags can eventually be removed.
                             // See https://github.com/habitat-sh/habitat/issues/7339
-                            (@arg APPLICATION: --application -a +hidden +takes_value requires[ENVIRONMENT] "DEPRECATED")
-                            (@arg ENVIRONMENT: --environment -e +hidden +takes_value requires[APPLICATION] "DEPRECATED")
+                            (@arg APPLICATION: --application -a +hidden +multiple "DEPRECATED")
+                            (@arg ENVIRONMENT: --environment -e +hidden +multiple "DEPRECATED")
                             (@arg GROUP: --group +takes_value
                              "The service group; shared config and topology [default: default].")
                             (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
@@ -1215,8 +1215,8 @@ fn sub_svc_load() -> App<'static, 'static> {
             "A Habitat package identifier (ex: core/redis)")
         // TODO (DM): These flags can eventually be removed.
         // See https://github.com/habitat-sh/habitat/issues/7339
-        (@arg APPLICATION: --application -a +hidden +takes_value requires[ENVIRONMENT] "DEPRECATED")
-        (@arg ENVIRONMENT: --environment -e +hidden +takes_value requires[APPLICATION] "DEPRECATED")
+        (@arg APPLICATION: --application -a +hidden +multiple "DEPRECATED")
+        (@arg ENVIRONMENT: --environment -e +hidden +multiple "DEPRECATED")
         (@arg CHANNEL: --channel +takes_value default_value[stable]
             "Receive package updates from the specified release channel")
         (@arg GROUP: --group +takes_value
@@ -1575,14 +1575,20 @@ mod tests {
         let r = get(no_feature_flags()).get_matches_from_safe(vec!["hab",
                                                                    "sup",
                                                                    "run",
-                                                                   "--application=app",
+                                                                   "--application",
                                                                    "--environment=env"]);
         assert!(r.is_ok());
         let r = get(no_feature_flags()).get_matches_from_safe(vec!["hab",
                                                                    "svc",
                                                                    "load",
                                                                    "--application=app",
-                                                                   "--environment=env",
+                                                                   "--environment",
+                                                                   "pkg/ident"]);
+        assert!(r.is_ok());
+        let r = get(no_feature_flags()).get_matches_from_safe(vec!["hab",
+                                                                   "svc",
+                                                                   "load",
+                                                                   "--application",
                                                                    "pkg/ident"]);
         assert!(r.is_ok());
     }
