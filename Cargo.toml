@@ -22,4 +22,5 @@ members = [
   "components/sup-protocol",
   "components/win-users",
   "tools/one-off-release",
+  "test-services/test-probe",
 ]

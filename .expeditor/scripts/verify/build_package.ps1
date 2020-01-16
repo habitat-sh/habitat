@@ -3,8 +3,8 @@
 #Requires -Version 5
 
 param (
-    # The name of the component to be built. Defaults to none
-    [string]$Component
+    # The path to the package to be built. Defaults to none
+    [string]$PackagePath
 )
 
 . $PSScriptRoot\shared.ps1
@@ -19,8 +19,8 @@ $env:HAB_CACHE_KEY_PATH="$job_temp_root/keys"
 
 Write-Host "--- :key: Generating fake origin key"
 hab origin key generate
-Write-Host "--- :hab: Running hab pkg build for $Component"
+Write-Host "--- :hab: Running hab pkg build for $PackagePath"
 
-hab studio build components/$Component -R
+hab studio build $PackagePath -R
 
 exit $LASTEXITCODE
