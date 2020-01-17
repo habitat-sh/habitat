@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.72 -->
-## [0.90.72](https://github.com/habitat-sh/habitat/tree/0.90.72) (2020-01-16)
+<!-- latest_release 0.90.73 -->
+## [0.90.73](https://github.com/habitat-sh/habitat/tree/0.90.73) (2020-01-17)
 
 #### Merged Pull Requests
-- Remove the event stream feature flag [#7335](https://github.com/habitat-sh/habitat/pull/7335) ([davidMcneil](https://github.com/davidMcneil))
+- Fix broken studio e2e tests [#7343](https://github.com/habitat-sh/habitat/pull/7343) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -29,6 +29,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Fix broken studio e2e tests [#7343](https://github.com/habitat-sh/habitat/pull/7343) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.73 -->
 - Remove the event stream feature flag [#7335](https://github.com/habitat-sh/habitat/pull/7335) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.72 -->
 - Remove PIDS_FROM_LAUNCHER feature flag [#7341](https://github.com/habitat-sh/habitat/pull/7341) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.71 -->
 - Add a &quot;test-probe&quot; service [#7283](https://github.com/habitat-sh/habitat/pull/7283) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.70 -->
