@@ -6,7 +6,8 @@ authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 workspace = "../../"
 
 [dependencies]
-actix-web = { version = "*", default-features = false, features = [ "rust-tls" ] }
+actix-rt = "*"
+actix-web = { version = "*", default-features = false, features = [ "rustls" ] }
 clap = "*"
 serde = "*"
 serde_derive = "*"

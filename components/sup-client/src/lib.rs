@@ -1,3 +1,4 @@
+#![allow(clippy::needless_doctest_main)]
 //! Client for connecting and communicating with a server listener which speaks SrvProtocol.
 //!
 //! # RPC Call Example

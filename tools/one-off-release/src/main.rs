@@ -74,7 +74,7 @@ impl Package {
         debug!("Downloading package from '{}' and writing to {:?}",
                url,
                output_path.as_os_str());
-        let mut response = reqwest::get(url)?.error_for_status()?;
+        let mut response = reqwest::blocking::get(url)?.error_for_status()?;
         let mut output_file = File::create(&output_path)?;
         let written = io::copy(&mut response, &mut output_file)?;
         info!("Wrote {} bytes to {:?}", written, output_path.as_os_str());

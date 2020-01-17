@@ -6,14 +6,16 @@ use std::{fs,
           time::Duration};
 
 use native_tls::Certificate;
-use reqwest::{header::{HeaderMap,
+use reqwest::{blocking::{Client as ReqwestClient,
+                         RequestBuilder},
+              header::{HeaderMap,
                        HeaderValue,
                        CONNECTION,
                        USER_AGENT},
               Certificate as ReqwestCertificate,
               IntoUrl,
               Proxy,
-              RequestBuilder};
+              Url};
 
 use habitat_core::{env,
                    fs::cache_ssl_path,
@@ -21,8 +23,6 @@ use habitat_core::{env,
                              PackageInstall,
                              PackageTarget},
                    util::sys};
-
-use url::Url;
 
 use crate::error::{Error,
                    Result};
@@ -43,7 +43,7 @@ pub struct ApiClient {
     /// The base URL for the client.
     endpoint: Url,
     /// An instance of a `reqwest::Client`
-    inner: reqwest::Client,
+    inner: ReqwestClient,
 }
 
 impl ApiClient {
@@ -97,10 +97,10 @@ impl ApiClient {
             ),
         ].into_iter());
 
-        let mut client = reqwest::Client::builder().proxy(proxy_for(&endpoint)?)
-                                                   .default_headers(headers)
-                                                   .timeout(Duration::from_secs(timeout_in_secs))
-                                                   .danger_accept_invalid_certs(skip_cert_verify);
+        let mut client = ReqwestClient::builder().proxy(proxy_for(&endpoint)?)
+                                                 .default_headers(headers)
+                                                 .timeout(Duration::from_secs(timeout_in_secs))
+                                                 .danger_accept_invalid_certs(skip_cert_verify);
 
         client =
             certificates(fs_root_path)?.iter()
@@ -216,7 +216,7 @@ impl ApiClient {
 fn proxy_for(url: &Url) -> reqwest::Result<Proxy> {
     trace!("Checking proxy for url: {:?}", url);
 
-    if let Some(proxy_url) = env_proxy::for_url(&url).to_string() {
+    if let Some(proxy_url) = env_proxy::for_url(url).to_string() {
         match url.scheme() {
             "http" => {
                 debug!("Setting http_proxy to {}", proxy_url);

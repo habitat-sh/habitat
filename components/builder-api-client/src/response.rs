@@ -1,7 +1,7 @@
 use crate::error::{Error,
                    Result};
-use reqwest::{header::AsHeaderName,
-              Response,
+use reqwest::{blocking::Response,
+              header::AsHeaderName,
               StatusCode};
 use std::{fmt,
           io::Read};
@@ -26,7 +26,7 @@ pub trait ResponseExt {
     fn get_header<'a, K: AsHeaderName>(&'a self, name: K) -> Result<&'a str>;
 }
 
-impl ResponseExt for reqwest::Response {
+impl ResponseExt for Response {
     fn ok_if<'a>(&'a mut self,
                  code: impl IntoIterator<Item = &'a reqwest::StatusCode>)
                  -> Result<()> {

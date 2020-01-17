@@ -33,7 +33,7 @@ libc = "*"
 log = "*"
 pbr = "*"
 rants = "*"
-reqwest = "*"
+reqwest = { version = "*", features = ["blocking", "json"] }
 retry = "*"
 same-file = "*"
 serde = "*"
