@@ -21,6 +21,11 @@ if ($IsLinux -Or $IsMacOS) {
     $env:SystemDrive = "/"
 }
 
+# It may take a while to download a given service package, and
+# services may have long init scripts. Let's be generous in how long
+# we're willing to wait.
+$DefaultServiceTimeout = 40
+
 function Wait-True([ScriptBlock]$TestScript, [ScriptBlock]$TimeoutScript, [int]$Timeout) {
     $startTime = Get-Date
     while (!$TestScript.Invoke()) {
@@ -75,7 +80,7 @@ function Start-Supervisor($Timeout = 1, $LogFile = (New-TemporaryFile), $SupArgs
     }
 }
 
-function Wait-SupervisorService($ServiceName, $Timeout = 20, $Remote) {
+function Wait-SupervisorService($ServiceName, $Timeout = ($DefaultServiceTimeout), $Remote) {
     Write-Host "Waiting up to $Timeout seconds for Supervisor to start $ServiceName ..."
     if(!$Remote) { $Remote = "localhost" }
     $testScript = { 
@@ -90,8 +95,8 @@ function Wait-SupervisorService($ServiceName, $Timeout = 20, $Remote) {
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
     Write-Host "$ServiceName is now up."
 }
-  
-function Load-SupervisorService($PackageName, $Timeout = 20, $Remote, $Bind, $Channel, $Topology, $Strategy, $HealthCheckInterval) {
+
+function Load-SupervisorService($PackageName, $Timeout = ($DefaultServiceTimeout), $Remote, $Bind, $Channel, $Topology, $Strategy, $HealthCheckInterval) {
     $svcName = ($PackageName -split "/")[1]
     $commandArgs = @("hab", "svc", "load", $PackageName)
     if($BuilderUrl) {
@@ -181,7 +186,7 @@ function Wait-Process($ProcessName, $Timeout = 1) {
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
 }
 
-function Wait-Release($Ident, $Remote, $Timeout = 20) {
+function Wait-Release($Ident, $Remote, $Timeout = ($DefaultServiceTimeout)) {
     $serviceName = ($Ident.Split("/"))[1]
     $testScript =  {
         $currentIdent = (Invoke-WebRequest "http://${Remote}.habitat.dev:9631/services/$serviceName/default" | ConvertFrom-Json).pkg.ident
