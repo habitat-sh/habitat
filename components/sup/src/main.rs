@@ -80,10 +80,12 @@ static LOGKEY: &str = "MN";
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 fn main() {
+    // Set up signal handlers before anything else happens to ensure
+    // that all threads spawned thereafter behave properly.
+    signals::init();
     logger::init();
     let mut ui = UI::default_with_env();
     let flags = FeatureFlag::from_env(&mut ui);
-    signals::init();
 
     let result = start_rsr_imlw_mlw_gsw_smw_rhw_msw(flags);
     let exit_code = match result {
