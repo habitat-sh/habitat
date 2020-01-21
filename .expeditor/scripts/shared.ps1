@@ -60,7 +60,7 @@ function New-PathString([string]$StartingPath, [string]$Path) {
             ) -join $env:PathSeparator
         }
         $Path
-    } elsese {
+    } else {
         $StartingPath
     }
 }

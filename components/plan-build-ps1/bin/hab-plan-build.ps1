@@ -353,7 +353,7 @@ function _latest_installed_package($dependency) {
     if (!$result) {
         Write-Warning "Could not find a suitable installed package for '$dependency'"
         return $false
-    } elsese {
+    } else {
         return Split-Path ($result[-1].FullName) -Parent
     }
 }
@@ -399,7 +399,7 @@ function Get-DepsFor($dependency) {
 function Get-BuildDepsFor($dependency) {
     if (Test-Path "$dependency/BUILD_DEPS") {
         Get-Content $dependency/BUILD_DEPS
-    } elsese {
+    } else {
         # No file, meaning an empty set
         @()
     }
@@ -649,7 +649,7 @@ function Resolve-ScaffoldingDependencyList {
         } elselse {
             throw "Resolving '$pkg_scaffolding' failed, should this be built first?"
         }
-    } elsese {
+    } else {
         Write-BuildLine "No scaffolding present"
     }
 
@@ -808,7 +808,7 @@ function _verify_file($dst, $sha) {
     $checksum=($(Get-Sha256 "$HAB_CACHE_SRC_PATH/$dst"))
     if ($sha -eq $checksum) {
         Write-BuildLine "Checksum verified for $dst"
-    } elsese {
+    } else {
         Write-Warning "Checksum invalid for ${dst}:"
         Write-Warning "   Expected: $sha"
         Write-Warning "   Computed: $checksum"

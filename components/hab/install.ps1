@@ -142,7 +142,7 @@ Function Get-BintrayArchive($channel, $version) {
 function Get-SHA256Converter {
     if($PSVersionTable.PSEdition -eq 'Core') {
         [System.Security.Cryptography.SHA256]::Create()
-    } elsese {
+    } else {
         New-Object -TypeName Security.Cryptography.SHA256Managed
     }
 }

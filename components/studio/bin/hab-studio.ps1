@@ -279,7 +279,7 @@ function New-Studio {
         $env:HAB_CACHE_KEY_PATH = Join-Path $env:FS_ROOT "hab\cache\keys"
         $public_keys | ForEach-Object { $_ | & hab origin key import }
         $secret_keys | ForEach-Object { $_ | & hab origin key import }
-    } elsese {
+    } else {
         Write-Warning "No secret keys imported! Did you mean to set `$env:HAB_ORIGIN?"
         Write-Host "To specify a HAB_ORIGIN, either set the HAB_ORIGIN environment"
         Write-Host "variable to your origin name or run 'hab setup' and specify a"
