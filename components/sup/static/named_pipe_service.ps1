@@ -1,4 +1,4 @@
-param (
+﻿param (
     [string]$HookPath,
     [string]$PipeName,
     [int]$ParentPID
@@ -24,7 +24,7 @@ Copy-Item $HookPath "${HookPath}.ps1" -Force
 $parent = Get-Process -Id $ParentPID
 
 try {
-    $np = new-object System.IO.Pipes.NamedPipeServerStream($PipeName, [System.IO.Pipes.PipeDirection]::InOut)
+    $np = New-Object System.IO.Pipes.NamedPipeServerStream($PipeName, [System.IO.Pipes.PipeDirection]::InOut)
     Write-Host "Named pipe created. Waiting for connection..."
     $running = $true
 
@@ -69,8 +69,7 @@ try {
 
                 # Restore all environment variables to their previous state
                 Restore-Environment $origEnv
-            }
-            else {
+            } else {
                 Write-Host "Quitting $PipeName pipe."
                 $running = $false
             }

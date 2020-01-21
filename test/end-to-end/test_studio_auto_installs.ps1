@@ -1,4 +1,4 @@
-# This test is designed to catch the regression described in
+﻿# This test is designed to catch the regression described in
 # https://github.com/habitat-sh/habitat/issues/6771
 #
 # When a user runs `hab studio enter` for the first time after installing a
@@ -10,15 +10,15 @@
 
 # Ensure there are no studios installed
 if(Test-Path /hab/pkgs/core/hab-studio) {
-  hab pkg uninstall core/hab-studio
+    hab pkg uninstall core/hab-studio
 }
 
 Describe "Studio install" {
-  # 'studio enter' requires a signing key to be present for the current origin
-  hab origin key generate "$HAB_ORIGIN"
+    # 'studio enter' requires a signing key to be present for the current origin
+    hab origin key generate "$HAB_ORIGIN"
 
-  It "can create a new studio when no studio package is installed" {
-    hab studio new
-    $LASTEXITCODE | Should -Be 0
-  }
+    It "can create a new studio when no studio package is installed" {
+        hab studio new
+        $LASTEXITCODE | Should -Be 0
+    }
 }

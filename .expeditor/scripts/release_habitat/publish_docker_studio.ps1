@@ -1,4 +1,4 @@
-#!/usr/bin/env powershell
+﻿#!/usr/bin/env powershell
 
 #Requires -Version 5
 
@@ -37,8 +37,7 @@ try {
             Write-Error "Failed to remotely tag image"
         }
     }
-}
-finally {
+} finally {
     Remove-Item $HOME/.docker/config.json -Recurse -Force -ErrorAction SilentlyContinue
 }
 

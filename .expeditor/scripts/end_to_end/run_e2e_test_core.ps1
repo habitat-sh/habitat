@@ -1,4 +1,4 @@
-# This script expects `setup_environment.sh` or `setup_environment.ps1` to be sourced before execution
+﻿# This script expects `setup_environment.sh` or `setup_environment.ps1` to be sourced before execution
 [Diagnostics.CodeAnalysis.SuppressMessage("PSUseApprovedVerbs", '', Scope="function", Target="*Load-SupervisorService")]
 param (
     [string]$TestName,
@@ -86,10 +86,9 @@ function Wait-SupervisorService($ServiceName, $Timeout = ($DefaultServiceTimeout
     $testScript = {
         try {
             $status = (Invoke-WebRequest "http://${Remote}:9631/services/$ServiceName/default" |
-                ConvertFrom-Json).process.state
+                    ConvertFrom-Json).process.state
             $status -eq "up"
-        }
-        catch { $false } # We ignore 404s and other unsuccesful codes
+        } catch { $false } # We ignore 404s and other unsuccesful codes
     }
     $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for Supervisor to start $ServiceName" }
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
@@ -131,8 +130,7 @@ function Wait-SupervisorServiceUnload($ServiceName, $Timeout = 1) {
         try {
             $_ = Invoke-WebRequest "http://localhost:9631/services/$ServiceName/default"
             $false
-        }
-        catch {
+        } catch {
             $statusCode = $_.Exception.Response.StatusCode.value__
             $statusCode -eq 404
         }
@@ -201,7 +199,7 @@ function Get-Leader($Remote, $ServiceGroup) {
     $id = $json.census_groups.$ServiceGroup.leader_id
     $name = $json.census_groups.$ServiceGroup.population.$id.sys.hostname
     @{
-        Id = $id;
+        Id   = $id;
         Name = $name
     }
 }

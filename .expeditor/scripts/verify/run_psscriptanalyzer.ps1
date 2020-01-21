@@ -5,7 +5,7 @@ Install-Habitat
 
 @('core/psscriptanalyzer', 'core/powershell') | ForEach-Object {
     $pkg = $_
-    if(!(hab pkg list $pkg | Where-Object { $_.StartsWith($pkg)})) {
+    if (!(hab pkg list $pkg | Where-Object { $_.StartsWith($pkg) })) {
         hab pkg install $pkg
     }
 }
@@ -13,13 +13,20 @@ Install-Habitat
 & "$(hab pkg path core/powershell)\bin\pwsh" -WorkingDirectory $PSScriptRoot -Command {
     Import-Module "$(hab pkg path core/psscriptanalyzer)\module\PSScriptanAlyzer.psd1"
 
-    $excludeScripts = @(
+    $excludeAnalyzeScripts = @(
         'plan.ps1',
         'template_plan.ps1',
         'last_build.ps1',
         'pre_build.ps1'
     )
-    Get-ChildItem ..\..\..\*.ps1 -Recurse -Exclude $excludeScripts |
+    $excludeFormatScripts = @(
+        'template_plan.ps1',
+        'last_build.ps1',
+        'pre_build.ps1'
+    )
+    Get-ChildItem ..\..\..\*.ps1 -Recurse -Exclude $excludeFormatScripts |
+        Invoke-ScriptAnalyzer -Settings CodeFormattingOTBS -ExcludeRule PSUseConsistentWhitespace -EnableExit
+    Get-ChildItem ..\..\..\*.ps1 -Recurse -Exclude $excludeAnalyzeScripts |
         Invoke-ScriptAnalyzer -Settings .\PSScriptAnalyzerSettings.psd1 -EnableExit
     Get-ChildItem ..\..\..\plan.ps1 -Recurse | Invoke-ScriptAnalyzer -ExcludeRule PSUseDeclaredVarsMoreThanAssignments -EnableExit
 }

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Installs the Habitat 'hab' program.
 
@@ -55,8 +55,7 @@ Function Get-BintrayVersion($version, $channel) {
         if($version -match "^\d+\.\d+\.\d+-\d{12}`$") {
             Write-Warning "Validating the version is not supported without at least .Net 3.5"
             Write-Warning "We will make a best effort to retrieve $version"
-        }
-        else {
+        } else {
             Write-Warning "Validating the version is not supported without at least .Net 3.5"
             Write-Error "You must supply a fully qualified version (ex: 0.75.0/20190219232208)"
         }
@@ -71,8 +70,7 @@ Function Get-File($url, $dst) {
     # Need to use 3072. Un patched older versions of windows will fail even on 3072
     try {
         [System.Net.ServicePointManager]::SecurityProtocol = [Enum]::ToObject([System.Net.SecurityProtocolType], 3072)
-    }
-    catch {
+    } catch {
         Write-Error "TLS 1.2 is not supported on this operating system. Upgrade or patch your Windows installation."
     }
     $wc = New-Object System.Net.WebClient
@@ -80,23 +78,23 @@ Function Get-File($url, $dst) {
 }
 
 Function Get-WorkDir {
-  $parent = [System.IO.Path]::GetTempPath()
-  [string] $name = [System.Guid]::NewGuid()
-  New-Item -ItemType Directory -Path (Join-Path $parent $name)
+    $parent = [System.IO.Path]::GetTempPath()
+    [string] $name = [System.Guid]::NewGuid()
+    New-Item -ItemType Directory -Path (Join-Path $parent $name)
 }
 
 # Downloads the requested archive from packages.chef.io
 Function Get-PackagesChefioArchive($channel, $version) {
     $url = $packagesChefioRootUrl
     if(!$version -Or $version -eq "latest") {
-      $hab_url="$url/$channel/habitat/latest/hab-x86_64-windows.zip"
+        $hab_url="$url/$channel/habitat/latest/hab-x86_64-windows.zip"
     } else {
-      $version,$_release = $version -split "/",2,"SimpleMatch"
-      if($null -ne $_release) {
-        Write-Warning "packages.chef.io does not support 'version/release' format. Using $version for the version"
-      }
+        $version,$_release = $version -split "/",2,"SimpleMatch"
+        if($null -ne $_release) {
+            Write-Warning "packages.chef.io does not support 'version/release' format. Using $version for the version"
+        }
 
-      $hab_url="$url/habitat/${version}/hab-x86_64-windows.zip"
+        $hab_url="$url/habitat/${version}/hab-x86_64-windows.zip"
     }
     $sha_url="$hab_url.sha256sum"
     $hab_dest = (Join-Path ($workdir) "hab.zip")
@@ -112,8 +110,7 @@ Function Get-PackagesChefioArchive($channel, $version) {
     try {
         Get-File $sha_url $sha_dest
         $result["shasum"] = (Get-Content $sha_dest).Split()[0]
-    }
-    catch {
+    } catch {
         Write-Warning "No shasum exists for $version. Skipping validation."
     }
     $result
@@ -136,20 +133,18 @@ Function Get-BintrayArchive($channel, $version) {
     try {
         Get-File $sha_url $sha_dest
         $result["shasum"] = (Get-Content $sha_dest).Split()[0]
-    }
-    catch {
+    } catch {
         Write-Warning "No shasum exists for $version. Skipping validation."
     }
     $result
 }
 
 function Get-SHA256Converter {
-  if($PSVersionTable.PSEdition -eq 'Core') {
-    [System.Security.Cryptography.SHA256]::Create()
-  }
-  else {
-    New-Object -TypeName Security.Cryptography.SHA256Managed
-  }
+    if($PSVersionTable.PSEdition -eq 'Core') {
+        [System.Security.Cryptography.SHA256]::Create()
+    } elsese {
+        New-Object -TypeName Security.Cryptography.SHA256Managed
+    }
 }
 
 Function Get-Sha256($src) {
@@ -157,8 +152,7 @@ Function Get-Sha256($src) {
     try {
         $bytes = $converter.ComputeHash(($in = (Get-Item $src).OpenRead()))
         return ([System.BitConverter]::ToString($bytes)).Replace("-", "").ToLower()
-    }
-    finally {
+    } finally {
         # Older .Net versions do not expose Dispose()
         if($PSVersionTable.PSEdition -eq 'Core' -Or ($PSVersionTable.CLRVersion.Major -ge 4)) {
             $converter.Dispose()
@@ -193,14 +187,13 @@ Function New-PathString([string]$StartingPath, [string]$Path) {
         if (-not [string]::IsNullOrEmpty($StartingPath)) {
             [string[]]$PathCollection = "$path;$StartingPath" -split ';'
             $Path = ($PathCollection |
-                Select-Object -Unique |
-                Where-Object {-not [string]::IsNullOrEmpty($_.trim())} |
-                Where-Object {test-path "$_"}
+                    Select-Object -Unique |
+                    Where-Object {-not [string]::IsNullOrEmpty($_.trim())} |
+                    Where-Object {Test-Path "$_"}
             ) -join ';'
         }
         $path
-    }
-    else {
+    } else {
         $StartingPath
     }
 }
@@ -212,17 +205,15 @@ Function Expand-Zip($zipPath) {
         # Yes on PS v5 and up we have Expand-Archive but this works on PS v4 too
         [System.Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.FileSystem") | Out-Null
         [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $dest)
-    }
-    catch {
+    } catch {
         try {
             # Works on all GUI enabled versions. Will fail
             # On Server Core editions
-            $shellApplication = new-object -com shell.application
+            $shellApplication = New-Object -com shell.application
             $zipPackage = $shellApplication.NameSpace($zipPath)
             $destinationFolder = $shellApplication.NameSpace($dest)
             $destinationFolder.CopyHere($zipPackage.Items())
-        }
-        catch{
+        } catch{
             Write-Error "Unable to unzip files on this OS"
         }
     }
@@ -237,8 +228,7 @@ Function Assert-Habitat($ident) {
         if (!$actual -or ("hab $ident" -ne "$($actual.Replace('/', '-'))-x86_64-windows")) {
             Write-Error "Unable to verify Habitat was succesfully installed"
         }
-    }
-    finally {
+    } finally {
         $env:HAB_LICENSE = $orig
     }
 }
@@ -260,10 +250,10 @@ $workdir = Get-WorkDir
 New-Item $workdir -ItemType Directory -Force | Out-Null
 try {
     if(Test-UsePackagesChefio($Version)) {
-      $archive = Get-PackagesChefioArchive $channel $version
+        $archive = Get-PackagesChefioArchive $channel $version
     } else {
-      $Version = Get-BintrayVersion $Version $Channel
-      $archive = Get-BintrayArchive $channel $version
+        $Version = Get-BintrayVersion $Version $Channel
+        $archive = Get-BintrayArchive $channel $version
     }
     if($archive.shasum) {
         Assert-Shasum $archive
@@ -273,8 +263,7 @@ try {
     Assert-Habitat $fullIdent
 
     Write-Host "Installation of Habitat 'hab' program complete."
-}
-finally {
+} finally {
     try { Remove-Item $workdir -Recurse -Force } catch {
         Write-Warning "Unable to delete $workdir"
     }

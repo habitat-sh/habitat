@@ -1,4 +1,4 @@
-function Write-BuildLine {
+﻿function Write-BuildLine {
     <#
     .SYNOPSIS
     Print a line of build output
@@ -19,7 +19,7 @@ function Write-BuildLine {
 }
 
 function Get-HabPackagePath {
-<#
+    <#
 .SYNOPSIS
 Returns the path for the desired build or runtime direct package dependency
 on stdout from the resolved dependency set.
@@ -43,7 +43,7 @@ Get-HabPackagePath "glibc/2.22"
 
     foreach($e in $pkg_all_deps_resolved) {
         if((Resolve-HabPkgPath $e).Contains("/$Identity/")) {
-          return $e
+            return $e
         }
     }
     Write-Error "Get-HabPackagePath '$Identity' did not find a suitable installed package`nResolved package set: ${pkg_all_deps_resolved}"
@@ -60,9 +60,8 @@ function Get-UnrootedPath($path) {
     # Make sure $path is absolute and cannonicalized
     Push-Location $originalPath
     try {
-      $path = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($path)
-    }
-    finally { Pop-Location }
+        $path = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($path)
+    } finally { Pop-Location }
 
     # Find the Studio directory
     $prefixDrive = (Resolve-Path $originalPath).Drive.Root
@@ -70,7 +69,7 @@ function Get-UnrootedPath($path) {
     # Strip the studio directory
     $strippedPrefix = $path
     if($path.StartsWith($prefixDrive)) {
-      $strippedPrefix = $path.Substring($prefixDrive.length)
+        $strippedPrefix = $path.Substring($prefixDrive.length)
     }
     if(!$strippedPrefix.StartsWith('\')) { $strippedPrefix = "\$strippedPrefix" }
     $strippedPrefix

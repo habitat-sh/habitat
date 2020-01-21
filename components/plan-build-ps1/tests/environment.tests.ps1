@@ -1,4 +1,4 @@
-. $PSScriptRoot\..\bin\shared.ps1
+﻿. $PSScriptRoot\..\bin\shared.ps1
 . $PSScriptRoot\..\bin\environment.ps1
 
 Describe "Invoke-SetupEnvironmentWrapper" {
@@ -57,11 +57,11 @@ Describe "Invoke-SetupEnvironmentWrapper" {
 
     Context "Rooted values" {
         $script:env = @{
-            RunTime = @{}
+            RunTime   = @{}
             BuildTime = @{}
         }
         $script:provenance = @{
-            RunTime = @{}
+            RunTime   = @{}
             BuildTime = @{}
         }
 
@@ -104,11 +104,11 @@ Describe "Invoke-SetupEnvironmentWrapper" {
 
     Context "Non path values" {
         $script:env = @{
-            RunTime = @{}
+            RunTime   = @{}
             BuildTime = @{}
         }
         $script:provenance = @{
-            RunTime = @{}
+            RunTime   = @{}
             BuildTime = @{}
         }
 
@@ -151,11 +151,11 @@ Describe "Invoke-SetupEnvironmentWrapper" {
 
     Context "Dependency ENVIRONMENT_PATHS" {
         $script:env = @{
-            RunTime = @{}
+            RunTime   = @{}
             BuildTime = @{}
         }
         $script:provenance = @{
-            RunTime = @{}
+            RunTime   = @{}
             BuildTime = @{}
         }
         $script:pkg_all_deps_resolved = @()
@@ -164,8 +164,8 @@ Describe "Invoke-SetupEnvironmentWrapper" {
         $script:pkg_build_deps = @("core/build-dep")
 
         ($pkg_deps + $pkg_build_deps) | ForEach-Object {
-            $pkg_path = Join-path $HAB_PKG_PATH "$_\0.1.0\111"
-            $unrooted_pkg_path = Join-path "\hab\pkgs" "$_\0.1.0\111"
+            $pkg_path = Join-Path $HAB_PKG_PATH "$_\0.1.0\111"
+            $unrooted_pkg_path = Join-Path "\hab\pkgs" "$_\0.1.0\111"
             $pkg_all_deps_resolved += $pkg_path
             mkdir $pkg_path -Force | Out-Null
             $dep_name = ($_ -split "/")[1]
@@ -192,11 +192,11 @@ Describe "Invoke-SetupEnvironmentWrapper" {
 
     Context "Dependency unrooted ENVIRONMENT" {
         $script:env = @{
-            RunTime = @{}
+            RunTime   = @{}
             BuildTime = @{}
         }
         $script:provenance = @{
-            RunTime = @{}
+            RunTime   = @{}
             BuildTime = @{}
         }
         $script:pkg_all_deps_resolved = @()
@@ -205,8 +205,8 @@ Describe "Invoke-SetupEnvironmentWrapper" {
         $script:pkg_build_deps = @("core/build-dep")
 
         ($pkg_deps + $pkg_build_deps) | ForEach-Object {
-            $pkg_path = Join-path $HAB_PKG_PATH "$_\0.1.0\111"
-            $unrooted_pkg_path = Join-path "\hab\pkgs" "$_\0.1.0\111"
+            $pkg_path = Join-Path $HAB_PKG_PATH "$_\0.1.0\111"
+            $unrooted_pkg_path = Join-Path "\hab\pkgs" "$_\0.1.0\111"
             $pkg_all_deps_resolved += $pkg_path
             mkdir $pkg_path -Force | Out-Null
             $dep_name = ($_ -split "/")[1]
@@ -231,11 +231,11 @@ Describe "Invoke-SetupEnvironmentWrapper" {
         Mock Test-Path { $envvars.ContainsKey("PSModulePath") } -ParameterFilter {$Path -eq "env:\PSModulePath"}
 
         $script:env = @{
-            RunTime = @{}
+            RunTime   = @{}
             BuildTime = @{}
         }
         $script:provenance = @{
-            RunTime = @{}
+            RunTime   = @{}
             BuildTime = @{}
         }
         $script:pkg_all_deps_resolved = @()
@@ -244,8 +244,8 @@ Describe "Invoke-SetupEnvironmentWrapper" {
         $script:pkg_build_deps = @("core/build-dep")
 
         ($pkg_deps + $pkg_build_deps) | ForEach-Object {
-            $pkg_path = Join-path $HAB_PKG_PATH "$_\0.1.0\111"
-            $unrooted_pkg_path = Join-path "\hab\pkgs" "$_\0.1.0\111"
+            $pkg_path = Join-Path $HAB_PKG_PATH "$_\0.1.0\111"
+            $unrooted_pkg_path = Join-Path "\hab\pkgs" "$_\0.1.0\111"
             $pkg_all_deps_resolved += $pkg_path
             mkdir $pkg_path -Force | Out-Null
             "$_/0.1.0/111" | Out-File "$pkg_path\IDENT"
@@ -286,11 +286,11 @@ Describe "Write-EnvironmentFiles" {
 
     Context "environment path values" {
         $script:env = @{
-            RunTime = @{}
+            RunTime   = @{}
             BuildTime = @{}
         }
         $script:provenance = @{
-            RunTime = @{}
+            RunTime   = @{}
             BuildTime = @{}
         }
         mkdir $pkg_prefix -Force | Out-Null
@@ -318,11 +318,11 @@ Describe "Write-EnvironmentFiles" {
 
     Context "environment values" {
         $script:env = @{
-            RunTime = @{}
+            RunTime   = @{}
             BuildTime = @{}
         }
         $script:provenance = @{
-            RunTime = @{}
+            RunTime   = @{}
             BuildTime = @{}
         }
         mkdir $pkg_prefix -Force | Out-Null

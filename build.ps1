@@ -1,4 +1,4 @@
-#!/usr/bin/env powershell
+﻿#!/usr/bin/env powershell
 
 #Requires -Version 5
 
@@ -50,9 +50,9 @@ if(!$env:ChocolateyInstall) {
 function Invoke-Configure {
     # Make sure that chocolatey is installed and up to date
     # (required for dependencies)
-    if (-not (get-command choco -ErrorAction SilentlyContinue)) {
+    if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
         Write-Host "Installing Chocolatey"
-        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | out-null
+        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | Out-Null
     }
 
     if (!((choco list habitat --local-only) -match '^1 packages installed\.$')) {
@@ -96,11 +96,11 @@ function Invoke-Build([string]$Path, [switch]$Clean, [string]$Command, [switch]$
         }
         "clippy" {
             & $PSScriptRoot\.expeditor\scripts\verify\run_clippy.ps1 -ToolChain $toolchain `
-              -UnexaminedLintsPath $PSScriptRoot\support\unexamined_lints.txt `
-              -AllowedLintsPath $PSScriptRoot\support\allowed_lints.txt `
-              -LintsToFixPath $PSScriptRoot\support\lints_to_fix.txt `
-              -DeniedLintsPath $PSScriptRoot\support\denied_lints.txt `
-            break
+                -UnexaminedLintsPath $PSScriptRoot\support\unexamined_lints.txt `
+                -AllowedLintsPath $PSScriptRoot\support\allowed_lints.txt `
+                -LintsToFixPath $PSScriptRoot\support\lints_to_fix.txt `
+                -DeniedLintsPath $PSScriptRoot\support\denied_lints.txt `
+                break
         }
         "analyze" {
             & $PSScriptRoot\.expeditor\scripts\verify\run_psscriptanalyzer.ps1

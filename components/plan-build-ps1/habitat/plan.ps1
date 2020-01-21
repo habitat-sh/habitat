@@ -1,4 +1,4 @@
-$pkg_name = "hab-plan-build-ps1"
+﻿$pkg_name = "hab-plan-build-ps1"
 $pkg_origin = "core"
 $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
@@ -15,21 +15,21 @@ function pkg_version {
 }
 
 function Invoke-Before {
-  Invoke-DefaultBefore
-  Set-PkgVersion
+    Invoke-DefaultBefore
+    Set-PkgVersion
 }
 
 function Invoke-Build {
     # Embed the release version of the program.
     (Get-Content "$PLAN_CONTEXT\..\bin\${bin}" -Encoding Ascii) | ForEach-Object {
-      $_.replace(
-        "@VERSION@",
-        "$pkg_version/$pkg_release"
-      ).
-      replace(
-        "`$script:pkg_target = `"@@pkg_target@@`"",
-        "`$script:pkg_target = `"$pkg_target`""
-      )
+        $_.replace(
+            "@VERSION@",
+            "$pkg_version/$pkg_release"
+        ).
+        replace(
+            "`$script:pkg_target = `"@@pkg_target@@`"",
+            "`$script:pkg_target = `"$pkg_target`""
+        )
     } | Out-File "$bin" -Encoding ascii
 }
 

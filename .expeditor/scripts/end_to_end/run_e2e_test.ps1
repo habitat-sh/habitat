@@ -1,7 +1,7 @@
-param (
-   [string]$Channel = "dev",
-   [string]$TestName,
-   [string]$BuilderUrl = $env:HAB_BLDR_URL
+﻿param (
+    [string]$Channel = "dev",
+    [string]$TestName,
+    [string]$BuilderUrl = $env:HAB_BLDR_URL
 )
 
 . .expeditor/scripts/shared.ps1

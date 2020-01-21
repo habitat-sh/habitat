@@ -1,10 +1,10 @@
-# Test that SSL_CERT_FILE is persisted into the studio and
+﻿# Test that SSL_CERT_FILE is persisted into the studio and
 # set to the correct internal path.
 $ErrorActionPreference="stop"
 
 function Remove-CachedCertificate {
-  $hab_ssl_cache="/hab/cache/ssl"
-  Remove-Item -Force "$hab_ssl_cache/*" -ErrorAction SilentlyContinue
+    $hab_ssl_cache="/hab/cache/ssl"
+    Remove-Item -Force "$hab_ssl_cache/*" -ErrorAction SilentlyContinue
 }
 
 hab origin key generate "$env:HAB_ORIGIN"
@@ -98,9 +98,9 @@ Context "SSL_CERT_FILE is passed into the studio" {
 
         It "Should not copy the directory into the studio" {
             if($isLinux) {
-              Invoke-StudioRun "test -e /hab/cache/ssl/cert-as-directory"
+                Invoke-StudioRun "test -e /hab/cache/ssl/cert-as-directory"
             } else {
-              Invoke-StudioRun $sslCertFileCheck
+                Invoke-StudioRun $sslCertFileCheck
             }
 
             $LASTEXITCODE | Should -Be 1
@@ -120,9 +120,9 @@ Context "SSL_CERT_FILE is passed into the studio" {
 
         It "Should not copy the file into the studio" {
             if($isLinux) {
-              Invoke-StudioRun "test -e /hab/cache/ssl/non-existant-file"
+                Invoke-StudioRun "test -e /hab/cache/ssl/non-existant-file"
             } else {
-              Invoke-StudioRun $sslCertFileCheck
+                Invoke-StudioRun $sslCertFileCheck
             }
             $LASTEXITCODE | Should -Be 1
         }

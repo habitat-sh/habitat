@@ -1,4 +1,4 @@
-Remove-Item *.tar.gz
+﻿Remove-Item *.tar.gz
 
 function Get-Ident($pkg, $tar) {
     $ident = tar --list --file $tar | Where-Object { $_ -like "hab/pkgs/core/$pkg/**/IDENT" }
@@ -7,7 +7,7 @@ function Get-Ident($pkg, $tar) {
 
 Describe "hab pkg export tar core/nginx" {
     hab pkg export tar core/nginx --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
-    $tar = get-item core-nginx-*.tar.gz
+    $tar = Get-Item core-nginx-*.tar.gz
     $version = ((((hab --version) -split " ")[1]) -split "/")[0]
     It "Creates tarball" {
         $tar | Should -Not -Be $null
