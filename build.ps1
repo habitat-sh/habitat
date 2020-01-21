@@ -18,7 +18,7 @@ param (
     # When specified, a cargo clean will be invoked.
     [switch]$Clean,
     # Cargo command to invoke
-    [ValidateSet("Build","Test","Check","Clippy","Fmt")]
+    [ValidateSet("Build","Test","Check","Clippy","Fmt","Analyze")]
     [string]$command="Build",
     # When specified a build will not be run.
     [switch]$SkipBuild,
@@ -100,6 +100,10 @@ function Invoke-Build([string]$Path, [switch]$Clean, [string]$Command, [switch]$
               -AllowedLintsPath $PSScriptRoot\support\allowed_lints.txt `
               -LintsToFixPath $PSScriptRoot\support\lints_to_fix.txt `
               -DeniedLintsPath $PSScriptRoot\support\denied_lints.txt `
+            break
+        }
+        "analyze" {
+            & $PSScriptRoot\.expeditor\scripts\verify\run_psscriptanalyzer.ps1
             break
         }
         "test" {
