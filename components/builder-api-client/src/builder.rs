@@ -20,10 +20,13 @@ use crate::{error::{Error,
             ReverseDependencies,
             SchedulerResponse};
 use broadcast::BroadcastWriter;
-use reqwest::{header::CONTENT_LENGTH,
-              Body,
+use percent_encoding::{percent_encode,
+                       AsciiSet,
+                       CONTROLS};
+use reqwest::{blocking::{Body,
+                         RequestBuilder},
+              header::CONTENT_LENGTH,
               IntoUrl,
-              RequestBuilder,
               StatusCode};
 use std::{fs::{self,
                File},
@@ -33,13 +36,25 @@ use std::{fs::{self,
                  PathBuf},
           string::ToString};
 use tee::TeeReader;
-use url::{percent_encoding::{percent_encode,
-                             PATH_SEGMENT_ENCODE_SET},
-          Url};
+use url::Url;
 
 const X_FILENAME: &str = "x-filename";
 
 const DEFAULT_API_PATH: &str = "/v1";
+
+// The characters in this set are copied from
+// https://docs.rs/percent-encoding/1.0.1/percent_encoding/struct.PATH_SEGMENT_ENCODE_SET.html
+const PATH_SEGMENT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b' ')
+                                                    .add(b'"')
+                                                    .add(b'#')
+                                                    .add(b'<')
+                                                    .add(b'>')
+                                                    .add(b'`')
+                                                    .add(b'?')
+                                                    .add(b'{')
+                                                    .add(b'}')
+                                                    .add(b'%')
+                                                    .add(b'/');
 
 /// Custom conversion logic to allow `serde` to successfully
 /// round-trip `u64` datatypes through JSON serialization.

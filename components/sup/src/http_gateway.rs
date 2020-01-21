@@ -1,6 +1,7 @@
 use crate::manager::{self,
                      service::{HealthCheckHook,
                                HealthCheckResult}};
+use actix_rt::System;
 use actix_web::{dev::{Body,
                       Service,
                       ServiceRequest,
@@ -15,9 +16,9 @@ use actix_web::{dev::{Body,
                 HttpResponse,
                 HttpServer,
                 Scope};
-use futures01::future::{ok,
-                        Either,
-                        Future};
+use futures::future::{ok,
+                      Either,
+                      Future};
 use habitat_common::{self,
                      templating::hooks,
                      types::HttpListenAddr,
@@ -119,7 +120,7 @@ impl AppState {
 
 fn authentication_middleware<S>(req: ServiceRequest,
                                 srv: &mut S)
-                                -> impl Future<Item = ServiceResponse<Body>, Error = Error>
+                                -> impl Future<Output = Result<ServiceResponse<Body>, Error>>
     where S: Service<Request = ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
 {
     let current_token = &req.app_data::<AppState>()
@@ -129,7 +130,7 @@ fn authentication_middleware<S>(req: ServiceRequest,
         t
     } else {
         debug!("No authentication token present. HTTP gateway starting in unauthenticated mode.");
-        return Either::A(srv.call(req));
+        return Either::Left(srv.call(req));
     };
 
     // From this point forward, we know that we have an
@@ -146,7 +147,7 @@ fn authentication_middleware<S>(req: ServiceRequest,
         Ok(h) => h,
         Err(e) => {
             debug!("Error reading required Authorization header: {:?}.", e);
-            return Either::B(ok(req.into_response(HttpResponse::Unauthorized().finish())));
+            return Either::Right(ok(req.into_response(HttpResponse::Unauthorized().finish())));
         }
     };
 
@@ -154,15 +155,15 @@ fn authentication_middleware<S>(req: ServiceRequest,
 
     match hdr_components.as_slice() {
         ["Bearer", incoming_token] if crypto::secure_eq(current_token, incoming_token) => {
-            Either::A(srv.call(req))
+            Either::Left(srv.call(req))
         }
-        _ => Either::B(ok(req.into_response(HttpResponse::Unauthorized().finish()))),
+        _ => Either::Right(ok(req.into_response(HttpResponse::Unauthorized().finish()))),
     }
 }
 
 fn metrics_middleware<S>(req: ServiceRequest,
                          srv: &mut S)
-                         -> impl Future<Item = ServiceResponse<Body>, Error = Error>
+                         -> impl Future<Output = Result<ServiceResponse<Body>, Error>>
     where S: Service<Request = ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
 {
     let label_values = &[req.path()];
@@ -175,22 +176,24 @@ fn metrics_middleware<S>(req: ServiceRequest,
        .timer
        .set(Some(timer));
 
-    srv.call(req).and_then(|res| {
-                     if let Some(timer) = res.request()
-                                             .app_data::<AppState>()
-                                             .expect("app data")
-                                             .timer
-                                             .replace(None)
-                     {
-                         timer.observe_duration();
-                     }
-                     Ok(res)
-                 })
+    let fut = srv.call(req);
+    async {
+        let res = fut.await?;
+        if let Some(timer) = res.request()
+                                .app_data::<Data<AppState>>()
+                                .expect("app data")
+                                .timer
+                                .replace(None)
+        {
+            timer.observe_duration();
+        }
+        Ok(res)
+    }
 }
 
 fn redact_http_middleware<S>(req: ServiceRequest,
                              srv: &mut S)
-                             -> impl Future<Item = ServiceResponse<Body>, Error = Error>
+                             -> impl Future<Output = Result<ServiceResponse<Body>, Error>>
     where S: Service<Request = ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
 {
     if req.app_data::<AppState>()
@@ -198,9 +201,9 @@ fn redact_http_middleware<S>(req: ServiceRequest,
           .feature_flags
           .contains(FeatureFlag::REDACT_HTTP)
     {
-        Either::B(ok(req.into_response(HttpResponse::NotFound().finish())))
+        Either::Right(ok(req.into_response(HttpResponse::NotFound().finish())))
     } else {
-        Either::A(srv.call(req))
+        Either::Left(srv.call(req))
     }
 }
 
@@ -235,10 +238,11 @@ impl Server {
             };
 
             let mut server = HttpServer::new(move || {
-                                 let app_state = AppState::new(gateway_state.clone(),
-                                                               authentication_token.clone(),
-                                                               feature_flags);
-                                 App::new().data(app_state)
+                                 let app_state =
+                                     Data::new(AppState::new(gateway_state.clone(),
+                                                             authentication_token.clone(),
+                                                             feature_flags));
+                                 App::new().app_data(app_state)
                                            .wrap_fn(authentication_middleware)
                                            .wrap_fn(metrics_middleware)
                                            .service(routes())
@@ -262,7 +266,11 @@ impl Server {
             cvar.notify_one();
 
             if let Ok(b) = bind {
-                b.run().expect("to start http server");
+                // Starting the server could be simplified
+                // See https://github.com/habitat-sh/habitat/issues/7352
+                System::new("actix-rt").block_on(async move {
+                                           b.run().await.expect("to start http server");
+                                       })
             }
         });
     }

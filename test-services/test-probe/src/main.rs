@@ -18,7 +18,8 @@ fn app<'a, 'b>() -> App<'a, 'b> {
                                                        .takes_value(true))
 }
 
-fn main() -> std::io::Result<()> {
+#[actix_rt::main]
+async fn main() -> std::io::Result<()> {
     let matches = app().get_matches();
     let config = config::from_matches(&matches).expect("Could not create application");
     let bind_addr = format!("{}:{}", config.host, config.port);
@@ -30,5 +31,5 @@ fn main() -> std::io::Result<()> {
                    .bind(&bind_addr)?;
 
     println!("Starting test-probe on {}", bind_addr);
-    server.run()
+    server.run().await
 }

@@ -613,7 +613,7 @@ impl Manager {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
         let mut runtime =
             RuntimeBuilder::new().threaded_scheduler()
-                                 .num_threads(TokioThreadCount::configured_value().into())
+                                 .core_threads(TokioThreadCount::configured_value().into())
                                  .enable_all()
                                  .build()
                                  .expect("Couldn't build Tokio Runtime!");

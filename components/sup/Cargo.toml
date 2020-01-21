@@ -16,15 +16,12 @@ doc = false
 
 [dependencies]
 bytes = "*"
-actix-web = { version = "*", default-features = false, features = [ "rust-tls" ] }
+actix-web = { version = "*", default-features = false, features = [ "rustls" ] }
+actix-rt = "*"
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 cpu-time = "*"
-# futures 0.1 is needed because actix-web has not yet upgraded to futures 0.3.
-# We must hardcode the new version of futures here because we also depened on futures 0.1
-# See https://github.com/habitat-sh/habitat/issues/7271
 futures = { version = "0.3.1" }
-futures01 = { package = "futures", version = "0.1" }
 glob = "*"
 hab = { path = "../hab" }
 habitat_butterfly = { path = "../butterfly", default-features = false }
@@ -43,12 +40,9 @@ num_cpus = "*"
 parking_lot = "*"
 pin-project = "*"
 prometheus = "*"
-# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
-prost = { git = "https://github.com/habitat-sh/prost" }
-# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
-prost-derive = { git = "https://github.com/habitat-sh/prost" }
-# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
-prost-types = { git = "https://github.com/habitat-sh/prost" }
+prost = "*"
+prost-derive = "*"
+prost-types = "*"
 rand = "*"
 rants = "*"
 regex = "*"
@@ -61,7 +55,8 @@ serde-transcode = "*"
 state = "*"
 tempfile = "*"
 termcolor = "*"
-time = "*"
+# See https://github.com/habitat-sh/habitat/issues/7353
+time = "0.1"
 toml = { version = "*", default-features = false }
 tokio = { version = "*", features = ["full"] }
 tokio-util = { version = "*", features = ["full"] }
@@ -88,8 +83,7 @@ hyper = "*"
 json = "*"
 
 [build-dependencies]
-# Must use fork see https://github.com/habitat-sh/habitat/issues/7270
-prost-build = { git = "https://github.com/habitat-sh/prost" }
+prost-build = "*"
 
 [features]
 default = []
