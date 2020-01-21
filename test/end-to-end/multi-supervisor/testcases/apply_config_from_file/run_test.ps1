@@ -1,4 +1,4 @@
-﻿Describe "apply config from file" {
+Describe "apply config from file" {
     hab pkg install core/redis
     Load-SupervisorService "core/redis" -Remote "alpha.habitat.dev"
     Load-SupervisorService "core/redis" -Remote "beta.habitat.dev"

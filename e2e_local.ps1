@@ -1,4 +1,4 @@
-﻿Param(
+Param(
     [Parameter(Mandatory=$true)]
     [string]$TestName,
     [string]$Channel="dev"

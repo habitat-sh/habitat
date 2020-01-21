@@ -1,4 +1,4 @@
-﻿. $PSScriptRoot\..\shared.ps1
+. $PSScriptRoot\..\shared.ps1
 
 function Install-BuildkiteAgent() {
     # Though the Windows machine we're running on has to have the

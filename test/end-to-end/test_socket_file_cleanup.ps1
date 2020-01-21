@@ -1,4 +1,4 @@
-﻿# Regression test to address https://github.com/habitat-sh/habitat/issues/4673
+# Regression test to address https://github.com/habitat-sh/habitat/issues/4673
 # Fixed in https://github.com/habitat-sh/habitat/pull/5365
 
 Function Get-SocketFile {

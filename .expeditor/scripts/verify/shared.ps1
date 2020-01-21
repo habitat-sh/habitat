@@ -1,4 +1,4 @@
-﻿. $PSScriptRoot\..\shared.ps1
+. $PSScriptRoot\..\shared.ps1
 
 function Install-HabPkg([string[]]$idents) {
     $idents | ForEach-Object {

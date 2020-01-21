@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
 Installs the Habitat 'hab' program.
 

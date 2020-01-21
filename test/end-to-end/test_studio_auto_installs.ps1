@@ -1,4 +1,4 @@
-﻿# This test is designed to catch the regression described in
+# This test is designed to catch the regression described in
 # https://github.com/habitat-sh/habitat/issues/6771
 #
 # When a user runs `hab studio enter` for the first time after installing a

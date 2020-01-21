@@ -1,4 +1,4 @@
-﻿# This script expects `setup_environment.sh` or `setup_environment.ps1` to be sourced before execution
+# This script expects `setup_environment.sh` or `setup_environment.ps1` to be sourced before execution
 [Diagnostics.CodeAnalysis.SuppressMessage("PSUseApprovedVerbs", '', Scope="function", Target="*Load-SupervisorService")]
 param (
     [string]$TestName,

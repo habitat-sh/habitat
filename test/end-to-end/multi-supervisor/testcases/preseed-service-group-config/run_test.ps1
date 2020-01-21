@@ -1,4 +1,4 @@
-﻿# Ensures that we can `hab config apply` some configuration to a
+# Ensures that we can `hab config apply` some configuration to a
 # Habitat network before any services are running, and have those
 # services pick up the configuration the first time they load.
 Describe "preseeded service group config" {

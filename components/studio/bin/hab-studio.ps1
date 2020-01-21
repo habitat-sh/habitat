@@ -1,4 +1,4 @@
-﻿# # Usage
+# # Usage
 #
 # ```powershell
 # $ hab-studio [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ...]

@@ -1,4 +1,4 @@
-﻿# These suppress PSScriptAnalyzer warnings from the use of 'mount'
+# These suppress PSScriptAnalyzer warnings from the use of 'mount'
 # which is an alias for New-PSDrive on windows but calls the command
 # directly on linux where this runs
 [Diagnostics.CodeAnalysis.SuppressMessage("PSAvoidUsingCmdletAliases", '')]

@@ -1,4 +1,4 @@
-﻿function Write-BuildLine {
+function Write-BuildLine {
     <#
     .SYNOPSIS
     Print a line of build output

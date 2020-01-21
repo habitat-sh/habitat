@@ -1,4 +1,4 @@
-﻿# Test that SSL_CERT_FILE is persisted into the studio and
+# Test that SSL_CERT_FILE is persisted into the studio and
 # set to the correct internal path.
 $ErrorActionPreference="stop"
 

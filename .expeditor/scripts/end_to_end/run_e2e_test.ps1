@@ -1,4 +1,4 @@
-﻿param (
+param (
     [string]$Channel = "dev",
     [string]$TestName,
     [string]$BuilderUrl = $env:HAB_BLDR_URL

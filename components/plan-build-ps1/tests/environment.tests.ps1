@@ -1,4 +1,4 @@
-﻿. $PSScriptRoot\..\bin\shared.ps1
+. $PSScriptRoot\..\bin\shared.ps1
 . $PSScriptRoot\..\bin\environment.ps1
 
 Describe "Invoke-SetupEnvironmentWrapper" {

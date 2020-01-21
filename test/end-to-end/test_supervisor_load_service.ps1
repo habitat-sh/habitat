@@ -1,4 +1,4 @@
-﻿hab pkg install core/nginx --channel stable
+hab pkg install core/nginx --channel stable
 $job = Start-Job { hab sup run }
 hab pkg install core/nginx
 Wait-Supervisor -Timeout 120

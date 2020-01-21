@@ -1,4 +1,4 @@
-﻿Describe "gossiping new config" {
+Describe "gossiping new config" {
     Load-SupervisorService "core/redis" -Remote "alpha.habitat.dev"
     Load-SupervisorService "habitat-testing/test-probe" -Bind "thing_with_a_port:redis.default" -Remote "beta.habitat.dev"
 

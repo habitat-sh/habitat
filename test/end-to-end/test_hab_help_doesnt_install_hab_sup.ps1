@@ -1,4 +1,4 @@
-﻿# A simple test assertion that running `hab sup --help` will not
+# A simple test assertion that running `hab sup --help` will not
 # attempt to install `core/hab-sup` if that pkg is not present.
 
 $env:TESTING_FS_ROOT = (Join-Path ([System.IO.Path]::GetTempPath()) ([System.IO.Path]::GetRandomFileName()))

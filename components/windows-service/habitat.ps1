@@ -1,4 +1,4 @@
-﻿function Install-HabService {
+function Install-HabService {
     if($null -ne (Get-Service Habitat -ErrorAction SilentlyContinue)) {
         Write-Error "The Habitat service is already installed. Please run 'hab exec core/windows-service uninstall' first if you wish to reinstall."
         return

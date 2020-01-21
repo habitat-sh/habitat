@@ -1,4 +1,4 @@
-﻿Describe "hab file upload" {
+Describe "hab file upload" {
     hab pkg install core/redis
     Load-SupervisorService "core/redis" -Remote "alpha.habitat.dev"
     Load-SupervisorService "core/redis" -Remote "beta.habitat.dev"

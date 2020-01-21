@@ -1,4 +1,4 @@
-﻿$env:PathSeparator = if ($IsWindows -Or !$IsCoreCLR) {
+$env:PathSeparator = if ($IsWindows -Or !$IsCoreCLR) {
     ";"
 } else {
     ":"

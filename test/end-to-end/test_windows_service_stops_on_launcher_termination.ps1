@@ -1,4 +1,4 @@
-﻿hab pkg install core/windows-service
+hab pkg install core/windows-service
 
 Describe "Terminate Launcher" {
     Start-Service Habitat

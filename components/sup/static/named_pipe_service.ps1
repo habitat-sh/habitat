@@ -1,4 +1,4 @@
-﻿param (
+param (
     [string]$HookPath,
     [string]$PipeName,
     [int]$ParentPID

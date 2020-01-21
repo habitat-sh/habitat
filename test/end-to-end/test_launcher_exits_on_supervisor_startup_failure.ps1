@@ -1,4 +1,4 @@
-﻿# A simple test that the launcher doesn't go into a tight loop restarting the
+# A simple test that the launcher doesn't go into a tight loop restarting the
 # supervisor if the supervisor fails to start up. To override and test
 # locally-built code, set overrides in the environment of the script.
 # See https://github.com/habitat-sh/habitat/blob/master/BUILDING.md#testing-changes

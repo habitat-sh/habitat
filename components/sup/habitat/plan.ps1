@@ -1,4 +1,4 @@
-﻿$pkg_name = "hab-sup"
+$pkg_name = "hab-sup"
 $pkg_origin = "core"
 $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
