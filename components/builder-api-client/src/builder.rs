@@ -43,7 +43,7 @@ const X_FILENAME: &str = "x-filename";
 const DEFAULT_API_PATH: &str = "/v1";
 
 // The characters in this set are copied from
-// https://docs.rs/percent-encoding/1.0.1/percent_encoding/struct.SIMPLE_ENCODE_SET.html
+// https://docs.rs/percent-encoding/1.0.1/percent_encoding/struct.PATH_SEGMENT_ENCODE_SET.html
 const PATH_SEGMENT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b' ')
                                                     .add(b'"')
                                                     .add(b'#')
