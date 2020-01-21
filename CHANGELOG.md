@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.74 -->
-## [0.90.74](https://github.com/habitat-sh/habitat/tree/0.90.74) (2020-01-17)
+<!-- latest_release 0.90.75 -->
+## [0.90.75](https://github.com/habitat-sh/habitat/tree/0.90.75) (2020-01-21)
 
 #### Merged Pull Requests
-- Fix a few end-to-end test failures [#7346](https://github.com/habitat-sh/habitat/pull/7346) ([christophermaier](https://github.com/christophermaier))
+- Update dependencies [#7354](https://github.com/habitat-sh/habitat/pull/7354) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -29,6 +29,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Update dependencies [#7354](https://github.com/habitat-sh/habitat/pull/7354) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.75 -->
 - Fix a few end-to-end test failures [#7346](https://github.com/habitat-sh/habitat/pull/7346) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.74 -->
 - Fix broken studio e2e tests [#7343](https://github.com/habitat-sh/habitat/pull/7343) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.73 -->
 - Remove the event stream feature flag [#7335](https://github.com/habitat-sh/habitat/pull/7335) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.72 -->
