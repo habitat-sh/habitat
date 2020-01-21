@@ -90,7 +90,7 @@ Context "SSL_CERT_FILE is passed into the studio" {
     Describe "SSL_CERT_FILE is a directory" {
         $env:SSL_CERT_FILE = (Join-Path $tempdir "cert-as-directory")
         New-Item -ItemType Directory -Force -Path $env:SSL_CERT_FILE
-        
+
         It "Should not set SSL_CERT_FILE" {
             Invoke-StudioRun $sslCertFileNotSetCheck
             $LASTEXITCODE | Should -Be 0
@@ -99,10 +99,10 @@ Context "SSL_CERT_FILE is passed into the studio" {
         It "Should not copy the directory into the studio" {
             if($isLinux) {
               Invoke-StudioRun "test -e /hab/cache/ssl/cert-as-directory"
-            } else { 
+            } else {
               Invoke-StudioRun $sslCertFileCheck
             }
-            
+
             $LASTEXITCODE | Should -Be 1
         }
 
@@ -121,7 +121,7 @@ Context "SSL_CERT_FILE is passed into the studio" {
         It "Should not copy the file into the studio" {
             if($isLinux) {
               Invoke-StudioRun "test -e /hab/cache/ssl/non-existant-file"
-            } else { 
+            } else {
               Invoke-StudioRun $sslCertFileCheck
             }
             $LASTEXITCODE | Should -Be 1
@@ -142,8 +142,8 @@ Context "SSL_CERT_FILE is passed into the studio" {
 Write-Host "--- Testing SSL_CERT_FILE is not set"
 
 Context "SSL_CERT_FILE isn't set" {
-    BeforeEach { 
-        Cleanup-CachedCertificate
+    BeforeEach {
+        Remove-CachedCertificate
         # Ensure SSL_CERT_FILE isn't set
         Remove-Item Env:\SSL_CERT_FILE
         hab studio rm

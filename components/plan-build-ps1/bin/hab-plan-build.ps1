@@ -1,4 +1,4 @@
-param (
+﻿param (
     [string]
     $Context = ".",
 
@@ -30,8 +30,6 @@ param (
 
 # The short version of the program name which is used in logging output
 $program = $MyInvocation.MyCommand
-# The current version of this program
-$HAB_PLAN_BUILD = "@VERSION@"
 
 $script:originalPath = (Get-Location).Path
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
@@ -150,22 +148,23 @@ $script:pkg_svc_static_path="$pkg_svc_path\static"
 . $PSScriptRoot\shared.ps1
 . $PSScriptRoot\environment.ps1
 
-function _Assert-OriginKeyPresent {
+function Assert-OriginKeyPresent {
     $cache = "$HAB_CACHE_KEY_PATH"
     if (-Not (Test-Path "$cache")) {
-        _Exit-With "Cache key path $cache does not exist, aborting" 35
+        throw "Cache key path $cache does not exist, aborting"
     }
 
     $candidate_keys = (Get-ChildItem "$cache" `
         -Recurse -Force -Include "${pkg_origin}-*.sig.key")
     if ($candidate_keys.Length -eq 0) {
-        _Exit-With "Signing origin key '$pkg_origin' not found in $cache, aborting" 35
+        throw "Signing origin key '$pkg_origin' not found in $cache, aborting"
     }
     Write-Debug "At least one signing key for $pkg_origin found in $cache"
 }
 
-function _Check-Command {
+function Test-Command {
     [CmdletBinding()]
+    [OutputType([bool])]
     param(
         [Parameter(Mandatory=$True)]
         [string]
@@ -195,18 +194,18 @@ function _Check-Command {
 #
 # If the commands are not found, `exit_with` is called and the program is
 # terminated.
-function _Get-SystemCommands {
-    if (_Check-Command hab) {
+function Set-SystemCommands {
+    if (Test-Command hab) {
         $script:_hab_cmd = (Get-Command hab.exe).Source
     } else {
-        _Exit-With "We require hab to sign artifacts; aborting" 1
+      throw "We require hab to sign artifacts; aborting"
     }
     Write-Debug "Setting _hab_cmd=$_hab_cmd"
 
-    if (_Check-Command 7z) {
+    if (Test-Command 7z) {
         $script:_7z_cmd = (Get-Command 7z).Source
     } else {
-        _Exit-With "We require 7z to create tar files & compress; aborting" 1
+      throw "We require 7z to create tar files & compress; aborting"
     }
     Write-Debug "Setting _7z_cmd=$_7z_cmd"
 }
@@ -235,7 +234,7 @@ function Invoke-DefaultBegin {
 #
 # Reference implementation:
 # https://github.com/habitat-sh/habitat/blob/3d63753468ace168bbbe4c52e600d408c4981b03/components/plan-build/bin/hab-plan-build.sh#L1584-L1638
-function _Set-BuildPath {
+function Set-BuildPath {
   $paths=@()
 
   # Add element for each entry in `$pkg_bin_dirs[@]` first
@@ -253,7 +252,7 @@ function _Set-BuildPath {
     if (Test-Path (Join-Path $dep_prefix "PATH")) {
       $data = (Get-Content (Join-Path $dep_prefix "PATH") | Out-String).Trim()
       foreach($entry in $data.split(";")) {
-        $paths = @(_return_or_append_to_set (_Resolve-Path $entry) $paths)
+        $paths = @(_return_or_append_to_set (Resolve-RootedPath $entry) $paths)
       }
     } elseif (Test-Path (Join-Path $dep_prefix "RUNTIME_ENVIRONMENT")) {
       # Backwards Compatibility: If `PATH` can't be found, then attempt to fall
@@ -261,7 +260,7 @@ function _Set-BuildPath {
       # a `PATH` entry. This is necessary for packages created using a release
       # of Habitat between 0.53.0 (released 2018-02-05) and up to including
       # 0.55.0 (released 2018-03-20).
-      $strippedPrefix = _Get-UnrootedPath $dep_prefix
+      $strippedPrefix = Get-UnrootedPath $dep_prefix
 
       foreach ($line in (Get-Content (Join-Path $dep_prefix "RUNTIME_ENVIRONMENT"))) {
           $varval = $line.split("=")
@@ -269,7 +268,7 @@ function _Set-BuildPath {
               foreach($entry in $varval[1].split(";")) {
                 # Filter out entries that are not related to the `$dep_prefix`
                 if ("$entry" -Like "$strippedPrefix\*") {
-                  $paths = @(_return_or_append_to_set (_Resolve-Path $entry) $paths)
+                  $paths = @(_return_or_append_to_set (Resolve-RootedPath $entry) $paths)
                 }
               }
               break;
@@ -308,7 +307,7 @@ function Invoke-After {
 function Invoke-DefaultAfter {
 }
 
-function _Set-HabBin {
+function Set-HabBin {
   if ($env:NO_INSTALL_DEPS) {
     Write-BuildLine "`$env:NO_INSTALL_DEPS set: no package dependencies will be installed"
   }
@@ -318,7 +317,7 @@ function _Set-HabBin {
   Write-BuildLine "Using HAB_BIN=$HAB_BIN for installs, signing, and hashing"
 }
 
-function _install-dependency($dependency, $install_args = $null) {
+function Install-Dependency($dependency, $install_args = $null) {
   if (!$env:NO_INSTALL_DEPS) {
     $cmd = "$HAB_BIN install -u $env:HAB_BLDR_URL --channel $env:HAB_BLDR_CHANNEL $dependency $install_args"
     if($env:HAB_FEAT_IGNORE_LOCAL -eq "true") { $cmd += " --ignore-local" }
@@ -350,26 +349,17 @@ function _latest_installed_package($dependency) {
     return $false
   }
 
-  # Count the number of slashes, and use it to make a choice
-  # about what to return as the latest package.
-  $latest_package_flags = $dependency.split("/").length - 1
-  $depth = switch ($latest_package_flags) {
-    3 { 1 }
-    2 { 2 }
-    1 { 3 }
-  }
-
-  $result = try { (Get-ChildItem "$HAB_PKG_PATH/$dependency" -Recurse -Include MANIFEST)[-1].FullName } catch { }
+  $result = Get-ChildItem "$HAB_PKG_PATH/$dependency" -Recurse -Include MANIFEST -ErrorAction SilentlyContinue
   if (!$result) {
     Write-Warning "Could not find a suitable installed package for '$dependency'"
     return $false
   }
   else {
-    return Split-Path $result -Parent
+    return Split-Path ($result[-1].FullName) -Parent
   }
 }
 
-function _resolve-dependency($dependency) {
+function Resolve-Dependency($dependency) {
   if (!$dependency.Contains("/")) {
     Write-Warning "Origin required for '$dependency' in plan '$pkg_origin/$pkg_name' (example: acme/$dependency)"
     return $false
@@ -389,7 +379,7 @@ function _resolve-dependency($dependency) {
 # `DEPS` file in the desired package will be considered an unset, or empty set.
 #
 # ```
-# _Get-DepsFor /hab/pkgs/acme/a/4.2.2/20160113044458
+# Get-DepsFor /hab/pkgs/acme/a/4.2.2/20160113044458
 # # /hab/pkgs/acme/dep-b/1.2.3/20160113033619
 # # /hab/pkgs/acme/dep-c/5.0.1/20160113033507
 # # /hab/pkgs/acme/dep-d/2.0.0/20160113033539
@@ -399,7 +389,7 @@ function _resolve-dependency($dependency) {
 # ```
 #
 # Will return 0 in any case and the contents of `DEPS` if the file exists.
-function _Get-DepsFor($dependency) {
+function Get-DepsFor($dependency) {
   if (Test-Path "$dependency/DEPS") {
     Get-Content $dependency/DEPS
   }
@@ -409,7 +399,7 @@ function _Get-DepsFor($dependency) {
   }
 }
 
-function _Get-BuildDepsFor($dependency) {
+function Get-BuildDepsFor($dependency) {
   if (Test-Path "$dependency/BUILD_DEPS") {
     Get-Content $dependency/BUILD_DEPS
   }
@@ -426,7 +416,7 @@ function _Get-BuildDepsFor($dependency) {
 # unset, or empty set.
 #
 # ```
-# _Get-TdepsFor /hab/pkgs/acme/a/4.2.2/20160113044458
+# Get-TdepsFor /hab/pkgs/acme/a/4.2.2/20160113044458
 # # /hab/pkgs/acme/dep-b/1.2.3/20160113033619
 # # /hab/pkgs/acme/dep-c/5.0.1/20160113033507
 # # /hab/pkgs/acme/dep-d/2.0.0/20160113033539
@@ -436,7 +426,7 @@ function _Get-BuildDepsFor($dependency) {
 # ```
 #
 # Will return the contents of `TDEPS` if the file exists, otherwise an empty array.
-function _Get-TdepsFor($dependency) {
+function Get-TdepsFor($dependency) {
   if (Test-Path "$dependency/TDEPS") {
     Get-Content $dependency/TDEPS
   }
@@ -535,7 +525,7 @@ function _print_recursive_deps($dependencies, $qualified, $level) {
     # If this dependency itself has direct dependencies, then recursively print
     # them.
     if (Test-Path "$HAB_PKG_PATH/$dep/DEPS") {
-      _print_recursive_deps (Get-Content "$HAB_PKG_PATH/$dep/DEPS") $qualified ($level + 1)
+      _print_recursive_deps -Dependencies (Get-Content "$HAB_PKG_PATH/$dep/DEPS") -Qualified $qualified -Level ($level + 1)
     }
   }
 }
@@ -549,31 +539,31 @@ function _print_recursive_deps($dependencies, $qualified, $level) {
 # than building a package which is destined to fail at runtime, this function
 # will fast-fail with dependency information which an end user can use to
 # resolve the situation before continuing.
-function _Assert-Deps {
+function Assert-DepsAreValid {
   # Build the list of full runtime deps (one per line) without the
   # `$HAB_PKG_PATH` prefix.
-  $tdeps = $pkg_tdeps_resolved | % {
+  $tdeps = $pkg_tdeps_resolved | ForEach-Object {
     $_.Substring((Resolve-Path $HAB_PKG_PATH).Path.Length+1).Replace("\", "/")
   }
 
-  $pkgNames = $tdeps | % {
+  $pkgNames = $tdeps | ForEach-Object {
     [String]::Join("/", $_.Split("/")[0..1])
   }
 
-  if($pkgNames -eq $null) { $pkgNames = @() }
+  if(!($pkgNames)) { $pkgNames = @() }
   # Build the list of any runtime deps that appear more than once. That is,
   # `ORIGIN/NAME` token duplicates.
-  $uniques = $pkgNames | Select -Unique
-  if($uniques -eq $null) { $uniques = @() }
-  $dupes = Compare-object -referenceobject $uniques -differenceobject $pkgNames | Select -Unique
+  $uniques = $pkgNames | Select-Object -Unique
+  if(!($uniques)) { $uniques = @() }
+  $dupes = Compare-object -referenceobject $uniques -differenceobject $pkgNames | Select-Object -Unique
 
   if($dupes) {
     # Build a list of all fully qualified package identifiers that are members
     # of the duplicated `ORIGIN/NAME` tokens. This will be used to star the
     # problematic dependencies in the graph.
-    $_dupes_qualified=$dupes | % {
+    $_dupes_qualified=$dupes | ForEach-Object {
         $candidate = $_.InputObject
-        $tdeps | ? {
+        $tdeps | Where-Object {
             $_.StartsWith($candidate)
         }
     }
@@ -583,7 +573,7 @@ function _Assert-Deps {
     Write-Warning "release in the full dependency chain:"
     Write-Warning ""
     foreach($dupe in $dupes) {
-      Write-Warning "  * $($dupe.InputObject) ( $($tdeps | ? { $_.StartsWith($dupe.InputObject) } ))"
+      Write-Warning "  * $($dupe.InputObject) ( $($tdeps | Where-Object { $_.StartsWith($dupe.InputObject) } ))"
     }
     Write-Warning ""
     Write-Warning 'The current situation usually arises when a Plan has a direct '
@@ -603,26 +593,26 @@ function _Assert-Deps {
     Write-Warning ""
     Write-Warning "Computed dependency graph (Lines with '*' denote a problematic entry):"
     Write-Host "`n$pkg_origin/$pkg_name/$pkg_version/$pkg_release"
-    _print_recursive_deps $pkg_deps_resolved $_dupes_qualified 1
+    _print_recursive_deps -Dependencies $pkg_deps_resolved -Qualified $_dupes_qualified -Level 1
     Write-Host ""
-    _Exit-With "Computed runtime dependency check failed, aborting" 31
+    throw "Computed runtime dependency check failed, aborting"
   }
 }
 
 # **Internal** Verifies that any lazily-computed, required variables have been
 # set, otherwise it fails the build.
-function _Assert-Vars {
+function Assert-PkgVersion {
     if("$pkg_version" -eq "__pkg__version__unset__") {
       $e="Plan did not set 'pkg_version' and did not call 'Set-PkgVersion'"
       $e="$e before the 'Invoke-Prepare' build phase."
-      _exit-with $e 2
+      throw $e
     }
-  
-    $script:_verify_vars=$true
+
+    $script:_verify_pkg_version=$true
   }
-  
+
 # **Internal** Create initial package-related arrays.
-function _init-Dependencies {
+function Initialize-DependencyList {
   # Create `${pkg_build_deps_resolved[@]}` containing all resolved direct build
   # dependencies.
   $script:pkg_build_deps_resolved=@()
@@ -640,31 +630,31 @@ function _init-Dependencies {
   $script:pkg_tdeps_resolved=@()
 }
 
-function _Resolve-ScaffoldingDependencies {
+function Resolve-ScaffoldingDependencyList {
   Write-BuildLine "Resolving scaffolding dependencies"
   $scaff_build_deps = @()
   $scaff_build_deps_resolved = @()
-  
+
   if($pkg_scaffolding.count -gt 1) {
-    _Exit-With "More than one scaffolding detected. Please specify only one" 1
+    throw "More than one scaffolding detected. Please specify only one"
   }
 
   if($pkg_scaffolding) {
     $pkg_scaffolding = @($pkg_scaffolding)[0]
-     _install-dependency $pkg_scaffolding
+     Install-Dependency $pkg_scaffolding
       # Add scaffolding package to the list of scaffolding build deps
      $scaff_build_deps += $pkg_scaffolding
-     if($resolved=(_resolve-dependency $pkg_scaffolding)) {
+     if($resolved=(Resolve-Dependency $pkg_scaffolding)) {
        Write-BuildLine "Resolved scaffolding dependency '$pkg_scaffolding' to $resolved"
         $scaff_build_deps_resolved+=($resolved)
-        $sdeps=(@(_Get-DepsFor $resolved) + @(_Get-BuildDepsFor $resolved))
+        $sdeps=(@(Get-DepsFor $resolved) + @(Get-BuildDepsFor $resolved))
       foreach($sdep in $sdeps) {
             $scaff_build_deps += $sdep
             $scaff_build_deps_resolved+=(Resolve-Path "$HAB_PKG_PATH/$sdep").Path
         }
      }
      else {
-        _Exit-With "Resolving '$pkg_scaffolding' failed, should this be built first?" 1
+      throw "Resolving '$pkg_scaffolding' failed, should this be built first?"
     }
   }
   else {
@@ -686,7 +676,7 @@ function _Resolve-ScaffoldingDependencies {
   # dependencies, and the run dependencies for each direct scaffolding
   # dependency. As above, this will be re-set later when the full dependency
   # set is known.
-  _Set-BuildTdepsResolved
+  Set-BuildTdepsResolved
 }
 
 function _Set_DependencyArrays {
@@ -711,7 +701,7 @@ function _Set_DependencyArrays {
 # **Internal** Sets the value of `${pkg_build_tdeps_resolved[@]}`. This
 # function completely re-sets the value of `${pkg_build_tdeps_resolved[@]}`
 # using the current value of `${pkg_build_deps_resolved[@]}`.
- function _Set-BuildTdepsResolved {
+ function Set-BuildTdepsResolved {
   # Copy all direct build dependencies into a new array
   $script:pkg_build_tdeps_resolved=$pkg_build_deps_resolved
   # Append all non-direct (transitive) run dependencies for each direct build
@@ -719,7 +709,7 @@ function _Set_DependencyArrays {
   # dependency could pull in `acme/binutils` for us, as an example. Any
   # duplicate entries are dropped to produce a proper set.
   foreach($dep in $pkg_build_deps_resolved) {
-    $tdeps=_Get-TdepsFor $dep
+    $tdeps=Get-TdepsFor $dep
     foreach($tdep in $tdeps) {
       $tdep=(Resolve-Path "$HAB_PKG_PATH/$tdep").Path
       $script:pkg_build_tdeps_resolved=@(_return_or_append_to_set $tdep $pkg_build_tdeps_resolved)
@@ -727,34 +717,34 @@ function _Set_DependencyArrays {
   }
  }
 
- function _Resolve-BuildDependencies {
+ function Resolve-BuildDependencyList {
   # Build `${pkg_build_deps_resolved[@]}` containing all resolved direct build
   # dependencies.
   foreach($dep in $pkg_build_deps) {
-    _install-dependency $dep
-    if($resolved=(_resolve-dependency $dep)) {
+    Install-Dependency $dep
+    if($resolved=(Resolve-Dependency $dep)) {
       Write-BuildLine "Resolved build dependency '$dep' to $resolved"
       $script:pkg_build_deps_resolved+=($resolved)
     }
     else {
-      _Exit-With "Resolving '$dep' failed, should this be built first?" 1
+      throw "Resolving '$dep' failed, should this be built first?"
     }
   }
 
-  _Set-BuildTdepsResolved
+  Set-BuildTdepsResolved
  }
 
- function _Resolve-RunDependencies {
+ function Resolve-RunDependencyList {
   # Build `${pkg_deps_resolved[@]}` containing all resolved direct run
   # dependencies.
   foreach($dep in $pkg_deps) {
-    _install-dependency $dep "--ignore-install-hook"
-    if ($resolved=(_resolve-dependency $dep)) {
+    Install-Dependency $dep "--ignore-install-hook"
+    if ($resolved=(Resolve-Dependency $dep)) {
       Write-BuildLine "Resolved dependency '$dep' to $resolved"
       $script:pkg_deps_resolved+=$resolved
     }
     else {
-      _Exit-With "Resolving '$dep' failed, should this be built first?" 1
+      throw "Resolving '$dep' failed, should this be built first?"
     }
   }
 
@@ -763,7 +753,7 @@ function _Set_DependencyArrays {
   # Append all non-direct (transitive) run dependencies for each direct run
   # dependency. Any duplicate entries are dropped to produce a proper set.
   foreach($dep in $pkg_deps_resolved) {
-    $tdeps=_Get-TdepsFor $dep
+    $tdeps=Get-TdepsFor $dep
     foreach($tdep in $tdeps) {
       $tdep=(Resolve-Path "$HAB_PKG_PATH/$tdep").Path
       $script:pkg_tdeps_resolved=@(_return_or_append_to_set $tdep $pkg_tdeps_resolved)
@@ -771,7 +761,7 @@ function _Set_DependencyArrays {
   }
  }
 
-function _Resolve-Path($path) {
+function Resolve-RootedPath($path) {
   $result = $null
   Push-Location $originalPath
   try {
@@ -781,7 +771,7 @@ function _Resolve-Path($path) {
   $result
 }
 
-function _Write-Pre-Build-File {
+function Write-PreBuildFile {
     New-Item "$pkg_output_path" -ItemType Directory -Force | Out-Null
     $preBuild = "$pkg_output_path\pre_build.ps1"
     if (Test-Path $preBuild) { Remove-Item $preBuild -Force }
@@ -795,7 +785,7 @@ function _Write-Pre-Build-File {
 "@ | Out-File $preBuild -Encoding ascii
 }
 
-function _Get-SHA256Converter {
+function Get-SHA256Converter {
   if($PSVersionTable.PSEdition -eq 'Core') {
     [System.Security.Cryptography.SHA256]::Create()
   }
@@ -804,15 +794,15 @@ function _Get-SHA256Converter {
   }
 }
 
-function _Get-Sha256($src) {
-  $converter = _Get-SHA256Converter
+function Get-Sha256($src) {
+  $converter = Get-SHA256Converter
   try {
     $bytes = $converter.ComputeHash(($in = (Get-Item $src).OpenRead()))
     return ([System.BitConverter]::ToString($bytes)).Replace("-", "").ToLower()
   }
   finally {
     $converter.Dispose()
-    if ($in -ne $null) { $in.Dispose() }
+    if ($null -ne $in) { $in.Dispose() }
   }
 }
 
@@ -828,7 +818,7 @@ function _Get-Sha256($src) {
 # will be printed to stderr with the expected and computed shasum values.
 function _verify_file($dst, $sha) {
   Write-BuildLine "Verifying $dst"
-  $checksum=($(_Get-Sha256 "$HAB_CACHE_SRC_PATH/$dst"))
+  $checksum=($(Get-Sha256 "$HAB_CACHE_SRC_PATH/$dst"))
   if ($sha -eq $checksum) {
     Write-BuildLine "Checksum verified for $dst"
   }
@@ -877,7 +867,7 @@ function Invoke-Download {
 # Default implementation for the `Invoke-Download` phase.
 function Invoke-DefaultDownload {
     if($pkg_source -and $pkg_source -ne "") {
-        _download_file $pkg_source $pkg_filename $pkg_shasum
+        _download_file -url $pkg_source -dst $pkg_filename -sha $pkg_shasum
     }
 }
 
@@ -925,12 +915,12 @@ function Invoke-Unpack {
 
 # Default implementation for the `Invoke-Unpack` phase.
 function Invoke-DefaultUnpack {
-    if($pkg_filename -ne $null) {
+    if($null -ne $pkg_filename) {
         Expand-Archive -Path "$HAB_CACHE_SRC_PATH/$pkg_filename" -DestinationPath "$HAB_CACHE_SRC_PATH/$pkg_dirname"
     }
 }
 
-function _Set-Environment {
+function Set-Environment {
     $libs = @()
     $includes = @()
 
@@ -945,12 +935,12 @@ function _Set-Environment {
     }
 
     foreach ($dep_prefix in $pkg_all_deps_resolved) {
-        $strippedPrefix = _Get-UnrootedPath $dep_prefix
+        $strippedPrefix = Get-UnrootedPath $dep_prefix
 
         if (Test-Path (Join-Path $dep_prefix "LIB_DIRS")) {
             $data = (Get-Content (Join-Path $dep_prefix "LIB_DIRS") | Out-String).Trim()
             foreach ($entry in $data.split(";")) {
-                $libs = @(_return_or_append_to_set (_Resolve-Path $entry) $libs)
+                $libs = @(_return_or_append_to_set (Resolve-RootedPath $entry) $libs)
             }
         } elseif (Test-Path (Join-Path $dep_prefix "RUNTIME_ENVIRONMENT")) {
             # Backwards Compatibility: If `LIB_DIRS` can't be found, then
@@ -965,7 +955,7 @@ function _Set-Environment {
                     foreach($entry in $varval[1].split(";")) {
                         # Filter out entries that are not related to the `$dep_prefix`
                         if ("$entry" -Like "$strippedPrefix\*") {
-                            $libs = @(_return_or_append_to_set (_Resolve-Path $varval[1]) $libs)
+                            $libs = @(_return_or_append_to_set (Resolve-RootedPath $varval[1]) $libs)
                         }
                     }
                     break;
@@ -976,7 +966,7 @@ function _Set-Environment {
         if (Test-Path (Join-Path $dep_prefix "INCLUDE_DIRS")) {
             $data = (Get-Content (Join-Path $dep_prefix "INCLUDE_DIRS") | Out-String).Trim()
             foreach($entry in $data.split(";")) {
-                $includes = @(_return_or_append_to_set (_Resolve-Path $entry) $includes)
+                $includes = @(_return_or_append_to_set (Resolve-RootedPath $entry) $includes)
             }
         } elseif (Test-Path (Join-Path $dep_prefix "RUNTIME_ENVIRONMENT")) {
             # Backwards Compatibility: If `INCLUDE_DIRS` can't be found, then
@@ -991,7 +981,7 @@ function _Set-Environment {
                     foreach($entry in $varval[1].split(";")) {
                         # Filter out entries that are not related to the `$dep_prefix`
                         if ("$entry" -Like "$strippedPrefix\*") {
-                            $includes = @(_return_or_append_to_set (_Resolve-Path $varval[1]) $includes)
+                            $includes = @(_return_or_append_to_set (Resolve-RootedPath $varval[1]) $includes)
                         }
                     }
                     break;
@@ -1073,20 +1063,20 @@ function Invoke-DefaultBuild {
 # }
 # ```
 function Set-PkgVersion {
-    if($_verify_vars) {
+    if($_verify_pkg_version) {
       $e="Plan called 'Set-PkgVersion' in phase 'Invoke-Prepare' or later"
       $e="$e which is not supported. Package version must be determined before"
       $e="$e 'Invoke-Prepare' phase."
-      _exit-with $e 21
+      throw $e
     }
-  
+
     if(test-path function:\pkg_version) {
       $script:pkg_version=pkg_version
       Write-BuildLine "Version updated to '$pkg_version'"
     } else {
       write-debug "pkg_version function not found, retaining pkg_version=$pkg_version"
     }
-  
+
     # `$pkg_dirname` needs to be recomputed, unless it was explicitly set by the
     # Plan author.
     if($_pkg_dirname_initially_unset) {
@@ -1109,7 +1099,7 @@ function Set-PkgVersion {
     # Replace the unset placeholders with the computed value
     $env:PATH=$(__resolve_version_placeholder $env:PATH $pkg_version)
     Write-BuildLine "Updating PATH=$env:PATH"
-  
+
     # TODO (CM): Do not like this separation of concerns (or lack of
     # separation, as the case may be).
     #
@@ -1180,7 +1170,7 @@ function __resolve_all_version_placeholders_for_provenance($provenance_table, $r
 # }
 # ```
 function Invoke-CheckWrapper {
-    if ((_Check-Command Invoke-Check) -and (Test-Path Env:\DO_CHECK)) {
+    if ((Test-Command Invoke-Check) -and (Test-Path Env:\DO_CHECK)) {
       Write-BuildLine "Running post-compile tests"
       Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
       try { Invoke-Check } finally { Pop-Location }
@@ -1286,7 +1276,7 @@ Invoke-Expression -Command `$cmd
 }
 
 # **Internal** Write the `$pkg_prefix\MANIFEST`.
-function _Write-Manifest {
+function Write-Manifest {
     Write-BuildLine "Creating manifest"
     if ([string]::IsNullOrEmpty($pkg_upstream_url)) {
         $upstream_url_string = "upstream project's website or home page is not defined"
@@ -1355,23 +1345,23 @@ $(Get-Content "$PLAN_CONTEXT\plan.ps1" -Raw)
 # * `$pkg_prefix/LDFLAGS` - Any LDFLAGS for things that link against us
 # * `$pkg_prefix/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
 # * `$pkg_prefix/PATH` - Any PATH entries for things that link against us
-function _Write-Metadata {
+function Write-Metadata {
     Write-BuildLine "Building package metadata"
 
-    $strippedPrefix = _Get-UnrootedPath $pkg_prefix
+    $strippedPrefix = Get-UnrootedPath $pkg_prefix
 
     if ($pkg_bin_dirs.Length -gt 0) {
-        $($pkg_bin_dirs | % { "$strippedPrefix\$_" }) -join ';' |
+        $($pkg_bin_dirs | ForEach-Object { "$strippedPrefix\$_" }) -join ';' |
             Out-File "$pkg_prefix\PATH" -Encoding ascii
     }
 
     if ($pkg_lib_dirs.Length -gt 0) {
-        $($pkg_lib_dirs | % { "$strippedPrefix\$_" }) -join ';' |
+        $($pkg_lib_dirs | ForEach-Object { "$strippedPrefix\$_" }) -join ';' |
             Out-File "$pkg_prefix\LIB_DIRS" -Encoding ascii
      }
 
     if ($pkg_include_dirs.Length -gt 0) {
-        $($pkg_include_dirs | % { "$strippedPrefix\$_" }) -join ';' |
+        $($pkg_include_dirs | ForEach-Object { "$strippedPrefix\$_" }) -join ';' |
             Out-File "$pkg_prefix\INCLUDE_DIRS" -Encoding ascii
      }
 
@@ -1400,16 +1390,16 @@ function _Write-Metadata {
 
     Write-EnvironmentFiles
 
-    $pkg_build_deps_resolved | % {
+    $pkg_build_deps_resolved | ForEach-Object {
         Resolve-HabPkgPath $_ | Out-File $pkg_prefix\BUILD_DEPS -Encoding ascii -Append
     }
-    $pkg_build_tdeps_resolved | % {
+    $pkg_build_tdeps_resolved | ForEach-Object {
         Resolve-HabPkgPath $_ | Out-File $pkg_prefix\BUILD_TDEPS -Encoding ascii -Append
     }
-    $pkg_deps_resolved | % {
+    $pkg_deps_resolved | ForEach-Object {
         Resolve-HabPkgPath $_ | Out-File $pkg_prefix\DEPS -Encoding ascii -Append
     }
-    $pkg_tdeps_resolved | % {
+    $pkg_tdeps_resolved | ForEach-Object {
         Resolve-HabPkgPath $_ | Out-File $pkg_prefix\TDEPS -Encoding ascii -Append
     }
 
@@ -1437,7 +1427,7 @@ function _Write-Metadata {
 }
 
 # **Internal** Create the package artifact with `tar`/`hab pkg sign`
-function _Save-Artifact {
+function Save-Artifact {
     Write-BuildLine "Generating package artifact"
     $dir = Split-Path $pkg_artifact -Parent
     $file = ".$([io.path]::GetFileNameWithoutExtension($pkg_artifact))"
@@ -1469,7 +1459,7 @@ function _Save-Artifact {
 
 # **Internal** Copy the final package artifact to the `$pkg_output_path`
 # directory as well as prepare a `last_build.ps1` report.
-function _Copy-BuildOutputs {
+function Copy-BuildOutput {
     New-Item "$pkg_output_path" -ItemType Directory -Force | Out-Null
     Copy-Item "$pkg_artifact" "$pkg_output_path"
 
@@ -1527,33 +1517,33 @@ if ($pkg_target -eq "@@pkg_target@@") {
 
 # Expand the context path to an absolute path
 if (-Not (Test-Path "$Context")) {
-    _Exit-With "Context must be an existing directory" 10
+    throw "Context must be an existing directory"
 }
 $script:PLAN_CONTEXT = (Get-Item $Context).FullName
 
 # Now to ensure a `plan.ps1` exists where we expect it. There are 4 possible
-# candidate locations relative to the `$PLAN_CONTEXT` directory: 
+# candidate locations relative to the `$PLAN_CONTEXT` directory:
 #   `./plan.ps1`
 #   `./habitat/plan.ps1`
 #   `./$pkg_target/plan.ps1`
 #   `./habitat/$pkg_target/plan.ps1`
 # In most cases, Plan authors should use the default location of `./plan.ps1`
-# or `./habitat/plan.ps1`.  The exception to this is when the $pkg_target 
-# requires variations to the default `plan.ps1`. Plan authors can create these 
-# variants by placing a plan file in the appropriate $pkg_target directory 
+# or `./habitat/plan.ps1`.  The exception to this is when the $pkg_target
+# requires variations to the default `plan.ps1`. Plan authors can create these
+# variants by placing a plan file in the appropriate $pkg_target directory
 # relative to the default plan.ps1.
 #
-# With plan variants, plans can exist in 4 places per $pkg_target relative to 
+# With plan variants, plans can exist in 4 places per $pkg_target relative to
 # the `$PLAN_CONTEXT` directory. Only two combinations are allowed:
 #
-#   `./plan.ps1` AND `./$pkg_target/plan.ps1` 
-#   OR 
+#   `./plan.ps1` AND `./$pkg_target/plan.ps1`
+#   OR
 #   `./habitat/plan.ps1` AND `./habitat/$pkg_target/plan.ps1`
 # Consider all other combination of two plans invalid and abort if found.
 
 # ** Internal ** Relative to the current plan context,  check for a variant
 #   that matches the current $pkg_target, and update $PLAN_CONTEXT if found.
-function _Check-For-Plan-Variant {
+function Set-PlanContextFromTarget {
   if (Test-Path "$PLAN_CONTEXT\$pkg_target\plan.ps1") {
     Write-BuildLine "Detected Plan Variant!"
     $script:PLAN_CONTEXT = "$PLAN_CONTEXT\$pkg_target"
@@ -1561,21 +1551,21 @@ function _Check-For-Plan-Variant {
   }
 }
 
-# Look for a plan.ps1 relative to the $PLAN_CONTEXT. If we find an invalid 
-#   combination or are unable to find a plan.ps1,  abort with a message to the 
-#   user with the failure case. 
+# Look for a plan.ps1 relative to the $PLAN_CONTEXT. If we find an invalid
+#   combination or are unable to find a plan.ps1,  abort with a message to the
+#   user with the failure case.
 if (Test-Path "$PLAN_CONTEXT\plan.ps1") {
     if (Test-Path "$PLAN_CONTEXT\habitat\plan.ps1") {
         $places = "$PLAN_CONTEXT\plan.ps1 and $PLAN_CONTEXT\habitat\plan.ps1"
-        _Exit-With "A Plan file was found at $places. Only one is allowed at a time" 42
+        throw "A Plan file was found at $places. Only one is allowed at a time"
     }
-    _Check-For-Plan-Variant
+    Set-PlanContextFromTarget
 } elseif (Test-Path "$PLAN_CONTEXT\habitat\plan.ps1") {
     $script:PLAN_CONTEXT = "$PLAN_CONTEXT\habitat"
-    _Check-For-Plan-Variant
+    Set-PlanContextFromTarget
 } else {
     $places = "$PLAN_CONTEXT\plan.ps1 or $PLAN_CONTEXT\habitat\plan.ps1"
-    _Exit-With "Plan file not found at $places" 42
+    throw "Plan file not found at $places"
 }
 
 
@@ -1603,16 +1593,16 @@ try {
 
     foreach ($var in @("pkg_origin", "pkg_name")) {
         if (-Not (Test-Path variable:script:$var)) {
-            _Exit-With "Failed to build. '$var' must be set." 1
+            throw "Failed to build. '$var' must be set."
         } elseif ((Get-Variable $var -Scope script).Value -eq "") {
-            _Exit-With "Failed to build. '$var' must be set and non-empty." 1
+            throw "Failed to build. '$var' must be set and non-empty."
         }
     }
 
     # Test to ensure package name and origin contain only valid characters
     foreach ($var in @("pkg_name", "pkg_origin")) {
       if (-Not ((Get-Content Variable:\$var) -match '^[A-Za-z0-9_-]+$')) {
-          _Exit-With "Failed to build. Package '$var' contains invalid characters." 1
+          throw "Failed to build. Package '$var' contains invalid characters."
       }
     }
 
@@ -1628,7 +1618,7 @@ try {
     } elseif("$pkg_version" -eq "") {
         $e="Failed to build. 'pkg_version' must be set or 'pkg_version' function"
         e="$e must be implemented and then invoking by calling 'Set-PkgVersion'."
-        _exit-with $e 1
+        throw $e
     }
 
     # Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already
@@ -1671,19 +1661,19 @@ try {
     Invoke-Begin
 
     # Determine if we have all the commands we need to work
-    _Get-SystemCommands
+    Set-SystemCommands
 
     # Enure that the origin key is available for package signing
-    _Assert-OriginKeyPresent
+    Assert-OriginKeyPresent
 
-    _Set-HabBin
+    Set-HabBin
 
     # Download and resolve the depdencies
     # Create initial package arrays
-    _init-Dependencies
+    Initialize-DependencyList
 
     # Inject, download, and resolve the scaffolding dependencies
-    _Resolve-ScaffoldingDependencies
+    Resolve-ScaffoldingDependencyList
 
     # Populate package arrays to enable helper functions for early scaffolding
     # load hooks
@@ -1695,7 +1685,7 @@ try {
         $lib="$(Get-HabPackagePath $scaff)/lib/scaffolding.ps1"
         Write-BuildLine "Loading Scaffolding $lib"
         if(!(Test-Path $lib)) {
-            _Exit-With "Failed to load Scaffolding from $lib" 17
+            throw "Failed to load Scaffolding from $lib"
         }
 
         . $lib
@@ -1706,23 +1696,23 @@ try {
     }
 
     # Download and resolve the build dependencies
-    _Resolve-BuildDependencies
+    Resolve-BuildDependencyList
 
     # Download and resolve the run dependencies
-    _Resolve-RunDependencies
+    Resolve-RunDependencyList
 
     # Finalize and normalize all resolved dependencies with all build and run
     # dependencies
     _Set_DependencyArrays
 
-    _Assert-Deps
+    Assert-DepsAreValid
 
     # Write out a prebuild file so workers can have some metadata about failed builds
-    _Write-Pre-Build-File
+    Write-PreBuildFile
 
     Invoke-SetupEnvironmentWrapper
 
-    _Set-BuildPath
+    Set-BuildPath
 
     New-Item "$HAB_CACHE_SRC_PATH" -ItemType Directory -Force | Out-Null
 
@@ -1742,9 +1732,9 @@ try {
     Invoke-Unpack
 
     # Set up the build environment
-    _Set-Environment
+    Set-Environment
 
-    _Assert-Vars
+    Assert-PkgVersion
 
     # Prepare the source
     Invoke-PrepareWrapper
@@ -1769,16 +1759,16 @@ try {
     Invoke-After
 
     # Write the manifest
-    _Write-Manifest
+    Write-Manifest
 
     # Render the linking and dependency files
-    _Write-Metadata
+    Write-Metadata
 
     # Generate the artifact and write to artifact cache
-    _Save-Artifact
+    Save-Artifact
 
     # Copy produced artifact to a local relative directory
-    _Copy-BuildOutputs
+    Copy-BuildOutput
 
     # Cleanup
     Write-BuildLine "$program cleanup"

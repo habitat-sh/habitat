@@ -1,21 +1,3 @@
-function _Exit-With {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory=$True)]
-        [string]
-        $Message,
-
-        [Parameter(Mandatory=$True)]
-        [int32]
-        $ExitCode
-    )
-
-    process {
-        Write-Error "$Message"
-        exit $ExitCode
-    }
-}
-
 function Write-BuildLine {
     <#
     .SYNOPSIS
@@ -74,7 +56,7 @@ function Resolve-HabPkgPath($unresolved) {
 # Returns the path with the studio directory stripped.
 # So c:\hab\studios\my-studio\hab\pkgs would unroot to
 # \hab\pkgs
-function _Get-UnrootedPath($path) {
+function Get-UnrootedPath($path) {
     # Make sure $path is absolute and cannonicalized
     Push-Location $originalPath
     try {

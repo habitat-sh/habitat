@@ -1,3 +1,10 @@
+# These suppress PSScriptAnalyzer warnings from the use of 'mount'
+# which is an alias for New-PSDrive on windows but calls the command
+# directly on linux where this runs
+[Diagnostics.CodeAnalysis.SuppressMessage("PSAvoidUsingCmdletAliases", '')]
+[Diagnostics.CodeAnalysis.SuppressMessage("PSUseCmdletCorrectly", '')]
+param ()
+
 Describe "filesystem with name >1024 characters" {
   sudo --preserve-env hab pkg install core/e2fsprogs --channel stable
   # Maximum directory name length is 255 characters so we need to create

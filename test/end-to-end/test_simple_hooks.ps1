@@ -6,7 +6,7 @@ $pkg = "$(Get-EndToEndTestingOrigin)/simple-hooks"
 
 Describe "Simple hooks output" {
     $svc = Load-SupervisorService -PackageName $pkg -Timeout 20
-    $pkgLogsPath = Join-Path -Path $env:SystemDrive hab svc $svc logs
+    $pkgLogsPath = Join-Path -Path $env:SystemDrive -ChildPath hab -AdditionalChildPath @("svc", $svc, "logs")
 
     It "Has correct 'install' hook stdout" {
         $path = Join-Path $pkgLogsPath "install.stdout.log"
