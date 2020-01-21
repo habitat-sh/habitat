@@ -40,7 +40,7 @@ Describe "event stream connection to nats" {
         # Check that the output contains a connect message and that the server received a health check message
         $out = (Get-Content $supLog) -join "`r`n"
         $out | Should -BeLike "*INFO rants] Transitioned to state 'Connecting(127.0.0.1:4222)' from 'Connecting(127.0.0.1:4222)'*"
-        $out | Should -BeLike "*NATS server is healthy\n:\x00B\x02\b\x01`"]*"
+        $out | Should -BeLike "*NATS server is healthy*"
     }
 
     Unload-SupervisorService -PackageName $natsPkg -Timeout 20
