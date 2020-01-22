@@ -76,7 +76,7 @@ struct SubSupRun {
     #[structopt(name = "HTTP_DISABLE", long = "http-disable", short = "D")]
     http_disable: bool,
     /// The listen address for the Control Gateway. If not specified, the value will be taken from
-    /// the HAB_LISTEN_CTL environment variable if defined. [default: 127.0.0.1:9632]
+    /// the HAB_LISTEN_CTL environment variable if defined[.]
     #[structopt(name = "LISTEN_CTL",
                 long = "listen-ctl",
                 env = ListenCtlAddr::ENVVAR,
@@ -1317,7 +1317,7 @@ pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
              "Disable the HTTP Gateway completely")
             (@arg LISTEN_CTL: --("listen-ctl") env(ListenCtlAddr::ENVVAR) default_value(ListenCtlAddr::default_as_str()) {valid_socket_addr}
              "The listen address for the Control Gateway. If not specified, the value will \
-              be taken from the HAB_LISTEN_CTL environment variable if defined. [default: 127.0.0.1:9632]")
+              be taken from the HAB_LISTEN_CTL environment variable if defined[.]")
             (@arg ORGANIZATION: --org +takes_value
              "The organization that the Supervisor and its subsequent services are part of[.]")
             (@arg PEER: --peer +takes_value +multiple
