@@ -26,6 +26,8 @@ Install-Habitat
     )
 
     Write-Host "Checking Powershell formatting..."
+    # Excluding PSUseConsistentWhitespace because it conflicts with AlignAssignmentStatement and
+    # PSUseConsistentIndentation which are higher value
     $formatErrors = Get-ChildItem ..\..\..\*.ps1 -Recurse -Exclude $excludeFormatScripts |
         Invoke-ScriptAnalyzer -Settings CodeFormattingOTBS -ExcludeRule PSUseConsistentWhitespace
     Write-Host ($formatErrors | Out-String)
@@ -33,7 +35,7 @@ Install-Habitat
 
     Write-Host "Analyzing Powershell Scripts..."
     $analysisErrors = Get-ChildItem ..\..\..\*.ps1 -Recurse -Exclude $excludeAnalyzeScripts |
-        Invoke-ScriptAnalyzer -Settings .\PSScriptAnalyzerSettings.psd1
+        Invoke-ScriptAnalyzer -Settings PSScriptAnalyzerSettings.psd1
     Write-Host ($analysisErrors | Out-String)
     Write-Host "$($analysisErrors.Count) errors found"
 
