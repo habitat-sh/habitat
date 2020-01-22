@@ -4,6 +4,7 @@ use clap::{App,
            AppSettings,
            Arg,
            ArgMatches};
+use configopt;
 use habitat_common::{cli::{file_into_idents,
                            is_toml_file,
                            BINLINK_DIR_ENVVAR,
@@ -32,17 +33,23 @@ use habitat_core::{crypto::{keys::PairType,
                              ServiceGroup},
                    ChannelIdent};
 use habitat_sup_protocol;
+use partial_derive::Partial;
 use rants::Address as NatsAddress;
-use std::{net::{Ipv4Addr,
+use std::{env,
+          fs,
+          net::{Ipv4Addr,
                 SocketAddr},
           path::{Path,
                  PathBuf},
           result,
           str::FromStr};
 use structopt::StructOpt;
+use toml;
 use url::Url;
 
-#[derive(StructOpt)]
+#[derive(Partial, StructOpt, Deserialize)]
+#[partial(derive(Debug, Default, Deserialize), attrs(serde))]
+#[serde(deny_unknown_fields)]
 #[structopt(name = "run",
             no_version,
             about = "Run the Habitat Supervisor",
@@ -1298,9 +1305,22 @@ pub fn sub_sup_bash() -> App<'static, 'static> {
     )
 }
 
+fn config_file_to_defaults(config_file: &str)
+                           -> Result<PartialSubSupRun, Box<dyn std::error::Error>> {
+    let contents = fs::read_to_string(config_file)?;
+    Ok(toml::from_str(&contents)?)
+}
+
 pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
     let sub = if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
-        SubSupRun::clap()
+        let mut sub = SubSupRun::clap();
+        if let Ok(config_file) = env::var("HAB_FEAT_CONFIG_FILE") {
+            match config_file_to_defaults(&config_file) {
+                Ok(defaults) => configopt::set_defaults(&mut sub, &defaults),
+                Err(e) => error!("Failed to parse config file, err: {}", e),
+            }
+        }
+        sub
     } else {
         clap_app!(@subcommand run =>
             (about: "Run the Habitat Supervisor")
