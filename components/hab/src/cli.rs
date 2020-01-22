@@ -1,5 +1,4 @@
-use crate::{command::studio,
-            BLDR_URL_ENVVAR};
+use crate::command::studio;
 
 use clap::{App,
            AppSettings,
@@ -31,7 +30,6 @@ use habitat_core::{crypto::{keys::PairType,
                              PackageTarget},
                    service::{HealthCheckInterval,
                              ServiceGroup},
-                   url::DEFAULT_BLDR_URL,
                    ChannelIdent};
 use habitat_sup_protocol;
 use rants::Address as NatsAddress;
@@ -99,13 +97,14 @@ struct SubSupRun {
     peer_watch_file: PathBuf,
     /// Path to search for encryption keys. Default value is hab/cache/keys if root and
     /// .hab/cache/keys under the home directory otherwise[.]
+    // TODO (DM): I dont think the default value comment is correct. It looks like it always is set
+    // to hab/cache/keys.
     #[structopt(name = "CACHE_KEY_PATH",
                 long = "cache-key-path",
                 env = CACHE_KEY_PATH_ENV_VAR,
                 default_value = CACHE_KEY_PATH,
                 hide_default_value = true)]
-    // TODO (DM): This could probably be a different type for better validation (PathBuf?)
-    cache_key_path: String,
+    cache_key_path: PathBuf,
     /// The name of the ring used by the Supervisor when running with wire encryption. (ex: hab sup
     /// run --ring myring)
     #[structopt(name = "RING",
@@ -162,6 +161,7 @@ struct SubSupRun {
     /// Load the given Habitat package as part of the Supervisor startup specified by a package
     /// identifier (ex: core/redis) or filepath to a Habitat Artifact (ex:
     /// /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    // TODO (DM): We could probably do better validation here
     #[structopt(name = "PKG_IDENT_OR_ARTIFACT")]
     pkg_ident_or_artifact: Option<String>,
     // TODO (DM): This flag can eventually be removed.
@@ -184,7 +184,8 @@ struct SubSupRun {
                 possible_values = &["standalone", "leader"])]
     topology: Option<habitat_sup_protocol::types::Topology>,
     /// The update strategy; [default: none] [values: none, at-once, rolling]
-    // TODO (DM): this should use possible_values = &["none", "at-once", "rolling"]
+    // TODO (DM): this should set a default_value and use possible_values = &["none", "at-once",
+    // "rolling"]
     #[structopt(name = "STRATEGY", long = "strategy", short = "s")]
     strategy: Option<habitat_sup_protocol::types::UpdateStrategy>,
     /// One or more service groups to bind to a configuration
@@ -192,7 +193,7 @@ struct SubSupRun {
     bind: Vec<String>,
     /// Governs how the presence or absence of binds affects service startup. `strict` blocks
     /// startup until all binds are present. [default: strict] [values: relaxed, strict]
-    // TODO (DM): values and default
+    // TODO (DM): This should set default_value and use possible_values
     #[structopt(name = "BINDING_MODE", long = "binding-mode")]
     binding_mode: Option<habitat_sup_protocol::types::BindingMode>,
     /// Verbose output; shows file and line/column numbers
