@@ -11,10 +11,13 @@ use std::{env,
           process};
 
 fn main() {
+    // Set up signal handlers before anything else happens to ensure
+    // that all threads spawned thereafter behave properly.
+    signals::init();
     env_logger::init();
     let args: Vec<String> = env::args().skip(1).collect();
     set_global_logging_options(&args);
-    signals::init();
+
     match server::run(args) {
         Err(err) => {
             error!("Launcher exiting with 1 due to err: {}", err);
