@@ -24,9 +24,25 @@ Install-Habitat
         'last_build.ps1',
         'pre_build.ps1'
     )
-    Get-ChildItem ..\..\..\*.ps1 -Recurse -Exclude $excludeFormatScripts |
-        Invoke-ScriptAnalyzer -Settings CodeFormattingOTBS -ExcludeRule PSUseConsistentWhitespace -EnableExit
-    Get-ChildItem ..\..\..\*.ps1 -Recurse -Exclude $excludeAnalyzeScripts |
-        Invoke-ScriptAnalyzer -Settings .\PSScriptAnalyzerSettings.psd1 -EnableExit
-    Get-ChildItem ..\..\..\plan.ps1 -Recurse | Invoke-ScriptAnalyzer -ExcludeRule PSUseDeclaredVarsMoreThanAssignments -EnableExit
+
+    Write-Host "Checking Powershell formatting..."
+    $formatErrors = Get-ChildItem ..\..\..\*.ps1 -Recurse -Exclude $excludeFormatScripts |
+        Invoke-ScriptAnalyzer -Settings CodeFormattingOTBS -ExcludeRule PSUseConsistentWhitespace
+    Write-Host ($formatErrors | Out-String)
+    Write-Host "$($formatErrors.Count) errors found"
+
+    Write-Host "Analyzing Powershell Scripts..."
+    $analysisErrors = Get-ChildItem ..\..\..\*.ps1 -Recurse -Exclude $excludeAnalyzeScripts |
+        Invoke-ScriptAnalyzer -Settings .\PSScriptAnalyzerSettings.psd1
+    Write-Host ($analysisErrors | Out-String)
+    Write-Host "$($analysisErrors.Count) errors found"
+
+    Write-Host "Analyzing Powershell Habitat plans..."
+    $planErrors = Get-ChildItem ..\..\..\plan.ps1 -Recurse | Invoke-ScriptAnalyzer -ExcludeRule PSUseDeclaredVarsMoreThanAssignments
+    Write-Host ($planErrors | Out-String)
+    Write-Host "$($planErrors.Count) errors found"
+
+    Exit $formatErrors.Count + $analysisErrors.Count + $planErrors.Count
 }
+
+Exit $LASTEXITCODE
