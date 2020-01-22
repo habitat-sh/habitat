@@ -513,7 +513,7 @@ function _print_recursive_deps($dependencies, $qualified, $level) {
         # asterisk at the end of the line, otherwise print the dependency.
         if ($qualified.Contains($dep)) {
             Write-Host "$padn$dep (*)"
-        } elseelse {
+        } else {
             Write-Host "$padn$dep"
         }
         # If this dependency itself has direct dependencies, then recursively print
@@ -646,7 +646,7 @@ function Resolve-ScaffoldingDependencyList {
                 $scaff_build_deps += $sdep
                 $scaff_build_deps_resolved+=(Resolve-Path "$HAB_PKG_PATH/$sdep").Path
             }
-        } elselse {
+        } else {
             throw "Resolving '$pkg_scaffolding' failed, should this be built first?"
         }
     } else {
