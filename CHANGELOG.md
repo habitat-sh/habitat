@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.78 -->
-## [0.90.78](https://github.com/habitat-sh/habitat/tree/0.90.78) (2020-01-22)
+<!-- latest_release 0.90.79 -->
+## [0.90.79](https://github.com/habitat-sh/habitat/tree/0.90.79) (2020-01-22)
 
-#### Bug Fixes
-- Ensure that signal handlers are installed first [#7356](https://github.com/habitat-sh/habitat/pull/7356) ([christophermaier](https://github.com/christophermaier))
+#### Merged Pull Requests
+- Update to Windows Server 2012 [#7342](https://github.com/habitat-sh/habitat/pull/7342) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -30,6 +30,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Update to Windows Server 2012 [#7342](https://github.com/habitat-sh/habitat/pull/7342) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.79 -->
 - hab: only print header once in hab svc status [#7358](https://github.com/habitat-sh/habitat/pull/7358) ([stevendanna](https://github.com/stevendanna)) <!-- 0.90.77 -->
 - Fix a few more e2e tests [#7355](https://github.com/habitat-sh/habitat/pull/7355) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.76 -->
 - Update dependencies [#7354](https://github.com/habitat-sh/habitat/pull/7354) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.75 -->
