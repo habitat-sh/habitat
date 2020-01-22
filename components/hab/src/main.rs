@@ -1198,7 +1198,7 @@ async fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
     }
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
-        print_svc_status(&mut out, &reply, true)?;
+        print_svc_status(&mut out, &reply, false)?;
     }
     out.flush()?;
     Ok(())
