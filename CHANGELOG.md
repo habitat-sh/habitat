@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.76 -->
-## [0.90.76](https://github.com/habitat-sh/habitat/tree/0.90.76) (2020-01-21)
+<!-- latest_release 0.90.77 -->
+## [0.90.77](https://github.com/habitat-sh/habitat/tree/0.90.77) (2020-01-22)
 
 #### Merged Pull Requests
-- Fix a few more e2e tests [#7355](https://github.com/habitat-sh/habitat/pull/7355) ([christophermaier](https://github.com/christophermaier))
+- hab: only print header once in hab svc status [#7358](https://github.com/habitat-sh/habitat/pull/7358) ([stevendanna](https://github.com/stevendanna))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -29,6 +29,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- hab: only print header once in hab svc status [#7358](https://github.com/habitat-sh/habitat/pull/7358) ([stevendanna](https://github.com/stevendanna)) <!-- 0.90.77 -->
 - Fix a few more e2e tests [#7355](https://github.com/habitat-sh/habitat/pull/7355) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.76 -->
 - Update dependencies [#7354](https://github.com/habitat-sh/habitat/pull/7354) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.75 -->
 - Fix a few end-to-end test failures [#7346](https://github.com/habitat-sh/habitat/pull/7346) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.74 -->
