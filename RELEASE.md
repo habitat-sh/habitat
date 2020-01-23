@@ -58,7 +58,7 @@ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/
     | sudo bash -s -- -c staging -t x86_64-linux-kernel2
 ```
 (Note the addition of the target option on the "curlbash" command! Without this you will end up with
-the Kernel 3 version, and things won't work properly!)
+the modern Linux version, and things won't work properly!)
 
 ```sh
 sudo hab pkg install core/hab --binlink --force --channel=staging
