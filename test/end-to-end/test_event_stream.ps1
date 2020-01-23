@@ -1,14 +1,14 @@
 # Test the event stream connection to a NATS server
 
-$natsPkg = "$EndToEndTestingOrigin/nats-event-stream-test"
+$natsPkg = "$(Get-EndToEndTestingOrigin)/nats-event-stream-test"
 
 $authToken = "my_token="
 
 Describe "event stream connection to nats" {
     $env:RUST_LOG = "rants=trace"
 
-    It "fails to start with no NATS server and --event-stream-connect-timeout set" { 
-        { 
+    It "fails to start with no NATS server and --event-stream-connect-timeout set" {
+        {
             Start-Supervisor -Timeout 3 -SupArgs @( `
                     "--event-stream-application=MY_APP", `
                     "--event-stream-environment=MY_ENV", `

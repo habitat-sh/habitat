@@ -5,12 +5,12 @@ $env:TESTING_FS_ROOT = (Join-Path ([System.IO.Path]::GetTempPath()) ([System.IO.
 $env:HAB_SUP_BINARY = $null
 
 Describe "hab sup --help" {
-  hab sup --help | Out-null
+    hab sup --help | Out-Null
 
-  It "runs successfully" {
-    $LASTEXITCODE | Should -Be 0
-  }
-  It "does not install the supervisor package" {
-    "$env:TESTING_FS_ROOT/hab/pkgs/core/hab-sup" | Should -Not -Exist
-  }
+    It "runs successfully" {
+        $LASTEXITCODE | Should -Be 0
+    }
+    It "does not install the supervisor package" {
+        "$env:TESTING_FS_ROOT/hab/pkgs/core/hab-sup" | Should -Not -Exist
+    }
 }

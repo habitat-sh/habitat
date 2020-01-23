@@ -4,7 +4,7 @@
 # of the follower nodes. Next we perform an update and expect the remaining
 # two nodes to update. Prior to https://github.com/habitat-sh/habitat/pull/7167
 # a rolling update after a member death would cause the leader to wait for dead
-# members to update themselves which of course will never happen. So we 
+# members to update themselves which of course will never happen. So we
 # perform another update which should succeed if the leader is ignoring dead
 # members as it should.
 
@@ -19,7 +19,7 @@ Describe "Rolling Update after a follower is removed and quorum is not lost" {
     Load-SupervisorService "habitat-testing/nginx" -Remote "beta.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel
     Load-SupervisorService "habitat-testing/nginx" -Remote "gamma.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel
 
-    @("alpha", "beta", "gamma") | % { 
+    @("alpha", "beta", "gamma") | ForEach-Object {
         It "loads initial release on $_" {
             Wait-Release -Ident $release1 -Remote $_
         }
@@ -28,7 +28,7 @@ Describe "Rolling Update after a follower is removed and quorum is not lost" {
     Context "Remove first follower" {
         $leader = Get-Leader "bastion" "nginx.default"
         $follower=$null
-        @("alpha", "beta", "gamma") | % { 
+        @("alpha", "beta", "gamma") | ForEach-Object {
             if($_ -ne $leader.Name -and !$follower) {
                 $follower = $_
             }
@@ -39,7 +39,7 @@ Describe "Rolling Update after a follower is removed and quorum is not lost" {
         # we expect everyone to be updated now but prior to
         # https://github.com/habitat-sh/habitat/pull/7167 the leader will
         # indefinitely wait for the dead followers to update
-        @("alpha", "beta", "gamma") | ? { $_ -ne $follower } | % { 
+        @("alpha", "beta", "gamma") | Where-Object { $_ -ne $follower } | ForEach-Object {
             It "updates to $release2 on $_" {
                 Wait-Release -Ident $release2 -Remote $_
             }
@@ -49,7 +49,7 @@ Describe "Rolling Update after a follower is removed and quorum is not lost" {
             # if the leader is not stuck waiting for dead members for the previous update,
             # this update should succeed
             hab pkg promote $release3 $testChannel
-            @("alpha", "beta", "gamma") | ? { $_ -ne $follower } | % { 
+            @("alpha", "beta", "gamma") | Where-Object { $_ -ne $follower } | ForEach-Object {
                 It "updates to $release3 on $_" {
                     Wait-Release -Ident $release3 -Remote $_
                 }

@@ -18,7 +18,7 @@ param (
     # When specified, a cargo clean will be invoked.
     [switch]$Clean,
     # Cargo command to invoke
-    [ValidateSet("Build","Test","Check","Clippy","Fmt")] 
+    [ValidateSet("Build","Test","Check","Clippy","Fmt","Analyze")]
     [string]$command="Build",
     # When specified a build will not be run.
     [switch]$SkipBuild,
@@ -50,9 +50,9 @@ if(!$env:ChocolateyInstall) {
 function Invoke-Configure {
     # Make sure that chocolatey is installed and up to date
     # (required for dependencies)
-    if (-not (get-command choco -ErrorAction SilentlyContinue)) {
+    if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
         Write-Host "Installing Chocolatey"
-        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | out-null
+        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | Out-Null
     }
 
     if (!((choco list habitat --local-only) -match '^1 packages installed\.$')) {
@@ -90,16 +90,20 @@ function Invoke-Build([string]$Path, [switch]$Clean, [string]$Command, [switch]$
             Install-Rustup $toolchain
             Install-RustToolchain $toolchain
             rustup component add --toolchain $Toolchain rustfmt
-            Setup-Environment
+            Initialize-Environment
             Invoke-Expression "cargo +$ToolChain $Command --all"
             break
         }
         "clippy" {
             & $PSScriptRoot\.expeditor\scripts\verify\run_clippy.ps1 -ToolChain $toolchain `
-              -UnexaminedLintsPath $PSScriptRoot\support\unexamined_lints.txt `
-              -AllowedLintsPath $PSScriptRoot\support\allowed_lints.txt `
-              -LintsToFixPath $PSScriptRoot\support\lints_to_fix.txt `
-              -DeniedLintsPath $PSScriptRoot\support\denied_lints.txt `
+                -UnexaminedLintsPath $PSScriptRoot\support\unexamined_lints.txt `
+                -AllowedLintsPath $PSScriptRoot\support\allowed_lints.txt `
+                -LintsToFixPath $PSScriptRoot\support\lints_to_fix.txt `
+                -DeniedLintsPath $PSScriptRoot\support\denied_lints.txt `
+                break
+        }
+        "analyze" {
+            & $PSScriptRoot\.expeditor\scripts\verify\run_psscriptanalyzer.ps1
             break
         }
         "test" {
@@ -113,13 +117,13 @@ function Invoke-Build([string]$Path, [switch]$Clean, [string]$Command, [switch]$
         "build" {
             Install-Rustup $toolchain
             Install-RustToolchain $toolchain
-            Setup-Environment
+            Initialize-Environment
             Invoke-Expression "cargo +$ToolChain $Command $(if ($Release) { '--release' }) $FeatureString"
         }
         "check" {
             Install-Rustup $toolchain
             Install-RustToolchain $toolchain
-            Setup-Environment
+            Initialize-Environment
             Invoke-Expression "cargo +$ToolChain $Command $(if ($Release) { '--release' }) $FeatureString"
         }
     }

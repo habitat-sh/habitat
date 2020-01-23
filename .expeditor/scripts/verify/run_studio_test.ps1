@@ -15,17 +15,16 @@ if(!(Get-PackageProvider -Name nuget -ErrorAction SilentlyContinue -ListAvailabl
 }
 
 if(!(Get-Module Await -ListAvailable)) {
-  Write-Host "Installing Await PS Module..."
-  Install-Module Await -Force | Out-Null
+    Write-Host "Installing Await PS Module..."
+    Install-Module Await -Force | Out-Null
 }
 
 # Studio test uses relative paths to copy necessary files and expects to be run
 # from the studio source directory
 Push-Location "components/studio"
 try {
- & test/test.ps1
-}
-finally { Pop-Location }
+    & test/test.ps1
+} finally { Pop-Location }
 
 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 

@@ -3,14 +3,14 @@
 #Requires -Version 5
 
 param (
-  # The builder channel to install packages from. Defaults to unstable
-  [string]$ReleaseChannel="unstable",
-  # The docker image name. Defaults to "habitat/win-studio-x86_64-windows
-  [string]$imageName = "habitat/win-studio-x86_64-windows",
-  # the tag to use for the base image
-  [string]$BaseTag,
-  # the URL for the Builder instance from which to pull packages
-  [string]$BldrUrl = "https://bldr.habitat.sh"
+    # The builder channel to install packages from. Defaults to unstable
+    [string]$ReleaseChannel="unstable",
+    # The docker image name. Defaults to "habitat/win-studio-x86_64-windows
+    [string]$imageName = "habitat/win-studio-x86_64-windows",
+    # the tag to use for the base image
+    [string]$BaseTag,
+    # the URL for the Builder instance from which to pull packages
+    [string]$BldrUrl = "https://bldr.habitat.sh"
 )
 
 # Makes a best attempt to retrieve the appropriate image tag based on
@@ -21,14 +21,14 @@ function Get-DefaultTagForHost {
         # hyperv isolation can build any version so we will default to 2016
         "ltsc2016"
     } else {
-      $osVersion = [Version]::new((Get-CimInstance -ClassName Win32_OperatingSystem).Version)
-      switch($osVersion.Build) {
-          14393 { "ltsc2016" }
-          17134 { "1803" }
-          17763 { "ltsc2019" }
-          18362 { "1903" }
-          Default { Write-Error "Cannot determine the base image tag for this windows build ${osVersion.Build}" }
-      }
+        $osVersion = [Version]::new((Get-CimInstance -ClassName Win32_OperatingSystem).Version)
+        switch($osVersion.Build) {
+            14393 { "ltsc2016" }
+            17134 { "1803" }
+            17763 { "ltsc2019" }
+            18362 { "1903" }
+            Default { Write-Error "Cannot determine the base image tag for this windows build ${osVersion.Build}" }
+        }
     }
 }
 
@@ -49,7 +49,7 @@ try {
         "core/hab-sup",
         "core/windows-service --ignore-install-hook"
     )
-    $InstallHarts | % {
+    $InstallHarts | ForEach-Object {
         Invoke-Expression "hab pkg install $_ --channel=$ReleaseChannel --url=$BldrUrl"
         if ($LASTEXITCODE -ne 0) {
             Write-Error "hab install failed for $_, aborting"
@@ -57,7 +57,7 @@ try {
     }
     $studioPath = hab pkg path core/hab-studio
     if ($LASTEXITCODE -ne 0) {
-      Write-Error "core/hab-studio must be installed, aborting"
+        Write-Error "core/hab-studio must be installed, aborting"
     }
 
     Write-Host "Purging container hab cache"
@@ -69,7 +69,7 @@ try {
     $version = "$($pathParts[-2])-$($pathParts[-1])"
     if(!$BaseTag) { $BaseTag = Get-DefaultTagForHost }
 
-@"
+    @"
 # escape=``
 FROM mcr.microsoft.com/windows/servercore:$BaseTag
 MAINTAINER The Habitat Maintainers <humans@habitat.sh>
@@ -88,29 +88,29 @@ RUN `$env:HAB_LICENSE='accept-no-persist'; ``
 ENTRYPOINT ["/hab/pkgs/$ident/bin/powershell/pwsh.exe", "-ExecutionPolicy", "bypass", "-NoLogo", "-file", "/hab/pkgs/$ident/bin/hab-studio.ps1"]
 "@ | Out-File "$tmpRoot/Dockerfile" -Encoding ascii
 
-Write-Host "Building Docker image ${imageName}:$version for base tag $BaseTag"
-docker build --no-cache -t ${imageName}:$BaseTag-$version .
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "docker build failed, aborting"
-}
+    Write-Host "Building Docker image ${imageName}:$version for base tag $BaseTag"
+    docker build --no-cache -t ${imageName}:$BaseTag-$version .
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "docker build failed, aborting"
+    }
 
-if($BaseTag -eq "ltsc2016") {
-    Write-Host "Tagging latest image to ${imageName}:$BaseTag-$version"
-    docker tag ${imageName}:$BaseTag-$version ${imageName}:latest
+    if($BaseTag -eq "ltsc2016") {
+        Write-Host "Tagging latest image to ${imageName}:$BaseTag-$version"
+        docker tag ${imageName}:$BaseTag-$version ${imageName}:latest
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to locally tag image"
+        }
+    }
+
+    Write-Host "Tagging latest image to ${imageName}:$BaseTag-$shortVersion"
+    docker tag ${imageName}:$BaseTag-$version ${imageName}:$BaseTag-$shortVersion
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to locally tag image"
     }
-}
 
-Write-Host "Tagging latest image to ${imageName}:$BaseTag-$shortVersion"
-docker tag ${imageName}:$BaseTag-$version ${imageName}:$BaseTag-$shortVersion
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Failed to locally tag image"
-}
-
-# Ensure the results directory exists before writing to it
-New-Item -ItemType directory -Path "$startDir/results" -Force
-@"
+    # Ensure the results directory exists before writing to it
+    New-Item -ItemType directory -Path "$startDir/results" -Force
+    @"
 `$docker_image="$imageName"
 `$docker_image_version="$version"
 `$docker_image_short_version="$shortVersion"
@@ -119,8 +119,7 @@ New-Item -ItemType directory -Path "$startDir/results" -Force
 
     Write-Host "Docker Image: ${imageName}:$BaseTag-$version"
     Write-Host "Build Report: $startDir/results/last_image.ps1"
-}
-finally {
+} finally {
     Pop-Location
     $env:FS_ROOT = $null
     Remove-Item $tmpRoot -Recurse -Force

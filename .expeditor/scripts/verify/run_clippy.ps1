@@ -10,7 +10,7 @@ param (
 $ErrorActionPreference="stop"
 . $PSScriptRoot\shared.ps1
 
-function Convert-ArrayToArgs ($arg, $list) {
+function Convert-ArrayToArgList ($arg, $list) {
     if($list) {
         $list | ForEach-Object { "-$arg $_ ``" } | Out-String
     }
@@ -23,12 +23,12 @@ Install-RustToolchain $toolchain
 Write-Host "Installing clippy"
 rustup component add --toolchain "$toolchain" clippy
 
-Setup-Environment
+Initialize-Environment
 
-$clippyArgs += Convert-ArrayToArgs -arg A -list (Get-Content $UnexaminedLintsPath)
-$clippyArgs += Convert-ArrayToArgs -arg A -list (Get-Content $AllowedLintsPath)
-$clippyArgs += Convert-ArrayToArgs -arg W -list (Get-Content $LintsToFixPath)
-$clippyArgs += Convert-ArrayToArgs -arg D -list (Get-Content $DeniedLintsPath)
+$clippyArgs += Convert-ArrayToArgList -arg A -list (Get-Content $UnexaminedLintsPath)
+$clippyArgs += Convert-ArrayToArgList -arg A -list (Get-Content $AllowedLintsPath)
+$clippyArgs += Convert-ArrayToArgList -arg W -list (Get-Content $LintsToFixPath)
+$clippyArgs += Convert-ArrayToArgList -arg D -list (Get-Content $DeniedLintsPath)
 
 $clippyCommand = "cargo +$toolchain clippy --all-targets --tests -- $clippyArgs"
 Write-Host "--- Running clippy!"

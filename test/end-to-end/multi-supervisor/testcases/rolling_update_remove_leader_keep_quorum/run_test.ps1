@@ -20,7 +20,7 @@ Describe "Rolling Update after leader is removed and quorum is not lost" {
     Load-SupervisorService "habitat-testing/nginx" -Remote "beta.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel
     Load-SupervisorService "habitat-testing/nginx" -Remote "gamma.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel
 
-    @("alpha", "beta", "gamma") | % { 
+    @("alpha", "beta", "gamma") | ForEach-Object {
         It "loads initial release on $_" {
             Wait-Release -Ident $release1 -Remote $_
         }
@@ -31,7 +31,7 @@ Describe "Rolling Update after leader is removed and quorum is not lost" {
         Stop-ComposeSupervisor $leader.Name
         hab pkg promote $release2 $testChannel
 
-        @("alpha", "beta", "gamma") | ? { $_ -ne $leader.Name } | % { 
+        @("alpha", "beta", "gamma") | Where-Object { $_ -ne $leader.Name } | ForEach-Object {
             It "updates to $release2 on $_" {
                 Wait-Release -Ident $release2 -Remote $_
             }

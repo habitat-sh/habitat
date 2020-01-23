@@ -1,13 +1,14 @@
+$TestStartTime = Get-Date
 $sup_log = New-TemporaryFile
-$supervisor = Start-Supervisor -LogFile $sup_log -Timeout 45
+Start-Supervisor -LogFile $sup_log -Timeout 45 | Out-Null
 
-$pkg = "$EndToEndTestingOrigin/simple-hooks"
+$pkg = "$(Get-EndToEndTestingOrigin)/simple-hooks"
 
 Describe "Simple hooks output" {
     $svc = Load-SupervisorService -PackageName $pkg -Timeout 20
-    $pkgLogsPath = Join-Path $env:SystemDrive hab svc $svc logs
+    $pkgLogsPath = Join-Path -Path $env:SystemDrive -ChildPath hab -AdditionalChildPath @("svc", $svc, "logs")
 
-    It "Has correct 'install' hook stdout" { 
+    It "Has correct 'install' hook stdout" {
         $path = Join-Path $pkgLogsPath "install.stdout.log"
         Wait-PathHasContentUpdatedAfter $path $TestStartTime 10
         $path | Should -FileContentMatchExactly "install hook $svc"
@@ -24,7 +25,7 @@ Describe "Simple hooks output" {
         $out | Should -Contain "$svc.default(O): run hook $svc"
     }
 
-    It "Has correct 'post-run' hook stdout" { 
+    It "Has correct 'post-run' hook stdout" {
         $path = Join-Path $pkgLogsPath "post-run.stdout.log"
         Wait-PathHasContentUpdatedAfter $path $TestStartTime 10
         $path | Should -FileContentMatchExactly "post-run hook $svc"

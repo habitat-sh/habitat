@@ -19,6 +19,16 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[lint] :windows: PSScriptAnalyzer!"
+    command:
+      - .expeditor\scripts\verify\run_psscriptanalyzer.ps1
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
+    timeout_in_minutes: 10
+
   - label: "[lint] :linux: :bash: rustfmt"
     command:
       - .expeditor/scripts/verify/rustfmt.sh

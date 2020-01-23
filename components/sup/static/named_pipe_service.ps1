@@ -6,11 +6,11 @@ param (
 
 function Restore-Environment($origEnv) {
     # Ensure all original variables get set to their original values
-    $origEnv.keys | % {
+    $origEnv.keys | ForEach-Object {
         New-Item -ItemType Variable -Path Env: -Name $_ -Value $origEnv[$_] -Force | Out-Null
     }
     # Delete any added variables that were not present originally
-    Get-ChildItem env:\ | ? { !$origEnv.ContainsKey($_.name) } | % {
+    Get-ChildItem env:\ | Where-Object { !$origEnv.ContainsKey($_.name) } | ForEach-Object {
         Remove-Item -Path (Join-Path Env: $_.Name) | Out-Null
     }
 }
@@ -24,13 +24,13 @@ Copy-Item $HookPath "${HookPath}.ps1" -Force
 $parent = Get-Process -Id $ParentPID
 
 try {
-    $np = new-object System.IO.Pipes.NamedPipeServerStream($PipeName, [System.IO.Pipes.PipeDirection]::InOut)
+    $np = New-Object System.IO.Pipes.NamedPipeServerStream($PipeName, [System.IO.Pipes.PipeDirection]::InOut)
     Write-Host "Named pipe created. Waiting for connection..."
     $running = $true
- 
+
     # take a snapshot of all environment variables before we run a hook
     $origEnv = @{}
-    Get-ChildItem env:\ | % {
+    Get-ChildItem env:\ | ForEach-Object {
         $origEnv[$_.name] = $_.Value
     }
 
@@ -69,8 +69,7 @@ try {
 
                 # Restore all environment variables to their previous state
                 Restore-Environment $origEnv
-            }
-            else {
+            } else {
                 Write-Host "Quitting $PipeName pipe."
                 $running = $false
             }

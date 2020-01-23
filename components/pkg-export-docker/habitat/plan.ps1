@@ -30,8 +30,7 @@ function Invoke-Before {
 function Invoke-Prepare {
     if($env:HAB_CARGO_TARGET_DIR) {
         $env:CARGO_TARGET_DIR           = "$env:HAB_CARGO_TARGET_DIR"
-    }
-    else {
+    } else {
         $env:CARGO_TARGET_DIR           = "$HAB_CACHE_SRC_PATH/$pkg_dirname"
     }
 
@@ -61,8 +60,7 @@ function Invoke-Build {
         if($LASTEXITCODE -ne 0) {
             Write-Error "Cargo build failed!"
         }
-    }
-    finally { Pop-Location }
+    } finally { Pop-Location }
 }
 
 function Invoke-Install {

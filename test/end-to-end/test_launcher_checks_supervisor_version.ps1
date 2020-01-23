@@ -25,7 +25,7 @@ function Test-LauncherFailure($version) {
     $env:HAB_SUP_BINARY=$sup_binary
     $sup = New-Object SupervisorRunner
     $supPid = $sup.Run("sup.log")
-    
+
     $retries=0
     $max_retries=3
     while(!$supPid.HasExited) {

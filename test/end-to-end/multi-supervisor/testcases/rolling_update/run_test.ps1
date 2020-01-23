@@ -13,7 +13,7 @@ Describe "Rolling Update" {
     Load-SupervisorService "habitat-testing/nginx" -Remote "alpha.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel
     Load-SupervisorService "habitat-testing/nginx" -Remote "beta.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel
 
-    @("alpha", "beta") | % { 
+    @("alpha", "beta") | ForEach-Object {
         It "loads initial release on $_" {
             Wait-Release -Ident $initialRelease -Remote $_
         }
@@ -22,7 +22,7 @@ Describe "Rolling Update" {
     Context "promote update" {
         hab pkg promote $updatedRelease $testChannel
 
-        @("alpha", "beta") | % { 
+        @("alpha", "beta") | ForEach-Object {
             It "updates release on $_" {
                 Wait-Release -Ident $updatedRelease -Remote $_
             }

@@ -17,7 +17,7 @@ Describe "package using scaffolding" {
         hab pkg install "results/$($scaffolding.Artifact)"
         hab pkg install "results/$($consumer.Artifact)"
         # scaffolding has dummy as runtime and dummy_hab_svc_user as build time deps
-        
+
         "/hab/pkgs/$($consumer.Ident)/DEPS" | Should -FileContentMatch "habitat-testing/dummy"
         "/hab/pkgs/$($consumer.Ident)/BUILD_DEPS" | Should -FileContentMatch "habitat-testing/dummy-hab-user"
     }

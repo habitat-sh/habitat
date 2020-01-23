@@ -18,11 +18,11 @@ New-Item $env:TESTING_FS_ROOT -ItemType Directory -Force
 hab pkg install core/hab-launcher
 
 Describe "Supervisor startup failure" {
-	chmod -R a-w $env:TESTING_FS_ROOT
+    chmod -R a-w $env:TESTING_FS_ROOT
     $sup = New-Object SupervisorRunner
     $supPid = $sup.Run("sup.log")
 
-	It "exits launcher before timeout" {
+    It "exits launcher before timeout" {
         $retries=0
         $max_retries=50
         $exitFailure = $false
@@ -34,5 +34,5 @@ Describe "Supervisor startup failure" {
             }
         }
         $exitFailure | Should -Be $false
-	}
+    }
 }

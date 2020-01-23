@@ -23,11 +23,11 @@ Copy-Item "components/hab/win/*" $tempDir
 $choco_install = Join-Path $tempDir chocolateyinstall.ps1
 
 (Get-Content $choco_install) |
-    % {$_.Replace('$version$', $Version) } |
+    ForEach-Object {$_.Replace('$version$', $Version) } |
     Set-Content $choco_install
 
 (Get-Content $choco_install) |
-    % {$_.Replace('$checksum$', $Checksum) } |
+    ForEach-Object {$_.Replace('$checksum$', $Checksum) } |
     Set-Content $choco_install
 
 Write-Host "--- :bug: DEBUG PRINT PATCHED NUSPEC"
@@ -44,7 +44,7 @@ try {
     if($env:BUILDKITE_BUILD_CREATOR -eq $valid_build_creator) {
         Invoke-Expression $pack_cmd
         if ($LASTEXITCODE -ne 0) { throw "unable to choco pack" }
-        Invoke-Expression $publish_cmd " --key " $env:CHOCO_API_KEY
+        Invoke-Expression "$publish_cmd --key $env:CHOCO_API_KEY"
         if ($LASTEXITCODE -ne 0) { throw "unable to publish Chocolatey package" }
     } else {
         Write-Host "--- NOT PUBLISHING: Build triggered by $env:BUILDKITE_BUILD_CREATOR and not $valid_build_creator"

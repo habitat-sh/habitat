@@ -23,7 +23,7 @@ hab pkg install core/hab-launcher --channel="${env:HAB_BLDR_CHANNEL}"
 Describe "Supervisor boot failure" {
     $sup = New-Object SupervisorRunner
     $supPid = $sup.Run($sup_log)
-    
+
     It "exits launcher before timeout" {
         $retries=0
         $max_retries=5
