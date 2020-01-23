@@ -24,9 +24,7 @@ pub fn start(ui: &mut UI, bldr_url: &str, origin: &str, token: &str) -> Result<(
                      resp.invitations.len());
             match resp.as_tabbed() {
                 Ok(body) => {
-                    if !body.is_empty() {
-                        println!("{}", body);
-                    }
+                    println!("{}", body);
                     Ok(())
                 }
                 Err(e) => {

@@ -268,8 +268,8 @@ pub trait Tabular {
 impl Tabular for UserOriginInvitationsResponse {
     fn as_tabbed(&self) -> Result<String> {
         let tw = tabw().padding(2).minwidth(5);
-        let mut body = Vec::new();
         if !self.0.is_empty() {
+            let mut body = Vec::new();
             body.push(String::from("Invitation Id\tOrigin Name\tAccount Name\tCreation \
                                     Date\tIgnored"));
             for invitation in self.0.iter() {
@@ -280,16 +280,18 @@ impl Tabular for UserOriginInvitationsResponse {
                                   invitation.created_at,
                                   invitation.ignored));
             }
-        };
-        tabify(tw, &body.join("\n"))
+            tabify(tw, &body.join("\n"))
+        } else {
+            Ok(String::from(""))
+        }
     }
 }
 
 impl Tabular for PendingOriginInvitationsResponse {
     fn as_tabbed(&self) -> Result<String> {
         let tw = tabw().padding(2).minwidth(5);
-        let mut body = Vec::new();
         if !self.invitations.is_empty() {
+            let mut body = Vec::new();
             body.push(String::from("Invitation Id\tAccount Name\tCreation Date\tIgnored"));
             for invitation in self.invitations.iter() {
                 body.push(format!("{}\t{}\t{}\t{}",
@@ -298,8 +300,10 @@ impl Tabular for PendingOriginInvitationsResponse {
                                   invitation.created_at,
                                   invitation.ignored));
             }
-        };
-        tabify(tw, &body.join("\n"))
+            tabify(tw, &body.join("\n"))
+        } else {
+            Ok(String::from(""))
+        }
     }
 }
 

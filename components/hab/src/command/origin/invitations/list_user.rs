@@ -20,9 +20,7 @@ pub fn start(ui: &mut UI, bldr_url: &str, token: &str) -> Result<()> {
             println!("Your Origin Invitations Inbox [{}]:", resp.0.len());
             match resp.as_tabbed() {
                 Ok(body) => {
-                    if !body.is_empty() {
-                        println!("{}", body);
-                    }
+                    println!("{}", body);
                     Ok(())
                 }
                 Err(e) => {
