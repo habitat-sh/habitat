@@ -94,15 +94,18 @@ subscriptions:
   # handled automatically by the pipeline.
   - workload: project_promoted:{{agent_id}}:acceptance:*
     actions:
-      - bash:.expeditor/scripts/expeditor_promote.sh
+      - bash:.expeditor/scripts/expeditor_promote.sh:
+          post_commit: true
 
   - workload: project_promoted:{{agent_id}}:staging:*
     actions:
-      - bash:.expeditor/scripts/expeditor_promote.sh
+      - bash:.expeditor/scripts/expeditor_promote.sh:
+          post_commit: true
 
   - workload: project_promoted:{{agent_id}}:current:*
     actions:
-      - bash:.expeditor/scripts/expeditor_promote.sh
+      - bash:.expeditor/scripts/expeditor_promote.sh:
+          post_commit: true
       # This purges the cache on promotion to stable, so our
       # "curlbash" installers get the right packages. This isn't
       # needed on other promotions, because the stable channel of
