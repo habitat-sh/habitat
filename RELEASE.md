@@ -18,6 +18,8 @@ new packages coming in and invalidating your efforts.
 
 ## Validate the Release
 
+
+### Installation / Update
 For each platform
 ([darwin](https://packages.chef.io/files/staging/habitat/latest/hab-x86_64-darwin.zip),
 [linux](https://packages.chef.io/files/staging/habitat/latest/hab-x86_64-linux.tar.gz),
@@ -27,41 +29,155 @@ download the latest release candidate CLI from `packages.chef.io`. You
 **must** have run the `/expeditor` Slack command above _before_
 downloading the package!
 
-Alternatively, you can use our "curlbash" installer, specifying the
-`staging` channel as an argument:
+Alternatively, you can either use our "curlbash" installation script
+to install the above packages, or (if you're running on a system that
+already has and older version of `hab` installed) you can upgrade
+using `hab` itself, since the same CLI is available from
+`packages.chef.io` as well as Builder.
+
+
+#### Linux
+
+Run either of the following:
 
 ``` sh
-curl
-https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh
-| sudo bash -s -- -c staging`
+curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh \
+    | sudo bash -s -- -c staging
 ```
 
-There may be special behavior related to this release that you will want to validate but at the very least, do the following basic tests.
+```sh
+sudo hab pkg install core/hab --binlink --force --channel=staging
+```
 
-You need to set `HAB_INTERNAL_BLDR_CHANNEL` and `CI_OVERRIDE_CHANNEL`
-to the value `staging` (you _may_ also need to set `HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL` and `HAB_STUDIO_SECRET_CI_OVERRIDE_CHANNEL` for non-Docker-based studio).
+#### Linux, Kernel 2
 
-NOTE: If you are running `sudo hab studio enter` with all the required environmental variables set, but it's still telling you that it cannot find the package in stable, try `sudo -E hab studio enter`.
+Run either of the following commands:
+
+``` sh
+curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh \
+    | sudo bash -s -- -c staging -t x86_64-linux-kernel2
+```
+(Note the addition of the target option on the "curlbash" command! Without this you will end up with
+the Kernel 3 version, and things won't work properly!)
+
+```sh
+sudo hab pkg install core/hab --binlink --force --channel=staging
+```
+
+#### macOS
+
+``` sh
+curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh \
+    | sudo bash -s -- -c staging
+```
+
+You cannot (yet) update using `hab` itself due to how the CLI is
+currently installed on macOS.
+
+#### Windows
+
+``` powershell
+iex "& { $(irm https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1) } -Channel staging"
+```
+
+You may also need to update the Habitat Windows Service. To do that:
+
+``` sh
+hab pkg install core/windows-service --channel=staging
+```
+### What to Test
+
+There may be special behavior related to this release that you will
+want to validate but at the very least, you should try running some
+services, exporting some services, and exercising the Studio.
+
+To ensure everything is working properly, you will need to have the
+following environment variables set:
+
+```sh
+export HAB_INTERNAL_BLDR_CHANNEL=staging
+export HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL=staging
+```
+
+`HAB_INTERNAL_BLDR_CHANNEL` is needed *outside* the Studio in order to
+install the correct `core/hab-studio` package to begin with. If you already
+have this installed when executing `hab studio enter`, you can leave
+this variable out.
+
+`HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL` is needed so that the
+inside the studio can install the Launcher and Supervisor
+packages for the internal Supervisor from the appropriate place.
 
 See https://github.com/habitat-sh/habitat/issues/4656 for further context and ideas.
 
-Then you can actually exercise the software as follows:
 
-1. It pulls down the correct studio image
-1. That studio's `hab` is at the correct version (`hab --version`)
-1. A `sup-log` shows a running supervisor (if `sup-log` does not show
-   a supervisor running, run `hab install core/hab-sup --channel=staging` then `hab sup run`)
-1. Verify that the supervisor is the correct version (`hab sup --version`)
+Here are examples of what you might do with a Studio.
 
-When testing the Linux studio, you will also need to `export CI_OVERRIDE_CHANNEL=staging`.
+First, set up the studio properly. We clone `core-plans` to have
+things to build, and we run `hab studio rm` to ensure a clean slate.
+
+``` sh
+mkdir testing
+cd testing
+git clone https://github.com/habitat-sh/core-plans
+export HAB_INTERNAL_BLDR_CHANNEL=staging
+export HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL=staging
+hab studio rm
+hab studio enter
+```
+Then, once inside the Studio, you could try these:
+
+``` sh
+hab --version
+hab svc load core/redis
+sup-log
+^C
+hab pkg export docker --base-pkgs-channel=staging core/redis
+hab pkg export tar --base-pkgs-channel=staging core/redis
+hab pkg export kubernetes --base-pkgs-channel=staging core/redis
+hab pkg export helm --base-pkgs-channel=staging core/redis
+build core-plans/redis
+```
+
+On Linux, testing the Docker studio is identical, except you enter
+using the following command instead:
+
+```sh
+hab studio enter -D
+```
 
 ### Validating x86_64-linux-kernel2
 
 For this PackageTarget it is important that you perform validation on a Linux system running a 2.6 series kernel. CentOS 6 is recommended because it ships with a kernel of the appropriate age,  but any distro with a Kernel between 2.6.32 and 3.0.0 can be used. Included in the `support/validation/x86_64-linux-kernel2` directory in this repository is a Vagrantfile that will create a CentOS-6 VM to perform the validation. You can also run a VM in EC2.
 
-The Vagrantfile is configured to grab the [core-plans](https://github.com/habitat-sh/core-plans) repository (to give you something to build), as well as grab the secret key for your `HAB_ORIGIN` (using the `HAB_ORIGIN` and `HAB_AUTH_TOKEN` variables in your environment). You'll need to manually install the release-candidate `hab` binary and set your various channel overrides, but other than that you should have all you need to test things out.
+The Vagrantfile is configured to grab the
+[core-plans](https://github.com/habitat-sh/core-plans) repository (to
+give you something to build), as well as grab the secret key for your
+`HAB_ORIGIN` (using the `HAB_ORIGIN` and `HAB_AUTH_TOKEN` variables in
+your environment). Additionally, it will automatically install the
+release candidate `hab` binary from the `staging` channel unless you
+explicitly override that with the `INSTALL_CHANNEL` variable (see below).
 
-As an example, immediately after provisioning you can SSH into the machine and run `HAB_ORIGIN=<my_origin> hab pkg build core-plans/redis`.
+
+```sh
+export HAB_ORIGIN=...
+export HAB_AUTH_TOKEN=...
+
+# Only if you *don't* want the staging artifact, for some reason
+export INSTALL_CHANNEL=...
+
+vagrant up
+vagrant ssh
+```
+Once inside the VM, set your override environment variables (as above)
+and experiment. For example:
+
+```sh
+export HAB_INTERNAL_BLDR_CHANNEL=staging
+export HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL=staging
+export HAB_ORIGIN=<my_origin>
+hab pkg build core-plans/redis
+```
 
 ## Promote from Staging to Current
 
@@ -86,7 +202,6 @@ the `stable` channel.
 ```
 This places all the release candidates into the `stable` channel,
 making them "officially" available to the world, and thus "released".
-
 
 # Post-Release Tasks
 The Buildkite release is fairly-well automated at this point, but once it is complete, there are still a few remaining manual tasks to perform. In time, these will be automated as well.
