@@ -1140,35 +1140,6 @@ impl BuilderAPIClient {
         resp.ok_if(&[StatusCode::OK, StatusCode::CREATED])
     }
 
-    fn x_put_package(&self, pa: &mut PackageArchive, token: &str) -> Result<()> {
-        let checksum = pa.checksum()?;
-        let ident = pa.ident()?;
-        let target = pa.target()?;
-
-        debug!("Uploading package {}, target {}", ident, target);
-
-        let file = File::open(&pa.path).map_err(|e| Error::PackageReadError(pa.path.clone(), e))?;
-        let file_size = file.metadata()
-                            .map_err(|e| Error::PackageReadError(pa.path.clone(), e))?
-                            .len();
-        let path = package_path(&ident);
-        let custom = |url: &mut Url| {
-            url.query_pairs_mut()
-               .append_pair("checksum", &checksum)
-               .append_pair("target", &target.to_string())
-               .append_pair("builder", "");
-        };
-        debug!("Reading from {}", &pa.path.display());
-
-        let body = Body::sized(file, file_size);
-        self.0
-            .post_with_custom_url(&path, custom)
-            .bearer_auth(token)
-            .body(body)
-            .send()?
-            .ok_if(&[StatusCode::OK])
-    }
-
     /// Delete a package from Builder
     ///
     /// # Failures
