@@ -34,7 +34,7 @@ use std::{borrow::Cow,
           time::Duration};
 
 use crate::{api_client::{self,
-                         BoxedClient,
+                         BuilderAPIClient,
                          Client,
                          Error::APIError},
             hcore::{self,
@@ -427,7 +427,7 @@ fn run_install_hook<T>(ui: &mut T, package: &PackageInstall) -> Result<()>
 struct InstallTask<'a> {
     install_mode:        &'a InstallMode,
     local_package_usage: &'a LocalPackageUsage,
-    api_client:          BoxedClient,
+    api_client:          BuilderAPIClient,
     channel:             &'a ChannelIdent,
     fs_root_path:        &'a Path,
     /// The path to the local artifact cache (e.g., /hab/cache/artifacts)

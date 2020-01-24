@@ -35,7 +35,7 @@ use std::{collections::{HashMap,
           time::Duration};
 
 use crate::{api_client::{self,
-                         BoxedClient,
+                         BuilderAPIClient,
                          Client,
                          Error::APIError,
                          Package},
@@ -168,7 +168,7 @@ pub fn start<U>(ui: &mut U,
 struct DownloadTask<'a> {
     package_sets:  &'a [PackageSet],
     url:           &'a str,
-    api_client:    BoxedClient,
+    api_client:    BuilderAPIClient,
     token:         Option<&'a str>,
     download_path: &'a Path,
     verify:        bool,

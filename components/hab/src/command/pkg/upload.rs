@@ -15,8 +15,8 @@
 //! complex than just latest version.
 
 use crate::{api_client::{self,
-                         BoxedClient,
                          BuildOnUpload,
+                         BuilderAPIClient,
                          Client},
             common::{command::package::install::{RETRIES,
                                                  RETRY_WAIT},
@@ -136,7 +136,7 @@ pub fn start(ui: &mut UI,
 /// promoted to that channel as well.
 #[allow(clippy::too_many_arguments)]
 fn upload_into_depot(ui: &mut UI,
-                     api_client: &BoxedClient,
+                     api_client: &BuilderAPIClient,
                      token: &str,
                      (ident, target): (&PackageIdent, PackageTarget),
                      additional_release_channel: &Option<ChannelIdent>,
@@ -200,7 +200,7 @@ fn upload_into_depot(ui: &mut UI,
 
 #[allow(clippy::too_many_arguments)]
 fn attempt_upload_dep(ui: &mut UI,
-                      api_client: &BoxedClient,
+                      api_client: &BuilderAPIClient,
                       token: &str,
                       (ident, target): (&PackageIdent, PackageTarget),
                       additional_release_channel: &Option<ChannelIdent>,
@@ -235,7 +235,7 @@ fn attempt_upload_dep(ui: &mut UI,
 
 fn upload_public_key(ui: &mut UI,
                      token: &str,
-                     api_client: &BoxedClient,
+                     api_client: &BuilderAPIClient,
                      archive: &mut PackageArchive,
                      key_path: &Path)
                      -> Result<()> {

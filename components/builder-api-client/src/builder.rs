@@ -10,9 +10,7 @@ use crate::{error::{Error,
             hab_http::ApiClient,
             response::{err_from_response,
                        ResponseExt},
-            BoxedClient,
             BuildOnUpload,
-            BuilderAPIProvider,
             DisplayProgress,
             OriginKeyIdent,
             OriginSecret,
@@ -155,10 +153,10 @@ impl BuilderAPIClient {
                      product: &str,
                      version: &str,
                      fs_root_path: Option<&Path>)
-                     -> Result<BoxedClient>
+                     -> Result<BuilderAPIClient>
         where U: IntoUrl
     {
-        Self::new(endpoint, product, version, fs_root_path).map(|c| Box::new(c) as _)
+        Self::new(endpoint, product, version, fs_root_path)
     }
 
     fn maybe_add_authz(&self, rb: RequestBuilder, token: Option<&str>) -> RequestBuilder {
@@ -172,7 +170,7 @@ impl BuilderAPIClient {
                 rb: RequestBuilder,
                 dst_path: &Path,
                 token: Option<&str>,
-                progress: Option<<BuilderAPIClient as BuilderAPIProvider>::Progress>)
+                progress: Option<Box<dyn DisplayProgress>>)
                 -> Result<PathBuf> {
         debug!("Downloading file to path: {}", dst_path.display());
         let mut resp = self.maybe_add_authz(rb, token).send()?;
@@ -245,17 +243,16 @@ impl BuilderAPIClient {
             }
         }
     }
-}
-
-impl BuilderAPIProvider for BuilderAPIClient {
-    type Progress = Box<dyn DisplayProgress>;
 
     /// Retrieves the status of every group job in an origin
     ///
     /// # Failures
     ///
     /// * Remote Builder is not available
-    fn get_origin_schedule(&self, origin: &str, limit: usize) -> Result<Vec<SchedulerResponse>> {
+    pub fn get_origin_schedule(&self,
+                               origin: &str,
+                               limit: usize)
+                               -> Result<Vec<SchedulerResponse>> {
         debug!("Retrieving status for job groups in the {} origin (limit: {})",
                origin, limit);
 
@@ -277,7 +274,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    fn get_schedule(&self, group_id: i64, include_projects: bool) -> Result<SchedulerResponse> {
+    pub fn get_schedule(&self, group_id: i64, include_projects: bool) -> Result<SchedulerResponse> {
         debug!("Retrieving schedule for job group {} (include_projects: {})",
                group_id, include_projects);
 
@@ -300,11 +297,11 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     /// * Key cannot be found
     /// * Remote Builder is not available
-    fn schedule_job(&self,
-                    (ident, target): (&PackageIdent, PackageTarget),
-                    package_only: bool,
-                    token: &str)
-                    -> Result<String> {
+    pub fn schedule_job(&self,
+                        (ident, target): (&PackageIdent, PackageTarget),
+                        package_only: bool,
+                        token: &str)
+                        -> Result<String> {
         debug!("Scheduling job for {}, {}", ident, target);
 
         let path = format!("depot/pkgs/schedule/{}/{}", ident.origin(), ident.name());
@@ -334,10 +331,10 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote API Server is not available
-    fn fetch_rdeps(&self,
-                   (ident, target): (&PackageIdent, PackageTarget),
-                   token: &str)
-                   -> Result<Vec<String>> {
+    pub fn fetch_rdeps(&self,
+                       (ident, target): (&PackageIdent, PackageTarget),
+                       token: &str)
+                       -> Result<Vec<String>> {
         debug!("Fetching the reverse dependencies for {}", ident);
 
         let url = format!("rdeps/{}", ident);
@@ -363,13 +360,13 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote API Server is not available
-    fn job_group_promote_or_demote(&self,
-                                   group_id: u64,
-                                   idents: &[String],
-                                   channel: &ChannelIdent,
-                                   token: &str,
-                                   promote: bool)
-                                   -> Result<()> {
+    pub fn job_group_promote_or_demote(&self,
+                                       group_id: u64,
+                                       idents: &[String],
+                                       channel: &ChannelIdent,
+                                       token: &str,
+                                       promote: bool)
+                                       -> Result<()> {
         debug!("{} for group: {}, channel: {}",
                group_id,
                channel,
@@ -396,7 +393,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote API Server is not available
-    fn job_group_cancel(&self, group_id: u64, token: &str) -> Result<()> {
+    pub fn job_group_cancel(&self, group_id: u64, token: &str) -> Result<()> {
         debug!("Canceling job group: {}", group_id);
 
         let url = format!("jobs/group/{}/cancel", group_id);
@@ -415,12 +412,12 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// * Key cannot be found
     /// * Remote Builder is not available
     /// * File cannot be created and written to
-    fn fetch_origin_public_encryption_key(&self,
-                                          origin: &str,
-                                          token: &str,
-                                          dst_path: &Path,
-                                          progress: Option<Self::Progress>)
-                                          -> Result<PathBuf> {
+    pub fn fetch_origin_public_encryption_key(&self,
+                                              origin: &str,
+                                              token: &str,
+                                              dst_path: &Path,
+                                              progress: Option<Box<dyn DisplayProgress>>)
+                                              -> Result<PathBuf> {
         self.download(self.0
                           .get(&format!("depot/origins/{}/encryption_key", origin)),
                       dst_path.as_ref(),
@@ -434,7 +431,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     ///  * Remote builder is not available
     ///  * Unable to authenticate
-    fn create_origin(&self, origin: &str, token: &str) -> Result<()> {
+    pub fn create_origin(&self, origin: &str, token: &str) -> Result<()> {
         let body = json!({
             "name": origin,
         });
@@ -452,12 +449,12 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    fn create_origin_secret(&self,
-                            origin: &str,
-                            token: &str,
-                            key_name: &str,
-                            secret: &WrappedSealedBox)
-                            -> Result<()> {
+    pub fn create_origin_secret(&self,
+                                origin: &str,
+                                token: &str,
+                                key_name: &str,
+                                secret: &WrappedSealedBox)
+                                -> Result<()> {
         debug!("Creating origin secret: {}, {}", origin, key_name);
 
         let path = format!("depot/origins/{}/secret", origin);
@@ -479,7 +476,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    fn delete_origin_secret(&self, origin: &str, token: &str, key_name: &str) -> Result<()> {
+    pub fn delete_origin_secret(&self, origin: &str, token: &str, key_name: &str) -> Result<()> {
         debug!("Deleting origin secret: {}, {}", origin, key_name);
 
         let path = format!("depot/origins/{}/secret/{}", origin, key_name);
@@ -500,7 +497,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     ///  * Origin is not found
     ///  * Remote Builder is not available
-    fn check_origin(&self, origin: &str, token: &str) -> Result<()> {
+    pub fn check_origin(&self, origin: &str, token: &str) -> Result<()> {
         debug!("Checking for existence of origin: {}", origin);
 
         let path = format!("depot/origins/{}", origin);
@@ -519,7 +516,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///  * Remote builder is not available
     ///  * Origin is populated with > 0 packages
     ///  * Submitted Origin is not found
-    fn delete_origin(&self, origin: &str, token: &str) -> Result<()> {
+    pub fn delete_origin(&self, origin: &str, token: &str) -> Result<()> {
         debug!("Deleting origin: {}", origin);
 
         let path = format!("depot/origins/{}", origin);
@@ -540,7 +537,11 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///  * Account is not a member of the origin
     ///  * Account does not exist
     ///  * Origin does not exist
-    fn transfer_origin_ownership(&self, origin: &str, token: &str, account: &str) -> Result<()> {
+    pub fn transfer_origin_ownership(&self,
+                                     origin: &str,
+                                     token: &str,
+                                     account: &str)
+                                     -> Result<()> {
         debug!("Transferring ownership of {} origin to {}", origin, account);
 
         let path = format!("depot/origins/{}/transfer/{}", origin, account);
@@ -561,7 +562,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///  * Account is not a member of the origin
     ///  * Account does not exist
     ///  * Origin does not exist
-    fn depart_origin(&self, origin: &str, token: &str) -> Result<()> {
+    pub fn depart_origin(&self, origin: &str, token: &str) -> Result<()> {
         debug!("Departing membership of origin {}", origin);
 
         let path = format!("depot/origins/{}/depart", origin);
@@ -588,11 +589,11 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<()>
-    fn accept_origin_invitation(&self,
-                                origin: &str,
-                                token: &str,
-                                invitation_id: u64)
-                                -> Result<()> {
+    pub fn accept_origin_invitation(&self,
+                                    origin: &str,
+                                    token: &str,
+                                    invitation_id: u64)
+                                    -> Result<()> {
         debug!("Accepting invitation id {} in origin {}",
                invitation_id, origin);
 
@@ -622,11 +623,11 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<()>
-    fn ignore_origin_invitation(&self,
-                                origin: &str,
-                                token: &str,
-                                invitation_id: u64)
-                                -> Result<()> {
+    pub fn ignore_origin_invitation(&self,
+                                    origin: &str,
+                                    token: &str,
+                                    invitation_id: u64)
+                                    -> Result<()> {
         debug!("Marking invitation {} in origin {} ignored",
                invitation_id, origin);
 
@@ -656,7 +657,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<UserOriginInvitationsResponse>
-    fn list_user_invitations(&self, token: &str) -> Result<UserOriginInvitationsResponse> {
+    pub fn list_user_invitations(&self, token: &str) -> Result<UserOriginInvitationsResponse> {
         let path = "user/invitations";
 
         let mut resp = self.0.get(&path).bearer_auth(token).send()?;
@@ -682,10 +683,10 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<PendingOriginInvitationsResponse>
-    fn list_pending_origin_invitations(&self,
-                                       origin: &str,
-                                       token: &str)
-                                       -> Result<PendingOriginInvitationsResponse> {
+    pub fn list_pending_origin_invitations(&self,
+                                           origin: &str,
+                                           token: &str)
+                                           -> Result<PendingOriginInvitationsResponse> {
         debug!("Retrieving pending invitations in origin {}", origin);
         let path = format!("depot/origins/{}/invitations", origin);
 
@@ -712,11 +713,11 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<()>
-    fn rescind_origin_invitation(&self,
-                                 origin: &str,
-                                 token: &str,
-                                 invitation_id: u64)
-                                 -> Result<()> {
+    pub fn rescind_origin_invitation(&self,
+                                     origin: &str,
+                                     token: &str,
+                                     invitation_id: u64)
+                                     -> Result<()> {
         debug!("Rescinding invitation {} in origin {}",
                invitation_id, origin);
 
@@ -747,11 +748,11 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<()>
-    fn send_origin_invitation(&self,
-                              origin: &str,
-                              token: &str,
-                              invitee_account: &str)
-                              -> Result<()> {
+    pub fn send_origin_invitation(&self,
+                                  origin: &str,
+                                  token: &str,
+                                  invitee_account: &str)
+                                  -> Result<()> {
         debug!("Sending an invitation to {} for origin {}",
                invitee_account, origin);
 
@@ -770,7 +771,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    fn list_origin_secrets(&self, origin: &str, token: &str) -> Result<Vec<String>> {
+    pub fn list_origin_secrets(&self, origin: &str, token: &str) -> Result<Vec<String>> {
         debug!("Listing origin secret: {}", origin);
 
         let path = format!("depot/origins/{}/secret", origin);
@@ -794,13 +795,13 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// * Key cannot be found
     /// * Remote Builder is not available
     /// * File cannot be created and written to
-    fn fetch_origin_key(&self,
-                        origin: &str,
-                        revision: &str,
-                        _token: Option<&str>,
-                        dst_path: &Path,
-                        progress: Option<Self::Progress>)
-                        -> Result<PathBuf> {
+    pub fn fetch_origin_key(&self,
+                            origin: &str,
+                            revision: &str,
+                            _token: Option<&str>,
+                            dst_path: &Path,
+                            progress: Option<Box<dyn DisplayProgress>>)
+                            -> Result<PathBuf> {
         self.download(self.0
                           .get(&format!("depot/origins/{}/keys/{}", origin, revision)),
                       dst_path.as_ref(),
@@ -815,12 +816,12 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// * Key cannot be found
     /// * Remote Builder is not available
     /// * File cannot be created and written to
-    fn fetch_secret_origin_key(&self,
-                               origin: &str,
-                               token: &str,
-                               dst_path: &Path,
-                               progress: Option<Self::Progress>)
-                               -> Result<PathBuf> {
+    pub fn fetch_secret_origin_key(&self,
+                                   origin: &str,
+                                   token: &str,
+                                   dst_path: &Path,
+                                   progress: Option<Box<dyn DisplayProgress>>)
+                                   -> Result<PathBuf> {
         self.download(self.0
                           .get(&format!("depot/origins/{}/secret_keys/latest", origin)),
                       dst_path.as_ref(),
@@ -828,7 +829,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
                       progress)
     }
 
-    fn show_origin_keys(&self, origin: &str) -> Result<Vec<OriginKeyIdent>> {
+    pub fn show_origin_keys(&self, origin: &str) -> Result<Vec<OriginKeyIdent>> {
         debug!("Showing origin keys: {}", origin);
 
         let mut resp = self.0.get(&origin_keys_path(origin)).send()?;
@@ -848,10 +849,10 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     /// * Remote Builder is not available
     /// * Package does not exist
-    fn package_channels(&self,
-                        (ident, target): (&PackageIdent, PackageTarget),
-                        token: Option<&str>)
-                        -> Result<Vec<String>> {
+    pub fn package_channels(&self,
+                            (ident, target): (&PackageIdent, PackageTarget),
+                            token: Option<&str>)
+                            -> Result<Vec<String>> {
         debug!("Retrieving channels for {}, target {}", ident, target);
 
         if !ident.fully_qualified() {
@@ -888,13 +889,13 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    fn put_origin_key(&self,
-                      origin: &str,
-                      revision: &str,
-                      src_path: &Path,
-                      token: &str,
-                      progress: Option<Self::Progress>)
-                      -> Result<()> {
+    pub fn put_origin_key(&self,
+                          origin: &str,
+                          revision: &str,
+                          src_path: &Path,
+                          token: &str,
+                          progress: Option<Box<dyn DisplayProgress>>)
+                          -> Result<()> {
         debug!("Uploading origin key: {}, {}", origin, revision);
 
         let path = format!("depot/origins/{}/keys/{}", &origin, &revision);
@@ -925,13 +926,13 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    fn put_origin_secret_key(&self,
-                             origin: &str,
-                             revision: &str,
-                             src_path: &Path,
-                             token: &str,
-                             progress: Option<Self::Progress>)
-                             -> Result<()> {
+    pub fn put_origin_secret_key(&self,
+                                 origin: &str,
+                                 revision: &str,
+                                 src_path: &Path,
+                                 token: &str,
+                                 progress: Option<Box<dyn DisplayProgress>>)
+                                 -> Result<()> {
         debug!("Uploading origin secret key: {}, {}", origin, revision);
 
         let path = format!("depot/origins/{}/secret_keys/{}", &origin, &revision);
@@ -965,12 +966,12 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// * Package cannot be found
     /// * Remote Builder is not available
     /// * File cannot be created and written to
-    fn fetch_package(&self,
-                     (ident, target): (&PackageIdent, PackageTarget),
-                     token: Option<&str>,
-                     dst_path: &Path,
-                     progress: Option<Self::Progress>)
-                     -> Result<PackageArchive> {
+    pub fn fetch_package(&self,
+                         (ident, target): (&PackageIdent, PackageTarget),
+                         token: Option<&str>,
+                         dst_path: &Path,
+                         progress: Option<Box<dyn DisplayProgress>>)
+                         -> Result<PackageArchive> {
         // Ensure ident is fully qualified.
         //
         // TODO fn: this will be removed when we can describe a fully qualified ident by type as a
@@ -995,10 +996,10 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     /// * Package cannot be found
     /// * Remote Builder is not available
-    fn check_package(&self,
-                     (package, target): (&PackageIdent, PackageTarget),
-                     token: Option<&str>)
-                     -> Result<()> {
+    pub fn check_package(&self,
+                         (package, target): (&PackageIdent, PackageTarget),
+                         token: Option<&str>)
+                         -> Result<()> {
         debug!("Checking package existence for {}, target {}",
                package, target);
 
@@ -1025,11 +1026,11 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     /// * Package cannot be found
     /// * Remote Builder is not available
-    fn show_package(&self,
-                    (package, target): (&PackageIdent, PackageTarget),
-                    channel: &ChannelIdent,
-                    token: Option<&str>)
-                    -> Result<PackageIdent> {
+    pub fn show_package(&self,
+                        (package, target): (&PackageIdent, PackageTarget),
+                        channel: &ChannelIdent,
+                        token: Option<&str>)
+                        -> Result<PackageIdent> {
         debug!("Retrieving package ident for {}, target {}",
                package, target);
 
@@ -1046,11 +1047,11 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     /// * Package cannot be found
     /// * Remote Builder is not available
-    fn show_package_metadata(&self,
-                             (package, target): (&PackageIdent, PackageTarget),
-                             channel: &ChannelIdent,
-                             token: Option<&str>)
-                             -> Result<Package> {
+    pub fn show_package_metadata(&self,
+                                 (package, target): (&PackageIdent, PackageTarget),
+                                 channel: &ChannelIdent,
+                                 token: Option<&str>)
+                                 -> Result<Package> {
         debug!("Retrieving package metadata for {}, target {}",
                package, target);
 
@@ -1087,13 +1088,13 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    fn put_package(&self,
-                   pa: &mut PackageArchive,
-                   token: &str,
-                   force_upload: bool,
-                   auto_build: BuildOnUpload,
-                   progress: Option<Self::Progress>)
-                   -> Result<()> {
+    pub fn put_package(&self,
+                       pa: &mut PackageArchive,
+                       token: &str,
+                       force_upload: bool,
+                       auto_build: BuildOnUpload,
+                       progress: Option<Box<dyn DisplayProgress>>)
+                       -> Result<()> {
         let checksum = pa.checksum()?;
         let ident = pa.ident()?;
         let target = pa.target()?;
@@ -1176,10 +1177,10 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// * If package does not exist in Builder
     /// * If the package does not qualify for deletion
     /// * Authorization token was not set on client
-    fn delete_package(&self,
-                      (ident, target): (&PackageIdent, PackageTarget),
-                      token: &str)
-                      -> Result<()> {
+    pub fn delete_package(&self,
+                          (ident, target): (&PackageIdent, PackageTarget),
+                          token: &str)
+                          -> Result<()> {
         debug!("Deleting package {}, target {}", ident, target);
         let path = package_path(ident);
 
@@ -1205,11 +1206,11 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     /// * If package does not exist in Builder
     /// * Authorization token was not set on client
-    fn promote_package(&self,
-                       (ident, target): (&PackageIdent, PackageTarget),
-                       channel: &ChannelIdent,
-                       token: &str)
-                       -> Result<()> {
+    pub fn promote_package(&self,
+                           (ident, target): (&PackageIdent, PackageTarget),
+                           channel: &ChannelIdent,
+                           token: &str)
+                           -> Result<()> {
         debug!("Promoting package {}, target {} to channel {}",
                ident, target, channel);
 
@@ -1240,11 +1241,11 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     /// * If package does not exist in Builder
     /// * Authorization token was not set on client
-    fn demote_package(&self,
-                      (ident, target): (&PackageIdent, PackageTarget),
-                      channel: &ChannelIdent,
-                      token: &str)
-                      -> Result<()> {
+    pub fn demote_package(&self,
+                          (ident, target): (&PackageIdent, PackageTarget),
+                          channel: &ChannelIdent,
+                          token: &str)
+                          -> Result<()> {
         debug!("Demoting package {}, target {} from channel {}",
                ident, target, channel);
 
@@ -1270,7 +1271,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    fn create_channel(&self, origin: &str, channel: &ChannelIdent, token: &str) -> Result<()> {
+    pub fn create_channel(&self, origin: &str, channel: &ChannelIdent, token: &str) -> Result<()> {
         debug!("Creating channel {} for origin {}", channel, origin);
 
         let path = format!("depot/channels/{}/{}", origin, channel);
@@ -1286,7 +1287,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    fn delete_channel(&self, origin: &str, channel: &ChannelIdent, token: &str) -> Result<()> {
+    pub fn delete_channel(&self, origin: &str, channel: &ChannelIdent, token: &str) -> Result<()> {
         debug!("Deleting channel {} for origin {}", channel, origin);
 
         let path = format!("depot/channels/{}/{}", origin, channel);
@@ -1302,12 +1303,12 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    fn promote_channel_packages(&self,
-                                origin: &str,
-                                token: &str,
-                                source_channel: &ChannelIdent,
-                                target_channel: &ChannelIdent)
-                                -> Result<()> {
+    pub fn promote_channel_packages(&self,
+                                    origin: &str,
+                                    token: &str,
+                                    source_channel: &ChannelIdent,
+                                    target_channel: &ChannelIdent)
+                                    -> Result<()> {
         debug!("Promoting packages in channel {:?} to channel {:?}",
                source_channel, target_channel);
 
@@ -1328,12 +1329,12 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    fn demote_channel_packages(&self,
-                               origin: &str,
-                               token: &str,
-                               source_channel: &ChannelIdent,
-                               target_channel: &ChannelIdent)
-                               -> Result<()> {
+    pub fn demote_channel_packages(&self,
+                                   origin: &str,
+                                   token: &str,
+                                   source_channel: &ChannelIdent,
+                                   target_channel: &ChannelIdent)
+                                   -> Result<()> {
         debug!("Demoting packages selected from channel {:?} in {:?}",
                source_channel, target_channel);
 
@@ -1354,11 +1355,11 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote depot unavailable
-    fn search_package(&self,
-                      search_term: &str,
-                      limit: usize,
-                      token: Option<&str>)
-                      -> Result<(Vec<PackageIdent>, usize)> {
+    pub fn search_package(&self,
+                          search_term: &str,
+                          limit: usize,
+                          token: Option<&str>)
+                          -> Result<(Vec<PackageIdent>, usize)> {
         self.search_package_impl(search_term, limit, token, Self::seach_package_with_range)
     }
 
@@ -1367,7 +1368,10 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Failures
     /// * Remote Builder is not available
     /// * Authorization token was not set on client
-    fn list_channels(&self, origin: &str, include_sandbox_channels: bool) -> Result<Vec<String>> {
+    pub fn list_channels(&self,
+                         origin: &str,
+                         include_sandbox_channels: bool)
+                         -> Result<Vec<String>> {
         debug!("Listing channels for origin {}", origin);
 
         let path = format!("depot/channels/{}", origin);

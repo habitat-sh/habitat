@@ -21,24 +21,17 @@ use regex::Regex;
 
 use std::{fmt,
           io::Write,
-          path::{Path,
-                 PathBuf}};
+          path::Path};
 
 use chrono::{DateTime,
              Utc};
 use reqwest::IntoUrl;
-
 use tabwriter::TabWriter;
 
-pub use crate::error::{Error,
-                       Result};
-
-use crate::{builder::BuilderAPIClient,
-            hab_core::{crypto::keys::box_key_pair::WrappedSealedBox,
-                       package::{PackageArchive,
-                                 PackageIdent,
-                                 PackageTarget},
-                       ChannelIdent}};
+use crate::hab_core::package::PackageIdent;
+pub use crate::{builder::BuilderAPIClient,
+                error::{Error,
+                        Result}};
 
 pub trait DisplayProgress: Write + Send {
     fn size(&mut self, size: u64);
@@ -353,205 +346,7 @@ pub enum BuildOnUpload {
     Disable,
 }
 
-pub trait BuilderAPIProvider: Sync + Send {
-    type Progress;
-
-    fn get_origin_schedule(&self, origin: &str, limit: usize) -> Result<Vec<SchedulerResponse>>;
-
-    fn get_schedule(&self, group_id: i64, include_projects: bool) -> Result<SchedulerResponse>;
-
-    fn schedule_job(&self,
-                    ident_and_target: (&PackageIdent, PackageTarget),
-                    package_only: bool,
-                    token: &str)
-                    -> Result<String>;
-
-    fn fetch_rdeps(&self,
-                   ident_and_target: (&PackageIdent, PackageTarget),
-                   token: &str)
-                   -> Result<Vec<String>>;
-
-    fn job_group_promote_or_demote(&self,
-                                   group_id: u64,
-                                   idents: &[String],
-                                   channel: &ChannelIdent,
-                                   token: &str,
-                                   promote: bool)
-                                   -> Result<()>;
-
-    fn job_group_cancel(&self, group_id: u64, token: &str) -> Result<()>;
-
-    fn fetch_origin_public_encryption_key(&self,
-                                          origin: &str,
-                                          token: &str,
-                                          dst_path: &Path,
-                                          progress: Option<Self::Progress>)
-                                          -> Result<PathBuf>;
-
-    fn create_origin(&self, origin: &str, token: &str) -> Result<()>;
-
-    fn create_origin_secret(&self,
-                            origin: &str,
-                            token: &str,
-                            key: &str,
-                            secret: &WrappedSealedBox)
-                            -> Result<()>;
-
-    fn delete_origin_secret(&self, origin: &str, token: &str, key: &str) -> Result<()>;
-
-    fn check_origin(&self, origin: &str, token: &str) -> Result<()>;
-
-    fn delete_origin(&self, origin: &str, token: &str) -> Result<()>;
-
-    fn transfer_origin_ownership(&self, origin: &str, token: &str, account: &str) -> Result<()>;
-
-    fn depart_origin(&self, origin: &str, token: &str) -> Result<()>;
-
-    fn accept_origin_invitation(&self, origin: &str, token: &str, invitation_id: u64)
-                                -> Result<()>;
-
-    fn ignore_origin_invitation(&self, origin: &str, token: &str, invitation_id: u64)
-                                -> Result<()>;
-
-    fn list_user_invitations(&self, token: &str) -> Result<UserOriginInvitationsResponse>;
-
-    fn list_pending_origin_invitations(&self,
-                                       origin: &str,
-                                       token: &str)
-                                       -> Result<PendingOriginInvitationsResponse>;
-
-    fn rescind_origin_invitation(&self,
-                                 origin: &str,
-                                 token: &str,
-                                 invitation_id: u64)
-                                 -> Result<()>;
-
-    fn send_origin_invitation(&self,
-                              origin: &str,
-                              token: &str,
-                              invitee_account: &str)
-                              -> Result<()>;
-
-    fn list_origin_secrets(&self, origin: &str, token: &str) -> Result<Vec<String>>;
-
-    fn put_package(&self,
-                   pa: &mut PackageArchive,
-                   token: &str,
-                   force_upload: bool,
-                   auto_build: BuildOnUpload,
-                   progress: Option<Self::Progress>)
-                   -> Result<()>;
-
-    fn x_put_package(&self, pa: &mut PackageArchive, token: &str) -> Result<()>;
-
-    fn fetch_package(&self,
-                     ident_and_target: (&PackageIdent, PackageTarget),
-                     token: Option<&str>,
-                     dst_path: &Path,
-                     progress: Option<Self::Progress>)
-                     -> Result<PackageArchive>;
-
-    fn check_package(&self,
-                     ident_and_target: (&PackageIdent, PackageTarget),
-                     token: Option<&str>)
-                     -> Result<()>;
-
-    fn show_package(&self,
-                    ident_and_target: (&PackageIdent, PackageTarget),
-                    channel: &ChannelIdent,
-                    token: Option<&str>)
-                    -> Result<PackageIdent>;
-
-    fn show_package_metadata(&self,
-                             ident_and_target: (&PackageIdent, PackageTarget),
-                             channel: &ChannelIdent,
-                             token: Option<&str>)
-                             -> Result<Package>;
-
-    fn delete_package(&self,
-                      ident_and_target: (&PackageIdent, PackageTarget),
-                      token: &str)
-                      -> Result<()>;
-
-    fn search_package(&self,
-                      search_term: &str,
-                      limit: usize,
-                      token: Option<&str>)
-                      -> Result<(Vec<PackageIdent>, usize)>;
-
-    fn create_channel(&self, origin: &str, channel: &ChannelIdent, token: &str) -> Result<()>;
-
-    fn delete_channel(&self, origin: &str, channel: &ChannelIdent, token: &str) -> Result<()>;
-
-    fn list_channels(&self, origin: &str, include_sandbox_channels: bool) -> Result<Vec<String>>;
-
-    fn promote_channel_packages(&self,
-                                origin: &str,
-                                token: &str,
-                                source_channel: &ChannelIdent,
-                                target_channel: &ChannelIdent)
-                                -> Result<()>;
-
-    fn demote_channel_packages(&self,
-                               origin: &str,
-                               token: &str,
-                               source_channel: &ChannelIdent,
-                               target_channel: &ChannelIdent)
-                               -> Result<()>;
-
-    fn promote_package(&self,
-                       ident_and_target: (&PackageIdent, PackageTarget),
-                       channel: &ChannelIdent,
-                       token: &str)
-                       -> Result<()>;
-
-    fn demote_package(&self,
-                      ident_and_target: (&PackageIdent, PackageTarget),
-                      channel: &ChannelIdent,
-                      token: &str)
-                      -> Result<()>;
-
-    fn put_origin_key(&self,
-                      origin: &str,
-                      revision: &str,
-                      src_path: &Path,
-                      token: &str,
-                      progress: Option<Self::Progress>)
-                      -> Result<()>;
-
-    fn fetch_origin_key(&self,
-                        origin: &str,
-                        revision: &str,
-                        token: Option<&str>,
-                        dst_path: &Path,
-                        progress: Option<Self::Progress>)
-                        -> Result<PathBuf>;
-
-    fn put_origin_secret_key(&self,
-                             origin: &str,
-                             revision: &str,
-                             src_path: &Path,
-                             token: &str,
-                             progress: Option<Self::Progress>)
-                             -> Result<()>;
-
-    fn fetch_secret_origin_key(&self,
-                               origin: &str,
-                               token: &str,
-                               dst_path: &Path,
-                               progress: Option<Self::Progress>)
-                               -> Result<PathBuf>;
-
-    fn show_origin_keys(&self, origin: &str) -> Result<Vec<OriginKeyIdent>>;
-
-    fn package_channels(&self,
-                        ident_and_target: (&PackageIdent, PackageTarget),
-                        token: Option<&str>)
-                        -> Result<Vec<String>>;
-}
-
 pub struct Client;
-pub type BoxedClient = Box<dyn BuilderAPIProvider<Progress = Box<dyn DisplayProgress>>>;
 
 impl Client {
     #[allow(clippy::new_ret_no_self)]
@@ -559,14 +354,14 @@ impl Client {
                   product: &str,
                   version: &str,
                   fs_root_path: Option<&Path>)
-                  -> Result<BoxedClient>
+                  -> Result<BuilderAPIClient>
         where U: IntoUrl
     {
         let endpoint = endpoint.into_url().map_err(Error::ReqwestError)?;
 
         let client = BuilderAPIClient::new(endpoint, product, version, fs_root_path)?;
 
-        Ok(Box::new(client))
+        Ok(client)
     }
 }
 

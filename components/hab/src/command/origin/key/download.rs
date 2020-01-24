@@ -1,4 +1,4 @@
-use crate::{api_client::{BoxedClient,
+use crate::{api_client::{BuilderAPIClient,
                          Client},
             common::{self,
                      command::package::install::{RETRIES,
@@ -37,7 +37,7 @@ pub fn start(ui: &mut UI,
 }
 
 fn handle_public(ui: &mut UI,
-                 api_client: &BoxedClient,
+                 api_client: &BuilderAPIClient,
                  origin: &str,
                  revision: Option<&str>,
                  token: Option<&str>,
@@ -84,7 +84,7 @@ fn handle_public(ui: &mut UI,
 }
 
 fn handle_secret(ui: &mut UI,
-                 api_client: &BoxedClient,
+                 api_client: &BuilderAPIClient,
                  origin: &str,
                  token: Option<&str>,
                  cache: &Path)
@@ -101,7 +101,7 @@ fn handle_secret(ui: &mut UI,
 }
 
 fn handle_encryption(ui: &mut UI,
-                     api_client: &BoxedClient,
+                     api_client: &BuilderAPIClient,
                      origin: &str,
                      token: Option<&str>,
                      cache: &Path)
@@ -118,7 +118,7 @@ fn handle_encryption(ui: &mut UI,
 }
 
 pub fn download_public_encryption_key(ui: &mut UI,
-                                      api_client: &BoxedClient,
+                                      api_client: &BuilderAPIClient,
                                       name: &str,
                                       token: &str,
                                       cache: &Path)
@@ -142,7 +142,7 @@ pub fn download_public_encryption_key(ui: &mut UI,
 }
 
 fn download_secret_key(ui: &mut UI,
-                       api_client: &BoxedClient,
+                       api_client: &BuilderAPIClient,
                        name: &str,
                        token: &str,
                        cache: &Path)
@@ -164,7 +164,7 @@ fn download_secret_key(ui: &mut UI,
 }
 
 fn download_key(ui: &mut UI,
-                api_client: &BoxedClient,
+                api_client: &BuilderAPIClient,
                 nwr: &str,
                 name: &str,
                 rev: &str,
