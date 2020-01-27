@@ -24,8 +24,11 @@ use std::{fmt,
           path::{Path,
                  PathBuf}};
 
-use chrono::DateTime;
+use chrono::{DateTime,
+             Utc};
 use reqwest::IntoUrl;
+
+use tabwriter::TabWriter;
 
 pub use crate::error::{Error,
                        Result};
@@ -198,6 +201,113 @@ pub struct OriginChannelIdent {
 }
 
 #[derive(Clone, Deserialize)]
+pub struct OriginInvitation {
+    #[serde(with = "json_u64")]
+    pub id: u64,
+    #[serde(with = "json_u64")]
+    pub account_id: u64,
+    pub account_name: String,
+    #[serde(with = "json_date_format")]
+    pub created_at: DateTime<Utc>,
+    pub ignored: bool,
+    pub origin: String,
+    #[serde(with = "json_u64")]
+    pub owner_id: u64,
+    pub updated_at: String,
+}
+
+#[derive(Clone, Deserialize)]
+pub struct UserOriginInvitationsResponse(pub Vec<OriginInvitation>);
+
+#[derive(Clone, Deserialize)]
+pub struct PendingOriginInvitationsResponse {
+    pub origin:      String,
+    pub invitations: Vec<OriginInvitation>,
+}
+
+// Custom conversion logic to allow `serde` to successfully
+// deserialize `DateTime<Utc>` datatypes.
+//
+// To use it, add `#[serde(with = "json_date_format")]` to any
+// `DateTime<Utc>`-typed struct fields.
+mod json_date_format {
+    use chrono::{DateTime,
+                 TimeZone,
+                 Utc};
+    use serde::{self,
+                Deserialize,
+                Deserializer};
+    const DATE_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%.f";
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
+        where D: Deserializer<'de>
+    {
+        let s = String::deserialize(deserializer)?;
+        Utc.datetime_from_str(&s, DATE_FORMAT)
+           .map_err(serde::de::Error::custom)
+    }
+}
+
+// Returns a library object that implements elastic tabstops
+fn tabw() -> TabWriter<Vec<u8>> { TabWriter::new(Vec::new()) }
+
+// Given a TabWriter object and a str slice, return a Result
+// where the Ok() variant comprises a String with nicely tab aligned columns
+fn tabify(mut tw: TabWriter<Vec<u8>>, s: &str) -> Result<String> {
+    write!(&mut tw, "{}", s)?;
+    tw.flush()?;
+    String::from_utf8(tw.into_inner().expect("TABWRITER into_inner")).map_err(|e| {
+        habitat_core::Error::StringFromUtf8Error(e).into()
+    })
+}
+
+pub trait Tabular {
+    fn as_tabbed(&self) -> Result<String>;
+}
+
+impl Tabular for UserOriginInvitationsResponse {
+    fn as_tabbed(&self) -> Result<String> {
+        let tw = tabw().padding(2).minwidth(5);
+        if !self.0.is_empty() {
+            let mut body = Vec::new();
+            body.push(String::from("Invitation Id\tOrigin Name\tAccount Name\tCreation \
+                                    Date\tIgnored"));
+            for invitation in self.0.iter() {
+                body.push(format!("{}\t{}\t{}\t{}\t{}",
+                                  invitation.id,
+                                  invitation.origin,
+                                  invitation.account_name,
+                                  invitation.created_at,
+                                  invitation.ignored));
+            }
+            tabify(tw, &body.join("\n"))
+        } else {
+            Ok(String::from(""))
+        }
+    }
+}
+
+impl Tabular for PendingOriginInvitationsResponse {
+    fn as_tabbed(&self) -> Result<String> {
+        let tw = tabw().padding(2).minwidth(5);
+        if !self.invitations.is_empty() {
+            let mut body = Vec::new();
+            body.push(String::from("Invitation Id\tAccount Name\tCreation Date\tIgnored"));
+            for invitation in self.invitations.iter() {
+                body.push(format!("{}\t{}\t{}\t{}",
+                                  invitation.id,
+                                  invitation.account_name,
+                                  invitation.created_at,
+                                  invitation.ignored));
+            }
+            tabify(tw, &body.join("\n"))
+        } else {
+            Ok(String::from(""))
+        }
+    }
+}
+
+#[derive(Clone, Deserialize)]
 pub struct OriginSecret {
     pub id:        String,
     pub origin_id: String,
@@ -291,6 +401,31 @@ pub trait BuilderAPIProvider: Sync + Send {
     fn delete_origin(&self, origin: &str, token: &str) -> Result<()>;
 
     fn transfer_origin_ownership(&self, origin: &str, token: &str, account: &str) -> Result<()>;
+
+    fn accept_origin_invitation(&self, origin: &str, token: &str, invitation_id: u64)
+                                -> Result<()>;
+
+    fn ignore_origin_invitation(&self, origin: &str, token: &str, invitation_id: u64)
+                                -> Result<()>;
+
+    fn list_user_invitations(&self, token: &str) -> Result<UserOriginInvitationsResponse>;
+
+    fn list_pending_origin_invitations(&self,
+                                       origin: &str,
+                                       token: &str)
+                                       -> Result<PendingOriginInvitationsResponse>;
+
+    fn rescind_origin_invitation(&self,
+                                 origin: &str,
+                                 token: &str,
+                                 invitation_id: u64)
+                                 -> Result<()>;
+
+    fn send_origin_invitation(&self,
+                              origin: &str,
+                              token: &str,
+                              invitee_account: &str)
+                              -> Result<()>;
 
     fn list_origin_secrets(&self, origin: &str, token: &str) -> Result<Vec<String>>;
 

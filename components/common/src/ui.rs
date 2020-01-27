@@ -189,6 +189,8 @@ impl Glyph {
 }
 
 pub enum Status {
+    Accepted,
+    Accepting,
     Applying,
     Added,
     Adding,
@@ -211,10 +213,16 @@ pub enum Status {
     Found,
     Generated,
     Generating,
+    Ignored,
+    Ignoring,
     Installed,
     Missing,
     Promoted,
     Promoting,
+    Rescinded,
+    Rescinding,
+    Sending,
+    Sent,
     Signed,
     Signing,
     Skipping,
@@ -231,6 +239,8 @@ pub enum Status {
 impl Status {
     pub fn parts(&self) -> (Glyph, String, Color) {
         match *self {
+            Status::Accepting => (Glyph::UpArrow, "Accepting".into(), Color::Info),
+            Status::Accepted => (Glyph::CheckMark, "Accepted".into(), Color::Info),
             Status::Applying => (Glyph::UpArrow, "Applying".into(), Color::Info),
             Status::Added => (Glyph::UpArrow, "Added".into(), Color::Info),
             Status::Adding => (Glyph::FingerPoint, "Adding".into(), Color::Info),
@@ -255,10 +265,16 @@ impl Status {
             Status::Found => (Glyph::RightArrow, "Found".into(), Color::Important),
             Status::Generated => (Glyph::RightArrow, "Generated".into(), Color::Important),
             Status::Generating => (Glyph::FingerPoint, "Generating".into(), Color::Info),
+            Status::Ignored => (Glyph::CheckMark, "Ignored".into(), Color::Info),
+            Status::Ignoring => (Glyph::BoxedX, "Ignoring".into(), Color::Info),
             Status::Installed => (Glyph::CheckMark, "Installed".into(), Color::Info),
             Status::Missing => (Glyph::Because, "Missing".into(), Color::Critical),
             Status::Promoted => (Glyph::CheckMark, "Promoted".into(), Color::Info),
             Status::Promoting => (Glyph::RightArrow, "Promoting".into(), Color::Info),
+            Status::Rescinded => (Glyph::CheckMark, "Rescinded".into(), Color::Info),
+            Status::Rescinding => (Glyph::BoxedX, "Rescinding".into(), Color::Info),
+            Status::Sending => (Glyph::UpArrow, "Sending".into(), Color::Info),
+            Status::Sent => (Glyph::CheckMark, "Sent".into(), Color::Info),
             Status::Signed => (Glyph::CheckMark, "Signed".into(), Color::Important),
             Status::Signing => (Glyph::FingerPoint, "Signing".into(), Color::Important),
             Status::Skipping => (Glyph::Elipses, "Skipping".into(), Color::Info),
