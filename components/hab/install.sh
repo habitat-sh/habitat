@@ -5,8 +5,6 @@ set -eou pipefail
 # If the variable `$DEBUG` is set, then print the shell commands as we execute.
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
-BT_ROOT="https://api.bintray.com/content/habitat"
-BT_SEARCH="https://api.bintray.com/packages/habitat"
 readonly pcio_root="https://packages.chef.io/files"
 export HAB_LICENSE="accept-no-persist"
 
@@ -44,12 +42,7 @@ main() {
   create_workdir
   get_platform
   validate_target
-  if use_packages_chef_io "$version"; then
-    download_packages_chef_io_archive "$version" "$channel" "$target"
-  else
-    get_bintray_version
-    download_bintray_archive
-  fi
+  download_packages_chef_io_archive "$version" "$channel" "$target"
   verify_archive
   extract_archive
   install_hab
@@ -148,64 +141,6 @@ get_platform() {
   fi
 }
 
-use_packages_chef_io() {
-  need_cmd cut
-
-  local version
-  version="${1:-latest}"
-
-  if [ "$version" == "latest" ]; then
-    info "No version specified, using packages.chef.io"
-    return 0
-  else 
-    local major 
-    local minor
-    major="$(echo "${version}" | cut -d'.' -f1)"
-    minor="$(echo "${version}" | cut -d'.' -f2)"
-    if [ "$major" -ge 1 ] || [ "$minor" -ge 89 ]; then
-      info "Specified recent version >= 0.89, using packages.chef.io"
-      return 0
-    fi
-  fi
-  return 1
-}
-
-get_bintray_version() {
-  need_cmd grep
-  need_cmd head
-  need_cmd sed
-  need_cmd tr
-
-  local _btv
-  local _j="${workdir}/version.json"
-
-  _btv="$(echo "${version:-%24latest}" | tr '/' '-')"
-
-  if [ -z "${_btv##*%24latest*}" ]; then
-    btv=$_btv
-  else
-    info "Determining fully qualified version of package for \`$version'"
-    dl_file "${BT_SEARCH}/${channel}/hab-${target}" "${_j}"
-    # This is nasty and we know it. Clap your hands. If the install.sh stops
-    # work its likely related to this here sed command. We have to pull
-    # versions out of minified json. So if this ever stops working its likely
-    # BT api output is no longer minified.
-    _rev="$(sed -e 's/^.*"versions":\[\([^]]*\)\].*$/\1/' -e 's/"//g' "${_j}" \
-      | tr ',' '\n' \
-      | grep "^${_btv}" \
-      | head -1)"
-    if [ -z "${_rev}" ]; then
-      _e="Version \`${version}' could not used or version doesn't exist."
-      _e="$_e Please provide a simple version like: \"0.15.0\""
-      _e="$_e or a fully qualified version like: \"0.15.0/20161222203215\"."
-      exit_with "$_e" 6
-    else
-      btv=$_rev
-      info "Using fully qualified Bintray version string of: $btv"
-    fi
-  fi
-}
-
 # Validate the CLI Target requested.  In most cases ${arch}-${sys}
 # for the current system is the only valid Target.  In the case of
 # x86_64-linux systems we also need to support the x86_64-linux-kernel2
@@ -263,38 +198,6 @@ download_packages_chef_io_archive() {
     local _key_url="https://packages.chef.io/chef.asc"
 
     dl_file "${url}.sha256sum.asc" "${sha_sig_file}"
-    dl_file "${_key_url}" "${key_file}" 
-  fi
-}
-
-download_bintray_archive() {
-  need_cmd cut
-  need_cmd mv
-
-  url="${BT_ROOT}/${channel}/${sys}/${arch}/hab-${btv}-${target}.${ext}"
-  query="?bt_package=hab-${target}"
-
-  local _hab_url="${url}${query}"
-  local _sha_url="${url}.sha256sum${query}"
-
-  dl_file "${_hab_url}" "${workdir}/hab-latest.${ext}"
-  dl_file "${_sha_url}" "${workdir}/hab-latest.${ext}.sha256sum"
-
-  archive="${workdir}/$(cut -d ' ' -f 3 hab-latest.${ext}.sha256sum)"
-  sha_file="${archive}.sha256sum"
-
-  info "Renaming downloaded archive files"
-  mv -v "${workdir}/hab-latest.${ext}" "${archive}"
-  mv -v "${workdir}/hab-latest.${ext}.sha256sum" "${archive}.sha256sum"
-  
-  if command -v gpg >/dev/null; then
-    info "GnuPG tooling found, downloading signatures"
-    local _sha_sig_url="${url}.sha256sum.asc${query}"
-    local _key_url="https://bintray.com/user/downloadSubjectPublicKey?username=habitat"
-    sha_sig_file="${archive}.sha256sum.asc"
-    key_file="${workdir}/habitat.asc"
-
-    dl_file "${_sha_sig_url}" "${sha_sig_file}"
     dl_file "${_key_url}" "${key_file}" 
   fi
 }

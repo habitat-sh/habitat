@@ -25,45 +25,6 @@ $ErrorActionPreference="stop"
 
 Set-Variable packagesChefioRootUrl -Option ReadOnly -value "https://packages.chef.io/files"
 
-Function Get-BintrayVersion($version, $channel) {
-    $jsonFile = Join-Path ($workdir) "version.json"
-
-    # bintray expects a '-' to separate version and release and not '/'
-    $version = $version.Replace("/", "-")
-
-    if(!$version) {
-        $version = "%24latest"
-    } elseif([System.Reflection.Assembly]::LoadWithPartialName("System.Web.Extensions")) {
-        # Using .Net json serializer instead of Convert-FromJson (in PS v3 (win 2012) and greater)
-        # because the .Net strategy will work on any system with .Net 3.5 and up
-        Write-Host "Determining fully qualified version of package for '$version'"
-        Get-File "https://api.bintray.com/packages/habitat/$channel/hab-x86_64-windows" $jsonFile
-        $ser = New-Object System.Web.Script.Serialization.JavaScriptSerializer
-        $versions = $ser.DeserializeObject((Get-Content $jsonFile)).versions
-        $rev = $versions | Where-Object { $_.StartsWith($version) }
-        if(!$rev) {
-            $e =  "Version '$version' could not used or version doesn't exist."
-            $e += " Please provide a simple version like: '0.15.0'"
-            $e += " or a fully qualified version like: '0.15.0/20161222203215'."
-            Write-Error $e
-        } else {
-            Write-Host "Using fully qualified Bintray version string of: $rev"
-            $version = $rev
-        }
-    } else {
-        # Must have an older .Net installation
-        if($version -match "^\d+\.\d+\.\d+-\d{12}`$") {
-            Write-Warning "Validating the version is not supported without at least .Net 3.5"
-            Write-Warning "We will make a best effort to retrieve $version"
-        } else {
-            Write-Warning "Validating the version is not supported without at least .Net 3.5"
-            Write-Error "You must supply a fully qualified version (ex: 0.75.0/20190219232208)"
-        }
-    }
-
-    $version
-}
-
 Function Get-File($url, $dst) {
     Write-Host "Downloading $url"
     # Can't use [System.Net.SecurityProtocolType]::Tls12 on older .NET versions
@@ -107,29 +68,6 @@ Function Get-PackagesChefioArchive($channel, $version) {
     # when we did not upload shasum files to bintray.
     # NOTE: This is left in place because, while we don't ship <0.71.0
     # from s3 today, the intent is to move old releases over
-    try {
-        Get-File $sha_url $sha_dest
-        $result["shasum"] = (Get-Content $sha_dest).Split()[0]
-    } catch {
-        Write-Warning "No shasum exists for $version. Skipping validation."
-    }
-    $result
-}
-
-Function Get-BintrayArchive($channel, $version) {
-    $url = "https://api.bintray.com/content/habitat/$channel/windows/x86_64/hab-$version-x86_64-windows.zip"
-    $query = "?bt_package=hab-x86_64-windows"
-
-    $hab_url="$url$query"
-    $sha_url="$url.sha256sum$query"
-    $hab_dest = (Join-Path ($workdir) "hab.zip")
-    $sha_dest = (Join-Path ($workdir) "hab.zip.shasum256")
-
-    Get-File $hab_url $hab_dest
-    $result = @{ "zip" = $hab_dest }
-
-    # Note that this will fail on versions less than 0.71.0
-    # when we did not upload shasum files to bintray
     try {
         Get-File $sha_url $sha_dest
         $result["shasum"] = (Get-Content $sha_dest).Split()[0]
@@ -233,28 +171,12 @@ Function Assert-Habitat($ident) {
     }
 }
 
-Function Test-UsePackagesChefio($version) {
-    # The $_patch may contain the /release string as well.
-    # This is fine because we only care about major/minor for this
-    # comparison.
-
-    $_major,$_minor,$_patch = $version -split ".",3,"SimpleMatch"
-    $v1 = New-Object -TypeName Version -ArgumentList $_major,$_minor
-    $v2 = New-Object -TypeName Version -ArgumentList "0.89"
-    !$version -Or ($v1 -ge $v2)
-}
-
 Write-Host "Installing Habitat 'hab' program"
 
 $workdir = Get-WorkDir
 New-Item $workdir -ItemType Directory -Force | Out-Null
 try {
-    if(Test-UsePackagesChefio($Version)) {
-        $archive = Get-PackagesChefioArchive $channel $version
-    } else {
-        $Version = Get-BintrayVersion $Version $Channel
-        $archive = Get-BintrayArchive $channel $version
-    }
+    $archive = Get-PackagesChefioArchive $channel $version
     if($archive.shasum) {
         Assert-Shasum $archive
     }
