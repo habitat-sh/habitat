@@ -366,7 +366,10 @@ pub trait BuilderAPIProvider: Sync + Send {
                     token: &str)
                     -> Result<String>;
 
-    fn fetch_rdeps(&self, ident_and_target: (&PackageIdent, PackageTarget)) -> Result<Vec<String>>;
+    fn fetch_rdeps(&self,
+                   ident_and_target: (&PackageIdent, PackageTarget),
+                   token: &str)
+                   -> Result<Vec<String>>;
 
     fn job_group_promote_or_demote(&self,
                                    group_id: u64,

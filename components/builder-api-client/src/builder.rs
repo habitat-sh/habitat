@@ -334,7 +334,10 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote API Server is not available
-    fn fetch_rdeps(&self, (ident, target): (&PackageIdent, PackageTarget)) -> Result<Vec<String>> {
+    fn fetch_rdeps(&self,
+                   (ident, target): (&PackageIdent, PackageTarget),
+                   token: &str)
+                   -> Result<Vec<String>> {
         debug!("Fetching the reverse dependencies for {}", ident);
 
         let url = format!("rdeps/{}", ident);
@@ -343,6 +346,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
                            .get_with_custom_url(&url, |u| {
                                u.set_query(Some(&format!("target={}", &target.to_string())))
                            })
+                           .bearer_auth(token)
                            .send()?;
         resp.ok_if(&[StatusCode::OK])?;
 

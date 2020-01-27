@@ -20,7 +20,7 @@ pub fn start(ui: &mut UI,
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     if group {
-        let rdeps = api_client.fetch_rdeps((ident, target))
+        let rdeps = api_client.fetch_rdeps((ident, target), token)
                               .map_err(Error::APIClient)?;
         if !rdeps.is_empty() {
             ui.warn("Found the following reverse dependencies:")?;
@@ -29,8 +29,10 @@ pub fn start(ui: &mut UI,
                 ui.warn(rdep.to_string())?;
             }
 
-            let question = "If you choose to start a group build for this package, all of the \
-                            above will be built as well. Is this what you want?";
+            ui.warn("Note: dependencies from private origins are omitted for non-members.");
+
+            let question = "Starting a group build for this package will also build all of the \
+                            reverse dependencies listed above. Is this what you want?";
 
             if !ui.prompt_yes_no(question, Some(true))? {
                 ui.fatal("Aborted")?;
