@@ -30,13 +30,8 @@ sidebar_links:
       link: "/docs/developing-packages/developing-packages/#debug-builds"
     - title: Package Export Formats
       link: "/docs/developing-packages/developing-packages/#pkg-exports"
-<<<<<<< HEAD
   - title: Builder
     link: "/docs/using-builder/using-builder"
-=======
-  - title: Working with Builder
-    link: "/docs/using-builder/overview"
->>>>>>> Using Habitat (Renamed Services and Service Groups) Reorg
     sub_links:
     - title: Create an Account
       link: "/docs/using-builder/builder-account"
@@ -47,7 +42,6 @@ sidebar_links:
     - title: Using Origin Keys
       link: "/docs/using-builder/origin-keys"
     - title: Using Origin Secrets
-<<<<<<< HEAD
       link: "/docs/using-builder/origin-secrets"
     - title: Upload and Promote Packages
       link: "/docs/using-builder/sharing-pkgs"
@@ -61,19 +55,6 @@ sidebar_links:
       link: "/docs/using-builder/using-custom-certs"
   - title: Managing Services
     link: "/docs/using-habitat/using-habitat"
-=======
-      link: "/docs/using-builder/using-builder/#origin-secrets"
-    - title: Upload and Promote
-      link: "/docs/using-builder/using-builder/#sharing-pkgs"
-    - title: Using Multiple Plans
-      link: "/docs/using-builder/using-builder/#multiple-plans-builder"
-    - title: Set up Automated Builds
-      link: "/docs/using-builder/using-builder/#automated-builds"
-    - title: Using Custom Certificates
-      link: "/docs/using-builder/using-builder/#using-custom-certs"
-  - title: Services and Service Groups
-    link: "/docs/using-habitat/overview"
->>>>>>> Using Habitat (Renamed Services and Service Groups) Reorg
     sub_links:
     - title: Running Chef Habitat Packages
       link: "/docs/using-habitat/using-packages"
@@ -95,6 +76,8 @@ sidebar_links:
       link: "/docs/using-habitat/using-updates"
     - title: Continuous Deployment
       link: "/docs/using-habitat/continuous-deployment"
+    - title: Controlling Supervisors Remotely
+      link: "/docs/using-habitat/remote-control"
   - title: Chef Habitat and Other Software
     link: "/docs/habitat-and-other-software/habitat-and-others"
     sub_links:
