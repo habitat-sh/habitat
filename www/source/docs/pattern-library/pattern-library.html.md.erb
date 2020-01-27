@@ -14,9 +14,11 @@ For help with Chef Habitat and these patterns, ask:
 - In the [Chef Habitat Slack](http://slack.habitat.sh/)
 
 ---
-## <a name="hab-plan-sh" id="hab-plan-sh" data-magellan-target="hab-plan-sh" type="anchor">Plan.sh Pattern</a>
+## <a name="kub-bastion" id="kub-bastion" data-magellan-target="kub-bastion" type="anchor">Kubernetes Bastion Ring Pattern</a>
 
-<%# NEED EXPLANATION %>
+A _bastion ring_ is a robust type of Supervisor network in which a small number of Supervisors are set up as permanent peers and that are dedicated to anchoring Supervisor network communication. These Supervisors are designated solely for communication between Supervisor and _do not run services_. These solely to anchor the entire Supervisor network. See [Robust Supervisor Networks](/docs/best-practices/robust-supervisor-networks/) for more information. The following examples demonstrate running a bastion ring in Kubernetes.
+
+### <a name="hab-plan-sh" id="hab-plan-sh" data-magellan-target="hab-plan-sh" type="anchor">Kubernetes Bastion Ring Plan</a>
 
 ```bash
   pkg_name=hab_bastion
@@ -38,9 +40,8 @@ do_install() {
 ```
 
 ---
-## <a name="hab-bastion" id="hab-bastion" data-magellan-target="hab-bastion" type="anchor">Bastion Ring Pattern</a>
+### <a name="hab-bastion" id="hab-bastion" data-magellan-target="hab-bastion" type="anchor">Kubernetes Bastion Ring Producer Pattern</a>
 
-<%# NEED EXPLANATION %>
 
 ```yaml
   ---
@@ -124,7 +125,7 @@ spec:
           storage: 10Gi
 ```
 
-## <a name="hab-bastion-consumer" id="hab-bastion-consumer" data-magellan-target="hab-bastion-consumer" type="anchor">Bastion Ring Consumer Pattern</a>
+### <a name="hab-bastion-consumer" id="hab-bastion-consumer" data-magellan-target="hab-bastion-consumer" type="anchor">Kubernetes Bastion Ring Consumer Pattern</a>
 
 <%# NEED EXPLANATION %>
 
