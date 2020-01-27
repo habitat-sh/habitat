@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.4 -->
-## [1.5.4](https://github.com/habitat-sh/habitat/tree/1.5.4) (2020-01-27)
+<!-- latest_release 1.5.5 -->
+## [1.5.5](https://github.com/habitat-sh/habitat/tree/1.5.5) (2020-01-27)
 
-#### New Features & Enhancements
-- hab origin invitations subcommand [#7349](https://github.com/habitat-sh/habitat/pull/7349) ([jeremymv2](https://github.com/jeremymv2))
+#### Merged Pull Requests
+- Add token and warning to rdeps usage [#7368](https://github.com/habitat-sh/habitat/pull/7368) ([chefsalim](https://github.com/chefsalim))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -31,6 +31,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Add token and warning to rdeps usage [#7368](https://github.com/habitat-sh/habitat/pull/7368) ([chefsalim](https://github.com/chefsalim)) <!-- 1.5.5 -->
 - Update manual validation docs [#7365](https://github.com/habitat-sh/habitat/pull/7365) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.3 -->
 - Stop committing the results of a promotion command [#7366](https://github.com/habitat-sh/habitat/pull/7366) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.2 -->
 - Lint powershell with PSScriptAnalyzer [#7337](https://github.com/habitat-sh/habitat/pull/7337) ([mwrock](https://github.com/mwrock)) <!-- 1.5.1 -->
