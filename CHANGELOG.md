@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.3 -->
-## [1.5.3](https://github.com/habitat-sh/habitat/tree/1.5.3) (2020-01-24)
+<!-- latest_release 1.5.4 -->
+## [1.5.4](https://github.com/habitat-sh/habitat/tree/1.5.4) (2020-01-27)
 
-#### Merged Pull Requests
-- Update manual validation docs [#7365](https://github.com/habitat-sh/habitat/pull/7365) ([christophermaier](https://github.com/christophermaier))
+#### New Features & Enhancements
+- hab origin invitations subcommand [#7349](https://github.com/habitat-sh/habitat/pull/7349) ([jeremymv2](https://github.com/jeremymv2))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -16,6 +16,7 @@
 - The initial event stream connection attempt no longer blocks by default. Set --event-stream-connect-timeout if blocking is desired. [#7293](https://github.com/habitat-sh/habitat/pull/7293) ([davidMcneil](https://github.com/davidMcneil))
 
 #### New Features & Enhancements
+- hab origin invitations subcommand [#7349](https://github.com/habitat-sh/habitat/pull/7349) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.4 -->
 - origin ownership transfer subcommand [#7331](https://github.com/habitat-sh/habitat/pull/7331) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.69 -->
 - Event stream connection backoff strategy [#7293](https://github.com/habitat-sh/habitat/pull/7293) ([davidMcneil](https://github.com/davidMcneil))
 - bulkupload: discover origins from signing keys [#7279](https://github.com/habitat-sh/habitat/pull/7279) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.48 -->
