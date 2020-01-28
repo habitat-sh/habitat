@@ -506,7 +506,10 @@ impl Worker {
                 {
                     Ok(package) => {
                         self.current = package.ident().clone();
-                        sender.send(package).expect("Main thread has gone away!");
+                        if sender.send(package).is_err() {
+                            debug!("Receiver went away; stopping updater thread for {}",
+                                   self.spec_ident);
+                        }
                         break checked_thread.unregister(Ok(()));
                     }
                     Err(e) => warn!("Failed to install updated package: {:?}", e),
@@ -557,8 +560,10 @@ impl Worker {
                                       self.current,
                                       maybe_newer_package.ident());
                             self.current = maybe_newer_package.ident().clone();
-                            sender.send(maybe_newer_package)
-                                  .expect("Main thread has gone away!");
+                            if sender.send(maybe_newer_package).is_err() {
+                                debug!("Receiver went away; stopping updater thread for {}",
+                                       self.spec_ident);
+                            }
                             break checked_thread.unregister(Ok(()));
                         } else {
                             debug!("Package found {} is not newer than ours",
