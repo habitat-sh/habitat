@@ -526,7 +526,7 @@ impl Worker {
                 kill_rx: &Receiver<()>)
                 -> liveliness_checker::ThreadUnregistered<(), &str> {
         let install_source = (self.spec_ident.clone(), PackageTarget::active_target()).into();
-        let mut next_time = Instant::now();
+        let mut next_time = self.next_period_start();
 
         loop {
             let checked_thread = liveliness_checker::mark_thread_alive();
