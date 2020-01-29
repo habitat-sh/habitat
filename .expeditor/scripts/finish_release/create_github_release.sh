@@ -8,7 +8,7 @@ echo "--- :lock: Importing GPG keys"
 import_gpg_keys
 
 echo "--- Installing 'hub' CLI tool"
-sudo apt-get install hub
+install_hub
 
 echo "--- :thinking_face: Determining the version to release"
 get_manifest_for_environment "stable"
