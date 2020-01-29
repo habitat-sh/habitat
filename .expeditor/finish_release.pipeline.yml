@@ -46,4 +46,6 @@ steps:
       executor:
         linux:
           privileged: true
+          environment:
+            GITHUB_TOKEN
     soft_fail: true
