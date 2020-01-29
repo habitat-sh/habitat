@@ -73,6 +73,7 @@ run_fmt_open_pr() {
   echo "--- :rust: Running new rustfmt"
   cargo +"$(< RUSTFMT_VERSION)" fmt --all
 
+  echo "--- :github: Committing Changes"
   git add --update
 
   # We'll be Expeditor for this commit (which is who we would be if we
