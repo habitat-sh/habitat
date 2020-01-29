@@ -92,7 +92,7 @@ run_fmt_open_pr() {
   install_hub
 
   echo "--- :github: Creating PR"
-  hub pull-request --push --no-edit
+  GITHUB_USER=chef-expeditor hub pull-request --push --no-edit
 }
 
 install_rustup
