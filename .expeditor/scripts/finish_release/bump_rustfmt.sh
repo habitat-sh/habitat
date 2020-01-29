@@ -64,7 +64,7 @@ run_fmt_open_pr() {
   # it in .expeditor/config.yml where a workload
   # subscription references the same name.
   readonly branch="expeditor/rustfmt_${version_underbar}"
-  maybe_run git checkout -b "${branch}"
+  git checkout -b "${branch}"
 
   # update the version pin files
   echo "${FOUND_VERSION}" | tee RUSTFMT_VERSION RUST_NIGHTLY_VERSION
