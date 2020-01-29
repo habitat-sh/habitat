@@ -1,7 +1,7 @@
 <!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
-
----
-title: hab CLI Reference
+ ---
+title: Chef Habitat Docs - hab CLI Reference
+draft: false
 ---
 
 # Chef Habitat Command-Line Interface (CLI) Reference
@@ -10,7 +10,7 @@ The commands for the Chef Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.90.6/20191112141314 (linux) | 15 Nov 2019 |
+| hab 1.5.0/20200122222330 (linux) | 29 Jan 2020 |
 
 ## hab
 
@@ -52,7 +52,7 @@ term       Alias for: 'sup term'
 | [hab config](#hab-config) | Commands relating to a Service's runtime config |
 | [hab file](#hab-file) | Commands relating to Habitat files |
 | [hab license](#hab-license) | Commands relating to Habitat license agreements |
-| [hab origin](#hab-origin) | Commands relating to Habitat origin keys |
+| [hab origin](#hab-origin) | Commands relating to Habitat Builder origins |
 | [hab pkg](#hab-pkg) | Commands relating to Habitat packages |
 | [hab plan](#hab-plan) | Commands relating to plans and other app-specific configuration. |
 | [hab ring](#hab-ring) | Commands relating to Habitat rings |
@@ -805,7 +805,7 @@ hab license accept
 
 ## hab origin
 
-Commands relating to Habitat origin keys
+Commands relating to Habitat Builder origins
 
 **USAGE**
 
@@ -831,6 +831,7 @@ hab origin [SUBCOMMAND]
 | [hab origin delete](#hab-origin-delete) | Removes an unused/empty origin |
 | [hab origin key](#hab-origin-key) | Commands relating to Habitat origin key maintenance |
 | [hab origin secret](#hab-origin-secret) | Commands related to secret management |
+| [hab origin transfer](#hab-origin-transfer) | Transfers ownership of an origin to another member of that origin |
 ---
 
 ### hab origin create
@@ -1234,6 +1235,41 @@ hab origin secret upload [OPTIONS] <KEY_NAME> <SECRET> --cache-key-path <CACHE_K
 
 ---
 
+### hab origin transfer
+
+Transfers ownership of an origin to another member of that origin
+
+**USAGE**
+
+```
+hab origin transfer [OPTIONS] <ORIGIN> <NEW_OWNER_ACCOUNT>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+```
+
+**ARGS**
+
+```
+<ORIGIN>               The origin name
+<NEW_OWNER_ACCOUNT>    The account name of the new origin owner
+```
+
+
+
+---
+
 ## hab pkg
 
 Commands relating to Habitat packages
@@ -1610,12 +1646,12 @@ hab pkg download [FLAGS] [OPTIONS] [--] [PKG_IDENT]...
 
 ```
 -z, --auth <AUTH_TOKEN>                          Authentication token for Builder
--u, --url <BLDR_URL> Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. [default: https://bldr.habitat.sh]
--c, --channel <CHANNEL> Download from the specified release channel [env: HAB_BLDR_CHANNEL=]  [default: stable]
-
+-u, --url <BLDR_URL> Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined.
+-c, --channel <CHANNEL> Download from the specified release channel. Overridden if channel is specified in toml file. [env: HAB_BLDR_CHANNEL=]  [default: stable]
     --download-directory <DOWNLOAD_DIRECTORY>    The path to store downloaded artifacts
-    --file <PKG_IDENT_FILE>...                   File with newline separated package identifiers
--t, --target <PKG_TARGET>                        Target architecture to fetch. E.g. x86_64-linux
+    --file <PKG_IDENT_FILE>... File with newline separated package identifiers, or TOML file (ending with .toml extension)
+
+-t, --target <PKG_TARGET> Target architecture to fetch. E.g. x86_64-linux. Overridden if architecture is specified in toml file.
 ```
 
 **ARGS**
@@ -2614,7 +2650,8 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 **OPTIONS**
 
 ```
-    --bind <BIND>...                                   One or more service groups to bind to a configuration
+--bind <BIND>... One or more service groups to bind to a configuration
+
     --binding-mode <BINDING_MODE> Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] [values: relaxed, strict]
 -u, --url <BLDR_URL> Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
     --cache-key-path <CACHE_KEY_PATH> Path to search for encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
@@ -2624,6 +2661,18 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 
     --config-from <CONFIG_DIR> Use package config from this path, rather than the package itself
 
+    --event-stream-application <EVENT_STREAM_APPLICATION> The name of the application for event stream purposes. This will be attached to all events generated by this Supervisor.
+    --event-stream-connect-timeout <EVENT_STREAM_CONNECT_TIMEOUT> How long in seconds to wait for an event stream connection before exiting the Supervisor. Set to '0' to immediately start the Supervisor and continue running regardless of the initial connection status. [env: HAB_EVENT_STREAM_CONNECT_TIMEOUT=]  [default: 0]
+    --event-stream-environment <EVENT_STREAM_ENVIRONMENT> The name of the environment for event stream purposes. This will be attached to all events generated by this Supervisor.
+    --event-meta <EVENT_STREAM_METADATA>... An arbitrary key-value pair to add to each event generated by this Supervisor.
+
+    --event-stream-server-certificate <EVENT_STREAM_SERVER_CERTIFICATE> The path to Chef Automate's event stream certificate in PEM format used to establish a TLS connection.
+
+    --event-stream-site <EVENT_STREAM_SITE> The name of the site where this Supervisor is running for event stream purposes.
+
+    --event-stream-token <EVENT_STREAM_TOKEN> The authentication token for connecting the event stream to Chef Automate. [env: HAB_AUTOMATE_AUTH_TOKEN=]
+
+    --event-stream-url <EVENT_STREAM_URL> The event stream connection string (host:port) used by this Supervisor to send events to Chef Automate. This enables the event stream and requires --event-stream-application, --event-stream-environment, and --event- stream-token also be set.
     --group <GROUP> The service group; shared config and topology [default: default].
 
 -i, --health-check-interval <HEALTH_CHECK_INTERVAL> The interval (seconds) on which to run health checks [default: 30]
@@ -2636,8 +2685,10 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 
     --org <ORGANIZATION> The organization that the Supervisor and its subsequent services are part of.
 
-    --peer <PEER>...                                   The listen address of one or more initial peers (IP[:PORT])
-    --peer-watch-file <PEER_WATCH_FILE>                Watch this file for connecting to the ring
+    --peer <PEER>... The listen address of one or more initial peers (IP[:PORT])
+
+    --peer-watch-file <PEER_WATCH_FILE> Watch this file for connecting to the ring
+
 -r, --ring <RING> The name of the ring used by the Supervisor when running with wire encryption. (ex: hab sup run --ring myring) [env: HAB_RING=]
     --shutdown-timeout <SHUTDOWN_TIMEOUT> The number of seconds after sending a shutdown signal to wait before killing a service process (default: set in plan)
 -s, --strategy <STRATEGY> The update strategy; [default: none] [values: none, at-once, rolling]
@@ -2918,7 +2969,7 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
 **OPTIONS**
 
 ```
-    --bind <BIND>...                                   One or more service groups to bind to a configuration
+--bind <BIND>...                                   One or more service groups to bind to a configuration
     --binding-mode <BINDING_MODE> Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] [values: relaxed, strict]
 -u, --url <BLDR_URL> Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
     --channel <CHANNEL> Receive package updates from the specified release channel [default: stable]
