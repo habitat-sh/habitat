@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.5 -->
-## [1.5.5](https://github.com/habitat-sh/habitat/tree/1.5.5) (2020-01-27)
+<!-- latest_release 1.5.6 -->
+## [1.5.6](https://github.com/habitat-sh/habitat/tree/1.5.6) (2020-01-29)
 
 #### Merged Pull Requests
-- Add token and warning to rdeps usage [#7368](https://github.com/habitat-sh/habitat/pull/7368) ([chefsalim](https://github.com/chefsalim))
+- Assorted service updater tweaks [#7390](https://github.com/habitat-sh/habitat/pull/7390) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -31,6 +31,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Assorted service updater tweaks [#7390](https://github.com/habitat-sh/habitat/pull/7390) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.6 -->
 - Add token and warning to rdeps usage [#7368](https://github.com/habitat-sh/habitat/pull/7368) ([chefsalim](https://github.com/chefsalim)) <!-- 1.5.5 -->
 - Update manual validation docs [#7365](https://github.com/habitat-sh/habitat/pull/7365) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.3 -->
 - Stop committing the results of a promotion command [#7366](https://github.com/habitat-sh/habitat/pull/7366) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.2 -->
