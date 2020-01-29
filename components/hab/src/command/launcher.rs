@@ -4,7 +4,7 @@ use crate::common::ui::UI;
 
 use crate::error::Result;
 
-pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> { inner::start(ui, args) }
+pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> { inner::start(ui, args).await }
 
 #[cfg(not(target_os = "macos"))]
 mod inner {
@@ -31,7 +31,7 @@ mod inner {
     const LAUNCH_CMD_ENVVAR: &str = "HAB_LAUNCH_BINARY";
     const LAUNCH_PKG_IDENT: &str = "core/hab-launcher";
 
-    pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
+    pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         init();
         if henv::var(SUP_CMD_ENVVAR).is_err() {
             let version: Vec<&str> = VERSION.split('/').collect();
@@ -39,7 +39,7 @@ mod inner {
                                        SUP_CMD,
                                        &PackageIdent::from_str(&format!("{}/{}",
                                                                         SUP_PKG_IDENT,
-                                                                        version[0]))?)?;
+                                                                        version[0]))?).await?;
         }
         let command = match henv::var(LAUNCH_CMD_ENVVAR) {
             Ok(command) => PathBuf::from(command),
@@ -47,7 +47,7 @@ mod inner {
                 init();
                 exec::command_from_min_pkg(ui,
                                            LAUNCH_CMD,
-                                           &PackageIdent::from_str(LAUNCH_PKG_IDENT)?)?
+                                           &PackageIdent::from_str(LAUNCH_PKG_IDENT)?).await?
             }
         };
         if let Some(cmd) = find_command(&command) {
@@ -70,7 +70,7 @@ mod inner {
     use crate::error::{Error,
                        Result};
 
-    pub fn start(ui: &mut UI, _args: &[OsString]) -> Result<()> {
+    pub async fn start(ui: &mut UI, _args: &[OsString]) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
         ui.warn("Launching a native Supervisor on this operating system is not yet supported. \
                  Try running this command again on 64-bit Linux or Windows.")?;

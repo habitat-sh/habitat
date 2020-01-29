@@ -9,7 +9,12 @@ use crate::{error::{Error,
             PRODUCT,
             VERSION};
 
-pub fn start(ui: &mut UI, bldr_url: &str, group_id: &str, token: &str, force: bool) -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   bldr_url: &str,
+                   group_id: &str,
+                   token: &str,
+                   force: bool)
+                   -> Result<()> {
     if !force {
         // TODO (SA): Show all the in-progress builds that will get canceled
         let question = "If you choose to cancel a group build, all of the builds that are in \
@@ -33,7 +38,7 @@ pub fn start(ui: &mut UI, bldr_url: &str, group_id: &str, token: &str, force: bo
 
     ui.status(Status::Canceling, format!("job group {}", group_id))?;
 
-    match api_client.job_group_cancel(gid, token) {
+    match api_client.job_group_cancel(gid, token).await {
         Ok(_) => {
             ui.status(Status::Canceled, format!("job group {}", group_id))?;
         }

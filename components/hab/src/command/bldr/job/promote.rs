@@ -51,27 +51,28 @@ pub fn get_ident_list(ui: &mut UI,
          .collect())
 }
 
-fn get_group_status(bldr_url: &str, group_id: u64) -> Result<api_client::SchedulerResponse> {
+async fn get_group_status(bldr_url: &str, group_id: u64) -> Result<api_client::SchedulerResponse> {
     let api_client =
         api_client::Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     let group_status = api_client.get_schedule(group_id as i64, true)
+                                 .await
                                  .map_err(Error::ScheduleStatus)?;
 
     Ok(group_status)
 }
 
 #[allow(clippy::too_many_arguments)]
-pub fn start(ui: &mut UI,
-             bldr_url: &str,
-             group_id: &str,
-             channel: &ChannelIdent,
-             origin: Option<&str>,
-             interactive: bool,
-             verbose: bool,
-             token: &str,
-             promote: bool)
-             -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   bldr_url: &str,
+                   group_id: &str,
+                   channel: &ChannelIdent,
+                   origin: Option<&str>,
+                   interactive: bool,
+                   verbose: bool,
+                   token: &str,
+                   promote: bool)
+                   -> Result<()> {
     let api_client =
         api_client::Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
     let (promoted_demoted, promoting_demoting, to_from, changing_status, changed_status) =
@@ -89,7 +90,7 @@ pub fn start(ui: &mut UI,
         }
     };
 
-    let group_status = get_group_status(bldr_url, gid)?;
+    let group_status = get_group_status(bldr_url, gid).await?;
     let idents = get_ident_list(ui, &group_status, origin, interactive)?;
 
     if idents.is_empty() {
@@ -118,7 +119,9 @@ pub fn start(ui: &mut UI,
     ui.status(changing_status,
               format!("job group {} {} channel '{}'", group_id, to_from, channel))?;
 
-    match api_client.job_group_promote_or_demote(gid, &idents, channel, token, promote) {
+    match api_client.job_group_promote_or_demote(gid, &idents, channel, token, promote)
+                    .await
+    {
         Ok(_) => {
             ui.status(changed_status,
                       format!("job group {} {} channel '{}'", group_id, to_from, channel))?;

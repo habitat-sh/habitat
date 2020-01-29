@@ -68,7 +68,7 @@ fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
+pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     let config = config::load()?;
 
     set_env_var_from_config(AUTH_TOKEN_ENVVAR,
@@ -124,7 +124,7 @@ pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         }
     }
 
-    inner::start(ui, args)
+    inner::start(ui, args).await
 }
 
 #[cfg(target_os = "linux")]
@@ -151,7 +151,7 @@ mod inner {
 
     const SUDO_CMD: &str = "sudo";
 
-    pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
+    pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         rerun_with_sudo_if_needed(ui, &args)?;
         if is_docker_studio(&args) {
             docker::start_docker_studio(ui, args)
@@ -164,7 +164,7 @@ mod inner {
                     let ident = PackageIdent::from_str(&format!("{}/{}",
                                                                 super::STUDIO_PACKAGE_IDENT,
                                                                 version[0]))?;
-                    let command = exec::command_from_min_pkg(ui, super::STUDIO_CMD, &ident)?;
+                    let command = exec::command_from_min_pkg(ui, super::STUDIO_CMD, &ident).await?;
                     // This is a duplicate of the code in `hab pkg exec` and
                     // should be refactored as part of or after:
                     // https://github.com/habitat-sh/habitat/issues/6633
@@ -264,7 +264,7 @@ mod inner {
               path::PathBuf,
               str::FromStr};
 
-    pub fn start(_ui: &mut UI, args: &[OsString]) -> Result<()> {
+    pub async fn start(_ui: &mut UI, args: &[OsString]) -> Result<()> {
         if is_windows_studio(&args) {
             start_windows_studio(_ui, args)
         } else {

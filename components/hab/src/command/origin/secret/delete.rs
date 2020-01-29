@@ -8,12 +8,18 @@ use crate::{error::{Error,
             PRODUCT,
             VERSION};
 
-pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str, key: &str) -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   bldr_url: &str,
+                   token: &str,
+                   origin: &str,
+                   key: &str)
+                   -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(Status::Deleting, format!("secret {}.", key))?;
 
     api_client.delete_origin_secret(origin, token, key)
+              .await
               .map_err(Error::APIClient)?;
 
     ui.status(Status::Deleted, format!("secret {}.", key))?;

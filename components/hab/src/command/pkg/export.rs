@@ -24,13 +24,13 @@ impl ExportFormat {
     pub fn cmd(&self) -> &str { &self.cmd }
 }
 
-pub fn start(ui: &mut UI,
-             url: &str,
-             channel: &ChannelIdent,
-             ident: &PackageIdent,
-             format: &ExportFormat)
-             -> Result<()> {
-    inner::start(ui, url, channel, ident, format)
+pub async fn start(ui: &mut UI,
+                   url: &str,
+                   channel: &ChannelIdent,
+                   ident: &PackageIdent,
+                   format: &ExportFormat)
+                   -> Result<()> {
+    inner::start(ui, url, channel, ident, format).await
 }
 
 pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> { inner::format_for(ui, value) }
@@ -79,14 +79,14 @@ mod inner {
         }
     }
 
-    pub fn start(ui: &mut UI,
-                 url: &str,
-                 channel: &ChannelIdent,
-                 ident: &PackageIdent,
-                 format: &ExportFormat)
-                 -> Result<()> {
+    pub async fn start(ui: &mut UI,
+                       url: &str,
+                       channel: &ChannelIdent,
+                       ident: &PackageIdent,
+                       format: &ExportFormat)
+                       -> Result<()> {
         init();
-        let command = exec::command_from_min_pkg(ui, format.cmd(), format.pkg_ident())?;
+        let command = exec::command_from_min_pkg(ui, format.cmd(), format.pkg_ident()).await?;
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
             let pkg_arg = OsString::from(&ident.to_string());
@@ -124,12 +124,12 @@ mod inner {
         Err(e)
     }
 
-    pub fn start(ui: &mut UI,
-                 _url: &str,
-                 _channel: &ChannelIdent,
-                 _ident: &PackageIdent,
-                 _format: &ExportFormat)
-                 -> Result<()> {
+    pub async fn start(ui: &mut UI,
+                       _url: &str,
+                       _channel: &ChannelIdent,
+                       _ident: &PackageIdent,
+                       _format: &ExportFormat)
+                       -> Result<()> {
         let subcmd = env::args().nth(1)
                                 .unwrap_or_else(|| "<unknown>".to_string());
         let subsubcmd = env::args().nth(2)

@@ -8,7 +8,7 @@ pub const SUP_CMD: &str = "hab-sup";
 pub const SUP_CMD_ENVVAR: &str = "HAB_SUP_BINARY";
 pub const SUP_PKG_IDENT: &str = "core/hab-sup";
 
-pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> { inner::start(ui, args) }
+pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> { inner::start(ui, args).await }
 
 #[cfg(not(target_os = "macos"))]
 mod inner {
@@ -31,7 +31,7 @@ mod inner {
                 exec,
                 VERSION};
 
-    pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
+    pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         let command = match henv::var(SUP_CMD_ENVVAR) {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
@@ -41,7 +41,7 @@ mod inner {
                                            SUP_CMD,
                                            &PackageIdent::from_str(&format!("{}/{}",
                                                                             SUP_PKG_IDENT,
-                                                                            version[0]))?)?
+                                                                            version[0]))?).await?
             }
         };
         if let Some(cmd) = find_command(&command) {
@@ -64,7 +64,7 @@ mod inner {
     use crate::error::{Error,
                        Result};
 
-    pub fn start(ui: &mut UI, _args: &[OsString]) -> Result<()> {
+    pub async fn start(ui: &mut UI, _args: &[OsString]) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
         ui.warn("Launching a native Supervisor on this operating system is not yet supported. \
                  Try running this command again on 64-bit Linux or Windows.")?;

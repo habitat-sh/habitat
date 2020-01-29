@@ -16,15 +16,14 @@ use crate::{api_client::{self,
             PRODUCT,
             VERSION};
 use reqwest::StatusCode;
-use retry::{delay,
-            retry};
+use retry::delay;
 
-pub fn start(ui: &mut UI,
-             bldr_url: &str,
-             token: &str,
-             public_keyfile: &Path,
-             secret_keyfile: Option<&Path>)
-             -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   bldr_url: &str,
+                   token: &str,
+                   public_keyfile: &Path,
+                   secret_keyfile: Option<&Path>)
+                   -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
     ui.begin(format!("Uploading public origin key {}", public_keyfile.display()))?;
 
@@ -32,9 +31,11 @@ pub fn start(ui: &mut UI,
     let (name, rev) = parse_name_with_rev(&name_with_rev)?;
 
     {
-        let upload_fn = || -> Result<()> {
+        retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
             ui.status(Status::Uploading, public_keyfile.display())?;
-            match api_client.put_origin_key(&name, &rev, public_keyfile, token, ui.progress()) {
+            match api_client.put_origin_key(&name, &rev, public_keyfile, token, ui.progress())
+                            .await
+            {
                 Ok(()) => ui.status(Status::Uploaded, &name_with_rev)?,
                 Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
                     ui.status(Status::Using,
@@ -43,15 +44,14 @@ pub fn start(ui: &mut UI,
                 }
                 Err(err) => return Err(Error::from(err)),
             }
-            Ok(())
-        };
-
-        retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), upload_fn).map_err(|_| {
-            Error::from(api_client::Error::UploadFailed(format!("We tried {} times but could \
-                                                                 not upload {}/{} public origin \
-                                                                 key. Giving up.",
-                                                                RETRIES, &name, &rev)))
-        })?;
+            Ok::<_, Error>(())
+        }).await
+          .map_err(|_| {
+              Error::from(api_client::Error::UploadFailed(format!("We tried {} times but could \
+                                                                   not upload {}/{} public \
+                                                                   origin key. Giving up.",
+                                                                  RETRIES, &name, &rev)))
+          })?;
     }
 
     ui.end(format!("Upload of public origin key {} complete.", &name_with_rev))?;
@@ -60,13 +60,14 @@ pub fn start(ui: &mut UI,
         let name_with_rev = get_name_with_rev(&secret_keyfile, SECRET_SIG_KEY_VERSION)?;
         let (name, rev) = parse_name_with_rev(&name_with_rev)?;
 
-        let upload_fn = || -> Result<()> {
+        retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
             ui.status(Status::Uploading, secret_keyfile.display())?;
             match api_client.put_origin_secret_key(&name,
                                                    &rev,
                                                    secret_keyfile,
                                                    token,
                                                    ui.progress())
+                            .await
             {
                 Ok(()) => {
                     ui.status(Status::Uploaded, &name_with_rev)?;
@@ -75,14 +76,13 @@ pub fn start(ui: &mut UI,
                 }
                 Err(e) => Err(Error::APIClient(e)),
             }
-        };
-
-        retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), upload_fn).map_err(|_| {
-            Error::from(api_client::Error::UploadFailed(format!("We tried {} times but could \
-                                                                 not upload {}/{} secret origin \
-                                                                 key. Giving up.",
-                                                                RETRIES, &name, &rev)))
-        })?;
+        }).await
+          .map_err(|_| {
+              Error::from(api_client::Error::UploadFailed(format!("We tried {} times but could \
+                                                                   not upload {}/{} secret \
+                                                                   origin key. Giving up.",
+                                                                  RETRIES, &name, &rev)))
+          })?;
     }
     Ok(())
 }

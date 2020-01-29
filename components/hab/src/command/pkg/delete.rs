@@ -30,16 +30,16 @@ use reqwest::StatusCode;
 /// # Failures
 ///
 /// * Fails if it cannot find the specified package in Builder
-pub fn start(ui: &mut UI,
-             bldr_url: &str,
-             (ident, target): (&PackageIdent, PackageTarget),
-             token: &str)
-             -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   bldr_url: &str,
+                   (ident, target): (&PackageIdent, PackageTarget),
+                   token: &str)
+                   -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!("Deleting {} ({}) from Builder", ident, target))?;
 
-    if let Err(err) = api_client.delete_package((ident, target), token) {
+    if let Err(err) = api_client.delete_package((ident, target), token).await {
         println!("Failed to delete '{}': {:?}", ident, err);
         if let api_client::Error::APIError(StatusCode::NOT_FOUND, _) = err {
             println!("You may need to specify a platform target argument");

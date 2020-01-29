@@ -4,17 +4,17 @@ use crate::common::ui::UI;
 
 use crate::error::Result;
 
-pub fn start(ui: &mut UI,
-             args: &[OsString],
-             export_cmd: &str,
-             export_pkg_ident: &str,
-             export_pkg_ident_envvar: &str)
-             -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   args: &[OsString],
+                   export_cmd: &str,
+                   export_pkg_ident: &str,
+                   export_pkg_ident_envvar: &str)
+                   -> Result<()> {
     inner::start(ui,
                  args,
                  export_cmd,
                  export_pkg_ident,
-                 export_pkg_ident_envvar)
+                 export_pkg_ident_envvar).await
 }
 
 #[cfg(not(target_os = "macos"))]
@@ -34,12 +34,12 @@ mod inner {
                 exec,
                 VERSION};
 
-    pub fn start(ui: &mut UI,
-                 args: &[OsString],
-                 export_cmd: &str,
-                 export_pkg_ident: &str,
-                 export_pkg_ident_envvar: &str)
-                 -> Result<()> {
+    pub async fn start(ui: &mut UI,
+                       args: &[OsString],
+                       export_cmd: &str,
+                       export_pkg_ident: &str,
+                       export_pkg_ident_envvar: &str)
+                       -> Result<()> {
         crypto::init();
         let ident = match henv::var(export_pkg_ident_envvar) {
             Ok(ref ident_str) => PackageIdent::from_str(ident_str)?,
@@ -49,7 +49,7 @@ mod inner {
             }
         };
 
-        let command = exec::command_from_min_pkg(ui, export_cmd, &ident)?;
+        let command = exec::command_from_min_pkg(ui, export_cmd, &ident).await?;
 
         if let Some(cmd) = find_command(&command) {
             command::pkg::exec::start(&ident, cmd, args)
@@ -69,12 +69,12 @@ mod inner {
     use crate::error::{Error,
                        Result};
 
-    pub fn start(ui: &mut UI,
-                 _args: &[OsString],
-                 export_cmd: &str,
-                 _export_pkg_ident: &str,
-                 _export_pkg_ident_envvar: &str)
-                 -> Result<()> {
+    pub async fn start(ui: &mut UI,
+                       _args: &[OsString],
+                       export_cmd: &str,
+                       _export_pkg_ident: &str,
+                       _export_pkg_ident_envvar: &str)
+                       -> Result<()> {
         let cmd = export_cmd.replace("hab", "").replace("-", " ");
         ui.warn(format!("Running 'hab {}' on this operating system is not yet supported. Try \
                          running this command again on 64-bit Linux.",

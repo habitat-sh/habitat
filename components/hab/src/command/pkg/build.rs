@@ -6,14 +6,14 @@ use crate::{command::studio,
             error::Result};
 
 #[allow(clippy::too_many_arguments)]
-pub fn start(ui: &mut UI,
-             plan_context: &str,
-             root: Option<&str>,
-             src: Option<&str>,
-             keys: Option<&str>,
-             reuse: bool,
-             docker: bool)
-             -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   plan_context: &str,
+                   root: Option<&str>,
+                   src: Option<&str>,
+                   keys: Option<&str>,
+                   reuse: bool,
+                   docker: bool)
+                   -> Result<()> {
     let mut args: Vec<OsString> = Vec::new();
     if let Some(root) = root {
         args.push("-r".into());
@@ -35,5 +35,5 @@ pub fn start(ui: &mut UI,
     if studio::native_studio_support() && docker {
         args.push("-D".into());
     }
-    studio::enter::start(ui, &args)
+    studio::enter::start(ui, &args).await
 }

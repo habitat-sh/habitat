@@ -9,12 +9,12 @@ use crate::{api_client::{self,
             VERSION};
 use reqwest::StatusCode;
 
-pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Result<()> {
+pub async fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(Status::Creating, format!("origin {}.", origin))?;
 
-    match api_client.create_origin(origin, token) {
+    match api_client.create_origin(origin, token).await {
         Ok(_) => {
             ui.status(Status::Created, format!("origin {}.", origin))?;
             Ok(())
