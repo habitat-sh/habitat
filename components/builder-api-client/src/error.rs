@@ -15,7 +15,7 @@ pub type Result<T> = result::Result<T, Error>;
 #[derive(Debug)]
 pub enum Error {
     APIError(reqwest::StatusCode, String),
-    BadResponseBody(io::Error),
+    BadResponseBody(reqwest::Error),
     DownloadWrite(PathBuf, io::Error),
     HabitatCore(hab_core::Error),
     HabitatHttpClient(hab_http::Error),

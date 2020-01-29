@@ -10,6 +10,7 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 
+mod allow_std_io;
 pub mod builder;
 pub mod error;
 pub mod response;
@@ -33,7 +34,7 @@ pub use crate::{builder::BuilderAPIClient,
                 error::{Error,
                         Result}};
 
-pub trait DisplayProgress: Write + Send {
+pub trait DisplayProgress: Write + Send + Sync {
     fn size(&mut self, size: u64);
     fn finish(&mut self);
 }

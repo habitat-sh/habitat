@@ -1,4 +1,5 @@
-use crate::{error::{Error,
+use crate::{allow_std_io::AllowStdIo,
+            error::{Error,
                     Result},
             hab_core::{crypto::keys::box_key_pair::WrappedSealedBox,
                        fs::AtomicWriter,
@@ -8,8 +9,7 @@ use crate::{error::{Error,
                                  PackageTarget},
                        ChannelIdent},
             hab_http::ApiClient,
-            response::{err_from_response,
-                       ResponseExt},
+            response,
             BuildOnUpload,
             DisplayProgress,
             OriginKeyIdent,
@@ -20,22 +20,27 @@ use crate::{error::{Error,
             SchedulerResponse,
             UserOriginInvitationsResponse};
 use broadcast::BroadcastWriter;
+use bytes::BytesMut;
+use futures::stream::TryStreamExt;
 use percent_encoding::{percent_encode,
                        AsciiSet,
                        CONTROLS};
-use reqwest::{blocking::{Body,
-                         RequestBuilder},
-              header::CONTENT_LENGTH,
+use reqwest::{header::CONTENT_LENGTH,
+              Body,
               IntoUrl,
+              RequestBuilder,
               StatusCode};
 use std::{fs::{self,
                File},
+          future::Future,
           io::{self,
-               Read},
+               Cursor},
           path::{Path,
                  PathBuf},
           string::ToString};
 use tee::TeeReader;
+use tokio_util::codec::{BytesCodec,
+                        FramedRead};
 use url::Url;
 
 const X_FILENAME: &str = "x-filename";
@@ -166,75 +171,103 @@ impl BuilderAPIClient {
         }
     }
 
-    fn download(&self,
-                rb: RequestBuilder,
-                dst_path: &Path,
-                token: Option<&str>,
-                progress: Option<Box<dyn DisplayProgress>>)
-                -> Result<PathBuf> {
+    async fn download<'a>(&'a self,
+                          rb: RequestBuilder,
+                          dst_path: &'a Path,
+                          token: Option<&'a str>,
+                          progress: Option<Box<dyn DisplayProgress>>)
+                          -> Result<PathBuf> {
         debug!("Downloading file to path: {}", dst_path.display());
-        let mut resp = self.maybe_add_authz(rb, token).send()?;
-        resp.ok_if(&[StatusCode::OK])?;
+        let resp = self.maybe_add_authz(rb, token).send().await?;
+        let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
 
         fs::create_dir_all(&dst_path)?;
-        let file_name = resp.get_header(X_FILENAME)?;
+        let file_name = response::get_header(&resp, X_FILENAME)?;
         let dst_file_path = dst_path.join(file_name);
         let w = AtomicWriter::new(&dst_file_path)?;
+        let content_length = response::get_header(&resp, CONTENT_LENGTH);
+        let mut body = Cursor::new(resp.bytes().await?);
+        // WARNING: This is a blocking write. It has the potential to block the `tokio` runtime. The
+        // blocking implementation is used to allow use of `DisplayProgress` which uses the `Write`
+        // trait.
         w.with_writer(|mut f| {
              // There will be no CONTENT_LENGTH header if an on prem
              // builder is using chunked transfer encoding
-             match (progress, resp.get_header(CONTENT_LENGTH)) {
-                 (Some(mut progress), Ok(header)) => {
-                     let size = header.parse().map_err(Error::ParseIntError)?;
+             match (progress, content_length) {
+                 (Some(mut progress), Ok(content_length)) => {
+                     let size = content_length.parse().map_err(Error::ParseIntError)?;
                      progress.size(size);
                      let mut writer = BroadcastWriter::new(&mut f, progress);
-                     io::copy(&mut resp, &mut writer).map_err(Error::IO)
+                     io::copy(&mut body, &mut writer).map_err(Error::IO)
                  }
-                 _ => io::copy(&mut resp, &mut f).map_err(Error::IO),
+                 _ => io::copy(&mut body, &mut f).map_err(Error::IO),
              }
          })?;
         Ok(dst_file_path)
     }
 
-    fn seach_package_with_range(&self,
-                                search_term: &str,
-                                token: Option<&str>,
-                                range: usize)
-                                -> Result<(PackageResults<PackageIdent>, bool)> {
+    fn upload_body(src_path: &Path, progress: Option<Box<dyn DisplayProgress>>) -> Result<Body> {
+        let file =
+            File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
+        let file_size = file.metadata()
+                            .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
+                            .len();
+
+        // WARNING: This uses a blocking read. It has the potential to block the `tokio` runtime.
+        // The blocking implementation is used to allow use of `DisplayProgress` which uses the
+        // `Write` trait.
+        Ok(if let Some(mut progress) = progress {
+            progress.size(file_size);
+            let reader = AllowStdIo::new(TeeReader::new(file, progress));
+            let reader = FramedRead::new(reader, BytesCodec::new()).map_ok(BytesMut::freeze);
+            Body::wrap_stream(reader)
+        } else {
+            let reader = AllowStdIo::new(file);
+            let reader = FramedRead::new(reader, BytesCodec::new()).map_ok(BytesMut::freeze);
+            Body::wrap_stream(reader)
+        })
+    }
+
+    async fn seach_package_with_range(&self,
+                                      search_term: &str,
+                                      token: Option<&str>,
+                                      range: usize)
+                                      -> Result<(PackageResults<PackageIdent>, bool)> {
         debug!("Searching for package {} with range {}", search_term, range);
         let req = self.0
                       .get_with_custom_url(&package_search(search_term), |url| {
                           url.set_query(Some(&format!("range={:?}&distinct=true", range)));
                       });
-        let mut resp = self.maybe_add_authz(req, token).send()?;
-        debug!("Response Status: {:?}", resp.status());
+        let resp = self.maybe_add_authz(req, token).send().await?;
+        let status = resp.status();
+        debug!("Response Status: {:?}", status);
 
-        if resp.status() == StatusCode::OK || resp.status() == StatusCode::PARTIAL_CONTENT {
-            let mut encoded = String::new();
-            resp.read_to_string(&mut encoded)
-                .map_err(Error::BadResponseBody)?;
+        if status == StatusCode::OK || status == StatusCode::PARTIAL_CONTENT {
+            let encoded = resp.text().await.map_err(Error::BadResponseBody)?;
             trace!(target: "habitat_http_client::api_client::search_package", "{:?}", encoded);
 
-            Ok((serde_json::from_str(&encoded)?, resp.status() == StatusCode::PARTIAL_CONTENT))
+            Ok((serde_json::from_str(&encoded)?, status == StatusCode::PARTIAL_CONTENT))
         } else {
-            Err(err_from_response(&mut resp))
+            Err(response::err_from_response(resp).await)
         }
     }
 
-    fn search_package_impl(&self,
-                           search_term: &str,
-                           limit: usize,
-                           token: Option<&str>,
-                           search_with_range: impl Fn(&BuilderAPIClient,
-                              &str,
-                              Option<&str>,
-                              usize)
-                              -> Result<(PackageResults<PackageIdent>, bool)>)
-                           -> Result<(Vec<PackageIdent>, usize)> {
+    async fn search_package_impl<'a, F>(&'a self,
+                                        search_term: &'a str,
+                                        limit: usize,
+                                        token: Option<&'a str>,
+                                        search_with_range: impl Fn(&'a BuilderAPIClient,
+                                           &'a str,
+                                           Option<&'a str>,
+                                           usize)
+                                           -> F)
+                                        -> Result<(Vec<PackageIdent>, usize)>
+        where F: Future<Output = Result<(PackageResults<PackageIdent>, bool)>>
+    {
         let mut packages = Vec::new();
         loop {
             let (mut package_results, more_to_come) =
-                search_with_range(self, search_term, token, packages.len())?;
+                search_with_range(self, search_term, token, packages.len()).await?;
             packages.append(&mut package_results.data);
 
             if packages.len() >= limit || !more_to_come {
@@ -249,10 +282,10 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn get_origin_schedule(&self,
-                               origin: &str,
-                               limit: usize)
-                               -> Result<Vec<SchedulerResponse>> {
+    pub async fn get_origin_schedule(&self,
+                                     origin: &str,
+                                     limit: usize)
+                                     -> Result<Vec<SchedulerResponse>> {
         debug!("Retrieving status for job groups in the {} origin (limit: {})",
                origin, limit);
 
@@ -263,10 +296,10 @@ impl BuilderAPIClient {
                .append_pair("limit", &limit.to_string());
         };
 
-        let mut resp = self.0.get_with_custom_url(&path, custom).send()?;
-        resp.ok_if(&[StatusCode::OK])?;
+        let resp = self.0.get_with_custom_url(&path, custom).send().await?;
+        let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
 
-        Ok(resp.json()?)
+        Ok(resp.json().await?)
     }
 
     /// Retrieves the status of a group job
@@ -274,7 +307,10 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn get_schedule(&self, group_id: i64, include_projects: bool) -> Result<SchedulerResponse> {
+    pub async fn get_schedule(&self,
+                              group_id: i64,
+                              include_projects: bool)
+                              -> Result<SchedulerResponse> {
         debug!("Retrieving schedule for job group {} (include_projects: {})",
                group_id, include_projects);
 
@@ -285,10 +321,10 @@ impl BuilderAPIClient {
                .append_pair("include_projects", &include_projects.to_string());
         };
 
-        let mut resp = self.0.get_with_custom_url(&path, custom).send()?;
-        resp.ok_if(&[StatusCode::OK])?;
+        let resp = self.0.get_with_custom_url(&path, custom).send().await?;
+        let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
 
-        Ok(resp.json()?)
+        Ok(resp.json().await?)
     }
 
     /// Schedules a job for a package ident
@@ -297,11 +333,11 @@ impl BuilderAPIClient {
     ///
     /// * Key cannot be found
     /// * Remote Builder is not available
-    pub fn schedule_job(&self,
-                        (ident, target): (&PackageIdent, PackageTarget),
-                        package_only: bool,
-                        token: &str)
-                        -> Result<String> {
+    pub async fn schedule_job(&self,
+                              (ident, target): (&PackageIdent, PackageTarget),
+                              package_only: bool,
+                              token: &str)
+                              -> Result<String> {
         debug!("Scheduling job for {}, {}", ident, target);
 
         let path = format!("depot/pkgs/schedule/{}/{}", ident.origin(), ident.name());
@@ -312,17 +348,18 @@ impl BuilderAPIClient {
                .append_pair("target", &target.to_string());
         };
 
-        let mut resp = self.0
-                           .post_with_custom_url(&path, custom)
-                           .bearer_auth(token)
-                           .send()?;
+        let resp = self.0
+                       .post_with_custom_url(&path, custom)
+                       .bearer_auth(token)
+                       .send()
+                       .await?;
         debug!("Response Status: {:?}", resp.status());
 
         if resp.status() == StatusCode::CREATED || resp.status() == StatusCode::OK {
-            let sr: SchedulerResponse = resp.json()?;
+            let sr: SchedulerResponse = resp.json().await?;
             Ok(sr.id)
         } else {
-            Err(err_from_response(&mut resp))
+            Err(response::err_from_response(resp).await)
         }
     }
 
@@ -331,24 +368,24 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote API Server is not available
-    pub fn fetch_rdeps(&self,
-                       (ident, target): (&PackageIdent, PackageTarget),
-                       token: &str)
-                       -> Result<Vec<String>> {
+    pub async fn fetch_rdeps(&self,
+                             (ident, target): (&PackageIdent, PackageTarget),
+                             token: &str)
+                             -> Result<Vec<String>> {
         debug!("Fetching the reverse dependencies for {}", ident);
 
         let url = format!("rdeps/{}", ident);
 
-        let mut resp = self.0
-                           .get_with_custom_url(&url, |u| {
-                               u.set_query(Some(&format!("target={}", &target.to_string())))
-                           })
-                           .bearer_auth(token)
-                           .send()?;
-        resp.ok_if(&[StatusCode::OK])?;
+        let resp = self.0
+                       .get_with_custom_url(&url, |u| {
+                           u.set_query(Some(&format!("target={}", &target.to_string())))
+                       })
+                       .bearer_auth(token)
+                       .send()
+                       .await?;
+        let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
 
-        let mut encoded = String::new();
-        resp.read_to_string(&mut encoded).map_err(Error::IO)?;
+        let encoded = resp.text().await.map_err(Error::BadResponseBody)?;
         trace!(target: "habitat_http_client::api_client::fetch_rdeps", "{:?}", encoded);
 
         let rd: ReverseDependencies = serde_json::from_str(&encoded).map_err(Error::Json)?;
@@ -360,13 +397,13 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote API Server is not available
-    pub fn job_group_promote_or_demote(&self,
-                                       group_id: u64,
-                                       idents: &[String],
-                                       channel: &ChannelIdent,
-                                       token: &str,
-                                       promote: bool)
-                                       -> Result<()> {
+    pub async fn job_group_promote_or_demote(&self,
+                                             group_id: u64,
+                                             idents: &[String],
+                                             channel: &ChannelIdent,
+                                             token: &str,
+                                             promote: bool)
+                                             -> Result<()> {
         debug!("{} for group: {}, channel: {}",
                group_id,
                channel,
@@ -380,12 +417,13 @@ impl BuilderAPIClient {
                           if promote { "promote" } else { "demote" },
                           channel);
 
-        self.0
-            .post(&url)
-            .bearer_auth(token)
-            .json(&body)
-            .send()?
-            .ok_if(&[StatusCode::NO_CONTENT])
+        response::ok_if_unit(self.0
+                                 .post(&url)
+                                 .bearer_auth(token)
+                                 .json(&body)
+                                 .send()
+                                 .await?,
+                             &[StatusCode::NO_CONTENT]).await
     }
 
     /// Cancel a job group
@@ -393,16 +431,13 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote API Server is not available
-    pub fn job_group_cancel(&self, group_id: u64, token: &str) -> Result<()> {
+    pub async fn job_group_cancel(&self, group_id: u64, token: &str) -> Result<()> {
         debug!("Canceling job group: {}", group_id);
 
         let url = format!("jobs/group/{}/cancel", group_id);
 
-        self.0
-            .post(&url)
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::NO_CONTENT])
+        response::ok_if_unit(self.0.post(&url).bearer_auth(token).send().await?,
+                             &[StatusCode::NO_CONTENT]).await
     }
 
     /// Download a public encryption key from a remote Builder to the given filepath.
@@ -412,17 +447,18 @@ impl BuilderAPIClient {
     /// * Key cannot be found
     /// * Remote Builder is not available
     /// * File cannot be created and written to
-    pub fn fetch_origin_public_encryption_key(&self,
-                                              origin: &str,
-                                              token: &str,
-                                              dst_path: &Path,
-                                              progress: Option<Box<dyn DisplayProgress>>)
-                                              -> Result<PathBuf> {
+    pub async fn fetch_origin_public_encryption_key<'a>(&'a self,
+                                                        origin: &'a str,
+                                                        token: &'a str,
+                                                        dst_path: &'a Path,
+                                                        progress: Option<Box<dyn DisplayProgress>>)
+                                                        -> Result<PathBuf> {
         self.download(self.0
                           .get(&format!("depot/origins/{}/encryption_key", origin)),
                       dst_path.as_ref(),
                       Some(token),
                       progress)
+            .await
     }
 
     /// Create an origin
@@ -431,17 +467,18 @@ impl BuilderAPIClient {
     ///
     ///  * Remote builder is not available
     ///  * Unable to authenticate
-    pub fn create_origin(&self, origin: &str, token: &str) -> Result<()> {
+    pub async fn create_origin(&self, origin: &str, token: &str) -> Result<()> {
         let body = json!({
             "name": origin,
         });
 
-        self.0
-            .post("depot/origins")
-            .bearer_auth(token)
-            .json(&body)
-            .send()?
-            .ok_if(&[StatusCode::CREATED])
+        response::ok_if_unit(self.0
+                                 .post("depot/origins")
+                                 .bearer_auth(token)
+                                 .json(&body)
+                                 .send()
+                                 .await?,
+                             &[StatusCode::CREATED]).await
     }
 
     /// Create secret for an origin
@@ -449,12 +486,12 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn create_origin_secret(&self,
-                                origin: &str,
-                                token: &str,
-                                key_name: &str,
-                                secret: &WrappedSealedBox)
-                                -> Result<()> {
+    pub async fn create_origin_secret(&self,
+                                      origin: &str,
+                                      token: &str,
+                                      key_name: &str,
+                                      secret: &WrappedSealedBox<'_>)
+                                      -> Result<()> {
         debug!("Creating origin secret: {}, {}", origin, key_name);
 
         let path = format!("depot/origins/{}/secret", origin);
@@ -463,12 +500,13 @@ impl BuilderAPIClient {
             "value": secret
         });
 
-        self.0
-            .post(&path)
-            .bearer_auth(token)
-            .json(&body)
-            .send()?
-            .ok_if(&[StatusCode::CREATED])
+        response::ok_if_unit(self.0
+                                 .post(&path)
+                                 .bearer_auth(token)
+                                 .json(&body)
+                                 .send()
+                                 .await?,
+                             &[StatusCode::CREATED]).await
     }
 
     /// Delete a secret for an origin
@@ -476,7 +514,11 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn delete_origin_secret(&self, origin: &str, token: &str, key_name: &str) -> Result<()> {
+    pub async fn delete_origin_secret(&self,
+                                      origin: &str,
+                                      token: &str,
+                                      key_name: &str)
+                                      -> Result<()> {
         debug!("Deleting origin secret: {}, {}", origin, key_name);
 
         let path = format!("depot/origins/{}/secret/{}", origin, key_name);
@@ -484,11 +526,8 @@ impl BuilderAPIClient {
         // Originally, we only returned an Ok result if the response was StatusCode::NO_CONTENT
         // (HTTP 204). However the Bldr API appears to always have returned HTTP 200. We'll accept
         // either as indicators of a successful operation moving forward.
-        self.0
-            .delete(&path)
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::NO_CONTENT, StatusCode::OK])
+        response::ok_if_unit(self.0.delete(&path).bearer_auth(token).send().await?,
+                             &[StatusCode::NO_CONTENT, StatusCode::OK]).await
     }
 
     /// Check an origin exists
@@ -497,16 +536,13 @@ impl BuilderAPIClient {
     ///
     ///  * Origin is not found
     ///  * Remote Builder is not available
-    pub fn check_origin(&self, origin: &str, token: &str) -> Result<()> {
+    pub async fn check_origin(&self, origin: &str, token: &str) -> Result<()> {
         debug!("Checking for existence of origin: {}", origin);
 
         let path = format!("depot/origins/{}", origin);
 
-        self.0
-            .get(&path)
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::OK])
+        response::ok_if_unit(self.0.get(&path).bearer_auth(token).send().await?,
+                             &[StatusCode::OK]).await
     }
 
     /// Delete an origin
@@ -516,16 +552,13 @@ impl BuilderAPIClient {
     ///  * Remote builder is not available
     ///  * Origin is populated with > 0 packages
     ///  * Submitted Origin is not found
-    pub fn delete_origin(&self, origin: &str, token: &str) -> Result<()> {
+    pub async fn delete_origin(&self, origin: &str, token: &str) -> Result<()> {
         debug!("Deleting origin: {}", origin);
 
         let path = format!("depot/origins/{}", origin);
 
-        self.0
-            .delete(&path)
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::NO_CONTENT])
+        response::ok_if_unit(self.0.delete(&path).bearer_auth(token).send().await?,
+                             &[StatusCode::NO_CONTENT]).await
     }
 
     /// Transfer ownership of an origin to a new account
@@ -537,20 +570,17 @@ impl BuilderAPIClient {
     ///  * Account is not a member of the origin
     ///  * Account does not exist
     ///  * Origin does not exist
-    pub fn transfer_origin_ownership(&self,
-                                     origin: &str,
-                                     token: &str,
-                                     account: &str)
-                                     -> Result<()> {
+    pub async fn transfer_origin_ownership(&self,
+                                           origin: &str,
+                                           token: &str,
+                                           account: &str)
+                                           -> Result<()> {
         debug!("Transferring ownership of {} origin to {}", origin, account);
 
         let path = format!("depot/origins/{}/transfer/{}", origin, account);
 
-        self.0
-            .post(&path)
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::NO_CONTENT])
+        response::ok_if_unit(self.0.post(&path).bearer_auth(token).send().await?,
+                             &[StatusCode::NO_CONTENT]).await
     }
 
     ///  Depart membership from an origin
@@ -562,16 +592,13 @@ impl BuilderAPIClient {
     ///  * Account is not a member of the origin
     ///  * Account does not exist
     ///  * Origin does not exist
-    pub fn depart_origin(&self, origin: &str, token: &str) -> Result<()> {
+    pub async fn depart_origin(&self, origin: &str, token: &str) -> Result<()> {
         debug!("Departing membership of origin {}", origin);
 
         let path = format!("depot/origins/{}/depart", origin);
 
-        self.0
-            .post(&path)
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::NO_CONTENT])
+        response::ok_if_unit(self.0.post(&path).bearer_auth(token).send().await?,
+                             &[StatusCode::NO_CONTENT]).await
     }
 
     /// Accepts an origin member invitation
@@ -589,21 +616,18 @@ impl BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<()>
-    pub fn accept_origin_invitation(&self,
-                                    origin: &str,
-                                    token: &str,
-                                    invitation_id: u64)
-                                    -> Result<()> {
+    pub async fn accept_origin_invitation(&self,
+                                          origin: &str,
+                                          token: &str,
+                                          invitation_id: u64)
+                                          -> Result<()> {
         debug!("Accepting invitation id {} in origin {}",
                invitation_id, origin);
 
         let path = format!("depot/origins/{}/invitations/{}", origin, invitation_id);
 
-        self.0
-            .put(&path)
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::NO_CONTENT])
+        response::ok_if_unit(self.0.put(&path).bearer_auth(token).send().await?,
+                             &[StatusCode::NO_CONTENT]).await
     }
 
     /// Marks an origin member invitation ignored
@@ -623,22 +647,19 @@ impl BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<()>
-    pub fn ignore_origin_invitation(&self,
-                                    origin: &str,
-                                    token: &str,
-                                    invitation_id: u64)
-                                    -> Result<()> {
+    pub async fn ignore_origin_invitation(&self,
+                                          origin: &str,
+                                          token: &str,
+                                          invitation_id: u64)
+                                          -> Result<()> {
         debug!("Marking invitation {} in origin {} ignored",
                invitation_id, origin);
 
         let path = format!("depot/origins/{}/invitations/{}/ignore",
                            origin, invitation_id);
 
-        self.0
-            .put(&path)
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::NO_CONTENT])
+        response::ok_if_unit(self.0.put(&path).bearer_auth(token).send().await?,
+                             &[StatusCode::NO_CONTENT]).await
     }
 
     /// Retrieves origin member invitations for current user
@@ -657,13 +678,15 @@ impl BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<UserOriginInvitationsResponse>
-    pub fn list_user_invitations(&self, token: &str) -> Result<UserOriginInvitationsResponse> {
+    pub async fn list_user_invitations(&self,
+                                       token: &str)
+                                       -> Result<UserOriginInvitationsResponse> {
         let path = "user/invitations";
 
-        let mut resp = self.0.get(&path).bearer_auth(token).send()?;
-        resp.ok_if(&[StatusCode::OK])?;
+        let resp = self.0.get(&path).bearer_auth(token).send().await?;
+        let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
 
-        Ok(resp.json()?)
+        Ok(resp.json().await?)
     }
 
     /// Retrieves pending origin member invitations
@@ -683,17 +706,17 @@ impl BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<PendingOriginInvitationsResponse>
-    pub fn list_pending_origin_invitations(&self,
-                                           origin: &str,
-                                           token: &str)
-                                           -> Result<PendingOriginInvitationsResponse> {
+    pub async fn list_pending_origin_invitations(&self,
+                                                 origin: &str,
+                                                 token: &str)
+                                                 -> Result<PendingOriginInvitationsResponse> {
         debug!("Retrieving pending invitations in origin {}", origin);
         let path = format!("depot/origins/{}/invitations", origin);
 
-        let mut resp = self.0.get(&path).bearer_auth(token).send()?;
-        resp.ok_if(&[StatusCode::OK])?;
+        let resp = self.0.get(&path).bearer_auth(token).send().await?;
+        let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
 
-        Ok(resp.json()?)
+        Ok(resp.json().await?)
     }
 
     /// Rescind an origin member invitation
@@ -713,21 +736,18 @@ impl BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<()>
-    pub fn rescind_origin_invitation(&self,
-                                     origin: &str,
-                                     token: &str,
-                                     invitation_id: u64)
-                                     -> Result<()> {
+    pub async fn rescind_origin_invitation(&self,
+                                           origin: &str,
+                                           token: &str,
+                                           invitation_id: u64)
+                                           -> Result<()> {
         debug!("Rescinding invitation {} in origin {}",
                invitation_id, origin);
 
         let path = format!("depot/origins/{}/invitations/{}", origin, invitation_id);
 
-        self.0
-            .delete(&path)
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::NO_CONTENT])
+        response::ok_if_unit(self.0.delete(&path).bearer_auth(token).send().await?,
+                             &[StatusCode::NO_CONTENT]).await
     }
 
     /// Send an origin member invitation
@@ -748,22 +768,19 @@ impl BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<()>
-    pub fn send_origin_invitation(&self,
-                                  origin: &str,
-                                  token: &str,
-                                  invitee_account: &str)
-                                  -> Result<()> {
+    pub async fn send_origin_invitation(&self,
+                                        origin: &str,
+                                        token: &str,
+                                        invitee_account: &str)
+                                        -> Result<()> {
         debug!("Sending an invitation to {} for origin {}",
                invitee_account, origin);
 
         let path = format!("depot/origins/{}/users/{}/invitations",
                            origin, invitee_account);
 
-        self.0
-            .post(&path)
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::CREATED])
+        response::ok_if_unit(self.0.post(&path).bearer_auth(token).send().await?,
+                             &[StatusCode::CREATED]).await
     }
 
     /// List all secrets keys for an origin
@@ -771,16 +788,14 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn list_origin_secrets(&self, origin: &str, token: &str) -> Result<Vec<String>> {
+    pub async fn list_origin_secrets(&self, origin: &str, token: &str) -> Result<Vec<String>> {
         debug!("Listing origin secret: {}", origin);
 
         let path = format!("depot/origins/{}/secret", origin);
-        let mut resp = self.0.get(&path).bearer_auth(token).send()?;
-        resp.ok_if(&[StatusCode::OK])?;
+        let resp = self.0.get(&path).bearer_auth(token).send().await?;
+        let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
 
-        let mut encoded = String::new();
-        resp.read_to_string(&mut encoded)
-            .map_err(Error::BadResponseBody)?;
+        let encoded = resp.text().await.map_err(Error::BadResponseBody)?;
         trace!(target: "habitat_http_client::api_client::list_origin_secrets", "{:?}", encoded);
 
         Ok(serde_json::from_str::<Vec<OriginSecret>>(&encoded)?.into_iter()
@@ -795,18 +810,19 @@ impl BuilderAPIClient {
     /// * Key cannot be found
     /// * Remote Builder is not available
     /// * File cannot be created and written to
-    pub fn fetch_origin_key(&self,
-                            origin: &str,
-                            revision: &str,
-                            _token: Option<&str>,
-                            dst_path: &Path,
-                            progress: Option<Box<dyn DisplayProgress>>)
-                            -> Result<PathBuf> {
+    pub async fn fetch_origin_key<'a>(&'a self,
+                                      origin: &'a str,
+                                      revision: &'a str,
+                                      _token: Option<&'a str>,
+                                      dst_path: &'a Path,
+                                      progress: Option<Box<dyn DisplayProgress>>)
+                                      -> Result<PathBuf> {
         self.download(self.0
                           .get(&format!("depot/origins/{}/keys/{}", origin, revision)),
                       dst_path.as_ref(),
                       None,
                       progress)
+            .await
     }
 
     /// Download a secret key from a remote Builder to the given filepath.
@@ -816,28 +832,27 @@ impl BuilderAPIClient {
     /// * Key cannot be found
     /// * Remote Builder is not available
     /// * File cannot be created and written to
-    pub fn fetch_secret_origin_key(&self,
-                                   origin: &str,
-                                   token: &str,
-                                   dst_path: &Path,
-                                   progress: Option<Box<dyn DisplayProgress>>)
-                                   -> Result<PathBuf> {
+    pub async fn fetch_secret_origin_key<'a>(&'a self,
+                                             origin: &'a str,
+                                             token: &'a str,
+                                             dst_path: &'a Path,
+                                             progress: Option<Box<dyn DisplayProgress>>)
+                                             -> Result<PathBuf> {
         self.download(self.0
                           .get(&format!("depot/origins/{}/secret_keys/latest", origin)),
                       dst_path.as_ref(),
                       Some(token),
                       progress)
+            .await
     }
 
-    pub fn show_origin_keys(&self, origin: &str) -> Result<Vec<OriginKeyIdent>> {
+    pub async fn show_origin_keys(&self, origin: &str) -> Result<Vec<OriginKeyIdent>> {
         debug!("Showing origin keys: {}", origin);
 
-        let mut resp = self.0.get(&origin_keys_path(origin)).send()?;
-        resp.ok_if(&[StatusCode::OK])?;
+        let resp = self.0.get(&origin_keys_path(origin)).send().await?;
+        let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
 
-        let mut encoded = String::new();
-        resp.read_to_string(&mut encoded)
-            .map_err(Error::BadResponseBody)?;
+        let encoded = resp.text().await.map_err(Error::BadResponseBody)?;
         trace!(target: "habitat_http_client::api_client::show_origin_keys", "{:?}", encoded);
 
         Ok(serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded)?)
@@ -849,10 +864,10 @@ impl BuilderAPIClient {
     ///
     /// * Remote Builder is not available
     /// * Package does not exist
-    pub fn package_channels(&self,
-                            (ident, target): (&PackageIdent, PackageTarget),
-                            token: Option<&str>)
-                            -> Result<Vec<String>> {
+    pub async fn package_channels(&self,
+                                  (ident, target): (&PackageIdent, PackageTarget),
+                                  token: Option<&str>)
+                                  -> Result<Vec<String>> {
         debug!("Retrieving channels for {}, target {}", ident, target);
 
         if !ident.fully_qualified() {
@@ -866,13 +881,12 @@ impl BuilderAPIClient {
                .append_pair("target", &target.to_string());
         };
 
-        let mut resp = self.maybe_add_authz(self.0.get_with_custom_url(&path, custom), token)
-                           .send()?;
-        resp.ok_if(&[StatusCode::OK])?;
+        let resp = self.maybe_add_authz(self.0.get_with_custom_url(&path, custom), token)
+                       .send()
+                       .await?;
+        let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
 
-        let mut encoded = String::new();
-        resp.read_to_string(&mut encoded)
-            .map_err(Error::BadResponseBody)?;
+        let encoded = resp.text().await.map_err(Error::BadResponseBody)?;
         trace!(target: "habitat_http_client::api_client::package_channels", "{:?}", encoded);
 
         Ok(serde_json::from_str::<Vec<String>>(&encoded)?.into_iter()
@@ -889,31 +903,24 @@ impl BuilderAPIClient {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    pub fn put_origin_key(&self,
-                          origin: &str,
-                          revision: &str,
-                          src_path: &Path,
-                          token: &str,
-                          progress: Option<Box<dyn DisplayProgress>>)
-                          -> Result<()> {
+    pub async fn put_origin_key<'a>(&'a self,
+                                    origin: &'a str,
+                                    revision: &'a str,
+                                    src_path: &'a Path,
+                                    token: &'a str,
+                                    progress: Option<Box<dyn DisplayProgress>>)
+                                    -> Result<()> {
         debug!("Uploading origin key: {}, {}", origin, revision);
 
         let path = format!("depot/origins/{}/keys/{}", &origin, &revision);
-        let file =
-            File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
-        let file_size = file.metadata()
-                            .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
-                            .len();
-
-        let body = if let Some(mut progress) = progress {
-            progress.size(file_size);
-            let reader = TeeReader::new(file, progress);
-            Body::sized(reader, file_size)
-        } else {
-            Body::sized(file, file_size)
-        };
-        let mut resp = self.0.post(&path).bearer_auth(token).body(body).send()?;
-        resp.ok_if(&[StatusCode::OK, StatusCode::CREATED])
+        let body = Self::upload_body(src_path, progress)?;
+        let resp = self.0
+                       .post(&path)
+                       .bearer_auth(token)
+                       .body(body)
+                       .send()
+                       .await?;
+        response::ok_if_unit(resp, &[StatusCode::OK, StatusCode::CREATED]).await
     }
 
     /// Upload a secret origin key to a remote Builder.
@@ -926,31 +933,24 @@ impl BuilderAPIClient {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    pub fn put_origin_secret_key(&self,
-                                 origin: &str,
-                                 revision: &str,
-                                 src_path: &Path,
-                                 token: &str,
-                                 progress: Option<Box<dyn DisplayProgress>>)
-                                 -> Result<()> {
+    pub async fn put_origin_secret_key<'a>(&'a self,
+                                           origin: &'a str,
+                                           revision: &'a str,
+                                           src_path: &'a Path,
+                                           token: &'a str,
+                                           progress: Option<Box<dyn DisplayProgress>>)
+                                           -> Result<()> {
         debug!("Uploading origin secret key: {}, {}", origin, revision);
 
         let path = format!("depot/origins/{}/secret_keys/{}", &origin, &revision);
-        let file =
-            File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
-        let file_size = file.metadata()
-                            .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
-                            .len();
-
-        let body = if let Some(mut progress) = progress {
-            progress.size(file_size);
-            let reader = TeeReader::new(file, progress);
-            Body::sized(reader, file_size)
-        } else {
-            Body::sized(file, file_size)
-        };
-        let mut resp = self.0.post(&path).bearer_auth(token).body(body).send()?;
-        resp.ok_if(&[StatusCode::OK])
+        let body = Self::upload_body(src_path, progress)?;
+        let resp = self.0
+                       .post(&path)
+                       .bearer_auth(token)
+                       .body(body)
+                       .send()
+                       .await?;
+        response::ok_if_unit(resp, &[StatusCode::OK]).await
     }
 
     /// Download the latest release of a package.
@@ -966,12 +966,12 @@ impl BuilderAPIClient {
     /// * Package cannot be found
     /// * Remote Builder is not available
     /// * File cannot be created and written to
-    pub fn fetch_package(&self,
-                         (ident, target): (&PackageIdent, PackageTarget),
-                         token: Option<&str>,
-                         dst_path: &Path,
-                         progress: Option<Box<dyn DisplayProgress>>)
-                         -> Result<PackageArchive> {
+    pub async fn fetch_package<'a>(&'a self,
+                                   (ident, target): (&'a PackageIdent, PackageTarget),
+                                   token: Option<&'a str>,
+                                   dst_path: &'a Path,
+                                   progress: Option<Box<dyn DisplayProgress>>)
+                                   -> Result<PackageArchive> {
         // Ensure ident is fully qualified.
         //
         // TODO fn: this will be removed when we can describe a fully qualified ident by type as a
@@ -985,6 +985,7 @@ impl BuilderAPIClient {
                                 });
 
         self.download(req_builder, dst_path.as_ref(), token, progress)
+            .await
             .map(PackageArchive::new)
     }
 
@@ -996,10 +997,10 @@ impl BuilderAPIClient {
     ///
     /// * Package cannot be found
     /// * Remote Builder is not available
-    pub fn check_package(&self,
-                         (package, target): (&PackageIdent, PackageTarget),
-                         token: Option<&str>)
-                         -> Result<()> {
+    pub async fn check_package(&self,
+                               (package, target): (&PackageIdent, PackageTarget),
+                               token: Option<&str>)
+                               -> Result<()> {
         debug!("Checking package existence for {}, target {}",
                package, target);
 
@@ -1009,12 +1010,14 @@ impl BuilderAPIClient {
 
         let url = channel_package_path(&ChannelIdent::unstable(), package);
 
-        self.maybe_add_authz(self.0.get_with_custom_url(&url, |u| {
-                                       u.set_query(Some(&format!("target={}", target)))
-                                   }),
-                             token)
-            .send()?
-            .ok_if(&[StatusCode::OK])
+        response::ok_if_unit(self.maybe_add_authz(self.0.get_with_custom_url(&url, |u| {
+                                                            u.set_query(Some(&format!("target={}",
+                                                                                      target)))
+                                                        }),
+                                                  token)
+                                 .send()
+                                 .await?,
+                             &[StatusCode::OK]).await
     }
 
     /// Returns a package ident struct for the latest package. Arguably should be renamed
@@ -1026,15 +1029,16 @@ impl BuilderAPIClient {
     ///
     /// * Package cannot be found
     /// * Remote Builder is not available
-    pub fn show_package(&self,
-                        (package, target): (&PackageIdent, PackageTarget),
-                        channel: &ChannelIdent,
-                        token: Option<&str>)
-                        -> Result<PackageIdent> {
+    pub async fn show_package(&self,
+                              (package, target): (&PackageIdent, PackageTarget),
+                              channel: &ChannelIdent,
+                              token: Option<&str>)
+                              -> Result<PackageIdent> {
         debug!("Retrieving package ident for {}, target {}",
                package, target);
 
-        let package = self.show_package_metadata((package, target), channel, token)?;
+        let package = self.show_package_metadata((package, target), channel, token)
+                          .await?;
         Ok(package.ident)
     }
 
@@ -1047,11 +1051,11 @@ impl BuilderAPIClient {
     ///
     /// * Package cannot be found
     /// * Remote Builder is not available
-    pub fn show_package_metadata(&self,
-                                 (package, target): (&PackageIdent, PackageTarget),
-                                 channel: &ChannelIdent,
-                                 token: Option<&str>)
-                                 -> Result<Package> {
+    pub async fn show_package_metadata(&self,
+                                       (package, target): (&PackageIdent, PackageTarget),
+                                       channel: &ChannelIdent,
+                                       token: Option<&str>)
+                                       -> Result<Package> {
         debug!("Retrieving package metadata for {}, target {}",
                package, target);
 
@@ -1061,17 +1065,15 @@ impl BuilderAPIClient {
             url.push_str("/latest");
         }
 
-        let mut resp = self.maybe_add_authz(self.0
-                                                .get_with_custom_url(&url, |u| {
-                                                    u.set_query(Some(&format!("target={}", target)))
-                                                }),
-                                            token)
-                           .send()?;
-        resp.ok_if(&[StatusCode::OK])?;
+        let resp = self.maybe_add_authz(self.0.get_with_custom_url(&url, |u| {
+                                                  u.set_query(Some(&format!("target={}", target)))
+                                              }),
+                                        token)
+                       .send()
+                       .await?;
+        let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
 
-        let mut encoded = String::new();
-        resp.read_to_string(&mut encoded)
-            .map_err(Error::BadResponseBody)?;
+        let encoded = resp.text().await.map_err(Error::BadResponseBody)?;
         trace!(target: "habitat_http_client::api_client::show_package_metadata", "{:?}", encoded);
 
         let package: Package = serde_json::from_str::<Package>(&encoded)?;
@@ -1088,24 +1090,19 @@ impl BuilderAPIClient {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    pub fn put_package(&self,
-                       pa: &mut PackageArchive,
-                       token: &str,
-                       force_upload: bool,
-                       auto_build: BuildOnUpload,
-                       progress: Option<Box<dyn DisplayProgress>>)
-                       -> Result<()> {
+    pub async fn put_package<'a>(&'a self,
+                                 pa: &'a mut PackageArchive,
+                                 token: &'a str,
+                                 force_upload: bool,
+                                 auto_build: BuildOnUpload,
+                                 progress: Option<Box<dyn DisplayProgress>>)
+                                 -> Result<()> {
         let checksum = pa.checksum()?;
         let ident = pa.ident()?;
         let target = pa.target()?;
 
         debug!("Uploading package {}, target {} (forced: {})",
                ident, target, force_upload);
-
-        let file = File::open(&pa.path).map_err(|e| Error::PackageReadError(pa.path.clone(), e))?;
-        let file_size = file.metadata()
-                            .map_err(|e| Error::PackageReadError(pa.path.clone(), e))?
-                            .len();
 
         let path = package_path(&ident);
 
@@ -1121,23 +1118,18 @@ impl BuilderAPIClient {
                 url.query_pairs_mut().append_pair("builder", "true");
             }
         };
+
         debug!("Reading from {}", &pa.path.display());
+        let body = Self::upload_body(&pa.path, progress)?;
 
-        let body = if let Some(mut progress) = progress {
-            progress.size(file_size);
-            let reader = TeeReader::new(file, progress);
-            Body::sized(reader, file_size)
-        } else {
-            Body::sized(file, file_size)
-        };
+        let resp = self.0
+                       .post_with_custom_url(&path, custom)
+                       .bearer_auth(token)
+                       .body(body)
+                       .send()
+                       .await?;
 
-        let mut resp = self.0
-                           .post_with_custom_url(&path, custom)
-                           .bearer_auth(token)
-                           .body(body)
-                           .send()?;
-
-        resp.ok_if(&[StatusCode::OK, StatusCode::CREATED])
+        response::ok_if_unit(resp, &[StatusCode::OK, StatusCode::CREATED]).await
     }
 
     /// Delete a package from Builder
@@ -1148,10 +1140,10 @@ impl BuilderAPIClient {
     /// * If package does not exist in Builder
     /// * If the package does not qualify for deletion
     /// * Authorization token was not set on client
-    pub fn delete_package(&self,
-                          (ident, target): (&PackageIdent, PackageTarget),
-                          token: &str)
-                          -> Result<()> {
+    pub async fn delete_package(&self,
+                                (ident, target): (&PackageIdent, PackageTarget),
+                                token: &str)
+                                -> Result<()> {
         debug!("Deleting package {}, target {}", ident, target);
         let path = package_path(ident);
 
@@ -1160,11 +1152,12 @@ impl BuilderAPIClient {
                .append_pair("target", &target.to_string());
         };
 
-        self.0
-            .delete_with_custom_url(&path, custom)
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::NO_CONTENT])
+        response::ok_if_unit(self.0
+                                 .delete_with_custom_url(&path, custom)
+                                 .bearer_auth(token)
+                                 .send()
+                                 .await?,
+                             &[StatusCode::NO_CONTENT]).await
     }
 
     /// Promote a package to a given channel
@@ -1177,11 +1170,11 @@ impl BuilderAPIClient {
     ///
     /// * If package does not exist in Builder
     /// * Authorization token was not set on client
-    pub fn promote_package(&self,
-                           (ident, target): (&PackageIdent, PackageTarget),
-                           channel: &ChannelIdent,
-                           token: &str)
-                           -> Result<()> {
+    pub async fn promote_package(&self,
+                                 (ident, target): (&PackageIdent, PackageTarget),
+                                 channel: &ChannelIdent,
+                                 token: &str)
+                                 -> Result<()> {
         debug!("Promoting package {}, target {} to channel {}",
                ident, target, channel);
 
@@ -1195,11 +1188,12 @@ impl BuilderAPIClient {
                .append_pair("target", &target.to_string());
         };
 
-        self.0
-            .put_with_custom_url(&path, custom)
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::OK])
+        response::ok_if_unit(self.0
+                                 .put_with_custom_url(&path, custom)
+                                 .bearer_auth(token)
+                                 .send()
+                                 .await?,
+                             &[StatusCode::OK]).await
     }
 
     /// Demote a package from a given channel
@@ -1212,11 +1206,11 @@ impl BuilderAPIClient {
     ///
     /// * If package does not exist in Builder
     /// * Authorization token was not set on client
-    pub fn demote_package(&self,
-                          (ident, target): (&PackageIdent, PackageTarget),
-                          channel: &ChannelIdent,
-                          token: &str)
-                          -> Result<()> {
+    pub async fn demote_package(&self,
+                                (ident, target): (&PackageIdent, PackageTarget),
+                                channel: &ChannelIdent,
+                                token: &str)
+                                -> Result<()> {
         debug!("Demoting package {}, target {} from channel {}",
                ident, target, channel);
 
@@ -1230,11 +1224,12 @@ impl BuilderAPIClient {
                .append_pair("target", &target.to_string());
         };
 
-        self.0
-            .put_with_custom_url(&path, custom)
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::OK])
+        response::ok_if_unit(self.0
+                                 .put_with_custom_url(&path, custom)
+                                 .bearer_auth(token)
+                                 .send()
+                                 .await?,
+                             &[StatusCode::OK]).await
     }
 
     /// Create a custom channel
@@ -1242,15 +1237,16 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn create_channel(&self, origin: &str, channel: &ChannelIdent, token: &str) -> Result<()> {
+    pub async fn create_channel(&self,
+                                origin: &str,
+                                channel: &ChannelIdent,
+                                token: &str)
+                                -> Result<()> {
         debug!("Creating channel {} for origin {}", channel, origin);
 
         let path = format!("depot/channels/{}/{}", origin, channel);
-        self.0
-            .post(&path)
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::CREATED])
+        response::ok_if_unit(self.0.post(&path).bearer_auth(token).send().await?,
+                             &[StatusCode::CREATED]).await
     }
 
     /// Delete a custom channel
@@ -1258,15 +1254,16 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn delete_channel(&self, origin: &str, channel: &ChannelIdent, token: &str) -> Result<()> {
+    pub async fn delete_channel(&self,
+                                origin: &str,
+                                channel: &ChannelIdent,
+                                token: &str)
+                                -> Result<()> {
         debug!("Deleting channel {} for origin {}", channel, origin);
 
         let path = format!("depot/channels/{}/{}", origin, channel);
-        self.0
-            .delete(&path)
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::OK])
+        response::ok_if_unit(self.0.delete(&path).bearer_auth(token).send().await?,
+                             &[StatusCode::OK]).await
     }
 
     /// Promote all packages in channel
@@ -1274,25 +1271,26 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn promote_channel_packages(&self,
-                                    origin: &str,
-                                    token: &str,
-                                    source_channel: &ChannelIdent,
-                                    target_channel: &ChannelIdent)
-                                    -> Result<()> {
+    pub async fn promote_channel_packages(&self,
+                                          origin: &str,
+                                          token: &str,
+                                          source_channel: &ChannelIdent,
+                                          target_channel: &ChannelIdent)
+                                          -> Result<()> {
         debug!("Promoting packages in channel {:?} to channel {:?}",
                source_channel, target_channel);
 
         let path = format!("depot/channels/{}/{}/pkgs/promote", origin, source_channel);
 
-        self.0
-            .put_with_custom_url(&path, |url| {
-                url.query_pairs_mut()
-                   .append_pair("channel", target_channel.as_str());
-            })
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::OK])
+        response::ok_if_unit(self.0
+                                 .put_with_custom_url(&path, |url| {
+                                     url.query_pairs_mut()
+                                        .append_pair("channel", target_channel.as_str());
+                                 })
+                                 .bearer_auth(token)
+                                 .send()
+                                 .await?,
+                             &[StatusCode::OK]).await
     }
 
     /// Demote all packages from channel
@@ -1300,25 +1298,26 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn demote_channel_packages(&self,
-                                   origin: &str,
-                                   token: &str,
-                                   source_channel: &ChannelIdent,
-                                   target_channel: &ChannelIdent)
-                                   -> Result<()> {
+    pub async fn demote_channel_packages(&self,
+                                         origin: &str,
+                                         token: &str,
+                                         source_channel: &ChannelIdent,
+                                         target_channel: &ChannelIdent)
+                                         -> Result<()> {
         debug!("Demoting packages selected from channel {:?} in {:?}",
                source_channel, target_channel);
 
         let path = format!("depot/channels/{}/{}/pkgs/demote", origin, source_channel);
 
-        self.0
-            .put_with_custom_url(&path, |url| {
-                url.query_pairs_mut()
-                   .append_pair("channel", target_channel.as_str());
-            })
-            .bearer_auth(token)
-            .send()?
-            .ok_if(&[StatusCode::OK])
+        response::ok_if_unit(self.0
+                                 .put_with_custom_url(&path, |url| {
+                                     url.query_pairs_mut()
+                                        .append_pair("channel", target_channel.as_str());
+                                 })
+                                 .bearer_auth(token)
+                                 .send()
+                                 .await?,
+                             &[StatusCode::OK]).await
     }
 
     /// Returns a vector of PackageIdent structs
@@ -1326,12 +1325,13 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote depot unavailable
-    pub fn search_package(&self,
-                          search_term: &str,
-                          limit: usize,
-                          token: Option<&str>)
-                          -> Result<(Vec<PackageIdent>, usize)> {
+    pub async fn search_package(&self,
+                                search_term: &str,
+                                limit: usize,
+                                token: Option<&str>)
+                                -> Result<(Vec<PackageIdent>, usize)> {
         self.search_package_impl(search_term, limit, token, Self::seach_package_with_range)
+            .await
     }
 
     /// Return a list of channels for a given origin
@@ -1339,32 +1339,31 @@ impl BuilderAPIClient {
     /// # Failures
     /// * Remote Builder is not available
     /// * Authorization token was not set on client
-    pub fn list_channels(&self,
-                         origin: &str,
-                         include_sandbox_channels: bool)
-                         -> Result<Vec<String>> {
+    pub async fn list_channels(&self,
+                               origin: &str,
+                               include_sandbox_channels: bool)
+                               -> Result<Vec<String>> {
         debug!("Listing channels for origin {}", origin);
 
         let path = format!("depot/channels/{}", origin);
-        let mut resp = if include_sandbox_channels {
+        let resp = if include_sandbox_channels {
             self.0
                 .get_with_custom_url(&path, |url| url.set_query(Some("sandbox=true")))
-                .send()?
+                .send()
+                .await?
         } else {
-            self.0.get(&path).send()?
+            self.0.get(&path).send().await?
         };
         debug!("Response Status: {:?}", resp.status());
 
         match resp.status() {
             StatusCode::OK | StatusCode::PARTIAL_CONTENT => {
-                let mut encoded = String::new();
-                resp.read_to_string(&mut encoded)
-                    .map_err(Error::BadResponseBody)?;
+                let encoded = resp.text().await.map_err(Error::BadResponseBody)?;
                 let results: Vec<OriginChannelIdent> = serde_json::from_str(&encoded)?;
                 let channels = results.into_iter().map(|o| o.name).collect();
                 Ok(channels)
             }
-            _ => Err(err_from_response(&mut resp)),
+            _ => Err(response::err_from_response(resp).await),
         }
     }
 }
@@ -1427,6 +1426,8 @@ fn channel_package_demote(channel: &ChannelIdent, package: &PackageIdent) -> Str
 #[cfg(test)]
 mod tests {
     use super::*;
+    use futures::future::{self,
+                          Ready};
     use serde_json;
 
     #[test]
@@ -1470,21 +1471,20 @@ mod tests {
         data: &'a [&str],
         step: usize)
         -> impl Fn(&BuilderAPIClient,
-                  &str,
-                  Option<&str>,
-                  usize) -> Result<(PackageResults<PackageIdent>, bool)>
-               + 'a {
+              &'a str,
+              Option<&'a str>,
+              usize) -> Ready<Result<(PackageResults<PackageIdent>, bool)>> {
         move |_client, search_term, _token, range| {
             let filtered = data.iter()
                                .filter(|d| d.contains(search_term))
                                .collect::<Vec<_>>();
 
             if filtered.is_empty() {
-                return Ok((PackageResults { range_start: 0,
-                                            range_end:   0,
-                                            total_count: 0,
-                                            data:        vec![], },
-                           false));
+                return future::ready(Ok((PackageResults { range_start: 0,
+                                                          range_end:   0,
+                                                          total_count: 0,
+                                                          data:        vec![], },
+                                         false)));
             }
 
             let total = filtered.len();
@@ -1501,12 +1501,12 @@ mod tests {
                                           range_end:   end as isize,
                                           total_count: total as isize,
                                           data:        filtered_range, };
-            Ok((result, end < last))
+            future::ready(Ok((result, end < last)))
         }
     }
 
-    #[test]
-    fn package_search() {
+    #[tokio::test]
+    async fn package_search() {
         let client = BuilderAPIClient::new("http://test.com", "", "", None).expect("valid client");
 
         let sample_data = vec!["one_a", "one_b", "one_c", "one_d", "one_e", "two_a", "two_b",
@@ -1514,6 +1514,7 @@ mod tests {
 
         let searcher = seach_generator(sample_data.as_slice(), 2);
         let r = client.search_package_impl("one", 10, None, searcher)
+                      .await
                       .expect("valid search");
         assert_eq!(r.0.iter().map(|i| i.name.clone()).collect::<Vec<_>>(),
                    vec!["one_a", "one_b", "one_c", "one_d", "one_e"]);
@@ -1521,6 +1522,7 @@ mod tests {
 
         let searcher = seach_generator(sample_data.as_slice(), 2);
         let r = client.search_package_impl("_", 3, None, searcher)
+                      .await
                       .expect("valid search");
         assert_eq!(r.0.iter().map(|i| i.name.clone()).collect::<Vec<_>>(),
                    vec!["one_a", "one_b", "one_c"]);
@@ -1528,6 +1530,7 @@ mod tests {
 
         let searcher = seach_generator(sample_data.as_slice(), 10);
         let r = client.search_package_impl("a", 2, None, searcher)
+                      .await
                       .expect("valid search");
         assert_eq!(r.0.iter().map(|i| i.name.clone()).collect::<Vec<_>>(),
                    vec!["one_a", "two_a"]);
@@ -1535,15 +1538,16 @@ mod tests {
 
         let searcher = seach_generator(sample_data.as_slice(), 10);
         let r = client.search_package_impl("does_not_exist", 100, None, searcher)
+                      .await
                       .expect("valid search");
         assert_eq!(r.0.iter().map(|i| i.name.clone()).collect::<Vec<_>>(),
                    Vec::<String>::new());
         assert_eq!(r.1, 0);
     }
 
-    #[test]
+    #[tokio::test]
     #[ignore = "takes too long to run regularly; should run on CI"]
-    fn package_search_large() {
+    async fn package_search_large() {
         let client = BuilderAPIClient::new("http://test.com", "", "", None).expect("valid client");
 
         let count = 100_000;
@@ -1551,6 +1555,7 @@ mod tests {
 
         let searcher = seach_generator(sample_data.as_slice(), 50);
         let r = client.search_package_impl("test", count, None, searcher)
+                      .await
                       .expect("valid search");
         assert_eq!(r.1, count);
     }
