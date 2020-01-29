@@ -7,8 +7,26 @@
 - [CI] Update Github Release automation [#7391](https://github.com/habitat-sh/habitat/pull/7391) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
-<!-- release_rollup since=0.90.6 -->
-### Changes since 0.90.6 release
+<!-- release_rollup since=1.5.0 -->
+### Changes since 1.5.0 release
+
+#### New Features & Enhancements
+- hab origin invitations subcommand [#7349](https://github.com/habitat-sh/habitat/pull/7349) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.4 -->
+
+#### Merged Pull Requests
+- [CI] Update Github Release automation [#7391](https://github.com/habitat-sh/habitat/pull/7391) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.8 -->
+- add end to end tests to cover release validation [#7398](https://github.com/habitat-sh/habitat/pull/7398) ([mwrock](https://github.com/mwrock)) <!-- 1.5.7 -->
+- Assorted service updater tweaks [#7390](https://github.com/habitat-sh/habitat/pull/7390) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.6 -->
+- Add token and warning to rdeps usage [#7368](https://github.com/habitat-sh/habitat/pull/7368) ([chefsalim](https://github.com/chefsalim)) <!-- 1.5.5 -->
+- Update manual validation docs [#7365](https://github.com/habitat-sh/habitat/pull/7365) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.3 -->
+- Stop committing the results of a promotion command [#7366](https://github.com/habitat-sh/habitat/pull/7366) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.2 -->
+- Lint powershell with PSScriptAnalyzer [#7337](https://github.com/habitat-sh/habitat/pull/7337) ([mwrock](https://github.com/mwrock)) <!-- 1.5.1 -->
+
+<!-- release_rollup -->
+
+<!-- latest_stable_release -->
+## [1.5.0](https://github.com/habitat-sh/habitat/tree/1.5.0) (2020-01-29)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.90.6...1.5.0)
 
 #### Behavioral Changes
 - Remove the `HAB_FEAT_EVENT_STREAM` feature flag. The event stream is now enabled with `--event-stream-url`. [#7335](https://github.com/habitat-sh/habitat/pull/7335) ([davidMcneil](https://github.com/davidMcneil))
@@ -16,7 +34,6 @@
 - The initial event stream connection attempt no longer blocks by default. Set --event-stream-connect-timeout if blocking is desired. [#7293](https://github.com/habitat-sh/habitat/pull/7293) ([davidMcneil](https://github.com/davidMcneil))
 
 #### New Features & Enhancements
-- hab origin invitations subcommand [#7349](https://github.com/habitat-sh/habitat/pull/7349) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.4 -->
 - origin ownership transfer subcommand [#7331](https://github.com/habitat-sh/habitat/pull/7331) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.69 -->
 - Event stream connection backoff strategy [#7293](https://github.com/habitat-sh/habitat/pull/7293) ([davidMcneil](https://github.com/davidMcneil))
 - bulkupload: discover origins from signing keys [#7279](https://github.com/habitat-sh/habitat/pull/7279) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.48 -->
@@ -31,13 +48,6 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
-- [CI] Update Github Release automation [#7391](https://github.com/habitat-sh/habitat/pull/7391) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.8 -->
-- add end to end tests to cover release validation [#7398](https://github.com/habitat-sh/habitat/pull/7398) ([mwrock](https://github.com/mwrock)) <!-- 1.5.7 -->
-- Assorted service updater tweaks [#7390](https://github.com/habitat-sh/habitat/pull/7390) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.6 -->
-- Add token and warning to rdeps usage [#7368](https://github.com/habitat-sh/habitat/pull/7368) ([chefsalim](https://github.com/chefsalim)) <!-- 1.5.5 -->
-- Update manual validation docs [#7365](https://github.com/habitat-sh/habitat/pull/7365) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.3 -->
-- Stop committing the results of a promotion command [#7366](https://github.com/habitat-sh/habitat/pull/7366) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.2 -->
-- Lint powershell with PSScriptAnalyzer [#7337](https://github.com/habitat-sh/habitat/pull/7337) ([mwrock](https://github.com/mwrock)) <!-- 1.5.1 -->
 - Bump version to 1.5.0 [#7359](https://github.com/habitat-sh/habitat/pull/7359) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.0 -->
 - Update to Windows Server 2012 [#7342](https://github.com/habitat-sh/habitat/pull/7342) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.79 -->
 - hab: only print header once in hab svc status [#7358](https://github.com/habitat-sh/habitat/pull/7358) ([stevendanna](https://github.com/stevendanna)) <!-- 0.90.77 -->
@@ -126,9 +136,7 @@
 
 #### Behavioral Changes
 - Update install scripts to pull from packages.chef.io for new releases [#7119](https://github.com/habitat-sh/habitat/pull/7119) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.12 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release -->
 ## [0.90.6](https://github.com/habitat-sh/habitat/tree/0.90.6) (2019-11-13)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.88.0...0.90.6)
 
