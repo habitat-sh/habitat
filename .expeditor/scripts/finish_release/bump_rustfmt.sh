@@ -88,7 +88,7 @@ run_fmt_open_pr() {
   install_hub
 
   echo "--- :github: Creating PR"
-  maybe_run hub pull-request --push --no-edit
+  hub pull-request --push --no-edit
 }
 
 install_rustup
