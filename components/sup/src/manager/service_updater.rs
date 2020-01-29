@@ -158,7 +158,8 @@ impl ServiceUpdater {
                                                  // census group for our service.
                                                  census_ring: &CensusRing)
                                                  -> Option<PackageIdent> {
-        debug!("Checking for updated package!");
+        debug!("Checking {} for updated {} package in the {} channel",
+               service.bldr_url, service.spec_ident, service.channel);
 
         // TODO (CM): can we do without this?
         let mut ident = None;
@@ -506,7 +507,10 @@ impl Worker {
                 {
                     Ok(package) => {
                         self.current = package.ident().clone();
-                        sender.send(package).expect("Main thread has gone away!");
+                        if sender.send(package).is_err() {
+                            debug!("Receiver went away; stopping updater thread for {}",
+                                   self.spec_ident);
+                        }
                         break checked_thread.unregister(Ok(()));
                     }
                     Err(e) => warn!("Failed to install updated package: {:?}", e),
@@ -526,7 +530,7 @@ impl Worker {
                 kill_rx: &Receiver<()>)
                 -> liveliness_checker::ThreadUnregistered<(), &str> {
         let install_source = (self.spec_ident.clone(), PackageTarget::active_target()).into();
-        let mut next_time = Instant::now();
+        let mut next_time = self.next_period_start();
 
         loop {
             let checked_thread = liveliness_checker::mark_thread_alive();
@@ -557,8 +561,10 @@ impl Worker {
                                       self.current,
                                       maybe_newer_package.ident());
                             self.current = maybe_newer_package.ident().clone();
-                            sender.send(maybe_newer_package)
-                                  .expect("Main thread has gone away!");
+                            if sender.send(maybe_newer_package).is_err() {
+                                debug!("Receiver went away; stopping updater thread for {}",
+                                       self.spec_ident);
+                            }
                             break checked_thread.unregister(Ok(()));
                         } else {
                             debug!("Package found {} is not newer than ours",
