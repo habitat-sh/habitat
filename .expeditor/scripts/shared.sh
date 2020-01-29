@@ -320,7 +320,7 @@ install_hub() {
   echo "--- :github: Installing hub version ${tag} to /bin/hub from ${url}"
   curl -L -O "${url}"
   tar xfz hub-linux-amd64-*.tgz
-  cp -f hub-linux-amd64-*/bin/hub /bin
-  chmod a+x /bin/hub
+  sudo cp -f hub-linux-amd64-*/bin/hub /bin
+  sudo chmod a+x /bin/hub
   rm -rf hub-linux-amd64*
 }
