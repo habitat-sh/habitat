@@ -22,29 +22,29 @@ use crate::{env::EnvironmentVariable,
 #[derive(Debug, Clone)]
 pub struct Manifest {
     /// The identifier of the Habitat package
-    pub pkg_ident: PackageIdent,
+    pub pkg_ident:        PackageIdent,
     /// Name of the Kubernetes resource.
-    pub metadata_name: String,
+    pub metadata_name:    String,
     /// The docker image.
-    pub image: String,
+    pub image:            String,
     /// The number of desired instances in the service group.
-    pub count: u64,
+    pub count:            u64,
     /// The relationship of a service with peers in the same service group.
     pub service_topology: Topology,
     /// The logical group of services in the service group.
-    pub service_group: Option<String>,
+    pub service_group:    Option<String>,
     /// The config file content (in base64 encoded format).
-    pub config: Option<String>,
+    pub config:           Option<String>,
     /// The name of the Kubernetes secret that contains the ring key, which encrypts the
     /// communication between Habitat supervisors.
     pub ring_secret_name: Option<String>,
 
     /// Any binds, as `ServiceBind` instances.
-    pub binds: Vec<ServiceBind>,
+    pub binds:              Vec<ServiceBind>,
     /// Persistent storage specification.
     pub persistent_storage: Option<PersistentStorage>,
     /// Environment.
-    pub environment: Vec<EnvironmentVariable>,
+    pub environment:        Vec<EnvironmentVariable>,
 }
 
 impl Manifest {

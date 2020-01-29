@@ -587,7 +587,7 @@ pub struct CensusMember {
     // crate. Additionally, this deserialization method is required to correct any ordering issues
     // with the table being serialized - https://docs.rs/toml/0.4.0/toml/ser/fn.tables_last.html
     #[serde(serialize_with = "toml::ser::tables_last")]
-    pub cfg: toml::value::Table,
+    pub cfg:   toml::value::Table,
 }
 
 impl CensusMember {

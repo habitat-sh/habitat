@@ -12,11 +12,11 @@ use std::{pin::Pin,
 
 pub struct CtlHandler {
     /// The command to execute
-    cmd: CtlCommand,
+    cmd:           CtlCommand,
     /// Reference to the Supervisor's main state. This is passed into
     /// commands that need to access, e.g., what services are running,
     /// etc.
-    state: Arc<ManagerState>,
+    state:         Arc<ManagerState>,
     /// Communication channel back into the main Supervisor loop. This
     /// is passed into any commands as a way to send resulting actions
     /// into the Supervisor.

@@ -137,7 +137,7 @@ impl IndentedToString for SplitPath {
 struct ProcessPathArgs {
     // The beginning of the patch to process (very often it is root,
     // but not always).
-    path: PathBuf,
+    path:      PathBuf,
     // The rest of the path as components ([habitat-operator, peers])
     path_rest: VecDeque<OsString>,
     // Describes the position in the chain, used for determining from
@@ -148,12 +148,12 @@ struct ProcessPathArgs {
     // watching.
     //
     // TODO(krnowak): Check if we can just remove it.
-    index: u32,
+    index:     u32,
     // Previous path in chain, usually a parent directory, but in case
     // of symlinks it becomes a bit more complicated.
     //
     // Item: directory, file or symlink.
-    prev: Option<PathBuf>,
+    prev:      Option<PathBuf>,
 }
 
 impl IndentedToString for ProcessPathArgs {
@@ -208,9 +208,9 @@ struct Common {
     dir_file_name: DirFileName,
     // Previous watched item in chain, is None for the first watched
     // item.
-    prev: Option<PathBuf>,
+    prev:          Option<PathBuf>,
     // Next watched item in chain, is None for the last watched item.
-    next: Option<PathBuf>,
+    next:          Option<PathBuf>,
     // That is needed to make sure that the generated process args
     // with lower index will overwrite the generated process args with
     // higher index. Several generated process args can be generated
@@ -219,12 +219,12 @@ struct Common {
     // TODO(krnowak): Not sure if we need it anymore, since we have a
     // simple chain of watches, so the most recent removal event
     // should happen for the element in chain with lowest index.
-    index: u32,
+    index:         u32,
     // This is the rest of the components that were left to process at
     // the moment we were processing this path. Useful for
     // reprocessing the path, when the next item in the list was
     // removed/replaced.
-    path_rest: VecDeque<OsString>,
+    path_rest:     VecDeque<OsString>,
 }
 
 impl Common {
@@ -275,25 +275,25 @@ impl IndentedToString for Common {
 struct CommonGenerator {
     // Usually describes what was the last item we processed. Bit more
     // complicated in case of symlinks.
-    prev: Option<PathBuf>,
+    prev:       Option<PathBuf>,
     // Normally `prev` is just a parent directory (previous processed
     // item), but this is not the case when we are dealing with
     // symlinks. `old_prev` is used then to override `prev` to the
     // previous processed item on next iteration.
-    old_prev: Option<PathBuf>,
+    old_prev:   Option<PathBuf>,
     // The path for the generated `Common`.
     //
     // TODO(krnowak): drop it? we likely have this information stored
     // in split_path, we could add a as_path() function to SplitPath.
-    path: PathBuf,
+    path:       PathBuf,
     // Same as path, but splitted into dirname and basename
     split_path: SplitPath,
     // Index in the chain.
     //
     // TODO(krnowak): Check if this can be dropped.
-    index: u32,
+    index:      u32,
     // The rest of the path as components to be processed.
-    path_rest: VecDeque<OsString>,
+    path_rest:  VecDeque<OsString>,
 }
 
 impl CommonGenerator {
@@ -1128,13 +1128,13 @@ impl Paths {
 /// it will call the file_appeared callback in the first iteration if
 /// the file existed when the watcher was created.
 pub struct FileWatcher<C: Callbacks, W: Watcher> {
-    callbacks: C,
+    callbacks:         C,
     // The watcher itself.
-    watcher: W,
+    watcher:           W,
     // A channel for receiving events.
-    rx: Receiver<DebouncedEvent>,
+    rx:                Receiver<DebouncedEvent>,
     // The paths to watch.
-    paths: Paths,
+    paths:             Paths,
     // Path to the file if it existed when we created the watcher.
     initial_real_file: Option<PathBuf>,
 }
@@ -2427,9 +2427,9 @@ mod tests {
     // Description of the init phase for test case.
     struct Init {
         // The path to the file that will be watched.
-        path: Option<PathBuf>,
+        path:         Option<PathBuf>,
         // Commands to be executed before executing the steps.
-        commands: Vec<InitCommand>,
+        commands:     Vec<InitCommand>,
         // Optional file to the real file if it exists after
         // performing the initial commands.
         initial_file: Option<PathBuf>,
@@ -2506,10 +2506,10 @@ mod tests {
         action: StepAction,
         // Expected watched directories together with the use count,
         // similar to `dirs` field in Paths.
-        dirs: HashMap<PathBuf, u32>,
+        dirs:   HashMap<PathBuf, u32>,
         // Expected watched items, similar to `paths` field in Paths,
         // but a bit simplified.
-        paths: HashMap<PathBuf, PathState>,
+        paths:  HashMap<PathBuf, PathState>,
         // Expected events that happened when executing the step
         // command. The events map to the `file_*` functions in
         // `Callbacks` trait.
@@ -2531,8 +2531,8 @@ mod tests {
         // Not used directly, but describes the test. Can be used
         // later for debugging.
         #[allow(dead_code)]
-        name: &'static str,
-        init: Init,
+        name:  &'static str,
+        init:  Init,
         steps: Vec<Step>,
     }
 
@@ -2540,13 +2540,13 @@ mod tests {
     #[derive(Default)]
     struct TestCallbacks {
         // A list of events that happened when executing the step.
-        events: Vec<NotifyEvent>,
+        events:       Vec<NotifyEvent>,
         // A set of ignored directories. Usually it is just `/` and
         // `/tmp`.
         ignored_dirs: HashSet<PathBuf>,
         // Whether this single iteration should be ignored, because it
         // happened in one of the ignored directories.
-        ignore: bool,
+        ignore:       bool,
     }
 
     impl TestCallbacks {
@@ -2890,8 +2890,8 @@ mod tests {
         // We don't use this field anywhere, but it will drop the temp
         // dir when TestCaseRunner goes away.
         #[allow(dead_code)]
-        tmp_dir: TempDir,
-        root: PathBuf,
+        tmp_dir:    TempDir,
+        root:       PathBuf,
     }
 
     impl TestCaseRunner {

@@ -209,7 +209,7 @@ enum ShutdownMode {
 #[derive(Clone, Debug, Default)]
 pub struct ShutdownConfig {
     #[cfg(not(windows))]
-    pub signal: ShutdownSignal,
+    pub signal:  ShutdownSignal,
     pub timeout: ShutdownTimeout,
 }
 
@@ -372,8 +372,8 @@ impl ReconciliationFlag {
 /// state gets shared with all the CtlGateway handlers.
 pub struct ManagerState {
     /// The configuration used to instantiate this Manager instance
-    cfg: ManagerConfig,
-    services: Arc<sync::ManagerServices>,
+    cfg:           ManagerConfig,
+    services:      Arc<sync::ManagerServices>,
     gateway_state: Arc<sync::GatewayState>,
 }
 
@@ -439,11 +439,11 @@ pub(crate) mod sync {
     #[derive(Debug, Default)]
     struct GatewayStateInner {
         /// JSON returned by the /census endpoint
-        census_data: String,
+        census_data:       String,
         /// JSON returned by the /butterfly endpoint
-        butterfly_data: String,
+        butterfly_data:    String,
         /// JSON returned by the /services endpoint
-        services_data: String,
+        services_data:     String,
         /// Data returned by /services/<SERVICE_NAME>/<GROUP_NAME>/health
         /// endpoint
         health_check_data: HashMap<ServiceGroup, HealthCheckResult>,
@@ -518,14 +518,14 @@ pub(crate) mod sync {
 }
 
 pub struct Manager {
-    pub state:    Arc<ManagerState>,
-    butterfly:    habitat_butterfly::Server,
-    census_ring:  CensusRing,
-    fs_cfg:       Arc<FsCfg>,
-    launcher:     LauncherCli,
-    updater:      Arc<Mutex<ServiceUpdater>>,
-    peer_watcher: Option<PeerWatcher>,
-    spec_watcher: SpecWatcher,
+    pub state:           Arc<ManagerState>,
+    butterfly:           habitat_butterfly::Server,
+    census_ring:         CensusRing,
+    fs_cfg:              Arc<FsCfg>,
+    launcher:            LauncherCli,
+    updater:             Arc<Mutex<ServiceUpdater>>,
+    peer_watcher:        Option<PeerWatcher>,
+    spec_watcher:        SpecWatcher,
     // This Arc<RwLock<>> business is a potentially temporary
     // change. Right now, in order to asynchronously shut down
     // services, we need to be able to have a safe reference to this
@@ -556,14 +556,14 @@ pub struct Manager {
     // that point, we might need / want to change from a HashSet to
     // something else (maybe a HashMap?) in order to cleanly manage
     // the different operations.
-    busy_services: Arc<Mutex<HashSet<PackageIdent>>>,
+    busy_services:                Arc<Mutex<HashSet<PackageIdent>>>,
     services_need_reconciliation: ReconciliationFlag,
 
     feature_flags: FeatureFlag,
-    pid_source: ServicePidSource,
+    pid_source:    ServicePidSource,
     /// The runtime for spawning various `Manager` futures. Eventually, `Manager` could become a
     /// future itself. This would allow us to remove this runtime and simply use `tokio::spawn`.
-    runtime: Runtime,
+    runtime:       Runtime,
 }
 
 impl Manager {

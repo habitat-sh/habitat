@@ -39,7 +39,7 @@ use std::{env,
 /// Models an exclusive "honor system" lock on a single environment variable.
 pub struct LockedEnvVar {
     /// The checked-out lock for the variable.
-    lock: MutexGuard<'static, String>,
+    lock:           MutexGuard<'static, String>,
     /// The original value of the environment variable, prior to any
     /// modifications through this lock.
     ///

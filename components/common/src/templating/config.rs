@@ -86,20 +86,20 @@ impl PackageConfigPaths for Pkg {
 #[derive(Clone, Debug)]
 pub struct Cfg {
     /// Default level configuration loaded by a Package's `default.toml`
-    pub default: Option<toml::value::Table>,
+    pub default:            Option<toml::value::Table>,
     /// User level configuration loaded by a Service's `user.toml`
-    pub user: Option<toml::value::Table>,
+    pub user:               Option<toml::value::Table>,
     /// Gossip level configuration loaded by a census group
-    pub gossip: Option<toml::value::Table>,
+    pub gossip:             Option<toml::value::Table>,
     /// Environment level configuration loaded by the Supervisor's process environment
-    pub environment: Option<toml::value::Table>,
+    pub environment:        Option<toml::value::Table>,
     /// Source of the user configuration
-    pub user_config_path: UserConfigPath,
+    pub user_config_path:   UserConfigPath,
     /// Last known incarnation number of the census group's service config
     pub gossip_incarnation: u64,
     /// The path to an optional dev-time configuration directory that
     /// is being used.
-    override_config_dir: Option<PathBuf>,
+    override_config_dir:    Option<PathBuf>,
 }
 
 impl Cfg {
@@ -835,8 +835,8 @@ mod test {
         // We hold tmp here only to make sure that the temporary
         // directory gets deleted at the end of the test.
         #[allow(dead_code)]
-        tmp: TempDir,
-        pkg: TestPkg,
+        tmp:  TempDir,
+        pkg:  TestPkg,
         rucp: PathBuf,
         ducp: PathBuf,
     }

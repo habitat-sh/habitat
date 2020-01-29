@@ -30,13 +30,13 @@ use std::{collections::HashMap,
 #[derive(Debug, Default)]
 pub struct UserInfo {
     /// Windows required, Linux optional
-    pub username: Option<String>,
+    pub username:  Option<String>,
     /// Linux preferred
-    pub uid: Option<u32>,
+    pub uid:       Option<u32>,
     /// Linux optional
     pub groupname: Option<String>,
     /// Linux preferred
-    pub gid: Option<u32>,
+    pub gid:       Option<u32>,
 }
 
 /// Captures arbitrary key-value pair metadata to attach to all events

@@ -48,12 +48,12 @@ struct WorkerState {
     // worker has events.  The channel is a SyncChannel with buffer
     // size 1, as we are only interested in the fact that there were
     // events, not how many there were.
-    have_events: Receiver<()>,
+    have_events:      Receiver<()>,
     // This sender is used by the watcher to notify a worker to stop
     // running.  It is an async channel because we never want the
     // UserConfigWatcher to block, even if the receiver end of the
     // channel somehow dies and/or fails to consume the message.
-    stop_running: Sender<()>,
+    stop_running:     Sender<()>,
     // This receiver is used by the watcher tests to be notified when
     // a worker finished setting up the watcher and is about to
     // starting looping it.
@@ -371,10 +371,10 @@ mod tests {
         // It is only used as a way to remove the temporary directory
         // when the test finishes. Not used otherwise.
         #[allow(dead_code)]
-        tmp: TempDir,
-        name: String,
+        tmp:              TempDir,
+        name:             String,
         user_config_path: UserConfigPath,
-        service_group: ServiceGroup,
+        service_group:    ServiceGroup,
     }
 
     impl Serviceable for TestService {

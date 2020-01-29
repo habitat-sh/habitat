@@ -102,9 +102,9 @@ impl Drop for TmpKeyfile {
 #[derive(Clone)]
 pub struct KeyPair<P, S> {
     /// The name of the key, ex: "habitat"
-    pub name: String,
+    pub name:   String,
     /// The revision of the key, which is a timestamp, ex: "201604051449"
-    pub rev: String,
+    pub rev:    String,
     /// The public key component, if relevant
     pub public: Option<P>,
     /// The private key component, if relevant

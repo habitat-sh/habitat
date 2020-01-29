@@ -84,27 +84,27 @@ fn default_docker_base_image() -> Result<String> {
 #[derive(Debug)]
 pub struct BuildSpec<'a> {
     /// A string representation of a Habitat Package Identifer for the Habitat CLI package.
-    pub hab: &'a str,
+    pub hab:                &'a str,
     /// A string representation of a Habitat Package Identifer for the Habitat Launcher package.
-    pub hab_launcher: &'a str,
+    pub hab_launcher:       &'a str,
     /// A string representation of a Habitat Package Identifer for the Habitat Supervisor package.
-    pub hab_sup: &'a str,
+    pub hab_sup:            &'a str,
     /// The Builder URL which is used to install all service and extra Habitat packages.
-    pub url: &'a str,
+    pub url:                &'a str,
     /// The Habitat release channel which is used to install all service and extra Habitat
     /// packages.
-    pub channel: ChannelIdent,
+    pub channel:            ChannelIdent,
     /// The Builder URL which is used to install all base Habitat packages.
-    pub base_pkgs_url: &'a str,
+    pub base_pkgs_url:      &'a str,
     /// The Habitat release channel which is used to install all base Habitat packages.
-    pub base_pkgs_channel: ChannelIdent,
+    pub base_pkgs_channel:  ChannelIdent,
     /// A list of either Habitat Package Identifiers or local paths to Habitat Artifact files which
     /// will be installed.
     pub idents_or_archives: Vec<&'a str>,
     /// The Builder Auth Token to use in the request
-    pub auth: Option<&'a str>,
+    pub auth:               Option<&'a str>,
     /// Base image used in From of dockerfile
-    pub base_image: String,
+    pub base_image:         String,
 }
 
 impl<'a> BuildSpec<'a> {
@@ -370,7 +370,7 @@ pub struct BuildRoot {
     /// directories will be created.
     workdir: TempDir,
     /// The build root context containing information about Habitat packages, `PATH` info, etc.
-    ctx: BuildRootContext,
+    ctx:     BuildRootContext,
 }
 
 impl BuildRoot {
@@ -402,21 +402,21 @@ impl BuildRoot {
 pub struct BuildRootContext {
     /// A list of all Habitat service and library packages which were determined from the original
     /// list in a `BuildSpec`.
-    idents: Vec<PkgIdentType>,
+    idents:          Vec<PkgIdentType>,
     /// List of environment variables that can overload configuration.
     pub environment: HashMap<String, String>,
     /// The `bin` path which will be used for all program symlinking.
-    bin_path: PathBuf,
+    bin_path:        PathBuf,
     /// A string representation of the build root's `PATH` environment variable value (i.e. a
     /// colon-delimited `PATH` string).
-    env_path: String,
+    env_path:        String,
     /// The channel name which was used to install all user-provided Habitat service and library
     /// packages.
-    channel: ChannelIdent,
+    channel:         ChannelIdent,
     /// The path to the root of the file system.
-    rootfs: PathBuf,
+    rootfs:          PathBuf,
     /// Base image used in From of dockerfile
-    base_image: String,
+    base_image:      String,
 }
 
 impl BuildRootContext {
@@ -707,22 +707,22 @@ impl BuildRootContext {
 #[derive(Debug)]
 struct BasePkgIdents {
     /// Installed package identifer for the Habitat CLI package.
-    pub hab: PackageIdent,
+    pub hab:      PackageIdent,
     /// Installed package identifer for the Supervisor package.
-    pub sup: PackageIdent,
+    pub sup:      PackageIdent,
     /// Installed package identifer for the Launcher package.
     pub launcher: PackageIdent,
     /// Installed package identifer for the Busybox package.
-    pub busybox: Option<PackageIdent>,
+    pub busybox:  Option<PackageIdent>,
     /// Installed package identifer for the CA certs package.
-    pub cacerts: PackageIdent,
+    pub cacerts:  PackageIdent,
 }
 
 /// A service identifier representing a Habitat package which contains a runnable service.
 #[derive(Debug)]
 struct SvcIdent {
     /// The Package Identifier.
-    pub ident: PackageIdent,
+    pub ident:   PackageIdent,
     /// A list of all port exposes for the package.
     pub exposes: Vec<String>,
 }

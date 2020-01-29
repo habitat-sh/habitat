@@ -28,8 +28,8 @@ habitat_core::env_config_duration!(LauncherInteractionTimeout,
                                    HAB_LAUNCHER_INTERACTION_TIMEOUT_MS => from_millis,
                                    Duration::from_millis(1000));
 pub struct LauncherCli {
-    tx: IpcSender<Vec<u8>>,
-    rx: IpcReceiver<Vec<u8>>,
+    tx:   IpcSender<Vec<u8>>,
+    rx:   IpcReceiver<Vec<u8>>,
     // We persist the pipe identifier so we can delete the file on drop.
     // This is not necessary on Windows because named pipes are removed
     // upon releasing the last handle to the pipe. The ipc-channel crate

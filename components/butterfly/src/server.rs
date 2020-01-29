@@ -178,7 +178,7 @@ pub(crate) mod sync {
 
     #[derive(Debug)]
     struct MyselfInner {
-        member: Member,
+        member:            Member,
         // TODO (CM): This is only optional because the current
         // implementation of Server requires it. See note there for more.
         incarnation_store: Option<incarnation_store::IncarnationStore>,
@@ -270,8 +270,8 @@ pub(crate) mod sync {
 /// The server struct. Is thread-safe.
 #[derive(Debug)]
 pub struct Server {
-    name:      Arc<String>,
-    member_id: Arc<String>,
+    name:                     Arc<String>,
+    member_id:                Arc<String>,
     // TODO (CM): This is currently public because butterfly tests
     // depends on it being so. Refactor so it can be private.
     myself:                   Arc<Myself>,
@@ -292,11 +292,11 @@ pub struct Server {
     socket:                   Option<UdpSocket>,
     departed:                 Arc<AtomicBool>,
     // These are all here for testing support
-    pause:           Arc<AtomicBool>,
-    swim_rounds:     Arc<AtomicIsize>,
-    gossip_rounds:   Arc<AtomicIsize>,
-    block_list:      Arc<Lock<HashSet<String>>>,
-    election_timers: Arc<Mutex<HashMap<String, ElectionTimer>>>,
+    pause:                    Arc<AtomicBool>,
+    swim_rounds:              Arc<AtomicIsize>,
+    gossip_rounds:            Arc<AtomicIsize>,
+    block_list:               Arc<Lock<HashSet<String>>>,
+    election_timers:          Arc<Mutex<HashMap<String, ElectionTimer>>>,
 }
 
 impl Clone for Server {

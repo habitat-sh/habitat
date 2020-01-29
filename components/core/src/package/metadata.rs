@@ -64,7 +64,7 @@ impl fmt::Display for Bind {
 #[derive(Debug, PartialEq)]
 pub struct BindMapping {
     /// The name of the bind of a given service.
-    pub bind_name: String,
+    pub bind_name:          String,
     /// The identifier of the service within the composite package
     /// that should satisfy the named bind.
     pub satisfying_service: PackageIdent,
