@@ -74,7 +74,13 @@ run_fmt_open_pr() {
   cargo +"$(< RUSTFMT_VERSION)" fmt --all
 
   git add --update
-  maybe_run git commit --signoff --message "\"Bump nightly toolchain to ${FOUND_VERSION}\""
+
+  # We'll be Expeditor for this commit (which is who we would be if we
+  # had access to Expeditor's open_pull_request helper here).
+  maybe_run git commit \
+            --author="Chef Expeditor <expeditor@chef.io>" \
+            --signoff \
+            --message "\"Bump nightly toolchain to ${FOUND_VERSION}\""
 
   # This script runs from a pipeline step, thus we do not
   # have access to expeditor's open_pull_request bash
