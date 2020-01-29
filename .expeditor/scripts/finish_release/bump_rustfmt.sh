@@ -74,12 +74,15 @@ run_fmt_open_pr() {
   cargo +"$(< RUSTFMT_VERSION)" fmt --all
 
   echo "--- :github: Committing Changes"
-  git add --update
 
   # We'll be Expeditor for this commit (which is who we would be if we
   # had access to Expeditor's open_pull_request helper here).
+  git config user.name "Chef Expeditor"
+  git config user.email "expeditor@chef.io"
+
+  git add --update
+
   git commit \
-      --author="Chef Expeditor <expeditor@chef.io>" \
       --signoff \
       --message "\"Bump nightly toolchain to ${FOUND_VERSION}\""
 
