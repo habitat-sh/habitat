@@ -11,7 +11,7 @@ base64 = "*"
 log = "*"
 native-tls = "*"
 httparse = "*"
-reqwest = { version = "*", features = ["blocking", "json"] } 
+reqwest = { version = "*", features = ["blocking", "json", "stream"] } 
 env_proxy = "*"
 serde = "*"
 serde_json = "*"
