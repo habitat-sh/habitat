@@ -552,6 +552,27 @@ impl BuilderAPIProvider for BuilderAPIClient {
             .ok_if(&[StatusCode::NO_CONTENT])
     }
 
+    ///  Depart membership from an origin
+    ///
+    ///  # Failures
+    ///
+    ///  * Remote builder is not available
+    ///  * Origin is owned by the account of auth token
+    ///  * Account is not a member of the origin
+    ///  * Account does not exist
+    ///  * Origin does not exist
+    fn depart_origin(&self, origin: &str, token: &str) -> Result<()> {
+        debug!("Departing membership of origin {}", origin);
+
+        let path = format!("depot/origins/{}/depart", origin);
+
+        self.0
+            .post(&path)
+            .bearer_auth(token)
+            .send()?
+            .ok_if(&[StatusCode::NO_CONTENT])
+    }
+
     /// Accepts an origin member invitation
     ///
     ///  # Builder API endpiont (api.raml permalink)

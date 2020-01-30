@@ -405,6 +405,8 @@ pub trait BuilderAPIProvider: Sync + Send {
 
     fn transfer_origin_ownership(&self, origin: &str, token: &str, account: &str) -> Result<()>;
 
+    fn depart_origin(&self, origin: &str, token: &str) -> Result<()>;
+
     fn accept_origin_invitation(&self, origin: &str, token: &str, invitation_id: u64)
                                 -> Result<()>;
 

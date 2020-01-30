@@ -224,6 +224,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 ("create", Some(m)) => sub_origin_create(ui, m)?,
                 ("delete", Some(m)) => sub_origin_delete(ui, m)?,
                 ("transfer", Some(m)) => sub_origin_transfer_ownership(ui, m)?,
+                ("depart", Some(m)) => sub_origin_depart(ui, m)?,
                 _ => unreachable!(),
             }
         }
@@ -495,6 +496,13 @@ fn sub_origin_transfer_ownership(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> 
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
     command::origin::transfer::start(ui, &url, &token, &origin, &account)
+}
+
+fn sub_origin_depart(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let origin = m.value_of("ORIGIN").expect("required ORIGIN");
+    let url = bldr_url_from_matches(&m)?;
+    let token = auth_token_param_or_env(&m)?;
+    command::origin::depart::start(ui, &url, &token, &origin)
 }
 
 fn sub_accept_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
