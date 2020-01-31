@@ -30,7 +30,7 @@ sidebar_links:
       link: "/docs/developing-packages/developing-packages/#debug-builds"
     - title: Package Export Formats
       link: "/docs/developing-packages/developing-packages/#pkg-exports"
-  - title: Builder
+  - title: Working with Builder
     link: "/docs/using-builder/using-builder"
     sub_links:
     - title: Create an Account
