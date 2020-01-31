@@ -88,16 +88,16 @@ impl<'a> RenderContext<'a> {
 /// Currently exposed to users under the `pkg` key.
 #[derive(Clone, Debug)]
 struct Package<'a> {
-    ident:   Cow<'a, PackageIdent>,
-    origin:  Cow<'a, String>,
-    name:    Cow<'a, String>,
-    version: Cow<'a, String>,
-    release: Cow<'a, String>,
-    deps:    Cow<'a, Vec<PackageIdent>>,
-    env:     Cow<'a, Env>,
+    ident:                   Cow<'a, PackageIdent>,
+    origin:                  Cow<'a, String>,
+    name:                    Cow<'a, String>,
+    version:                 Cow<'a, String>,
+    release:                 Cow<'a, String>,
+    deps:                    Cow<'a, Vec<PackageIdent>>,
+    env:                     Cow<'a, Env>,
     // TODO (CM): Ideally, this would be Vec<u16>, since they're ports.
-    exposes: Cow<'a, Vec<String>>,
-    exports: Cow<'a, BTreeMap<String, String>>,
+    exposes:                 Cow<'a, Vec<String>>,
+    exports:                 Cow<'a, BTreeMap<String, String>>,
     // TODO (CM): Maybe Path instead of Cow<'a PathBuf>?
     path:                    Cow<'a, PathBuf>,
     svc_path:                Cow<'a, PathBuf>,
@@ -115,7 +115,7 @@ struct Package<'a> {
 
 impl<'a> Package<'a> {
     fn from_pkg(pkg: &'a Pkg) -> Self {
-        Package { ident: Cow::Borrowed(&pkg.ident),
+        Package { ident:                   Cow::Borrowed(&pkg.ident),
                   // TODO (CM): have Pkg use FullyQualifiedPackageIdent, and
                   // get origin, name, version, and release from it, rather
                   // than storing each individually; I suspect that was just
@@ -285,7 +285,7 @@ two = 2
         export_hash.insert("blah".into(), "stuff.thing".into());
         export_hash.insert("port".into(), "test_port".into());
 
-        let pkg = Package { ident: Cow::Owned(ident.clone()),
+        let pkg = Package { ident:                   Cow::Owned(ident.clone()),
                             // TODO (CM): have Pkg use FullyQualifiedPackageIdent, and
                             // get origin, name, version, and release from it, rather
                             // than storing each individually; I suspect that was just

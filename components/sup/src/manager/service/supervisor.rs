@@ -34,17 +34,17 @@ static LOGKEY: &str = "SV";
 
 #[derive(Debug)]
 pub struct Supervisor {
-    service_group: ServiceGroup,
-    state:         ProcessState,
+    service_group:     ServiceGroup,
+    state:             ProcessState,
     // TODO (CM): make this private
     pub state_entered: Timespec,
-    pid: Option<Pid>,
+    pid:               Option<Pid>,
     /// If the Supervisor is being run with an newer Launcher that
     /// can provide service PIDs, this will be `None`, otherwise it
     /// will be `Some(path)`. Client code should use the `Some`/`None`
     /// status of this field as an indicator of which mode the
     /// Supervisor is running in.
-    pid_file: Option<PathBuf>,
+    pid_file:          Option<PathBuf>,
 }
 
 impl Supervisor {

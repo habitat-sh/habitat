@@ -192,12 +192,12 @@ pub fn health_check(metadata: ServiceMetadata,
 struct EventCore {
     /// The unique identifier of the Supervisor sending the event.
     supervisor_id: String,
-    ip_address: SocketAddr,
-    fqdn: String,
-    application: String,
-    environment: String,
-    site: Option<String>,
-    meta: EventStreamMetadata,
+    ip_address:    SocketAddr,
+    fqdn:          String,
+    application:   String,
+    environment:   String,
+    site:          Option<String>,
+    meta:          EventStreamMetadata,
 }
 
 impl EventCore {

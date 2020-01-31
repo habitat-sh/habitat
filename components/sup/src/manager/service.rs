@@ -187,13 +187,13 @@ pub struct Service {
     pub shutdown_timeout:    Option<ShutdownTimeout>,
     // TODO (DM): This flag is a temporary hack to signal to the `Manager` that this service needs
     // to be restarted. As we continue refactoring lifecycle hooks this flag should be removed.
-    pub needs_restart: bool,
+    pub needs_restart:       bool,
     // TODO (DM): The need to track initialization state across ticks would be removed if we
     // migrated away from the event loop architecture to an architecture that had a top level
     // `Service` future. See https://github.com/habitat-sh/habitat/issues/7112
-    initialization_state: Arc<RwLock<InitializationState>>,
+    initialization_state:    Arc<RwLock<InitializationState>>,
 
-    config_renderer: CfgRenderer,
+    config_renderer:        CfgRenderer,
     // Note: This field is really only needed for serializing a
     // Service in the gateway (see ServiceProxy's Serialize
     // implementation). Ideally, we could get rid of this, since we're
@@ -204,20 +204,20 @@ pub struct Service {
     // In order to access this field in an asynchronous health check
     // hook, we need to wrap some Arc<Mutex<_>> protection around it
     // :(
-    health_check_result: Arc<Mutex<HealthCheckResult>>,
-    last_election_status: ElectionStatus,
+    health_check_result:    Arc<Mutex<HealthCheckResult>>,
+    last_election_status:   ElectionStatus,
     /// The mapping of bind name to a service group, specified by the
     /// user when the service definition was loaded into the Supervisor.
-    binds: Vec<ServiceBind>,
+    binds:                  Vec<ServiceBind>,
     /// The binds that the current service package declares, both
     /// required and optional. We don't differentiate because this is
     /// used to validate the user-specified bindings against the
     /// current state of the census; once you get into the actual
     /// running of the service, the distinction is immaterial.
-    all_pkg_binds: Vec<Bind>,
+    all_pkg_binds:          Vec<Bind>,
     /// Controls how the presence or absence of bound service groups
     /// impacts the service's start-up.
-    binding_mode: BindingMode,
+    binding_mode:           BindingMode,
     /// Binds specified by the user that are currently mapped to
     /// service groups that do _not_ satisfy the bind's contract, as
     /// defined in the service's current package.
@@ -229,13 +229,13 @@ pub struct Service {
     /// We don't serialize because this is purely runtime information
     /// that should be reconciled against the current state of the
     /// census.
-    unsatisfied_binds: HashSet<ServiceBind>,
-    hooks: HookTable,
-    config_from: Option<PathBuf>,
-    manager_fs_cfg: Arc<FsCfg>,
-    supervisor: Arc<Mutex<Supervisor>>,
+    unsatisfied_binds:      HashSet<ServiceBind>,
+    hooks:                  HookTable,
+    config_from:            Option<PathBuf>,
+    manager_fs_cfg:         Arc<FsCfg>,
+    supervisor:             Arc<Mutex<Supervisor>>,
     svc_encrypted_password: Option<String>,
-    health_check_interval: HealthCheckInterval,
+    health_check_interval:  HealthCheckInterval,
 
     gateway_state: Arc<GatewayState>,
 
@@ -243,8 +243,8 @@ pub struct Service {
     /// health checks on this service. This is the means by which we
     /// can stop that future.
     health_check_handle: Option<AbortHandle>,
-    post_run_handle: Option<AbortHandle>,
-    initialize_handle: Option<AbortHandle>,
+    post_run_handle:     Option<AbortHandle>,
+    initialize_handle:   Option<AbortHandle>,
 }
 
 impl Service {

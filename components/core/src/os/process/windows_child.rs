@@ -530,12 +530,12 @@ struct StdioPipes {
 #[derive(Clone)]
 pub struct OpenOptions {
     // generic
-    read:       bool,
-    write:      bool,
-    append:     bool,
-    truncate:   bool,
-    create:     bool,
-    create_new: bool,
+    read:                bool,
+    write:               bool,
+    append:              bool,
+    truncate:            bool,
+    create:              bool,
+    create_new:          bool,
     // system-specific
     custom_flags:        u32,
     access_mode:         Option<DWORD>,
@@ -548,12 +548,12 @@ pub struct OpenOptions {
 impl OpenOptions {
     pub fn new() -> OpenOptions {
         OpenOptions { // generic
-                      read:       false,
-                      write:      false,
-                      append:     false,
-                      truncate:   false,
-                      create:     false,
-                      create_new: false,
+                      read:                false,
+                      write:               false,
+                      append:              false,
+                      truncate:            false,
+                      create:              false,
+                      create_new:          false,
                       // system-specific
                       custom_flags:        0,
                       access_mode:         None,

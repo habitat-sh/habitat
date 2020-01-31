@@ -147,14 +147,14 @@ mod json_u64 {
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct OriginPrivateSigningKey {
     #[serde(with = "json_u64")]
-    pub id: u64,
+    pub id:        u64,
     #[serde(with = "json_u64")]
     pub origin_id: u64,
-    pub name: String,
-    pub revision: String,
-    pub body: Vec<u8>,
+    pub name:      String,
+    pub revision:  String,
+    pub body:      Vec<u8>,
     #[serde(with = "json_u64")]
-    pub owner_id: u64,
+    pub owner_id:  u64,
 }
 
 mod json {
@@ -203,17 +203,17 @@ pub struct OriginChannelIdent {
 #[derive(Clone, Deserialize)]
 pub struct OriginInvitation {
     #[serde(with = "json_u64")]
-    pub id: u64,
+    pub id:           u64,
     #[serde(with = "json_u64")]
-    pub account_id: u64,
+    pub account_id:   u64,
     pub account_name: String,
     #[serde(with = "json_date_format")]
-    pub created_at: DateTime<Utc>,
-    pub ignored: bool,
-    pub origin: String,
+    pub created_at:   DateTime<Utc>,
+    pub ignored:      bool,
+    pub origin:       String,
     #[serde(with = "json_u64")]
-    pub owner_id: u64,
-    pub updated_at: String,
+    pub owner_id:     u64,
+    pub updated_at:   String,
 }
 
 #[derive(Clone, Deserialize)]

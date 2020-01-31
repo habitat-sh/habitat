@@ -43,7 +43,7 @@ pub struct ApiClient {
     /// The base URL for the client.
     endpoint: Url,
     /// An instance of a `reqwest::Client`
-    inner: ReqwestClient,
+    inner:    ReqwestClient,
 }
 
 impl ApiClient {

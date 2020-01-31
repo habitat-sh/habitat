@@ -43,25 +43,25 @@ const DEFAULT_SUP_IDENT: &str = "core/hab-sup";
 #[derive(Debug)]
 pub struct BuildSpec<'a> {
     /// A string representation of a Habitat Package Identifer for the Habitat CLI package.
-    pub hab: &'a str,
+    pub hab:               &'a str,
     /// A string representation of a Habitat Package Identifer for the Habitat Launcher package.
-    pub hab_launcher: &'a str,
+    pub hab_launcher:      &'a str,
     /// A string representation of a Habitat Package Identifer for the Habitat Supervisor package.
-    pub hab_sup: &'a str,
+    pub hab_sup:           &'a str,
     /// The Builder URL which is used to install all service and extra Habitat packages.
-    pub url: &'a str,
+    pub url:               &'a str,
     /// The Habitat release channel which is used to install all service and extra Habitat
     /// packages.
-    pub channel: ChannelIdent,
+    pub channel:           ChannelIdent,
     /// The Builder URL which is used to install all base Habitat packages.
-    pub base_pkgs_url: &'a str,
+    pub base_pkgs_url:     &'a str,
     /// The Habitat release channel which is used to install all base Habitat packages.
     pub base_pkgs_channel: ChannelIdent,
     /// A Habitat Package Identifer or local path to a Habitat Artifact file which
     /// will be installed.
-    pub ident_or_archive: &'a str,
+    pub ident_or_archive:  &'a str,
     /// The Builder Auth Token to use in the request
-    pub auth: Option<&'a str>,
+    pub auth:              Option<&'a str>,
 }
 
 impl<'a> BuildSpec<'a> {
@@ -236,11 +236,11 @@ impl<'a> BuildSpec<'a> {
 #[derive(Debug)]
 struct BasePkgIdents {
     /// Installed package identifer for the Habitat CLI package.
-    pub hab: PackageIdent,
+    pub hab:      PackageIdent,
     /// Installed package identifer for the Supervisor package.
-    pub sup: PackageIdent,
+    pub sup:      PackageIdent,
     /// Installed package identifer for the Launcher package.
     pub launcher: PackageIdent,
     /// Installed package identifer for the Busybox package.
-    pub busybox: Option<PackageIdent>,
+    pub busybox:  Option<PackageIdent>,
 }

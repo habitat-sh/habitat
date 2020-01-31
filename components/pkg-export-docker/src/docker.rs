@@ -34,11 +34,11 @@ pub struct DockerBuilder<'a> {
     /// The base workdir which hosts the root file system.
     workdir: &'a Path,
     /// The name for the image.
-    name: String,
+    name:    String,
     /// A list of tags for the image.
-    tags: Vec<String>,
+    tags:    Vec<String>,
     /// Optional memory limit to pass to pass to the docker build
-    memory: Option<&'a str>,
+    memory:  Option<&'a str>,
 }
 
 impl<'a> DockerBuilder<'a> {
@@ -119,11 +119,11 @@ impl<'a> DockerBuilder<'a> {
 /// A built Docker image which exists locally.
 pub struct DockerImage {
     /// The image ID for this image.
-    id: String,
+    id:      String,
     /// The name of this image.
-    name: String,
+    name:    String,
     /// The list of tags for this image.
-    tags: Vec<String>,
+    tags:    Vec<String>,
     /// The base workdir which hosts the root file system.
     workdir: PathBuf,
 }

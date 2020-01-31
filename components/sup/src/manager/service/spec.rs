@@ -78,18 +78,18 @@ impl From<DesiredState> for i32 {
 #[serde(default = "ServiceSpec::deserialization_base")]
 pub struct ServiceSpec {
     #[serde(with = "serde_string")]
-    pub ident: PackageIdent,
-    pub group: String,
-    pub bldr_url: String,
-    pub channel: ChannelIdent,
-    pub topology: Topology,
-    pub update_strategy: UpdateStrategy,
-    pub binds: Vec<ServiceBind>,
-    pub binding_mode: BindingMode,
-    pub config_from: Option<PathBuf>,
+    pub ident:                  PackageIdent,
+    pub group:                  String,
+    pub bldr_url:               String,
+    pub channel:                ChannelIdent,
+    pub topology:               Topology,
+    pub update_strategy:        UpdateStrategy,
+    pub binds:                  Vec<ServiceBind>,
+    pub binding_mode:           BindingMode,
+    pub config_from:            Option<PathBuf>,
     #[serde(with = "serde_string")]
-    pub desired_state: DesiredState,
-    pub shutdown_timeout: Option<ShutdownTimeout>,
+    pub desired_state:          DesiredState,
+    pub shutdown_timeout:       Option<ShutdownTimeout>,
     pub svc_encrypted_password: Option<String>,
     // it is important that the health check interval
     // is the last field to be serialized because it
@@ -99,7 +99,7 @@ pub struct ServiceSpec {
     // Note that there is an issue to ultimately fix this:
     // https://github.com/habitat-sh/habitat/issues/6469
     // and eliminate the need to keep this field last.
-    pub health_check_interval: HealthCheckInterval,
+    pub health_check_interval:  HealthCheckInterval,
 }
 
 impl ServiceSpec {

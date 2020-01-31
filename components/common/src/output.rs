@@ -70,13 +70,13 @@ pub fn set_verbosity(format: OutputVerbosity) {
 /// Adds structure to printed output. Stores a preamble, a logkey, line, file, column, and content
 /// to print.
 pub struct StructuredOutput<'a> {
-    preamble: &'a str,
-    logkey: &'static str,
-    content: &'a str,
+    preamble:  &'a str,
+    logkey:    &'static str,
+    content:   &'a str,
     /// The verbosity level of rendered content
     verbosity: OutputVerbosityInternal,
     /// How should output be formatted
-    format: OutputFormat,
+    format:    OutputFormat,
 }
 
 impl<'a> StructuredOutput<'a> {

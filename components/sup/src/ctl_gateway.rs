@@ -62,11 +62,11 @@ pub const CTL_SECRET_PERMISSIONS: u32 = 0o600;
 pub struct CtlRequest {
     /// The sending side of the CtlGateway's server. Replies are sent across this channel and then
     /// eventually over the network back to the client.
-    tx: Option<server::CtlSender>,
+    tx:                 Option<server::CtlSender>,
     /// Transaction for the given request.
-    transaction: Option<habitat_sup_protocol::codec::SrvTxn>,
+    transaction:        Option<habitat_sup_protocol::codec::SrvTxn>,
     current_color_spec: ColorSpec,
-    is_new_line: bool,
+    is_new_line:        bool,
 }
 
 impl CtlRequest {

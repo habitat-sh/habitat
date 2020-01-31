@@ -18,11 +18,11 @@ pub struct CtlAcceptor {
     /// Communication channel from the control gateway server. User
     /// interactions are received there and then sent here into the
     /// `CtlAcceptor` future for further processing.
-    mgr_receiver: MgrReceiver,
+    mgr_receiver:     MgrReceiver,
     /// Reference to the Supervisor's main state. This is passed into
     /// handlers that need to access, e.g., what services are running,
     /// etc.
-    state: Arc<ManagerState>,
+    state:            Arc<ManagerState>,
     /// Signaling channel for the intention to shut down. A message
     /// received on this channel will cause the `CtlAcceptor` future
     /// stream to terminate.
@@ -30,7 +30,7 @@ pub struct CtlAcceptor {
     /// Communication channel back into the main Supervisor loop. This
     /// is passed into any generated command handlers as a way to
     /// send actions into the Supervisor.
-    action_sender: ActionSender,
+    action_sender:    ActionSender,
 }
 
 impl CtlAcceptor {

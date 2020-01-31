@@ -63,22 +63,22 @@ const CACERTS_IDENT: &str = "core/cacerts";
 #[derive(Debug)]
 pub struct Naming<'a> {
     /// An optional custom image name which would override a computed default value.
-    pub custom_image_name: Option<&'a str>,
+    pub custom_image_name:   Option<&'a str>,
     /// Whether or not to tag the image with a latest value.
-    pub latest_tag: bool,
+    pub latest_tag:          bool,
     /// Whether or not to tag the image with a value containing a version from a Package
     /// Identifier.
-    pub version_tag: bool,
+    pub version_tag:         bool,
     /// Whether or not to tag the image with a value containing a version and release from a
     /// Package Identifier.
     pub version_release_tag: bool,
     /// An optional custom tag value for the image.
-    pub custom_tag: Option<&'a str>,
+    pub custom_tag:          Option<&'a str>,
     /// A URL to a custom Docker registry to publish to. This will be used as part of every tag
     /// before pushing.
-    pub registry_url: Option<&'a str>,
+    pub registry_url:        Option<&'a str>,
     /// The type of registry we're publishing to. Ex: Amazon, Docker, Google, Azure.
-    pub registry_type: RegistryType,
+    pub registry_type:       RegistryType,
 }
 
 impl<'a> Naming<'a> {

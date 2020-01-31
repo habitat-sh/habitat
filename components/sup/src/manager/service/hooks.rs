@@ -84,12 +84,12 @@ impl Hook for FileUpdatedHook {
 
 #[derive(Debug, Serialize)]
 pub struct HealthCheckHook {
-    render_pair: RenderPair,
+    render_pair:     RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
     #[cfg(windows)]
     #[serde(skip_serializing)]
-    pipe_client: PipeHookClient,
+    pipe_client:     PipeHookClient,
 }
 
 impl Hook for HealthCheckHook {

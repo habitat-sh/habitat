@@ -321,7 +321,7 @@ pub struct Iter<'a> {
     // The ident to iterate over
     ident: &'a PackageIdent,
     // The position through the ident
-    pos: usize,
+    pos:   usize,
 }
 
 impl<'a> Iterator for Iter<'a> {

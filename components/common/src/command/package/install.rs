@@ -425,15 +425,15 @@ fn run_install_hook<T>(ui: &mut T, package: &PackageInstall) -> Result<()>
 }
 
 struct InstallTask<'a> {
-    install_mode: &'a InstallMode,
+    install_mode:        &'a InstallMode,
     local_package_usage: &'a LocalPackageUsage,
-    api_client: BoxedClient,
-    channel: &'a ChannelIdent,
-    fs_root_path: &'a Path,
+    api_client:          BoxedClient,
+    channel:             &'a ChannelIdent,
+    fs_root_path:        &'a Path,
     /// The path to the local artifact cache (e.g., /hab/cache/artifacts)
     artifact_cache_path: &'a Path,
-    key_cache_path: &'a Path,
-    install_hook_mode: InstallHookMode,
+    key_cache_path:      &'a Path,
+    install_hook_mode:   InstallHookMode,
 }
 
 impl<'a> InstallTask<'a> {

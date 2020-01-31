@@ -120,7 +120,7 @@ pub struct CtlCommand {
     // This is now possible see https://github.com/habitat-sh/habitat/issues/6832
     // We held off on making the change to reduce the risk of a regression and to lump it in with
     // more general Future refactoring.
-    fun: Box<dyn Fn(&ManagerState, &mut CtlRequest, ActionSender) -> NetResult<()> + Send>,
+    fun:     Box<dyn Fn(&ManagerState, &mut CtlRequest, ActionSender) -> NetResult<()> + Send>,
 }
 
 impl CtlCommand {
@@ -205,12 +205,12 @@ impl Client {
 #[pin_project]
 struct SrvHandler {
     #[pin]
-    io: SrvStream,
-    state: SrvHandlerState,
-    mgr_sender: MgrSender,
+    io:           SrvStream,
+    state:        SrvHandlerState,
+    mgr_sender:   MgrSender,
     ctl_receiver: CtlReceiver,
-    ctl_sender: CtlSender,
-    timer: Option<HistogramTimer>,
+    ctl_sender:   CtlSender,
+    timer:        Option<HistogramTimer>,
 }
 
 impl SrvHandler {

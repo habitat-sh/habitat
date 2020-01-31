@@ -70,7 +70,7 @@ pub(super) fn from_env() -> Option<Config> {
 struct EnvLogConfig {
     /// The base filtering level. Messages of lower severity than
     /// this will not be printed.
-    root_level: LevelFilter,
+    root_level:     LevelFilter,
     /// Optional filtering customizations on a per-module basis.
     module_filters: HashMap<String, LevelFilter>,
 }
