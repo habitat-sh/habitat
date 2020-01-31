@@ -8,14 +8,14 @@ use crate::{api_client::{Client,
             PRODUCT,
             VERSION};
 
-pub fn start(ui: &mut UI, bldr_url: &str, token: &str) -> Result<()> {
+pub async fn start(ui: &mut UI, bldr_url: &str, token: &str) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(Status::Discovering,
               "member invitations sent to your account".to_string())?;
 
     // given a token, fetch any invitations for this user
-    match api_client.list_user_invitations(token) {
+    match api_client.list_user_invitations(token).await {
         Ok(resp) => {
             println!("Your Origin Invitations Inbox [{}]:", resp.0.len());
             match resp.as_tabbed() {

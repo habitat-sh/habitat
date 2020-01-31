@@ -712,7 +712,7 @@ mod tests {
         ServiceGroup::new("test_service", "test_group", None).expect("couldn't create ServiceGroup")
     }
 
-    fn pkg(service_group: &ServiceGroup) -> Pkg {
+    async fn pkg(service_group: &ServiceGroup) -> Pkg {
         let pg_id = PackageIdent::new("testing",
                                       service_group.service(),
                                       Some("1.0.0"),
@@ -721,7 +721,7 @@ mod tests {
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"));
-        Pkg::from_install(&pkg_install).unwrap()
+        Pkg::from_install(&pkg_install).await.unwrap()
     }
 
     fn ctx<'a>(service_group: &'a ServiceGroup,
@@ -776,8 +776,8 @@ mod tests {
 
     ////////////////////////////////////////////////////////////////////////
 
-    #[test]
-    fn compile_hook_table() {
+    #[tokio::test]
+    async fn compile_hook_table() {
         let tmp_root = rendered_hooks_path();
         let hooks_path = tmp_root.path().join("hooks");
         fs::create_dir_all(&hooks_path).unwrap();
@@ -789,7 +789,7 @@ mod tests {
         let cfg_path = &concrete_path.as_path().join("default.toml");
         create_with_content(cfg_path, "message = \"Hello\"");
 
-        let pkg = pkg(&service_group);
+        let pkg = pkg(&service_group).await;
         let sys = Sys::new(true,
                            GossipListenAddr::default(),
                            ListenCtlAddr::default(),
@@ -852,8 +852,8 @@ mod tests {
     locked_env_var!(HAB_HOOK_PIPE_SCRIPT, pipe_service_path);
 
     #[cfg(windows)]
-    #[test]
-    fn run_named_pipe_health_check_hook() {
+    #[tokio::test]
+    async fn run_named_pipe_health_check_hook() {
         use habitat_core::fs::svc_logs_path;
 
         let var = pipe_service_path();
@@ -872,7 +872,7 @@ mod tests {
         let hook = HealthCheckHook::load(&service_group.service(), &concrete_path, &template_path)
             .expect("Could not create testing healch-check hook");
 
-        let pkg = pkg(&service_group);
+        let pkg = pkg(&service_group).await;
         let sys = Sys::new(true,
                            GossipListenAddr::default(),
                            ListenCtlAddr::default(),

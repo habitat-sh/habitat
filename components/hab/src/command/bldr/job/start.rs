@@ -30,7 +30,7 @@ pub async fn start(ui: &mut UI,
                 ui.warn(rdep.to_string())?;
             }
 
-            ui.warn("Note: dependencies from private origins are omitted for non-members.");
+            ui.warn("Note: dependencies from private origins are omitted for non-members.")?;
 
             let question = "Starting a group build for this package will also build all of the \
                             reverse dependencies listed above. Is this what you want?";

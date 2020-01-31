@@ -44,7 +44,7 @@ pub fn get_header<K>(response: &Response, name: K) -> Result<String>
             .ok_or_else(|| Error::MissingHeader(hdr_name.clone()))?
             .to_str()
             .map_err(|_| Error::InvalidHeader(hdr_name.clone()))
-            .map(|s| String::from(s))
+            .map(String::from)
 }
 
 pub async fn err_from_response(response: Response) -> Error {

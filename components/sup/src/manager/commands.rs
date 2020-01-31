@@ -177,10 +177,10 @@ pub fn service_file_put(mgr: &ManagerState,
           })
 }
 
-pub fn service_load(mgr: &ManagerState,
-                    req: &mut CtlRequest,
-                    opts: protocol::ctl::SvcLoad)
-                    -> NetResult<()> {
+pub async fn service_load(mgr: &ManagerState,
+                          req: &mut CtlRequest,
+                          opts: protocol::ctl::SvcLoad)
+                          -> NetResult<()> {
     let ident: PackageIdent = opts.ident.clone().ok_or_else(err_update_client)?.into();
     let source = InstallSource::Ident(ident.clone(), PackageTarget::active_target());
     let spec = if let Some(spec) = mgr.cfg.spec_for_ident(source.as_ref()) {
@@ -199,7 +199,7 @@ pub fn service_load(mgr: &ManagerState,
         ServiceSpec::try_from(opts)?
     };
 
-    let package = util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel)?;
+    let package = util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel).await?;
     spec.validate(&package)?;
     mgr.cfg.save_spec_for(&spec)?;
 

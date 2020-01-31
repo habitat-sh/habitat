@@ -248,17 +248,17 @@ pub struct Service {
 }
 
 impl Service {
-    fn with_package(sys: Arc<Sys>,
-                    package: &PackageInstall,
-                    spec: ServiceSpec,
-                    manager_fs_cfg: Arc<FsCfg>,
-                    organization: Option<&str>,
-                    gateway_state: Arc<GatewayState>,
-                    pid_source: ServicePidSource)
-                    -> Result<Service> {
+    async fn with_package(sys: Arc<Sys>,
+                          package: &PackageInstall,
+                          spec: ServiceSpec,
+                          manager_fs_cfg: Arc<FsCfg>,
+                          organization: Option<&str>,
+                          gateway_state: Arc<GatewayState>,
+                          pid_source: ServicePidSource)
+                          -> Result<Service> {
         spec.validate(&package)?;
         let all_pkg_binds = package.all_binds()?;
-        let pkg = Self::resolve_pkg(&package, &spec)?;
+        let pkg = Self::resolve_pkg(&package, &spec).await?;
         let spec_file = manager_fs_cfg.specs_path.join(spec.file());
         let service_group = ServiceGroup::new(&pkg.name, spec.group, organization)?;
         let config_root = Self::config_root(&pkg, spec.config_from.as_ref());
@@ -314,8 +314,8 @@ impl Service {
     // '--password' argument to 'hab svc load', we will revert the user to
     // the current user.
     #[cfg(windows)]
-    fn resolve_pkg(package: &PackageInstall, spec: &ServiceSpec) -> Result<Pkg> {
-        let mut pkg = Pkg::from_install(&package)?;
+    async fn resolve_pkg(package: &PackageInstall, spec: &ServiceSpec) -> Result<Pkg> {
+        let mut pkg = Pkg::from_install(&package).await?;
         if spec.svc_encrypted_password.is_none() && pkg.svc_user == DEFAULT_USER {
             if let Some(user) = users::get_current_username() {
                 pkg.svc_user = user;
@@ -325,8 +325,8 @@ impl Service {
     }
 
     #[cfg(unix)]
-    fn resolve_pkg(package: &PackageInstall, _spec: &ServiceSpec) -> Result<Pkg> {
-        Ok(Pkg::from_install(&package)?)
+    async fn resolve_pkg(package: &PackageInstall, _spec: &ServiceSpec) -> Result<Pkg> {
+        Ok(Pkg::from_install(&package).await?)
     }
 
     /// Returns the config root given the package and optional config-from path.
@@ -343,13 +343,13 @@ impl Service {
                    .join("hooks")
     }
 
-    pub fn new(sys: Arc<Sys>,
-               spec: ServiceSpec,
-               manager_fs_cfg: Arc<FsCfg>,
-               organization: Option<&str>,
-               gateway_state: Arc<GatewayState>,
-               pid_source: ServicePidSource)
-               -> Result<Service> {
+    pub async fn new(sys: Arc<Sys>,
+                     spec: ServiceSpec,
+                     manager_fs_cfg: Arc<FsCfg>,
+                     organization: Option<&str>,
+                     gateway_state: Arc<GatewayState>,
+                     pid_source: ServicePidSource)
+                     -> Result<Service> {
         // The package for a spec should already be installed.
         let fs_root_path = Path::new(&*FS_ROOT_PATH);
         let package = PackageInstall::load(&spec.ident, Some(fs_root_path))?;
@@ -359,7 +359,7 @@ impl Service {
                               manager_fs_cfg,
                               organization,
                               gateway_state,
-                              pid_source)?)
+                              pid_source).await?)
     }
 
     /// Create the service path for this package.
@@ -508,7 +508,7 @@ impl Service {
     /// Performs updates and executes hooks.
     ///
     /// Returns `true` if the service was marked to be restarted or reconfigured.
-    pub async fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> bool {
+    pub fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> bool {
         // We may need to block the service from starting until all
         // its binds are satisfied
         if !self.initialized() {
@@ -1280,7 +1280,7 @@ mod tests {
                     Ipv4Addr},
               str::FromStr};
 
-    fn initialize_test_service() -> Service {
+    async fn initialize_test_service() -> Service {
         let listen_ctl_addr =
             ListenCtlAddr::from_str("127.0.0.1:1234").expect("Can't parse IP into SocketAddr");
         let sys = Sys::new(false,
@@ -1317,13 +1317,14 @@ mod tests {
                               afs,
                               Some("haha"),
                               gs,
-                              ServicePidSource::Launcher).expect("I wanted a service to load, but \
+                              ServicePidSource::Launcher).await
+                                                         .expect("I wanted a service to load, but \
                                                                   it didn't")
     }
 
-    #[test]
-    fn service_proxy_conforms_to_the_schema() {
-        let service = initialize_test_service();
+    #[tokio::test]
+    async fn service_proxy_conforms_to_the_schema() {
+        let service = initialize_test_service().await;
 
         // With config
         let proxy_with_config = ServiceProxy::new(&service, ConfigRendering::Full);

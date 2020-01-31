@@ -194,12 +194,12 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
             match matches.subcommand() {
                 ("invitations", Some(m)) => {
                     match m.subcommand() {
-                        ("accept", Some(sc)) => sub_accept_origin_invitation(ui, sc)?,
-                        ("ignore", Some(sc)) => sub_ignore_origin_invitation(ui, sc)?,
-                        ("list", Some(sc)) => sub_list_user_invitations(ui, sc)?,
-                        ("pending", Some(sc)) => sub_list_pending_origin_invitations(ui, sc)?,
-                        ("send", Some(sc)) => sub_send_origin_invitation(ui, sc)?,
-                        ("rescind", Some(sc)) => sub_rescind_origin_invitation(ui, sc)?,
+                        ("accept", Some(sc)) => sub_accept_origin_invitation(ui, sc).await?,
+                        ("ignore", Some(sc)) => sub_ignore_origin_invitation(ui, sc).await?,
+                        ("list", Some(sc)) => sub_list_user_invitations(ui, sc).await?,
+                        ("pending", Some(sc)) => sub_list_pending_origin_invitations(ui, sc).await?,
+                        ("send", Some(sc)) => sub_send_origin_invitation(ui, sc).await?,
+                        ("rescind", Some(sc)) => sub_rescind_origin_invitation(ui, sc).await?,
                         _ => unreachable!(),
                     }
                 }
@@ -498,25 +498,14 @@ async fn sub_origin_transfer_ownership(ui: &mut UI, m: &ArgMatches<'_>) -> Resul
     command::origin::transfer::start(ui, &url, &token, &origin, &account).await
 }
 
-fn sub_origin_depart(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_origin_depart(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").expect("required ORIGIN");
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
-    command::origin::depart::start(ui, &url, &token, &origin)
+    command::origin::depart::start(ui, &url, &token, &origin).await
 }
 
-fn sub_accept_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let origin = m.value_of("ORIGIN").expect("required ORIGIN");
-    let invitation_id: u64 = m.value_of("INVITATION_ID")
-                              .expect("required INVITATION_ID")
-                              .parse()
-                              .expect("INVITATION_ID should be valid at this point");
-    let url = bldr_url_from_matches(&m)?;
-    let token = auth_token_param_or_env(&m)?;
-    command::origin::invitations::accept::start(ui, &url, &origin, &token, invitation_id)
-}
-
-fn sub_ignore_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_accept_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").expect("required ORIGIN");
     let invitation_id: u64 = m.value_of("INVITATION_ID")
                               .expect("required INVITATION_ID")
@@ -524,23 +513,10 @@ fn sub_ignore_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                               .expect("INVITATION_ID should be valid at this point");
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
-    command::origin::invitations::ignore::start(ui, &url, &origin, &token, invitation_id)
+    command::origin::invitations::accept::start(ui, &url, &origin, &token, invitation_id).await
 }
 
-fn sub_list_user_invitations(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let url = bldr_url_from_matches(&m)?;
-    let token = auth_token_param_or_env(&m)?;
-    command::origin::invitations::list_user::start(ui, &url, &token)
-}
-
-fn sub_list_pending_origin_invitations(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let origin = m.value_of("ORIGIN").expect("required ORIGIN");
-    let url = bldr_url_from_matches(&m)?;
-    let token = auth_token_param_or_env(&m)?;
-    command::origin::invitations::list_pending_origin::start(ui, &url, &origin, &token)
-}
-
-fn sub_rescind_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_ignore_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").expect("required ORIGIN");
     let invitation_id: u64 = m.value_of("INVITATION_ID")
                               .expect("required INVITATION_ID")
@@ -548,16 +524,40 @@ fn sub_rescind_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> 
                               .expect("INVITATION_ID should be valid at this point");
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
-    command::origin::invitations::rescind::start(ui, &url, &origin, &token, invitation_id)
+    command::origin::invitations::ignore::start(ui, &url, &origin, &token, invitation_id).await
 }
 
-fn sub_send_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_list_user_invitations(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let url = bldr_url_from_matches(&m)?;
+    let token = auth_token_param_or_env(&m)?;
+    command::origin::invitations::list_user::start(ui, &url, &token).await
+}
+
+async fn sub_list_pending_origin_invitations(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let origin = m.value_of("ORIGIN").expect("required ORIGIN");
+    let url = bldr_url_from_matches(&m)?;
+    let token = auth_token_param_or_env(&m)?;
+    command::origin::invitations::list_pending_origin::start(ui, &url, &origin, &token).await
+}
+
+async fn sub_rescind_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let origin = m.value_of("ORIGIN").expect("required ORIGIN");
+    let invitation_id: u64 = m.value_of("INVITATION_ID")
+                              .expect("required INVITATION_ID")
+                              .parse()
+                              .expect("INVITATION_ID should be valid at this point");
+    let url = bldr_url_from_matches(&m)?;
+    let token = auth_token_param_or_env(&m)?;
+    command::origin::invitations::rescind::start(ui, &url, &origin, &token, invitation_id).await
+}
+
+async fn sub_send_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").expect("required ORIGIN");
     let invitee_account = m.value_of("INVITEE_ACCOUNT")
                            .expect("required INVITEE_ACCOUNT");
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
-    command::origin::invitations::send::start(ui, &url, &origin, &token, &invitee_account)
+    command::origin::invitations::send::start(ui, &url, &origin, &token, &invitee_account).await
 }
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {

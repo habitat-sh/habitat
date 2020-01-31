@@ -4,9 +4,9 @@ use crate::{census::CensusRing,
                                 Topology,
                                 UpdateStrategy}},
             util};
+use futures::executor;
 use habitat_butterfly;
-use habitat_common::{liveliness_checker,
-                     outputln,
+use habitat_common::{outputln,
                      ui::UI};
 use habitat_core::{env as henv,
                    package::{PackageIdent,
@@ -16,13 +16,15 @@ use habitat_core::{env as henv,
                    ChannelIdent};
 use std::{self,
           collections::HashMap,
-          sync::mpsc::{channel,
-                       Receiver,
-                       Sender,
-                       TryRecvError},
           thread,
           time::{Duration,
                  Instant}};
+use tokio::{self,
+            sync::mpsc::{self,
+                         error::TryRecvError,
+                         UnboundedReceiver as Receiver,
+                         UnboundedSender as Sender},
+            time};
 
 static LOGKEY: &str = "SU";
 // TODO (CM): Yes, the variable value should be "period" and not
@@ -75,17 +77,19 @@ impl ServiceUpdater {
     /// Register a new `Service` for updates. Returns `true` if the
     /// `ServiceUpdater` was modified (i.e., the given service has an
     /// `UpdateStrategy` that is not `None`).
-    pub fn add(&mut self, service: &Service) -> bool {
+    pub async fn add(&mut self, service: &Service) -> bool {
         match service.update_strategy {
             UpdateStrategy::None => false,
             UpdateStrategy::AtOnce => {
-                self.states
-                    .entry(service.service_group.clone())
-                    .or_insert_with(|| {
-                        let (kill_tx, kill_rx) = channel();
-                        let rx = Worker::new(service).start(&service.service_group, None, kill_rx);
-                        UpdaterState::AtOnce(rx, kill_tx)
-                    });
+                // We cannot use the `entry` api here because futures cannot be awaited in a
+                // closure.
+                if !self.states.contains_key(&service.service_group) {
+                    let (kill_tx, kill_rx) = mpsc::unbounded_channel();
+                    let rx = Worker::new(service).start(&service.service_group, None, kill_rx)
+                                                 .await;
+                    self.states.insert(service.service_group.clone(),
+                                       UpdaterState::AtOnce(rx, kill_tx));
+                }
                 true
             }
             UpdateStrategy::Rolling => {
@@ -151,13 +155,15 @@ impl ServiceUpdater {
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
     #[allow(clippy::cognitive_complexity)]
-    pub fn check_for_updated_package_rsw_mlr_rhw(&mut self,
-                                                 service: &Service,
-                                                 // TODO (CM): Strictly speaking, we don't need
-                                                 // to pass CensusRing down into here, just the
-                                                 // census group for our service.
-                                                 census_ring: &CensusRing)
-                                                 -> Option<PackageIdent> {
+    pub async fn check_for_updated_package_rsw_mlr_rhw(&mut self,
+                                                       service: &Service,
+                                                       // TODO (CM): Strictly speaking, we don't
+                                                       // need
+                                                       // to pass CensusRing down into here,
+                                                       // just the
+                                                       // census group for our service.
+                                                       census_ring: &CensusRing)
+                                                       -> Option<PackageIdent> {
         // TODO (CM): can we do without this?
         let mut ident = None;
 
@@ -168,10 +174,11 @@ impl ServiceUpdater {
                         return Some(package.ident);
                     }
                     Err(TryRecvError::Empty) => return None,
-                    Err(TryRecvError::Disconnected) => {
+                    Err(TryRecvError::Closed) => {
                         debug!("Service Updater worker has died; restarting...");
-                        let (ktx, krx) = channel();
-                        *rx = Worker::new(service).start(&service.service_group, None, krx);
+                        let (ktx, krx) = mpsc::unbounded_channel();
+                        *rx = Worker::new(service).start(&service.service_group, None, krx)
+                                                  .await;
                         *kill_tx = ktx;
                     }
                 }
@@ -261,10 +268,11 @@ impl ServiceUpdater {
                                 ident = Some(package.ident);
                             }
                             Err(TryRecvError::Empty) => return None,
-                            Err(TryRecvError::Disconnected) => {
+                            Err(TryRecvError::Closed) => {
                                 debug!("Service Updater worker has died; restarting...");
-                                let (ktx, krx) = channel();
-                                *rx = Worker::new(service).start(&service.service_group, None, krx);
+                                let (ktx, krx) = mpsc::unbounded_channel();
+                                *rx = Worker::new(service).start(&service.service_group, None, krx)
+                                                          .await;
                                 *kill_tx = ktx;
                             }
                         }
@@ -279,10 +287,11 @@ impl ServiceUpdater {
                                     debug!("Update leader still waiting for followers...");
                                     return None;
                                 }
-                                let (kill_tx, kill_rx) = channel();
+                                let (kill_tx, kill_rx) = mpsc::unbounded_channel();
                                 let rx = Worker::new(service).start(&service.service_group,
                                                                     None,
-                                                                    kill_rx);
+                                                                    kill_rx)
+                                                             .await;
                                 *state = LeaderState::Polling(rx, kill_tx);
                             }
                             None => {
@@ -329,10 +338,11 @@ impl ServiceUpdater {
                                             return None;
                                         }
                                         debug!("We're in an update and it's our turn");
-                                        let (kill_tx, kill_rx) = channel();
+                                        let (kill_tx, kill_rx) = mpsc::unbounded_channel();
                                         let rx = Worker::new(service).start(&service.service_group,
                                                                             leader.pkg.clone(),
-                                                                            kill_rx);
+                                                                            kill_rx)
+                                                                     .await;
                                         *state = FollowerState::Updating(rx, kill_tx);
                                     }
                                     _ => return None,
@@ -352,14 +362,15 @@ impl ServiceUpdater {
                                         ident = Some(package.ident);
                                     }
                                     Err(TryRecvError::Empty) => return None,
-                                    Err(TryRecvError::Disconnected) => {
+                                    Err(TryRecvError::Closed) => {
                                         debug!("Service Updater worker has died; restarting...");
                                         let package =
                                             census_group.update_leader().unwrap().pkg.clone();
-                                        let (ktx, krx) = channel();
+                                        let (ktx, krx) = mpsc::unbounded_channel();
                                         *rx = Worker::new(service).start(&service.service_group,
                                                                          package,
-                                                                         krx);
+                                                                         krx)
+                                                                  .await;
                                         *kill_tx = ktx;
                                     }
                                 }
@@ -428,18 +439,24 @@ impl Worker {
     /// Passing an optional package identifier will make the worker perform a run-once update to
     /// retrieve a specific version from Builder. If no package identifier is specified,
     /// then the updater will poll until a newer more suitable package is found.
-    fn start(mut self,
-             sg: &ServiceGroup,
-             ident: Option<PackageIdent>,
-             kill_rx: Receiver<()>)
-             -> Receiver<PackageInstall> {
-        let (tx, rx) = channel();
+    async fn start(mut self,
+                   sg: &ServiceGroup,
+                   ident: Option<PackageIdent>,
+                   mut kill_rx: Receiver<()>)
+                   -> Receiver<PackageInstall> {
+        let (tx, rx) = mpsc::unbounded_channel();
+        // Execute this future on a dedicated thread. Eventually, this should use `tokio::spawn`,
+        // but that will require further refactoring.
         thread::Builder::new().name(format!("SU-{}", sg))
                               .spawn(move || {
-                                  let _ = match ident {
-                                      Some(latest) => self.run_once(&tx, latest, &kill_rx),
-                                      None => self.run_poll(&tx, &kill_rx),
-                                  };
+                                  executor::block_on(async {
+                                      match ident {
+                                          Some(latest) => {
+                                              self.run_once(&tx, latest, &mut kill_rx).await
+                                          }
+                                          None => self.run_poll(&tx, &mut kill_rx).await,
+                                      };
+                                  })
                               })
                               .expect("unable to start service-updater thread");
         rx
@@ -468,11 +485,10 @@ impl Worker {
     /// Polls until a newer version of the specified package is
     /// available. When such a package is found, it is installed, and
     /// the function exits.
-    fn run_once(&mut self,
-                sender: &Sender<PackageInstall>,
-                ident: PackageIdent,
-                kill_rx: &Receiver<()>)
-                -> liveliness_checker::ThreadUnregistered<(), &str> {
+    async fn run_once(&mut self,
+                      sender: &Sender<PackageInstall>,
+                      ident: PackageIdent,
+                      kill_rx: &mut Receiver<()>) {
         // Fairly certain that this only gets called in a rolling update
         // scenario, where `ident` is always a fully-qualified identifier
         outputln!("Updating from {} to {}", self.current, ident);
@@ -480,18 +496,15 @@ impl Worker {
         let mut next_time = Instant::now();
 
         loop {
-            let checked_thread = liveliness_checker::mark_thread_alive();
-
             match kill_rx.try_recv() {
                 Ok(_) => {
                     info!("Received some data on the kill channel. Letting this thread die.");
-                    break checked_thread.unregister(Ok(()));
+                    break;
                 }
                 Err(TryRecvError::Empty) => {}
-                Err(TryRecvError::Disconnected) => {
-                    let msg = "Service updater has gone away, yikes!";
-                    error!("{}", msg);
-                    break checked_thread.unregister(Err(msg));
+                Err(TryRecvError::Closed) => {
+                    error!("Service updater has gone away, yikes!");
+                    break;
                 }
             }
 
@@ -500,7 +513,7 @@ impl Worker {
                                          &mut UI::with_sinks(),
                                          &self.builder_url,
                                          &install_source,
-                                         &self.channel)
+                                         &self.channel).await
                 {
                     Ok(package) => {
                         self.current = package.ident().clone();
@@ -508,7 +521,7 @@ impl Worker {
                             debug!("Receiver went away; stopping updater thread for {}",
                                    self.spec_ident);
                         }
-                        break checked_thread.unregister(Ok(()));
+                        break;
                     }
                     Err(e) => warn!("Failed to install updated package: {:?}", e),
                 }
@@ -516,32 +529,27 @@ impl Worker {
                 next_time = self.next_period_start();
             }
 
-            thread::sleep(Duration::from_secs(1));
+            time::delay_for(Duration::from_secs(1)).await;
         }
     }
 
     /// Continually poll for a new version of a package, installing it
     /// when found.
-    fn run_poll(&mut self,
-                sender: &Sender<PackageInstall>,
-                kill_rx: &Receiver<()>)
-                -> liveliness_checker::ThreadUnregistered<(), &str> {
+    async fn run_poll(&mut self, sender: &Sender<PackageInstall>, kill_rx: &mut Receiver<()>) {
         let install_source = (self.spec_ident.clone(), PackageTarget::active_target()).into();
         let mut next_time = self.next_period_start();
 
         loop {
-            let checked_thread = liveliness_checker::mark_thread_alive();
-
             match kill_rx.try_recv() {
                 Ok(_) => {
                     info!("Received some data on the kill channel. Letting this thread die.");
-                    break checked_thread.unregister(Ok(()));
+                    break;
                 }
                 Err(TryRecvError::Empty) => {}
-                Err(TryRecvError::Disconnected) => {
+                Err(TryRecvError::Closed) => {
                     let msg = "Service updater has gone away, yikes!";
                     error!("{}", msg);
-                    break checked_thread.unregister(Err(msg));
+                    break;
                 }
             }
 
@@ -550,7 +558,7 @@ impl Worker {
                                          &mut UI::with_sinks(),
                                          &self.builder_url,
                                          &install_source,
-                                         &self.channel)
+                                         &self.channel).await
                 {
                     Ok(maybe_newer_package) => {
                         if self.current < *maybe_newer_package.ident() {
@@ -562,7 +570,7 @@ impl Worker {
                                 debug!("Receiver went away; stopping updater thread for {}",
                                        self.spec_ident);
                             }
-                            break checked_thread.unregister(Ok(()));
+                            break;
                         } else {
                             debug!("Package found {} is not newer than ours",
                                    maybe_newer_package.ident());
@@ -574,7 +582,7 @@ impl Worker {
                 next_time = self.next_period_start();
             }
 
-            thread::sleep(Duration::from_secs(1));
+            time::delay_for(Duration::from_secs(1)).await;
         }
     }
 }
