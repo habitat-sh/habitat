@@ -311,6 +311,15 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 (@arg NEW_OWNER_ACCOUNT: +required +takes_value {non_empty} "The account name of the new origin owner")
             )
+            (@subcommand depart =>
+                (about: "Departs membership from selected origin")
+                (@arg ORIGIN: +required {valid_origin} "The origin name")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                     "Specify an alternate Builder endpoint. If not specified, the value will \
+                     be taken from the `HAB_BLDR_URL` environment variable if defined. (default: \
+                     https://bldr.habitat.sh)")
+                (@arg AUTH_TOKEN: -z --auth +required +takes_value "Authentication token for Builder")
+            )
             (@subcommand invitations =>
                 (about: "Manage origin member invitations")
                 (@subcommand accept =>
