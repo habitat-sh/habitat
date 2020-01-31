@@ -9,7 +9,7 @@ Chef Habitat can be run on bare metal servers, as well as virtual machines. Curr
 
 ## Running Chef Habitat on Linux
 
-First, you must [install Chef Habitat](docs/install-habitat) itself on the machine.
+First, you must [install Chef Habitat](docs/install-habitat/install-cli) itself on the machine.
 
 Second, many packages default to running as the `hab` user, so you should ensure that both a `hab` user and group exist:
 
@@ -37,7 +37,7 @@ Depending on your needs and deployment, you will want to modify the options pass
 
 ## Running Chef Habitat on Windows
 
-As with Linux, you must first [install Chef Habitat](docs/install-habitat) on the machine. Unlike Linux, however, the Windows Supervisor has no requirements for any `hab` user.
+As with Linux, you must first [install Chef Habitat](docs/install-habitat/install-cli) on the machine. Unlike Linux, however, the Windows Supervisor has no requirements for any `hab` user.
 
 On Windows, you can run the Supervisor as a Windows Service. You can use the `windows-service` Chef Habitat package to host the Supervisor inside the Windows Service Control Manager:
 

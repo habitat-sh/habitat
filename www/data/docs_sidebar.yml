@@ -5,10 +5,10 @@ sidebar_links:
   - title: Docs Home
     link: "/docs"
   - title: Install Chef Habitat
-    link: "/docs/install-habitat/install-habitat"
+    link: "/docs/install-habitat/install-cli"
     sub_links:
     - title: Get Chef Habitat
-      link: "/docs/install-habitat/installing-packages"
+      link: "/docs/install-habitat/install-cli"
     - title: Accept the License
       link: "/docs/install-habitat/accept-the-license"
     - title: Configure Your Workstation

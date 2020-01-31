@@ -10,7 +10,7 @@ published: true
 
 Hey there, fellow developer, let's make ourselves a quick [Express](https://expressjs.com/) app and wrap it up in a Chef Habitat package. Ready? Me too, I like to learn.
 
-We're going to want Chef Habitat installed on our system, but that's not too hard. Follow the instructions in [Install Chef Habitat](/docs/install-habitat/) and come on back here. Can you run `hab --version` now in a terminal? Excellent.
+We're going to want Chef Habitat installed on our system, but that's not too hard. Follow the instructions in [Install Chef Habitat](/docs/install-habitat/install-cli and come on back here. Can you run `hab --version` now in a terminal? Excellent.
 
 Okay, we're going to use the Express application generator, so make sure you have this npm packaged installed globally:
 
