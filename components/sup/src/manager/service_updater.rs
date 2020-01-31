@@ -158,9 +158,6 @@ impl ServiceUpdater {
                                                  // census group for our service.
                                                  census_ring: &CensusRing)
                                                  -> Option<PackageIdent> {
-        debug!("Checking {} for updated {} package in the {} channel",
-               service.bldr_url, service.spec_ident, service.channel);
-
         // TODO (CM): can we do without this?
         let mut ident = None;
 
