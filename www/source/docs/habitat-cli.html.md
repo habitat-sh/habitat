@@ -1,8 +1,9 @@
-<!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
- ---
+---
 title: Chef Habitat Docs - hab CLI Reference
 draft: false
 ---
+
+<!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
 
 # Chef Habitat Command-Line Interface (CLI) Reference
 
