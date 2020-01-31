@@ -1,6 +1,11 @@
 . {{pkg.path}}\bin\habitat.ps1
 
+$isRunning = $false
+
 if((Get-Service Habitat -ErrorAction SilentlyContinue) -ne $null) {
+    if((Get-Service Habitat).Status -eq "Running") {
+        $isRunning = $true
+    }
     UnInstall-HabService
 }
 
@@ -14,4 +19,8 @@ Install-HabService
 
 if(Test-Path $configPathBU) {
     Move-Item $configPathBU $configPath -Force
+}
+
+if($isRunning) {
+    Start-Service Habitat
 }
