@@ -33,6 +33,7 @@ serde = { version = "*", features = ["rc"] }
 serde_json = "*"
 tempfile = "*"
 termcolor = "*"
+tokio = { version = "*", features = ["full"] }
 url = "*"
 failure = "*"
 failure_derive = "*"
