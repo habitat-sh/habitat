@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.8 -->
-## [1.5.8](https://github.com/habitat-sh/habitat/tree/1.5.8) (2020-01-31)
+<!-- latest_release 1.5.9 -->
+## [1.5.9](https://github.com/habitat-sh/habitat/tree/1.5.9) (2020-01-31)
 
 #### Merged Pull Requests
-- [CI] Update Github Release automation [#7391](https://github.com/habitat-sh/habitat/pull/7391) ([christophermaier](https://github.com/christophermaier))
+- Update Changelog for 1.5.0 release [#7395](https://github.com/habitat-sh/habitat/pull/7395) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.0 -->
@@ -14,6 +14,8 @@
 - hab origin invitations subcommand [#7349](https://github.com/habitat-sh/habitat/pull/7349) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.4 -->
 
 #### Merged Pull Requests
+- Update Changelog for 1.5.0 release [#7395](https://github.com/habitat-sh/habitat/pull/7395) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.9 -->
+- &quot;Bump nightly toolchain to nightly-2020-01-29&quot; [#7393](https://github.com/habitat-sh/habitat/pull/7393) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.9 -->
 - [CI] Update Github Release automation [#7391](https://github.com/habitat-sh/habitat/pull/7391) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.8 -->
 - add end to end tests to cover release validation [#7398](https://github.com/habitat-sh/habitat/pull/7398) ([mwrock](https://github.com/mwrock)) <!-- 1.5.7 -->
 - Assorted service updater tweaks [#7390](https://github.com/habitat-sh/habitat/pull/7390) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.6 -->
@@ -21,7 +23,6 @@
 - Update manual validation docs [#7365](https://github.com/habitat-sh/habitat/pull/7365) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.3 -->
 - Stop committing the results of a promotion command [#7366](https://github.com/habitat-sh/habitat/pull/7366) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.2 -->
 - Lint powershell with PSScriptAnalyzer [#7337](https://github.com/habitat-sh/habitat/pull/7337) ([mwrock](https://github.com/mwrock)) <!-- 1.5.1 -->
-
 <!-- release_rollup -->
 
 <!-- latest_stable_release -->
