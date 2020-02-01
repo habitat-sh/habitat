@@ -39,6 +39,7 @@ use std::{fs::{self,
                  PathBuf},
           string::ToString};
 use tee::TeeReader;
+use tokio::task;
 use tokio_util::codec::{BytesCodec,
                         FramedRead};
 use url::Url;
@@ -187,44 +188,44 @@ impl BuilderAPIClient {
         let w = AtomicWriter::new(&dst_file_path)?;
         let content_length = response::get_header(&resp, CONTENT_LENGTH);
         let mut body = Cursor::new(resp.bytes().await?);
-        // WARNING: This is a blocking write. It has the potential to block the `tokio` runtime. The
-        // blocking implementation is used to allow use of `DisplayProgress` which uses the `Write`
-        // trait.
-        w.with_writer(|mut f| {
-             // There will be no CONTENT_LENGTH header if an on prem
-             // builder is using chunked transfer encoding
-             match (progress, content_length) {
-                 (Some(mut progress), Ok(content_length)) => {
-                     let size = content_length.parse().map_err(Error::ParseIntError)?;
-                     progress.size(size);
-                     let mut writer = BroadcastWriter::new(&mut f, progress);
-                     io::copy(&mut body, &mut writer).map_err(Error::IO)
+        // Blocking is used to allow use of `DisplayProgress` which uses the `Write` trait.
+        task::block_in_place(|| {
+            w.with_writer(|mut f| {
+                 // There will be no CONTENT_LENGTH header if an on prem
+                 // builder is using chunked transfer encoding
+                 match (progress, content_length) {
+                     (Some(mut progress), Ok(content_length)) => {
+                         let size = content_length.parse().map_err(Error::ParseIntError)?;
+                         progress.size(size);
+                         let mut writer = BroadcastWriter::new(&mut f, progress);
+                         io::copy(&mut body, &mut writer).map_err(Error::IO)
+                     }
+                     _ => io::copy(&mut body, &mut f).map_err(Error::IO),
                  }
-                 _ => io::copy(&mut body, &mut f).map_err(Error::IO),
-             }
-         })?;
-        Ok(dst_file_path)
+             })?;
+            Ok(dst_file_path)
+        })
     }
 
     fn upload_body(src_path: &Path, progress: Option<Box<dyn DisplayProgress>>) -> Result<Body> {
-        let file =
-            File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
-        let file_size = file.metadata()
-                            .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
-                            .len();
+        // Blocking is used to allow use of `DisplayProgress` which uses the `Write` trait.
+        task::block_in_place(|| {
+            let file =
+                File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
+            let file_size = file.metadata()
+                                .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
+                                .len();
 
-        // WARNING: This uses a blocking read. It has the potential to block the `tokio` runtime.
-        // The blocking implementation is used to allow use of `DisplayProgress` which uses the
-        // `Write` trait.
-        Ok(if let Some(mut progress) = progress {
-            progress.size(file_size);
-            let reader = AllowStdIo::new(TeeReader::new(file, progress));
-            let reader = FramedRead::new(reader, BytesCodec::new()).map_ok(BytesMut::freeze);
-            Body::wrap_stream(reader)
-        } else {
-            let reader = AllowStdIo::new(file);
-            let reader = FramedRead::new(reader, BytesCodec::new()).map_ok(BytesMut::freeze);
-            Body::wrap_stream(reader)
+            Ok(if let Some(mut progress) = progress {
+                progress.size(file_size);
+                let reader = AllowStdIo::new(TeeReader::new(file, progress));
+                let reader = FramedRead::new(reader, BytesCodec::new()).map_ok(BytesMut::freeze);
+                Body::wrap_stream(reader)
+            } else {
+                let reader = AllowStdIo::new(file);
+                let reader = FramedRead::new(reader, BytesCodec::new()).map_ok(BytesMut::freeze);
+                Body::wrap_stream(reader)
+            })
         })
     }
 
