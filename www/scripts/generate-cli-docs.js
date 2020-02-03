@@ -74,11 +74,12 @@ function markdownForHeader() {
   const now = new Date();
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const formatted = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`
-  return `<!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
- ---
+  return `---
 title: Chef Habitat Docs - hab CLI Reference
 draft: false
 ---
+
+<!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
 
 # Chef Habitat Command-Line Interface (CLI) Reference
 
