@@ -14,9 +14,10 @@ if [[ "$env" != "acceptance" && "$env" != "live"  ]]; then
 fi
 
 export AWS_BUCKET="habitat-www-$env"
+export AWS_DEFAULT_REGION=us-west-2
 
-# verify that all the environment variables are properly set
-vars=(AWS_BUCKET AWS_DEFAULT_REGION FASTLY_SERVICE_KEY)
+# verify that the expected environment variables are properly set
+vars=(FASTLY_SERVICE_KEY)
 for var in "${vars[@]}"
 do
   if [ -z "${!var:-}" ]; then

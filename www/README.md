@@ -1,4 +1,3 @@
-
 # WWW
 
 Static site content for www.habitat.sh
@@ -37,8 +36,28 @@ In some cases, you may need to install `gawk` in order to obtain the `ffi` gem. 
 
 ## How-To: Deploy
 
-This happens automatically now as part of our CI pipeline.  When a PR merges
-to master, the web site will automatically be deployed to production. Deploys
-of the web site to acceptance is still a manual process, accomplished by
-running `make deploy_acceptance`. If you need to deploy the web site to
-production manually, you can run `make deploy_live`.
+This happens automatically now as part of our CI pipeline.  When a PR
+merges to master, the web site will automatically be deployed to
+production.
+
+If you would like to deploy your changes to the acceptance
+environment, you can manually invoke the [website-acceptance
+pipeline][]. Hit the "New Build" button and specify your PR
+branch. This pipeline does _not_ run automatically, and is provided as
+a way to encapsulate all that is necessary to deploy a build to
+acceptance. Alternatively, you may run `make deploy_acceptance`
+locally, provided you know the appropriate Fastly service ID and have
+an appropriate build environment set up. The pipeline is the preferred
+way, however, as all that is taken care of for you.
+
+Note that there is currently _no_ isolation provided for this
+acceptance pipeline, so you will need to coordinate with your
+teammates if more than one of you have website changes you'd like to
+see at the same time. We're all adults here, though, so make it
+happen.
+
+Once your PR merges, it would be nice for you to re-invoke the
+[website-acceptance pipeline][] again, pointed to the `master` branch,
+in order to "reset" the acceptance website to its expected state.
+
+[website-acceptance pipeline]: https://buildkite.com/chef/habitat-sh-habitat-master-website-acceptance
