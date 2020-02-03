@@ -43,7 +43,7 @@ installed_target() {
   [ "$(installed_target)" == "x86_64-linux" ]
 }
 
-@test "Install from bintray for x86_84-linux" {
+@test "Install legacy package for x86_84-linux" {
   linux || skip "Did not detect a Linux system"
   run components/hab/install.sh -v 0.79.1 
 
@@ -69,7 +69,7 @@ installed_target() {
   [ "$(installed_target)" == "x86_64-linux-kernel2" ]
 }
 
-@test "Install from bintray for x86_84-linux-kernel2" {
+@test "Install legacy package for x86_84-linux-kernel2" {
   linux || skip "Did not detect a Linux system"
   run components/hab/install.sh -v 0.79.1 -t "x86_64-linux-kernel2"
 
@@ -93,7 +93,7 @@ installed_target() {
   [ "$(installed_version)" == "hab 0.90.6" ]
 }
 
-@test "Install from bintray for x86_84-darwin" {
+@test "Install legacy package for x86_84-darwin" {
   darwin || skip "Did not detect a Darwin system"
   run components/hab/install.sh -v 0.79.1
 

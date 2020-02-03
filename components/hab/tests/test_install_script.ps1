@@ -13,7 +13,7 @@ Describe "Install habitat using install.ps1" {
         $result | Should -Match "hab 0.90.6/*"
     }
 
-    It "can install a specific version of Habitat from Bintray" {
+    It "can install a specific version of legacy Habitat package" {
         components/hab/install.ps1 -v 0.79.1
         $LASTEXITCODE | Should -Be 0
 
