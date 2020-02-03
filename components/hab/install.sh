@@ -42,7 +42,7 @@ main() {
   create_workdir
   get_platform
   validate_target
-  download_packages_chef_io_archive "$version" "$channel" "$target"
+  download_archive "$version" "$channel" "$target"
   verify_archive
   extract_archive
   install_hab
@@ -163,7 +163,7 @@ validate_target() {
   fi
 }
 
-download_packages_chef_io_archive() {
+download_archive() {
   need_cmd mv
   
   local _version="${1:-latest}"

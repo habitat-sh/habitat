@@ -45,7 +45,7 @@ Function Get-WorkDir {
 }
 
 # Downloads the requested archive from packages.chef.io
-Function Get-PackagesChefioArchive($channel, $version) {
+Function Get-Archive($channel, $version) {
     $url = $packagesChefioRootUrl
     if(!$version -Or $version -eq "latest") {
         $hab_url="$url/$channel/habitat/latest/hab-x86_64-windows.zip"
@@ -176,7 +176,7 @@ Write-Host "Installing Habitat 'hab' program"
 $workdir = Get-WorkDir
 New-Item $workdir -ItemType Directory -Force | Out-Null
 try {
-    $archive = Get-PackagesChefioArchive $channel $version
+    $archive = Get-Archive $channel $version
     if($archive.shasum) {
         Assert-Shasum $archive
     }
