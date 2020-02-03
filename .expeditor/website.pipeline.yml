@@ -11,7 +11,6 @@ expeditor:
       timeout_in_minutes: 30
       env:
         FASTLY_SERVICE_KEY: "T32H9RqMWpCV9qhp3S9xq"
-        AWS_DEFAULT_REGION: "us-west-2"
 
 steps:
   - label: "Deploy the website :pen:"
