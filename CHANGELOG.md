@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.14 -->
-## [1.5.14](https://github.com/habitat-sh/habitat/tree/1.5.14) (2020-02-03)
+<!-- latest_release 1.5.15 -->
+## [1.5.15](https://github.com/habitat-sh/habitat/tree/1.5.15) (2020-02-03)
 
 #### Merged Pull Requests
-- Use packages.chef.io for installation of all versions [#7387](https://github.com/habitat-sh/habitat/pull/7387) ([smacfarlane](https://github.com/smacfarlane))
+- Update docs for 1.5.0 [#7396](https://github.com/habitat-sh/habitat/pull/7396) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.0 -->
@@ -14,6 +14,7 @@
 - hab origin invitations subcommand [#7349](https://github.com/habitat-sh/habitat/pull/7349) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.4 -->
 
 #### Merged Pull Requests
+- Update docs for 1.5.0 [#7396](https://github.com/habitat-sh/habitat/pull/7396) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.15 -->
 - Use packages.chef.io for installation of all versions [#7387](https://github.com/habitat-sh/habitat/pull/7387) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.5.14 -->
 - Run cargo-update as part of post-release activities [#7394](https://github.com/habitat-sh/habitat/pull/7394) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.5.13 -->
 - Remove a debug log message from the service updater [#7404](https://github.com/habitat-sh/habitat/pull/7404) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.12 -->
