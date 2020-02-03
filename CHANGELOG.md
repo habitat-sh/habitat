@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.11 -->
-## [1.5.11](https://github.com/habitat-sh/habitat/tree/1.5.11) (2020-01-31)
+<!-- latest_release 1.5.12 -->
+## [1.5.12](https://github.com/habitat-sh/habitat/tree/1.5.12) (2020-02-03)
 
 #### Merged Pull Requests
-- Adds client command for departing from an origin [#7401](https://github.com/habitat-sh/habitat/pull/7401) ([eeyun](https://github.com/eeyun))
+- Remove a debug log message from the service updater [#7404](https://github.com/habitat-sh/habitat/pull/7404) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.0 -->
@@ -14,6 +14,7 @@
 - hab origin invitations subcommand [#7349](https://github.com/habitat-sh/habitat/pull/7349) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.4 -->
 
 #### Merged Pull Requests
+- Remove a debug log message from the service updater [#7404](https://github.com/habitat-sh/habitat/pull/7404) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.12 -->
 - Adds client command for departing from an origin [#7401](https://github.com/habitat-sh/habitat/pull/7401) ([eeyun](https://github.com/eeyun)) <!-- 1.5.11 -->
 - start windows service on install if it was running when the hook was invoked [#7399](https://github.com/habitat-sh/habitat/pull/7399) ([mwrock](https://github.com/mwrock)) <!-- 1.5.10 -->
 - Update Changelog for 1.5.0 release [#7395](https://github.com/habitat-sh/habitat/pull/7395) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.9 -->
