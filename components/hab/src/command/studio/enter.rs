@@ -266,13 +266,13 @@ mod inner {
 
     pub async fn start(_ui: &mut UI, args: &[OsString]) -> Result<()> {
         if is_windows_studio(&args) {
-            start_windows_studio(_ui, args)
+            start_windows_studio(_ui, args).await
         } else {
             docker::start_docker_studio(_ui, args)
         }
     }
 
-    pub fn start_windows_studio(ui: &mut UI, args: &[OsString]) -> Result<()> {
+    pub async fn start_windows_studio(ui: &mut UI, args: &[OsString]) -> Result<()> {
         let command = match henv::var(super::STUDIO_CMD_ENVVAR) {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
@@ -281,7 +281,7 @@ mod inner {
                 let ident = PackageIdent::from_str(&format!("{}/{}",
                                                             super::STUDIO_PACKAGE_IDENT,
                                                             version[0]))?;
-                exec::command_from_min_pkg(ui, super::STUDIO_CMD, &ident)?
+                exec::command_from_min_pkg(ui, super::STUDIO_CMD, &ident).await?
             }
         };
 

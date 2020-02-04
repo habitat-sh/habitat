@@ -5,8 +5,9 @@
 /// down. If the process dies, the Supervisor will restart it.
 use super::{terminator,
             ProcessState};
-use crate::{error::{Error,
-                    Result},
+#[cfg(unix)]
+use crate::error::Error;
+use crate::{error::Result,
             manager::{ServicePidSource,
                       ShutdownConfig}};
 use habitat_common::{outputln,
