@@ -1205,7 +1205,7 @@ impl Manager {
         for (current_ident, service) in state_services.iter() {
             if service.needs_restart {
                 idents_to_restart.push(current_ident.clone());
-            } else if let Some(new_ident) = 
+            } else if let Some(new_ident) =
                     updater.check_for_updated_package_rsw_mlr_rhw(&service, &self.census_ring).await
             {
                 outputln!("Updating from {} to {}", current_ident, new_ident);
