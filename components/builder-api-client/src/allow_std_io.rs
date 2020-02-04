@@ -1,9 +1,10 @@
 //! This is copied almost directly from the `futures` crate [1]. The difference is this
 //! implmentation uses the `AsyncRead` and `AsyncWrite` traits from the `tokio` ecosystem. Once
 //! these traits become part of the standard library the need to duplicate the functionality here
-//! will be obsolete.
+//! will be obsolete [2].
 //!
 //! [1] https://github.com/rust-lang/futures-rs/blob/e76780341234cda6e77edec7ece83559bbcd0162/futures-util/src/io/allow_std.rs#L1
+//! [2] https://github.com/habitat-sh/habitat/issues/7414
 
 use futures::{io::{IoSlice,
                    IoSliceMut,
