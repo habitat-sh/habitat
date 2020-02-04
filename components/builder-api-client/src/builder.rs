@@ -188,8 +188,8 @@ impl BuilderAPIClient {
         let w = AtomicWriter::new(&dst_file_path)?;
         let content_length = response::get_header(&resp, CONTENT_LENGTH);
         let mut body = Cursor::new(resp.bytes().await?);
-        // Blocking is used to allow use of `DisplayProgress` which uses the `Write` trait.
-        task::block_in_place(|| {
+        // Blocking IO is used because of `DisplayProgress` which relies on the `Write` trait.
+        task::spawn_blocking(move || {
             w.with_writer(|mut f| {
                  // There will be no CONTENT_LENGTH header if an on prem
                  // builder is using chunked transfer encoding
@@ -204,18 +204,20 @@ impl BuilderAPIClient {
                  }
              })?;
             Ok(dst_file_path)
-        })
+        }).await?
     }
 
-    fn upload_body(src_path: &Path, progress: Option<Box<dyn DisplayProgress>>) -> Result<Body> {
-        // Blocking is used to allow use of `DisplayProgress` which uses the `Write` trait.
-        task::block_in_place(|| {
-            let file =
-                File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
-            let file_size = file.metadata()
-                                .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
-                                .len();
+    async fn upload_body(src_path: &Path,
+                         progress: Option<Box<dyn DisplayProgress>>)
+                         -> Result<Body> {
+        let file =
+            File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
+        let file_size = file.metadata()
+                            .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
+                            .len();
 
+        // Blocking IO is used because of `DisplayProgress` which relies on the `Write` trait.
+        task::spawn_blocking(move || {
             Ok(if let Some(mut progress) = progress {
                 progress.size(file_size);
                 let reader = AllowStdIo::new(TeeReader::new(file, progress));
@@ -226,7 +228,7 @@ impl BuilderAPIClient {
                 let reader = FramedRead::new(reader, BytesCodec::new()).map_ok(BytesMut::freeze);
                 Body::wrap_stream(reader)
             })
-        })
+        }).await?
     }
 
     async fn seach_package_with_range(&self,
@@ -914,7 +916,7 @@ impl BuilderAPIClient {
         debug!("Uploading origin key: {}, {}", origin, revision);
 
         let path = format!("depot/origins/{}/keys/{}", &origin, &revision);
-        let body = Self::upload_body(src_path, progress)?;
+        let body = Self::upload_body(src_path, progress).await?;
         let resp = self.0
                        .post(&path)
                        .bearer_auth(token)
@@ -944,7 +946,7 @@ impl BuilderAPIClient {
         debug!("Uploading origin secret key: {}, {}", origin, revision);
 
         let path = format!("depot/origins/{}/secret_keys/{}", &origin, &revision);
-        let body = Self::upload_body(src_path, progress)?;
+        let body = Self::upload_body(src_path, progress).await?;
         let resp = self.0
                        .post(&path)
                        .bearer_auth(token)
@@ -1121,7 +1123,7 @@ impl BuilderAPIClient {
         };
 
         debug!("Reading from {}", &pa.path.display());
-        let body = Self::upload_body(&pa.path, progress)?;
+        let body = Self::upload_body(&pa.path, progress).await?;
 
         let resp = self.0
                        .post_with_custom_url(&path, custom)
