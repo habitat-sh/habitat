@@ -44,7 +44,6 @@ use crate::{census::{CensusRing,
 use cpu_time::ProcessTime;
 use futures::{channel::{mpsc as fut_mpsc,
                         oneshot},
-              executor,
               future,
               prelude::*,
               stream::FuturesUnordered};
@@ -117,8 +116,7 @@ use time::{self,
            Duration as TimeDuration,
            SteadyTime,
            Timespec};
-use tokio::{self,
-            task};
+use tokio;
 #[cfg(windows)]
 use winapi::{shared::minwindef::PDWORD,
              um::processthreadsapi};
@@ -901,7 +899,7 @@ impl Manager {
         self.butterfly
             .start_rsw_mlw_smw_rhw_msr(&Timing::default())?;
         debug!("gossip-listener started");
-        self.persist_state_rsr_mlr_gsw_msr();
+        self.persist_state_rsr_mlr_gsw_msr().await;
         let http_listen_addr = self.sys.http_listen();
         let ctl_listen_addr = self.sys.ctl_listen();
         let ctl_secret_key = ctl_gateway::readgen_secret_key(&self.fs_cfg.sup_root)?;
@@ -1102,7 +1100,7 @@ impl Manager {
                                             &self.butterfly.service_file_store);
 
             if self.check_for_changed_services_msr() || self.census_ring.changed() {
-                self.persist_state_rsr_mlr_gsw_msr();
+                self.persist_state_rsr_mlr_gsw_msr().await;
             }
 
             for service in self.state.services.lock_msw().services() {
@@ -1202,25 +1200,21 @@ impl Manager {
         let mut updater = self.updater.lock().expect("Updater lock poisoned");
 
         let mut state_services = self.state.services.lock_msw();
-        let idents_to_restart: Vec<_> = state_services.iter()
-            .filter_map(|(current_ident, service)| {
-                if service.needs_restart {
-                    Some(current_ident.clone())
-                } else if let Some(new_ident) = task::block_in_place(|| {
-                        // Inorder to use filter_map, block on this future because futures cannot
-                        // be awaited in a closure.
-                        executor::block_on(updater.check_for_updated_package_rsw_mlr_rhw(&service, &self.census_ring))
-                    })
-                {
-                    outputln!("Updating from {} to {}", current_ident, new_ident);
-                    event::service_update_started(&service, &new_ident);
-                    Some(current_ident.clone())
-                } else {
-                    trace!("No update found for {}", current_ident);
-                    None
-                }
-            })
-            .collect();
+        // We cannot use `filter_map` here because futures cannot be awaited in a closure.
+        let mut idents_to_restart = Vec::new();
+        for (current_ident, service) in state_services.iter() {
+            if service.needs_restart {
+                idents_to_restart.push(current_ident.clone());
+            } else if let Some(new_ident) = 
+                    updater.check_for_updated_package_rsw_mlr_rhw(&service, &self.census_ring).await
+            {
+                outputln!("Updating from {} to {}", current_ident, new_ident);
+                event::service_update_started(&service, &new_ident);
+                idents_to_restart.push(current_ident.clone());
+            } else {
+                trace!("No update found for {}", current_ident);
+            };
+        }
 
         let mut services_to_restart = Vec::with_capacity(idents_to_restart.len());
         for current_ident in idents_to_restart {
@@ -1307,13 +1301,13 @@ impl Manager {
     /// * `MemberList::entries` (read)
     /// * `GatewayState::inner` (write)
     /// * `ManagerServices::inner` (read)
-    fn persist_state_rsr_mlr_gsw_msr(&mut self) {
+    async fn persist_state_rsr_mlr_gsw_msr(&mut self) {
         debug!("Updating census state");
         self.persist_census_state_gsw();
         debug!("Updating butterfly state");
         self.persist_butterfly_state_rsr_mlr_gsw();
         debug!("Updating services state");
-        self.persist_services_state_gsw_msr();
+        self.persist_services_state_gsw_msr().await;
     }
 
     /// # Locking (see locking.md)
@@ -1337,7 +1331,7 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `GatewayState::inner` (write)
     /// * `ManagerServices::inner` (read)
-    fn persist_services_state_gsw_msr(&self) {
+    async fn persist_services_state_gsw_msr(&self) {
         let config_rendering = if self.feature_flags.contains(FeatureFlag::REDACT_HTTP) {
             ConfigRendering::Redacted
         } else {
@@ -1352,34 +1346,23 @@ impl Manager {
         // Services that are not active but are being watched for changes
         // These would include stopped persistent services or other
         // persistent services that failed to load
-        let watched_services: Vec<Service> =
-            self.spec_dir
-                .specs()
-                .into_iter()
-                .filter_map(|spec| {
-                    if existing_idents.contains(&spec.ident) {
-                        None
-                    } else {
-                        let ident = spec.ident.clone();
-                        // Inorder to use filter_map, block on this future because futures
-                        // cannot be awaited in a closure.
-                        let result = task::block_in_place(|| {
-                            executor::block_on(Service::new(self.sys.clone(),
-                                                            spec,
-                                                            self.fs_cfg.clone(),
-                                                            self.organization
-                                                                .as_ref()
-                                                                .map(String::as_str),
-                                                            self.state.gateway_state.clone(),
-                                                            self.pid_source))
-                        });
-                        if let Err(ref e) = result {
-                            warn!("Failed to create service '{}' from spec: {:?}", ident, e);
-                        }
-                        result.ok()
-                    }
-                })
-                .collect();
+        // We cannot use `filter_map` here because futures cannot be awaited in a closure.
+        let mut watched_services = Vec::new();
+        for spec in self.spec_dir.specs() {
+            if !existing_idents.contains(&spec.ident) {
+                let ident = spec.ident.clone();
+                let result = Service::new(self.sys.clone(),
+                                          spec,
+                                          self.fs_cfg.clone(),
+                                          self.organization.as_ref().map(String::as_str),
+                                          self.state.gateway_state.clone(),
+                                          self.pid_source).await;
+                match result {
+                    Ok(result) => watched_services.push(result),
+                    Err(ref e) => warn!("Failed to create service '{}' from spec: {:?}", ident, e),
+                }
+            }
+        }
         let watched_service_proxies: Vec<ServiceProxy<'_>> =
             watched_services.iter()
                             .map(|s| ServiceProxy::new(s, config_rendering))
