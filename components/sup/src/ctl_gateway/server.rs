@@ -278,7 +278,9 @@ impl SrvHandler {
                                    move |state, req, _action_sender| {
                                        // To avoid significant architecture changes to `CtlCommand,`
                                        // block on the load service future because futures cannot
-                                       // be awaited in a closure.
+                                       // be awaited in a closure. It is safe to use
+                                       // `block_in_place` here because it is called within a
+                                       // spawned future.
                                        task::block_in_place(|| {
                                            executor::block_on(commands::service_load(state,
                                                                                      req,

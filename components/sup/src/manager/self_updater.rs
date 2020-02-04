@@ -50,7 +50,7 @@ impl SelfUpdater {
             -> Receiver<PackageInstall> {
         let (tx, rx) = oneshot::channel();
         // Execute this future on a dedicated thread. Eventually, this should use `tokio::spawn`,
-        // but that will require further refactoring.
+        // but that will require refactoring to make the future safe to spawn on an executor.
         thread::Builder::new().name("self-updater".to_string())
                               .spawn(move || {
                                   executor::block_on(Self::run(tx,
