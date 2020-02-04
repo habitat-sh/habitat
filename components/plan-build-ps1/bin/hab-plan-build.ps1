@@ -1476,6 +1476,34 @@ function Invoke-End {
 function Invoke-DefaultEnd {
 }
 
+function Invoke-AfterSuccessWrapper {
+    Invoke-FinalCallbackWrapper "Invoke-AfterSuccess"
+}
+
+function Invoke-AfterFailureWrapper {
+    Invoke-FinalCallbackWrapper "Invoke-AfterFailure"
+}
+
+function Invoke-FinalCallbackWrapper($func) {
+    if(Test-Path "function:\$func") {
+        Write-BuildLine "'$func' callback function is defined; executing..."
+        $ex = $null
+
+        try {
+            &$func
+        } catch {
+            $ex = $_
+        }
+
+        if($ex) {
+            Write-Warning "'$func' callback failed:"
+            Write-Host "$ex"
+            if($func -eq "Invoke-AfterSuccess") {
+                Write-Host "overall build is successful, though"
+            }
+        }
+    }
+}
 
 # # Main Flow
 
@@ -1756,6 +1784,11 @@ try {
     # Cleanup
     Write-BuildLine "$program cleanup"
     Invoke-End
+
+    Invoke-AfterSuccessWrapper
+} catch {
+    Invoke-AfterFailureWrapper
+    throw $_
 } finally {
     Pop-Location
     $env:path = $INITIAL_PATH
