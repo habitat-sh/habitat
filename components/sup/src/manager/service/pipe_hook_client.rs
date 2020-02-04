@@ -309,7 +309,7 @@ mod test {
                                                  .join("named_pipe_service.ps1")
     }
 
-    fn pkg() -> Pkg {
+    async fn pkg() -> Pkg {
         let service_group = ServiceGroup::new("test_service", "test_group", None).unwrap();
         let pg_id = PackageIdent::new("testing",
                                       &service_group.service(),
@@ -319,11 +319,11 @@ mod test {
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"));
-        Pkg::from_install(&pkg_install).unwrap()
+        Pkg::from_install(&pkg_install).await.unwrap()
     }
 
-    #[test]
-    fn pipe_hook_client_exec_hook_returns_exit_status() {
+    #[tokio::test]
+    async fn pipe_hook_client_exec_hook_returns_exit_status() {
         let var = pipe_service_path();
         var.set(&named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
@@ -335,13 +335,14 @@ mod test {
                                          tmpdir.path().join("out.log"),
                                          tmpdir.path().join("err.log"));
 
-        let exit = client.exec_hook("tg1", &pkg(), None::<String>).unwrap();
+        let exit = client.exec_hook("tg1", &pkg().await, None::<String>)
+                         .unwrap();
 
         assert_eq!(5000, exit);
     }
 
-    #[test]
-    fn pipe_hook_client_exec_hook_returns_exit_status_when_no_exit_in_script() {
+    #[tokio::test]
+    async fn pipe_hook_client_exec_hook_returns_exit_status_when_no_exit_in_script() {
         let var = pipe_service_path();
         var.set(&named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
@@ -353,13 +354,14 @@ mod test {
                                          tmpdir.path().join("out.log"),
                                          tmpdir.path().join("err.log"));
 
-        let exit = client.exec_hook("tg2", &pkg(), None::<String>).unwrap();
+        let exit = client.exec_hook("tg2", &pkg().await, None::<String>)
+                         .unwrap();
 
         assert_eq!(0, exit);
     }
 
-    #[test]
-    fn pipe_hook_client_exec_hook_logs_stdout() {
+    #[tokio::test]
+    async fn pipe_hook_client_exec_hook_logs_stdout() {
         let var = pipe_service_path();
         var.set(&named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
@@ -371,7 +373,8 @@ mod test {
                                          tmpdir.path().join("out.log"),
                                          tmpdir.path().join("err.log"));
 
-        client.exec_hook("tg3", &pkg(), None::<String>).unwrap();
+        client.exec_hook("tg3", &pkg().await, None::<String>)
+              .unwrap();
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
@@ -379,8 +382,8 @@ mod test {
         assert!(file_content(tmpdir.path().join("out.log")).contains("you are my sunshine\n"));
     }
 
-    #[test]
-    fn pipe_hook_client_exec_hook_logs_stderr() {
+    #[tokio::test]
+    async fn pipe_hook_client_exec_hook_logs_stderr() {
         let var = pipe_service_path();
         var.set(&named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
@@ -392,7 +395,8 @@ mod test {
                                          tmpdir.path().join("out.log"),
                                          tmpdir.path().join("err.log"));
 
-        client.exec_hook("tg4", &pkg(), None::<String>).unwrap();
+        client.exec_hook("tg4", &pkg().await, None::<String>)
+              .unwrap();
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
@@ -400,8 +404,8 @@ mod test {
         assert!(file_content(tmpdir.path().join("err.log")).contains("you are not my sunshine\n"));
     }
 
-    #[test]
-    fn pipe_hook_client_exec_hook_shares_server_accross_calls() {
+    #[tokio::test]
+    async fn pipe_hook_client_exec_hook_shares_server_accross_calls() {
         let var = pipe_service_path();
         var.set(&named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
@@ -413,14 +417,16 @@ mod test {
                                          tmpdir.path().join("out.log"),
                                          tmpdir.path().join("err.log"));
 
-        let pid1 = client.exec_hook("tg5", &pkg(), None::<String>).unwrap();
-        let pid2 = client.exec_hook("tg5", &pkg(), None::<String>).unwrap();
+        let pid1 = client.exec_hook("tg5", &pkg().await, None::<String>)
+                         .unwrap();
+        let pid2 = client.exec_hook("tg5", &pkg().await, None::<String>)
+                         .unwrap();
 
         assert_eq!(pid1, pid2);
     }
 
-    #[test]
-    fn pipe_hook_client_start_server_terminates_failed_server() {
+    #[tokio::test]
+    async fn pipe_hook_client_start_server_terminates_failed_server() {
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("fake-server.ps1");
         create_with_content(&path,
@@ -432,7 +438,7 @@ mod test {
                                          tmpdir.path().join("out.log"),
                                          tmpdir.path().join("err.log"));
 
-        let result = client.exec_hook("tg6", &pkg(), None::<String>);
+        let result = client.exec_hook("tg6", &pkg().await, None::<String>);
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
@@ -444,8 +450,8 @@ mod test {
                                           .expect("could no parse pid")));
     }
 
-    #[test]
-    fn pipe_hook_client_start_server_logs_stderr_of_failed_server() {
+    #[tokio::test]
+    async fn pipe_hook_client_start_server_logs_stderr_of_failed_server() {
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("fake-server.ps1");
         create_with_content(&path, "write-error 'I am not a real pipe server'");
@@ -456,7 +462,7 @@ mod test {
                                          tmpdir.path().join("out.log"),
                                          tmpdir.path().join("err.log"));
 
-        let result = client.exec_hook("tg7", &pkg(), None::<String>);
+        let result = client.exec_hook("tg7", &pkg().await, None::<String>);
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
@@ -466,8 +472,8 @@ mod test {
                                                                       server"));
     }
 
-    #[test]
-    fn pipe_hook_client_start_server_logs_stdout_of_failed_server() {
+    #[tokio::test]
+    async fn pipe_hook_client_start_server_logs_stdout_of_failed_server() {
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("fake-server.ps1");
         create_with_content(&path, "write-host 'I am not a real pipe server'");
@@ -478,7 +484,7 @@ mod test {
                                          tmpdir.path().join("out.log"),
                                          tmpdir.path().join("err.log"));
 
-        let result = client.exec_hook("tg8", &pkg(), None::<String>);
+        let result = client.exec_hook("tg8", &pkg().await, None::<String>);
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
@@ -488,8 +494,8 @@ mod test {
                    file_content(tmpdir.path().join("out.log")));
     }
 
-    #[test]
-    fn pipe_hook_client_exec_hook_starts_new_service_if_current_instance_exits() {
+    #[tokio::test]
+    async fn pipe_hook_client_exec_hook_starts_new_service_if_current_instance_exits() {
         let var = pipe_service_path();
         var.set(&named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
@@ -501,20 +507,22 @@ mod test {
                                          tmpdir.path().join("out.log"),
                                          tmpdir.path().join("err.log"));
 
-        let pid1 = client.exec_hook("tg9", &pkg(), None::<String>).unwrap();
+        let pid1 = client.exec_hook("tg9", &pkg().await, None::<String>)
+                         .unwrap();
 
         let handle = process::handle_from_pid(pid1).expect("unable to get handle to pipe server");
         unsafe {
             processthreadsapi::TerminateProcess(handle, 1);
         }
 
-        let pid2 = client.exec_hook("tg9", &pkg(), None::<String>).unwrap();
+        let pid2 = client.exec_hook("tg9", &pkg().await, None::<String>)
+                         .unwrap();
 
         assert_ne!(pid1, pid2);
     }
 
-    #[test]
-    fn pipe_hook_client_exec_hook_restores_environment() {
+    #[tokio::test]
+    async fn pipe_hook_client_exec_hook_restores_environment() {
         let var = pipe_service_path();
         var.set(&named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
@@ -527,15 +535,17 @@ mod test {
                                          tmpdir.path().join("out.log"),
                                          tmpdir.path().join("err.log"));
 
-        let exit1 = client.exec_hook("tg10", &pkg(), None::<String>).unwrap();
-        let exit2 = client.exec_hook("tg10", &pkg(), None::<String>).unwrap();
+        let exit1 = client.exec_hook("tg10", &pkg().await, None::<String>)
+                          .unwrap();
+        let exit2 = client.exec_hook("tg10", &pkg().await, None::<String>)
+                          .unwrap();
 
         assert_eq!(0, exit1);
         assert_eq!(0, exit2);
     }
 
-    #[test]
-    fn pipe_hook_client_drop_quits_service() {
+    #[tokio::test]
+    async fn pipe_hook_client_drop_quits_service() {
         let var = pipe_service_path();
         var.set(&named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
@@ -548,7 +558,8 @@ mod test {
                                              tmpdir.path().join("out.log"),
                                              tmpdir.path().join("err.log"));
 
-            client.exec_hook("tg11", &pkg(), None::<String>).unwrap()
+            client.exec_hook("tg11", &pkg().await, None::<String>)
+                  .unwrap()
         };
         let handle = process::handle_from_pid(pid).expect("unable to get handle to pipe server");
         unsafe {
@@ -558,8 +569,8 @@ mod test {
         assert!(!process::is_alive(pid));
     }
 
-    #[test]
-    fn pipe_hook_client_exec_hook_will_return_3_if_hook_throws_exception() {
+    #[tokio::test]
+    async fn pipe_hook_client_exec_hook_will_return_3_if_hook_throws_exception() {
         let var = pipe_service_path();
         var.set(&named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
@@ -571,13 +582,14 @@ mod test {
                                          tmpdir.path().join("out.log"),
                                          tmpdir.path().join("err.log"));
 
-        let exit = client.exec_hook("tg12", &pkg(), None::<String>).unwrap();
+        let exit = client.exec_hook("tg12", &pkg().await, None::<String>)
+                         .unwrap();
 
         assert_eq!(3, exit);
     }
 
-    #[test]
-    fn pipe_hook_client_exec_hook_clears_stdout_log() {
+    #[tokio::test]
+    async fn pipe_hook_client_exec_hook_clears_stdout_log() {
         let var = pipe_service_path();
         var.set(&named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
@@ -589,8 +601,10 @@ mod test {
                                          tmpdir.path().join("out.log"),
                                          tmpdir.path().join("err.log"));
 
-        client.exec_hook("tg13", &pkg(), None::<String>).unwrap();
-        client.exec_hook("tg13", &pkg(), None::<String>).unwrap();
+        client.exec_hook("tg13", &pkg().await, None::<String>)
+              .unwrap();
+        client.exec_hook("tg13", &pkg().await, None::<String>)
+              .unwrap();
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
@@ -599,8 +613,8 @@ mod test {
                    file_content(tmpdir.path().join("out.log")));
     }
 
-    #[test]
-    fn pipe_hook_client_exec_hook_clears_stderr_log() {
+    #[tokio::test]
+    async fn pipe_hook_client_exec_hook_clears_stderr_log() {
         let var = pipe_service_path();
         var.set(&named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
@@ -612,8 +626,10 @@ mod test {
                                          tmpdir.path().join("out.log"),
                                          tmpdir.path().join("err.log"));
 
-        client.exec_hook("tg14", &pkg(), None::<String>).unwrap();
-        client.exec_hook("tg14", &pkg(), None::<String>).unwrap();
+        client.exec_hook("tg14", &pkg().await, None::<String>)
+              .unwrap();
+        client.exec_hook("tg14", &pkg().await, None::<String>)
+              .unwrap();
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
@@ -623,8 +639,8 @@ mod test {
                    content.rfind("I am the only error"));
     }
 
-    #[test]
-    fn pipe_hook_client_exec_hook_passes_pid() {
+    #[tokio::test]
+    async fn pipe_hook_client_exec_hook_passes_pid() {
         let var = pipe_service_path();
         var.set(&named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
@@ -636,7 +652,8 @@ mod test {
                                          tmpdir.path().join("out.log"),
                                          tmpdir.path().join("err.log"));
 
-        let exit = client.exec_hook("tg15", &pkg(), None::<String>).unwrap();
+        let exit = client.exec_hook("tg15", &pkg().await, None::<String>)
+                         .unwrap();
 
         assert_eq!(std::process::id(), exit);
     }
