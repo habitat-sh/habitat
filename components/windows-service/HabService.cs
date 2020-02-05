@@ -2,6 +2,7 @@
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
+using System.Management;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
@@ -184,6 +185,16 @@ namespace HabService
         private void ExitHandler(object sender, System.EventArgs e)
         {
             log.Error(String.Format("Habitat Supervisor has exited with exit code {0}", proc.ExitCode));
+            var mos = new ManagementObjectSearcher("SELECT ProcessId FROM Win32_Process WHERE Name='hab-sup.exe' AND ParentProcessId=" + proc.Id);
+            // There should really only be 1 but the searcher returns a collection
+            // We want to make sure that the supervisor is allowed time to shut down
+            // before stopping the service so that any of its services
+            // cleanly shut down.
+            foreach (ManagementObject mo in mos.Get()) {
+                var sup = Process.GetProcessById(Convert.ToInt32(mo["ProcessID"]));
+                log.Info("Waiting for Supervisor to exit...");
+                sup.WaitForExit();
+            }
             Stop();
         }
 
