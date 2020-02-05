@@ -1121,8 +1121,8 @@ mod test {
         load_templates(&file, &PathBuf::new(), TemplateRenderer::new())?;
     }
 
-    #[test]
-    fn test_compile_recursive_config_dir() {
+    #[tokio::test]
+    async fn test_compile_recursive_config_dir() {
         let root = TempDir::new().expect("create temp dir").into_path();
 
         // Setup a dummy package directory with a config file inside
@@ -1147,7 +1147,7 @@ mod test {
         let output_dir = root.join("output");
         fs::create_dir_all(&output_dir).expect("create output dir");
 
-        let pkg = Pkg::from_install(&pkg_install).unwrap();
+        let pkg = Pkg::from_install(&pkg_install).await.unwrap();
         let cfg = Cfg::new(&pkg, None).unwrap();
         let ctx = RenderContext::new(&pkg, &cfg);
 

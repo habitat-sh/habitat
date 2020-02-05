@@ -11,16 +11,17 @@ use crate::{error::{Error,
             PRODUCT,
             VERSION};
 
-pub fn start(ui: &mut UI,
-             bldr_url: &str,
-             (ident, target): (&PackageIdent, PackageTarget),
-             token: &str,
-             group: bool)
-             -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   bldr_url: &str,
+                   (ident, target): (&PackageIdent, PackageTarget),
+                   token: &str,
+                   group: bool)
+                   -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     if group {
         let rdeps = api_client.fetch_rdeps((ident, target), token)
+                              .await
                               .map_err(Error::APIClient)?;
         if !rdeps.is_empty() {
             ui.warn("Found the following reverse dependencies:")?;
@@ -29,7 +30,7 @@ pub fn start(ui: &mut UI,
                 ui.warn(rdep.to_string())?;
             }
 
-            ui.warn("Note: dependencies from private origins are omitted for non-members.");
+            ui.warn("Note: dependencies from private origins are omitted for non-members.")?;
 
             let question = "Starting a group build for this package will also build all of the \
                             reverse dependencies listed above. Is this what you want?";
@@ -45,6 +46,7 @@ pub fn start(ui: &mut UI,
               format!("build job for {} ({})", ident, target))?;
 
     let id = api_client.schedule_job((ident, target), !group, token)
+                       .await
                        .map_err(Error::APIClient)?;
 
     ui.status(Status::Created, format!("build job. The id is {}", id))?;

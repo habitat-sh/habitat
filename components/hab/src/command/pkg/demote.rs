@@ -33,12 +33,12 @@ use crate::{error::{Error,
 /// * Fails if it cannot find the specified package in Builder.
 /// * Fails if the channel specified does not exist.
 /// * Fails if "unstable" is the channel specified.
-pub fn start(ui: &mut UI,
-             bldr_url: &str,
-             (ident, target): (&PackageIdent, PackageTarget),
-             channel: &ChannelIdent,
-             token: &str)
-             -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   bldr_url: &str,
+                   (ident, target): (&PackageIdent, PackageTarget),
+                   channel: &ChannelIdent,
+                   token: &str)
+                   -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!("Demoting {} ({}) from {}", ident, target, channel))?;
@@ -47,7 +47,9 @@ pub fn start(ui: &mut UI,
         return Err(Error::CannotRemoveFromChannel((ident.to_string(), channel.to_string())));
     }
 
-    match api_client.demote_package((ident, target), channel, token) {
+    match api_client.demote_package((ident, target), channel, token)
+                    .await
+    {
         Ok(_) => (),
         Err(e) => {
             println!("Failed to demote '{}': {:?}", ident, e);

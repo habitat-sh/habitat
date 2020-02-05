@@ -27,6 +27,7 @@ log = "*"
 mktemp = "*"
 serde = { version = "*", features = ["rc"] }
 serde_json = "*"
+tokio = { version = "*", features = ["full"] }
 url = "*"
 failure = "*"
 failure_derive = "*"

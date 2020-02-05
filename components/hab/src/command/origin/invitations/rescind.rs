@@ -9,18 +9,20 @@ use crate::{api_client::{self,
             VERSION};
 use reqwest::StatusCode;
 
-pub fn start(ui: &mut UI,
-             bldr_url: &str,
-             origin: &str,
-             token: &str,
-             invitation_id: u64)
-             -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   bldr_url: &str,
+                   origin: &str,
+                   token: &str,
+                   invitation_id: u64)
+                   -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(Status::Rescinding,
               format!("invitation id {} for origin {}", invitation_id, origin))?;
 
-    match api_client.rescind_origin_invitation(origin, token, invitation_id) {
+    match api_client.rescind_origin_invitation(origin, token, invitation_id)
+                    .await
+    {
         Ok(_) => {
             ui.status(Status::Rescinded,
                       "the invitation successfully!".to_string())

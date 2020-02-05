@@ -27,6 +27,7 @@ handlebars = { version = "0.29.1", default-features = false }
 log = "*"
 serde = "*"
 serde_json = "*"
+tokio = { version = "*", features = ["full"] }
 failure = "*"
 failure_derive = "*"
 

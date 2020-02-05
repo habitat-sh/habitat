@@ -146,7 +146,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     //
     // In my opinion, this function should go away and we should follow 1 standard flow for arg
     // parsing and delegation.
-    exec_subcommand_if_called(ui)?;
+    exec_subcommand_if_called(ui).await?;
 
     let (args, remaining_args) = raw_parse_args();
     debug!("clap cli args: {:?}", &args);
@@ -189,42 +189,42 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 _ => unreachable!(),
             }
         }
-        ("install", Some(m)) => sub_pkg_install(ui, m, feature_flags)?,
+        ("install", Some(m)) => sub_pkg_install(ui, m, feature_flags).await?,
         ("origin", Some(matches)) => {
             match matches.subcommand() {
                 ("invitations", Some(m)) => {
                     match m.subcommand() {
-                        ("accept", Some(sc)) => sub_accept_origin_invitation(ui, sc)?,
-                        ("ignore", Some(sc)) => sub_ignore_origin_invitation(ui, sc)?,
-                        ("list", Some(sc)) => sub_list_user_invitations(ui, sc)?,
-                        ("pending", Some(sc)) => sub_list_pending_origin_invitations(ui, sc)?,
-                        ("send", Some(sc)) => sub_send_origin_invitation(ui, sc)?,
-                        ("rescind", Some(sc)) => sub_rescind_origin_invitation(ui, sc)?,
+                        ("accept", Some(sc)) => sub_accept_origin_invitation(ui, sc).await?,
+                        ("ignore", Some(sc)) => sub_ignore_origin_invitation(ui, sc).await?,
+                        ("list", Some(sc)) => sub_list_user_invitations(ui, sc).await?,
+                        ("pending", Some(sc)) => sub_list_pending_origin_invitations(ui, sc).await?,
+                        ("send", Some(sc)) => sub_send_origin_invitation(ui, sc).await?,
+                        ("rescind", Some(sc)) => sub_rescind_origin_invitation(ui, sc).await?,
                         _ => unreachable!(),
                     }
                 }
                 ("key", Some(m)) => {
                     match m.subcommand() {
-                        ("download", Some(sc)) => sub_origin_key_download(ui, sc)?,
+                        ("download", Some(sc)) => sub_origin_key_download(ui, sc).await?,
                         ("export", Some(sc)) => sub_origin_key_export(sc)?,
                         ("generate", Some(sc)) => sub_origin_key_generate(ui, sc)?,
                         ("import", Some(sc)) => sub_origin_key_import(ui, sc)?,
-                        ("upload", Some(sc)) => sub_origin_key_upload(ui, sc)?,
+                        ("upload", Some(sc)) => sub_origin_key_upload(ui, sc).await?,
                         _ => unreachable!(),
                     }
                 }
                 ("secret", Some(m)) => {
                     match m.subcommand() {
-                        ("upload", Some(sc)) => sub_origin_secret_upload(ui, sc)?,
-                        ("delete", Some(sc)) => sub_origin_secret_delete(ui, sc)?,
-                        ("list", Some(sc)) => sub_origin_secret_list(ui, sc)?,
+                        ("upload", Some(sc)) => sub_origin_secret_upload(ui, sc).await?,
+                        ("delete", Some(sc)) => sub_origin_secret_delete(ui, sc).await?,
+                        ("list", Some(sc)) => sub_origin_secret_list(ui, sc).await?,
                         _ => unreachable!(),
                     }
                 }
-                ("create", Some(m)) => sub_origin_create(ui, m)?,
-                ("delete", Some(m)) => sub_origin_delete(ui, m)?,
-                ("transfer", Some(m)) => sub_origin_transfer_ownership(ui, m)?,
-                ("depart", Some(m)) => sub_origin_depart(ui, m)?,
+                ("create", Some(m)) => sub_origin_create(ui, m).await?,
+                ("delete", Some(m)) => sub_origin_delete(ui, m).await?,
+                ("transfer", Some(m)) => sub_origin_transfer_ownership(ui, m).await?,
+                ("depart", Some(m)) => sub_origin_depart(ui, m).await?,
                 _ => unreachable!(),
             }
         }
@@ -232,21 +232,21 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
             match matches.subcommand() {
                 ("job", Some(m)) => {
                     match m.subcommand() {
-                        ("start", Some(m)) => sub_bldr_job_start(ui, m)?,
-                        ("cancel", Some(m)) => sub_bldr_job_cancel(ui, m)?,
-                        ("promote", Some(m)) => sub_bldr_job_promote_or_demote(ui, m, true)?,
-                        ("demote", Some(m)) => sub_bldr_job_promote_or_demote(ui, m, false)?,
-                        ("status", Some(m)) => sub_bldr_job_status(ui, m)?,
+                        ("start", Some(m)) => sub_bldr_job_start(ui, m).await?,
+                        ("cancel", Some(m)) => sub_bldr_job_cancel(ui, m).await?,
+                        ("promote", Some(m)) => sub_bldr_job_promote_or_demote(ui, m, true).await?,
+                        ("demote", Some(m)) => sub_bldr_job_promote_or_demote(ui, m, false).await?,
+                        ("status", Some(m)) => sub_bldr_job_status(ui, m).await?,
                         _ => unreachable!(),
                     }
                 }
                 ("channel", Some(m)) => {
                     match m.subcommand() {
-                        ("create", Some(m)) => sub_bldr_channel_create(ui, m)?,
-                        ("destroy", Some(m)) => sub_bldr_channel_destroy(ui, m)?,
-                        ("list", Some(m)) => sub_bldr_channel_list(ui, m)?,
-                        ("promote", Some(m)) => sub_bldr_channel_promote(ui, m)?,
-                        ("demote", Some(m)) => sub_bldr_channel_demote(ui, m)?,
+                        ("create", Some(m)) => sub_bldr_channel_create(ui, m).await?,
+                        ("destroy", Some(m)) => sub_bldr_channel_destroy(ui, m).await?,
+                        ("list", Some(m)) => sub_bldr_channel_list(ui, m).await?,
+                        ("promote", Some(m)) => sub_bldr_channel_promote(ui, m).await?,
+                        ("demote", Some(m)) => sub_bldr_channel_demote(ui, m).await?,
                         _ => unreachable!(),
                     }
                 }
@@ -257,30 +257,30 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
             match matches.subcommand() {
                 ("binds", Some(m)) => sub_pkg_binds(m)?,
                 ("binlink", Some(m)) => sub_pkg_binlink(ui, m)?,
-                ("build", Some(m)) => sub_pkg_build(ui, m)?,
-                ("channels", Some(m)) => sub_pkg_channels(ui, m)?,
+                ("build", Some(m)) => sub_pkg_build(ui, m).await?,
+                ("channels", Some(m)) => sub_pkg_channels(ui, m).await?,
                 ("config", Some(m)) => sub_pkg_config(m)?,
                 ("dependencies", Some(m)) => sub_pkg_dependencies(m)?,
-                ("download", Some(m)) => sub_pkg_download(ui, m, feature_flags)?,
+                ("download", Some(m)) => sub_pkg_download(ui, m, feature_flags).await?,
                 ("env", Some(m)) => sub_pkg_env(m)?,
                 ("exec", Some(m)) => sub_pkg_exec(m, &remaining_args)?,
-                ("export", Some(m)) => sub_pkg_export(ui, m)?,
+                ("export", Some(m)) => sub_pkg_export(ui, m).await?,
                 ("hash", Some(m)) => sub_pkg_hash(m)?,
-                ("install", Some(m)) => sub_pkg_install(ui, m, feature_flags)?,
+                ("install", Some(m)) => sub_pkg_install(ui, m, feature_flags).await?,
                 ("list", Some(m)) => sub_pkg_list(m)?,
                 ("path", Some(m)) => sub_pkg_path(m)?,
                 ("provides", Some(m)) => sub_pkg_provides(m)?,
-                ("search", Some(m)) => sub_pkg_search(m)?,
+                ("search", Some(m)) => sub_pkg_search(m).await?,
                 ("sign", Some(m)) => sub_pkg_sign(ui, m)?,
                 ("uninstall", Some(m)) => sub_pkg_uninstall(ui, m).await?,
-                ("upload", Some(m)) => sub_pkg_upload(ui, m)?,
-                ("bulkupload", Some(m)) => sub_pkg_bulkupload(ui, m)?,
-                ("delete", Some(m)) => sub_pkg_delete(ui, m)?,
+                ("upload", Some(m)) => sub_pkg_upload(ui, m).await?,
+                ("bulkupload", Some(m)) => sub_pkg_bulkupload(ui, m).await?,
+                ("delete", Some(m)) => sub_pkg_delete(ui, m).await?,
                 ("verify", Some(m)) => sub_pkg_verify(ui, m)?,
                 ("header", Some(m)) => sub_pkg_header(ui, m)?,
                 ("info", Some(m)) => sub_pkg_info(ui, m)?,
-                ("promote", Some(m)) => sub_pkg_promote(ui, m)?,
-                ("demote", Some(m)) => sub_pkg_demote(ui, m)?,
+                ("promote", Some(m)) => sub_pkg_promote(ui, m).await?,
+                ("demote", Some(m)) => sub_pkg_demote(ui, m).await?,
                 _ => unreachable!(),
             }
         }
@@ -374,7 +374,7 @@ fn sub_cli_completers(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<
     Ok(())
 }
 
-fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").unwrap(); // Required via clap
     let revision = m.value_of("REVISION");
     let with_secret = m.is_present("WITH_SECRET");
@@ -390,7 +390,7 @@ fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                           with_secret,
                                           with_encryption,
                                           token.as_ref().map(String::as_str),
-                                          &cache_key_path)
+                                          &cache_key_path).await
 }
 
 fn sub_origin_key_export(m: &ArgMatches<'_>) -> Result<()> {
@@ -420,7 +420,7 @@ fn sub_origin_key_import(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     command::origin::key::import::start(ui, content.trim(), &cache_key_path)
 }
 
-fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
     let cache_key_path = cache_key_path_from_matches(&m);
@@ -436,15 +436,15 @@ fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                                    &token,
                                                    origin,
                                                    with_secret,
-                                                   &cache_key_path)
+                                                   &cache_key_path).await
     } else {
         let keyfile = Path::new(m.value_of("PUBLIC_FILE").unwrap());
         let secret_keyfile = m.value_of("SECRET_FILE").map(|f| Path::new(f));
-        command::origin::key::upload::start(ui, &url, &token, &keyfile, secret_keyfile)
+        command::origin::key::upload::start(ui, &url, &token, &keyfile, secret_keyfile).await
     }
 }
 
-fn sub_origin_secret_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_origin_secret_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
     let origin = origin_param_or_env(&m)?;
@@ -457,66 +457,55 @@ fn sub_origin_secret_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                            &origin,
                                            &key,
                                            &secret,
-                                           &cache_key_path)
+                                           &cache_key_path).await
 }
 
-fn sub_origin_secret_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_origin_secret_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
     let origin = origin_param_or_env(&m)?;
     let key = m.value_of("KEY_NAME").unwrap();
-    command::origin::secret::delete::start(ui, &url, &token, &origin, &key)
+    command::origin::secret::delete::start(ui, &url, &token, &origin, &key).await
 }
 
-fn sub_origin_secret_list(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_origin_secret_list(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
     let origin = origin_param_or_env(&m)?;
-    command::origin::secret::list::start(ui, &url, &token, &origin)
+    command::origin::secret::list::start(ui, &url, &token, &origin).await
 }
 
-fn sub_origin_create(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_origin_create(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").expect("required ORIGIN");
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
-    command::origin::create::start(ui, &url, &token, &origin)
+    command::origin::create::start(ui, &url, &token, &origin).await
 }
 
-fn sub_origin_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_origin_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").expect("required ORIGIN");
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
-    command::origin::delete::start(ui, &url, &token, &origin)
+    command::origin::delete::start(ui, &url, &token, &origin).await
 }
 
-fn sub_origin_transfer_ownership(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_origin_transfer_ownership(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").expect("required ORIGIN");
     let account = m.value_of("NEW_OWNER_ACCOUNT")
                    .expect("required NEW_OWNER_ACCOUNT");
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
-    command::origin::transfer::start(ui, &url, &token, &origin, &account)
+    command::origin::transfer::start(ui, &url, &token, &origin, &account).await
 }
 
-fn sub_origin_depart(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_origin_depart(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").expect("required ORIGIN");
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
-    command::origin::depart::start(ui, &url, &token, &origin)
+    command::origin::depart::start(ui, &url, &token, &origin).await
 }
 
-fn sub_accept_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let origin = m.value_of("ORIGIN").expect("required ORIGIN");
-    let invitation_id: u64 = m.value_of("INVITATION_ID")
-                              .expect("required INVITATION_ID")
-                              .parse()
-                              .expect("INVITATION_ID should be valid at this point");
-    let url = bldr_url_from_matches(&m)?;
-    let token = auth_token_param_or_env(&m)?;
-    command::origin::invitations::accept::start(ui, &url, &origin, &token, invitation_id)
-}
-
-fn sub_ignore_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_accept_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").expect("required ORIGIN");
     let invitation_id: u64 = m.value_of("INVITATION_ID")
                               .expect("required INVITATION_ID")
@@ -524,23 +513,10 @@ fn sub_ignore_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                               .expect("INVITATION_ID should be valid at this point");
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
-    command::origin::invitations::ignore::start(ui, &url, &origin, &token, invitation_id)
+    command::origin::invitations::accept::start(ui, &url, &origin, &token, invitation_id).await
 }
 
-fn sub_list_user_invitations(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let url = bldr_url_from_matches(&m)?;
-    let token = auth_token_param_or_env(&m)?;
-    command::origin::invitations::list_user::start(ui, &url, &token)
-}
-
-fn sub_list_pending_origin_invitations(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let origin = m.value_of("ORIGIN").expect("required ORIGIN");
-    let url = bldr_url_from_matches(&m)?;
-    let token = auth_token_param_or_env(&m)?;
-    command::origin::invitations::list_pending_origin::start(ui, &url, &origin, &token)
-}
-
-fn sub_rescind_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_ignore_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").expect("required ORIGIN");
     let invitation_id: u64 = m.value_of("INVITATION_ID")
                               .expect("required INVITATION_ID")
@@ -548,16 +524,40 @@ fn sub_rescind_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> 
                               .expect("INVITATION_ID should be valid at this point");
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
-    command::origin::invitations::rescind::start(ui, &url, &origin, &token, invitation_id)
+    command::origin::invitations::ignore::start(ui, &url, &origin, &token, invitation_id).await
 }
 
-fn sub_send_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_list_user_invitations(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let url = bldr_url_from_matches(&m)?;
+    let token = auth_token_param_or_env(&m)?;
+    command::origin::invitations::list_user::start(ui, &url, &token).await
+}
+
+async fn sub_list_pending_origin_invitations(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let origin = m.value_of("ORIGIN").expect("required ORIGIN");
+    let url = bldr_url_from_matches(&m)?;
+    let token = auth_token_param_or_env(&m)?;
+    command::origin::invitations::list_pending_origin::start(ui, &url, &origin, &token).await
+}
+
+async fn sub_rescind_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let origin = m.value_of("ORIGIN").expect("required ORIGIN");
+    let invitation_id: u64 = m.value_of("INVITATION_ID")
+                              .expect("required INVITATION_ID")
+                              .parse()
+                              .expect("INVITATION_ID should be valid at this point");
+    let url = bldr_url_from_matches(&m)?;
+    let token = auth_token_param_or_env(&m)?;
+    command::origin::invitations::rescind::start(ui, &url, &origin, &token, invitation_id).await
+}
+
+async fn sub_send_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").expect("required ORIGIN");
     let invitee_account = m.value_of("INVITEE_ACCOUNT")
                            .expect("required INVITEE_ACCOUNT");
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
-    command::origin::invitations::send::start(ui, &url, &origin, &token, &invitee_account)
+    command::origin::invitations::send::start(ui, &url, &origin, &token, &invitee_account).await
 }
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -572,7 +572,7 @@ fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     }
 }
 
-fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let plan_context = m.value_of("PLAN_CONTEXT").unwrap(); // Required via clap
     let root = m.value_of("HAB_STUDIO_ROOT");
     let src = m.value_of("SRC_PATH");
@@ -596,7 +596,7 @@ fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let docker = m.is_present("DOCKER");
     let reuse = m.is_present("REUSE");
 
-    command::pkg::build::start(ui, plan_context, root, src, keys, reuse, docker)
+    command::pkg::build::start(ui, plan_context, root, src, keys, reuse, docker).await
 }
 
 fn sub_pkg_config(m: &ArgMatches<'_>) -> Result<()> {
@@ -629,7 +629,10 @@ fn sub_pkg_dependencies(m: &ArgMatches<'_>) -> Result<()> {
     command::pkg::dependencies::start(&ident, scope, direction, &*FS_ROOT)
 }
 
-fn sub_pkg_download(ui: &mut UI, m: &ArgMatches<'_>, _feature_flags: FeatureFlag) -> Result<()> {
+async fn sub_pkg_download(ui: &mut UI,
+                          m: &ArgMatches<'_>,
+                          _feature_flags: FeatureFlag)
+                          -> Result<()> {
     let token = maybe_auth_token(&m);
     let url = bldr_url_from_matches(&m)?;
     let download_dir = download_dir_from_matches(m);
@@ -659,7 +662,7 @@ fn sub_pkg_download(ui: &mut UI, m: &ArgMatches<'_>, _feature_flags: FeatureFlag
                                   &package_sets,
                                   download_dir.as_ref(),
                                   token.as_ref().map(String::as_str),
-                                  verify)?;
+                                  verify).await?;
     Ok(())
 }
 
@@ -676,13 +679,13 @@ fn sub_pkg_exec(m: &ArgMatches<'_>, cmd_args: &[OsString]) -> Result<()> {
     command::pkg::exec::start(&ident, cmd, cmd_args)
 }
 
-fn sub_pkg_export(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_pkg_export(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let format = &m.value_of("FORMAT").unwrap();
     let url = bldr_url_from_matches(&m)?;
     let channel = channel_from_matches_or_default(&m);
     let export_fmt = command::pkg::export::format_for(ui, &format)?;
-    command::pkg::export::start(ui, &url, &channel, &ident, &export_fmt)
+    command::pkg::export::start(ui, &url, &channel, &ident, &export_fmt).await
 }
 
 fn sub_pkg_hash(m: &ArgMatches<'_>) -> Result<()> {
@@ -728,29 +731,30 @@ async fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                    &excludes,
                                    &services)
 }
-fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+
+async fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let origin = origin_param_or_env(&m)?;
     let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
-    command::bldr::channel::create::start(ui, &url, &token, &origin, &channel)
+    command::bldr::channel::create::start(ui, &url, &token, &origin, &channel).await
 }
 
-fn sub_bldr_channel_destroy(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_bldr_channel_destroy(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let origin = origin_param_or_env(&m)?;
     let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
-    command::bldr::channel::destroy::start(ui, &url, &token, &origin, &channel)
+    command::bldr::channel::destroy::start(ui, &url, &token, &origin, &channel).await
 }
 
-fn sub_bldr_channel_list(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_bldr_channel_list(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let origin = origin_param_or_env(&m)?;
-    command::bldr::channel::list::start(ui, &url, &origin)
+    command::bldr::channel::list::start(ui, &url, &origin).await
 }
 
-fn sub_bldr_channel_promote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_bldr_channel_promote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let origin = origin_param_or_env(&m)?;
     let token = auth_token_param_or_env(&m)?;
@@ -761,10 +765,10 @@ fn sub_bldr_channel_promote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                            &token,
                                            &origin,
                                            &source_channel,
-                                           &target_channel)
+                                           &target_channel).await
 }
 
-fn sub_bldr_channel_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_bldr_channel_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let origin = origin_param_or_env(&m)?;
     let token = auth_token_param_or_env(&m)?;
@@ -775,27 +779,30 @@ fn sub_bldr_channel_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                           &token,
                                           &origin,
                                           &source_channel,
-                                          &target_channel)
+                                          &target_channel).await
 }
 
-fn sub_bldr_job_start(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_bldr_job_start(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     let url = bldr_url_from_matches(&m)?;
     let target = target_from_matches(m)?;
     let group = m.is_present("GROUP");
     let token = auth_token_param_or_env(&m)?;
-    command::bldr::job::start::start(ui, &url, (&ident, target), &token, group)
+    command::bldr::job::start::start(ui, &url, (&ident, target), &token, group).await
 }
 
-fn sub_bldr_job_cancel(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_bldr_job_cancel(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let group_id = m.value_of("GROUP_ID").unwrap(); // Required via clap
     let token = auth_token_param_or_env(&m)?;
     let force = m.is_present("FORCE");
-    command::bldr::job::cancel::start(ui, &url, &group_id, &token, force)
+    command::bldr::job::cancel::start(ui, &url, &group_id, &token, force).await
 }
 
-fn sub_bldr_job_promote_or_demote(ui: &mut UI, m: &ArgMatches<'_>, promote: bool) -> Result<()> {
+async fn sub_bldr_job_promote_or_demote(ui: &mut UI,
+                                        m: &ArgMatches<'_>,
+                                        promote: bool)
+                                        -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let group_id = m.value_of("GROUP_ID").unwrap(); // Required via clap
     let channel = required_channel_from_matches(&m);
@@ -811,10 +818,10 @@ fn sub_bldr_job_promote_or_demote(ui: &mut UI, m: &ArgMatches<'_>, promote: bool
                                        interactive,
                                        verbose,
                                        &token,
-                                       promote)
+                                       promote).await
 }
 
-fn sub_bldr_job_status(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_bldr_job_status(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let group_id = m.value_of("GROUP_ID");
     let origin = m.value_of("ORIGIN");
@@ -824,7 +831,7 @@ fn sub_bldr_job_status(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                  .unwrap();
     let show_jobs = m.is_present("SHOW_JOBS");
 
-    command::bldr::job::status::start(ui, &url, group_id, origin, limit, show_jobs)
+    command::bldr::job::status::start(ui, &url, group_id, origin, limit, show_jobs).await
 }
 
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -869,7 +876,10 @@ fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                  quiet)
 }
 
-fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
+async fn sub_pkg_install(ui: &mut UI,
+                         m: &ArgMatches<'_>,
+                         feature_flags: FeatureFlag)
+                         -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let channel = channel_from_matches_or_default(m);
     let install_sources = install_sources_from_matches(m)?;
@@ -909,7 +919,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>, feature_flags: FeatureFlag) 
                                                      token.as_ref().map(String::as_str),
                                                      &install_mode,
                                                      &local_package_usage,
-                                                     install_hook_mode)?;
+                                                     install_hook_mode).await?;
 
         if let Some(dest_dir) = binlink_dest_dir_from_matches(m) {
             let force = m.is_present("FORCE");
@@ -944,7 +954,7 @@ fn sub_pkg_provides(m: &ArgMatches<'_>) -> Result<()> {
     command::pkg::provides::start(&filename, &*FS_ROOT, full_releases, full_paths)
 }
 
-fn sub_pkg_search(m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_pkg_search(m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let search_term = m.value_of("SEARCH_TERM").expect("required opt SEARCH_TERM");
     let limit = m.value_of("LIMIT")
@@ -955,7 +965,7 @@ fn sub_pkg_search(m: &ArgMatches<'_>) -> Result<()> {
     command::pkg::search::start(&search_term,
                                 &url,
                                 limit,
-                                token.as_ref().map(String::as_str))
+                                token.as_ref().map(String::as_str)).await
 }
 
 fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -970,7 +980,7 @@ fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     command::pkg::sign::start(ui, &pair, &src, &dst)
 }
 
-fn sub_pkg_bulkupload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_pkg_bulkupload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let upload_dir = bulkupload_dir_from_matches(m);
     let artifact_path = upload_dir.join("artifacts");
     let key_path = upload_dir.join("keys");
@@ -993,10 +1003,10 @@ fn sub_pkg_bulkupload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                     force_upload,
                                     auto_build,
                                     auto_create_origins,
-                                    &key_path)
+                                    &key_path).await
 }
 
-fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let key_path = cache_key_path_from_matches(&m);
     let url = bldr_url_from_matches(&m)?;
 
@@ -1024,18 +1034,18 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                     artifact_path,
                                     force_upload,
                                     auto_build,
-                                    &key_path)?;
+                                    &key_path).await?;
     }
     Ok(())
 }
 
-fn sub_pkg_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_pkg_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let target = target_from_matches(m)?;
 
-    command::pkg::delete::start(ui, &url, (&ident, target), &token)?;
+    command::pkg::delete::start(ui, &url, (&ident, target), &token).await?;
 
     Ok(())
 }
@@ -1063,25 +1073,25 @@ fn sub_pkg_info(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     command::pkg::info::start(ui, &src, to_json)
 }
 
-fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
     let target = target_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
-    command::pkg::promote::start(ui, &url, (&ident, target), &channel, &token)
+    command::pkg::promote::start(ui, &url, (&ident, target), &channel, &token).await
 }
 
-fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
     let target = target_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
-    command::pkg::demote::start(ui, &url, (&ident, target), &channel, &token)
+    command::pkg::demote::start(ui, &url, (&ident, target), &channel, &token).await
 }
 
-fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     let token = maybe_auth_token(&m);
@@ -1090,7 +1100,7 @@ fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     command::pkg::channels::start(ui,
                                   &url,
                                   (&ident, target),
-                                  token.as_ref().map(String::as_str))
+                                  token.as_ref().map(String::as_str)).await
 }
 
 async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
@@ -1457,7 +1467,7 @@ fn args_after_first(args_to_skip: usize) -> Vec<OsString> {
     env::args_os().skip(args_to_skip).collect()
 }
 
-fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
+async fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
     let mut args = env::args();
     let first = args.nth(1).unwrap_or_default();
     let second = args.next().unwrap_or_default();
@@ -1465,17 +1475,21 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
 
     match (first.as_str(), second.as_str(), third.as_str()) {
         ("pkg", "export", "docker") => {
-            command::pkg::export::docker::start(ui, &args_after_first(4))
+            command::pkg::export::docker::start(ui, &args_after_first(4)).await
         }
-        ("pkg", "export", "cf") => command::pkg::export::cf::start(ui, &args_after_first(4)),
-        ("pkg", "export", "helm") => command::pkg::export::helm::start(ui, &args_after_first(4)),
+        ("pkg", "export", "cf") => command::pkg::export::cf::start(ui, &args_after_first(4)).await,
+        ("pkg", "export", "helm") => {
+            command::pkg::export::helm::start(ui, &args_after_first(4)).await
+        }
         ("pkg", "export", "k8s") | ("pkg", "export", "kubernetes") => {
-            command::pkg::export::kubernetes::start(ui, &args_after_first(4))
+            command::pkg::export::kubernetes::start(ui, &args_after_first(4)).await
         }
-        ("pkg", "export", "tar") => command::pkg::export::tar::start(ui, &args_after_first(4)),
-        ("run", ..) => command::launcher::start(ui, &args_after_first(1)),
+        ("pkg", "export", "tar") => {
+            command::pkg::export::tar::start(ui, &args_after_first(4)).await
+        }
+        ("run", ..) => command::launcher::start(ui, &args_after_first(1)).await,
         ("stu", ..) | ("stud", ..) | ("studi", ..) | ("studio", ..) => {
-            command::studio::enter::start(ui, &args_after_first(2))
+            command::studio::enter::start(ui, &args_after_first(2)).await
         }
         // Skip invoking the `hab-sup` binary for sup cli help messages;
         // handle these from within `hab`
@@ -1492,10 +1506,10 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         | ("sup", "bash", _)
         | ("sup", "sh", _)
         | ("sup", "-V", _)
-        | ("sup", "--version", _) => command::sup::start(ui, &args_after_first(2)),
-        ("term", ..) => command::sup::start(ui, &args_after_first(1)),
+        | ("sup", "--version", _) => command::sup::start(ui, &args_after_first(2)).await,
+        ("term", ..) => command::sup::start(ui, &args_after_first(1)).await,
         // Delegate `hab sup run *` to the Launcher
-        ("sup", "run", _) => command::launcher::start(ui, &args_after_first(2)),
+        ("sup", "run", _) => command::launcher::start(ui, &args_after_first(2)).await,
         _ => Ok(()),
     }
 }

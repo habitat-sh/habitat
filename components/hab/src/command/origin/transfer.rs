@@ -9,13 +9,20 @@ use crate::{api_client::{self,
             VERSION};
 use reqwest::StatusCode;
 
-pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str, account: &str) -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   bldr_url: &str,
+                   token: &str,
+                   origin: &str,
+                   account: &str)
+                   -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(Status::Transferring,
               format!("ownership of origin {} to {}.", origin, account))?;
 
-    match api_client.transfer_origin_ownership(origin, token, account) {
+    match api_client.transfer_origin_ownership(origin, token, account)
+                    .await
+    {
         Ok(_) => {
             ui.status(Status::Transferred, "ownership successfully!".to_string())
               .or(Ok(()))

@@ -34,8 +34,8 @@ lazy_static! {
 
 /// A convenience method that compiles a package's install hook
 /// and any configuration templates in its config_install folder
-pub fn compile_for_package_install(package: &PackageInstall) -> Result<()> {
-    let pkg = package::Pkg::from_install(package)?;
+pub async fn compile_for_package_install(package: &PackageInstall) -> Result<()> {
+    let pkg = package::Pkg::from_install(package).await?;
 
     fs::SvcDir::new(&pkg.name, &pkg.svc_user, &pkg.svc_group).create()?;
 
@@ -398,8 +398,8 @@ test: something"#
         assert_eq!(each_alive_render, each_if_render);
     }
 
-    #[test]
-    fn render_package_install() {
+    #[tokio::test]
+    async fn render_package_install() {
         let root = TempDir::new().expect("create temp dir").into_path();
         env::set_var(fs::FS_ROOT_ENVVAR, &root);
         let pg_id = PackageIdent::new("testing", "test", Some("1.0.0"), Some("20170712000000"));
@@ -418,7 +418,8 @@ test: something"#
         create_with_content(config_path.join("config.txt"),
                             "config message is {{cfg.message}}");
 
-        compile_for_package_install(&pkg_install).expect("compile package");
+        compile_for_package_install(&pkg_install).await
+                                                 .expect("compile package");
 
         assert_eq!(
             file_content(fs::svc_config_install_path(&pkg_install.ident().name).join("config.txt")),

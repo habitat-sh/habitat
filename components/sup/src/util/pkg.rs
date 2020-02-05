@@ -22,11 +22,11 @@ static LOGKEY: &str = "UT";
 
 /// Helper function for use in the Supervisor to handle lower-level
 /// arguments needed for installing a package.
-pub fn install<T>(ui: &mut T,
-                  url: &str,
-                  install_source: &InstallSource,
-                  channel: &ChannelIdent)
-                  -> Result<PackageInstall>
+pub async fn install<T>(ui: &mut T,
+                        url: &str,
+                        install_source: &InstallSource,
+                        channel: &ChannelIdent)
+                        -> Result<PackageInstall>
     where T: UIWriter
 {
     let fs_root_path = Path::new(&*FS_ROOT_PATH);
@@ -48,7 +48,8 @@ pub fn install<T>(ui: &mut T,
                        // Install hooks are run when the supervisor
                        // loads the package in add_service so it is
                        // repetitive to run them here
-                       InstallHookMode::Ignore).map_err(Error::from)
+                       InstallHookMode::Ignore).await
+                                               .map_err(Error::from)
 }
 
 /// Given an InstallSource, install a new package only if an existing
@@ -57,16 +58,16 @@ pub fn install<T>(ui: &mut T,
 ///
 /// Return the PackageInstall corresponding to the package that was
 /// installed, or was pre-existing.
-pub fn satisfy_or_install<T>(ui: &mut T,
-                             install_source: &InstallSource,
-                             bldr_url: &str,
-                             channel: &ChannelIdent)
-                             -> Result<PackageInstall>
+pub async fn satisfy_or_install<T>(ui: &mut T,
+                                   install_source: &InstallSource,
+                                   bldr_url: &str,
+                                   channel: &ChannelIdent)
+                                   -> Result<PackageInstall>
     where T: UIWriter
 {
     match installed(install_source) {
         Some(package) => Ok(package),
-        None => install(ui, bldr_url, install_source, channel),
+        None => install(ui, bldr_url, install_source, channel).await,
     }.and_then(|installed| {
          if installed.is_runnable() {
              Ok(installed)

@@ -13,22 +13,22 @@ use std::{env,
 static LOGKEY: &str = "SH";
 
 /// Start a bash shell
-pub fn bash() -> Result<()> {
-    set_path()?;
+pub async fn bash() -> Result<()> {
+    set_path().await?;
     outputln!("Starting your bashlike shell; enjoy!");
     exec_shell("bash")
 }
 
 /// Start a sh shell
-pub fn sh() -> Result<()> {
-    set_path()?;
+pub async fn sh() -> Result<()> {
+    set_path().await?;
     outputln!("Starting your bourne shell; enjoy!");
     exec_shell("sh")
 }
 
-fn set_path() -> Result<()> {
+async fn set_path() -> Result<()> {
     let mut paths: Vec<PathBuf> = Vec::new();
-    let new_path = path::append_interpreter_and_path(&mut paths)?;
+    let new_path = path::append_interpreter_and_path(&mut paths).await?;
 
     debug!("Setting the PATH to {}", &new_path);
     env::set_var("PATH", &new_path);

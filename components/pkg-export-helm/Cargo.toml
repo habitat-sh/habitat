@@ -26,6 +26,7 @@ serde = "*"
 serde_json = "*"
 failure = "*"
 failure_derive = "*"
+tokio = { version = "*", features = ["full"] }
 url = "*"
 
 [features]

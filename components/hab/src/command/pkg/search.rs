@@ -3,9 +3,9 @@ use crate::{api_client::Client,
             PRODUCT,
             VERSION};
 
-pub fn start(st: &str, bldr_url: &str, limit: usize, token: Option<&str>) -> Result<()> {
+pub async fn start(st: &str, bldr_url: &str, limit: usize, token: Option<&str>) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
-    let (packages, total) = api_client.search_package(st, limit, token)?;
+    let (packages, total) = api_client.search_package(st, limit, token).await?;
     match packages.len() {
         0 => eprintln!("No packages found that match '{}'", st),
         _ => {

@@ -14,6 +14,7 @@ use crate::manager::{action::ActionSender,
                      commands,
                      ManagerState};
 use futures::{channel::mpsc,
+              executor,
               prelude::*,
               ready,
               task::{Context,
@@ -42,6 +43,7 @@ use std::{error,
                  Mutex},
           time::Duration};
 use tokio::{net::TcpListener,
+            task,
             time};
 use tokio_util::codec::Decoder;
 
@@ -228,9 +230,9 @@ impl SrvHandler {
     /// # Locking (see locking.md)
     /// * `GatewayState::inner` (read)
     /// * `ManagerServices::inner` (read)
-    fn command_from_message_gsr_msr(msg: &SrvMessage,
-                                    ctl_sender: CtlSender)
-                                    -> std::result::Result<CtlCommand, HandlerError> {
+    async fn command_from_message_gsr_msr(msg: &SrvMessage,
+                                          ctl_sender: CtlSender)
+                                          -> std::result::Result<CtlCommand, HandlerError> {
         match msg.message_id() {
             "SvcGetDefaultCfg" => {
                 let m = msg.parse::<protocol::ctl::SvcGetDefaultCfg>()
@@ -274,7 +276,16 @@ impl SrvHandler {
                 Ok(CtlCommand::new(ctl_sender,
                                    msg.transaction(),
                                    move |state, req, _action_sender| {
-                                       commands::service_load(state, req, m.clone())
+                                       // To avoid significant architecture changes to `CtlCommand,`
+                                       // block on the load service future because futures cannot
+                                       // be awaited in a closure. It is safe to use
+                                       // `block_in_place` here because it is called within a
+                                       // spawned future.
+                                       task::block_in_place(|| {
+                                           executor::block_on(commands::service_load(state,
+                                                                                     req,
+                                                                                     m.clone()))
+                                       })
                                    }))
             }
             "SvcUnload" => {
@@ -358,10 +369,10 @@ impl Future for SrvHandler {
                             self.start_timer(&msg.message_id());
                             trace!("OnMessage, {}", msg.message_id());
 
-                            let cmd = match Self::command_from_message_gsr_msr(&msg,
-                                                                               self.ctl_sender
-                                                                                   .clone())
-                            {
+                            let fut =
+                                Self::command_from_message_gsr_msr(&msg, self.ctl_sender.clone());
+                            tokio::pin!(fut);
+                            let cmd = match futures::ready!(fut.poll_unpin(cx)) {
                                 Ok(cmd) => cmd,
                                 Err(_) => {
                                     break;

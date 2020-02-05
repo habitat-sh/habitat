@@ -8,12 +8,12 @@ use crate::{error::{Error,
             PRODUCT,
             VERSION};
 
-pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Result<()> {
+pub async fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(Status::Determining, format!("secrets for {}.", origin))?;
 
-    match api_client.list_origin_secrets(origin, token) {
+    match api_client.list_origin_secrets(origin, token).await {
         Ok(secrets) => {
             println!("{}", secrets.join("\n"));
             Ok(())

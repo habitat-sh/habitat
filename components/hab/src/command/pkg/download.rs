@@ -35,7 +35,7 @@ use std::{collections::{HashMap,
           time::Duration};
 
 use crate::{api_client::{self,
-                         BoxedClient,
+                         BuilderAPIClient,
                          Client,
                          Error::APIError,
                          Package},
@@ -56,8 +56,7 @@ use habitat_common::ui::{Glyph,
                          UIWriter};
 
 use reqwest::StatusCode;
-use retry::{delay,
-            retry};
+use retry::delay;
 
 use crate::error::{Error,
                    Result};
@@ -108,15 +107,15 @@ pub struct PackageSet {
 /// That would greatly optimize the 'sync' to on prem builder case, as we could point to that
 /// and only fetch what we don't already have.
 #[allow(clippy::too_many_arguments)]
-pub fn start<U>(ui: &mut U,
-                url: &str,
-                product: &str,
-                version: &str,
-                package_sets: &[PackageSet], // clippy suggestion
-                download_path: Option<&PathBuf>,
-                token: Option<&str>,
-                verify: bool)
-                -> Result<()>
+pub async fn start<U>(ui: &mut U,
+                      url: &str,
+                      product: &str,
+                      version: &str,
+                      package_sets: &[PackageSet], // clippy suggestion
+                      download_path: Option<&PathBuf>,
+                      token: Option<&str>,
+                      verify: bool)
+                      -> Result<()>
     where U: UIWriter
 {
     debug!(
@@ -158,7 +157,7 @@ pub fn start<U>(ui: &mut U,
                               download_path: download_path_expanded,
                               verify };
 
-    let download_count = task.execute(ui)?;
+    let download_count = task.execute(ui).await?;
 
     debug!("Expanded package count: {}", download_count);
 
@@ -168,14 +167,14 @@ pub fn start<U>(ui: &mut U,
 struct DownloadTask<'a> {
     package_sets:  &'a [PackageSet],
     url:           &'a str,
-    api_client:    BoxedClient,
+    api_client:    BuilderAPIClient,
     token:         Option<&'a str>,
     download_path: &'a Path,
     verify:        bool,
 }
 
 impl<'a> DownloadTask<'a> {
-    fn execute<T>(&self, ui: &mut T) -> Result<usize>
+    async fn execute<T>(&self, ui: &mut T) -> Result<usize>
         where T: UIWriter
     {
         // This was written intentionally with an eye towards data parallelism
@@ -185,17 +184,17 @@ impl<'a> DownloadTask<'a> {
         self.verify_and_prepare_download_directory(ui)?;
 
         // Phase 1: Expand to fully qualified deps and TDEPS
-        let expanded_idents = self.expand_sources(ui)?;
+        let expanded_idents = self.expand_sources(ui).await?;
 
         // Phase 2: Download artifacts
-        let downloaded_artifacts = self.download_artifacts(ui, &expanded_idents)?;
+        let downloaded_artifacts = self.download_artifacts(ui, &expanded_idents).await?;
 
         Ok(downloaded_artifacts.len())
     }
 
     // For each source, use the builder/depot to expand it to a fully qualifed form
     // The same call gives us the TDEPS, add those as well.
-    fn expand_sources<T>(&self, ui: &mut T) -> Result<HashSet<(PackageIdent, PackageTarget)>>
+    async fn expand_sources<T>(&self, ui: &mut T) -> Result<HashSet<(PackageIdent, PackageTarget)>>
         where T: UIWriter
     {
         let mut expanded_packages = Vec::<(Package, PackageTarget)>::new();
@@ -212,7 +211,8 @@ impl<'a> DownloadTask<'a> {
                 let package = self.determine_latest_from_ident(ui,
                                                                &package_set.channel,
                                                                package_set.target,
-                                                               &ident)?;
+                                                               &ident)
+                                  .await?;
                 expanded_packages.push((package, package_set.target));
             }
         }
@@ -232,10 +232,10 @@ impl<'a> DownloadTask<'a> {
         Ok(expanded_idents)
     }
 
-    fn download_artifacts<T>(&self,
-                             ui: &mut T,
-                             expanded_idents: &HashSet<(PackageIdent, PackageTarget)>)
-                             -> Result<Vec<PackageArchive>>
+    async fn download_artifacts<T>(&self,
+                                   ui: &mut T,
+                                   expanded_idents: &HashSet<(PackageIdent, PackageTarget)>)
+                                   -> Result<Vec<PackageArchive>>
         where T: UIWriter
     {
         let mut downloaded_artifacts = Vec::<PackageArchive>::new();
@@ -245,16 +245,17 @@ impl<'a> DownloadTask<'a> {
                           expanded_idents.len()))?;
 
         for (ident, target) in expanded_idents {
-            let archive: PackageArchive = match self.get_downloaded_archive(ui, ident, *target) {
-                Ok(v) => v,
-                Err(e) => {
-                    // Is this the right status? Or should this be a debug message?
-                    debug!("Error fetching archive {} for {}: {:?}", ident, *target, e);
-                    ui.status(Status::Missing,
-                              format!("Error fetching archive {} for {}", ident, *target))?;
-                    return Err(e);
-                }
-            };
+            let archive: PackageArchive =
+                match self.get_downloaded_archive(ui, ident, *target).await {
+                    Ok(v) => v,
+                    Err(e) => {
+                        // Is this the right status? Or should this be a debug message?
+                        debug!("Error fetching archive {} for {}: {:?}", ident, *target, e);
+                        ui.status(Status::Missing,
+                                  format!("Error fetching archive {} for {}", ident, *target))?;
+                        return Err(e);
+                    }
+                };
 
             downloaded_artifacts.push(archive);
         }
@@ -262,12 +263,12 @@ impl<'a> DownloadTask<'a> {
         Ok(downloaded_artifacts)
     }
 
-    fn determine_latest_from_ident<T>(&self,
-                                      ui: &mut T,
-                                      channel_default: &ChannelIdent,
-                                      target: PackageTarget,
-                                      ident: &PackageIdent)
-                                      -> Result<Package>
+    async fn determine_latest_from_ident<T>(&self,
+                                            ui: &mut T,
+                                            channel_default: &ChannelIdent,
+                                            target: PackageTarget,
+                                            ident: &PackageIdent)
+                                            -> Result<Package>
         where T: UIWriter
     {
         // Unlike in the install command, we always hit the online depot; our purpose is to sync
@@ -282,7 +283,9 @@ impl<'a> DownloadTask<'a> {
         };
 
         ui.status(Status::Determining, format!("latest version of {}", ident))?;
-        match self.fetch_latest_package_in_channel_for(ident, target, &channel, self.token) {
+        match self.fetch_latest_package_in_channel_for(ident, target, &channel, self.token)
+                  .await
+        {
             Ok(latest_package) => {
                 ui.status(Status::Using, format!("{}", latest_package.ident))?;
                 Ok(latest_package)
@@ -312,20 +315,20 @@ impl<'a> DownloadTask<'a> {
     // install.rs deserve to be refactored to eke out commonality.
     /// This ensures the identified package is in the local download directory,
     /// verifies it, and returns a handle to the package's metadata.
-    fn get_downloaded_archive<T>(&self,
-                                 ui: &mut T,
-                                 ident: &PackageIdent,
-                                 target: PackageTarget)
-                                 -> Result<PackageArchive>
+    async fn get_downloaded_archive<T>(&self,
+                                       ui: &mut T,
+                                       ident: &PackageIdent,
+                                       target: PackageTarget)
+                                       -> Result<PackageArchive>
         where T: UIWriter
     {
-        let fetch_artifact = || self.fetch_artifact(ui, ident, target);
         if self.downloaded_artifact_path(ident, target).is_file() {
             debug!("Found {} in download directory, skipping remote download",
                    ident);
             ui.status(Status::Custom(Glyph::Elipses, String::from("Using cached")),
                       format!("{}", ident))?;
-        } else if let Err(err) = retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), fetch_artifact)
+        } else if let Err(err) = retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES),
+                                                      self.fetch_artifact(ui, ident, target)).await
         {
             return Err(CommonError::DownloadFailed(format!("We tried {} times but could not \
                                                             download {} for {}. Last error \
@@ -335,25 +338,28 @@ impl<'a> DownloadTask<'a> {
 
         // At this point the artifact is in the download directory...
         let mut artifact = PackageArchive::new(self.downloaded_artifact_path(ident, target));
-        self.fetch_keys_and_verify_artifact(ui, ident, target, &mut artifact)?;
+        self.fetch_keys_and_verify_artifact(ui, ident, target, &mut artifact)
+            .await?;
         Ok(artifact)
     }
 
     // This function and its sibling in install.rs deserve to be refactored to eke out commonality.
     /// Retrieve the identified package from the depot, ensuring that
     /// the artifact is downloaded.
-    fn fetch_artifact<T>(&self,
-                         ui: &mut T,
-                         ident: &PackageIdent,
-                         target: PackageTarget)
-                         -> Result<()>
+    async fn fetch_artifact<T>(&self,
+                               ui: &mut T,
+                               ident: &PackageIdent,
+                               target: PackageTarget)
+                               -> Result<()>
         where T: UIWriter
     {
         ui.status(Status::Downloading, format!("{}", ident))?;
-        match self.api_client.fetch_package((ident, target),
-                                            self.token,
-                                            &self.path_for_artifact(),
-                                            ui.progress())
+        match self.api_client
+                  .fetch_package((ident, target),
+                                 self.token,
+                                 &self.path_for_artifact(),
+                                 ui.progress())
+                  .await
         {
             Ok(_) => Ok(()),
             Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
@@ -365,28 +371,26 @@ impl<'a> DownloadTask<'a> {
         }
     }
 
-    fn fetch_origin_key<T>(&self,
-                           ui: &mut T,
-                           name_with_rev: &str,
-                           token: Option<&str>)
-                           -> Result<()>
+    async fn fetch_origin_key<T>(&self,
+                                 ui: &mut T,
+                                 name_with_rev: &str,
+                                 token: Option<&str>)
+                                 -> Result<()>
         where T: UIWriter
     {
         let (name, rev) = parse_name_with_rev(&name_with_rev)?;
-        self.api_client.fetch_origin_key(&name,
-                                          &rev,
-                                          token,
-                                          &self.path_for_keys(),
-                                          ui.progress())?;
+        self.api_client
+            .fetch_origin_key(&name, &rev, token, &self.path_for_keys(), ui.progress())
+            .await?;
         Ok(())
     }
 
-    fn fetch_keys_and_verify_artifact<T>(&self,
-                                         ui: &mut T,
-                                         ident: &PackageIdent,
-                                         target: PackageTarget,
-                                         artifact: &mut PackageArchive)
-                                         -> Result<()>
+    async fn fetch_keys_and_verify_artifact<T>(&self,
+                                               ui: &mut T,
+                                               ident: &PackageIdent,
+                                               target: PackageTarget,
+                                               artifact: &mut PackageArchive)
+                                               -> Result<()>
         where T: UIWriter
     {
         // We need to look at the artifact to know the signing keys to fetch
@@ -396,7 +400,7 @@ impl<'a> DownloadTask<'a> {
         if SigKeyPair::get_public_key_path(&signer, &self.path_for_keys()).is_err() {
             ui.status(Status::Downloading,
                       format!("public key for signer {:?}", signer))?;
-            self.fetch_origin_key(ui, &signer, self.token)?;
+            self.fetch_origin_key(ui, &signer, self.token).await?;
         }
 
         if self.verify {
@@ -416,14 +420,15 @@ impl<'a> DownloadTask<'a> {
             .join(ident.archive_name_with_target(target).unwrap())
     }
 
-    fn fetch_latest_package_in_channel_for(&self,
-                                           ident: &PackageIdent,
-                                           target: PackageTarget,
-                                           channel: &ChannelIdent,
-                                           token: Option<&str>)
-                                           -> Result<Package> {
+    async fn fetch_latest_package_in_channel_for(&self,
+                                                 ident: &PackageIdent,
+                                                 target: PackageTarget,
+                                                 channel: &ChannelIdent,
+                                                 token: Option<&str>)
+                                                 -> Result<Package> {
         self.api_client
             .show_package_metadata((&ident, target), channel, token)
+            .await
             .map_err(Error::from)
     }
 

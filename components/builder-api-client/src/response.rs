@@ -1,10 +1,9 @@
 use crate::error::{Error,
                    Result};
-use reqwest::{blocking::Response,
-              header::AsHeaderName,
+use reqwest::{header::AsHeaderName,
+              Response,
               StatusCode};
-use std::{fmt,
-          io::Read};
+use std::fmt;
 
 #[derive(Clone, Deserialize)]
 #[serde(rename = "error")]
@@ -19,56 +18,51 @@ impl fmt::Display for NetError {
     }
 }
 
-pub trait ResponseExt {
-    fn ok_if<'a>(&'a mut self,
-                 code: impl IntoIterator<Item = &'a reqwest::StatusCode>)
-                 -> Result<()>;
-    fn get_header<'a, K: AsHeaderName>(&'a self, name: K) -> Result<&'a str>;
+pub async fn ok_if(response: Response,
+                   code: impl IntoIterator<Item = &reqwest::StatusCode>)
+                   -> Result<Response> {
+    debug!("Response Status: {:?}", response.status());
+    if code.into_iter().any(|&code| code == response.status()) {
+        Ok(response)
+    } else {
+        Err(err_from_response(response).await)
+    }
 }
 
-impl ResponseExt for Response {
-    fn ok_if<'a>(&'a mut self,
-                 code: impl IntoIterator<Item = &'a reqwest::StatusCode>)
-                 -> Result<()> {
-        debug!("Response Status: {:?}", self.status());
-        if code.into_iter().any(|&code| code == self.status()) {
-            Ok(())
-        } else {
-            Err(err_from_response(self))
-        }
-    }
+pub async fn ok_if_unit(response: Response,
+                        code: impl IntoIterator<Item = &reqwest::StatusCode>)
+                        -> Result<()> {
+    ok_if(response, code).await.map(|_| ())
+}
 
-    fn get_header<'a, K>(&'a self, name: K) -> Result<&'a str>
-        where K: AsHeaderName
-    {
-        let hdr_name = name.as_str().to_string();
-        self.headers()
+pub fn get_header<K>(response: &Response, name: K) -> Result<String>
+    where K: AsHeaderName
+{
+    let hdr_name = name.as_str().to_string();
+    response.headers()
             .get(name)
             .ok_or_else(|| Error::MissingHeader(hdr_name.clone()))?
             .to_str()
             .map_err(|_| Error::InvalidHeader(hdr_name.clone()))
-    }
+            .map(String::from)
 }
 
-pub fn err_from_response(response: &mut Response) -> Error {
-    if response.status() == StatusCode::UNAUTHORIZED {
-        return Error::APIError(response.status(),
+pub async fn err_from_response(response: Response) -> Error {
+    let status = response.status();
+    if status == StatusCode::UNAUTHORIZED {
+        return Error::APIError(status,
                                "Please check that you have specified a valid Personal Access \
                                 Token."
                                        .to_string());
     }
 
-    let mut buff = String::new();
-    match response.read_to_string(&mut buff) {
-        Ok(_) => {
+    match response.text().await {
+        Ok(buff) => {
             match serde_json::from_str::<NetError>(&buff) {
-                Ok(err) => Error::APIError(response.status(), err.to_string()),
-                Err(_) => Error::APIError(response.status(), buff),
+                Ok(err) => Error::APIError(status, err.to_string()),
+                Err(_) => Error::APIError(status, buff),
             }
         }
-        Err(_) => {
-            buff.truncate(0);
-            Error::APIError(response.status(), buff)
-        }
+        Err(_) => Error::APIError(status, String::new()),
     }
 }

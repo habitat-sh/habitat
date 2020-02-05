@@ -31,18 +31,20 @@ use crate::{error::{Error,
 /// # Failures
 ///
 /// * Fails if it cannot find the specified package in Builder
-pub fn start(ui: &mut UI,
-             bldr_url: &str,
-             (ident, target): (&PackageIdent, PackageTarget),
-             channel: &ChannelIdent,
-             token: &str)
-             -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   bldr_url: &str,
+                   (ident, target): (&PackageIdent, PackageTarget),
+                   channel: &ChannelIdent,
+                   token: &str)
+                   -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!("Promoting {} ({}) to channel '{}'", ident, target, channel))?;
 
     if channel != &ChannelIdent::stable() && channel != &ChannelIdent::unstable() {
-        match api_client.create_channel(&ident.origin, channel, token) {
+        match api_client.create_channel(&ident.origin, channel, token)
+                        .await
+        {
             Ok(_) => (),
             Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => (),
             Err(e) => {
@@ -52,7 +54,9 @@ pub fn start(ui: &mut UI,
         };
     }
 
-    match api_client.promote_package((ident, target), channel, token) {
+    match api_client.promote_package((ident, target), channel, token)
+                    .await
+    {
         Ok(_) => (),
         Err(e) => {
             println!("Failed to promote '{}': {:?}", ident, e);

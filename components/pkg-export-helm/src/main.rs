@@ -35,20 +35,21 @@ use crate::{chart::Chart,
             export_k8s::Cli};
 use url::Url;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     env_logger::init();
     let mut ui = UI::default_with_env();
     let m = cli().get_matches();
     debug!("clap cli args: {:?}", m);
 
-    if let Err(e) = export_for_cli_matches(&mut ui, &m) {
+    if let Err(e) = export_for_cli_matches(&mut ui, &m).await {
         let _ = ui.fatal(e);
         std::process::exit(1)
     }
 }
 
-fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches<'_>) -> Result<()> {
-    let chart = Chart::new_for_cli_matches(ui, matches)?;
+async fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches<'_>) -> Result<()> {
+    let chart = Chart::new_for_cli_matches(ui, matches).await?;
     chart.generate()?;
 
     Ok(())

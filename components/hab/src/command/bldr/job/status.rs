@@ -9,30 +9,30 @@ use crate::{api_client,
 use std::io::Write;
 use tabwriter::TabWriter;
 
-pub fn start(ui: &mut UI,
-             bldr_url: &str,
-             group_id: Option<&str>,
-             origin: Option<&str>,
-             limit: usize,
-             show_jobs: bool)
-             -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   bldr_url: &str,
+                   group_id: Option<&str>,
+                   origin: Option<&str>,
+                   limit: usize,
+                   show_jobs: bool)
+                   -> Result<()> {
     let api_client =
         api_client::Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     if let Some(o) = origin {
-        do_origin_status(ui, &api_client, o, limit)?;
+        do_origin_status(ui, &api_client, o, limit).await?;
     } else {
-        do_job_group_status(ui, &api_client, group_id.unwrap(), show_jobs)?;
+        do_job_group_status(ui, &api_client, group_id.unwrap(), show_jobs).await?;
     }
 
     Ok(())
 }
 
-fn do_job_group_status(ui: &mut UI,
-                       api_client: &api_client::BoxedClient,
-                       group_id: &str,
-                       show_jobs: bool)
-                       -> Result<()> {
+async fn do_job_group_status(ui: &mut UI,
+                             api_client: &api_client::BuilderAPIClient,
+                             group_id: &str,
+                             show_jobs: bool)
+                             -> Result<()> {
     let gid = match group_id.parse::<i64>() {
         Ok(g) => g,
         Err(e) => {
@@ -44,7 +44,7 @@ fn do_job_group_status(ui: &mut UI,
     ui.status(Status::Determining,
               format!("status of job group {}", group_id))?;
 
-    match api_client.get_schedule(gid, show_jobs) {
+    match api_client.get_schedule(gid, show_jobs).await {
         Ok(sr) => {
             let mut tw = TabWriter::new(vec![]);
             writeln!(&mut tw, "CREATED AT\tGROUP ID\tSTATUS\tIDENT\tTARGET").unwrap();
@@ -75,15 +75,15 @@ fn do_job_group_status(ui: &mut UI,
     }
 }
 
-fn do_origin_status(ui: &mut UI,
-                    api_client: &api_client::BoxedClient,
-                    origin: &str,
-                    limit: usize)
-                    -> Result<()> {
+async fn do_origin_status(ui: &mut UI,
+                          api_client: &api_client::BuilderAPIClient,
+                          origin: &str,
+                          limit: usize)
+                          -> Result<()> {
     ui.status(Status::Determining,
               format!("status of job groups in {} origin", origin))?;
 
-    match api_client.get_origin_schedule(origin, limit) {
+    match api_client.get_origin_schedule(origin, limit).await {
         Ok(sr) => {
             let mut tw = TabWriter::new(vec![]);
             writeln!(&mut tw, "CREATED AT\tGROUP ID\tSTATUS\tIDENT\tTARGET").unwrap();

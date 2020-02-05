@@ -10,19 +10,21 @@ use crate::common::ui::{UIWriter,
 
 use crate::export_docker::Result;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     env_logger::init();
     let mut ui = UI::default_with_env();
-    if let Err(e) = start(&mut ui) {
+    if let Err(e) = start(&mut ui).await {
         ui.fatal(e).unwrap();
         std::process::exit(1)
     }
 }
 
-fn start(ui: &mut UI) -> Result<()> {
+async fn start(ui: &mut UI) -> Result<()> {
     let cli = export_docker::cli();
     let m = cli.get_matches();
     debug!("clap cli args: {:?}", m);
 
-    export_docker::export_for_cli_matches(ui, &m).map(|_| ())
+    export_docker::export_for_cli_matches(ui, &m).await
+                                                 .map(|_| ())
 }

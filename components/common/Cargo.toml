@@ -32,17 +32,18 @@ parking_lot = "*"
 pbr = "*"
 petgraph = "*"
 regex = "*"
-reqwest = { version = "*", features = ["blocking", "json"] }
+reqwest = { version = "*", features = ["blocking", "json", "stream"] }
 serde = "*"
 serde_derive = "*"
 serde_json = "*"
 serde-transcode = "*"
 serde_yaml = "*"
 tempfile = "*"
-retry = "*"
+retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
 termcolor = "*"
 # See https://github.com/habitat-sh/habitat/issues/7353
 time = "0.1"
+tokio = { version = "*", features = ["full"] }
 toml = { version = "*", default-features = false }
 uuid = { version = "*", features = ["v4"] }
 valico = "*"

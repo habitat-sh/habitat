@@ -15,8 +15,8 @@
 //! complex than just latest version.
 
 use crate::{api_client::{self,
-                         BoxedClient,
                          BuildOnUpload,
+                         BuilderAPIClient,
                          Client},
             common::{command::package::install::{RETRIES,
                                                  RETRY_WAIT},
@@ -34,8 +34,7 @@ use crate::{api_client::{self,
             PRODUCT,
             VERSION};
 use reqwest::StatusCode;
-use retry::{delay,
-            retry};
+use retry::delay;
 use std::path::{Path,
                 PathBuf};
 
@@ -48,49 +47,50 @@ use std::path::{Path,
 /// * Fails if the package doesn't have a `.hart` file in the cache
 /// * Fails if it cannot upload the file
 #[allow(clippy::too_many_arguments)]
-pub fn start(ui: &mut UI,
-             bldr_url: &str,
-             additional_release_channel: &Option<ChannelIdent>,
-             token: &str,
-             archive_path: &Path,
-             force_upload: bool,
-             auto_build: BuildOnUpload,
-             key_path: &Path)
-             -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   bldr_url: &str,
+                   additional_release_channel: &Option<ChannelIdent>,
+                   token: &str,
+                   archive_path: &Path,
+                   force_upload: bool,
+                   auto_build: BuildOnUpload,
+                   key_path: &Path)
+                   -> Result<()> {
     let mut archive = PackageArchive::new(PathBuf::from(archive_path));
 
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
-    upload_public_key(ui, token, &api_client, &mut archive, &key_path)?;
+    upload_public_key(ui, token, &api_client, &mut archive, &key_path).await?;
 
     let tdeps = archive.tdeps()?;
     let ident = archive.ident()?;
     let target = archive.target()?;
 
-    match api_client.check_package((&ident, target), Some(token)) {
+    match api_client.check_package((&ident, target), Some(token))
+                    .await
+    {
         Ok(_) if !force_upload => {
             ui.status(Status::Using, format!("existing {}", &ident))?;
             Ok(())
         }
         Err(api_client::Error::APIError(StatusCode::NOT_FOUND, _)) | Ok(_) => {
             for dep in tdeps.into_iter() {
-                match api_client.check_package((&dep, target), Some(token)) {
+                match api_client.check_package((&dep, target), Some(token)).await {
                     Ok(_) => ui.status(Status::Using, format!("existing {}", &dep))?,
                     Err(api_client::Error::APIError(StatusCode::NOT_FOUND, _)) => {
                         let candidate_path = match archive_path.parent() {
                             Some(p) => PathBuf::from(p),
                             None => unreachable!(),
                         };
-                        let upload = || {
-                            attempt_upload_dep(ui,
-                                               &api_client,
-                                               token,
-                                               (&dep, target),
-                                               additional_release_channel,
-                                               &candidate_path,
-                                               key_path)
-                        };
-                        match retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), upload) {
+                        match retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES),
+                                                   attempt_upload_dep(ui,
+                                                                      &api_client,
+                                                                      token,
+                                                                      (&dep, target),
+                                                                      additional_release_channel,
+                                                                      &candidate_path,
+                                                                      key_path)).await
+                        {
                             Ok(_) => trace!("attempt_upload_dep succeeded"),
                             Err(_) => {
                                 return Err(Error::from(api_client::Error::UploadFailed(format!(
@@ -104,17 +104,16 @@ pub fn start(ui: &mut UI,
                 }
             }
 
-            let upload = || {
-                upload_into_depot(ui,
-                                  &api_client,
-                                  token,
-                                  (&ident, target),
-                                  additional_release_channel,
-                                  force_upload,
-                                  auto_build,
-                                  &mut archive)
-            };
-            match retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), upload) {
+            match retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES),
+                                       upload_into_depot(ui,
+                                                         &api_client,
+                                                         token,
+                                                         (&ident, target),
+                                                         additional_release_channel,
+                                                         force_upload,
+                                                         auto_build,
+                                                         &mut archive)).await
+            {
                 Ok(_) => trace!("upload_into_depot succeeded"),
                 Err(_) => {
                     return Err(Error::from(api_client::Error::UploadFailed(format!(
@@ -135,44 +134,42 @@ pub fn start(ui: &mut UI,
 /// `additional_release_channel` is provided, packages will be
 /// promoted to that channel as well.
 #[allow(clippy::too_many_arguments)]
-fn upload_into_depot(ui: &mut UI,
-                     api_client: &BoxedClient,
-                     token: &str,
-                     (ident, target): (&PackageIdent, PackageTarget),
-                     additional_release_channel: &Option<ChannelIdent>,
-                     force_upload: bool,
-                     auto_build: BuildOnUpload,
-                     mut archive: &mut PackageArchive)
-                     -> Result<()> {
+async fn upload_into_depot(ui: &mut UI,
+                           api_client: &BuilderAPIClient,
+                           token: &str,
+                           (ident, target): (&PackageIdent, PackageTarget),
+                           additional_release_channel: &Option<ChannelIdent>,
+                           force_upload: bool,
+                           auto_build: BuildOnUpload,
+                           mut archive: &mut PackageArchive)
+                           -> Result<()> {
     ui.status(Status::Uploading, archive.path.display())?;
-    let package_uploaded = match api_client.put_package(&mut archive,
-                                                        token,
-                                                        force_upload,
-                                                        auto_build,
-                                                        ui.progress())
-    {
-        Ok(_) => true,
-        Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
-            println!("Package already exists on remote; skipping.");
-            true
-        }
-        Err(api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
-            return Err(Error::PackageArchiveMalformed(format!("{}",
-                                                              archive.path
-                                                                     .display())));
-        }
-        Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
-            println!("Package platform or architecture not supported by the targeted depot; \
-                      skipping.");
-            false
-        }
-        Err(api_client::Error::APIError(StatusCode::FAILED_DEPENDENCY, _)) => {
-            ui.fatal("Package upload introduces a circular dependency - please check pkg_deps; \
-                      skipping.")?;
-            false
-        }
-        Err(e) => return Err(Error::from(e)),
-    };
+    let package_uploaded =
+        match api_client.put_package(&mut archive, token, force_upload, auto_build, ui.progress())
+                        .await
+        {
+            Ok(_) => true,
+            Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
+                println!("Package already exists on remote; skipping.");
+                true
+            }
+            Err(api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
+                return Err(Error::PackageArchiveMalformed(format!("{}",
+                                                                  archive.path
+                                                                         .display())));
+            }
+            Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
+                println!("Package platform or architecture not supported by the targeted depot; \
+                          skipping.");
+                false
+            }
+            Err(api_client::Error::APIError(StatusCode::FAILED_DEPENDENCY, _)) => {
+                ui.fatal("Package upload introduces a circular dependency - please check \
+                          pkg_deps; skipping.")?;
+                false
+            }
+            Err(e) => return Err(Error::from(e)),
+        };
     ui.status(Status::Uploaded, ident)?;
 
     // Promote to additional_release_channel if specified
@@ -181,14 +178,18 @@ fn upload_into_depot(ui: &mut UI,
         ui.begin(format!("Promoting {} to channel '{}'", ident, channel))?;
 
         if channel != ChannelIdent::stable() && channel != ChannelIdent::unstable() {
-            match api_client.create_channel(&ident.origin, &channel, token) {
+            match api_client.create_channel(&ident.origin, &channel, token)
+                            .await
+            {
                 Ok(_) => (),
                 Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => (),
                 Err(e) => return Err(Error::from(e)),
             };
         }
 
-        match api_client.promote_package((ident, target), &channel, token) {
+        match api_client.promote_package((ident, target), &channel, token)
+                        .await
+        {
             Ok(_) => (),
             Err(e) => return Err(Error::from(e)),
         };
@@ -199,19 +200,19 @@ fn upload_into_depot(ui: &mut UI,
 }
 
 #[allow(clippy::too_many_arguments)]
-fn attempt_upload_dep(ui: &mut UI,
-                      api_client: &BoxedClient,
-                      token: &str,
-                      (ident, target): (&PackageIdent, PackageTarget),
-                      additional_release_channel: &Option<ChannelIdent>,
-                      archives_dir: &PathBuf,
-                      key_path: &Path)
-                      -> Result<()> {
+async fn attempt_upload_dep(ui: &mut UI,
+                            api_client: &BuilderAPIClient,
+                            token: &str,
+                            (ident, target): (&PackageIdent, PackageTarget),
+                            additional_release_channel: &Option<ChannelIdent>,
+                            archives_dir: &PathBuf,
+                            key_path: &Path)
+                            -> Result<()> {
     let candidate_path = archives_dir.join(ident.archive_name_with_target(target).unwrap());
 
     if candidate_path.is_file() {
         let mut archive = PackageArchive::new(candidate_path);
-        upload_public_key(ui, &token, api_client, &mut archive, key_path)?;
+        upload_public_key(ui, &token, api_client, &mut archive, key_path).await?;
         upload_into_depot(ui,
                           api_client,
                           token,
@@ -219,7 +220,7 @@ fn attempt_upload_dep(ui: &mut UI,
                           additional_release_channel,
                           false,
                           BuildOnUpload::Disable,
-                          &mut archive)
+                          &mut archive).await
     } else {
         let archive_name = ident.archive_name_with_target(target).unwrap();
 
@@ -233,19 +234,21 @@ fn attempt_upload_dep(ui: &mut UI,
     }
 }
 
-fn upload_public_key(ui: &mut UI,
-                     token: &str,
-                     api_client: &BoxedClient,
-                     archive: &mut PackageArchive,
-                     key_path: &Path)
-                     -> Result<()> {
+async fn upload_public_key(ui: &mut UI,
+                           token: &str,
+                           api_client: &BuilderAPIClient,
+                           archive: &mut PackageArchive,
+                           key_path: &Path)
+                           -> Result<()> {
     let hart_header = get_artifact_header(&archive.path)?;
     let public_keyfile_name = format!("{}.pub", &hart_header.key_name);
     let public_keyfile = key_path.join(&public_keyfile_name);
 
     let (name, rev) = parse_name_with_rev(&hart_header.key_name)?;
 
-    match api_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress()) {
+    match api_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress())
+                    .await
+    {
         Ok(()) => {
             ui.begin(format!("Uploading public origin key {}", &public_keyfile_name))?;
 

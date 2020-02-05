@@ -11,21 +11,22 @@ use crate::{common::{ui::{UIWriter,
                          Result}};
 use clap::App;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let mut ui = UI::default_with_env();
-    if let Err(e) = start(&mut ui) {
+    if let Err(e) = start(&mut ui).await {
         ui.fatal(e).unwrap();
         std::process::exit(1)
     }
 }
 
-fn start(ui: &mut UI) -> Result<()> {
+async fn start(ui: &mut UI) -> Result<()> {
     env_logger::init();
     let cli = cli();
     let m = cli.get_matches();
     debug!("clap cli args: {:?}", m);
 
-    export_tar::export_for_cli_matches(ui, &m)
+    export_tar::export_for_cli_matches(ui, &m).await
 }
 
 fn cli<'a, 'b>() -> App<'a, 'b> {

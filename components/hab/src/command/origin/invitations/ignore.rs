@@ -7,18 +7,20 @@ use crate::{api_client::Client,
             PRODUCT,
             VERSION};
 
-pub fn start(ui: &mut UI,
-             bldr_url: &str,
-             origin: &str,
-             token: &str,
-             invitation_id: u64)
-             -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   bldr_url: &str,
+                   origin: &str,
+                   token: &str,
+                   invitation_id: u64)
+                   -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(Status::Ignoring,
               format!("invitation id {} in origin {}", invitation_id, origin))?;
 
-    match api_client.ignore_origin_invitation(origin, token, invitation_id) {
+    match api_client.ignore_origin_invitation(origin, token, invitation_id)
+                    .await
+    {
         Ok(_) => {
             ui.status(Status::Ignored, "the invitation successfully!".to_string())
               .or(Ok(()))

@@ -62,7 +62,7 @@ const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 /// * If the parent directory of a located interpreter binary cannot be computed
 /// * If the Supervisor is not executing inside a package, and if no interpreter package is
 ///   installed, and if no interpreter binary can be found on the `PATH`
-pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
+pub async fn interpreter_paths() -> Result<Vec<PathBuf>> {
     // First, we'll check if we're running inside a package. If we are, then we should  be able to
     // access the `../DEPS` metadata file and read it to get the specific version of the
     // interpreter.
@@ -116,20 +116,20 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
                             }
                         }
                         None => {
-                            install::start(
-                                &mut ui::UI::default_with_env(),
-                                &default_bldr_url(),
-                                &ChannelIdent::stable(),
-                                &(ident.clone(), PackageTarget::active_target()).into(),
-                                &*PROGRAM_NAME,
-                                VERSION,
-                                FS_ROOT_PATH.as_path(),
-                                &cache_artifact_path(None::<String>),
-                                None,
-                                &InstallMode::default(),
-                                &LocalPackageUsage::default(),
-                                InstallHookMode::default(),
-                            )?;
+                            install::type_erased_start(&mut ui::UI::default_with_env(),
+                                                       &default_bldr_url(),
+                                                       &ChannelIdent::stable(),
+                                                       &(ident.clone(),
+                                                         PackageTarget::active_target())
+                                                                                        .into(),
+                                                       &*PROGRAM_NAME,
+                                                       VERSION,
+                                                       FS_ROOT_PATH.as_path(),
+                                                       &cache_artifact_path(None::<String>),
+                                                       None,
+                                                       &InstallMode::default(),
+                                                       &LocalPackageUsage::default(),
+                                                       InstallHookMode::default()).await?;
                             let pkg_install =
                                 PackageInstall::load(&ident, Some(FS_ROOT_PATH.as_ref()))?;
                             pkg_install.paths()?
@@ -142,8 +142,8 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
     Ok(interpreter_paths)
 }
 
-pub fn append_interpreter_and_path(path_entries: &mut Vec<PathBuf>) -> Result<String> {
-    let mut paths = interpreter_paths()?;
+pub async fn append_interpreter_and_path(path_entries: &mut Vec<PathBuf>) -> Result<String> {
+    let mut paths = interpreter_paths().await?;
     path_entries.append(&mut paths);
     if let Some(val) = env::var_os("PATH") {
         let mut os_paths = env::split_paths(&val).collect();

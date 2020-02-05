@@ -6,15 +6,15 @@ use std::{fs,
           time::Duration};
 
 use native_tls::Certificate;
-use reqwest::{blocking::{Client as ReqwestClient,
-                         RequestBuilder},
-              header::{HeaderMap,
+use reqwest::{header::{HeaderMap,
                        HeaderValue,
                        CONNECTION,
                        USER_AGENT},
               Certificate as ReqwestCertificate,
+              Client as ReqwestClient,
               IntoUrl,
               Proxy,
+              RequestBuilder,
               Url};
 
 use habitat_core::{env,

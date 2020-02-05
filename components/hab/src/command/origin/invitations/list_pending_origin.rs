@@ -10,14 +10,16 @@ use crate::{api_client::{self,
             VERSION};
 use reqwest::StatusCode;
 
-pub fn start(ui: &mut UI, bldr_url: &str, origin: &str, token: &str) -> Result<()> {
+pub async fn start(ui: &mut UI, bldr_url: &str, origin: &str, token: &str) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(Status::Discovering,
               format!("pending member invitations in origin {}", origin))?;
 
     // given an origin, list its pending invitations
-    match api_client.list_pending_origin_invitations(origin, token) {
+    match api_client.list_pending_origin_invitations(origin, token)
+                    .await
+    {
         Ok(resp) => {
             println!("Pending Origin ({}) Member Invitations [{}]:",
                      origin,

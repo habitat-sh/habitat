@@ -33,8 +33,8 @@ libc = "*"
 log = "*"
 pbr = "*"
 rants = "*"
-reqwest = { version = "*", features = ["blocking", "json"] }
-retry = "*"
+reqwest = { version = "*", features = ["blocking", "json", "stream"] }
+retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
 same-file = "*"
 serde = "*"
 serde_derive = "*"

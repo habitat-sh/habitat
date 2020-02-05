@@ -8,6 +8,7 @@ use std::{error,
           num,
           path::PathBuf,
           result};
+use tokio::task::JoinError;
 use url;
 
 pub type Result<T> = result::Result<T, Error>;
@@ -15,7 +16,7 @@ pub type Result<T> = result::Result<T, Error>;
 #[derive(Debug)]
 pub enum Error {
     APIError(reqwest::StatusCode, String),
-    BadResponseBody(io::Error),
+    BadResponseBody(reqwest::Error),
     DownloadWrite(PathBuf, io::Error),
     HabitatCore(hab_core::Error),
     HabitatHttpClient(hab_http::Error),
@@ -33,6 +34,7 @@ pub enum Error {
     UrlParseError(url::ParseError),
     WriteSyncFailed,
     NotSupported,
+    TokioJoinError(JoinError),
 }
 
 impl fmt::Display for Error {
@@ -74,6 +76,7 @@ impl fmt::Display for Error {
                 "Could not write to destination; perhaps the disk is full?".to_string()
             }
             Error::NotSupported => "The specified operation is not supported.".to_string(),
+            Error::TokioJoinError(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
     }
@@ -103,4 +106,8 @@ impl From<serde_json::Error> for Error {
 
 impl From<url::ParseError> for Error {
     fn from(err: url::ParseError) -> Error { Error::UrlParseError(err) }
+}
+
+impl From<JoinError> for Error {
+    fn from(err: JoinError) -> Error { Error::TokioJoinError(err) }
 }

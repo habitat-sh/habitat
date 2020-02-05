@@ -30,8 +30,11 @@ use ipc_channel::ipc::{IpcOneShotServer,
 use libc;
 use semver::{Version,
              VersionReq};
+#[cfg(unix)]
 use std::{cmp::Ordering,
-          collections::HashMap,
+          os::unix::process::ExitStatusExt,
+          process::ExitStatus};
+use std::{collections::HashMap,
           fs,
           io::Write,
           path::PathBuf,
@@ -44,9 +47,6 @@ use std::{cmp::Ordering,
                  Mutex},
           thread,
           time::Duration};
-#[cfg(unix)]
-use std::{os::unix::process::ExitStatusExt,
-          process::ExitStatus};
 
 const IPC_CONNECT_TIMEOUT_SECS: &str = "HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS";
 const DEFAULT_IPC_CONNECT_TIMEOUT_SECS: u64 = 5;

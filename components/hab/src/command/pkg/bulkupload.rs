@@ -39,16 +39,16 @@ use std::{collections::BTreeSet,
 /// * Fails if it cannot create a missing origin
 /// * Fails if it cannot upload the artifact
 #[allow(clippy::too_many_arguments)]
-pub fn start(ui: &mut UI,
-             bldr_url: &str,
-             additional_release_channel: &Option<ChannelIdent>,
-             token: &str,
-             artifact_path: &Path,
-             force_upload: bool,
-             auto_build: BuildOnUpload,
-             auto_create_origins: bool,
-             key_path: &Path)
-             -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   bldr_url: &str,
+                   additional_release_channel: &Option<ChannelIdent>,
+                   token: &str,
+                   artifact_path: &Path,
+                   force_upload: bool,
+                   auto_build: BuildOnUpload,
+                   auto_create_origins: bool,
+                   key_path: &Path)
+                   -> Result<()> {
     let artifact_paths = paths_with_extension(artifact_path, "hart");
     let pub_keys_paths = paths_with_extension(key_path, PUBLIC_KEY_SUFFIX);
 
@@ -81,7 +81,7 @@ pub fn start(ui: &mut UI,
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     for origin in origins {
-        match api_client.check_origin(&origin, token) {
+        match api_client.check_origin(&origin, token).await {
             Ok(()) => {
                 ui.status(Status::Custom(Glyph::CheckMark,
                                          format!("Origin '{}' already exists", &origin)),
@@ -104,7 +104,7 @@ pub fn start(ui: &mut UI,
             };
         };
         for origin_to_create in origins_to_create {
-            command::origin::create::start(ui, &bldr_url, &token, &origin_to_create)?;
+            command::origin::create::start(ui, &bldr_url, &token, &origin_to_create).await?;
         }
     };
 
@@ -116,7 +116,7 @@ pub fn start(ui: &mut UI,
                                     &artifact_path,
                                     force_upload,
                                     auto_build,
-                                    &key_path)?
+                                    &key_path).await?
     }
 
     Ok(())

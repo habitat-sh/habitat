@@ -1,4 +1,4 @@
-use crate::{api_client::{BoxedClient,
+use crate::{api_client::{BuilderAPIClient,
                          Client},
             common::{self,
                      command::package::install::{RETRIES,
@@ -11,43 +11,42 @@ use crate::{api_client::{BoxedClient,
             hcore::crypto::SigKeyPair,
             PRODUCT,
             VERSION};
-use retry::{delay,
-            retry};
+use retry::delay;
 use std::path::Path;
 
 #[allow(clippy::too_many_arguments)]
-pub fn start(ui: &mut UI,
-             bldr_url: &str,
-             origin: &str,
-             revision: Option<&str>,
-             secret: bool,
-             encryption: bool,
-             token: Option<&str>,
-             cache: &Path)
-             -> Result<()> {
+pub async fn start(ui: &mut UI,
+                   bldr_url: &str,
+                   origin: &str,
+                   revision: Option<&str>,
+                   secret: bool,
+                   encryption: bool,
+                   token: Option<&str>,
+                   cache: &Path)
+                   -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     if secret {
-        handle_secret(ui, &api_client, origin, token, cache)
+        handle_secret(ui, &api_client, origin, token, cache).await
     } else if encryption {
-        handle_encryption(ui, &api_client, origin, token, cache)
+        handle_encryption(ui, &api_client, origin, token, cache).await
     } else {
-        handle_public(ui, &api_client, origin, revision, token, cache)
+        handle_public(ui, &api_client, origin, revision, token, cache).await
     }
 }
 
-fn handle_public(ui: &mut UI,
-                 api_client: &BoxedClient,
-                 origin: &str,
-                 revision: Option<&str>,
-                 token: Option<&str>,
-                 cache: &Path)
-                 -> Result<()> {
+async fn handle_public(ui: &mut UI,
+                       api_client: &BuilderAPIClient,
+                       origin: &str,
+                       revision: Option<&str>,
+                       token: Option<&str>,
+                       cache: &Path)
+                       -> Result<()> {
     match revision {
         Some(revision) => {
             let nwr = format!("{}-{}", origin, revision);
             ui.begin(format!("Downloading public origin key {}", &nwr))?;
-            match download_key(ui, api_client, &nwr, origin, revision, token, cache) {
+            match download_key(ui, api_client, &nwr, origin, revision, token, cache).await {
                 Ok(()) => {
                     let msg = format!("Download of {} public origin key completed.", nwr);
                     ui.end(msg)?;
@@ -58,7 +57,7 @@ fn handle_public(ui: &mut UI,
         }
         None => {
             ui.begin(format!("Downloading public origin keys for {}", origin))?;
-            match api_client.show_origin_keys(origin) {
+            match api_client.show_origin_keys(origin).await {
                 Ok(ref keys) if keys.is_empty() => {
                     ui.end(format!("No public keys for {}.", origin))?;
                     Ok(())
@@ -72,7 +71,7 @@ fn handle_public(ui: &mut UI,
                                      &key.origin,
                                      &key.revision,
                                      token,
-                                     cache)?;
+                                     cache).await?;
                     }
                     ui.end(format!("Download of {} public origin keys completed.", &origin))?;
                     Ok(())
@@ -83,110 +82,112 @@ fn handle_public(ui: &mut UI,
     }
 }
 
-fn handle_secret(ui: &mut UI,
-                 api_client: &BoxedClient,
-                 origin: &str,
-                 token: Option<&str>,
-                 cache: &Path)
-                 -> Result<()> {
+async fn handle_secret(ui: &mut UI,
+                       api_client: &BuilderAPIClient,
+                       origin: &str,
+                       token: Option<&str>,
+                       cache: &Path)
+                       -> Result<()> {
     if token.is_none() {
         ui.end("No auth token found. You must pass a token to download secret keys.")?;
         return Ok(());
     }
 
     ui.begin(format!("Downloading secret origin keys for {}", origin))?;
-    download_secret_key(ui, &api_client, origin, token.unwrap(), cache)?; // unwrap is safe because we already checked it above
+    download_secret_key(ui, &api_client, origin, token.unwrap(), cache).await?; // unwrap is safe because we already checked it above
     ui.end(format!("Download of {} secret origin keys completed.", &origin))?;
     Ok(())
 }
 
-fn handle_encryption(ui: &mut UI,
-                     api_client: &BoxedClient,
-                     origin: &str,
-                     token: Option<&str>,
-                     cache: &Path)
-                     -> Result<()> {
+async fn handle_encryption(ui: &mut UI,
+                           api_client: &BuilderAPIClient,
+                           origin: &str,
+                           token: Option<&str>,
+                           cache: &Path)
+                           -> Result<()> {
     if token.is_none() {
         ui.end("No auth token found. You must pass a token to download secret keys.")?;
         return Ok(());
     }
 
     ui.begin(format!("Downloading public encryption origin key for {}", origin))?;
-    download_public_encryption_key(ui, &api_client, origin, token.unwrap(), cache)?; // unwrap is safe because we already checked it above
+    download_public_encryption_key(ui, &api_client, origin, token.unwrap(), cache).await?; // unwrap is safe because we already checked it above
     ui.end(format!("Download of {} public encryption keys completed.", &origin))?;
     Ok(())
 }
 
-pub fn download_public_encryption_key(ui: &mut UI,
-                                      api_client: &BoxedClient,
-                                      name: &str,
-                                      token: &str,
-                                      cache: &Path)
-                                      -> Result<()> {
-    let download_fn = || -> Result<()> {
+pub async fn download_public_encryption_key(ui: &mut UI,
+                                            api_client: &BuilderAPIClient,
+                                            name: &str,
+                                            token: &str,
+                                            cache: &Path)
+                                            -> Result<()> {
+    retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
         ui.status(Status::Downloading, "latest public encryption key")?;
         let key_path =
-            api_client.fetch_origin_public_encryption_key(name, token, cache, ui.progress())?;
+            api_client.fetch_origin_public_encryption_key(name, token, cache, ui.progress())
+                      .await?;
         ui.status(Status::Cached,
                   key_path.file_name().unwrap().to_str().unwrap() /* lol */)?;
-        Ok(())
-    };
-
-    retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), download_fn).map_err(|_| {
-        Error::from(common::error::Error::DownloadFailed(format!("We tried {} times but could \
-                                                                  not download the latest \
-                                                                  public encryption key. Giving \
-                                                                  up.",
-                                                                 RETRIES,)))
-    })
+        Ok::<_, Error>(())
+    }).await
+      .map_err(|_| {
+          Error::from(common::error::Error::DownloadFailed(format!("We tried {} times but could \
+                                                                    not download the latest \
+                                                                    public encryption key. \
+                                                                    Giving up.",
+                                                                   RETRIES,)))
+      })
 }
 
-fn download_secret_key(ui: &mut UI,
-                       api_client: &BoxedClient,
-                       name: &str,
-                       token: &str,
-                       cache: &Path)
-                       -> Result<()> {
-    let download_fn = || -> Result<()> {
+async fn download_secret_key(ui: &mut UI,
+                             api_client: &BuilderAPIClient,
+                             name: &str,
+                             token: &str,
+                             cache: &Path)
+                             -> Result<()> {
+    retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
         ui.status(Status::Downloading, "latest secret key")?;
-        let key_path = api_client.fetch_secret_origin_key(name, token, cache, ui.progress())?;
+        let key_path = api_client.fetch_secret_origin_key(name, token, cache, ui.progress())
+                                 .await?;
         ui.status(Status::Cached,
                   key_path.file_name().unwrap().to_str().unwrap() /* lol */)?;
-        Ok(())
-    };
-
-    retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), download_fn).map_err(|_| {
-        Error::from(common::error::Error::DownloadFailed(format!("We tried {} times but could \
-                                                                  not download the latest \
-                                                                  secret origin key. Giving up.",
-                                                                 RETRIES,)))
-    })
+        Ok::<_, Error>(())
+    }).await
+      .map_err(|_| {
+          Error::from(common::error::Error::DownloadFailed(format!("We tried {} times but could \
+                                                                    not download the latest \
+                                                                    secret origin key. Giving \
+                                                                    up.",
+                                                                   RETRIES,)))
+      })
 }
 
-fn download_key(ui: &mut UI,
-                api_client: &BoxedClient,
-                nwr: &str,
-                name: &str,
-                rev: &str,
-                token: Option<&str>,
-                cache: &Path)
-                -> Result<()> {
+async fn download_key(ui: &mut UI,
+                      api_client: &BuilderAPIClient,
+                      nwr: &str,
+                      name: &str,
+                      rev: &str,
+                      token: Option<&str>,
+                      cache: &Path)
+                      -> Result<()> {
     if SigKeyPair::get_public_key_path(&nwr, &cache).is_ok() {
         ui.status(Status::Using, &format!("{} in {}", nwr, cache.display()))?;
         Ok(())
     } else {
-        let download_fn = || -> Result<()> {
+        retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
             ui.status(Status::Downloading, &nwr)?;
-            api_client.fetch_origin_key(name, rev, token, cache, ui.progress())?;
+            api_client.fetch_origin_key(name, rev, token, cache, ui.progress())
+                      .await?;
             ui.status(Status::Cached, &format!("{} to {}", nwr, cache.display()))?;
-            Ok(())
-        };
-
-        retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), download_fn).map_err(|_| {
-            Error::from(common::error::Error::DownloadFailed(format!("We tried {} times but \
-                                                                      could not download {}/{} \
-                                                                      origin key. Giving up.",
-                                                                     RETRIES, &name, &rev)))
-        })
+            Ok::<_, Error>(())
+        }).await
+          .map_err(|_| {
+              Error::from(common::error::Error::DownloadFailed(format!("We tried {} times but \
+                                                                        could not download \
+                                                                        {}/{} origin key. \
+                                                                        Giving up.",
+                                                                       RETRIES, &name, &rev)))
+          })
     }
 }

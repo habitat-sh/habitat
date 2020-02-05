@@ -5,14 +5,16 @@ use habitat_common::{ui::{UIWriter,
                      PROGRAM_NAME};
 use habitat_pkg_export_kubernetes as export_k8s;
 use log::debug;
+use tokio;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     env_logger::init();
     let mut ui = UI::default_with_env();
     let m = cli().get_matches();
     debug!("clap cli args: {:?}", m);
 
-    if let Err(e) = export_k8s::export_for_cli_matches(&mut ui, &m) {
+    if let Err(e) = export_k8s::export_for_cli_matches(&mut ui, &m).await {
         let _ = ui.fatal(e);
         std::process::exit(1)
     }

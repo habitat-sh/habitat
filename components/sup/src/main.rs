@@ -71,6 +71,8 @@ use std::{env,
                 FromStr}};
 #[cfg(test)]
 use tempfile::TempDir;
+use tokio::{self,
+            runtime::Builder as RuntimeBuilder};
 
 /// Our output key
 static LOGKEY: &str = "MN";
@@ -79,15 +81,32 @@ static LOGKEY: &str = "MN";
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
+habitat_core::env_config_int!(/// Represents how many threads to start for our main Tokio runtime
+                              #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
+                              TokioThreadCount,
+                              usize,
+                              HAB_TOKIO_THREAD_COUNT,
+                              // This is the same internal logic used in Tokio itself.
+                              // https://docs.rs/tokio/0.1.12/src/tokio/runtime/builder.rs.html#68
+                              num_cpus::get().max(1));
+
 fn main() {
     // Set up signal handlers before anything else happens to ensure
     // that all threads spawned thereafter behave properly.
     signals::init();
     logger::init();
+
+    let mut runtime =
+        RuntimeBuilder::new().threaded_scheduler()
+                             .core_threads(TokioThreadCount::configured_value().into())
+                             .enable_all()
+                             .build()
+                             .expect("Couldn't build Tokio Runtime!");
+
     let mut ui = UI::default_with_env();
     let flags = FeatureFlag::from_env(&mut ui);
 
-    let result = start_rsr_imlw_mlw_gsw_smw_rhw_msw(flags);
+    let result = runtime.block_on(start_rsr_imlw_mlw_gsw_smw_rhw_msw(flags));
     let exit_code = match result {
         Ok(_) => 0,
         Err(ref err) => {
@@ -126,7 +145,7 @@ fn boot() -> Option<LauncherCli> {
 /// * `Server::member` (write)
 /// * `RumorHeat::inner` (write)
 /// * `ManagerServices::inner` (write)
-fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFlag) -> Result<()> {
+async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFlag) -> Result<()> {
     if feature_flags.contains(FeatureFlag::TEST_BOOT_FAIL) {
         outputln!("Simulating boot failure");
         return Err(Error::TestBootFail);
@@ -153,18 +172,18 @@ fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFlag) -> Result<()> 
         }
     };
     match app_matches.subcommand() {
-        ("bash", Some(_)) => sub_bash(),
+        ("bash", Some(_)) => sub_bash().await,
         ("run", Some(m)) => {
             let launcher = launcher.ok_or(Error::NoLauncher)?;
-            sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m, launcher, feature_flags)
+            sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m, launcher, feature_flags).await
         }
-        ("sh", Some(_)) => sub_sh(),
+        ("sh", Some(_)) => sub_sh().await,
         ("term", Some(_)) => sub_term(),
         _ => unreachable!(),
     }
 }
 
-fn sub_bash() -> Result<()> { command::shell::bash() }
+async fn sub_bash() -> Result<()> { command::shell::bash().await }
 
 /// # Locking (see locking.md)
 /// * `RumorStore::list` (read)
@@ -174,10 +193,10 @@ fn sub_bash() -> Result<()> { command::shell::bash() }
 /// * `Server::member` (write)
 /// * `RumorHeat::inner` (write)
 /// * `ManagerServices::inner` (write)
-fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m: &ArgMatches,
-                                        launcher: LauncherCli,
-                                        feature_flags: FeatureFlag)
-                                        -> Result<()> {
+async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m: &ArgMatches<'_>,
+                                              launcher: LauncherCli,
+                                              feature_flags: FeatureFlag)
+                                              -> Result<()> {
     set_supervisor_logging_options(m);
 
     // TODO (DM): This check can eventually be removed.
@@ -200,7 +219,7 @@ fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m: &ArgMatches,
                   .unwrap_or(IpAddr::V4(Ipv4Addr::LOCALHOST));
     info!("Using sys IP address {}", sys_ip);
 
-    let manager = Manager::load_imlw(cfg, launcher, sys_ip)?;
+    let manager = Manager::load_imlw(cfg, launcher, sys_ip).await?;
 
     // We need to determine if we have an initial service to start
     let svc = if let Some(pkg) = m.value_of("PKG_IDENT_OR_ARTIFACT") {
@@ -223,7 +242,7 @@ fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m: &ArgMatches,
                                        &msg.bldr_channel
                                            .clone()
                                            .map(ChannelIdent::from)
-                                           .expect("svc_load_from_input to always set to Some"))?;
+                                           .expect("svc_load_from_input to always set to Some")).await?;
                 install.ident.into()
             }
             InstallSource::Ident(ident, _) => ident.into(),
@@ -234,10 +253,10 @@ fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m: &ArgMatches,
         None
     };
 
-    manager.run_rsw_imlw_mlw_gsw_smw_rhw_msw(svc)
+    manager.run_rsw_imlw_mlw_gsw_smw_rhw_msw(svc).await
 }
 
-fn sub_sh() -> Result<()> { command::shell::sh() }
+async fn sub_sh() -> Result<()> { command::shell::sh().await }
 
 fn sub_term() -> Result<()> {
     // We were generating a ManagerConfig from matches here, but 'hab sup term' takes no options.
@@ -502,6 +521,28 @@ mod test {
     use habitat_core::locked_env_var;
 
     fn no_feature_flags() -> FeatureFlag { FeatureFlag::empty() }
+
+    mod tokio_thread_count {
+        use super::*;
+        use habitat_core::locked_env_var;
+
+        locked_env_var!(HAB_TOKIO_THREAD_COUNT, lock_thread_count);
+
+        #[test]
+        fn default_is_number_of_cpus() {
+            let tc = lock_thread_count();
+            tc.unset();
+
+            assert_eq!(TokioThreadCount::configured_value().0, num_cpus::get());
+        }
+
+        #[test]
+        fn can_be_overridden_by_env_var() {
+            let tc = lock_thread_count();
+            tc.set("128");
+            assert_eq!(TokioThreadCount::configured_value().0, 128);
+        }
+    }
 
     mod manager_config {
 

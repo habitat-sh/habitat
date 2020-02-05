@@ -18,8 +18,7 @@ use crate::{common::{self,
                     ChannelIdent},
             PRODUCT,
             VERSION};
-use retry::{delay,
-            retry};
+use retry::delay;
 use std::path::PathBuf;
 
 const RETRY_LIMIT: usize = 5;
@@ -57,10 +56,10 @@ const INTERNAL_TOOLING_CHANNEL_ENVVAR: &str = "HAB_INTERNAL_BLDR_CHANNEL";
 /// * If the package is installed but the command cannot be found in the package
 /// * If an error occurs when loading the local package from disk
 /// * If the maximum number of installation retries has been exceeded
-pub fn command_from_min_pkg(ui: &mut UI,
-                            command: impl Into<PathBuf>,
-                            ident: &PackageIdent)
-                            -> Result<PathBuf> {
+pub async fn command_from_min_pkg(ui: &mut UI,
+                                  command: impl Into<PathBuf>,
+                                  ident: &PackageIdent)
+                                  -> Result<PathBuf> {
     let command = command.into();
     let fs_root_path = FS_ROOT_PATH.as_path();
     let pi = match PackageInstall::load_at_least(ident, Some(fs_root_path)) {
@@ -69,7 +68,7 @@ pub fn command_from_min_pkg(ui: &mut UI,
             ui.status(Status::Missing, format!("package for {}", &ident))?;
 
             // JB TODO - Does an auth token need to be plumbed into here?  Not 100% sure.
-            retry(delay::NoDelay.take(RETRY_LIMIT), || {
+            retry::retry_future!(delay::NoDelay.take(RETRY_LIMIT), async {
                 common::command::package::install::start(ui,
                                                          &default_bldr_url(),
                                                          &internal_tooling_channel(),
@@ -88,8 +87,9 @@ pub fn command_from_min_pkg(ui: &mut UI,
                                                          // TODO (CM): pass through and enable
                                                          // no-local-package mode
                                                          &LocalPackageUsage::default(),
-                                                         InstallHookMode::default())
-            }).map_err(|_| Error::ExecCommandNotFound(command.clone()))?
+                                                         InstallHookMode::default()).await
+            }).await
+              .map_err(|_| Error::ExecCommandNotFound(command.clone()))?
         }
         Err(e) => return Err(Error::from(e)),
     };

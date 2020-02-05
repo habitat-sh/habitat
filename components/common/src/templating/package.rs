@@ -44,9 +44,9 @@ impl Env {
     ///
     /// This means we work on any operating system, as long as you can invoke the Supervisor,
     /// without having to worry much about context.
-    pub fn new(package: &PackageInstall) -> Result<Self> {
+    pub async fn new(package: &PackageInstall) -> Result<Self> {
         let mut env = package.environment_for_command()?;
-        let path = Self::transform_path(env.get(PATH_KEY))?;
+        let path = Self::transform_path(env.get(PATH_KEY)).await?;
         env.insert(PATH_KEY.to_string(), path);
         Ok(Env(env))
     }
@@ -55,13 +55,13 @@ impl Env {
         HashMap::from_iter(self.0.clone().into_iter())
     }
 
-    fn transform_path(path: Option<&String>) -> Result<String> {
+    async fn transform_path(path: Option<&String>) -> Result<String> {
         let mut paths: Vec<PathBuf> = match path {
             Some(path) => env::split_paths(&path).collect(),
             None => vec![],
         };
 
-        path::append_interpreter_and_path(&mut paths)
+        path::append_interpreter_and_path(&mut paths).await
     }
 }
 
@@ -94,7 +94,7 @@ pub struct Pkg {
 }
 
 impl Pkg {
-    pub fn from_install(package: &PackageInstall) -> Result<Self> {
+    pub async fn from_install(package: &PackageInstall) -> Result<Self> {
         let (svc_user, svc_group) = get_user_and_group(&package)?;
         let pkg = Pkg { svc_path: fs::svc_path(&package.ident.name),
                         svc_config_path: fs::svc_config_path(&package.ident.name),
@@ -108,7 +108,7 @@ impl Pkg {
                         svc_pid_file: fs::svc_pid_file(&package.ident.name),
                         svc_user,
                         svc_group,
-                        env: Env::new(&package)?,
+                        env: Env::new(&package).await?,
                         deps: package.tdeps()?,
                         exposes: package.exposes()?,
                         exports: package.exports()?,

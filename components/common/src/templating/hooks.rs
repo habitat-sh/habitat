@@ -716,8 +716,8 @@ echo "The message is Hola Mundo"
     /// back a RenderContext. It may be possible, or we may want to
     /// refactor that code to make it possible. In the meantime, copy
     /// and paste of the code is how we're going to do it :(
-    #[test]
-    fn compile_and_run_a_hook() {
+    #[tokio::test]
+    async fn compile_and_run_a_hook() {
         let service_group = service_group();
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
@@ -738,7 +738,8 @@ echo "The message is Hola Mundo"
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"));
-        let pkg = Pkg::from_install(&pkg_install).expect("Could not create package!");
+        let pkg = Pkg::from_install(&pkg_install).await
+                                                 .expect("Could not create package!");
 
         // This is gross, but it actually works
         let cfg_path = concrete_path.as_ref().join("default.toml");
