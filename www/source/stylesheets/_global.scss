@@ -371,6 +371,7 @@ code {
   }
 }
 
+
 // Small text below CTAs
 .cta-subtext {
   margin-bottom: 0;
@@ -381,6 +382,27 @@ code {
     color: inherit;
     text-decoration: underline;
   }
+}
+
+.button.lcr {
+  @include tertiary-button;
+  // padding-top: 4%;
+
+  background: {
+    image: url(../images/rally-logo.png);
+    position: center;
+    size: rem-calc(80);
+    repeat: no-repeat;
+  }
+  // background-image: url(../images/rally-logo.png);
+  // background-color: $hab-white;
+  // background-repeat: no-repeat;
+  // background-size: rem-calc(80);
+  // background-position: center;
+  // font-size: rem-calc(16);
+  // font-weight: bold;
+  // min-height: rem-calc(44);
+  // 
 }
 
 .button.slack {
