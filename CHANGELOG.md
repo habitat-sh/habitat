@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.18 -->
-## [1.5.18](https://github.com/habitat-sh/habitat/tree/1.5.18) (2020-02-04)
+<!-- latest_release 1.5.19 -->
+## [1.5.19](https://github.com/habitat-sh/habitat/tree/1.5.19) (2020-02-05)
 
 #### Merged Pull Requests
-- add Invoke-AfterSuccess and Invoke-AfterFailure callbacks for powershell plans [#7413](https://github.com/habitat-sh/habitat/pull/7413) ([mwrock](https://github.com/mwrock))
+- Convert all reqwest usage to async [#7409](https://github.com/habitat-sh/habitat/pull/7409) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.0 -->
@@ -14,6 +14,7 @@
 - hab origin invitations subcommand [#7349](https://github.com/habitat-sh/habitat/pull/7349) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.4 -->
 
 #### Merged Pull Requests
+- Convert all reqwest usage to async [#7409](https://github.com/habitat-sh/habitat/pull/7409) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.19 -->
 - add Invoke-AfterSuccess and Invoke-AfterFailure callbacks for powershell plans [#7413](https://github.com/habitat-sh/habitat/pull/7413) ([mwrock](https://github.com/mwrock)) <!-- 1.5.18 -->
 - Correct Middleman file structure [#7406](https://github.com/habitat-sh/habitat/pull/7406) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.5.17 -->
 - Allow ad-hoc deployments of acceptance environment website changes [#7410](https://github.com/habitat-sh/habitat/pull/7410) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.16 -->
