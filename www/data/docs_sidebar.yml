@@ -205,9 +205,9 @@ sidebar_links:
     - title: Bootstrapping Chef Habitat
       link: "/docs/internals/#bootstrap-internals"
   - title: Habitat Pattern Library
-    link: "/docs/pattern-library/pattern-library"
+    link: "/docs/pattern-library"
     sub_links:
     - title: Kubernetes Bastion Ring Pattern
-      link: "/docs/pattern-library/pattern-library/#kub-bastion"
+      link: "/docs/pattern-library/#kub-bastion"
   - title: Contribute
     link: "/docs/contribute"
