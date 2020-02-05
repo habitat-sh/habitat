@@ -151,7 +151,7 @@ pub enum Error {
     /// Occurs when a `WaitForSingleObject` win32 call returns an error.
     WaitForSingleObjectFailed(String),
     /// Occurs when a `TerminateProcess` win32 call returns an error.
-    TerminateProcessFailed(String),
+    TerminateProcessFailed(u32, io::Error),
     /// Occurs if the host os kernel does not have a supported docker image
     UnsupportedDockerHostKernel(String),
     /// When an error occurs attempting to interpret a sequence of u8 as a string.
@@ -336,7 +336,9 @@ impl fmt::Display for Error {
             Error::GetExitCodeProcessFailed(ref e) => e.to_string(),
             Error::CreateToolhelp32SnapshotFailed(ref e) => e.to_string(),
             Error::WaitForSingleObjectFailed(ref e) => e.to_string(),
-            Error::TerminateProcessFailed(ref e) => e.to_string(),
+            Error::TerminateProcessFailed(ref r, ref e) => {
+                format!("Failed to terminate process: {}, {}", r, e)
+            }
             Error::UnsupportedDockerHostKernel(ref e) => {
                 format!("Unsupported Docker host kernel: {}", e)
             }

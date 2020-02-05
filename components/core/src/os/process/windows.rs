@@ -69,6 +69,15 @@ pub fn is_alive(pid: Pid) -> bool {
     }
 }
 
+pub fn terminate(pid: Pid) -> Result<()> {
+    if let Some(handle) = handle_from_pid(pid) {
+        if unsafe { processthreadsapi::TerminateProcess(handle, 1) } == 0 {
+            return Err(Error::TerminateProcessFailed(pid, io::Error::last_os_error()));
+        }
+    }
+    Ok(())
+}
+
 /// Executes a command as a child process and exits with the child's exit code.
 ///
 /// Note that if successful, this function will not return.
