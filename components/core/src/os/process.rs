@@ -21,6 +21,7 @@ pub use self::windows::{become_command,
                         current_pid,
                         handle_from_pid,
                         is_alive,
+                        terminate,
                         Pid};
 use crate::{error::Error,
             util::serde_string};
