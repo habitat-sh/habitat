@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.21 -->
-## [1.5.21](https://github.com/habitat-sh/habitat/tree/1.5.21) (2020-02-05)
+<!-- latest_release 1.5.22 -->
+## [1.5.22](https://github.com/habitat-sh/habitat/tree/1.5.22) (2020-02-06)
 
 #### Merged Pull Requests
-- Add LCR Button [#7419](https://github.com/habitat-sh/habitat/pull/7419) ([kagarmoe](https://github.com/kagarmoe))
+- Change split to second set so it pulls pkg name [#7425](https://github.com/habitat-sh/habitat/pull/7425) ([TheLunaticScripter](https://github.com/TheLunaticScripter))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.0 -->
@@ -14,6 +14,7 @@
 - hab origin invitations subcommand [#7349](https://github.com/habitat-sh/habitat/pull/7349) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.4 -->
 
 #### Merged Pull Requests
+- Change split to second set so it pulls pkg name [#7425](https://github.com/habitat-sh/habitat/pull/7425) ([TheLunaticScripter](https://github.com/TheLunaticScripter)) <!-- 1.5.22 -->
 - Add LCR Button [#7419](https://github.com/habitat-sh/habitat/pull/7419) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.5.21 -->
 - terminate launcher on hab sup term on windows [#7418](https://github.com/habitat-sh/habitat/pull/7418) ([mwrock](https://github.com/mwrock)) <!-- 1.5.20 -->
 - Convert all reqwest usage to async [#7409](https://github.com/habitat-sh/habitat/pull/7409) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.19 -->
