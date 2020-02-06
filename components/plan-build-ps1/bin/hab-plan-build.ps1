@@ -1692,7 +1692,7 @@ try {
 
     # Load scaffolding packages if they are being used.
     if ($pkg_scaffolding) {
-        $scaff = $pkg_scaffolding.Split("/")[-1]
+        $scaff = $pkg_scaffolding.Split("/")[1]
         $lib="$(Get-HabPackagePath $scaff)/lib/scaffolding.ps1"
         Write-BuildLine "Loading Scaffolding $lib"
         if(!(Test-Path $lib)) {
