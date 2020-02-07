@@ -16,7 +16,7 @@ atty = "*"
 base64 = "*"
 bitflags = "*"
 chrono = {version = "*", features = ["serde"]}
-configopt = {git = "https://github.com/davidMcneil/unified-dynamic-rust-app-config"}
+configopt = { git = "https://github.com/davidMcneil/configopt" }
 dirs = "*"
 env_logger = "*"
 flate2 = "*"
@@ -32,7 +32,6 @@ handlebars = { version = "0.29.1", default-features = false }
 lazy_static = "*"
 libc = "*"
 log = "*"
-partial_derive = {git = "https://github.com/davidMcneil/unified-dynamic-rust-app-config"}
 pbr = "*"
 rants = "*"
 reqwest = { version = "*", features = ["blocking", "json", "stream"] }

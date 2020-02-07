@@ -8,6 +8,7 @@
 include!("generated/sup.types.rs");
 include!("generated/sup.types.impl.rs");
 
+use configopt::ConfigOptToString;
 use std::{fmt,
           str::FromStr};
 
@@ -35,6 +36,8 @@ impl fmt::Display for BindingMode {
         write!(f, "{}", value)
     }
 }
+
+impl ConfigOptToString for BindingMode {}
 
 impl fmt::Display for PackageIdent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -269,6 +272,8 @@ impl fmt::Display for Topology {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
 }
 
+impl ConfigOptToString for Topology {}
+
 impl UpdateStrategy {
     fn as_str(&self) -> &str {
         match *self {
@@ -295,6 +300,8 @@ impl FromStr for UpdateStrategy {
 impl fmt::Display for UpdateStrategy {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
 }
+
+impl ConfigOptToString for UpdateStrategy {}
 
 #[cfg(test)]
 mod test {

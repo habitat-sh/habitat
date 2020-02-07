@@ -4,7 +4,8 @@ use clap::{App,
            AppSettings,
            Arg,
            ArgMatches};
-use configopt;
+use configopt::{ConfigOptDefaults,
+                Partial};
 use habitat_common::{cli::{file_into_idents,
                            is_toml_file,
                            BINLINK_DIR_ENVVAR,
@@ -33,7 +34,6 @@ use habitat_core::{crypto::{keys::PairType,
                              ServiceGroup},
                    ChannelIdent};
 use habitat_sup_protocol;
-use partial_derive::Partial;
 use rants::Address as NatsAddress;
 use std::{env,
           fs,
@@ -47,7 +47,8 @@ use structopt::StructOpt;
 use toml;
 use url::Url;
 
-#[derive(Partial, StructOpt, Deserialize)]
+#[derive(ConfigOptDefaults, Partial, StructOpt, Deserialize)]
+#[configopt_defaults(type = "PartialSubSupRun")]
 #[partial(derive(Debug, Default, Deserialize), attrs(serde))]
 #[serde(deny_unknown_fields)]
 #[structopt(name = "run",
