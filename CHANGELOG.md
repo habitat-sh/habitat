@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.23 -->
-## [1.5.23](https://github.com/habitat-sh/habitat/tree/1.5.23) (2020-02-07)
+<!-- latest_release 1.5.24 -->
+## [1.5.24](https://github.com/habitat-sh/habitat/tree/1.5.24) (2020-02-07)
 
 #### Merged Pull Requests
-- Habitat Pattern Library [#7344](https://github.com/habitat-sh/habitat/pull/7344) ([kagarmoe](https://github.com/kagarmoe))
+- Enable updater threads to work with tokio::time [#7430](https://github.com/habitat-sh/habitat/pull/7430) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.0 -->
@@ -14,6 +14,7 @@
 - hab origin invitations subcommand [#7349](https://github.com/habitat-sh/habitat/pull/7349) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.4 -->
 
 #### Merged Pull Requests
+- Enable updater threads to work with tokio::time [#7430](https://github.com/habitat-sh/habitat/pull/7430) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.24 -->
 - Habitat Pattern Library [#7344](https://github.com/habitat-sh/habitat/pull/7344) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.5.23 -->
 - Change split to second set so it pulls pkg name [#7425](https://github.com/habitat-sh/habitat/pull/7425) ([TheLunaticScripter](https://github.com/TheLunaticScripter)) <!-- 1.5.22 -->
 - Add LCR Button [#7419](https://github.com/habitat-sh/habitat/pull/7419) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.5.21 -->
