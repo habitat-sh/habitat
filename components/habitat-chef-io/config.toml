@@ -1,0 +1,3 @@
+baseURL = "http://docs.chef.io/habitat"
+languageCode = "en-us"
+title = "Chef Habitat Documentation"
