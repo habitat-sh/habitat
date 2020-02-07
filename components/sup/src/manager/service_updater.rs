@@ -4,7 +4,6 @@ use crate::{census::CensusRing,
                                 Topology,
                                 UpdateStrategy}},
             util};
-use futures::executor;
 use habitat_butterfly;
 use habitat_common::{outputln,
                      ui::UI};
@@ -20,6 +19,7 @@ use std::{self,
           time::{Duration,
                  Instant}};
 use tokio::{self,
+            runtime,
             sync::mpsc::{self,
                          error::TryRecvError,
                          UnboundedReceiver as Receiver,
@@ -445,18 +445,30 @@ impl Worker {
                    mut kill_rx: Receiver<()>)
                    -> Receiver<PackageInstall> {
         let (tx, rx) = mpsc::unbounded_channel();
-        // Execute this future on a dedicated thread. Eventually, this should use `tokio::spawn`,
-        // but that will require refactoring to make the future safe to spawn on an executor.
+        // Execute this future on a dedicated thread, and using a
+        // single-threaded runtime. Eventually, this should use `tokio::spawn`,
+        // but that will require refactoring to make the future safe
+        // to spawn on an executor.
+        //
+        // (Note: the `enable_all` is to ensure the Tokio timer is set
+        // up on the runtime, which is needed both here and also in
+        // the async reqwest calls we make from here.)
         thread::Builder::new().name(format!("SU-{}", sg))
                               .spawn(move || {
-                                  executor::block_on(async {
-                                      match ident {
-                                          Some(latest) => {
-                                              self.run_once(&tx, latest, &mut kill_rx).await
-                                          }
-                                          None => self.run_poll(&tx, &mut kill_rx).await,
-                                      };
-                                  })
+                                  let mut rt =
+                                      runtime::Builder::new().basic_scheduler()
+                                                             .enable_all()
+                                                             .build()
+                                                             .expect("Could not spawn runtime \
+                                                                      for updater thread!");
+                                  rt.block_on(async {
+                                        match ident {
+                                            Some(latest) => {
+                                                self.run_once(&tx, latest, &mut kill_rx).await
+                                            }
+                                            None => self.run_poll(&tx, &mut kill_rx).await,
+                                        };
+                                    })
                               })
                               .expect("unable to start service-updater thread");
         rx
