@@ -1314,10 +1314,18 @@ fn config_file_to_defaults(config_file: &str)
 
 pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
     let sub = if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
+        // Construct a `clap::App` from the `structopt` decorated struct.
         let mut sub = SubSupRun::clap();
         if let Ok(config_file) = env::var("HAB_FEAT_CONFIG_FILE") {
+            // If we have a config file try and parse it as a `PartialSubSupRun`. `PartialSubSupRun`
+            // implements `ConfigOptDefaults` which allows it to set the default values of a
+            // `clap::App`.
             match config_file_to_defaults(&config_file) {
-                Ok(defaults) => configopt::set_defaults(&mut sub, &defaults),
+                Ok(defaults) => {
+                    // Set the defaults of the `clap::App` this is how config file values are
+                    // interleaved with CLI specified arguments.
+                    configopt::set_defaults(&mut sub, &defaults)
+                }
                 Err(e) => error!("Failed to parse config file, err: {}", e),
             }
         }
