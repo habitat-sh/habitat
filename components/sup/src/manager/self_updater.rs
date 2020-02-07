@@ -3,7 +3,6 @@
 
 use crate::{env,
             util};
-use futures::executor;
 use habitat_common::{command::package::install::InstallSource,
                      ui::UI};
 use habitat_core::{package::{PackageIdent,
@@ -14,6 +13,7 @@ use std::{thread,
 use time::{Duration as TimeDuration,
            SteadyTime};
 use tokio::{self,
+            runtime,
             sync::oneshot::{self,
                             error::TryRecvError,
                             Receiver,
@@ -49,14 +49,24 @@ impl SelfUpdater {
             update_channel: ChannelIdent)
             -> Receiver<PackageInstall> {
         let (tx, rx) = oneshot::channel();
-        // Execute this future on a dedicated thread. Eventually, this should use `tokio::spawn`,
-        // but that will require refactoring to make the future safe to spawn on an executor.
+        // Execute this future on a dedicated thread, and using a
+        // single-threaded runtime. Eventually, this should use `tokio::spawn`,
+        // but that will require refactoring to make the future safe
+        // to spawn on an executor.
+        //
+        // (Note: the `enable_all` is to ensure the Tokio timer is set
+        // up on the runtime, which is needed both here and also in
+        // the async reqwest calls we make from here.)
         thread::Builder::new().name("self-updater".to_string())
                               .spawn(move || {
-                                  executor::block_on(Self::run(tx,
-                                                               &current,
-                                                               &update_url,
-                                                               &update_channel))
+                                  let mut rt =
+                                      runtime::Builder::new().basic_scheduler()
+                                                             .enable_all()
+                                                             .build()
+                                                             .expect("Could not spawn runtime \
+                                                                      for self-updater thread!");
+
+                                  rt.block_on(Self::run(tx, &current, &update_url, &update_channel))
                               })
                               .expect("Unable to start self-updater thread");
         rx
