@@ -574,7 +574,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "configopt"
 version = "0.1.0"
-source = "git+https://github.com/davidMcneil/configopt#ca79cb62126a2f77659b1a692f6d7823eec95789"
+source = "git+https://github.com/davidMcneil/configopt#c94955adcb809cf13c2c831eee797ee8a0c9abce"
 dependencies = [
  "colosseum 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "configopt-derive 0.1.0 (git+https://github.com/davidMcneil/configopt)",
@@ -587,7 +587,7 @@ dependencies = [
 [[package]]
 name = "configopt-derive"
 version = "0.1.0"
-source = "git+https://github.com/davidMcneil/configopt#ca79cb62126a2f77659b1a692f6d7823eec95789"
+source = "git+https://github.com/davidMcneil/configopt#c94955adcb809cf13c2c831eee797ee8a0c9abce"
 dependencies = [
  "Inflector 0.11.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "proc-macro2 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2461,7 +2461,7 @@ dependencies = [
 [[package]]
 name = "partial-derive"
 version = "0.1.0"
-source = "git+https://github.com/davidMcneil/configopt#ca79cb62126a2f77659b1a692f6d7823eec95789"
+source = "git+https://github.com/davidMcneil/configopt#c94955adcb809cf13c2c831eee797ee8a0c9abce"
 dependencies = [
  "proc-macro2 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "proc_macro_roids 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
