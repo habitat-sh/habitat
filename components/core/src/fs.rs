@@ -723,10 +723,9 @@ impl AtomicWriter {
         debug!("Renaming {} to {}",
                self.tempfile.path().to_string_lossy(),
                &self.dest.to_string_lossy());
-        fs::rename(self.tempfile.path(), &self.dest)?;
-
+        fs::rename(self.tempfile.into_temp_path(), &self.dest)?;
         #[cfg(unix)]
-        self.sync_parent()?;
+        AtomicWriter::sync_parent(&self.dest)?;
 
         Ok(())
     }
@@ -737,8 +736,8 @@ impl AtomicWriter {
     /// ensures the durability of AtomicWriter but is not required for
     /// the atomocity guarantee.
     #[cfg(unix)]
-    fn sync_parent(&self) -> io::Result<()> {
-        let parent = parent(&self.dest)?;
+    fn sync_parent(dest: &PathBuf) -> io::Result<()> {
+        let parent = parent(dest)?;
         let f = fs::File::open(parent)?;
         if let Err(e) = f.sync_all() {
             // sync_all() calls libc::fsync() which will return EINVAL
