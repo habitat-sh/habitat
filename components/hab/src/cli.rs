@@ -1,4 +1,8 @@
-use crate::command::studio;
+mod structs;
+
+use crate::{cli::structs::{PartialSubSupRun,
+                           SubSupRun},
+            command::studio};
 
 use clap::{App,
            AppSettings,
@@ -33,11 +37,15 @@ use habitat_core::{crypto::{keys::PairType,
                    ChannelIdent};
 use habitat_sup_protocol;
 use rants::Address as NatsAddress;
-use std::{net::{Ipv4Addr,
+use std::{env,
+          fs,
+          net::{Ipv4Addr,
                 SocketAddr},
           path::Path,
           result,
           str::FromStr};
+use structopt::StructOpt;
+use toml;
 use url::Url;
 
 pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
@@ -1120,7 +1128,32 @@ pub fn sub_sup_bash() -> App<'static, 'static> {
     )
 }
 
-pub fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
+fn config_file_to_defaults(config_file: &str)
+                           -> Result<PartialSubSupRun, Box<dyn std::error::Error>> {
+    let contents = fs::read_to_string(config_file)?;
+    Ok(toml::from_str(&contents)?)
+}
+
+pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
+    if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
+        // Construct a `clap::App` from the `structopt` decorated struct.
+        let mut sub = SubSupRun::clap();
+        if let Ok(config_file) = env::var("HAB_FEAT_CONFIG_FILE") {
+            // If we have a config file try and parse it as a `PartialSubSupRun`. `PartialSubSupRun`
+            // implements `ConfigOptDefaults` which allows it to set the default values of a
+            // `clap::App`.
+            match config_file_to_defaults(&config_file) {
+                Ok(defaults) => {
+                    // Set the defaults of the `clap::App` this is how config file values are
+                    // interleaved with CLI specified arguments.
+                    configopt::set_defaults(&mut sub, &defaults)
+                }
+                Err(e) => error!("Failed to parse config file, err: {}", e),
+            }
+        }
+        let sub = add_event_stream_options(sub);
+        return add_shutdown_timeout_option(sub);
+    }
     let sub = clap_app!(@subcommand run =>
                             (about: "Run the Habitat Supervisor")
                             // set custom usage string, otherwise the binary
@@ -1128,18 +1161,18 @@ pub fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                             // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
                             (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
                             (@arg LISTEN_GOSSIP: --("listen-gossip") env(GossipListenAddr::ENVVAR) default_value(GossipListenAddr::default_as_str()) {valid_socket_addr}
-                             "The listen address for the Gossip System Gateway.")
+                             "The listen address for the Gossip System Gateway")
                             (@arg LOCAL_GOSSIP_MODE: --("local-gossip-mode") conflicts_with("LISTEN_GOSSIP") conflicts_with("PEER") conflicts_with("PEER_WATCH_FILE")
-                             "Start the supervisor in local mode.")
+                             "Start the supervisor in local mode")
                             (@arg LISTEN_HTTP: --("listen-http") env(HttpListenAddr::ENVVAR) default_value(HttpListenAddr::default_as_str()) {valid_socket_addr}
-                             "The listen address for the HTTP Gateway.")
+                             "The listen address for the HTTP Gateway")
                             (@arg HTTP_DISABLE: --("http-disable") -D
-                             "Disable the HTTP Gateway completely [default: false]")
+                             "Disable the HTTP Gateway completely")
                             (@arg LISTEN_CTL: --("listen-ctl") env(ListenCtlAddr::ENVVAR) default_value(ListenCtlAddr::default_as_str()) {valid_socket_addr}
                              "The listen address for the Control Gateway. If not specified, the value will \
-                              be taken from the HAB_LISTEN_CTL environment variable if defined. [default: 127.0.0.1:9632]")
+                              be taken from the HAB_LISTEN_CTL environment variable if defined")
                             (@arg ORGANIZATION: --org +takes_value
-                             "The organization that the Supervisor and its subsequent services are part of.")
+                             "The organization that the Supervisor and its subsequent services are part of")
                             (@arg PEER: --peer +takes_value +multiple
                              "The listen address of one or more initial peers (IP[:PORT])")
                             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
@@ -1148,7 +1181,7 @@ pub fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                             )
                             (arg: arg_cache_key_path("Path to search for encryption keys. \
                                                       Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                                                      directory otherwise."))
+                                                      directory otherwise"))
                             (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY") {non_empty}
                              "The name of the ring used by the Supervisor when running with wire encryption. \
                               (ex: hab sup run --ring myring)")
@@ -1163,7 +1196,7 @@ pub fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                              "Receive Supervisor updates from the specified release channel")
                             (@arg BLDR_URL: -u --url +takes_value {valid_url}
                              "Specify an alternate Builder endpoint. If not specified, the value will \
-                              be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                              be taken from the HAB_BLDR_URL environment variable if defined (default: \
                               https://bldr.habitat.sh)")
 
                             (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
@@ -1172,25 +1205,25 @@ pub fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                                                                      itself")
                             (@arg KEY_FILE: --key +takes_value {file_exists} requires[CERT_FILE]
                              "Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. \
-                              This should be a RSA private key or PKCS8-encoded private key, in PEM format.")
+                              This should be a RSA private key or PKCS8-encoded private key, in PEM format")
                             (@arg CERT_FILE: --certs +takes_value {file_exists} requires[KEY_FILE]
                              "Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. \
                               This should contain PEM-format certificates in the right order (the first certificate \
-                              should certify KEY_FILE, the last should be a root CA).")
+                              should certify KEY_FILE, the last should be a root CA)")
                             (@arg CA_CERT_FILE: --("ca-certs") +takes_value {file_exists} requires[CERT_FILE] requires[KEY_FILE]
                              "Used for enabling client-authentication with TLS for the HTTP gateway. Read CA certificate from CA_CERT_FILE. \
-                              This should contain PEM-format certificate that can be used to validate client requests.")
+                              This should contain PEM-format certificate that can be used to validate client requests")
                             // === Optional arguments to additionally load an initial service for the Supervisor
                             (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
                                                                        the Supervisor startup specified by a package identifier \
                                                                        (ex: core/redis) or filepath to a Habitat Artifact \
-                                                                       (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).")
+                                                                       (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
                             // TODO (DM): These flags can eventually be removed.
                             // See https://github.com/habitat-sh/habitat/issues/7339
                             (@arg APPLICATION: --application -a +hidden +multiple "DEPRECATED")
                             (@arg ENVIRONMENT: --environment -e +hidden +multiple "DEPRECATED")
                             (@arg GROUP: --group +takes_value
-                             "The service group; shared config and topology [default: default].")
+                             "The service group; shared config and topology [default: default]")
                             (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
                              "Service topology; [default: none]")
                             (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
@@ -1210,7 +1243,7 @@ pub fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                              "The IPv4 address to use as the `sys.ip` template variable. If this \
                              argument is not set, the supervisor tries to dynamically determine \
                              an IP address. If that fails, the supervisor defaults to using \
-                             `127.0.0.1`.")
+                             `127.0.0.1`")
     );
 
     let sub = add_event_stream_options(sub);
@@ -1637,7 +1670,30 @@ mod tests {
 
     fn no_feature_flags() -> FeatureFlag { FeatureFlag::empty() }
 
+    fn config_file_enabled() -> FeatureFlag {
+        let mut f = FeatureFlag::empty();
+        f.insert(FeatureFlag::CONFIG_FILE);
+        f
+    }
+
     use super::*;
+    use std::str;
+
+    #[test]
+    fn sub_sup_run_help() {
+        let mut sub_help = Vec::new();
+        let sub = sub_sup_run(no_feature_flags());
+        sub.write_help(&mut sub_help).unwrap();
+        let sub_help = str::from_utf8(&sub_help).unwrap();
+
+        let mut sub_with_feature_flag_help = Vec::new();
+        let sub_with_feature_flag = sub_sup_run(config_file_enabled());
+        sub_with_feature_flag.write_help(&mut sub_with_feature_flag_help)
+                             .unwrap();
+        let sub_with_feature_flag_help = str::from_utf8(&sub_with_feature_flag_help).unwrap();
+
+        assert_eq!(sub_help, sub_with_feature_flag_help);
+    }
 
     #[test]
     fn legacy_appliction_and_environment_args() {

@@ -16,6 +16,7 @@ atty = "*"
 base64 = "*"
 bitflags = "*"
 chrono = {version = "*", features = ["serde"]}
+configopt = { git = "https://github.com/davidMcneil/configopt" }
 dirs = "*"
 env_logger = "*"
 flate2 = "*"
@@ -40,12 +41,13 @@ serde = "*"
 serde_derive = "*"
 serde_json = "*"
 serde_yaml = "*"
+structopt = "*"
 tabwriter = "*"
 tar = "*"
 termcolor = "*"
 tokio = { version = "*", features = ["full"] }
 toml = { version = "*", default-features = false }
-url = "*"
+url = { version = "*", features = ["serde"] }
 walkdir = "*"
 
 [dependencies.clap]
