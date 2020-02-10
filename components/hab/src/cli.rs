@@ -1,6 +1,7 @@
 mod structs;
 
-use crate::{cli::structs::{PartialSubSupRun,
+use crate::{cli::structs::{Hab,
+                           PartialSubSupRun,
                            SubSupRun},
             command::studio};
 
@@ -49,6 +50,10 @@ use toml;
 use url::Url;
 
 pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
+    if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
+        return Hab::clap();
+    }
+
     let alias_apply = sub_config_apply().about("Alias for 'config apply'")
                                         .aliases(&["ap", "app", "appl"])
                                         .setting(AppSettings::Hidden);
@@ -69,9 +74,9 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
     clap_app!(hab =>
         (about: "\"A Habitat is the natural environment for your services\" - Alan Turing")
         (version: super::VERSION)
-        (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
+        (author: "\nThe Habitat Maintainers <humans@habitat.sh>\n")
         (@setting GlobalVersion)
-        (@setting ArgRequiredElseHelp)
+        (@setting SubcommandRequiredElseHelp)
         (@subcommand license =>
             (about: "Commands relating to Habitat license agreements")
             (@setting ArgRequiredElseHelp)
@@ -774,7 +779,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             )
         )
         (@subcommand plan =>
-            (about: "Commands relating to plans and other app-specific configuration.")
+            (about: "Commands relating to plans and other app-specific configuration")
             (aliases: &["pl", "pla"])
             (@setting ArgRequiredElseHelp)
             (@subcommand init =>
@@ -943,7 +948,7 @@ pub fn sup_commands(feature_flags: FeatureFlag) -> App<'static, 'static> {
     clap_app!(("sup") =>
     (about: "The Habitat Supervisor")
     (version: super::VERSION)
-    (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
+    (author: "\nThe Habitat Maintainers <humans@habitat.sh>\n")
     // set custom usage string, otherwise the binary
     // is displayed as the clap_app name, which may or may not be different.
     // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
