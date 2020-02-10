@@ -72,4 +72,60 @@ fn hab_help() {
     let help2 = help(hab_cli_setup2);
     assert_eq!(help1, help2);
     assert_eq!(help1, help2);
+
+    // hab bldr
+    let hab_bldr1 = sub(&hab1, "bldr");
+    let hab_bldr2 = sub(&hab2, "bldr");
+    let help1 = help(hab_bldr1);
+    let help2 = help(hab_bldr2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab bldr channel
+    let hab_bldr_channel1 = sub(&hab_bldr1, "channel");
+    let hab_bldr_channel2 = sub(&hab_bldr2, "channel");
+    let help1 = help(hab_bldr_channel1);
+    let help2 = help(hab_bldr_channel2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab bldr create
+    let hab_bldr_channel_create1 = sub(&hab_bldr_channel1, "create");
+    let hab_bldr_channel_create2 = sub(&hab_bldr_channel2, "create");
+    let help1 = help(hab_bldr_channel_create1);
+    let help2 = help(hab_bldr_channel_create2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab bldr demote
+    let hab_bldr_channel_demote1 = sub(&hab_bldr_channel1, "demote");
+    let hab_bldr_channel_demote2 = sub(&hab_bldr_channel2, "demote");
+    let help1 = help(hab_bldr_channel_demote1);
+    let help2 = help(hab_bldr_channel_demote2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab bldr destroy
+    let hab_bldr_channel_destroy1 = sub(&hab_bldr_channel1, "destroy");
+    let hab_bldr_channel_destroy2 = sub(&hab_bldr_channel2, "destroy");
+    let help1 = help(hab_bldr_channel_destroy1);
+    let help2 = help(hab_bldr_channel_destroy2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab bldr list
+    let hab_bldr_channel_list1 = sub(&hab_bldr_channel1, "list");
+    let hab_bldr_channel_list2 = sub(&hab_bldr_channel2, "list");
+    let help1 = help(hab_bldr_channel_list1);
+    let help2 = help(hab_bldr_channel_list2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab bldr promote
+    let hab_bldr_channel_promote1 = sub(&hab_bldr_channel1, "promote");
+    let hab_bldr_channel_promote2 = sub(&hab_bldr_channel2, "promote");
+    let help1 = help(hab_bldr_channel_promote1);
+    let help2 = help(hab_bldr_channel_promote2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
 }

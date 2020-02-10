@@ -125,7 +125,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         (@subcommand bldr =>
             (about: "Commands relating to Habitat Builder")
             (aliases: &["b", "bl", "bld"])
-            (@setting ArgRequiredElseHelp)
+            (@setting SubcommandRequiredElseHelp)
             (@subcommand job =>
                 (about: "Commands relating to Habitat Builder jobs")
                 (aliases: &["j", "jo"])
@@ -218,7 +218,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (@subcommand channel =>
                 (about: "Commands relating to Habitat Builder channels")
                 (aliases: &["c", "ch", "cha", "chan", "chann", "channe"])
-                (@setting ArgRequiredElseHelp)
+                (@setting SubcommandRequiredElseHelp)
                 (@subcommand promote =>
                     (about: "Atomically promotes all packages in channel")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
@@ -272,7 +272,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                          https://bldr.habitat.sh)")
                     (@arg CHANNEL: +required + takes_value "The channel name")
                     (@arg ORIGIN: -o --origin +takes_value {valid_origin}
-                        "Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN'\
+                        "Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN' \
                         or cli.toml")
                 )
                 (@subcommand list =>
@@ -283,7 +283,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                          https://bldr.habitat.sh)")
                     (@arg ORIGIN: +takes_value {valid_origin}
-                        "The origin for which channels will be listed. Default is from 'HAB_ORIGIN'\
+                        "The origin for which channels will be listed. Default is from 'HAB_ORIGIN' \
                         or cli.toml")
                 )
             )

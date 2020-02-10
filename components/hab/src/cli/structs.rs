@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod tests;
 
-use crate::VERSION;
+use crate::{cli::valid_origin,
+            VERSION};
 use clap::AppSettings;
 use configopt::{ConfigOptDefaults,
                 Partial};
@@ -28,8 +29,8 @@ use url::Url;
             global_settings = &[AppSettings::GlobalVersion],
         )]
 pub enum Hab {
-    /// Commands relating to Habitat Builder
-    Bldr,
+    #[structopt(no_version)]
+    Bldr(Bldr),
     #[structopt(no_version)]
     Cli(Cli),
     /// Commands relating to a Service's runtime config
@@ -56,6 +57,110 @@ pub enum Hab {
     Svc,
     /// Commands relating to Habitat users
     User,
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version)]
+/// Commands relating to Habitat Builder
+pub enum Bldr {
+    #[structopt(no_version)]
+    Channel(Channel),
+    /// Commands relating to Habitat Builder jobs
+    #[structopt(no_version)]
+    Job,
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version)]
+/// Commands relating to Habitat Builder channels
+pub enum Channel {
+    /// Creates a new channel
+    Create {
+        /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
+        /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+        #[structopt(name = "BLDR_URL", short = "u", long = "url")]
+        bldr_url: Option<Url>,
+        /// The channel name
+        #[structopt(name = "CHANNEL")]
+        channel:  String,
+        /// Sets the origin to which the channel will belong. Default is from 'HAB_ORIGIN' or
+        /// cli.toml
+        #[structopt(name = "ORIGIN",
+                    short = "o",
+                    long = "origin",
+                    validator = valid_origin)]
+        origin:   Option<String>,
+    },
+    /// Atomically demotes selected packages in a target channel
+    Demote {
+        /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
+        /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+        #[structopt(name = "BLDR_URL", short = "u", long = "url")]
+        bldr_url:       Option<Url>,
+        /// The origin for the channels. Default is from 'HAB_ORIGIN' or cli.toml
+        #[structopt(name = "ORIGIN",
+                    short = "o",
+                    long = "origin",
+                    validator = valid_origin)]
+        origin:         String,
+        /// The channel from which all packages will be selected for demotion
+        #[structopt(name = "SOURCE_CHANNEL")]
+        source_channel: String,
+        /// The channel selected packages will be removed from
+        #[structopt(name = "TARGET_CHANNEL")]
+        target_channel: String,
+        /// Authentication token for Builder
+        #[structopt(name = "AUTH_TOKEN", short = "z", long = "auth")]
+        auth_token:     Option<String>,
+    },
+    /// Destroys a channel
+    Destroy {
+        /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
+        ///  the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+        #[structopt(name = "BLDR_URL", short = "u", long = "url")]
+        bldr_url: Option<Url>,
+        /// The channel name
+        #[structopt(name = "CHANNEL")]
+        channel:  String,
+        /// Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN' or cli.toml
+        #[structopt(name = "ORIGIN",
+            short = "o",
+            long = "origin",
+            validator = valid_origin)]
+        origin:   Option<String>,
+    },
+    /// Lists origin channels
+    List {
+        /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
+        /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+        #[structopt(name = "BLDR_URL", short = "u", long = "url")]
+        bldr_url: Option<Url>,
+        /// The origin for which channels will be listed. Default is from 'HAB_ORIGIN' or cli.toml
+        #[structopt(name = "ORIGIN", validator = valid_origin)]
+        origin:   Option<String>,
+    },
+    /// Atomically promotes all packages in channel
+    Promote {
+        /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
+        /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+        #[structopt(name = "BLDR_URL", short = "u", long = "url")]
+        bldr_url:       Option<Url>,
+        /// The origin for the channels. Default is from 'HAB_ORIGIN' or cli.toml
+        #[structopt(name = "ORIGIN",
+                    short = "o",
+                    long = "origin",
+                    validator = valid_origin)]
+        origin:         String,
+        /// The channel from which all packages will be selected for promotion
+        #[structopt(name = "SOURCE_CHANNEL")]
+        source_channel: String,
+        /// The channel to which packages will be promoted
+        #[structopt(name = "TARGET_CHANNEL")]
+        target_channel: String,
+        /// Authentication token for Builder
+        #[structopt(name = "AUTH_TOKEN", short = "z", long = "auth")]
+        auth_token:     Option<String>,
+    },
 }
 
 arg_enum! {
