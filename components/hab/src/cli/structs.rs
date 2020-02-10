@@ -26,15 +26,6 @@ use url::Url;
             about = "\"A Habitat is the natural environment for your services\" - Alan Turing",
             author = "\nThe Habitat Maintainers <humans@habitat.sh>\n",
             global_settings = &[AppSettings::GlobalVersion],
-            after_help = "\nALIASES:\
-            \n    apply      Alias for: 'config apply'\
-            \n    install    Alias for: 'pkg install'\
-            \n    run        Alias for: 'sup run'\
-            \n    setup      Alias for: 'cli setup'\
-            \n    start      Alias for: 'svc start'\
-            \n    stop       Alias for: 'svc stop'\
-            \n    term       Alias for: 'sup term'\
-            \n"
         )]
 pub enum Hab {
     /// Commands relating to Habitat Builder

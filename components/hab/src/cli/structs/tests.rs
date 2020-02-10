@@ -27,8 +27,8 @@ fn sub<'a>(app: &'a App, name: &str) -> &'a App<'a, 'a> {
 #[test]
 fn hab_help() {
     // hab
-    let hab1 = cli::get(no_feature_flags());
-    let hab2 = cli::get(config_file_enabled());
+    let hab1 = cli::get(no_feature_flags()).after_help("");
+    let hab2 = cli::get(config_file_enabled()).after_help("");
     let help1 = help(&hab1);
     let help2 = help(&hab2);
     assert_eq!(help1, help2);
