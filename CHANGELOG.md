@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.24 -->
-## [1.5.24](https://github.com/habitat-sh/habitat/tree/1.5.24) (2020-02-07)
+<!-- latest_release 1.5.25 -->
+## [1.5.25](https://github.com/habitat-sh/habitat/tree/1.5.25) (2020-02-10)
 
-#### Merged Pull Requests
-- Enable updater threads to work with tokio::time [#7430](https://github.com/habitat-sh/habitat/pull/7430) ([christophermaier](https://github.com/christophermaier))
+#### New Features & Enhancements
+- Experimental config file support behind `HAB_FEAT_CONFIG_FILE` feature flag [#7360](https://github.com/habitat-sh/habitat/pull/7360) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.0 -->
 ### Changes since 1.5.0 release
 
 #### New Features & Enhancements
+- Experimental config file support behind `HAB_FEAT_CONFIG_FILE` feature flag [#7360](https://github.com/habitat-sh/habitat/pull/7360) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.25 -->
 - hab origin invitations subcommand [#7349](https://github.com/habitat-sh/habitat/pull/7349) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.4 -->
 
 #### Merged Pull Requests
