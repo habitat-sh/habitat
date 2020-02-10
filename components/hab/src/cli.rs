@@ -86,7 +86,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         (@subcommand cli =>
             (about: "Commands relating to Habitat runtime config")
             (aliases: &["cl"])
-            (@setting ArgRequiredElseHelp)
+            (@setting SubcommandRequiredElseHelp)
             (subcommand: sub_cli_setup().aliases(&["s", "se", "set", "setu"]))
             (subcommand: sub_cli_completers().aliases(&["c", "co", "com", "comp"]))
         )
@@ -119,9 +119,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg USER: -u --user +takes_value "Name of the user key")
                 (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
                     "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
-                (arg: arg_cache_key_path("Path to search for encryption keys. \
-                    Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                    directory otherwise."))
+                (arg: arg_cache_key_path())
             )
         )
         (@subcommand bldr =>
@@ -411,9 +409,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@subcommand download =>
                     (about: "Download origin key(s)")
                     (aliases: &["d", "do", "dow", "down", "downl", "downlo", "downloa"])
-                    (arg: arg_cache_key_path("Path to download origin keys to. \
-                        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                        directory otherwise."))
+                    (arg: arg_cache_key_path())
                     (@arg ORIGIN: +required {valid_origin} "The origin name" )
                     (@arg REVISION: "The origin key revision")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
@@ -433,26 +429,20 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (@arg ORIGIN: +required +takes_value {valid_origin})
                     (@arg PAIR_TYPE: -t --type +takes_value {valid_pair_type}
                         "Export either the 'public' or 'secret' key. The 'secret' key is the origin private key")
-                    (arg: arg_cache_key_path("Path to export origin keys from. \
-                        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                        directory otherwise."))
+                    (arg: arg_cache_key_path())
                 )
                 (@subcommand generate =>
                     (about: "Generates a Habitat origin key pair")
                     (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
                     (@arg ORIGIN: {valid_origin} "The origin name")
-                    (arg: arg_cache_key_path("Path to store generated keys. \
-                        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                        directory otherwise."))
+                    (arg: arg_cache_key_path())
 
                 )
                 (@subcommand import =>
                     (about: "Reads a stdin stream containing a public or private origin key \
                         contents and writes the key to disk")
                     (aliases: &["i", "im", "imp", "impo", "impor"])
-                    (arg: arg_cache_key_path("Path to import origin keys to. \
-                        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                        directory otherwise."))
+                    (arg: arg_cache_key_path())
                 )
                 (@subcommand upload =>
                     (@group upload =>
@@ -463,9 +453,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     )
                     (about: "Upload origin keys to Builder")
                     (aliases: &["u", "up", "upl", "uplo", "uploa"])
-                    (arg: arg_cache_key_path("Path to upload origin keys from. \
-                        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                        directory otherwise."))
+                    (arg: arg_cache_key_path())
                     (@arg WITH_SECRET: -s --secret conflicts_with[PUBLIC_FILE]
                         "Upload origin private key in addition to the public key")
                     (@arg SECRET_FILE: --secfile +takes_value {file_exists} conflicts_with[ORIGIN]
@@ -495,9 +483,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (@arg ORIGIN: -o --origin +takes_value {valid_origin}
                         "The origin for which the secret will be uploaded. Default is from \
                         'HAB_ORIGIN' or cli.toml")
-                    (arg: arg_cache_key_path("Path to public encryption key. \
-                        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                        directory otherwise."))
+                    (arg: arg_cache_key_path())
                 )
                 (@subcommand delete =>
                     (about: "Delete a secret for your origin")
@@ -640,9 +626,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg DEST: +required
                     "The destination path to the signed Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-                (arg: arg_cache_key_path("Path to search for origin keys. \
-                    Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                    directory otherwise."))
+                (arg: arg_cache_key_path())
             )
             (@subcommand uninstall =>
                 (about: "Safely uninstall a package and dependencies from the local filesystem")
@@ -695,9 +679,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg HART_FILE: +required +multiple {file_exists}
                     "One or more filepaths to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-                (arg: arg_cache_key_path("Path to search for public origin keys to upload. \
-                    Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                    directory otherwise."))
+                (arg: arg_cache_key_path())
             )
             (@subcommand delete =>
                 (about: "Removes a package from Builder")
@@ -750,9 +732,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (aliases: &["v", "ve", "ver", "veri", "verif"])
                 (@arg SOURCE: +required {file_exists} "A path to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-                (arg: arg_cache_key_path("Path to search for public origin keys for verification. \
-                    Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                    directory otherwise."))
+                (arg: arg_cache_key_path())
             )
             (@subcommand header =>
                 (about: "Returns the Habitat Artifact header")
@@ -821,25 +801,19 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (about: "Outputs the latest ring key contents to stdout")
                     (aliases: &["e", "ex", "exp", "expo", "expor"])
                     (@arg RING: +required +takes_value "Ring key name")
-                    (arg: arg_cache_key_path("Path to search for keys. \
-                        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                        directory otherwise."))
+                    (arg: arg_cache_key_path())
                 )
                 (@subcommand import =>
                     (about: "Reads a stdin stream containing ring key contents and writes \
                     the key to disk")
                     (aliases: &["i", "im", "imp", "impo", "impor"])
-                    (arg: arg_cache_key_path("Path to store imported keys. \
-                        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                        directory otherwise."))
+                    (arg: arg_cache_key_path())
                 )
                 (@subcommand generate =>
                     (about: "Generates a Habitat ring key")
                     (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
                     (@arg RING: +required +takes_value "Ring key name")
-                    (arg: arg_cache_key_path("Path to store generated keys. \
-                        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                        directory otherwise."))
+                    (arg: arg_cache_key_path())
                 )
             )
         )
@@ -858,9 +832,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
                         "Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)")
                     (@arg ORG: "The service organization")
-                    (arg: arg_cache_key_path("Path to store generated keys. \
-                        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                        directory otherwise."))
+                    (arg: arg_cache_key_path())
                 )
             )
             (subcommand: sub_svc_load().aliases(&["l", "lo", "loa"]))
@@ -889,9 +861,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (about: "Generates a Habitat user key")
                     (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
                     (@arg USER: +required +takes_value "Name of the user key")
-                    (arg: arg_cache_key_path("Path to store generated keys. \
-                        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                        directory otherwise."))
+                    (arg: arg_cache_key_path())
                 )
             )
         )
@@ -931,10 +901,8 @@ fn alias_term() -> App<'static, 'static> {
 
 fn sub_cli_setup() -> App<'static, 'static> {
     clap_app!(@subcommand setup =>
-    (about: "Sets up the CLI with reasonable defaults.")
-    (arg: arg_cache_key_path("Path to search for or create keys in. \
-        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-        directory otherwise."))
+    (about: "Sets up the CLI with reasonable defaults")
+    (arg: arg_cache_key_path())
     )
 }
 
@@ -967,17 +935,16 @@ pub fn sup_commands(feature_flags: FeatureFlag) -> App<'static, 'static> {
 
 fn sub_cli_completers() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand completers =>
-        (about: "Creates command-line completers for your shell."));
+        (about: "Creates command-line completers for your shell"));
 
-    let supported_shells = ["bash", "fish", "zsh", "powershell"];
+    let supported_shells = ["Bash", "Fish", "Zsh", "PowerShell"];
 
     // The clap_app! macro above is great but does not support the ability to specify a range of
     // possible values. We wanted to fail here with an unsupported shell instead of pushing off a
     // bad value to clap.
 
     sub.arg(Arg::with_name("SHELL").help("The name of the shell you want to generate the \
-                                          command-completion. Supported Shells: bash, fish, zsh, \
-                                          powershell")
+                                          command-completion")
                                    .short("s")
                                    .long("shell")
                                    .required(true)
@@ -988,14 +955,16 @@ fn sub_cli_completers() -> App<'static, 'static> {
 // We need a default_value so that the argument can be required and validated. We hide the
 // default because it's a special value that will be internally mapped according to the
 // user type. This is to allow us to apply consistent validation to the env var override.
-fn arg_cache_key_path(help_text: &'static str) -> Arg<'static, 'static> {
+fn arg_cache_key_path() -> Arg<'static, 'static> {
     Arg::with_name("CACHE_KEY_PATH").long("cache-key-path")
                                     .required(true)
                                     .validator(non_empty)
                                     .env(CACHE_KEY_PATH_ENV_VAR)
                                     .default_value(CACHE_KEY_PATH)
                                     .hide_default_value(true)
-                                    .help(&help_text)
+                                    .help("Cache for creating and searching encryption keys. \
+                                           Default value is hab/cache/keys if root and \
+                                           .hab/cache/keys under the home directory otherwise")
 }
 
 fn arg_target() -> Arg<'static, 'static> {
@@ -1018,9 +987,7 @@ fn sub_pkg_build() -> App<'static, 'static> {
     (@arg PLAN_CONTEXT: +required +takes_value
         "A directory containing a plan file \
         or a `habitat/` directory which contains the plan file")
-    (arg: arg_cache_key_path("Path to search for origin keys. \
-        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-        directory otherwise."))
+    (arg: arg_cache_key_path())
     );
     // Only a truly native/local Studio can be reused--the Docker implementation will always be
     // ephemeral
@@ -1105,9 +1072,7 @@ fn sub_config_apply() -> App<'static, 'static> {
     (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
     (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
         "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
-    (arg: arg_cache_key_path("Path to search for encryption keys. \
-        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-        directory otherwise."))
+    (arg: arg_cache_key_path())
     )
 }
 
@@ -1195,9 +1160,7 @@ pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
                             (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with("PEER")
                              "Watch this file for connecting to the ring"
                             )
-                            (arg: arg_cache_key_path("Path to search for encryption keys. \
-                                                      Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                                                      directory otherwise"))
+                            (arg: arg_cache_key_path())
                             (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY") {non_empty}
                              "The name of the ring used by the Supervisor when running with wire encryption. \
                               (ex: hab sup run --ring myring)")

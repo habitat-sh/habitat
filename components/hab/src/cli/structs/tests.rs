@@ -48,4 +48,28 @@ fn hab_help() {
     let help2 = help(hab_license_accept2);
     assert_eq!(help1, help2);
     assert_eq!(help1, help2);
+
+    // hab cli
+    let hab_cli1 = sub(&hab1, "cli");
+    let hab_cli2 = sub(&hab2, "cli");
+    let help1 = help(hab_cli1);
+    let help2 = help(hab_cli2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab cli completers
+    let hab_cli_completers1 = sub(&hab_cli1, "completers");
+    let hab_cli_completers2 = sub(&hab_cli2, "completers");
+    let help1 = help(hab_cli_completers1);
+    let help2 = help(hab_cli_completers2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab cli setup
+    let hab_cli_setup1 = sub(&hab_cli1, "setup");
+    let hab_cli_setup2 = sub(&hab_cli2, "setup");
+    let help1 = help(hab_cli_setup1);
+    let help2 = help(hab_cli_setup2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
 }

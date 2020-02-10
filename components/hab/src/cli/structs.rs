@@ -30,8 +30,8 @@ use url::Url;
 pub enum Hab {
     /// Commands relating to Habitat Builder
     Bldr,
-    /// Commands relating to Habitat runtime config
-    Cli,
+    #[structopt(no_version)]
+    Cli(Cli),
     /// Commands relating to a Service's runtime config
     Config,
     /// Commands relating to Habitat files
@@ -56,6 +56,53 @@ pub enum Hab {
     Svc,
     /// Commands relating to Habitat users
     User,
+}
+
+arg_enum! {
+    pub enum Shell {
+        Bash,
+        Fish,
+        Zsh,
+        PowerShell,
+    }
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version)]
+/// Commands relating to Habitat runtime config
+pub enum Cli {
+    /// Sets up the CLI with reasonable defaults
+    #[structopt(no_version)]
+    Setup(CacheKeyPath),
+    /// Creates command-line completers for your shell
+    #[structopt(no_version)]
+    Completers {
+        /// The name of the shell you want to generate the command-completion
+        #[structopt(name = "SHELL",
+                    short = "s",
+                    long = "shell",
+                    possible_values = &Shell::variants(),
+                    case_insensitive = true)]
+        shell: Shell,
+    },
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version)]
+#[allow(dead_code)]
+pub struct CacheKeyPath {
+    /// Cache for creating and searching encryption keys. Default value is hab/cache/keys if root
+    /// and .hab/cache/keys under the home directory otherwise.
+    #[structopt(name = "CACHE_KEY_PATH",
+                long = "cache-key-path",
+                env = CACHE_KEY_PATH_ENV_VAR,
+                required = true,
+                // TODO (DM): This default value needs to be set dynamically based on user. We should set it
+                // here instead of looking up the correct value later on. I dont understand why this value
+                // has to be required.
+                default_value = CACHE_KEY_PATH,
+                hide_default_value = true)]
+    cache_key_path: PathBuf,
 }
 
 #[derive(StructOpt)]
