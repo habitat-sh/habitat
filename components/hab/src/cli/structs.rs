@@ -45,8 +45,8 @@ pub enum Hab {
     Config,
     /// Commands relating to Habitat files
     File,
-    /// Commands relating to Habitat license agreements
-    License,
+    #[structopt(no_version)]
+    License(License),
     /// Commands relating to Habitat Builder origins
     Origin,
     /// Commands relating to Habitat packages
@@ -65,6 +65,14 @@ pub enum Hab {
     Svc,
     /// Commands relating to Habitat users
     User,
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version)]
+/// Commands relating to Habitat license agreements
+pub enum License {
+    /// Accept the Chef Binary Distribution Agreement without prompting
+    Accept,
 }
 
 #[derive(ConfigOptDefaults, Partial, StructOpt, Deserialize)]

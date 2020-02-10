@@ -79,7 +79,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         (@setting SubcommandRequiredElseHelp)
         (@subcommand license =>
             (about: "Commands relating to Habitat license agreements")
-            (@setting ArgRequiredElseHelp)
+            (@setting SubcommandRequiredElseHelp)
             (@subcommand accept =>
                 (about: "Accept the Chef Binary Distribution Agreement without prompting"))
         )
