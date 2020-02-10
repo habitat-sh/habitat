@@ -1135,7 +1135,7 @@ fn config_file_to_defaults(config_file: &str)
 }
 
 pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
-    let sub = if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
+    if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
         // Construct a `clap::App` from the `structopt` decorated struct.
         let mut sub = SubSupRun::clap();
         if let Ok(config_file) = env::var("HAB_FEAT_CONFIG_FILE") {
@@ -1151,100 +1151,101 @@ pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 Err(e) => error!("Failed to parse config file, err: {}", e),
             }
         }
-        sub
-    } else {
-        clap_app!(@subcommand run =>
-            (about: "Run the Habitat Supervisor")
-            // set custom usage string, otherwise the binary
-            // is displayed confusingly as `hab-sup`
-            // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
-            (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
-            (@arg LISTEN_GOSSIP: --("listen-gossip") env(GossipListenAddr::ENVVAR) default_value(GossipListenAddr::default_as_str()) {valid_socket_addr}
-             "The listen address for the Gossip System Gateway")
-            (@arg LOCAL_GOSSIP_MODE: --("local-gossip-mode") conflicts_with("LISTEN_GOSSIP") conflicts_with("PEER") conflicts_with("PEER_WATCH_FILE")
-             "Start the supervisor in local mode")
-            (@arg LISTEN_HTTP: --("listen-http") env(HttpListenAddr::ENVVAR) default_value(HttpListenAddr::default_as_str()) {valid_socket_addr}
-             "The listen address for the HTTP Gateway")
-            (@arg HTTP_DISABLE: --("http-disable") -D
-             "Disable the HTTP Gateway completely")
-            (@arg LISTEN_CTL: --("listen-ctl") env(ListenCtlAddr::ENVVAR) default_value(ListenCtlAddr::default_as_str()) {valid_socket_addr}
-             "The listen address for the Control Gateway. If not specified, the value will \
-              be taken from the HAB_LISTEN_CTL environment variable if defined")
-            (@arg ORGANIZATION: --org +takes_value
-             "The organization that the Supervisor and its subsequent services are part of")
-            (@arg PEER: --peer +takes_value +multiple
-             "The listen address of one or more initial peers (IP[:PORT])")
-            (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
-            (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with("PEER")
-             "Watch this file for connecting to the ring"
-            )
-            (arg: arg_cache_key_path("Path to search for encryption keys. \
-                                      Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-                                      directory otherwise"))
-            (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY") {non_empty}
-             "The name of the ring used by the Supervisor when running with wire encryption. \
-              (ex: hab sup run --ring myring)")
-            (@arg RING_KEY: --("ring-key") env(RING_KEY_ENVVAR) conflicts_with("RING") +hidden {non_empty}
-             "The contents of the ring key when running with wire encryption. \
-                      (Note: This option is explicitly undocumented and for testing purposes only. Do not use it in a production system. Use the corresponding environment variable instead.)
-        (ex: hab sup run --ring-key 'SYM-SEC-1 \
-        foo-20181113185935 \
+        let sub = add_event_stream_options(sub);
+        return add_shutdown_timeout_option(sub);
+    }
+    let sub = clap_app!(@subcommand run =>
+                            (about: "Run the Habitat Supervisor")
+                            // set custom usage string, otherwise the binary
+                            // is displayed confusingly as `hab-sup`
+                            // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
+                            (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
+                            (@arg LISTEN_GOSSIP: --("listen-gossip") env(GossipListenAddr::ENVVAR) default_value(GossipListenAddr::default_as_str()) {valid_socket_addr}
+                             "The listen address for the Gossip System Gateway")
+                            (@arg LOCAL_GOSSIP_MODE: --("local-gossip-mode") conflicts_with("LISTEN_GOSSIP") conflicts_with("PEER") conflicts_with("PEER_WATCH_FILE")
+                             "Start the supervisor in local mode")
+                            (@arg LISTEN_HTTP: --("listen-http") env(HttpListenAddr::ENVVAR) default_value(HttpListenAddr::default_as_str()) {valid_socket_addr}
+                             "The listen address for the HTTP Gateway")
+                            (@arg HTTP_DISABLE: --("http-disable") -D
+                             "Disable the HTTP Gateway completely")
+                            (@arg LISTEN_CTL: --("listen-ctl") env(ListenCtlAddr::ENVVAR) default_value(ListenCtlAddr::default_as_str()) {valid_socket_addr}
+                             "The listen address for the Control Gateway. If not specified, the value will \
+                              be taken from the HAB_LISTEN_CTL environment variable if defined")
+                            (@arg ORGANIZATION: --org +takes_value
+                             "The organization that the Supervisor and its subsequent services are part of")
+                            (@arg PEER: --peer +takes_value +multiple
+                             "The listen address of one or more initial peers (IP[:PORT])")
+                            (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
+                            (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with("PEER")
+                             "Watch this file for connecting to the ring"
+                            )
+                            (arg: arg_cache_key_path("Path to search for encryption keys. \
+                                                      Default value is hab/cache/keys if root and .hab/cache/keys under the home \
+                                                      directory otherwise"))
+                            (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY") {non_empty}
+                             "The name of the ring used by the Supervisor when running with wire encryption. \
+                              (ex: hab sup run --ring myring)")
+                            (@arg RING_KEY: --("ring-key") env(RING_KEY_ENVVAR) conflicts_with("RING") +hidden {non_empty}
+                             "The contents of the ring key when running with wire encryption. \
+                              (Note: This option is explicitly undocumented and for testing purposes only. Do not use it in a production system. Use the corresponding environment variable instead.)
+             (ex: hab sup run --ring-key 'SYM-SEC-1 \
+             foo-20181113185935 \
 
-          GCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')")
-            (@arg CHANNEL: --channel +takes_value default_value[stable]
-             "Receive Supervisor updates from the specified release channel")
-            (@arg BLDR_URL: -u --url +takes_value {valid_url}
-             "Specify an alternate Builder endpoint. If not specified, the value will \
-              be taken from the HAB_BLDR_URL environment variable if defined (default: \
-              https://bldr.habitat.sh)")
+                  GCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')")
+                            (@arg CHANNEL: --channel +takes_value default_value[stable]
+                             "Receive Supervisor updates from the specified release channel")
+                            (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                             "Specify an alternate Builder endpoint. If not specified, the value will \
+                              be taken from the HAB_BLDR_URL environment variable if defined (default: \
+                              https://bldr.habitat.sh)")
 
-            (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
-             "Use package config from this path, rather than the package itself")
-            (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
-                                                     itself")
-            (@arg KEY_FILE: --key +takes_value {file_exists} requires[CERT_FILE]
-             "Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. \
-              This should be a RSA private key or PKCS8-encoded private key, in PEM format")
-            (@arg CERT_FILE: --certs +takes_value {file_exists} requires[KEY_FILE]
-             "Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. \
-              This should contain PEM-format certificates in the right order (the first certificate \
-              should certify KEY_FILE, the last should be a root CA)")
-            (@arg CA_CERT_FILE: --("ca-certs") +takes_value {file_exists} requires[CERT_FILE] requires[KEY_FILE]
-             "Used for enabling client-authentication with TLS for the HTTP gateway. Read CA certificate from CA_CERT_FILE. \
-              This should contain PEM-format certificate that can be used to validate client requests")
-            // === Optional arguments to additionally load an initial service for the Supervisor
-            (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
-                                                       the Supervisor startup specified by a package identifier \
-                                                       (ex: core/redis) or filepath to a Habitat Artifact \
-                                                       (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-            // TODO (DM): These flags can eventually be removed.
-            // See https://github.com/habitat-sh/habitat/issues/7339
-            (@arg APPLICATION: --application -a +hidden +multiple "DEPRECATED")
-            (@arg ENVIRONMENT: --environment -e +hidden +multiple "DEPRECATED")
-            (@arg GROUP: --group +takes_value
-             "The service group; shared config and topology [default: default]")
-            (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
-             "Service topology; [default: none]")
-            (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
-             "The update strategy; [default: none] [values: none, at-once, rolling]")
-            (@arg BIND: --bind +takes_value +multiple
-             "One or more service groups to bind to a configuration")
-            (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
-             "Governs how the presence or absence of binds affects service startup. `strict` blocks \
-              startup until all binds are present. [default: strict] [values: relaxed, strict]")
-            (@arg VERBOSE: -v "Verbose output; shows file and line/column numbers")
-            (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
-            (@arg JSON: --("json-logging") "Use structured JSON logging for the Supervisor. \
-                                            Implies NO_COLOR")
-            (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
-             "The interval (seconds) on which to run health checks [default: 30]")
-            (@arg SYS_IP_ADDRESS: --("sys-ip-address") +takes_value {valid_ipv4_address}
-             "The IPv4 address to use as the `sys.ip` template variable. If this \
-             argument is not set, the supervisor tries to dynamically determine \
-             an IP address. If that fails, the supervisor defaults to using \
-             `127.0.0.1`")
-        )
-    };
+                            (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
+                             "Use package config from this path, rather than the package itself")
+                            (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
+                                                                     itself")
+                            (@arg KEY_FILE: --key +takes_value {file_exists} requires[CERT_FILE]
+                             "Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. \
+                              This should be a RSA private key or PKCS8-encoded private key, in PEM format")
+                            (@arg CERT_FILE: --certs +takes_value {file_exists} requires[KEY_FILE]
+                             "Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. \
+                              This should contain PEM-format certificates in the right order (the first certificate \
+                              should certify KEY_FILE, the last should be a root CA)")
+                            (@arg CA_CERT_FILE: --("ca-certs") +takes_value {file_exists} requires[CERT_FILE] requires[KEY_FILE]
+                             "Used for enabling client-authentication with TLS for the HTTP gateway. Read CA certificate from CA_CERT_FILE. \
+                              This should contain PEM-format certificate that can be used to validate client requests")
+                            // === Optional arguments to additionally load an initial service for the Supervisor
+                            (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
+                                                                       the Supervisor startup specified by a package identifier \
+                                                                       (ex: core/redis) or filepath to a Habitat Artifact \
+                                                                       (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+                            // TODO (DM): These flags can eventually be removed.
+                            // See https://github.com/habitat-sh/habitat/issues/7339
+                            (@arg APPLICATION: --application -a +hidden +multiple "DEPRECATED")
+                            (@arg ENVIRONMENT: --environment -e +hidden +multiple "DEPRECATED")
+                            (@arg GROUP: --group +takes_value
+                             "The service group; shared config and topology [default: default]")
+                            (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
+                             "Service topology; [default: none]")
+                            (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
+                             "The update strategy; [default: none] [values: none, at-once, rolling]")
+                            (@arg BIND: --bind +takes_value +multiple
+                             "One or more service groups to bind to a configuration")
+                            (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
+                             "Governs how the presence or absence of binds affects service startup. `strict` blocks \
+                              startup until all binds are present. [default: strict] [values: relaxed, strict]")
+                            (@arg VERBOSE: -v "Verbose output; shows file and line/column numbers")
+                            (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
+                            (@arg JSON: --("json-logging") "Use structured JSON logging for the Supervisor. \
+                                                            Implies NO_COLOR")
+                            (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
+                             "The interval (seconds) on which to run health checks [default: 30]")
+                            (@arg SYS_IP_ADDRESS: --("sys-ip-address") +takes_value {valid_ipv4_address}
+                             "The IPv4 address to use as the `sys.ip` template variable. If this \
+                             argument is not set, the supervisor tries to dynamically determine \
+                             an IP address. If that fails, the supervisor defaults to using \
+                             `127.0.0.1`")
+    );
+
     let sub = add_event_stream_options(sub);
     add_shutdown_timeout_option(sub)
 }
