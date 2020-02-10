@@ -169,7 +169,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (about: "Promote packages from a completed build job to a specified channel")
                     (aliases: &["p", "pr", "pro", "prom", "promo", "promot"])
                     (@arg GROUP_ID: +required +takes_value
-                        "The job id that was returned from \"hab bldr job start\" \
+                        "The job group id that was returned from \"hab bldr job start\" \
                         (ex: 771100000000000000)")
                     (@arg CHANNEL: +takes_value +required "The target channel name")
                     (@arg ORIGIN: -o --origin +takes_value {valid_origin}
@@ -186,7 +186,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (about: "Demote packages from a completed build job from a specified channel")
                     (aliases: &["d", "de", "dem", "demo", "demot"])
                     (@arg GROUP_ID: +required +takes_value
-                        "The job id that was returned from \"hab bldr start\" \
+                        "The job group id that was returned from \"hab bldr job start\" \
                         (ex: 771100000000000000)")
                     (@arg CHANNEL: +takes_value +required "The name of the channel to demote from")
                     (@arg ORIGIN: -o --origin +takes_value {valid_origin}
@@ -205,7 +205,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (@group status =>
                         (@attributes +required)
                         (@arg GROUP_ID: +takes_value
-                            "The group id that was returned from \"hab bldr job start\" \
+                            "The job group id that was returned from \"hab bldr job start\" \
                             (ex: 771100000000000000)")
                         (@arg ORIGIN: -o --origin +takes_value {valid_origin}
                             "Show the status of recent job groups created in this origin \
@@ -992,7 +992,7 @@ fn arg_target() -> Arg<'static, 'static> {
                                 .validator(valid_target)
                                 .env(PACKAGE_TARGET_ENVVAR)
                                 .help("A package target (ex: x86_64-windows) (default: system \
-                                       appropriate target")
+                                       appropriate target)")
 }
 
 fn sub_pkg_build() -> App<'static, 'static> {
