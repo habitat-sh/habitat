@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{cli::{file_exists_or_stdin,
+use crate::{cli::{file_exists,
+                  file_exists_or_stdin,
                   valid_origin},
             VERSION};
 use clap::{AppSettings,
@@ -41,27 +42,36 @@ pub enum Hab {
     Cli(Cli),
     #[structopt(no_version)]
     Config(ServiceConfig),
-    /// Commands relating to Habitat files
-    File,
+    #[structopt(no_version)]
+    File(File),
     #[structopt(no_version)]
     License(License),
     /// Commands relating to Habitat Builder origins
+    #[structopt(no_version)]
     Origin,
     /// Commands relating to Habitat packages
+    #[structopt(no_version)]
     Pkg,
-    /// Commands relating to plans and other app-specific configuration.
+    /// Commands relating to plans and other app-specific configuration
+    #[structopt(no_version)]
     Plan,
     /// Commands relating to Habitat rings
+    #[structopt(no_version)]
     Ring,
     /// Commands relating to Habitat Studios
+    #[structopt(no_version)]
     Studio,
     /// The Habitat Supervisor
+    #[structopt(no_version)]
     Sup,
     /// Create a tarball of Habitat Supervisor data to send to support
+    #[structopt(no_version)]
     Supportbundle,
     /// Commands relating to Habitat services
+    #[structopt(no_version)]
     Svc,
     /// Commands relating to Habitat users
+    #[structopt(no_version)]
     User,
 }
 
@@ -351,6 +361,33 @@ pub enum ServiceConfig {
         /// Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
         #[structopt(name = "REMOTE_SUP", long = "remote-sup", short = "r")]
         remote_sup: Option<SocketAddr>,
+    },
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version)]
+/// Commands relating to Habitat files
+pub enum File {
+    /// Uploads a file to be shared between members of a Service Group
+    Upload {
+        /// Target service group service.group[@organization] (ex: redis.default or
+        /// foo.default@bazcorp)
+        #[structopt(name = "SERVICE_GROUP")]
+        service_group:  ServiceGroup,
+        /// A version number (positive integer) for this configuration (ex: 42)
+        #[structopt(name = "VERSION_NUMBER")]
+        version_number: i64,
+        /// Path to local file on disk
+        #[structopt(name = "FILE", validator = file_exists)]
+        file:           String,
+        /// Name of the user key
+        #[structopt(name = "USER", short = "u", long = "user")]
+        user:           Option<String>,
+        /// Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+        #[structopt(name = "REMOTE_SUP", long = "remote-sup", short = "r")]
+        remote_sup:     Option<SocketAddr>,
+        #[structopt(flatten)]
+        cache_key_path: CacheKeyPath,
     },
 }
 

@@ -199,5 +199,21 @@ fn hab_help() {
     let help1 = help(hab_config_show1);
     let help2 = help(hab_config_show2);
     assert_eq!(help1, help2);
-    assert_eq!(help1, help2)
+    assert_eq!(help1, help2);
+
+    // hab file
+    let hab_file1 = sub(&hab1, "file");
+    let hab_file2 = sub(&hab2, "file");
+    let help1 = help(hab_file1);
+    let help2 = help(hab_file2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab file upload
+    let hab_file_upload1 = sub(&hab_file1, "upload");
+    let hab_file_upload2 = sub(&hab_file2, "upload");
+    let help1 = help(hab_file_upload1);
+    let help2 = help(hab_file_upload2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
 }
