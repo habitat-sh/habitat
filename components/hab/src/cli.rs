@@ -76,9 +76,11 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         (version: super::VERSION)
         (author: "\nThe Habitat Maintainers <humans@habitat.sh>\n")
         (@setting GlobalVersion)
+        (@setting ArgRequiredElseHelp)
         (@setting SubcommandRequiredElseHelp)
         (@subcommand license =>
             (about: "Commands relating to Habitat license agreements")
+            (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
             (@subcommand accept =>
                 (about: "Accept the Chef Binary Distribution Agreement without prompting"))
@@ -86,6 +88,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         (@subcommand cli =>
             (about: "Commands relating to Habitat runtime config")
             (aliases: &["cl"])
+            (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
             (subcommand: sub_cli_setup().aliases(&["s", "se", "set", "setu"]))
             (subcommand: sub_cli_completers().aliases(&["c", "co", "com", "comp"]))
@@ -94,6 +97,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (about: "Commands relating to a Service's runtime config")
             (aliases: &["co", "con", "conf", "confi"])
             (@setting ArgRequiredElseHelp)
+            (@setting SubcommandRequiredElseHelp)
             (subcommand: sub_config_apply().aliases(&["ap", "app", "appl"]))
             (@subcommand show =>
                 (about: "Displays the default configuration options for a service")
@@ -108,6 +112,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (about: "Commands relating to Habitat files")
             (aliases: &["f", "fi", "fil"])
             (@setting ArgRequiredElseHelp)
+            (@setting SubcommandRequiredElseHelp)
             (@subcommand upload =>
                 (about: "Uploads a file to be shared between members of a Service Group")
                 (aliases: &["u", "up", "upl", "uplo", "uploa"])
@@ -125,11 +130,13 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         (@subcommand bldr =>
             (about: "Commands relating to Habitat Builder")
             (aliases: &["b", "bl", "bld"])
+            (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
             (@subcommand job =>
                 (about: "Commands relating to Habitat Builder jobs")
                 (aliases: &["j", "jo"])
                 (@setting ArgRequiredElseHelp)
+                (@setting SubcommandRequiredElseHelp)
                 (@subcommand start =>
                     (about: "Schedule a build job or group of jobs")
                     (aliases: &["s", "st", "sta", "star"])
@@ -218,6 +225,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (@subcommand channel =>
                 (about: "Commands relating to Habitat Builder channels")
                 (aliases: &["c", "ch", "cha", "chan", "chann", "channe"])
+                (@setting ArgRequiredElseHelp)
                 (@setting SubcommandRequiredElseHelp)
                 (@subcommand promote =>
                     (about: "Atomically promotes all packages in channel")
@@ -292,6 +300,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (about: "Commands relating to Habitat Builder origins")
             (aliases: &["o", "or", "ori", "orig", "origi"])
             (@setting ArgRequiredElseHelp)
+            (@setting SubcommandRequiredElseHelp)
             (@subcommand create =>
                 (about: "Creates a new Builder origin")
                 (aliases: &["cre", "crea"])
@@ -406,6 +415,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (about: "Commands relating to Habitat origin key maintenance")
                 (aliases: &["k", "ke"])
                 (@setting ArgRequiredElseHelp)
+                (@setting SubcommandRequiredElseHelp)
                 (@subcommand download =>
                     (about: "Download origin key(s)")
                     (aliases: &["d", "do", "dow", "down", "downl", "downlo", "downloa"])
@@ -468,6 +478,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (@subcommand secret =>
                 (about: "Commands related to secret management")
                 (@setting ArgRequiredElseHelp)
+                (@setting SubcommandRequiredElseHelp)
                 (@subcommand upload =>
                     (about: "Create and upload a secret for your origin.")
                     (@arg KEY_NAME: +required +takes_value
@@ -515,6 +526,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (about: "Commands relating to Habitat packages")
             (aliases: &["p", "pk", "package"])
             (@setting ArgRequiredElseHelp)
+            (@setting SubcommandRequiredElseHelp)
             (@subcommand binds =>
                 (about: "Displays the binds for a service")
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
@@ -762,6 +774,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (about: "Commands relating to plans and other app-specific configuration")
             (aliases: &["pl", "pla"])
             (@setting ArgRequiredElseHelp)
+            (@setting SubcommandRequiredElseHelp)
             (@subcommand init =>
                 (about: "Generates common package specific configuration files. Executing without \
                     argument will create a `habitat` directory in your current folder for the \
@@ -793,10 +806,12 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (about: "Commands relating to Habitat rings")
             (aliases: &["r", "ri", "rin"])
             (@setting ArgRequiredElseHelp)
+            (@setting SubcommandRequiredElseHelp)
             (@subcommand key =>
                 (about: "Commands relating to Habitat ring keys")
                 (aliases: &["k", "ke"])
                 (@setting ArgRequiredElseHelp)
+                (@setting SubcommandRequiredElseHelp)
                 (@subcommand export =>
                     (about: "Outputs the latest ring key contents to stdout")
                     (aliases: &["e", "ex", "exp", "expo", "expor"])
@@ -822,10 +837,12 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (about: "Commands relating to Habitat services")
             (aliases: &["sv", "ser", "serv", "service"])
             (@setting ArgRequiredElseHelp)
+            (@setting SubcommandRequiredElseHelp)
             (@subcommand key =>
                 (about: "Commands relating to Habitat service keys")
                 (aliases: &["k", "ke"])
                 (@setting ArgRequiredElseHelp)
+                (@setting SubcommandRequiredElseHelp)
                 (@subcommand generate =>
                     (about: "Generates a Habitat service key")
                     (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
@@ -853,10 +870,12 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (about: "Commands relating to Habitat users")
             (aliases: &["u", "us", "use"])
             (@setting ArgRequiredElseHelp)
+            (@setting SubcommandRequiredElseHelp)
             (@subcommand key =>
                 (about: "Commands relating to Habitat user keys")
                 (aliases: &["k", "ke"])
                 (@setting ArgRequiredElseHelp)
+                (@setting SubcommandRequiredElseHelp)
                 (@subcommand generate =>
                     (about: "Generates a Habitat user key")
                     (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
@@ -922,6 +941,7 @@ pub fn sup_commands(feature_flags: FeatureFlag) -> App<'static, 'static> {
     // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
     (usage: "hab sup <SUBCOMMAND>")
     (@setting VersionlessSubcommands)
+    (@setting ArgRequiredElseHelp)
     (@setting SubcommandRequiredElseHelp)
     (subcommand: sub_sup_bash().aliases(&["b", "ba", "bas"]))
     (subcommand: sub_sup_depart().aliases(&["d", "de", "dep", "depa", "depart"]))
@@ -1093,6 +1113,7 @@ pub fn sub_sup_secret() -> App<'static, 'static> {
     clap_app!(@subcommand secret =>
         (about: "Commands relating to a Habitat Supervisor's Control Gateway secret")
         (@setting ArgRequiredElseHelp)
+        (@setting SubcommandRequiredElseHelp)
         (@subcommand generate =>
             (about: "Generate a secret key to use as a Supervisor's Control Gateway secret")
         )
