@@ -176,4 +176,28 @@ fn hab_help() {
     let help2 = help(hab_bldr_job_status2);
     assert_eq!(help1, help2);
     assert_eq!(help1, help2);
+
+    // hab config
+    let hab_config1 = sub(&hab1, "config");
+    let hab_config2 = sub(&hab2, "config");
+    let help1 = help(hab_config1);
+    let help2 = help(hab_config2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab config apply
+    let hab_config_apply1 = sub(&hab_config1, "apply");
+    let hab_config_apply2 = sub(&hab_config2, "apply");
+    let help1 = help(hab_config_apply1);
+    let help2 = help(hab_config_apply2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab config show
+    let hab_config_show1 = sub(&hab_config1, "show");
+    let hab_config_show2 = sub(&hab_config2, "show");
+    let help1 = help(hab_config_show1);
+    let help2 = help(hab_config_show2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2)
 }
