@@ -151,19 +151,9 @@ namespace HabService
                 }
                 else
                 {
-                    // because we declare hab-launcher as a runtime dep
-                    // this path should exist
-                    string launcherBase = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), "hab\\pkgs\\core\\hab-launcher");
-                    string latestLauncher = LastDirectory(LastDirectory(launcherBase));
-                    return Path.Combine(latestLauncher, "bin\\hab-launch.exe");
+                    throw new InvalidOperationException("Missing 'launcherPath' application setting in config.");
                 }
             }
-        }
-
-        private static string LastDirectory(string path)
-        {
-            string[] dirs = Directory.GetDirectories(path);
-            return dirs[dirs.Length - 1];
         }
 
         private void SupOutputHandler(object sender, DataReceivedEventArgs e)
