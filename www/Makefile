@@ -21,12 +21,12 @@ deploy_acceptance: check-env
 .PHONY: deploy_acceptance
 
 cli_docs:
-	hab studio run "hab pkg install core/hab-studio && \
+	hab studio run -D "hab pkg install core/hab-studio && \
 	hab pkg install core/hab-sup && \
 	hab pkg install core/hab-launcher && \
 	hab pkg install core/node && \
 	hab pkg binlink core/node --dest=/bin && \
-	/bin/node scripts/generate-cli-docs > source/docs/habitat-cli.html.md"
+	/bin/node scripts/generate-cli-docs > source/docs/habitat-cli.html.md.erb"
 
 template_reference:
 	mkdir tmp
