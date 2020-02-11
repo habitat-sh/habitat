@@ -330,6 +330,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             )
             (@subcommand invitations =>
                 (about: "Manage origin member invitations")
+                (@setting ArgRequiredElseHelp)
                 (@subcommand accept =>
                      (about: "Accept an origin member invitation")
                      (@arg ORIGIN: +required {valid_origin} "The origin name the invitation applies to")
