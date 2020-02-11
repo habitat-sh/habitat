@@ -1258,71 +1258,157 @@ Packages are installed in the `/hab/pkgs/` directory, and then further organized
 : If you have defined a `hooks` subdirectory with hook scripts in your plan, then they will be included in the same relative location within the installed package directory. Read more about [Application Lifecycle hooks](/docs/reference/#reference-hooks).
 
 ---
-## <a name="sup-log-configuration" id="sup-log-configuration" data-magellan-target="sup-log-configuration">Supervisor Log Configuration Reference</a>
+## <a name="sup-log-configuration" id="sup-log-configuration" data-magellan-target="sup-log-configuration">Log Configuration Reference</a>
 
-With the 0.83.0 release of the Chef Habitat Supervisor, it is possible to have greater control over logging output, including the ability to dynamically adjust the logging configuration of a running Supervisor. There are three ways of configuring logging, each of which has their own strengths and weaknesses: as part of the `hab` command, by using environment variables, and by using a configuration file.
+Debugging and Logging
 
-### RUST_LOG with a command
+Chef Habitat uses the `RUST_LOG` environment variable from the Rust [env_logger](https://docs.rs/env_logger/0.6.1/env_logger/#enabling-logging) crate to control logging. Chef Habitat does not support regular expression-based filtering with `RUST_LOG`.
 
-Use `RUST_LOG=debug RUST_BACKTRACE=1` to see an individual command's debug and backtrace.
+The default logging level is `error` (a log level of 1). The basic environment variable structure is:
 
-    ```bash
-    # Linux/MacOS
-    # replace "hab sup run" with your command
-    RUST_LOG=debug RUST_BACKTRACE=1 hab sup run
-    ```
+```shell
+RUST_LOG=<log_level>
+```
 
-    ```powershell
-    # Windows
-    # replace "hab sup run" with your command
-    $env:RUST_LOG="debug"; $env:RUST_BACKTRACE=1; hab sup run
-    ```
+### RUST_LOG levels
 
-### RUST_LOG as an Environment Variable Configuration
+|Level|Num|Meaning|Setting|
+|-----|---|-------|-------|
+|Error|1|Very serious errors|`RUST_LOG="error"`|
+|Warn|2|Hazardous situations|`RUST_LOG="warn"`|
+|Info|3|Useful information|`RUST_LOG="info"`|
+|Debug|4|Lower priority information.|`RUST_LOG="debug"`|
 
-It is still possible to configure logging via the `RUST_LOG` environment variable. This approach is often useful for quickly re-configuring logging (requiring a restart), or for easily configuring logging in container-based deployments.
+// TODO:
+// ? Trace|5|Very low priority, often extremely verbose, information|`RUST_LOG="trace"`|
+
+Set the `<log_level>` with either the name or the number of a logging level. When you use the name, RUST_LOG outputs the messages for only that <log_level>. If you use a number to specifiy the logging level, it enabels all logging less than or equal to that number. For example, if you set the logging level to 3, this prints all of the error, warn, and info logs, but not the debug logs.
+
+### RUST_LOG Permutations
+
+The default global logging level is `error` (a log level of 1).
+You can set the RUST_LOG globally and on individual hab commands.
+RUST_LOG follows standard rules of inheritance, which means that the logging levels and command levels set at higher levels trickle down to the lower levels, unless otherwise specified.
+
+Using RUST_LOG without defining a logging level enables all log levels. This is noisy, we don't recommend it.
+
+You can apply logging levels to hab commands, which are also called modules, with either the command line expression or the module name. These are equivalent:
+
+```shell
+hab sup run
+habitat_sup::run
+```
+
+| Setting          | Effect                                   |
+|------------------|------------------------------------------|
+| RUST_LOG="error" | Sets the global logging level to "error" |
+| RUST_LOG="debug" habitat_sup| Sets the logging level to "debug" for all `hab svc` commands |
+| RUST_LOG="debug" hab svc load |Sets the logging level to "debug" for the only the command `hab svc load`|
+| RUST_LOG="error",habitat_sup="error",habitat_svc::load="debug" | Sets the global logging level to "error", sets all hab sup commands to "error", and sets the `hab svc load` logging level to "debug" |
+
+
+Your can use `RUST_LOG` with a hab command:
+
+* as an extension of the hab command
+* as an temporary environment variable
+* as a persistent environment variable set in a configuration file.
+
+
+### RUST_LOG for a Command
+
+Use `RUST_LOG=<level>` to see the logging output for one hab command execution. For example:
+
+```bash
+# Linux/MacOS
+# replace "hab sup run" with your command
+RUST_LOG=debug hab sup run
+```
+
+```powershell
+# Windows
+# replace "hab sup run" with your command
+$env:RUST_LOG="debug"; hab sup run
+```
+
+### RUST_LOG for a terminal session
+
+You can set the RUST_LOG environment variable for the duration of your terminal session with `export RUST_LOG=<level>`.
+
+Setting approach is often useful for quickly re-configuring logging (requiring a restart), or for easily configuring logging in container-based deployments.
+
+// TODO:
+// ? I'm not sure what gets restarted. RUST_LOG works for more than just Supervisor. Do we mean
+
+```bash
+export RUST_LOG=“debug”
+```
+
+```powershell
+$env:RUST_LOG=“debug”
+```
+
+### RUST_LOG as a configuration file setting
+
+Add `export RUST_LOG=<level>` to your configuration file to make it persistent accross terminal sesions.
+
+### RUST_LOG on the Supervisor
+
+# TODO: Where & How do I set the ENV on the Supervisor? Is running export ENV_RUST_LOG=“debug” in the studio enough? How would I specifiy which Supervisor?
+
+Any setting key beginning with 'ENV_' sets the environment variable in the supervisor's environment instead of on your workstation or studio environment. For example, setting 'ENV_RUST_LOG' to 'debug' will set the 'RUST_LOG' environment variable to the value 'debug'.
+
+```bash
+export ENV_RUST_LOG=“debug”
+```
+
+```powershell
+$env:ENV_RUST_LOG=“debug”
+```
+
+// TODO:
+// Found this in the code. Worth explaining and giving the corresponding linux example
+// $env:RUST_LOG="debug"
+// Start-Process hab -ArgumentList "pkg search core/lessmsi" -RedirectStandardError err.log -wait
+// $env:RUST_LOG="info"
+// Get-Content -Raw -Path err.log | Should -Match "Processing cert file: C:\\hab/cache/ssl\\custom-certificate.pem"
+
+#### Variations
+
+#### Backtrace
+
+A backtrace is a list of all the functions that have been called to get to this point. Backtraces in Rust work as they do in other languages: the key to reading the backtrace is to start from the top and read until you see files you wrote. That’s the spot where the problem originated. The lines above the lines mentioning your files are code that your code called; the lines below are code that called your code. These lines might include core Rust code, standard library code, or crates that you’re using. Let’s try getting a backtrace by setting the RUST_BACKTRACE environment variable to any value except 0. Listing 9-2 shows output similar to what you’ll see.
 
 ```bash
 export HAB_FEAT_EVENT_STREAM = “1”
-export RUST_LOG=“debug”
-export RUST_BACKTRACE=1
+export ENV_RUST_LOG=“debug”
+export ENV_RUST_BACKTRACE=1
 ```
 
 ```powershell
 $env:HAB_FEAT_EVENT_STREAM = “1”
-$env:RUST_LOG=“debug”
-$env:RUST_BACKTRACE=1
+$env:ENV_RUST_LOG=“debug”
+$env:ENV_RUST_BACKTRACE=1
 ```
 
-### RUST_LOG in a Configuration File
-
-The configuration scheme is the same as that described in the documentation of the Rust [env_logger](https://docs.rs/env_logger/0.6.1/env_logger/#enabling-logging) crate, with the exception that Chef Habitat does not support additional regular expression-based filtering. The configuration values the Supervisor recognizes are described below:
-
-#### Simple Logging Levels
-
-The recognized values are, in increasing verbosity (or, equivalently, in decreasing severity): `error`, `warn`, `info`, `debug`, and `trace`.
-
-Setting `RUST_LOG` to one of these values will cause all log messages at that verbosity and below (equivalently, that severity and above) to be printed. This includes log messages from Habitat, as well as any libraries that it uses.
-
-#### Rust Logging Levels
-
-This is much finer grained than the simple logging levels above, and to fully leverage it requires some knowledge of both the internal code structure of Habitat itself, as well as of how Rust code is organized generally. Despite this, it allows you to target specific subsystems, which can be very helpful for troubleshooting.
-
-For example, `RUST_LOG=habitat_sup::manager=info` will cause all log messages at the `info` level or more severe (i.e., `error`, `warn`, and `info`) originating anywhere in the module hierarchy rooted at `habitat_sup::manager`.
-
-Rust modules are identified first by the crate (or library) they come from, followed by a `::`-delimited path of module names.
-
-#### Variations
+#### tokio_reactor
 
 Multiple logging specifiers can be submitted, separated by commas. A simple logging level will act as the default, with additional module-targeted levels serving to refine the logging for the target code. If you supply multiple simple logging levels, only the last one will count. Any number of targeted logging levels are allowed, however.
 
 For example, `RUST_LOG=info,habitat_sup::manager=debug,tokio_reactor=error` will limit logs generally to the `info` level, while additionally allowing `debug` messages coming from the `habitat_sup::manager` module hierarchy, and restricting log messages from the `tokio_reactor` library to only `error`.
 
-### Dynamic, File-based Configuration
+#### log4rs
 
-For further control over logging output, as well as the ability to change the configuration of a running Supervisor, a configuration file is needed. This file is processed by the [log4rs](https://docs.rs/log4rs/) crate, and shares many of the same concepts as the Log4J logging system of the Java ecosystem. The `log4rs` configuration documentation can be found [here](https://docs.rs/log4rs/0.8.3/log4rs/#configuration).
+[log4rs] (https://docs.rs/log4rs/0.8.3/log4rs/) provides further control over logging output, as well as the ability to change the configuration on a running Supervisor. log4rs share many of the same concepts as the Log4J logging system of the Java ecosystem.
 
-Place an appropriate YAML configuration file at `/hab/sup/default/config/log.yml` when the Supervisor starts up if you wish to take advantage of this style of configuration. Note that if such a file is present, it will take priority over any `RUST_LOG` environment variable that may also be present.
+##### log4rs Error Logging
+
+The `log4rs` configuration documentation can be found [here](https://docs.rs/log4rs/0.8.3/log4rs/#loggers/).
+
+##### log4rs Supervisor Configuration
+
+To use log4rs, place an appropriate YAML configuration file at `/hab/sup/default/config/log.yml` when the Supervisor starts up. The [log4rs](https://docs.rs/log4rs/0.8.3/log4rs/#configuration) crate processes this configuration file.
+
+The YAML configuration file takes priority over any `RUST_LOG` environment variable.
 
 Here is an example configuration file that mimics the default logging configuration of the Supervisor. It emits UTC timestamped message lines to standard output at the `error` level.
 
@@ -1332,9 +1418,11 @@ Here is an example configuration file that mimics the default logging configurat
 #
 # Uses humantime to parse the duration; see
 # https://docs.rs/humantime/1.2.0/humantime/fn.parse_duration.html
+
 refresh_rate: 5 seconds
 
 appenders:
+  # An appender named "stdout" that writes to stdout
   stdout:
     kind: console
     encoder:
@@ -1342,17 +1430,21 @@ appenders:
       # formatting options
       pattern: "[{d(%Y-%m-%dT%H:%M:%SZ)(utc)} {l} {module}] {message}{n}"
 
+
+# Set the default logging level to "warn" and attach the "stdout" appender to the root
 root:
   level: error
   appenders:
     - stdout
 ```
 
-The `refresh_rate` configuration is very important. If it is present when the Supervisor starts, the file will be checked periodically for updates (according to the value of `refresh_rate`; in the above example, the file will be checked every 5 seconds). If the file changes, then the current content of the file becomes the active configuration. This allows you to, for example, increase the logging level of a running supervisor if you suspect you are running into problems.
+`refresh_rate`: Sets the frequenquency that the Supervisor checks this file for changes. In this example, the Supervisor checks the file for changes every 5 seconds. This setting allows you to increase the logging level of a running supervisor. Removing this entry causes the Supervisor to stop checking for changes to the configuration file. Once removed, any you will have to restart the Supervisor to pick up any changes to the configuration file.
 
-This dynamism also has a catch, though: you can change the refresh rate as well, and even remove it entirely. If you remove it, however, the Supervisor will stop checking for updates to the file. Any subsequent changes you might make would require a Supervisor restart to be recognized. Work is planned to make this more flexible, however.
+`appender`: An appender takes a log record and logs it somewhere, for example, to a file, the console, or the syslog.
 
-You can also target individual module hierarchies with this configuration scheme, just as you can with the `RUST_LOG` environment variable. For this, you will need to add a new top-level `loggers` key to the file, like so:
+`root`: The top level of the log configuration tree structure. Sets the `log4rs` logging level and output location.
+
+`loggers`: You can target log events at specific loggers. The separate loggers form a hierarchy in the Supervisor YAML configuration. To use more than one loggers add  a `loggers` setting to the configuration file. For example:
 
 ```yaml
 loggers:
