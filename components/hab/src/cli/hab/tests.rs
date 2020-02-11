@@ -624,4 +624,44 @@ fn hab_help() {
     let help2 = help(hab_plan_render2);
     assert_eq!(help1, help2);
     assert_eq!(help1, help2);
+
+    // hab ring
+    let hab_ring1 = sub(&hab1, "ring");
+    let hab_ring2 = sub(&hab2, "ring");
+    let help1 = help(hab_ring1);
+    let help2 = help(hab_ring2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab ring key
+    let hab_ring_key1 = sub(&hab_ring1, "key");
+    let hab_ring_key2 = sub(&hab_ring2, "key");
+    let help1 = help(hab_ring_key1);
+    let help2 = help(hab_ring_key2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab ring key export
+    let hab_ring_key_export1 = sub(&hab_ring_key1, "export");
+    let hab_ring_key_export2 = sub(&hab_ring_key2, "export");
+    let help1 = help(hab_ring_key_export1);
+    let help2 = help(hab_ring_key_export2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab ring key generate
+    let hab_ring_key_generate1 = sub(&hab_ring_key1, "generate");
+    let hab_ring_key_generate2 = sub(&hab_ring_key2, "generate");
+    let help1 = help(hab_ring_key_generate1);
+    let help2 = help(hab_ring_key_generate2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab ring key import
+    let hab_ring_key_import1 = sub(&hab_ring_key1, "import");
+    let hab_ring_key_import2 = sub(&hab_ring_key2, "import");
+    let help1 = help(hab_ring_key_import1);
+    let help2 = help(hab_ring_key_import2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
 }

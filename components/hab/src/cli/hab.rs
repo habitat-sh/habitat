@@ -6,6 +6,7 @@ mod license;
 mod origin;
 mod pkg;
 mod plan;
+mod ring;
 #[cfg(test)]
 mod tests;
 mod util;
@@ -17,7 +18,8 @@ use self::{bldr::Bldr,
            license::License,
            origin::Origin,
            pkg::Pkg,
-           plan::Plan};
+           plan::Plan,
+           ring::Ring};
 use crate::VERSION;
 use configopt::{ConfigOptDefaults,
                 Partial};
@@ -61,9 +63,8 @@ pub enum Hab {
     Pkg(Pkg),
     #[structopt(no_version)]
     Plan(Plan),
-    /// Commands relating to Habitat rings
     #[structopt(no_version)]
-    Ring,
+    Ring(Ring),
     /// Commands relating to Habitat Studios
     #[structopt(no_version)]
     Studio,
