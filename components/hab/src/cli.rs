@@ -1,8 +1,8 @@
-mod structs;
+mod hab;
 
-use crate::{cli::structs::{Hab,
-                           PartialSubSupRun,
-                           SubSupRun},
+use crate::{cli::hab::{Hab,
+                       PartialSubSupRun,
+                       SubSupRun},
             command::studio};
 
 use clap::{App,
