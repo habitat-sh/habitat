@@ -860,7 +860,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         )
         (@subcommand supportbundle =>
             (about: "Create a tarball of Habitat Supervisor data to send to support")
-            (aliases: &["supp", "suppo", "suppor", "support-bundle"])
+            (aliases: &["supp", "suppo", "suppor", "support-bundle", "gather-logs"])
         )
         (@subcommand user =>
             (about: "Commands relating to Habitat users")
