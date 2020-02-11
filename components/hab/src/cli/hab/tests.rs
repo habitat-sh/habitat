@@ -392,4 +392,212 @@ fn hab_help() {
     let help2 = help(hab_origin_transfer2);
     assert_eq!(help1, help2);
     assert_eq!(help1, help2);
+
+    // hab pkg
+    let hab_pkg1 = sub(&hab1, "pkg");
+    let hab_pkg2 = sub(&hab2, "pkg");
+    let help1 = help(hab_pkg1);
+    let help2 = help(hab_pkg2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg binds
+    let hab_pkg_binds1 = sub(&hab_pkg1, "binds");
+    let hab_pkg_binds2 = sub(&hab_pkg2, "binds");
+    let help1 = help(hab_pkg_binds1);
+    let help2 = help(hab_pkg_binds2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg binlink
+    let hab_pkg_binlink1 = sub(&hab_pkg1, "binlink");
+    let hab_pkg_binlink2 = sub(&hab_pkg2, "binlink");
+    let help1 = help(hab_pkg_binlink1);
+    let help2 = help(hab_pkg_binlink2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg build
+    let hab_pkg_build1 = sub(&hab_pkg1, "build");
+    let hab_pkg_build2 = sub(&hab_pkg2, "build");
+    let help1 = help(hab_pkg_build1);
+    let help2 = help(hab_pkg_build2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg bulkupload
+    let hab_pkg_bulkupload1 = sub(&hab_pkg1, "bulkupload");
+    let hab_pkg_bulkupload2 = sub(&hab_pkg2, "bulkupload");
+    let help1 = help(hab_pkg_bulkupload1);
+    let help2 = help(hab_pkg_bulkupload2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg channels
+    let hab_pkg_channels1 = sub(&hab_pkg1, "channels");
+    let hab_pkg_channels2 = sub(&hab_pkg2, "channels");
+    let help1 = help(hab_pkg_channels1);
+    let help2 = help(hab_pkg_channels2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg config
+    let hab_pkg_config1 = sub(&hab_pkg1, "config");
+    let hab_pkg_config2 = sub(&hab_pkg2, "config");
+    let help1 = help(hab_pkg_config1);
+    let help2 = help(hab_pkg_config2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg delete
+    let hab_pkg_delete1 = sub(&hab_pkg1, "delete");
+    let hab_pkg_delete2 = sub(&hab_pkg2, "delete");
+    let help1 = help(hab_pkg_delete1);
+    let help2 = help(hab_pkg_delete2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg demote
+    let hab_pkg_demote1 = sub(&hab_pkg1, "demote");
+    let hab_pkg_demote2 = sub(&hab_pkg2, "demote");
+    let help1 = help(hab_pkg_demote1);
+    let help2 = help(hab_pkg_demote2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg dependencies
+    let hab_pkg_dependencies1 = sub(&hab_pkg1, "dependencies");
+    let hab_pkg_dependencies2 = sub(&hab_pkg2, "dependencies");
+    let help1 = help(hab_pkg_dependencies1);
+    let help2 = help(hab_pkg_dependencies2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg download
+    let hab_pkg_download1 = sub(&hab_pkg1, "download");
+    let hab_pkg_download2 = sub(&hab_pkg2, "download");
+    let help1 = help(hab_pkg_download1);
+    let help2 = help(hab_pkg_download2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg env
+    let hab_pkg_env1 = sub(&hab_pkg1, "env");
+    let hab_pkg_env2 = sub(&hab_pkg2, "env");
+    let help1 = help(hab_pkg_env1);
+    let help2 = help(hab_pkg_env2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg exec
+    let hab_pkg_exec1 = sub(&hab_pkg1, "exec");
+    let hab_pkg_exec2 = sub(&hab_pkg2, "exec");
+    let help1 = help(hab_pkg_exec1);
+    let help2 = help(hab_pkg_exec2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg export
+    let hab_pkg_export1 = sub(&hab_pkg1, "export");
+    let hab_pkg_export2 = sub(&hab_pkg2, "export");
+    let help1 = help(hab_pkg_export1);
+    let help2 = help(hab_pkg_export2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg hash
+    let hab_pkg_hash1 = sub(&hab_pkg1, "hash");
+    let hab_pkg_hash2 = sub(&hab_pkg2, "hash");
+    let help1 = help(hab_pkg_hash1);
+    let help2 = help(hab_pkg_hash2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg info
+    let hab_pkg_info1 = sub(&hab_pkg1, "info");
+    let hab_pkg_info2 = sub(&hab_pkg2, "info");
+    let help1 = help(hab_pkg_info1);
+    let help2 = help(hab_pkg_info2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg install
+    let hab_pkg_install1 = sub(&hab_pkg1, "install");
+    let hab_pkg_install2 = sub(&hab_pkg2, "install");
+    let help1 = help(hab_pkg_install1);
+    let help2 = help(hab_pkg_install2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg list
+    let hab_pkg_list1 = sub(&hab_pkg1, "list");
+    let hab_pkg_list2 = sub(&hab_pkg2, "list");
+    let help1 = help(hab_pkg_list1);
+    let help2 = help(hab_pkg_list2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg path
+    let hab_pkg_path1 = sub(&hab_pkg1, "path");
+    let hab_pkg_path2 = sub(&hab_pkg2, "path");
+    let help1 = help(hab_pkg_path1);
+    let help2 = help(hab_pkg_path2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg promote
+    let hab_pkg_promote1 = sub(&hab_pkg1, "promote");
+    let hab_pkg_promote2 = sub(&hab_pkg2, "promote");
+    let help1 = help(hab_pkg_promote1);
+    let help2 = help(hab_pkg_promote2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg provides
+    let hab_pkg_provides1 = sub(&hab_pkg1, "provides");
+    let hab_pkg_provides2 = sub(&hab_pkg2, "provides");
+    let help1 = help(hab_pkg_provides1);
+    let help2 = help(hab_pkg_provides2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg search
+    let hab_pkg_search1 = sub(&hab_pkg1, "search");
+    let hab_pkg_search2 = sub(&hab_pkg2, "search");
+    let help1 = help(hab_pkg_search1);
+    let help2 = help(hab_pkg_search2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg sign
+    let hab_pkg_sign1 = sub(&hab_pkg1, "sign");
+    let hab_pkg_sign2 = sub(&hab_pkg2, "sign");
+    let help1 = help(hab_pkg_sign1);
+    let help2 = help(hab_pkg_sign2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg uninstall
+    let hab_pkg_uninstall1 = sub(&hab_pkg1, "uninstall");
+    let hab_pkg_uninstall2 = sub(&hab_pkg2, "uninstall");
+    let help1 = help(hab_pkg_uninstall1);
+    let help2 = help(hab_pkg_uninstall2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg upload
+    let hab_pkg_upload1 = sub(&hab_pkg1, "upload");
+    let hab_pkg_upload2 = sub(&hab_pkg2, "upload");
+    let help1 = help(hab_pkg_upload1);
+    let help2 = help(hab_pkg_upload2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab pkg verify
+    let hab_pkg_verify1 = sub(&hab_pkg1, "verify");
+    let hab_pkg_verify2 = sub(&hab_pkg2, "verify");
+    let help1 = help(hab_pkg_verify1);
+    let help2 = help(hab_pkg_verify2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
 }

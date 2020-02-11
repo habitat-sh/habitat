@@ -531,7 +531,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (@subcommand binds =>
                 (about: "Displays the binds for a service")
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
-                    "A package identifier (ex: core/redis, core/busybox-statis/1.42.2)")
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             )
             (@subcommand binlink =>
                 (about: "Creates a binlink for a package binary in a common 'PATH' location")
@@ -606,7 +606,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (@arg ORIGIN: -o --origin +takes_value {valid_origin}
                             "An origin to list")
                     (@arg PKG_IDENT: +takes_value {valid_ident}
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2).")
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                 )
 
             )
@@ -645,7 +645,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (about: "Safely uninstall a package and dependencies from the local filesystem")
                 (aliases: &["un", "unin"])
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2/21120102031201)")
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                 (@arg DRYRUN: -d --dryrun "Just show what would be uninstalled, don't actually do it")
                 (@arg EXCLUDE: --exclude +takes_value +multiple {valid_ident}
                     "Identifier of one or more packages that should not be uninstalled. \
@@ -655,24 +655,24 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             // alas no hyphens in subcommand names..
             // https://github.com/clap-rs/clap/issues/1297
             (@subcommand bulkupload =>
-                (about: "Bulk Uploads Habitat Artifacts to a Depot from a local directory.")
+                (about: "Bulk Uploads Habitat Artifacts to a Depot from a local directory")
                 (aliases: &["bul", "bulk"])
-                (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Depot \
+                (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
                     endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
                     environment variable if defined. (default: https://bldr.habitat.sh)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 (@arg CHANNEL: --channel -c +takes_value
                     "Optional additional release channel to upload package to. \
                      Packages are always uploaded to `unstable`, regardless \
-                     of the value of this option.")
+                     of the value of this option")
                 (@arg FORCE: --force "Skip checking availability of package and \
-                    force uploads, potentially overwriting a stored copy of a package.")
+                    force uploads, potentially overwriting a stored copy of a package")
                 (@arg AUTO_BUILD: --("auto-build") "Enable auto-build for all packages in this upload. \
-                    Only applicable to SaaS Builder.")
+                    Only applicable to SaaS Builder")
                 (@arg AUTO_CREATE_ORIGINS: --("auto-create-origins") "Skip the confirmation prompt and \
-                    automatically create origins that do not exist in the target Builder.")
+                    automatically create origins that do not exist in the target Builder")
                 (@arg UPLOAD_DIRECTORY: +required {dir_exists}
-                    "Directory Path from which artifacts will be uploaded.")
+                    "Directory Path from which artifacts will be uploaded")
             )
             (@subcommand upload =>
                 (about: "Uploads a local Habitat Artifact to Builder")
@@ -684,11 +684,11 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg CHANNEL: --channel -c +takes_value
                     "Optional additional release channel to upload package to. \
                      Packages are always uploaded to `unstable`, regardless \
-                     of the value of this option.")
+                     of the value of this option")
                 (@arg FORCE: --force "Skips checking availability of package and \
                     force uploads, potentially overwriting a stored copy of a package. \
                     (default: false)")
-                (@arg NO_BUILD: --("no-build")  "Disable auto-build for all packages in this upload.")
+                (@arg NO_BUILD: --("no-build")  "Disable auto-build for all packages in this upload")
                 (@arg HART_FILE: +required +multiple {file_exists}
                     "One or more filepaths to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
@@ -1031,16 +1031,16 @@ fn sub_pkg_download() -> App<'static, 'static> {
     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
     (@arg BLDR_URL: --url -u +takes_value {valid_url}
         "Specify an alternate Builder endpoint. If not specified, the value will \
-         be taken from the HAB_BLDR_URL environment variable if defined.")
+         be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)")
     (@arg CHANNEL: --channel -c +takes_value default_value[stable] env(ChannelIdent::ENVVAR)
-        "Download from the specified release channel. Overridden if channel is specified in toml file.")
+        "Download from the specified release channel. Overridden if channel is specified in toml file")
     (@arg DOWNLOAD_DIRECTORY: --("download-directory") +takes_value "The path to store downloaded artifacts")
     (@arg PKG_IDENT_FILE: --file +takes_value +multiple {valid_ident_or_toml_file}
         "File with newline separated package identifiers, or TOML file (ending with .toml extension)")
     (@arg PKG_IDENT: +multiple {valid_ident}
             "One or more Habitat package identifiers (ex: acme/redis)")
     (@arg PKG_TARGET: --target -t +takes_value {valid_target}
-            "Target architecture to fetch. E.g. x86_64-linux. Overridden if architecture is specified in toml file.")
+            "Target architecture to fetch. E.g. x86_64-linux. Overridden if architecture is specified in toml file")
     (@arg VERIFY: --verify
             "Verify package integrity after download (Warning: this can be slow)")
     );

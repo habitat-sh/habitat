@@ -1,3 +1,4 @@
+use crate::cli::valid_fully_qualified_ident;
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    fs::CACHE_KEY_PATH,
                    package::PackageIdent};
@@ -50,6 +51,15 @@ pub struct CacheKeyPath {
 pub struct PkgIdent {
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
     #[structopt(name = "PKG_IDENT")]
+    pkg_ident: PackageIdent,
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version)]
+#[allow(dead_code)]
+pub struct FullyQualifiedPkgIdent {
+    /// A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
+    #[structopt(name = "PKG_IDENT", validator = valid_fully_qualified_ident)]
     pkg_ident: PackageIdent,
 }
 
