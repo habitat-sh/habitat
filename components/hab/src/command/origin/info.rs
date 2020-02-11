@@ -20,7 +20,6 @@ pub async fn start(ui: &mut UI,
     match api_client.origin_info(token, origin).await {
         Ok(resp) => {
             if to_json {
-                // match as_json(&resp) {
                 match resp.as_json() {
                     Ok(body) => {
                         println!("{}", body);
