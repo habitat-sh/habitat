@@ -216,4 +216,180 @@ fn hab_help() {
     let help2 = help(hab_file_upload2);
     assert_eq!(help1, help2);
     assert_eq!(help1, help2);
+
+    // hab origin
+    let hab_origin1 = sub(&hab1, "origin");
+    let hab_origin2 = sub(&hab2, "origin");
+    let help1 = help(hab_origin1);
+    let help2 = help(hab_origin2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin create
+    let hab_origin_create1 = sub(&hab_origin1, "create");
+    let hab_origin_create2 = sub(&hab_origin2, "create");
+    let help1 = help(hab_origin_create1);
+    let help2 = help(hab_origin_create2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin delete
+    let hab_origin_delete1 = sub(&hab_origin1, "delete");
+    let hab_origin_delete2 = sub(&hab_origin2, "delete");
+    let help1 = help(hab_origin_delete1);
+    let help2 = help(hab_origin_delete2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin depart
+    let hab_origin_depart1 = sub(&hab_origin1, "depart");
+    let hab_origin_depart2 = sub(&hab_origin2, "depart");
+    let help1 = help(hab_origin_depart1);
+    let help2 = help(hab_origin_depart2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin invitations
+    let hab_origin_invitations1 = sub(&hab_origin1, "invitations");
+    let hab_origin_invitations2 = sub(&hab_origin2, "invitations");
+    let help1 = help(hab_origin_invitations1);
+    let help2 = help(hab_origin_invitations2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin invitations accept
+    let hab_origin_invitations_accept1 = sub(&hab_origin_invitations1, "accept");
+    let hab_origin_invitations_accept2 = sub(&hab_origin_invitations2, "accept");
+    let help1 = help(hab_origin_invitations_accept1);
+    let help2 = help(hab_origin_invitations_accept2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin invitations ignore
+    let hab_origin_invitations_ignore1 = sub(&hab_origin_invitations1, "ignore");
+    let hab_origin_invitations_ignore2 = sub(&hab_origin_invitations2, "ignore");
+    let help1 = help(hab_origin_invitations_ignore1);
+    let help2 = help(hab_origin_invitations_ignore2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin invitations list
+    let hab_origin_invitations_list1 = sub(&hab_origin_invitations1, "list");
+    let hab_origin_invitations_list2 = sub(&hab_origin_invitations2, "list");
+    let help1 = help(hab_origin_invitations_list1);
+    let help2 = help(hab_origin_invitations_list2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin invitations pending
+    let hab_origin_invitations_pending1 = sub(&hab_origin_invitations1, "pending");
+    let hab_origin_invitations_pending2 = sub(&hab_origin_invitations2, "pending");
+    let help1 = help(hab_origin_invitations_pending1);
+    let help2 = help(hab_origin_invitations_pending2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin invitations rescind
+    let hab_origin_invitations_rescind1 = sub(&hab_origin_invitations1, "rescind");
+    let hab_origin_invitations_rescind2 = sub(&hab_origin_invitations2, "rescind");
+    let help1 = help(hab_origin_invitations_rescind1);
+    let help2 = help(hab_origin_invitations_rescind2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin invitations send
+    let hab_origin_invitations_send1 = sub(&hab_origin_invitations1, "send");
+    let hab_origin_invitations_send2 = sub(&hab_origin_invitations2, "send");
+    let help1 = help(hab_origin_invitations_send1);
+    let help2 = help(hab_origin_invitations_send2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin key
+    let hab_origin_key1 = sub(&hab_origin1, "key");
+    let hab_origin_key2 = sub(&hab_origin2, "key");
+    let help1 = help(hab_origin_key1);
+    let help2 = help(hab_origin_key2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin key download
+    let hab_origin_key_download1 = sub(&hab_origin_key1, "download");
+    let hab_origin_key_download2 = sub(&hab_origin_key2, "download");
+    let help1 = help(hab_origin_key_download1);
+    let help2 = help(hab_origin_key_download2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin key export
+    let hab_origin_key_export1 = sub(&hab_origin_key1, "export");
+    let hab_origin_key_export2 = sub(&hab_origin_key2, "export");
+    let help1 = help(hab_origin_key_export1);
+    let help2 = help(hab_origin_key_export2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin key generate
+    let hab_origin_key_generate1 = sub(&hab_origin_key1, "generate");
+    let hab_origin_key_generate2 = sub(&hab_origin_key2, "generate");
+    let help1 = help(hab_origin_key_generate1);
+    let help2 = help(hab_origin_key_generate2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin key import
+    let hab_origin_key_import1 = sub(&hab_origin_key1, "import");
+    let hab_origin_key_import2 = sub(&hab_origin_key2, "import");
+    let help1 = help(hab_origin_key_import1);
+    let help2 = help(hab_origin_key_import2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin key upload
+    let hab_origin_key_upload1 = sub(&hab_origin_key1, "upload");
+    let hab_origin_key_upload2 = sub(&hab_origin_key2, "upload");
+    let help1 = help(hab_origin_key_upload1);
+    let help2 = help(hab_origin_key_upload2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin secret
+    let hab_origin_secret1 = sub(&hab_origin1, "secret");
+    let hab_origin_secret2 = sub(&hab_origin2, "secret");
+    let help1 = help(hab_origin_secret1);
+    let help2 = help(hab_origin_secret2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin secret delete
+    let hab_origin_secret_delete1 = sub(&hab_origin_secret1, "delete");
+    let hab_origin_secret_delete2 = sub(&hab_origin_secret2, "delete");
+    let help1 = help(hab_origin_secret_delete1);
+    let help2 = help(hab_origin_secret_delete2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin secret list
+    let hab_origin_secret_list1 = sub(&hab_origin_secret1, "list");
+    let hab_origin_secret_list2 = sub(&hab_origin_secret2, "list");
+    let help1 = help(hab_origin_secret_list1);
+    let help2 = help(hab_origin_secret_list2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin secret upload
+    let hab_origin_secret_upload1 = sub(&hab_origin_secret1, "upload");
+    let hab_origin_secret_upload2 = sub(&hab_origin_secret2, "upload");
+    let help1 = help(hab_origin_secret_upload1);
+    let help2 = help(hab_origin_secret_upload2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab origin transfer
+    let hab_origin_transfer1 = sub(&hab_origin1, "transfer");
+    let hab_origin_transfer2 = sub(&hab_origin2, "transfer");
+    let help1 = help(hab_origin_transfer1);
+    let help2 = help(hab_origin_transfer2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
 }

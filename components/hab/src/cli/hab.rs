@@ -3,6 +3,7 @@ mod cli;
 mod config;
 mod file;
 mod license;
+mod origin;
 #[cfg(test)]
 mod tests;
 mod util;
@@ -11,7 +12,8 @@ use self::{bldr::Bldr,
            cli::Cli,
            config::ServiceConfig,
            file::File,
-           license::License};
+           license::License,
+           origin::Origin};
 use crate::VERSION;
 use configopt::{ConfigOptDefaults,
                 Partial};
@@ -49,9 +51,8 @@ pub enum Hab {
     File(File),
     #[structopt(no_version)]
     License(License),
-    /// Commands relating to Habitat Builder origins
     #[structopt(no_version)]
-    Origin,
+    Origin(Origin),
     /// Commands relating to Habitat packages
     #[structopt(no_version)]
     Pkg,

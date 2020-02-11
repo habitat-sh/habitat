@@ -307,7 +307,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg ORIGIN: +required {valid_origin} "The origin to be created")
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                      "Specify an alternate Builder endpoint. If not specified, the value will \
-                     be taken from the `HAB_BLDR_URL` environment variable if defined. (default: \
+                     be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                      https://bldr.habitat.sh)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
@@ -317,7 +317,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg ORIGIN: +required {valid_origin} "The origin name")
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                      "Specify an alternate Builder endpoint. If not specified, the value will \
-                     be taken from the `HAB_BLDR_URL` environment variable if defined. (default: \
+                     be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                      https://bldr.habitat.sh)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
@@ -326,7 +326,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg ORIGIN: +required {valid_origin} "The origin name")
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                      "Specify an alternate Builder endpoint. If not specified, the value will \
-                     be taken from the `HAB_BLDR_URL` environment variable if defined. (default: \
+                     be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                      https://bldr.habitat.sh)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 (@arg NEW_OWNER_ACCOUNT: +required +takes_value {non_empty} "The account name of the new origin owner")
@@ -336,7 +336,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg ORIGIN: +required {valid_origin} "The origin name")
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                      "Specify an alternate Builder endpoint. If not specified, the value will \
-                     be taken from the `HAB_BLDR_URL` environment variable if defined. (default: \
+                     be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                      https://bldr.habitat.sh)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
@@ -353,13 +353,14 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (@subcommand invitations =>
                 (about: "Manage origin member invitations")
                 (@setting ArgRequiredElseHelp)
+                (@setting SubcommandRequiredElseHelp)
                 (@subcommand accept =>
                      (about: "Accept an origin member invitation")
                      (@arg ORIGIN: +required {valid_origin} "The origin name the invitation applies to")
                      (@arg INVITATION_ID: +required +takes_value {valid_numeric::<u64>} "The id of the invitation to accept")
                      (@arg BLDR_URL: -u --url +takes_value {valid_url}
                           "Specify an alternate Builder endpoint. If not specified, the value will \
-                          be taken from the `HAB_BLDR_URL` environment variable if defined. (default: \
+                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                           https://bldr.habitat.sh)")
                      (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
@@ -369,7 +370,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                      (@arg INVITATION_ID: +required +takes_value {valid_numeric::<u64>} "The id of the invitation to ignore")
                      (@arg BLDR_URL: -u --url +takes_value {valid_url}
                           "Specify an alternate Builder endpoint. If not specified, the value will \
-                          be taken from the `HAB_BLDR_URL` environment variable if defined. (default: \
+                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                           https://bldr.habitat.sh)")
                      (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
@@ -377,16 +378,16 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                      (about: "List origin invitations sent to your account")
                      (@arg BLDR_URL: -u --url +takes_value {valid_url}
                           "Specify an alternate Builder endpoint. If not specified, the value will \
-                          be taken from the `HAB_BLDR_URL` environment variable if defined. (default: \
+                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                           https://bldr.habitat.sh)")
                      (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
                 (@subcommand pending =>
-                     (about: "List pending invitations for a particular origin. Requires that you are the origin owner.")
-                     (@arg ORIGIN: +required {valid_origin} "The name of the origin you wish to list invitations for ")
+                     (about: "List pending invitations for a particular origin. Requires that you are the origin owner")
+                     (@arg ORIGIN: +required {valid_origin} "The name of the origin you wish to list invitations for")
                      (@arg BLDR_URL: -u --url +takes_value {valid_url}
                           "Specify an alternate Builder endpoint. If not specified, the value will \
-                          be taken from the `HAB_BLDR_URL` environment variable if defined. (default: \
+                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                           https://bldr.habitat.sh)")
                      (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
@@ -396,7 +397,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                      (@arg INVITATION_ID: +required +takes_value {valid_numeric::<u64>} "The id of the invitation to rescind")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                           "Specify an alternate Builder endpoint. If not specified, the value will \
-                          be taken from the `HAB_BLDR_URL` environment variable if defined. (default: \
+                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                           https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
@@ -406,7 +407,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                      (@arg INVITEE_ACCOUNT: +required +takes_value {non_empty} "The account name to invite into the origin")
                      (@arg BLDR_URL: -u --url +takes_value {valid_url}
                           "Specify an alternate Builder endpoint. If not specified, the value will \
-                          be taken from the `HAB_BLDR_URL` environment variable if defined. (default: \
+                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                           https://bldr.habitat.sh)")
                      (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
@@ -436,7 +437,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@subcommand export =>
                     (about: "Outputs the latest origin key contents to stdout")
                     (aliases: &["e", "ex", "exp", "expo", "expor"])
-                    (@arg ORIGIN: +required +takes_value {valid_origin})
+                    (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name")
                     (@arg PAIR_TYPE: -t --type +takes_value {valid_pair_type}
                         "Export either the 'public' or 'secret' key. The 'secret' key is the origin private key")
                     (arg: arg_cache_key_path())
@@ -480,12 +481,12 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@setting ArgRequiredElseHelp)
                 (@setting SubcommandRequiredElseHelp)
                 (@subcommand upload =>
-                    (about: "Create and upload a secret for your origin.")
+                    (about: "Create and upload a secret for your origin")
                     (@arg KEY_NAME: +required +takes_value
                         "The name of the variable key to be injected into the studio. \
                         Ex: KEY=\"some_value\"")
                     (@arg SECRET: +required +takes_value
-                        "The contents of the variable to be injected into the studio.")
+                        "The contents of the variable to be injected into the studio")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint. If not specified, the value will \
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
@@ -499,7 +500,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@subcommand delete =>
                     (about: "Delete a secret for your origin")
                     (@arg KEY_NAME: +required +takes_value
-                        "The name of the variable key to be injected into the studio.")
+                        "The name of the variable key to be injected into the studio")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint. If not specified, the value will \
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
