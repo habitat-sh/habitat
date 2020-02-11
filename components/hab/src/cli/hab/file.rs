@@ -1,7 +1,7 @@
-use super::util::CacheKeyPath;
+use super::util::{CacheKeyPath,
+                  RemoteSup};
 use crate::cli::file_exists;
 use habitat_core::service::ServiceGroup;
-use std::net::SocketAddr;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
@@ -23,9 +23,8 @@ pub enum File {
         /// Name of the user key
         #[structopt(name = "USER", short = "u", long = "user")]
         user:           Option<String>,
-        /// Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
-        #[structopt(name = "REMOTE_SUP", long = "remote-sup", short = "r")]
-        remote_sup:     Option<SocketAddr>,
+        #[structopt(flatten)]
+        remote_sup:     RemoteSup,
         #[structopt(flatten)]
         cache_key_path: CacheKeyPath,
     },

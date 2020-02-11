@@ -1,10 +1,11 @@
+use super::util::{AuthToken,
+                  BldrUrl,
+                  PkgIdent};
 use crate::cli::valid_origin;
 use habitat_common::cli::PACKAGE_TARGET_ENVVAR;
-use habitat_core::package::{PackageIdent,
-                            PackageTarget};
+use habitat_core::package::PackageTarget;
 use structopt::{clap::ArgGroup,
                 StructOpt};
-use url::Url;
 
 #[derive(StructOpt)]
 #[structopt(no_version)]
@@ -22,10 +23,8 @@ pub enum Bldr {
 pub enum Channel {
     /// Creates a new channel
     Create {
-        /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
-        /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-        #[structopt(name = "BLDR_URL", short = "u", long = "url")]
-        bldr_url: Option<Url>,
+        #[structopt(flatten)]
+        bldr_url: BldrUrl,
         /// The channel name
         #[structopt(name = "CHANNEL")]
         channel:  String,
@@ -39,10 +38,8 @@ pub enum Channel {
     },
     /// Atomically demotes selected packages in a target channel
     Demote {
-        /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
-        /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-        #[structopt(name = "BLDR_URL", short = "u", long = "url")]
-        bldr_url:       Option<Url>,
+        #[structopt(flatten)]
+        bldr_url:       BldrUrl,
         /// The origin for the channels. Default is from 'HAB_ORIGIN' or cli.toml
         #[structopt(name = "ORIGIN",
                     short = "o",
@@ -55,16 +52,13 @@ pub enum Channel {
         /// The channel selected packages will be removed from
         #[structopt(name = "TARGET_CHANNEL")]
         target_channel: String,
-        /// Authentication token for Builder
-        #[structopt(name = "AUTH_TOKEN", short = "z", long = "auth")]
-        auth_token:     Option<String>,
+        #[structopt(flatten)]
+        auth_token:     AuthToken,
     },
     /// Destroys a channel
     Destroy {
-        /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
-        ///  the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-        #[structopt(name = "BLDR_URL", short = "u", long = "url")]
-        bldr_url: Option<Url>,
+        #[structopt(flatten)]
+        bldr_url: BldrUrl,
         /// The channel name
         #[structopt(name = "CHANNEL")]
         channel:  String,
@@ -77,20 +71,16 @@ pub enum Channel {
     },
     /// Lists origin channels
     List {
-        /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
-        /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-        #[structopt(name = "BLDR_URL", short = "u", long = "url")]
-        bldr_url: Option<Url>,
+        #[structopt(flatten)]
+        bldr_url: BldrUrl,
         /// The origin for which channels will be listed. Default is from 'HAB_ORIGIN' or cli.toml
         #[structopt(name = "ORIGIN", validator = valid_origin)]
         origin:   Option<String>,
     },
     /// Atomically promotes all packages in channel
     Promote {
-        /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
-        /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-        #[structopt(name = "BLDR_URL", short = "u", long = "url")]
-        bldr_url:       Option<Url>,
+        #[structopt(flatten)]
+        bldr_url:       BldrUrl,
         /// The origin for the channels. Default is from 'HAB_ORIGIN' or cli.toml
         #[structopt(name = "ORIGIN",
                     short = "o",
@@ -103,9 +93,8 @@ pub enum Channel {
         /// The channel to which packages will be promoted
         #[structopt(name = "TARGET_CHANNEL")]
         target_channel: String,
-        /// Authentication token for Builder
-        #[structopt(name = "AUTH_TOKEN", short = "z", long = "auth")]
-        auth_token:     Option<String>,
+        #[structopt(flatten)]
+        auth_token:     AuthToken,
     },
 }
 
@@ -133,16 +122,13 @@ pub enum Job {
         /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
         #[structopt(name = "GROUP_ID")]
         group_id:   String,
-        /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
-        /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-        #[structopt(name = "BLDR_URL", short = "u", long = "url")]
-        bldr_url:   Option<Url>,
+        #[structopt(flatten)]
+        bldr_url:   BldrUrl,
         /// Don't prompt for confirmation
         #[structopt(name = "FORCE", short = "f", long = "force")]
         force:      bool,
-        /// Authentication token for Builder
-        #[structopt(name = "AUTH_TOKEN", short = "z", long = "auth")]
-        auth_token: Option<String>,
+        #[structopt(flatten)]
+        auth_token: AuthToken,
     },
     /// Demote packages from a completed build job from a specified channel
     Demote {
@@ -161,13 +147,10 @@ pub enum Job {
         /// Allow editing the list of demotable packages
         #[structopt(name = "INTERACTIVE", short = "i", long = "interactive")]
         interactive: bool,
-        /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
-        /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-        #[structopt(name = "BLDR_URL", short = "u", long = "url")]
-        bldr_url:    Option<Url>,
-        /// Authentication token for Builder
-        #[structopt(name = "AUTH_TOKEN", short = "z", long = "auth")]
-        auth_token:  Option<String>,
+        #[structopt(flatten)]
+        bldr_url:    BldrUrl,
+        #[structopt(flatten)]
+        auth_token:  AuthToken,
     },
     /// Promote packages from a completed build job to a specified channel
     Promote {
@@ -186,29 +169,22 @@ pub enum Job {
         /// Allow editing the list of promotable packages
         #[structopt(name = "INTERACTIVE", short = "i", long = "interactive")]
         interactive: bool,
-        /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
-        /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-        #[structopt(name = "BLDR_URL", short = "u", long = "url")]
-        bldr_url:    Option<Url>,
-        /// Authentication token for Builder
-        #[structopt(name = "AUTH_TOKEN", short = "z", long = "auth")]
-        auth_token:  Option<String>,
+        #[structopt(flatten)]
+        bldr_url:    BldrUrl,
+        #[structopt(flatten)]
+        auth_token:  AuthToken,
     },
     /// Schedule a build job or group of jobs
     Start {
-        /// The origin and name of the package to schedule a job for (eg: core/redis)
-        #[structopt(name = "PKG_IDENT")]
-        pkg_ident:  PackageIdent,
+        #[structopt(flatten)]
+        pkg_ident:  PkgIdent,
         /// A package target (ex: x86_64-windows) (default: system appropriate target)
         #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
         pkg_target: Option<PackageTarget>,
-        /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
-        /// the cli.toml or HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-        #[structopt(name = "BLDR_URL", short = "u", long = "url")]
-        bldr_url:   Option<Url>,
-        /// Authentication token for Builder
-        #[structopt(name = "AUTH_TOKEN", short = "z", long = "auth")]
-        auth_token: Option<String>,
+        #[structopt(flatten)]
+        bldr_url:   BldrUrl,
+        #[structopt(flatten)]
+        auth_token: AuthToken,
         /// Schedule jobs for this package and all of its reverse dependencies
         #[structopt(name = "GROUP", short = "g", long = "group")]
         group:      bool,
@@ -223,9 +199,7 @@ pub enum Job {
         /// Show the status of all build jobs for a retrieved job group
         #[structopt(name = "SHOW_JOBS", short = "s", long = "showjobs")]
         show_jobs: bool,
-        /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
-        /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-        #[structopt(name = "BLDR_URL", short = "u", long = "url")]
-        bldr_url:  Option<Url>,
+        #[structopt(flatten)]
+        bldr_url:  BldrUrl,
     },
 }

@@ -141,11 +141,11 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (about: "Schedule a build job or group of jobs")
                     (aliases: &["s", "st", "sta", "star"])
                     (@arg PKG_IDENT: +required +takes_value {valid_ident}
-                        "The origin and name of the package to schedule a job for (eg: core/redis)")
+                        "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                     (arg: arg_target())
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the cli.toml or HAB_BLDR_URL environment variable if defined. \
+                         be taken from the HAB_BLDR_URL environment variable if defined. \
                          (default: https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                     (@arg GROUP: -g --group "Schedule jobs for this package and all of its reverse \

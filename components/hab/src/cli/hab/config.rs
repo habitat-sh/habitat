@@ -1,8 +1,8 @@
-use super::util::CacheKeyPath;
+use super::util::{CacheKeyPath,
+                  PkgIdent,
+                  RemoteSup};
 use crate::cli::file_exists_or_stdin;
-use habitat_core::{package::PackageIdent,
-                   service::ServiceGroup};
-use std::net::SocketAddr;
+use habitat_core::service::ServiceGroup;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
@@ -24,19 +24,16 @@ pub enum ServiceConfig {
         /// Name of a user key to use for encryption
         #[structopt(name = "USER", short = "u", long = "user")]
         user:           Option<String>,
-        /// Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
-        #[structopt(name = "REMOTE_SUP", long = "remote-sup", short = "r")]
-        remote_sup:     Option<SocketAddr>,
+        #[structopt(flatten)]
+        remote_sup:     RemoteSup,
         #[structopt(flatten)]
         cache_key_path: CacheKeyPath,
     },
     /// Displays the default configuration options for a service
     Show {
-        /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
-        #[structopt(name = "PKG_IDENT")]
-        pkg_ident:  PackageIdent,
-        /// Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
-        #[structopt(name = "REMOTE_SUP", long = "remote-sup", short = "r")]
-        remote_sup: Option<SocketAddr>,
+        #[structopt(flatten)]
+        pkg_ident:  PkgIdent,
+        #[structopt(flatten)]
+        remote_sup: RemoteSup,
     },
 }
