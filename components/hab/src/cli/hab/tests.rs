@@ -664,4 +664,12 @@ fn hab_help() {
     let help2 = help(hab_ring_key_import2);
     assert_eq!(help1, help2);
     assert_eq!(help1, help2);
+
+    // hab studio
+    let hab_studio1 = sub(&hab1, "studio");
+    let hab_studio2 = sub(&hab2, "studio");
+    let help1 = help(hab_studio1);
+    let help2 = help(hab_studio2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
 }
