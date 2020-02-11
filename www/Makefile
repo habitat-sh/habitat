@@ -6,7 +6,7 @@ build: clean
 	bundle exec middleman build
 .PHONY: build
 
-clean:
+clean: clean_tmp
 	rm -rf build
 
 run: build
@@ -28,14 +28,12 @@ cli_docs:
 	hab pkg binlink core/node --dest=/bin && \
 	/bin/node scripts/generate-cli-docs > source/docs/habitat-cli.html.md.erb"
 
-template_reference:
+template_reference: clean_tmp
 	mkdir tmp
 	cp ../components/sup/doc/* tmp/
-	hab studio run "hab pkg install core/node && \
-	hab pkg binlink core/node --dest=/bin && \
-	npm install json-schema-ref-parser@6.1.0 && \
-	/bin/node scripts/generate-template-reference.js tmp/render_context_schema.json > ./source/partials/docs/_reference-template-data.html.md.erb"
-	rm -rf tmp
+	hab studio -D run "hab pkg install core/node && \
+	hab pkg exec core/node npm install json-schema-ref-parser@6.1.0 && \
+	hab pkg exec core/node node scripts/generate-template-reference.js tmp/render_context_schema.json > ./source/partials/docs/_reference-template-data.html.md.erb"
 
 check-env:
 ifndef AWS_DEFAULT_REGION
@@ -44,3 +42,6 @@ endif
 ifndef FASTLY_SERVICE_KEY
 	$(error FASTLY_SERVICE_KEY is undefined)
 endif
+
+clean_tmp:
+	rm -Rf tmp
