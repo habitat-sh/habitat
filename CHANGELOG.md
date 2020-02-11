@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.29 -->
-## [1.5.29](https://github.com/habitat-sh/habitat/tree/1.5.29) (2020-02-11)
+<!-- latest_release 1.5.30 -->
+## [1.5.30](https://github.com/habitat-sh/habitat/tree/1.5.30) (2020-02-11)
 
 #### Merged Pull Requests
-- [CI] Retry all Windows E2E test stages one time on failure [#7443](https://github.com/habitat-sh/habitat/pull/7443) ([christophermaier](https://github.com/christophermaier))
+- windows-service improvements [#7422](https://github.com/habitat-sh/habitat/pull/7422) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.0 -->
@@ -15,6 +15,7 @@
 - hab origin invitations subcommand [#7349](https://github.com/habitat-sh/habitat/pull/7349) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.4 -->
 
 #### Merged Pull Requests
+- windows-service improvements [#7422](https://github.com/habitat-sh/habitat/pull/7422) ([mwrock](https://github.com/mwrock)) <!-- 1.5.30 -->
 - [CI] Retry all Windows E2E test stages one time on failure [#7443](https://github.com/habitat-sh/habitat/pull/7443) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.29 -->
 - add missing ArgRequiredElseHelp clap setting [#7440](https://github.com/habitat-sh/habitat/pull/7440) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.28 -->
 - close atomic writer temp file before rename [#7431](https://github.com/habitat-sh/habitat/pull/7431) ([mwrock](https://github.com/mwrock)) <!-- 1.5.27 -->
