@@ -1,6 +1,6 @@
 use crate::{api_client::{self,
                          Client,
-                         Tabular},
+                         TabularText},
             common::ui::{Status,
                          UIWriter,
                          UI},

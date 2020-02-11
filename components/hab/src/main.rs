@@ -225,6 +225,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 ("delete", Some(m)) => sub_origin_delete(ui, m).await?,
                 ("transfer", Some(m)) => sub_origin_transfer_ownership(ui, m).await?,
                 ("depart", Some(m)) => sub_origin_depart(ui, m).await?,
+                ("info", Some(m)) => sub_origin_info(ui, m).await?,
                 _ => unreachable!(),
             }
         }
@@ -480,6 +481,14 @@ async fn sub_origin_create(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
     command::origin::create::start(ui, &url, &token, &origin).await
+}
+
+async fn sub_origin_info(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let origin = m.value_of("ORIGIN").expect("required ORIGIN");
+    let url = bldr_url_from_matches(&m)?;
+    let token = auth_token_param_or_env(&m)?;
+    let to_json = m.is_present("TO_JSON");
+    command::origin::info::start(ui, &url, &token, &origin, to_json).await
 }
 
 async fn sub_origin_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {

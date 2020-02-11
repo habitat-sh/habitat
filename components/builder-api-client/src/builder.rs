@@ -12,6 +12,7 @@ use crate::{allow_std_io::AllowStdIo,
             response,
             BuildOnUpload,
             DisplayProgress,
+            OriginInfoResponse,
             OriginKeyIdent,
             OriginSecret,
             Package,
@@ -685,6 +686,15 @@ impl BuilderAPIClient {
                                        token: &str)
                                        -> Result<UserOriginInvitationsResponse> {
         let path = "user/invitations";
+
+        let resp = self.0.get(&path).bearer_auth(token).send().await?;
+        let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
+
+        Ok(resp.json().await?)
+    }
+
+    pub async fn origin_info(&self, token: &str, origin: &str) -> Result<OriginInfoResponse> {
+        let path = format!("depot/origins/{}", origin);
 
         let resp = self.0.get(&path).bearer_auth(token).send().await?;
         let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
