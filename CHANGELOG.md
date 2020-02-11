@@ -7,15 +7,22 @@
 - windows-service improvements [#7422](https://github.com/habitat-sh/habitat/pull/7422) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.5.0 -->
-### Changes since 1.5.0 release
+<!-- release_rollup since=1.5.29 -->
+### Changes since 1.5.29 release
+
+#### Merged Pull Requests
+- windows-service improvements [#7422](https://github.com/habitat-sh/habitat/pull/7422) ([mwrock](https://github.com/mwrock)) <!-- 1.5.30 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release -->
+## [1.5.29](https://github.com/habitat-sh/habitat/tree/1.5.29) (2020-02-11)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/1.5.0...1.5.29)
 
 #### New Features & Enhancements
 - Experimental config file support behind `HAB_FEAT_CONFIG_FILE` feature flag [#7360](https://github.com/habitat-sh/habitat/pull/7360) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.25 -->
 - hab origin invitations subcommand [#7349](https://github.com/habitat-sh/habitat/pull/7349) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.4 -->
 
 #### Merged Pull Requests
-- windows-service improvements [#7422](https://github.com/habitat-sh/habitat/pull/7422) ([mwrock](https://github.com/mwrock)) <!-- 1.5.30 -->
 - [CI] Retry all Windows E2E test stages one time on failure [#7443](https://github.com/habitat-sh/habitat/pull/7443) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.29 -->
 - add missing ArgRequiredElseHelp clap setting [#7440](https://github.com/habitat-sh/habitat/pull/7440) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.28 -->
 - close atomic writer temp file before rename [#7431](https://github.com/habitat-sh/habitat/pull/7431) ([mwrock](https://github.com/mwrock)) <!-- 1.5.27 -->
@@ -44,9 +51,7 @@
 - Update manual validation docs [#7365](https://github.com/habitat-sh/habitat/pull/7365) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.3 -->
 - Stop committing the results of a promotion command [#7366](https://github.com/habitat-sh/habitat/pull/7366) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.2 -->
 - Lint powershell with PSScriptAnalyzer [#7337](https://github.com/habitat-sh/habitat/pull/7337) ([mwrock](https://github.com/mwrock)) <!-- 1.5.1 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release -->
 ## [1.5.0](https://github.com/habitat-sh/habitat/tree/1.5.0) (2020-01-29)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.90.6...1.5.0)
 
