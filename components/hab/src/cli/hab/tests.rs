@@ -600,4 +600,28 @@ fn hab_help() {
     let help2 = help(hab_pkg_verify2);
     assert_eq!(help1, help2);
     assert_eq!(help1, help2);
+
+    // hab plan
+    let hab_plan1 = sub(&hab1, "plan");
+    let hab_plan2 = sub(&hab2, "plan");
+    let help1 = help(hab_plan1);
+    let help2 = help(hab_plan2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab plan init
+    let hab_plan_init1 = sub(&hab_plan1, "init");
+    let hab_plan_init2 = sub(&hab_plan2, "init");
+    let help1 = help(hab_plan_init1);
+    let help2 = help(hab_plan_init2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
+
+    // hab plan render
+    let hab_plan_render1 = sub(&hab_plan1, "render");
+    let hab_plan_render2 = sub(&hab_plan2, "render");
+    let help1 = help(hab_plan_render1);
+    let help2 = help(hab_plan_render2);
+    assert_eq!(help1, help2);
+    assert_eq!(help1, help2);
 }

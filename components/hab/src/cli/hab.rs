@@ -5,6 +5,7 @@ mod file;
 mod license;
 mod origin;
 mod pkg;
+mod plan;
 #[cfg(test)]
 mod tests;
 mod util;
@@ -15,7 +16,8 @@ use self::{bldr::Bldr,
            file::File,
            license::License,
            origin::Origin,
-           pkg::Pkg};
+           pkg::Pkg,
+           plan::Plan};
 use crate::VERSION;
 use configopt::{ConfigOptDefaults,
                 Partial};
@@ -57,9 +59,8 @@ pub enum Hab {
     Origin(Origin),
     #[structopt(no_version)]
     Pkg(Pkg),
-    /// Commands relating to plans and other app-specific configuration
     #[structopt(no_version)]
-    Plan,
+    Plan(Plan),
     /// Commands relating to Habitat rings
     #[structopt(no_version)]
     Ring,
