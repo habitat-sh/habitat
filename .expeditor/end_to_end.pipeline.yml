@@ -74,6 +74,9 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:windows: Start-Service]"
     command:
@@ -85,6 +88,9 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:windows: cleanly-shutdown-supervisor]"
     command:
@@ -96,6 +102,9 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:windows: hab-svc-load-with-svc-user]"
     command:
@@ -107,6 +116,9 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:windows: test_supervisor_binds]"
     command:
@@ -118,6 +130,9 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:linux: test_supervisor_binds]"
     command:
@@ -141,6 +156,9 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:linux: test_launcher_checks_supervisor_version]"
     command:
@@ -223,6 +241,9 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:linux: test_studio_auto_installs]"
     command:
@@ -259,6 +280,9 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
             - HAB_ORIGIN
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:linux: :docker: test_studio_with_ssl_cert_file_envvar_set]"
     command:
@@ -283,6 +307,9 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
             - HAB_ORIGIN
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:windows: :docker: test_studio_version]"
     command:
@@ -294,6 +321,9 @@ steps:
       executor:
         windows:
           os_version: 2019
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:linux: test_studio_version]"
     command:
@@ -332,6 +362,9 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
             - HAB_ORIGIN
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:windows: :docker: test_studio_supervisor]"
     command:
@@ -344,6 +377,9 @@ steps:
       executor:
         windows:
           os_version: 2019
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:linux: test_fresh_install_can_communicate_with_builder]"
     command:
@@ -378,6 +414,9 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
             - HAB_ORIGIN
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:windows: test_studio_can_build_packages_with_pkg_version_function]"
     command:
@@ -390,6 +429,9 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
             - HAB_ORIGIN
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:windows: test_studio_can_build_scaffolded_package]"
     command:
@@ -402,7 +444,10 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
             - HAB_ORIGIN
- 
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[:linux: test_studio_unmount_with_long_filesystem]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_unmount_with_long_filesystem
@@ -434,6 +479,9 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:windows: test_ssl_certificate_loading]"
     command:
@@ -446,6 +494,9 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
             - HAB_ORIGIN
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:linux: test_pkg_download]"
     command:
@@ -489,6 +540,9 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
+    retry:
+      automatic:
+        limit: 1
 
   - label: "[:linux: test pids from Launcher with compatible Launcher]"
     command:
