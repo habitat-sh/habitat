@@ -1,5 +1,20 @@
 . {{pkg.path}}\bin\habitat.ps1
 
+function Set-LauncherPath {
+    $launcherPath = '{{pkgPathFor "core/hab-launcher"}}\bin\hab-launch.exe'
+    [xml]$configXml = Get-Content (Join-Path "{{pkg.svc_path}}" HabService.dll.config)
+    $launcherPathNodeList = $configXml.configuration.appSettings.SelectNodes("add[@key='launcherPath']")
+    if($launcherPathNodeList.Count -eq 0) {
+        $launcherPathNode = $configXml.CreateElement("add")
+        $launcherPathNode.SetAttribute("key", "launcherPath") | Out-Null
+        $configXml.configuration.appSettings.AppendChild($launcherPathNode) | Out-Null
+    } else {
+        $launcherPathNode = $launcherPathNodeList[0]
+    }
+    $launcherPathNode.SetAttribute("value", $launcherPath) | Out-Null
+    $configXml.Save((Join-Path "{{pkg.svc_path}}" HabService.dll.config))
+}
+
 $isRunning = $false
 
 if((Get-Service Habitat -ErrorAction SilentlyContinue) -ne $null) {
@@ -20,6 +35,8 @@ Install-HabService
 if(Test-Path $configPathBU) {
     Move-Item $configPathBU $configPath -Force
 }
+
+Set-LauncherPath
 
 if($isRunning) {
     Start-Service Habitat
