@@ -9,6 +9,7 @@ mod plan;
 mod ring;
 mod studio;
 pub mod sup;
+mod svc;
 #[cfg(test)]
 mod tests;
 mod util;
@@ -23,7 +24,8 @@ use self::{bldr::Bldr,
            plan::Plan,
            ring::Ring,
            studio::Studio,
-           sup::Sup};
+           sup::Sup,
+           svc::Svc};
 use crate::VERSION;
 use structopt::{clap::AppSettings,
                 StructOpt};
@@ -61,9 +63,8 @@ pub enum Hab {
     /// Create a tarball of Habitat Supervisor data to send to support
     #[structopt(no_version)]
     Supportbundle,
-    /// Commands relating to Habitat services
     #[structopt(no_version)]
-    Svc,
+    Svc(Svc),
     /// Commands relating to Habitat users
     #[structopt(no_version)]
     User,

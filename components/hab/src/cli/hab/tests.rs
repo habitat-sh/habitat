@@ -648,6 +648,69 @@ fn hab_help() {
     let help1 = help(hab_sup_term1);
     let help2 = help(hab_sup_term2);
     assert_eq!(help1, help2);
+
+    // hab supportbundle
+    let hab_supportbundle1 = sub(&hab1, "supportbundle");
+    let hab_supportbundle2 = sub(&hab2, "supportbundle");
+    let help1 = help(hab_supportbundle1);
+    let help2 = help(hab_supportbundle2);
+    assert_eq!(help1, help2);
+
+    // hab svc
+    let hab_svc1 = sub(&hab1, "svc");
+    let hab_svc2 = sub(&hab2, "svc");
+    let help1 = help(hab_svc1);
+    let help2 = help(hab_svc2);
+    assert_eq!(help1, help2);
+
+    // hab svc key
+    let hab_svc_key1 = sub(&hab_svc1, "key");
+    let hab_svc_key2 = sub(&hab_svc2, "key");
+    let help1 = help(hab_svc_key1);
+    let help2 = help(hab_svc_key2);
+    assert_eq!(help1, help2);
+
+    // hab svc key generate
+    let hab_svc_key_generate1 = sub(&hab_svc_key1, "generate");
+    let hab_svc_key_generate2 = sub(&hab_svc_key2, "generate");
+    let help1 = help(hab_svc_key_generate1);
+    let help2 = help(hab_svc_key_generate2);
+    assert_eq!(help1, help2);
+
+    // hab svc load
+    let hab_svc_load1 = sub(&hab_svc1, "load");
+    let hab_svc_load2 = sub(&hab_svc2, "load");
+    let help1 = help(hab_svc_load1);
+    let help2 = help(hab_svc_load2);
+    assert_eq!(help1, help2);
+
+    // hab svc start
+    let hab_svc_start1 = sub(&hab_svc1, "start");
+    let hab_svc_start2 = sub(&hab_svc2, "start");
+    let help1 = help(hab_svc_start1);
+    let help2 = help(hab_svc_start2);
+    assert_eq!(help1, help2);
+
+    // hab svc status
+    let hab_svc_status1 = sub(&hab_svc1, "status");
+    let hab_svc_status2 = sub(&hab_svc2, "status");
+    let help1 = help(hab_svc_status1);
+    let help2 = help(hab_svc_status2);
+    assert_eq!(help1, help2);
+
+    // hab svc stop
+    let hab_svc_stop1 = sub(&hab_svc1, "stop");
+    let hab_svc_stop2 = sub(&hab_svc2, "stop");
+    let help1 = help(hab_svc_stop1);
+    let help2 = help(hab_svc_stop2);
+    assert_eq!(help1, help2);
+
+    // hab svc unload
+    let hab_svc_unload1 = sub(&hab_svc1, "unload");
+    let hab_svc_unload2 = sub(&hab_svc2, "unload");
+    let help1 = help(hab_svc_unload1);
+    let help2 = help(hab_svc_unload2);
+    assert_eq!(help1, help2);
 }
 
 #[test]

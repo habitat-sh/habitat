@@ -1271,9 +1271,9 @@ pub fn sub_sup_term() -> App<'static, 'static> {
 
 fn sub_svc_start() -> App<'static, 'static> {
     clap_app!(@subcommand start =>
-        (about: "Start a loaded, but stopped, Habitat service.")
+        (about: "Start a loaded, but stopped, Habitat service")
         (@arg PKG_IDENT: +required +takes_value {valid_ident}
-            "A Habitat package identifier (ex: core/redis)")
+            "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     )
@@ -1298,9 +1298,9 @@ pub fn parse_optional_arg<T: FromStr>(name: &str, m: &ArgMatches) -> Option<T>
 
 fn sub_svc_stop() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand stop =>
-        (about: "Stop a running Habitat service.")
+        (about: "Stop a running Habitat service")
         (@arg PKG_IDENT: +required +takes_value {valid_ident}
-            "A Habitat package identifier (ex: core/redis)")
+            "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     );
@@ -1311,9 +1311,9 @@ fn sub_svc_load() -> App<'static, 'static> {
     let mut sub = clap_app!(@subcommand load =>
         (about: "Load a service to be started and supervised by Habitat from a package \
             identifier. If an installed package doesn't satisfy the given package \
-            identifier, a suitable package will be installed from Builder.")
+            identifier, a suitable package will be installed from Builder")
         (@arg PKG_IDENT: +required +takes_value {valid_ident}
-            "A Habitat package identifier (ex: core/redis)")
+            "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
         // TODO (DM): These flags can eventually be removed.
         // See https://github.com/habitat-sh/habitat/issues/7339
         (@arg APPLICATION: --application -a +hidden +multiple "DEPRECATED")
@@ -1321,7 +1321,7 @@ fn sub_svc_load() -> App<'static, 'static> {
         (@arg CHANNEL: --channel +takes_value default_value[stable]
             "Receive package updates from the specified release channel")
         (@arg GROUP: --group +takes_value
-            "The service group; shared config and topology [default: default].")
+            "The service group; shared config and topology [default: default]")
         (@arg BLDR_URL: -u --url +takes_value {valid_url}
             "Specify an alternate Builder endpoint. If not specified, the value will \
              be taken from the HAB_BLDR_URL environment variable if defined. (default: \
@@ -1355,9 +1355,9 @@ fn sub_svc_load() -> App<'static, 'static> {
 fn sub_svc_unload() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand unload =>
         (about: "Unload a service loaded by the Habitat Supervisor. If the service is \
-            running it will additionally be stopped.")
+            running it will additionally be stopped")
         (@arg PKG_IDENT: +required +takes_value {valid_ident}
-            "A Habitat package identifier (ex: core/redis)")
+            "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     );
