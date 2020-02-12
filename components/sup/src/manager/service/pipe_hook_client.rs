@@ -563,7 +563,7 @@ mod test {
         };
         let handle = process::handle_from_pid(pid).expect("unable to get handle to pipe server");
         unsafe {
-            synchapi::WaitForSingleObject(handle, 100);
+            synchapi::WaitForSingleObject(handle, 500);
         }
 
         assert!(!process::is_alive(pid));

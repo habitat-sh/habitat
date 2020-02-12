@@ -46,7 +46,7 @@ try {
                 $running = $false
                 break
             }
-            Start-Sleep -Milliseconds 10
+            Start-Sleep -Milliseconds 300
         }
 
         if($np.IsConnected) {
