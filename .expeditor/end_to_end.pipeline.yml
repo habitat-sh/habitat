@@ -146,6 +146,29 @@ steps:
             - HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL="dev"
             - HAB_STUDIO_SECRET_CI_OVERRIDE_CHANNEL="dev"
 
+  - label: "[:windows: test_supervisor_term]"
+    command:
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_term
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+
+  - label: "[:linux: test_supervisor_term]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_supervisor_term
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+            - HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL="dev"
+            - HAB_STUDIO_SECRET_CI_OVERRIDE_CHANNEL="dev"
+
   - label: "[:windows: hab-svc-load-with-hab-user]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_load_with_hab_user

@@ -204,6 +204,17 @@ function Get-Leader($Remote, $ServiceGroup) {
     }
 }
 
+Function Invoke-BuildAndInstall($PackageName) {
+    hab pkg build test/fixtures/$PackageName
+    if($IsLinux) {
+        # This changes the format of last_build from `var=value` to `$var='value'`
+        # so that powershell can parse and source the script
+        Get-Content "results/last_build.env" | ForEach-Object { Add-Content "results/last_build.ps1" -Value "`$$($_.Replace("=", '="'))`"" }
+    }
+    . ./results/last_build.ps1
+    hab pkg install ./results/$pkg_artifact
+}
+
 function Stop-ComposeSupervisor($Remote) {
     Invoke-NativeCommand docker exec "${env:COMPOSE_PROJECT_NAME}_${Remote}_1" hab sup term
     Start-Sleep 5
