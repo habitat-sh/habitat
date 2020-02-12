@@ -1100,7 +1100,7 @@ fn sub_config_apply() -> App<'static, 'static> {
 // the following sup related functions are
 // public due to their utilization in `hab-sup`
 // for consistency, all supervisor related clap subcommands are defined in this module
-pub fn sub_sup_depart() -> App<'static, 'static> {
+fn sub_sup_depart() -> App<'static, 'static> {
     clap_app!(@subcommand depart =>
         (about: "Depart a Supervisor from the gossip ring; kicking and banning the target \
             from joining again with the same member-id")
@@ -1110,7 +1110,7 @@ pub fn sub_sup_depart() -> App<'static, 'static> {
     )
 }
 
-pub fn sub_sup_secret() -> App<'static, 'static> {
+fn sub_sup_secret() -> App<'static, 'static> {
     clap_app!(@subcommand secret =>
         (about: "Commands relating to a Habitat Supervisor's Control Gateway secret")
         (@setting ArgRequiredElseHelp)
@@ -1121,7 +1121,7 @@ pub fn sub_sup_secret() -> App<'static, 'static> {
     )
 }
 
-pub fn sub_sup_bash() -> App<'static, 'static> {
+fn sub_sup_bash() -> App<'static, 'static> {
     clap_app!(@subcommand bash =>
         (about: "Start an interactive Bash-like shell")
         // set custom usage string, otherwise the binary
@@ -1136,7 +1136,7 @@ fn config_file_to_defaults(config_file: &str) -> Result<PartialSupRun, Box<dyn s
     Ok(toml::from_str(&contents)?)
 }
 
-pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
+fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
     if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
         // Construct a `clap::App` from the `structopt` decorated struct.
         let mut sub = SupRun::clap();
@@ -1249,7 +1249,7 @@ pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
     add_shutdown_timeout_option(sub)
 }
 
-pub fn sub_sup_sh() -> App<'static, 'static> {
+fn sub_sup_sh() -> App<'static, 'static> {
     clap_app!(@subcommand sh =>
         (about: "Start an interactive Bourne-like shell")
         // set custom usage string, otherwise the binary
@@ -1259,7 +1259,7 @@ pub fn sub_sup_sh() -> App<'static, 'static> {
     )
 }
 
-pub fn sub_sup_term() -> App<'static, 'static> {
+fn sub_sup_term() -> App<'static, 'static> {
     clap_app!(@subcommand term =>
         (about: "Gracefully terminate the Habitat Supervisor and all of its running services")
         // set custom usage string, otherwise the binary
@@ -1281,7 +1281,7 @@ fn sub_svc_start() -> App<'static, 'static> {
 
 // `hab svc status` is the canonical location for this command, but we
 // have historically used `hab sup status` as an alias.
-pub fn sub_svc_status() -> App<'static, 'static> {
+fn sub_svc_status() -> App<'static, 'static> {
     clap_app!(@subcommand status =>
         (about: "Query the status of Habitat services")
         (@arg PKG_IDENT: +takes_value {valid_ident} "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
