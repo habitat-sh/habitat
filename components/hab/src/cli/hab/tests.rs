@@ -21,7 +21,7 @@ fn sub<'a>(app: &'a App, name: &str) -> &'a App<'a, 'a> {
     app.p
        .subcommands()
        .find(|s| s.p.meta.name == name)
-       .expect(&format!("expected to find subcommand '{}'", name))
+       .unwrap_or_else(|| panic!("expected to find subcommand '{}'", name))
 }
 
 // Manually verify the structopt output of each subcommand. This manual method is useful for
