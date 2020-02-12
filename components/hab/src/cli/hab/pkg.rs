@@ -37,6 +37,7 @@ pub struct List {
 
 #[derive(StructOpt)]
 #[structopt(no_version)]
+#[allow(clippy::large_enum_variant)]
 /// Commands relating to Habitat packages
 pub enum Pkg {
     /// Displays the binds for a service

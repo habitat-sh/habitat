@@ -39,6 +39,7 @@ use structopt::{clap::AppSettings,
             author = "\nThe Habitat Maintainers <humans@habitat.sh>\n",
             global_settings = &[AppSettings::GlobalVersion],
         )]
+#[allow(clippy::large_enum_variant)]
 pub enum Hab {
     #[structopt(no_version)]
     Bldr(Bldr),

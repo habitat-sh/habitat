@@ -37,6 +37,7 @@ use url::Url;
             usage = "hab sup <SUBCOMMAND>",
             global_settings = &[AppSettings::VersionlessSubcommands],
         )]
+#[allow(clippy::large_enum_variant)]
 pub enum Sup {
     /// Start an interactive Bash-like shell
     #[structopt(usage = "hab sup bash", no_version)]

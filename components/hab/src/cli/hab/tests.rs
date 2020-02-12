@@ -25,7 +25,8 @@ fn sub<'a>(app: &'a App, name: &str) -> &'a App<'a, 'a> {
 }
 
 #[test]
-fn hab_help() {
+#[allow(clippy::cognitive_complexity)]
+fn hab_help_manual() {
     // hab
     let hab1 = cli::get(no_feature_flags()).after_help("");
     let hab2 = cli::get(config_file_enabled()).after_help("");

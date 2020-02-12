@@ -8,9 +8,10 @@ use habitat_core::{os::process::ShutdownTimeout,
                              ServiceGroup}};
 use structopt::StructOpt;
 
+/// Commands relating to Habitat services
 #[derive(StructOpt)]
 #[structopt(no_version)]
-/// Commands relating to Habitat services
+#[allow(clippy::large_enum_variant)]
 pub enum Svc {
     Key(Key),
     /// Load a service to be started and supervised by Habitat from a package identifier. If an
