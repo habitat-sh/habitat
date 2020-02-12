@@ -1,8 +1,10 @@
 use crate::cli::valid_fully_qualified_ident;
+use configopt::ConfigOptDefaults;
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    fs::CACHE_KEY_PATH,
                    package::PackageIdent};
-use std::{net::SocketAddr,
+use std::{ffi::OsString,
+          net::SocketAddr,
           path::PathBuf};
 use structopt::StructOpt;
 use url::Url;
@@ -27,7 +29,7 @@ pub struct BldrUrl {
     bldr_url: Option<Url>,
 }
 
-#[derive(StructOpt)]
+#[derive(StructOpt, Debug, Deserialize)]
 #[structopt(no_version)]
 #[allow(dead_code)]
 pub struct CacheKeyPath {
@@ -43,6 +45,12 @@ pub struct CacheKeyPath {
                 default_value = CACHE_KEY_PATH,
                 hide_default_value = true)]
     cache_key_path: PathBuf,
+}
+
+impl ConfigOptDefaults for CacheKeyPath {
+    fn arg_default(&self, _arg_path: &[String]) -> Option<OsString> {
+        Some(self.cache_key_path.clone().into_os_string())
+    }
 }
 
 #[derive(StructOpt)]
