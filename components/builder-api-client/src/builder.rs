@@ -693,6 +693,16 @@ impl BuilderAPIClient {
         Ok(resp.json().await?)
     }
 
+    /// Retrieves public metadata for an origin
+    ///
+    ///  # Arguments
+    ///    * Token: &str - bearer token for authentication/authorization
+    ///
+    ///  # Expected API response on success
+    ///    * HTTP 200
+    ///
+    ///  # Return
+    ///    * Result<OriginInfoResponse>
     pub async fn origin_info(&self, token: &str, origin: &str) -> Result<OriginInfoResponse> {
         let path = format!("depot/origins/{}", origin);
 
