@@ -21,9 +21,12 @@ fn sub<'a>(app: &'a App, name: &str) -> &'a App<'a, 'a> {
     app.p
        .subcommands()
        .find(|s| s.p.meta.name == name)
-       .expect("to find subcommand")
+       .expect(&format!("expected to find subcommand '{}'", name))
 }
 
+// Manually verify the structopt output of each subcommand. This manual method is useful for
+// determining exactly which subcommand is different. Whereas `hab_help_recursive` test all
+// the subcommands it is hard to determine exactly which subcommand is different.
 #[test]
 #[allow(clippy::cognitive_complexity)]
 fn hab_help_manual() {
@@ -733,6 +736,26 @@ fn hab_help_manual() {
     let help1 = help(hab_user_key_generate1);
     let help2 = help(hab_user_key_generate2);
     assert_eq!(help1, help2);
+}
+
+// Recursivly verify the structopt output of each subcommand
+#[test]
+fn hab_help_recursive() {
+    let mut hab1 = cli::get(no_feature_flags()).after_help("");
+    hab1.p.subcommands.truncate(hab1.p.subcommands.len() - 7);
+    let hab2 = cli::get(config_file_enabled()).after_help("");
+    fn compare(app1: &App, app2: &App) {
+        let help1 = help(app1);
+        let help2 = help(app2);
+        assert_eq!(help1, help2);
+        assert_eq!(app1.p.subcommands.len(), app2.p.subcommands.len());
+        for sub1 in app1.p.subcommands() {
+            let name = &sub1.p.meta.name;
+            let sub2 = sub(app2, name);
+            compare(sub1, sub2);
+        }
+    }
+    compare(&hab1, &hab2);
 }
 
 #[test]

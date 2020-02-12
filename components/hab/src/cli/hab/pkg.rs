@@ -15,7 +15,8 @@ use habitat_core::{env::Config,
                              PackageTarget},
                    ChannelIdent};
 use std::path::PathBuf;
-use structopt::{clap::ArgGroup,
+use structopt::{clap::{AppSettings,
+                       ArgGroup},
                 StructOpt};
 
 #[derive(StructOpt, Debug)]
@@ -244,6 +245,14 @@ pub enum Pkg {
         /// A filepath of the target
         #[structopt(name = "SOURCE", validator = file_exists)]
         source: Option<PathBuf>,
+    },
+    /// Returns the Habitat Artifact header
+    #[structopt(global_settings = &[AppSettings::Hidden])]
+    Header {
+        /// A path to a Habitat Artifact (ex:
+        /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+        #[structopt(name = "SOURCE", validator = file_exists)]
+        source: PathBuf,
     },
     /// Returns the Habitat Artifact information
     Info {
