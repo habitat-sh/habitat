@@ -254,7 +254,7 @@ mod json_date_format {
     }
 }
 
-pub fn convert_to_json<T>(src: &T) -> Result<Json>
+fn convert_to_json<T>(src: &T) -> Result<Json>
     where T: Serialize
 {
     serde_json::to_value(src).map_err(|e| habitat_core::Error::RenderContextSerialization(e).into())
