@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.31 -->
-## [1.5.31](https://github.com/habitat-sh/habitat/tree/1.5.31) (2020-02-11)
+<!-- latest_release 1.5.32 -->
+## [1.5.32](https://github.com/habitat-sh/habitat/tree/1.5.32) (2020-02-12)
 
 #### Merged Pull Requests
-- Update changelog following 1.5.29 release [#7447](https://github.com/habitat-sh/habitat/pull/7447) ([christophermaier](https://github.com/christophermaier))
+- Update docs for 1.5.29 release [#7449](https://github.com/habitat-sh/habitat/pull/7449) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.29 -->
 ### Changes since 1.5.29 release
 
 #### Merged Pull Requests
+- Update docs for 1.5.29 release [#7449](https://github.com/habitat-sh/habitat/pull/7449) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.32 -->
 - Update changelog following 1.5.29 release [#7447](https://github.com/habitat-sh/habitat/pull/7447) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.31 -->
 - windows-service improvements [#7422](https://github.com/habitat-sh/habitat/pull/7422) ([mwrock](https://github.com/mwrock)) <!-- 1.5.30 -->
 <!-- release_rollup -->
