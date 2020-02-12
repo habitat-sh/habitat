@@ -101,21 +101,26 @@ subscriptions:
     actions:
       - bash:.expeditor/scripts/expeditor_promote.sh:
           post_commit: true
+      # This purges the cache on promotion to staging, so our
+      # "curlbash" installers get the right packages. That turns out
+      # to be useful for installing the new release candidate that's
+      # now in the staging channel in some scenarios (e.g., on macOS)
+      - bash:.expeditor/scripts/purge_cdn.sh:
+          post_commit: true
 
   - workload: project_promoted:{{agent_id}}:staging:*
     actions:
       - bash:.expeditor/scripts/expeditor_promote.sh:
           post_commit: true
+      # Not purging here because it shouldn't be necessary at this
+      # point.
 
   - workload: project_promoted:{{agent_id}}:current:*
     actions:
       - bash:.expeditor/scripts/expeditor_promote.sh:
           post_commit: true
       # This purges the cache on promotion to stable, so our
-      # "curlbash" installers get the right packages. This isn't
-      # needed on other promotions, because the stable channel of
-      # packages.chef.io is the only thing the "curlbash" installers
-      # should care about.
+      # "curlbash" installers get the right packages.
       - bash:.expeditor/scripts/purge_cdn.sh:
           post_commit: true
       - trigger_pipeline:finish_release:
