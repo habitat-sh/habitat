@@ -711,6 +711,27 @@ fn hab_help() {
     let help1 = help(hab_svc_unload1);
     let help2 = help(hab_svc_unload2);
     assert_eq!(help1, help2);
+
+    // hab user
+    let hab_user1 = sub(&hab1, "user");
+    let hab_user2 = sub(&hab2, "user");
+    let help1 = help(hab_user1);
+    let help2 = help(hab_user2);
+    assert_eq!(help1, help2);
+
+    // hab user key
+    let hab_user_key1 = sub(&hab_user1, "key");
+    let hab_user_key2 = sub(&hab_user2, "key");
+    let help1 = help(hab_user_key1);
+    let help2 = help(hab_user_key2);
+    assert_eq!(help1, help2);
+
+    // hab user key generate
+    let hab_user_key_generate1 = sub(&hab_user_key1, "generate");
+    let hab_user_key_generate2 = sub(&hab_user_key2, "generate");
+    let help1 = help(hab_user_key_generate1);
+    let help2 = help(hab_user_key_generate2);
+    assert_eq!(help1, help2);
 }
 
 #[test]

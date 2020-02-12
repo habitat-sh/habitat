@@ -12,6 +12,7 @@ pub mod sup;
 mod svc;
 #[cfg(test)]
 mod tests;
+mod user;
 mod util;
 
 use self::{bldr::Bldr,
@@ -25,7 +26,8 @@ use self::{bldr::Bldr,
            ring::Ring,
            studio::Studio,
            sup::Sup,
-           svc::Svc};
+           svc::Svc,
+           user::User};
 use crate::VERSION;
 use structopt::{clap::AppSettings,
                 StructOpt};
@@ -65,7 +67,6 @@ pub enum Hab {
     Supportbundle,
     #[structopt(no_version)]
     Svc(Svc),
-    /// Commands relating to Habitat users
     #[structopt(no_version)]
-    User,
+    User(User),
 }
