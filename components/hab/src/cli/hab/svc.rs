@@ -65,6 +65,10 @@ pub enum Svc {
         /// process (default: set in plan)
         #[structopt(name = "SHUTDOWN_TIMEOUT", long = "shutdown-timeout")]
         shutdown_timeout:      Option<ShutdownTimeout>,
+        #[cfg(target_os = "windows")]
+        /// Password of the service user
+        #[structopt(name = "PASSWORD", long = "password")]
+        password:              Option<String>,
     },
     /// Start a loaded, but stopped, Habitat service.
     Start {
