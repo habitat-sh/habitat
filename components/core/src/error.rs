@@ -134,6 +134,8 @@ pub enum Error {
     PrivilegeNotHeld,
     /// When an error occurs parsing or compiling a regular expression.
     RegexParse(regex::Error),
+    /// When an error occurs serializing rendering context
+    RenderContextSerialization(serde_json::Error),
     /// When an error occurs converting a `String` from a UTF-8 byte vector.
     StringFromUtf8Error(string::FromUtf8Error),
     /// When the system target (platform and architecture) do not match the package target.
@@ -325,6 +327,9 @@ impl fmt::Display for Error {
                                         and 'SE_ASSIGNPRIMARYTOKEN_NAME' privilege to spawn a new \
                                         process as a different user"
                                                                     .to_string(),
+            Error::RenderContextSerialization(ref e) => {
+                format!("Unable to serialize rendering context, {}", e)
+            }
             Error::RegexParse(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::TargetMatchError(ref e) => e.to_string(),

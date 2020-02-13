@@ -27,6 +27,8 @@ use std::{fmt,
 use chrono::{DateTime,
              Utc};
 use reqwest::IntoUrl;
+use serde::Serialize;
+use serde_json::Value as Json;
 use tabwriter::TabWriter;
 
 use crate::hab_core::package::PackageIdent;
@@ -194,6 +196,16 @@ pub struct OriginChannelIdent {
     pub name: String,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
+pub struct OriginInfoResponse {
+    pub default_package_visibility: String,
+    pub name: String,
+    #[serde(with = "json_u64")]
+    pub owner_id: u64,
+    pub owner_account: String,
+    pub private_key_name: String,
+}
+
 #[derive(Clone, Deserialize)]
 pub struct OriginInvitation {
     #[serde(with = "json_u64")]
@@ -242,6 +254,12 @@ mod json_date_format {
     }
 }
 
+fn convert_to_json<T>(src: &T) -> Result<Json>
+    where T: Serialize
+{
+    serde_json::to_value(src).map_err(|e| habitat_core::Error::RenderContextSerialization(e).into())
+}
+
 // Returns a library object that implements elastic tabstops
 fn tabw() -> TabWriter<Vec<u8>> { TabWriter::new(Vec::new()) }
 
@@ -255,11 +273,15 @@ fn tabify(mut tw: TabWriter<Vec<u8>>, s: &str) -> Result<String> {
     })
 }
 
-pub trait Tabular {
+pub trait PortableText {
+    fn as_json(&self) -> Result<Json>;
+}
+
+pub trait TabularText {
     fn as_tabbed(&self) -> Result<String>;
 }
 
-impl Tabular for UserOriginInvitationsResponse {
+impl TabularText for UserOriginInvitationsResponse {
     fn as_tabbed(&self) -> Result<String> {
         let tw = tabw().padding(2).minwidth(5);
         if !self.0.is_empty() {
@@ -281,7 +303,7 @@ impl Tabular for UserOriginInvitationsResponse {
     }
 }
 
-impl Tabular for PendingOriginInvitationsResponse {
+impl TabularText for PendingOriginInvitationsResponse {
     fn as_tabbed(&self) -> Result<String> {
         let tw = tabw().padding(2).minwidth(5);
         if !self.invitations.is_empty() {
@@ -299,6 +321,24 @@ impl Tabular for PendingOriginInvitationsResponse {
             Ok(String::from(""))
         }
     }
+}
+
+impl TabularText for OriginInfoResponse {
+    fn as_tabbed(&self) -> Result<String> {
+        let tw = tabw().padding(2).minwidth(5);
+        let mut body = Vec::new();
+        body.push(String::from("Owner Id\tOwner Account\tPrivate Key\tPackage Visibility"));
+        body.push(format!("{}\t{}\t{}\t{}",
+                          self.owner_id,
+                          self.owner_account,
+                          self.private_key_name,
+                          self.default_package_visibility));
+        tabify(tw, &body.join("\n"))
+    }
+}
+
+impl PortableText for OriginInfoResponse {
+    fn as_json(&self) -> Result<Json> { convert_to_json(&self) }
 }
 
 #[derive(Clone, Deserialize)]
