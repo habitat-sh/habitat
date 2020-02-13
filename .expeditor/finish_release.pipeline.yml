@@ -10,6 +10,7 @@ expeditor:
 
 steps:
   - label: ":github: Create GitHub Release"
+    skip: "Unable to open PRs with the expeditor provided GITHUB_TOKEN currently"
     command:
       - .expeditor/scripts/finish_release/create_github_release.sh
     expeditor:
@@ -34,6 +35,7 @@ steps:
           environment:
 
   - label: ":rust: Check for new nightly rustfmt version"
+    skip: "Unable to open PRs with the expeditor provided GITHUB_TOKEN currently"
     command:
       - .expeditor/scripts/finish_release/bump_rustfmt.sh
     expeditor:
