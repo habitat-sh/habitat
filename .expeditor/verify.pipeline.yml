@@ -213,17 +213,6 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :linux: pkg-export-kubernetes"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test.sh pkg-export-kubernetes
-    expeditor:
-      executor:
-        docker:
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
   - label: "[unit] :linux: pkg-export-tar"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh pkg-export-tar
@@ -655,19 +644,6 @@ steps:
       HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_package.sh components/pkg-export-docker
-    expeditor:
-      executor:
-        linux:
-          privileged: true
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[build] :linux: pkg-export-kubernetes"
-    env:
-      HAB_LICENSE: "accept-no-persist"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/pkg-export-kubernetes
     expeditor:
       executor:
         linux:

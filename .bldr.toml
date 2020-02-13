@@ -51,15 +51,6 @@ paths = [
   "components/hab/*",
 ]
 
-[hab-pkg-export-kubernetes]
-plan_path = "components/pkg-export-kubernetes"
-paths = [
-  "components/common/*",
-  "components/core/*",
-  "components/hab/*", # because pkg-export-docker depends on it
-  "components/pkg-export-docker/*",
-]
-
 [hab-pkg-export-tar]
 plan_path = "components/pkg-export-tar"
 paths = [

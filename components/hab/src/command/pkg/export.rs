@@ -5,7 +5,6 @@ use habitat_core::{package::PackageIdent,
 
 pub mod cf;
 pub mod docker;
-pub mod kubernetes;
 pub mod tar;
 
 mod export_common;

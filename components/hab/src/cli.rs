@@ -609,7 +609,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (about: "Exports the package to the specified format")
                 (aliases: &["exp"])
                 (@arg FORMAT: +required +takes_value
-                    "The export format (ex: aci, cf, docker, kubernetes, mesos, or tar)")
+                    "The export format (ex: aci, cf, docker, mesos, or tar)")
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2) or \
                     filepath to a Habitat Artifact \
