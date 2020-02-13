@@ -11,13 +11,14 @@ p The previous articles in this series discuss why
   for workload placement, with a focus on how Chef Habitat applications can run in
   container-based infrastructure.
 
-p The Chef Habitat build process includes an optional post-processing step that can
-  create an image for any runtime environment from the Chef Habitat package.  For
-  example, Chef Habitat can create Docker container images, Application Container
-  Images (ACIs), or Marathon-native images for Apache Mesos. Eventually this
-  approach could be extended to create Amazon Machine Images (AMIs),
-  CloudFoundry buildpacks, or any other image format. Chef Habitat is completely
-  agnostic about the image format, if any, you use.
+p The Chef Habitat build process includes an optional post-processing
+  step that can create an image for any runtime environment from the
+  Chef Habitat package.  For example, Chef Habitat can create Docker
+  container images, or Marathon-native images for Apache
+  Mesos. Eventually this approach could be extended to create Amazon
+  Machine Images (AMIs), CloudFoundry buildpacks, or any other image
+  format. Chef Habitat is completely agnostic about the image format,
+  if any, you use.
 
 p Let's look at the case of Chef Habitat creating container images. After a Chef Habitat
   package has been used to create a new container image during the Chef Habitat

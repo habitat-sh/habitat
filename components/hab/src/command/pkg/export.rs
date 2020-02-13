@@ -59,14 +59,6 @@ mod inner {
     pub fn format_for(_ui: &mut UI, value: &str) -> Result<ExportFormat> {
         let version: Vec<_> = VERSION.split('/').collect();
         match value {
-            "aci" => {
-                let format =
-                    ExportFormat { pkg_ident:
-                                       PackageIdent::from_str(&format!("core/hab-pkg-aci/{}",
-                                                                       version[0]))?,
-                                   cmd:       "hab-pkg-aci".to_string(), };
-                Ok(format)
-            }
             "mesos" => {
                 let format = ExportFormat { pkg_ident: PackageIdent::from_str(&format!(
                     "core/hab-pkg-mesosize/{}",

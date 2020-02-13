@@ -473,10 +473,6 @@ Assuming you're using the Docker image pulled from `myorigin/mytutorial`, port 8
 $ kubectl get pods -l run=mytutorial
 ```
 
-### Docker and ACI
-
-Chef Habitat packages can be exported in both Docker and ACI formats (as well as others). Kubernetes currently supports the Docker runtime and integration of the rkt container runtime (an implementation of the App Container spec) is under active development.
-
 ### Environment Variables and Networking
 
 Kubernetes supports passing [environment variables](http://kubernetes.io/docs/user-guide/environment-guide/) into containers, which can be done [via the Chef Habitat Operator](https://github.com/habitat-sh/habitat-operator/tree/master/examples/env-vars).

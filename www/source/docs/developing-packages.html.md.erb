@@ -602,7 +602,7 @@ You can now call Powershell commands to inspect variables (like `Get-ChildItem v
 
 ## <a name="pkg-exports" id="pkg-exports" data-magellan-target="pkg-exports" type="anchor">Package Export Formats</a>
 
-You can export packages into several different external, immutable runtime formats. This topic will be updated as more formats are supported in the future. Currently there are exports for: docker, ACI, mesos, tar, and cloudfoundry.
+You can export packages into several different external, immutable runtime formats. This topic will be updated as more formats are supported in the future. Currently there are exports for: docker, mesos, tar, and cloudfoundry.
 
 The command to export a package is `hab pkg export <FORMAT> <PKG_IDENT>`. See the [Chef Habitat CLI Reference Guide](/docs/habitat-cli#hab-pkg-export) for more CLI information.
 
@@ -687,32 +687,6 @@ You can create a Docker container image for any package by performing the follow
     $ sudo /hab/bin/hab sup run
     $ sudo /hab/bin/hab svc load <ORIGIN>/<NAME>
     ```
-
-### Exporting to an Application Container Image (ACI)
-
-You can create an Application Container Image (ACI) for any package by performing the following steps:
-
-1. Create an interactive studio in any directory with the `hab studio enter` command.
-2. Install or [build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create an ACI, for example:
-
-    ```bash
-    $ hab pkg install <ORIGIN>/<NAME>
-    ```
-
-3. Run the ACI exporter on the package.
-
-    ```bash
-    $ hab pkg export aci <ORIGIN>/<NAME>
-    ```
-
-4. Note that this will create unsigned ACI images. If you wish to sign your ACI with default options, pass `SIGN=true`:
-
-    ```bash
-    $ SIGN=true hab pkg export aci <ORIGIN>/<NAME>
-    ```
-
-5. The `.aci` can now be moved to any runtime capable of running ACIs (e.g. [rkt](https://coreos.com/rkt/) on CoreOS) for execution.
-
 ### Exporting to Kubernetes
 
 The Kubernetes exporter is an additional command line subcommand to the standard Chef Habitat CLI interface. It leverages the existing Docker image export functionality and, additionally, generates a Kubernetes manifest that can be deployed to a Kubernetes cluster running the Chef Habitat operator.

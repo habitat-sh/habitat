@@ -570,7 +570,7 @@ steps:
       - .expeditor/scripts/verify/test_install_script.ps1
     expeditor:
       executor:
-        docker: 
+        docker:
           host_os: windows
           shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 5
@@ -627,19 +627,6 @@ steps:
       HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_package.sh components/launcher
-    expeditor:
-      executor:
-        linux:
-          privileged: true
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[build] :linux: pkg-aci"
-    env:
-      HAB_LICENSE: "accept-no-persist"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/pkg-aci
     expeditor:
       executor:
         linux:

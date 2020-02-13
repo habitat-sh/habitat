@@ -43,9 +43,6 @@ paths = [
   "components/sup-protocol/*",
 ]
 
-[hab-pkg-aci]
-plan_path = "components/pkg-aci"
-
 [hab-pkg-export-docker]
 plan_path = "components/pkg-export-docker"
 paths = [
