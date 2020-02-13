@@ -186,7 +186,7 @@ spec:
 
 The `hab pkg download` command can be used to download individual
 packages (along with their dependencies and keys) from Builder,
-without installing them. This allows you do more easily transfer
+without installing them. This allows you to more easily transfer
 packages from one Builder instance to another, or to take a selective
 snapshot of particular packages.
 
@@ -226,7 +226,7 @@ for more).
 ### TOML Download Descriptors
 
 Plain text is fine for simple cases, but has drawbacks. For instance,
-all packages will come from the same channel, and will be for the same
+all packages will come from the same channel and will be for the same
 platform target. For maximum flexibility, you'll want to use TOML to
 write your download descriptor. Here is an example of one that the
 Habitat core team uses to take periodic snapshots of everything needed
@@ -285,7 +285,7 @@ packages = [
 ]
 ```
 
-This format allows us to specify multiple subsets of packages, from
+This format allows us to specify multiple subsets of packages from
 different channels and for different architectures. Here, we are
 pulling down all the core service packages, which run on Linux, but
 are also pulling down the platform-specific versions of the
