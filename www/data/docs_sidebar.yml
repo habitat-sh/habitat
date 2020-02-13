@@ -209,5 +209,7 @@ sidebar_links:
     sub_links:
     - title: Kubernetes Bastion Ring Pattern
       link: "/docs/pattern-library/#kub-bastion"
+    - title: hab pkg download Patterns
+      link: "/docs/pattern-library/#hab-pkg-download"
   - title: Contribute
     link: "/docs/contribute"
