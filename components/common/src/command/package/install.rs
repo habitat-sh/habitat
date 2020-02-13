@@ -369,8 +369,8 @@ pub fn type_erased_start<'a, U>(
     install_mode: &'a InstallMode,
     local_package_usage: &'a LocalPackageUsage,
     install_hook_mode: InstallHookMode)
-    -> Pin<Box<dyn std::future::Future<Output = Result<PackageInstall>> + 'a>>
-    where U: UIWriter
+    -> Pin<Box<dyn std::future::Future<Output = Result<PackageInstall>> + Send + 'a>>
+    where U: UIWriter + Send + Sync
 {
     Box::pin(start(ui,
                    url,
