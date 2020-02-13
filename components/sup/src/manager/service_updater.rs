@@ -5,8 +5,7 @@ use crate::{census::CensusRing,
                                 UpdateStrategy}},
             util};
 use habitat_butterfly;
-use habitat_common::{outputln,
-                     ui::UI};
+use habitat_common::outputln;
 use habitat_core::{env as henv,
                    package::{PackageIdent,
                              PackageInstall,
@@ -15,11 +14,9 @@ use habitat_core::{env as henv,
                    ChannelIdent};
 use std::{self,
           collections::HashMap,
-          thread,
           time::{Duration,
                  Instant}};
 use tokio::{self,
-            runtime,
             sync::mpsc::{self,
                          error::TryRecvError,
                          UnboundedReceiver as Receiver,
@@ -85,8 +82,7 @@ impl ServiceUpdater {
                 // closure.
                 if !self.states.contains_key(&service.service_group) {
                     let (kill_tx, kill_rx) = mpsc::unbounded_channel();
-                    let rx = Worker::new(service).start(&service.service_group, None, kill_rx)
-                                                 .await;
+                    let rx = Worker::new(service).start(None, kill_rx).await;
                     self.states.insert(service.service_group.clone(),
                                        UpdaterState::AtOnce(rx, kill_tx));
                 }
@@ -177,8 +173,7 @@ impl ServiceUpdater {
                     Err(TryRecvError::Closed) => {
                         debug!("Service Updater worker has died; restarting...");
                         let (ktx, krx) = mpsc::unbounded_channel();
-                        *rx = Worker::new(service).start(&service.service_group, None, krx)
-                                                  .await;
+                        *rx = Worker::new(service).start(None, krx).await;
                         *kill_tx = ktx;
                     }
                 }
@@ -271,8 +266,7 @@ impl ServiceUpdater {
                             Err(TryRecvError::Closed) => {
                                 debug!("Service Updater worker has died; restarting...");
                                 let (ktx, krx) = mpsc::unbounded_channel();
-                                *rx = Worker::new(service).start(&service.service_group, None, krx)
-                                                          .await;
+                                *rx = Worker::new(service).start(None, krx).await;
                                 *kill_tx = ktx;
                             }
                         }
@@ -288,10 +282,7 @@ impl ServiceUpdater {
                                     return None;
                                 }
                                 let (kill_tx, kill_rx) = mpsc::unbounded_channel();
-                                let rx = Worker::new(service).start(&service.service_group,
-                                                                    None,
-                                                                    kill_rx)
-                                                             .await;
+                                let rx = Worker::new(service).start(None, kill_rx).await;
                                 *state = LeaderState::Polling(rx, kill_tx);
                             }
                             None => {
@@ -339,8 +330,7 @@ impl ServiceUpdater {
                                         }
                                         debug!("We're in an update and it's our turn");
                                         let (kill_tx, kill_rx) = mpsc::unbounded_channel();
-                                        let rx = Worker::new(service).start(&service.service_group,
-                                                                            leader.pkg.clone(),
+                                        let rx = Worker::new(service).start(leader.pkg.clone(),
                                                                             kill_rx)
                                                                      .await;
                                         *state = FollowerState::Updating(rx, kill_tx);
@@ -367,10 +357,7 @@ impl ServiceUpdater {
                                         let package =
                                             census_group.update_leader().unwrap().pkg.clone();
                                         let (ktx, krx) = mpsc::unbounded_channel();
-                                        *rx = Worker::new(service).start(&service.service_group,
-                                                                         package,
-                                                                         krx)
-                                                                  .await;
+                                        *rx = Worker::new(service).start(package, krx).await;
                                         *kill_tx = ktx;
                                     }
                                 }
@@ -440,37 +427,16 @@ impl Worker {
     /// retrieve a specific version from Builder. If no package identifier is specified,
     /// then the updater will poll until a newer more suitable package is found.
     async fn start(mut self,
-                   sg: &ServiceGroup,
                    ident: Option<PackageIdent>,
                    mut kill_rx: Receiver<()>)
                    -> Receiver<PackageInstall> {
         let (tx, rx) = mpsc::unbounded_channel();
-        // Execute this future on a dedicated thread, and using a
-        // single-threaded runtime. Eventually, this should use `tokio::spawn`,
-        // but that will require refactoring to make the future safe
-        // to spawn on an executor.
-        //
-        // (Note: the `enable_all` is to ensure the Tokio timer is set
-        // up on the runtime, which is needed both here and also in
-        // the async reqwest calls we make from here.)
-        thread::Builder::new().name(format!("SU-{}", sg))
-                              .spawn(move || {
-                                  let mut rt =
-                                      runtime::Builder::new().basic_scheduler()
-                                                             .enable_all()
-                                                             .build()
-                                                             .expect("Could not spawn runtime \
-                                                                      for updater thread!");
-                                  rt.block_on(async {
-                                        match ident {
-                                            Some(latest) => {
-                                                self.run_once(&tx, latest, &mut kill_rx).await
-                                            }
-                                            None => self.run_poll(&tx, &mut kill_rx).await,
-                                        };
-                                    })
-                              })
-                              .expect("unable to start service-updater thread");
+        tokio::spawn(async move {
+            match ident {
+                Some(latest) => self.run_once(&tx, latest, &mut kill_rx).await,
+                None => self.run_poll(&tx, &mut kill_rx).await,
+            };
+        });
         rx
     }
 
@@ -521,11 +487,9 @@ impl Worker {
             }
 
             if Instant::now() >= next_time {
-                match util::pkg::install(// We don't want anything in here to print
-                                         &mut UI::with_sinks(),
-                                         &self.builder_url,
-                                         &install_source,
-                                         &self.channel).await
+                match util::pkg::install_no_ui(&self.builder_url,
+                                               &install_source,
+                                               &self.channel).await
                 {
                     Ok(package) => {
                         self.current = package.ident().clone();
@@ -566,11 +530,9 @@ impl Worker {
             }
 
             if Instant::now() >= next_time {
-                match util::pkg::install(// We don't want anything in here to print
-                                         &mut UI::with_sinks(),
-                                         &self.builder_url,
-                                         &install_source,
-                                         &self.channel).await
+                match util::pkg::install_no_ui(&self.builder_url,
+                                               &install_source,
+                                               &self.channel).await
                 {
                     Ok(maybe_newer_package) => {
                         if self.current < *maybe_newer_package.ident() {

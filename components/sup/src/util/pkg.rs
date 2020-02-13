@@ -8,7 +8,8 @@ use habitat_common::{command::package::install::{self as install_cmd,
                                                  InstallSource,
                                                  LocalPackageUsage},
                      outputln,
-                     ui::UIWriter};
+                     ui::{NullUi,
+                          UIWriter}};
 use habitat_core::{env as henv,
                    fs::{self,
                         FS_ROOT_PATH},
@@ -50,6 +51,14 @@ pub async fn install<T>(ui: &mut T,
                        // repetitive to run them here
                        InstallHookMode::Ignore).await
                                                .map_err(Error::from)
+}
+
+// `install` but with no ui output and the benefit of thread safety
+pub async fn install_no_ui(url: &str,
+                           install_source: &InstallSource,
+                           channel: &ChannelIdent)
+                           -> Result<PackageInstall> {
+    install(&mut NullUi::new(), url, install_source, channel).await
 }
 
 /// Given an InstallSource, install a new package only if an existing
