@@ -255,7 +255,7 @@ install_hab() {
     linux)
       local _ident="core/hab"
 
-      if [ -n "${version-}" ]; then
+      if [ -n "${version-}" ] && [ "${version}" != "latest" ]; then
         _ident+="/$version";
       fi
 
