@@ -1,0 +1,1497 @@
+#%RAML 0.8
+---
+title: Builder API
+version: v1
+
+baseUri: https://{rootUri}/{version}
+baseUriParameters:
+    rootUri:
+        description: |
+            The root URI for the particular installation of Builder
+        example: bldr.habitat.sh, api.habitat.sh, localhost:9636
+mediaType: application/json
+schemas:
+    - netError: |
+        {
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "required": true
+                },
+                "msg": {
+                    "type": "string",
+                    "required": true
+                }
+            }
+        }
+    - job: |
+        {
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "required": true
+                },
+                "origin": {
+                  "type": "string",
+                  "required": true
+                },
+                "name": {
+                  "type": "string",
+                  "required": true
+                },
+                "version": {
+                  "type": "string",
+                  "required": true
+                },
+                "release": {
+                  "type": "string",
+                  "required": true
+                },
+                "state": {
+                    "type": "string",
+                    "enum": ["Complete", "Dispatched", "Failed", "Pending", "Processing", "Rejected"],
+                    "required": true
+                },
+                "created_at":{
+                  "type": "string",
+                  "required": false
+                },
+                "build_started_at":{
+                  "type": "string",
+                  "required": false
+                },
+                "build_finished_at":{
+                  "type": "string",
+                  "required": false
+                },
+                "error": {
+                    "type": "netError",
+                    "required": false
+                }
+            }
+        }
+    - jobs: |
+        {
+            "properties": {
+              "jobs": {
+                "type": "array",
+                "minItems": 0,
+                "items": { "type": "job" },
+                "uniqueItems": true
+              }
+           }
+        }
+    - jobCreate: |
+        {
+            "properties":  {
+                "project_id": {
+                    "type": "string",
+                    "required": true
+                }
+            }
+        }
+    - jobLog: |
+        {
+            "properties": {
+                "start": {
+                    "description": "The zero-indexed line number (inclusive) of the first line of log output in `content`.",
+                    "type": "integer",
+                    "required": true
+                },
+                "stop": {
+                    "description": "The zero-indexed line number (exclusive) of the last line of log output in `content`. Pass this number as the `start` query parameter on your next log request to retrieve the next portion of the log.",
+                    "type": "integer",
+                    "required": true
+                },
+                "content": {
+                    "description": "A subset of the log output, presented as individual lines. Trailing newline characters are not present. May be empty.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "required": true
+                },
+                "is_complete": {
+                    "description": "Indicates whether the job log is complete; i.e. additional polling for new lines is not required. Note that a job itself may be complete (i.e., finished running) but the log may not, as log processing is decoupled from build processing.",
+                    "type": "boolean",
+                    "required": true
+                }
+            }
+        }
+    - project: |
+        {
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "required": true
+                },
+                "plan_path": {
+                    "type": "string",
+                    "required": true
+                },
+                "vcs": {
+                    "type": "object",
+                    "required": true,
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "required": true
+                        },
+                        "url": {
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                }
+            }
+        }
+    - projectCreate: |
+        {
+            "properties": {
+                "origin": {
+                    "type": "string",
+                    "required": true
+                },
+                "plan_path": {
+                    "type": "string",
+                    "required": true
+                },
+                "github": {
+                    "type": "object",
+                    "required": true,
+                    "properties": {
+                        "organization": {
+                            "type": "string",
+                            "required": true
+                        },
+                        "repo": {
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                }
+            }
+        }
+    - projectUpdate: |
+        {
+            "properties": {
+                "plan_path": {
+                    "type": "string",
+                    "required": true
+                },
+                "github": {
+                    "type": "object",
+                    "required": true,
+                    "properties": {
+                        "organization": {
+                            "type": "string",
+                            "required": true
+                        },
+                        "repo": {
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                }
+            }
+        }
+    - userProfile: |
+        {
+            "properties":  {
+                "id": {
+                    "type": "string",
+                    "required": true
+                },
+                "name": {
+                    "type": "string",
+                    "required": true
+                },
+                "email": {
+                    "type": "string",
+                    "required": true
+                }
+            }
+        }
+    - userProfileUpdate: |
+        {
+            "properties":  {
+                "email": {
+                    "type": "string",
+                    "required": true
+                }
+            }
+        }
+    - origin: |
+        {
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "required": false
+                },
+                "name": {
+                    "type": "string",
+                    "required": false
+                },
+                "owner_id": {
+                    "type": "string",
+                    "required": false
+                },
+                "default_package_visibility": {
+                    "type": "string",
+                    "enum": ["Public", "Private"],
+                    "required": false
+                }
+            }
+        }
+    - secret_key: |
+        {
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "required": true
+                },
+                "origin_id": {
+                    "type": "string",
+                    "required": true
+                },
+                "name": {
+                    "type": "string",
+                    "required": true
+                },
+                "revision": {
+                    "type": "string",
+                    "required": true
+                },
+                "body": {
+                    "type": "string",
+                    "required": true
+                },
+                "owner_id": {
+                    "type": "string",
+                    "required": true
+                }
+            }
+        }
+
+securitySchemes:
+    - oauth_2_0:
+        description: Builder supports OAuth 2.0 for authenticating all API requests.
+        type: OAuth 2.0
+        describedBy:
+            headers:
+                Authorization: &authorization
+                    description: Used to send a valid OAuth 2 access token.
+                    example: |
+                        Authorization: Bearer 0b79bab50daca910b000d4f1a2b675d604257e42
+            responses:
+                401: &resp401
+                    description: |
+                        Bad or expired token. To fix, you should re-authenticate the user.
+                403: &resp403
+                    description: |
+                        Bad OAuth request. Regenerate your token and try again.
+        settings:
+            authorizationUri: https://{rootUri}/oauth2/authorize
+            accessTokenUri: https://{rootUri}/oauth2/token
+            authorizationGrants: [ token ]
+
+/status:
+    get:
+        description: Returns the health of the service
+        responses:
+            200:
+                description: Service is healthy
+            500:
+                description: Server fault
+            503:
+                description: Service temporarily unavailable
+/authenticate/{code}:
+    get:
+        responses:
+            200:
+                body:
+                    application/json:
+                        example: |
+                            {
+                                "token": "0b79bab50daca910b000d4f1a2b675d604257e42",
+                                "email": "reset@chef.io",
+                                "name": "reset",
+                                "id": "73089155726360582",
+                                "flags": 0
+                            }
+/ext/installations/{install_id}:
+    /repos/{repo_id}/contents/{path}:
+        get:
+            responses:
+                200:
+                    body:
+                        application/json:
+                400:
+                    description: Bad search query parameter provided
+/profile:
+    get:
+        description: Retrieve your profile
+        securedBy: [oauth_2_0]
+        responses:
+            200:
+                body:
+                    application/json:
+                        schema: userProfile
+                        example: |
+                            {
+                                "id": 1234567890,
+                                "name": "jimmy",
+                                "email": "jimmy@example.com"
+                            }
+            401:
+                description: Authentication failed
+    patch:
+        description: Update your profile
+        securedBy: [oauth_2_0]
+        body:
+            application/json:
+                schema: userProfileUpdate
+                example: |
+                    {
+                        "email": "jimmy@example.com"
+                    }
+        responses:
+            200:
+                description: Update successful
+            401:
+                description: Authentication failed
+            422:
+                description: Bad JSON submitted
+
+    /access-tokens:
+        get:
+            description: Retrieve your personal access tokens
+            securedBy: [oauth_2_0]
+            responses:
+                200:
+                    body:
+                        application/json:
+                            example: |
+                            "tokens": [
+                              {
+                                id: some-id,
+                                account_id: some-id,
+                                token: access-token
+                                created_at: "2018-01-26T18:24:18.123464+00:00"
+                              }
+                            ]
+                401:
+                    description: Authentication failed
+
+        post:
+            description: Generate a new personal access token
+            securedBy: [oauth_2_0]
+            body:
+            responses:
+                200:
+                    body:
+                        application/json:
+                            {
+                              id: some-id,
+                              token: 'my-newly-generated-token-value',
+                              created_at: "2018-01-26T18:24:18.123464+00:00"
+                            }
+                400:
+                    description: Received a malformed JSON body
+                401:
+                    description: Authentication failed
+
+        delete:
+            description: Delete (revoke) a personal access token
+            securedBy: [oauth_2_0]
+            body:
+            responses:
+                200:
+                    description: Delete successful
+                401:
+                    description: Authentication failed
+
+/jobs:
+    post:
+        description: Create a new job for the given project
+        securedBy: [oauth_2_0]
+        body:
+            application/json:
+                schema: jobCreate
+                example: |
+                    {
+                        "project_id": "core/nginx"
+                    }
+        responses:
+            201:
+                body:
+                    application/json:
+                        example: |
+                            {
+                                "id": "73089155726360582",
+                                "state": 0
+                            }
+            400:
+                description: Received a malformed JSON body
+            404:
+                description: Project does not exist with corresponding projectId
+            422:
+                description: Invalid or missing projectId in body
+    /group:
+        /{id}:
+            /promote:
+                /{channel}:
+                    post:
+                        description: Promote every successful project in a job group to the specified channel
+                        responses:
+                            200:
+                                description: Successful promotion
+                            400:
+                                description: ID or channel not provided
+                            404:
+                                description: Group not found
+                            500:
+                                description: Internal server error
+    /{jobId}:
+        get:
+            description: Get the status of the given job
+            responses:
+                200:
+                    body:
+                        application/json:
+                            schema: job
+                            example: |
+                              {
+                                  "id": "73089155726360582",
+                                  "origin": "core",
+                                  "project": "nginx",
+                                  "version": "1.0.0",
+                                  "release": "20170505001756",
+                                  "state": "Complete",
+                                  "created_at": "2017-05-05 00:42:35.213765+00",
+                                  "build_started_at": "2017-05-05 00:43:11.729835+00",
+                                  "build_finished_at": "2017-05-05 00:44:00.896919+00"
+                              }
+                400:
+                    description: Received a jobId that was not a number
+        /log:
+            get:
+                description: |
+                  Get the build log (or a portion thereof) for the
+                  given job. Until an SSE endpoint can be implemented,
+                  this endpoint can be used to poll for the logs of a
+                  currently-running job; use of the `start` query
+                  parameter ensures that only the portion of the log
+                  that is "new", relative to a prior request, will be
+                  retrieved.
+                queryParameters:
+                    start:
+                        description: |
+                            Return the portion of the log output that
+                            starts at the zero-indexed line
+                            specified. A request with no given value
+                            defaults to `0`; in other words, the
+                            entire log will be sent back.
+                        type: integer
+                        required: false
+                        default: 0
+                        minimum: 0
+                        example: 100
+                    color:
+                      description: |
+                        Whether or not to include embedded ANSI color
+                        codes in the log output. By default, all ANSI
+                        sequences are removed, yielding plain output.
+
+                        The following values are interpreted as `true`:
+                          * `true`
+                          * `TRUE`
+                          * `t`
+                          * `T`
+                          * `1`
+                          * `on`
+                          * `ON`
+
+                        The following values are interpreted as `false`:
+                          * `false`
+                          * `FALSE`
+                          * `f`
+                          * `F`
+                          * `0`
+                          * `off`
+                          * `OFF`
+
+                        All other values are considered `false`.
+                      type: boolean
+                      default: false
+                      required: false
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                schema: jobLog
+                                example: |
+                                    {
+                                        "start": 0,
+                                        "stop": 2,
+                                        "content": [
+                                            "this is the first line",
+                                            "this is the second line"
+                                        ],
+                                        is_complete: false
+                                    }
+                    400:
+                        description: |
+                          Received a jobId that was not a number, or
+                          an invalid value for the `start` query
+                          parameter (e.g., negative, or larger than
+                          the actual size of the log file.
+                    404:
+                        description: |
+                          Job does not exist with corresponding jobId,
+                          or no log was found for the given job.
+/rdeps:
+    /{origin}:
+        /{name}:
+            get:
+                description: |
+                    Retrieves the list of reverse dependencies for this package.
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                example: |
+                                    {
+                                        "origin": "core",
+                                        "name": "linux-headers",
+                                        "rdeps": [
+                                            "core/redis"
+                                        ]
+                                    }
+                    404:
+                        description: Package not found
+                    500:
+                        description: Internal server error
+
+    /{origin}:
+        /{name}:
+            /group:
+                get:
+                    description: |
+                        Retrieves the list of reverse dependencies for this package,
+                        collated into build groups that can be build in parallel
+                    responses:
+                        200:
+                            body:
+                                application/json:
+                                    example: |
+                                        {
+                                        "origin": "core",
+                                        "name": "linux-headers",
+                                        "rdeps": [
+                                            {
+                                                "group": 0,
+                                                "idents": [
+                                                "core/redis",
+                                                "core/protobuf"
+                                                ]
+                                            },
+                                            {
+                                                "group": 1,
+                                                "idents": [
+                                                "core/node"
+                                                ]
+                                            }
+                                        ]
+                                        }
+                        404:
+                            description: Package not found
+                        500:
+                            description: Internal server error
+
+/user:
+    /invitations:
+        get:
+            securedBy: [oauth_2_0]
+    /{invitationId}:
+        delete:
+            securedBy: [oauth_2_0]
+            responses:
+                204:
+                    description: Invitation successfully ignored
+        put:
+            securedBy: [oauth_2_0]
+            responses:
+                204:
+                    description: Invitation successfully accepted
+    /origins:
+        get:
+            securedBy: [oauth_2_0]
+/projects:
+    post:
+        description: |
+            Creates a new project for building a Habitat plan scoped to the given origin. The
+            resulting project will be created with an identifier containing the origin and name
+            of the project the plan is building separated by a forward slash (i.e. `core/nginx`).
+        securedBy: [oauth_2_0]
+        body:
+            application/json:
+                schema: projectCreate
+                example: |
+                    {
+                        "origin": "core",
+                        "plan_path": "components/builder-api/plan.sh",
+                        "installation_id": 1234,
+                        "repo_id": 4567
+                    }
+        responses:
+            201:
+                description: Project created successfully
+                body:
+                    application/json:
+                        schema: project
+                        example: |
+                            {
+                                "id": "habitat/builder-api",
+                                "plan_path": "components/builder-api/plan.sh",
+                                "vcs": {
+                                    "type": "git",
+                                    "url": "https://github.com/habitat-sh/habitat.git"
+                                }
+                            }
+            400:
+                description: Received a malformed JSON body
+            409:
+                description: This project already exists
+            422:
+                description: |
+                    The request body contained missing or invalid values or the file at the given
+                    location was unreadable or did not contain a valid plan.
+    /{origin}
+        get:
+            description: Get the list of project names for the specified origin
+            responses:
+                200:
+                    body:
+                        application/json:
+                            example: |
+                                [
+                                    "foo",
+                                    "bar",
+                                    "baz"
+                                ]
+    /{origin}/{name}:
+        get:
+            description: Return the project matching the given ID
+            responses:
+                200:
+                    body:
+                        application/json:
+                            schema: project
+                            example: |
+                                {
+                                    "id": "habitat/builder-api",
+                                    "plan_path": "components/builder-api/plan.sh",
+                                    "vcs": {
+                                        "type": "git",
+                                        "url": "https://github.com/habitat-sh/habitat.git"
+                                    }
+                                }
+        put:
+            description: Update the project matching the given ID
+            securedBy: [oauth_2_0]
+            body:
+                application/json:
+                    schema: project
+                    example: |
+                        {
+                            "plan_path": "components/builder-api/plan.sh",
+                            "github": {
+                                "organization": "habitat-sh",
+                                "repo": "habitat"
+                            }
+                        }
+            responses:
+                204:
+                    description: Project updated successfully
+                400:
+                    description: Received a malformed JSON body
+                404:
+                    description: Project not found
+                422:
+                    description: |
+                        The request body contained missing or invalid values or the file at the
+                        given location was unreadable, did not contain a valid plan, or the name
+                        of the package it builds does not match the projectId's `name`
+        delete:
+            description: Destroys the project matching the given ID
+            securedBy: [oauth_2_0]
+            responses:
+                204:
+                    description: Project deleted successfully
+                404:
+                    description: Project not found
+        /{visibility}:
+            patch:
+                description: |
+                    Toggle the visibility settings on a project. Public projects that are made
+                    private will change to hidden instead. Changes made to a project's
+                    visibility settings will cascade to its packages.
+                responses:
+                    204:
+                        description: Visibility settings toggled successfully
+                    400:
+                        description: Missing origin, name, visibility. Visibility other than public or private submitted.
+                    403:
+                        description: Not authorized to modify this origin
+                    500:
+                        description: Internal server error
+        /jobs:
+            get:
+                description: |
+                    Retrieve the most recently started jobs for the given project.
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                schema:
+                                  jobs
+                                example: |
+                                  {
+                                      "range_start": 0,
+                                      "range_end": 5,
+                                      "total_count": 6,
+                                      "data": [
+                                          {
+                                              "id": "73089155726360582",
+                                              "origin": "core",
+                                              "project": "nginx",
+                                              "version": "1.0.0",
+                                              "release": "20170505001756",
+                                              "state": "Complete",
+                                              "created_at": "2017-05-05 00:42:35.213765+00",
+                                              "build_started_at": "2017-05-05 00:43:11.729835+00",
+                                              "build_finished_at": "2017-05-05 00:44:00.896919+00"
+                                          }
+                                      ]
+                                  }
+                    404:
+                        description: Project not found
+/origins:
+    post:
+        description: Create a new origin
+        securedBy: [oauth_2_0]
+        body:
+            application/json:
+                schema: origin
+                example: |
+                    {
+                        "name": "reset",
+                        "default_package_visibility": "public"
+                    }
+        responses:
+            200:
+                body:
+                    application/json:
+                        schema: origin
+                        example: |
+                            {
+                                "id": "77732030103691265",
+                                "name": "reset",
+                                "owner_id": "77730215748435968",
+                                "default_package_visibility": "public"
+                            }
+            409:
+                description: The origin already exists
+            422:
+                description: Malformed origin in request body
+    /{origin}:
+        /users:
+            /{username}:
+                /invitations:
+                    post:
+                        description: Create an invitation to this origin for this user
+                        securedBy: [oauth_2_0]
+                        responses:
+                            201:
+                                description: Invitation created successfully
+                            204:
+                                description: Invitation creation request received
+                            400:
+                                description: No origin or username given
+                            401:
+                                description: You are not authorized to send invitations on behalf of this origin
+                            500:
+                                description: Internal server error
+
+        /integrations:
+            get:
+                description: Get an object of all integrations
+                securedBy: [oauth_2_0]
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                example: |
+                                    {
+                                        "docker": ["region1", "region2"],
+                                        "google": ["region3"]
+                                    }
+            /{integrationName}:
+                /default:
+                    put:
+                        description: Create or update an origin project integration
+                        securedBy: [oauth_2_0]
+                        responses:
+                            204:
+                                body:
+                                    application/json:
+                                        example: |
+                                            {
+                                                "docker_hub_repo_name": "myorg/myrepo",
+                                                "custom_tag": "some-tag",
+                                                "latest_tag": true,
+                                                "version_tag": false,
+                                                "version_release_tag": true
+                                            }
+                            500:
+                                description: Internal server error
+                    delete:
+                        description: Delete an origin project integration
+                        securedBy: [oauth_2_0]
+                        responses:
+                            204:
+                                description: Integration deleted
+                            500:
+                                description: Internal server error
+        /transfer:
+            /{user}:
+              post:
+                  description: Transfer ownership of origin to new origin member
+                  securedBy: [oauth_2_0]
+                  responses:
+                    204:
+                      description: Transfer successful
+                    403:
+                      description: Not authorized to transfer ownership
+                    422:
+                      description: Cannot transfer to self or non-members
+                    500:
+                      description: Internal server error
+        /depart:
+          post:
+            description: Leave an origin you no longer wish to be a member of
+            securedBy: [oauth_2_0]
+            response:
+              204:
+                description: Departure successful
+              403:
+                description: Forbidden from departing the origin
+              422:
+                description: Not currently a member of the origin
+              500:
+                description: Internal server error
+        /invitations:
+            /{invitationId}:
+                put:
+                    description: Accept this invitation
+                    securedBy: [oauth_2_0]
+                    responses:
+                        204:
+                            description: Accepted the invitation
+                        400:
+                            description: No origin or invitation id given
+                        500:
+                            description: Internal server error
+                delete:
+                    description: Rescind an invitation that hasn't already been ignored
+                    securedBy: [oauth_2_0]
+                    responses:
+                        204:
+                            description: Invitation rescinded
+                        400:
+                            description: No origin or invitation id given
+                        500:
+                            description: Internal server error
+                /ignore:
+                    put:
+                        description: Ignore this invitation
+                        securedBy: [oauth_2_0]
+                        responses:
+                            204:
+                                description: Invitation ignored
+                            400:
+                                description: No origin or invitation id given
+                            500:
+                                description: Internal server error
+    /{originId}:
+        get:
+            body:
+                application/json:
+                    schema: origin
+                    example: |
+                        {
+                            "id": "77732030103691265",
+                            "name": "reset",
+                            "owner_id": "77730215748435968"
+                            "default_package_visibility": "public"
+                        }
+        /keys:
+            get:
+                description: Return a list of key revisions for an organization.
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                example: |
+                                    [
+                                        {
+                                            "origin": "core",
+                                            "revision": "20160423193732",
+                                            "location": "/origins/core/keys/20160423193732"
+                                        },
+                                        {
+                                            "origin": "core",
+                                            "revision": "20160423193733",
+                                            "location": "/origins/core/keys/20160423193733"
+                                        }
+                                    ]
+            /{revision}:
+                get:
+                    description: Get a key revision for a specific origin
+                    responses:
+                        200:
+                            body:
+                                text/plain:
+                                    example: |
+                                        SIG-PUB-1
+                                        core-20160423193745
+
+                                        Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=
+                post:
+                    description: Upload a new key revision for an origin
+                    securedBy: [oauth_2_0]
+                    body:
+                        text/plain:
+                            example: |
+                                SIG-PUB-1
+                                core-20160423193745
+
+                                Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=
+                    responses:
+                        201:
+                            description: Key successfully uploaded
+                        403:
+                            description: Authenticated user not a member of the given Origin
+                        409:
+                            description: Key already exists in Origin
+        /secret_keys:
+            /latest:
+                get:
+                    description: Retrieve the latest secret key
+                    responses:
+                        200:
+                            body:
+                                application/json:
+                                    schema: secret_key
+                                    example: |
+                                        {
+                                            "id": "",
+                                            "origin_id": "",
+                                            "name": "",
+                                            "revision": "",
+                                            "body": "",
+                                            "owner_id": ""
+                                        }
+                        409:
+                            description: Secret key already exists in origin
+        /encryption_key:
+            get:
+                description: Download public encryption key for origin
+                    responses:
+                        200:
+                            body:
+                                {}
+                                text/plain:
+                                    example: |
+                                        BOX-PUB-1
+                                        core-20160423193745
+
+                                        Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=
+        /secret:
+            post:
+                description: upload a secret payload
+                    body:
+                        application/json:
+                            example: |
+                                {
+                                    name: "key_name",
+                                    value: "encrypted payload"
+                                }
+                    responses:
+                        200:
+                            description: Secret was saved successfully
+                        409:
+                            description: Conflicting key name was found
+                        422:
+                            description: Payload could not be validated
+            get:
+                description: Get a list of all secrets for your origin
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                example: |
+                                    [
+                                        {"key1": "value"},
+                                        {"key2": "value"}
+                                    ]
+            /{secret}:
+                delete:
+                    description: Delete a secret for an origin given a secret name
+                    responses:
+                        200:
+                            description: Key deleted
+                        404:
+                            description: Key not found
+
+        /users:
+            get:
+                description: List all members of an origin
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                example: |
+                                    {
+                                        "members": [
+                                            "reset"
+                                        ],
+                                        "origin_id": "77731431660388352"
+                                    }
+/pkgs:
+    /search:
+        /{query}:
+            get:
+                description: Search for packages with a query string
+                queryParameters:
+                    distinct:
+                        description: Whether to show a distinct list of packages or not
+                        type: boolean
+                        required: false
+                        default: false
+                        example: true
+                responses:
+                    200:
+                        description: Packages were found and fit on one page
+                    206:
+                        description: Packages were found and require pagination
+                    500:
+                        description: Internal server error
+    /{origin}:
+        get:
+            description: List packages for an origin
+            queryParameters:
+                distinct:
+                    description: Whether to show a distinct list of packages or not
+                    type: boolean
+                    required: false
+                    default: false
+                    example: true
+            responses:
+                200:
+                400:
+                404:
+                500:
+        /{name}:
+            get:
+                description: TODO
+                responses:
+                    200:
+                    400:
+                    404:
+                    500:
+            /versions:
+                get:
+                    description: Returns all versions and a count of releases for each version for a given package
+                    responses:
+                        200:
+                            body:
+                                application/json:
+                                    example: |
+                                        [{"origin":"core","name":"redis","version":"3.2.1","release_count":"3", "latest": "20170215222111"}]
+                        400:
+                            description: Origin or package name not supplied
+                        404:
+                            description: Package not found
+                        500:
+                            description: Server error
+            /latest:
+                get:
+                    description: TODO
+                    responses:
+                        200:
+                        404:
+                        500:
+            /{version}:
+                get:
+                    description: TODO
+                    responses:
+                        200:
+                        400:
+                        404:
+                        500:
+                /latest:
+                    get:
+                        responses:
+                            200:
+                            404:
+                            500:
+                /{release}:
+                    get:
+                        responses:
+                            200:
+                            404:
+                            500:
+                    post:
+                        responses:
+                            200:
+                            400:
+                            422:
+                            424:
+                            409:
+                    /{visibility}:
+                        patch:
+                            description: Change the visibility of a package
+                            responses:
+                                200:
+                                    description: Successfully changed
+                                400:
+                                    description: Missing origin or name or version or release or visibility. Visibility not "public" or "private".
+                                403:
+                                    description: Unauthorized to change packages for this origin
+                                404:
+                                    description: Package not found
+                                500:
+                                    description: Internal server error
+                    /download:
+                        get:
+                            responses:
+                                200:
+                                400:
+                                500:
+                    /channels:
+                        get:
+                            responses:
+                                200:
+                                    body:
+                                        application/json:
+                                            example: |
+                                                ["stable", "unstable"]
+                                400:
+                                    description: Package identifier is not fully qualified
+                                404:
+                                    description: Specified package could not be found
+                                500:
+                                    description: Internal server error
+/channels:
+    /{origin}:
+        get:
+            description: List all channels for an origin
+            responses:
+                200:
+                    body:
+                        application/json:
+                            example: |
+                                ["stable", "unstable"]
+                400:
+                    description: Origin not specified
+        /{channel}:
+            post:
+                description: Create a channel
+                responses:
+                    201:
+                        description: Channel successfully created
+                    400:
+                        description: Origin or channel not supplied
+                    404:
+                        description: Origin does not exist
+                    409:
+                        description: Channel already exists
+                    500:
+                        description: Server error
+            delete:
+                description: Deletes a channel
+                responses:
+                    200:
+                        description: Channel successfully deleted
+                    400:
+                        description: Origin or channel not supplied
+                    403:
+                        description: Channel can not be deleted
+                    500:
+                        description: Server error
+            /pkgs:
+                get:
+                    description: List all packages in a channel
+                    responses:
+                        200:
+                            description: Returns a list of packages
+                            body:
+                                application/json:
+                                    example: |
+                                        {
+                                            "range_start": 0,
+                                            "range_end": 49,
+                                            "total_count": 8,
+                                            "data": [
+                                                {
+                                                    "origin": "core",
+                                                    "name": "glibc",
+                                                    "version": "2.22",
+                                                    "release": "20160612063629"
+                                                },
+                                                {
+                                                    "origin": "core",
+                                                    "name": "linux-headers",
+                                                    "version": "4.3",
+                                                    "release": "20160612063537"
+                                                }
+                                            ]
+                                        }
+                        400:
+                            description: Origin or channel not supplied
+                        404:
+                            description: Origin or channel does not exist
+                        500:
+                            description: Server error
+                /promote:
+                    post:
+                        description: Promotes all packages in a channel
+                            queryParameters:
+                                channel:
+                                    description: Channel packages will be promoted into
+                                    type: string
+                                    required: true
+                                    default: false
+                                    example: custom_channel
+                        responses:
+                            200:
+                                description: Packages successfully promoted
+                            400:
+                                description: Forbidden packages/Badly formed request for promotion
+                            401:
+                                description: You are not authorized to request promotion for this origin
+                            500:
+                                description: Server error
+                /demote:
+                    post:
+                        description: Demotes list of packages from a channel
+                            queryParameters:
+                                channel:
+                                    description: Channel packages will be demoted out of
+                                    type: string
+                                    required: true
+                                    default: false
+                                    example: custom_channel
+                        responses:
+                            200:
+                                description: Packages successfully demoted
+                            400:
+                                description: Forbidden packages/Badly formed request for demotion
+                            401:
+                                description: You are not authorized to request demotion for this origin
+                            500:
+                                description: Server error
+                /{pkg}:
+                    get:
+                        description: List all packages in a channel that match the specified identifier
+                        responses:
+                            200:
+                                description: Returns a list of packages
+                            400:
+                                description: Origin or channel not supplied
+                            404:
+                                description: Origin or channel does not exist
+                            500:
+                                description: Server error
+                    /latest:
+                        get:
+                            description: Get the latest version of the package in this channel that matches the specified identifier
+                            responses:
+                                200:
+                                    description: Returns a package
+                                    body:
+                                        application/json:
+                                            example: |
+                                                {
+                                                    "checksum":"7a998b6a756f7ca769ac75edf66c119d14aa911d7cfb5fd91ad3ff21ddf0d257",
+                                                    "config":"",
+                                                    "deps":[
+                                                        {
+                                                            "name":"glibc",
+                                                            "origin":"core",
+                                                            "release":"20160612063629",
+                                                            "version":"2.22"
+                                                        }
+                                                    ],
+                                                    "exposes":[
+
+                                                    ],
+                                                    "ident":{
+                                                        "name":"tree",
+                                                        "origin":"core",
+                                                        "release":"20161102210957",
+                                                        "version":"1.7.0"
+                                                    },
+                                                    "manifest":"# core / tree\n\n\n* __Maintainer__: The Habitat Maintainers <humans@habitat.sh>\n* __Version__: 1.7.0\n* __Release__: 20161102210957\n* __Architecture__: x86_64\n* __System__: linux\n* __Target__: x86_64-linux\n* __Upstream URL__: upstream project's website or home page is not defined\n* __License__: gplv2+ \n* __Source__: [http://mama.indstate.edu/users/ice/tree/src/tree-1.7.0.tgz](http://mama.indstate.edu/users/ice/tree/src/tree-1.7.0.tgz)\n* __SHA__: `6957c20e82561ac4231638996e74f4cfa4e6faabc5a2f511f0b4e3940e8f7b12`\n* __Path__: `/hab/pkgs/core/tree/1.7.0/20161102210957`\n* __Build Dependencies__: `core/make core/gcc `\n* __Dependencies__: `core/glibc `\n* __Interpreters__: no interpreters or undefined\n\n# Plan\n\n## Build Flags\n\n```bash\nCFLAGS: -I/hab/pkgs/core/glibc/2.22/20160612063629/include -I/hab/pkgs/core/make/4.2.1/20161102154828/include -I/hab/pkgs/core/gcc/5.2.0/20161031031637/include\nCPPFLAGS: -I/hab/pkgs/core/glibc/2.22/20160612063629/include -I/hab/pkgs/core/make/4.2.1/20161102154828/include -I/hab/pkgs/core/gcc/5.2.0/20161031031637/include\nCXXFLAGS: -I/hab/pkgs/core/glibc/2.22/20160612063629/include -I/hab/pkgs/core/make/4.2.1/20161102154828/include -I/hab/pkgs/core/gcc/5.2.0/20161031031637/include\nLDFLAGS: -L/hab/pkgs/core/glibc/2.22/20160612063629/lib -L/hab/pkgs/core/gcc/5.2.0/20161031031637/lib\nLD_RUN_PATH: /hab/pkgs/core/tree/1.7.0/20161102210957/lib:/hab/pkgs/core/glibc/2.22/20160612063629/lib\n```\n\n## Plan Source\n\n```bash\npkg_name=tree\npkg_origin=core\npkg_version=1.7.0\npkg_maintainer=\"The Habitat Maintainers <humans@habitat.sh>\"\npkg_license=('gplv2+')\npkg_source=http://mama.indstate.edu/users/ice/tree/src/tree-${pkg_version}.tgz\npkg_shasum=6957c20e82561ac4231638996e74f4cfa4e6faabc5a2f511f0b4e3940e8f7b12\npkg_deps=(core/glibc)\npkg_build_deps=(core/make core/gcc)\npkg_bin_dirs=(bin)\npkg_include_dirs=(include)\npkg_lib_dirs=(lib)\n\ndo_build() {\n  make\n}\n\ndo_install() {\n  sed -i \"s#prefix = /usr#prefix = ${pkg_prefix}#\" Makefile\n  make install\n}\n```",
+                                                    "tdeps":[
+                                                        {
+                                                            "name":"glibc",
+                                                            "origin":"core",
+                                                            "release":"20160612063629",
+                                                            "version":"2.22"
+                                                        },
+                                                        {
+                                                            "name":"linux-headers",
+                                                            "origin":"core",
+                                                            "release":"20160612063537",
+                                                            "version":"4.3"
+                                                        }
+                                                    ]
+                                                }
+                                400:
+                                    description: Origin or channel or identifier not supplied
+                                404:
+                                    description: Origin or channel does not exist
+                                500:
+                                    description: Server error
+                    /{version}:
+                        get:
+                            description: List all packages in a channel that match the specified identifier and version
+                            responses:
+                                200:
+                                    description: Returns a list of packages
+                                400:
+                                    description: Origin or channel or identifier or version not supplied
+                                404:
+                                    description: Origin or channel does not exist
+                                500:
+                                    description: Server error
+                        /latest:
+                            get:
+                                description: Get the latest version of the package in this channel that matches the specified identifier and version
+                                responses:
+                                    200:
+                                        description: Returns a package
+                                    400:
+                                        description: Origin or channel or identifier or version not supplied
+                                    404:
+                                        description: Origin or channel does not exist
+                                    500:
+                                        description: Server error
+                        /{release}:
+                            get:
+                                description: Get the package in a channel that matches the specified identifier, version and release
+                                responses:
+                                    200:
+                                        description: Returns a package
+                                    400:
+                                        description: Origin or channel or identifier or version or release not supplied
+                                    404:
+                                        description: Origin or channel does not exist
+                                    500:
+                                        description: Server error
+                            /promote:
+                                put:
+                                    description: Promote a package to a specific channel
+                                    responses:
+                                        200:
+                                            description: Package successfully promoted
+                                        400:
+                                            description: Origin or channel or identifier or version or release not supplied
+                                        404:
+                                            description: Origin or channel or identifier or version or release does not exist
+                                        500:
+                                            description: Server error
+                            /demote:
+                                put:
+                                    description: Demote a package from a specific channel
+                                    responses:
+                                        200:
+                                            description: Package successfully demoted
+                                        400:
+                                            description: Origin or channel or identifier or version or release not supplied
+                                        403:
+                                            description: Attempting to demote from unstable is not supported
+                                        404:
+                                            description: Origin or channel or identifier or version or release does not exist
+                                        500:
+                                            description: Server error
+/settings:
+    /{origin}:
+        /{name}:
+          /post:
+              securedBy: [oauth_2_0]
+              description: Create new package settings entry
+              responses:
+                  201:
+                      description: Package settings created successfully
+                      body:
+                        application/json:
+                            example: |
+                                {
+                                    "id": "b675d604257e42",
+                                    "origin": "bridges",
+                                    "name": "q-pid",
+                                    "visibility": "public",
+                                    "owner_id": "53O71239",
+                                    "created_at": "2300-02-18-1891688"
+                                    "updated_at": "2300-02-18-1891688"
+                                }
+                  500:
+                      description: Internal server error
+          /get:
+              description: Get package settings for top level package
+              responses: Returns current package settings for top level pacakge
+                  200:
+                      description: Successful request of current package settings
+                      body:
+                        application/json:
+                            example: |
+                                {
+                                    "id": "b675d604257e42",
+                                    "origin": "bridges",
+                                    "name": "q-pid",
+                                    "visibility": "public",
+                                    "owner_id": "53O71239",
+                                    "created_at": "2300-02-18-1891688"
+                                    "updated_at": "2300-02-18-1891688"
+                                }
+                  500:
+                      description: Internal server error
+          /put:
+              securedBy: [oauth_2_0]
+              description: Update a package settings entry
+              responses:
+                  200:
+                      description: Package setting updated successfully
+                      body:
+                        application/json:
+                            example: |
+                                {
+                                    "id": "b675d604257e42",
+                                    "origin": "bridges",
+                                    "name": "q-pid",
+                                    "visibility": "public",
+                                    "owner_id": "53O71239",
+                                    "created_at": "2300-02-18-1891688"
+                                    "updated_at": "2300-02-18-1891688"
+                                }
+                  400:
+                      description: Visibility setting in request does is not supported
+                  422:
+                      description: Body of request did not include a visibility setting
+                  500:
+                    description: Internal server error
+
