@@ -41,6 +41,19 @@ pub enum Origin {
         #[structopt(flatten)]
         auth_token: AuthToken,
     },
+    /// Displays general information about an origin
+    Info {
+        /// The origin name to be queried
+        #[structopt(name = "ORIGIN", validator = valid_origin)]
+        origin:     String,
+        /// Output will be rendered in json
+        #[structopt(name = "TO_JSON", short = "j", long = "json")]
+        to_json:    bool,
+        #[structopt(flatten)]
+        bldr_url:   BldrUrl,
+        #[structopt(flatten)]
+        auth_token: AuthToken,
+    },
     Invitations(Invitations),
     Key(Key),
     Secret(Secret),

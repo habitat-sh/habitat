@@ -384,7 +384,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg TO_JSON: -j --json "Output will be rendered in json")
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                      "Specify an alternate Builder endpoint. If not specified, the value will \
-                     be taken from the `HAB_BLDR_URL` environment variable if defined. (default: \
+                     be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                      https://bldr.habitat.sh)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
