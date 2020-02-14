@@ -7,10 +7,10 @@ expeditor:
       env:
         HAB_ORIGIN: "core"
         PIPELINE_HAB_BLDR_URL: "https://bldr.habitat.sh"
+        GITHUB_USER: "habitat-sh" # per https://github.com/github/hub/issues/2264#issuecomment-567241335
 
 steps:
   - label: ":github: Create GitHub Release"
-    skip: "Unable to open PRs with the expeditor provided GITHUB_TOKEN currently"
     command:
       - .expeditor/scripts/finish_release/create_github_release.sh
     expeditor:
@@ -20,6 +20,8 @@ steps:
           field: token
       executor:
         docker:
+          environment:
+            - GITHUB_USER
 
   - label: ":chocolate_bar: Publish Chocolatey package"
     command:
@@ -35,21 +37,23 @@ steps:
           environment:
 
   - label: ":rust: Check for new nightly rustfmt version"
-    skip: "Unable to open PRs with the expeditor provided GITHUB_TOKEN currently"
     command:
       - .expeditor/scripts/finish_release/bump_rustfmt.sh
     expeditor:
+      account:
+        - github
       secrets:
         GITHUB_TOKEN:
-          account: github
+          account: github/habitat-sh
           field: token
       executor:
-        linux:
-          privileged: true
+        docker:
+          environment:
+            - GITHUB_USER
+
     soft_fail: true
-  
+
   - label: ":rust: Cargo update"
-    skip: "Unable to open PRs with the expeditor provided GITHUB_TOKEN currently"
     command:
       - .expeditor/scripts/finish_release/cargo_update.sh
     expeditor:
@@ -57,9 +61,10 @@ steps:
         - github
       secrets:
         GITHUB_TOKEN:
-          account: github
+          account: github/habitat-sh
           field: token
       executor:
         docker:
           environment:
+            - GITHUB_USER
     soft_fail: true
