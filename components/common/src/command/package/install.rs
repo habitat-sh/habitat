@@ -172,6 +172,12 @@ impl From<(PackageIdent, PackageTarget)> for InstallSource {
     }
 }
 
+impl From<PackageIdent> for InstallSource {
+    /// Convenience function to generate an `InstallSource` `PackageIdent` with the active
+    /// `PackageTarget`.
+    fn from(ident: PackageIdent) -> Self { (ident, PackageTarget::active_target()).into() }
+}
+
 impl Into<PackageIdent> for InstallSource {
     fn into(self) -> PackageIdent {
         match self {
