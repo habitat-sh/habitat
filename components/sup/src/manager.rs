@@ -521,7 +521,7 @@ pub struct Manager {
     census_ring:         CensusRing,
     fs_cfg:              Arc<FsCfg>,
     launcher:            LauncherCli,
-    updater:             Arc<Mutex<ServiceUpdater>>,
+    service_updater:     Arc<Mutex<ServiceUpdater>>,
     peer_watcher:        Option<PeerWatcher>,
     spec_watcher:        SpecWatcher,
     // This Arc<RwLock<>> business is a potentially temporary
@@ -669,7 +669,7 @@ impl Manager {
                                                     services,
                                                     gateway_state: Arc::default() }),
                      self_updater,
-                     updater: Arc::new(Mutex::new(ServiceUpdater::new(server.clone()))),
+                     service_updater: Arc::new(Mutex::new(ServiceUpdater::new(server.clone()))),
                      census_ring: CensusRing::new(sys.member_id.clone()),
                      butterfly: server,
                      launcher,
@@ -829,7 +829,7 @@ impl Manager {
             return;
         }
 
-        self.updater
+        self.service_updater
             .lock()
             .expect("Updater lock poisoned")
             .add(&service)
@@ -1203,7 +1203,7 @@ impl Manager {
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (write)
     async fn take_services_need_restart_rsw_mlr_rhw_msw(&mut self) -> Vec<Service> {
-        let mut updater = self.updater.lock().expect("Updater lock poisoned");
+        let mut service_updater = self.service_updater.lock().expect("Updater lock poisoned");
 
         let mut state_services = self.state.services.lock_msw();
         let mut idents_to_restart = Vec::new();
@@ -1211,8 +1211,8 @@ impl Manager {
             if service.needs_restart {
                 idents_to_restart.push(current_ident.clone());
             } else if let Some(new_ident) =
-                updater.check_for_updated_package_rsw_mlr_rhw(&service, &self.census_ring)
-                       .await
+                service_updater.check_for_updated_package_rsw_mlr_rhw(&service, &self.census_ring)
+                               .await
             {
                 outputln!("Updating from {} to {}", current_ident, new_ident);
                 event::service_update_started(&service, &new_ident);
@@ -1394,7 +1394,7 @@ impl Manager {
                                shutdown_input: Option<&ShutdownInput>)
                                -> impl Future<Output = ()> {
         let mut user_config_watcher = self.user_config_watcher.clone();
-        let updater = Arc::clone(&self.updater);
+        let service_updater = Arc::clone(&self.service_updater);
         let busy_services = Arc::clone(&self.busy_services);
         let services_need_reconciliation = self.services_need_reconciliation.clone();
         let shutdown_config = ShutdownConfig::new(shutdown_input, &service);
@@ -1407,9 +1407,9 @@ impl Manager {
             service.stop_gsw(shutdown_config).await;
             event::service_stopped(&service);
             user_config_watcher.remove(&service);
-            updater.lock()
-                   .expect("Updater lock poisoned")
-                   .remove(&service);
+            service_updater.lock()
+                           .expect("Updater lock poisoned")
+                           .remove(&service);
         };
         Self::wrap_async_service_operation(ident,
                                            busy_services,
