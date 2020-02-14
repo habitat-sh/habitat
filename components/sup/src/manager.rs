@@ -1082,8 +1082,18 @@ impl Manager {
             self.update_peers_from_watch_file_mlr_imlw()?;
             self.update_running_services_from_user_config_watcher_msw();
 
-            for f in self.stop_services_with_updates_rsw_mlr_rhw_msw().await {
-                tokio::spawn(f);
+            // Restart all services that need it
+            // TODO (CM): In the future, when service start up is
+            // future-based, we'll want to have an actual "restart"
+            // future, that queues up the start future after the stop
+            // future.
+            //
+            // Until then, we will just stop the services, and rely on the
+            // our specfile reconciliation logic to catch the fact that
+            // the service needs to be restarted. At that point, this function
+            // can be renamed; right now, it says exactly what it's doing.
+            for service in self.take_services_need_restart_rsw_mlr_rhw_msw().await {
+                tokio::spawn(self.stop_service_future_gsw(service, None));
             }
 
             self.restart_elections_rsw_mlr_rhw_msr(self.feature_flags);
@@ -1192,24 +1202,23 @@ impl Manager {
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (write)
-    #[rustfmt::skip]
-    async fn take_services_with_updates_rsw_mlr_rhw_msw(&mut self) -> Vec<Service> {
+    async fn take_services_need_restart_rsw_mlr_rhw_msw(&mut self) -> Vec<Service> {
         let mut updater = self.updater.lock().expect("Updater lock poisoned");
 
         let mut state_services = self.state.services.lock_msw();
-        // We cannot use `filter_map` here because futures cannot be awaited in a closure.
         let mut idents_to_restart = Vec::new();
         for (current_ident, service) in state_services.iter() {
             if service.needs_restart {
                 idents_to_restart.push(current_ident.clone());
             } else if let Some(new_ident) =
-                    updater.check_for_updated_package_rsw_mlr_rhw(&service, &self.census_ring).await
+                updater.check_for_updated_package_rsw_mlr_rhw(&service, &self.census_ring)
+                       .await
             {
                 outputln!("Updating from {} to {}", current_ident, new_ident);
                 event::service_update_started(&service, &new_ident);
                 idents_to_restart.push(current_ident.clone());
             } else {
-                trace!("No update found for {}", current_ident);
+                trace!("No restart required for {}", current_ident);
             };
         }
 
@@ -1220,32 +1229,6 @@ impl Manager {
             services_to_restart.push(state_services.remove(&current_ident).unwrap());
         }
         services_to_restart
-    }
-
-    /// Returns a Vec of futures for shutting down those services that
-    /// need to be updated.
-    ///
-    /// # Locking (see locking.md)
-    /// * `RumorStore::list` (write)
-    /// * `MemberList::entries` (read)
-    /// * `RumorHeat::inner` (write)
-    /// * `ManagerServices::inner` (write)
-    // TODO (CM): In the future, when service start up is
-    // future-based, we'll want to have an actual "restart"
-    // future, that queues up the start future after the stop
-    // future.
-    //
-    // Until then, we will just stop the services, and rely on the
-    // our specfile reconciliation logic to catch the fact that
-    // the service needs to be restarted. At that point, this function
-    // can be renamed; right now, it says exactly what it's doing.
-    async fn stop_services_with_updates_rsw_mlr_rhw_msw(&mut self)
-                                                        -> Vec<impl Future<Output = ()>> {
-        self.take_services_with_updates_rsw_mlr_rhw_msw()
-            .await
-            .into_iter()
-            .map(|service| self.stop_service_future_gsw(service, None))
-            .collect()
     }
 
     // Creates a rumor for the specified service.
