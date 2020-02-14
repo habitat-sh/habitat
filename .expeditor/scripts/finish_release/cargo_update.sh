@@ -65,6 +65,7 @@ push_current_branch
 # We have to use --force to open the PR. We're specifying where to push, rather than using a remote, in 
 # the previous command to avoid writing secrets to disk, so hub isn't able to read that information from
 # the git configuration
+export GITHUB_USER=habitat-sh # per https://github.com/github/hub/issues/2264#issuecomment-567241335
 hub pull-request --force --no-edit --draft --labels "$pr_labels" --file - <<EOF
 Cargo Update
 
