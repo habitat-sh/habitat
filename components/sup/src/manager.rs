@@ -832,8 +832,7 @@ impl Manager {
         self.service_updater
             .lock()
             .expect("Updater lock poisoned")
-            .add(&service)
-            .await;
+            .add(&service);
 
         event::service_started(&service);
 
@@ -1092,7 +1091,7 @@ impl Manager {
             // our specfile reconciliation logic to catch the fact that
             // the service needs to be restarted. At that point, this function
             // can be renamed; right now, it says exactly what it's doing.
-            for service in self.take_services_need_restart_rsw_mlr_rhw_msw().await {
+            for service in self.take_services_need_restart_rsw_mlr_rhw_msw() {
                 tokio::spawn(self.stop_service_future_gsw(service, None));
             }
 
@@ -1202,18 +1201,15 @@ impl Manager {
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (write)
-    async fn take_services_need_restart_rsw_mlr_rhw_msw(&mut self) -> Vec<Service> {
-        let mut service_updater = self.service_updater.lock().expect("Updater lock poisoned");
+    fn take_services_need_restart_rsw_mlr_rhw_msw(&mut self) -> Vec<Service> {
+        let service_updater = self.service_updater.lock().expect("Updater lock poisoned");
 
         let mut state_services = self.state.services.lock_msw();
         let mut idents_to_restart = Vec::new();
         for (current_ident, service) in state_services.iter() {
             if service.needs_restart {
                 idents_to_restart.push(current_ident.clone());
-            } else if let Some(new_ident) =
-                service_updater.check_for_updated_package_rsw_mlr_rhw(&service, &self.census_ring)
-                               .await
-            {
+            } else if let Some(new_ident) = service_updater.has_update(&service.service_group) {
                 outputln!("Updating from {} to {}", current_ident, new_ident);
                 event::service_update_started(&service, &new_ident);
                 idents_to_restart.push(current_ident.clone());
@@ -1409,7 +1405,7 @@ impl Manager {
             user_config_watcher.remove(&service);
             service_updater.lock()
                            .expect("Updater lock poisoned")
-                           .remove(&service);
+                           .remove(&service.service_group);
         };
         Self::wrap_async_service_operation(ident,
                                            busy_services,
