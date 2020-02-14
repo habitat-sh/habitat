@@ -22,6 +22,7 @@ steps:
         docker:
 
   - label: ":chocolate_bar: Publish Chocolatey package"
+    skip: "Just for now"
     command:
       - powershell .expeditor/scripts/finish_release/publish_to_chocolatey.ps1
     expeditor:
@@ -35,21 +36,19 @@ steps:
           environment:
 
   - label: ":rust: Check for new nightly rustfmt version"
-    skip: "Unable to open PRs with the expeditor provided GITHUB_TOKEN currently"
     command:
       - .expeditor/scripts/finish_release/bump_rustfmt.sh
     expeditor:
       secrets:
         GITHUB_TOKEN:
-          account: github
+          account: github/habitat-sh
           field: token
       executor:
         linux:
           privileged: true
     soft_fail: true
-  
+
   - label: ":rust: Cargo update"
-    skip: "Unable to open PRs with the expeditor provided GITHUB_TOKEN currently"
     command:
       - .expeditor/scripts/finish_release/cargo_update.sh
     expeditor:
@@ -57,7 +56,7 @@ steps:
         - github
       secrets:
         GITHUB_TOKEN:
-          account: github
+          account: github/habitat-sh
           field: token
       executor:
         docker:
