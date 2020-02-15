@@ -78,6 +78,7 @@ use habitat_launcher_client::{LauncherCli,
                               LAUNCHER_LOCK_CLEAN_ENV,
                               LAUNCHER_PID_ENV};
 use habitat_sup_protocol;
+use parking_lot::Mutex;
 use prometheus::{HistogramVec,
                  IntGauge,
                  IntGaugeVec};
@@ -109,7 +110,7 @@ use std::{collections::{HashMap,
                  mpsc as std_mpsc,
                  Arc,
                  Condvar,
-                 Mutex},
+                 Mutex as StdMutex},
           thread,
           time::Duration as StdDuration};
 use time::{self,
@@ -682,7 +683,7 @@ impl Manager {
                      service_states: HashMap::new(),
                      sys: Arc::new(sys),
                      http_disable: cfg.http_disable,
-                     busy_services: Arc::new(Mutex::new(HashSet::new())),
+                     busy_services: Arc::default(),
                      services_need_reconciliation: ReconciliationFlag::new(false),
                      feature_flags: cfg.feature_flags,
                      pid_source })
@@ -829,10 +830,7 @@ impl Manager {
             return;
         }
 
-        self.service_updater
-            .lock()
-            .expect("Updater lock poisoned")
-            .add(&service);
+        self.service_updater.lock().add(&service);
 
         event::service_started(&service);
 
@@ -924,7 +922,7 @@ impl Manager {
             // return value. Specifically, we're looking for errors when it tries to bind to the
             // listening TCP socket, so we can alert the user.
             let pair =
-                Arc::new((Mutex::new(http_gateway::ServerStartup::NotStarted), Condvar::new()));
+                Arc::new((StdMutex::new(http_gateway::ServerStartup::NotStarted), Condvar::new()));
 
             outputln!("Starting http-gateway on {}", &http_listen_addr);
             http_gateway::Server::run(http_listen_addr,
@@ -1202,7 +1200,7 @@ impl Manager {
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (write)
     fn take_services_need_restart_rsw_mlr_rhw_msw(&mut self) -> Vec<Service> {
-        let service_updater = self.service_updater.lock().expect("Updater lock poisoned");
+        let service_updater = self.service_updater.lock();
 
         let mut state_services = self.state.services.lock_msw();
         let mut idents_to_restart = Vec::new();
@@ -1403,9 +1401,7 @@ impl Manager {
             service.stop_gsw(shutdown_config).await;
             event::service_stopped(&service);
             user_config_watcher.remove(&service);
-            service_updater.lock()
-                           .expect("Updater lock poisoned")
-                           .remove(&service.service_group);
+            service_updater.lock().remove(&service.service_group);
         };
         Self::wrap_async_service_operation(ident,
                                            busy_services,
@@ -1447,15 +1443,11 @@ impl Manager {
     {
         trace!("Flagging '{:?}' as busy, pending an asynchronous operation",
                ident);
-        busy_services.lock()
-                     .expect("busy_services lock is poisoned")
-                     .insert(ident.clone());
+        busy_services.lock().insert(ident.clone());
         fut.await;
         trace!("Removing 'busy' flag for '{:?}'; asynchronous operation over",
                ident);
-        busy_services.lock()
-                     .expect("busy_services lock is poisoned")
-                     .remove(&ident);
+        busy_services.lock().remove(&ident);
         services_need_reconciliation.set();
     }
 
@@ -1549,9 +1541,7 @@ impl Manager {
         // Now, figure out what we should compare against, ignoring
         // any services that are currently doing something
         // asynchronously.
-        let busy_services = self.busy_services
-                                .lock()
-                                .expect("busy_services lock is poisoned");
+        let busy_services = self.busy_services.lock();
         let on_disk_specs = self.spec_dir
                                 .specs()
                                 .into_iter()
