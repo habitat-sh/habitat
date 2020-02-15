@@ -78,7 +78,8 @@ use habitat_launcher_client::{LauncherCli,
                               LAUNCHER_LOCK_CLEAN_ENV,
                               LAUNCHER_PID_ENV};
 use habitat_sup_protocol;
-use parking_lot::Mutex;
+use parking_lot::{Mutex,
+                  RwLock};
 use prometheus::{HistogramVec,
                  IntGauge,
                  IntGaugeVec};
@@ -519,7 +520,7 @@ pub(crate) mod sync {
 pub struct Manager {
     pub state:           Arc<ManagerState>,
     butterfly:           habitat_butterfly::Server,
-    census_ring:         CensusRing,
+    census_ring:         Arc<RwLock<CensusRing>>,
     fs_cfg:              Arc<FsCfg>,
     launcher:            LauncherCli,
     service_updater:     Arc<Mutex<ServiceUpdater>>,
@@ -671,7 +672,7 @@ impl Manager {
                                                     gateway_state: Arc::default() }),
                      self_updater,
                      service_updater: Arc::new(Mutex::new(ServiceUpdater::new(server.clone()))),
-                     census_ring: CensusRing::new(sys.member_id.clone()),
+                     census_ring: Arc::new(RwLock::new(CensusRing::new(sys.member_id.clone()))),
                      butterfly: server,
                      launcher,
                      peer_watcher,
@@ -1095,6 +1096,7 @@ impl Manager {
 
             self.restart_elections_rsw_mlr_rhw_msr(self.feature_flags);
             self.census_ring
+                .write()
                 .update_from_rumors_rsr_mlr(&self.state.cfg.cache_key_path,
                                             &self.butterfly.service_store,
                                             &self.butterfly.election_store,
@@ -1103,7 +1105,7 @@ impl Manager {
                                             &self.butterfly.service_config_store,
                                             &self.butterfly.service_file_store);
 
-            if self.check_for_changed_services_msr() || self.census_ring.changed() {
+            if self.check_for_changed_services_msr() || self.census_ring.read().changed() {
                 self.persist_state_rsr_mlr_gsw_msr().await;
             }
 
@@ -1112,7 +1114,7 @@ impl Manager {
                 // this var goes out of scope
                 #[allow(unused_variables)]
                 let service_timer = service_hist.start_timer();
-                if service.tick(&self.census_ring, &self.launcher) {
+                if service.tick(&self.census_ring.read(), &self.launcher) {
                     self.gossip_latest_service_rumor_rsw_mlw_rhw(&service);
                 }
             }
@@ -1287,7 +1289,8 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `GatewayState::inner` (write)
     fn persist_census_state_gsw(&self) {
-        let crp = CensusRingProxy::new(&self.census_ring);
+        let census_ring = &self.census_ring.read();
+        let crp = CensusRingProxy::new(census_ring);
         let json = serde_json::to_string(&crp).expect("CensusRingProxy::serialize failure");
         self.state.gateway_state.lock_gsw().set_census_data(json);
     }
