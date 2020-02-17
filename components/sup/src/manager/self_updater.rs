@@ -46,10 +46,7 @@ impl SelfUpdater {
             update_channel: ChannelIdent)
             -> Receiver<PackageInstall> {
         let (tx, rx) = oneshot::channel();
-        tokio::spawn(Self::run(tx,
-                               current.clone(),
-                               update_url.clone(),
-                               update_channel.clone()));
+        tokio::spawn(Self::run(tx, current, update_url, update_channel));
         rx
     }
 
