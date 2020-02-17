@@ -9,11 +9,8 @@ fn main() {
                     .compile("libadmincheck.a");
     let mut file =
         File::create(Path::new(&env::var("OUT_DIR").unwrap()).join("hab-crypt")).unwrap();
-    match env::var("HAB_CRYPTO_KEY") {
-        Ok(key) => {
-            file.write_all(&base64::decode(&key).unwrap()).unwrap();
-        }
-        Err(_) => {}
+    if let Ok(key) = env::var("HAB_CRYPTO_KEY") {
+        file.write_all(&base64::decode(&key).unwrap()).unwrap();
     }
 }
 

@@ -837,13 +837,16 @@ mod tests {
         let reader = BufReader::new("".as_bytes());
         let result = SuitabilityHook::parse_suitability(reader, "test_pkg_name");
         assert!(result.is_none());
+        #[allow(clippy::string_lit_as_bytes)]
         let reader = BufReader::new("test\nanother\ninvalid".as_bytes());
         let result = SuitabilityHook::parse_suitability(reader, "test_pkg_name");
         assert!(result.is_none());
         #[allow(clippy::string_lit_as_bytes)]
+        #[allow(clippy::string_lit_as_bytes)]
         let reader = BufReader::new("3".as_bytes());
         let result = SuitabilityHook::parse_suitability(reader, "test_pkg_name");
         assert_eq!(result.unwrap(), 3);
+        #[allow(clippy::string_lit_as_bytes)]
         let reader = BufReader::new("test\nanother\n124".as_bytes());
         let result = SuitabilityHook::parse_suitability(reader, "test_pkg_name");
         assert_eq!(result.unwrap(), 124);

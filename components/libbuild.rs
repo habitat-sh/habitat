@@ -8,7 +8,7 @@ mod habitat {
     /// Writes version information to `$OUT_DIR/VERSION` during
     /// compilation, in order to be picked up by `include!` macros
     /// elsewhere in the compiling code.
-    pub fn common() { write_out_dir_file("VERSION", version()); }
+    pub fn common() { write_out_dir_file("VERSION", &version()); }
 
     /// Reads from $PLAN_VERSION in a `hab pkg build` run, but from
     /// the `VERSION` file in a plain `cargo build` run.
@@ -25,7 +25,7 @@ mod habitat {
     }
 
     /// Write the given `content` to `$OUT_DIR/filename`.
-    fn write_out_dir_file(filename: &str, content: String) {
+    fn write_out_dir_file(filename: &str, content: &str) {
         let mut f = File::create(
             Path::new(&env::var("OUT_DIR").unwrap())
                 .join(filename),
