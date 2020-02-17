@@ -47,10 +47,10 @@ steps:
           account: github/habitat-sh
           field: token
       executor:
-        linux:
-          privileged: true
+        docker:
           environment:
             - GITHUB_USER
+
     soft_fail: true
 
   - label: ":rust: Cargo update"
