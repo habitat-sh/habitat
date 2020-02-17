@@ -79,17 +79,22 @@ impl PackageUpdateWorker {
             {
                 Ok(package) => {
                     // Only allow updates never rollbacks.
-                    if package.ident > install_ident {
-                        debug!("Service updater found change to '{}' from channel '{}' for \
-                                service group '{}' replacing '{}'",
-                               self.ident, self.channel, self.service_group, self.full_ident);
+                    if package.ident > self.full_ident {
+                        debug!("'{}' service updater found change from '{}' to '{}' for '{}' in \
+                                channel '{}'",
+                               self.service_group,
+                               self.full_ident,
+                               package.ident,
+                               install_ident,
+                               self.channel,);
                         break package.ident;
                     } else {
-                        trace!("Service updater did not find changes to '{}' from channel '{}' \
-                                for service group '{}'",
-                               self.ident,
-                               self.channel,
-                               self.service_group)
+                        trace!("'{}' service updater did not find change from '{}' for '{}' in \
+                                channel '{}'",
+                               self.service_group,
+                               self.full_ident,
+                               install_ident,
+                               self.channel,)
                     }
                 }
                 Err(err) => {
