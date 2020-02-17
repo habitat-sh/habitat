@@ -64,7 +64,7 @@ run_fmt_open_pr() {
   # it in .expeditor/config.yml where a workload
   # subscription references the same name.
   readonly branch="expeditor/rustfmt_${version_underbar}"
-  maybe_run git checkout -b "${branch}"
+  git checkout -b "${branch}"
 
   # update the version pin files
   echo "${FOUND_VERSION}" | tee RUSTFMT_VERSION RUST_NIGHTLY_VERSION
@@ -74,7 +74,7 @@ run_fmt_open_pr() {
   cargo +"$(< RUSTFMT_VERSION)" fmt --all
 
   git add --update
-  maybe_run git commit --signoff --message "\"Bump nightly toolchain to ${FOUND_VERSION}\""
+  git commit --signoff --message "\"Bump nightly toolchain to ${FOUND_VERSION}\""
 
   # This script runs from a pipeline step, thus we do not
   # have access to expeditor's open_pull_request bash
@@ -82,7 +82,7 @@ run_fmt_open_pr() {
   install_hub
 
   echo "--- :github: Creating PR"
-  maybe_run hub pull-request --push --no-edit
+  hub pull-request --push --no-edit
 }
 
 install_rustup
