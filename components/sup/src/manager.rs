@@ -667,12 +667,15 @@ impl Manager {
 
         let pid_source = ServicePidSource::determine_source(&launcher);
 
+        let census_ring = Arc::new(RwLock::new(CensusRing::new(sys.member_id.clone())));
         Ok(Manager { state: Arc::new(ManagerState { cfg: cfg_static,
                                                     services,
                                                     gateway_state: Arc::default() }),
                      self_updater,
-                     service_updater: Arc::new(Mutex::new(ServiceUpdater::new(server.clone()))),
-                     census_ring: Arc::new(RwLock::new(CensusRing::new(sys.member_id.clone()))),
+                     service_updater:
+                         Arc::new(Mutex::new(ServiceUpdater::new(server.clone(),
+                                                                 Arc::clone(&census_ring)))),
+                     census_ring,
                      butterfly: server,
                      launcher,
                      peer_watcher,
