@@ -38,7 +38,7 @@ cargo +"$toolchain" check --all --tests && update_status=$? || update_status=$?
 echo "--- :git: Publishing updated Cargo.lock"
 git add Cargo.lock
 
-git commit -s -m "Update Cargo.lock"
+git commit --signoff --message "Update Cargo.lock"
 
 pr_labels=""
 pr_message=""
