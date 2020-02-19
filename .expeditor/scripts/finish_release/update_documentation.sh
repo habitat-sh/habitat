@@ -6,6 +6,7 @@ set -euo pipefail
 source .expeditor/scripts/shared.sh
 
 install_hub
+curlbash_hab "x86_64-linux"
 
 branch="expeditor/documentation-update-$(date +"%Y%m%d%H%M%S")"
 git checkout -b "$branch"
