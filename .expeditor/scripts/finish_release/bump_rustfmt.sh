@@ -74,15 +74,17 @@ run_fmt_open_pr() {
   cargo +"$(< RUSTFMT_VERSION)" fmt --all
 
   git add --update
-  git commit --signoff --message "\"Bump nightly toolchain to ${FOUND_VERSION}\""
+  git commit --signoff --message "Bump nightly toolchain to ${FOUND_VERSION}"
 
   # This script runs from a pipeline step, thus we do not
   # have access to expeditor's open_pull_request bash
   # action helper function.
   install_hub
 
+  push_current_branch
+
   echo "--- :github: Creating PR"
-  hub pull-request --push --no-edit
+  hub pull-request --force --no-edit -m "Rustup and Nightly Rust Bump to ${FOUND_VERSION}"
 }
 
 install_rustup
