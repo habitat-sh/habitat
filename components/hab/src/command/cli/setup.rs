@@ -57,7 +57,7 @@ pub fn start(ui: &mut UI, cache_path: &Path) -> Result<()> {
         ui.br()?;
         ui.para("Enter the url of your builder instance. The default is \
                  https://bldr.habitat.sh. The configured endpoint can be overridden any time \
-                 with a `HAB_BLDR_URL` envvar or a --url flag on the cli.")?;
+                 with a `HAB_BLDR_URL` environment variable or a --url flag on the cli.")?;
         let mut url = prompt_url(ui)?;
 
         while valid_url(&url).is_err() {
@@ -71,8 +71,8 @@ pub fn start(ui: &mut UI, cache_path: &Path) -> Result<()> {
         write_cli_config_bldr_url(&url)?;
     } else {
         ui.br()?;
-        ui.para("No worries, should you need to use a different bldr instance you can set a \
-                 `HAB_BLDR_URL` envvar or pass the `--url` flag to the cli!")?;
+        ui.para("Alright, maybe another time. You can also set a `HAB_BLDR_URL` environment \
+                 variable or pass the `--url` flag to the cli.")?;
     }
 
     ui.heading("Set up a default origin")?;
@@ -126,7 +126,8 @@ pub fn start(ui: &mut UI, cache_path: &Path) -> Result<()> {
             }
         }
     } else {
-        ui.para("Okay, maybe another time.")?;
+        ui.para("Alright, maybe another time. You can also set a `HAB_ORIGIN` environment \
+                 variable when using the cli.")?;
     }
     ui.heading("Habitat Personal Access Token")?;
     ui.para("While you can perform tasks like building and running Habitat packages without \
@@ -148,15 +149,26 @@ pub fn start(ui: &mut UI, cache_path: &Path) -> Result<()> {
         let auth_token = prompt_auth_token(ui)?;
         write_cli_config_auth_token(&auth_token)?;
     } else {
-        ui.para("Okay, maybe another time.")?;
+        ui.para("Alright, maybe another time. You can also set a `HAB_AUTH_TOKEN` environment \
+                 variable or pass the `--auth` flag to the cli.")?;
     }
+    ui.heading("Supervisor Control Gateway Secret")?;
+    ui.para("The Supervisor control gateway secret is used to authenticate hab client commands \
+             to a Supervisor. When a new Supervisor is created, a unique secret is generated \
+             automatically and stored locally in a file: `/hab/sup/default/CTL_SECRET`. When \
+             issuing commands to a local Supervisor, the control gateway secret is retrieved \
+             from this file. Typically, a default Supervisor control gateway secret would only \
+             be needed if you wish to send commands to a remote supervisor, in which case, a \
+             default control gateway secret would need to match the one already in use by the \
+             remote supervisor.")?;
     if ask_default_ctl_secret(ui)? {
         ui.br()?;
-        ui.para("Enter your Habitat Supervisor CtlGateway secret.")?;
+        ui.para("Enter your Habitat Supervisor control gateway secret.")?;
         let ctl_secret = prompt_ctl_secret(ui)?;
         write_cli_config_ctl_secret(&ctl_secret)?;
     } else {
-        ui.para("Okay, maybe another time.")?;
+        ui.para("Alright, maybe another time. You can also set a `HAB_CTL_SECRET` environment \
+                 variable when issuing commands to a remote Supervisor.")?;
     }
     #[cfg(windows)]
     {
@@ -182,7 +194,7 @@ pub fn start(ui: &mut UI, cache_path: &Path) -> Result<()> {
                                  binlink_path.display()))?;
             }
         } else {
-            ui.para("Okay, maybe another time.")?;
+            ui.para("Alright, maybe another time.")?;
         }
     }
     ui.heading("CLI Setup Complete")?;
@@ -195,7 +207,7 @@ fn ask_default_origin(ui: &mut UI) -> Result<bool> {
 }
 
 fn ask_default_builder_instance(ui: &mut UI) -> Result<bool> {
-    Ok(ui.prompt_yes_no("Connect to an on-premises bldr instance?", Some(true))?)
+    Ok(ui.prompt_yes_no("Connect to an on-premises Builder instance?", Some(false))?)
 }
 
 fn ask_create_origin(ui: &mut UI, origin: &str) -> Result<bool> {
@@ -260,13 +272,13 @@ fn prompt_origin(ui: &mut UI) -> Result<String> {
 }
 
 fn ask_default_auth_token(ui: &mut UI) -> Result<bool> {
-    Ok(ui.prompt_yes_no("Set up a default Habitat personal access token?",
-                        Some(true))?)
+    Ok(ui.prompt_yes_no("Set up a default Builder personal access token?",
+                        Some(false))?)
 }
 
 fn ask_default_ctl_secret(ui: &mut UI) -> Result<bool> {
-    Ok(ui.prompt_yes_no("Set up a default Habitat Supervisor CtlGateway secret?",
-                        Some(true))?)
+    Ok(ui.prompt_yes_no("Set up a default Habitat Supervisor control gateway secret?",
+                        Some(false))?)
 }
 
 fn prompt_url(ui: &mut UI) -> Result<String> {
@@ -301,7 +313,7 @@ fn prompt_ctl_secret(ui: &mut UI) -> Result<String> {
     let default = match config.ctl_secret {
         Some(o) => {
             ui.para(
-                    "You already have a default CtlGateway secret set up, but feel free to \
+                    "You already have a default control gateway secret set up, but feel free to \
                      change it
                 if you wish.",
             )?;
@@ -309,7 +321,7 @@ fn prompt_ctl_secret(ui: &mut UI) -> Result<String> {
         }
         None => henv::var(CTL_SECRET_ENVVAR).ok(),
     };
-    Ok(ui.prompt_ask("Habitat Supervisor CtlGateway secret",
+    Ok(ui.prompt_ask("Habitat Supervisor control gateway secret",
                      default.as_ref().map(|x| &**x))?)
 }
 
