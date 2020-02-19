@@ -18,6 +18,9 @@ set -Eeuo pipefail
 # shellcheck source=.expeditor/scripts/shared.sh
 source .expeditor/scripts/shared.sh
 
+install_hub
+install_rustup
+
 TODAY=$(date '+%Y-%m-%d')
 # pick out the date from a string like: nightly-2019-12-04
 CURRENT_RUSTFMT_DATE=$(awk -F- '{print $2"-"$3"-"$4}' RUSTFMT_VERSION)
@@ -57,37 +60,6 @@ find_nightly_rustfmt() {
   done
 }
 
-run_fmt_open_pr() {
-  local version_underbar="${FOUND_VERSION//-/_}"
-
-  # Do not change the branch name here without also changing
-  # it in .expeditor/config.yml where a workload
-  # subscription references the same name.
-  readonly branch="expeditor/rustfmt_${version_underbar}"
-  git checkout -b "${branch}"
-
-  # update the version pin files
-  echo "${FOUND_VERSION}" | tee RUSTFMT_VERSION RUST_NIGHTLY_VERSION
-
-  # sweep the codebase
-  echo "--- :rust: Running new rustfmt"
-  cargo +"$(< RUSTFMT_VERSION)" fmt --all
-
-  git add --update
-  git commit --signoff --message "Bump nightly toolchain to ${FOUND_VERSION}"
-
-  # This script runs from a pipeline step, thus we do not
-  # have access to expeditor's open_pull_request bash
-  # action helper function.
-  install_hub
-
-  push_current_branch
-
-  echo "--- :github: Creating PR"
-  hub pull-request --force --no-edit -m "Rustup and Nightly Rust Bump to ${FOUND_VERSION}"
-}
-
-install_rustup
 find_nightly_rustfmt
 
 if [ -z "${FOUND_VERSION}" ]; then
@@ -98,4 +70,29 @@ fi
 
 echo "--- :thumbsup: New installable version of rustfmt found: ${FOUND_VERSION}"
 
-run_fmt_open_pr
+# Do not change the branch name here without also changing
+# it in .expeditor/config.yml where a workload
+# subscription references the same name.
+# TODO (CM): Ensure common branch naming convention across scripts
+readonly branch="expeditor/rustfmt_${FOUND_VERSION//-/_}"
+git checkout -b "${branch}"
+
+# update the version pin files
+echo "${FOUND_VERSION}" | tee RUSTFMT_VERSION RUST_NIGHTLY_VERSION
+
+# sweep the codebase
+echo "--- :rust: Running new rustfmt"
+cargo +"$(< RUSTFMT_VERSION)" fmt --all
+
+echo "--- :git: Pushing new branch ${branch}"
+git add --update
+git commit \
+    --signoff \
+    --message "Bump nightly toolchain to ${FOUND_VERSION}"
+push_current_branch
+
+echo "--- :github: Creating PR"
+hub pull-request \
+    --force \
+    --no-edit \
+    --message "Rustfmt and Nightly Rust Bump to ${FOUND_VERSION}"
