@@ -85,6 +85,7 @@ steps:
           field: token
       executor:
         docker:
+          privileged: true # currently using our make targets, which rely on a Docker studio
           environment:
             - GITHUB_USER
     soft_fail: true
