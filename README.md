@@ -54,10 +54,6 @@ Try the interactive infographics on the [website](http://habitat.sh#reference-di
 * [Initial Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-initial-docker-container-publishing-flow.png)
 * [Automated Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-automated-docker-container-publishing-flow.png)
 
-### Habitat and **Kubernetes**
-* [Three Tiers of Service Deployment](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-and-kubernetes-three-tiers-of-service-deployment.png)
-* [Deploy Services to Kubernetes with Habitat](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/deploy-services-to-kubernetes-with-habitat-flow.png)
-
 *View all diagrams in [Docs](https://www.habitat.sh/docs/diagrams/)*
 
 ## Hands-on Demos

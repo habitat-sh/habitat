@@ -223,7 +223,7 @@ pub enum Pkg {
     },
     /// Exports the package to the specified format
     Export {
-        /// The export format (ex: aci, cf, docker, kubernetes, mesos, or tar)
+        /// The export format (ex: aci, cf, docker, mesos, or tar)
         #[structopt(name = "FORMAT")]
         format:    String,
         /// A package identifier (ex: core/redis, core/busybox-static/1.42.2) or filepath to a

@@ -135,7 +135,6 @@ sup-log
 hab pkg export docker --base-pkgs-channel=staging core/redis
 hab pkg export tar --base-pkgs-channel=staging core/redis
 hab pkg export kubernetes --base-pkgs-channel=staging core/redis
-hab pkg export helm --base-pkgs-channel=staging core/redis
 build core-plans/redis
 ```
 
