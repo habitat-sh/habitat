@@ -39,15 +39,31 @@ pub async fn start(ui: &mut UI,
 
     ui.begin(format!("Deleting {} ({}) from Builder", ident, target))?;
 
-    if let Err(err) = api_client.delete_package((ident, target), token).await {
-        println!("Failed to delete '{}': {:?}", ident, err);
-        if let api_client::Error::APIError(StatusCode::NOT_FOUND, _) = err {
-            println!("You may need to specify a platform target argument");
+    match api_client.delete_package((ident, target), token).await {
+        Ok(_) => {
+            ui.status(Status::Deleted, format!("{} ({})", ident, target))?;
+            Ok(())
         }
-        return Err(Error::from(err));
+        Err(err @ api_client::Error::APIError(StatusCode::NOT_FOUND, _)) => {
+            ui.fatal(format!("This package does not exist, or alternatively, you may need to \
+                              specify a valid platform\ntarget argument other than {}.",
+                             target))?;
+            Err(Error::APIClient(err))
+        }
+        Err(err @ api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
+            ui.fatal("Before you can delete this package artifact, demote it from the `stable` \
+                      channel\nand remove any reverse dependencies.")?;
+            ui.fatal(format!("Demote the package artifact with the command:\nhab pkg demote {} \
+                              stable {}",
+                             ident, target))?;
+            ui.fatal(format!("Discover any reverse dependencies with the command:\nhab pkg \
+                              dependencies --reverse {}",
+                             ident))?;
+            Err(Error::APIClient(err))
+        }
+        Err(e) => {
+            ui.fatal(format!("Failed to delete the package! {:?}.", e))?;
+            Err(Error::from(e))
+        }
     }
-
-    ui.status(Status::Deleted, format!("{} ({})", ident, target))?;
-
-    Ok(())
 }
