@@ -284,31 +284,20 @@ Make sure the commands from the trace output look correct when the script execut
 
 ## The Builder Worker
 
-Now that the release is stable, we need to build a new version of builder-worker and promote it. The easiest way to do this is to use the CLI to trigger builds for all three platforms:
-
-```sh
-hab bldr job start habitat/builder-worker x86_64-linux
-hab bldr job start habitat/builder-worker x86_64-linux-kernel2
-hab bldr job start habitat/builder-worker x86_64-windows
-```
-
-When these are all done, promote the resulting artifacts to the `stable` channel (do this for each of the three build jobs):
-
-```sh
-hab bldr job promote ${BUILD_GROUP_ID} stable
-```
-(`$BUILD_GROUP_ID` is given in the output of each `hab bldr job start` command.)
-
-
-Wait for a few minutes so that supervisors on all the workers can update to the newly promoted version, then perform a test build. Check the build log for the test build to confirm that the version of the Habitat client being used is the desired version.
+New `habitat/builder-worker` packages will automatically be built by
+Builder's `post_habitat_release` pipeline ([definition](https://github.com/habitat-sh/builder/blob/cm/builder-worker-automation/.expeditor/post_habitat_release.pipeline.yml)),
+[Buildkite
+pipeline](https://buildkite.com/chef/habitat-sh-builder-master-post-habitat-release))
+when a Habitat release completes. Please follow along in that pipeline
+to ensure that the new packages are validated and properly promoted to
+the stable channel.
 
 # Release Notification
 
-1. Create new posts in [Habitat Announcements](https://discourse.chef.io/c/habitat) on the Chef discourse as well as [Announcements](https://forums.habitat.sh/c/announcements) in the Habitat forums.
+1. Create new posts in [Chef Release Announcements](https://discourse.chef.io/c/chef-release) on the Chef Discourse as well as [Announcements](https://forums.habitat.sh/c/announcements) in the Habitat forums.
 1. Tweet a release announcement from `@habitatsh`.
 1. Link forum posts to the github release
 1. Link github release to forum post
-1. Announce that the "Freeze" on merges to master is lifted in both the Chef internal slack team and in the Habitat slack team.
 
 # Update Cargo.lock
 
