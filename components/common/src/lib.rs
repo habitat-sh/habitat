@@ -1,5 +1,4 @@
-use crate::ui::{UIWriter,
-                UI};
+use crate::ui::UIWriter;
 use habitat_api_client as api_client;
 use habitat_core as hcore;
 use lazy_static::lazy_static;
@@ -76,14 +75,15 @@ bitflags::bitflags! {
     /// environment variable to which it corresponds in the `ENV_VARS`
     /// map below.
     pub struct FeatureFlag: u32 {
-        const LIST                 = 0b0000_0000_0001;
-        const TEST_EXIT            = 0b0000_0000_0010;
-        const TEST_BOOT_FAIL       = 0b0000_0000_0100;
-        const REDACT_HTTP          = 0b0000_0000_1000;
-        const OFFLINE_INSTALL      = 0b0000_0100_0000;
-        const IGNORE_LOCAL         = 0b0000_1000_0000;
-        const TRIGGER_ELECTION     = 0b0010_0000_0000;
-        const CONFIG_FILE          = 0b0100_0000_0000;
+        const LIST                       = 0b0000_0000_0001;
+        const TEST_EXIT                  = 0b0000_0000_0010;
+        const TEST_BOOT_FAIL             = 0b0000_0000_0100;
+        const REDACT_HTTP                = 0b0000_0000_1000;
+        const OFFLINE_INSTALL            = 0b0000_0100_0000;
+        const IGNORE_LOCAL               = 0b0000_1000_0000;
+        const TRIGGER_ELECTION           = 0b0010_0000_0000;
+        const CONFIG_FILE                = 0b0100_0000_0000;
+        const NO_NAMED_PIPE_HEALTH_CHECK = 0b1000_0000_0000;
     }
 }
 
@@ -96,7 +96,9 @@ lazy_static! {
                            (FeatureFlag::OFFLINE_INSTALL, "HAB_FEAT_OFFLINE_INSTALL"),
                            (FeatureFlag::IGNORE_LOCAL, "HAB_FEAT_IGNORE_LOCAL"),
                            (FeatureFlag::TRIGGER_ELECTION, "HAB_FEAT_TRIGGER_ELECTION"),
-                           (FeatureFlag::CONFIG_FILE, "HAB_FEAT_CONFIG_FILE"),];
+                           (FeatureFlag::CONFIG_FILE, "HAB_FEAT_CONFIG_FILE"),
+                           (FeatureFlag::NO_NAMED_PIPE_HEALTH_CHECK,
+                            "HAB_FEAT_NO_NAMED_PIPE_HEALTH_CHECK"),];
 
         HashMap::from_iter(mapping)
     };
@@ -105,7 +107,9 @@ lazy_static! {
 impl FeatureFlag {
     /// If the environment variable for a flag is set to _anything_ but
     /// the empty string, it is activated.
-    pub fn from_env(ui: &mut UI) -> Self {
+    pub fn from_env<T>(ui: &mut T) -> Self
+        where T: UIWriter
+    {
         let mut flags = FeatureFlag::empty();
 
         for (feature, env_var) in ENV_VARS.iter() {

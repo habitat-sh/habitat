@@ -65,7 +65,8 @@ use crate::{error::{Error,
                                  InstallHook},
                          package::Pkg},
             ui::{Status,
-                 UIWriter}};
+                 UIWriter},
+            FeatureFlag};
 
 pub const RETRIES: usize = 5;
 pub const RETRY_WAIT: Duration = Duration::from_millis(3000);
@@ -435,13 +436,15 @@ fn read_install_hook_status(path: PathBuf) -> Result<Option<i32>> {
 async fn run_install_hook<T>(ui: &mut T, package: &PackageInstall) -> Result<()>
     where T: UIWriter
 {
+    let feature_flags = FeatureFlag::from_env(ui);
     if let Some(ref hook) = InstallHook::load(&package.ident.name,
                                               &svc_hooks_path(package.ident.name.clone()),
-                                              &package.installed_path.join("hooks"))
+                                              &package.installed_path.join("hooks"),
+                                              feature_flags)
     {
         ui.status(Status::Executing,
                   format!("install hook for '{}'", &package.ident(),))?;
-        templating::compile_for_package_install(package).await?;
+        templating::compile_for_package_install(package, feature_flags).await?;
         let mut pkg = Pkg::from_install(package).await?;
         // Only windows uses svc_password
         if cfg!(target_os = "windows") {
