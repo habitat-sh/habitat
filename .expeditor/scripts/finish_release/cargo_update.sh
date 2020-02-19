@@ -1,11 +1,11 @@
 #!/bin/bash
 
-set -euo pipefail 
- 
-# shellcheck source=.expeditor/scripts/shared.sh 
-source .expeditor/scripts/shared.sh 
+set -euo pipefail
 
-branch="ci/cargo-update-$(date +"%Y%m%d%H%M%S")"
+# shellcheck source=.expeditor/scripts/shared.sh
+source .expeditor/scripts/shared.sh
+
+branch="expeditor/cargo-update-$(date +"%Y%m%d%H%M%S")"
 git checkout -b "$branch"
 
 toolchain="$(get_toolchain)"
