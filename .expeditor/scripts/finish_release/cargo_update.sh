@@ -65,7 +65,7 @@ push_current_branch
 # We have to use --force to open the PR. We're specifying where to push, rather than using a remote, in 
 # the previous command to avoid writing secrets to disk, so hub isn't able to read that information from
 # the git configuration
-hub pull-request --force --no-edit --draft --labels "$pr_labels" --file - <<EOF
+hub pull-request --force --no-edit --labels "$pr_labels" --file - <<EOF
 Cargo Update
 
 $pr_message
