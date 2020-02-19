@@ -84,7 +84,7 @@ steps:
           account: github/habitat-sh
           field: token
       executor:
-        docker:
+        linux:
           privileged: true # currently using our make targets, which rely on a Docker studio
           environment:
             - GITHUB_USER
