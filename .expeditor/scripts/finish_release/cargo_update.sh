@@ -1,11 +1,11 @@
 #!/bin/bash
 
-set -euo pipefail 
- 
-# shellcheck source=.expeditor/scripts/shared.sh 
-source .expeditor/scripts/shared.sh 
+set -euo pipefail
 
-branch="ci/cargo-update-$(date +"%Y%m%d%H%M%S")"
+# shellcheck source=.expeditor/scripts/shared.sh
+source .expeditor/scripts/shared.sh
+
+branch="expeditor/cargo-update-$(date +"%Y%m%d%H%M%S")"
 git checkout -b "$branch"
 
 toolchain="$(get_toolchain)"
@@ -38,7 +38,7 @@ cargo +"$toolchain" check --all --tests && update_status=$? || update_status=$?
 echo "--- :git: Publishing updated Cargo.lock"
 git add Cargo.lock
 
-git commit -s -m "Update Cargo.lock"
+git commit --signoff --message "Update Cargo.lock"
 
 pr_labels=""
 pr_message=""
@@ -65,7 +65,7 @@ push_current_branch
 # We have to use --force to open the PR. We're specifying where to push, rather than using a remote, in 
 # the previous command to avoid writing secrets to disk, so hub isn't able to read that information from
 # the git configuration
-hub pull-request --force --no-edit --draft --labels "$pr_labels" --file - <<EOF
+hub pull-request --force --no-edit --labels "$pr_labels" --file - <<EOF
 Cargo Update
 
 $pr_message
