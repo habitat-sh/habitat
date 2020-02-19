@@ -92,7 +92,6 @@ function getType(prop) {
 }
 
 $RefParser.bundle(process.argv[2]).then(function(deref_schema) {
-    console.log("ARGV", process.argv[2]);
     schema = deref_schema;
     writeHeader();
     writeProperties();
