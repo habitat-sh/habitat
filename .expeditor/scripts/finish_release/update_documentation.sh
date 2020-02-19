@@ -19,10 +19,13 @@ echo "--- :hammer_and_pick: Building new automated Habitat documentation"
     hab pkg install core/hab-sup
     hab pkg install core/hab-launcher
 
-    hab pkg install core/node
+    hab pkg install core/node --binlink
 
     # Generate CLI docs
-    hab pkg exec core/node node scripts/generate-cli-docs > source/docs/habitat-cli.html.md.erb
+    # TODO: can't currently use `hab pkg exec core/node node ...` for
+    # this because that blows away $PATH for the command, making it
+    # impossible to find `hab` :(
+    node scripts/generate-cli-docs > source/docs/habitat-cli.html.md.erb
 
     # Generate template reference docs
     mkdir tmp
