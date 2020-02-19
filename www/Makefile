@@ -20,21 +20,6 @@ deploy_acceptance: check-env
 	cd ..; .expeditor/scripts/website-deploy.sh acceptance
 .PHONY: deploy_acceptance
 
-cli_docs:
-	hab studio run -D "hab pkg install core/hab-studio && \
-	hab pkg install core/hab-sup && \
-	hab pkg install core/hab-launcher && \
-	hab pkg install core/node && \
-	hab pkg binlink core/node --dest=/bin && \
-	/bin/node scripts/generate-cli-docs > source/docs/habitat-cli.html.md.erb"
-
-template_reference: clean_tmp
-	mkdir tmp
-	cp ../components/sup/doc/* tmp/
-	hab studio -D run "hab pkg install core/node && \
-	hab pkg exec core/node npm install json-schema-ref-parser@6.1.0 && \
-	hab pkg exec core/node node scripts/generate-template-reference.js tmp/render_context_schema.json > ./source/partials/docs/_reference-template-data.html.md.erb"
-
 check-env:
 ifndef AWS_DEFAULT_REGION
 	$(error AWS_DEFAULT_REGION is undefined)

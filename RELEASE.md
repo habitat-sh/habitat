@@ -210,26 +210,6 @@ The Buildkite release is fairly-well automated at this point, but once it is com
 Running [`update-hab-backline.sh`](https://github.com/habitat-sh/habitat/blob/master/update-hab-backline.sh)
 is handled by buildkite. If it is necessary to do manually, you can find instructions in [a previous release of this file.](https://github.com/habitat-sh/habitat/blob/bebf0fdfb738e1304ea201717fb6054733b17939/RELEASE.md#update-the-acceptance-environment-with-the-new-hab-backline)
 
-## Update the Docs
-
-Assuming you've got a locally installed version of the `hab` CLI you just released, you can update the CLI documentation in a separate PR. To do that run the following commands on OS X (other platforms may work as well):
-
-```
-cd www
-make cli_docs
-make template_reference
-```
-
-Verify the diff looks reasonable and matches the newly released version, then submit your PR.
-
-## Verify the Docs
-
-After the PR that updates the generated docs is merged, the [deploy_website.sh](https://github.com/habitat-sh/habitat/blob/master/support/ci/deploy_website.sh)
-script will run to redeploy the website with the updated content. Verify that this was successful
-at https://www.habitat.sh/docs. If not, check https://travis-ci.org/habitat-sh/habitat/builds
-and find the "Merge pull request #XXX" run where `XXX` was the number of your PR from the
-previous step to see if there were any errors during the deploy process.
-
 ## Update the Changelog
 
 We currently use Expeditor (an internal tool) to _partially_ manage our changelog. It adds items to `CHANGELOG.md` for every PR that is merged, based on certain labels that are attached to the PR. This is all well and good.
