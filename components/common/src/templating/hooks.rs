@@ -3,11 +3,12 @@ use super::{package::Pkg,
 use crate::{error::{Error,
                     Result},
             outputln};
-#[cfg(windows)]
-use habitat_core::os::process::windows_child::{Child,
-                                               ExitStatus};
 use habitat_core::{crypto,
                    fs};
+#[cfg(windows)]
+use habitat_core::{os::process::windows_child::{Child,
+                                                ExitStatus},
+                   util};
 use serde::{Serialize,
             Serializer};
 #[cfg(unix)]
@@ -213,9 +214,8 @@ pub trait Hook: fmt::Debug + Sized + Send {
               S: AsRef<OsStr>
     {
         let ps_cmd = format!("iex $(gc {} | out-string)", path.as_ref().to_string_lossy());
-        let args = vec!["-NonInteractive", "-command", ps_cmd.as_str()];
         Ok(Child::spawn("pwsh.exe",
-                        &args,
+                        &util::pwsh_args(ps_cmd.as_str()),
                         &pkg.env.to_hash_map(),
                         &pkg.svc_user,
                         svc_encrypted_password)?)

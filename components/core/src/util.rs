@@ -8,6 +8,24 @@ pub mod win_perm;
 
 use std::mem;
 
+/// returns the common arguments to pass to pwsh.exe when spawning a powershell instance.
+/// These arguments are optimized for a background powershell process running hooks.
+/// The NonInteractive flag specifies that the console is not intended to interact with
+/// human input and allows ctrl+break signals to trigger a graceful termination similar to
+/// a SIGTERM on linux rather than an interactive debugging prompt. The ExecutionPolicy
+/// ensures that if a more strict policy exists in the Windows Registry (ex "AllSigned"),
+/// hook execution will not fail because hook scripts are never signed. RemoteSigned is the
+/// default policy and just requires remote scripts to be signeed. Supervisor hooks are
+/// always local so "RemoteSigned" does not interfere with supervisor behavior.
+#[cfg(windows)]
+pub fn pwsh_args(command: &str) -> Vec<&str> {
+    vec!["-NonInteractive",
+         "-ExecutionPolicy",
+         "RemoteSigned",
+         "-Command",
+         command]
+}
+
 /// Provide a way to convert numeric types safely to i64
 pub trait ToI64 {
     fn to_i64(self) -> i64;
