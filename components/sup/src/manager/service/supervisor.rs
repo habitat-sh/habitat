@@ -25,7 +25,8 @@ use serde::{ser::SerializeStruct,
             Serializer};
 use std::{fs::File,
           io::{BufRead,
-               BufReader},
+               BufReader,
+               Write},
           path::{Path,
                  PathBuf},
           result};
@@ -260,7 +261,20 @@ impl Supervisor {
             debug!(target: "pidfile_tracing", "Creating PID file for child {} -> {}",
                    pid_file.display(),
                    pid);
+
+            #[cfg(windows)]
             fs::atomic_write(pid_file, pid.to_string())?;
+            #[cfg(not(windows))]
+            {
+                // We only set PID file permissions on unix-like systems. On
+                // windows, the file will inherit the permissions of the
+                // parent directory. In this case, the parent directory should
+                // already allow broad reading of the PID file.
+                const PIDFILE_PERMISSIONS: u32 = 0o644;
+                let mut w = fs::AtomicWriter::new(pid_file)?;
+                w.with_permissions(PIDFILE_PERMISSIONS);
+                w.with_writer(|f| f.write_all(pid.to_string().as_ref()))?;
+            }
         }
 
         Ok(())
