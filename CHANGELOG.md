@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.33 -->
-## [1.5.33](https://github.com/habitat-sh/habitat/tree/1.5.33) (2020-02-20)
+<!-- latest_release 1.5.34 -->
+## [1.5.34](https://github.com/habitat-sh/habitat/tree/1.5.34) (2020-02-20)
 
 #### Merged Pull Requests
-- Remove mention of ACI exporter in CLI help [#7485](https://github.com/habitat-sh/habitat/pull/7485) ([christophermaier](https://github.com/christophermaier))
+- modification to hab setup defaults and language [#7480](https://github.com/habitat-sh/habitat/pull/7480) ([jeremymv2](https://github.com/jeremymv2))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.29 -->
@@ -18,6 +18,10 @@
 - Remove Kubernetes and Helm exporters [#7463](https://github.com/habitat-sh/habitat/pull/7463) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 
 #### Merged Pull Requests
+- modification to hab setup defaults and language [#7480](https://github.com/habitat-sh/habitat/pull/7480) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.34 -->
+- make the ltsc2019 docker image the default for studio and exporter ifa hyper-v host supports it [#7488](https://github.com/habitat-sh/habitat/pull/7488) ([mwrock](https://github.com/mwrock)) <!-- 1.5.34 -->
+- add a remotesigned execution policy to pwsh spawns [#7487](https://github.com/habitat-sh/habitat/pull/7487) ([mwrock](https://github.com/mwrock)) <!-- 1.5.34 -->
+- Use stable mac-bootstrapper repo with latest package [#7490](https://github.com/habitat-sh/habitat/pull/7490) ([jaymalasinha](https://github.com/jaymalasinha)) <!-- 1.5.34 -->
 - Remove mention of ACI exporter in CLI help [#7485](https://github.com/habitat-sh/habitat/pull/7485) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 - Bump nightly and rustfmt versions [#7450](https://github.com/habitat-sh/habitat/pull/7450) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 - [CI] Purge caches when promoting from acceptance-&gt;staging [#7451](https://github.com/habitat-sh/habitat/pull/7451) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
