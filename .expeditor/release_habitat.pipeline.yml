@@ -313,9 +313,14 @@ steps:
   # TODO (CM): It wouldn't take too much additional work to have
   # `package_and_upload_binary.sh` operate on ALL targets at once.
 
+  # All the package-and-upload steps should be disabled on
+  # manually-triggered pipeline runs... we don't want to pollute
+  # packages.chef.io with random build artifacts.
+
   - label: "[:linux: upload hab binary]"
     command:
       - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    if: build.creator.name == 'Chef Expeditor'
     expeditor:
       executor:
         docker:
@@ -326,6 +331,7 @@ steps:
   - label: "[:linux: :two: upload hab binary]"
     command:
       - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    if: build.creator.name == 'Chef Expeditor'
     expeditor:
       executor:
         docker:
@@ -336,6 +342,7 @@ steps:
   - label: "[:windows: upload hab binary]"
     command:
       - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    if: build.creator.name == 'Chef Expeditor'
     expeditor:
       executor:
         docker:
@@ -346,6 +353,7 @@ steps:
   - label: "[:mac: upload hab binary]"
     command:
       - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    if: build.creator.name == 'Chef Expeditor'
     expeditor:
       executor:
         docker:
@@ -353,8 +361,27 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-darwin
 
+  # It is VERY IMPORTANT that Docker container uploads ARE NOT active
+  # in manually-triggered pipeline runs (at least, not without GREAT
+  # CARE and knowledge of *exactly* what you are doing.)
+  #
+  # The issue is that they are tagged according to the current version
+  # (i.e., the VERSION file). If you manually trigger this pipeline,
+  # chances are you're doing it on a PR. Imagine that your PR happens
+  # to be branched off of master at the last stable release. As a
+  # result, it will have the same version as what is currently
+  # released. Were you to upload to DockerHub, you would end up
+  # overwriting the existing container with your new one, containing
+  # who knows what.
+  #
+  # Until we no longer have such tight version coupling with the
+  # studio and / or we get an internal container registry to push
+  # pre-release container images to, these steps should only be
+  # executed during "real" runs of this pipeline.
+
   - label: ":docker: Upload containers to Docker Hub"
     command: .expeditor/scripts/release_habitat/dockerhub_upload.sh
+    if: build.creator.name == 'Chef Expeditor'
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
     expeditor:
@@ -364,6 +391,7 @@ steps:
 
   - label: ":docker: :two: Upload containers to Docker Hub"
     command: .expeditor/scripts/release_habitat/dockerhub_upload.sh
+    if: build.creator.name == 'Chef Expeditor'
     env:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
     expeditor:
@@ -373,12 +401,14 @@ steps:
 
   - label: ":docker: :windows: Upload windows 2016 container to Docker Hub"
     command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
+    if: build.creator.name == 'Chef Expeditor'
     expeditor:
       executor:
         windows:
           os_version: 2016
 
   - label: ":docker: :windows: Upload windows 2019 container to Docker Hub"
+    if: build.creator.name == 'Chef Expeditor'
     command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
     expeditor:
       executor:
@@ -390,6 +420,8 @@ steps:
   - label: "[:habicat: Generate Manifest and promote to dev channel]"
     command:
       - .expeditor/scripts/release_habitat/promote_artifacts_to_dev.sh habitat-release-$BUILDKITE_BUILD_ID
+    # Only "real" executions of this pipeline, initiated by Expeditor, should promote anything
+    if: build.creator.name == 'Chef Expeditor'
     expeditor:
       executor:
         docker:
