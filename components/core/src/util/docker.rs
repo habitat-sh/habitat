@@ -19,8 +19,13 @@ pub fn default_base_tag_for_host() -> Result<&'static str> {
         cmd.arg("info").arg("--format='{{.Isolation}}'");
         let result = cmd.output().expect("Docker command failed to spawn");
         if String::from_utf8(result.stdout)?.trim() == "'hyperv'" {
-            // hyperv isolation can build any version so we will default to 2016
-            Ok("ltsc2016")
+            // hyperv isolation can build any version so we will default to 2019
+            // if the host supports it, otherwise 2016
+            if os_info::get().version().version() >= &os_info::VersionType::Semantic(10, 0, 17763) {
+                Ok("ltsc2019")
+            } else {
+                Ok("ltsc2016")
+            }
         } else {
             match os_info::get().version().version() {
                 os_info::VersionType::Semantic(10, 0, 14393) => Ok("ltsc2016"),
