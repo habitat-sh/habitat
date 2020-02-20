@@ -6,6 +6,14 @@ use crate::{env as henv,
             package::{Identifiable,
                       PackageIdent,
                       PackageInstall}};
+
+#[cfg(not(windows))]
+use crate::util::posix_perm::{self,
+                              set_permissions};
+#[cfg(windows)]
+use crate::util::win_perm::{self,
+                            set_permissions};
+
 use dirs;
 use std::{env,
           fs,
@@ -418,7 +426,7 @@ impl<'a> SvcDir<'a> {
         }
 
         Self::create_dir_all(&path)?;
-        self.set_permissions(&path)
+        self.set_permissions_and_ownership(&path)
     }
 
     fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<()> {
@@ -433,9 +441,7 @@ impl<'a> SvcDir<'a> {
     }
 
     #[cfg(not(windows))]
-    fn set_permissions<T: AsRef<Path>>(&self, path: T) -> Result<()> {
-        use crate::util::posix_perm;
-
+    fn set_permissions_and_ownership<T: AsRef<Path>>(&self, path: T) -> Result<()> {
         if users::can_run_services_as_svc_user() {
             posix_perm::set_owner(path.as_ref(), &self.svc_user, &self.svc_group)?;
         }
@@ -443,9 +449,7 @@ impl<'a> SvcDir<'a> {
     }
 
     #[cfg(windows)]
-    fn set_permissions<T: AsRef<Path>>(&self, path: T) -> Result<()> {
-        use crate::util::win_perm;
-
+    fn set_permissions_and_ownership<T: AsRef<Path>>(&self, path: T) -> Result<()> {
         win_perm::harden_path(path.as_ref()).map_err(From::from)
     }
 }
@@ -694,8 +698,12 @@ fn parent(p: &Path) -> io::Result<&Path> {
 ///
 /// Assumes that the parent directory of dest_path exists.
 pub struct AtomicWriter {
-    dest:     PathBuf,
-    tempfile: tempfile::NamedTempFile,
+    dest:       PathBuf,
+    tempfile:   tempfile::NamedTempFile,
+    #[cfg(not(windows))]
+    permission: Option<u32>,
+    #[cfg(windows)]
+    permission: Option<Vec<win_perm::PermissionEntry>>,
 }
 
 impl AtomicWriter {
@@ -703,7 +711,21 @@ impl AtomicWriter {
         let parent = parent(dest_path)?;
         let tempfile = tempfile::NamedTempFile::new_in(parent)?;
         Ok(Self { dest: dest_path.to_path_buf(),
-                  tempfile })
+                  tempfile,
+                  permission: None })
+    }
+
+    #[cfg(not(windows))]
+    /// with_permission sets the target mode for the destination path.
+    ///
+    /// note: The mode is set explicitly and not subject to the
+    /// process umask.
+    pub fn with_permissions(&mut self, mode: u32) { self.permission = Some(mode); }
+
+    #[cfg(windows)]
+    /// with_permission sets given permissions on the destination path.
+    pub fn with_permissions(&mut self, entries: Vec<win_perm::PermissionEntry>) {
+        self.permission = Some(entries);
     }
 
     pub fn with_writer<F, T, E>(mut self, op: F) -> std::result::Result<T, E>
@@ -719,6 +741,17 @@ impl AtomicWriter {
     /// temporary file to ensure all data is flushed to disk and then
     /// renaming the file into place.
     fn finish(self) -> io::Result<()> {
+        if let Some(permission) = self.permission {
+            #[cfg(windows)]
+            let perm = &permission;
+            #[cfg(not(windows))]
+            let perm = permission;
+
+            set_permissions(&self.tempfile.path(), perm).map_err(|e| {
+                                                            io::Error::new(io::ErrorKind::Other,
+                                                                           e.to_string())
+                                                        })?;
+        }
         self.tempfile.as_file().sync_all()?;
         debug!("Renaming {} to {}",
                self.tempfile.path().to_string_lossy(),
