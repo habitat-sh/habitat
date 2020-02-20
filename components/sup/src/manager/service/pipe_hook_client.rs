@@ -4,7 +4,8 @@ use habitat_common::{error::{Error,
                      outputln,
                      templating::package::Pkg};
 use habitat_core::{env as henv,
-                   os::process::windows_child::Child};
+                   os::process::windows_child::Child,
+                   util};
 use mio::{Events,
           Poll,
           PollOpt,
@@ -158,9 +159,8 @@ impl PipeHookClient {
                              process::id());
 
         // Start instance of powershell to host named pipe server for this client
-        let args = vec!["-NonInteractive", "-Command", ps_cmd.as_str()];
         let child = Child::spawn("pwsh.exe",
-                                 &args,
+                                 &util::pwsh_args(ps_cmd.as_str()),
                                  &pkg.env.to_hash_map(),
                                  &pkg.svc_user,
                                  svc_encrypted_password)?;
