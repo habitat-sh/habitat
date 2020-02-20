@@ -1,16 +1,38 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.32 -->
-## [1.5.32](https://github.com/habitat-sh/habitat/tree/1.5.32) (2020-02-12)
+<!-- latest_release 1.5.33 -->
+## [1.5.33](https://github.com/habitat-sh/habitat/tree/1.5.33) (2020-02-20)
 
 #### Merged Pull Requests
-- Update docs for 1.5.29 release [#7449](https://github.com/habitat-sh/habitat/pull/7449) ([christophermaier](https://github.com/christophermaier))
+- Remove mention of ACI exporter in CLI help [#7485](https://github.com/habitat-sh/habitat/pull/7485) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.29 -->
 ### Changes since 1.5.29 release
 
+#### New Features & Enhancements
+- adds hab origin info subcommand [#7445](https://github.com/habitat-sh/habitat/pull/7445) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.33 -->
+
+#### Behavioral Changes
+- Remove ACI exporter [#7462](https://github.com/habitat-sh/habitat/pull/7462) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
+- Remove Kubernetes and Helm exporters [#7463](https://github.com/habitat-sh/habitat/pull/7463) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
+
 #### Merged Pull Requests
+- Remove mention of ACI exporter in CLI help [#7485](https://github.com/habitat-sh/habitat/pull/7485) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
+- Bump nightly and rustfmt versions [#7450](https://github.com/habitat-sh/habitat/pull/7450) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
+- [CI] Purge caches when promoting from acceptance-&gt;staging [#7451](https://github.com/habitat-sh/habitat/pull/7451) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
+- add e2e tests for hab sup term [#7441](https://github.com/habitat-sh/habitat/pull/7441) ([mwrock](https://github.com/mwrock)) <!-- 1.5.33 -->
+- increase sleep time while waiting for connections to named pipe health check server [#7452](https://github.com/habitat-sh/habitat/pull/7452) ([mwrock](https://github.com/mwrock)) <!-- 1.5.33 -->
+- [CI] Skip some Github-related pipeline steps for now [#7461](https://github.com/habitat-sh/habitat/pull/7461) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
+- Add structopt implmentation of CLI [#7453](https://github.com/habitat-sh/habitat/pull/7453) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.33 -->
+- [Docs] Fix up missing / erroneous hook documentation [#7466](https://github.com/habitat-sh/habitat/pull/7466) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
+- [Docs] Add basic `hab pkg download` file docs [#7457](https://github.com/habitat-sh/habitat/pull/7457) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
+- Add in a check for a &quot;latest&quot; version specification to not set an ide… [#7460](https://github.com/habitat-sh/habitat/pull/7460) ([jschripsema](https://github.com/jschripsema)) <!-- 1.5.33 -->
+- Update to Rust 1.41.0 [#7458](https://github.com/habitat-sh/habitat/pull/7458) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.33 -->
+- provide guidance on 409 conflict [#7473](https://github.com/habitat-sh/habitat/pull/7473) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.33 -->
+- [CI, Docs] Update release instructions [#7465](https://github.com/habitat-sh/habitat/pull/7465) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
+- [CI] Allow CI pipeline to create Github PRs, releases [#7479](https://github.com/habitat-sh/habitat/pull/7479) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
+- [CI] Automate documentation bump after a release [#7484](https://github.com/habitat-sh/habitat/pull/7484) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 - Update docs for 1.5.29 release [#7449](https://github.com/habitat-sh/habitat/pull/7449) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.32 -->
 - Update changelog following 1.5.29 release [#7447](https://github.com/habitat-sh/habitat/pull/7447) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.31 -->
 - windows-service improvements [#7422](https://github.com/habitat-sh/habitat/pull/7422) ([mwrock](https://github.com/mwrock)) <!-- 1.5.30 -->
