@@ -562,7 +562,7 @@ impl Serialize for CensusGroup {
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct CensusMember {
     pub member_id: MemberId,
-    pub pkg: Option<PackageIdent>,
+    pub pkg: PackageIdent,
     pub service: String,
     pub group: String,
     pub org: Option<String>,
@@ -599,7 +599,7 @@ impl CensusMember {
             self.org = Some(org.to_string());
         }
         match PackageIdent::from_str(&rumor.pkg) {
-            Ok(ident) => self.pkg = Some(ident),
+            Ok(ident) => self.pkg = ident,
             Err(err) => warn!("Received a bad package ident from gossip data, err={}", err),
         };
         self.sys = rumor.sys.clone();
@@ -682,12 +682,7 @@ impl<'a> Serialize for CensusMemberProxy<'a> {
         strukt.serialize_field("member_id", &self.0.member_id)?;
         strukt.serialize_field("pkg", &self.0.pkg)?;
 
-        if let Some(ref p) = self.0.pkg {
-            strukt.serialize_field("package", &p.to_string())?;
-        } else {
-            strukt.serialize_field("package", &None::<String>)?;
-        }
-
+        strukt.serialize_field("package", &self.0.pkg.to_string())?;
         strukt.serialize_field("service", &self.0.service)?;
         strukt.serialize_field("group", &self.0.group)?;
         strukt.serialize_field("org", &self.0.org)?;
@@ -844,7 +839,7 @@ mod tests {
     /// Create a bare-minimum CensusMember with the given Health
     fn test_census_member(id: &str, health: Health) -> CensusMember {
         CensusMember { member_id: id.into(),
-                       pkg: None,
+                       pkg: PackageIdent::default(),
                        service: "test_service".to_string(),
                        group: "default".to_string(),
                        org: None,

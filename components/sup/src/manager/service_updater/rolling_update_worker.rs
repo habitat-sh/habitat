@@ -30,7 +30,7 @@ enum FollowerWaitForTurn {
     PromotedToLeader,
     // TODO (DM): This field should always be fully qualified. We need a
     // type to encapsulate that.
-    UpdateTo(Option<PackageIdent>),
+    UpdateTo(PackageIdent),
 }
 
 /// The worker for handling rolling updates.
@@ -70,9 +70,9 @@ impl RollingUpdateWorker {
                 // leader dies and we are promoted to update leader.
                 match self.follower_wait_for_turn().await {
                     FollowerWaitForTurn::PromotedToLeader => self.leader_role().await,
-                    FollowerWaitForTurn::UpdateTo(maybe_new_ident) => {
+                    FollowerWaitForTurn::UpdateTo(new_ident) => {
                         // Update to the package we were instructed to
-                        self.package_update_worker.run(maybe_new_ident).await
+                        self.package_update_worker.run(Some(new_ident)).await
                     }
                 }
             }
@@ -221,16 +221,11 @@ impl RollingUpdateWorker {
                                     turn to update",
                                    self.service_group);
                         } else {
+                            let new_ident = leader.pkg.clone();
                             debug!("'{}' is in a rolling update and it is this followers turn to \
-                                    update",
-                                   self.service_group);
-                            let maybe_new_ident = leader.pkg.clone();
-                            if maybe_new_ident.is_none() {
-                                error!("'{}' rolling update leader does not have a package ident; \
-                                        follower will blindly update",
-                                       self.service_group)
-                            }
-                            break FollowerWaitForTurn::UpdateTo(maybe_new_ident);
+                                    update to '{}'",
+                                   self.service_group, new_ident);
+                            break FollowerWaitForTurn::UpdateTo(new_ident);
                         }
                     }
                     _ => {
