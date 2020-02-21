@@ -67,9 +67,9 @@ impl ServiceUpdater {
     }
 
     /// Unregister a service from updates (eg if the service was unloaded).
-    pub fn remove(&mut self, service: &ServiceGroup) {
-        self.workers.remove(service);
-        self.updates.lock().remove(service);
+    pub fn remove(&mut self, service_group: &ServiceGroup) {
+        self.workers.remove(service_group);
+        self.updates.lock().remove(service_group);
     }
 
     /// Check if this service has an update. If it does return the package ident of the update.
@@ -78,8 +78,8 @@ impl ServiceUpdater {
     /// removed from the `ServiceUpdater`. The expectation is that when an update is detected the
     /// service will be restarted inorder for the update to take effect. As part of this restart,
     /// the service should be removed from the `ServiceUpdater`.
-    pub fn has_update(&self, service: &ServiceGroup) -> Option<PackageIdent> {
-        self.updates.lock().get(service).cloned()
+    pub fn has_update(&self, service_group: &ServiceGroup) -> Option<PackageIdent> {
+        self.updates.lock().get(service_group).cloned()
     }
 
     fn at_once_worker(&mut self, service: &Service) -> impl Future<Output = ()> + Send + 'static {
@@ -121,10 +121,10 @@ impl ServiceUpdater {
 
     /// Make the worker abortable and spawn it
     fn spawn_worker(&mut self,
-                    service: ServiceGroup,
+                    service_group: ServiceGroup,
                     worker: impl Future<Output = ()> + Send + 'static) {
         let (worker, abort_handle) = future::abortable(worker);
-        self.workers.insert(service, Worker(abort_handle));
+        self.workers.insert(service_group, Worker(abort_handle));
         tokio::spawn(worker);
     }
 }
