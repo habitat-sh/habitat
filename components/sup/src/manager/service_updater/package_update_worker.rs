@@ -72,6 +72,7 @@ impl PackageUpdateWorker {
     pub async fn run(&self, install_ident: Option<PackageIdent>) -> PackageIdent {
         let install_ident = install_ident.unwrap_or_else(|| self.ident.clone());
         let install_source = install_ident.clone().into();
+        let delay = PackageUpdateWorkerPeriod::get();
         loop {
             // TODO (DM): The entire behavior of the updater depends on this `install` function. It
             // is what the old updater used, but its exact behavior should be tested/documented.
@@ -103,7 +104,7 @@ impl PackageUpdateWorker {
                           self.service_group, self.ident, self.channel, err)
                 }
             }
-            time::delay_for(PackageUpdateWorkerPeriod::get()).await;
+            time::delay_for(delay).await;
         }
     }
 }
