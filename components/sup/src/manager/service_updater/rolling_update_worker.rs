@@ -90,11 +90,14 @@ impl RollingUpdateWorker {
     async fn update_election_suitability(&self, topology: Topology) -> u64 {
         match topology {
             Topology::Standalone => {
-                debug!("Rolling update detected standalone topology; using default suitability");
+                debug!("'{}' rolling update detected standalone topology; using default \
+                        suitability",
+                       self.service);
                 0
             }
             Topology::Leader => {
-                debug!("Rolling update determining proper suitability for leader topology");
+                debug!("'{}' rolling update determining proper suitability for leader topology",
+                       self.service);
                 loop {
                     {
                         let census_group = self.census_group().await;

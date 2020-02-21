@@ -83,8 +83,8 @@ impl ServiceUpdater {
     }
 
     fn at_once_worker(&mut self, service: &Service) -> impl Future<Output = ()> + Send + 'static {
-        debug!("Service updater spawning at-once worker for service group '{}' watching for \
-                changes to '{}' from channel '{}'",
+        debug!("'{}' service updater spawning at-once worker watching for changes to '{}' from \
+                channel '{}'",
                service.service_group, service.spec_ident, service.channel);
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();
@@ -92,8 +92,8 @@ impl ServiceUpdater {
         let package_update_worker = PackageUpdateWorker::from(service);
         async move {
             let new_ident = package_update_worker.run(None).await;
-            debug!("At-once updater found update from '{}' to '{}' for service group '{}'",
-                   full_ident, new_ident, service_group);
+            debug!("'{}' at-once updater found update from '{}' to '{}'",
+                   service_group, full_ident, new_ident);
             outputln!("Updating from {} to {}", full_ident, new_ident);
             updates.lock().insert(service_group, new_ident);
         }
@@ -103,8 +103,8 @@ impl ServiceUpdater {
                       service: &Service,
                       census_ring: Arc<RwLock<CensusRing>>)
                       -> impl Future<Output = ()> + Send + 'static {
-        debug!("Service updater spawning rolling worker for service group '{}' watching for \
-                changes to '{}' from channel '{}'",
+        debug!("'{}' service updater spawning rolling worker watching for changes to '{}' from \
+                channel '{}'",
                service.service_group, service.spec_ident, service.channel);
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();
@@ -112,8 +112,8 @@ impl ServiceUpdater {
         let worker = RollingUpdateWorker::new(service, census_ring, self.butterfly.clone());
         async move {
             let new_ident = worker.run().await;
-            debug!("Rolling updater found update from '{}' to '{}' for service group '{}'",
-                   full_ident, new_ident, service_group);
+            debug!("'{}' rolling updater found update from '{}' to '{}'",
+                   service_group, full_ident, new_ident);
             outputln!("Updating from {} to {}", full_ident, new_ident);
             updates.lock().insert(service_group, new_ident);
         }

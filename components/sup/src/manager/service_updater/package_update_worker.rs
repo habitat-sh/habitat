@@ -80,8 +80,8 @@ impl PackageUpdateWorker {
                 Ok(package) => {
                     // Only allow updates never rollbacks.
                     if package.ident > self.full_ident {
-                        debug!("'{}' service updater found change from '{}' to '{}' for '{}' in \
-                                channel '{}'",
+                        debug!("'{}' package update worker found change from '{}' to '{}' for \
+                                '{}' in channel '{}'",
                                self.service_group,
                                self.full_ident,
                                package.ident,
@@ -89,8 +89,8 @@ impl PackageUpdateWorker {
                                self.channel,);
                         break package.ident;
                     } else {
-                        trace!("'{}' service updater did not find change from '{}' for '{}' in \
-                                channel '{}'",
+                        trace!("'{}' package update worker did not find change from '{}' for '{}' \
+                                in channel '{}'",
                                self.service_group,
                                self.full_ident,
                                install_ident,
@@ -98,9 +98,9 @@ impl PackageUpdateWorker {
                     }
                 }
                 Err(err) => {
-                    warn!("Service updater failed to install '{}' from channel '{}' for service \
-                           group '{}', err: {}",
-                          self.ident, self.channel, self.service_group, err)
+                    warn!("'{}' package update worker failed to install '{}' from channel '{}', \
+                           err: {}",
+                          self.service_group, self.ident, self.channel, err)
                 }
             }
             time::delay_for(PackageUpdateWorkerPeriod::get()).await;
