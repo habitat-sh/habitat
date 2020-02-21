@@ -1,15 +1,12 @@
 //! Encapsulates logic required for updating the Habitat Supervisor
 //! itself.
 
-use crate::{env,
-            util};
+use crate::util;
 use habitat_common::command::package::install::InstallSource;
 use habitat_core::{package::{PackageIdent,
                              PackageInstall},
                    ChannelIdent};
 use std::time::Duration;
-use time::{Duration as TimeDuration,
-           SteadyTime};
 use tokio::{self,
             sync::oneshot::{self,
                             error::TryRecvError,
@@ -18,8 +15,13 @@ use tokio::{self,
             time as tokiotime};
 
 pub const SUP_PKG_IDENT: &str = "core/hab-sup";
-const DEFAULT_FREQUENCY: i64 = 60_000;
-const FREQUENCY_ENVVAR: &str = "HAB_SUP_UPDATE_MS";
+const DEFAULT_PERIOD: Duration = Duration::from_secs(60);
+
+habitat_core::env_config_duration!(
+    /// Represents how far apart checks for updates are, in milliseconds.
+    SelfUpdatePeriod,
+    HAB_SUP_UPDATE_MS => from_millis,
+    DEFAULT_PERIOD);
 
 pub struct SelfUpdater {
     rx:             Receiver<PackageInstall>,
@@ -58,9 +60,8 @@ impl SelfUpdater {
         // SUP_PKG_IDENT will always parse as a valid PackageIdent,
         // and thus a valid InstallSource
         let install_source: InstallSource = SUP_PKG_IDENT.parse().unwrap();
+        let delay = SelfUpdatePeriod::configured_value().into();
         loop {
-            let next_check = SteadyTime::now() + TimeDuration::milliseconds(update_frequency());
-
             match util::pkg::install_no_ui(&update_url, &install_source, &update_channel).await {
                 Ok(package) => {
                     if &current < package.ident() {
@@ -76,11 +77,7 @@ impl SelfUpdater {
                     warn!("Self updater failed to get latest, {}", err);
                 }
             }
-
-            let time_to_wait = (next_check - SteadyTime::now()).num_milliseconds();
-            if time_to_wait > 0 {
-                tokiotime::delay_for(Duration::from_millis(time_to_wait as u64)).await;
-            }
+            tokiotime::delay_for(delay).await;
         }
     }
 
@@ -96,12 +93,5 @@ impl SelfUpdater {
                 None
             }
         }
-    }
-}
-
-fn update_frequency() -> i64 {
-    match env::var(FREQUENCY_ENVVAR) {
-        Ok(val) => val.parse::<i64>().unwrap_or(DEFAULT_FREQUENCY),
-        Err(_) => DEFAULT_FREQUENCY,
     }
 }
