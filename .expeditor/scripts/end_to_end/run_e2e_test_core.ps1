@@ -187,7 +187,12 @@ function Wait-Process($ProcessName, $Timeout = 1) {
 function Wait-Release($Ident, $Remote, $Timeout = ($DefaultServiceTimeout)) {
     $serviceName = ($Ident.Split("/"))[1]
     $testScript =  {
-        $currentIdent = (Invoke-WebRequest "http://${Remote}.habitat.dev:9631/services/$serviceName/default" | ConvertFrom-Json).pkg.ident
+        if ($Remote) {
+            $Remote = "${Remote}.habitat.dev"
+        } else {
+            $Remote = "localhost"
+        }
+        $currentIdent = (Invoke-WebRequest "http://${Remote}:9631/services/$serviceName/default" | ConvertFrom-Json).pkg.ident
         $currentIdent -eq $Ident
     }
     $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for $Remote to Update to $Release" }

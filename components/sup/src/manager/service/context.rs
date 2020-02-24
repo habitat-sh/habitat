@@ -385,7 +385,7 @@ impl<'a> BindGroup<'a> {
 #[derive(Clone, Debug)]
 struct SvcMember<'a> {
     member_id: Cow<'a, MemberId>,
-    pkg: Cow<'a, Option<PackageIdent>>,
+    pkg: Cow<'a, PackageIdent>,
     service: Cow<'a, String>,
     group: Cow<'a, String>,
     org: Cow<'a, Option<String>>,
@@ -610,7 +610,7 @@ two = 2
     fn default_svc_member<'a>() -> SvcMember<'a> {
         let ident = PackageIdent::new("core", "test_pkg", Some("1.0.0"), Some("20180321150416"));
         SvcMember { member_id: Cow::Owned("MEMBER_ID".into()),
-                    pkg: Cow::Owned(Some(ident)),
+                    pkg: Cow::Owned(ident),
                     service: Cow::Owned("foo".into()),
                     group: Cow::Owned("default".into()),
                     org: Cow::Owned(None),
@@ -704,7 +704,7 @@ two = 2
         svc_member_cfg.insert("foo".into(), "bar".into());
 
         let mut me = default_svc_member();
-        me.pkg = Cow::Owned(Some(ident));
+        me.pkg = Cow::Owned(ident);
         me.cfg = Cow::Owned(svc_member_cfg);
 
         let svc = Svc { service_group:          Cow::Owned(group),

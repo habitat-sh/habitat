@@ -639,6 +639,51 @@ impl UIReader for UI {
     }
 }
 
+/// A `UIWriter` that does absolutely nothing
+///
+/// A useful attribute of this `UIWriter` is that it is `Send` and `Sync` allowing it to be used in
+/// spawned futures
+pub struct NullUi;
+
+impl NullUi {
+    pub fn new() -> Self { Self }
+}
+
+impl io::Write for NullUi {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> { Ok(buf.len()) }
+
+    fn flush(&mut self) -> io::Result<()> { Ok(()) }
+}
+
+impl DisplayProgress for NullUi {
+    fn size(&mut self, _size: u64) {}
+
+    fn finish(&mut self) {}
+}
+
+/// This trait describes the behavior of writers that support colored output.
+impl WriteColor for NullUi {
+    fn supports_color(&self) -> bool { false }
+
+    fn set_color(&mut self, _spec: &ColorSpec) -> io::Result<()> { Ok(()) }
+
+    fn reset(&mut self) -> io::Result<()> { Ok(()) }
+}
+
+impl UIWriter for NullUi {
+    type ProgressBar = NullUi;
+
+    fn out(&mut self) -> &mut dyn WriteColor { self }
+
+    fn err(&mut self) -> &mut dyn WriteColor { self }
+
+    fn is_out_a_terminal(&self) -> bool { false }
+
+    fn is_err_a_terminal(&self) -> bool { false }
+
+    fn progress(&self) -> Option<Box<dyn DisplayProgress>> { None }
+}
+
 #[derive(Debug)]
 pub struct Shell {
     input: InputStream,

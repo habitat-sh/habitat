@@ -78,6 +78,8 @@ use habitat_launcher_client::{LauncherCli,
                               LAUNCHER_LOCK_CLEAN_ENV,
                               LAUNCHER_PID_ENV};
 use habitat_sup_protocol;
+use parking_lot::{Mutex,
+                  RwLock};
 use prometheus::{HistogramVec,
                  IntGauge,
                  IntGaugeVec};
@@ -109,7 +111,7 @@ use std::{collections::{HashMap,
                  mpsc as std_mpsc,
                  Arc,
                  Condvar,
-                 Mutex},
+                 Mutex as StdMutex},
           thread,
           time::Duration as StdDuration};
 use time::{self,
@@ -518,10 +520,10 @@ pub(crate) mod sync {
 pub struct Manager {
     pub state:           Arc<ManagerState>,
     butterfly:           habitat_butterfly::Server,
-    census_ring:         CensusRing,
+    census_ring:         Arc<RwLock<CensusRing>>,
     fs_cfg:              Arc<FsCfg>,
     launcher:            LauncherCli,
-    updater:             Arc<Mutex<ServiceUpdater>>,
+    service_updater:     Arc<Mutex<ServiceUpdater>>,
     peer_watcher:        Option<PeerWatcher>,
     spec_watcher:        SpecWatcher,
     // This Arc<RwLock<>> business is a potentially temporary
@@ -665,12 +667,15 @@ impl Manager {
 
         let pid_source = ServicePidSource::determine_source(&launcher);
 
+        let census_ring = Arc::new(RwLock::new(CensusRing::new(sys.member_id.clone())));
         Ok(Manager { state: Arc::new(ManagerState { cfg: cfg_static,
                                                     services,
                                                     gateway_state: Arc::default() }),
                      self_updater,
-                     updater: Arc::new(Mutex::new(ServiceUpdater::new(server.clone()))),
-                     census_ring: CensusRing::new(sys.member_id.clone()),
+                     service_updater:
+                         Arc::new(Mutex::new(ServiceUpdater::new(server.clone(),
+                                                                 Arc::clone(&census_ring)))),
+                     census_ring,
                      butterfly: server,
                      launcher,
                      peer_watcher,
@@ -682,7 +687,7 @@ impl Manager {
                      service_states: HashMap::new(),
                      sys: Arc::new(sys),
                      http_disable: cfg.http_disable,
-                     busy_services: Arc::new(Mutex::new(HashSet::new())),
+                     busy_services: Arc::default(),
                      services_need_reconciliation: ReconciliationFlag::new(false),
                      feature_flags: cfg.feature_flags,
                      pid_source })
@@ -829,11 +834,7 @@ impl Manager {
             return;
         }
 
-        self.updater
-            .lock()
-            .expect("Updater lock poisoned")
-            .add(&service)
-            .await;
+        self.service_updater.lock().add(&service);
 
         event::service_started(&service);
 
@@ -925,7 +926,7 @@ impl Manager {
             // return value. Specifically, we're looking for errors when it tries to bind to the
             // listening TCP socket, so we can alert the user.
             let pair =
-                Arc::new((Mutex::new(http_gateway::ServerStartup::NotStarted), Condvar::new()));
+                Arc::new((StdMutex::new(http_gateway::ServerStartup::NotStarted), Condvar::new()));
 
             outputln!("Starting http-gateway on {}", &http_listen_addr);
             http_gateway::Server::run(http_listen_addr,
@@ -1082,12 +1083,23 @@ impl Manager {
             self.update_peers_from_watch_file_mlr_imlw()?;
             self.update_running_services_from_user_config_watcher_msw();
 
-            for f in self.stop_services_with_updates_rsw_mlr_rhw_msw().await {
-                tokio::spawn(f);
+            // Restart all services that need it
+            // TODO (CM): In the future, when service start up is
+            // future-based, we'll want to have an actual "restart"
+            // future, that queues up the start future after the stop
+            // future.
+            //
+            // Until then, we will just stop the services, and rely on the
+            // our specfile reconciliation logic to catch the fact that
+            // the service needs to be restarted. At that point, this function
+            // can be renamed; right now, it says exactly what it's doing.
+            for service in self.take_services_need_restart_rsw_mlr_rhw_msw() {
+                tokio::spawn(self.stop_service_future_gsw(service, None));
             }
 
             self.restart_elections_rsw_mlr_rhw_msr(self.feature_flags);
             self.census_ring
+                .write()
                 .update_from_rumors_rsr_mlr(&self.state.cfg.cache_key_path,
                                             &self.butterfly.service_store,
                                             &self.butterfly.election_store,
@@ -1096,7 +1108,7 @@ impl Manager {
                                             &self.butterfly.service_config_store,
                                             &self.butterfly.service_file_store);
 
-            if self.check_for_changed_services_msr() || self.census_ring.changed() {
+            if self.check_for_changed_services_msr() || self.census_ring.read().changed() {
                 self.persist_state_rsr_mlr_gsw_msr().await;
             }
 
@@ -1105,7 +1117,7 @@ impl Manager {
                 // this var goes out of scope
                 #[allow(unused_variables)]
                 let service_timer = service_hist.start_timer();
-                if service.tick(&self.census_ring, &self.launcher) {
+                if service.tick(&self.census_ring.read(), &self.launcher) {
                     self.gossip_latest_service_rumor_rsw_mlw_rhw(&service);
                 }
             }
@@ -1192,24 +1204,20 @@ impl Manager {
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (write)
-    #[rustfmt::skip]
-    async fn take_services_with_updates_rsw_mlr_rhw_msw(&mut self) -> Vec<Service> {
-        let mut updater = self.updater.lock().expect("Updater lock poisoned");
+    fn take_services_need_restart_rsw_mlr_rhw_msw(&mut self) -> Vec<Service> {
+        let service_updater = self.service_updater.lock();
 
         let mut state_services = self.state.services.lock_msw();
-        // We cannot use `filter_map` here because futures cannot be awaited in a closure.
         let mut idents_to_restart = Vec::new();
         for (current_ident, service) in state_services.iter() {
             if service.needs_restart {
                 idents_to_restart.push(current_ident.clone());
-            } else if let Some(new_ident) =
-                    updater.check_for_updated_package_rsw_mlr_rhw(&service, &self.census_ring).await
-            {
+            } else if let Some(new_ident) = service_updater.has_update(&service.service_group) {
                 outputln!("Updating from {} to {}", current_ident, new_ident);
                 event::service_update_started(&service, &new_ident);
                 idents_to_restart.push(current_ident.clone());
             } else {
-                trace!("No update found for {}", current_ident);
+                trace!("No restart required for {}", current_ident);
             };
         }
 
@@ -1220,32 +1228,6 @@ impl Manager {
             services_to_restart.push(state_services.remove(&current_ident).unwrap());
         }
         services_to_restart
-    }
-
-    /// Returns a Vec of futures for shutting down those services that
-    /// need to be updated.
-    ///
-    /// # Locking (see locking.md)
-    /// * `RumorStore::list` (write)
-    /// * `MemberList::entries` (read)
-    /// * `RumorHeat::inner` (write)
-    /// * `ManagerServices::inner` (write)
-    // TODO (CM): In the future, when service start up is
-    // future-based, we'll want to have an actual "restart"
-    // future, that queues up the start future after the stop
-    // future.
-    //
-    // Until then, we will just stop the services, and rely on the
-    // our specfile reconciliation logic to catch the fact that
-    // the service needs to be restarted. At that point, this function
-    // can be renamed; right now, it says exactly what it's doing.
-    async fn stop_services_with_updates_rsw_mlr_rhw_msw(&mut self)
-                                                        -> Vec<impl Future<Output = ()>> {
-        self.take_services_with_updates_rsw_mlr_rhw_msw()
-            .await
-            .into_iter()
-            .map(|service| self.stop_service_future_gsw(service, None))
-            .collect()
     }
 
     // Creates a rumor for the specified service.
@@ -1310,7 +1292,8 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `GatewayState::inner` (write)
     fn persist_census_state_gsw(&self) {
-        let crp = CensusRingProxy::new(&self.census_ring);
+        let census_ring = &self.census_ring.read();
+        let crp = CensusRingProxy::new(census_ring);
         let json = serde_json::to_string(&crp).expect("CensusRingProxy::serialize failure");
         self.state.gateway_state.lock_gsw().set_census_data(json);
     }
@@ -1411,7 +1394,7 @@ impl Manager {
                                shutdown_input: Option<&ShutdownInput>)
                                -> impl Future<Output = ()> {
         let mut user_config_watcher = self.user_config_watcher.clone();
-        let updater = Arc::clone(&self.updater);
+        let service_updater = Arc::clone(&self.service_updater);
         let busy_services = Arc::clone(&self.busy_services);
         let services_need_reconciliation = self.services_need_reconciliation.clone();
         let shutdown_config = ShutdownConfig::new(shutdown_input, &service);
@@ -1424,9 +1407,7 @@ impl Manager {
             service.stop_gsw(shutdown_config).await;
             event::service_stopped(&service);
             user_config_watcher.remove(&service);
-            updater.lock()
-                   .expect("Updater lock poisoned")
-                   .remove(&service);
+            service_updater.lock().remove(&service.service_group);
         };
         Self::wrap_async_service_operation(ident,
                                            busy_services,
@@ -1468,15 +1449,11 @@ impl Manager {
     {
         trace!("Flagging '{:?}' as busy, pending an asynchronous operation",
                ident);
-        busy_services.lock()
-                     .expect("busy_services lock is poisoned")
-                     .insert(ident.clone());
+        busy_services.lock().insert(ident.clone());
         fut.await;
         trace!("Removing 'busy' flag for '{:?}'; asynchronous operation over",
                ident);
-        busy_services.lock()
-                     .expect("busy_services lock is poisoned")
-                     .remove(&ident);
+        busy_services.lock().remove(&ident);
         services_need_reconciliation.set();
     }
 
@@ -1570,9 +1547,7 @@ impl Manager {
         // Now, figure out what we should compare against, ignoring
         // any services that are currently doing something
         // asynchronously.
-        let busy_services = self.busy_services
-                                .lock()
-                                .expect("busy_services lock is poisoned");
+        let busy_services = self.busy_services.lock();
         let on_disk_specs = self.spec_dir
                                 .specs()
                                 .into_iter()

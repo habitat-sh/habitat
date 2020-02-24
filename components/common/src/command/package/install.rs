@@ -172,6 +172,12 @@ impl From<(PackageIdent, PackageTarget)> for InstallSource {
     }
 }
 
+impl From<PackageIdent> for InstallSource {
+    /// Convenience function to generate an `InstallSource` from a `PackageIdent` with the active
+    /// `PackageTarget`.
+    fn from(ident: PackageIdent) -> Self { (ident, PackageTarget::active_target()).into() }
+}
+
 impl Into<PackageIdent> for InstallSource {
     fn into(self) -> PackageIdent {
         match self {
@@ -369,8 +375,8 @@ pub fn type_erased_start<'a, U>(
     install_mode: &'a InstallMode,
     local_package_usage: &'a LocalPackageUsage,
     install_hook_mode: InstallHookMode)
-    -> Pin<Box<dyn std::future::Future<Output = Result<PackageInstall>> + 'a>>
-    where U: UIWriter
+    -> Pin<Box<dyn std::future::Future<Output = Result<PackageInstall>> + Send + 'a>>
+    where U: UIWriter + Send + Sync
 {
     Box::pin(start(ui,
                    url,

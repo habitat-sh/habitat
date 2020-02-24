@@ -1,19 +1,13 @@
 //! Encapsulates logic required for updating the Habitat Supervisor
 //! itself.
 
-use crate::{env,
-            util};
-use habitat_common::{command::package::install::InstallSource,
-                     ui::UI};
+use crate::util;
+use habitat_common::command::package::install::InstallSource;
 use habitat_core::{package::{PackageIdent,
                              PackageInstall},
                    ChannelIdent};
-use std::{thread,
-          time::Duration};
-use time::{Duration as TimeDuration,
-           SteadyTime};
+use std::time::Duration;
 use tokio::{self,
-            runtime,
             sync::oneshot::{self,
                             error::TryRecvError,
                             Receiver,
@@ -21,8 +15,13 @@ use tokio::{self,
             time as tokiotime};
 
 pub const SUP_PKG_IDENT: &str = "core/hab-sup";
-const DEFAULT_FREQUENCY: i64 = 60_000;
-const FREQUENCY_ENVVAR: &str = "HAB_SUP_UPDATE_MS";
+const DEFAULT_PERIOD: Duration = Duration::from_secs(60);
+
+habitat_core::env_config_duration!(
+    /// Represents how far apart checks for updates are, in milliseconds.
+    SelfUpdatePeriod,
+    HAB_SUP_UPDATE_MS => from_millis,
+    DEFAULT_PERIOD);
 
 pub struct SelfUpdater {
     rx:             Receiver<PackageInstall>,
@@ -49,48 +48,23 @@ impl SelfUpdater {
             update_channel: ChannelIdent)
             -> Receiver<PackageInstall> {
         let (tx, rx) = oneshot::channel();
-        // Execute this future on a dedicated thread, and using a
-        // single-threaded runtime. Eventually, this should use `tokio::spawn`,
-        // but that will require refactoring to make the future safe
-        // to spawn on an executor.
-        //
-        // (Note: the `enable_all` is to ensure the Tokio timer is set
-        // up on the runtime, which is needed both here and also in
-        // the async reqwest calls we make from here.)
-        thread::Builder::new().name("self-updater".to_string())
-                              .spawn(move || {
-                                  let mut rt =
-                                      runtime::Builder::new().basic_scheduler()
-                                                             .enable_all()
-                                                             .build()
-                                                             .expect("Could not spawn runtime \
-                                                                      for self-updater thread!");
-
-                                  rt.block_on(Self::run(tx, &current, &update_url, &update_channel))
-                              })
-                              .expect("Unable to start self-updater thread");
+        tokio::spawn(Self::run(tx, current, update_url, update_channel));
         rx
     }
 
     async fn run(tx: Sender<PackageInstall>,
-                 current: &PackageIdent,
-                 update_url: &str,
-                 update_channel: &ChannelIdent) {
+                 current: PackageIdent,
+                 update_url: String,
+                 update_channel: ChannelIdent) {
         debug!("Self updater current package, {}", current);
         // SUP_PKG_IDENT will always parse as a valid PackageIdent,
         // and thus a valid InstallSource
         let install_source: InstallSource = SUP_PKG_IDENT.parse().unwrap();
+        let delay = SelfUpdatePeriod::configured_value().into();
         loop {
-            let next_check = SteadyTime::now() + TimeDuration::milliseconds(update_frequency());
-
-            match util::pkg::install(// We don't want anything in here to print
-                                     &mut UI::with_sinks(),
-                                     &update_url,
-                                     &install_source,
-                                     &update_channel).await
-            {
+            match util::pkg::install_no_ui(&update_url, &install_source, &update_channel).await {
                 Ok(package) => {
-                    if current < package.ident() {
+                    if &current < package.ident() {
                         debug!("Self updater installing newer Supervisor, {}",
                                package.ident());
                         tx.send(package).expect("Main thread has gone away!");
@@ -103,11 +77,7 @@ impl SelfUpdater {
                     warn!("Self updater failed to get latest, {}", err);
                 }
             }
-
-            let time_to_wait = (next_check - SteadyTime::now()).num_milliseconds();
-            if time_to_wait > 0 {
-                tokiotime::delay_for(Duration::from_millis(time_to_wait as u64)).await;
-            }
+            tokiotime::delay_for(delay).await;
         }
     }
 
@@ -123,12 +93,5 @@ impl SelfUpdater {
                 None
             }
         }
-    }
-}
-
-fn update_frequency() -> i64 {
-    match env::var(FREQUENCY_ENVVAR) {
-        Ok(val) => val.parse::<i64>().unwrap_or(DEFAULT_FREQUENCY),
-        Err(_) => DEFAULT_FREQUENCY,
     }
 }

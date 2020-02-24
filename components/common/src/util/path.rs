@@ -62,7 +62,7 @@ const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 /// * If the parent directory of a located interpreter binary cannot be computed
 /// * If the Supervisor is not executing inside a package, and if no interpreter package is
 ///   installed, and if no interpreter binary can be found on the `PATH`
-pub async fn interpreter_paths() -> Result<Vec<PathBuf>> {
+async fn interpreter_paths() -> Result<Vec<PathBuf>> {
     // First, we'll check if we're running inside a package. If we are, then we should  be able to
     // access the `../DEPS` metadata file and read it to get the specific version of the
     // interpreter.
@@ -116,7 +116,7 @@ pub async fn interpreter_paths() -> Result<Vec<PathBuf>> {
                             }
                         }
                         None => {
-                            install::type_erased_start(&mut ui::UI::default_with_env(),
+                            install::type_erased_start(&mut ui::NullUi::new(),
                                                        &default_bldr_url(),
                                                        &ChannelIdent::stable(),
                                                        &(ident.clone(),

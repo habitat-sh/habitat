@@ -597,6 +597,18 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
+  - label: "[:linux: test_at_once_service_updater]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_at_once_service_updater
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+            - HAB_UPDATE_STRATEGY_FREQUENCY_MS=3000
+            - HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK=1
+
   - wait
 
   - label: "[:habicat: Promote to Acceptance]"

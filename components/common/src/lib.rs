@@ -29,6 +29,7 @@ pub mod command;
 pub mod error;
 pub mod liveliness_checker;
 pub mod output;
+pub mod owning_refs;
 pub mod package_graph;
 pub mod templating;
 pub mod types;
