@@ -72,7 +72,7 @@ impl RollingUpdateWorker {
                     FollowerWaitForTurn::PromotedToLeader => self.leader_role().await,
                     FollowerWaitForTurn::UpdateTo(new_ident) => {
                         // Update to the package we were instructed to
-                        self.package_update_worker.run(Some(new_ident)).await
+                        self.package_update_worker.update_to(new_ident).await
                     }
                 }
             }
@@ -84,7 +84,7 @@ impl RollingUpdateWorker {
         // package
         self.leader_wait_for_followers().await;
         // Wait for an update
-        self.package_update_worker.run(None).await
+        self.package_update_worker.update().await
     }
 
     async fn update_election_suitability(&self, topology: Topology) -> u64 {

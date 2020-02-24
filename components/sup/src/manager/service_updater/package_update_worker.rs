@@ -61,16 +61,13 @@ impl From<&Service> for PackageUpdateWorker {
 }
 
 impl PackageUpdateWorker {
-    /// The package update worker future.
+    /// Use the specified package ident to search for packages.
     ///
-    /// If no `install_ident` is specified the service ident is used when searching for the package.
-    /// If an `install_ident` is specified, it is used when searching for a package. If a fully
-    /// qualified package ident is used, the future will only resolve when that exact package is
-    /// found.
+    /// If a fully qualified package ident is used, the future will only resolve when that exact
+    /// package is found.
     // TODO (DM): The returned package ident should always be fully qualified. We need a type to
     // encapsulate that.
-    pub async fn run(&self, install_ident: Option<PackageIdent>) -> PackageIdent {
-        let install_ident = install_ident.unwrap_or_else(|| self.ident.clone());
+    pub async fn update_to(&self, install_ident: PackageIdent) -> PackageIdent {
         let install_source = install_ident.clone().into();
         let delay = PackageUpdateWorkerPeriod::get();
         loop {
@@ -107,6 +104,9 @@ impl PackageUpdateWorker {
             time::delay_for(delay).await;
         }
     }
+
+    /// Use the service spec's package ident to search for packages.
+    pub async fn update(&self) -> PackageIdent { self.update_to(self.ident.clone()).await }
 }
 
 #[cfg(test)]
