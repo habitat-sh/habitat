@@ -1,7 +1,7 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.36 -->
-## [1.5.36](https://github.com/habitat-sh/habitat/tree/1.5.36) (2020-02-24)
+<!-- latest_release 1.5.37 -->
+## [1.5.37](https://github.com/habitat-sh/habitat/tree/1.5.37) (2020-02-24)
 
 #### Merged Pull Requests
 - Refactor service updater [#7455](https://github.com/habitat-sh/habitat/pull/7455) ([davidMcneil](https://github.com/davidMcneil))
