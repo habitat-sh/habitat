@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.35 -->
-## [1.5.35](https://github.com/habitat-sh/habitat/tree/1.5.35) (2020-02-21)
+<!-- latest_release 1.5.36 -->
+## [1.5.36](https://github.com/habitat-sh/habitat/tree/1.5.36) (2020-02-24)
 
 #### Merged Pull Requests
-- [CI] Restrict certain release pipeline steps to &quot;real&quot; runs only [#7491](https://github.com/habitat-sh/habitat/pull/7491) ([christophermaier](https://github.com/christophermaier))
+- Refactor service updater [#7455](https://github.com/habitat-sh/habitat/pull/7455) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.29 -->
@@ -18,6 +18,7 @@
 - Remove Kubernetes and Helm exporters [#7463](https://github.com/habitat-sh/habitat/pull/7463) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 
 #### Merged Pull Requests
+- Refactor service updater [#7455](https://github.com/habitat-sh/habitat/pull/7455) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.36 -->
 - [CI] Restrict certain release pipeline steps to &quot;real&quot; runs only [#7491](https://github.com/habitat-sh/habitat/pull/7491) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.35 -->
 - modification to hab setup defaults and language [#7480](https://github.com/habitat-sh/habitat/pull/7480) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.34 -->
 - make the ltsc2019 docker image the default for studio and exporter ifa hyper-v host supports it [#7488](https://github.com/habitat-sh/habitat/pull/7488) ([mwrock](https://github.com/mwrock)) <!-- 1.5.34 -->
