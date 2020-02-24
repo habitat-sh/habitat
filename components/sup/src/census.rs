@@ -838,8 +838,10 @@ mod tests {
 
     /// Create a bare-minimum CensusMember with the given Health
     fn test_census_member(id: &str, health: Health) -> CensusMember {
+        let pkg = "habitat-testing/test_service".parse()
+                                                .expect("valid package ident");
         CensusMember { member_id: id.into(),
-                       pkg: PackageIdent::default(),
+                       pkg,
                        service: "test_service".to_string(),
                        group: "default".to_string(),
                        org: None,
@@ -859,7 +861,7 @@ mod tests {
                        suspect: health == Health::Suspect,
                        confirmed: health == Health::Confirmed,
                        departed: health == Health::Departed,
-                       cfg: toml::value::Table::new(), }
+                       cfg: toml::value::Table::new() }
     }
 
     #[test]
