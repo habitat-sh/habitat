@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.38 -->
-## [1.5.38](https://github.com/habitat-sh/habitat/tree/1.5.38) (2020-02-25)
+<!-- latest_release 1.5.39 -->
+## [1.5.39](https://github.com/habitat-sh/habitat/tree/1.5.39) (2020-02-25)
 
-#### Bug Fixes
-- Allow dev environment setup script to work locally or in Vagrant [#7500](https://github.com/habitat-sh/habitat/pull/7500) ([christophermaier](https://github.com/christophermaier))
+#### Merged Pull Requests
+- add NO_NAMED_PIPE_HEALTH_CHECK feature flag to suppress named pipe on windows [#7474](https://github.com/habitat-sh/habitat/pull/7474) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.29 -->
@@ -21,6 +21,7 @@
 - Remove Kubernetes and Helm exporters [#7463](https://github.com/habitat-sh/habitat/pull/7463) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 
 #### Merged Pull Requests
+- add NO_NAMED_PIPE_HEALTH_CHECK feature flag to suppress named pipe on windows [#7474](https://github.com/habitat-sh/habitat/pull/7474) ([mwrock](https://github.com/mwrock)) <!-- 1.5.39 -->
 - Refactor service updater [#7455](https://github.com/habitat-sh/habitat/pull/7455) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.36 -->
 - [CI] Restrict certain release pipeline steps to &quot;real&quot; runs only [#7491](https://github.com/habitat-sh/habitat/pull/7491) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.35 -->
 - modification to hab setup defaults and language [#7480](https://github.com/habitat-sh/habitat/pull/7480) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.34 -->
