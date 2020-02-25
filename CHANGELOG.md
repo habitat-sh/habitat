@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.39 -->
-## [1.5.39](https://github.com/habitat-sh/habitat/tree/1.5.39) (2020-02-25)
+<!-- latest_release 1.5.40 -->
+## [1.5.40](https://github.com/habitat-sh/habitat/tree/1.5.40) (2020-02-25)
 
 #### Merged Pull Requests
-- add NO_NAMED_PIPE_HEALTH_CHECK feature flag to suppress named pipe on windows [#7474](https://github.com/habitat-sh/habitat/pull/7474) ([mwrock](https://github.com/mwrock))
+- sup: set PID file mode to 0644  [#7489](https://github.com/habitat-sh/habitat/pull/7489) ([stevendanna](https://github.com/stevendanna))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.29 -->
@@ -21,6 +21,7 @@
 - Remove Kubernetes and Helm exporters [#7463](https://github.com/habitat-sh/habitat/pull/7463) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 
 #### Merged Pull Requests
+- sup: set PID file mode to 0644  [#7489](https://github.com/habitat-sh/habitat/pull/7489) ([stevendanna](https://github.com/stevendanna)) <!-- 1.5.40 -->
 - add NO_NAMED_PIPE_HEALTH_CHECK feature flag to suppress named pipe on windows [#7474](https://github.com/habitat-sh/habitat/pull/7474) ([mwrock](https://github.com/mwrock)) <!-- 1.5.39 -->
 - Refactor service updater [#7455](https://github.com/habitat-sh/habitat/pull/7455) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.36 -->
 - [CI] Restrict certain release pipeline steps to &quot;real&quot; runs only [#7491](https://github.com/habitat-sh/habitat/pull/7491) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.35 -->
