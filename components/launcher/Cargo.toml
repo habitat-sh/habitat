@@ -22,8 +22,6 @@ libc = "*"
 log = "*"
 prost = "*"
 semver = "*"
-# See https://github.com/habitat-sh/habitat/issues/7353
-time = "0.1"
 
 [target.'cfg(windows)'.dependencies]
 winapi =  { version = "*", features = ["tlhelp32"] }
