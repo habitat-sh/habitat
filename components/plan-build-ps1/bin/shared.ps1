@@ -42,7 +42,7 @@ Get-HabPackagePath "glibc/2.22"
     param($Identity)
 
     foreach($e in $pkg_all_deps_resolved) {
-        if((Resolve-HabPkgPath $e).Contains("/$Identity/")) {
+        if(("/$(Resolve-HabPkgPath $e)/").Contains("/$Identity/")) {
             return $e
         }
     }
