@@ -69,6 +69,16 @@ pub enum Svc {
         /// Password of the service user
         #[structopt(name = "PASSWORD", long = "password")]
         password:              Option<String>,
+        // TODO (DM): This flag can eventually be removed.
+        // See https://github.com/habitat-sh/habitat/issues/7339
+        /// DEPRECATED
+        #[structopt(name = "APPLICATION", long = "application", short = "a", hidden = true)]
+        application:           Vec<String>,
+        // TODO (DM): This flag can eventually be removed.
+        // See https://github.com/habitat-sh/habitat/issues/7339
+        /// DEPRECATED
+        #[structopt(name = "ENVIRONMENT", long = "environment", short = "e", hidden = true)]
+        environment:           Vec<String>,
     },
     /// Start a loaded, but stopped, Habitat service.
     Start {

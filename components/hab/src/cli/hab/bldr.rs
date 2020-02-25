@@ -103,14 +103,14 @@ pub enum Channel {
 pub struct BldrJobStatusSourceGroup {
     /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
     #[structopt(name = "GROUP_ID", group = "status")]
-    group_id: String,
+    group_id: Option<String>,
     /// Show the status of recent job groups created in this origin (default: 10 most recent)
     #[structopt(name = "ORIGIN",
             short = "o",
             long = "origin",
             validator = valid_origin,
             group = "status")]
-    origin:   String,
+    origin:   Option<String>,
 }
 
 #[derive(StructOpt)]

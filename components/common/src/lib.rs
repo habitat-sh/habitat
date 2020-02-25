@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 use crate::ui::UIWriter;
+=======
+use crate::ui::{NullUi,
+                UIWriter};
+>>>>>>> Better test for comparing structopt to clap_app
 use habitat_api_client as api_client;
 use habitat_core as hcore;
 use lazy_static::lazy_static;
@@ -103,6 +108,7 @@ lazy_static! {
 
         HashMap::from_iter(mapping)
     };
+    pub static ref FEATURE_FLAGS: FeatureFlag = FeatureFlag::from_env(&mut NullUi::new());
 }
 
 impl FeatureFlag {
