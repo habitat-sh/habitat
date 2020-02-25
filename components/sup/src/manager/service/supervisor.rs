@@ -29,8 +29,9 @@ use std::{fs::File,
                Write},
           path::{Path,
                  PathBuf},
-          result};
-use time::Timespec;
+          result,
+          time::{Duration,
+                 SystemTime}};
 
 static LOGKEY: &str = "SV";
 
@@ -38,9 +39,11 @@ static LOGKEY: &str = "SV";
 pub struct Supervisor {
     service_group:     ServiceGroup,
     state:             ProcessState,
-    // TODO (CM): make this private
-    pub state_entered: Timespec,
     pid:               Option<Pid>,
+    /// The time at which the Supervisor's state changed. Absolute
+    /// precision is not necessary, but being able to get the seconds
+    /// since the UNIX epoch is.
+    state_entered: SystemTime,
     /// If the Supervisor is being run with an newer Launcher that
     /// can provide service PIDs, this will be `None`, otherwise it
     /// will be `Some(path)`. Client code should use the `Some`/`None`
@@ -63,7 +66,7 @@ impl Supervisor {
         };
         Supervisor { service_group: service_group.clone(),
                      state: ProcessState::Down,
-                     state_entered: time::get_time(),
+                     state_entered: SystemTime::now(),
                      pid: None,
                      pid_file }
     }
@@ -290,10 +293,21 @@ impl Supervisor {
             return;
         }
         self.state = state;
-        self.state_entered = time::get_time();
+        self.state_entered = SystemTime::now();
+    }
+
+    pub fn state_entered(&self) -> SystemTime { self.state_entered.clone() }
+
+    /// Returns how long after the UNIX Epoch this Supervisor changed
+    /// state.
+    fn since_epoch(&self) -> Duration {
+        self.state_entered
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .expect("our time should ALWAYS be after the UNIX Epoch")
     }
 }
 
+// This is used to generate the output of the HTTP gateway
 impl Serialize for Supervisor {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
@@ -301,7 +315,7 @@ impl Serialize for Supervisor {
         let mut strukt = serializer.serialize_struct("supervisor", 5)?;
         strukt.serialize_field("pid", &self.pid)?;
         strukt.serialize_field("state", &self.state)?;
-        strukt.serialize_field("state_entered", &self.state_entered.sec)?;
+        strukt.serialize_field("state_entered", &self.since_epoch().as_secs())?;
         strukt.end()
     }
 }

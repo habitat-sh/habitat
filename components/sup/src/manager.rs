@@ -113,11 +113,11 @@ use std::{collections::{HashMap,
                  Condvar,
                  Mutex as StdMutex},
           thread,
-          time::Duration as StdDuration};
+          time::{Duration as StdDuration,
+                 SystemTime}};
 use time::{self,
            Duration as TimeDuration,
-           SteadyTime,
-           Timespec};
+           SteadyTime};
 use tokio;
 #[cfg(windows)]
 use winapi::{shared::minwindef::PDWORD,
@@ -539,9 +539,17 @@ pub struct Manager {
     spec_dir:            SpecDir,
     organization:        Option<String>,
     self_updater:        Option<SelfUpdater>,
-    service_states:      HashMap<PackageIdent, Timespec>,
     sys:                 Arc<Sys>,
     http_disable:        bool,
+    /// Though it is a `HashMap`, `service_states` not really used as
+    /// a `HashMap`. The values are there to act as a kind of
+    /// "snapshot marker"... if any of those time markers change
+    /// between service checks, that means that something has happened
+    /// to one of the services (it was up, but now it's down; it was
+    /// up, then down, then up; etc).
+    ///
+    /// Feel free to refactor to something different!
+    service_states: HashMap<PackageIdent, SystemTime>,
 
     /// Collects the identifiers of all services that are currently
     /// doing something asynchronously (like shutting down, or running
@@ -1265,7 +1273,13 @@ impl Manager {
                           .iter()
                           .filter(|s| !active_services.contains(&s.ident))
         {
-            service_states.insert(loaded.ident.clone(), Timespec::new(0, 0));
+            // These are loaded but not-running services. As such,
+            // we'll use the Epoch as a "default" time marker that
+            // won't change.
+            //
+            // TODO (CM): why do we bother tracking loaded but not
+            // running services at all?
+            service_states.insert(loaded.ident.clone(), SystemTime::UNIX_EPOCH);
         }
 
         if service_states != self.service_states {
