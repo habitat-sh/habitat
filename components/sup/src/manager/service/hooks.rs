@@ -113,7 +113,9 @@ impl Hook for HealthCheckHook {
 
     fn file_name() -> &'static str { "health-check" }
 
-    fn new(package_name: &str, pair: RenderPair, feature_flags: FeatureFlag) -> Self {
+    fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
+        #[cfg(windows)]
+        let feature_flags = _feature_flags;
         let out_path = hooks::stdout_log_path::<Self>(package_name);
         let err_path = hooks::stderr_log_path::<Self>(package_name);
         #[cfg(windows)]
