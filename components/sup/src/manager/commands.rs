@@ -360,14 +360,6 @@ struct ServiceStatus {
     desired_state: DesiredState,
 }
 
-impl fmt::Display for ServiceStatus {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "{}, {}, group:{}",
-               self.pkg.ident, self.process, self.service_group,)
-    }
-}
-
 impl From<ServiceStatus> for protocol::types::ServiceStatus {
     fn from(other: ServiceStatus) -> Self {
         let mut proto = protocol::types::ServiceStatus::default();
@@ -385,19 +377,6 @@ struct ProcessStatus {
     elapsed: TimeDuration,
     pid:     Option<u32>,
     state:   ProcessState,
-}
-
-impl fmt::Display for ProcessStatus {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.pid {
-            Some(pid) => {
-                write!(f,
-                       "state:{}, time:{}, pid:{}",
-                       self.state, self.elapsed, pid)
-            }
-            None => write!(f, "state:{}, time:{}", self.state, self.elapsed),
-        }
-    }
 }
 
 impl From<ProcessStatus> for protocol::types::ProcessStatus {
