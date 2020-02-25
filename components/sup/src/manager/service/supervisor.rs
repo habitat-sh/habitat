@@ -206,17 +206,8 @@ impl Supervisor {
         Ok(())
     }
 
-    pub fn status(&self) -> (bool, String) {
-        let status = format!("{}: {} for {}",
-                             self.service_group,
-                             self.state,
-                             time::get_time() - self.state_entered);
-        let healthy = match self.state {
-            ProcessState::Up => true,
-            ProcessState::Down => false,
-        };
-        (healthy, status)
-    }
+    /// Is the process up or down?
+    pub fn status(&self) -> ProcessState { self.state }
 
     /// Returns a future that stops a service asynchronously.
     pub fn stop(&self, shutdown_config: ShutdownConfig) {
