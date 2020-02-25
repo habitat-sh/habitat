@@ -1240,8 +1240,8 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                                                                        (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
                             // TODO (DM): These flags can eventually be removed.
                             // See https://github.com/habitat-sh/habitat/issues/7339
-                            (@arg APPLICATION: --application -a +multiple +takes_value +hidden "DEPRECATED")
-                            (@arg ENVIRONMENT: --environment -e +multiple +takes_value +hidden "DEPRECATED")
+                            (@arg APPLICATION: --application -a +multiple +hidden "DEPRECATED")
+                            (@arg ENVIRONMENT: --environment -e +multiple +hidden "DEPRECATED")
                             (@arg GROUP: --group +takes_value
                              "The service group; shared config and topology [default: default]")
                             (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
@@ -1337,8 +1337,8 @@ fn sub_svc_load() -> App<'static, 'static> {
             "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
         // TODO (DM): These flags can eventually be removed.
         // See https://github.com/habitat-sh/habitat/issues/7339
-        (@arg APPLICATION: --application -a +multiple +takes_value +hidden "DEPRECATED")
-        (@arg ENVIRONMENT: --environment -e +multiple +takes_value +hidden "DEPRECATED")
+        (@arg APPLICATION: --application -a +multiple +hidden "DEPRECATED")
+        (@arg ENVIRONMENT: --environment -e +multiple +hidden "DEPRECATED")
         (@arg CHANNEL: --channel +takes_value default_value[stable]
             "Receive package updates from the specified release channel")
         (@arg GROUP: --group +takes_value

@@ -72,12 +72,20 @@ pub enum Svc {
         // TODO (DM): This flag can eventually be removed.
         // See https://github.com/habitat-sh/habitat/issues/7339
         /// DEPRECATED
-        #[structopt(name = "APPLICATION", long = "application", short = "a", hidden = true)]
+        #[structopt(name = "APPLICATION",
+                    long = "application",
+                    short = "a",
+                    takes_value = false,
+                    hidden = true)]
         application:           Vec<String>,
         // TODO (DM): This flag can eventually be removed.
         // See https://github.com/habitat-sh/habitat/issues/7339
         /// DEPRECATED
-        #[structopt(name = "ENVIRONMENT", long = "environment", short = "e", hidden = true)]
+        #[structopt(name = "ENVIRONMENT",
+                    long = "environment",
+                    short = "e",
+                    takes_value = false,
+                    hidden = true)]
         environment:           Vec<String>,
     },
     /// Start a loaded, but stopped, Habitat service.

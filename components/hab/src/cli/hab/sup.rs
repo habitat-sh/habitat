@@ -211,12 +211,20 @@ pub struct SupRun {
     // TODO (DM): This flag can eventually be removed.
     // See https://github.com/habitat-sh/habitat/issues/7339
     /// DEPRECATED
-    #[structopt(name = "APPLICATION", long = "application", short = "a", hidden = true)]
+    #[structopt(name = "APPLICATION",
+                long = "application",
+                short = "a",
+                takes_value = false,
+                hidden = true)]
     application: Vec<String>,
     // TODO (DM): This flag can eventually be removed.
     // See https://github.com/habitat-sh/habitat/issues/7339
     /// DEPRECATED
-    #[structopt(name = "ENVIRONMENT", long = "environment", short = "e", hidden = true)]
+    #[structopt(name = "ENVIRONMENT",
+                long = "environment",
+                short = "e",
+                takes_value = false,
+                hidden = true)]
     environment: Vec<String>,
     /// The service group; shared config and topology [default: default]
     // TODO (DM): This should set a default value
