@@ -26,7 +26,6 @@ pub mod test_support {
               path::{Path,
                      PathBuf},
               str::FromStr};
-    use time;
 
     pub fn fixture_path(name: &str) -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
@@ -50,9 +49,7 @@ pub mod test_support {
                 pkg_ident.version = Some(String::from("1.0.0"));
             }
             if pkg_ident.release.is_none() {
-                pkg_ident.release = Some(time::now_utc().strftime("%Y%m%d%H%M%S")
-                                                        .unwrap()
-                                                        .to_string());
+                pkg_ident.release = Some(String::from("20200227153400"));
             }
         }
         let pkg_install_path = fs::pkg_install_path(&pkg_ident, Some(fs_root));
