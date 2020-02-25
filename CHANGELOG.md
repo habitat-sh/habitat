@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.37 -->
-## [1.5.37](https://github.com/habitat-sh/habitat/tree/1.5.37) (2020-02-24)
+<!-- latest_release 1.5.38 -->
+## [1.5.38](https://github.com/habitat-sh/habitat/tree/1.5.38) (2020-02-25)
 
-#### Merged Pull Requests
-- Refactor service updater [#7455](https://github.com/habitat-sh/habitat/pull/7455) ([davidMcneil](https://github.com/davidMcneil))
+#### Bug Fixes
+- Allow dev environment setup script to work locally or in Vagrant [#7500](https://github.com/habitat-sh/habitat/pull/7500) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.29 -->
 ### Changes since 1.5.29 release
+
+#### Bug Fixes
+- Allow dev environment setup script to work locally or in Vagrant [#7500](https://github.com/habitat-sh/habitat/pull/7500) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.38 -->
 
 #### New Features & Enhancements
 - adds hab origin info subcommand [#7445](https://github.com/habitat-sh/habitat/pull/7445) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.33 -->
