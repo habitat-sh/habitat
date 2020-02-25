@@ -260,11 +260,7 @@ impl Default for LocalPackageUsage {
 /// release package coordinates are guaranteed to be set. This fully-qualified-ness is checked on
 /// construction and as the underlying representation is immutable, this state does not change.
 #[derive(Debug)]
-struct FullyQualifiedPackageIdent<'a> {
-    // The ident is a struct field rather than a "newtype" struct to ensure its value cannot be
-    // directly accessed
-    ident: Cow<'a, PackageIdent>,
-}
+struct FullyQualifiedPackageIdent<'a>(Cow<'a, PackageIdent>);
 
 impl<'a> FullyQualifiedPackageIdent<'a> {
     // TODO fn: I would much rather have implemented `TryFrom` for this, but we need to wait until
@@ -275,7 +271,7 @@ impl<'a> FullyQualifiedPackageIdent<'a> {
     {
         let ident = ident.into();
         if ident.as_ref().fully_qualified() {
-            Ok(FullyQualifiedPackageIdent { ident })
+            Ok(FullyQualifiedPackageIdent(ident))
         } else {
             Err(Error::HabitatCore(
                 hcore::Error::FullyQualifiedPackageIdentRequired(ident.to_owned().to_string()),
@@ -284,19 +280,21 @@ impl<'a> FullyQualifiedPackageIdent<'a> {
     }
 
     fn archive_name(&self) -> String {
-        self.ident.as_ref().archive_name().unwrap_or_else(|_| {
-                                              panic!("PackageIdent {} should be fully qualified",
-                                                     self.ident.as_ref())
-                                          })
+        self.0
+            .as_ref()
+            .archive_name()
+            .unwrap_or_else(|_| {
+                panic!("PackageIdent {} should be fully qualified", self.0.as_ref())
+            })
     }
 }
 
 impl<'a> AsRef<PackageIdent> for FullyQualifiedPackageIdent<'a> {
-    fn as_ref(&self) -> &PackageIdent { self.ident.as_ref() }
+    fn as_ref(&self) -> &PackageIdent { self.0.as_ref() }
 }
 
 impl<'a> fmt::Display for FullyQualifiedPackageIdent<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { self.ident.as_ref().fmt(f) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { self.0.as_ref().fmt(f) }
 }
 
 /// Install a Habitat package.
