@@ -2,7 +2,8 @@ use super::{package::Pkg,
             TemplateRenderer};
 use crate::{error::{Error,
                     Result},
-            outputln};
+            outputln,
+            FeatureFlag};
 use habitat_core::{crypto,
                    fs};
 #[cfg(windows)]
@@ -65,7 +66,11 @@ pub trait Hook: fmt::Debug + Sized + Send {
     /// Tries to load a hook if a (deprecated) hook file exists.
     ///
     /// Returns the hook if template file (deprecated or not) is found
-    fn load<C, T>(package_name: &str, concrete_path: C, template_path: T) -> Option<Self>
+    fn load<C, T>(package_name: &str,
+                  concrete_path: C,
+                  template_path: T,
+                  feature_flags: FeatureFlag)
+                  -> Option<Self>
         where C: AsRef<Path>,
               T: AsRef<Path>
     {
@@ -112,7 +117,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
             return None;
         };
         match RenderPair::new(concrete, &template_to_use, Self::file_name()) {
-            Ok(pair) => Some(Self::new(package_name, pair)),
+            Ok(pair) => Some(Self::new(package_name, pair, feature_flags)),
             Err(err) => {
                 outputln!(preamble package_name, "Failed to load hook: {}", err);
                 None
@@ -120,7 +125,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
         }
     }
 
-    fn new(package_name: &str, render_pair: RenderPair) -> Self;
+    fn new(package_name: &str, render_pair: RenderPair, feature_flags: FeatureFlag) -> Self;
 
     /// Compile a hook into its destination service directory.
     ///
@@ -190,6 +195,16 @@ pub trait Hook: fmt::Debug + Sized + Send {
               pkg: &Pkg,
               svc_encrypted_password: Option<T>)
               -> Result<Self::ExitValue>
+        where T: ToString
+    {
+        self.run_impl(service_group, pkg, svc_encrypted_password)
+    }
+
+    fn run_impl<T>(&self,
+                   service_group: &str,
+                   pkg: &Pkg,
+                   svc_encrypted_password: Option<T>)
+                   -> Result<Self::ExitValue>
         where T: ToString
     {
         let mut child = Self::exec(self.path(), &pkg, svc_encrypted_password).map_err(|err| {
@@ -314,7 +329,7 @@ impl Hook for InstallHook {
 
     fn file_name() -> &'static str { "install" }
 
-    fn new(package_name: &str, pair: RenderPair) -> Self {
+    fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
         InstallHook { render_pair:     pair,
                       stdout_log_path: stdout_log_path::<Self>(package_name),
                       stderr_log_path: stderr_log_path::<Self>(package_name), }
@@ -577,8 +592,11 @@ mod tests {
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
 
-        let hook = InstallHook::load(&service_group, &concrete_path, &template_path)
-            .expect("Could not create testing install hook");
+        let hook = InstallHook::load(&service_group,
+                                     &concrete_path,
+                                     &template_path,
+                                     FeatureFlag::empty()).expect("Could not create testing \
+                                                                   install hook");
 
         let content = r#"
 #!/bin/bash
@@ -596,8 +614,11 @@ echo "The message is Hello World"
         let service_group = service_group();
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
-        let hook = InstallHook::load(&service_group, &concrete_path, &template_path)
-            .expect("Could not create testing install hook");
+        let hook = InstallHook::load(&service_group,
+                                     &concrete_path,
+                                     &template_path,
+                                     FeatureFlag::empty()).expect("Could not create testing \
+                                                                   install hook");
 
         assert_eq!(hash_content(hook.path()).unwrap(), "");
     }
@@ -608,8 +629,11 @@ echo "The message is Hello World"
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
 
-        let hook = InstallHook::load(&service_group, &concrete_path, &template_path)
-            .expect("Could not create testing install hook");
+        let hook = InstallHook::load(&service_group,
+                                     &concrete_path,
+                                     &template_path,
+                                     FeatureFlag::empty()).expect("Could not create testing \
+                                                                   install hook");
 
         // Since we're trying to update a file that should already
         // exist, we need to actually create it :P
@@ -638,8 +662,11 @@ echo "The message is Hello World"
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
 
-        let hook = InstallHook::load(&service_group, &concrete_path, &template_path)
-            .expect("Could not create testing install hook");
+        let hook = InstallHook::load(&service_group,
+                                     &concrete_path,
+                                     &template_path,
+                                     FeatureFlag::empty()).expect("Could not create testing \
+                                                                   install hook");
 
         // In this test, we'll start with *no* rendered content.
         assert_eq!(hook.as_ref().exists(), false);
@@ -665,8 +692,11 @@ echo "The message is Hello World"
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
 
-        let hook = InstallHook::load(&service_group, &concrete_path, &template_path)
-            .expect("Could not create testing install hook");
+        let hook = InstallHook::load(&service_group,
+                                     &concrete_path,
+                                     &template_path,
+                                     FeatureFlag::empty()).expect("Could not create testing \
+                                                                   install hook");
 
         let initial_content = r#"
 #!/bin/bash
@@ -722,8 +752,11 @@ echo "The message is Hola Mundo"
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
 
-        let hook = InstallHook::load(&service_group, &concrete_path, &template_path)
-            .expect("Could not create testing install hook");
+        let hook = InstallHook::load(&service_group,
+                                     &concrete_path,
+                                     &template_path,
+                                     FeatureFlag::empty()).expect("Could not create testing \
+                                                                   install hook");
 
         ////////////////////////////////////////////////////////////////////////
         // BEGIN RENDER CONTEXT SETUP

@@ -54,7 +54,8 @@ pub use habitat_common::templating::{config::{Cfg,
                                                PkgProxy}};
 use habitat_common::{outputln,
                      templating::{config::CfgRenderer,
-                                  hooks::Hook}};
+                                  hooks::Hook},
+                     FeatureFlag};
 #[cfg(windows)]
 use habitat_core::os::users;
 use habitat_core::{crypto::hash,
@@ -248,13 +249,15 @@ pub struct Service {
 }
 
 impl Service {
+    #[allow(clippy::too_many_arguments)]
     async fn with_package(sys: Arc<Sys>,
                           package: &PackageInstall,
                           spec: ServiceSpec,
                           manager_fs_cfg: Arc<FsCfg>,
                           organization: Option<&str>,
                           gateway_state: Arc<GatewayState>,
-                          pid_source: ServicePidSource)
+                          pid_source: ServicePidSource,
+                          feature_flags: FeatureFlag)
                           -> Result<Service> {
         spec.validate(&package)?;
         let all_pkg_binds = package.all_binds()?;
@@ -272,7 +275,8 @@ impl Service {
                      health_check_result: Arc::new(Mutex::new(HealthCheckResult::Unknown)),
                      hooks: HookTable::load(&pkg.name,
                                             &hooks_root,
-                                            svc_hooks_path(&service_group.service())),
+                                            svc_hooks_path(&service_group.service()),
+                                            feature_flags),
                      last_election_status: ElectionStatus::None,
                      user_config_updated: false,
                      needs_restart: false,
@@ -348,7 +352,8 @@ impl Service {
                      manager_fs_cfg: Arc<FsCfg>,
                      organization: Option<&str>,
                      gateway_state: Arc<GatewayState>,
-                     pid_source: ServicePidSource)
+                     pid_source: ServicePidSource,
+                     feature_flags: FeatureFlag)
                      -> Result<Service> {
         // The package for a spec should already be installed.
         let fs_root_path = Path::new(&*FS_ROOT_PATH);
@@ -359,7 +364,8 @@ impl Service {
                               manager_fs_cfg,
                               organization,
                               gateway_state,
-                              pid_source).await?)
+                              pid_source,
+                              feature_flags).await?)
     }
 
     /// Create the service path for this package.
@@ -1317,9 +1323,10 @@ mod tests {
                               afs,
                               Some("haha"),
                               gs,
-                              ServicePidSource::Launcher).await
-                                                         .expect("I wanted a service to load, but \
-                                                                  it didn't")
+                              ServicePidSource::Launcher,
+                              FeatureFlag::empty()).await
+                                                   .expect("I wanted a service to load, but it \
+                                                            didn't")
     }
 
     #[tokio::test]

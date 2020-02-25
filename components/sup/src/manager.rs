@@ -783,7 +783,8 @@ impl Manager {
                                          self.fs_cfg.clone(),
                                          self.organization.as_ref().map(String::as_str),
                                          self.state.gateway_state.clone(),
-                                         self.pid_source).await
+                                         self.pid_source,
+                                         self.feature_flags).await
         {
             Ok(service) => {
                 outputln!("Starting {} ({})", ident, service.pkg.ident);
@@ -1336,7 +1337,8 @@ impl Manager {
                                           self.fs_cfg.clone(),
                                           self.organization.as_ref().map(String::as_str),
                                           self.state.gateway_state.clone(),
-                                          self.pid_source).await;
+                                          self.pid_source,
+                                          self.feature_flags).await;
                 match result {
                     Ok(result) => watched_services.push(result),
                     Err(ref e) => warn!("Failed to create service '{}' from spec: {:?}", ident, e),

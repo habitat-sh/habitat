@@ -11,7 +11,8 @@ use crate::{error::{Error,
             hcore::{fs,
                     package::PackageInstall},
             templating::hooks::{Hook,
-                                InstallHook}};
+                                InstallHook},
+            FeatureFlag};
 use handlebars::{Handlebars,
                  RenderError,
                  TemplateFileError};
@@ -34,7 +35,9 @@ lazy_static! {
 
 /// A convenience method that compiles a package's install hook
 /// and any configuration templates in its config_install folder
-pub async fn compile_for_package_install(package: &PackageInstall) -> Result<()> {
+pub async fn compile_for_package_install(package: &PackageInstall,
+                                         feature_flags: FeatureFlag)
+                                         -> Result<()> {
     let pkg = package::Pkg::from_install(package).await?;
 
     fs::SvcDir::new(&pkg.name, &pkg.svc_user, &pkg.svc_group).create()?;
@@ -46,7 +49,8 @@ pub async fn compile_for_package_install(package: &PackageInstall) -> Result<()>
 
     if let Some(ref hook) = InstallHook::load(&pkg.name,
                                               &fs::svc_hooks_path(&pkg.name),
-                                              &package.installed_path.join("hooks"))
+                                              &package.installed_path.join("hooks"),
+                                              feature_flags)
     {
         hook.compile(&pkg.name, &ctx)?;
     };
@@ -418,8 +422,8 @@ test: something"#
         create_with_content(config_path.join("config.txt"),
                             "config message is {{cfg.message}}");
 
-        compile_for_package_install(&pkg_install).await
-                                                 .expect("compile package");
+        compile_for_package_install(&pkg_install, FeatureFlag::empty()).await
+                                                                       .expect("compile package");
 
         assert_eq!(
             file_content(fs::svc_config_install_path(&pkg_install.ident().name).join("config.txt")),
