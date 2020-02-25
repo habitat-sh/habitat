@@ -21,7 +21,6 @@
 //! * Unpack it
 
 use std::{convert::TryFrom,
-          fmt,
           fs::{self,
                File},
           io::{self,
@@ -48,6 +47,7 @@ use crate::{api_client::{self,
                          AtomicWriter},
                     os::users,
                     package::{list::temp_package_directory,
+                              FullyQualifiedPackageIdent,
                               Identifiable,
                               PackageArchive,
                               PackageIdent,
@@ -254,57 +254,6 @@ impl Default for LocalPackageUsage {
     /// they can satisfy the desired identifier, and if no more
     /// suitable package could not be found in Builder.
     fn default() -> Self { LocalPackageUsage::Prefer }
-}
-
-/// Represents a fully-qualified Package Identifier, meaning that the normally optional version and
-/// release package coordinates are guaranteed to be set. This fully-qualified-ness is checked on
-/// construction and as the underlying representation is immutable, this state does not change.
-#[derive(Eq, PartialEq, PartialOrd, Debug, Clone, Hash)]
-struct FullyQualifiedPackageIdent(PackageIdent);
-
-impl FullyQualifiedPackageIdent {
-    pub fn archive_name(&self) -> String {
-        self.0
-            .as_ref()
-            .archive_name()
-            .unwrap_or_else(|_| panic!("PackageIdent {} should be fully qualified", self.0))
-    }
-}
-
-impl TryFrom<PackageIdent> for FullyQualifiedPackageIdent {
-    type Error = Error;
-
-    fn try_from(ident: PackageIdent) -> Result<Self> {
-        if ident.fully_qualified() {
-            Ok(FullyQualifiedPackageIdent(ident))
-        } else {
-            Err(Error::HabitatCore(
-                hcore::Error::FullyQualifiedPackageIdentRequired(ident.to_string()),
-            ))
-        }
-    }
-}
-
-impl<'a> TryFrom<&'a PackageIdent> for FullyQualifiedPackageIdent {
-    type Error = Error;
-
-    fn try_from(ident: &PackageIdent) -> Result<Self> {
-        if ident.fully_qualified() {
-            Ok(FullyQualifiedPackageIdent(ident.clone()))
-        } else {
-            Err(Error::HabitatCore(
-                hcore::Error::FullyQualifiedPackageIdentRequired(ident.to_string()),
-            ))
-        }
-    }
-}
-
-impl AsRef<PackageIdent> for FullyQualifiedPackageIdent {
-    fn as_ref(&self) -> &PackageIdent { &self.0 }
-}
-
-impl fmt::Display for FullyQualifiedPackageIdent {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { self.0.fmt(f) }
 }
 
 /// Install a Habitat package.
@@ -575,7 +524,7 @@ impl<'a> InstallTask<'a> {
             // If we have a fully qualified package identifier, then our work is done--there can
             // only be *one* package that satisfies a fully qualified identifier.
 
-            FullyQualifiedPackageIdent::try_from(ident)
+            Ok(FullyQualifiedPackageIdent::try_from(ident)?)
         } else if self.is_offline() {
             // If we can't contact a Builder API, then we'll find the latest installed package or
             // cached artifact that satisfies the fuzzy package identifier.
@@ -821,7 +770,7 @@ impl<'a> InstallTask<'a> {
 
     fn latest_installed_ident(&self, ident: &PackageIdent) -> Result<FullyQualifiedPackageIdent> {
         match PackageInstall::load(ident, Some(self.fs_root_path)) {
-            Ok(pi) => FullyQualifiedPackageIdent::try_from(pi.ident().clone()),
+            Ok(pi) => Ok(FullyQualifiedPackageIdent::try_from(pi.ident())?),
             Err(_) => Err(Error::PackageNotFound("".to_string())),
         }
     }
@@ -902,7 +851,7 @@ impl<'a> InstallTask<'a> {
         let origin_package = self.api_client
                                  .show_package((ident, target), channel, token)
                                  .await?;
-        FullyQualifiedPackageIdent::try_from(origin_package)
+        Ok(FullyQualifiedPackageIdent::try_from(origin_package)?)
     }
 
     /// Retrieve the identified package from the depot, ensuring that

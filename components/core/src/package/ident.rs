@@ -7,6 +7,7 @@ use serde_derive::{Deserialize,
 use std::{borrow::Cow,
           cmp::{Ordering,
                 PartialOrd},
+          convert::TryFrom,
           fmt,
           result,
           str::FromStr};
@@ -294,6 +295,53 @@ impl<'a> From<PackageIdent> for Cow<'a, PackageIdent> {
 
 impl<'a> From<&'a PackageIdent> for Cow<'a, PackageIdent> {
     fn from(pi: &'a PackageIdent) -> Cow<'a, PackageIdent> { Cow::Borrowed(pi) }
+}
+
+/// Represents a fully-qualified Package Identifier, meaning that the normally optional version and
+/// release package coordinates are guaranteed to be set. This fully-qualified-ness is checked on
+/// construction and as the underlying representation is immutable, this state does not change.
+#[derive(Eq, PartialEq, PartialOrd, Debug, Clone, Hash)]
+pub struct FullyQualifiedPackageIdent(PackageIdent);
+
+impl FullyQualifiedPackageIdent {
+    pub fn archive_name(&self) -> String {
+        self.0
+            .as_ref()
+            .archive_name()
+            .unwrap_or_else(|_| panic!("PackageIdent {} should be fully qualified", self.0))
+    }
+}
+
+impl TryFrom<PackageIdent> for FullyQualifiedPackageIdent {
+    type Error = Error;
+
+    fn try_from(ident: PackageIdent) -> Result<Self> {
+        if ident.fully_qualified() {
+            Ok(FullyQualifiedPackageIdent(ident))
+        } else {
+            Err(Error::FullyQualifiedPackageIdentRequired(ident.to_string()))
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a PackageIdent> for FullyQualifiedPackageIdent {
+    type Error = Error;
+
+    fn try_from(ident: &PackageIdent) -> Result<Self> {
+        if ident.fully_qualified() {
+            Ok(FullyQualifiedPackageIdent(ident.clone()))
+        } else {
+            Err(Error::FullyQualifiedPackageIdentRequired(ident.to_string()))
+        }
+    }
+}
+
+impl AsRef<PackageIdent> for FullyQualifiedPackageIdent {
+    fn as_ref(&self) -> &PackageIdent { &self.0 }
+}
+
+impl fmt::Display for FullyQualifiedPackageIdent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { self.0.fmt(f) }
 }
 
 /// An iterator over the [`&str`] slices of a [`PackageIdent`].
