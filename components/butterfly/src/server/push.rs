@@ -17,8 +17,8 @@ use habitat_core::util::ToI64;
 use prometheus::{IntCounterVec,
                  IntGaugeVec};
 use std::{thread,
-          time::Duration};
-use time::SteadyTime;
+          time::{Duration,
+                 Instant}};
 use zmq;
 
 const FANOUT: usize = 5;
@@ -107,15 +107,15 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
                 let _ = guard.join()
                              .map_err(|e| error!("Push worker died: {:?}", e));
             }
-            if SteadyTime::now() < next_gossip {
-                let wait_time = (next_gossip - SteadyTime::now()).num_milliseconds();
+            if Instant::now() < next_gossip {
+                let wait_time = (next_gossip - Instant::now()).as_millis();
                 if wait_time > 0 {
                     thread::sleep(Duration::from_millis(wait_time as u64));
                 }
             }
         }
-        if SteadyTime::now() < long_wait {
-            let wait_time = (long_wait - SteadyTime::now()).num_milliseconds();
+        if Instant::now() < long_wait {
+            let wait_time = (long_wait - Instant::now()).as_millis();
             if wait_time > 0 {
                 thread::sleep(Duration::from_millis(wait_time as u64));
             }

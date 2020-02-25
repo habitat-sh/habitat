@@ -26,8 +26,8 @@ use std::{net::{IpAddr,
           sync::{Arc,
                  Mutex},
           thread,
-          time::Duration};
-use time::SteadyTime;
+          time::{Duration,
+                 Instant}};
 
 lazy_static::lazy_static! {
     static ref SERVER_PORT: Mutex<u16> = Mutex::new(6666);
@@ -418,7 +418,7 @@ impl SwimNet {
         let timing = Timing::default();
         let next_period = timing.next_protocol_period();
         loop {
-            if SteadyTime::now() <= next_period {
+            if Instant::now() <= next_period {
                 thread::sleep(Duration::from_millis(100));
             } else {
                 return;
