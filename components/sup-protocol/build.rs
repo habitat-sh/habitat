@@ -23,9 +23,7 @@ use prost_types::{DescriptorProto,
 
 type Module = Vec<String>;
 
-fn main() { generate_protocols(); }
-
-fn generate_protocols() {
+fn main() {
     let mut config = prost_build::Config::new();
     config.type_attribute(".", "#[derive(Serialize, Deserialize)]");
     config.type_attribute(".", "#[serde(rename_all = \"kebab-case\")]");
