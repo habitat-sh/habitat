@@ -6,11 +6,7 @@ use std::{env,
           fs,
           path::PathBuf};
 
-fn main() {
-    if env::var("CARGO_FEATURE_PROTOCOLS").is_ok() {
-        generate_protocols();
-    }
-}
+fn main() { generate_protocols(); }
 
 fn generate_protocols() {
     let mut config = prost_build::Config::new();

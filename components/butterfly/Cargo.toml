@@ -46,8 +46,7 @@ prost-build = "*"
 tempfile = "*"
 
 [features]
-default = ["protocols"]
-protocols = []
+default = []
 lock_as_rwlock = ["habitat_common/lock_as_rwlock"]
 lock_as_mutex = ["habitat_common/lock_as_mutex"]
 deadlock_detection = ["parking_lot/nightly", "parking_lot/deadlock_detection", "habitat_common/deadlock_detection"]
