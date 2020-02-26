@@ -3,7 +3,6 @@ use prost_build;
 use tempfile;
 
 use std::{collections::HashMap,
-          env,
           fs,
           io::{Error,
                ErrorKind,
@@ -24,11 +23,7 @@ use prost_types::{DescriptorProto,
 
 type Module = Vec<String>;
 
-fn main() {
-    if env::var("CARGO_FEATURE_PROTOCOLS").is_ok() {
-        generate_protocols();
-    }
-}
+fn main() { generate_protocols(); }
 
 fn generate_protocols() {
     let mut config = prost_build::Config::new();
