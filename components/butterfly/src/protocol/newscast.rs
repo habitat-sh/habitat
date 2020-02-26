@@ -7,7 +7,7 @@ use crate::rumor::{departure::Departure as CDeparture,
                    service_config::ServiceConfig as CServiceConfig,
                    service_file::ServiceFile as CServiceFile};
 
-include!("../generated/butterfly.newscast.rs");
+include!(concat!(env!("OUT_DIR"), "/butterfly.newscast.rs"));
 
 pub use self::rumor::{Payload as RumorPayload,
                       Type as RumorType};
