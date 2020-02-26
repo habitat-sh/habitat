@@ -371,7 +371,7 @@ impl fmt::Display for ServiceStatus {
 impl From<ServiceStatus> for protocol::types::ServiceStatus {
     fn from(other: ServiceStatus) -> Self {
         let mut proto = protocol::types::ServiceStatus::default();
-        proto.ident = other.pkg.ident.into();
+        proto.ident = PackageIdent::from(other.pkg.ident).into();
         proto.process = Some(other.process.into());
         proto.service_group = other.service_group.into();
         proto.desired_state = Some(other.desired_state.into());

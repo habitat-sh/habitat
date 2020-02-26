@@ -28,8 +28,7 @@ enum Role {
 /// died) or it can be instructed to update to a specific ident.
 enum FollowerWaitForTurn {
     PromotedToLeader,
-    // TODO (DM): This field should always be fully qualified. We need a
-    // type to encapsulate that.
+    // TODO (DM): This should use FullyQualifiedPackageIdent.
     UpdateTo(PackageIdent),
 }
 
