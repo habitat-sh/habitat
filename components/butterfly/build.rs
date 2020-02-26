@@ -6,9 +6,7 @@ use std::{env,
           fs,
           path::PathBuf};
 
-fn main() { generate_protocols(); }
-
-fn generate_protocols() {
+fn main() {
     let mut config = prost_build::Config::new();
     config.type_attribute(".butterfly.newscast.Rumor.payload",
                           "#[allow(clippy::large_enum_variant)]");
