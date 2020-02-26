@@ -1,5 +1,10 @@
 use prost_build;
 
+/// Automatically generate Rust code from our protobuf definitions at
+/// compile time.
+///
+/// Generated code is deposited in `OUT_DIR` and automatically
+/// `include!`-ed in our Rust modules, per standard Prost practice.
 use tempfile;
 
 use std::{collections::HashMap,

@@ -5,7 +5,7 @@
 //! JW TODO: These types should be moved to the _core crate_ and where they will replace their
 //!          vanilla Rust type counterparts that we define there.
 
-include!("generated/sup.types.rs");
+include!(concat!(env!("OUT_DIR"), "/sup.types.rs"));
 include!("generated/sup.types.impl.rs");
 
 use configopt::ConfigOptToString;
