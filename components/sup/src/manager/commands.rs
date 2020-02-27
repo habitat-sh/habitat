@@ -25,10 +25,9 @@ use habitat_sup_protocol::{self as protocol,
 use serde_json;
 use std::{convert::TryFrom,
           fmt,
-          result};
-use time::{self,
-           Duration as TimeDuration,
-           Timespec};
+          result,
+          time::{Duration,
+                 SystemTime}};
 use toml;
 
 static LOGKEY: &str = "CMD";
@@ -371,10 +370,20 @@ impl From<ServiceStatus> for protocol::types::ServiceStatus {
     }
 }
 
+// NOTE: This effectively the inverse of
+// habitat_sup::manager::service::supervisor::Supervisor's `Serialize`
+// implementation. When you trace the code, we're basically
+// rehydrating this struct from the JSON that results when we
+// serialize `Supervisor` for the HTTP gateway.
+//
+// That's very Rube Goldberg, of course, and should be made a bit more
+// sane in the future, but hopefully this trail of bread crumbs is
+// useful to you, Dear Reader.
 #[derive(Deserialize)]
 struct ProcessStatus {
-    #[serde(deserialize_with = "deserialize_time", rename = "state_entered")]
-    elapsed: TimeDuration,
+    #[serde(deserialize_with = "duration_from_epoch_offset",
+            rename = "state_entered")]
+    elapsed: Duration,
     pid:     Option<u32>,
     state:   ProcessState,
 }
@@ -382,7 +391,7 @@ struct ProcessStatus {
 impl From<ProcessStatus> for protocol::types::ProcessStatus {
     fn from(other: ProcessStatus) -> Self {
         let mut proto = protocol::types::ProcessStatus::default();
-        proto.elapsed = Some(other.elapsed.num_seconds());
+        proto.elapsed = Some(other.elapsed.as_secs());
         proto.state = other.state.into();
         if let Some(pid) = other.pid {
             proto.pid = Some(pid);
@@ -391,28 +400,36 @@ impl From<ProcessStatus> for protocol::types::ProcessStatus {
     }
 }
 
-fn deserialize_time<'de, D>(d: D) -> result::Result<TimeDuration, D::Error>
+fn duration_from_epoch_offset<'de, D>(d: D) -> result::Result<Duration, D::Error>
     where D: serde::Deserializer<'de>
 {
-    struct FromTimespec;
+    struct FromEpochOffset;
 
-    impl<'de> serde::de::Visitor<'de> for FromTimespec {
-        type Value = TimeDuration;
+    impl<'de> serde::de::Visitor<'de> for FromEpochOffset {
+        type Value = Duration;
 
         fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-            formatter.write_str("a i64 integer")
+            formatter.write_str("a u64 integer")
         }
 
-        fn visit_u64<R>(self, value: u64) -> result::Result<TimeDuration, R>
+        fn visit_u64<R>(self, value: u64) -> result::Result<Duration, R>
             where R: serde::de::Error
         {
-            let tspec = Timespec { sec:  (value as i64),
-                                   nsec: 0, };
-            Ok(time::get_time() - tspec)
+            // The incoming value is the seconds since the UNIX
+            // Epoch... therefore, we need to figure out what time
+            // that was. Then, we figure out far in the past that
+            // point in time was.
+            if let Some(start_time) = SystemTime::UNIX_EPOCH.checked_add(Duration::from_secs(value))
+            {
+                Ok(SystemTime::now().duration_since(start_time)
+                                    .map_err(serde::de::Error::custom)?)
+            } else {
+                Err(serde::de::Error::custom("invalid epoch offset given"))
+            }
         }
     }
 
-    d.deserialize_u64(FromTimespec)
+    d.deserialize_u64(FromEpochOffset)
 }
 
 /// Helper function to ensure that all errors in sending are handled identically.

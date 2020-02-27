@@ -55,8 +55,6 @@ serde-transcode = "*"
 state = "*"
 tempfile = "*"
 termcolor = "*"
-# See https://github.com/habitat-sh/habitat/issues/7353
-time = "0.1"
 toml = { version = "*", default-features = false }
 tokio = { version = "*", features = ["full"] }
 tokio-util = { version = "*", features = ["full"] }

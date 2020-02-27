@@ -37,9 +37,9 @@ static LOGKEY: &str = "SV";
 
 #[derive(Debug)]
 pub struct Supervisor {
-    service_group:     ServiceGroup,
-    state:             ProcessState,
-    pid:               Option<Pid>,
+    service_group: ServiceGroup,
+    state:         ProcessState,
+    pid:           Option<Pid>,
     /// The time at which the Supervisor's state changed. Absolute
     /// precision is not necessary, but being able to get the seconds
     /// since the UNIX epoch is.
@@ -49,7 +49,7 @@ pub struct Supervisor {
     /// will be `Some(path)`. Client code should use the `Some`/`None`
     /// status of this field as an indicator of which mode the
     /// Supervisor is running in.
-    pid_file:          Option<PathBuf>,
+    pid_file:      Option<PathBuf>,
 }
 
 impl Supervisor {
@@ -296,7 +296,7 @@ impl Supervisor {
         self.state_entered = SystemTime::now();
     }
 
-    pub fn state_entered(&self) -> SystemTime { self.state_entered.clone() }
+    pub fn state_entered(&self) -> SystemTime { self.state_entered }
 
     /// Returns how long after the UNIX Epoch this Supervisor changed
     /// state.

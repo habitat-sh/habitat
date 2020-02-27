@@ -113,11 +113,9 @@ use std::{collections::{HashMap,
                  Condvar,
                  Mutex as StdMutex},
           thread,
-          time::{Duration as StdDuration,
+          time::{Duration,
+                 Instant,
                  SystemTime}};
-use time::{self,
-           Duration as TimeDuration,
-           SteadyTime};
 use tokio;
 #[cfg(windows)]
 use winapi::{shared::minwindef::PDWORD,
@@ -549,7 +547,7 @@ pub struct Manager {
     /// up, then down, then up; etc).
     ///
     /// Feel free to refactor to something different!
-    service_states: HashMap<PackageIdent, SystemTime>,
+    service_states:      HashMap<PackageIdent, SystemTime>,
 
     /// Collects the identifiers of all services that are currently
     /// doing something asynchronously (like shutting down, or running
@@ -871,7 +869,7 @@ impl Manager {
                                                   -> Result<()> {
         let main_hist = RUN_LOOP_DURATION.with_label_values(&["sup"]);
         let service_hist = RUN_LOOP_DURATION.with_label_values(&["service"]);
-        let mut next_cpu_measurement = SteadyTime::now();
+        let mut next_cpu_measurement = Instant::now();
         let mut cpu_start = ProcessTime::now();
 
         // TODO (CM): consider bundling up these disparate channel
@@ -954,8 +952,7 @@ impl Manager {
             loop {
                 match *started {
                     http_gateway::ServerStartup::NotStarted => {
-                        started = match cvar.wait_timeout(started, StdDuration::from_millis(10000))
-                        {
+                        started = match cvar.wait_timeout(started, Duration::from_secs(10)) {
                             Ok((mutex, timeout_result)) => {
                                 if timeout_result.timed_out() {
                                     return Err(Error::BindTimeout(http_listen_addr.to_string()));
@@ -1022,7 +1019,7 @@ impl Manager {
                 }
             }
 
-            let next_check = time::get_time() + TimeDuration::milliseconds(1000);
+            let next_check = Instant::now() + Duration::from_secs(1);
             if self.launcher.is_stopping() {
                 break ShutdownMode::Normal;
             }
@@ -1133,14 +1130,14 @@ impl Manager {
 
             // This is really only needed until everything is running
             // in futures.
-            let now = time::get_time();
+            let now = Instant::now();
             if now < next_check {
                 let time_to_wait = next_check - now;
-                thread::sleep(time_to_wait.to_std().unwrap());
+                thread::sleep(time_to_wait);
             }
 
             // Measure CPU time every second
-            if SteadyTime::now() >= next_cpu_measurement {
+            if Instant::now() >= next_cpu_measurement {
                 let cpu_duration = cpu_start.elapsed();
                 let cpu_nanos =
                     cpu_duration.as_secs()
@@ -1148,7 +1145,7 @@ impl Manager {
                                 .and_then(|ns| ns.checked_add(cpu_duration.subsec_nanos().into()))
                                 .expect("overflow in cpu_duration");
                 CPU_TIME.set(cpu_nanos.to_i64());
-                next_cpu_measurement = SteadyTime::now() + TimeDuration::seconds(1);
+                next_cpu_measurement = Instant::now() + Duration::from_secs(1);
                 cpu_start = ProcessTime::now();
             }
         }; // end main loop

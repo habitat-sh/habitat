@@ -70,7 +70,7 @@ impl Process {
 
         let timeout: Duration = timeout.into();
         trace!("Waiting up to {} seconds before sending KILL to process {}",
-               timeout.num_seconds(),
+               timeout.as_secs(),
                pid_to_kill);
         let stop_time = Instant::now() + timeout;
         loop {

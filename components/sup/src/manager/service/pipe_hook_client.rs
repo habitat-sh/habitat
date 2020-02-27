@@ -194,11 +194,12 @@ impl PipeHookClient {
         // We want to wait until we know the named pipe is up and running before returning OK
         // If we suspect anything is wrong with the pipe we should terminate the pwsh process
         let start = Instant::now();
+        let timeout: Duration = PipeStartTimeout::configured_value().into();
         loop {
             match self.pipe_wait() {
                 Ok(_) => return Ok(()),
                 Err(err) => {
-                    if start.elapsed() >= PipeStartTimeout::configured_value().into() {
+                    if start.elapsed() >= timeout {
                         self.win32_result(unsafe {
                                 processthreadsapi::TerminateProcess(handle.raw(), 1)
                             })?;

@@ -55,7 +55,7 @@ message PackageIdent {
 }
 
 message ProcessStatus {
-  optional int64 elapsed = 1;
+  optional uint64 elapsed = 1;
   optional uint32 pid = 2;
   required ProcessState state = 3;
 }
