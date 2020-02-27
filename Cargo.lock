@@ -1461,7 +1461,6 @@ dependencies = [
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure_derive 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "flate2 1.0.13 (registry+https://github.com/rust-lang/crates.io-index)",
- "hab 0.0.0",
  "habitat_common 0.0.0",
  "habitat_core 0.0.0",
  "handlebars 0.29.1 (registry+https://github.com/rust-lang/crates.io-index)",

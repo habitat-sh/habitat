@@ -17,7 +17,6 @@ doc = false
 base64 = "*"
 clap = { version = "*", features = ["suggestions", "color", "unstable"] }
 env_logger = "*"
-hab = { path = "../hab" }
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
 # We need to lock here since v0.30.0 bumps to a version of pest that fails to build on Windows.
