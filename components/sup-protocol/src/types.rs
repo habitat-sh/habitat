@@ -5,20 +5,40 @@
 //! JW TODO: These types should be moved to the _core crate_ and where they will replace their
 //!          vanilla Rust type counterparts that we define there.
 
-include!("generated/sup.types.rs");
-include!("generated/sup.types.impl.rs");
-
+use crate::{core::{self,
+                   package::{self,
+                             Identifiable}},
+            message,
+            net::{self,
+                  ErrCode,
+                  NetErr}};
 use configopt::ConfigOptToString;
 use std::{fmt,
           str::FromStr};
 
-use crate::core::{self,
-                  package::{self,
-                            Identifiable}};
+include!(concat!(env!("OUT_DIR"), "/sup.types.rs"));
 
-use crate::net::{self,
-                 ErrCode,
-                 NetErr};
+impl message::MessageStatic for PackageIdent {
+    const MESSAGE_ID: &'static str = "PackageIdent";
+}
+impl message::MessageStatic for ProcessStatus {
+    const MESSAGE_ID: &'static str = "ProcessStatus";
+}
+impl message::MessageStatic for ServiceBind {
+    const MESSAGE_ID: &'static str = "ServiceBind";
+}
+impl message::MessageStatic for ServiceCfg {
+    const MESSAGE_ID: &'static str = "ServiceCfg";
+}
+impl message::MessageStatic for ServiceGroup {
+    const MESSAGE_ID: &'static str = "ServiceGroup";
+}
+impl message::MessageStatic for ServiceStatus {
+    const MESSAGE_ID: &'static str = "ServiceStatus";
+}
+impl message::MessageStatic for HealthCheckInterval {
+    const MESSAGE_ID: &'static str = "HealthCheckInterval";
+}
 
 impl ServiceGroup {
     pub fn validate(value: &str) -> core::Result<()> {

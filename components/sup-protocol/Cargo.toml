@@ -22,17 +22,8 @@ tokio = { version = "*", features = ["full"] }
 tokio-util = { version = "*", features = ["full"] }
 
 [build-dependencies]
-heck = "*"
-prost = "*"
 prost-build = "*"
-prost-types = "*"
-tempfile = "*"
 
 [dev-dependencies]
 tempfile = "*"
 toml = "*"
-
-[features]
-default = ["protocols"]
-protocols = []
-

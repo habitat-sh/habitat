@@ -17,7 +17,8 @@ pkg_build_deps=(core/musl
                 core/coreutils
                 core/rust/"$(cat "$SRC_PATH/../../rust-toolchain")"
                 core/gcc
-                core/make)
+                core/make
+                core/protobuf)
 pkg_bin_dirs=(bin)
 
 bin=$_pkg_distname
@@ -82,6 +83,19 @@ do_prepare() {
   # package proper--it won't find its way into the final binaries.
   export LD_LIBRARY_PATH=$(pkg_path_for gcc)/lib
   build_line "Setting LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+
+  # Prost (our Rust protobuf library) embeds a `protoc` binary, but
+  # it's dynamically linked, which means it won't work in a
+  # Studio. Prost does allow us to override that, though, so we can
+  # just use our Habitat package by setting these two environment
+  # variables.
+  #
+  # This is *only* needed because this crate currently has a
+  # dependency on the `hab` crate for a few function calls. None of
+  # those actually *use* any of the protobuf-related code, though. A
+  # better refactoring may be called for.
+  export PROTOC="$(pkg_path_for protobuf)/bin/protoc"
+  export PROTOC_INCLUDE="$(pkg_path_for protobuf)/include"
 }
 
 do_build() {

@@ -1,4 +1,4 @@
-include!("../generated/butterfly.swim.rs");
+include!(concat!(env!("OUT_DIR"), "/butterfly.swim.rs"));
 
 pub use self::{membership::Health,
                swim::{Payload as SwimPayload,

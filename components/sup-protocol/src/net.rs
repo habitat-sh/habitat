@@ -3,14 +3,20 @@
 //!
 //! Note: See `protocols/net.proto` for type level documentation for generated types.
 
-include!("generated/sup.net.rs");
-include!("generated/sup.net.impl.rs");
-
+use crate::{core,
+            message};
 use std::{error,
           fmt,
           io};
 
-use crate::core;
+include!(concat!(env!("OUT_DIR"), "/sup.net.rs"));
+
+impl message::MessageStatic for NetOk {
+    const MESSAGE_ID: &'static str = "NetOk";
+}
+impl message::MessageStatic for NetErr {
+    const MESSAGE_ID: &'static str = "NetErr";
+}
 
 pub type NetResult<T> = Result<T, NetErr>;
 
