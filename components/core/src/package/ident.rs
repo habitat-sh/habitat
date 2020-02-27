@@ -314,14 +314,16 @@ impl FullyQualifiedPackageIdent {
             .unwrap_or_else(|_| panic!("PackageIdent {} should be fully qualified", self.0))
     }
 
-    pub fn guaranteed_version(&self) -> &str {
-        self.version()
-            .unwrap_or_else(|| panic!("PackageIdent {} should be fully qualified", self.0))
+    pub fn version(&self) -> &str {
+        Identifiable::version(self).unwrap_or_else(|| {
+                                       panic!("PackageIdent {} should be fully qualified", self.0)
+                                   })
     }
 
-    pub fn guaranteed_release(&self) -> &str {
-        self.release()
-            .unwrap_or_else(|| panic!("PackageIdent {} should be fully qualified", self.0))
+    pub fn release(&self) -> &str {
+        Identifiable::release(self).unwrap_or_else(|| {
+                                       panic!("PackageIdent {} should be fully qualified", self.0)
+                                   })
     }
 }
 

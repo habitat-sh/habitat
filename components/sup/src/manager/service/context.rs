@@ -220,8 +220,8 @@ impl<'a> Serialize for Package<'a> {
         // in templates
         map.serialize_entry("origin", &self.ident.origin())?;
         map.serialize_entry("name", &self.ident.name())?;
-        map.serialize_entry("version", &self.ident.guaranteed_version())?;
-        map.serialize_entry("release", &self.ident.guaranteed_release())?;
+        map.serialize_entry("version", &self.ident.version())?;
+        map.serialize_entry("release", &self.ident.release())?;
 
         map.serialize_entry("deps", &self.deps)?;
         map.serialize_entry("env", &self.env)?;

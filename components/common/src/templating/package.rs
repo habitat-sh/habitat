@@ -118,8 +118,8 @@ impl Pkg {
                         path: package.installed_path.clone(),
                         origin: package.ident.origin.clone(),
                         name: package.ident.name.clone(),
-                        version: String::from(ident.guaranteed_version()),
-                        release: String::from(ident.guaranteed_release()),
+                        version: String::from(ident.version()),
+                        release: String::from(ident.release()),
                         shutdown_signal: package.shutdown_signal()?.unwrap_or_default(),
                         shutdown_timeout: package.shutdown_timeout()?.unwrap_or_default(),
                         ident };
