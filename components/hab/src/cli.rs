@@ -156,9 +156,9 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (aliases: &["u", "up", "upl", "uplo", "uploa"])
                 (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
                     "Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)")
-                (@arg VERSION_NUMBER: +required
+                (@arg VERSION_NUMBER: +required +takes_value
                     "A version number (positive integer) for this configuration (ex: 42)")
-                (@arg FILE: +required {file_exists} "Path to local file on disk")
+                (@arg FILE: +required +takes_value {file_exists} "Path to local file on disk")
                 (@arg USER: -u --user +takes_value "Name of the user key")
                 (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
                     "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
@@ -342,7 +342,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (@subcommand create =>
                 (about: "Creates a new Builder origin")
                 (aliases: &["cre", "crea"])
-                (@arg ORIGIN: +required {valid_origin} "The origin to be created")
+                (@arg ORIGIN: +required +takes_value {valid_origin} "The origin to be created")
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                      "Specify an alternate Builder endpoint. If not specified, the value will \
                      be taken from the HAB_BLDR_URL environment variable if defined. (default: \
@@ -352,7 +352,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (@subcommand delete =>
                 (about: "Removes an unused/empty origin")
                 (aliases: &["del", "dele"])
-                (@arg ORIGIN: +required {valid_origin} "The origin name")
+                (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name")
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                      "Specify an alternate Builder endpoint. If not specified, the value will \
                      be taken from the HAB_BLDR_URL environment variable if defined. (default: \
@@ -361,7 +361,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             )
             (@subcommand transfer =>
                 (about: "Transfers ownership of an origin to another member of that origin")
-                (@arg ORIGIN: +required {valid_origin} "The origin name")
+                (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name")
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                      "Specify an alternate Builder endpoint. If not specified, the value will \
                      be taken from the HAB_BLDR_URL environment variable if defined. (default: \
@@ -371,7 +371,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             )
             (@subcommand depart =>
                 (about: "Departs membership from selected origin")
-                (@arg ORIGIN: +required {valid_origin} "The origin name")
+                (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name")
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                      "Specify an alternate Builder endpoint. If not specified, the value will \
                      be taken from the HAB_BLDR_URL environment variable if defined. (default: \
@@ -380,7 +380,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             )
             (@subcommand info =>
                 (about: "Displays general information about an origin")
-                (@arg ORIGIN: +required {valid_origin} "The origin name to be queried")
+                (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name to be queried")
                 (@arg TO_JSON: -j --json "Output will be rendered in json")
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                      "Specify an alternate Builder endpoint. If not specified, the value will \
@@ -394,7 +394,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@setting SubcommandRequiredElseHelp)
                 (@subcommand accept =>
                      (about: "Accept an origin member invitation")
-                     (@arg ORIGIN: +required {valid_origin} "The origin name the invitation applies to")
+                     (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name the invitation applies to")
                      (@arg INVITATION_ID: +required +takes_value {valid_numeric::<u64>} "The id of the invitation to accept")
                      (@arg BLDR_URL: -u --url +takes_value {valid_url}
                           "Specify an alternate Builder endpoint. If not specified, the value will \
@@ -404,7 +404,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 )
                 (@subcommand ignore =>
                      (about: "Ignore an origin member invitation")
-                     (@arg ORIGIN: +required {valid_origin} "The origin name the invitation applies to")
+                     (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name the invitation applies to")
                      (@arg INVITATION_ID: +required +takes_value {valid_numeric::<u64>} "The id of the invitation to ignore")
                      (@arg BLDR_URL: -u --url +takes_value {valid_url}
                           "Specify an alternate Builder endpoint. If not specified, the value will \
@@ -422,7 +422,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 )
                 (@subcommand pending =>
                      (about: "List pending invitations for a particular origin. Requires that you are the origin owner")
-                     (@arg ORIGIN: +required {valid_origin} "The name of the origin you wish to list invitations for")
+                     (@arg ORIGIN: +required +takes_value {valid_origin} "The name of the origin you wish to list invitations for")
                      (@arg BLDR_URL: -u --url +takes_value {valid_url}
                           "Specify an alternate Builder endpoint. If not specified, the value will \
                           be taken from the HAB_BLDR_URL environment variable if defined. (default: \
@@ -431,7 +431,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 )
                 (@subcommand rescind =>
                     (about: "Rescind an existing origin member invitation")
-                    (@arg ORIGIN: +required {valid_origin} "The origin name the invitation applies to")
+                    (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name the invitation applies to")
                      (@arg INVITATION_ID: +required +takes_value {valid_numeric::<u64>} "The id of the invitation to rescind")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                           "Specify an alternate Builder endpoint. If not specified, the value will \
@@ -441,7 +441,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 )
                 (@subcommand send =>
                      (about: "Send an origin member invitation")
-                     (@arg ORIGIN: +required {valid_origin} "The origin name the invitation applies to")
+                     (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name the invitation applies to")
                      (@arg INVITEE_ACCOUNT: +required +takes_value {non_empty} "The account name to invite into the origin")
                      (@arg BLDR_URL: -u --url +takes_value {valid_url}
                           "Specify an alternate Builder endpoint. If not specified, the value will \
@@ -459,8 +459,8 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (about: "Download origin key(s)")
                     (aliases: &["d", "do", "dow", "down", "downl", "downlo", "downloa"])
                     (arg: arg_cache_key_path())
-                    (@arg ORIGIN: +required {valid_origin} "The origin name" )
-                    (@arg REVISION: "The origin key revision")
+                    (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name" )
+                    (@arg REVISION: +takes_value "The origin key revision")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint. If not specified, the value will \
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
@@ -483,7 +483,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@subcommand generate =>
                     (about: "Generates a Habitat origin key pair")
                     (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
-                    (@arg ORIGIN: {valid_origin} "The origin name")
+                    (@arg ORIGIN: +takes_value {valid_origin} "The origin name")
                     (arg: arg_cache_key_path())
 
                 )
@@ -496,7 +496,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@subcommand upload =>
                     (@group upload =>
                         (@attributes +required)
-                        (@arg ORIGIN: {valid_origin} "The origin name")
+                        (@arg ORIGIN : +takes_value {valid_origin} "The origin name")
                         (@arg PUBLIC_FILE: --pubfile +takes_value {file_exists}
                             "Path to a local public origin key file on disk")
                     )
@@ -671,10 +671,10 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (about: "Signs an archive with an origin key, generating a Habitat Artifact")
                 (aliases: &["s", "si", "sig"])
                 (@arg ORIGIN: --origin +takes_value {valid_origin} "Origin key used to create signature")
-                (@arg SOURCE: +required {file_exists}
+                (@arg SOURCE: +required +takes_value {file_exists}
                     "A path to a source archive file \
                     (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)")
-                (@arg DEST: +required
+                (@arg DEST: +required +takes_value
                     "The destination path to the signed Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
                 (arg: arg_cache_key_path())
@@ -709,7 +709,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     Only applicable to SaaS Builder")
                 (@arg AUTO_CREATE_ORIGINS: --("auto-create-origins") "Skip the confirmation prompt and \
                     automatically create origins that do not exist in the target Builder")
-                (@arg UPLOAD_DIRECTORY: +required {dir_exists}
+                (@arg UPLOAD_DIRECTORY: +required +takes_value {dir_exists}
                     "Directory Path from which artifacts will be uploaded")
             )
             (@subcommand upload =>
@@ -727,7 +727,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     force uploads, potentially overwriting a stored copy of a package. \
                     (default: false)")
                 (@arg NO_BUILD: --("no-build")  "Disable auto-build for all packages in this upload")
-                (@arg HART_FILE: +required +multiple {file_exists}
+                (@arg HART_FILE: +required +multiple +takes_value {file_exists}
                     "One or more filepaths to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
                 (arg: arg_cache_key_path())
@@ -781,7 +781,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (@subcommand verify =>
                 (about: "Verifies a Habitat Artifact with an origin key")
                 (aliases: &["v", "ve", "ver", "veri", "verif"])
-                (@arg SOURCE: +required {file_exists} "A path to a Habitat Artifact \
+                (@arg SOURCE: +required +takes_value {file_exists} "A path to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
                 (arg: arg_cache_key_path())
             )
@@ -789,14 +789,14 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (about: "Returns the Habitat Artifact header")
                 (aliases: &["hea", "head", "heade", "header"])
                 (@setting Hidden)
-                (@arg SOURCE: +required {file_exists} "A path to a Habitat Artifact \
+                (@arg SOURCE: +required +takes_value {file_exists} "A path to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
             (@subcommand info =>
                 (about: "Returns the Habitat Artifact information")
                 (aliases: &["inf", "info"])
                 (@arg TO_JSON: -j --json "Output will be rendered in json")
-                (@arg SOURCE: +required {file_exists} "A path to a Habitat Artifact \
+                (@arg SOURCE: +required +takes_value {file_exists} "A path to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
             (@subcommand dependencies =>
@@ -830,7 +830,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (@subcommand render =>
                 (about: "Renders plan config files")
                 (aliases: &["r", "re", "ren", "rend", "rende"])
-                (@arg TEMPLATE_PATH: +required {file_exists} "Path to config to render")
+                (@arg TEMPLATE_PATH: +required +takes_value {file_exists} "Path to config to render")
                 (@arg DEFAULT_TOML: -d --("default-toml") +takes_value default_value("./default.toml") "Path to default.toml")
                 (@arg USER_TOML: -u --("user-toml") +takes_value "Path to user.toml, defaults to none")
                 (@arg MOCK_DATA: -m --("mock-data") +takes_value "Path to json file with mock data for template, defaults to none")
@@ -887,7 +887,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
                     (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
                         "Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)")
-                    (@arg ORG: "The service organization")
+                    (@arg ORG: +takes_value "The service organization")
                     (arg: arg_cache_key_path())
                 )
             )
@@ -900,6 +900,8 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         (@subcommand studio =>
             (about: "Commands relating to Habitat Studios")
             (aliases: &["stu", "stud", "studi"])
+            (@setting ArgRequiredElseHelp)
+            (@setting SubcommandRequiredElseHelp)
         )
         (@subcommand supportbundle =>
             (about: "Create a tarball of Habitat Supervisor data to send to support")
@@ -1016,6 +1018,7 @@ fn sub_cli_completers() -> App<'static, 'static> {
                                    .long("shell")
                                    .required(true)
                                    .takes_value(true)
+                                   .case_insensitive(true)
                                    .possible_values(&supported_shells))
 }
 
@@ -1083,7 +1086,7 @@ fn sub_pkg_download() -> App<'static, 'static> {
     (@arg DOWNLOAD_DIRECTORY: --("download-directory") +takes_value "The path to store downloaded artifacts")
     (@arg PKG_IDENT_FILE: --file +takes_value +multiple {valid_ident_or_toml_file}
         "File with newline separated package identifiers, or TOML file (ending with .toml extension)")
-    (@arg PKG_IDENT: +multiple {valid_ident}
+    (@arg PKG_IDENT: +multiple +takes_value {valid_ident}
             "One or more Habitat package identifiers (ex: acme/redis)")
     (@arg PKG_TARGET: --target -t +takes_value {valid_target}
             "Target architecture to fetch. E.g. x86_64-linux. Overridden if architecture is specified in toml file")
@@ -1102,7 +1105,7 @@ fn sub_pkg_install(feature_flags: FeatureFlag) -> App<'static, 'static> {
                          https://bldr.habitat.sh)")
         (@arg CHANNEL: --channel -c +takes_value default_value[stable] env(ChannelIdent::ENVVAR)
             "Install from the specified release channel")
-        (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple
+        (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple +takes_value
             "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths \
             to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
         (@arg BINLINK: -b --binlink
@@ -1113,28 +1116,26 @@ fn sub_pkg_install(feature_flags: FeatureFlag) -> App<'static, 'static> {
         (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
         (@arg IGNORE_INSTALL_HOOK: --("ignore-install-hook") "Do not run any install hooks")
     );
-    if feature_flags.contains(FeatureFlag::OFFLINE_INSTALL) {
-        sub = sub.arg(Arg::with_name("OFFLINE").help("Install packages in offline mode")
+    sub = sub.arg(Arg::with_name("OFFLINE").help("Install packages in offline mode")
+                                               .hidden(!feature_flags.contains(FeatureFlag::OFFLINE_INSTALL))
                                                .long("offline"));
-    };
-    if feature_flags.contains(FeatureFlag::IGNORE_LOCAL) {
-        sub = sub.arg(Arg::with_name("IGNORE_LOCAL").help("Do not use locally-installed \
+    sub = sub.arg(Arg::with_name("IGNORE_LOCAL").help("Do not use locally-installed \
                                                            packages when a corresponding \
                                                            package cannot be installed from \
                                                            Builder")
+                                                    .hidden(!feature_flags.contains(FeatureFlag::IGNORE_LOCAL))
                                                     .long("ignore-local"));
-    };
     sub
 }
 
 fn sub_config_apply() -> App<'static, 'static> {
     clap_app!(@subcommand apply =>
     (about: "Sets a configuration to be shared by members of a Service Group")
-    (@arg SERVICE_GROUP: +required {valid_service_group}
+    (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
         "Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)")
-    (@arg VERSION_NUMBER: +required
+    (@arg VERSION_NUMBER: +required +takes_value
         "A version number (positive integer) for this configuration (ex: 42)")
-    (@arg FILE: {file_exists_or_stdin}
+    (@arg FILE: +takes_value {file_exists_or_stdin}
         "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
     (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
     (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
@@ -1209,11 +1210,8 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                               (ex: hab sup run --ring myring)")
                             (@arg RING_KEY: --("ring-key") env(RING_KEY_ENVVAR) conflicts_with("RING") +hidden {non_empty}
                              "The contents of the ring key when running with wire encryption. \
-                              (Note: This option is explicitly undocumented and for testing purposes only. Do not use it in a production system. Use the corresponding environment variable instead.)
-             (ex: hab sup run --ring-key 'SYM-SEC-1 \
-             foo-20181113185935 \
-
-                  GCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')")
+                              (Note: This option is explicitly undocumented and for testing purposes only. Do not use it in a production system. Use the corresponding environment variable instead.) \
+                              (ex: hab sup run --ring-key 'SYM-SEC-1 foo-20181113185935 GCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')")
                             (@arg CHANNEL: --channel +takes_value default_value[stable]
                              "Receive Supervisor updates from the specified release channel")
                             (@arg BLDR_URL: -u --url +takes_value {valid_url}
@@ -1242,8 +1240,8 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                                                                        (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
                             // TODO (DM): These flags can eventually be removed.
                             // See https://github.com/habitat-sh/habitat/issues/7339
-                            (@arg APPLICATION: --application -a +hidden +multiple "DEPRECATED")
-                            (@arg ENVIRONMENT: --environment -e +hidden +multiple "DEPRECATED")
+                            (@arg APPLICATION: --application -a +multiple +hidden "DEPRECATED")
+                            (@arg ENVIRONMENT: --environment -e +multiple +hidden "DEPRECATED")
                             (@arg GROUP: --group +takes_value
                              "The service group; shared config and topology [default: default]")
                             (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
@@ -1339,8 +1337,8 @@ fn sub_svc_load() -> App<'static, 'static> {
             "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
         // TODO (DM): These flags can eventually be removed.
         // See https://github.com/habitat-sh/habitat/issues/7339
-        (@arg APPLICATION: --application -a +hidden +multiple "DEPRECATED")
-        (@arg ENVIRONMENT: --environment -e +hidden +multiple "DEPRECATED")
+        (@arg APPLICATION: --application -a +multiple +hidden "DEPRECATED")
+        (@arg ENVIRONMENT: --environment -e +multiple +hidden "DEPRECATED")
         (@arg CHANNEL: --channel +takes_value default_value[stable]
             "Receive package updates from the specified release channel")
         (@arg GROUP: --group +takes_value

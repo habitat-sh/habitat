@@ -228,7 +228,7 @@ pub struct UploadGroup {
     origin:      Option<String>,
     /// Path to a local public origin key file on disk
     #[structopt(name = "PUBLIC_FILE", long = "pubfile", group = "upload")]
-    public_file: PathBuf,
+    public_file: Option<PathBuf>,
 }
 
 #[derive(StructOpt)]

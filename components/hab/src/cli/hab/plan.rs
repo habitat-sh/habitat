@@ -36,12 +36,6 @@ pub enum Plan {
                     long = "default-toml",
                     default_value = "./default.toml")]
         default_toml:  PathBuf,
-        /// Path to render templates        
-        #[structopt(name = "RENDER_DIR",
-                    short = "r",
-                    long = "render-dir",
-                    default_value = "./results")]
-        render_dir:    PathBuf,
         /// Path to config to render
         #[structopt(name = "TEMPLATE_PATH", validator = file_exists)]
         template_path: PathBuf,
@@ -54,6 +48,12 @@ pub enum Plan {
         /// Prints config to STDOUT
         #[structopt(name = "PRINT", short = "p", long = "print")]
         print:         bool,
+        /// Path to render templates        
+        #[structopt(name = "RENDER_DIR",
+                    short = "r",
+                    long = "render-dir",
+                    default_value = "./results")]
+        render_dir:    PathBuf,
         /// Don't write anything to disk, ignores --render-dir        
         #[structopt(name = "NO_RENDER", short = "n", long = "no-render")]
         no_render:     bool,

@@ -1,5 +1,7 @@
 use crate::cli;
-use clap::App;
+use clap::{App,
+           AppSettings,
+           ArgSettings};
 use habitat_common::FeatureFlag;
 use std::str;
 
@@ -17,752 +19,377 @@ fn help(app: &App) -> String {
     String::from(str::from_utf8(&help).expect("to convert help to utf8"))
 }
 
-fn sub<'a>(app: &'a App, name: &str) -> &'a App<'a, 'a> {
-    app.p
-       .subcommands()
-       .find(|s| s.p.meta.name == name)
-       .unwrap_or_else(|| panic!("expected to find subcommand '{}'", name))
+macro_rules! compare_app_flags {
+    ($flags1:expr, $flags2:expr) => {
+        assert_eq!($flags1.is_set(AppSettings::ArgsNegateSubcommands),
+                   $flags2.is_set(AppSettings::ArgsNegateSubcommands),
+                   "ArgsNegateSubcommands");
+        assert_eq!($flags1.is_set(AppSettings::AllArgsOverrideSelf),
+                   $flags2.is_set(AppSettings::AllArgsOverrideSelf),
+                   "AllArgsOverrideSelf");
+        assert_eq!($flags1.is_set(AppSettings::AllowExternalSubcommands),
+                   $flags2.is_set(AppSettings::AllowExternalSubcommands),
+                   "AllowExternalSubcommands");
+        assert_eq!($flags1.is_set(AppSettings::AllowInvalidUtf8),
+                   $flags2.is_set(AppSettings::AllowInvalidUtf8),
+                   "AllowInvalidUtf8");
+        assert_eq!($flags1.is_set(AppSettings::AllowLeadingHyphen),
+                   $flags2.is_set(AppSettings::AllowLeadingHyphen),
+                   "AllowLeadingHyphen");
+        assert_eq!($flags1.is_set(AppSettings::AllowNegativeNumbers),
+                   $flags2.is_set(AppSettings::AllowNegativeNumbers),
+                   "AllowNegativeNumbers");
+        assert_eq!($flags1.is_set(AppSettings::AllowMissingPositional),
+                   $flags2.is_set(AppSettings::AllowMissingPositional),
+                   "AllowMissingPositional");
+        assert_eq!($flags1.is_set(AppSettings::ColoredHelp),
+                   $flags2.is_set(AppSettings::ColoredHelp),
+                   "ColoredHelp");
+        assert_eq!($flags1.is_set(AppSettings::ColorAlways),
+                   $flags2.is_set(AppSettings::ColorAlways),
+                   "ColorAlways");
+        assert_eq!($flags1.is_set(AppSettings::ColorAuto),
+                   $flags2.is_set(AppSettings::ColorAuto),
+                   "ColorAuto");
+        assert_eq!($flags1.is_set(AppSettings::ColorNever),
+                   $flags2.is_set(AppSettings::ColorNever),
+                   "ColorNever");
+        assert_eq!($flags1.is_set(AppSettings::DontDelimitTrailingValues),
+                   $flags2.is_set(AppSettings::DontDelimitTrailingValues),
+                   "DontDelimitTrailingValues");
+        assert_eq!($flags1.is_set(AppSettings::DontCollapseArgsInUsage),
+                   $flags2.is_set(AppSettings::DontCollapseArgsInUsage),
+                   "DontCollapseArgsInUsage");
+        assert_eq!($flags1.is_set(AppSettings::DeriveDisplayOrder),
+                   $flags2.is_set(AppSettings::DeriveDisplayOrder),
+                   "DeriveDisplayOrder");
+        assert_eq!($flags1.is_set(AppSettings::DisableHelpFlags),
+                   $flags2.is_set(AppSettings::DisableHelpFlags),
+                   "DisableHelpFlags");
+        assert_eq!($flags1.is_set(AppSettings::DisableHelpSubcommand),
+                   $flags2.is_set(AppSettings::DisableHelpSubcommand),
+                   "DisableHelpSubcommand");
+        assert_eq!($flags1.is_set(AppSettings::DisableVersion),
+                   $flags2.is_set(AppSettings::DisableVersion),
+                   "DisableVersion");
+        assert_eq!($flags1.is_set(AppSettings::GlobalVersion),
+                   $flags2.is_set(AppSettings::GlobalVersion),
+                   "GlobalVersion");
+        assert_eq!($flags1.is_set(AppSettings::HidePossibleValuesInHelp),
+                   $flags2.is_set(AppSettings::HidePossibleValuesInHelp),
+                   "HidePossibleValuesInHelp");
+        assert_eq!($flags1.is_set(AppSettings::Hidden),
+                   $flags2.is_set(AppSettings::Hidden),
+                   "Hidden");
+        assert_eq!($flags1.is_set(AppSettings::LowIndexMultiplePositional),
+                   $flags2.is_set(AppSettings::LowIndexMultiplePositional),
+                   "LowIndexMultiplePositional");
+        assert_eq!($flags1.is_set(AppSettings::NeedsLongHelp),
+                   $flags2.is_set(AppSettings::NeedsLongHelp),
+                   "NeedsLongHelp");
+        assert_eq!($flags1.is_set(AppSettings::NeedsLongVersion),
+                   $flags2.is_set(AppSettings::NeedsLongVersion),
+                   "NeedsLongVersion");
+        assert_eq!($flags1.is_set(AppSettings::NeedsSubcommandHelp),
+                   $flags2.is_set(AppSettings::NeedsSubcommandHelp),
+                   "NeedsSubcommandHelp");
+        assert_eq!($flags1.is_set(AppSettings::NoBinaryName),
+                   $flags2.is_set(AppSettings::NoBinaryName),
+                   "NoBinaryName");
+        assert_eq!($flags1.is_set(AppSettings::StrictUtf8),
+                   $flags2.is_set(AppSettings::StrictUtf8),
+                   "StrictUtf8");
+        assert_eq!($flags1.is_set(AppSettings::SubcommandsNegateReqs),
+                   $flags2.is_set(AppSettings::SubcommandsNegateReqs),
+                   "SubcommandsNegateReqs");
+        assert_eq!($flags1.is_set(AppSettings::SubcommandRequired),
+                   $flags2.is_set(AppSettings::SubcommandRequired),
+                   "SubcommandRequired");
+        assert_eq!($flags1.is_set(AppSettings::SubcommandRequiredElseHelp),
+                   $flags2.is_set(AppSettings::SubcommandRequiredElseHelp),
+                   "SubcommandRequiredElseHelp");
+        assert_eq!($flags1.is_set(AppSettings::TrailingVarArg),
+                   $flags2.is_set(AppSettings::TrailingVarArg),
+                   "TrailingVarArg");
+        assert_eq!($flags1.is_set(AppSettings::UnifiedHelpMessage),
+                   $flags2.is_set(AppSettings::UnifiedHelpMessage),
+                   "UnifiedHelpMessage");
+        assert_eq!($flags1.is_set(AppSettings::NextLineHelp),
+                   $flags2.is_set(AppSettings::NextLineHelp),
+                   "NextLineHelp");
+        assert_eq!($flags1.is_set(AppSettings::VersionlessSubcommands),
+                   $flags2.is_set(AppSettings::VersionlessSubcommands),
+                   "VersionlessSubcommands");
+        assert_eq!($flags1.is_set(AppSettings::WaitOnError),
+                   $flags2.is_set(AppSettings::WaitOnError),
+                   "WaitOnError");
+        assert_eq!($flags1.is_set(AppSettings::TrailingValues),
+                   $flags2.is_set(AppSettings::TrailingValues),
+                   "TrailingValues");
+        assert_eq!($flags1.is_set(AppSettings::ValidNegNumFound),
+                   $flags2.is_set(AppSettings::ValidNegNumFound),
+                   "ValidNegNumFound");
+        assert_eq!($flags1.is_set(AppSettings::Propagated),
+                   $flags2.is_set(AppSettings::Propagated),
+                   "Propagated");
+        assert_eq!($flags1.is_set(AppSettings::ValidArgFound),
+                   $flags2.is_set(AppSettings::ValidArgFound),
+                   "ValidArgFound");
+        assert_eq!($flags1.is_set(AppSettings::InferSubcommands),
+                   $flags2.is_set(AppSettings::InferSubcommands),
+                   "InferSubcommands");
+        assert_eq!($flags1.is_set(AppSettings::ContainsLast),
+                   $flags2.is_set(AppSettings::ContainsLast),
+                   "ContainsLast");
+    };
 }
 
-// Manually verify the structopt output of each subcommand. This manual method is useful for
-// determining exactly which subcommand is different. Whereas `hab_help_recursive` test all
-// the subcommands it is hard to determine exactly which subcommand is different.
-#[test]
+macro_rules! compare_base {
+    ($base1:expr, $base2:expr) => {
+        assert_eq!($base1.name, $base2.name, "name");
+        assert_eq!($base1.help, $base2.help, "help");
+        assert_eq!($base1.long_help, $base2.long_help, "long_help");
+        assert_eq!($base1.blacklist, $base2.blacklist, "blacklist");
+        assert_eq!($base1.is_set(ArgSettings::Required),
+                   $base2.is_set(ArgSettings::Required),
+                   "Required");
+        assert_eq!($base1.is_set(ArgSettings::Multiple),
+                   $base2.is_set(ArgSettings::Multiple),
+                   "Multiple");
+        assert_eq!($base1.is_set(ArgSettings::EmptyValues),
+                   $base2.is_set(ArgSettings::EmptyValues),
+                   "EmptyValues");
+        assert_eq!($base1.is_set(ArgSettings::Global),
+                   $base2.is_set(ArgSettings::Global),
+                   "Global");
+        assert_eq!($base1.is_set(ArgSettings::Hidden),
+                   $base2.is_set(ArgSettings::Hidden),
+                   "Hidden");
+        assert_eq!($base1.is_set(ArgSettings::TakesValue),
+                   $base2.is_set(ArgSettings::TakesValue),
+                   "TakesValue");
+        assert_eq!($base1.is_set(ArgSettings::UseValueDelimiter),
+                   $base2.is_set(ArgSettings::UseValueDelimiter),
+                   "UseValueDelimiter");
+        assert_eq!($base1.is_set(ArgSettings::NextLineHelp),
+                   $base2.is_set(ArgSettings::NextLineHelp),
+                   "NextLineHelp");
+        assert_eq!($base1.is_set(ArgSettings::RequireDelimiter),
+                   $base2.is_set(ArgSettings::RequireDelimiter),
+                   "RequireDelimiter");
+        assert_eq!($base1.is_set(ArgSettings::HidePossibleValues),
+                   $base2.is_set(ArgSettings::HidePossibleValues),
+                   "HidePossibleValues");
+        assert_eq!($base1.is_set(ArgSettings::AllowLeadingHyphen),
+                   $base2.is_set(ArgSettings::AllowLeadingHyphen),
+                   "AllowLeadingHyphen");
+        assert_eq!($base1.is_set(ArgSettings::RequireEquals),
+                   $base2.is_set(ArgSettings::RequireEquals),
+                   "RequireEquals");
+        assert_eq!($base1.is_set(ArgSettings::Last),
+                   $base2.is_set(ArgSettings::Last),
+                   "Last");
+        assert_eq!($base1.is_set(ArgSettings::HideDefaultValue),
+                   $base2.is_set(ArgSettings::HideDefaultValue),
+                   "HideDefaultValue");
+        assert_eq!($base1.is_set(ArgSettings::CaseInsensitive),
+                   $base2.is_set(ArgSettings::CaseInsensitive),
+                   "CaseInsensitive");
+        assert_eq!($base1.is_set(ArgSettings::HideEnvValues),
+                   $base2.is_set(ArgSettings::HideEnvValues),
+                   "HideEnvValues");
+        assert_eq!($base1.is_set(ArgSettings::HiddenShortHelp),
+                   $base2.is_set(ArgSettings::HiddenShortHelp),
+                   "HiddenShortHelp");
+        assert_eq!($base1.is_set(ArgSettings::HiddenLongHelp),
+                   $base2.is_set(ArgSettings::HiddenLongHelp),
+                   "HiddenLongHelp");
+        assert_eq!($base1.is_set(ArgSettings::RequiredUnlessAll),
+                   $base2.is_set(ArgSettings::RequiredUnlessAll),
+                   "RequiredUnlessAll");
+        assert_eq!($base1.is_set(ArgSettings::ValueDelimiterNotSet),
+                   $base2.is_set(ArgSettings::ValueDelimiterNotSet),
+                   "ValueDelimiterNotSet");
+        assert_eq!($base1.r_unless, $base2.r_unless, "r_unless");
+        assert_eq!($base1.overrides, $base2.overrides, "overrides");
+        // The clap_app macro and structopt treat groups slightly differently making this
+        // impractical to check
+        // assert_eq!($base1.groups, $base2.groups, "groups");
+        assert_eq!($base1.requires, $base2.requires, "requires");
+    };
+}
+
+macro_rules! compare_switched {
+    ($switched1:expr, $switched2:expr) => {
+        assert_eq!($switched1.short, $switched2.short, "short");
+        assert_eq!($switched1.long, $switched2.long, "long");
+        assert_eq!($switched1.aliases, $switched2.aliases, "aliases");
+        assert_eq!($switched1.disp_ord, $switched2.disp_ord, "disp_ord");
+        // No need to check the unified order
+        // assert_eq!($switched1.unified_ord, $switched2.unified_ord,
+        //            "unified_ord");
+    };
+}
+
+macro_rules! compare_valued {
+    ($valued1:expr, $valued2:expr) => {
+        assert_eq!($valued1.possible_vals, $valued2.possible_vals,
+                   "possible_vals");
+        assert_eq!($valued1.val_names, $valued2.val_names, "val_names");
+        assert_eq!($valued1.num_vals, $valued2.num_vals, "num_vals");
+        assert_eq!($valued1.max_vals, $valued2.max_vals, "max_vals");
+        assert_eq!($valued1.min_vals, $valued2.min_vals, "min_vals");
+        assert_eq!($valued1.val_delim, $valued2.val_delim, "val_delim");
+        assert_eq!($valued1.default_val, $valued2.default_val, "default_val");
+        assert_eq!($valued1.default_vals_ifs, $valued2.default_vals_ifs,
+                   "default_vals_ifs");
+        assert_eq!($valued1.env, $valued2.env, "env");
+        assert_eq!($valued1.terminator, $valued2.terminator, "terminator");
+    };
+}
+
 #[allow(clippy::cognitive_complexity)]
-fn hab_help_manual() {
-    // hab
-    let hab1 = cli::get(no_feature_flags()).after_help("");
-    let hab2 = cli::get(config_file_enabled()).after_help("");
-    let help1 = help(&hab1);
-    let help2 = help(&hab2);
-    assert_eq!(help1, help2);
-
-    // hab license
-    let hab_license1 = sub(&hab1, "license");
-    let hab_license2 = sub(&hab2, "license");
-    let help1 = help(hab_license1);
-    let help2 = help(hab_license2);
-    assert_eq!(help1, help2);
-
-    // hab license accept
-    let hab_license_accept1 = sub(&hab_license1, "accept");
-    let hab_license_accept2 = sub(&hab_license2, "accept");
-    let help1 = help(hab_license_accept1);
-    let help2 = help(hab_license_accept2);
-    assert_eq!(help1, help2);
-
-    // hab cli
-    let hab_cli1 = sub(&hab1, "cli");
-    let hab_cli2 = sub(&hab2, "cli");
-    let help1 = help(hab_cli1);
-    let help2 = help(hab_cli2);
-    assert_eq!(help1, help2);
-
-    // hab cli completers
-    let hab_cli_completers1 = sub(&hab_cli1, "completers");
-    let hab_cli_completers2 = sub(&hab_cli2, "completers");
-    let help1 = help(hab_cli_completers1);
-    let help2 = help(hab_cli_completers2);
-    assert_eq!(help1, help2);
-
-    // hab cli setup
-    let hab_cli_setup1 = sub(&hab_cli1, "setup");
-    let hab_cli_setup2 = sub(&hab_cli2, "setup");
-    let help1 = help(hab_cli_setup1);
-    let help2 = help(hab_cli_setup2);
-    assert_eq!(help1, help2);
-
-    // hab bldr
-    let hab_bldr1 = sub(&hab1, "bldr");
-    let hab_bldr2 = sub(&hab2, "bldr");
-    let help1 = help(hab_bldr1);
-    let help2 = help(hab_bldr2);
-    assert_eq!(help1, help2);
-
-    // hab bldr channel
-    let hab_bldr_channel1 = sub(&hab_bldr1, "channel");
-    let hab_bldr_channel2 = sub(&hab_bldr2, "channel");
-    let help1 = help(hab_bldr_channel1);
-    let help2 = help(hab_bldr_channel2);
-    assert_eq!(help1, help2);
-
-    // hab bldr channel create
-    let hab_bldr_channel_create1 = sub(&hab_bldr_channel1, "create");
-    let hab_bldr_channel_create2 = sub(&hab_bldr_channel2, "create");
-    let help1 = help(hab_bldr_channel_create1);
-    let help2 = help(hab_bldr_channel_create2);
-    assert_eq!(help1, help2);
-
-    // hab bldr channel demote
-    let hab_bldr_channel_demote1 = sub(&hab_bldr_channel1, "demote");
-    let hab_bldr_channel_demote2 = sub(&hab_bldr_channel2, "demote");
-    let help1 = help(hab_bldr_channel_demote1);
-    let help2 = help(hab_bldr_channel_demote2);
-    assert_eq!(help1, help2);
-
-    // hab bldr channel destroy
-    let hab_bldr_channel_destroy1 = sub(&hab_bldr_channel1, "destroy");
-    let hab_bldr_channel_destroy2 = sub(&hab_bldr_channel2, "destroy");
-    let help1 = help(hab_bldr_channel_destroy1);
-    let help2 = help(hab_bldr_channel_destroy2);
-    assert_eq!(help1, help2);
-
-    // hab bldr channel list
-    let hab_bldr_channel_list1 = sub(&hab_bldr_channel1, "list");
-    let hab_bldr_channel_list2 = sub(&hab_bldr_channel2, "list");
-    let help1 = help(hab_bldr_channel_list1);
-    let help2 = help(hab_bldr_channel_list2);
-    assert_eq!(help1, help2);
-
-    // hab bldr channel promote
-    let hab_bldr_channel_promote1 = sub(&hab_bldr_channel1, "promote");
-    let hab_bldr_channel_promote2 = sub(&hab_bldr_channel2, "promote");
-    let help1 = help(hab_bldr_channel_promote1);
-    let help2 = help(hab_bldr_channel_promote2);
-    assert_eq!(help1, help2);
-
-    // hab bldr job
-    let hab_bldr_job1 = sub(&hab_bldr1, "job");
-    let hab_bldr_job2 = sub(&hab_bldr2, "job");
-    let help1 = help(hab_bldr_job1);
-    let help2 = help(hab_bldr_job2);
-    assert_eq!(help1, help2);
-
-    // hab bldr job cancel
-    let hab_bldr_job_cancel1 = sub(&hab_bldr_job1, "cancel");
-    let hab_bldr_job_cancel2 = sub(&hab_bldr_job2, "cancel");
-    let help1 = help(hab_bldr_job_cancel1);
-    let help2 = help(hab_bldr_job_cancel2);
-    assert_eq!(help1, help2);
-
-    // hab bldr job demote
-    let hab_bldr_job_demote1 = sub(&hab_bldr_job1, "demote");
-    let hab_bldr_job_demote2 = sub(&hab_bldr_job2, "demote");
-    let help1 = help(hab_bldr_job_demote1);
-    let help2 = help(hab_bldr_job_demote2);
-    assert_eq!(help1, help2);
-
-    // hab bldr job promote
-    let hab_bldr_job_promote1 = sub(&hab_bldr_job1, "promote");
-    let hab_bldr_job_promote2 = sub(&hab_bldr_job2, "promote");
-    let help1 = help(hab_bldr_job_promote1);
-    let help2 = help(hab_bldr_job_promote2);
-    assert_eq!(help1, help2);
-
-    // hab bldr job start
-    let hab_bldr_job_start1 = sub(&hab_bldr_job1, "start");
-    let hab_bldr_job_start2 = sub(&hab_bldr_job2, "start");
-    let help1 = help(hab_bldr_job_start1);
-    let help2 = help(hab_bldr_job_start2);
-    assert_eq!(help1, help2);
-
-    // hab bldr job start
-    let hab_bldr_job_status1 = sub(&hab_bldr_job1, "status");
-    let hab_bldr_job_status2 = sub(&hab_bldr_job2, "status");
-    let help1 = help(hab_bldr_job_status1);
-    let help2 = help(hab_bldr_job_status2);
-    assert_eq!(help1, help2);
-
-    // hab config
-    let hab_config1 = sub(&hab1, "config");
-    let hab_config2 = sub(&hab2, "config");
-    let help1 = help(hab_config1);
-    let help2 = help(hab_config2);
-    assert_eq!(help1, help2);
-
-    // hab config apply
-    let hab_config_apply1 = sub(&hab_config1, "apply");
-    let hab_config_apply2 = sub(&hab_config2, "apply");
-    let help1 = help(hab_config_apply1);
-    let help2 = help(hab_config_apply2);
-    assert_eq!(help1, help2);
-
-    // hab config show
-    let hab_config_show1 = sub(&hab_config1, "show");
-    let hab_config_show2 = sub(&hab_config2, "show");
-    let help1 = help(hab_config_show1);
-    let help2 = help(hab_config_show2);
-    assert_eq!(help1, help2);
-
-    // hab file
-    let hab_file1 = sub(&hab1, "file");
-    let hab_file2 = sub(&hab2, "file");
-    let help1 = help(hab_file1);
-    let help2 = help(hab_file2);
-    assert_eq!(help1, help2);
-
-    // hab file upload
-    let hab_file_upload1 = sub(&hab_file1, "upload");
-    let hab_file_upload2 = sub(&hab_file2, "upload");
-    let help1 = help(hab_file_upload1);
-    let help2 = help(hab_file_upload2);
-    assert_eq!(help1, help2);
-
-    // hab origin
-    let hab_origin1 = sub(&hab1, "origin");
-    let hab_origin2 = sub(&hab2, "origin");
-    let help1 = help(hab_origin1);
-    let help2 = help(hab_origin2);
-    assert_eq!(help1, help2);
-
-    // hab origin create
-    let hab_origin_create1 = sub(&hab_origin1, "create");
-    let hab_origin_create2 = sub(&hab_origin2, "create");
-    let help1 = help(hab_origin_create1);
-    let help2 = help(hab_origin_create2);
-    assert_eq!(help1, help2);
-
-    // hab origin delete
-    let hab_origin_delete1 = sub(&hab_origin1, "delete");
-    let hab_origin_delete2 = sub(&hab_origin2, "delete");
-    let help1 = help(hab_origin_delete1);
-    let help2 = help(hab_origin_delete2);
-    assert_eq!(help1, help2);
-
-    // hab origin depart
-    let hab_origin_depart1 = sub(&hab_origin1, "depart");
-    let hab_origin_depart2 = sub(&hab_origin2, "depart");
-    let help1 = help(hab_origin_depart1);
-    let help2 = help(hab_origin_depart2);
-    assert_eq!(help1, help2);
-
-    // hab origin invitations
-    let hab_origin_invitations1 = sub(&hab_origin1, "invitations");
-    let hab_origin_invitations2 = sub(&hab_origin2, "invitations");
-    let help1 = help(hab_origin_invitations1);
-    let help2 = help(hab_origin_invitations2);
-    assert_eq!(help1, help2);
-
-    // hab origin invitations accept
-    let hab_origin_invitations_accept1 = sub(&hab_origin_invitations1, "accept");
-    let hab_origin_invitations_accept2 = sub(&hab_origin_invitations2, "accept");
-    let help1 = help(hab_origin_invitations_accept1);
-    let help2 = help(hab_origin_invitations_accept2);
-    assert_eq!(help1, help2);
-
-    // hab origin invitations ignore
-    let hab_origin_invitations_ignore1 = sub(&hab_origin_invitations1, "ignore");
-    let hab_origin_invitations_ignore2 = sub(&hab_origin_invitations2, "ignore");
-    let help1 = help(hab_origin_invitations_ignore1);
-    let help2 = help(hab_origin_invitations_ignore2);
-    assert_eq!(help1, help2);
-
-    // hab origin invitations list
-    let hab_origin_invitations_list1 = sub(&hab_origin_invitations1, "list");
-    let hab_origin_invitations_list2 = sub(&hab_origin_invitations2, "list");
-    let help1 = help(hab_origin_invitations_list1);
-    let help2 = help(hab_origin_invitations_list2);
-    assert_eq!(help1, help2);
-
-    // hab origin invitations pending
-    let hab_origin_invitations_pending1 = sub(&hab_origin_invitations1, "pending");
-    let hab_origin_invitations_pending2 = sub(&hab_origin_invitations2, "pending");
-    let help1 = help(hab_origin_invitations_pending1);
-    let help2 = help(hab_origin_invitations_pending2);
-    assert_eq!(help1, help2);
-
-    // hab origin invitations rescind
-    let hab_origin_invitations_rescind1 = sub(&hab_origin_invitations1, "rescind");
-    let hab_origin_invitations_rescind2 = sub(&hab_origin_invitations2, "rescind");
-    let help1 = help(hab_origin_invitations_rescind1);
-    let help2 = help(hab_origin_invitations_rescind2);
-    assert_eq!(help1, help2);
-
-    // hab origin invitations send
-    let hab_origin_invitations_send1 = sub(&hab_origin_invitations1, "send");
-    let hab_origin_invitations_send2 = sub(&hab_origin_invitations2, "send");
-    let help1 = help(hab_origin_invitations_send1);
-    let help2 = help(hab_origin_invitations_send2);
-    assert_eq!(help1, help2);
-
-    // hab origin key
-    let hab_origin_key1 = sub(&hab_origin1, "key");
-    let hab_origin_key2 = sub(&hab_origin2, "key");
-    let help1 = help(hab_origin_key1);
-    let help2 = help(hab_origin_key2);
-    assert_eq!(help1, help2);
-
-    // hab origin key download
-    let hab_origin_key_download1 = sub(&hab_origin_key1, "download");
-    let hab_origin_key_download2 = sub(&hab_origin_key2, "download");
-    let help1 = help(hab_origin_key_download1);
-    let help2 = help(hab_origin_key_download2);
-    assert_eq!(help1, help2);
-
-    // hab origin key export
-    let hab_origin_key_export1 = sub(&hab_origin_key1, "export");
-    let hab_origin_key_export2 = sub(&hab_origin_key2, "export");
-    let help1 = help(hab_origin_key_export1);
-    let help2 = help(hab_origin_key_export2);
-    assert_eq!(help1, help2);
-
-    // hab origin key generate
-    let hab_origin_key_generate1 = sub(&hab_origin_key1, "generate");
-    let hab_origin_key_generate2 = sub(&hab_origin_key2, "generate");
-    let help1 = help(hab_origin_key_generate1);
-    let help2 = help(hab_origin_key_generate2);
-    assert_eq!(help1, help2);
-
-    // hab origin key import
-    let hab_origin_key_import1 = sub(&hab_origin_key1, "import");
-    let hab_origin_key_import2 = sub(&hab_origin_key2, "import");
-    let help1 = help(hab_origin_key_import1);
-    let help2 = help(hab_origin_key_import2);
-    assert_eq!(help1, help2);
-
-    // hab origin key upload
-    let hab_origin_key_upload1 = sub(&hab_origin_key1, "upload");
-    let hab_origin_key_upload2 = sub(&hab_origin_key2, "upload");
-    let help1 = help(hab_origin_key_upload1);
-    let help2 = help(hab_origin_key_upload2);
-    assert_eq!(help1, help2);
-
-    // hab origin secret
-    let hab_origin_secret1 = sub(&hab_origin1, "secret");
-    let hab_origin_secret2 = sub(&hab_origin2, "secret");
-    let help1 = help(hab_origin_secret1);
-    let help2 = help(hab_origin_secret2);
-    assert_eq!(help1, help2);
-
-    // hab origin secret delete
-    let hab_origin_secret_delete1 = sub(&hab_origin_secret1, "delete");
-    let hab_origin_secret_delete2 = sub(&hab_origin_secret2, "delete");
-    let help1 = help(hab_origin_secret_delete1);
-    let help2 = help(hab_origin_secret_delete2);
-    assert_eq!(help1, help2);
-
-    // hab origin secret list
-    let hab_origin_secret_list1 = sub(&hab_origin_secret1, "list");
-    let hab_origin_secret_list2 = sub(&hab_origin_secret2, "list");
-    let help1 = help(hab_origin_secret_list1);
-    let help2 = help(hab_origin_secret_list2);
-    assert_eq!(help1, help2);
-
-    // hab origin secret upload
-    let hab_origin_secret_upload1 = sub(&hab_origin_secret1, "upload");
-    let hab_origin_secret_upload2 = sub(&hab_origin_secret2, "upload");
-    let help1 = help(hab_origin_secret_upload1);
-    let help2 = help(hab_origin_secret_upload2);
-    assert_eq!(help1, help2);
-
-    // hab origin transfer
-    let hab_origin_transfer1 = sub(&hab_origin1, "transfer");
-    let hab_origin_transfer2 = sub(&hab_origin2, "transfer");
-    let help1 = help(hab_origin_transfer1);
-    let help2 = help(hab_origin_transfer2);
-    assert_eq!(help1, help2);
-
-    // hab pkg
-    let hab_pkg1 = sub(&hab1, "pkg");
-    let hab_pkg2 = sub(&hab2, "pkg");
-    let help1 = help(hab_pkg1);
-    let help2 = help(hab_pkg2);
-    assert_eq!(help1, help2);
-
-    // hab pkg binds
-    let hab_pkg_binds1 = sub(&hab_pkg1, "binds");
-    let hab_pkg_binds2 = sub(&hab_pkg2, "binds");
-    let help1 = help(hab_pkg_binds1);
-    let help2 = help(hab_pkg_binds2);
-    assert_eq!(help1, help2);
-
-    // hab pkg binlink
-    let hab_pkg_binlink1 = sub(&hab_pkg1, "binlink");
-    let hab_pkg_binlink2 = sub(&hab_pkg2, "binlink");
-    let help1 = help(hab_pkg_binlink1);
-    let help2 = help(hab_pkg_binlink2);
-    assert_eq!(help1, help2);
-
-    // hab pkg build
-    let hab_pkg_build1 = sub(&hab_pkg1, "build");
-    let hab_pkg_build2 = sub(&hab_pkg2, "build");
-    let help1 = help(hab_pkg_build1);
-    let help2 = help(hab_pkg_build2);
-    assert_eq!(help1, help2);
-
-    // hab pkg bulkupload
-    let hab_pkg_bulkupload1 = sub(&hab_pkg1, "bulkupload");
-    let hab_pkg_bulkupload2 = sub(&hab_pkg2, "bulkupload");
-    let help1 = help(hab_pkg_bulkupload1);
-    let help2 = help(hab_pkg_bulkupload2);
-    assert_eq!(help1, help2);
-
-    // hab pkg channels
-    let hab_pkg_channels1 = sub(&hab_pkg1, "channels");
-    let hab_pkg_channels2 = sub(&hab_pkg2, "channels");
-    let help1 = help(hab_pkg_channels1);
-    let help2 = help(hab_pkg_channels2);
-    assert_eq!(help1, help2);
-
-    // hab pkg config
-    let hab_pkg_config1 = sub(&hab_pkg1, "config");
-    let hab_pkg_config2 = sub(&hab_pkg2, "config");
-    let help1 = help(hab_pkg_config1);
-    let help2 = help(hab_pkg_config2);
-    assert_eq!(help1, help2);
-
-    // hab pkg delete
-    let hab_pkg_delete1 = sub(&hab_pkg1, "delete");
-    let hab_pkg_delete2 = sub(&hab_pkg2, "delete");
-    let help1 = help(hab_pkg_delete1);
-    let help2 = help(hab_pkg_delete2);
-    assert_eq!(help1, help2);
-
-    // hab pkg demote
-    let hab_pkg_demote1 = sub(&hab_pkg1, "demote");
-    let hab_pkg_demote2 = sub(&hab_pkg2, "demote");
-    let help1 = help(hab_pkg_demote1);
-    let help2 = help(hab_pkg_demote2);
-    assert_eq!(help1, help2);
-
-    // hab pkg dependencies
-    let hab_pkg_dependencies1 = sub(&hab_pkg1, "dependencies");
-    let hab_pkg_dependencies2 = sub(&hab_pkg2, "dependencies");
-    let help1 = help(hab_pkg_dependencies1);
-    let help2 = help(hab_pkg_dependencies2);
-    assert_eq!(help1, help2);
-
-    // hab pkg download
-    let hab_pkg_download1 = sub(&hab_pkg1, "download");
-    let hab_pkg_download2 = sub(&hab_pkg2, "download");
-    let help1 = help(hab_pkg_download1);
-    let help2 = help(hab_pkg_download2);
-    assert_eq!(help1, help2);
-
-    // hab pkg env
-    let hab_pkg_env1 = sub(&hab_pkg1, "env");
-    let hab_pkg_env2 = sub(&hab_pkg2, "env");
-    let help1 = help(hab_pkg_env1);
-    let help2 = help(hab_pkg_env2);
-    assert_eq!(help1, help2);
-
-    // hab pkg exec
-    let hab_pkg_exec1 = sub(&hab_pkg1, "exec");
-    let hab_pkg_exec2 = sub(&hab_pkg2, "exec");
-    let help1 = help(hab_pkg_exec1);
-    let help2 = help(hab_pkg_exec2);
-    assert_eq!(help1, help2);
-
-    // hab pkg export
-    let hab_pkg_export1 = sub(&hab_pkg1, "export");
-    let hab_pkg_export2 = sub(&hab_pkg2, "export");
-    let help1 = help(hab_pkg_export1);
-    let help2 = help(hab_pkg_export2);
-    assert_eq!(help1, help2);
-
-    // hab pkg hash
-    let hab_pkg_hash1 = sub(&hab_pkg1, "hash");
-    let hab_pkg_hash2 = sub(&hab_pkg2, "hash");
-    let help1 = help(hab_pkg_hash1);
-    let help2 = help(hab_pkg_hash2);
-    assert_eq!(help1, help2);
-
-    // hab pkg info
-    let hab_pkg_info1 = sub(&hab_pkg1, "info");
-    let hab_pkg_info2 = sub(&hab_pkg2, "info");
-    let help1 = help(hab_pkg_info1);
-    let help2 = help(hab_pkg_info2);
-    assert_eq!(help1, help2);
-
-    // hab pkg install
-    let hab_pkg_install1 = sub(&hab_pkg1, "install");
-    let hab_pkg_install2 = sub(&hab_pkg2, "install");
-    let help1 = help(hab_pkg_install1);
-    let help2 = help(hab_pkg_install2);
-    assert_eq!(help1, help2);
-
-    // hab pkg list
-    let hab_pkg_list1 = sub(&hab_pkg1, "list");
-    let hab_pkg_list2 = sub(&hab_pkg2, "list");
-    let help1 = help(hab_pkg_list1);
-    let help2 = help(hab_pkg_list2);
-    assert_eq!(help1, help2);
-
-    // hab pkg path
-    let hab_pkg_path1 = sub(&hab_pkg1, "path");
-    let hab_pkg_path2 = sub(&hab_pkg2, "path");
-    let help1 = help(hab_pkg_path1);
-    let help2 = help(hab_pkg_path2);
-    assert_eq!(help1, help2);
-
-    // hab pkg promote
-    let hab_pkg_promote1 = sub(&hab_pkg1, "promote");
-    let hab_pkg_promote2 = sub(&hab_pkg2, "promote");
-    let help1 = help(hab_pkg_promote1);
-    let help2 = help(hab_pkg_promote2);
-    assert_eq!(help1, help2);
-
-    // hab pkg provides
-    let hab_pkg_provides1 = sub(&hab_pkg1, "provides");
-    let hab_pkg_provides2 = sub(&hab_pkg2, "provides");
-    let help1 = help(hab_pkg_provides1);
-    let help2 = help(hab_pkg_provides2);
-    assert_eq!(help1, help2);
-
-    // hab pkg search
-    let hab_pkg_search1 = sub(&hab_pkg1, "search");
-    let hab_pkg_search2 = sub(&hab_pkg2, "search");
-    let help1 = help(hab_pkg_search1);
-    let help2 = help(hab_pkg_search2);
-    assert_eq!(help1, help2);
-
-    // hab pkg sign
-    let hab_pkg_sign1 = sub(&hab_pkg1, "sign");
-    let hab_pkg_sign2 = sub(&hab_pkg2, "sign");
-    let help1 = help(hab_pkg_sign1);
-    let help2 = help(hab_pkg_sign2);
-    assert_eq!(help1, help2);
-
-    // hab pkg uninstall
-    let hab_pkg_uninstall1 = sub(&hab_pkg1, "uninstall");
-    let hab_pkg_uninstall2 = sub(&hab_pkg2, "uninstall");
-    let help1 = help(hab_pkg_uninstall1);
-    let help2 = help(hab_pkg_uninstall2);
-    assert_eq!(help1, help2);
-
-    // hab pkg upload
-    let hab_pkg_upload1 = sub(&hab_pkg1, "upload");
-    let hab_pkg_upload2 = sub(&hab_pkg2, "upload");
-    let help1 = help(hab_pkg_upload1);
-    let help2 = help(hab_pkg_upload2);
-    assert_eq!(help1, help2);
-
-    // hab pkg verify
-    let hab_pkg_verify1 = sub(&hab_pkg1, "verify");
-    let hab_pkg_verify2 = sub(&hab_pkg2, "verify");
-    let help1 = help(hab_pkg_verify1);
-    let help2 = help(hab_pkg_verify2);
-    assert_eq!(help1, help2);
-
-    // hab plan
-    let hab_plan1 = sub(&hab1, "plan");
-    let hab_plan2 = sub(&hab2, "plan");
-    let help1 = help(hab_plan1);
-    let help2 = help(hab_plan2);
-    assert_eq!(help1, help2);
-
-    // hab plan init
-    let hab_plan_init1 = sub(&hab_plan1, "init");
-    let hab_plan_init2 = sub(&hab_plan2, "init");
-    let help1 = help(hab_plan_init1);
-    let help2 = help(hab_plan_init2);
-    assert_eq!(help1, help2);
-
-    // hab plan render
-    let hab_plan_render1 = sub(&hab_plan1, "render");
-    let hab_plan_render2 = sub(&hab_plan2, "render");
-    let help1 = help(hab_plan_render1);
-    let help2 = help(hab_plan_render2);
-    assert_eq!(help1, help2);
-
-    // hab ring
-    let hab_ring1 = sub(&hab1, "ring");
-    let hab_ring2 = sub(&hab2, "ring");
-    let help1 = help(hab_ring1);
-    let help2 = help(hab_ring2);
-    assert_eq!(help1, help2);
-
-    // hab ring key
-    let hab_ring_key1 = sub(&hab_ring1, "key");
-    let hab_ring_key2 = sub(&hab_ring2, "key");
-    let help1 = help(hab_ring_key1);
-    let help2 = help(hab_ring_key2);
-    assert_eq!(help1, help2);
-
-    // hab ring key export
-    let hab_ring_key_export1 = sub(&hab_ring_key1, "export");
-    let hab_ring_key_export2 = sub(&hab_ring_key2, "export");
-    let help1 = help(hab_ring_key_export1);
-    let help2 = help(hab_ring_key_export2);
-    assert_eq!(help1, help2);
-
-    // hab ring key generate
-    let hab_ring_key_generate1 = sub(&hab_ring_key1, "generate");
-    let hab_ring_key_generate2 = sub(&hab_ring_key2, "generate");
-    let help1 = help(hab_ring_key_generate1);
-    let help2 = help(hab_ring_key_generate2);
-    assert_eq!(help1, help2);
-
-    // hab ring key import
-    let hab_ring_key_import1 = sub(&hab_ring_key1, "import");
-    let hab_ring_key_import2 = sub(&hab_ring_key2, "import");
-    let help1 = help(hab_ring_key_import1);
-    let help2 = help(hab_ring_key_import2);
-    assert_eq!(help1, help2);
-
-    // hab studio
-    let hab_studio1 = sub(&hab1, "studio");
-    let hab_studio2 = sub(&hab2, "studio");
-    let help1 = help(hab_studio1);
-    let help2 = help(hab_studio2);
-    assert_eq!(help1, help2);
-
-    // hab sup
-    let hab_sup1 = sub(&hab1, "sup");
-    let hab_sup2 = sub(&hab2, "sup");
-    let help1 = help(hab_sup1);
-    let help2 = help(hab_sup2);
-    assert_eq!(help1, help2);
-
-    // hab sup bash
-    let hab_sup_bash1 = sub(&hab_sup1, "bash");
-    let hab_sup_bash2 = sub(&hab_sup2, "bash");
-    let help1 = help(hab_sup_bash1);
-    let help2 = help(hab_sup_bash2);
-    assert_eq!(help1, help2);
-
-    // hab sup depart
-    let hab_sup_depart1 = sub(&hab_sup1, "depart");
-    let hab_sup_depart2 = sub(&hab_sup2, "depart");
-    let help1 = help(hab_sup_depart1);
-    let help2 = help(hab_sup_depart2);
-    assert_eq!(help1, help2);
-
-    // hab sup run
-    let hab_sup_run1 = sub(&hab_sup1, "run");
-    let hab_sup_run2 = sub(&hab_sup2, "run");
-    let help1 = help(hab_sup_run1);
-    let help2 = help(hab_sup_run2);
-    assert_eq!(help1, help2);
-
-    // hab sup secret
-    let hab_sup_secret1 = sub(&hab_sup1, "secret");
-    let hab_sup_secret2 = sub(&hab_sup2, "secret");
-    let help1 = help(hab_sup_secret1);
-    let help2 = help(hab_sup_secret2);
-    assert_eq!(help1, help2);
-
-    // hab sup sh
-    let hab_sup_sh1 = sub(&hab_sup1, "sh");
-    let hab_sup_sh2 = sub(&hab_sup2, "sh");
-    let help1 = help(hab_sup_sh1);
-    let help2 = help(hab_sup_sh2);
-    assert_eq!(help1, help2);
-
-    // hab sup status
-    let hab_sup_status1 = sub(&hab_sup1, "status");
-    let hab_sup_status2 = sub(&hab_sup2, "status");
-    let help1 = help(hab_sup_status1);
-    let help2 = help(hab_sup_status2);
-    assert_eq!(help1, help2);
-
-    // hab sup term
-    let hab_sup_term1 = sub(&hab_sup1, "term");
-    let hab_sup_term2 = sub(&hab_sup2, "term");
-    let help1 = help(hab_sup_term1);
-    let help2 = help(hab_sup_term2);
-    assert_eq!(help1, help2);
-
-    // hab supportbundle
-    let hab_supportbundle1 = sub(&hab1, "supportbundle");
-    let hab_supportbundle2 = sub(&hab2, "supportbundle");
-    let help1 = help(hab_supportbundle1);
-    let help2 = help(hab_supportbundle2);
-    assert_eq!(help1, help2);
-
-    // hab svc
-    let hab_svc1 = sub(&hab1, "svc");
-    let hab_svc2 = sub(&hab2, "svc");
-    let help1 = help(hab_svc1);
-    let help2 = help(hab_svc2);
-    assert_eq!(help1, help2);
-
-    // hab svc key
-    let hab_svc_key1 = sub(&hab_svc1, "key");
-    let hab_svc_key2 = sub(&hab_svc2, "key");
-    let help1 = help(hab_svc_key1);
-    let help2 = help(hab_svc_key2);
-    assert_eq!(help1, help2);
-
-    // hab svc key generate
-    let hab_svc_key_generate1 = sub(&hab_svc_key1, "generate");
-    let hab_svc_key_generate2 = sub(&hab_svc_key2, "generate");
-    let help1 = help(hab_svc_key_generate1);
-    let help2 = help(hab_svc_key_generate2);
-    assert_eq!(help1, help2);
-
-    // hab svc load
-    let hab_svc_load1 = sub(&hab_svc1, "load");
-    let hab_svc_load2 = sub(&hab_svc2, "load");
-    let help1 = help(hab_svc_load1);
-    let help2 = help(hab_svc_load2);
-    assert_eq!(help1, help2);
-
-    // hab svc start
-    let hab_svc_start1 = sub(&hab_svc1, "start");
-    let hab_svc_start2 = sub(&hab_svc2, "start");
-    let help1 = help(hab_svc_start1);
-    let help2 = help(hab_svc_start2);
-    assert_eq!(help1, help2);
-
-    // hab svc status
-    let hab_svc_status1 = sub(&hab_svc1, "status");
-    let hab_svc_status2 = sub(&hab_svc2, "status");
-    let help1 = help(hab_svc_status1);
-    let help2 = help(hab_svc_status2);
-    assert_eq!(help1, help2);
-
-    // hab svc stop
-    let hab_svc_stop1 = sub(&hab_svc1, "stop");
-    let hab_svc_stop2 = sub(&hab_svc2, "stop");
-    let help1 = help(hab_svc_stop1);
-    let help2 = help(hab_svc_stop2);
-    assert_eq!(help1, help2);
-
-    // hab svc unload
-    let hab_svc_unload1 = sub(&hab_svc1, "unload");
-    let hab_svc_unload2 = sub(&hab_svc2, "unload");
-    let help1 = help(hab_svc_unload1);
-    let help2 = help(hab_svc_unload2);
-    assert_eq!(help1, help2);
-
-    // hab user
-    let hab_user1 = sub(&hab1, "user");
-    let hab_user2 = sub(&hab2, "user");
-    let help1 = help(hab_user1);
-    let help2 = help(hab_user2);
-    assert_eq!(help1, help2);
-
-    // hab user key
-    let hab_user_key1 = sub(&hab_user1, "key");
-    let hab_user_key2 = sub(&hab_user2, "key");
-    let help1 = help(hab_user_key1);
-    let help2 = help(hab_user_key2);
-    assert_eq!(help1, help2);
-
-    // hab user key generate
-    let hab_user_key_generate1 = sub(&hab_user_key1, "generate");
-    let hab_user_key_generate2 = sub(&hab_user_key2, "generate");
-    let help1 = help(hab_user_key_generate1);
-    let help2 = help(hab_user_key_generate2);
-    assert_eq!(help1, help2);
-}
-
-// Recursivly verify the structopt output of each subcommand
-#[test]
-fn hab_help_recursive() {
-    let mut hab1 = cli::get(no_feature_flags()).after_help("");
-    hab1.p.subcommands.truncate(hab1.p.subcommands.len() - 7);
-    let hab2 = cli::get(config_file_enabled()).after_help("");
-    fn compare(app1: &App, app2: &App) {
-        let help1 = help(app1);
-        let help2 = help(app2);
+fn compare(app1: &mut App, app2: &mut App, path: &str) {
+    println!("=== Comparing app '{}' subcommands '{} and '{}' ===",
+             path, app1.p.meta.name, app2.p.meta.name);
+
+    // Compare help messages
+    let help1 = help(app1);
+    let help2 = help(app2);
+    if help1 != help2 {
+        println!("{}", help1);
+        println!("================================");
+        println!("{}", help2);
         assert_eq!(help1, help2);
-        assert_eq!(app1.p.subcommands.len(), app2.p.subcommands.len());
-        for sub1 in app1.p.subcommands() {
-            let name = &sub1.p.meta.name;
-            let sub2 = sub(app2, name);
-            compare(sub1, sub2);
-        }
     }
-    compare(&hab1, &hab2);
+
+    let p1 = &mut app1.p;
+    let p2 = &mut app2.p;
+
+    println!("Comparing app meta");
+    assert_eq!(p1.meta.name, p2.meta.name, "meta name");
+    assert_eq!(p1.meta.bin_name, p2.meta.bin_name, "meta bin_name");
+    assert_eq!(p1.meta.author, p2.meta.author, "meta author");
+    assert_eq!(p1.meta.version, p2.meta.version, "meta version");
+    assert_eq!(p1.meta.long_version, p2.meta.long_version,
+               "meta long_version");
+    assert_eq!(p1.meta.about, p2.meta.about, "meta about");
+    assert_eq!(p1.meta.long_about, p2.meta.long_about, "meta long_about");
+    assert_eq!(p1.meta.more_help, p2.meta.more_help, "meta more_help");
+    assert_eq!(p1.meta.pre_help, p2.meta.pre_help, "meta pre_help");
+    // We intentially do not compare aliases
+    // assert_eq!(p1.meta.aliases, p2.meta.aliases, "meta aliases");
+    assert_eq!(p1.meta.usage_str, p2.meta.usage_str, "meta usage_str");
+    assert_eq!(p1.meta.usage, p2.meta.usage, "meta usage");
+    assert_eq!(p1.meta.help_str, p2.meta.help_str, "meta help_str");
+    assert_eq!(p1.meta.disp_ord, p2.meta.disp_ord, "meta disp_ord");
+    assert_eq!(p1.meta.term_w, p2.meta.term_w, "meta term_w");
+    assert_eq!(p1.meta.max_w, p2.meta.max_w, "meta max_w");
+    assert_eq!(p1.meta.template, p2.meta.template, "meta template");
+
+    println!("Comparing app flags");
+    compare_app_flags!(p1, p2);
+
+    println!("Comparing app global flags");
+    compare_app_flags!(p1.g_settings, p2.g_settings);
+
+    // Check flags
+    p1.flags.sort_by_key(|f| f.b.name);
+    p2.flags.sort_by_key(|f| f.b.name);
+    for (flag1, flag2) in p1.flags.iter().zip(p2.flags.iter()) {
+        println!("Comparing flag '{}' and '{}'", flag1.b.name, flag2.b.name,);
+        compare_base!(flag1.b, flag2.b);
+        compare_switched!(flag1.s, flag2.s);
+    }
+    assert_eq!(p1.flags.len(), p2.flags.len(), "flags length");
+
+    // Check options
+    p1.opts.sort_by_key(|o| o.b.name);
+    p2.opts.sort_by_key(|o| o.b.name);
+    for (opt1, opt2) in p1.opts.iter().zip(p2.opts.iter()) {
+        println!("Comparing opt '{}' and '{}'", opt1.b.name, opt2.b.name,);
+        compare_base!(opt1.b, opt2.b);
+        compare_switched!(opt1.s, opt2.s);
+        compare_valued!(opt1.v, opt2.v);
+    }
+    assert_eq!(p1.opts.len(), p2.opts.len(), "opts length");
+
+    // Check positionals
+    for ((index1, positional1), (index2, positional2)) in
+        p1.positionals.iter().zip(p2.positionals.iter())
+    {
+        println!("Comparing positional {} to {}",
+                 positional1.b.name, positional2.b.name,);
+        compare_base!(positional1.b, positional2.b);
+        compare_valued!(positional1.v, positional2.v);
+        assert_eq!(index1, index2, "positional index");
+        assert_eq!(positional1.index, positional2.index, "positional index2");
+    }
+    assert_eq!(p1.positionals.len(),
+               p2.positionals.len(),
+               "positionals length");
+
+    // Check subcommands
+    p1.subcommands.sort_by_key(|s| s.p.meta.name.clone());
+    p2.subcommands.sort_by_key(|s| s.p.meta.name.clone());
+    for (sub1, sub2) in p1.subcommands.iter_mut().zip(p2.subcommands.iter_mut()) {
+        let path = format!("{}::{}", path, sub1.p.meta.name);
+        compare(sub1, sub2, &path);
+    }
+    assert_eq!(p1.subcommands.len(),
+               p2.subcommands.len(),
+               "subcommands length");
+
+    // Check groups
+    p1.groups.sort_by_key(|g| g.name);
+    p2.groups.sort_by_key(|g| g.name);
+    for (group1, group2) in p1.groups.iter_mut().zip(p2.groups.iter_mut()) {
+        println!("Comparing group {} to {}", group1.name, group2.name,);
+        assert_eq!(group1.name, group2.name, "groups name");
+        assert_eq!(group1.args, group2.args, "groups args");
+        assert_eq!(group1.required, group2.required, "groups required");
+        assert_eq!(group1.requires, group2.requires, "groups requires");
+        assert_eq!(group1.conflicts, group2.conflicts, "groups conflicts");
+        assert_eq!(group1.multiple, group2.multiple, "groups multiple");
+    }
+    assert_eq!(p1.groups.len(), p2.groups.len(), "groups length");
+
+    // Check global args
+    p1.global_args.sort_by_key(|g| g.b.name);
+    p2.global_args.sort_by_key(|g| g.b.name);
+    for (global_arg1, global_arg2) in p1.global_args.iter_mut().zip(p2.global_args.iter_mut()) {
+        println!("Comparing global_arg {} to {}",
+                 global_arg1.b.name, global_arg2.b.name,);
+        compare_base!(global_arg1.b, global_arg2.b);
+        compare_switched!(global_arg1.s, global_arg2.s);
+        compare_valued!(global_arg1.v, global_arg2.v);
+        assert_eq!(global_arg1.index, global_arg2.index, "global_arg index");
+        assert_eq!(global_arg1.r_ifs, global_arg2.r_ifs, "global_arg r_ifs");
+    }
+    assert_eq!(p1.global_args.len(),
+               p2.global_args.len(),
+               "global_args length");
+
+    assert_eq!(p1.required, p2.required, "parser required");
+    assert_eq!(p1.r_ifs, p2.r_ifs, "parser r_ifs");
+    assert_eq!(p1.overrides, p2.overrides, "parser overrides");
+    assert_eq!(p1.help_message, p2.help_message, "parser help_message");
+    assert_eq!(p1.version_message, p2.version_message,
+               "parser version_message");
 }
 
 #[test]
-fn sup_run_help() {
-    let sup1 = cli::sub_sup_run(no_feature_flags()).after_help("");
-    let sup2 = cli::sub_sup_run(config_file_enabled()).after_help("");
-    let help1 = help(&sup1);
-    let help2 = help(&sup2);
-    assert_eq!(help1, help2);
+fn test_hab_help() {
+    let mut hab1 = cli::get(no_feature_flags()).after_help("");
+    // Remove the subcommand aliases
+    hab1.p.subcommands.truncate(hab1.p.subcommands.len() - 7);
+    let mut hab2 = cli::get(config_file_enabled()).after_help("");
+    compare(&mut hab1, &mut hab2, "hab");
+}
+
+#[test]
+fn test_sup_run_help() {
+    let mut sup1 = cli::sub_sup_run(no_feature_flags()).after_help("");
+    let mut sup2 = cli::sub_sup_run(config_file_enabled()).after_help("");
+    compare(&mut sup1, &mut sup2, "sup");
 }
