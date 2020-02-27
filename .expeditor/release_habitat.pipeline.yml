@@ -400,8 +400,8 @@ steps:
           privileged: true
 
   - label: ":docker: :windows: Upload windows 2016 container to Docker Hub"
-    command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
     if: build.creator.name == 'Chef Expeditor'
+    command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
     expeditor:
       executor:
         windows:
