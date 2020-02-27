@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.43 -->
-## [1.5.43](https://github.com/habitat-sh/habitat/tree/1.5.43) (2020-02-27)
+<!-- latest_release 1.5.44 -->
+## [1.5.44](https://github.com/habitat-sh/habitat/tree/1.5.44) (2020-02-27)
 
 #### Merged Pull Requests
-- Simplify our protobuf generation logic [#7506](https://github.com/habitat-sh/habitat/pull/7506) ([christophermaier](https://github.com/christophermaier))
+- Better test for comparing structopt to clap_app [#7503](https://github.com/habitat-sh/habitat/pull/7503) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.29 -->
@@ -21,6 +21,7 @@
 - Remove Kubernetes and Helm exporters [#7463](https://github.com/habitat-sh/habitat/pull/7463) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 
 #### Merged Pull Requests
+- Better test for comparing structopt to clap_app [#7503](https://github.com/habitat-sh/habitat/pull/7503) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.44 -->
 - Simplify our protobuf generation logic [#7506](https://github.com/habitat-sh/habitat/pull/7506) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.43 -->
 - Get-HabPackagePath accepts any valid ident like pkg_path_for [#7505](https://github.com/habitat-sh/habitat/pull/7505) ([mwrock](https://github.com/mwrock)) <!-- 1.5.42 -->
 - Bump nokogiri from 1.10.4 to 1.10.8 in /www [#7502](https://github.com/habitat-sh/habitat/pull/7502) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.5.41 -->
