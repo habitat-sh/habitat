@@ -39,11 +39,7 @@ zmq = { git = "https://github.com/habitat-sh/rust-zmq", branch = "v0.8-symlinks-
 mktemp = "*"
 
 [build-dependencies]
-heck = "*"
-pkg-config = "*"
-prost = "*"
 prost-build = "*"
-tempfile = "*"
 
 [features]
 default = []
