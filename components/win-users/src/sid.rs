@@ -164,6 +164,7 @@ impl Sid {
         }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(sid: &str) -> io::Result<Self> {
         let sid = WideCString::from_str(sid).expect("valid SID widestring");
         let mut buffer = null_mut();
