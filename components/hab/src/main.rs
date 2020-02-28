@@ -661,6 +661,7 @@ async fn sub_pkg_download(ui: &mut UI,
     package_sets.retain(|set| !set.idents.is_empty());
 
     let verify = verify_from_matches(m);
+    let ignore_missing_seeds = ignore_missing_seeds_from_matches(m);
 
     init();
 
@@ -671,7 +672,8 @@ async fn sub_pkg_download(ui: &mut UI,
                                   &package_sets,
                                   download_dir.as_ref(),
                                   token.as_ref().map(String::as_str),
-                                  verify).await?;
+                                  verify,
+                                  ignore_missing_seeds).await?;
     Ok(())
 }
 
@@ -1785,6 +1787,9 @@ fn strings_to_idents(strings: &[String]) -> Result<Vec<PackageIdent>> {
 }
 
 fn verify_from_matches(matches: &ArgMatches<'_>) -> bool { matches.is_present("VERIFY") }
+fn ignore_missing_seeds_from_matches(matches: &ArgMatches<'_>) -> bool {
+    matches.is_present("IGNORE_MISSING_SEEDS")
+}
 
 fn download_dir_from_matches(matches: &ArgMatches<'_>) -> Option<PathBuf> {
     matches.value_of("DOWNLOAD_DIRECTORY").map(PathBuf::from)

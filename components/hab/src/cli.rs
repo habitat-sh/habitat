@@ -1092,6 +1092,8 @@ fn sub_pkg_download() -> App<'static, 'static> {
             "Target architecture to fetch. E.g. x86_64-linux. Overridden if architecture is specified in toml file")
     (@arg VERIFY: --verify
             "Verify package integrity after download (Warning: this can be slow)")
+    (@arg IGNORE_MISSING_SEEDS: --("ignore-missing-seeds")
+            "Ignore packages specified that are not present on the target Builder")
     );
     sub
 }
