@@ -371,7 +371,7 @@ impl<'a> DownloadTask<'a> {
                                  ui.progress())
                   .await
         {
-            k(_) => Ok(()),
+            Ok(_) => Ok(()),
             Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
                 println!("Host platform or architecture not supported by the targeted depot; \
                           skipping.");
