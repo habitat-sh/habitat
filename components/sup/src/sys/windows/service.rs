@@ -8,9 +8,8 @@ use std::{collections::HashMap,
           io,
           mem,
           thread,
-          time::Duration as StdDuration};
-use time::{Duration as TimeDuration,
-           SteadyTime};
+          time::{Duration,
+                 Instant}};
 use winapi::{shared::minwindef::{DWORD,
                                  LPDWORD,
                                  MAX_PATH},
@@ -71,13 +70,13 @@ impl Process {
                    io::Error::last_os_error());
         }
 
-        let timeout: TimeDuration = timeout.into();
+        let timeout: Duration = timeout.into();
         trace!("Waiting up to {} seconds before terminating process {}",
-               timeout.num_seconds(),
+               timeout.as_secs(),
                self.id());
-        let stop_time = SteadyTime::now() + timeout;
+        let stop_time = Instant::now() + timeout;
         loop {
-            if ret == 0 || SteadyTime::now() > stop_time {
+            if ret == 0 || Instant::now() > stop_time {
                 let proc_table = build_proc_table();
                 terminate_process_descendants(&proc_table, self.id());
                 return ShutdownMethod::Killed;
@@ -86,7 +85,7 @@ impl Process {
             if self.status().is_some() {
                 return ShutdownMethod::GracefulTermination;
             }
-            thread::sleep(StdDuration::from_millis(5));
+            thread::sleep(Duration::from_millis(5));
         }
     }
 

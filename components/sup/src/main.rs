@@ -11,7 +11,6 @@ extern crate log;
 extern crate lazy_static;
 extern crate rustls;
 extern crate tempfile;
-extern crate time;
 extern crate url;
 
 use crate::sup::{cli::cli,

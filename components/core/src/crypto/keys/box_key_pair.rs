@@ -70,7 +70,7 @@ impl BoxKeyPair {
         where S1: AsRef<str>,
               S2: AsRef<str>
     {
-        let revision = mk_revision_string()?;
+        let revision = mk_revision_string();
         let keyname =
             Self::mk_key_name_for_service(org.as_ref(), service_group.as_ref(), &revision);
         debug!("new service box key name = {}", &keyname);
@@ -216,7 +216,7 @@ impl BoxKeyPair {
     }
 
     fn generate_pair_for_string(string: &str) -> Result<Self> {
-        let revision = mk_revision_string()?;
+        let revision = mk_revision_string();
         let keyname = Self::mk_key_name_for_string(string, &revision);
         debug!("new sig key name = {}", &keyname);
         let (pk, sk) = box_::gen_keypair();

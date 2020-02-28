@@ -37,7 +37,8 @@ use crate::{common::ui::{self,
             hcore::{fs::{am_i_root,
                          FS_ROOT_PATH},
                     users::get_current_username}};
-use chrono::prelude::*;
+use chrono::{DateTime,
+             Utc};
 use dirs;
 use serde_yaml;
 use std::{env,

@@ -761,6 +761,7 @@ impl RawHandle {
 
     // TODO JB: fix this allow
     #[allow(clippy::trivially_copy_pass_by_ref)]
+    #[allow(clippy::missing_safety_doc)]
     pub unsafe fn read_overlapped(&self,
                                   buf: &mut [u8],
                                   overlapped: *mut OVERLAPPED)
@@ -785,6 +786,7 @@ impl RawHandle {
 
     // TODO JB: fix this allow
     #[allow(clippy::trivially_copy_pass_by_ref)]
+    #[allow(clippy::missing_safety_doc)]
     pub unsafe fn overlapped_result(&self,
                                     overlapped: *mut OVERLAPPED,
                                     wait: bool)

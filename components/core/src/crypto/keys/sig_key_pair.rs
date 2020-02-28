@@ -28,10 +28,10 @@ use std::{fs,
 pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
 
 impl SigKeyPair {
-    pub fn generate_pair_for_origin(name: &str) -> Result<Self> {
-        let revision = mk_revision_string()?;
+    pub fn generate_pair_for_origin(name: &str) -> Self {
+        let revision = mk_revision_string();
         let (pk, sk) = sign::gen_keypair();
-        Ok(Self::new(name.to_string(), revision, Some(pk), Some(sk)))
+        Self::new(name.to_string(), revision, Some(pk), Some(sk))
     }
 
     /// Return a Vec of origin keys with a given name.
@@ -346,7 +346,7 @@ mod test {
     #[test]
     fn generated_origin_pair() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
+        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
         pair.to_pair_files(cache.path()).unwrap();
 
         assert_eq!(pair.name, "unicorn");
@@ -368,14 +368,13 @@ mod test {
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(pairs.len(), 0);
 
-        SigKeyPair::generate_pair_for_origin("unicorn").unwrap()
-                                                       .to_pair_files(cache.path())
+        SigKeyPair::generate_pair_for_origin("unicorn").to_pair_files(cache.path())
                                                        .unwrap();
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(pairs.len(), 1);
 
         match wait_until_ok(|| {
-                  let p = SigKeyPair::generate_pair_for_origin("unicorn")?;
+                  let p = SigKeyPair::generate_pair_for_origin("unicorn");
                   p.to_pair_files(cache.path())?;
                   Ok(())
               }) {
@@ -386,8 +385,7 @@ mod test {
         assert_eq!(pairs.len(), 2);
 
         // We should not include another named key in the count
-        SigKeyPair::generate_pair_for_origin("dragon").unwrap()
-                                                      .to_pair_files(cache.path())
+        SigKeyPair::generate_pair_for_origin("dragon").to_pair_files(cache.path())
                                                       .unwrap();
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(pairs.len(), 2);
@@ -405,10 +403,10 @@ mod test {
     #[test]
     fn get_pair_for() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let p1 = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
+        let p1 = SigKeyPair::generate_pair_for_origin("unicorn");
         p1.to_pair_files(cache.path()).unwrap();
         let p2 = match wait_until_ok(|| {
-                  let p = SigKeyPair::generate_pair_for_origin("unicorn")?;
+                  let p = SigKeyPair::generate_pair_for_origin("unicorn");
                   p.to_pair_files(cache.path())?;
                   Ok(p)
               }) {
@@ -434,7 +432,7 @@ mod test {
     #[test]
     fn get_latest_pair_for_single() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
+        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
         pair.to_pair_files(cache.path()).unwrap();
 
         let latest = SigKeyPair::get_latest_pair_for("unicorn", cache.path(), None).unwrap();
@@ -445,11 +443,10 @@ mod test {
     #[test]
     fn get_latest_pair_for_multiple() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SigKeyPair::generate_pair_for_origin("unicorn").unwrap()
-                                                       .to_pair_files(cache.path())
+        SigKeyPair::generate_pair_for_origin("unicorn").to_pair_files(cache.path())
                                                        .unwrap();
         let p2 = match wait_until_ok(|| {
-                  let p = SigKeyPair::generate_pair_for_origin("unicorn")?;
+                  let p = SigKeyPair::generate_pair_for_origin("unicorn");
                   p.to_pair_files(cache.path())?;
                   Ok(p)
               }) {
@@ -465,7 +462,7 @@ mod test {
     #[test]
     fn get_latest_pair_for_secret() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let p = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
+        let p = SigKeyPair::generate_pair_for_origin("unicorn");
         p.to_pair_files(cache.path()).unwrap();
         let latest = SigKeyPair::get_latest_pair_for("unicorn",
                                                      cache.path(),
@@ -477,7 +474,7 @@ mod test {
     #[test]
     fn get_latest_pair_for_public() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let p = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
+        let p = SigKeyPair::generate_pair_for_origin("unicorn");
         p.to_pair_files(cache.path()).unwrap();
         let latest = SigKeyPair::get_latest_pair_for("unicorn",
                                                      cache.path(),

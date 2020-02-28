@@ -91,8 +91,8 @@ use std::{self,
                  PathBuf},
           result,
           sync::{Arc,
-                 Mutex}};
-use time::Timespec;
+                 Mutex},
+          time::SystemTime};
 
 static LOGKEY: &str = "SR";
 
@@ -504,11 +504,13 @@ impl Service {
         }
     }
 
-    pub fn last_state_change(&self) -> Timespec {
+    /// Only used as a way to see if anything has happened to this
+    /// service since the last time we might have checked
+    pub fn last_state_change(&self) -> SystemTime {
         self.supervisor
             .lock()
             .expect("Couldn't lock supervisor")
-            .state_entered
+            .state_entered()
     }
 
     /// Performs updates and executes hooks.

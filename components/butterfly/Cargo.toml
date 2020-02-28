@@ -28,8 +28,6 @@ serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = "*"
 tempfile = "*"
-# See https://github.com/habitat-sh/habitat/issues/7353
-time = "0.1"
 threadpool = "*"
 toml = { version = "*", default-features = false }
 uuid = { version = "*", features = ["v4"] }

@@ -30,13 +30,10 @@ impl fmt::Debug for SymKey {
 }
 
 impl SymKey {
-    pub fn generate_pair_for_ring(name: &str) -> Result<Self> {
-        let revision = mk_revision_string()?;
+    pub fn generate_pair_for_ring(name: &str) -> Self {
+        let revision = mk_revision_string();
         let secret_key = secretbox::gen_key();
-        Ok(SymKey::new(name.to_string(),
-                       revision,
-                       Some(()),
-                       Some(secret_key)))
+        SymKey::new(name.to_string(), revision, Some(()), Some(secret_key))
     }
 
     pub fn get_pairs_for<P: AsRef<Path> + ?Sized>(name: &str,
@@ -139,7 +136,7 @@ impl SymKey {
     /// use tempfile::Builder;
     ///
     /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-    /// let sym_key = SymKey::generate_pair_for_ring("beyonce").unwrap();
+    /// let sym_key = SymKey::generate_pair_for_ring("beyonce");
     ///
     /// let (nonce, ciphertext) = sym_key.encrypt("Guess who?".as_bytes()).unwrap();
     /// ```
@@ -169,7 +166,7 @@ impl SymKey {
     /// use tempfile::Builder;
     ///
     /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-    /// let sym_key = SymKey::generate_pair_for_ring("beyonce").unwrap();
+    /// let sym_key = SymKey::generate_pair_for_ring("beyonce");
     /// let (nonce, ciphertext) = sym_key.encrypt("Guess who?".as_bytes()).unwrap();
     ///
     /// let message = sym_key.decrypt(&nonce, &ciphertext).unwrap();
@@ -383,7 +380,7 @@ mod test {
     #[test]
     fn generated_ring_pair() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
+        let pair = SymKey::generate_pair_for_ring("beyonce");
         pair.to_pair_files(cache.path()).unwrap();
 
         assert_eq!(pair.name, "beyonce");
@@ -402,14 +399,13 @@ mod test {
         let pairs = SymKey::get_pairs_for("beyonce", cache.path()).unwrap();
         assert_eq!(pairs.len(), 0);
 
-        SymKey::generate_pair_for_ring("beyonce").unwrap()
-                                                 .to_pair_files(cache.path())
+        SymKey::generate_pair_for_ring("beyonce").to_pair_files(cache.path())
                                                  .unwrap();
         let pairs = SymKey::get_pairs_for("beyonce", cache.path()).unwrap();
         assert_eq!(pairs.len(), 1);
 
         match wait_until_ok(|| {
-                  let rpair = SymKey::generate_pair_for_ring("beyonce")?;
+                  let rpair = SymKey::generate_pair_for_ring("beyonce");
                   rpair.to_pair_files(cache.path())?;
                   Ok(())
               }) {
@@ -420,8 +416,7 @@ mod test {
         assert_eq!(pairs.len(), 2);
 
         // We should not include another named key in the count
-        SymKey::generate_pair_for_ring("jayz").unwrap()
-                                              .to_pair_files(cache.path())
+        SymKey::generate_pair_for_ring("jayz").to_pair_files(cache.path())
                                               .unwrap();
         let pairs = SymKey::get_pairs_for("beyonce", cache.path()).unwrap();
         assert_eq!(pairs.len(), 2);
@@ -430,10 +425,10 @@ mod test {
     #[test]
     fn get_pair_for() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let p1 = SymKey::generate_pair_for_ring("beyonce").unwrap();
+        let p1 = SymKey::generate_pair_for_ring("beyonce");
         p1.to_pair_files(cache.path()).unwrap();
         let p2 = match wait_until_ok(|| {
-                  let rpath = SymKey::generate_pair_for_ring("beyonce")?;
+                  let rpath = SymKey::generate_pair_for_ring("beyonce");
                   rpath.to_pair_files(cache.path())?;
                   Ok(rpath)
               }) {
@@ -459,7 +454,7 @@ mod test {
     #[test]
     fn get_latest_pair_for_single() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
+        let pair = SymKey::generate_pair_for_ring("beyonce");
         pair.to_pair_files(cache.path()).unwrap();
 
         let latest = SymKey::get_latest_pair_for("beyonce", cache.path()).unwrap();
@@ -470,11 +465,10 @@ mod test {
     #[test]
     fn get_latest_pair_for_multiple() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SymKey::generate_pair_for_ring("beyonce").unwrap()
-                                                 .to_pair_files(cache.path())
+        SymKey::generate_pair_for_ring("beyonce").to_pair_files(cache.path())
                                                  .unwrap();
         let p2 = match wait_until_ok(|| {
-                  let rpath = SymKey::generate_pair_for_ring("beyonce")?;
+                  let rpath = SymKey::generate_pair_for_ring("beyonce");
                   rpath.to_pair_files(cache.path())?;
                   Ok(rpath)
               }) {
@@ -521,7 +515,7 @@ mod test {
     #[test]
     fn encrypt_and_decrypt() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
+        let pair = SymKey::generate_pair_for_ring("beyonce");
         pair.to_pair_files(cache.path()).unwrap();
 
         let (nonce, ciphertext) = pair.encrypt(b"Ringonit").unwrap();
@@ -541,7 +535,7 @@ mod test {
     #[should_panic(expected = "Secret key is required but not present for")]
     fn decrypt_missing_secret_key() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
+        let pair = SymKey::generate_pair_for_ring("beyonce");
         pair.to_pair_files(cache.path()).unwrap();
         let (nonce, ciphertext) = pair.encrypt(b"Ringonit").unwrap();
 
@@ -553,7 +547,7 @@ mod test {
     #[should_panic(expected = "Invalid size of nonce")]
     fn decrypt_invalid_nonce_length() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
+        let pair = SymKey::generate_pair_for_ring("beyonce");
         pair.to_pair_files(cache.path()).unwrap();
 
         let (_, ciphertext) = pair.encrypt(b"Ringonit").unwrap();
@@ -564,7 +558,7 @@ mod test {
     #[should_panic(expected = "Secret key and nonce could not decrypt ciphertext")]
     fn decrypt_invalid_ciphertext() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
+        let pair = SymKey::generate_pair_for_ring("beyonce");
         pair.to_pair_files(cache.path()).unwrap();
 
         let (nonce, _) = pair.encrypt(b"Ringonit").unwrap();

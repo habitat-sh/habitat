@@ -10,6 +10,7 @@ use super::{PUBLIC_BOX_KEY_VERSION,
 use crate::error::{Error,
                    Result};
 use base64;
+use chrono::Utc;
 use regex::Regex;
 use std::{collections::HashSet,
           fmt,
@@ -22,7 +23,6 @@ use std::{collections::HashSet,
                  PathBuf},
           result,
           str::FromStr};
-use time;
 
 lazy_static::lazy_static! {
     static ref NAME_WITH_REV_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\z").unwrap();
@@ -309,15 +309,7 @@ fn mk_key_filename<P, S1, S2>(path: P, keyname: S1, suffix: S2) -> PathBuf
 /// generates a revision string in the form:
 /// `{year}{month}{day}{hour24}{minute}{second}`
 /// Timestamps are in UTC time.
-fn mk_revision_string() -> Result<String> {
-    let now = time::now_utc();
-    // https://github.com/rust-lang-deprecated/time/blob/master/src/display.rs
-    // http://man7.org/linux/man-pages/man3/strftime.3.html
-    match now.strftime("%Y%m%d%H%M%S") {
-        Ok(result) => Ok(result.to_string()),
-        Err(_) => Err(Error::CryptoError("Can't parse system time".to_string())),
-    }
-}
+fn mk_revision_string() -> String { Utc::now().format("%Y%m%d%H%M%S").to_string() }
 
 pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, String)>
     where T: AsRef<str>
@@ -529,25 +521,22 @@ fn set_permissions<T: AsRef<Path>>(path: T) -> Result<()> {
 
 #[cfg(test)]
 mod test {
+    use super::{super::test_support::*,
+                box_key_pair::BoxKeyPair,
+                sig_key_pair::SigKeyPair,
+                sym_key::SymKey,
+                KeyType,
+                PairType,
+                TmpKeyfile};
+    use hex;
     use std::{collections::HashSet,
               fs::{self,
                    File},
               io::Write,
               path::Path,
               thread,
-              time};
-
-    use hex;
+              time::Duration};
     use tempfile::Builder;
-
-    use super::{box_key_pair::BoxKeyPair,
-                sig_key_pair::SigKeyPair,
-                sym_key::SymKey,
-                KeyType,
-                PairType};
-
-    use super::{super::test_support::*,
-                TmpKeyfile};
 
     static VALID_KEY: &str = "ring-key-valid-20160504220722.sym.key";
     static VALID_KEY_AS_HEX: &str = "\
@@ -643,13 +632,11 @@ mod test {
     #[test]
     fn get_key_revisions_can_return_everything() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SigKeyPair::generate_pair_for_origin("foo").unwrap()
-                                                   .to_pair_files(cache.path())
+        SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
                                                    .unwrap();
         // we need to wait at least 1 second between generating keypairs to ensure uniqueness
-        thread::sleep(time::Duration::from_millis(1000));
-        SigKeyPair::generate_pair_for_origin("foo").unwrap()
-                                                   .to_pair_files(cache.path())
+        thread::sleep(Duration::from_millis(1000));
+        SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
                                                    .unwrap();
         let revs = super::get_key_revisions("foo", cache.path(), None, &KeyType::Sig).unwrap();
         assert_eq!(2, revs.len());
@@ -658,13 +645,12 @@ mod test {
     #[test]
     fn get_key_revisions_can_only_return_keys_of_specified_type() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SigKeyPair::generate_pair_for_origin("foo").unwrap()
-                                                   .to_pair_files(cache.path())
+        SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
                                                    .unwrap();
         let revs = super::get_key_revisions("foo", cache.path(), None, &KeyType::Sig).unwrap();
         assert_eq!(1, revs.len());
         // we need to wait at least 1 second between generating keypairs to ensure uniqueness
-        thread::sleep(time::Duration::from_millis(1000));
+        thread::sleep(Duration::from_millis(1000));
         let pair = BoxKeyPair::generate_pair_for_user("foo-user");
         pair.unwrap().to_pair_files(cache.path()).unwrap();
         let revs = super::get_key_revisions("foo-user", cache.path(), None, &KeyType::Sig).unwrap();
@@ -674,13 +660,11 @@ mod test {
     #[test]
     fn get_key_revisions_can_return_secret_keys() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SigKeyPair::generate_pair_for_origin("foo").unwrap()
-                                                   .to_pair_files(cache.path())
+        SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
                                                    .unwrap();
         // we need to wait at least 1 second between generating keypairs to ensure uniqueness
-        thread::sleep(time::Duration::from_millis(1000));
-        SigKeyPair::generate_pair_for_origin("foo").unwrap()
-                                                   .to_pair_files(cache.path())
+        thread::sleep(Duration::from_millis(1000));
+        SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
                                                    .unwrap();
         let revs = super::get_key_revisions("foo",
                                             cache.path(),
@@ -692,13 +676,11 @@ mod test {
     #[test]
     fn get_key_revisions_can_return_public_keys() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SigKeyPair::generate_pair_for_origin("foo").unwrap()
-                                                   .to_pair_files(cache.path())
+        SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
                                                    .unwrap();
         // we need to wait at least 1 second between generating keypairs to ensure uniqueness
-        thread::sleep(time::Duration::from_millis(1000));
-        SigKeyPair::generate_pair_for_origin("foo").unwrap()
-                                                   .to_pair_files(cache.path())
+        thread::sleep(Duration::from_millis(1000));
+        SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
                                                    .unwrap();
         let revs = super::get_key_revisions("foo",
                                             cache.path(),
@@ -766,14 +748,13 @@ mod test {
 
         for _ in 0..3 {
             wait_until_ok(|| {
-                let pair = SymKey::generate_pair_for_ring("acme")?;
+                let pair = SymKey::generate_pair_for_ring("acme");
                 pair.to_pair_files(cache.path())?;
                 Ok(())
             });
         }
 
-        SymKey::generate_pair_for_ring("acme-you").unwrap()
-                                                  .to_pair_files(cache.path())
+        SymKey::generate_pair_for_ring("acme-you").to_pair_files(cache.path())
                                                   .unwrap();
 
         let revisions =
@@ -791,14 +772,13 @@ mod test {
 
         for _ in 0..3 {
             wait_until_ok(|| {
-                let pair = SigKeyPair::generate_pair_for_origin("mutants")?;
+                let pair = SigKeyPair::generate_pair_for_origin("mutants");
                 pair.to_pair_files(cache.path())?;
                 Ok(())
             });
         }
 
-        SigKeyPair::generate_pair_for_origin("mutants-x").unwrap()
-                                                         .to_pair_files(cache.path())
+        SigKeyPair::generate_pair_for_origin("mutants-x").to_pair_files(cache.path())
                                                          .unwrap();
 
         let revisions =
@@ -818,8 +798,7 @@ mod test {
     #[test]
     fn keys_that_are_symlinks_can_still_be_found() {
         let temp_dir = Builder::new().prefix("symlinks_are_ok").tempdir().unwrap();
-        let key =
-            SymKey::generate_pair_for_ring("symlinks_are_ok").expect("Could not generate ring key");
+        let key = SymKey::generate_pair_for_ring("symlinks_are_ok");
         key.to_pair_files(temp_dir.path()).unwrap();
 
         // Create a directory in our temp directory; this will serve

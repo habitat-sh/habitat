@@ -12,6 +12,7 @@ cc = "*"
 
 [dependencies]
 base64 = "*"
+chrono = "*"
 configopt = { git = "https://github.com/davidMcneil/configopt" }
 dirs = "*"
 dns-lookup = "*"
@@ -31,8 +32,6 @@ serde_derive = "*"
 serde_json = "*"
 sodiumoxide = "0.0.16"
 tempfile = "*"
-# See https://github.com/habitat-sh/habitat/issues/7353
-time = "0.1"
 toml = { version = "*", default-features = false }
 typemap = "*"
 url = "*"

@@ -11,9 +11,9 @@ use core::{os::process::{handle_from_pid,
 use std::{collections::HashMap,
           io,
           iter::FromIterator,
-          mem};
-use time::{Duration,
-           SteadyTime};
+          mem,
+          time::{Duration,
+                 Instant}};
 use winapi::{shared::{minwindef::{DWORD,
                                   LPDWORD,
                                   MAX_PATH},
@@ -60,9 +60,9 @@ impl Process {
                    io::Error::last_os_error());
         }
 
-        let stop_time = SteadyTime::now() + Duration::seconds(8);
+        let stop_time = Instant::now() + Duration::from_secs(8);
         loop {
-            if ret == 0 || SteadyTime::now() > stop_time {
+            if ret == 0 || Instant::now() > stop_time {
                 let proc_table = build_proc_table();
                 terminate_process_descendants(&proc_table, self.id());
                 return ShutdownMethod::Killed;

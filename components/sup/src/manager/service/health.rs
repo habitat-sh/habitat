@@ -5,7 +5,8 @@ use crate::{error::{self,
                       service::{hook_runner,
                                 hooks::HealthCheckHook,
                                 supervisor::Supervisor,
-                                ProcessOutput},
+                                ProcessOutput,
+                                ProcessState},
                       sync::GatewayState}};
 use habitat_common::{outputln,
                      templating::package::Pkg};
@@ -203,14 +204,12 @@ impl State {
             }
             HealthCheckHookStatus::NoHook => {
                 //  There was no hook to run. Use the supervisor status as a healthcheck.
-                if supervisor.lock()
-                             .expect("couldn't unlock supervisor")
-                             .status()
-                             .0
+                match supervisor.lock()
+                                .expect("couldn't unlock supervisor")
+                                .status()
                 {
-                    HealthCheckResult::Ok
-                } else {
-                    HealthCheckResult::Critical
+                    ProcessState::Up => HealthCheckResult::Ok,
+                    ProcessState::Down => HealthCheckResult::Critical,
                 }
             }
         };

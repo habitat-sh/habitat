@@ -24,8 +24,8 @@ use std::{fmt,
                 UdpSocket},
           sync::mpsc,
           thread,
-          time::Duration};
-use time::SteadyTime;
+          time::{Duration,
+                 Instant}};
 
 /// How long to sleep between calls to `recv`.
 const PING_RECV_QUEUE_EMPTY_SLEEP_MS: u64 = 10;
@@ -126,8 +126,8 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
 
                 probe_mlw_smr_rhw(&server, &socket, &rx_inbound, &timing, member);
 
-                if SteadyTime::now() <= next_protocol_period {
-                    let wait_time = (next_protocol_period - SteadyTime::now()).num_milliseconds();
+                if Instant::now() <= next_protocol_period {
+                    let wait_time = (next_protocol_period - Instant::now()).as_millis();
                     if wait_time > 0 {
                         debug!("Waiting {} until the next protocol period", wait_time);
                         thread::sleep(Duration::from_millis(wait_time as u64));
@@ -136,8 +136,8 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
             }
         }
 
-        if SteadyTime::now() <= long_wait {
-            let wait_time = (long_wait - SteadyTime::now()).num_milliseconds();
+        if Instant::now() <= long_wait {
+            let wait_time = (long_wait - Instant::now()).as_millis();
             if wait_time > 0 {
                 thread::sleep(Duration::from_millis(wait_time as u64));
             }
@@ -258,7 +258,7 @@ fn recv_ack_mlw_rhw(server: &Server,
                 }
             }
             Err(mpsc::TryRecvError::Empty) => {
-                if SteadyTime::now() > timeout {
+                if Instant::now() > timeout {
                     warn!("Timed out waiting for Ack from {}@{}", &member.id, addr);
                     return false;
                 }

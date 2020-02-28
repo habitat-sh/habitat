@@ -113,11 +113,9 @@ use std::{collections::{HashMap,
                  Condvar,
                  Mutex as StdMutex},
           thread,
-          time::Duration as StdDuration};
-use time::{self,
-           Duration as TimeDuration,
-           SteadyTime,
-           Timespec};
+          time::{Duration,
+                 Instant,
+                 SystemTime}};
 use tokio;
 #[cfg(windows)]
 use winapi::{shared::minwindef::PDWORD,
@@ -539,9 +537,17 @@ pub struct Manager {
     spec_dir:            SpecDir,
     organization:        Option<String>,
     self_updater:        Option<SelfUpdater>,
-    service_states:      HashMap<PackageIdent, Timespec>,
     sys:                 Arc<Sys>,
     http_disable:        bool,
+    /// Though it is a `HashMap`, `service_states` not really used as
+    /// a `HashMap`. The values are there to act as a kind of
+    /// "snapshot marker"... if any of those time markers change
+    /// between service checks, that means that something has happened
+    /// to one of the services (it was up, but now it's down; it was
+    /// up, then down, then up; etc).
+    ///
+    /// Feel free to refactor to something different!
+    service_states:      HashMap<PackageIdent, SystemTime>,
 
     /// Collects the identifiers of all services that are currently
     /// doing something asynchronously (like shutting down, or running
@@ -863,7 +869,7 @@ impl Manager {
                                                   -> Result<()> {
         let main_hist = RUN_LOOP_DURATION.with_label_values(&["sup"]);
         let service_hist = RUN_LOOP_DURATION.with_label_values(&["service"]);
-        let mut next_cpu_measurement = SteadyTime::now();
+        let mut next_cpu_measurement = Instant::now();
         let mut cpu_start = ProcessTime::now();
 
         // TODO (CM): consider bundling up these disparate channel
@@ -946,8 +952,7 @@ impl Manager {
             loop {
                 match *started {
                     http_gateway::ServerStartup::NotStarted => {
-                        started = match cvar.wait_timeout(started, StdDuration::from_millis(10000))
-                        {
+                        started = match cvar.wait_timeout(started, Duration::from_secs(10)) {
                             Ok((mutex, timeout_result)) => {
                                 if timeout_result.timed_out() {
                                     return Err(Error::BindTimeout(http_listen_addr.to_string()));
@@ -1014,7 +1019,7 @@ impl Manager {
                 }
             }
 
-            let next_check = time::get_time() + TimeDuration::milliseconds(1000);
+            let next_check = Instant::now() + Duration::from_secs(1);
             if self.launcher.is_stopping() {
                 break ShutdownMode::Normal;
             }
@@ -1125,14 +1130,14 @@ impl Manager {
 
             // This is really only needed until everything is running
             // in futures.
-            let now = time::get_time();
+            let now = Instant::now();
             if now < next_check {
                 let time_to_wait = next_check - now;
-                thread::sleep(time_to_wait.to_std().unwrap());
+                thread::sleep(time_to_wait);
             }
 
             // Measure CPU time every second
-            if SteadyTime::now() >= next_cpu_measurement {
+            if Instant::now() >= next_cpu_measurement {
                 let cpu_duration = cpu_start.elapsed();
                 let cpu_nanos =
                     cpu_duration.as_secs()
@@ -1140,7 +1145,7 @@ impl Manager {
                                 .and_then(|ns| ns.checked_add(cpu_duration.subsec_nanos().into()))
                                 .expect("overflow in cpu_duration");
                 CPU_TIME.set(cpu_nanos.to_i64());
-                next_cpu_measurement = SteadyTime::now() + TimeDuration::seconds(1);
+                next_cpu_measurement = Instant::now() + Duration::from_secs(1);
                 cpu_start = ProcessTime::now();
             }
         }; // end main loop
@@ -1265,7 +1270,13 @@ impl Manager {
                           .iter()
                           .filter(|s| !active_services.contains(&s.ident))
         {
-            service_states.insert(loaded.ident.clone(), Timespec::new(0, 0));
+            // These are loaded but not-running services. As such,
+            // we'll use the Epoch as a "default" time marker that
+            // won't change.
+            //
+            // TODO (CM): why do we bother tracking loaded but not
+            // running services at all?
+            service_states.insert(loaded.ident.clone(), SystemTime::UNIX_EPOCH);
         }
 
         if service_states != self.service_states {

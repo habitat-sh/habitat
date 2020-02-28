@@ -30,18 +30,11 @@ use serde_derive::{Deserialize,
                    Serialize};
 use std::{fmt,
           result,
-          str::FromStr};
-use time::Duration;
+          str::FromStr,
+          time::Duration};
 
 /// This type encapsulates the number of seconds we should wait after
 /// send a shutdown signal to a process before we kill it.
-///
-/// (Another nice thing it does is hide the whole
-/// `std::time::Duration` / `time::Duration` mess from the rest of the
-/// code. Rather than having to juggle the two `Duration` types
-/// throughout our code, which can be confusing, we can just pass this
-/// around, and turn it into a `time::Duration` at the last possible
-/// moment.)
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Copy, Hash)]
 #[serde(from = "u32")]
 pub struct ShutdownTimeout(u32);
@@ -71,7 +64,7 @@ impl From<ShutdownTimeout> for u32 {
 }
 
 impl From<ShutdownTimeout> for Duration {
-    fn from(timeout: ShutdownTimeout) -> Self { Duration::seconds(timeout.0.into()) }
+    fn from(timeout: ShutdownTimeout) -> Self { Duration::from_secs(timeout.0.into()) }
 }
 
 impl ConfigOptToString for ShutdownTimeout {}

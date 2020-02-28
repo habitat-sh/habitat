@@ -275,9 +275,9 @@ pub fn secure_eq<T, U>(t: T, u: U) -> bool
 pub mod test_support {
     use std::{fs::File,
               io::Read,
-              path::PathBuf};
-
-    use time;
+              path::PathBuf,
+              time::{Duration,
+                     Instant}};
 
     use crate::error as herror;
 
@@ -301,10 +301,9 @@ pub mod test_support {
     pub fn wait_until_ok<F, T>(some_fn: F) -> Option<T>
         where F: Fn() -> Result<T, herror::Error>
     {
-        let wait_duration = time::Duration::seconds(30);
-        let current_time = time::now_utc().to_timespec();
-        let stop_time = current_time + wait_duration;
-        while time::now_utc().to_timespec() < stop_time {
+        let wait_duration = Duration::from_secs(30);
+        let current_time = Instant::now();
+        while current_time.elapsed() < wait_duration {
             if let Ok(s) = some_fn() {
                 return Some(s);
             }
