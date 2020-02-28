@@ -1426,7 +1426,6 @@ name = "habitat_pkg_export_docker"
 version = "0.0.0"
 dependencies = [
  "base64 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "chrono 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
