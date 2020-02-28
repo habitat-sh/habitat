@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.46 -->
-## [1.5.46](https://github.com/habitat-sh/habitat/tree/1.5.46) (2020-02-28)
+<!-- latest_release 1.5.47 -->
+## [1.5.47](https://github.com/habitat-sh/habitat/tree/1.5.47) (2020-02-28)
 
 #### Merged Pull Requests
-- Make FullyQualifiedPackageIdent public and use it in Pkg [#7507](https://github.com/habitat-sh/habitat/pull/7507) ([davidMcneil](https://github.com/davidMcneil))
+- Remove time crate from almost everything [#7499](https://github.com/habitat-sh/habitat/pull/7499) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.29 -->
@@ -21,6 +21,7 @@
 - Remove Kubernetes and Helm exporters [#7463](https://github.com/habitat-sh/habitat/pull/7463) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 
 #### Merged Pull Requests
+- Remove time crate from almost everything [#7499](https://github.com/habitat-sh/habitat/pull/7499) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.47 -->
 - Make FullyQualifiedPackageIdent public and use it in Pkg [#7507](https://github.com/habitat-sh/habitat/pull/7507) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.46 -->
 - [CI] Swap command and if blocks for Windows 2016 container step [#7509](https://github.com/habitat-sh/habitat/pull/7509) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.45 -->
 - Better test for comparing structopt to clap_app [#7503](https://github.com/habitat-sh/habitat/pull/7503) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.44 -->
