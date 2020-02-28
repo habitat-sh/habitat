@@ -1,5 +1,7 @@
 # Test the at-once service update strategy
 
+$env:HAB_AUTH_TOKEN = $env:PIPELINE_HAB_AUTH_TOKEN
+
 $supLog = New-TemporaryFile
 Start-Supervisor -LogFile $supLog -Timeout 45 | Out-Null
 $testChannel="at-once-$([DateTime]::Now.Ticks)"
