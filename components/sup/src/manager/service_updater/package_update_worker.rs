@@ -1,7 +1,8 @@
 use crate::{manager::service::Service,
             util};
 use habitat_core::{env,
-                   package::PackageIdent,
+                   package::{FullyQualifiedPackageIdent,
+                             PackageIdent},
                    service::ServiceGroup,
                    ChannelIdent};
 use std::{self,
@@ -43,9 +44,7 @@ impl PackageUpdateWorkerPeriod {
 pub struct PackageUpdateWorker {
     service_group: ServiceGroup,
     ident:         PackageIdent,
-    // TODO (DM): This field should always be fully qualified. We need a
-    // type to encapsulate that.
-    full_ident:    PackageIdent,
+    full_ident:    FullyQualifiedPackageIdent,
     channel:       ChannelIdent,
     builder_url:   String,
 }
@@ -65,8 +64,7 @@ impl PackageUpdateWorker {
     ///
     /// If a fully qualified package ident is used, the future will only resolve when that exact
     /// package is found.
-    // TODO (DM): The returned package ident should always be fully qualified. We need a type to
-    // encapsulate that.
+    // TODO (DM): The returned package ident should use FullyQualifiedPackageIdent.
     pub async fn update_to(&self, install_ident: PackageIdent) -> PackageIdent {
         let install_source = install_ident.clone().into();
         let delay = PackageUpdateWorkerPeriod::get();
@@ -77,7 +75,7 @@ impl PackageUpdateWorker {
             {
                 Ok(package) => {
                     // Only allow updates never rollbacks.
-                    if package.ident > self.full_ident {
+                    if &package.ident > self.full_ident.as_ref() {
                         debug!("'{}' package update worker found change from '{}' to '{}' for \
                                 '{}' in channel '{}'",
                                self.service_group,

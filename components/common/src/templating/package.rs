@@ -4,7 +4,8 @@ use crate::{error::{Error,
                     os::{process::{ShutdownSignal,
                                    ShutdownTimeout},
                          users},
-                    package::{PackageIdent,
+                    package::{FullyQualifiedPackageIdent,
+                              PackageIdent,
                               PackageInstall},
                     util::serde_string},
             util::path};
@@ -13,6 +14,7 @@ use serde::{ser::SerializeStruct,
             Serializer};
 use std::{collections::{BTreeMap,
                         HashMap},
+          convert::TryFrom,
           env,
           iter::FromIterator,
           ops::Deref,
@@ -68,7 +70,7 @@ impl Env {
 #[derive(Clone, Debug, Deserialize)]
 pub struct Pkg {
     #[serde(with = "serde_string")]
-    pub ident:                   PackageIdent,
+    pub ident:                   FullyQualifiedPackageIdent,
     pub origin:                  String,
     pub name:                    String,
     pub version:                 String,
@@ -95,6 +97,7 @@ pub struct Pkg {
 
 impl Pkg {
     pub async fn from_install(package: &PackageInstall) -> Result<Self> {
+        let ident = FullyQualifiedPackageIdent::try_from(&package.ident)?;
         let (svc_user, svc_group) = get_user_and_group(&package)?;
         let pkg = Pkg { svc_path: fs::svc_path(&package.ident.name),
                         svc_config_path: fs::svc_config_path(&package.ident.name),
@@ -113,19 +116,13 @@ impl Pkg {
                         exposes: package.exposes()?,
                         exports: package.exports()?,
                         path: package.installed_path.clone(),
-                        ident: package.ident.clone(),
                         origin: package.ident.origin.clone(),
                         name: package.ident.name.clone(),
-                        version: package.ident
-                                        .version
-                                        .clone()
-                                        .expect("No package version in PackageInstall"),
-                        release: package.ident
-                                        .release
-                                        .clone()
-                                        .expect("No package release in PackageInstall"),
+                        version: String::from(ident.version()),
+                        release: String::from(ident.release()),
                         shutdown_signal: package.shutdown_signal()?.unwrap_or_default(),
-                        shutdown_timeout: package.shutdown_timeout()?.unwrap_or_default() };
+                        shutdown_timeout: package.shutdown_timeout()?.unwrap_or_default(),
+                        ident };
         Ok(pkg)
     }
 }

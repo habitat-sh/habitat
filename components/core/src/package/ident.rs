@@ -4,9 +4,9 @@ use crate::{error::{Error,
 use regex::Regex;
 use serde_derive::{Deserialize,
                    Serialize};
-use std::{borrow::Cow,
-          cmp::{Ordering,
+use std::{cmp::{Ordering,
                 PartialOrd},
+          convert::TryFrom,
           fmt,
           result,
           str::FromStr};
@@ -24,7 +24,7 @@ pub struct PackageIdent {
     pub release: Option<String>,
 }
 
-pub trait Identifiable: fmt::Display + Into<PackageIdent> {
+pub trait Identifiable: fmt::Display {
     fn origin(&self) -> &str;
     fn name(&self) -> &str;
     fn version(&self) -> Option<&str>;
@@ -161,9 +161,9 @@ impl Identifiable for PackageIdent {
 
     fn name(&self) -> &str { &self.name }
 
-    fn version(&self) -> Option<&str> { self.version.as_ref().map(String::as_str) }
+    fn version(&self) -> Option<&str> { self.version.as_deref() }
 
-    fn release(&self) -> Option<&str> { self.release.as_ref().map(String::as_str) }
+    fn release(&self) -> Option<&str> { self.release.as_deref() }
 }
 
 // It does not make sense for `PackageIdent` to implement `Default`. This should be removed.
@@ -288,12 +288,93 @@ impl Ord for PackageIdent {
     }
 }
 
-impl<'a> From<PackageIdent> for Cow<'a, PackageIdent> {
-    fn from(pi: PackageIdent) -> Cow<'a, PackageIdent> { Cow::Owned(pi) }
+impl From<FullyQualifiedPackageIdent> for PackageIdent {
+    fn from(full_ident: FullyQualifiedPackageIdent) -> Self { full_ident.0 }
 }
 
-impl<'a> From<&'a PackageIdent> for Cow<'a, PackageIdent> {
-    fn from(pi: &'a PackageIdent) -> Cow<'a, PackageIdent> { Cow::Borrowed(pi) }
+/// Represents a fully-qualified Package Identifier, meaning that the normally optional version and
+/// release package coordinates are guaranteed to be set. This fully-qualified-ness is checked on
+/// construction and as the underlying representation is immutable, this state does not change.
+#[derive(Eq, PartialEq, PartialOrd, Debug, Clone, Hash)]
+pub struct FullyQualifiedPackageIdent(PackageIdent);
+
+impl FullyQualifiedPackageIdent {
+    /// Creates a new fully qualified package identifier
+    pub fn new<T: Into<String>>(origin: T, name: T, version: T, release: T) -> Self {
+        let ident = PackageIdent { origin:  origin.into(),
+                                   name:    name.into(),
+                                   version: Some(version.into()),
+                                   release: Some(release.into()), };
+        FullyQualifiedPackageIdent(ident)
+    }
+
+    pub fn archive_name(&self) -> String {
+        self.0
+            .archive_name()
+            .unwrap_or_else(|_| panic!("PackageIdent {} should be fully qualified", self.0))
+    }
+
+    pub fn version(&self) -> &str {
+        Identifiable::version(self).unwrap_or_else(|| {
+                                       panic!("PackageIdent {} should be fully qualified", self.0)
+                                   })
+    }
+
+    pub fn release(&self) -> &str {
+        Identifiable::release(self).unwrap_or_else(|| {
+                                       panic!("PackageIdent {} should be fully qualified", self.0)
+                                   })
+    }
+}
+
+impl Identifiable for FullyQualifiedPackageIdent {
+    fn origin(&self) -> &str { &self.0.origin }
+
+    fn name(&self) -> &str { &self.0.name }
+
+    fn version(&self) -> Option<&str> { self.0.version.as_deref() }
+
+    fn release(&self) -> Option<&str> { self.0.release.as_deref() }
+}
+
+impl TryFrom<PackageIdent> for FullyQualifiedPackageIdent {
+    type Error = Error;
+
+    fn try_from(ident: PackageIdent) -> Result<Self> {
+        if ident.fully_qualified() {
+            Ok(FullyQualifiedPackageIdent(ident))
+        } else {
+            Err(Error::FullyQualifiedPackageIdentRequired(ident.to_string()))
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a PackageIdent> for FullyQualifiedPackageIdent {
+    type Error = Error;
+
+    fn try_from(ident: &PackageIdent) -> Result<Self> {
+        if ident.fully_qualified() {
+            Ok(FullyQualifiedPackageIdent(ident.clone()))
+        } else {
+            Err(Error::FullyQualifiedPackageIdentRequired(ident.to_string()))
+        }
+    }
+}
+
+impl AsRef<PackageIdent> for FullyQualifiedPackageIdent {
+    fn as_ref(&self) -> &PackageIdent { &self.0 }
+}
+
+impl fmt::Display for FullyQualifiedPackageIdent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { self.0.fmt(f) }
+}
+
+impl FromStr for FullyQualifiedPackageIdent {
+    type Err = Error;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        FullyQualifiedPackageIdent::try_from(value.parse::<PackageIdent>()?)
+    }
 }
 
 /// An iterator over the [`&str`] slices of a [`PackageIdent`].

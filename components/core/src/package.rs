@@ -8,7 +8,8 @@ pub mod target;
 
 pub use self::{archive::{FromArchive,
                          PackageArchive},
-               ident::{Identifiable,
+               ident::{FullyQualifiedPackageIdent,
+                       Identifiable,
                        PackageIdent},
                install::PackageInstall,
                list::all_packages,

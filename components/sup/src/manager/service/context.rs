@@ -43,7 +43,9 @@ use habitat_butterfly::rumor::service::SysInfo;
 use habitat_common::templating::{config::Cfg,
                                  package::{Env,
                                            Pkg}};
-use habitat_core::{package::PackageIdent,
+use habitat_core::{package::{FullyQualifiedPackageIdent,
+                             Identifiable,
+                             PackageIdent},
                    service::{ServiceBind,
                              ServiceGroup}};
 use serde::{ser::SerializeMap,
@@ -156,11 +158,7 @@ impl<'a> SystemInfo<'a> {
 /// Currently exposed to users under the `pkg` key.
 #[derive(Clone, Debug)]
 struct Package<'a> {
-    ident:           Cow<'a, PackageIdent>,
-    origin:          Cow<'a, String>,
-    name:            Cow<'a, String>,
-    version:         Cow<'a, String>,
-    release:         Cow<'a, String>,
+    ident:           Cow<'a, FullyQualifiedPackageIdent>,
     deps:            Cow<'a, Vec<PackageIdent>>,
     env:             Cow<'a, Env>,
     // TODO (CM): Ideally, this would be Vec<u16>, since they're ports.
@@ -183,14 +181,6 @@ struct Package<'a> {
 impl<'a> Package<'a> {
     fn from_pkg(pkg: &'a Pkg) -> Self {
         Package { ident:           Cow::Borrowed(&pkg.ident),
-                  // TODO (CM): have Pkg use FullyQualifiedPackageIdent, and
-                  // get origin, name, version, and release from it, rather
-                  // than storing each individually; I suspect that was just
-                  // for templating
-                  origin:          Cow::Borrowed(&pkg.origin),
-                  name:            Cow::Borrowed(&pkg.name),
-                  version:         Cow::Borrowed(&pkg.version),
-                  release:         Cow::Borrowed(&pkg.release),
                   deps:            Cow::Borrowed(&pkg.deps),
                   env:             Cow::Borrowed(&pkg.env),
                   exposes:         Cow::Borrowed(&pkg.exposes),
@@ -228,10 +218,10 @@ impl<'a> Serialize for Package<'a> {
 
         // Break out the components of the identifier, for easy access
         // in templates
-        map.serialize_entry("origin", &self.origin)?;
-        map.serialize_entry("name", &self.name)?;
-        map.serialize_entry("version", &self.version)?;
-        map.serialize_entry("release", &self.release)?;
+        map.serialize_entry("origin", &self.ident.origin())?;
+        map.serialize_entry("name", &self.ident.name())?;
+        map.serialize_entry("version", &self.ident.version())?;
+        map.serialize_entry("release", &self.ident.release())?;
 
         map.serialize_entry("deps", &self.deps)?;
         map.serialize_entry("env", &self.env)?;
@@ -651,7 +641,7 @@ two = 2
                          ctl_gateway_port:  Cow::Owned(5679),
                          permanent:         Cow::Owned(false), };
 
-        let ident = PackageIdent::new("core", "test_pkg", Some("1.0.0"), Some("20180321150416"));
+        let ident = FullyQualifiedPackageIdent::new("core", "test_pkg", "1.0.0", "20180321150416");
 
         let deps = vec![PackageIdent::new("test", "pkg1", Some("1.0.0"), Some("20180321150416")),
                         PackageIdent::new("test", "pkg2", Some("2.0.0"), Some("20180321150416")),
@@ -666,14 +656,6 @@ two = 2
         export_hash.insert("port".into(), "test_port".into());
 
         let pkg = Package { ident:           Cow::Owned(ident.clone()),
-                            // TODO (CM): have Pkg use FullyQualifiedPackageIdent, and
-                            // get origin, name, version, and release from it, rather
-                            // than storing each individually; I suspect that was just
-                            // for templating
-                            origin:          Cow::Owned(ident.origin.clone()),
-                            name:            Cow::Owned(ident.name.clone()),
-                            version:         Cow::Owned(ident.version.clone().unwrap()),
-                            release:         Cow::Owned(ident.release.clone().unwrap()),
                             deps:            Cow::Owned(deps),
                             env:             Cow::Owned(env_hash.into()),
                             exposes:         Cow::Owned(vec!["1234".into(),
@@ -704,7 +686,7 @@ two = 2
         svc_member_cfg.insert("foo".into(), "bar".into());
 
         let mut me = default_svc_member();
-        me.pkg = Cow::Owned(ident);
+        me.pkg = Cow::Owned(ident.into());
         me.cfg = Cow::Owned(svc_member_cfg);
 
         let svc = Svc { service_group:          Cow::Owned(group),

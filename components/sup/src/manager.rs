@@ -799,7 +799,7 @@ impl Manager {
         };
 
         if let Ok(package) =
-            PackageInstall::load(&service.pkg.ident, Some(Path::new(&*FS_ROOT_PATH)))
+            PackageInstall::load(service.pkg.ident.as_ref(), Some(Path::new(&*FS_ROOT_PATH)))
         {
             if let Err(err) = habitat_common::command::package::install::check_install_hooks(
                 &mut habitat_common::ui::UI::with_sinks(),
