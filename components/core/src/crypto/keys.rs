@@ -10,6 +10,7 @@ use super::{PUBLIC_BOX_KEY_VERSION,
 use crate::error::{Error,
                    Result};
 use base64;
+use chrono::Utc;
 use regex::Regex;
 use std::{collections::HashSet,
           fmt,
@@ -22,7 +23,6 @@ use std::{collections::HashSet,
                  PathBuf},
           result,
           str::FromStr};
-use time;
 
 lazy_static::lazy_static! {
     static ref NAME_WITH_REV_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\z").unwrap();
@@ -310,7 +310,7 @@ fn mk_key_filename<P, S1, S2>(path: P, keyname: S1, suffix: S2) -> PathBuf
 /// `{year}{month}{day}{hour24}{minute}{second}`
 /// Timestamps are in UTC time.
 // TODO (CM): Return a String, not a Result
-fn mk_revision_string() -> Result<String> { Ok(time::OffsetDateTime::now().format("%Y%m%d%H%M%S")) }
+fn mk_revision_string() -> Result<String> { Ok(Utc::now().format("%Y%m%d%H%M%S").to_string()) }
 
 pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, String)>
     where T: AsRef<str>
