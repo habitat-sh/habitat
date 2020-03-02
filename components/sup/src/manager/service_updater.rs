@@ -88,10 +88,11 @@ impl ServiceUpdater {
                service.service_group, service.spec_ident, service.channel);
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();
+        let update_condition = service.update_condition;
         let updates = Arc::clone(&self.updates);
         let package_update_worker = PackageUpdateWorker::from(service);
         async move {
-            let new_ident = package_update_worker.update().await;
+            let new_ident = package_update_worker.update(update_condition).await;
             debug!("'{}' at-once updater found update from '{}' to '{}'",
                    service_group, full_ident, new_ident);
             outputln!("Updating from {} to {}", full_ident, new_ident);

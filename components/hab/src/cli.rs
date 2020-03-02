@@ -1266,6 +1266,29 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                              `127.0.0.1`")
     );
 
+    // The clap_app macro does not allow "-" in possible values
+    let sub =
+        sub.arg(Arg::with_name("UPDATE_CONDITION").long("update-condition")
+                                                  .takes_value(true)
+                                                  .default_value("latest")
+                                                  .possible_values(&["latest", "track-channel"])
+                                                  .validator(valid_update_condition)
+                                                  .help("The condition dictating when this \
+                                                         service should update latest: Runs the \
+                                                         latest package that can be found in \
+                                                         the configured channel and local \
+                                                         packages. track-channel: Always run \
+                                                         what is at the head of a given \
+                                                         channel. This enables service rollback \
+                                                         where demoting a package from a \
+                                                         channel will cause the package to \
+                                                         rollback to an older version of the \
+                                                         package. A ramification of enabling \
+                                                         this condition is packages newer than \
+                                                         the package at the head of the channel \
+                                                         will be automatically uninstalled \
+                                                         during a service rollback"));
+
     let sub = add_event_stream_options(sub);
     add_shutdown_timeout_option(sub)
 }
@@ -1363,6 +1386,29 @@ fn sub_svc_load() -> App<'static, 'static> {
         (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
             "The interval (seconds) on which to run health checks [default: 30]")
     );
+
+    // The clap_app macro does not allow "-" in possible values
+    sub = sub.arg(Arg::with_name("UPDATE_CONDITION").long("update-condition")
+                                                    .takes_value(true)
+                                                    .default_value("latest")
+                                                    .possible_values(&["latest", "track-channel"])
+                                                    .validator(valid_update_condition)
+                                                    .help("The condition dictating when this \
+                                                           service should update latest: Runs \
+                                                           the latest package that can be found \
+                                                           in the configured channel and local \
+                                                           packages. track-channel: Always run \
+                                                           what is at the head of a given \
+                                                           channel. This enables service \
+                                                           rollback where demoting a package \
+                                                           from a channel will cause the \
+                                                           package to rollback to an older \
+                                                           version of the package. A \
+                                                           ramification of enabling this \
+                                                           condition is packages newer than the \
+                                                           package at the head of the channel \
+                                                           will be automatically uninstalled \
+                                                           during a service rollback"));
 
     if cfg!(windows) {
         sub = sub.arg(Arg::with_name("PASSWORD").long("password")
@@ -1572,6 +1618,14 @@ fn valid_update_strategy(val: String) -> result::Result<(), String> {
     match habitat_sup_protocol::types::UpdateStrategy::from_str(&val) {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("Update strategy: '{}' is not valid", &val)),
+    }
+}
+
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
+fn valid_update_condition(val: String) -> result::Result<(), String> {
+    match habitat_sup_protocol::types::UpdateCondition::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("Update condition: '{}' is not valid", &val)),
     }
 }
 

@@ -1,17 +1,23 @@
 use super::{ExecutionStrategy,
             Scope};
-use crate::error::{Error,
-                   Result};
-use habitat_common::{package_graph::PackageGraph,
+use crate::{config,
+            error::{Error,
+                    Result}};
+use futures::stream::StreamExt;
+use habitat_common::{cli::FS_ROOT,
+                     package_graph::PackageGraph,
+                     types::ListenCtlAddr,
                      ui::{Status,
-                          UIWriter,
-                          UI}};
+                          UIWriter}};
 use habitat_core::{error as herror,
                    fs as hfs,
                    package::{list::temp_package_directory,
                              Identifiable,
                              PackageIdent,
                              PackageInstall}};
+use habitat_sup_client::{SrvClient,
+                         SrvClientError};
+use habitat_sup_protocol;
 use std::{fs,
           path::Path,
           str::FromStr};
@@ -33,21 +39,24 @@ use std::{fs,
 ///     5b. If there are not, we delete it from disk and the graph
 ///
 /// `excludes` is a list of user-supplied `PackageIdent`s.
-/// `services` is a list of fully-qualified `PackageIdent`s which are currently
-///    running in a supervisor out of the `fs_root_path`.
-pub fn start(ui: &mut UI,
-             ident: &PackageIdent,
-             fs_root_path: &Path,
-             execution_strategy: ExecutionStrategy,
-             scope: Scope,
-             excludes: &[PackageIdent],
-             services: &[PackageIdent])
-             -> Result<()> {
+/// `even_if_running` is a flag indictating that the package should be uninstalled even if it is
+/// running.
+pub async fn start<U>(ui: &mut U,
+                      ident: &PackageIdent,
+                      fs_root_path: &Path,
+                      execution_strategy: ExecutionStrategy,
+                      scope: Scope,
+                      excludes: &[PackageIdent],
+                      even_if_running: bool)
+                      -> Result<()>
+    where U: UIWriter
+{
     // 1.
     let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
     let ident = pkg_install.ident();
     ui.begin(format!("Uninstalling {}", &ident))?;
 
+    let services = supervisor_services().await?;
     if !services.is_empty() {
         ui.status(Status::Determining,
                   "list of running services in supervisor")?;
@@ -79,7 +88,8 @@ pub fn start(ui: &mut UI,
                          &pkg_install,
                          execution_strategy,
                          &excludes,
-                         &services)?;
+                         &services,
+                         even_if_running)?;
             graph.remove(&ident);
         }
         Some(c) => {
@@ -114,7 +124,8 @@ pub fn start(ui: &mut UI,
                                      &install,
                                      execution_strategy,
                                      &excludes,
-                                     &services)?;
+                                     &services,
+                                     even_if_running)?;
 
                         graph.remove(&p);
                         count += 1;
@@ -141,19 +152,65 @@ pub fn start(ui: &mut UI,
     Ok(())
 }
 
+/// Check if we have a launcher/supervisor running out of this habitat root.
+/// If the launcher PID file exists then the supervisor is up and running
+fn launcher_is_running(fs_root_path: &Path) -> bool {
+    let launcher_root = hfs::launcher_root_path(Some(fs_root_path));
+    let pid_file_path = launcher_root.join("PID");
+
+    pid_file_path.is_file()
+}
+
+async fn supervisor_services() -> Result<Vec<PackageIdent>> {
+    if !launcher_is_running(&*FS_ROOT) {
+        return Ok(vec![]);
+    }
+
+    let cfg = config::load()?;
+    let secret_key = config::ctl_secret_key(&cfg)?;
+    let listen_ctl_addr = ListenCtlAddr::default();
+    let msg = habitat_sup_protocol::ctl::SvcStatus::default();
+
+    let mut out: Vec<PackageIdent> = vec![];
+    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    while let Some(message_result) = response.next().await {
+        let reply = message_result?;
+        match reply.message_id() {
+            "ServiceStatus" => {
+                let m = reply.parse::<habitat_sup_protocol::types::ServiceStatus>()
+                             .map_err(SrvClientError::Decode)?;
+                out.push(m.ident.into());
+            }
+            "NetOk" => (),
+            "NetErr" => {
+                let err = reply.parse::<habitat_sup_protocol::net::NetErr>()
+                               .map_err(SrvClientError::Decode)?;
+                return Err(SrvClientError::from(err).into());
+            }
+            _ => {
+                warn!("Unexpected status message, {:?}", reply);
+            }
+        }
+    }
+    Ok(out)
+}
+
 /// Delete a package from disk, depending upon the ExecutionStrategy supplied
 ///
 /// Returns:
 ///   Ok(true) - package is deleted
 ///   Ok(false) - package would be deleted but it's a dry run
 ///   Err(_) -  IO problem deleting package from filesystem
-fn maybe_delete(ui: &mut UI,
-                fs_root_path: &Path,
-                install: &PackageInstall,
-                strategy: ExecutionStrategy,
-                excludes: &[PackageIdent],
-                services: &[PackageIdent])
-                -> Result<bool> {
+fn maybe_delete<U>(ui: &mut U,
+                   fs_root_path: &Path,
+                   install: &PackageInstall,
+                   strategy: ExecutionStrategy,
+                   excludes: &[PackageIdent],
+                   services: &[PackageIdent],
+                   even_if_running: bool)
+                   -> Result<bool>
+    where U: UIWriter
+{
     let ident = install.ident();
     let pkg_root_path = hfs::pkg_root_path(Some(fs_root_path));
 
@@ -164,11 +221,13 @@ fn maybe_delete(ui: &mut UI,
         return Ok(false);
     }
 
-    let is_running = services.iter().any(|i| i.satisfies(ident));
-    if is_running {
-        ui.status(Status::Skipping,
-                  format!("{}. It is currently running in the supervisor", &ident))?;
-        return Ok(false);
+    if !even_if_running {
+        let is_running = services.iter().any(|i| i.satisfies(ident));
+        if is_running {
+            ui.status(Status::Skipping,
+                      format!("{}. It is currently running in the supervisor", &ident))?;
+            return Ok(false);
+        }
     }
 
     // The excludes list could be looser than the fully qualified idents.  E.g. if core/redis is on

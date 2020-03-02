@@ -2,7 +2,12 @@ use crate::{error::{Error,
                     Result},
             PRODUCT,
             VERSION};
-use habitat_common::{command::package::install::{self as install_cmd,
+use hab::{command::pkg::{self,
+                         uninstall},
+          error::Result as HabResult};
+use habitat_api_client::BuilderAPIClient;
+use habitat_common::{cli::FS_ROOT,
+                     command::package::install::{self as install_cmd,
                                                  InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,
@@ -14,7 +19,8 @@ use habitat_core::{env as henv,
                    fs::{self,
                         FS_ROOT_PATH},
                    package::{PackageIdent,
-                             PackageInstall},
+                             PackageInstall,
+                             PackageTarget},
                    ChannelIdent,
                    AUTH_TOKEN_ENVVAR};
 use std::path::Path;
@@ -93,4 +99,45 @@ pub fn installed<T>(ident: T) -> Option<PackageInstall>
 {
     let fs_root_path = Path::new(&*FS_ROOT_PATH);
     PackageInstall::load(ident.as_ref(), Some(fs_root_path)).ok()
+}
+
+/// Install a package but only consider packages from a channel. Do not consider any locally
+/// installed packages.
+///
+/// This will always return the package at the head of the channel.
+pub async fn install_channel_head(url: &str,
+                                  ident: impl AsRef<PackageIdent>,
+                                  channel: &ChannelIdent)
+                                  -> Result<PackageInstall> {
+    let fs_root_path = Path::new(&*FS_ROOT_PATH);
+    let auth_token = match henv::var(AUTH_TOKEN_ENVVAR) {
+        Ok(v) => Some(v),
+        Err(_) => None,
+    };
+    let api_client = BuilderAPIClient::new(url, PRODUCT, VERSION, Some(fs_root_path))?;
+    // Get the latest package identifier from the channel
+    let channel_latest_ident = api_client.show_package((ident.as_ref(),
+                                                        PackageTarget::active_target()),
+                                                       channel,
+                                                       auth_token.as_deref())
+                                         .await?;
+    // Ensure the latest package from the channel is installed
+    install_no_ui(url, &channel_latest_ident.into(), channel).await
+}
+
+/// Uninstall a package given a package identifier.
+///
+/// Note: This will uninstall the package even if the service correlated with the package is
+/// "running". A package is considered "running" if it has a spec file. This can cause problems when
+/// trying to manage a service. For example, this prevents us from uninstalling a package during
+/// service rollback unless the `even_if_running` flag is set. Ultimately, this logic should be
+/// cleaned up.
+pub async fn uninstall(ident: impl AsRef<PackageIdent>) -> HabResult<()> {
+    uninstall::start(&mut NullUi::new(),
+                     &ident.as_ref(),
+                     &*FS_ROOT,
+                     pkg::ExecutionStrategy::Run,
+                     pkg::Scope::PackageAndDependencies,
+                     &[],
+                     true).await
 }

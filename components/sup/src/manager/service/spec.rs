@@ -1,5 +1,6 @@
 use super::{BindingMode,
             Topology,
+            UpdateCondition,
             UpdateStrategy};
 use crate::error::{Error,
                    Result};
@@ -84,6 +85,7 @@ pub struct ServiceSpec {
     pub channel:                ChannelIdent,
     pub topology:               Topology,
     pub update_strategy:        UpdateStrategy,
+    pub update_condition:       UpdateCondition,
     pub binds:                  Vec<ServiceBind>,
     pub binding_mode:           BindingMode,
     pub config_from:            Option<PathBuf>,
@@ -110,6 +112,7 @@ impl ServiceSpec {
                channel: ChannelIdent::stable(),
                topology: Topology::default(),
                update_strategy: UpdateStrategy::default(),
+               update_condition: UpdateCondition::default(),
                binds: Vec::default(),
                binding_mode: BindingMode::Strict,
                config_from: None,
@@ -234,6 +237,11 @@ impl ServiceSpec {
                 self.update_strategy = update_strategy;
             }
         }
+        if let Some(update_condition) = svc_load.update_condition {
+            if let Some(update_condition) = UpdateCondition::from_i32(update_condition) {
+                self.update_condition = update_condition;
+            }
+        }
         if let Some(list) = svc_load.binds {
             self.binds = list.binds
                              .into_iter()
@@ -330,6 +338,7 @@ mod test {
             bldr_url = "http://example.com/depot"
             topology = "leader"
             update_strategy = "rolling"
+            update_condition = "latest"
             binds = ["cache:redis.cache@acmecorp", "db:postgres.app@acmecorp"]
             config_from = "/only/for/development"
 
@@ -345,6 +354,7 @@ mod test {
         assert_eq!(spec.bldr_url, String::from("http://example.com/depot"));
         assert_eq!(spec.topology, Topology::Leader);
         assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
+        assert_eq!(spec.update_condition, UpdateCondition::Latest);
         assert_eq!(spec.binds,
                    vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                         ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),]);
@@ -416,6 +426,7 @@ mod test {
                           channel:                ChannelIdent::unstable(),
                           topology:               Topology::Leader,
                           update_strategy:        UpdateStrategy::AtOnce,
+                          update_condition:       UpdateCondition::Latest,
                           binds:                  vec![ServiceBind::from_str("cache:redis.cache@\
                                                                               acmecorp").unwrap(),
                                                        ServiceBind::from_str("db:postgres.app@\
@@ -584,6 +595,7 @@ mod test {
                           channel:                ChannelIdent::unstable(),
                           topology:               Topology::Leader,
                           update_strategy:        UpdateStrategy::AtOnce,
+                          update_condition:       UpdateCondition::Latest,
                           binds:                  vec![ServiceBind::from_str("cache:redis.cache@\
                                                                               acmecorp").unwrap(),
                                                        ServiceBind::from_str("db:postgres.app@\

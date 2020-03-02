@@ -5,6 +5,7 @@ use habitat_core::{env,
                              PackageIdent},
                    service::ServiceGroup,
                    ChannelIdent};
+use habitat_sup_protocol::types::UpdateCondition;
 use std::{self,
           time::Duration};
 use tokio::{self,
@@ -60,38 +61,44 @@ impl From<&Service> for PackageUpdateWorker {
 }
 
 impl PackageUpdateWorker {
-    /// Use the specified package ident to search for packages.
+    /// Use the specified package ident to search for packages taking into account the update
+    /// condition.
     ///
     /// If a fully qualified package ident is used, the future will only resolve when that exact
     /// package is found.
     // TODO (DM): The returned package ident should use FullyQualifiedPackageIdent.
-    pub async fn update_to(&self, install_ident: PackageIdent) -> PackageIdent {
-        let install_source = install_ident.clone().into();
+    pub async fn update_to(&self, ident: PackageIdent, condition: UpdateCondition) -> PackageIdent {
         let delay = PackageUpdateWorkerPeriod::get();
         loop {
-            // TODO (DM): The entire behavior of the updater depends on this `install` function. It
-            // is what the old updater used, but its exact behavior should be tested/documented.
-            match util::pkg::install_no_ui(&self.builder_url, &install_source, &self.channel).await
-            {
+            let package_result = match condition {
+                UpdateCondition::Latest => {
+                    let install_source = ident.clone().into();
+                    util::pkg::install_no_ui(&self.builder_url, &install_source, &self.channel).await
+                }
+                UpdateCondition::TrackChannel => {
+                    util::pkg::install_channel_head(&self.builder_url, &ident, &self.channel).await
+                }
+            };
+            match package_result {
                 Ok(package) => {
-                    // Only allow updates never rollbacks.
-                    if &package.ident > self.full_ident.as_ref() {
+                    if &package.ident != self.full_ident.as_ref() {
                         debug!("'{}' package update worker found change from '{}' to '{}' for \
-                                '{}' in channel '{}'",
+                                '{}' in channel '{}' using '{}' update condition",
                                self.service_group,
                                self.full_ident,
                                package.ident,
-                               install_ident,
-                               self.channel,);
+                               ident,
+                               self.channel,
+                               condition);
                         break package.ident;
-                    } else {
-                        trace!("'{}' package update worker did not find change from '{}' for '{}' \
-                                in channel '{}'",
-                               self.service_group,
-                               self.full_ident,
-                               install_ident,
-                               self.channel,)
                     }
+                    trace!("'{}' package update worker did not find change from '{}' for '{}' in \
+                            channel '{}' using '{}' update condition",
+                           self.service_group,
+                           self.full_ident,
+                           ident,
+                           self.channel,
+                           condition)
                 }
                 Err(err) => {
                     warn!("'{}' package update worker failed to install '{}' from channel '{}', \
@@ -103,8 +110,11 @@ impl PackageUpdateWorker {
         }
     }
 
-    /// Use the service spec's package ident to search for packages.
-    pub async fn update(&self) -> PackageIdent { self.update_to(self.ident.clone()).await }
+    /// Use the service spec's package ident to search for packages taking into account the update
+    /// condition.
+    pub async fn update(&self, condition: UpdateCondition) -> PackageIdent {
+        self.update_to(self.ident.clone(), condition).await
+    }
 }
 
 #[cfg(test)]
