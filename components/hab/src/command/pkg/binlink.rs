@@ -241,6 +241,7 @@ fn is_dest_on_path(dest_dir: &Path) -> bool {
 }
 
 #[cfg(test)]
+#[cfg(not(target_os = "macos"))]
 mod test {
     use super::{binlink_all_in_pkg,
                 start,

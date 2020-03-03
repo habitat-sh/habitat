@@ -114,19 +114,21 @@ pub async fn start<U>(ui: &mut U,
                       package_sets: &[PackageSet], // clippy suggestion
                       download_path: Option<&PathBuf>,
                       token: Option<&str>,
-                      verify: bool)
+                      verify: bool,
+                      ignore_missing_seeds: bool)
                       -> Result<()>
     where U: UIWriter
 {
     debug!(
            "Starting download with url: {}, product: {}, version: {}, 
-         download_path: {:?}, token: {:?}, verify: {}, set_count: {}",
+         download_path: {:?}, token: {:?}, verify: {}, ignore_missing_seeds: {}, set_count: {}",
            url,
            product,
            version,
            download_path,
            token,
            verify,
+           ignore_missing_seeds,
            package_sets.len()
     );
 
@@ -155,7 +157,8 @@ pub async fn start<U>(ui: &mut U,
                               api_client,
                               token,
                               download_path: download_path_expanded,
-                              verify };
+                              verify,
+                              ignore_missing_seeds };
 
     let download_count = task.execute(ui).await?;
 
@@ -165,12 +168,13 @@ pub async fn start<U>(ui: &mut U,
 }
 
 struct DownloadTask<'a> {
-    package_sets:  &'a [PackageSet],
-    url:           &'a str,
-    api_client:    BuilderAPIClient,
-    token:         Option<&'a str>,
-    download_path: &'a Path,
-    verify:        bool,
+    package_sets:         &'a [PackageSet],
+    url:                  &'a str,
+    api_client:           BuilderAPIClient,
+    token:                Option<&'a str>,
+    download_path:        &'a Path,
+    verify:               bool,
+    ignore_missing_seeds: bool,
 }
 
 impl<'a> DownloadTask<'a> {
@@ -208,12 +212,14 @@ impl<'a> DownloadTask<'a> {
             ui.begin(format!("Using target {}", package_set.target))?;
 
             for ident in &package_set.idents {
-                let package = self.determine_latest_from_ident(ui,
-                                                               &package_set.channel,
-                                                               package_set.target,
-                                                               &ident)
-                                  .await?;
-                expanded_packages.push((package, package_set.target));
+                if let Some(package) = self.determine_latest_from_ident(ui,
+                                                                        &package_set.channel,
+                                                                        package_set.target,
+                                                                        &ident)
+                                           .await?
+                {
+                    expanded_packages.push((package, package_set.target));
+                }
             }
         }
 
@@ -268,7 +274,7 @@ impl<'a> DownloadTask<'a> {
                                             channel_default: &ChannelIdent,
                                             target: PackageTarget,
                                             ident: &PackageIdent)
-                                            -> Result<Package>
+                                            -> Result<Option<Package>>
         where T: UIWriter
     {
         // Unlike in the install command, we always hit the online depot; our purpose is to sync
@@ -288,7 +294,7 @@ impl<'a> DownloadTask<'a> {
         {
             Ok(latest_package) => {
                 ui.status(Status::Using, format!("{}", latest_package.ident))?;
-                Ok(latest_package)
+                Ok(Some(latest_package))
             }
             Err(Error::APIClient(APIError(StatusCode::NOT_FOUND, _))) => {
                 // In install we attempt to recommend a channel to look in. That's a bit of a
@@ -297,10 +303,14 @@ impl<'a> DownloadTask<'a> {
                 // the stable channel, but for now, error.
                 ui.warn(format!("No packages matching ident {} for {} exist in the '{}' \
                                  channel. Check the package ident, target, channel and Builder \
-                                 url ({}) for correctness",
+                                 url ({}) for correctness.",
                                 ident, target, &channel, self.url))?;
-                Err(CommonError::PackageNotFound(format!("{} for {} in channel {}",
-                                                         ident, target, &channel)).into())
+                if self.ignore_missing_seeds {
+                    Ok(None)
+                } else {
+                    Err(CommonError::PackageNotFound(format!("{} for {} in channel {}",
+                                                             ident, target, &channel)).into())
+                }
             }
             Err(e) => {
                 debug!("Error fetching ident {} for target {}: {:?}",
