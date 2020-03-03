@@ -18,8 +18,8 @@ param (
 # Note that changes here should be mirrored in components/core/src/util/docker.rs
 function Get-DefaultTagForHost {
     if((docker info --format='{{.Isolation}}') -eq 'hyperv') {
-        # hyperv isolation can build any version so we will default to 2016
-        "ltsc2016"
+        # hyperv isolation can build any version so we will default to 2019
+        "ltsc2019"
     } else {
         $osVersion = [Version]::new((Get-CimInstance -ClassName Win32_OperatingSystem).Version)
         switch($osVersion.Build) {
@@ -82,7 +82,11 @@ SHELL ["powershell", "-Command", "`$ErrorActionPreference = 'Stop'; `$ProgressPr
 # assume that the terminal supports ANSI sequence codes.
 RUN `$env:HAB_LICENSE='accept-no-persist'; ``
     SETX HAB_LICENSE accept-no-persist /m; ``
-    &/hab/pkgs/$ident/bin/hab/hab.exe pkg exec core/windows-service install; ``
+    # Although we ran hab pkg install locally above with --ignore-install-hook
+    # we run it again here without the flag so that its install hook is run in
+    # the image. We don't want a windows service installed in the local build
+    # environment, but we do want one in the image.
+    &/hab/pkgs/$ident/bin/hab/hab.exe pkg install core/windows-service --channel=$ReleaseChannel --url=$BldrUrl; ``
     (Get-Content /hab/svc/windows-service/HabService.dll.config).replace('--no-color', '') | Set-Content /hab/svc/windows-service/HabService.dll.config; ``
     (Get-Content /hab/svc/windows-service/log4net.xml).replace('%date - ', '') | Set-Content /hab/svc/windows-service/log4net.xml
 ENTRYPOINT ["/hab/pkgs/$ident/bin/powershell/pwsh.exe", "-ExecutionPolicy", "bypass", "-NoLogo", "-file", "/hab/pkgs/$ident/bin/hab-studio.ps1"]
