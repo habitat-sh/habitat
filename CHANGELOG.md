@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.48 -->
-## [1.5.48](https://github.com/habitat-sh/habitat/tree/1.5.48) (2020-02-28)
+<!-- latest_release 1.5.49 -->
+## [1.5.49](https://github.com/habitat-sh/habitat/tree/1.5.49) (2020-03-03)
 
 #### Merged Pull Requests
-- [CI] Add HAB_AUTH_TOKEN to at-once update test [#7511](https://github.com/habitat-sh/habitat/pull/7511) ([christophermaier](https://github.com/christophermaier))
+- ensure that studio image builder runs the windows-service install hook [#7516](https://github.com/habitat-sh/habitat/pull/7516) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.29 -->
@@ -21,6 +21,7 @@
 - Remove Kubernetes and Helm exporters [#7463](https://github.com/habitat-sh/habitat/pull/7463) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 
 #### Merged Pull Requests
+- ensure that studio image builder runs the windows-service install hook [#7516](https://github.com/habitat-sh/habitat/pull/7516) ([mwrock](https://github.com/mwrock)) <!-- 1.5.49 -->
 - [CI] Add HAB_AUTH_TOKEN to at-once update test [#7511](https://github.com/habitat-sh/habitat/pull/7511) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.48 -->
 - Remove time crate from almost everything [#7499](https://github.com/habitat-sh/habitat/pull/7499) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.47 -->
 - Make FullyQualifiedPackageIdent public and use it in Pkg [#7507](https://github.com/habitat-sh/habitat/pull/7507) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.46 -->
