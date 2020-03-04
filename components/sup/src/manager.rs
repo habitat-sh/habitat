@@ -144,7 +144,7 @@ lazy_static! {
                                                          nanoseconds").unwrap();
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 /// Determines whether the new pidfile-less behavior is enabled, or
 /// the old behavior is used.
 pub enum ServicePidSource {

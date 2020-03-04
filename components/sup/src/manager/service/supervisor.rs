@@ -45,12 +45,22 @@ pub struct Supervisor {
     /// precision is not necessary, but being able to get the seconds
     /// since the UNIX epoch is.
     state_entered: SystemTime,
-    /// If the Supervisor is being run with an newer Launcher that
-    /// can provide service PIDs, this will be `None`, otherwise it
-    /// will be `Some(path)`. Client code should use the `Some`/`None`
-    /// status of this field as an indicator of which mode the
-    /// Supervisor is running in.
-    pid_file:      Option<PathBuf>,
+    /// If the Supervisor is being run with an newer Launcher that can
+    /// provide service PIDs, this will be
+    /// `ServicePidSource::Launcher`; otherwise it will be
+    /// `ServicePidSource::Files`. Client code should use this as an
+    /// indicator of which mode the Supervisor is running in.
+    pid_source:    ServicePidSource,
+    /// Path at which the currently-running PID of this service is
+    /// written to disk.
+    ///
+    /// If `pid_source` is `ServicePidSource::Files`,
+    /// this will be where a restarting Supervisor figures out which
+    /// processes it should continue monitoring.
+    ///
+    /// Regardless of the value of `pid_source`, the current PID will
+    /// always be written to this path, for use by service hooks.
+    pid_file:      PathBuf,
 }
 
 impl Supervisor {
@@ -61,13 +71,11 @@ impl Supervisor {
     /// the older Launchers that can't provide service PIDs, this can
     /// be removed.
     pub fn new(service_group: &ServiceGroup, pid_source: ServicePidSource) -> Supervisor {
-        let pid_file = match pid_source {
-            ServicePidSource::Files => Some(fs::svc_pid_file(service_group.service())),
-            ServicePidSource::Launcher => None,
-        };
+        let pid_file = fs::svc_pid_file(service_group.service());
         Supervisor { service_group: service_group.clone(),
                      state: ProcessState::Down,
                      state_entered: SystemTime::now(),
+                     pid_source,
                      pid: None,
                      pid_file }
     }
@@ -76,8 +84,8 @@ impl Supervisor {
     pub fn check_process(&mut self, launcher: &LauncherCli) -> bool {
         self.pid = self.pid
                        .or_else(|| {
-                           if let Some(ref pid_file) = self.pid_file {
-                               read_pid(pid_file)
+                           if self.pid_source == ServicePidSource::Files {
+                               read_pid(&self.pid_file)
                            } else {
                                match launcher.pid_of(&self.service_group.to_string()) {
                                    Ok(maybe_pid) => maybe_pid,
@@ -101,9 +109,7 @@ impl Supervisor {
             self.change_state(ProcessState::Up);
         } else {
             self.change_state(ProcessState::Down);
-            if let Some(ref pid_file) = self.pid_file {
-                Self::cleanup_pidfile(pid_file.clone());
-            }
+            Self::cleanup_pidfile(self.pid_file.clone());
         }
 
         self.pid.is_some()
@@ -202,10 +208,7 @@ impl Supervisor {
             warn!(target: "pidfile_tracing", "Spawned service for {} has a PID of 0!", group);
         }
         self.pid = Some(pid);
-        // Only create a pidfile if we're actually using them.
-        if let Some(ref pid_file) = self.pid_file {
-            self.create_pidfile(pid_file)?;
-        }
+        self.create_pidfile(&self.pid_file)?;
         self.change_state(ProcessState::Up);
         Ok(())
     }
@@ -230,10 +233,7 @@ impl Supervisor {
                     error!(target: "pidfile_tracing", "Failed to to stop service {}", service_group);
                     };
                 });
-                // Only delete the pidfile if we're actually using one.
-                if let Some(pid_file) = pid_file {
-                    Self::cleanup_pidfile(pid_file);
-                }
+                Self::cleanup_pidfile(pid_file);
             }
         } else {
             // Not quite sure how we'd get down here without a PID...
