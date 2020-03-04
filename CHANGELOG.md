@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.51 -->
-## [1.5.51](https://github.com/habitat-sh/habitat/tree/1.5.51) (2020-03-04)
+<!-- latest_release 1.5.52 -->
+## [1.5.52](https://github.com/habitat-sh/habitat/tree/1.5.52) (2020-03-04)
 
 #### Merged Pull Requests
-- Automated update of Habitat Documentation [#7517](https://github.com/habitat-sh/habitat/pull/7517) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
+- Rustfmt and Nightly Rust Bump to nightly-2020-03-03 [#7518](https://github.com/habitat-sh/habitat/pull/7518) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.5.29 -->
@@ -21,6 +21,7 @@
 - Remove Kubernetes and Helm exporters [#7463](https://github.com/habitat-sh/habitat/pull/7463) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 
 #### Merged Pull Requests
+- Rustfmt and Nightly Rust Bump to nightly-2020-03-03 [#7518](https://github.com/habitat-sh/habitat/pull/7518) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.52 -->
 - Automated update of Habitat Documentation [#7517](https://github.com/habitat-sh/habitat/pull/7517) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.51 -->
 - Add flag to ignore missing packages in seed lists [#7512](https://github.com/habitat-sh/habitat/pull/7512) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.5.50 -->
 - ensure that studio image builder runs the windows-service install hook [#7516](https://github.com/habitat-sh/habitat/pull/7516) ([mwrock](https://github.com/mwrock)) <!-- 1.5.49 -->
