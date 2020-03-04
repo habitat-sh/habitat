@@ -1207,7 +1207,7 @@ impl Manager {
         let mut idents_to_restart_and_latest_desired_on_restart = Vec::new();
         for (ident, service) in state_services.iter() {
             if let Some(new_ident) = service_updater.has_update(&service.service_group) {
-                outputln!("Updating from {} to {}", ident, new_ident);
+                outputln!("Restarting {} with package {}", ident, new_ident);
                 event::service_update_started(&service, &new_ident);
                 // If we are using the track channel update condition, we potentially want to
                 // dictate the latest desired package after the restart.
