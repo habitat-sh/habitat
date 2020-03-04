@@ -1429,29 +1429,37 @@ impl Manager {
             event::service_stopped(&service);
             user_config_watcher.remove(&service);
             service_updater.lock().remove(&service.service_group);
-            // Remove any packages that are newer than the latest desired on restart package.
             if let Some(latest_desired_ident) = latest_desired_on_restart {
-                while let Some(latest_installed) = pkg::installed(service.spec_ident.clone()) {
-                    let latest_ident = latest_installed.ident;
-                    if latest_ident > latest_desired_ident {
-                        info!("Track channel update condition is removing package '{}' inorder \
-                               to rollback to '{}'",
-                              latest_ident, latest_desired_ident);
-                        if let Err(e) = pkg::uninstall(&latest_ident).await {
-                            error!("Failed to uninstall '{}' during rollback. On restart, \
-                                    service will start with the wrong package. err: {}",
-                                   latest_ident, e);
-                        }
-                    } else {
-                        break;
-                    }
-                }
+                Self::remove_newer_packages(&service.spec_ident, &latest_desired_ident).await;
             }
         };
         Self::wrap_async_service_operation(ident,
                                            busy_services,
                                            services_need_reconciliation,
                                            stop_it)
+    }
+
+    /// Remove packages that are newer than the specified ident.
+    ///
+    /// This can be used to guarantee that when a service restarts it starts with the desired
+    /// package.
+    async fn remove_newer_packages(install_ident: &PackageIdent,
+                                   latest_desired_ident: &PackageIdent) {
+        while let Some(latest_installed) = pkg::installed(install_ident) {
+            let latest_ident = latest_installed.ident;
+            if latest_ident > *latest_desired_ident {
+                info!("Uninstalling '{}' inorder to ensure '{}' is the latest installed package",
+                      latest_ident, latest_desired_ident);
+                if let Err(e) = pkg::uninstall(&latest_ident).await {
+                    error!("Failed to uninstall '{}' unable to ensure '{}' is the latest \
+                            installed package. On restart, service will start with the wrong \
+                            package. err: {}",
+                           latest_ident, latest_desired_ident, e);
+                }
+            } else {
+                break;
+            }
+        }
     }
 
     fn remove_spec_file(&self, ident: &PackageIdent) -> std::io::Result<()> {
