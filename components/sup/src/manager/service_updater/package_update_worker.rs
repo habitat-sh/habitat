@@ -43,34 +43,35 @@ impl PackageUpdateWorkerPeriod {
 /// version of the package being run by a service. If a change is detected, the package is installed
 /// and its identifier returned.
 pub struct PackageUpdateWorker {
-    service_group: ServiceGroup,
-    ident:         PackageIdent,
-    full_ident:    FullyQualifiedPackageIdent,
-    channel:       ChannelIdent,
-    builder_url:   String,
+    service_group:    ServiceGroup,
+    ident:            PackageIdent,
+    full_ident:       FullyQualifiedPackageIdent,
+    update_condition: UpdateCondition,
+    channel:          ChannelIdent,
+    builder_url:      String,
 }
 
 impl From<&Service> for PackageUpdateWorker {
     fn from(service: &Service) -> Self {
-        Self { service_group: service.service_group.clone(),
-               ident:         service.spec_ident.clone(),
-               full_ident:    service.pkg.ident.clone(),
-               channel:       service.channel.clone(),
-               builder_url:   service.bldr_url.clone(), }
+        Self { service_group:    service.service_group.clone(),
+               ident:            service.spec_ident.clone(),
+               full_ident:       service.pkg.ident.clone(),
+               update_condition: service.update_condition,
+               channel:          service.channel.clone(),
+               builder_url:      service.bldr_url.clone(), }
     }
 }
 
 impl PackageUpdateWorker {
-    /// Use the specified package ident to search for packages taking into account the update
-    /// condition.
+    /// Use the specified package ident to search for packages.
     ///
     /// If a fully qualified package ident is used, the future will only resolve when that exact
     /// package is found.
     // TODO (DM): The returned package ident should use FullyQualifiedPackageIdent.
-    pub async fn update_to(&self, ident: PackageIdent, condition: UpdateCondition) -> PackageIdent {
+    pub async fn update_to(&self, ident: PackageIdent) -> PackageIdent {
         let delay = PackageUpdateWorkerPeriod::get();
         loop {
-            let package_result = match condition {
+            let package_result = match self.update_condition {
                 UpdateCondition::Latest => {
                     let install_source = ident.clone().into();
                     util::pkg::install_no_ui(&self.builder_url, &install_source, &self.channel).await
@@ -89,7 +90,7 @@ impl PackageUpdateWorker {
                                package.ident,
                                ident,
                                self.channel,
-                               condition);
+                               self.update_condition);
                         break package.ident;
                     }
                     trace!("'{}' package update worker did not find change from '{}' for '{}' in \
@@ -98,7 +99,7 @@ impl PackageUpdateWorker {
                            self.full_ident,
                            ident,
                            self.channel,
-                           condition)
+                           self.update_condition)
                 }
                 Err(err) => {
                     warn!("'{}' package update worker failed to install '{}' from channel '{}', \
@@ -110,11 +111,8 @@ impl PackageUpdateWorker {
         }
     }
 
-    /// Use the service spec's package ident to search for packages taking into account the update
-    /// condition.
-    pub async fn update(&self, condition: UpdateCondition) -> PackageIdent {
-        self.update_to(self.ident.clone(), condition).await
-    }
+    /// Use the service spec's package ident to search for packages.
+    pub async fn update(&self) -> PackageIdent { self.update_to(self.ident.clone()).await }
 }
 
 #[cfg(test)]

@@ -7,7 +7,6 @@ use habitat_butterfly;
 use habitat_common::owning_refs::RwLockReadGuardRef;
 use habitat_core::{package::PackageIdent,
                    service::ServiceGroup};
-use habitat_sup_protocol::types::UpdateCondition;
 use parking_lot::RwLock;
 use std::{self,
           sync::Arc,
@@ -40,7 +39,6 @@ enum FollowerWaitForTurn {
 pub struct RollingUpdateWorker {
     service_group:         ServiceGroup,
     topology:              Topology,
-    update_condition:      UpdateCondition,
     package_update_worker: PackageUpdateWorker,
     census_ring:           Arc<RwLock<CensusRing>>,
     butterfly:             habitat_butterfly::Server,
@@ -53,7 +51,6 @@ impl RollingUpdateWorker {
                -> Self {
         Self { service_group: service.service_group.clone(),
                topology: service.topology,
-               update_condition: service.update_condition,
                package_update_worker: PackageUpdateWorker::from(service),
                census_ring,
                butterfly }
@@ -74,9 +71,7 @@ impl RollingUpdateWorker {
                     FollowerWaitForTurn::PromotedToLeader => self.leader_role().await,
                     FollowerWaitForTurn::UpdateTo(new_ident) => {
                         // Update to the package we were instructed to
-                        self.package_update_worker
-                            .update_to(new_ident, self.update_condition)
-                            .await
+                        self.package_update_worker.update_to(new_ident).await
                     }
                 }
             }
@@ -88,9 +83,7 @@ impl RollingUpdateWorker {
         // package
         self.leader_wait_for_followers().await;
         // Wait for an update
-        self.package_update_worker
-            .update(self.update_condition)
-            .await
+        self.package_update_worker.update().await
     }
 
     async fn update_election_suitability(&self, topology: Topology) -> u64 {
