@@ -43,8 +43,10 @@ pub enum Svc {
         #[structopt(name = "STRATEGY", long = "strategy", short = "s")]
         strategy:              Option<habitat_sup_protocol::types::UpdateStrategy>,
         /// The condition dictating when this service should update
+        ///
         /// latest: Runs the latest package that can be found in the configured channel and local
         /// packages.
+        ///
         /// track-channel: Always run what is at the head of a given channel. This enables service
         /// rollback where demoting a package from a channel will cause the package to rollback to
         /// an older version of the package. A ramification of enabling this condition is packages

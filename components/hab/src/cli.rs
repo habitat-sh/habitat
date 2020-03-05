@@ -49,6 +49,15 @@ use structopt::StructOpt;
 use toml;
 use url::Url;
 
+const UPDATE_CONDITION_HELP: &str = "The condition dictating when this service should update";
+const UPDATE_CONDITION_LONG_HELP: &str =
+    "The condition dictating when this service should update\n\nlatest: Runs the latest package \
+     that can be found in the configured channel and local packages.\n\ntrack-channel: Always run \
+     what is at the head of a given channel. This enables service rollback where demoting a \
+     package from a channel will cause the package to rollback to an older version of the \
+     package. A ramification of enabling this condition is packages newer than the package at the \
+     head of the channel will be automatically uninstalled during a service rollback.";
+
 fn get_subcommand_mut<'a>(app: &'a mut App<'static, 'static>,
                           name: &str)
                           -> &'a mut App<'static, 'static> {
@@ -1267,27 +1276,14 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
     );
 
     // The clap_app macro does not allow "-" in possible values
-    let sub =
-        sub.arg(Arg::with_name("UPDATE_CONDITION").long("update-condition")
-                                                  .takes_value(true)
-                                                  .default_value("latest")
-                                                  .possible_values(&["latest", "track-channel"])
-                                                  .validator(valid_update_condition)
-                                                  .help("The condition dictating when this \
-                                                         service should update latest: Runs the \
-                                                         latest package that can be found in \
-                                                         the configured channel and local \
-                                                         packages. track-channel: Always run \
-                                                         what is at the head of a given \
-                                                         channel. This enables service rollback \
-                                                         where demoting a package from a \
-                                                         channel will cause the package to \
-                                                         rollback to an older version of the \
-                                                         package. A ramification of enabling \
-                                                         this condition is packages newer than \
-                                                         the package at the head of the channel \
-                                                         will be automatically uninstalled \
-                                                         during a service rollback"));
+    let sub = sub.arg(Arg::with_name("UPDATE_CONDITION").long("update-condition")
+                                                        .takes_value(true)
+                                                        .default_value("latest")
+                                                        .possible_values(&["latest",
+                                                                           "track-channel"])
+                                                        .validator(valid_update_condition)
+                                                        .help(UPDATE_CONDITION_HELP)
+                                                        .long_help(UPDATE_CONDITION_LONG_HELP));
 
     let sub = add_event_stream_options(sub);
     add_shutdown_timeout_option(sub)
@@ -1393,22 +1389,8 @@ fn sub_svc_load() -> App<'static, 'static> {
                                                     .default_value("latest")
                                                     .possible_values(&["latest", "track-channel"])
                                                     .validator(valid_update_condition)
-                                                    .help("The condition dictating when this \
-                                                           service should update latest: Runs \
-                                                           the latest package that can be found \
-                                                           in the configured channel and local \
-                                                           packages. track-channel: Always run \
-                                                           what is at the head of a given \
-                                                           channel. This enables service \
-                                                           rollback where demoting a package \
-                                                           from a channel will cause the \
-                                                           package to rollback to an older \
-                                                           version of the package. A \
-                                                           ramification of enabling this \
-                                                           condition is packages newer than the \
-                                                           package at the head of the channel \
-                                                           will be automatically uninstalled \
-                                                           during a service rollback"));
+                                                    .help(UPDATE_CONDITION_HELP)
+                                                    .long_help(UPDATE_CONDITION_LONG_HELP));
 
     if cfg!(windows) {
         sub = sub.arg(Arg::with_name("PASSWORD").long("password")
