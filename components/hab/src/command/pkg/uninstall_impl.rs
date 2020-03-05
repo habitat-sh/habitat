@@ -56,7 +56,13 @@ pub async fn uninstall<U>(ui: &mut U,
     let ident = pkg_install.ident();
     ui.begin(format!("Uninstalling {}", &ident))?;
 
-    let services = supervisor_services().await?;
+    let services = if even_if_running {
+        // If we want to uninstall the package even if it is running, dont look up the services that
+        // are running just use an empty vector.
+        Vec::new()
+    } else {
+        supervisor_services().await?
+    };
     if !services.is_empty() {
         ui.status(Status::Determining,
                   "list of running services in supervisor")?;
@@ -88,8 +94,7 @@ pub async fn uninstall<U>(ui: &mut U,
                          &pkg_install,
                          execution_strategy,
                          &excludes,
-                         &services,
-                         even_if_running)?;
+                         &services)?;
             graph.remove(&ident);
         }
         Some(c) => {
@@ -124,8 +129,7 @@ pub async fn uninstall<U>(ui: &mut U,
                                      &install,
                                      execution_strategy,
                                      &excludes,
-                                     &services,
-                                     even_if_running)?;
+                                     &services)?;
 
                         graph.remove(&p);
                         count += 1;
@@ -206,8 +210,7 @@ fn maybe_delete<U>(ui: &mut U,
                    install: &PackageInstall,
                    strategy: ExecutionStrategy,
                    excludes: &[PackageIdent],
-                   services: &[PackageIdent],
-                   even_if_running: bool)
+                   services: &[PackageIdent])
                    -> Result<bool>
     where U: UIWriter
 {
@@ -221,13 +224,11 @@ fn maybe_delete<U>(ui: &mut U,
         return Ok(false);
     }
 
-    if !even_if_running {
-        let is_running = services.iter().any(|i| i.satisfies(ident));
-        if is_running {
-            ui.status(Status::Skipping,
-                      format!("{}. It is currently running in the supervisor", &ident))?;
-            return Ok(false);
-        }
+    let is_running = services.iter().any(|i| i.satisfies(ident));
+    if is_running {
+        ui.status(Status::Skipping,
+                  format!("{}. It is currently running in the supervisor", &ident))?;
+        return Ok(false);
     }
 
     // The excludes list could be looser than the fully qualified idents.  E.g. if core/redis is on
