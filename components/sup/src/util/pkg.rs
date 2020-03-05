@@ -3,7 +3,7 @@ use crate::{error::{Error,
             PRODUCT,
             VERSION};
 use hab::{command::pkg::{self,
-                         uninstall},
+                         uninstall_impl},
           error::Result as HabResult};
 use habitat_api_client::BuilderAPIClient;
 use habitat_common::{cli::FS_ROOT,
@@ -133,11 +133,11 @@ pub async fn install_channel_head(url: &str,
 /// service rollback unless the `even_if_running` flag is set. Ultimately, this logic should be
 /// cleaned up.
 pub async fn uninstall(ident: impl AsRef<PackageIdent>) -> HabResult<()> {
-    uninstall::start(&mut NullUi::new(),
-                     &ident.as_ref(),
-                     &*FS_ROOT,
-                     pkg::ExecutionStrategy::Run,
-                     pkg::Scope::PackageAndDependencies,
-                     &[],
-                     true).await
+    uninstall_impl::uninstall(&mut NullUi::new(),
+                              &ident.as_ref(),
+                              &*FS_ROOT,
+                              pkg::ExecutionStrategy::Run,
+                              pkg::Scope::PackageAndDependencies,
+                              &[],
+                              true).await
 }

@@ -727,13 +727,7 @@ async fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     };
     let excludes = excludes_from_matches(&m);
 
-    command::pkg::uninstall::start(ui,
-                                   &ident,
-                                   &*FS_ROOT,
-                                   execute_strategy,
-                                   scope,
-                                   &excludes,
-                                   false).await
+    command::pkg::uninstall::start(ui, &ident, &*FS_ROOT, execute_strategy, scope, &excludes).await
 }
 
 async fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
