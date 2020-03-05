@@ -46,7 +46,9 @@ prost-types = "*"
 rand = "*"
 rants = "*"
 regex = "*"
-rustls = "*"
+# Pinning for now. Since upgrading to 0.17.0 results in conflicts with other crates
+# See https://github.com/habitat-sh/habitat/issues/7523
+rustls = "0.16.0"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = "*"
@@ -71,7 +73,9 @@ jemalloc-ctl = "*"
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
 mio-named-pipes = "*"
-mio = "*"
+# Pinning for now. Since upgrading to 0.7.0 results in conflicts with other crates
+# See https://github.com/habitat-sh/habitat/issues/7522
+mio = "0.6.21"
 uuid = { version = "*", features = ["v4"] }
 winapi =  { version = "*", features = ["namedpipeapi", "tlhelp32"] }
 
