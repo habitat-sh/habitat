@@ -9,9 +9,9 @@ $pkg="habitat-testing/nginx"
 $initialRelease="habitat-testing/nginx/1.17.4/20191115184838"
 $updatedRelease="habitat-testing/nginx/1.17.4/20191115185517"
 
-Describe "at-once update" {
+Describe "at-once update and rollback" {
     hab pkg promote $initialRelease $testChannel
-    Load-SupervisorService $pkg -Strategy "at-once" -Channel $testChannel
+    Load-SupervisorService $pkg -Strategy "at-once" -UpdateCondition "track-channel" -Channel $testChannel
 
     It "loads initial release" {
         Wait-Release -Ident $initialRelease
@@ -22,6 +22,14 @@ Describe "at-once update" {
 
         It "updates release" {
             Wait-Release -Ident $updatedRelease
+        }
+    }
+
+    Context "demote update" {
+        hab pkg deomote $updatedRelease $testChannel
+
+        It "rollback release" {
+            Wait-Release -Ident $initialRelease
         }
     }
 

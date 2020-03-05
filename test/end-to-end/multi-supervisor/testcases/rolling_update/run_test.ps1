@@ -6,12 +6,12 @@
 
 $testChannel = "rolling-$([DateTime]::Now.Ticks)"
 
-Describe "Rolling Update" {
+Describe "Rolling Update and Rollback" {
     $initialRelease="habitat-testing/nginx/1.17.4/20191115184838"
     $updatedRelease="habitat-testing/nginx/1.17.4/20191115185517"
     hab pkg promote $initialRelease $testChannel
-    Load-SupervisorService "habitat-testing/nginx" -Remote "alpha.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel
-    Load-SupervisorService "habitat-testing/nginx" -Remote "beta.habitat.dev" -Topology leader -Strategy rolling -Channel $testChannel
+    Load-SupervisorService "habitat-testing/nginx" -Remote "alpha.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
+    Load-SupervisorService "habitat-testing/nginx" -Remote "beta.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
 
     @("alpha", "beta") | ForEach-Object {
         It "loads initial release on $_" {
@@ -25,6 +25,16 @@ Describe "Rolling Update" {
         @("alpha", "beta") | ForEach-Object {
             It "updates release on $_" {
                 Wait-Release -Ident $updatedRelease -Remote $_
+            }
+        }
+    }
+
+    Context "demote update" {
+        hab pkg demote $updatedRelease $testChannel
+
+        @("alpha", "beta") | ForEach-Object {
+            It "rollback release on $_" {
+                Wait-Release -Ident $initalRelease -Remote $_
             }
         }
     }
