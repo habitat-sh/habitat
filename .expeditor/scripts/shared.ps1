@@ -104,6 +104,7 @@ function Install-Rustup($Toolchain) {
         }
 
         ./rustup-init.exe -y --default-toolchain $toolchain --no-modify-path --profile=minimal
+        Write-Host "exit code from rustup-init is $LASTEXITCODE"
         $env:path += ";$env:USERPROFILE\.cargo\bin"
     }
 }
