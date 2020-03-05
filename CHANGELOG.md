@@ -6,24 +6,36 @@
 #### Merged Pull Requests
 - Cargo Update [#7519](https://github.com/habitat-sh/habitat/pull/7519) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
 <!-- latest_release -->
+<!-- release_rollup since=1.5.50 -->
+### Changes since 1.5.50 release
 
-<!-- release_rollup since=1.5.29 -->
-### Changes since 1.5.29 release
+#### Merged Pull Requests
+- Cargo Update [#7519](https://github.com/habitat-sh/habitat/pull/7519) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.53 -->
+- Rustfmt and Nightly Rust Bump to nightly-2020-03-03 [#7518](https://github.com/habitat-sh/habitat/pull/7518) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.52 -->
+- Automated update of Habitat Documentation [#7517](https://github.com/habitat-sh/habitat/pull/7517) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.51 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release -->
+## [1.5.50](https://github.com/habitat-sh/habitat/tree/1.5.50) (2020-03-03)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/1.5.29...1.5.50)
 
 #### Bug Fixes
 - Allow dev environment setup script to work locally or in Vagrant [#7500](https://github.com/habitat-sh/habitat/pull/7500) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.38 -->
 
 #### New Features & Enhancements
 - adds hab origin info subcommand [#7445](https://github.com/habitat-sh/habitat/pull/7445) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.33 -->
+- Add flag to ignore missing packages in seed lists [#7512](https://github.com/habitat-sh/habitat/pull/7512) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.5.50 -->
+- Get-HabPackagePath accepts any valid ident like pkg_path_for [#7505](https://github.com/habitat-sh/habitat/pull/7505) ([mwrock](https://github.com/mwrock)) <!-- 1.5.42 -->
+- add NO_NAMED_PIPE_HEALTH_CHECK feature flag to suppress named pipe on windows [#7474](https://github.com/habitat-sh/habitat/pull/7474) ([mwrock](https://github.com/mwrock)) <!-- 1.5.39 -->
+- provide guidance on 409 conflict [#7473](https://github.com/habitat-sh/habitat/pull/7473) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.33 -->
+- windows-service improvements [#7422](https://github.com/habitat-sh/habitat/pull/7422) ([mwrock](https://github.com/mwrock)) <!-- 1.5.30 -->
 
 #### Behavioral Changes
 - Remove ACI exporter [#7462](https://github.com/habitat-sh/habitat/pull/7462) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 - Remove Kubernetes and Helm exporters [#7463](https://github.com/habitat-sh/habitat/pull/7463) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
+- modification to hab setup defaults and language [#7480](https://github.com/habitat-sh/habitat/pull/7480) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.34 -->
 
 #### Merged Pull Requests
-- Cargo Update [#7519](https://github.com/habitat-sh/habitat/pull/7519) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.53 -->
-- Rustfmt and Nightly Rust Bump to nightly-2020-03-03 [#7518](https://github.com/habitat-sh/habitat/pull/7518) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.52 -->
-- Automated update of Habitat Documentation [#7517](https://github.com/habitat-sh/habitat/pull/7517) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.51 -->
 - Add flag to ignore missing packages in seed lists [#7512](https://github.com/habitat-sh/habitat/pull/7512) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.5.50 -->
 - ensure that studio image builder runs the windows-service install hook [#7516](https://github.com/habitat-sh/habitat/pull/7516) ([mwrock](https://github.com/mwrock)) <!-- 1.5.49 -->
 - [CI] Add HAB_AUTH_TOKEN to at-once update test [#7511](https://github.com/habitat-sh/habitat/pull/7511) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.48 -->
@@ -32,15 +44,11 @@
 - [CI] Swap command and if blocks for Windows 2016 container step [#7509](https://github.com/habitat-sh/habitat/pull/7509) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.45 -->
 - Better test for comparing structopt to clap_app [#7503](https://github.com/habitat-sh/habitat/pull/7503) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.44 -->
 - Simplify our protobuf generation logic [#7506](https://github.com/habitat-sh/habitat/pull/7506) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.43 -->
-- Get-HabPackagePath accepts any valid ident like pkg_path_for [#7505](https://github.com/habitat-sh/habitat/pull/7505) ([mwrock](https://github.com/mwrock)) <!-- 1.5.42 -->
 - Bump nokogiri from 1.10.4 to 1.10.8 in /www [#7502](https://github.com/habitat-sh/habitat/pull/7502) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.5.41 -->
 - sup: set PID file mode to 0644  [#7489](https://github.com/habitat-sh/habitat/pull/7489) ([stevendanna](https://github.com/stevendanna)) <!-- 1.5.40 -->
-- add NO_NAMED_PIPE_HEALTH_CHECK feature flag to suppress named pipe on windows [#7474](https://github.com/habitat-sh/habitat/pull/7474) ([mwrock](https://github.com/mwrock)) <!-- 1.5.39 -->
 - Refactor service updater [#7455](https://github.com/habitat-sh/habitat/pull/7455) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.36 -->
 - [CI] Restrict certain release pipeline steps to &quot;real&quot; runs only [#7491](https://github.com/habitat-sh/habitat/pull/7491) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.35 -->
-- modification to hab setup defaults and language [#7480](https://github.com/habitat-sh/habitat/pull/7480) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.34 -->
 - make the ltsc2019 docker image the default for studio and exporter ifa hyper-v host supports it [#7488](https://github.com/habitat-sh/habitat/pull/7488) ([mwrock](https://github.com/mwrock)) <!-- 1.5.34 -->
-- add a remotesigned execution policy to pwsh spawns [#7487](https://github.com/habitat-sh/habitat/pull/7487) ([mwrock](https://github.com/mwrock)) <!-- 1.5.34 -->
 - Use stable mac-bootstrapper repo with latest package [#7490](https://github.com/habitat-sh/habitat/pull/7490) ([jaymalasinha](https://github.com/jaymalasinha)) <!-- 1.5.34 -->
 - Remove mention of ACI exporter in CLI help [#7485](https://github.com/habitat-sh/habitat/pull/7485) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 - Bump nightly and rustfmt versions [#7450](https://github.com/habitat-sh/habitat/pull/7450) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
@@ -53,16 +61,12 @@
 - [Docs] Add basic `hab pkg download` file docs [#7457](https://github.com/habitat-sh/habitat/pull/7457) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 - Add in a check for a &quot;latest&quot; version specification to not set an ide… [#7460](https://github.com/habitat-sh/habitat/pull/7460) ([jschripsema](https://github.com/jschripsema)) <!-- 1.5.33 -->
 - Update to Rust 1.41.0 [#7458](https://github.com/habitat-sh/habitat/pull/7458) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.33 -->
-- provide guidance on 409 conflict [#7473](https://github.com/habitat-sh/habitat/pull/7473) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.5.33 -->
 - [CI, Docs] Update release instructions [#7465](https://github.com/habitat-sh/habitat/pull/7465) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 - [CI] Allow CI pipeline to create Github PRs, releases [#7479](https://github.com/habitat-sh/habitat/pull/7479) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 - [CI] Automate documentation bump after a release [#7484](https://github.com/habitat-sh/habitat/pull/7484) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.33 -->
 - Update docs for 1.5.29 release [#7449](https://github.com/habitat-sh/habitat/pull/7449) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.32 -->
 - Update changelog following 1.5.29 release [#7447](https://github.com/habitat-sh/habitat/pull/7447) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.31 -->
-- windows-service improvements [#7422](https://github.com/habitat-sh/habitat/pull/7422) ([mwrock](https://github.com/mwrock)) <!-- 1.5.30 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release -->
 ## [1.5.29](https://github.com/habitat-sh/habitat/tree/1.5.29) (2020-02-11)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/1.5.0...1.5.29)
 
