@@ -72,12 +72,12 @@ impl Process {
         trace!("Waiting up to {} seconds before sending KILL to process {}",
                timeout.as_secs(),
                pid_to_kill);
-        let stop_time = Instant::now() + timeout;
+        let start_time = Instant::now();
         loop {
             if !is_alive(pid_to_kill) {
                 return ShutdownMethod::GracefulTermination;
             }
-            if Instant::now() >= stop_time {
+            if start_time.elapsed() >= timeout {
                 break;
             }
             thread::sleep(Duration::from_millis(5));

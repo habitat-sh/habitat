@@ -74,9 +74,9 @@ impl Process {
         trace!("Waiting up to {} seconds before terminating process {}",
                timeout.as_secs(),
                self.id());
-        let stop_time = Instant::now() + timeout;
+        let start_time = Instant::now();
         loop {
-            if ret == 0 || Instant::now() > stop_time {
+            if ret == 0 || start_time.elapsed() > timeout {
                 let proc_table = build_proc_table();
                 terminate_process_descendants(&proc_table, self.id());
                 return ShutdownMethod::Killed;
