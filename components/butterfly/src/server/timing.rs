@@ -34,20 +34,6 @@ impl Default for Timing {
 }
 
 impl Timing {
-    /// Set up a new Timing
-    pub fn new(ping_ms: u64,
-               pingreq_ms: u64,
-               gossip_period_ms: u64,
-               suspicion_timeout_protocol_periods: u64,
-               departure_timeout_ms: u64)
-               -> Timing {
-        Timing { ping_ms,
-                 pingreq_ms,
-                 gossip_period_ms,
-                 suspicion_timeout_protocol_periods,
-                 departure_timeout_ms }
-    }
-
     /// When should this gossip period expire
     pub fn gossip_timeout(&self) -> Instant {
         Instant::now() + Duration::from_millis(self.gossip_period_ms)
