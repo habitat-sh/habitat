@@ -16,11 +16,11 @@ const DEPARTURE_TIMEOUT_DEFAULT_MS: u64 = 259_200_000;
 /// The timing of the outbound threads.
 #[derive(Debug, Clone)]
 pub struct Timing {
-    pub ping_ms: u64,
-    pub pingreq_ms: u64,
-    pub gossip_period_ms: u64,
-    pub suspicion_timeout_protocol_periods: u64,
-    pub departure_timeout_ms: u64,
+    ping_ms: u64,
+    pingreq_ms: u64,
+    gossip_period_ms: u64,
+    suspicion_timeout_protocol_periods: u64,
+    departure_timeout_ms: u64,
 }
 
 impl Default for Timing {
