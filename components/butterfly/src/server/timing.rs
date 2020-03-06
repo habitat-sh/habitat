@@ -1,5 +1,4 @@
-use std::time::{Duration,
-                Instant};
+use std::time::Duration;
 
 /// How long to wait for an Ack after we ping
 const PING_TIMING_DEFAULT_MS: u64 = 1000;
@@ -40,13 +39,11 @@ impl Timing {
     /// How long is a protocol period, in millis.
     pub fn protocol_period_ms(&self) -> u64 { self.ping_ms + self.pingreq_ms }
 
-    /// When should this ping record time out?
-    pub fn ping_timeout(&self) -> Instant { Instant::now() + Duration::from_millis(self.ping_ms) }
+    /// How long a ping has to timeout.
+    pub fn ping(&self) -> Duration { Duration::from_millis(self.ping_ms) }
 
-    /// When should this pingreq timeout?
-    pub fn pingreq_timeout(&self) -> Instant {
-        Instant::now() + Duration::from_millis(self.pingreq_ms)
-    }
+    /// How long a pingreq has to timeout.
+    pub fn pingreq(&self) -> Duration { Duration::from_millis(self.pingreq_ms) }
 
     /// How long before the next scheduled protocol period
     pub fn protocol_period(&self) -> Duration {

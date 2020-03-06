@@ -223,9 +223,10 @@ fn recv_ack_mlw_rhw(server: &Server,
                     ack_from: AckFrom)
                     -> bool {
     let timeout = match ack_from {
-        AckFrom::Ping => timing.ping_timeout(),
-        AckFrom::PingReq => timing.pingreq_timeout(),
+        AckFrom::Ping => timing.ping(),
+        AckFrom::PingReq => timing.pingreq(),
     };
+    let start_time = Instant::now();
     loop {
         match rx_inbound.try_recv() {
             Ok((real_addr, mut ack)) => {
@@ -253,7 +254,7 @@ fn recv_ack_mlw_rhw(server: &Server,
                 }
             }
             Err(mpsc::TryRecvError::Empty) => {
-                if Instant::now() > timeout {
+                if start_time.elapsed() > timeout {
                     warn!("Timed out waiting for Ack from {}@{}", &member.id, addr);
                     return false;
                 }
