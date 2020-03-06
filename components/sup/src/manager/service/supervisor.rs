@@ -109,7 +109,7 @@ impl Supervisor {
             self.change_state(ProcessState::Up);
         } else {
             self.change_state(ProcessState::Down);
-            Self::cleanup_pidfile(self.pid_file.clone());
+            Self::cleanup_pidfile(&self.pid_file);
         }
 
         self.pid.is_some()
@@ -221,7 +221,6 @@ impl Supervisor {
         let service_group = self.service_group.clone();
 
         if let Some(pid) = self.pid {
-            let pid_file = self.pid_file.clone();
             if pid == 0 {
                 warn!(target: "pidfile_tracing", "Cowardly refusing to stop {}, because we think it has a PID of 0, which makes no sense",
                       service_group);
@@ -233,7 +232,7 @@ impl Supervisor {
                     error!(target: "pidfile_tracing", "Failed to to stop service {}", service_group);
                     };
                 });
-                Self::cleanup_pidfile(pid_file);
+                Self::cleanup_pidfile(&self.pid_file);
             }
         } else {
             // Not quite sure how we'd get down here without a PID...
@@ -275,12 +274,12 @@ impl Supervisor {
         Ok(())
     }
 
-    fn cleanup_pidfile(pid_file: PathBuf) {
+    fn cleanup_pidfile(pid_file: impl AsRef<Path>) {
         // TODO (CM): when this pidfile tracing bit has been cleared
         // up, remove these logging targets; they were added just to
         // help with debugging. The overall logging messages can stay,
         // however.
-        debug!(target: "pidfile_tracing", "Attempting to clean up pid file {}", pid_file.display());
+        debug!(target: "pidfile_tracing", "Attempting to clean up pid file {}", pid_file.as_ref().display());
         match std::fs::remove_file(pid_file) {
             Ok(_) => debug!(target: "pidfile_tracing", "Removed pid file"),
             Err(e) => {
