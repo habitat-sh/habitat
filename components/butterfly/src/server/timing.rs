@@ -34,10 +34,8 @@ impl Default for Timing {
 }
 
 impl Timing {
-    /// When should this gossip period expire
-    pub fn gossip_timeout(&self) -> Instant {
-        Instant::now() + Duration::from_millis(self.gossip_period_ms)
-    }
+    /// How long a gossip period should last.
+    pub fn gossip_period(&self) -> Duration { Duration::from_millis(self.gossip_period_ms) }
 
     /// How long is a protocol period, in millis.
     pub fn protocol_period_ms(&self) -> u64 { self.ping_ms + self.pingreq_ms }
@@ -51,8 +49,8 @@ impl Timing {
     }
 
     /// How long before the next scheduled protocol period
-    pub fn next_protocol_period(&self) -> Instant {
-        Instant::now() + Duration::from_millis(self.ping_ms + self.pingreq_ms)
+    pub fn protocol_period(&self) -> Duration {
+        Duration::from_millis(self.ping_ms + self.pingreq_ms)
     }
 
     /// How long before this suspect entry times out

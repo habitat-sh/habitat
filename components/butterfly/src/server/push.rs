@@ -42,9 +42,11 @@ pub fn spawn_thread(name: String, server: Server, timing: Timing) -> std::io::Re
 
 /// Executes the Push thread. Gets a list of members to talk to that are not Confirmed; then
 /// proceeds to process the list in `FANOUT` sized chunks. If we finish sending the messages to
-/// all FANOUT targets faster than `Timing::GOSSIP_PERIOD_DEFAULT_MS`, we will block until we
+/// all FANOUT targets faster than `Timing::gossip_period`, we will block until we
 /// exceed that time.
 fn run_loop(server: &Server, timing: &Timing) -> ! {
+    let gossip_period = timing.gossip_period();
+
     loop {
         liveliness_checker::mark_thread_alive().and_divergent();
 
@@ -56,7 +58,7 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
         server.update_gossip_round();
 
         let mut check_list = server.member_list.check_list_mlr(server.member_id());
-        let long_wait = timing.gossip_timeout();
+        let fanout_loop_start_time = Instant::now();
 
         'fanout: loop {
             let mut thread_list = Vec::with_capacity(FANOUT);
@@ -68,7 +70,7 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
             } else {
                 check_list.len()
             };
-            let next_gossip = timing.gossip_timeout();
+            let gossip_start_time = Instant::now();
             for member in check_list.drain(0..drain_length) {
                 if server.is_member_blocked_sblr(&member.id) {
                     debug!("Not sending rumors to {} - it is blocked", member.id);
@@ -107,18 +109,17 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
                 let _ = guard.join()
                              .map_err(|e| error!("Push worker died: {:?}", e));
             }
-            if Instant::now() < next_gossip {
-                let wait_time = (next_gossip - Instant::now()).as_millis();
-                if wait_time > 0 {
-                    thread::sleep(Duration::from_millis(wait_time as u64));
-                }
+            // If we've still got any time left in the gossip period, sleep
+            // for that long.
+            if let Some(wait_time) = gossip_period.checked_sub(gossip_start_time.elapsed()) {
+                thread::sleep(wait_time);
             }
         }
-        if Instant::now() < long_wait {
-            let wait_time = (long_wait - Instant::now()).as_millis();
-            if wait_time > 0 {
-                thread::sleep(Duration::from_millis(wait_time as u64));
-            }
+
+        // If we've still got any time left in the gossip period, sleep
+        // for that long.
+        if let Some(wait_time) = gossip_period.checked_sub(fanout_loop_start_time.elapsed()) {
+            thread::sleep(wait_time);
         }
     }
 }
