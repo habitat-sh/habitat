@@ -18,7 +18,7 @@ const DEPARTURE_TIMEOUT_DEFAULT_MS: u64 = 259_200_000;
 #[derive(Debug, Clone)]
 pub struct Timing {
     ping: Duration,
-    pingreq_ms: u64,
+    pingreq: Duration,
     gossip_interval_ms: u64,
     suspicion_timeout_protocol_periods: u64,
     departure_timeout_ms: u64,
@@ -27,7 +27,7 @@ pub struct Timing {
 impl Default for Timing {
     fn default() -> Timing {
         Timing { ping: Duration::from_millis(PING_TIMING_DEFAULT_MS),
-                 pingreq_ms: PINGREQ_TIMING_DEFAULT_MS,
+                 pingreq: Duration::from_millis(PINGREQ_TIMING_DEFAULT_MS),
                  gossip_interval_ms: GOSSIP_INTERVAL_DEFAULT_MS,
                  suspicion_timeout_protocol_periods: SUSPICION_TIMEOUT_DEFAULT_PROTOCOL_PERIODS,
                  departure_timeout_ms: DEPARTURE_TIMEOUT_DEFAULT_MS, }
@@ -39,17 +39,17 @@ impl Timing {
     fn gossip_interval(&self) -> Duration { Duration::from_millis(self.gossip_interval_ms) }
 
     /// How long is a protocol period, in millis.
-    pub fn protocol_period_ms(&self) -> u64 { PING_TIMING_DEFAULT_MS + self.pingreq_ms }
+    pub fn protocol_period_ms(&self) -> u64 { PING_TIMING_DEFAULT_MS + PINGREQ_TIMING_DEFAULT_MS }
 
     /// How long a ping has to timeout.
     pub fn ping(&self) -> Duration { self.ping }
 
     /// How long a pingreq has to timeout.
-    pub fn pingreq(&self) -> Duration { Duration::from_millis(self.pingreq_ms) }
+    pub fn pingreq(&self) -> Duration { self.pingreq }
 
     /// How long to space out individual SWIM probe rounds
     fn swim_probe_interval(&self) -> Duration {
-        Duration::from_millis(PING_TIMING_DEFAULT_MS + self.pingreq_ms)
+        Duration::from_millis(PING_TIMING_DEFAULT_MS + PINGREQ_TIMING_DEFAULT_MS)
     }
 
     /// If the amount of time since `starting_point` is less than a
