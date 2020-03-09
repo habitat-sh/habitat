@@ -102,8 +102,9 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
             }
             let num_threads = thread_list.len();
             for guard in thread_list.drain(0..num_threads) {
-                let _ = guard.join()
-                             .map_err(|e| error!("Push worker died: {:?}", e));
+                if let Err(e) = guard.join() {
+                    error!("Push worker died: {:?}", e);
+                }
             }
             // If we've still got any time left in the gossip period, sleep
             // for that long.
