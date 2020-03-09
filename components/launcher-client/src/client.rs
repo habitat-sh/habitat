@@ -117,7 +117,7 @@ impl LauncherCli {
     {
         // If ipc_channel implemented this directly, we wouldn't have
         // to do this :(
-        let timeout = Instant::now() + timeout;
+        let start_time = Instant::now();
         loop {
             match rx.try_recv().map_err(|e| Error::from(*e)) {
                 Ok(bytes) => return Self::read(&bytes),
@@ -129,7 +129,7 @@ impl LauncherCli {
                     return Err(err);
                 }
             }
-            if Instant::now() > timeout {
+            if start_time.elapsed() > timeout {
                 return Err(Error::Timeout);
             }
         }

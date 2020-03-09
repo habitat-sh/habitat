@@ -45,12 +45,13 @@ impl Process {
         if signal(pid_to_kill, Signal::TERM).is_err() {
             return ShutdownMethod::AlreadyExited;
         }
-        let stop_time = Instant::now() + Duration::from_secs(8);
+        let shutdown_timeout = Duration::from_secs(8);
+        let start_time = Instant::now();
         loop {
             if let Ok(Some(_status)) = self.try_wait() {
                 return ShutdownMethod::GracefulTermination;
             }
-            if Instant::now() < stop_time {
+            if start_time.elapsed() < shutdown_timeout {
                 continue;
             }
             // JW TODO: Determine if the error represents a case where the process was already

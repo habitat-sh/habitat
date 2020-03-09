@@ -5,7 +5,6 @@ mod debug;
 pub mod commands;
 mod file_watcher;
 mod peer_watcher;
-mod periodic;
 mod self_updater;
 mod service_updater;
 mod spec_dir;

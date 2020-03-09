@@ -1,5 +1,4 @@
-use std::time::{Duration,
-                Instant};
+use std::time::Duration;
 
 /// How long to wait for an Ack after we ping
 const PING_TIMING_DEFAULT_MS: u64 = 1000;
@@ -16,11 +15,11 @@ const DEPARTURE_TIMEOUT_DEFAULT_MS: u64 = 259_200_000;
 /// The timing of the outbound threads.
 #[derive(Debug, Clone)]
 pub struct Timing {
-    pub ping_ms: u64,
-    pub pingreq_ms: u64,
-    pub gossip_period_ms: u64,
-    pub suspicion_timeout_protocol_periods: u64,
-    pub departure_timeout_ms: u64,
+    ping_ms: u64,
+    pingreq_ms: u64,
+    gossip_period_ms: u64,
+    suspicion_timeout_protocol_periods: u64,
+    departure_timeout_ms: u64,
 }
 
 impl Default for Timing {
@@ -34,39 +33,21 @@ impl Default for Timing {
 }
 
 impl Timing {
-    /// Set up a new Timing
-    pub fn new(ping_ms: u64,
-               pingreq_ms: u64,
-               gossip_period_ms: u64,
-               suspicion_timeout_protocol_periods: u64,
-               departure_timeout_ms: u64)
-               -> Timing {
-        Timing { ping_ms,
-                 pingreq_ms,
-                 gossip_period_ms,
-                 suspicion_timeout_protocol_periods,
-                 departure_timeout_ms }
-    }
-
-    /// When should this gossip period expire
-    pub fn gossip_timeout(&self) -> Instant {
-        Instant::now() + Duration::from_millis(self.gossip_period_ms)
-    }
+    /// How long a gossip period should last.
+    pub fn gossip_period(&self) -> Duration { Duration::from_millis(self.gossip_period_ms) }
 
     /// How long is a protocol period, in millis.
     pub fn protocol_period_ms(&self) -> u64 { self.ping_ms + self.pingreq_ms }
 
-    /// When should this ping record time out?
-    pub fn ping_timeout(&self) -> Instant { Instant::now() + Duration::from_millis(self.ping_ms) }
+    /// How long a ping has to timeout.
+    pub fn ping(&self) -> Duration { Duration::from_millis(self.ping_ms) }
 
-    /// When should this pingreq timeout?
-    pub fn pingreq_timeout(&self) -> Instant {
-        Instant::now() + Duration::from_millis(self.pingreq_ms)
-    }
+    /// How long a pingreq has to timeout.
+    pub fn pingreq(&self) -> Duration { Duration::from_millis(self.pingreq_ms) }
 
     /// How long before the next scheduled protocol period
-    pub fn next_protocol_period(&self) -> Instant {
-        Instant::now() + Duration::from_millis(self.ping_ms + self.pingreq_ms)
+    pub fn protocol_period(&self) -> Duration {
+        Duration::from_millis(self.ping_ms + self.pingreq_ms)
     }
 
     /// How long before this suspect entry times out

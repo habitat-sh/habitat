@@ -60,9 +60,10 @@ impl Process {
                    io::Error::last_os_error());
         }
 
-        let stop_time = Instant::now() + Duration::from_secs(8);
+        let shutdown_timeout = Duration::from_secs(8);
+        let start_time = Instant::now();
         loop {
-            if ret == 0 || Instant::now() > stop_time {
+            if ret == 0 || start_time.elapsed() > shutdown_timeout {
                 let proc_table = build_proc_table();
                 terminate_process_descendants(&proc_table, self.id());
                 return ShutdownMethod::Killed;

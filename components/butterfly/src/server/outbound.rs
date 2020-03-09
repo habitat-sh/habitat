@@ -82,6 +82,7 @@ pub fn spawn_thread(name: String,
 /// period to finish before starting the next probe.
 fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timing: &Timing) -> ! {
     let mut have_members = false;
+    let protocol_period = timing.protocol_period();
     loop {
         liveliness_checker::mark_thread_alive().and_divergent();
 
@@ -113,34 +114,28 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
 
         server.update_swim_round();
 
-        let long_wait = timing.next_protocol_period();
+        let probe_iteration_start = Instant::now();
 
         let check_list = server.member_list.check_list_mlr(&server.member_id);
 
         for member in check_list {
             if server.member_list.pingable_mlr(&member) {
-                // This is the timeout for the next protocol period - if we
-                // complete faster than this, we want to wait in the end
-                // until this timer expires.
-                let next_protocol_period = timing.next_protocol_period();
+                // If we complete the probe faster than our protocol
+                // period, we'll want to wait after we finish.
+                let protocol_period_start_time = Instant::now();
 
                 probe_mlw_smr_rhw(&server, &socket, &rx_inbound, &timing, member);
 
-                if Instant::now() <= next_protocol_period {
-                    let wait_time = (next_protocol_period - Instant::now()).as_millis();
-                    if wait_time > 0 {
-                        debug!("Waiting {} until the next protocol period", wait_time);
-                        thread::sleep(Duration::from_millis(wait_time as u64));
-                    }
+                if let Some(wait_time) =
+                    protocol_period.checked_sub(protocol_period_start_time.elapsed())
+                {
+                    thread::sleep(wait_time);
                 }
             }
         }
 
-        if Instant::now() <= long_wait {
-            let wait_time = (long_wait - Instant::now()).as_millis();
-            if wait_time > 0 {
-                thread::sleep(Duration::from_millis(wait_time as u64));
-            }
+        if let Some(wait_time) = protocol_period.checked_sub(probe_iteration_start.elapsed()) {
+            thread::sleep(wait_time);
         }
     }
 }
@@ -228,9 +223,10 @@ fn recv_ack_mlw_rhw(server: &Server,
                     ack_from: AckFrom)
                     -> bool {
     let timeout = match ack_from {
-        AckFrom::Ping => timing.ping_timeout(),
-        AckFrom::PingReq => timing.pingreq_timeout(),
+        AckFrom::Ping => timing.ping(),
+        AckFrom::PingReq => timing.pingreq(),
     };
+    let start_time = Instant::now();
     loop {
         match rx_inbound.try_recv() {
             Ok((real_addr, mut ack)) => {
@@ -258,7 +254,7 @@ fn recv_ack_mlw_rhw(server: &Server,
                 }
             }
             Err(mpsc::TryRecvError::Empty) => {
-                if Instant::now() > timeout {
+                if start_time.elapsed() > timeout {
                     warn!("Timed out waiting for Ack from {}@{}", &member.id, addr);
                     return false;
                 }
