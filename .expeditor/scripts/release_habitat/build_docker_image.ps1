@@ -60,8 +60,10 @@ try {
         Write-Error "core/hab-studio must be installed, aborting"
     }
 
+    # We do this to ensure that these artifacts don't erroneously end
+    # up in the image!
     Write-Host "Purging container hab cache"
-    Remove-Item "$env:FS_ROOT/hab/cache" -Recurse -Force
+    Remove-Item "$env:FS_ROOT/hab/cache" -Recurse -Force -ErrorAction SilentlyContinue
 
     $pathParts = $studioPath.Replace("\", "/").Split("/")
     $ident = [String]::Join("/", $pathParts[-4..-1])
