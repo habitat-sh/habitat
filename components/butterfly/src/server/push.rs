@@ -45,8 +45,6 @@ pub fn spawn_thread(name: String, server: Server, timing: Timing) -> std::io::Re
 /// all FANOUT targets faster than `Timing::gossip_period`, we will block until we
 /// exceed that time.
 fn run_loop(server: &Server, timing: &Timing) -> ! {
-    let gossip_period = timing.gossip_period();
-
     loop {
         liveliness_checker::mark_thread_alive().and_divergent();
 
@@ -107,16 +105,30 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
             }
             // If we've still got any time left in the gossip period, sleep
             // for that long.
-            if let Some(wait_time) = gossip_period.checked_sub(gossip_start_time.elapsed()) {
-                thread::sleep(wait_time);
-            }
+            timing.sleep_for_remaining_gossip_interval(gossip_start_time);
         }
 
-        // If we've still got any time left in the gossip period, sleep
+        // If we've still got any time left in the gossip interval, sleep
         // for that long.
-        if let Some(wait_time) = gossip_period.checked_sub(fanout_loop_start_time.elapsed()) {
-            thread::sleep(wait_time);
-        }
+        //
+        // This will only come into play if:
+        //
+        //   * there was nothing in `check_list`
+        //   * everything in `check_list` was blocked
+        //   * nothing in `check_list` was pingable,
+        //   * everything in check_list was persistent and also confirmed gone
+        //   * nothing in `check_list` had any "hot" rumors
+        //   * we couldn't spawn a worker thread for anything in `check_list`
+        //
+        // Basically, if we were able to successfully send rumors to
+        // *anything* in the loop, we would have already waited for at
+        // least this long, so this sleep would then be meaningless
+        // and would effectively be skipped.
+        //
+        // This sleep basically ensures that each sending of rumors is
+        // approximately evenly spaced. Were this to be refactored to
+        // something like futures, it might not be required anymore.
+        timing.sleep_for_remaining_gossip_interval(fanout_loop_start_time);
     }
 }
 
