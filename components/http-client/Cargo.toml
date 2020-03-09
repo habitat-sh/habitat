@@ -11,8 +11,8 @@ base64 = "*"
 log = "*"
 native-tls = "*"
 httparse = "*"
-reqwest = { version = "*", features = ["blocking", "json", "stream"] } 
-env_proxy = "*"
+reqwest = { version = "*", features = ["blocking", "json", "stream"] }
+env_proxy = { git = "https://github.com/inejge/env_proxy.git" }
 serde = "*"
 serde_json = "*"
 url = "*"
