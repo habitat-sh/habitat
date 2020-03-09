@@ -6,6 +6,7 @@ use habitat_core::{os::process::ShutdownTimeout,
                    package::PackageIdent,
                    service::{HealthCheckInterval,
                              ServiceGroup}};
+use habitat_sup_protocol::types::UpdateCondition;
 use structopt::StructOpt;
 
 /// Commands relating to Habitat services
@@ -41,6 +42,21 @@ pub enum Svc {
         // "rolling"]
         #[structopt(name = "STRATEGY", long = "strategy", short = "s")]
         strategy:              Option<habitat_sup_protocol::types::UpdateStrategy>,
+        /// The condition dictating when this service should update
+        ///
+        /// latest: Runs the latest package that can be found in the configured channel and local
+        /// packages.
+        ///
+        /// track-channel: Always run what is at the head of a given channel. This enables service
+        /// rollback where demoting a package from a channel will cause the package to rollback to
+        /// an older version of the package. A ramification of enabling this condition is packages
+        /// newer than the package at the head of the channel will be automatically uninstalled
+        /// during a service rollback.
+        #[structopt(name = "UPDATE_CONDITION",
+                    long = "update-condition",
+                    default_value = UpdateCondition::Latest.as_str(),
+                    possible_values = UpdateCondition::VARIANTS)]
+        update_condition:      UpdateCondition,
         /// One or more service groups to bind to a configuration
         #[structopt(name = "BIND", long = "bind")]
         bind:                  Vec<String>,

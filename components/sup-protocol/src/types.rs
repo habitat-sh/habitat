@@ -323,6 +323,35 @@ impl fmt::Display for UpdateStrategy {
 
 impl ConfigOptToString for UpdateStrategy {}
 
+impl UpdateCondition {
+    pub const VARIANTS: &'static [&'static str] = &["latest", "track-channel"];
+
+    pub fn as_str(&self) -> &str {
+        match *self {
+            UpdateCondition::Latest => "latest",
+            UpdateCondition::TrackChannel => "track-channel",
+        }
+    }
+}
+
+impl FromStr for UpdateCondition {
+    type Err = NetErr;
+
+    fn from_str(strategy: &str) -> Result<Self, Self::Err> {
+        match strategy {
+            "latest" => Ok(UpdateCondition::Latest),
+            "track-channel" => Ok(UpdateCondition::TrackChannel),
+            _ => Err(net::err(ErrCode::InvalidPayload, "Invalid update condition.")),
+        }
+    }
+}
+
+impl fmt::Display for UpdateCondition {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
+}
+
+impl ConfigOptToString for UpdateCondition {}
+
 #[cfg(test)]
 mod test {
     use toml;

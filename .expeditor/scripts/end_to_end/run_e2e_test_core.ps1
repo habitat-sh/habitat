@@ -95,7 +95,7 @@ function Wait-SupervisorService($ServiceName, $Timeout = ($DefaultServiceTimeout
     Write-Host "$ServiceName is now up."
 }
 
-function Load-SupervisorService($PackageName, $Timeout = ($DefaultServiceTimeout), $Remote, $Bind, $Channel, $Topology, $Strategy, $HealthCheckInterval) {
+function Load-SupervisorService($PackageName, $Timeout = ($DefaultServiceTimeout), $Remote, $Bind, $Channel, $Topology, $Strategy, $UpdateCondition, $HealthCheckInterval) {
     $svcName = ($PackageName -split "/")[1]
     $commandArgs = @("hab", "svc", "load", $PackageName)
     if($BuilderUrl) {
@@ -115,6 +115,9 @@ function Load-SupervisorService($PackageName, $Timeout = ($DefaultServiceTimeout
     }
     if($Strategy) {
         $commandArgs += @("--strategy", $Strategy)
+    }
+    if($UpdateCondition) {
+        $commandArgs += @("--update-condition", $UpdateCondition)
     }
     if($HealthCheckInterval) {
         $commandArgs += @("--health-check-interval", $HealthCheckInterval)

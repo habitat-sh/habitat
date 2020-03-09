@@ -55,6 +55,7 @@ use habitat_sup_protocol::{self as sup_proto,
                            types::{BindingMode,
                                    ServiceBind,
                                    Topology,
+                                   UpdateCondition,
                                    UpdateStrategy}};
 use std::{env,
           io::{self,
@@ -418,6 +419,11 @@ fn get_strategy_from_input(m: &ArgMatches) -> Option<UpdateStrategy> {
      .and_then(|f| UpdateStrategy::from_str(f).ok())
 }
 
+fn get_update_condition_from_input(m: &ArgMatches<'_>) -> Option<UpdateCondition> {
+    m.value_of("UPDATE_CONDITION")
+     .and_then(|f| UpdateCondition::from_str(f).ok())
+}
+
 fn get_binds_from_input(m: &ArgMatches) -> Result<Option<ServiceBindList>> {
     match m.values_of("BIND") {
         Some(bind_strs) => {
@@ -506,6 +512,7 @@ fn svc_load_from_input(m: &ArgMatches) -> Result<sup_proto::ctl::SvcLoad> {
     msg.binding_mode = get_binding_mode_from_input(m).map(|v| v as i32);
     msg.topology = get_topology_from_input(m).map(|v| v as i32);
     msg.update_strategy = get_strategy_from_input(m).map(|v| v as i32);
+    msg.update_condition = get_update_condition_from_input(m).map(|v| v as i32);
     msg.shutdown_timeout =
         parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
     Ok(msg)

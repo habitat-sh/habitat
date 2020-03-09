@@ -94,7 +94,7 @@ impl ServiceUpdater {
             let new_ident = package_update_worker.update().await;
             debug!("'{}' at-once updater found update from '{}' to '{}'",
                    service_group, full_ident, new_ident);
-            outputln!("Updating from {} to {}", full_ident, new_ident);
+            Self::update_message(&new_ident, full_ident.as_ref());
             updates.lock().insert(service_group, new_ident);
         }
     }
@@ -114,8 +114,16 @@ impl ServiceUpdater {
             let new_ident = worker.run().await;
             debug!("'{}' rolling updater found update from '{}' to '{}'",
                    service_group, full_ident, new_ident);
-            outputln!("Updating from {} to {}", full_ident, new_ident);
+            Self::update_message(&new_ident, full_ident.as_ref());
             updates.lock().insert(service_group, new_ident);
+        }
+    }
+
+    fn update_message(new_ident: &PackageIdent, current_ident: &PackageIdent) {
+        if new_ident > current_ident {
+            outputln!("Updating from {} to {}", current_ident, new_ident);
+        } else {
+            outputln!("Rolling back from {} to {}", current_ident, new_ident);
         }
     }
 

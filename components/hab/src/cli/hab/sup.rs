@@ -18,6 +18,10 @@ use habitat_core::{env::Config,
                    package::PackageIdent,
                    service::HealthCheckInterval,
                    util::serde_string};
+use habitat_sup_protocol::types::{BindingMode,
+                                  Topology,
+                                  UpdateCondition,
+                                  UpdateStrategy};
 use rants::{error::Error as RantsError,
             Address as NatsAddress};
 use std::{fmt,
@@ -236,12 +240,27 @@ pub struct SupRun {
                 long = "topology",
                 short = "t",
                 possible_values = &["standalone", "leader"])]
-    topology: Option<habitat_sup_protocol::types::Topology>,
+    topology: Option<Topology>,
     /// The update strategy; [default: none] [values: none, at-once, rolling]
     // TODO (DM): this should set a default_value and use possible_values = &["none", "at-once",
     // "rolling"]
     #[structopt(name = "STRATEGY", long = "strategy", short = "s")]
-    strategy: Option<habitat_sup_protocol::types::UpdateStrategy>,
+    strategy: Option<UpdateStrategy>,
+    /// The condition dictating when this service should update
+    ///
+    /// latest: Runs the latest package that can be found in the configured channel and local
+    /// packages.
+    ///
+    /// track-channel: Always run what is at the head of a given channel. This enables service
+    /// rollback where demoting a package from a channel will cause the package to rollback to
+    /// an older version of the package. A ramification of enabling this condition is packages
+    /// newer than the package at the head of the channel will be automatically uninstalled
+    /// during a service rollback.
+    #[structopt(name = "UPDATE_CONDITION",
+                long = "update-condition",
+                default_value = UpdateCondition::Latest.as_str(),
+                possible_values = UpdateCondition::VARIANTS)]
+    update_condition: UpdateCondition,
     /// One or more service groups to bind to a configuration
     #[structopt(name = "BIND", long = "bind")]
     bind: Vec<String>,
@@ -249,7 +268,7 @@ pub struct SupRun {
     /// startup until all binds are present. [default: strict] [values: relaxed, strict]
     // TODO (DM): This should set default_value and use possible_values
     #[structopt(name = "BINDING_MODE", long = "binding-mode")]
-    binding_mode: Option<habitat_sup_protocol::types::BindingMode>,
+    binding_mode: Option<BindingMode>,
     /// Verbose output; shows file and line/column numbers
     #[structopt(name = "VERBOSE", short = "v")]
     verbose: bool,

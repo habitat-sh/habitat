@@ -100,6 +100,8 @@ message SvcLoad {
   optional sup.types.HealthCheckInterval health_check_interval = 15;
   // The shutdown timeout for the service.
   optional uint32 shutdown_timeout = 16;
+  // Update condition for the service.
+  optional sup.types.UpdateCondition update_condition = 17;
 }
 
 // Request to unload a loaded service.

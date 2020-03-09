@@ -17,15 +17,13 @@ use hab::{cli::{self,
                     pkg::{download::{PackageSet,
                                      PackageSetFile},
                           list::ListingType}},
-          config::{self,
-                   Config},
+          config,
           error::{Error,
                   Result},
           license,
           scaffolding,
           AUTH_TOKEN_ENVVAR,
           BLDR_URL_ENVVAR,
-          CTL_SECRET_ENVVAR,
           ORIGIN_ENVVAR,
           PRODUCT,
           VERSION};
@@ -55,8 +53,7 @@ use habitat_core::{crypto::{init,
                             SigKeyPair},
                    env::{self as henv,
                          Config as _},
-                   fs::{cache_artifact_path,
-                        launcher_root_path},
+                   fs::cache_artifact_path,
                    os::process::ShutdownTimeout,
                    package::{target,
                              PackageIdent,
@@ -732,15 +729,7 @@ async fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     };
     let excludes = excludes_from_matches(&m);
 
-    let services = supervisor_services().await?;
-
-    command::pkg::uninstall::start(ui,
-                                   &ident,
-                                   &*FS_ROOT,
-                                   execute_strategy,
-                                   scope,
-                                   &excludes,
-                                   &services)
+    command::pkg::uninstall::start(ui, &ident, &*FS_ROOT, execute_strategy, scope, &excludes).await
 }
 
 async fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -1117,7 +1106,7 @@ async fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    let secret_key = ctl_secret_key(&cfg)?;
+    let secret_key = config::ctl_secret_key(&cfg)?;
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let mut ui = ui();
     let mut validate = sup_proto::ctl::SvcValidateCfg::default();
@@ -1203,7 +1192,7 @@ async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    let secret_key = ctl_secret_key(&cfg)?;
+    let secret_key = config::ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcGetDefaultCfg::default();
     msg.ident = Some(ident.into());
     let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
@@ -1228,7 +1217,7 @@ async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
 async fn sub_svc_load(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    let secret_key = ctl_secret_key(&cfg)?;
+    let secret_key = config::ctl_secret_key(&cfg)?;
     let mut msg = svc_load_from_input(m)?;
     let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
     msg.ident = Some(ident.into());
@@ -1244,7 +1233,7 @@ async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    let secret_key = ctl_secret_key(&cfg)?;
+    let secret_key = config::ctl_secret_key(&cfg)?;
     let timeout_in_seconds =
         parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
 
@@ -1262,7 +1251,7 @@ async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    let secret_key = ctl_secret_key(&cfg)?;
+    let secret_key = config::ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcStart::default();
     msg.ident = Some(ident.into());
     let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
@@ -1276,7 +1265,7 @@ async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
 async fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    let secret_key = ctl_secret_key(&cfg)?;
+    let secret_key = config::ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcStatus::default();
     if let Some(pkg) = m.value_of("PKG_IDENT") {
         msg.ident = Some(PackageIdent::from_str(pkg)?.into());
@@ -1303,7 +1292,7 @@ async fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    let secret_key = ctl_secret_key(&cfg)?;
+    let secret_key = config::ctl_secret_key(&cfg)?;
     let timeout_in_seconds =
         parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
 
@@ -1321,7 +1310,7 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    let secret_key = ctl_secret_key(&cfg)?;
+    let secret_key = config::ctl_secret_key(&cfg)?;
     let mut ui = ui();
     let mut msg = sup_proto::ctl::SvcFilePut::default();
     let file = Path::new(m.value_of("FILE").unwrap());
@@ -1387,7 +1376,7 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
 async fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    let secret_key = ctl_secret_key(&cfg)?;
+    let secret_key = config::ctl_secret_key(&cfg)?;
     let mut ui = ui();
     let mut msg = sup_proto::ctl::SupDepart::default();
     msg.member_id = Some(m.value_of("MEMBER_ID").unwrap().to_string());
@@ -1555,20 +1544,6 @@ fn auth_token_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
                 )
                                               })
                 }
-            }
-        }
-    }
-}
-
-/// Check if the HAB_CTL_SECRET env var. If not, check the CLI config to see if there is a ctl
-/// secret set and return a copy of that value.
-fn ctl_secret_key(config: &Config) -> Result<String> {
-    match henv::var(CTL_SECRET_ENVVAR) {
-        Ok(v) => Ok(v),
-        Err(_) => {
-            match config.ctl_secret {
-                Some(ref v) => Ok(v.to_string()),
-                None => SrvClient::read_secret_key().map_err(Error::from),
             }
         }
     }
@@ -1902,49 +1877,6 @@ fn print_svc_status<T>(out: &mut T,
     Ok(())
 }
 
-/// Check if we have a launcher/supervisor running out of this habitat root.
-/// If the launcher PID file exists then the supervisor is up and running
-fn launcher_is_running(fs_root_path: &Path) -> bool {
-    let launcher_root = launcher_root_path(Some(fs_root_path));
-    let pid_file_path = launcher_root.join("PID");
-
-    pid_file_path.is_file()
-}
-
-async fn supervisor_services() -> Result<Vec<PackageIdent>> {
-    if !launcher_is_running(&*FS_ROOT) {
-        return Ok(vec![]);
-    }
-
-    let cfg = config::load()?;
-    let secret_key = ctl_secret_key(&cfg)?;
-    let listen_ctl_addr = ListenCtlAddr::default();
-    let msg = sup_proto::ctl::SvcStatus::default();
-
-    let mut out: Vec<PackageIdent> = vec![];
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
-    while let Some(message_result) = response.next().await {
-        let reply = message_result?;
-        match reply.message_id() {
-            "ServiceStatus" => {
-                let m = reply.parse::<sup_proto::types::ServiceStatus>()
-                             .map_err(SrvClientError::Decode)?;
-                out.push(m.ident.into());
-            }
-            "NetOk" => (),
-            "NetErr" => {
-                let err = reply.parse::<sup_proto::net::NetErr>()
-                               .map_err(SrvClientError::Decode)?;
-                return Err(SrvClientError::from(err).into());
-            }
-            _ => {
-                warn!("Unexpected status message, {:?}", reply);
-            }
-        }
-    }
-    Ok(out)
-}
-
 fn bulkupload_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
     matches.value_of("UPLOAD_DIRECTORY")
            .map(PathBuf::from)
@@ -2010,6 +1942,11 @@ fn get_topology_from_input(m: &ArgMatches<'_>) -> Option<Topology> {
 fn get_strategy_from_input(m: &ArgMatches<'_>) -> Option<UpdateStrategy> {
     m.value_of("STRATEGY")
      .and_then(|f| UpdateStrategy::from_str(f).ok())
+}
+
+fn get_update_condition_from_input(m: &ArgMatches<'_>) -> Option<UpdateCondition> {
+    m.value_of("UPDATE_CONDITION")
+     .and_then(|f| UpdateCondition::from_str(f).ok())
 }
 
 fn listen_ctl_addr_from_input(m: &ArgMatches<'_>) -> Result<ListenCtlAddr> {
@@ -2090,6 +2027,7 @@ fn svc_load_from_input(m: &ArgMatches) -> Result<sup_proto::ctl::SvcLoad> {
     msg.binding_mode = get_binding_mode_from_input(m).map(|v| v as i32);
     msg.topology = get_topology_from_input(m).map(|v| v as i32);
     msg.update_strategy = get_strategy_from_input(m).map(|v| v as i32);
+    msg.update_condition = get_update_condition_from_input(m).map(|v| v as i32);
     msg.shutdown_timeout =
         parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
     Ok(msg)

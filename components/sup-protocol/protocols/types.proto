@@ -34,6 +34,11 @@ enum UpdateStrategy {
   Rolling = 2;
 }
 
+enum UpdateCondition {
+  Latest = 0;
+  TrackChannel = 1;
+}
+
 enum BindingMode {
   // Services may start whether binds are available or not
   Relaxed = 0;

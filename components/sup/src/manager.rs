@@ -40,6 +40,7 @@ use crate::{census::{CensusRing,
             event::{self,
                     EventStreamConfig},
             http_gateway,
+            util::pkg,
             VERSION};
 use cpu_time::ProcessTime;
 use futures::{channel::{mpsc as fut_mpsc,
@@ -77,7 +78,8 @@ use habitat_core::{crypto::SymKey,
 use habitat_launcher_client::{LauncherCli,
                               LAUNCHER_LOCK_CLEAN_ENV,
                               LAUNCHER_PID_ENV};
-use habitat_sup_protocol;
+use habitat_sup_protocol::{self,
+                           types::UpdateCondition};
 use parking_lot::{Mutex,
                   RwLock};
 use prometheus::{HistogramVec,
@@ -1090,18 +1092,7 @@ impl Manager {
             self.update_running_services_from_user_config_watcher_msw();
 
             // Restart all services that need it
-            // TODO (CM): In the future, when service start up is
-            // future-based, we'll want to have an actual "restart"
-            // future, that queues up the start future after the stop
-            // future.
-            //
-            // Until then, we will just stop the services, and rely on the
-            // our specfile reconciliation logic to catch the fact that
-            // the service needs to be restarted. At that point, this function
-            // can be renamed; right now, it says exactly what it's doing.
-            for service in self.take_services_need_restart_rsw_mlr_rhw_msw() {
-                tokio::spawn(self.stop_service_future_gsw(service, None));
-            }
+            self.restart_services_rsw_mlr_rhw_msw();
 
             self.restart_elections_rsw_mlr_rhw_msr(self.feature_flags);
             self.census_ring
@@ -1178,7 +1169,8 @@ impl Manager {
                                                     .lock_msw()
                                                     .drain_services()
                                                     .map(|svc| {
-                                                        self.stop_service_future_gsw(svc, None)
+                                                        self.stop_service_future_gsw(svc, None,
+                                                                                     None)
                                                     }));
                 // Wait while all services are stopped
                 service_stop_futures.collect::<Vec<_>>().await;
@@ -1201,39 +1193,54 @@ impl Manager {
         None
     }
 
-    /// Return the Services that currently have a newer package in
-    /// Builder. These are removed from the internal `services` vec
-    /// for further transformation into futures.
+    /// Restart the Services that have an update or have set their `needs_restart` flag set.
     ///
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (write)
-    fn take_services_need_restart_rsw_mlr_rhw_msw(&mut self) -> Vec<Service> {
+    fn restart_services_rsw_mlr_rhw_msw(&mut self) {
         let service_updater = self.service_updater.lock();
 
         let mut state_services = self.state.services.lock_msw();
-        let mut idents_to_restart = Vec::new();
-        for (current_ident, service) in state_services.iter() {
-            if service.needs_restart {
-                idents_to_restart.push(current_ident.clone());
-            } else if let Some(new_ident) = service_updater.has_update(&service.service_group) {
-                outputln!("Updating from {} to {}", current_ident, new_ident);
+        let mut idents_to_restart_and_latest_desired_on_restart = Vec::new();
+        for (ident, service) in state_services.iter() {
+            if let Some(new_ident) = service_updater.has_update(&service.service_group) {
+                outputln!("Restarting {} with package {}", ident, new_ident);
                 event::service_update_started(&service, &new_ident);
-                idents_to_restart.push(current_ident.clone());
+                // If we are using the track channel update condition, we potentially want to
+                // dictate the latest desired package after the restart.
+                let latest_desired_on_restart =
+                    if let UpdateCondition::TrackChannel = service.update_condition {
+                        Some(new_ident)
+                    } else {
+                        None
+                    };
+                idents_to_restart_and_latest_desired_on_restart.push((ident.clone(),
+                                                                      latest_desired_on_restart));
+            } else if service.needs_restart {
+                idents_to_restart_and_latest_desired_on_restart.push((ident.clone(), None));
             } else {
-                trace!("No restart required for {}", current_ident);
+                trace!("No restart required for {}", ident);
             };
         }
 
-        let mut services_to_restart = Vec::with_capacity(idents_to_restart.len());
-        for current_ident in idents_to_restart {
+        for (ident, latest_desired_on_restart) in idents_to_restart_and_latest_desired_on_restart {
             // unwrap is safe because we've to the write lock, and we
             // know there's a value present at this key.
-            services_to_restart.push(state_services.remove(&current_ident).unwrap());
+            let service = state_services.remove(&ident).unwrap();
+            // TODO (CM): In the future, when service start up is
+            // future-based, we'll want to have an actual "restart"
+            // future, that queues up the start future after the stop
+            // future.
+            //
+            // Until then, we will just stop the services, and rely on the
+            // our specfile reconciliation logic to catch the fact that
+            // the service needs to be restarted. At that point, this function
+            // can be renamed; right now, it says exactly what it's doing.
+            tokio::spawn(self.stop_service_future_gsw(service, latest_desired_on_restart, None));
         }
-        services_to_restart
     }
 
     // Creates a rumor for the specified service.
@@ -1389,7 +1396,7 @@ impl Manager {
     /// * `ManagerServices::inner` (write)
     fn stop_service_gsw_msw(&mut self, ident: &PackageIdent, shutdown_input: &ShutdownInput) {
         if let Some(service) = self.remove_service_from_state_msw(&ident) {
-            let future = self.stop_service_future_gsw(service, Some(shutdown_input));
+            let future = self.stop_service_future_gsw(service, None, Some(shutdown_input));
             tokio::spawn(future);
         } else {
             warn!("Tried to stop '{}', but couldn't find it in our list of running services!",
@@ -1399,11 +1406,12 @@ impl Manager {
 
     /// Create a future for stopping a Service removing it from the manager. The Service is assumed
     /// to have been removed from the internal list of active services already (see, e.g.,
-    /// take_services_with_updates and remove_service_from_state).
+    /// restart_services_rsw_mlr_rhw_msw and remove_service_from_state).
     /// # Locking for the returned Future (see locking.md)
     /// * `GatewayState::inner` (write)
     fn stop_service_future_gsw(&self,
                                mut service: Service,
+                               latest_desired_on_restart: Option<PackageIdent>,
                                shutdown_input: Option<&ShutdownInput>)
                                -> impl Future<Output = ()> {
         let mut user_config_watcher = self.user_config_watcher.clone();
@@ -1421,11 +1429,37 @@ impl Manager {
             event::service_stopped(&service);
             user_config_watcher.remove(&service);
             service_updater.lock().remove(&service.service_group);
+            if let Some(latest_desired_ident) = latest_desired_on_restart {
+                Self::remove_newer_packages(&service.spec_ident, &latest_desired_ident).await;
+            }
         };
         Self::wrap_async_service_operation(ident,
                                            busy_services,
                                            services_need_reconciliation,
                                            stop_it)
+    }
+
+    /// Remove packages that are newer than the specified ident.
+    ///
+    /// This can be used to guarantee that when a service restarts it starts with the desired
+    /// package.
+    async fn remove_newer_packages(install_ident: &PackageIdent,
+                                   latest_desired_ident: &PackageIdent) {
+        while let Some(latest_installed) = pkg::installed(install_ident) {
+            let latest_ident = latest_installed.ident;
+            if latest_ident > *latest_desired_ident {
+                info!("Uninstalling '{}' inorder to ensure '{}' is the latest installed package",
+                      latest_ident, latest_desired_ident);
+                if let Err(e) = pkg::uninstall(&latest_ident).await {
+                    error!("Failed to uninstall '{}' unable to ensure '{}' is the latest \
+                            installed package. On restart, service will start with the wrong \
+                            package. err: {}",
+                           latest_ident, latest_desired_ident, e);
+                }
+            } else {
+                break;
+            }
+        }
     }
 
     fn remove_spec_file(&self, ident: &PackageIdent) -> std::io::Result<()> {
@@ -1529,7 +1563,7 @@ impl Manager {
                     // onto the end of the stop one for a *real*
                     // restart future.
                     if let Some(service) = self.remove_service_from_state_msw(&spec.ident) {
-                        tokio::spawn(self.stop_service_future_gsw(service, None));
+                        tokio::spawn(self.stop_service_future_gsw(service, None, None));
                     } else {
                         // We really don't expect this to happen....
                         outputln!("Tried to remove service for {} but could not find it running, \

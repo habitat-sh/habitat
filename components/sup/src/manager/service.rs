@@ -75,6 +75,7 @@ use habitat_launcher_client::LauncherCli;
 use habitat_sup_protocol::types::BindingMode;
 pub use habitat_sup_protocol::types::{ProcessState,
                                       Topology,
+                                      UpdateCondition,
                                       UpdateStrategy};
 use parking_lot::RwLock;
 use prometheus::{HistogramTimer,
@@ -181,6 +182,7 @@ pub struct Service {
     pub spec_ident:          PackageIdent,
     pub topology:            Topology,
     pub update_strategy:     UpdateStrategy,
+    pub update_condition:    UpdateCondition,
     pub cfg:                 Cfg,
     pub pkg:                 Pkg,
     pub sys:                 Arc<Sys>,
@@ -295,6 +297,7 @@ impl Service {
                      spec_file,
                      topology: spec.topology,
                      update_strategy: spec.update_strategy,
+                     update_condition: spec.update_condition,
                      config_from: spec.config_from,
                      svc_encrypted_password: spec.svc_encrypted_password,
                      health_check_interval: spec.health_check_interval,
@@ -604,6 +607,7 @@ impl Service {
         spec.channel = self.channel.clone();
         spec.topology = self.topology;
         spec.update_strategy = self.update_strategy;
+        spec.update_condition = self.update_condition;
         spec.binds = self.binds.clone();
         spec.binding_mode = self.binding_mode;
         spec.config_from = self.config_from.clone();
@@ -1271,6 +1275,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("sys", &s.sys)?;
         strukt.serialize_field("topology", &s.topology)?;
         strukt.serialize_field("update_strategy", &s.update_strategy)?;
+        strukt.serialize_field("update_condition", &s.update_condition)?;
         strukt.serialize_field("user_config_updated", &s.user_config_updated)?;
         strukt.end()
     }

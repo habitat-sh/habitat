@@ -5,6 +5,7 @@ use habitat_core::{env,
                              PackageIdent},
                    service::ServiceGroup,
                    ChannelIdent};
+use habitat_sup_protocol::types::UpdateCondition;
 use std::{self,
           time::Duration};
 use tokio::{self,
@@ -42,20 +43,22 @@ impl PackageUpdateWorkerPeriod {
 /// version of the package being run by a service. If a change is detected, the package is installed
 /// and its identifier returned.
 pub struct PackageUpdateWorker {
-    service_group: ServiceGroup,
-    ident:         PackageIdent,
-    full_ident:    FullyQualifiedPackageIdent,
-    channel:       ChannelIdent,
-    builder_url:   String,
+    service_group:    ServiceGroup,
+    ident:            PackageIdent,
+    full_ident:       FullyQualifiedPackageIdent,
+    update_condition: UpdateCondition,
+    channel:          ChannelIdent,
+    builder_url:      String,
 }
 
 impl From<&Service> for PackageUpdateWorker {
     fn from(service: &Service) -> Self {
-        Self { service_group: service.service_group.clone(),
-               ident:         service.spec_ident.clone(),
-               full_ident:    service.pkg.ident.clone(),
-               channel:       service.channel.clone(),
-               builder_url:   service.bldr_url.clone(), }
+        Self { service_group:    service.service_group.clone(),
+               ident:            service.spec_ident.clone(),
+               full_ident:       service.pkg.ident.clone(),
+               update_condition: service.update_condition,
+               channel:          service.channel.clone(),
+               builder_url:      service.bldr_url.clone(), }
     }
 }
 
@@ -65,33 +68,38 @@ impl PackageUpdateWorker {
     /// If a fully qualified package ident is used, the future will only resolve when that exact
     /// package is found.
     // TODO (DM): The returned package ident should use FullyQualifiedPackageIdent.
-    pub async fn update_to(&self, install_ident: PackageIdent) -> PackageIdent {
-        let install_source = install_ident.clone().into();
+    pub async fn update_to(&self, ident: PackageIdent) -> PackageIdent {
         let delay = PackageUpdateWorkerPeriod::get();
         loop {
-            // TODO (DM): The entire behavior of the updater depends on this `install` function. It
-            // is what the old updater used, but its exact behavior should be tested/documented.
-            match util::pkg::install_no_ui(&self.builder_url, &install_source, &self.channel).await
-            {
+            let package_result = match self.update_condition {
+                UpdateCondition::Latest => {
+                    let install_source = ident.clone().into();
+                    util::pkg::install_no_ui(&self.builder_url, &install_source, &self.channel).await
+                }
+                UpdateCondition::TrackChannel => {
+                    util::pkg::install_channel_head(&self.builder_url, &ident, &self.channel).await
+                }
+            };
+            match package_result {
                 Ok(package) => {
-                    // Only allow updates never rollbacks.
-                    if &package.ident > self.full_ident.as_ref() {
+                    if &package.ident != self.full_ident.as_ref() {
                         debug!("'{}' package update worker found change from '{}' to '{}' for \
-                                '{}' in channel '{}'",
+                                '{}' in channel '{}' using '{}' update condition",
                                self.service_group,
                                self.full_ident,
                                package.ident,
-                               install_ident,
-                               self.channel,);
+                               ident,
+                               self.channel,
+                               self.update_condition);
                         break package.ident;
-                    } else {
-                        trace!("'{}' package update worker did not find change from '{}' for '{}' \
-                                in channel '{}'",
-                               self.service_group,
-                               self.full_ident,
-                               install_ident,
-                               self.channel,)
                     }
+                    trace!("'{}' package update worker did not find change from '{}' for '{}' in \
+                            channel '{}' using '{}' update condition",
+                           self.service_group,
+                           self.full_ident,
+                           ident,
+                           self.channel,
+                           self.update_condition)
                 }
                 Err(err) => {
                     warn!("'{}' package update worker failed to install '{}' from channel '{}', \

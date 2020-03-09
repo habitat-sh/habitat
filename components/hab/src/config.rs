@@ -1,17 +1,17 @@
+use crate::{error::{Error,
+                    Result},
+            hcore::{config::ConfigFile,
+                    fs::{am_i_root,
+                         FS_ROOT_PATH}},
+            CTL_SECRET_ENVVAR};
+use dirs;
+use habitat_core::env as henv;
+use habitat_sup_client::SrvClient;
 use std::{fs::{self,
                File},
           io::Write,
           path::PathBuf};
-
-use dirs;
-
-use crate::hcore::{config::ConfigFile,
-                   fs::{am_i_root,
-                        FS_ROOT_PATH}};
 use toml;
-
-use crate::error::{Error,
-                   Result};
 
 const CLI_CONFIG_PATH: &str = "hab/etc/cli.toml";
 
@@ -61,6 +61,20 @@ pub fn save(config: &Config) -> Result<()> {
     let mut file = File::create(&config_path)?;
     file.write_all(raw.as_bytes())?;
     Ok(())
+}
+
+/// Check if the HAB_CTL_SECRET env var. If not, check the CLI config to see if there is a ctl
+/// secret set and return a copy of that value.
+pub fn ctl_secret_key(config: &Config) -> Result<String> {
+    match henv::var(CTL_SECRET_ENVVAR) {
+        Ok(v) => Ok(v),
+        Err(_) => {
+            match config.ctl_secret {
+                Some(ref v) => Ok(v.to_string()),
+                None => SrvClient::read_secret_key().map_err(Error::from),
+            }
+        }
+    }
 }
 
 fn cli_config_path() -> PathBuf {
