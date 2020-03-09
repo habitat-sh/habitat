@@ -65,11 +65,7 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
             if check_list.is_empty() {
                 break 'fanout;
             }
-            let drain_length = if check_list.len() >= FANOUT {
-                FANOUT
-            } else {
-                check_list.len()
-            };
+            let drain_length = check_list.len().min(FANOUT);
             let gossip_start_time = Instant::now();
             for member in check_list.drain(0..drain_length) {
                 if server.is_member_blocked_sblr(&member.id) {
