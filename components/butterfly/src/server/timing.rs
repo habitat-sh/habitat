@@ -17,11 +17,11 @@ const DEPARTURE_TIMEOUT_DEFAULT_MS: u64 = 259_200_000;
 /// The timing of the outbound threads.
 #[derive(Debug, Clone)]
 pub struct Timing {
-    ping:                 Duration,
-    pingreq:              Duration,
-    confirm:              Duration,
-    gossip_interval_ms:   u64,
-    departure_timeout_ms: u64,
+    ping:               Duration,
+    pingreq:            Duration,
+    confirm:            Duration,
+    departure:          Duration,
+    gossip_interval_ms: u64,
 
     swim_probe_interval: Duration,
 }
@@ -31,12 +31,12 @@ impl Default for Timing {
         let swim_interval_ms = PING_TIMING_DEFAULT_MS + PINGREQ_TIMING_DEFAULT_MS;
         let confirm_ms = swim_interval_ms * SUSPICION_TIMEOUT_DEFAULT_PROTOCOL_PERIODS;
 
-        Timing { ping:                 Duration::from_millis(PING_TIMING_DEFAULT_MS),
-                 pingreq:              Duration::from_millis(PINGREQ_TIMING_DEFAULT_MS),
-                 confirm:              Duration::from_millis(confirm_ms),
-                 gossip_interval_ms:   GOSSIP_INTERVAL_DEFAULT_MS,
-                 departure_timeout_ms: DEPARTURE_TIMEOUT_DEFAULT_MS,
-                 swim_probe_interval:  Duration::from_millis(swim_interval_ms), }
+        Timing { ping:                Duration::from_millis(PING_TIMING_DEFAULT_MS),
+                 pingreq:             Duration::from_millis(PINGREQ_TIMING_DEFAULT_MS),
+                 confirm:             Duration::from_millis(confirm_ms),
+                 departure:           Duration::from_millis(DEPARTURE_TIMEOUT_DEFAULT_MS),
+                 gossip_interval_ms:  GOSSIP_INTERVAL_DEFAULT_MS,
+                 swim_probe_interval: Duration::from_millis(swim_interval_ms), }
     }
 }
 
@@ -54,6 +54,10 @@ impl Timing {
     /// consider it confirmed.
     pub fn confirm(&self) -> Duration { self.confirm }
 
+    /// How long after not hearing from a confirmed member before we
+    /// consider it departed.
+    pub fn departure(&self) -> Duration { self.departure }
+
     /// If the amount of time since `starting_point` is less than a
     /// gossip interval, sleep for the remainder of that gossip interval.
     pub fn sleep_for_remaining_gossip_interval(&self, starting_point: Instant) {
@@ -65,10 +69,6 @@ impl Timing {
     /// interval.
     pub fn sleep_for_remaining_swim_protocol_interval(&self, starting_point: Instant) {
         maybe_sleep(starting_point, self.swim_probe_interval)
-    }
-
-    pub fn departure_timeout_duration(&self) -> Duration {
-        Duration::from_millis(self.departure_timeout_ms)
     }
 }
 

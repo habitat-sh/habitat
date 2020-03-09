@@ -31,9 +31,8 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
                   .start_hot_rumor(RumorKey::new(RumorType::Member, &id, ""));
         }
 
-        let newly_departed_members =
-            server.member_list
-                  .members_expired_to_departed_mlw(timing.departure_timeout_duration());
+        let newly_departed_members = server.member_list
+                                           .members_expired_to_departed_mlw(timing.departure());
 
         for id in newly_departed_members {
             server.rumor_heat.lock_rhw().purge(&id);
