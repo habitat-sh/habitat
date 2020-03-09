@@ -100,8 +100,7 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
                     }
                 }
             }
-            let num_threads = thread_list.len();
-            for guard in thread_list.drain(0..num_threads) {
+            for guard in thread_list {
                 if let Err(e) = guard.join() {
                     error!("Push worker died: {:?}", e);
                 }
