@@ -22,15 +22,20 @@ pub struct Timing {
     gossip_interval_ms: u64,
     suspicion_timeout_protocol_periods: u64,
     departure_timeout_ms: u64,
+
+    swim_probe_interval: Duration,
 }
 
 impl Default for Timing {
     fn default() -> Timing {
+        let swim_interval_ms = PING_TIMING_DEFAULT_MS + PINGREQ_TIMING_DEFAULT_MS;
+
         Timing { ping: Duration::from_millis(PING_TIMING_DEFAULT_MS),
                  pingreq: Duration::from_millis(PINGREQ_TIMING_DEFAULT_MS),
                  gossip_interval_ms: GOSSIP_INTERVAL_DEFAULT_MS,
                  suspicion_timeout_protocol_periods: SUSPICION_TIMEOUT_DEFAULT_PROTOCOL_PERIODS,
-                 departure_timeout_ms: DEPARTURE_TIMEOUT_DEFAULT_MS, }
+                 departure_timeout_ms: DEPARTURE_TIMEOUT_DEFAULT_MS,
+                 swim_probe_interval: Duration::from_millis(swim_interval_ms), }
     }
 }
 
@@ -47,11 +52,6 @@ impl Timing {
     /// How long a pingreq has to timeout.
     pub fn pingreq(&self) -> Duration { self.pingreq }
 
-    /// How long to space out individual SWIM probe rounds
-    fn swim_probe_interval(&self) -> Duration {
-        Duration::from_millis(PING_TIMING_DEFAULT_MS + PINGREQ_TIMING_DEFAULT_MS)
-    }
-
     /// If the amount of time since `starting_point` is less than a
     /// gossip interval, sleep for the remainder of that gossip interval.
     pub fn sleep_for_remaining_gossip_interval(&self, starting_point: Instant) {
@@ -67,7 +67,7 @@ impl Timing {
     /// SWIM protocol probe interval, sleep for the remainder of that
     /// interval.
     pub fn sleep_for_remaining_swim_protocol_interval(&self, starting_point: Instant) {
-        maybe_sleep(starting_point, self.swim_probe_interval())
+        maybe_sleep(starting_point, self.swim_probe_interval)
     }
 
     pub fn departure_timeout_duration(&self) -> Duration {
