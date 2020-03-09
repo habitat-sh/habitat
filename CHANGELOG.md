@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.56 -->
-## [1.5.56](https://github.com/habitat-sh/habitat/tree/1.5.56) (2020-03-09)
+<!-- latest_release 1.5.57 -->
+## [1.5.57](https://github.com/habitat-sh/habitat/tree/1.5.57) (2020-03-09)
 
-#### New Features & Enhancements
-- Add service `--update-condition` enabling service rollback [#7513](https://github.com/habitat-sh/habitat/pull/7513) ([davidMcneil](https://github.com/davidMcneil))
+#### Merged Pull Requests
+- [CI] Silently continue on errors to remove the Habitat cache [#7539](https://github.com/habitat-sh/habitat/pull/7539) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.50 -->
 ### Changes since 1.5.50 release
@@ -13,6 +13,7 @@
 - Add service `--update-condition` enabling service rollback [#7513](https://github.com/habitat-sh/habitat/pull/7513) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.56 -->
 
 #### Merged Pull Requests
+- [CI] Silently continue on errors to remove the Habitat cache [#7539](https://github.com/habitat-sh/habitat/pull/7539) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.57 -->
 - Always write out service PID files [#7526](https://github.com/habitat-sh/habitat/pull/7526) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.55 -->
 - Update changelog post 1.5.50 [#7521](https://github.com/habitat-sh/habitat/pull/7521) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.5.54 -->
 - Cargo Update [#7519](https://github.com/habitat-sh/habitat/pull/7519) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.53 -->
