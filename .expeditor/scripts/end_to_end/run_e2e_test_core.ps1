@@ -225,6 +225,27 @@ function Stop-ComposeSupervisor($Remote) {
     Start-Sleep 5
 }
 
+# Returns the PID of the given service, according to the Supervisor itself.
+#
+# Example:
+#    Get-HabServicePid "core/redis"
+#    > 29602
+#
+# Fails if the Supervisor is not running the service.
+function Get-HabServicePID($PackageName) {
+    # If the package is running, the output of `hab svc status` will look like this:
+    #
+    # package                           type        desired  state  elapsed (s)  pid    group
+    # core/redis/4.0.14/20190319155852  standalone  up       up     7717         29602  redis.default
+    #
+    # We take the last line, and then extract the value from the "pid" column.
+    #
+    # (When https://github.com/habitat-sh/habitat/issues/7525 lands,
+    # we can do this in a more self-documenting way.)
+    (((hab svc status $PackageName)[-1] -split "\s+")[5])
+}
+
+
 ###################################################################################################
 
 Import-Module (Join-Path -Path $(hab pkg path core/pester) module Pester.psd1)
