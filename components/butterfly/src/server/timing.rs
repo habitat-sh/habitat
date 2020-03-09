@@ -17,10 +17,10 @@ const DEPARTURE_TIMEOUT_DEFAULT_MS: u64 = 259_200_000;
 /// The timing of the outbound threads.
 #[derive(Debug, Clone)]
 pub struct Timing {
-    ping: Duration,
-    pingreq: Duration,
-    gossip_interval_ms: u64,
-    suspicion_timeout_protocol_periods: u64,
+    ping:                 Duration,
+    pingreq:              Duration,
+    confirm:              Duration,
+    gossip_interval_ms:   u64,
     departure_timeout_ms: u64,
 
     swim_probe_interval: Duration,
@@ -29,13 +29,14 @@ pub struct Timing {
 impl Default for Timing {
     fn default() -> Timing {
         let swim_interval_ms = PING_TIMING_DEFAULT_MS + PINGREQ_TIMING_DEFAULT_MS;
+        let confirm_ms = swim_interval_ms * SUSPICION_TIMEOUT_DEFAULT_PROTOCOL_PERIODS;
 
-        Timing { ping: Duration::from_millis(PING_TIMING_DEFAULT_MS),
-                 pingreq: Duration::from_millis(PINGREQ_TIMING_DEFAULT_MS),
-                 gossip_interval_ms: GOSSIP_INTERVAL_DEFAULT_MS,
-                 suspicion_timeout_protocol_periods: SUSPICION_TIMEOUT_DEFAULT_PROTOCOL_PERIODS,
+        Timing { ping:                 Duration::from_millis(PING_TIMING_DEFAULT_MS),
+                 pingreq:              Duration::from_millis(PINGREQ_TIMING_DEFAULT_MS),
+                 confirm:              Duration::from_millis(confirm_ms),
+                 gossip_interval_ms:   GOSSIP_INTERVAL_DEFAULT_MS,
                  departure_timeout_ms: DEPARTURE_TIMEOUT_DEFAULT_MS,
-                 swim_probe_interval: Duration::from_millis(swim_interval_ms), }
+                 swim_probe_interval:  Duration::from_millis(swim_interval_ms), }
     }
 }
 
@@ -43,24 +44,20 @@ impl Timing {
     /// How long a gossip period should last.
     fn gossip_interval(&self) -> Duration { Duration::from_millis(self.gossip_interval_ms) }
 
-    /// How long is a protocol period, in millis.
-    pub fn protocol_period_ms(&self) -> u64 { PING_TIMING_DEFAULT_MS + PINGREQ_TIMING_DEFAULT_MS }
-
     /// How long a ping has to timeout.
     pub fn ping(&self) -> Duration { self.ping }
 
     /// How long a pingreq has to timeout.
     pub fn pingreq(&self) -> Duration { self.pingreq }
 
+    /// How long after not hearing from a suspect member before we
+    /// consider it confirmed.
+    pub fn confirm(&self) -> Duration { self.confirm }
+
     /// If the amount of time since `starting_point` is less than a
     /// gossip interval, sleep for the remainder of that gossip interval.
     pub fn sleep_for_remaining_gossip_interval(&self, starting_point: Instant) {
         maybe_sleep(starting_point, self.gossip_interval())
-    }
-
-    /// How long before this suspect entry times out
-    pub fn suspicion_timeout_duration(&self) -> Duration {
-        Duration::from_millis(self.protocol_period_ms() * self.suspicion_timeout_protocol_periods)
     }
 
     /// If the amount of time since `starting_point` is less than a

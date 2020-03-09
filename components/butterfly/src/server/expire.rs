@@ -22,9 +22,8 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
     loop {
         liveliness_checker::mark_thread_alive().and_divergent();
 
-        let newly_confirmed_members =
-            server.member_list
-                  .members_expired_to_confirmed_mlw(timing.suspicion_timeout_duration());
+        let newly_confirmed_members = server.member_list
+                                            .members_expired_to_confirmed_mlw(timing.confirm());
 
         for id in newly_confirmed_members {
             server.rumor_heat
