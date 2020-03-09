@@ -1,15 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.54 -->
-## [1.5.54](https://github.com/habitat-sh/habitat/tree/1.5.54) (2020-03-05)
+<!-- latest_release 1.5.55 -->
+## [1.5.55](https://github.com/habitat-sh/habitat/tree/1.5.55) (2020-03-09)
 
 #### Merged Pull Requests
-- Update changelog post 1.5.50 [#7521](https://github.com/habitat-sh/habitat/pull/7521) ([smacfarlane](https://github.com/smacfarlane))
+- Always write out service PID files [#7526](https://github.com/habitat-sh/habitat/pull/7526) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.50 -->
 ### Changes since 1.5.50 release
 
 #### Merged Pull Requests
+- Always write out service PID files [#7526](https://github.com/habitat-sh/habitat/pull/7526) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.55 -->
 - Update changelog post 1.5.50 [#7521](https://github.com/habitat-sh/habitat/pull/7521) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.5.54 -->
 - Cargo Update [#7519](https://github.com/habitat-sh/habitat/pull/7519) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.53 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-03-03 [#7518](https://github.com/habitat-sh/habitat/pull/7518) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.52 -->
