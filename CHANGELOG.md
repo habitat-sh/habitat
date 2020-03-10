@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.58 -->
-## [1.5.58](https://github.com/habitat-sh/habitat/tree/1.5.58) (2020-03-09)
+<!-- latest_release 1.5.59 -->
+## [1.5.59](https://github.com/habitat-sh/habitat/tree/1.5.59) (2020-03-10)
 
-#### Bug Fixes
-- Make better use of `Instant::elapsed()` for safer timing operations [#7533](https://github.com/habitat-sh/habitat/pull/7533) ([christophermaier](https://github.com/christophermaier))
+#### Merged Pull Requests
+- Miscellaneous Butterfly timing refactorings [#7540](https://github.com/habitat-sh/habitat/pull/7540) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.50 -->
 ### Changes since 1.5.50 release
@@ -16,6 +16,7 @@
 - Add service `--update-condition` enabling service rollback [#7513](https://github.com/habitat-sh/habitat/pull/7513) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.56 -->
 
 #### Merged Pull Requests
+- Miscellaneous Butterfly timing refactorings [#7540](https://github.com/habitat-sh/habitat/pull/7540) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.59 -->
 - [CI] Silently continue on errors to remove the Habitat cache [#7539](https://github.com/habitat-sh/habitat/pull/7539) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.57 -->
 - Always write out service PID files [#7526](https://github.com/habitat-sh/habitat/pull/7526) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.55 -->
 - Update changelog post 1.5.50 [#7521](https://github.com/habitat-sh/habitat/pull/7521) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.5.54 -->
