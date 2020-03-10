@@ -57,6 +57,10 @@ pub const USER_CONFIG_FILE: &str = "user.toml";
 /// have. The user and group will be `SVC_USER` / `SVC_GROUP`.
 #[cfg(not(windows))]
 const SVC_DIR_PERMISSIONS: u32 = 0o770;
+/// Permissions applied to artifacts that are brought into the
+/// artifact cache directory (i.e., CACHE_ARTIFACT_PATH)
+#[cfg(not(windows))]
+pub const DEFAULT_CACHED_ARTIFACT_PERMISSIONS: u32 = 0o644;
 
 lazy_static::lazy_static! {
     /// The default filesystem root path.
