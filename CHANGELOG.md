@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.61 -->
-## [1.5.61](https://github.com/habitat-sh/habitat/tree/1.5.61) (2020-03-10)
+<!-- latest_release 1.5.62 -->
+## [1.5.62](https://github.com/habitat-sh/habitat/tree/1.5.62) (2020-03-10)
 
 #### Merged Pull Requests
-- Fix pwsh binlink dir for e2e tests [#7542](https://github.com/habitat-sh/habitat/pull/7542) ([davidMcneil](https://github.com/davidMcneil))
+- Fix at-once update test [#7543](https://github.com/habitat-sh/habitat/pull/7543) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.50 -->
 ### Changes since 1.5.50 release
@@ -16,6 +16,7 @@
 - Add service `--update-condition` enabling service rollback [#7513](https://github.com/habitat-sh/habitat/pull/7513) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.56 -->
 
 #### Merged Pull Requests
+- Fix at-once update test [#7543](https://github.com/habitat-sh/habitat/pull/7543) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.62 -->
 - Fix pwsh binlink dir for e2e tests [#7542](https://github.com/habitat-sh/habitat/pull/7542) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.61 -->
 - http-client: use env_proxy from git [#7532](https://github.com/habitat-sh/habitat/pull/7532) ([stevendanna](https://github.com/stevendanna)) <!-- 1.5.60 -->
 - Miscellaneous Butterfly timing refactorings [#7540](https://github.com/habitat-sh/habitat/pull/7540) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.59 -->
