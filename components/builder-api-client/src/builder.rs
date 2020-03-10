@@ -1,13 +1,6 @@
 use crate::{allow_std_io::AllowStdIo,
             error::{Error,
                     Result},
-            hab_core::{crypto::keys::box_key_pair::WrappedSealedBox,
-                       fs::AtomicWriter,
-                       package::{Identifiable,
-                                 PackageArchive,
-                                 PackageIdent,
-                                 PackageTarget},
-                       ChannelIdent},
             hab_http::ApiClient,
             response,
             BuildOnUpload,
@@ -23,6 +16,13 @@ use crate::{allow_std_io::AllowStdIo,
 use broadcast::BroadcastWriter;
 use bytes::BytesMut;
 use futures::stream::TryStreamExt;
+use habitat_core::{crypto::keys::box_key_pair::WrappedSealedBox,
+                   fs::AtomicWriter,
+                   package::{Identifiable,
+                             PackageArchive,
+                             PackageIdent,
+                             PackageTarget},
+                   ChannelIdent};
 use percent_encoding::{percent_encode,
                        AsciiSet,
                        CONTROLS};
