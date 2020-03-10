@@ -1,0 +1,66 @@
+{{ $currentPage := . }}
+{{ $currentSection := $currentPage.Section }}
+
+<aside class="sticky sidebar" data-sticky data-top-anchor="utility-bar:bottom" data-btm-anchor="footer:top">
+  <nav id="sidebar-nav">
+    {{ if .Site.Params.enable_search }}
+      <div class="search">
+        <form class="basic-form" method="" action="">
+          <input type="text" class="st-default-search-input" placeholder="Search...">
+        </form>
+      </div>
+    {{ end }}
+    <div class="nav">
+      <ul class="vertical menu accordion-menu" data-accordion-menu>
+        {{ range .Site.Menus.docs }}
+          {{ if .HasChildren }}
+            <li>
+              <a href="{{ .URL }}">{{ or .Title .Name }}</a>
+              <ul class="menu vertical nested{{ if $currentPage.HasMenuCurrent "docs" . }} is-active{{ end }}">
+                {{ range .Children }}
+                  {{ if .HasChildren }}
+                    <li>
+                      <a href="{{ .URL }}">{{ or .Title .Name }}</a>
+                      <ul class="menu vertical nested{{ if $currentPage.HasMenuCurrent "docs" . }} is-active{{ end }}">
+                        {{ range .Children }}
+                          {{ if .HasChildren }}
+                            <li>
+                              <a href="{{ .URL }}">{{ or .Title .Name }}</a>
+                              <ul class="menu vertical nested{{ if $currentPage.HasMenuCurrent "docs" . }} is-active{{ end }}">
+                                {{ range .Children }}
+                                  <li{{ if $currentPage.IsMenuCurrent "docs" . }} class="active" {{ end }}>
+                                    <a href="{{ .URL }}" {{ if hasPrefix .URL "http" }} class="external" target="_blank"{{ end }}>{{ or .Title .Name }}</a>
+                                  </li>
+                                {{ end }}
+                              </ul>
+                            </li>
+                          {{ else }}
+                            <li{{ if $currentPage.IsMenuCurrent "docs" . }} class="active" {{ end }}>
+                              <a href="{{ .URL }}" {{ if hasPrefix .URL "http" }} class="external" target="_blank"{{ end }}>{{ or .Title .Name }}</a>
+                            </li>
+                          {{ end }}
+                        {{ end }}
+                      </ul>
+                    </li>
+                  {{ else }}
+                    <li {{ if $currentPage.IsMenuCurrent "docs" . }} class="active" {{ end }} >
+                      <a href="{{ .URL }}" {{ if hasPrefix .URL "http" }} class="external" target="_blank"{{ end }}>
+                        {{ or .Title .Name }}
+                      </a>
+                    </li>
+                  {{ end }}
+                {{ end }}
+              </ul>
+            </li>
+          {{ else }}
+            <li {{ if $currentPage.IsMenuCurrent "docs" . }} class="active" {{ end }} >
+              <a href="{{ .URL }}" {{ if hasPrefix .URL "http" }} class="external" target="_blank"{{ end }}>
+                {{ or .Title .Name }}
+              </a>
+            </li>
+          {{ end }}
+        {{ end }}
+      </ul>
+    </div>
+  </nav>
+</aside>

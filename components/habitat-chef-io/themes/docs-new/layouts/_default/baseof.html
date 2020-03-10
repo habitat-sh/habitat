@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+{{ partial "head" . }}
+<body>
+  <a class="skip-main" href="#main-content-col">Skip to main content</a>
+
+  {{ partial "utility-bar" . }}
+  {{ partial "utility-bar-small" . }}
+
+  <div id="left-nav-off-canvas" class="hide-for-medium" data-toggler=".reveal">
+    {{ partial "sidebar-off-canvas" . }}
+  </div>
+
+  <div class="off-canvas-wrapper">
+    <div class="grid-container">
+      <div class="grid-x">
+
+        <div class="cell position-left off-canvas-absolute reveal-for-medium col-sidebar" id="left-nav-on-canvas" data-off-canvas data-transition="overlap" >
+            {{ partial "sidebar-on-canvas" . }}
+        </div>
+
+        <div id="main-content" class="cell off-canvas-content cell auto" data-off-canvas-content>
+            {{ block "main" . }}
+            {{ end }}
+        </div>
+
+        {{ $headers := findRE "<h[12].*?>(.|\n])+?</h[12]>" .Content }}
+        {{ if and (ge (len $headers) 1) (ne .Params.toc false )}}
+          <div class="cell off-canvas position-right toc off-canvas-absolute reveal-for-large" id="onCanvasRightTOC" data-off-canvas >
+            {{ partial "table-of-contents" . }}
+          </div>
+        {{ end }}
+
+      </div>
+    </div>
+  </div>
+
+  {{ $headers := findRE "<h[12].*?>(.|\n])+?</h[12]>" .Content }}
+  {{ if and (ge (len $headers) 1) (ne .Params.toc false )}}
+
+    <div class="off-canvas position-right toc off-canvas-absolute hide-for-large" id="offCanvasRightTOC" data-off-canvas
+      data-transition="overlap">
+      {{ partial "table-of-contents" . }}
+    </div>
+
+  {{ end }}
+
+  <div id="footer" class="cell small-12">
+    <div class="grid-x">
+      <div class="cell small-12">
+        <nav>
+          {{ partial "footer" . }}
+        </nav>
+      </div>
+    </div>
+  </div>
+  {{ partial "javascript" . }}
+  </body>
+</html>

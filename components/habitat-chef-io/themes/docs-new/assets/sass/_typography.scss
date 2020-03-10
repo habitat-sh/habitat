@@ -1,0 +1,35 @@
+$regular: 400;
+$semibold: 600;
+$bold: 700;
+$extrabold: 800;
+
+@font-face {
+  font-family: 'Inter';
+  font-weight: $regular;
+  src: url('/fonts/Inter-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-weight: $semibold;
+  src: url('/fonts/Inter-SemiBold.ttf');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-weight: $bold;
+  src: url('/fonts/Inter-Bold.ttf');
+}
+
+@import "vendor/fontawesome/fontawesome.scss";
+@import "vendor/fontawesome/solid.scss";
+@import "vendor/fontawesome/brands.scss";
+
+@import "typography/code";
+@import "typography/headers";
+@import "typography/links";
+@import "typography/lists";
+@import "typography/prose";
+@import "typography/text";
+
+@import url('https://fonts.googleapis.com/css?family=Source+Code+Pro&display=swap');
