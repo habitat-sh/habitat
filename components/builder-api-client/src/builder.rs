@@ -16,6 +16,8 @@ use crate::{allow_std_io::AllowStdIo,
 use broadcast::BroadcastWriter;
 use bytes::BytesMut;
 use futures::stream::TryStreamExt;
+#[cfg(not(windows))]
+use habitat_core::fs::DEFAULT_CACHED_ARTIFACT_PERMISSIONS;
 use habitat_core::{crypto::keys::box_key_pair::WrappedSealedBox,
                    fs::AtomicWriter,
                    package::{Identifiable,
@@ -88,6 +90,24 @@ mod json_u64 {
         let s = String::deserialize(deserializer)?;
         s.parse::<u64>().map_err(serde::de::Error::custom)
     }
+}
+
+#[cfg(windows)]
+use crate::util::win_perm;
+
+/// Abstraction over platform-specific ways to model file permissions.
+enum Permissions {
+    /// Don't take any special action to set permissions beyond what
+    /// they are "normally" set to when they are created. Here,
+    /// "normal" denotes the low-level programming library sense,
+    /// rather than any particular domain-specific sense.
+    Standard,
+    /// Indicates that a file should be created with very specific
+    /// permissions.
+    #[cfg(windows)]
+    Explicit(Vec<win_perm::PermissionEntry>),
+    #[cfg(not(windows))]
+    Explicit(u32),
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -177,6 +197,7 @@ impl BuilderAPIClient {
                           rb: RequestBuilder,
                           dst_path: &'a Path,
                           token: Option<&'a str>,
+                          permissions: Permissions,
                           progress: Option<Box<dyn DisplayProgress>>)
                           -> Result<PathBuf> {
         debug!("Downloading file to path: {}", dst_path.display());
@@ -186,7 +207,13 @@ impl BuilderAPIClient {
         fs::create_dir_all(&dst_path)?;
         let file_name = response::get_header(&resp, X_FILENAME)?;
         let dst_file_path = dst_path.join(file_name);
-        let w = AtomicWriter::new(&dst_file_path)?;
+        let w = {
+            let mut w = AtomicWriter::new(&dst_file_path)?;
+            if let Permissions::Explicit(permissions) = permissions {
+                w.with_permissions(permissions);
+            }
+            w
+        };
         let content_length = response::get_header(&resp, CONTENT_LENGTH);
         let mut body = Cursor::new(resp.bytes().await?);
         // Blocking IO is used because of `DisplayProgress` which relies on the `Write` trait.
@@ -461,6 +488,7 @@ impl BuilderAPIClient {
                           .get(&format!("depot/origins/{}/encryption_key", origin)),
                       dst_path.as_ref(),
                       Some(token),
+                      Permissions::Standard,
                       progress)
             .await
     }
@@ -844,6 +872,7 @@ impl BuilderAPIClient {
                           .get(&format!("depot/origins/{}/keys/{}", origin, revision)),
                       dst_path.as_ref(),
                       None,
+                      Permissions::Standard,
                       progress)
             .await
     }
@@ -865,6 +894,7 @@ impl BuilderAPIClient {
                           .get(&format!("depot/origins/{}/secret_keys/latest", origin)),
                       dst_path.as_ref(),
                       Some(token),
+                      Permissions::Standard,
                       progress)
             .await
     }
@@ -1007,7 +1037,12 @@ impl BuilderAPIClient {
                                     u.set_query(Some(&format!("target={}", target)))
                                 });
 
-        self.download(req_builder, dst_path.as_ref(), token, progress)
+        let permissions = if cfg!(not(windows)) {
+            Permissions::Explicit(DEFAULT_CACHED_ARTIFACT_PERMISSIONS)
+        } else {
+            Permissions::Standard
+        };
+        self.download(req_builder, dst_path.as_ref(), token, permissions, progress)
             .await
             .map(PackageArchive::new)
     }
