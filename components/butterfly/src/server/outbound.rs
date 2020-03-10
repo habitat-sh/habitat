@@ -75,14 +75,14 @@ pub fn spawn_thread(name: String,
                           .map(|_| ())
 }
 
-/// Run the outbound thread. Gets a list of members to ping, then walks the list, probing each
-/// member.
+/// Run the outbound thread. Gets a list of members to ping, then
+/// walks the list, probing each member.
 ///
-/// If the probe completes before the next protocol period is scheduled, waits for the protocol
-/// period to finish before starting the next probe.
+/// If the probe completes within the time allotted for a single round
+/// of SWIM probing, we wait for the remainder of the probe interval
+/// before starting the next probe.
 fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timing: &Timing) -> ! {
     let mut have_members = false;
-    let protocol_period = timing.protocol_period();
     loop {
         liveliness_checker::mark_thread_alive().and_divergent();
 
@@ -114,29 +114,33 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
 
         server.update_swim_round();
 
-        let probe_iteration_start = Instant::now();
-
         let check_list = server.member_list.check_list_mlr(&server.member_id);
 
+        let probe_iteration_start = Instant::now();
         for member in check_list {
             if server.member_list.pingable_mlr(&member) {
                 // If we complete the probe faster than our protocol
                 // period, we'll want to wait after we finish.
-                let protocol_period_start_time = Instant::now();
-
+                let probe_start = Instant::now();
                 probe_mlw_smr_rhw(&server, &socket, &rx_inbound, &timing, member);
-
-                if let Some(wait_time) =
-                    protocol_period.checked_sub(protocol_period_start_time.elapsed())
-                {
-                    thread::sleep(wait_time);
-                }
+                timing.sleep_for_remaining_swim_protocol_interval(probe_start);
             }
         }
 
-        if let Some(wait_time) = protocol_period.checked_sub(probe_iteration_start.elapsed()) {
-            thread::sleep(wait_time);
-        }
+        // This will only come into play if:
+        //
+        //   * there was nothing in `check_list`
+        //   * nothing in `check_list` was pingable,
+        //
+        // Basically, if we were able to probe *anything* in the loop,
+        // we would have already waited for at least this long, so
+        // this sleep would then be meaningless and would effectively
+        // be skipped.
+        //
+        // This sleep basically ensures that each probe cycle is
+        // approximately evenly spaced. Were this to be refactored to
+        // something like futures, it might not be required anymore.
+        timing.sleep_for_remaining_swim_protocol_interval(probe_iteration_start);
     }
 }
 
