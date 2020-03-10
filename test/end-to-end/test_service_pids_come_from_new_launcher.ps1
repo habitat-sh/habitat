@@ -4,7 +4,7 @@
 Describe "Service PIDs from Launcher feature" {
     Start-Supervisor -Timeout 20
     Load-SupervisorService -PackageName "core/redis"
-    Wait-Process redis-server -Timeout 10
+    Wait-Process redis-server -Timeout 60
 
     It "should still create a PID file for use in hooks" {
         Test-Path "/hab/svc/redis/PID" | Should -Be $true
@@ -26,7 +26,7 @@ Describe "Service PIDs from Launcher feature" {
         $bogusPid | Out-File "/hab/svc/redis/PID"
 
         Restart-Supervisor
-        Wait-Process redis-server -Timeout 10
+        Wait-Process redis-server -Timeout 60
         $newSupProc = Get-Process hab-sup
         $newRedisProc = Get-Process redis-server
 
