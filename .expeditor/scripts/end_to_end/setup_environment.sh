@@ -28,8 +28,12 @@ sudo -E hab pkg install core/netcat \
     --url="${HAB_BLDR_URL}"
 
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
+# Binlink to '/usr/local/bin' to ensure we do not run the system installed version. The system
+# version is installed in `/usr/bin` which occurs earlier in the PATH than '/bin' (the default)
+# binlink location).
 sudo -E hab pkg install core/powershell \
     --binlink \
+    --binlink-dir="/usr/local/bin" \
     --force \
     --channel="stable" \
     --url="${HAB_BLDR_URL}"
