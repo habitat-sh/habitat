@@ -22,7 +22,7 @@ Describe "with no svc_user" {
     . .\results\last_build.ps1
     hab pkg install .\results\$pkg_artifact
     $loadOut = hab svc load ci/dummy
-    Wait-SupervisorService dummy -Timeout 20
+    Wait-SupervisorService dummy
 
     It "does not create a SVC_USR metafile" {
         Test-Path c:\hab\pkgs\$pkg_ident\SVC_USER | Should -Be $false
@@ -49,7 +49,7 @@ Describe "with svc_user" {
     . .\results\last_build.ps1
     hab pkg install .\results\$pkg_artifact
     $loadOut = hab svc load ci/dummy-hab-user --password $password
-    Wait-SupervisorService dummy-hab-user -Timeout 20
+    Wait-SupervisorService dummy-hab-user
 
     It "does create a SVC_USR metafile" {
         Test-Path c:\hab\pkgs\$pkg_ident\SVC_USER | Should -Be $true

@@ -5,7 +5,7 @@ Wait-Supervisor -Timeout 120
 
 Describe "hab svc load" {
     $loadOut = hab svc load core/nginx
-    Wait-SupervisorService nginx -Timeout 20
+    Wait-SupervisorService nginx
 
     It "Succesfully loads service" {
         $loadOut | Should -Be "The core/nginx service was successfully loaded"

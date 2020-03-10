@@ -6,7 +6,7 @@ Describe "Clean Habitat Shutdown" {
     hab pkg install core/nginx
     Wait-Supervisor -Timeout 45
     hab svc load core/nginx
-    Wait-SupervisorService nginx -Timeout 20
+    Wait-SupervisorService nginx
     It "Starts running nginx" {
         # This will error with a 403 because nginx is not running any sites
         try  { Invoke-WebRequest "http://localhost" }

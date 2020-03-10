@@ -3,7 +3,7 @@
 
 Describe "Service PIDs from Launcher feature" {
     Start-Supervisor -Timeout 20
-    Load-SupervisorService -PackageName "core/redis" -Timeout 20
+    Load-SupervisorService -PackageName "core/redis"
     Wait-Process redis-server -Timeout 10
 
     It "should still create a PID file for use in hooks" {

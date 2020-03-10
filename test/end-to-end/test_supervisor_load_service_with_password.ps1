@@ -18,7 +18,7 @@ Wait-Supervisor -Timeout 45
 
 Describe "hab svc load" {
     $loadOut = hab svc load ci/dummy --password $password
-    Wait-SupervisorService dummy -Timeout 20
+    Wait-SupervisorService dummy
 
     It "Succesfully loads service" {
         $loadOut | Should -Be "The ci/dummy service was successfully loaded"
