@@ -821,7 +821,7 @@ dependencies = [
 [[package]]
 name = "env_proxy"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/inejge/env_proxy.git#6539fe97164e533794eb749720399b616a690dd0"
 dependencies = [
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 2.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1421,7 +1421,7 @@ name = "habitat_http_client"
 version = "0.0.0"
 dependencies = [
  "base64 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "env_proxy 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "env_proxy 0.4.0 (git+https://github.com/inejge/env_proxy.git)",
  "habitat_core 0.0.0",
  "httparse 1.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4432,7 +4432,7 @@ dependencies = [
 "checksum enum-as-inner 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "eaeb00c3d7e5eed0e7c15a2ff045d76800a2e34b93f790bc38c8e3f9bfafef2b"
 "checksum env 0.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "876927d21ef1ae98001c8c35a1d8dfd682136914b23ef04276820fa6d43c3630"
 "checksum env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)" = "44533bbbb3bb3c1fa17d9f2e4e38bbbaf8396ba82193c4cb1b6445d711445d36"
-"checksum env_proxy 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8731da06ff3731a69115a2910345ae5ee8d1fe09c846a9eca101b444a30ad454"
+"checksum env_proxy 0.4.0 (git+https://github.com/inejge/env_proxy.git)" = "<none>"
 "checksum errno 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)" = "c2a071601ed01b988f896ab14b95e67335d1eeb50190932a1320f7fe3cadc84e"
 "checksum errno-dragonfly 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "14ca354e36190500e1e1fb267c647932382b54053c50b14970856c0b00a35067"
 "checksum error-chain 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d9435d864e017c3c6afeac1654189b06cdb491cf2ff73dbf0d73b0f292f42ff8"
