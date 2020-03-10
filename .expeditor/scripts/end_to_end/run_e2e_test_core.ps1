@@ -24,7 +24,7 @@ if ($IsLinux -Or $IsMacOS) {
 # It may take a while to download a given service package, and
 # services may have long init scripts. Let's be generous in how long
 # we're willing to wait.
-$DefaultServiceTimeout = 40
+$DefaultServiceTimeout = 120
 
 function Wait-True([ScriptBlock]$TestScript, [ScriptBlock]$TimeoutScript, [int]$Timeout) {
     $startTime = Get-Date
