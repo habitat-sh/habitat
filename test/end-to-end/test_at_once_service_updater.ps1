@@ -1,4 +1,7 @@
 # Test the at-once service update strategy
+# The timing of this test assumes the following environment variables are set:
+# HAB_UPDATE_STRATEGY_FREQUENCY_MS=3000
+# HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK=1
 
 $env:HAB_AUTH_TOKEN = $env:PIPELINE_HAB_AUTH_TOKEN
 
@@ -26,7 +29,7 @@ Describe "at-once update and rollback" {
     }
 
     Context "demote update" {
-        hab pkg deomote $updatedRelease $testChannel
+        hab pkg demote $updatedRelease $testChannel
 
         It "rollback release" {
             Wait-Release -Ident $initialRelease
