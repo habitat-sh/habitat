@@ -1,10 +1,11 @@
+#####
 baseURL = "/"
 languageCode = "en-us"
-title = "Chef Habitat Docs"
+title = "Habitat Documentation"
+
 theme = "docs-new"
 enableGitInfo = true
 pluralizeListTitles = false
-
 
 [markup]
   defaultMarkdownHandler = "goldmark"
@@ -60,11 +61,7 @@ pluralizeListTitles = false
 [params]
   enable_search = true
   robots = ''
-
-[taxonomies]
-  category = "categories"
-  tag = "tags"
-  resource = "resources"
+  menuOrder = ["infra", "workstation", "habitat", "inspec", "automate", "legacy", "api", "extra"]
 
 ## Main Menu ##
 
@@ -105,57 +102,82 @@ url = "https://downloads.chef.io/"
 weight = 60
 
 
-## Docs Menu ##
+## Chef Habitat Menu ##
 
-[[menu.docs]]
+[[menu.habitat]]
 title = "Chef Habitat"
-identifier = "overview"
-weight = 20
+identifier = "chef_habitat"
+weight = 10
 
-  [[menu.docs]]
-  title = "Community"
-  identifier = "community"
-  parent = "overview"
+  [[menu.habitat]]
+  title = "Overview"
+  identifier = "chef_habitat/overview"
+  parent = "chef_habitat"
   weight = 20
 
-  [[menu.docs]]
-  title = "Packages & Platforms"
-  identifier = "packages_&_platforms"
-  parent = "overview"
+  [[menu.habitat]]
+  title = "Get Started"
+  identifier = "chef_habitat/get_started"
+  parent = "chef_habitat"
   weight = 30
 
-  [[menu.docs]]
-  title = "Licensing"
-  identifier = "licensing"
-  parent = "overview"
+  [[menu.habitat]]
+  title = "Packages"
+  identifier = "chef_habitat/developing-packages"
+  parent = "chef_habitat"
+  weight = 40
+
+  [[menu.habitat]]
+  title = "Builder"
+  identifier = "chef_habitat/builder"
+  parent = "chef_habitat"
   weight = 50
 
-[[menu.docs]]
-title = "Available on GitHub"
-identifier = "github"
-url = "https://github.com/habitat.sh/habitat"
-weight = 90
+  [[menu.habitat]]
+  title = "Services"
+  identifier = "chef_habitat/services"
+  parent = "chef_habitat"
+  weight = 60
 
-[[menu.docs]]
-title = "Get Chef"
-identifier = "get chef"
-url = "https://www.chef.io/get-chef"
-weight = 100
+  [[menu.habitat]]
+  title = "Integrations"
+  identifier = "chef_habitat/integrations"
+  parent = "chef_habitat"
+  weight = 70
 
-[[menu.docs]]
-title = "Send Feedback"
-identifier = "send feedback"
-url = "/feedback/"
-weight = 110
+  [[menu.habitat]]
+  title = "Reference"
+  identifier = "chef_habitat/reference"
+  parent = "chef_habitat"
+  weight = 80
 
-[[menu.docs]]
-title = "Support"
-identifier = "support"
-url = "https://www.chef.io/support/"
-weight = 120
+  [[menu.habitat]]
+  title = "Diagrams"
+  identifier = "chef_habitat/diagrams"
+  parent = "chef_habitat"
+  weight = 90
 
-[[menu.docs]]
-title = "Archive"
-identifier = "archive"
-url = "https://docs-archive.chef.io/"
-weight = 130
+  [[menu.habitat]]
+  title = "Best Practices"
+  identifier = "chef_habitat/best-practices"
+  parent = "chef_habitat"
+  weight = 100
+
+  [[menu.habitat]]
+  title = "Topics"
+  identifier = "chef_habitat/glossary"
+  parent = "chef_habitat"
+  weight = 110
+
+  [[menu.habitat]]
+  title = "Internals"
+  identifier = "chef_habitat/internals"
+  parent = "chef_habitat"
+  weight = 120
+
+  [[menu.habitat]]
+  title = "Habitat Pattern Library"
+  identifier = "chef_habitat/pattern-library"
+  parent = "chef_habitat"
+  weight = 130
+
