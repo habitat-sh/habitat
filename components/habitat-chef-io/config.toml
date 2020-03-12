@@ -1,4 +1,3 @@
-#####
 baseURL = "/"
 languageCode = "en-us"
 title = "Habitat Documentation"
@@ -6,6 +5,8 @@ title = "Habitat Documentation"
 theme = "docs-new"
 enableGitInfo = true
 pluralizeListTitles = false
+
+disableKinds = ["taxonomy", "taxonomyTerm"]
 
 [markup]
   defaultMarkdownHandler = "goldmark"
@@ -63,6 +64,8 @@ pluralizeListTitles = false
   robots = ''
   menuOrder = ["infra", "workstation", "habitat", "inspec", "automate", "legacy", "api", "extra"]
 
+
+
 ## Main Menu ##
 
 [[menu.main]]
@@ -102,7 +105,10 @@ url = "https://downloads.chef.io/"
 weight = 60
 
 
-## Chef Habitat Menu ##
+
+###
+# Chef Habitat Menu ##
+###
 
 [[menu.habitat]]
 title = "Chef Habitat"

@@ -1,10 +1,11 @@
 +++
 title = "{{ replace .Name "-" " " | title }}"
-description = ""
+linktitle = "{{ replace .Name "-" " " | title }}"
 date = {{ .Date }}
 draft = true
-category =
-tags =
-
+weight = 10
+[menu]
+  [menu.habitat]
+    parent = "chef_habitat"
 +++
 
