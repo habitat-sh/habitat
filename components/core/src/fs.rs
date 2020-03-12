@@ -772,17 +772,21 @@ impl AtomicWriter {
         Ok(r)
     }
 
-    /// finish completes the atomic write by calling sync on the
-    /// temporary file to ensure all data is flushed to disk and then
-    /// renaming the file into place.
+    /// Completes the atomic write by calling sync on the temporary
+    /// file to ensure all data is flushed to disk and then renaming
+    /// the file into place.
     fn finish(self) -> io::Result<()> {
         // Note that we only set permissions if given explicit ones to
         // override whatever permissions the file was created with.
-        if let Permissions::Explicit(permissions) = self.permissions {
+        if let Permissions::Explicit(ref permissions) = self.permissions {
+            // This is not my proudest moment, but it does the trick
+            // with a minimum amount of fuss :/
+            #[cfg(not(windows))]
+            let permissions = *permissions;
+
             set_permissions(&self.tempfile.path(), permissions).map_err(|e| {
-                                                            io::Error::new(io::ErrorKind::Other,
-                                                                           e.to_string())
-                                                        })?;
+                io::Error::new(io::ErrorKind::Other, e.to_string())
+            })?;
         }
         self.tempfile.as_file().sync_all()?;
         debug!("Renaming {} to {}",
