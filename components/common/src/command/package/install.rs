@@ -34,8 +34,6 @@ use crate::{api_client::{self,
                  UIWriter},
             FeatureFlag};
 use glob;
-#[cfg(not(windows))]
-use habitat_core::fs::DEFAULT_CACHED_ARTIFACT_PERMISSIONS;
 use habitat_core::{self,
                    crypto::{artifact,
                             keys::parse_name_with_rev,
@@ -43,7 +41,8 @@ use habitat_core::{self,
                    fs::{cache_key_path,
                         pkg_install_path,
                         svc_hooks_path,
-                        AtomicWriter},
+                        AtomicWriter,
+                        DEFAULT_CACHED_ARTIFACT_PERMISSIONS},
                    os::users,
                    package::{list::temp_package_directory,
                              FullyQualifiedPackageIdent,
@@ -934,9 +933,8 @@ impl<'a> InstallTask<'a> {
                    artifact_path.display(),
                    cache_path.display());
             let mut w = AtomicWriter::new(&cache_path)?;
-            if cfg!(not(target_os = "windows")) {
-                w.with_permissions(DEFAULT_CACHED_ARTIFACT_PERMISSIONS);
-            }
+            w.with_permissions(DEFAULT_CACHED_ARTIFACT_PERMISSIONS);
+
             w.with_writer(|mut w| {
                  let mut f = File::open(artifact_path)?;
                  io::copy(&mut f, &mut w)

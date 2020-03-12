@@ -57,10 +57,43 @@ pub const USER_CONFIG_FILE: &str = "user.toml";
 /// have. The user and group will be `SVC_USER` / `SVC_GROUP`.
 #[cfg(not(windows))]
 const SVC_DIR_PERMISSIONS: u32 = 0o770;
-/// Permissions applied to artifacts that are brought into the
-/// artifact cache directory (i.e., CACHE_ARTIFACT_PATH)
+/// Permissions applied to artifacts that are downloaded and/or
+/// cached. On Unix platforms, they are world-readable because there's
+/// no reason for them to be locked down any tighter.
 #[cfg(not(windows))]
-pub const DEFAULT_CACHED_ARTIFACT_PERMISSIONS: u32 = 0o644;
+pub const DEFAULT_CACHED_ARTIFACT_PERMISSIONS: Permissions = Permissions::Explicit(0o644);
+/// Permissions applied to artifacts that are downloaded and/or
+/// cached. On Windows, we don't need do to anything particularly
+/// special, since artifacts will generally inherit the permissions of
+/// their containing directory.
+#[cfg(windows)]
+pub const DEFAULT_CACHED_ARTIFACT_PERMISSIONS: Permissions = Permissions::Standard;
+
+/// An `Option`-like abstraction over platform-specific ways to model
+/// file permissions.
+pub enum Permissions {
+    /// Don't take any special action to set permissions beyond what
+    /// they are "normally" set to when they are created. Here,
+    /// "normal" denotes the low-level programming library sense,
+    /// rather than any particular domain-specific sense.
+    ///
+    /// Think of this as a more semantically-descriptive and
+    /// permission-specific version of `Option::None`.
+    Standard,
+    /// Indicates that a file should be created with very specific
+    /// permissions.
+    ///
+    /// Think of this as a more semantically-descriptive and
+    /// permission-specific version of `Option::Some`.
+    #[cfg(windows)]
+    Explicit(Vec<win_perm::PermissionEntry>),
+    #[cfg(not(windows))]
+    Explicit(u32),
+}
+
+impl Default for Permissions {
+    fn default() -> Permissions { Permissions::Standard }
+}
 
 lazy_static::lazy_static! {
     /// The default filesystem root path.
@@ -702,12 +735,9 @@ fn parent(p: &Path) -> io::Result<&Path> {
 ///
 /// Assumes that the parent directory of dest_path exists.
 pub struct AtomicWriter {
-    dest:       PathBuf,
-    tempfile:   tempfile::NamedTempFile,
-    #[cfg(not(windows))]
-    permission: Option<u32>,
-    #[cfg(windows)]
-    permission: Option<Vec<win_perm::PermissionEntry>>,
+    dest:        PathBuf,
+    tempfile:    tempfile::NamedTempFile,
+    permissions: Permissions,
 }
 
 impl AtomicWriter {
@@ -716,21 +746,14 @@ impl AtomicWriter {
         let tempfile = tempfile::NamedTempFile::new_in(parent)?;
         Ok(Self { dest: dest_path.to_path_buf(),
                   tempfile,
-                  permission: None })
+                  permissions: Permissions::default() })
     }
 
-    #[cfg(not(windows))]
-    /// with_permission sets the target mode for the destination path.
+    /// Sets the given permissions for the destination path.
     ///
-    /// note: The mode is set explicitly and not subject to the
-    /// process umask.
-    pub fn with_permissions(&mut self, mode: u32) { self.permission = Some(mode); }
-
-    #[cfg(windows)]
-    /// with_permission sets given permissions on the destination path.
-    pub fn with_permissions(&mut self, entries: Vec<win_perm::PermissionEntry>) {
-        self.permission = Some(entries);
-    }
+    /// Note: On Unix platforms, permissions are set explicitly and
+    /// not subject to the process umask.
+    pub fn with_permissions(&mut self, permissions: Permissions) { self.permissions = permissions; }
 
     pub fn with_writer<F, T, E>(mut self, op: F) -> std::result::Result<T, E>
         where F: FnOnce(&mut std::fs::File) -> std::result::Result<T, E>,
@@ -745,13 +768,10 @@ impl AtomicWriter {
     /// temporary file to ensure all data is flushed to disk and then
     /// renaming the file into place.
     fn finish(self) -> io::Result<()> {
-        if let Some(permission) = self.permission {
-            #[cfg(windows)]
-            let perm = &permission;
-            #[cfg(not(windows))]
-            let perm = permission;
-
-            set_permissions(&self.tempfile.path(), perm).map_err(|e| {
+        // Note that we only set permissions if given explicit ones to
+        // override whatever permissions the file was created with.
+        if let Permissions::Explicit(permissions) = self.permissions {
+            set_permissions(&self.tempfile.path(), permissions).map_err(|e| {
                                                             io::Error::new(io::ErrorKind::Other,
                                                                            e.to_string())
                                                         })?;

@@ -16,10 +16,10 @@ use crate::{allow_std_io::AllowStdIo,
 use broadcast::BroadcastWriter;
 use bytes::BytesMut;
 use futures::stream::TryStreamExt;
-#[cfg(not(windows))]
-use habitat_core::fs::DEFAULT_CACHED_ARTIFACT_PERMISSIONS;
 use habitat_core::{crypto::keys::box_key_pair::WrappedSealedBox,
-                   fs::AtomicWriter,
+                   fs::{AtomicWriter,
+                        Permissions,
+                        DEFAULT_CACHED_ARTIFACT_PERMISSIONS},
                    package::{Identifiable,
                              PackageArchive,
                              PackageIdent,
@@ -90,24 +90,6 @@ mod json_u64 {
         let s = String::deserialize(deserializer)?;
         s.parse::<u64>().map_err(serde::de::Error::custom)
     }
-}
-
-#[cfg(windows)]
-use crate::util::win_perm;
-
-/// Abstraction over platform-specific ways to model file permissions.
-enum Permissions {
-    /// Don't take any special action to set permissions beyond what
-    /// they are "normally" set to when they are created. Here,
-    /// "normal" denotes the low-level programming library sense,
-    /// rather than any particular domain-specific sense.
-    Standard,
-    /// Indicates that a file should be created with very specific
-    /// permissions.
-    #[cfg(windows)]
-    Explicit(Vec<win_perm::PermissionEntry>),
-    #[cfg(not(windows))]
-    Explicit(u32),
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -209,9 +191,7 @@ impl BuilderAPIClient {
         let dst_file_path = dst_path.join(file_name);
         let w = {
             let mut w = AtomicWriter::new(&dst_file_path)?;
-            if let Permissions::Explicit(permissions) = permissions {
-                w.with_permissions(permissions);
-            }
+            w.with_permissions(permissions);
             w
         };
         let content_length = response::get_header(&resp, CONTENT_LENGTH);
@@ -1036,13 +1016,11 @@ impl BuilderAPIClient {
         let req_builder = self.0.get_with_custom_url(&package_download(ident), |u| {
                                     u.set_query(Some(&format!("target={}", target)))
                                 });
-
-        let permissions = if cfg!(not(windows)) {
-            Permissions::Explicit(DEFAULT_CACHED_ARTIFACT_PERMISSIONS)
-        } else {
-            Permissions::Standard
-        };
-        self.download(req_builder, dst_path.as_ref(), token, permissions, progress)
+        self.download(req_builder,
+                      dst_path.as_ref(),
+                      token,
+                      DEFAULT_CACHED_ARTIFACT_PERMISSIONS,
+                      progress)
             .await
             .map(PackageArchive::new)
     }
