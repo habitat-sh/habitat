@@ -189,11 +189,7 @@ impl BuilderAPIClient {
         fs::create_dir_all(&dst_path)?;
         let file_name = response::get_header(&resp, X_FILENAME)?;
         let dst_file_path = dst_path.join(file_name);
-        let w = {
-            let mut w = AtomicWriter::new(&dst_file_path)?;
-            w.with_permissions(permissions);
-            w
-        };
+        let w = AtomicWriter::new_with_permissions(&dst_file_path, permissions)?;
         let content_length = response::get_header(&resp, CONTENT_LENGTH);
         let mut body = Cursor::new(resp.bytes().await?);
         // Blocking IO is used because of `DisplayProgress` which relies on the `Write` trait.

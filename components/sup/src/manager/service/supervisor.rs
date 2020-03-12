@@ -265,8 +265,7 @@ impl Supervisor {
                 // parent directory. In this case, the parent directory should
                 // already allow broad reading of the PID file.
                 const PIDFILE_PERMISSIONS: u32 = 0o644;
-                let mut w = fs::AtomicWriter::new(pid_file)?;
-                w.with_permissions(fs::Permissions::Explicit(PIDFILE_PERMISSIONS));
+                let w = fs::AtomicWriter::new_with_permissions(pid_file, fs::Permissions::Explicit(PIDFILE_PERMISSIONS))?;
                 w.with_writer(|f| f.write_all(pid.to_string().as_ref()))?;
             }
         }

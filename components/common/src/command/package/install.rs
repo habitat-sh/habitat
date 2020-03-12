@@ -932,9 +932,8 @@ impl<'a> InstallTask<'a> {
             debug!("copying artifact to cache, artifact_path={}, cached_path={}",
                    artifact_path.display(),
                    cache_path.display());
-            let mut w = AtomicWriter::new(&cache_path)?;
-            w.with_permissions(DEFAULT_CACHED_ARTIFACT_PERMISSIONS);
-
+            let w = AtomicWriter::new_with_permissions(&cache_path,
+                                                       DEFAULT_CACHED_ARTIFACT_PERMISSIONS)?;
             w.with_writer(|mut w| {
                  let mut f = File::open(artifact_path)?;
                  io::copy(&mut f, &mut w)

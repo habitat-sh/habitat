@@ -741,19 +741,27 @@ pub struct AtomicWriter {
 }
 
 impl AtomicWriter {
+    /// Create a new `AtomicWriter` that writes to a file at
+    /// `dest_path` with default permissions.
     pub fn new(dest_path: &Path) -> io::Result<Self> {
+        Self::new_with_permissions(dest_path, Permissions::default())
+    }
+
+    /// Create a new `AtomicWriter` that writes to a file at
+    /// `dest_path` with the specified permissions.
+    ///
+    /// Note: On Unix platforms, permissions are set explicitly and
+    /// not subject to the process umask.
+    // NOTE: If we ever add another kind of configurable parameter to
+    // `AtomicWriter`, we should take a look at creating a Builder for
+    // it.
+    pub fn new_with_permissions(dest_path: &Path, permissions: Permissions) -> io::Result<Self> {
         let parent = parent(dest_path)?;
         let tempfile = tempfile::NamedTempFile::new_in(parent)?;
         Ok(Self { dest: dest_path.to_path_buf(),
                   tempfile,
-                  permissions: Permissions::default() })
+                  permissions })
     }
-
-    /// Sets the given permissions for the destination path.
-    ///
-    /// Note: On Unix platforms, permissions are set explicitly and
-    /// not subject to the process umask.
-    pub fn with_permissions(&mut self, permissions: Permissions) { self.permissions = permissions; }
 
     pub fn with_writer<F, T, E>(mut self, op: F) -> std::result::Result<T, E>
         where F: FnOnce(&mut std::fs::File) -> std::result::Result<T, E>,
