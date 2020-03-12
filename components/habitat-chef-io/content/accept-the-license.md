@@ -1,5 +1,6 @@
 +++
 title = "Accept the License"
+linktitle = "The Chef Software License"
 description = "Chef Habitat License"
 category = "Habitat"
 tags = "license"

@@ -1,7 +1,6 @@
 baseURL = "/"
 languageCode = "en-us"
 title = "Habitat Documentation"
-
 theme = "docs-new"
 enableGitInfo = true
 pluralizeListTitles = false
@@ -64,7 +63,10 @@ disableKinds = ["taxonomy", "taxonomyTerm"]
   robots = ''
   menuOrder = ["infra", "workstation", "habitat", "inspec", "automate", "legacy", "api", "extra"]
 
-
+[taxonomies]
+  category = "categories"
+  tag = "tags"
+  resource = "resources"
 
 ## Main Menu ##
 
