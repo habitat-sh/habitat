@@ -25,11 +25,10 @@ use habitat_launcher_client::LauncherCli;
 use serde::{ser::SerializeStruct,
             Serialize,
             Serializer};
-#[cfg(not(windows))]
-use std::io::Write;
 use std::{fs::File,
           io::{BufRead,
-               BufReader},
+               BufReader,
+               Write},
           path::{Path,
                  PathBuf},
           result,
