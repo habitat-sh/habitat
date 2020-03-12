@@ -1,0 +1,11 @@
+<div class="admonition-warning">
+    <p class="admonition-warning-title">Warning</p>
+    <div class="admonition-warning-text">
+      {{ if .Get "spaces" }}
+        {{  $regex := delimit (slice `(?m)^\s{` ( .Get "spaces") `}`) "" }}
+        {{- markdownify (replaceRE $regex `` .Inner) -}}
+      {{ else }}
+        {{- .Inner | markdownify -}}
+      {{ end }}
+    </div>
+</div>

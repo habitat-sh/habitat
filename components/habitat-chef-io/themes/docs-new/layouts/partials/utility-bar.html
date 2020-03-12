@@ -1,0 +1,11 @@
+<nav id="utility-bar" class = "show-for-medium">
+    <div class="utility-bar-logo">
+      <a href="/"><img src="{{ "images/chef-logo.svg" | relURL }}" alt="Chef Documentation" class="chef"></a>
+    </div>
+
+    <ul class="menu align-right top-nav">
+      {{ range .Site.Menus.main }}
+      <li><a href="{{ .URL }}">{{ .Title }}</a></li>
+      {{ end }}
+    </ul>
+</nav>

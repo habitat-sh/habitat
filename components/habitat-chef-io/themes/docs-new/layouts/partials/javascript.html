@@ -1,0 +1,23 @@
+{{- $fontawesome := resources.Get "js/vendor/fontawesome-all.min.js" }}
+{{- $jquery := resources.Get "js/vendor/jquery.min.js" }}
+{{- $foundation := resources.Get "js/vendor/foundation.min.js" }}
+{{- $whatInput := resources.Get "js/vendor/what-input.min.js" }}
+{{- $uaParser := resources.Get "js/vendor/ua-parser.min.js" }}
+{{- $showdown := resources.Get "js/vendor/showdown.min.js" }}
+{{- $coreJs := slice $fontawesome $jquery $foundation $whatInput $uaParser $showdown | resources.Concat "js/core-bundle.js" | minify | fingerprint }}
+<script src="{{ $coreJs.Permalink }}" type="text/javascript"></script>
+{{- $segment := resources.Get "js/segment.js" }}
+{{- $omnitruck := resources.Get "js/omnitruck.js" }}
+{{- $releases := resources.Get "js/releases.js" }}
+{{- $copycodebutton := resources.Get "js/copy-code-button.js" }}
+{{- $chefHugo := resources.Get "js/chef-hugo.js" }}
+{{- $customJs := slice $segment $omnitruck $releases $copycodebutton $chefHugo | resources.Concat "js/custom-bundle.js" | minify | fingerprint }}
+<script src="{{ $customJs.Permalink }}" type="text/javascript"></script>
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+  (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+  e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+  
+  _st('install','s1Pemn_yrUKJw9_K5zRT','2.0.0');
+</script>

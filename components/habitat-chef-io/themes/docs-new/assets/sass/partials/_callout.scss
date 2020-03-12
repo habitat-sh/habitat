@@ -1,0 +1,15 @@
+.callout-section {
+  background-color: $charcoal;
+
+  h2, h4, p, li .title {
+    color: $white;
+  }
+
+  p {
+    margin-bottom: rem-calc(40);
+  }
+
+  ul.bordered-items {
+    margin-bottom: 0;
+  }
+}

@@ -1,0 +1,37 @@
+.copy-code-button {
+    color: $charcoal;
+    background-color: $code-background;
+    border: 1px solid transparent;
+    border-radius: 2px 2px 0px 0px;
+
+    /* right-align */
+    display: block;
+    margin-left: auto;
+    margin-right: 0;
+
+    margin: 0px 0 -1px auto;
+    padding: 3px 8px 3px 8px;
+    font-size: 0.8em;
+}
+
+.copy-code-button:hover {
+    cursor: pointer;
+    background-color: $code-background-hover;
+}
+
+.copy-code-button:focus {
+    /* Avoid an ugly focus outline on click in Chrome,
+       but darken the button for accessibility.
+       See https://stackoverflow.com/a/25298082/1481479 */
+    background-color: $code-background-focus;
+    outline: 0;
+}
+
+.copy-code-button:active {
+    background-color: $code-background-active;
+}
+
+.highlight pre {
+    /* Avoid pushing up the copy buttons. */
+    margin-top: 0;
+}

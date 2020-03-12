@@ -1,0 +1,19 @@
+.bg-white {
+	background-color: white;
+}
+
+.bg-charcoal {
+  background-color: $charcoal;
+}
+
+.bg-ash {
+	background-color: $ash;
+}
+
+.bg-gray {
+	background-color: $sidebargray;
+}
+
+.bg-cover {
+  @include bg-cover();
+}

@@ -1,0 +1,183 @@
+#####
+baseURL = "/"
+languageCode = "en-us"
+title = "Habitat Documentation"
+
+theme = "docs-new"
+enableGitInfo = true
+pluralizeListTitles = false
+
+[markup]
+  defaultMarkdownHandler = "goldmark"
+  [markup.blackFriday]
+    angledQuotes = false
+    footnoteAnchorPrefix = ""
+    footnoteReturnLinkContents = ""
+    fractions = true
+    hrefTargetBlank = false
+    latexDashes = true
+    nofollowLinks = false
+    noreferrerLinks = false
+    plainIDAnchors = true
+    skipHTML = false
+    smartDashes = true
+    smartypants = true
+    smartypantsQuotesNBSP = false
+    taskLists = true
+		extensions = ["hardLineBreak"]
+  [markup.goldmark]
+    [markup.goldmark.extensions]
+      definitionList = true
+      footnote = true
+      linkify = true
+      strikethrough = true
+      table = true
+      taskList = true
+      typographer = true
+    [markup.goldmark.parser]
+      attribute = true
+      autoHeadingID = true
+      autoHeadingIDType = "github"
+    [markup.goldmark.renderer]
+      hardWraps = false
+      unsafe = true
+      xHTML = false
+  [markup.highlight]
+    codeFences = true
+    guessSyntax = false
+    hl_Lines = ""
+    lineNoStart = 1
+    lineNos = false
+    lineNumbersInTable = true
+    noClasses = true
+    style = "friendly"
+    tabWidth = 4
+  [markup.tableOfContents]
+    endLevel = 3
+    ordered = false
+    startLevel = 1
+
+
+[params]
+  enable_search = true
+  robots = ''
+  menuOrder = ["infra", "workstation", "habitat", "inspec", "automate", "legacy", "api", "extra"]
+
+## Main Menu ##
+
+[[menu.main]]
+title = "Chef.io"
+identifier = "chef"
+url = "https://www.chef.io/"
+weight = 10
+
+[[menu.main]]
+title = "Learn Chef"
+identifier = "learn chef"
+url = "https://learn.chef.io/"
+weight = 20
+
+[[menu.main]]
+title = "Blog"
+identifier = "blog"
+url = "https://blog.chef.io/"
+weight = 30
+
+[[menu.main]]
+title = "Community"
+identifier = "community"
+url = "https://community.chef.io/"
+weight = 40
+
+[[menu.main]]
+title = "Training"
+identifier = "training"
+url = "https://training.chef.io/"
+weight = 50
+
+[[menu.main]]
+title = "Download"
+identifier = "download"
+url = "https://downloads.chef.io/"
+weight = 60
+
+
+## Chef Habitat Menu ##
+
+[[menu.habitat]]
+title = "Chef Habitat"
+identifier = "chef_habitat"
+weight = 10
+
+  [[menu.habitat]]
+  title = "Overview"
+  identifier = "chef_habitat/overview"
+  parent = "chef_habitat"
+  weight = 20
+
+  [[menu.habitat]]
+  title = "Get Started"
+  identifier = "chef_habitat/get_started"
+  parent = "chef_habitat"
+  weight = 30
+
+  [[menu.habitat]]
+  title = "Packages"
+  identifier = "chef_habitat/developing-packages"
+  parent = "chef_habitat"
+  weight = 40
+
+  [[menu.habitat]]
+  title = "Builder"
+  identifier = "chef_habitat/builder"
+  parent = "chef_habitat"
+  weight = 50
+
+  [[menu.habitat]]
+  title = "Services"
+  identifier = "chef_habitat/services"
+  parent = "chef_habitat"
+  weight = 60
+
+  [[menu.habitat]]
+  title = "Integrations"
+  identifier = "chef_habitat/integrations"
+  parent = "chef_habitat"
+  weight = 70
+
+  [[menu.habitat]]
+  title = "Reference"
+  identifier = "chef_habitat/reference"
+  parent = "chef_habitat"
+  weight = 80
+
+  [[menu.habitat]]
+  title = "Diagrams"
+  identifier = "chef_habitat/diagrams"
+  parent = "chef_habitat"
+  weight = 90
+
+  [[menu.habitat]]
+  title = "Best Practices"
+  identifier = "chef_habitat/best-practices"
+  parent = "chef_habitat"
+  weight = 100
+
+  [[menu.habitat]]
+  title = "Topics"
+  identifier = "chef_habitat/glossary"
+  parent = "chef_habitat"
+  weight = 110
+
+  [[menu.habitat]]
+  title = "Internals"
+  identifier = "chef_habitat/internals"
+  parent = "chef_habitat"
+  weight = 120
+
+  [[menu.habitat]]
+  title = "Habitat Pattern Library"
+  identifier = "chef_habitat/pattern-library"
+  parent = "chef_habitat"
+  weight = 130
+

@@ -1,0 +1,116 @@
+$thick: 3px;
+$pad: 0.7em;
+$extra: calc(#{$pad} * 1.2);
+
+
+.button-animated {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: none;
+  text-decoration: none;
+  font-size: 17px;
+  line-height: 1.76;
+  padding: 8px 22px;
+  color: $orange;
+  display: inline-block;
+  text-align: center;
+  position: relative;
+  min-width: 257px;
+  vertical-align: top;
+  &.white-text {
+    color: white;
+  }
+  .text {
+    font-weight: $bold;
+    &:before {
+      @include fa-icon;
+      @extend .fas;
+      content: fa-content($fa-var-angle-right);
+      margin-right: 5px;
+      font-size: 12px;
+      top: -3px;
+      position: relative;
+    }
+  }
+  .line {
+    position: absolute;
+    background: $orange;
+    &.-left {
+      width: $thick;
+      bottom: -$thick;
+      top: -$thick; //transform: scale3d(1,0,1);
+      left: -$thick;
+      transition: transform 0.08s linear 0.43s;
+      transform-origin: bottom;
+    }
+    &.-right-top {
+      width: $thick;
+      bottom: -$thick;
+      top: -$thick;
+      transform: scale3d(1, 0.15, 1);
+      right: -$thick;
+      transition: transform 0.08s linear 0.43s;
+      transform-origin: top;
+    }
+    &.-right-bottom {
+      width: $thick;
+      bottom: -$thick;
+      top: -$thick;
+      transform: scale3d(1, 0.15, 1);
+      right: -$thick;
+      transition: transform 0.08s linear 0.43s;
+      transform-origin: bottom;
+    }
+    &.-top-left {
+      height: $thick;
+      left: -$thick;
+      right: -$thick;
+      transform: scale3d(0.1, 1, 1);
+      top: -$thick;
+      transition: transform 0.08s linear 0.43s;
+      transform-origin: left;
+    }
+    &.-top-right {
+      height: $thick;
+      left: -$thick;
+      right: -$thick;
+      transform: scale3d(0.75, 1, 1);
+      top: -$thick;
+      transition: transform 0.08s linear 0.43s;
+      transform-origin: right;
+    }
+    &.-bottom {
+      height: $thick;
+      left: -$thick;
+      right: -$thick; //transform: scale3d(0,1,1);
+      bottom: -$thick;
+      transition: transform 0.08s linear 0.43s;
+      transform-origin: right;
+    }
+  }
+  &:hover,
+  &:active {
+    color: $orange;
+
+    .line {
+      &.-right-bottom {
+        transition: transform 0.08s linear 0.4s;
+        transform-origin: bottom;
+        transform: scale3d(1, 1, 1);
+      }
+      &.-top-left {
+        transition: transform 0.08s linear 0.4s;
+        transform-origin: left;
+        transform: scale3d(1, 1, 1);
+      }
+    }
+  }
+}
+
+.TOC-button {
+  padding: 5px;
+  margin-bottom: 24px;
+}

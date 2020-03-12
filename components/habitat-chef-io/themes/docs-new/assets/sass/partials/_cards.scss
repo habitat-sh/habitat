@@ -1,0 +1,54 @@
+.cards {
+  .svg-inline--fa, .cell > .fas {
+    margin-bottom: rem-calc(15px);
+    color: $blue;
+  }
+
+  .boxed {
+    @include box-shadow();
+    height: 100%;
+    border: 1px solid $ash;
+    background-color: white;
+    padding: rem-calc(24px 24px 64px);
+    position: relative;
+
+    &:after {
+      content: "";
+      height: 6px;
+      width: 0;
+      display: block;
+      position: absolute;
+      bottom: 0;
+      background: orange;
+      left: 0;
+      @include transition();
+    }
+
+    .icon {
+      margin-bottom: rem-calc(24);
+      height: 32px;
+    }
+
+    .h6 {
+      margin-bottom: rem-calc(16);
+    }
+
+    .cta {
+      position: absolute;
+      bottom: rem-calc(24);
+      color: $orange-darker;
+
+      &:hover {
+        color: $orange !important;
+      }
+    }
+
+    body:not(.touch-device) & {
+      &:hover {
+        &:after {
+          width: 100%;
+        }
+      }
+    }
+  }
+}

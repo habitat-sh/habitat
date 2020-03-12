@@ -1,0 +1,37 @@
+@mixin admonition($color){
+  font-size: 0.8rem;
+  margin: 2em 0 1rem 0;
+  border: 2px solid $color;
+  padding: 0;
+  border-radius: 4px;
+  
+  // the title of notes/warnings in list items inherits the margin from lists without the important
+  &-title{
+    margin: 0 !important; 
+    padding: 0.1rem 0 0.1rem 0.5rem;
+    color: $white;
+    border-bottom: 1px solid;
+    font-weight: bold;
+    background-color: $color;
+  }
+  &-text{
+    padding: 0.8rem 1rem;
+    margin: 0.4rem 0 0.4rem 0;
+  }
+}
+
+.admonition{
+
+  &-note {
+    @include admonition($note-color);
+  }
+  &-important {
+    @include admonition($note-color);
+  }
+  &-warning {
+    @include admonition($warning-color);
+  }
+  &-danger {
+    @include admonition($alert-color);
+  }
+}
