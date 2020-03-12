@@ -418,7 +418,3 @@ a release:
 
        brew uninstall hab
        brew install hab
-
-# Creating a One-Off Release
-
-See the [one-off-release tool](tools/one-off-release/README.md).

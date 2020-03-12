@@ -19,6 +19,5 @@ members = [
   "components/sup-client",
   "components/sup-protocol",
   "components/win-users",
-  "tools/one-off-release",
   "test-services/test-probe",
 ]

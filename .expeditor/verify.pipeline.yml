@@ -294,6 +294,8 @@ steps:
   ###############################################################
   # MacOS tests
   - label: "[unit] :darwin: install script"
+    env:
+      HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/test_install_script.sh
     expeditor:

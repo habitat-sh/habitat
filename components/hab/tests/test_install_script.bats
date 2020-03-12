@@ -88,7 +88,7 @@ installed_target() {
 @test "Install specific version for x86_64-darwin" {
   darwin || skip "Did not detect a Darwin system"
   run components/hab/install.sh -v 0.90.6
-  
+
   [ "$status" -eq 0 ]
   [ "$(installed_version)" == "hab 0.90.6" ]
 }
