@@ -16,6 +16,8 @@ use habitat_common::{outputln,
 #[cfg(unix)]
 use habitat_core::os::users;
 use habitat_core::{fs,
+                   fs::{AtomicWriter,
+                        Permissions},
                    os::process::{self,
                                  Pid},
                    service::ServiceGroup};
@@ -23,11 +25,10 @@ use habitat_launcher_client::LauncherCli;
 use serde::{ser::SerializeStruct,
             Serialize,
             Serializer};
-#[cfg(not(windows))]
-use std::io::Write;
 use std::{fs::File,
           io::{BufRead,
-               BufReader},
+               BufReader,
+               Write},
           path::{Path,
                  PathBuf},
           result,
@@ -35,6 +36,15 @@ use std::{fs::File,
                  SystemTime}};
 
 static LOGKEY: &str = "SV";
+
+// We only set PID file permissions on Unix-like systems. On Windows,
+// the file will inherit the permissions of the parent directory. In
+// this case, the parent directory should already allow broad reading
+// of the PID file.
+#[cfg(windows)]
+const PIDFILE_PERMISSIONS: Permissions = Permissions::Standard;
+#[cfg(not(windows))]
+const PIDFILE_PERMISSIONS: Permissions = Permissions::Explicit(0o644);
 
 #[derive(Debug)]
 pub struct Supervisor {
@@ -255,20 +265,8 @@ impl Supervisor {
             debug!(target: "pidfile_tracing", "Creating PID file for child {} -> {}",
                    pid_file.display(),
                    pid);
-
-            #[cfg(windows)]
-            fs::atomic_write(pid_file, pid.to_string())?;
-            #[cfg(not(windows))]
-            {
-                // We only set PID file permissions on unix-like systems. On
-                // windows, the file will inherit the permissions of the
-                // parent directory. In this case, the parent directory should
-                // already allow broad reading of the PID file.
-                const PIDFILE_PERMISSIONS: u32 = 0o644;
-                let mut w = fs::AtomicWriter::new(pid_file)?;
-                w.with_permissions(PIDFILE_PERMISSIONS);
-                w.with_writer(|f| f.write_all(pid.to_string().as_ref()))?;
-            }
+            let w = AtomicWriter::new_with_permissions(pid_file, PIDFILE_PERMISSIONS)?;
+            w.with_writer(|f| f.write_all(pid.to_string().as_ref()))?;
         }
 
         Ok(())

@@ -1,13 +1,6 @@
 use crate::{allow_std_io::AllowStdIo,
             error::{Error,
                     Result},
-            hab_core::{crypto::keys::box_key_pair::WrappedSealedBox,
-                       fs::AtomicWriter,
-                       package::{Identifiable,
-                                 PackageArchive,
-                                 PackageIdent,
-                                 PackageTarget},
-                       ChannelIdent},
             hab_http::ApiClient,
             response,
             BuildOnUpload,
@@ -23,6 +16,15 @@ use crate::{allow_std_io::AllowStdIo,
 use broadcast::BroadcastWriter;
 use bytes::BytesMut;
 use futures::stream::TryStreamExt;
+use habitat_core::{crypto::keys::box_key_pair::WrappedSealedBox,
+                   fs::{AtomicWriter,
+                        Permissions,
+                        DEFAULT_CACHED_ARTIFACT_PERMISSIONS},
+                   package::{Identifiable,
+                             PackageArchive,
+                             PackageIdent,
+                             PackageTarget},
+                   ChannelIdent};
 use percent_encoding::{percent_encode,
                        AsciiSet,
                        CONTROLS};
@@ -177,6 +179,7 @@ impl BuilderAPIClient {
                           rb: RequestBuilder,
                           dst_path: &'a Path,
                           token: Option<&'a str>,
+                          permissions: Permissions,
                           progress: Option<Box<dyn DisplayProgress>>)
                           -> Result<PathBuf> {
         debug!("Downloading file to path: {}", dst_path.display());
@@ -186,7 +189,7 @@ impl BuilderAPIClient {
         fs::create_dir_all(&dst_path)?;
         let file_name = response::get_header(&resp, X_FILENAME)?;
         let dst_file_path = dst_path.join(file_name);
-        let w = AtomicWriter::new(&dst_file_path)?;
+        let w = AtomicWriter::new_with_permissions(&dst_file_path, permissions)?;
         let content_length = response::get_header(&resp, CONTENT_LENGTH);
         let mut body = Cursor::new(resp.bytes().await?);
         // Blocking IO is used because of `DisplayProgress` which relies on the `Write` trait.
@@ -461,6 +464,7 @@ impl BuilderAPIClient {
                           .get(&format!("depot/origins/{}/encryption_key", origin)),
                       dst_path.as_ref(),
                       Some(token),
+                      Permissions::Standard,
                       progress)
             .await
     }
@@ -844,6 +848,7 @@ impl BuilderAPIClient {
                           .get(&format!("depot/origins/{}/keys/{}", origin, revision)),
                       dst_path.as_ref(),
                       None,
+                      Permissions::Standard,
                       progress)
             .await
     }
@@ -865,6 +870,7 @@ impl BuilderAPIClient {
                           .get(&format!("depot/origins/{}/secret_keys/latest", origin)),
                       dst_path.as_ref(),
                       Some(token),
+                      Permissions::Standard,
                       progress)
             .await
     }
@@ -1006,8 +1012,11 @@ impl BuilderAPIClient {
         let req_builder = self.0.get_with_custom_url(&package_download(ident), |u| {
                                     u.set_query(Some(&format!("target={}", target)))
                                 });
-
-        self.download(req_builder, dst_path.as_ref(), token, progress)
+        self.download(req_builder,
+                      dst_path.as_ref(),
+                      token,
+                      DEFAULT_CACHED_ARTIFACT_PERMISSIONS,
+                      progress)
             .await
             .map(PackageArchive::new)
     }

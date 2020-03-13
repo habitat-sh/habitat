@@ -57,6 +57,43 @@ pub const USER_CONFIG_FILE: &str = "user.toml";
 /// have. The user and group will be `SVC_USER` / `SVC_GROUP`.
 #[cfg(not(windows))]
 const SVC_DIR_PERMISSIONS: u32 = 0o770;
+/// Permissions applied to artifacts that are downloaded and/or
+/// cached. On Unix platforms, they are world-readable because there's
+/// no reason for them to be locked down any tighter.
+#[cfg(not(windows))]
+pub const DEFAULT_CACHED_ARTIFACT_PERMISSIONS: Permissions = Permissions::Explicit(0o644);
+/// Permissions applied to artifacts that are downloaded and/or
+/// cached. On Windows, we don't need do to anything particularly
+/// special, since artifacts will generally inherit the permissions of
+/// their containing directory.
+#[cfg(windows)]
+pub const DEFAULT_CACHED_ARTIFACT_PERMISSIONS: Permissions = Permissions::Standard;
+
+/// An `Option`-like abstraction over platform-specific ways to model
+/// file permissions.
+pub enum Permissions {
+    /// Don't take any special action to set permissions beyond what
+    /// they are "normally" set to when they are created. Here,
+    /// "normal" denotes the low-level programming library sense,
+    /// rather than any particular domain-specific sense.
+    ///
+    /// Think of this as a more semantically-descriptive and
+    /// permission-specific version of `Option::None`.
+    Standard,
+    /// Indicates that a file should be created with very specific
+    /// permissions.
+    ///
+    /// Think of this as a more semantically-descriptive and
+    /// permission-specific version of `Option::Some`.
+    #[cfg(windows)]
+    Explicit(Vec<win_perm::PermissionEntry>),
+    #[cfg(not(windows))]
+    Explicit(u32),
+}
+
+impl Default for Permissions {
+    fn default() -> Permissions { Permissions::Standard }
+}
 
 lazy_static::lazy_static! {
     /// The default filesystem root path.
@@ -698,34 +735,32 @@ fn parent(p: &Path) -> io::Result<&Path> {
 ///
 /// Assumes that the parent directory of dest_path exists.
 pub struct AtomicWriter {
-    dest:       PathBuf,
-    tempfile:   tempfile::NamedTempFile,
-    #[cfg(not(windows))]
-    permission: Option<u32>,
-    #[cfg(windows)]
-    permission: Option<Vec<win_perm::PermissionEntry>>,
+    dest:        PathBuf,
+    tempfile:    tempfile::NamedTempFile,
+    permissions: Permissions,
 }
 
 impl AtomicWriter {
+    /// Create a new `AtomicWriter` that writes to a file at
+    /// `dest_path` with default permissions.
     pub fn new(dest_path: &Path) -> io::Result<Self> {
+        Self::new_with_permissions(dest_path, Permissions::default())
+    }
+
+    /// Create a new `AtomicWriter` that writes to a file at
+    /// `dest_path` with the specified permissions.
+    ///
+    /// Note: On Unix platforms, permissions are set explicitly and
+    /// not subject to the process umask.
+    // NOTE: If we ever add another kind of configurable parameter to
+    // `AtomicWriter`, we should take a look at creating a Builder for
+    // it.
+    pub fn new_with_permissions(dest_path: &Path, permissions: Permissions) -> io::Result<Self> {
         let parent = parent(dest_path)?;
         let tempfile = tempfile::NamedTempFile::new_in(parent)?;
         Ok(Self { dest: dest_path.to_path_buf(),
                   tempfile,
-                  permission: None })
-    }
-
-    #[cfg(not(windows))]
-    /// with_permission sets the target mode for the destination path.
-    ///
-    /// note: The mode is set explicitly and not subject to the
-    /// process umask.
-    pub fn with_permissions(&mut self, mode: u32) { self.permission = Some(mode); }
-
-    #[cfg(windows)]
-    /// with_permission sets given permissions on the destination path.
-    pub fn with_permissions(&mut self, entries: Vec<win_perm::PermissionEntry>) {
-        self.permission = Some(entries);
+                  permissions })
     }
 
     pub fn with_writer<F, T, E>(mut self, op: F) -> std::result::Result<T, E>
@@ -737,20 +772,21 @@ impl AtomicWriter {
         Ok(r)
     }
 
-    /// finish completes the atomic write by calling sync on the
-    /// temporary file to ensure all data is flushed to disk and then
-    /// renaming the file into place.
+    /// Completes the atomic write by calling sync on the temporary
+    /// file to ensure all data is flushed to disk and then renaming
+    /// the file into place.
     fn finish(self) -> io::Result<()> {
-        if let Some(permission) = self.permission {
-            #[cfg(windows)]
-            let perm = &permission;
+        // Note that we only set permissions if given explicit ones to
+        // override whatever permissions the file was created with.
+        if let Permissions::Explicit(ref permissions) = self.permissions {
+            // This is not my proudest moment, but it does the trick
+            // with a minimum amount of fuss :/
             #[cfg(not(windows))]
-            let perm = permission;
+            let permissions = *permissions;
 
-            set_permissions(&self.tempfile.path(), perm).map_err(|e| {
-                                                            io::Error::new(io::ErrorKind::Other,
-                                                                           e.to_string())
-                                                        })?;
+            set_permissions(&self.tempfile.path(), permissions).map_err(|e| {
+                io::Error::new(io::ErrorKind::Other, e.to_string())
+            })?;
         }
         self.tempfile.as_file().sync_all()?;
         debug!("Renaming {} to {}",
