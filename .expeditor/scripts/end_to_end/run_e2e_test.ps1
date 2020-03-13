@@ -6,6 +6,7 @@ param (
 
 Write-Host "LAST EXIT: $LASTEXITCODE"
 . .expeditor/scripts/shared.ps1
+Write-Host "LAST EXIT: $LASTEXITCODE"
 . .expeditor/scripts/end_to_end/setup_environment.ps1 $Channel $BuilderUrl
 Write-Host "LAST EXIT: $LASTEXITCODE"
 Invoke-NativeCommand pwsh .expeditor/scripts/end_to_end/run_e2e_test_core.ps1 $TestName $BuilderUrl
