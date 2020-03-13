@@ -52,7 +52,7 @@ sidebar_links:
     - title: Using Custom Certificates
       link: "/docs/using-builder/#using-custom-certs"
   - title: Managing Services
-    link: "/docs/using-habitat/"
+    link: "/docs/using-habitat"
     sub_links:
     - title: Overview
       link: "/docs/using-habitat/#overview"
@@ -207,7 +207,12 @@ sidebar_links:
     sub_links:
     - title: Kubernetes Bastion Ring Pattern
       link: "/docs/pattern-library/#kub-bastion"
-    - title: hab pkg download Patterns
-      link: "/docs/pattern-library/#hab-pkg-download"
+  - title: API
+    link: "/docs/"
+    sub_links:
+    - title: Builder API (external link)
+      link: "/docs/api/builder-api"
+    - title: Supervisor API (external link)
+      link: "/docs/api/supervisor"
   - title: Contribute
     link: "/docs/contribute"
