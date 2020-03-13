@@ -1,0 +1,1 @@
+'post-stop hook has fired' | Out-File -path $env:temp/testpkgstophook.out -Append

@@ -1,0 +1,5 @@
+try {
+    while ($true) { Start-Sleep 1 }
+} finally {
+    'run hook is terminating' | Out-File -path $env:temp/testpkgstophook.out
+}

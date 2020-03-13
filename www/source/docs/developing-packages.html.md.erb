@@ -87,6 +87,50 @@ All plans must have a `plan.sh` or `plan.ps1` at the root of the plan context. T
 
 When writing a plan, it's important to understand that you are defining both how the package is built and the actions Chef Habitat will take when the Supervisor starts and manages the child processes in the package. The following sections explain what you need to do for each phase.
 
+## <a name="plan-targets" id="plan-targets" data-magellan-target="plan-targets" type="anchor">Writing a Plan for Multiple Platform Targets</a>
+
+You may want to create a plan for an application that can run on multiple platform targets. You can create target specific folders beneath either the root of your project or a top level `habitat` folder. Then save the plan, hooks, and configuration templates specific to a single platform all inside of that target specific folder.
+
+For example, an application targeting linux, Linux kernel 2, and Windows may have the following structure:
+
+```
+app_root/
+├── x_86_64-linux/
+|   |   plan.sh
+|   └── hooks/
+|           run
+├── x_86_64-linux-kernel2/
+|   |   plan.sh
+|   └── hooks/
+|           run
+└── x_86-64-windows/
+    |   plan.ps1
+    └── hooks/
+            run
+```
+
+The build script will look for the base of your plan in the following locations:
+
+- `<app_root>/<target>/`
+- `<app_root>/habitat/<target>/`
+- `<app_root>/`
+- `<app_root>/habitat/`
+
+If it finds a plan both inside as well as outside of a target folder, the target specific plan will be used as long as that is the target currently being built. However it is strongly recommended that you do not have plans both inside and outside of a target folder. We currently allow this only for backwards compatibility with some existing plans but plan to eventually fail builds where a plan exists in both places. The best practice when you need multiple plans for different targets is to put each plan in its own target folder.
+
+Of course if your plan does not include hooks or configuration templates and just requires a plan file, you may choose this simpler structure:
+
+```
+app_root/
+└── habitat/
+        plan.sh
+        plan.ps1
+```
+
+> Note: It is recommended to place all plan files inside of a `habitat` parent folder in order to allow for clean separation between your application source code and habitat specific files. However, if you maintain a separate repository solely for the purpose of storing habitat plans, then the use of a `habitat` folder may not be necessary.
+
+On Windows, only a `plan.ps1` will be used and a `plan.sh` will only be used on Linux or Linux kernel 2. So if your application requires different plans for Linux and Linux Kernel 2, even without hooks and configuration templates, you will need to use target folders for each platform.
+
 ### Buildtime Workflow
 
 For buildtime installation and configuration, workflow steps need to be included in the plan file to define how you will install your application source files into a package. Before writing your plan, you should know and understand how your application binaries are currently built, installed, what their dependencies are, and where your application or software library expects to find those dependencies.

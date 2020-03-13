@@ -5,9 +5,38 @@
 hab origin key generate $env:HAB_ORIGIN
 
 Describe "Studio build" {
-    It "builds a simple package" {
-        hab pkg build test/fixtures/minimal-package
-        $LASTEXITCODE | Should -Be 0
+    foreach($plan in @(
+            "plan-in-root",
+            "plan-in-habitat",
+            "plan-in-target",
+            "plan-in-habitat-target"
+        )) {
+        It "builds $plan" {
+            hab pkg build test/fixtures/$plan
+            $LASTEXITCODE | Should -Be 0
+        }
+    }
+
+    It "does not build plan-in-root-and-habitat" {
+        hab pkg build test/fixtures/plan-in-root-and-habitat
+        $LASTEXITCODE | Should -Be 1
+    }
+
+    It "does not build plan-in-none" {
+        hab pkg build test/fixtures/plan-in-none
+        $LASTEXITCODE | Should -Be 1
+    }
+
+    It "builds plan in target if also in root" {
+        hab pkg build test/fixtures/plan-in-root-and-target
+        if($IsLinux) {
+            # This changes the format of last_build from `var=value` to `$var='value'`
+            # so that powershell can parse and source the script
+            Get-Content "results/last_build.env" | ForEach-Object { Add-Content "results/last_build.ps1" -Value "`$$($_.Replace("=", '="'))`"" }
+        }
+        . ./results/last_build.ps1
+
+        $pkg_name | Should -Be "target_plan"
     }
 }
 

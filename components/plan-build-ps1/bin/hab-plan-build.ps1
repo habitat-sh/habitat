@@ -1532,51 +1532,64 @@ if (-Not (Test-Path "$Context")) {
 }
 $script:PLAN_CONTEXT = (Get-Item $Context).FullName
 
-# Now to ensure a `plan.ps1` exists where we expect it. There are 4 possible
-# candidate locations relative to the `$PLAN_CONTEXT` directory:
-#   `./plan.ps1`
-#   `./habitat/plan.ps1`
-#   `./$pkg_target/plan.ps1`
-#   `./habitat/$pkg_target/plan.ps1`
-# In most cases, Plan authors should use the default location of `./plan.ps1`
-# or `./habitat/plan.ps1`.  The exception to this is when the $pkg_target
-# requires variations to the default `plan.ps1`. Plan authors can create these
-# variants by placing a plan file in the appropriate $pkg_target directory
-# relative to the default plan.ps1.
-#
-# With plan variants, plans can exist in 4 places per $pkg_target relative to
-# the `$PLAN_CONTEXT` directory. Only two combinations are allowed:
-#
-#   `./plan.ps1` AND `./$pkg_target/plan.ps1`
-#   OR
-#   `./habitat/plan.ps1` AND `./habitat/$pkg_target/plan.ps1`
-# Consider all other combination of two plans invalid and abort if found.
 
-# ** Internal ** Relative to the current plan context,  check for a variant
-#   that matches the current $pkg_target, and update $PLAN_CONTEXT if found.
-function Set-PlanContextFromTarget {
-    if (Test-Path "$PLAN_CONTEXT\$pkg_target\plan.ps1") {
-        Write-BuildLine "Detected Plan Variant!"
-        $script:PLAN_CONTEXT = "$PLAN_CONTEXT\$pkg_target"
-        Write-BuildLine "$PLAN_CONTEXT"
+# Look for a plan.ps1 relative to the $PLAN_CONTEXT. Acceptable locations are:
+#   "$PLAN_CONTEXT\plan.ps1",
+#   "$PLAN_CONTEXT\habitat\plan.ps1",
+#   "$PLAN_CONTEXT\$pkg_target\plan.ps1",
+#   "$PLAN_CONTEXT\habitat\$pkg_target\plan.ps1"
+# A plan found in the target folder will take precedence above a non-target
+# folder. We currently allow a plan to exist both inside and outside of a
+# target folder to support some core plans that have a Linux kernel 2 plan
+# in a target folder and a Linux plan outside. Today we will warn in this
+# condition but we should change those plans and then make this an error
+# prompting a failure. If we find an invalid combination or are unable to
+# find a plan.ps1, abort with a message to the user with the failure case.
+$targetPaths = @()
+$paths = @()
+$finalPaths = @()
+$candidateTargetPaths = @(
+    "${PLAN_CONTEXT}$pkg_target\plan.ps1",
+    "${PLAN_CONTEXT}habitat\$pkg_target\plan.ps1"
+)
+$candidatePaths = @(
+    "${PLAN_CONTEXT}plan.ps1",
+    "${PLAN_CONTEXT}habitat\plan.ps1"
+)
+
+# Lets notate all of the existing plan paths
+foreach($path in $candidateTargetPaths) {
+    if(Test-Path $path) {
+        $targetPaths += $path
+    }
+}
+foreach($path in $candidatePaths) {
+    if(Test-Path $path) {
+        $paths += $path
     }
 }
 
-# Look for a plan.ps1 relative to the $PLAN_CONTEXT. If we find an invalid
-#   combination or are unable to find a plan.ps1,  abort with a message to the
-#   user with the failure case.
-if (Test-Path "$PLAN_CONTEXT\plan.ps1") {
-    if (Test-Path "$PLAN_CONTEXT\habitat\plan.ps1") {
-        $places = "$PLAN_CONTEXT\plan.ps1 and $PLAN_CONTEXT\habitat\plan.ps1"
-        throw "A Plan file was found at $places. Only one is allowed at a time"
-    }
-    Set-PlanContextFromTarget
-} elseif (Test-Path "$PLAN_CONTEXT\habitat\plan.ps1") {
-    $script:PLAN_CONTEXT = "$PLAN_CONTEXT\habitat"
-    Set-PlanContextFromTarget
+if($paths.Count -gt 0 -and ($targetPaths.Count -gt 0)) {
+    Write-Warning "There is a plan.ps1 inside $pkg_target and outside as well. Using the plan in $pkg_target."
+    Write-Warning "It is advisable to either remove the plan that is outside $pkg_target"
+    Write-Warning "or move that plan to its own target folder if it is intended for a different target."
+}
+
+# lets figure out what the final set of paths we are evaluating
+# because target paths take precedence over non-target paths, we
+# will use those if any were used
+if($targetPaths.Count -gt 0) {
+    $finalPaths = $targetPaths
 } else {
-    $places = "$PLAN_CONTEXT\plan.ps1 or $PLAN_CONTEXT\habitat\plan.ps1"
-    throw "Plan file not found at $places"
+    $finalPaths = $paths
+}
+
+if($finalPaths.Count -gt 1) {
+    throw "A Plan file was found in the following paths: $($finalPaths -Join ', '). Only one is allowed at a time"
+} elseif($finalPaths.Count -eq 0) {
+    throw "Plan file not found in any of these paths: $(($candidatePaths + $candidateTargetPaths) -Join ', ')"
+} else {
+    $script:PLAN_CONTEXT = (Split-Path $finalPaths[0] -Parent)
 }
 
 

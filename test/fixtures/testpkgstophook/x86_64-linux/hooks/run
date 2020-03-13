@@ -1,0 +1,11 @@
+#!/bin/sh
+
+_term() {
+  echo "run hook is terminating" >> /tmp/testpkgstophook.out
+}
+
+trap _term TERM
+
+while true; do
+  sleep 1
+done
