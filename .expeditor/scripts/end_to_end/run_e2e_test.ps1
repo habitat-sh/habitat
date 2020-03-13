@@ -3,7 +3,7 @@ param (
     [string]$TestName,
     [string]$BuilderUrl = $env:HAB_BLDR_URL
 )
-
+write-host "starting..."
 . .expeditor/scripts/shared.ps1
 # $count = 0
 # while($count -lt 30) {
