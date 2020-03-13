@@ -9,6 +9,7 @@ $ErrorActionPreference = "stop"
 $env:HAB_NOCOLORING = "true"
 $env:HAB_LICENSE = "accept-no-persist"
 
+Write-Host "Calling Install-Habitat..."
 Install-Habitat
 $binPath = Join-Path -Path $env:SystemDrive -ChildPath hab | Join-Path -ChildPath bin
 $env:PATH = New-PathString $env:PATH $binPath
