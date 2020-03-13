@@ -1549,12 +1549,12 @@ $targetPaths = @()
 $paths = @()
 $finalPaths = @()
 $candidateTargetPaths = @(
-    "${PLAN_CONTEXT}$pkg_target\plan.ps1",
-    "${PLAN_CONTEXT}habitat\$pkg_target\plan.ps1"
+    (Resolve-RootedPath "$PLAN_CONTEXT\$pkg_target\plan.ps1"),
+    (Resolve-RootedPath "$PLAN_CONTEXT\habitat\$pkg_target\plan.ps1")
 )
 $candidatePaths = @(
-    "${PLAN_CONTEXT}plan.ps1",
-    "${PLAN_CONTEXT}habitat\plan.ps1"
+    (Resolve-RootedPath "$PLAN_CONTEXT\plan.ps1"),
+    (Resolve-RootedPath "$PLAN_CONTEXT\habitat\plan.ps1")
 )
 
 # Lets notate all of the existing plan paths
