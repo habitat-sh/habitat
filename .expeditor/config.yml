@@ -39,6 +39,8 @@ pipelines:
       description: Habitat long running end to end tests - always runs on DEV environment
   - finish_release:
       description: Tasks to be performed after a release has been promoted to stable
+  - nightly:
+      description: Nightly builds of our packages - runs against acceptance
 
 staging_areas:
   - release_staging:

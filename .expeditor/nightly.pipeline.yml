@@ -1,0 +1,28 @@
+expeditor:
+  secrets:
+    PIPELINE_HAB_AUTH_TOKEN:
+      path: account/static/habitat/chef-ci
+      field: acceptance_auth_token # Acceptance Builder
+      # auth_token = production
+  accounts:
+    - aws/chef-cd
+  defaults:
+    buildkite:
+      timeout_in_minutes: 30
+      env:
+        HAB_ORIGIN: "core"
+        PIPELINE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
+
+steps:
+#######################################################################
+# Sync!
+#######################################################################
+  - label: "[:habicat: Sync packages to acceptance]"
+    command: 
+    #- .expeditor/scripts/nightly/sync_live_packages.sh 
+      - echo "Hello!"
+    executor:
+      docker:
+        environment:
+          BLDR_SOURCE_CHANNEL="refresh-2020q1-006b"
+  
