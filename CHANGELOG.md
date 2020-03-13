@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.64 -->
-## [1.5.64](https://github.com/habitat-sh/habitat/tree/1.5.64) (2020-03-13)
+<!-- latest_release 1.5.65 -->
+## [1.5.65](https://github.com/habitat-sh/habitat/tree/1.5.65) (2020-03-13)
 
 #### Merged Pull Requests
-- allow plan context to be rooted in target folder [#7548](https://github.com/habitat-sh/habitat/pull/7548) ([mwrock](https://github.com/mwrock))
+- Habitat API docs [#6729](https://github.com/habitat-sh/habitat/pull/6729) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.50 -->
 ### Changes since 1.5.50 release
@@ -16,6 +16,7 @@
 - Add service `--update-condition` enabling service rollback [#7513](https://github.com/habitat-sh/habitat/pull/7513) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.56 -->
 
 #### Merged Pull Requests
+- Habitat API docs [#6729](https://github.com/habitat-sh/habitat/pull/6729) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.5.65 -->
 - allow plan context to be rooted in target folder [#7548](https://github.com/habitat-sh/habitat/pull/7548) ([mwrock](https://github.com/mwrock)) <!-- 1.5.64 -->
 - Remove one-off release tool [#7546](https://github.com/habitat-sh/habitat/pull/7546) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.63 -->
 - Fix at-once update test [#7543](https://github.com/habitat-sh/habitat/pull/7543) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.62 -->
