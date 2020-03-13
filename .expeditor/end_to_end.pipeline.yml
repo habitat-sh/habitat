@@ -66,12 +66,11 @@ steps:
 
   - label: "[:windows: hab-svc-load]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_load_service
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_load_service
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -81,12 +80,11 @@ steps:
 
   - label: "[:windows: Start-Service]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_windows_service
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_windows_service
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -96,12 +94,11 @@ steps:
 
   - label: "[:windows: cleanly-shutdown-supervisor]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_windows_shutdown
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_windows_shutdown
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -111,12 +108,11 @@ steps:
 
   - label: "[:windows: hab-svc-load-with-svc-user]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_load_service_with_password
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_load_service_with_password
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -126,12 +122,11 @@ steps:
 
   - label: "[:windows: test_supervisor_binds]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_binds
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_binds
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -153,12 +148,11 @@ steps:
 
   - label: "[:windows: test_supervisor_term]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_term
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_term
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -177,12 +171,11 @@ steps:
 
   - label: "[:windows: hab-svc-load-with-hab-user]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_load_with_hab_user
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_load_with_hab_user
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -263,12 +256,11 @@ steps:
 
   - label: "[:windows: test_tar_export]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_tar_export
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_tar_export
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -302,12 +294,11 @@ steps:
 
   - label: "[:windows: test_studio_with_ssl_cert_file_envvar_set]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_with_ssl_cert_file_envvar_set
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_with_ssl_cert_file_envvar_set
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -330,12 +321,11 @@ steps:
 
   - label: "[:windows: test_studio_version]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_version
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_version
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -386,12 +376,11 @@ steps:
 
   - label: "[:windows: test_studio_supervisor]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_supervisor
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_supervisor
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -439,12 +428,11 @@ steps:
 
   - label: "[:windows: test_studio_can_build_packages]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_can_build_packages
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_can_build_packages
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -455,12 +443,11 @@ steps:
 
   - label: "[:windows: test_studio_can_build_packages_with_pkg_version_function]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_can_build_packages_with_pkg_version_function
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_can_build_packages_with_pkg_version_function
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -471,12 +458,11 @@ steps:
 
   - label: "[:windows: test_studio_can_build_scaffolded_package]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_can_build_scaffolded_package
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_can_build_scaffolded_package
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -508,12 +494,11 @@ steps:
 
   - label: "[:windows: test_windows_service_stops_on_launcher_termination]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_windows_service_stops_on_launcher_termination
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_windows_service_stops_on_launcher_termination
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -523,12 +508,11 @@ steps:
 
   - label: "[:windows: test_ssl_certificate_loading]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_ssl_certificate_loading
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_ssl_certificate_loading
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -571,12 +555,11 @@ steps:
 
   - label: "[:windows: test_simple_hooks]"
     command:
-      - .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_simple_hooks
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_simple_hooks
     expeditor:
       executor:
         docker:
           host_os: windows
-          shell: [ "powershell", "-Command" ]
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
