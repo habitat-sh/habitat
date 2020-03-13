@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+
+echo "post-stop hook has fired" >> /tmp/testpkgstophook.out
