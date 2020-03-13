@@ -13,4 +13,4 @@ write-host "starting..."
 # }
 
 . .expeditor/scripts/end_to_end/setup_environment.ps1 $Channel $BuilderUrl
-# Invoke-NativeCommand pwsh .expeditor/scripts/end_to_end/run_e2e_test_core.ps1 $TestName $BuilderUrl
+Invoke-NativeCommand pwsh .expeditor/scripts/end_to_end/run_e2e_test_core.ps1 $TestName $BuilderUrl
