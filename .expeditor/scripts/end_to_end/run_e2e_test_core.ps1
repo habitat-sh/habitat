@@ -258,4 +258,4 @@ if(Test-Path $TestName) {
 } else {
     $testPath = Join-Path -Path test end-to-end "$($TestName).ps1"
 }
-Invoke-Pester $testPath -EnableExit
+# Invoke-Pester $testPath -EnableExit
