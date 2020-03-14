@@ -6,13 +6,13 @@ $pkg = "$(Get-EndToEndTestingOrigin)/simple-hooks"
 
 Describe "Simple hooks output" {
     $svc = Load-SupervisorService -PackageName $pkg -Timeout 20
-    # $pkgLogsPath = Join-Path -Path $env:SystemDrive -ChildPath hab -AdditionalChildPath @("svc", $svc, "logs")
+    $pkgLogsPath = Join-Path -Path $env:SystemDrive -ChildPath hab -AdditionalChildPath @("svc", $svc, "logs")
 
-    # It "Has correct 'install' hook stdout" {
-    #     $path = Join-Path $pkgLogsPath "install.stdout.log"
-    #     Wait-PathHasContentUpdatedAfter $path $TestStartTime 10
-    #     $path | Should -FileContentMatchExactly "install hook $svc"
-    # }
+    It "Has correct 'install' hook stdout" {
+        $path = Join-Path $pkgLogsPath "install.stdout.log"
+        Wait-PathHasContentUpdatedAfter $path $TestStartTime 10
+        $path | Should -FileContentMatchExactly "install hook $svc"
+    }
 
     # It "Has correct 'init' hook stdout" {
     #     $path = Join-Path $pkgLogsPath "init.stdout.log"
