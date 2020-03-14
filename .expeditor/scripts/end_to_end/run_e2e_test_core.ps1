@@ -253,9 +253,9 @@ function Get-HabServicePID($PackageName) {
 
 Import-Module (Join-Path -Path $(hab pkg path core/pester) module Pester.psd1)
 
-if (!$IsLinux) {
-    $TestName = "test_windows_service_stops_on_launcher_termination"
-}
+# if (!$IsLinux) {
+#     $TestName = "test_windows_service_stops_on_launcher_termination"
+# }
 if(Test-Path $TestName) {
     $testPath = $TestName
 } else {
