@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.66 -->
-## [1.5.66](https://github.com/habitat-sh/habitat/tree/1.5.66) (2020-03-16)
+<!-- latest_release 1.5.67 -->
+## [1.5.67](https://github.com/habitat-sh/habitat/tree/1.5.67) (2020-03-16)
 
 #### Merged Pull Requests
-- fix powershell builds when giving a path not ending in a slash [#7553](https://github.com/habitat-sh/habitat/pull/7553) ([mwrock](https://github.com/mwrock))
+-  fix failing test where windows and linux expect different error codes [#7557](https://github.com/habitat-sh/habitat/pull/7557) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.50 -->
 ### Changes since 1.5.50 release
@@ -16,6 +16,7 @@
 - Add service `--update-condition` enabling service rollback [#7513](https://github.com/habitat-sh/habitat/pull/7513) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.56 -->
 
 #### Merged Pull Requests
+-  fix failing test where windows and linux expect different error codes [#7557](https://github.com/habitat-sh/habitat/pull/7557) ([mwrock](https://github.com/mwrock)) <!-- 1.5.67 -->
 - fix powershell builds when giving a path not ending in a slash [#7553](https://github.com/habitat-sh/habitat/pull/7553) ([mwrock](https://github.com/mwrock)) <!-- 1.5.66 -->
 - Habitat API docs [#6729](https://github.com/habitat-sh/habitat/pull/6729) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.5.65 -->
 - allow plan context to be rooted in target folder [#7548](https://github.com/habitat-sh/habitat/pull/7548) ([mwrock](https://github.com/mwrock)) <!-- 1.5.64 -->
