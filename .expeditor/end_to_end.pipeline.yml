@@ -333,6 +333,17 @@ steps:
             - BUILDKITE_AGENT_ACCESS_TOKEN
             - HAB_ORIGIN
 
+  - label: "[:windows: :docker: test_studio_supervisor]"
+    command:
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_supervisor
+    env:
+      BUILD_PKG_TARGET: x86_64-windows
+      DOCKER_STUDIO_TEST: true
+    expeditor:
+      executor:
+        windows:
+          os_version: 2019
+
   - label: "[:linux: test_fresh_install_can_communicate_with_builder]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_fresh_install_can_communicate_with_builder
