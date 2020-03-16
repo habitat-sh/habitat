@@ -19,12 +19,12 @@ Describe "Studio build" {
 
     It "does not build plan-in-root-and-habitat" {
         hab pkg build test/fixtures/plan-in-root-and-habitat
-        $LASTEXITCODE | Should -Be 1
+        $LASTEXITCODE | Should -Not -Be 0
     }
 
     It "does not build plan-in-none" {
         hab pkg build test/fixtures/plan-in-none
-        $LASTEXITCODE | Should -Be 1
+        $LASTEXITCODE | Should -Not -Be 0
     }
 
     It "builds plan in target if also in root" {
