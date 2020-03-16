@@ -379,29 +379,6 @@ steps:
             - BUILDKITE_AGENT_ACCESS_TOKEN
             - HAB_ORIGIN
 
-  - label: "[:linux: test_studio_hab_is_expected_version]"
-    command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_hab_is_expected_version
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_ORIGIN
-
-  - label: "[:windows: test_studio_hab_is_expected_version]"
-    command:
-      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_hab_is_expected_version
-    expeditor:
-      executor:
-        docker:
-          host_os: windows
-          environment:
-            - BUILD_PKG_TARGET=x86_64-windows
-            - BUILDKITE_AGENT_ACCESS_TOKEN
-            - HAB_ORIGIN
-  
   - label: "[:linux: test_studio_unmount_with_long_filesystem]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_unmount_with_long_filesystem
