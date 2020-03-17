@@ -59,10 +59,10 @@ function Wait-PathHasContentUpdatedAfter($Path, $Time, $Timeout) {
     Wait-PathUpdatedAfter @PSBoundParameters
 }
 
-function Wait-Supervisor($Timeout = 1) {
+function Wait-Supervisor($Timeout = 1, $port = 9631) {
     Write-Host "Waiting up to $Timeout seconds for Supervisor to start..."
-    $testScript = { Test-Connection -ComputerName 127.0.0.1 -TCPPort 9631 }
-    $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for Supervisor to start" }
+    $testScript = { Test-Connection -ComputerName 127.0.0.1 -TCPPort $port }
+    $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for Supervisor to start on port $port" }
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
     Write-Host "Supervisor is now running."
 }

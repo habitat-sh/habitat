@@ -395,7 +395,6 @@ steps:
     env:
       BUILD_PKG_TARGET: x86_64-windows
       DOCKER_STUDIO_TEST: true
-      HAB_DOCKER_OPTS: "-p 9631:9631"
     expeditor:
       executor:
         windows:
