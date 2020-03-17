@@ -1,5 +1,3 @@
-$env:HAB_INTERNAL_BLDR_CHANNEL = "dev"
-$env:HAB_BLDR_CHANNEL = "dev"
 $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) "testpkgstophook.out"
 $launcherProc = Start-Supervisor -Timeout 45
 
