@@ -34,7 +34,7 @@ Describe "Rolling Update and Rollback" {
 
         @("alpha", "beta") | ForEach-Object {
             It "rollback release on $_" {
-                Wait-Release -Ident $initalRelease -Remote $_
+                Wait-Release -Ident $initialRelease -Remote $_
             }
         }
     }

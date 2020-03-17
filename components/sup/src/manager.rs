@@ -77,8 +77,7 @@ use habitat_core::{crypto::SymKey,
 use habitat_launcher_client::{LauncherCli,
                               LAUNCHER_LOCK_CLEAN_ENV,
                               LAUNCHER_PID_ENV};
-use habitat_sup_protocol::{self,
-                           types::UpdateCondition};
+use habitat_sup_protocol::{self};
 use parking_lot::{Mutex,
                   RwLock};
 use prometheus::{HistogramVec,
@@ -1208,16 +1207,10 @@ impl Manager {
             if let Some(new_ident) = service_updater.has_update(&service.service_group) {
                 outputln!("Restarting {} with package {}", ident, new_ident);
                 event::service_update_started(&service, &new_ident);
-                // If we are using the track channel update condition, we potentially want to
-                // dictate the latest desired package after the restart.
-                let latest_desired_on_restart =
-                    if let UpdateCondition::TrackChannel = service.update_condition {
-                        Some(new_ident)
-                    } else {
-                        None
-                    };
+                // The supervisor always runs the latest package on disk. When we have an update
+                // ensure that the lastest package on disk is the package we updated to.
                 idents_to_restart_and_latest_desired_on_restart.push((ident.clone(),
-                                                                      latest_desired_on_restart));
+                                                                      Some(new_ident)));
             } else if service.needs_restart {
                 idents_to_restart_and_latest_desired_on_restart.push((ident.clone(), None));
             } else {

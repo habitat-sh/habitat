@@ -24,10 +24,25 @@ enum Role {
     Follower,
 }
 
-/// While the follower is waiting for its turn, it can either be promoted to leader (the leader
-/// died) or it can be instructed to update to a specific ident.
-enum FollowerWaitForTurn {
+/// Possible events when a follower is waiting for a rolling update to start.
+enum FollowerUpdateStartEvent {
+    /// The leader died and this follower was chosen as the leader.
     PromotedToLeader,
+    /// An update started and we have a specific package to update to.
+    // TODO (DM): This should use FullyQualifiedPackageIdent.
+    UpdateTo(PackageIdent),
+}
+
+/// Possible events when a follower is waiting for its turn to update.
+enum FollowerUpdateTurnEvent {
+    /// The leader died and this follower was chosen as the leader.
+    PromotedToLeader,
+    /// The leader died in the middle of a rolling update and this follower was chosen as the
+    /// leader. When this happens the new leader needs to update to the exact version the
+    /// rolling update was started with.
+    // TODO (DM): This should use FullyQualifiedPackageIdent.
+    PromotedToLeaderMidUpdate(PackageIdent),
+    /// An update started and we have a specific package to update to.
     // TODO (DM): This should use FullyQualifiedPackageIdent.
     UpdateTo(PackageIdent),
 }
@@ -63,27 +78,32 @@ impl RollingUpdateWorker {
             .start_update_election_rsw_mlr_rhw(&self.service_group, suitability, 0);
         // Determine this services role in the rolling update
         match self.update_role().await {
-            Role::Leader => self.leader_role().await,
+            Role::Leader => {
+                // Wait for an update which will trigger follower updates through the census
+                // protocol
+                self.package_update_worker.update().await
+            }
             Role::Follower => {
                 // Wait till it is our turn to update. It is possible that while we are waiting the
                 // leader dies and we are promoted to update leader.
-                match self.follower_wait_for_turn().await {
-                    FollowerWaitForTurn::PromotedToLeader => self.leader_role().await,
-                    FollowerWaitForTurn::UpdateTo(new_ident) => {
+                match self.follower_wait_for_update_turn().await {
+                    FollowerUpdateTurnEvent::PromotedToLeader => {
+                        // Wait for an update which will trigger follower updates through the
+                        // census protocol
+                        self.package_update_worker.update().await
+                    }
+                    FollowerUpdateTurnEvent::PromotedToLeaderMidUpdate(new_ident) => {
+                        // Update to the same package as the old leader allowing all followers to
+                        // finish updating
+                        self.package_update_worker.update_to(new_ident).await
+                    }
+                    FollowerUpdateTurnEvent::UpdateTo(new_ident) => {
                         // Update to the package we were instructed to
                         self.package_update_worker.update_to(new_ident).await
                     }
                 }
             }
         }
-    }
-
-    async fn leader_role(&self) -> PackageIdent {
-        // Wait for followers to finish updating if they are have an older version of the
-        // package
-        self.leader_wait_for_followers().await;
-        // Wait for an update
-        self.package_update_worker.update().await
     }
 
     async fn update_election_suitability(&self, topology: Topology) -> u64 {
@@ -168,32 +188,51 @@ impl RollingUpdateWorker {
         }
     }
 
-    async fn leader_wait_for_followers(&self) {
+    /// Detect when the rolling update leader has a new package which starts a rolling update. The
+    /// rolling update leaders new package is the package all followers need to update to.
+    async fn follower_wait_for_update_start(&self) -> FollowerUpdateStartEvent {
         loop {
             {
                 let census_group = self.census_group().await;
-                if let Some(me) = census_group.me() {
-                    if census_group.active_members()
-                                   .all(|member| member.pkg >= me.pkg)
-                    {
-                        debug!("'{}' rolling update leader verified all follower package versions",
-                               self.service_group);
-                        break;
+                match (census_group.update_leader(), census_group.me()) {
+                    (Some(leader), Some(me)) => {
+                        // If the current leader is no longer alive, it is possible that this
+                        // follower is now a leader.
+                        if leader.member_id == me.member_id {
+                            debug!("'{}' rolling update follower was promoted to the leader",
+                                   self.service_group);
+                            break FollowerUpdateStartEvent::PromotedToLeader;
+                        }
+                        if leader.pkg != me.pkg {
+                            // The leader has a new package starting a rolling update
+                            debug!("'{}' started a rolling update: leader='{}' follower='{}'",
+                                   self.service_group, leader.pkg, me.pkg);
+                            break FollowerUpdateStartEvent::UpdateTo(leader.pkg.clone());
+                        } else {
+                            // The leader still has the same package as this follower so an update
+                            // has not started
+                            trace!("'{}' is not in a rolling update", self.service_group);
+                        }
                     }
-                } else {
-                    error!("Supervisor does not know its own identity; rolling update of {} \
-                            cannot proceed! Please notify the Habitat core team!",
-                           self.service_group);
-                    debug_assert!(false);
+                    _ => {
+                        error!("The census group for '{}' is in a bad state. It could not \
+                                determine the update leader, previous peer, or its own identity.",
+                               self.service_group);
+                        debug_assert!(false);
+                    }
                 }
             }
-            debug!("'{}' rolling update leader waiting for followers to update",
-                   self.service_group);
             time::delay_for(DELAY).await;
         }
     }
 
-    async fn follower_wait_for_turn(&self) -> FollowerWaitForTurn {
+    async fn follower_wait_for_update_turn(&self) -> FollowerUpdateTurnEvent {
+        let update_to = match self.follower_wait_for_update_start().await {
+            FollowerUpdateStartEvent::PromotedToLeader => {
+                return FollowerUpdateTurnEvent::PromotedToLeader
+            }
+            FollowerUpdateStartEvent::UpdateTo(ident) => ident,
+        };
         loop {
             {
                 let census_group = self.census_group().await;
@@ -205,26 +244,35 @@ impl RollingUpdateWorker {
                         // If the current leader is no longer alive, it is possible that this
                         // follower is now a leader.
                         if leader.member_id == me.member_id {
-                            debug!("'{}' rolling update follower is promoted to the leader",
-                                   self.service_group);
-                            break FollowerWaitForTurn::PromotedToLeader;
+                            debug!("'{}' rolling update follower was promoted to the leader mid \
+                                    update. Immediately updating to '{}'.",
+                                   self.service_group, update_to);
+                            break FollowerUpdateTurnEvent::PromotedToLeaderMidUpdate(update_to);
                         }
-                        if leader.pkg < me.pkg {
-                            debug!("'{}' rolling update leader has an outdated package and needs \
-                                    to update",
-                                   self.service_group);
-                        } else if leader.pkg == me.pkg {
-                            trace!("'{}' is not in a rolling update", self.service_group);
-                        } else if leader.pkg != peer.pkg {
-                            debug!("'{}' is in a rolling update but it is not this followers \
-                                    turn to update",
-                                   self.service_group);
-                        } else {
-                            let new_ident = leader.pkg.clone();
+                        if leader.pkg != update_to {
+                            // The leader died in the middle of the rolling update. Wait for the new
+                            // leader to finish updating.
+                            debug!("'{}' is in a rolling update but its leader died. Waiting for \
+                                    new leader to finish updating: leader='{}' peer='{}' \
+                                    follower='{}' update_to='{}'",
+                                   self.service_group, leader.pkg, peer.pkg, me.pkg, update_to);
+                        } else if peer.pkg == update_to {
+                            // It is now this followers turn. The previous peer is done updating.
+                            // The first time this condition is true the previous peer is the
+                            // rolling update leader making this condition trivially true. This
+                            // will trigger all the followers to start their updates one after
+                            // another.
                             debug!("'{}' is in a rolling update and it is this followers turn to \
-                                    update to '{}'",
-                                   self.service_group, new_ident);
-                            break FollowerWaitForTurn::UpdateTo(new_ident);
+                                    update: leader='{}' peer='{}' follower='{}' update_to='{}'",
+                                   self.service_group, leader.pkg, peer.pkg, me.pkg, update_to);
+                            break FollowerUpdateTurnEvent::UpdateTo(update_to);
+                        } else {
+                            // It is not this followers turn to update. The previous peer has not
+                            // updated yet.
+                            debug!("'{}' is in a rolling update but it is not this followers \
+                                    turn to update: leader='{}' peer='{}' follower='{}' \
+                                    update_to='{}'",
+                                   self.service_group, leader.pkg, peer.pkg, me.pkg, update_to);
                         }
                     }
                     _ => {
