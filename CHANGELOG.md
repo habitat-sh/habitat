@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.69 -->
-## [1.5.69](https://github.com/habitat-sh/habitat/tree/1.5.69) (2020-03-17)
+<!-- latest_release 1.5.70 -->
+## [1.5.70](https://github.com/habitat-sh/habitat/tree/1.5.70) (2020-03-18)
 
 #### Merged Pull Requests
-- Fix rolling update when using track-channel update condition [#7556](https://github.com/habitat-sh/habitat/pull/7556) ([davidMcneil](https://github.com/davidMcneil))
+- Update changelog with new rolling update logic [#7561](https://github.com/habitat-sh/habitat/pull/7561) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.50 -->
 ### Changes since 1.5.50 release
@@ -19,6 +19,7 @@
 - When follower services restart during a rolling update all packages newer than the package the leader updated to are automatically uninstalled. This ensures that the leader and followers are running the same package. [#7556](https://github.com/habitat-sh/habitat/pull/7556) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- Update changelog with new rolling update logic [#7561](https://github.com/habitat-sh/habitat/pull/7561) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.70 -->
 - Fix rolling update when using track-channel update condition [#7556](https://github.com/habitat-sh/habitat/pull/7556) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.69 -->
 - only stop the studio container at the end of the docker studio supervisor test [#7560](https://github.com/habitat-sh/habitat/pull/7560) ([mwrock](https://github.com/mwrock)) <!-- 1.5.68 -->
 -  fix failing test where windows and linux expect different error codes [#7557](https://github.com/habitat-sh/habitat/pull/7557) ([mwrock](https://github.com/mwrock)) <!-- 1.5.67 -->
