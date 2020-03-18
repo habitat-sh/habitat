@@ -28,9 +28,13 @@ We currently don't have a good mechanism for building a set of packages off of a
 can be used for this purpose, however there is always the risk of change causing an unindended release. Additionally, 
 if you need to build against `core` origin packages that have not been promoted to stable, you won't be able 
 to use the release pipeline. The below snippet will produce a set of packages and upload them to a named channel,
-allowing you to run the end-to-end tests against them locally.
+allowing you to run the end-to-end tests against them locally. Substitute the builder channel containing unreleased
+packages for `stable` below in `HAB_BLDR_CHANNEL` if that is required.
+
+**CAUTION** Do not use `stable` for `pkg upload`. This will cause an accidental release.
 
 ```
+env HAB_BLDR_CHANNEL=stable HAB_ORIGIN=core \
 hab studio run "for component in hab plan-build backline studio launcher sup pkg-export-tar pkg-export-docker pkg-mesosize pkg-cfize; do build components/\$component; done"
 ######################################################################
 # Before uploading, ensure only your intended hart files are present #
