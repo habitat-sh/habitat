@@ -41,7 +41,7 @@ function Test-LauncherFailure($version) {
 }
 
 # These tests will timeout unless the launcher and all of its dependencies
-# are already on disk. 
+# are already on disk.
 hab pkg install core/hab-launcher --channel $HAB_BLDR_CHANNEL
 
 Describe "Launcher version check" {
