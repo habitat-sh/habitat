@@ -19,6 +19,7 @@ else
 fi
 
 image="hab-bats-cleanroom"
+container_name="expeditor-ci-bats-${BUILDKITE_BUILD_ID:-local}"
 
 docker build --tag "${image}" --file ./test/Dockerfile .
 
@@ -27,6 +28,6 @@ docker build --tag "${image}" --file ./test/Dockerfile .
 docker run -it --rm \
        --mount type=bind,source="$(pwd)/..",target=/test \
        --workdir=/test \
-       --name expeditor-ci-bats \
+       --name "$container_name" \
        "${image}" \
        bats ${TESTS}
