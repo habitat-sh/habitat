@@ -6,8 +6,13 @@
 #### Merged Pull Requests
 - Update CODEOWNERS [#7562](https://github.com/habitat-sh/habitat/pull/7562) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
-<!-- release_rollup since=1.5.50 -->
-### Changes since 1.5.50 release
+<!-- release_rollup since=1.5.71 -->
+### Changes since 1.5.71 release
+<!-- release_rollup -->
+
+<!-- latest_stable_release -->
+## [1.5.71](https://github.com/habitat-sh/habitat/tree/1.5.71) (2020-03-19)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/1.5.50...1.5.71)
 
 #### Bug Fixes
 - Make better use of `Instant::elapsed()` for safer timing operations [#7533](https://github.com/habitat-sh/habitat/pull/7533) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.58 -->
@@ -38,9 +43,7 @@
 - Cargo Update [#7519](https://github.com/habitat-sh/habitat/pull/7519) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.53 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-03-03 [#7518](https://github.com/habitat-sh/habitat/pull/7518) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.52 -->
 - Automated update of Habitat Documentation [#7517](https://github.com/habitat-sh/habitat/pull/7517) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.51 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release -->
 ## [1.5.50](https://github.com/habitat-sh/habitat/tree/1.5.50) (2020-03-03)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/1.5.29...1.5.50)
 
