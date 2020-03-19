@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.71 -->
-## [1.5.71](https://github.com/habitat-sh/habitat/tree/1.5.71) (2020-03-18)
+<!-- latest_release 1.5.72 -->
+## [1.5.72](https://github.com/habitat-sh/habitat/tree/1.5.72) (2020-03-19)
 
 #### Merged Pull Requests
-- Update CODEOWNERS [#7562](https://github.com/habitat-sh/habitat/pull/7562) ([davidMcneil](https://github.com/davidMcneil))
+- Update links to docs.chef.io [#7559](https://github.com/habitat-sh/habitat/pull/7559) ([IanMadd](https://github.com/IanMadd))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.50 -->
 ### Changes since 1.5.50 release
@@ -19,6 +19,7 @@
 - When follower services restart during a rolling update all packages newer than the package the leader updated to are automatically uninstalled. This ensures that the leader and followers are running the same package. [#7556](https://github.com/habitat-sh/habitat/pull/7556) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- Update links to docs.chef.io [#7559](https://github.com/habitat-sh/habitat/pull/7559) ([IanMadd](https://github.com/IanMadd)) <!-- 1.5.72 -->
 - Update CODEOWNERS [#7562](https://github.com/habitat-sh/habitat/pull/7562) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.71 -->
 - Update changelog with new rolling update logic [#7561](https://github.com/habitat-sh/habitat/pull/7561) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.70 -->
 - Fix rolling update when using track-channel update condition [#7556](https://github.com/habitat-sh/habitat/pull/7556) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.69 -->
