@@ -40,6 +40,10 @@ function Test-LauncherFailure($version) {
     return ($supPid.ExitCode -ne 0)
 }
 
+# These tests will timeout unless the launcher and all of its dependencies
+# are already on disk.
+hab pkg install core/hab-launcher --channel $HAB_BLDR_CHANNEL
+
 Describe "Launcher version check" {
     It "Exits with error when running an incompatible supervisor version" {
         Test-LauncherFailure "0.55.0/20180321222338" | Should -Be $true

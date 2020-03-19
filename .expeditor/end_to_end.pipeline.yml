@@ -44,6 +44,7 @@ steps:
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - hab pkg install --binlink --channel=stable core/expect
+      - hab pkg install --channel=\$HAB_BLDR_CHANNEL core/hab-sup core/hab-launcher
       - test/end-to-end/hup-does-not-abandon-services.exp
     expeditor:
       executor:
@@ -56,6 +57,7 @@ steps:
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - hab pkg install --binlink --channel=stable core/expect
+      - hab pkg install --channel=\$HAB_BLDR_CHANNEL core/hab-sup core/hab-launcher
       - test/end-to-end/hab-svc-load.exp
     expeditor:
       executor:
@@ -613,6 +615,7 @@ steps:
   - label: "[:habicat: Promote to Acceptance]"
     command:
       - .expeditor/scripts/buildkite_promote.sh dev acceptance
+    if: build.creator.name == 'Chef Expeditor'
     expeditor:
       executor:
         docker:
