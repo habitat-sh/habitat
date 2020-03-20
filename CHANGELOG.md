@@ -1,13 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.74 -->
-## [1.5.74](https://github.com/habitat-sh/habitat/tree/1.5.74) (2020-03-19)
+<!-- latest_release 1.5.75 -->
+## [1.5.75](https://github.com/habitat-sh/habitat/tree/1.5.75) (2020-03-20)
 
 #### Merged Pull Requests
-- Correct some e2e behavior [#7564](https://github.com/habitat-sh/habitat/pull/7564) ([smacfarlane](https://github.com/smacfarlane))
+- Update changelog post 1.5.71 [#7566](https://github.com/habitat-sh/habitat/pull/7566) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.71 -->
 ### Changes since 1.5.71 release
+
+#### Merged Pull Requests
+- Update changelog post 1.5.71 [#7566](https://github.com/habitat-sh/habitat/pull/7566) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.75 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release -->
