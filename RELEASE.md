@@ -205,10 +205,17 @@ making them "officially" available to the world, and thus "released".
 # Post-Release Tasks
 The Buildkite release is fairly-well automated at this point, but once it is complete, there are still a few remaining manual tasks to perform. In time, these will be automated as well.
 
-## Verify the Acceptance environment is using the new hab-backline
+## The Builder Worker
 
-Running [`update-hab-backline.sh`](https://github.com/habitat-sh/habitat/blob/master/update-hab-backline.sh)
-is handled by buildkite. If it is necessary to do manually, you can find instructions in [a previous release of this file.](https://github.com/habitat-sh/habitat/blob/bebf0fdfb738e1304ea201717fb6054733b17939/RELEASE.md#update-the-acceptance-environment-with-the-new-hab-backline)
+New `habitat/builder-worker` packages will automatically be built by
+Builder's `post_habitat_release` pipeline ([definition](https://github.com/habitat-sh/builder/blob/master/.expeditor/post_habitat_release.pipeline.yml)),
+[Buildkite
+pipeline](https://buildkite.com/chef/habitat-sh-builder-master-post-habitat-release))
+when a Habitat release completes. Please follow along in that pipeline
+to ensure that the new packages are validated and properly promoted to
+the stable channel.
+
+After building the workers and promoting them to acceptance, you will be prompted to build packages in acceptance to ensure that they are behaving propperly. You should build both a Windows and a Linux package. The key things you are looking for are that the builds succeed and that their build output indicates they are using the new stable versions of `hab`, `hab-plan-build` and `hab-studio`.
 
 ## Update the Changelog
 
@@ -260,16 +267,6 @@ Make sure the commands from the trace output look correct when the script execut
 1. The version is the new dev version after the one we just released; there should be a `-dev` suffix
 1. The install is from the `unstable` channel
 1. The upload is to the `stable` channel
-
-## The Builder Worker
-
-New `habitat/builder-worker` packages will automatically be built by
-Builder's `post_habitat_release` pipeline ([definition](https://github.com/habitat-sh/builder/blob/cm/builder-worker-automation/.expeditor/post_habitat_release.pipeline.yml)),
-[Buildkite
-pipeline](https://buildkite.com/chef/habitat-sh-builder-master-post-habitat-release))
-when a Habitat release completes. Please follow along in that pipeline
-to ensure that the new packages are validated and properly promoted to
-the stable channel.
 
 # Release Notification
 
