@@ -12,6 +12,7 @@ use crate::error::{Error,
 use base64;
 use chrono::Utc;
 use regex::Regex;
+use serde::Deserialize;
 use std::{collections::HashSet,
           fmt,
           fs::{self,
@@ -50,7 +51,7 @@ impl fmt::Display for KeyType {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize)]
 pub enum PairType {
     Public,
     Secret,

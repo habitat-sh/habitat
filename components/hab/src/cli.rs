@@ -1,7 +1,8 @@
-mod hab;
+pub mod hab;
 
-use crate::{cli::hab::{sup::{PartialSupRun,
+use crate::{cli::hab::{sup::{ConfigOptSup,
                              Sup},
+                       ConfigOptHab,
                        Hab},
             command::studio};
 
@@ -9,6 +10,8 @@ use clap::{App,
            AppSettings,
            Arg,
            ArgMatches};
+use configopt::{ConfigOptDefaults,
+                TomlConfigGenerator};
 use habitat_common::{cli::{file_into_idents,
                            is_toml_file,
                            BINLINK_DIR_ENVVAR,
@@ -38,11 +41,13 @@ use habitat_core::{crypto::{keys::PairType,
                    ChannelIdent};
 use habitat_sup_protocol;
 use rants::Address as NatsAddress;
+use serde::de::DeserializeOwned;
 use std::{env,
           fs,
           net::{Ipv4Addr,
                 SocketAddr},
           path::Path,
+          process,
           result,
           str::FromStr};
 use structopt::StructOpt;
@@ -68,37 +73,9 @@ fn get_subcommand_mut<'a>(app: &'a mut App<'static, 'static>,
        .unwrap_or_else(|| panic!("expected to find subcommand '{}'", name))
 }
 
-fn config_file_to_hab_sup_run_defaults(config_file: &str)
-                                       -> Result<PartialSupRun, Box<dyn std::error::Error>> {
-    let contents = fs::read_to_string(config_file)?;
-    Ok(toml::from_str(&contents)?)
-}
-
-fn overide_hab_sup_run_defaults_with_config_file(hab_sup_run: &mut App<'static, 'static>) {
-    if let Ok(config_file) = env::var("HAB_FEAT_CONFIG_FILE") {
-        // If we have a config file try and parse it as a `PartialSupRun`. `PartialSupRun`
-        // implements `ConfigOptDefaults` which allows it to set the default values of a
-        // `clap::App`.
-        match config_file_to_hab_sup_run_defaults(&config_file) {
-            Ok(defaults) => {
-                // Set the defaults of the `clap::App` this is how config file values are
-                // interleaved with CLI specified arguments.
-                configopt::set_defaults(hab_sup_run, &defaults)
-            }
-            Err(e) => error!("Failed to parse config file, err: {}", e),
-        }
-    }
-}
-
 pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
     if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
-        let mut hab = Hab::clap();
-        // Get a reference to the hab sup run subcommand. This is currently the only subcommand with
-        // config file support.
-        let hab_sup = get_subcommand_mut(&mut hab, "sup");
-        let hab_sup_run = get_subcommand_mut(hab_sup, "run");
-        overide_hab_sup_run_defaults_with_config_file(hab_sup_run);
-        return hab;
+        return Hab::clap();
     }
 
     let alias_apply = sub_config_apply().about("Alias for 'config apply'")
@@ -979,12 +956,7 @@ fn sub_cli_setup() -> App<'static, 'static> {
 
 pub fn sup_commands(feature_flags: FeatureFlag) -> App<'static, 'static> {
     if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
-        let mut sup = Sup::clap();
-        // Get a reference to the sup run subcommand. This is currently the only subcommand with
-        // config file support.
-        let sup_run = get_subcommand_mut(&mut sup, "run");
-        overide_hab_sup_run_defaults_with_config_file(sup_run);
-        return sup;
+        return Sup::clap();
     }
     // Define all of the `hab sup *` subcommands in one place.
     // This removes the need to duplicate this in `hab-sup`.

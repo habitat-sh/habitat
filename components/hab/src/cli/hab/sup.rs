@@ -1,9 +1,12 @@
 use super::util::{CacheKeyPath,
+                  ConfigOptCacheKeyPath,
+                  ConfigOptRemoteSup,
                   RemoteSup};
 use crate::VERSION;
-use configopt::{ConfigOptDefaults,
-                ConfigOptToString,
-                Partial};
+use configopt::{self,
+                configopt_fields,
+                ConfigOpt,
+                TomlConfigGenerator};
 use habitat_common::{cli::{RING_ENVVAR,
                            RING_KEY_ENVVAR},
                      types::{AutomateAuthToken,
@@ -33,7 +36,7 @@ use structopt::{clap::AppSettings,
                 StructOpt};
 use url::Url;
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "hab",
             version = VERSION,
             about = "The Habitat Supervisor",
@@ -93,11 +96,9 @@ impl FromStr for EventStreamAddress {
     fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(EventStreamAddress(s.parse()?)) }
 }
 
-impl ConfigOptToString for EventStreamAddress {}
-
-#[derive(ConfigOptDefaults, Partial, StructOpt, Deserialize)]
-#[configopt_defaults(type = "PartialSupRun")]
-#[partial(derive(Debug, Default, Deserialize), attrs(serde))]
+#[configopt_fields]
+#[derive(ConfigOpt, StructOpt, Deserialize)]
+#[configopt(derive(Debug), attrs(serde))]
 #[serde(deny_unknown_fields)]
 #[structopt(name = "run",
             no_version,
@@ -349,7 +350,7 @@ pub struct SupRun {
     keep_latest_packages: Option<usize>,
 }
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to a Habitat Supervisor's Control Gateway secret
 pub enum Secret {

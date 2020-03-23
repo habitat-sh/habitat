@@ -1,14 +1,16 @@
-use super::util::CacheKeyPath;
+use super::util::{CacheKeyPath,
+                  ConfigOptCacheKeyPath};
+use configopt::ConfigOpt;
 use structopt::StructOpt;
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat rings
 pub enum Ring {
     Key(Key),
 }
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat ring keys
 pub enum Key {

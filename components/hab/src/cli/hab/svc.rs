@@ -1,7 +1,12 @@
 use super::util::{BldrUrl,
                   CacheKeyPath,
+                  ConfigOptBldrUrl,
+                  ConfigOptCacheKeyPath,
+                  ConfigOptPkgIdent,
+                  ConfigOptRemoteSup,
                   PkgIdent,
                   RemoteSup};
+use configopt::ConfigOpt;
 use habitat_core::{os::process::ShutdownTimeout,
                    package::PackageIdent,
                    service::{HealthCheckInterval,
@@ -10,7 +15,7 @@ use habitat_sup_protocol::types::UpdateCondition;
 use structopt::StructOpt;
 
 /// Commands relating to Habitat services
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 #[allow(clippy::large_enum_variant)]
 pub enum Svc {
@@ -144,7 +149,7 @@ pub enum Svc {
     },
 }
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat service keys
 pub enum Key {

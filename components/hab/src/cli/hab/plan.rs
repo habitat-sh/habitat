@@ -1,9 +1,10 @@
 use crate::cli::{file_exists,
                  valid_origin};
+use configopt::ConfigOpt;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to plans and other app-specific configuration
 pub enum Plan {

@@ -16,7 +16,7 @@ atty = "*"
 base64 = "*"
 bitflags = "*"
 chrono = {version = "*", features = ["serde"]}
-configopt = { git = "https://github.com/davidMcneil/configopt" }
+configopt = { path = "/home/david/Desktop/work/configopt/configopt" }
 dirs = "*"
 env_logger = "*"
 flate2 = "*"

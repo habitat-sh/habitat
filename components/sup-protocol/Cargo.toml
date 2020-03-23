@@ -9,7 +9,6 @@ workspace = "../../"
 [dependencies]
 base64 = "*"
 bytes = "*"
-configopt = { git = "https://github.com/davidMcneil/configopt" }
 habitat_core = { path = "../core" }
 lazy_static = "*"
 log = "*"

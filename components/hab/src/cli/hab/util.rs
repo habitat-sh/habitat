@@ -1,15 +1,15 @@
 use crate::cli::valid_fully_qualified_ident;
-use configopt::ConfigOptDefaults;
+use configopt::{self,
+                ConfigOpt};
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    fs::CACHE_KEY_PATH,
                    package::PackageIdent};
-use std::{ffi::OsString,
-          net::SocketAddr,
+use std::{net::SocketAddr,
           path::PathBuf};
 use structopt::StructOpt;
 use url::Url;
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 #[allow(dead_code)]
 pub struct AuthToken {
@@ -18,7 +18,7 @@ pub struct AuthToken {
     auth_token: Option<String>,
 }
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 #[allow(dead_code)]
 pub struct BldrUrl {
@@ -29,7 +29,9 @@ pub struct BldrUrl {
     bldr_url: Option<Url>,
 }
 
-#[derive(StructOpt, Debug, Deserialize)]
+#[derive(ConfigOpt, StructOpt, Debug, Deserialize)]
+#[configopt(derive(Debug), attrs(serde))]
+#[serde(deny_unknown_fields)]
 #[structopt(no_version)]
 #[allow(dead_code)]
 pub struct CacheKeyPath {
@@ -47,13 +49,7 @@ pub struct CacheKeyPath {
     cache_key_path: PathBuf,
 }
 
-impl ConfigOptDefaults for CacheKeyPath {
-    fn arg_default(&self, _arg_path: &[String]) -> Option<OsString> {
-        Some(self.cache_key_path.clone().into_os_string())
-    }
-}
-
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 #[allow(dead_code)]
 pub struct PkgIdent {
@@ -62,7 +58,7 @@ pub struct PkgIdent {
     pkg_ident: PackageIdent,
 }
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 #[allow(dead_code)]
 pub struct FullyQualifiedPkgIdent {
@@ -71,7 +67,7 @@ pub struct FullyQualifiedPkgIdent {
     pkg_ident: PackageIdent,
 }
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 #[allow(dead_code)]
 pub struct RemoteSup {
