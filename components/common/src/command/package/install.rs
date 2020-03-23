@@ -356,7 +356,11 @@ pub async fn check_install_hooks<T, P>(ui: &mut T,
     where T: UIWriter,
           P: AsRef<Path>
 {
-    for dependency in package.tdeps()? {
+    let mut dependencies = package.tdeps()?;
+    // tdeps are ordered high to low so we reverse the list to ensure lower level deps
+    // are installed first
+    dependencies.reverse();
+    for dependency in dependencies {
         run_install_hook_unless_already_successful(
             ui,
             &PackageInstall::load(&dependency, Some(fs_root_path.as_ref()))?,
@@ -631,12 +635,6 @@ impl<'a> InstallTask<'a> {
                    .is_some()
             {
                 ui.status(Status::Using, dependency)?;
-                if self.install_hook_mode != InstallHookMode::Ignore {
-                    run_install_hook_unless_already_successful(
-                        ui,
-                        &PackageInstall::load(dependency, Some(self.fs_root_path))?,
-                    ).await?;
-                }
             } else {
                 artifacts_to_install.push(self.get_cached_artifact(
                     ui,
@@ -653,11 +651,12 @@ impl<'a> InstallTask<'a> {
         // Ensure all uninstalled artifacts get installed
         for artifact in artifacts_to_install.iter_mut() {
             self.unpack_artifact(ui, artifact)?;
-            if self.install_hook_mode != InstallHookMode::Ignore {
-                run_install_hook(ui,
-                                 &PackageInstall::load(&artifact.ident()?,
-                                                       Some(self.fs_root_path))?).await?;
-            }
+        }
+
+        if self.install_hook_mode != InstallHookMode::Ignore {
+            check_install_hooks(ui,
+                                &PackageInstall::load(ident.as_ref(), Some(self.fs_root_path))?,
+                                self.fs_root_path).await?;
         }
 
         ui.end(format!("Install of {} complete with {} new packages installed.",

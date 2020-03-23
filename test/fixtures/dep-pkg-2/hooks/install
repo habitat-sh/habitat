@@ -1,0 +1,9 @@
+#!/usr/bin/env pwsh
+
+Write-Output "install hook {{pkg.name}}"
+
+$result = Test-Path "{{pkgPathFor "habitat-testing/dep-pkg-1"}}" -ErrorAction SilentlyContinue
+
+if(!$result) {
+    exit 1
+}

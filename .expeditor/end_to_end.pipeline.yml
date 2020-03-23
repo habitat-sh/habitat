@@ -522,6 +522,31 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[:windows: test_pkg_install]"
+    command:
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_pkg_install
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+            - HAB_ORIGIN
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[:linux: test_pkg_install]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_pkg_install
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
   - label: "[:linux: test_pkg_download]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_pkg_download

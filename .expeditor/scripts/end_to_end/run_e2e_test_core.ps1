@@ -213,7 +213,7 @@ function Get-Leader($Remote, $ServiceGroup) {
 }
 
 Function Invoke-BuildAndInstall($PackageName) {
-    hab pkg build test/fixtures/$PackageName
+    hab pkg build test/fixtures/$PackageName --reuse
     if($IsLinux) {
         # This changes the format of last_build from `var=value` to `$var='value'`
         # so that powershell can parse and source the script
