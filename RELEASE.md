@@ -88,8 +88,8 @@ hab pkg install core/windows-service --channel=staging
 ### What to Test
 
 There may be special behavior related to this release that you will
-want to validate but at the very least, you should try running some
-services, exporting some services, and exercising the Studio.
+want to validate but at the very least, you should validate the version,
+try running some services, exporting some services, and exercising the Studio.
 
 To ensure everything is working properly, you will need to have the
 following environment variables set:
@@ -109,6 +109,29 @@ inside the studio can install the Launcher and Supervisor
 packages for the internal Supervisor from the appropriate place.
 
 See https://github.com/habitat-sh/habitat/issues/4656 for further context and ideas.
+
+
+Here is how you can validate the version.
+
+On Linux:
+``` sh
+hab --version
+hab sup --version
+hab studio enter
+sup-log
+hab studio enter -D
+sup-log
+```
+
+On Windows:
+``` pwsh
+hab --version
+hab sup --version
+hab studio enter
+Get-Supervisorlog
+hab studio enter -D
+Get-Supervisorlog
+```
 
 
 Here are examples of what you might do with a Studio.
@@ -134,7 +157,6 @@ sup-log
 ^C
 hab pkg export docker --base-pkgs-channel=staging core/redis
 hab pkg export tar --base-pkgs-channel=staging core/redis
-hab pkg export kubernetes --base-pkgs-channel=staging core/redis
 build core-plans/redis
 ```
 
@@ -208,14 +230,16 @@ The Buildkite release is fairly-well automated at this point, but once it is com
 ## The Builder Worker
 
 New `habitat/builder-worker` packages will automatically be built by
-Builder's `post_habitat_release` pipeline ([definition](https://github.com/habitat-sh/builder/blob/master/.expeditor/post_habitat_release.pipeline.yml)),
+Builder's `post_habitat_release` pipeline ([definition](https://github.com/habitat-sh/builder/blob/master/.expeditor/post_habitat_release.pipeline.yml),
 [Buildkite
 pipeline](https://buildkite.com/chef/habitat-sh-builder-master-post-habitat-release))
-when a Habitat release completes. Please follow along in that pipeline
-to ensure that the new packages are validated and properly promoted to
-the stable channel.
+when a Habitat release completes. The instructions below describe how to
+follow along in that pipeline to ensure that the new packages are validated and
+properly promoted to the stable channel.
 
-After building the workers and promoting them to acceptance, you will be prompted to build packages in acceptance to ensure that they are behaving propperly. You should build both a Windows and a Linux package. The key things you are looking for are that the builds succeed and that their build output indicates they are using the new stable versions of `hab`, `hab-plan-build` and `hab-studio`.
+After the workers are built and promoted to acceptance by the pipeline, you will be prompted to "Evaluate habitat/builder-worker in Acceptance" in the pipeline. Use these [instructions](https://github.com/habitat-sh/builder/pull/1233) to connect to the `acceptance-worker` nodes. After connecting to the node, validate the version of the Supervisor and the version of `habitat/builder-worker`. An easy way to check the version is with `hab sup status`, the version should match the version output by the pipeline. Next, build a package in acceptance to ensure that the workers are behaving properly. This can be done through the [acceptance builder ui](https://bldr.acceptance.habitat.sh/). The key things you are looking for are that the builds succeed and that their build output indicates they are using the new stable versions of `hab`, `hab-plan-build` and `hab-studio`. You should follow these steps for both a Windows and a Linux worker.
+
+After validating the workers in acceptance, confirm the "Evaluate habitat/builder-worker in Acceptance" in the pipeline. The pipeline will now deploy the workers to live. Follow the same instructions to validate the live nodes.
 
 ## Update the Changelog
 
