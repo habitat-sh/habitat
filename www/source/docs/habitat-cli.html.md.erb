@@ -11,7 +11,7 @@ The commands for the Chef Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 1.5.50/20200303162333 (linux) | 3 Mar 2020 |
+| hab 1.5.71/20200318171932 (linux) | 19 Mar 2020 |
 
 ## hab
 
@@ -3004,6 +3004,8 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 
     --sys-ip-address <SYS_IP_ADDRESS> The IPv4 address to use as the sys.ip template variable. If this argument is not set, the supervisor tries to dynamically determine an IP address. If that fails, the supervisor defaults to using 127.0.0.1
 -t, --topology <TOPOLOGY> Service topology; [default: none] [possible values: standalone, leader]
+
+    --update-condition <UPDATE_CONDITION> The condition dictating when this service should update [default: latest]  [possible values: latest, track- channel]
 ```
 
 **ARGS**
@@ -3293,6 +3295,8 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
 -s, --strategy <STRATEGY> The update strategy; [default: none] [values: none, at-once, rolling]
 
 -t, --topology <TOPOLOGY> Service topology; [default: none] [possible values: standalone, leader]
+
+    --update-condition <UPDATE_CONDITION> The condition dictating when this service should update [default: latest]  [possible values: latest, track- channel]
 ```
 
 **ARGS**
