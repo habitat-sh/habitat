@@ -237,9 +237,9 @@ when a Habitat release completes. The instructions below describe how to
 follow along in that pipeline to ensure that the new packages are validated and
 properly promoted to the stable channel.
 
-After the workers are built and promoted to acceptance by the pipeline, you will be prompted to "Evaluate habitat/builder-worker in Acceptance" in the pipeline. Use these [instructions](https://github.com/habitat-sh/builder/pull/1233) to connect to the `acceptance-worker` nodes. After connecting to the node, validate the version of the Supervisor and the version of `habitat/builder-worker`. An easy way to check the version is with `hab sup status`, the version should match the version output by the pipeline. Next, build a package in acceptance to ensure that the workers are behaving properly. This can be done through the [acceptance builder ui](https://bldr.acceptance.habitat.sh/). The key things you are looking for are that the builds succeed and that their build output indicates they are using the new stable versions of `hab`, `hab-plan-build` and `hab-studio`. You should follow these steps for both a Windows and a Linux worker.
+After the workers are built and promoted to acceptance by the pipeline, you will be prompted to "Evaluate habitat/builder-worker in Acceptance" by the pipeline. This can be done by building a package in acceptance to ensure that the workers are behaving properly. The key things you are looking for are that the builds succeed and that their build output indicates they are using the new stable versions of `hab`, `hab-plan-build` and `hab-studio`. You should follow these steps for both a Windows and a Linux worker.
 
-After validating the workers in acceptance, confirm the "Evaluate habitat/builder-worker in Acceptance" in the pipeline. The pipeline will now deploy the workers to live. Follow the same instructions to validate the live nodes.
+After validating the workers in acceptance, confirm the "Evaluate habitat/builder-worker in Acceptance" in the pipeline. The pipeline will now deploy the workers to live. Follow the same instructions to validate the live workers.
 
 ## Update the Changelog
 
