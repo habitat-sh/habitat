@@ -268,29 +268,15 @@ for additional details.
 
 ## Update the Acceptance environment with the new hab-backline
 
-While buildkite handles adding the new stable backline version to acceptance, updating the new unstable
-version must be done manually. In order to do this, (from a Linux machine):
+While buildkite handles adding the new stable backline version to the acceptance workers, this does not make the backline packages accesible from the acceptance depot. We must upload the stable backline to the acceptance bldr. In order to do this, (from a Linux machine):
 
 ```
-./update-hab-backline.sh unstable $(< VERSION)
+./update-hab-backline.sh unstable '<release_version>'
 ```
 
-If your auth token isn't specified in your environment, you can add `-z <AUTH_TOKEN>`
+Note that `<release_version>` should be the stable version being released. If your auth token isn't specified in your environment, you can add `-z <AUTH_TOKEN>`
 (or any other arguments to pass to the `hab pkg upload` command) to the
 `update-hab-backline.sh` script after the channel and version arguments.
-
-NOTE: Until Builder automatically builds linux2 packages in response to web hook activity, you may need to manually trigger a build after you've merged the version bump PR. If that is the case, you can use the CLI:
-
-```sh
-hab bldr job start core/hab-backline x86_64-linux-kernel2
-```
-
-Once the Acceptance Builder is doing this, then we will no longer need to worry about this step.
-
-Make sure the commands from the trace output look correct when the script executes:
-1. The version is the new dev version after the one we just released; there should be a `-dev` suffix
-1. The install is from the `unstable` channel
-1. The upload is to the `stable` channel
 
 # Release Notification
 
