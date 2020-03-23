@@ -889,14 +889,14 @@ syntax is the same for all block expressions and looks like this:
       {{expression}}
     {{/helper}}
 
-Chef Habitat supports the standard [built-in helpers](http://handlebarsjs.com/builtin_helpers.html):
+Chef Habitat supports the standard [built-in helpers](https://handlebarsjs.com/guide/builtin-helpers.html):
 
 * `if`
 * `unless`
 * `each`
 * `with`
 * `lookup`
-* `>` ([partials](http://handlebarsjs.com/partials.html))
+* `>` ([partials](https://handlebarsjs.com/guide/partials.html))
 * `log`
 
 > **Note** Per [Handlebars Paths](http://handlebarsjs.com/#paths), when using `each` in a block expression, you must reference the parent context of that block to use any user-defined configuration values referenced _within_ the block, such as those that start with `cfg`. For example, if your block looked like the following, you must reference `cfg.port` from the parent context of the block:

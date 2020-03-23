@@ -644,7 +644,7 @@ $ docker push eu.gcr.io/user-project/hab-gcr-demo:latest
 
 ### Mesos Containerizers
 
-Mesos has support for [containerizers](http://mesos.apache.org/documentation/latest/containerizer/) for running commands and applications within isolated containers. Mesos supports Docker and its own [Mesos containerizer](http://mesos.apache.org/documentation/latest/mesos-containerizer/) format. The Mesos containerizer provides lightweight containerization with `cgroups/namespaces` isolation without actual isolation. The `hab pkg export mesos` command creates a mostly empty base filesystem with the application and the Chef Habitat Supervisor and packages it into a compressed tarball.
+Mesos has support for [containerizers](http://mesos.apache.org/documentation/latest/containerizers/) for running commands and applications within isolated containers. Mesos supports Docker and its own [Mesos containerizer](http://mesos.apache.org/documentation/latest/containerizers/#Docker) format. The Mesos containerizer provides lightweight containerization with `cgroups/namespaces` isolation without actual isolation. The `hab pkg export mesos` command creates a mostly empty base filesystem with the application and the Chef Habitat Supervisor and packages it into a compressed tarball.
 
 ### Marathon Applications
 
@@ -704,17 +704,6 @@ You can create native Mesos containers from Chef Habitat packages by following t
 
 You can get to the output from the running application by clicking on the "Marathon" service from the DC/OS "Services" tab. Select the application and the "Log Viewer" and choose either the "Error" or "Output" to see `stderr` and `stdout` respectively. If you have SSH access into the nodes, the Mesos container directories are beneath `/var/lib/mesos/slave/slaves`.
     ![Screen shot of Debugging a Running Application](/images/mesos/mesos5-debugging.png)
-
-### Future Enhancements
-
-This is a basic integration, there are many improvements yet to be made. Here are a few examples:
-
- * Marathon environment variables are not passed into the Chef Habitat package "cmd" yet.
- * Networking ports exposed by Chef Habitat need to be added to the JSON.
- * The Chef Habitat gossip protocol needs to be included as a default exposed port.
- * If Marathon is running the [artifact store](https://mesosphere.github.io/marathon/docs/artifact-store.html), support uploading the tarball directly into it.
- * Upload applications directly to the [Marathon application API](https://mesosphere.github.io/marathon/docs/application-basics.html).
- * Marathon supports unpacking several archive formats. Native `.hart` support could be added directly to Marathon.
 
 ---
 ## <a name="planwriting-guide" id="planwriting-guide" data-magellan-target="planwriting-guide">Advanced Plan Writing Guide</a>
