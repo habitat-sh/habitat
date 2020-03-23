@@ -266,18 +266,6 @@ also consult [Expeditor's CHANGELOG
 documentation](https://expeditor.chef.io/docs/reference/changelog/)
 for additional details.
 
-## Update the Acceptance environment with the new hab-backline
-
-While buildkite handles adding the new stable backline version to the acceptance workers, this does not make the backline packages accesible from the acceptance depot. We must upload the stable backline to the acceptance bldr. In order to do this, (from a Linux machine):
-
-```
-./update-hab-backline.sh unstable '<release_version>'
-```
-
-Note that `<release_version>` should be the stable version being released. If your auth token isn't specified in your environment, you can add `-z <AUTH_TOKEN>`
-(or any other arguments to pass to the `hab pkg upload` command) to the
-`update-hab-backline.sh` script after the channel and version arguments.
-
 # Release Notification
 
 1. Create new posts in [Chef Release Announcements](https://discourse.chef.io/c/chef-release) on the Chef Discourse as well as [Announcements](https://forums.habitat.sh/c/announcements) in the Habitat forums.
