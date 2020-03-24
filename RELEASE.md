@@ -88,8 +88,8 @@ hab pkg install core/windows-service --channel=staging
 ### What to Test
 
 There may be special behavior related to this release that you will
-want to validate but at the very least, you should try running some
-services, exporting some services, and exercising the Studio.
+want to validate but at the very least, you should validate the version,
+try running some services, exporting some services, and exercising the Studio.
 
 To ensure everything is working properly, you will need to have the
 following environment variables set:
@@ -109,6 +109,29 @@ inside the studio can install the Launcher and Supervisor
 packages for the internal Supervisor from the appropriate place.
 
 See https://github.com/habitat-sh/habitat/issues/4656 for further context and ideas.
+
+
+Here is how you can validate the version.
+
+On Linux:
+``` sh
+hab --version
+hab sup --version
+hab studio enter
+sup-log
+hab studio enter -D
+sup-log
+```
+
+On Windows:
+``` pwsh
+hab --version
+hab sup --version
+hab studio enter
+Get-Supervisorlog
+hab studio enter -D
+Get-Supervisorlog
+```
 
 
 Here are examples of what you might do with a Studio.
@@ -134,7 +157,6 @@ sup-log
 ^C
 hab pkg export docker --base-pkgs-channel=staging core/redis
 hab pkg export tar --base-pkgs-channel=staging core/redis
-hab pkg export kubernetes --base-pkgs-channel=staging core/redis
 build core-plans/redis
 ```
 
@@ -205,10 +227,19 @@ making them "officially" available to the world, and thus "released".
 # Post-Release Tasks
 The Buildkite release is fairly-well automated at this point, but once it is complete, there are still a few remaining manual tasks to perform. In time, these will be automated as well.
 
-## Verify the Acceptance environment is using the new hab-backline
+## The Builder Worker
 
-Running [`update-hab-backline.sh`](https://github.com/habitat-sh/habitat/blob/master/update-hab-backline.sh)
-is handled by buildkite. If it is necessary to do manually, you can find instructions in [a previous release of this file.](https://github.com/habitat-sh/habitat/blob/bebf0fdfb738e1304ea201717fb6054733b17939/RELEASE.md#update-the-acceptance-environment-with-the-new-hab-backline)
+New `habitat/builder-worker` packages will automatically be built by
+Builder's `post_habitat_release` pipeline ([definition](https://github.com/habitat-sh/builder/blob/master/.expeditor/post_habitat_release.pipeline.yml),
+[Buildkite
+pipeline](https://buildkite.com/chef/habitat-sh-builder-master-post-habitat-release))
+when a Habitat release completes. The instructions below describe how to
+follow along in that pipeline to ensure that the new packages are validated and
+properly promoted to the stable channel.
+
+After the workers are built and promoted to acceptance by the pipeline, you will be prompted to "Evaluate habitat/builder-worker in Acceptance" by the pipeline. This can be done by building a package in acceptance to ensure that the workers are behaving properly. The key things you are looking for are that the builds succeed and that their build output indicates they are using the new stable versions of `hab`, `hab-plan-build` and `hab-studio`. You should follow these steps for both a Windows and a Linux worker.
+
+After validating the workers in acceptance, confirm the "Evaluate habitat/builder-worker in Acceptance" in the pipeline. The pipeline will now deploy the workers to live. Follow the same instructions to validate the live workers.
 
 ## Update the Changelog
 
@@ -234,42 +265,6 @@ the contents of the `CHANGELOG.md` file for the pattern. You should
 also consult [Expeditor's CHANGELOG
 documentation](https://expeditor.chef.io/docs/reference/changelog/)
 for additional details.
-
-## Update the Acceptance environment with the new hab-backline
-
-While buildkite handles adding the new stable backline version to acceptance, updating the new unstable
-version must be done manually. In order to do this, (from a Linux machine):
-
-```
-./update-hab-backline.sh unstable $(< VERSION)
-```
-
-If your auth token isn't specified in your environment, you can add `-z <AUTH_TOKEN>`
-(or any other arguments to pass to the `hab pkg upload` command) to the
-`update-hab-backline.sh` script after the channel and version arguments.
-
-NOTE: Until Builder automatically builds linux2 packages in response to web hook activity, you may need to manually trigger a build after you've merged the version bump PR. If that is the case, you can use the CLI:
-
-```sh
-hab bldr job start core/hab-backline x86_64-linux-kernel2
-```
-
-Once the Acceptance Builder is doing this, then we will no longer need to worry about this step.
-
-Make sure the commands from the trace output look correct when the script executes:
-1. The version is the new dev version after the one we just released; there should be a `-dev` suffix
-1. The install is from the `unstable` channel
-1. The upload is to the `stable` channel
-
-## The Builder Worker
-
-New `habitat/builder-worker` packages will automatically be built by
-Builder's `post_habitat_release` pipeline ([definition](https://github.com/habitat-sh/builder/blob/cm/builder-worker-automation/.expeditor/post_habitat_release.pipeline.yml)),
-[Buildkite
-pipeline](https://buildkite.com/chef/habitat-sh-builder-master-post-habitat-release))
-when a Habitat release completes. Please follow along in that pipeline
-to ensure that the new packages are validated and properly promoted to
-the stable channel.
 
 # Release Notification
 
