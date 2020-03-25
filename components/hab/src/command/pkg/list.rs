@@ -42,6 +42,10 @@ impl<'a> From<&'a ArgMatches<'a>> for ListingType {
     }
 }
 
+impl From<PackageIdent> for ListingType {
+    fn from(ident: PackageIdent) -> Self { ListingType::Ident(ident) }
+}
+
 pub fn package_list(listing: &ListingType) -> Result<Vec<PackageIdent>> {
     let package_path = hfs::pkg_root_path(Some(&*FS_ROOT));
 
