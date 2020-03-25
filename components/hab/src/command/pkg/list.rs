@@ -44,7 +44,7 @@ impl<'a> From<&'a ArgMatches<'a>> for ListingType {
     }
 }
 
-pub fn start(listing: &ListingType, fs_root_path: &Path) -> Result<()> {
+pub fn package_list(listing: &ListingType, fs_root_path: &Path) -> Result<Vec<PackageIdent>> {
     let package_path = hfs::pkg_root_path(Some(&fs_root_path));
 
     let mut packages = match listing {
@@ -54,6 +54,11 @@ pub fn start(listing: &ListingType, fs_root_path: &Path) -> Result<()> {
     };
 
     packages.sort_unstable_by(|a, b| a.by_parts_cmp(b));
+    Ok(packages)
+}
+
+pub fn start(listing: &ListingType, fs_root_path: &Path) -> Result<()> {
+    let packages = package_list(listing, fs_root_path)?;
     for p in &packages {
         println!("{}", &p);
     }
