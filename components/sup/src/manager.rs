@@ -1421,8 +1421,8 @@ impl Manager {
             event::service_stopped(&service);
             user_config_watcher.remove(&service);
             service_updater.lock().remove(&service.service_group);
-            // At this point the service process is stopped, but it is technically considered
-            // "running" because its spec file still exists on disk.
+            // At this point the service process is stopped but the package is still loaded by the
+            // Supervisor.
             if let Some(latest_desired_ident) = latest_desired_on_restart {
                 Self::remove_newer_packages(&service.spec_ident, &latest_desired_ident).await;
             }

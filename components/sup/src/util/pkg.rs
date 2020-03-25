@@ -128,10 +128,7 @@ pub async fn install_channel_head(url: &str,
 /// Uninstall a package given a package identifier.
 ///
 /// Note: This will uninstall the package even if the service correlated with the package is
-/// "running". A package is considered "running" if it has a spec file. This can cause problems when
-/// trying to manage a service. For example, this prevents us from uninstalling a package during
-/// service rollback unless the `even_if_running` flag is set. Ultimately, this logic should be
-/// cleaned up.
+/// loaded by the Supervisor.
 pub async fn uninstall(ident: impl AsRef<PackageIdent>) -> HabResult<()> {
     uninstall_impl::uninstall(&mut NullUi::new(),
                               &ident.as_ref(),

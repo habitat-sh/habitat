@@ -28,7 +28,7 @@ pub async fn uninstall<U>(ui: &mut U,
                           execution_strategy: ExecutionStrategy,
                           scope: Scope,
                           excludes: &[PackageIdent],
-                          even_if_running: bool)
+                          even_if_loaded: bool)
                           -> Result<()>
     where U: UIWriter
 {
@@ -38,7 +38,7 @@ pub async fn uninstall<U>(ui: &mut U,
                    execution_strategy,
                    scope,
                    excludes,
-                   even_if_running).await
+                   even_if_loaded).await
 }
 
 /// Delete packages and all dependencies which are not used by the packages.
@@ -58,8 +58,8 @@ pub async fn uninstall<U>(ui: &mut U,
 ///     5b. If there are not, we delete it from disk and the graph
 ///
 /// `excludes` is a list of user-supplied `PackageIdent`s.
-/// `even_if_running` is a flag indictating that the package should be uninstalled even if it is
-/// running. This only applies to packages specified in `idents`. It does not apply to their
+/// `even_if_loaded` indictates that the package should be uninstalled even if it is loaded by the
+/// supervisor. This only applies to packages specified in `idents`. It does not apply to their
 /// dependencies.
 pub async fn uninstall_many<U>(ui: &mut U,
                                idents: &[impl AsRef<PackageIdent>],
@@ -67,28 +67,27 @@ pub async fn uninstall_many<U>(ui: &mut U,
                                execution_strategy: ExecutionStrategy,
                                scope: Scope,
                                excludes: &[PackageIdent],
-                               even_if_running: bool)
+                               even_if_loaded: bool)
                                -> Result<()>
     where U: UIWriter
 {
     // 1.
     let mut graph = PackageGraph::from_root_path(fs_root_path)?;
 
-    let running_services = supervisor_services().await?;
-    if !running_services.is_empty() {
-        ui.status(Status::Determining,
-                  "list of running services in supervisor")?;
-        for s in running_services.iter() {
-            ui.status(Status::Found, format!("running service {}", s))?;
+    let loaded_services = supervisor_services().await?;
+    if !loaded_services.is_empty() {
+        ui.status(Status::Determining, "list of loaded services in supervisor")?;
+        for s in loaded_services.iter() {
+            ui.status(Status::Found, format!("loaded service {}", s))?;
         }
     }
-    let uninstall_if_running = if even_if_running {
-        UninstallIfRunning::EvenIfRunning
+    let uninstall_if_loaded = if even_if_loaded {
+        UninstallIfLoaded::EvenIfLoaded
     } else {
-        UninstallIfRunning::SkipIfRunning(&running_services)
+        UninstallIfLoaded::SkipIfLoaded(&loaded_services)
     };
-    // Never uninstall a dependency if it is running
-    let dependency_uninstall_if_running = UninstallIfRunning::SkipIfRunning(&running_services);
+    // Never uninstall a dependency if it is loaded
+    let dependency_uninstall_if_loaded = UninstallIfLoaded::SkipIfLoaded(&loaded_services);
 
     for ident in idents {
         // 2.
@@ -119,7 +118,7 @@ pub async fn uninstall_many<U>(ui: &mut U,
                              &pkg_install,
                              execution_strategy,
                              &excludes,
-                             uninstall_if_running)?;
+                             uninstall_if_loaded)?;
                 graph.remove(&ident);
             }
             Some(c) => {
@@ -155,7 +154,7 @@ pub async fn uninstall_many<U>(ui: &mut U,
                                          &install,
                                          execution_strategy,
                                          &excludes,
-                                         dependency_uninstall_if_running)?;
+                                         dependency_uninstall_if_loaded)?;
 
                             graph.remove(&p);
                             count += 1;
@@ -226,14 +225,14 @@ async fn supervisor_services() -> Result<Vec<PackageIdent>> {
 }
 
 #[derive(Clone, Copy)]
-enum UninstallIfRunning<'a> {
-    EvenIfRunning,
-    SkipIfRunning(&'a [PackageIdent]),
+enum UninstallIfLoaded<'a> {
+    EvenIfLoaded,
+    SkipIfLoaded(&'a [PackageIdent]),
 }
 
-impl UninstallIfRunning<'_> {
+impl UninstallIfLoaded<'_> {
     fn should_skip(&self, ident: &PackageIdent) -> bool {
-        if let Self::SkipIfRunning(services) = self {
+        if let Self::SkipIfLoaded(services) = self {
             services.iter().any(|i| i.satisfies(ident))
         } else {
             false
@@ -252,7 +251,7 @@ fn maybe_delete<U>(ui: &mut U,
                    install: &PackageInstall,
                    strategy: ExecutionStrategy,
                    excludes: &[PackageIdent],
-                   uninstall_if_running: UninstallIfRunning)
+                   uninstall_if_loaded: UninstallIfLoaded)
                    -> Result<bool>
     where U: UIWriter
 {
@@ -266,9 +265,9 @@ fn maybe_delete<U>(ui: &mut U,
         return Ok(false);
     }
 
-    if uninstall_if_running.should_skip(ident) {
+    if uninstall_if_loaded.should_skip(ident) {
         ui.status(Status::Skipping,
-                  format!("{}. It is currently running in the supervisor", &ident))?;
+                  format!("{}. It is currently loaded by the supervisor", &ident))?;
         return Ok(false);
     }
 
