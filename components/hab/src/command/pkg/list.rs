@@ -2,11 +2,9 @@ use crate::{error::Result,
             hcore::{fs as hfs,
                     package::{list,
                               PackageIdent}}};
-
+use clap::ArgMatches;
 use habitat_common::cli::FS_ROOT;
 use std::str::FromStr;
-
-use clap::ArgMatches;
 
 /// There are three options for what we can list:
 ///   - All packages (no prefix supplied)

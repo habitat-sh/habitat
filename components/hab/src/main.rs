@@ -10,7 +10,7 @@ extern crate log;
 use clap::{ArgMatches,
            Shell};
 use env_logger;
-
+use futures::stream::StreamExt;
 use hab::{cli::{self,
                 parse_optional_arg},
           command::{self,
@@ -27,7 +27,6 @@ use hab::{cli::{self,
           ORIGIN_ENVVAR,
           PRODUCT,
           VERSION};
-
 use habitat_api_client::BuildOnUpload;
 use habitat_common::{self as common,
                      cli::{cache_key_path_from_matches,
@@ -45,8 +44,6 @@ use habitat_common::{self as common,
                      FeatureFlag};
 #[cfg(windows)]
 use habitat_core::crypto::dpapi::encrypt;
-
-use futures::stream::StreamExt;
 use habitat_core::{crypto::{init,
                             keys::PairType,
                             BoxKeyPair,
