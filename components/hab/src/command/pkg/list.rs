@@ -3,8 +3,8 @@ use crate::{error::Result,
                     package::{list,
                               PackageIdent}}};
 
-use std::{path::Path,
-          str::FromStr};
+use habitat_common::cli::FS_ROOT;
+use std::str::FromStr;
 
 use clap::ArgMatches;
 
@@ -44,8 +44,8 @@ impl<'a> From<&'a ArgMatches<'a>> for ListingType {
     }
 }
 
-pub fn package_list(listing: &ListingType, fs_root_path: &Path) -> Result<Vec<PackageIdent>> {
-    let package_path = hfs::pkg_root_path(Some(&fs_root_path));
+pub fn package_list(listing: &ListingType) -> Result<Vec<PackageIdent>> {
+    let package_path = hfs::pkg_root_path(Some(&*FS_ROOT));
 
     let mut packages = match listing {
         ListingType::AllPackages => list::all_packages(&package_path)?,
@@ -57,8 +57,8 @@ pub fn package_list(listing: &ListingType, fs_root_path: &Path) -> Result<Vec<Pa
     Ok(packages)
 }
 
-pub fn start(listing: &ListingType, fs_root_path: &Path) -> Result<()> {
-    let packages = package_list(listing, fs_root_path)?;
+pub fn start(listing: &ListingType) -> Result<()> {
+    let packages = package_list(listing)?;
     for p in &packages {
         println!("{}", &p);
     }

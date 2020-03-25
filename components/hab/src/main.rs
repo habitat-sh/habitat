@@ -942,7 +942,7 @@ fn sub_pkg_path(m: &ArgMatches<'_>) -> Result<()> {
 fn sub_pkg_list(m: &ArgMatches<'_>) -> Result<()> {
     let listing_type = ListingType::from(m);
 
-    command::pkg::list::start(&listing_type, &*FS_ROOT)
+    command::pkg::list::start(&listing_type)
 }
 
 fn sub_pkg_provides(m: &ArgMatches<'_>) -> Result<()> {
