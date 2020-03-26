@@ -2,15 +2,32 @@
 
 set -euo pipefail
 
-test_name=${1:?You must specify a test name}
-channel=${2:-dev}
+channel=${1:?You must specify a channel value}
+# If no `$test_name` is specified, after the test setup you will be dropped into an interactive bash
+# prompt. From there you can run `pwsh .expeditor/scripts/end_to_end/run_e2e_test_core.ps1 $test_name`
+# to quickly iterate on tests.
+test_name=${2:-}
 
-docker run \
-       --rm \
-       --interactive \
-       --tty \
-       --privileged \
-       --env-file="$(pwd)/e2e_env" \
-       --volume="$(pwd):/workdir" \
-       --workdir=/workdir \
-       chefes/buildkite bash .expeditor/scripts/end_to_end/run_e2e_test.sh "$channel" "$test_name"
+echo ".expeditor/scripts/end_to_end/run_e2e_test.sh '$channel' '$test_name'"
+
+if [ -n "$test_name" ]; then
+    docker run \
+           --rm \
+           --interactive \
+           --tty \
+           --privileged \
+           --env-file="$(pwd)/e2e_env" \
+           --volume="$(pwd):/workdir" \
+           --workdir=/workdir \
+           chefes/buildkite bash -c ".expeditor/scripts/end_to_end/run_e2e_test.sh $channel $test_name"
+else
+    docker run \
+           --rm \
+           --interactive \
+           --tty \
+           --privileged \
+           --env-file="$(pwd)/e2e_env" \
+           --volume="$(pwd):/workdir" \
+           --workdir=/workdir \
+           chefes/buildkite bash -c ".expeditor/scripts/end_to_end/run_e2e_test.sh $channel" && sudo bash
+fi
