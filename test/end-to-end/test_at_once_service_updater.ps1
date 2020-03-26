@@ -6,7 +6,9 @@
 $env:HAB_AUTH_TOKEN = $env:PIPELINE_HAB_AUTH_TOKEN
 
 $supLog = New-TemporaryFile
-Start-Supervisor -LogFile $supLog -Timeout 45 | Out-Null
+Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
+    "--keep-latest-packages"
+) | Out-Null
 $testChannel="at-once-$([DateTime]::Now.Ticks)"
 $pkg="habitat-testing/nginx"
 $initialRelease="habitat-testing/nginx/1.17.4/20191115184838"
@@ -24,7 +26,11 @@ Describe "at-once update and rollback" {
         hab pkg promote $updatedRelease $testChannel
 
         It "updates release" {
+            Wait-CommandLinesOfOutput "hab pkg list $pkg" 2
             Wait-Release -Ident $updatedRelease
+            # The first package should eventually be automatically uninstalled
+            Wait-CommandLinesOfOutput "hab pkg list $pkg" 1
+            hab pkg list $pkg | Should -Be $updatedRelease
         }
     }
 
