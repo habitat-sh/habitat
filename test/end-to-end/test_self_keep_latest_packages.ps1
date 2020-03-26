@@ -25,7 +25,7 @@ Describe "Supervisor package cleanup" {
     Context "start the Supervisor with package cleanup" {
         $supLog = New-TemporaryFile
         Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
-            "--keep-latest-packages=2"
+                "--keep-latest-packages=2"
         ) | Out-Null
 
         It "removes old Supervisor packages" {

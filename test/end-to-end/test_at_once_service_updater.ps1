@@ -7,7 +7,7 @@ $env:HAB_AUTH_TOKEN = $env:PIPELINE_HAB_AUTH_TOKEN
 
 $supLog = New-TemporaryFile
 Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
-    "--keep-latest-packages"
+        "--keep-latest-packages"
 ) | Out-Null
 $testChannel="at-once-$([DateTime]::Now.Ticks)"
 $pkg="habitat-testing/nginx"
