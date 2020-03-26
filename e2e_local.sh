@@ -29,5 +29,5 @@ else
            --env-file="$(pwd)/e2e_env" \
            --volume="$(pwd):/workdir" \
            --workdir=/workdir \
-           chefes/buildkite bash -c ".expeditor/scripts/end_to_end/run_e2e_test.sh $channel" && sudo bash
+           chefes/buildkite bash -c ".expeditor/scripts/end_to_end/run_e2e_test.sh $channel"
 fi
