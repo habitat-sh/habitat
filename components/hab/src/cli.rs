@@ -1277,6 +1277,33 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                              `127.0.0.1`")
     );
 
+    // The clap_app macro does not allow numeric default values
+    let sub =
+        sub.arg(Arg::with_name("KEEP_LATEST_PACKAGES").long("keep-latest-packages")
+                                                      .takes_value(true)
+                                                      .min_values(0)
+                                                      .max_values(2)
+                                                      .default_value("1")
+                                                      .validator(valid_numeric::<usize>)
+                                                      .env("HAB_KEEP_LATEST_PACKAGES")
+                                                      .help("Automatically cleanup old package \
+                                                             versions")
+                                                      .long_help("Automatically cleanup old \
+                                                                  package versions.\n\nIf this \
+                                                                  flag is enabled, service \
+                                                                  startup will initiate an \
+                                                                  uninstall of all previous \
+                                                                  versions of the associated \
+                                                                  package. This also applies \
+                                                                  when a service is restarted \
+                                                                  due to an update. If a number \
+                                                                  is passed to this argument, \
+                                                                  that number of latest \
+                                                                  versions will be kept. The \
+                                                                  same logic applies to the \
+                                                                  Supervisor package if self \
+                                                                  updates are enabled."));
+
     // The clap_app macro does not allow "-" in possible values
     let sub = sub.arg(Arg::with_name("UPDATE_CONDITION").long("update-condition")
                                                         .takes_value(true)

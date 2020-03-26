@@ -253,23 +253,24 @@ impl FsCfg {
 
 #[derive(Clone, Debug)]
 pub struct ManagerConfig {
-    pub auto_update:         bool,
-    pub custom_state_path:   Option<PathBuf>,
-    pub cache_key_path:      PathBuf,
-    pub update_url:          String,
-    pub update_channel:      ChannelIdent,
-    pub gossip_listen:       GossipListenAddr,
-    pub ctl_listen:          ListenCtlAddr,
-    pub http_listen:         HttpListenAddr,
-    pub http_disable:        bool,
-    pub gossip_peers:        Vec<SocketAddr>,
-    pub gossip_permanent:    bool,
-    pub ring_key:            Option<SymKey>,
-    pub organization:        Option<String>,
-    pub watch_peer_file:     Option<String>,
-    pub tls_config:          Option<TLSConfig>,
-    pub feature_flags:       FeatureFlag,
-    pub event_stream_config: Option<EventStreamConfig>,
+    pub auto_update:          bool,
+    pub custom_state_path:    Option<PathBuf>,
+    pub cache_key_path:       PathBuf,
+    pub update_url:           String,
+    pub update_channel:       ChannelIdent,
+    pub gossip_listen:        GossipListenAddr,
+    pub ctl_listen:           ListenCtlAddr,
+    pub http_listen:          HttpListenAddr,
+    pub http_disable:         bool,
+    pub gossip_peers:         Vec<SocketAddr>,
+    pub gossip_permanent:     bool,
+    pub ring_key:             Option<SymKey>,
+    pub organization:         Option<String>,
+    pub watch_peer_file:      Option<String>,
+    pub tls_config:           Option<TLSConfig>,
+    pub feature_flags:        FeatureFlag,
+    pub event_stream_config:  Option<EventStreamConfig>,
+    pub keep_latest_packages: Option<usize>,
 }
 
 #[derive(Clone, Debug)]
@@ -777,6 +778,21 @@ impl Manager {
         Ok(())
     }
 
+    async fn cleanup_packages(&self, ident: &PackageIdent) {
+        if let Some(number_latest_to_keep) = self.state.cfg.keep_latest_packages {
+            match pkg::uninstall_all_but_latest(ident, number_latest_to_keep).await {
+                Ok(uninstalled) => {
+                    info!("Uninstalled '{}' '{}' packages keeping the '{}' latest",
+                          uninstalled, ident, number_latest_to_keep)
+                }
+                Err(e) => {
+                    error!("Failed to uninstall '{}' packages keeping the '{}' latest, err: {}",
+                           ident, number_latest_to_keep, e)
+                }
+            }
+        }
+    }
+
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
@@ -840,6 +856,8 @@ impl Manager {
                       e);
             return;
         }
+
+        self.cleanup_packages(&ident).await;
 
         self.service_updater.lock().add(&service);
 
@@ -942,6 +960,8 @@ impl Manager {
                                       http_gateway::GatewayAuthenticationToken::configured_value(),
                                       self.feature_flags,
                                       pair.clone());
+
+            self.cleanup_packages(&SUP_PKG_IDENT.parse().unwrap()).await;
 
             let &(ref lock, ref cvar) = &*pair;
             let mut started = lock.lock().expect("Control mutex is poisoned");
@@ -1444,7 +1464,7 @@ impl Manager {
             if latest_ident > *latest_desired_ident {
                 info!("Uninstalling '{}' inorder to ensure '{}' is the latest installed package",
                       latest_ident, latest_desired_ident);
-                if let Err(e) = pkg::uninstall(&latest_ident).await {
+                if let Err(e) = pkg::uninstall_even_if_loaded(&latest_ident).await {
                     error!("Failed to uninstall '{}' unable to ensure '{}' is the latest \
                             installed package. On restart, service will start with the wrong \
                             package. err: {}",
@@ -1930,23 +1950,24 @@ mod test {
     // code, so only implement it under test configuration.
     impl Default for ManagerConfig {
         fn default() -> Self {
-            ManagerConfig { auto_update:         false,
-                            custom_state_path:   None,
-                            cache_key_path:      cache_key_path(Some(&*FS_ROOT)),
-                            update_url:          "".to_string(),
-                            update_channel:      ChannelIdent::default(),
-                            gossip_listen:       GossipListenAddr::default(),
-                            ctl_listen:          ListenCtlAddr::default(),
-                            http_listen:         HttpListenAddr::default(),
-                            http_disable:        false,
-                            gossip_peers:        vec![],
-                            gossip_permanent:    false,
-                            ring_key:            None,
-                            organization:        None,
-                            watch_peer_file:     None,
-                            tls_config:          None,
-                            feature_flags:       FeatureFlag::empty(),
-                            event_stream_config: None, }
+            ManagerConfig { auto_update:          false,
+                            custom_state_path:    None,
+                            cache_key_path:       cache_key_path(Some(&*FS_ROOT)),
+                            update_url:           "".to_string(),
+                            update_channel:       ChannelIdent::default(),
+                            gossip_listen:        GossipListenAddr::default(),
+                            ctl_listen:           ListenCtlAddr::default(),
+                            http_listen:          HttpListenAddr::default(),
+                            http_disable:         false,
+                            gossip_peers:         vec![],
+                            gossip_permanent:     false,
+                            ring_key:             None,
+                            organization:         None,
+                            watch_peer_file:      None,
+                            tls_config:           None,
+                            feature_flags:        FeatureFlag::empty(),
+                            event_stream_config:  None,
+                            keep_latest_packages: None, }
         }
     }
 
