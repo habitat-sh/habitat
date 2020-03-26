@@ -961,7 +961,19 @@ impl Manager {
                                       self.feature_flags,
                                       pair.clone());
 
-            self.cleanup_packages(&SUP_PKG_IDENT.parse().unwrap()).await;
+            let fully_qualified_ident =
+                PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
+            let ident = SUP_PKG_IDENT.parse().unwrap();
+            // Check if we are running the most recent version of the Supervisor. If we are, cleanup
+            // the Supervisor packages. If we are not, it does not make sense to cleanup because we
+            // might uninstall the package that is running.
+            if let Some(package_install) = pkg::installed(&ident) {
+                if fully_qualified_ident.fully_qualified()
+                   && fully_qualified_ident == package_install.ident
+                {
+                    self.cleanup_packages(&ident).await;
+                }
+            }
 
             let &(ref lock, ref cvar) = &*pair;
             let mut started = lock.lock().expect("Control mutex is poisoned");
