@@ -1456,7 +1456,7 @@ impl Manager {
             // At this point the service process is stopped but the package is still loaded by the
             // Supervisor.
             if let Some(latest_desired_ident) = latest_desired_on_restart {
-                Self::remove_newer_packages(&service.spec_ident, &latest_desired_ident).await;
+                Self::uninstall_newer_packages(&service.spec_ident, &latest_desired_ident).await;
             }
         };
         Self::wrap_async_service_operation(ident,
@@ -1465,12 +1465,12 @@ impl Manager {
                                            stop_it)
     }
 
-    /// Remove packages that are newer than the specified ident.
+    /// Uninstall packages that are newer than the specified ident.
     ///
     /// This can be used to guarantee that when a service restarts it starts with the desired
     /// package.
-    async fn remove_newer_packages(install_ident: &PackageIdent,
-                                   latest_desired_ident: &PackageIdent) {
+    async fn uninstall_newer_packages(install_ident: &PackageIdent,
+                                      latest_desired_ident: &PackageIdent) {
         while let Some(latest_installed) = pkg::installed(install_ident) {
             let latest_ident = latest_installed.ident;
             if latest_ident > *latest_desired_ident {
