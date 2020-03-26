@@ -1286,23 +1286,20 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                                                       .default_value("1")
                                                       .validator(valid_numeric::<usize>)
                                                       .env("HAB_KEEP_LATEST_PACKAGES")
-                                                      .help("Automatically cleanup old package \
-                                                             versions")
+                                                      .help("Automatically cleanup old packages")
                                                       .long_help("Automatically cleanup old \
-                                                                  package versions.\n\nIf this \
-                                                                  flag is enabled, service \
-                                                                  startup will initiate an \
-                                                                  uninstall of all previous \
-                                                                  versions of the associated \
-                                                                  package. This also applies \
-                                                                  when a service is restarted \
-                                                                  due to an update. If a number \
-                                                                  is passed to this argument, \
-                                                                  that number of latest \
-                                                                  versions will be kept. The \
-                                                                  same logic applies to the \
-                                                                  Supervisor package if self \
-                                                                  updates are enabled."));
+                                                                  packages.\n\nIf this flag is \
+                                                                  enabled, service startup will \
+                                                                  initiate an uninstall of all \
+                                                                  previous versions of the \
+                                                                  associated package. This also \
+                                                                  applies when a service is \
+                                                                  restarted due to an update. \
+                                                                  If a number is passed to this \
+                                                                  argument, that number of \
+                                                                  latest versions will be kept. \
+                                                                  The same logic applies to the \
+                                                                  Supervisor package."));
 
     // The clap_app macro does not allow "-" in possible values
     let sub = sub.arg(Arg::with_name("UPDATE_CONDITION").long("update-condition")
