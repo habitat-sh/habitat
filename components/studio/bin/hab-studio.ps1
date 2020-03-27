@@ -17,7 +17,6 @@ param (
     [switch]$q,
     [switch]$v,
     [switch]$R,
-    [switch]$D,
     [string]$command,
     [string]$commandVal,
     [string]$k,
@@ -568,17 +567,22 @@ if(!(Test-InContainer)) {
 }
 
 try {
-    switch ($command) {
-        "new" { New-Studio }
-        "run" { Invoke-StudioRun $commandVal }
-        "rm" { Remove-Studio }
-        "enter" { Enter-Studio }
-        "build" { Invoke-StudioBuild $commandVal $R }
-        "version" { Write-Host "$program $version" }
-        "help" { Write-Help }
-        default {
-            Write-Help
-            Write-Error "Invalid Argument $command"
+    if ($args.Count -gt 0) {
+        Write-Help
+        Write-Error "Invalid Argument '$args'"
+    } else {
+        switch ($command) {
+            "new" { New-Studio }
+            "run" { Invoke-StudioRun $commandVal }
+            "rm" { Remove-Studio }
+            "enter" { Enter-Studio }
+            "build" { Invoke-StudioBuild $commandVal $R }
+            "version" { Write-Host "$program $version" }
+            "help" { Write-Help }
+            default {
+                Write-Help
+                Write-Error "Invalid Command '$command'"
+            }
         }
     }
 } finally { $VerbosePreference = $currentVerbose }
