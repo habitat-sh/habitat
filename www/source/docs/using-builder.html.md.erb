@@ -4,53 +4,115 @@ description: Uploading, building, and deploying application packages with Chef H
 ---
 # <a name="using-builder" id="using-builder" data-magellan-target="using-builder">Using Builder</a>
 
-<p><a target="_blank" href="https://bldr.habitat.sh/#/sign-in">Chef Habitat Builder</a> https://bldr.habitat.sh, is where you store, build, and deploy your Chef Habitat packages. This documentation covers creating an account, uploading packages to Builder, and building your packages.
+<!-- This is a concept topic:
+/concept
+  /title
+/short description
+-->
+[Chef Habitat Builder](https://bldr.habitat.sh/) is the publicly available site for storing, discovering, building, and deploying your Chef Habitat packages. This documentation covers the actions that you can take on the Chef Habitat Builder site. from creating an account to setting up automated builds and exporting packages to a variety of container registries.
+<!--
+/conbody
+  /section
+  /example
+  -->
 
-Prerequisites: [GitHub account](https://github.com/join)
+section: landing page, log in, authentication
+section: My origins
+  explain page
+  sub-section: Inside an origin page. Define terms:
+    Packages
+    Build jobs
+    Keys
+    Members
+    Settings
+    Integrations
+section: Search Packages
+  explain: search works on the origin and package level.
+  explain: Once you're on the package, clicking the origin sends you to the package list for that origin
+  explain: that this search is stupid and `core/ruby` is not the same as `core/ruby26`
 
-The Chef Habitat Builder has [five] pages:
-Landing: https://bldr.habitat.sh/#/pkgs/core
-Sign-in: https://bldr.habitat.sh/#/sign-in
-My Origins: https://bldr.habitat.sh/#/origins
-Origin Packages: https://bldr.habitat.sh/#/origins/docs-test/packages
-Package Search: https://bldr.habitat.sh/#/pkgs/core
+<!--Using Builder is a task
 
-> For a guided walk-through of this process, try the [Build System demo](/demo/build-system/steps/1/).
+/task
+  /title
+  /taskbody
+    /prereq
+    /context
+    /steps-informal
+    /tutorial-info
+    /tutorial-info
+    /result
+    /postreq
+-->
 
 ---
-## <a name="builder-account" id="builder-account" data-magellan-target="builder-account">Create a Builder Account</a>
 
-Setting up your Chef Habitat account is easy! All you need is a valid [GitHub account](https://github.com/join).
+## <a name="builder-account" id="builder-account" data-magellan-target="builder-account">Create a Builder Account</a>
+<!--Using Builder is a task
+/task
+  /title
+  /taskbody
+    /prereq
+    /context
+    /steps-informal
+    /tutorial-info
+    /tutorial-info
+    /result
+    /postreq
+-->
+
+### Prerequisites
+
+* Download and install the Chef Habitat CLI
+* A valid [GitHub account](https://github.com/join)
+
 
 ### Sign-in and Authorize Chef Habitat
 
-Use the button below to open the  Builder login page, where you can create your Builder using your GitHub account.
-Chef Habitat Builder uses GitHub for authorization. Once you've accepted the Github prompt to authorize Builder, you'll arrive at the 'My Origins' view
+Signing in to Chef Habitat Builder automatically creates your account. Chef Habitat Builder uses GitHub for authorization. The first time you sign in, you will also need to authorize the Chef Habitat Builder application in Github.
 
-Use the button below to simultaneously sign in to Builder and create your account. Chef Habitat Builder uses GitHub for authorization, so you'll see the prompt below authorizing the application.
+Use this button to start your sign-in:
 
-<a href="https://bldr.habitat.sh/#/sign-in" class="button cta" target="_blank">Sign in to Builder</a>
+<a href="https://bldr.habitat.sh/#/sign-in" class="button cta" target="_blank">Sign in to Chef Habitat Builder</a>
 
-<img src="/images/screenshots/authorize.png">
+Select "Sign in with GitHub" if you already have a GitHub account. To open a GitHub account, select the "Sign up here" link and return to the Builder sign-in page once you're done.
 
-Once you have authorized Chef Habitat and signed in, you'll arrive at the 'My Origins' view. At this point, other Chef Habitat users can invite you to existing origins or you can proceed to create your own (see the next section).
+![Habitat sign in with Github](/images/screenshots/builder_signin.png)
+
+Once you've signed in, authorize the Chef Habitat Builder application to work with your GitHub account. Once you have authorized Chef Habitat and signed in, you'll arrive at the 'My Origins' view.
+
+<img src="/images/screenshots/builder_authorize.png">
+
+
 
 ---
-## <a name="builder-token" id="builder-token" data-magellan-target="builder-token">Create an Access Token</a>
+## <a name="builder-profile" id="builder-profile" data-magellan-target="builder-profile">Set up your Builder Profile</a>
 
-Chef Habitat Builder uses access tokens for communication between Builder and your local environment. Some tasks, such as uploading artifacts to Builder and checking the status of your build jobs from the Chef Habitat CLI, require an access token.
+Access your Builder account by selecting the round profile icon at the top right corner of the Builder page. To set up your profile, including creating an access token, select the "profiles" option from the drop-down menu.
 
-You can create, build, install Chef Habitat artifacts in you local environment without authenticating to Builder.
+The Builder Profile shows three pieces of information:
 
-From the Builder site, select your user icon in the upper right-hand side, and select **Profile**.
+* The GitHub account that you used for signing in to Builder
+* An optional email field to associate with your profile
+* The tool for creating a personal access token
 
-<img src="/images/screenshots/profile.png">
+<img src="/images/screenshots/builder_profile.png">
 
-At the bottom of the profile page, select **Generate Token**.
+## <a name="builder-settings" id="builder-settings" data-magellan-target="builder-settings">User Settings</a>
+
+You cannot directly edit the GitHub account on the Builder profile. If you have separate  work and personal accounts that are not connected under a single user account, then you will also need to have more than one Builder account. However, if your GitHub accounts are associated, you can choose which profile to connect to Builder by entering your preferred email address. The generic profile icon will change to show the gravatar associated with the GitHub account associated with that email. Save your changes by selecting `save`.
+
+<img src="/images/screenshots/builder_profile_user.png">
+
+## <a name="builder-token" id="builder-token" data-magellan-target="builder-token">Personal Access Token</a>
+
+Chef Habitat Builder requires a _personal access token_ to interact with your command-line environment. The personal access token is another level of authentication, which helps secure activities such as uploading your artifacts to Builder, or checking the status of your build jobs.
+
+Create your personal access token at the bottom of the profile page (below the save button), by selecting **Generate Token**.
 
 <img src="/images/screenshots/generate-token.png">
 
-Copy your token from this page.
+Copy your token from this page and save it in a safe location. If you forget your personal access token, you will need to generate a new one. The next sections cover setting your personal access token as an environment variable in Windows and MacOS/Linux operating systems.
 
 ### Windows
 
@@ -72,11 +134,11 @@ In the next window, select the `New` button in the top part. This opens a dialog
 
 <img src='/images/screenshots/environment_variable_new.png'>
 
-Create a permanent environment variable by entering `HAB_AUTH_TOKEN` as the variable name. Next, paste the authorization token that you copied after you generated a new token on your Habitat profile page as the variable value. After you select the `OK`, you will see the new token in the user variables field.
+Create a permanent environment variable by entering `HAB_AUTH_TOKEN` as the variable name. Next, paste the authorization token that you copied after you generated a new token on your profile page as the variable value. After you select the `OK`, you will see the new token in the user variables field.
 
 <img src='/images/screenshots/environment_variable_new_var.png'>
 
-To test that your new token works correctly, open the Command Prompt---which you can find by entering command in the Windows search box---and entering `echo %HAB_AUTH_TOKEN%`. You should see the value that you pasted into the environment variable.
+To test that your new token works, open the Command Prompt---which you can find by entering command in the Windows search box---and entering `echo %HAB_AUTH_TOKEN%`. You should see the value that you pasted into the environment variable.
 
 <img src='/images/screenshots/environment_variable_set.png'>
 
@@ -107,9 +169,9 @@ source ~/.bashrc
 
 Origins are unique namespaces that can be used to denote a particular upstream of a package. For example, the "core" origin is the set of foundational packages that are managed and versioned by the core Chef Habitat maintainers.
 
-### steps
-
 From the My Origins page in the Chef Habitat Builder web app, click the **Create origin** button.
+
+> **Note** To join an existing origin, a current member of that origin will need to invite you. Pending invites will appear on the **My Origins** page for you to accept.
 
 <img src="/images/screenshots/create-origin.png">
 
@@ -124,20 +186,13 @@ This is the default privacy setting applied to new packages. You can override th
 Public packages will appear in public search results and can be used by any user, while private packages are restricted to members of the origin.
 
 ---
-## <a name="origin-join" id="origin-join" data-magellan-target="origin-join">Join an Origin on Builder</a>
-
-You can create your own origin in Builder or be invited to join an existing one. If you already built some Chef Habitat packages on your local computer prior to signing up for an account, you must rename your local packages' `pkg_origin` if the origin you want already exists.
-
-### STEPS
-
----
 ## <a name="origin-keys" id="origin keys" data-magellan-target="origin-keys">Using Origin Keys</a>
 
 Creating an origin automatically generates an origin key pair.
 
 Origin key cryptography is asymmetric: it has a public origin key that you can distribute freely, and a private origin key that you should distribute only to members of the origin.
 
-Habitat Builder and Habitat Builder on-prem require access to at least the public origin key to verify artifacts uploaded to the origin.
+Habitat Builder and Habitat Depot require access to at least the public origin key to verify artifacts uploaded to the origin.
 
 Habitat uses the public origin key to verify the integrity of a downloaded Habitat artifact before installing it.
 
@@ -214,10 +269,6 @@ When you create Habitat origin keys on your workstation or in the Studio with `h
 At the very least, Builder requires the public origin key to verify the integrity of artifacts associated with the origin, so you'll need to upload it. Builder requires the public origin key to upload artifacts for that origin. You can also upload your private origin key to enable Builder to build new artifacts from packages whose plans are linked within the origin.
 
 Upload origin keys through the Builder web interface, or by using the `hab origin key upload` command. Uploading origin keys uses the Habitat access token for authentication.
-
-If you created a new Habitat origin from your host machine or from the Studio, Builder will not have either of the origin keys corresponding to your artifact. Builder will not accept uploaded artifacts without first having the correct origin public key.
-
-You can upload keys for the origin through the web interface for Builder, or by using the `hab origin key upload` command. You must have the access token for authentication, as described earlier, before you can upload keys.
 
 #### Upload Command
 
@@ -318,18 +369,53 @@ or in the Builder web interface, under the Settings tab for your origin:
 ---
 ## <a name="sharing-pkgs" id="sharing-pkgs" data-magellan-target="sharing-pkgs">Upload and Promote Packages</a>
 
-Prerequisites:
-  [Create a Builder Account](/docs/using-builder/#builder-account)
-  [Create an Origin or Join an Existing Origin](/docs/using-builder/#origin-join)
-  [Authenticate with Builder](/docs/using-builder/#origin-keys)
-  [Upload the origin keys]()
-  [Connecting your Github repositories and opting into rebuilds]()
-
 While you can build and run Chef Habitat packages without sharing them on [Chef Habitat Builder](https://bldr.habitat.sh), uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated.
 
-### Upload Packages
+> Note: Chef Habitat Builder can only build Linux based plans (`plan.sh`) at this time.
 
-Once you are a member of the Habitat origin and Builder possesses at least the public origin key, then you may upload artifacts to that origin with the `hab pkg upload` command. After Habitat validates the cryptographic integrity of the artifact, it is then uploaded and stored on Builder. Uploading artifacts is a privileged operation for which you must have the [Chef Habitat access token](/docs/using-builder/#builder-token).
+Setting up Chef Habitat Builder is easily done on the website: these steps take you through connecting your local Studio development experience with Builder.
+
+You interact with Chef Habitat Builder by:
+
+* Creating an account.
+* Creating an origin, or being invited to join an origin that already exists.
+* Setting up `hab` to authenticate with Builder.
+* Uploading the private and public keys for that origin.
+* Connecting your Github repositories and opting into rebuilds.
+
+Chef Habitat Builder supports both public and private origins, packages, and Github repositories.
+
+### Create a Builder Account
+
+If you haven't created an account yet, see the [Create a Builder Account](/docs/using-builder/#builder-account) section above.
+
+### Create or Join an Existing Origin
+
+You can create your own origin in Builder or be invited to join an existing one. If you already built some Chef Habitat packages on your local computer prior to signing up for an account, you must rename your local packages' `pkg_origin` if the origin you want already exists.
+
+### Set up Chef Habitat to Authenticate to Builder
+
+When you upload a package to Builder, you are required to supply an auth token as part of the `hab pkg upload` subcommand. You can generate a Chef Habitat personal access token via the Builder site [Profile page](https://bldr.habitat.sh/#/profile) for use with the `hab` command-line utility.
+
+Once you have this token, you can set the `HAB_AUTH_TOKEN` [environment variable](/docs/reference#environment-variables) to this value, so that any commands requiring authentication will use it.
+
+### Create an Origin Key Pair
+
+After finishing the basic account creation steps, you need to create your origin key pair. Habitat will use the private origin key to sign the artifacts (`.hart` files) created by building your plan and verify the integrity of your artifacts with the public origin key.
+
+You can create an origin key pair by running `hab cli setup` from your host machine, or by running `hab origin key generate <ORIGIN>` from either the host machine or from within the studio.
+
+Your public and private origin keys are located at `~/.hab/cache/keys` on your host machine and at `/hab/cache/keys` inside the studio environment.
+
+### Upload Your Origin Keys
+
+If you created a new Habitat origin from your host machine or from the Studio, Builder will not have either of the origin keys corresponding to your artifact. Builder will not accept uploaded artifacts without first having the correct origin public key.
+
+You can upload keys for the origin through the web interface for Builder, or by using the `hab origin key upload` command. You must have the access token for authentication, as described earlier, before you can upload keys.
+
+### Upload Packages to Builder
+
+As long as you are already a member of the Habitat origin, once Builder possesses at least the public origin key, then you may upload one or more artifacts to that origin with the `hab pkg upload` command. After Habitat validates the cryptographic integrity of the artifact, it is then uploaded and stored on Builder. Uploading artifacts is a privileged operation for which you must have the access token.
 
 ### Promote Packages
 
@@ -341,11 +427,12 @@ By default, newly uploaded packages are placed in the `unstable` channel. Howeve
 $ hab pkg promote -z <TOKEN> origin/package/version/release stable
 ```
 
+> **Note** You can also promote packages to the `stable` channel using the *promote to stable* button in the web app.
+
 For more information on how to use channels, see [Continuous Deployment Using Channels](/docs/using-habitat/#continuous-deployment).
 
-### Run Packages from Builder
+### Running Packages from Builder
 
-#### Run Packages from Builder
 > **Note:** When running private packages from Builder, it's necessary to add your [Chef Habitat access token](/docs/using-builder/#builder-token) to the machine where you intend to deploy the package, via `export HAB_AUTH_TOKEN=<token>`.
 
 You can instruct the Supervisor to download and run packages from Builder by using the `hab sup` and `hab svc` commands, for example:
@@ -363,10 +450,7 @@ You may also supply a `--channel` argument to instruct the Supervisor to use a d
 $ hab svc load core/postgresql --channel unstable
 ```
 
-#### Run Packages from Exported Tarballs
-
-Prerequisites:
-  [Export a package]()
+### Running Packages from Exported Tarballs
 
 An exported tarball package contains the Chef Habitat client/binary as well as dependencies specified by your artifact.
 
