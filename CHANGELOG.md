@@ -1,15 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.78 -->
-## [1.5.78](https://github.com/habitat-sh/habitat/tree/1.5.78) (2020-03-27)
+<!-- latest_release 1.5.79 -->
+## [1.5.79](https://github.com/habitat-sh/habitat/tree/1.5.79) (2020-03-30)
 
 #### Merged Pull Requests
-- fix linux test_pkg_install e2e test [#7586](https://github.com/habitat-sh/habitat/pull/7586) ([mwrock](https://github.com/mwrock))
+- Add Homebrew PR merge to post-release activities [#7587](https://github.com/habitat-sh/habitat/pull/7587) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.71 -->
 ### Changes since 1.5.71 release
 
 #### Merged Pull Requests
+- Add Homebrew PR merge to post-release activities [#7587](https://github.com/habitat-sh/habitat/pull/7587) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.5.79 -->
 - fix linux test_pkg_install e2e test [#7586](https://github.com/habitat-sh/habitat/pull/7586) ([mwrock](https://github.com/mwrock)) <!-- 1.5.78 -->
 - Error if using `-d` when entering Windows studio [#7585](https://github.com/habitat-sh/habitat/pull/7585) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.77 -->
 - Move builder-worker post release step higher in the release readme [#7577](https://github.com/habitat-sh/habitat/pull/7577) ([mwrock](https://github.com/mwrock)) <!-- 1.5.76 -->
