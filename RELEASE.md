@@ -227,6 +227,10 @@ making them "officially" available to the world, and thus "released".
 # Post-Release Tasks
 The Buildkite release is fairly-well automated at this point, but once it is complete, there are still a few remaining manual tasks to perform. In time, these will be automated as well.
 
+## Update Homebrew
+
+The [Habitat Homebrew](https://github.com/habitat-sh/homebrew-habitat) repository will automatically generate a PR to update the Homebrew tap after a release is promoted to stable. This PR will be tested to ensure the updated version is able to install.  If the PR checks are green, it is safe to merge and this will update our `brew install`ed version to the current stable release. 
+
 ## The Builder Worker
 
 New `habitat/builder-worker` packages will automatically be built by
