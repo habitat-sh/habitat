@@ -286,15 +286,6 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
         None
     };
 
-    let keep_latest_packages = if m.occurrences_of("KEEP_LATEST_PACKAGES") > 0
-                                  || env::var("HAB_KEEP_LATEST_PACKAGES").is_ok()
-    {
-        m.value_of("KEEP_LATEST_PACKAGES")
-         .and_then(|s| s.parse().ok())
-    } else {
-        None
-    };
-
     #[rustfmt::skip]
     let cfg = ManagerConfig {
         auto_update: m.is_present("AUTO_UPDATE"),
@@ -329,7 +320,7 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
         }),
         feature_flags,
         event_stream_config,
-        keep_latest_packages,
+        keep_latest_packages: m.value_of("KEEP_LATEST_PACKAGES").and_then(|s| s.parse().ok()),
     };
 
     Ok(cfg)
