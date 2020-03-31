@@ -1,6 +1,14 @@
 +++
 title = "Running Chef Habitat Packages"
 description = "Running Chef Habitat Packages"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="using-packages" id="using-packages" data-magellan-target="using-packages">Running Chef Habitat Packages</a>

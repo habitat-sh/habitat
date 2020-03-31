@@ -1,6 +1,14 @@
 +++
 title = "Kubernetes"
 description = "Kubernetes"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="kubernetes" id="kubernetes" data-magellan-target="kubernetes">Kubernetes</a>

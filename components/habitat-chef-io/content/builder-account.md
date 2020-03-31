@@ -1,6 +1,14 @@
 +++
 title = "Create a Builder Account"
 description = "Set up your Builder account online"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="builder-account" id="builder-account" data-magellan-target="builder-account">Create a Builder Account</a>

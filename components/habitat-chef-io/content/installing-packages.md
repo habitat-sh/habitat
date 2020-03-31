@@ -1,6 +1,14 @@
 +++
 title = "Get Chef Habitat"
 description = "Install the Chef Habitat CLI and configure your workstation for Chef Habitat development"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="installing-packages" id="installing-packages" data-magellan-target="installing-packages">Installing Chef Habitat</a>

@@ -1,6 +1,14 @@
 +++
 title = "Pattern Library Introduction"
 description = "Example code for Chef Habitat plans and more!"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 ## <a name="hab-patterns" id="hab-patterns" type="anchor">Chef Habitat Pattern Library</a>

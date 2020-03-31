@@ -1,6 +1,14 @@
 +++
 title = "Supervisor Log Configuration"
 description = "Dynamically adjust the logging configuration of a running Supervisor"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="sup-log-configuration" id="sup-log-configuration" data-magellan-target="sup-log-configuration">Supervisor Log Configuration</a>

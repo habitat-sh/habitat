@@ -1,6 +1,14 @@
 +++
 title = "Amazon ECS and Chef Habitat"
 description = "Amazon ECS and Chef Habitat"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="ecs-and-habitat" id="ecs-and-habitat" data-magellan-target="ecs-and-habitat">Amazon ECS and Chef Habitat</a>

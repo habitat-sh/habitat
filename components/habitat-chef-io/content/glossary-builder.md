@@ -1,6 +1,14 @@
 +++
 title = "Builder"
 description = "Builder"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+
 +++
 
 # <a name="glossary-builder" id="glossary-builder" data-magellan-target="glossary-builder" type="anchor">Builder</a>

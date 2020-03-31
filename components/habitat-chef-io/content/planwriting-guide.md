@@ -1,6 +1,14 @@
 +++
 title = "Advanced Plan Writing Guide"
 description = "Advanced Plan Writing Guide"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="planwriting-guide" id="planwriting-guide" data-magellan-target="planwriting-guide">Advanced Plan Writing Guide</a>

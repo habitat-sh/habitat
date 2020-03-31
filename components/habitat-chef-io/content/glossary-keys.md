@@ -1,6 +1,14 @@
 +++
 title = "Keys"
 description = "Keys"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+
 +++
 
 # <a name="glossary-keys" id="glossary-keys" data-magellan-target="glossary-keys" type="anchor">Keys</a>

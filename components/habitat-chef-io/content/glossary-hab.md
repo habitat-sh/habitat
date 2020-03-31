@@ -1,6 +1,14 @@
 +++
 title = "Hab"
 description = "Hab CLI"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+
 +++
 
 # <a name="glossary-hab" id="glossary-hab" data-magellan-target="glossary-hab" type="anchor">Hab</a>

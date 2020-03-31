@@ -1,6 +1,14 @@
 +++
 title = "Builder on-prem"
 description = "Builder on-prem"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="on-prem" id="on-prem" data-magellan-target="on-prem">Install and Use Builder On-Premises</a>

@@ -1,6 +1,14 @@
 +++
 title = "Developing Packages"
 description = "Documentation for writing Chef Habitat Plan files including configuration templates, binds, and exporting"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 # <a name="developing-packages" id="developing-packages" data-magellan-target="developing-packages">Develop Packages</a>
 

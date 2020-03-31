@@ -1,6 +1,14 @@
 +++
 title = "Plan Settings"
 description = "Define basic information about your artifact with plan settings"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="plan-settings" id="plan-settings" data-magellan-target="plan-settings">Plan Settings</a>

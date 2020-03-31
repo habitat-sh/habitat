@@ -1,6 +1,14 @@
 +++
 title = "Scaffolding"
 description = "Scaffolding"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+
 +++
 
 # <a name="glossary-scaffolding" id="glossary-scaffolding" data-magellan-target="glossary-scaffolding" type="anchor">Scaffolding</a>

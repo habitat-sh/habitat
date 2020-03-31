@@ -1,6 +1,14 @@
 +++
 title = "Build Helpers"
 description = "Define how your package builds with helper functions."
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="build-helpers" id="build-helpers" data-magellan-target="build-helpers">Build Helpers</a>

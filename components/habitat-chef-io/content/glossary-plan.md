@@ -1,6 +1,14 @@
 +++
 title = "Plan.sh and Plan.ps1"
 description = "Microsoft Windows Plans"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+
 +++
 
 # <a name="glossary-plan" id="glossary-plan" data-magellan-target="glossary-plan" type="anchor">Plan.sh and Plan.ps1</a>

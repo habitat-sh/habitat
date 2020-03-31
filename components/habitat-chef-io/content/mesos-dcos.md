@@ -1,6 +1,14 @@
 +++
 title = "Apache Mesos and DC/OS"
 description = "Apache Mesos and DC/OS"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="mesos-dcos" id="mesos-dcos" data-magellan-target="mesos-dcos">Apache Mesos and DC/OS</a>

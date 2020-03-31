@@ -1,6 +1,14 @@
 +++
 title = "Supervisor"
 description = "The Supervisor is a process manager that starts, monitors, updates, and stops services"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+
 +++
 
 # <a name="glossary-supervisor" id="glossary-supervisor" data-magellan-target="glossary-supervisor">Supervisor</a>

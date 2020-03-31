@@ -1,6 +1,14 @@
 +++
 title = "Studio"
 description = "The Chef Habitat Studio Environment"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+
 +++
 
 # <a name="glossary-studio" id="glossary-studio" data-magellan-target="glossary-studio" type="anchor">Studio</a>

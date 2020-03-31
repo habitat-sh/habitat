@@ -1,6 +1,14 @@
 +++
 title = "Running Chef Habitat Linux Containers"
 description = "Running Chef Habitat Linux Containers"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="running-habitat-linux-containers" id="running-habitat-linux-containers" data-magellan-target="running-habitat-linux-containers">Running Chef Habitat Linux Containers</a>

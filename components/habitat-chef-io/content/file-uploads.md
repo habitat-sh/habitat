@@ -1,6 +1,14 @@
 +++
 title = "File Uploads"
 description = "File Uploads"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="file-uploads" id="file-uploads" data-magellan-target="file-uploads">File Uploads</a>

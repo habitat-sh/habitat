@@ -1,6 +1,14 @@
 +++
 title = "Services"
 description = "Services managed by a Chef Habitat Supervisor"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+
 +++
 
 # <a name="glossary-services" id="glossary-services" data-magellan-target="glossary-services"type="anchor">Services</a>

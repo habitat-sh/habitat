@@ -1,6 +1,14 @@
 +++
 title = "Docker Container Publishing Flow"
 description = "Docker Container Publishing Flow"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # Initial Docker Container Publishing Flow

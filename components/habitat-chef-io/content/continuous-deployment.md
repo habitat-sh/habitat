@@ -1,6 +1,14 @@
 +++
 title = "Continuous Deployment"
 description = "Continuous Deployment"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="continuous-deployment" id="continuous-deployment" data-magellan-target="continuous-deployment">Continuous Deployment</a>

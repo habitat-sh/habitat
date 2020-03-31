@@ -1,6 +1,14 @@
 +++
 title = "Configuration Updates"
 description = "Update packages at runtime or dynamically"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="config-updates" id="config-updates" data-magellan-target="config-updates">Configuration Updates</a>

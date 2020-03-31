@@ -10,6 +10,7 @@ aliases = ["/about_habitat.html", "/about_habitat/"]
     identifier = "chef_habitat/about_habitat.md About Chef habitat"
     parent = "chef_habitat"
     weight = 10
+
 +++
 
 Some content goes here.

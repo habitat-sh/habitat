@@ -1,6 +1,14 @@
 +++
 title = "Chef Habitat Package Contents"
 description = "Chef Habitat Package Contents"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="package-contents" id="package-contents" data-magellan-target="package-contents">Package Contents</a>

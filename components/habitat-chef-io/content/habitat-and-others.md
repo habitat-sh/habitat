@@ -1,6 +1,14 @@
 +++
 title = "Chef Habitat and Other Software"
 description = "Chef Habitat works with Terraform, Cloud Formation, Docker, CoreOS, Kubernetes, CI, and popular configuration management tools"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="installing-packages" id="installing-packages" data-magellan-target="installing-packages">Chef Habitat and Other Software</a>

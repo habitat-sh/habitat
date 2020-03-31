@@ -1,6 +1,14 @@
 +++
 title = "Chef Habitat Artifact Export Formats"
 description = "Chef Habitat Artifact Export Formats"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="artifact-export-format" id="artifact-export-format" data-magellan-target="artifact-export-format" type="anchor">Chef Habitat Artifact Export Formats</a>

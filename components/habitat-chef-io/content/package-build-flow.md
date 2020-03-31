@@ -1,6 +1,14 @@
 +++
 title = "Initial Package Build Flow"
 description = "Initial Package Build Flow"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # Initial Package Build Flow

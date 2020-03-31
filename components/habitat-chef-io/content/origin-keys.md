@@ -1,6 +1,14 @@
 +++
 title = "Using Origin Keys"
 description = "Using Origin Keys"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="origin-keys" id="origin keys" data-magellan-target="origin-keys">Using Origin Keys</a>

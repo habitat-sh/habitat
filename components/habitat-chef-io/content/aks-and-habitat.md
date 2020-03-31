@@ -1,8 +1,6 @@
 +++
 title = "Azure Container Services (AKS)"
 description = "Azure and Kubernetes K8"
-category = "habitat"
-tags = "k8"
 
 [menu]
   [menu.habitat]
@@ -10,6 +8,7 @@ tags = "k8"
     identifier = "chef_habitat/integrations/aks-and-habitat.md Habitat Azure Kubernetes"
     parent = "chef_habitat/integrations"
     weight = 20
+    
 +++
 
 # <a name="aks-and-habitat" id="aks-and-habitat" data-magellan-target="aks-and-habitat">Azure Container Services (AKS)</a>

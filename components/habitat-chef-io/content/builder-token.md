@@ -1,6 +1,14 @@
 +++
 title = "Create an Access Token"
 description = "Access Token Management"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="builder-token" id="builder-token" data-magellan-target="builder-token">Create an Access Token</a>

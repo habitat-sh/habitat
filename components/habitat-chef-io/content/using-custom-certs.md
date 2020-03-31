@@ -1,6 +1,14 @@
 +++
 title = "Using Custom Certificates"
 description = "Handling custom (CA) certificates"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="using-custom-certs" id="using-custom-certs" data-magellan-target="using-custom-certs">Using Custom Certificates</a>

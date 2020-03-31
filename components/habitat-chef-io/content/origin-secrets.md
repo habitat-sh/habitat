@@ -1,6 +1,14 @@
 +++
 title = "Using Origin Secrets"
 description = "Using Origin Secrets"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="origin-secrets" id="origin-secrets" data-magellan-target="origin-secrets">Using Origin Secrets</a>

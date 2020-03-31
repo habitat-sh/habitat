@@ -8,7 +8,8 @@ draft= false
     title = "Chef Habitat Community"
     identifier = "chef_habitat/community.md About Chef Habitat Community"
     parent = "chef_habitat"
-    weight = 10
+    weight = 20
+    
 +++
 
 About Community

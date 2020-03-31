@@ -10,6 +10,7 @@ aliases = ["/install-habitat.html"]
     identifier = "chef_habitat/get_started/install-habitat.md Install Chef Habitat"
     parent = "chef_habitat/get_started"
     weight = 10
+    
 +++
 
 # <a name="install-habitat" id="install-habitat" data-magellan-target="install-habitat">Installing Chef Habitat</a>

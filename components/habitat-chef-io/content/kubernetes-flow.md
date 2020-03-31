@@ -1,6 +1,14 @@
 +++
 title = "Chef Habitat and Kubernetes Overview"
 description = "Chef Habitat and Kubernetes Overview"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # Chef Habitat and Kubernetes

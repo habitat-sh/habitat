@@ -1,6 +1,14 @@
 +++
 title = "Build Phase Callbacks"
 description = "Override default behavior with build phase callbacks"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+
 +++
 
 # <a name="build-phase-callbacks" id="build-phase-callbacks" data-magellan-target="build-phase-callbacks">Build Phase Callbacks</a>

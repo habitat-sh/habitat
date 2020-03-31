@@ -1,6 +1,14 @@
 +++
 title = "Set up Automated Builds"
 description = "Set up Automated Builds"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="automated-builds" id="automated-builds" data-magellan-target="automated-builds">Set up Automated Builds</a>

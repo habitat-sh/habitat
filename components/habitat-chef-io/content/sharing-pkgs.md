@@ -1,6 +1,14 @@
 +++
 title = "Upload and Promote Packages"
 description = "Upload and Promote Packages"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="sharing-pkgs" id="sharing-pkgs" data-magellan-target="sharing-pkgs">Upload and Promote Packages</a>

@@ -4,13 +4,6 @@ draft = false
 
 toc = false
 
-
-
-
-
-
-
-
 +++
 
 [\[edit on GitHub\]](https://github.com/habitat.sh/habitat/blob/master/content/sitemap.md)

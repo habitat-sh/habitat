@@ -1,6 +1,14 @@
 +++
 title = "Chef Habitat Internals"
 description = "Chef Habitat Supervisor topologies, cryptography, and bootstrapping"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="internals" id="internals" data-magellan-target="internals">Internals</a>

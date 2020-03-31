@@ -1,6 +1,14 @@
 +++
 title = "Automate Docker Container Publishing Flow"
 description = "Automate Docker Container Publishing Flow"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # Automated Docker Container Publishing Flow

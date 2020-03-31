@@ -1,6 +1,14 @@
 +++
 title = "Binary Wrapper Packages"
 description = "Managing Binaries"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="binary-wrapper" id="binary-wrapper" data-magellan-target="binary-wrapper">Binary Wrapper Packages</a>

@@ -1,6 +1,14 @@
 +++
 title = "Environment Variables"
 description = "Customize and configure your Chef Habitat Studio and Supervisor environments"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="environment-variables" id="environment-variables" data-magellan-target="environment-variables">Environment Variables</a>

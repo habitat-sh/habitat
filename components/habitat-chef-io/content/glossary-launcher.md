@@ -1,6 +1,14 @@
 +++
 title = "Launcher"
 description = "Launcher"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+
 +++
 
 # <a name="glossary-launcher" id="glossary-launcher" data-magellan-target="glossary-launcher" type="anchor">Launcher</a>

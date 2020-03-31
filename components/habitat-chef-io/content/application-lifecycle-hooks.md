@@ -1,6 +1,14 @@
 +++
 title = "Application Lifecycle Hooks"
 description = "Control service runtime actions with application lifecycle hooks"
+
+[menu]
+  [menu.habitat]
+    title = "Application Lifecycle Hooks"
+    identifier = "chef_habitat/glossary/application-lifecycle-hooks.md Application Lifecycle Hooks"
+    parent = "chef_habitat/glossary"
+    weight = 20
+    
 +++
 
 # <a name="application-lifecycle-hooks" id="application-lifecycle-hooks" data-magellan-target="application-lifecycle-hooks">Application Lifecycle Hooks</a>

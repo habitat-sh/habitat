@@ -1,6 +1,14 @@
 +++
 title = "Iterative Development"
 description = "Iterative Development"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="iterative-development" id="iterative-development" data-magellan-target="iterative-development">Iterative Development</a>

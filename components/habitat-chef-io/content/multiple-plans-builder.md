@@ -1,6 +1,14 @@
 +++
 title = "Building Multiple Packages"
 description = "Building Multiple Packages"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="multiple-plans-builder" id="multiple-plans-builder" data-magellan-target="multiple-plans-builder">Building Multiple Packages</a>

@@ -1,6 +1,14 @@
 +++
 title = "Plan Variables"
 description = "Set package, service, and cache paths, compiler options, install location and context with plan variables"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="plan-variables" id="plan-variables" data-magellan-target="plan-variables">Plan Variables</a>

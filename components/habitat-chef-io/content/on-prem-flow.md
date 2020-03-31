@@ -1,6 +1,14 @@
 +++
 title = "Chef Habitat Builder on-prem Flow"
 description = "Chef Habitat Builder on-prem Flow"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # Chef Habitat Builder on-prem Flow

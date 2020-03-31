@@ -1,6 +1,14 @@
 +++
 title = "Service Groups"
 description = "Service Groups"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="service-groups" id="service-groups" data-magellan-target="service-groups">Service Groups</a>

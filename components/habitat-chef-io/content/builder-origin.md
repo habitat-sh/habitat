@@ -1,6 +1,14 @@
 +++
 title = "Create an Origin on Builder"
 description = "Create an Origin on Builder"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+
 +++
 
 # <a name="builder-origin" id="builder-origin" data-magellan-target="builder-origin">Create an Origin on Builder</a>

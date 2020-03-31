@@ -1,6 +1,14 @@
 +++
 title = "Application Lifecycle Hooks"
 description = "Application Lifecycle Hooks"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+
 +++
 
 # <a name="glossary-hooks" id="glossary-hooks" data-magellan-target="glossary-hooks" type="anchor">Application Lifecycle Hooks</a>

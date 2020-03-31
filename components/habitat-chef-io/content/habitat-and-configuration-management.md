@@ -1,6 +1,14 @@
 +++
 title = "Chef Habitat and Configuration Management"
 description = "Chef Habitat and Configuration Management"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+
 +++
 
 # <a name="habitat-and-configuration-management" id="habitat-and-configuration-management" data-magellan-target="habitat-and-configuration-management" type="anchor">Chef Habitat and Configuration Management</a>

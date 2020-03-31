@@ -1,6 +1,14 @@
 +++
 title = "Robust Supervisor Networks"
 description = "Robust Supervisor Networks"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="robust-supervisor-networks" id="robust-supervisor-networks" data-magellan-target="robust-supervisor-networks">Robust Supervisor Networks</a>

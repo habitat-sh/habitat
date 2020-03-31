@@ -1,6 +1,14 @@
 +++
 title = "Supervisor Log Key"
 description = "Supervisor log code reference"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="sup-log-keys" id="sup-log-keys" data-magellan-target="sup-log-keys">Supervisor Log Key</a>

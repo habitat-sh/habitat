@@ -1,6 +1,14 @@
 +++
 title = "Controlling Supervisors Remotely"
 description = "Controlling Supervisors Remotely"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="remote-control" id="remote-control" data-magellan-target="remote-control">Controlling Supervisors Remotely</a>

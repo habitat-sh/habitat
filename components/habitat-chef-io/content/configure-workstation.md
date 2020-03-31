@@ -8,6 +8,7 @@ description = "Setup the Chef Habitat CLI"
     identifier = "chef_habitat/get_started/configure-workstation.md Install Chef Habitat"
     parent = "chef_habitat/get_started"
     weight = 20
+    
 +++
 
 # <a name="configure-workstation" id="configure-workstation" data-magellan-target="configure-workstation">Configure Your Workstation</a>

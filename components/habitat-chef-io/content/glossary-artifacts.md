@@ -1,6 +1,14 @@
 +++
 title = "Artifacts"
 description = "Artifacts"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+
 +++
 
 # <a name="glossary-artifacts" id="glossary-artifacts" data-magellan-target="glossary-artifacts" type="anchor">Artifacts</a>

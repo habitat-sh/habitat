@@ -9,6 +9,7 @@ draft = false
     identifier = "chef_habitat/get_started/install-faq.md Install Frequently Asked Questions FAQ"
     parent = "get_started"
     weight = 30
+    
 +++
 
 # <a name="install-faq" id="install-faq" data-magellan-target="install-faq">Download and Install FAQ</a>

@@ -1,6 +1,14 @@
 +++
 title = "Running Chef Habitat on Servers (Linux and Windows)"
 description = "Running Chef Habitat on Servers (Linux and Windows)"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="running-habitat-servers" id="running-habitat-servers" data-magellan-target="running-habitat-servers">Running Chef Habitat on Servers (Linux and Windows)</a>

@@ -1,6 +1,14 @@
 +++
 title = "Dependency Update Flow"
 description = "Dependency Update Flow"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # Dependency Update Flow

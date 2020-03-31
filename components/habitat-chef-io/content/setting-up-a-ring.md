@@ -1,6 +1,14 @@
 +++
 title = "Setting Up a Ring"
 description = "Setting Up a Ring"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="setting-up-a-ring" id="setting-up-a-ring" data-magellan-target="setting-up-a-ring">Setting Up a Ring</a>

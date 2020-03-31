@@ -1,6 +1,14 @@
 +++
 title = "Google Kubernetes Engine (GKE)"
 description = "Google Kubernetes Engine (GKE)"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+
 +++
 
 # <a name="gke-and-habitat" id="gke-and-habitat" data-magellan-target="gke-and-habitat">Google Kubernetes Engine (GKE)</a>

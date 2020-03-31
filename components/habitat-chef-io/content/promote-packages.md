@@ -1,6 +1,14 @@
 +++
 title = "Promote Packages Through Channels"
 description = "Promote Packages Through Channels"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # Promote Packages Through Channels

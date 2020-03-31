@@ -1,6 +1,14 @@
 +++
 title = "Chef Habitat Reference Overview"
 description = "Handbook for Chef Habitat files, settings, variables, and functions"
+
+[menu]
+  [menu.habitat]
+    title = ""
+    identifier = "chef_habitat/"
+    parent = "chef_habitat/"
+    weight = 20
+    
 +++
 
 # <a name="reference" id="reference" data-magellan-target="reference">Chef Habitat Reference</a>
