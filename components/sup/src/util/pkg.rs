@@ -137,7 +137,8 @@ pub async fn uninstall_all_but_latest(ident: impl AsRef<PackageIdent>,
     if number_latest_to_keep >= idents.len() {
         return Ok(0);
     }
-    idents.reverse(); // The packages to keep now occur first in the list
+    // Reverse sort the idents so the latest occur first in the list
+    idents.sort_unstable_by(|a, b| b.by_parts_cmp(a));
     let to_uninstall = &idents[number_latest_to_keep..];
     uninstall_impl::uninstall_many(&mut NullUi::new(),
                                    to_uninstall,
