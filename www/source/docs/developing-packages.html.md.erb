@@ -66,8 +66,8 @@ All plans must have a `plan.sh` or `plan.ps1` at the root of the plan context. T
     To use `hab plan init` as part of your project repo, navigate to the root of your project repo and run `hab plan init`. It will create a new `habitat` sub-directory with a plan.sh (or plan.ps1 on Windows) based on the name of the parent directory, and include a `default.toml` file as well as `config` and `hooks` directories for you to populate as needed. For example:
 
     ```bash
-    $ cd /path/to/<reponame>
-    $ hab plan init
+    cd /path/to/<reponame>
+    hab plan init
     ```
 
     will result in a new `habitat` directory located at `/path/to/<reponame>/habitat`. A plan file will be created and the `pkg_name` variable will be set to _\<reponame\>_. Also, any environment variables that you have previously set (such as `HAB_ORIGIN`) will be used to populate the respective `pkg_*` variables.
@@ -75,7 +75,7 @@ All plans must have a `plan.sh` or `plan.ps1` at the root of the plan context. T
     If you want to auto-populate more of the `pkg_*` variables, you also have the option of setting them when calling `hab plan init`, as shown in the following example:
 
     ```bash
-    $ env pkg_svc_user=someuser pkg_deps="(core/make core/coreutils)" \
+    env pkg_svc_user=someuser pkg_deps="(core/make core/coreutils)" \
        pkg_license="('MIT' 'Apache-2.0')" pkg_bin_dirs="(bin sbin)" \
        pkg_version=1.0.0 pkg_description="foo" pkg_maintainer="you" \
        hab plan init yourplan
@@ -183,7 +183,7 @@ do_download() {
 
 The plan.ps1 equivalent would be:
 
-```PS
+```powershell
 Function Invoke-Download {
   git clone https://github.com/chef/chef
   pushd chef
@@ -250,7 +250,7 @@ In this example, the `core/httpd` plan references several other core packages th
 
 Or consider this override from a plan.ps1:
 
-```PS
+```powershell
 function Invoke-Build {
     Push-Location "$PLAN_CONTEXT"
     try {
@@ -347,7 +347,7 @@ pkg_exports=(
 
 Note that Powershell plans use hashtables where Bash plans use associative arrays. A `plan.ps1` would declare its exports as:
 
-```PS
+```powershell
 $pkg_exports=@{
   port="network.port"
   ssl-port="network.ssl.port"
@@ -426,7 +426,7 @@ Here, `bind.<BINDING_NAME>` will be "truthy" (and can thus be used in boolean ex
 Since your application server defined `database` as a required bind, you'll need to provide the name of a service group running a package which fulfills the contract using the `--bind` parameter to the Supervisor. For example, running the following:
 
 ```bash
-$ hab svc load <ORIGIN>/<NAME> --bind database:amnesia.default
+hab svc load <ORIGIN>/<NAME> --bind database:amnesia.default
 ```
 
 would create a bind aliasing `database` to the `amnesia` service in the `default` service group.
@@ -441,7 +441,7 @@ You can declare bindings to multiple service groups in your templates by using t
 Packages need to be signed with a private origin key at buildtime. Generate an origin key pair manually by running the following command on your host machine:
 
 ```bash
-$ hab origin key generate <ORIGIN>
+hab origin key generate <ORIGIN>
 ```
 
 The `hab-origin` subcommand will place the origin key files, originname-_timestamp_.sig.key (the private key) and originname-_timestamp_.pub files (the public key), in the `$HOME/.hab/cache/keys` directory. If you're creating origin keys in the Studio container, or you are running as root on a Linux machine, your keys will be stored in `/hab/cache/keys`.
@@ -454,27 +454,27 @@ The Habitat Studio is a self-contained and minimal environment, which means that
 
 1. Set `HAB_ORIGIN` to the name of the origin you intend to use before entering the Studio:
 
-  ```bash
-  export HAB_ORIGIN=originname
-  ```
+    ```bash
+    export HAB_ORIGIN=originname
+    ```
 
-  This approach overrides the `HAB_ORIGIN` environment variable and imports your public and private origin keys into the Studio environment. It also overrides any `pkg_origin` values in the packages that you build. This is useful because you can use it to build your own artifact, as well as to build your own artifacts from other packages' source code, for example, `originname/node` or `originname/glibc`.
+    This approach overrides the `HAB_ORIGIN` environment variable and imports your public and private origin keys into the Studio environment. It also overrides any `pkg_origin` values in the packages that you build. This is useful because you can use it to build your own artifact, as well as to build your own artifacts from other packages' source code, for example, `originname/node` or `originname/glibc`.
 
 1. Set `HAB_ORIGIN_KEYS` to the names of your origins. If you're using more than one origin, separate them with commas:
 
-  ```bash
-  export HAB_ORIGIN_KEYS=originname-internal,originname-test,originname
-  ```
+    ```bash
+    export HAB_ORIGIN_KEYS=originname-internal,originname-test,originname
+    ```
 
-  This imports the private origin keys, which must exactly match the origin names for the plans you intend to build.
+    This imports the private origin keys, which must exactly match the origin names for the plans you intend to build.
 
 1. Use the `-k` flag (short for “keys”) which accepts one or more key names separated by commas with:
 
-  ```bash
-  hab studio -k originname-internal,originname-test enter
-  ```
+    ```bash
+    hab studio -k originname-internal,originname-test enter
+    ```
 
-  This imports the private origin keys, which must exactly match the origin names for the plans you intend to build.
+    This imports the private origin keys, which must exactly match the origin names for the plans you intend to build.
 
 After you create or receive your private origin key, you can start up the Studio and build your artifact.
 
@@ -488,15 +488,15 @@ The directory where your plan is located is known as the plan context.
 1. Create and enter a new Chef Habitat Studio. If you have defined an origin and origin key during `hab cli setup` or by explicitly setting the `HAB_ORIGIN` and `HAB_ORIGIN_KEYS` environment variables, then type the following:
 
     ```bash
-    $ hab studio enter
+    hab studio enter
     ```
 
     The directory you were in is now mounted as `/src` inside the Studio. By default, a Supervisor runs in the background for iterative testing. You can see the streaming output by running <code>sup-log</code>. Type <code>Ctrl-C</code> to exit the streaming output and <code>sup-term</code> to terminate the background Supervisor. If you terminate the background Supervisor, then running <code>sup-run</code> will restart it along with every service that was previously loaded. You have to explicitly run <code>hab svc unload origin/package</code> to remove a package from the "loaded" list.
 
 3. Enter the following command to create the package.
 
-    ```studio
-    $ build /src/planname
+    ```bash
+    build /src/planname
     ```
 
 4. If the package builds successfully, it is placed into a `results` directory at the same level as your plan.
@@ -516,7 +516,8 @@ Depending on the platform of your host and your Docker configuration, the behavi
 Writing plans for multiple packages that are dependent on each other can prove cumbersome when using multiple studios, as you need update dependencies frequently. On the other hand, using a single studio allows you to quickly test your changes by using locally built packages. To do so, you should use a folder structure like this:
 
 ```bash
-$ tree projects
+tree projects
+
 projects/
 ├── project-a
 └── project-b
@@ -532,7 +533,7 @@ A non-interactive build is one in which Chef Habitat creates a Studio for you, b
 1. Build the artifact in an unattended fashion, passing the name of the origin key to the command.
 
     ```bash
-    $ hab pkg build yourpackage -k yourname
+    hab pkg build yourpackage -k yourname
     ```
 
     > Similar to the `hab studio enter` command above, the type of studio where the build runs is determined by your host platform and `hab pkg build` takes the same `-D` flag to force a Docker environment if desired.
@@ -562,17 +563,17 @@ To use `attach`, insert it into your plan at the point where you would like to u
 Now, perform a [build](/docs/developing-packages/#plan-builds) -- we recommend using an interactive studio so you do not need to set up the environment from scratch for every build.
 
 ```bash
-$ hab studio enter
+hab studio enter
 ```
 
 ```studio
-$ build yourapp
+build yourapp
 ```
 
 The build system will proceed until the point where the `attach` function is invoked, and then drop you into a limited shell:
 
-```studio
-### Attaching to debugging session
+```bash
+## Attaching to debugging session
 From: /src/yourapp/plan.sh @ line 15 :
 
     5: pkg_maintainer="The Chef Habitat Maintainers <humans@habitat.sh>"
@@ -623,13 +624,13 @@ Aliases
 
 While there is no `attach` function exposed in a `plan.ps1` file, one can use the native Powershell cmdlet `Set-PSBreakpoint` to access virtually the same functionality. Instead of adding `attach` to your `Invoke-Build` function, enter the following from inside your studio shell:
 
-```studio
+```powershell
 [HAB-STUDIO] Habitat:\src> Set-PSBreakpoint -Command Invoke-Build
 ```
 
 Now upon running `build` you should enter an interactive prompt inside the context of the Invoke-Build function:
 
-```studio
+```powershell
    habitat-aspnet-sample: Building
 Entering debug mode. Use h or ? for help.
 
@@ -653,9 +654,10 @@ The command to export a package is `hab pkg export <FORMAT> <PKG_IDENT>`. See th
 > **Note** If you specify an <code>origin/package</code> identifier, such as <code>core/postgresql</code>, the Chef Habitat CLI will check Builder for the latest stable version of the package and export that.
 
 > If you wish to export a package that is not on Builder, create a Chef Habitat artifact by running the `build` command, then point `hab pkg` to the `.hart` file within the `/results` directory:
-   ```bash
-   hab pkg export tar ./results/example-app.hart
-   ```
+
+```bash
+hab pkg export tar ./results/example-app.hart
+```
 
 Read on for more detailed instructions.
 
@@ -670,7 +672,7 @@ You can create a Docker container image for any package by performing the follow
 1. [Build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create a Docker container image and then run the Docker exporter on the package.
 
     ```bash
-    $ hab pkg export docker ./results/<hart-filename>.hart
+    hab pkg export docker ./results/<hart-filename>.hart
     ```
 
     > **Note** The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling <code>hab pkg export docker origin/package</code>. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
@@ -690,19 +692,19 @@ You can create a Docker container image for any package by performing the follow
 2. Install or [build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create a tarball, for example:
 
     ```bash
-    $ hab pkg install <ORIGIN>/<NAME>
+    hab pkg install <ORIGIN>/<NAME>
     ```
 
 3. Run the tar exporter on the package.
 
     ```bash
-    $ hab pkg export tar <ORIGIN>/<NAME>
+    hab pkg export tar <ORIGIN>/<NAME>
     ```
 
     If you receive an error, try running
 
     ```bash
-    $ hab pkg export tar /results/<your_package>.hart
+    hab pkg export tar /results/<your_package>.hart
     ```
 
 4. Your package is now in a tar file that exists locally on your computer in the format `<ORIGIN>-<NAME>-<VERSION>-<TIMESTAMP>.tar.gz` and can be deployed and run on a target machine.
@@ -714,22 +716,22 @@ You can create a Docker container image for any package by performing the follow
 7. Run these commands to set up the required user and group:
 
     ```bash
-    $ sudo adduser --group hab
-    $ sudo useradd -g hab hab
+    sudo adduser --group hab
+    sudo useradd -g hab hab
     ```
 
 8. Next, unpack the tar file:
 
     ```bash
-    $ sudo tar xf your-origin-package-version-timestamp.tar.gz
-    $ sudo cp -R hab /hab
+    sudo tar xf your-origin-package-version-timestamp.tar.gz
+    sudo cp -R hab /hab
     ```
 
 9. Now, start the Supervisor and load your service package using the `hab` binary, which is included in the tar archive:
 
     ```bash
-    $ sudo /hab/bin/hab sup run
-    $ sudo /hab/bin/hab svc load <ORIGIN>/<NAME>
+    sudo /hab/bin/hab sup run
+    sudo /hab/bin/hab svc load <ORIGIN>/<NAME>
     ```
 ### Exporting to Kubernetes
 
@@ -740,13 +742,13 @@ The Kubernetes exporter is an additional command line subcommand to the standard
 2. Install or [build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create an application, for example:
 
     ```bash
-    $ hab pkg install <ORIGIN>/<NAME>
+    hab pkg install <ORIGIN>/<NAME>
     ```
 
 3. Run the Kubernetes exporter on the package.
 
     ```bash
-    $ hab pkg export kubernetes ./results/<hart-filename>.hart
+    hab pkg export kubernetes ./results/<hart-filename>.hart
     ```
 
     You can run `hab pkg export kubernetes --help` to see the full list of available options and general help.
@@ -754,12 +756,12 @@ The Kubernetes exporter is an additional command line subcommand to the standard
 4. The Kubernetes exporter outputs a Kubernetes manifest yaml file. You can redirect the output to a file like this:
 
     ```bash
-    $ hab pkg export kubernetes ./results/<hart-filename>.hart -o my_app.yaml
+    hab pkg export kubernetes ./results/<hart-filename>.hart -o my_app.yaml
     ```
 5. To push the Docker image created by the Kubernetes exporter to Docker Hub or another container registry, use:
 
     ```bash
-    $ hab pkg export kubernetes --push-image --username <your_docker_hub_username> --password <your_docker_hub_password> -o my_app.yaml
+    hab pkg export kubernetes --push-image --username <your_docker_hub_username> --password <your_docker_hub_password> -o my_app.yaml
     ```
 6. Add the HAB_LICENSE environment variable to the generated manifest YAML file. For example, add the environmental variable directly to the generated manifest:
 
@@ -792,7 +794,7 @@ The Kubernetes exporter is an additional command line subcommand to the standard
 7. You can run this manifest in your Kubernetes cluster with:
 
     ```bash
-    $ kubectl create -f my_app.yaml
+    kubectl create -f my_app.yaml
     ```
 
 8. This will create a Kubernetes StatefulSet running your package. To access the pod running your package from the outside internet, you will need to add a Kubernetes service (i.e. a Kubernetes load balancer) with an external IP. Here is an example.
@@ -830,13 +832,13 @@ Additionally, the Kubernetes Chef Habitat operator is automatically added to the
 2. Install or [build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create an application, for example:
 
     ```bash
-    $ hab pkg install <ORIGIN>/<NAME>
+    hab pkg install <ORIGIN>/<NAME>
     ```
 
 3. Run the Helm exporter on the package.
 
     ```bash
-    $ hab pkg export helm <ORIGIN>/<NAME>
+    hab pkg export helm <ORIGIN>/<NAME>
     ```
 
     You can run `hab pkg export helm --help` to see the full list of available options and general help.
@@ -852,13 +854,13 @@ Additionally, the Kubernetes Chef Habitat operator is automatically added to the
 2. Install or [build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create a Marathon application, for example:
 
     ```bash
-    $ hab pkg install <ORIGIN>/<NAME>
+    hab pkg install <ORIGIN>/<NAME>
     ```
 
 3. Run the Mesos exporter on the package.
 
     ```bash
-    $ hab pkg export mesos <ORIGIN>/<NAME>
+    hab pkg export mesos <ORIGIN>/<NAME>
     ```
 
 4. This will create a Mesos container-format tarball in the results directory, and also print the JSON needed to load the application into Marathon. Note that the tarball needs to be uploaded to a download location and the "uris" in the JSON need to be updated manually. This is an example of the output:
@@ -887,9 +889,9 @@ To do so, make sure you have done the following:
 1. Log in as an Admin user.
 2. Enable Docker support on your Cloud Foundry deployment by enabling the `diego_docker` feature flag.
 
-   ```bash
-   $ cf enable-feature-flag diego_docker
-   ```
+```bash
+cf enable-feature-flag diego_docker
+```
 
 #### Creating a Mapping File
 
@@ -929,13 +931,13 @@ The helper methods are designed to extract information from the standard Cloud F
 3. Install or [build](/docs/developing-packages/#plan-builds) the package that you want to export.
 
     ```bash
-    $ hab pkg install <ORIGIN>/<NAME>
+    hab pkg install <ORIGIN>/<NAME>
     ```
 
 4. Run the Cloud Foundry exporter on the package.
 
     ```bash
-    $ hab pkg export cf <ORIGIN>/<NAME> /path/to/mapping.toml
+    hab pkg export cf <ORIGIN>/<NAME> /path/to/mapping.toml
     ```
 
    > **Note** To generate this image, a base Docker image is also created. The Cloud Foundry version of the docker image will have `cf-` as a prefix in the image tag.
@@ -945,13 +947,13 @@ The helper methods are designed to extract information from the standard Cloud F
 6. [Upload your Docker image to a supported registry](https://docs.cloudfoundry.org/devguide/deploy-apps/push-docker.html). Your Docker repository should be match the `origin/package` identifier of your package.
 
     ```bash
-    $ docker push origin/package:cf-version-release
+    docker push origin/package:cf-version-release
     ```
 
 7. After your Cloud Foundry Docker image is built, you can deploy it to a Cloud Foundry platform.
 
     ```bash
-    $cf push cf push APP-NAME --docker-image docker_org/repository
+    cf push APP-NAME --docker-image docker_org/repository
     ```
 
    Your application will start after it has been successfully uploaded and deployed.
