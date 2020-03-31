@@ -24,13 +24,14 @@ Describe "Supervisor package cleanup" {
 
     Context "start the Supervisor with package cleanup" {
         $supLog = New-TemporaryFile
+        $expected = hab pkg list core/hab-sup | Select-Object -Last 2
         Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
                 "--keep-latest-packages=2"
         ) | Out-Null
 
         It "removes old Supervisor packages" {
             Wait-CommandLinesOfOutput "hab pkg list $pkg" 2
-            hab pkg list $pkg | Select-Object -Index 0 | Should -BeLike "$pkg/1.5.60*"
+            hab pkg list $pkg | Should -Be $expected
         }
     }
 
