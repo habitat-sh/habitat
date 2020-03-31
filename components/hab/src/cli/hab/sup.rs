@@ -341,9 +341,10 @@ pub struct SupRun {
     /// Automatically cleanup old packages.
     ///
     /// If enabled, service startup will initiate an uninstall of all packages except for the
-    /// `KEEP_LATEST_PACKAGES` most recent packages. The same logic applies to the `core/hab-sup`
-    /// package on Supervisor startup.
-    #[structopt(name = "KEEP_LATEST_PACKAGES",
+    /// `NUM_LATEST_PACKAGES_TO_KEEP` most recent packages. This also applies when a service is
+    /// restarted due to an update. The same logic applies to the `core/hab-sup` package on
+    /// Supervisor startup. If this argument is not set no package cleanup is performed.
+    #[structopt(name = "NUM_LATEST_PACKAGES_TO_KEEP",
                 long = "keep-latest-packages",
                 env = "HAB_KEEP_LATEST_PACKAGES")]
     keep_latest_packages: Option<usize>,

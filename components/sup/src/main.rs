@@ -320,7 +320,7 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
         }),
         feature_flags,
         event_stream_config,
-        keep_latest_packages: m.value_of("KEEP_LATEST_PACKAGES").and_then(|s| s.parse().ok()),
+        keep_latest_packages: m.value_of("NUM_LATEST_PACKAGES_TO_KEEP").and_then(|s| s.parse().ok()),
     };
 
     Ok(cfg)

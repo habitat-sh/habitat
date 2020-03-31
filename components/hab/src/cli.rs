@@ -1279,21 +1279,29 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
 
     // clap_app macro does not allow setting short and long help seperately
     let sub =
-        sub.arg(Arg::with_name("KEEP_LATEST_PACKAGES").long("keep-latest-packages")
-                                                      .takes_value(true)
-                                                      .validator(valid_numeric::<usize>)
-                                                      .env("HAB_KEEP_LATEST_PACKAGES")
-                                                      .help("Automatically cleanup old packages")
-                                                      .long_help("Automatically cleanup old \
-                                                                  packages.\n\nIf enabled, \
-                                                                  service startup will initiate \
-                                                                  an uninstall of all packages \
-                                                                  except for the \
-                                                                  `KEEP_LATEST_PACKAGES` most \
-                                                                  recent packages. The same \
-                                                                  logic applies to the \
-                                                                  `core/hab-sup` package on \
-                                                                  Supervisor startup."));
+        sub.arg(Arg::with_name("NUM_LATEST_PACKAGES_TO_KEEP").long("keep-latest-packages")
+                                                             .takes_value(true)
+                                                             .validator(valid_numeric::<usize>)
+                                                             .env("HAB_KEEP_LATEST_PACKAGES")
+                                                             .help("Automatically cleanup old \
+                                                                    packages")
+                                                             .long_help("Automatically cleanup \
+                                                                         old packages.\n\nIf \
+                                                                         enabled, service \
+                                                                         startup will initiate \
+                                                                         an uninstall of all \
+                                                                         packages except for \
+                                                                         the `NUM_LATEST_PACKAGES_TO_KEEP` most recent \
+                                                                         packages. This also \
+                                                                         applies when a service \
+                                                                         is restarted due to an \
+                                                                         update. The same logic \
+                                                                         applies to the \
+                                                                         `core/hab-sup` package \
+                                                                         on Supervisor startup. \
+                                                                         If this argument is \
+                                                                         not set no package \
+                                                                         cleanup is performed."));
 
     // The clap_app macro does not allow "-" in possible values
     let sub = sub.arg(Arg::with_name("UPDATE_CONDITION").long("update-condition")
