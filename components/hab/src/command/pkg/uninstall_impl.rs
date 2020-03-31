@@ -82,12 +82,12 @@ pub async fn uninstall_many<U>(ui: &mut U,
         }
     }
     let uninstall_if_loaded = if even_if_loaded {
-        UninstallIfLoaded::EvenIfLoaded
+        UninstallMode::Force
     } else {
-        UninstallIfLoaded::SkipIfLoaded(&loaded_services)
+        UninstallMode::SkipIfLoaded(&loaded_services)
     };
     // Never uninstall a dependency if it is loaded
-    let dependency_uninstall_if_loaded = UninstallIfLoaded::SkipIfLoaded(&loaded_services);
+    let dependency_uninstall_if_loaded = UninstallMode::SkipIfLoaded(&loaded_services);
 
     for ident in idents {
         // 2.
@@ -225,12 +225,12 @@ async fn supervisor_services() -> Result<Vec<PackageIdent>> {
 }
 
 #[derive(Clone, Copy)]
-enum UninstallIfLoaded<'a> {
-    EvenIfLoaded,
+enum UninstallMode<'a> {
+    Force,
     SkipIfLoaded(&'a [PackageIdent]),
 }
 
-impl UninstallIfLoaded<'_> {
+impl UninstallMode<'_> {
     fn should_skip(&self, ident: &PackageIdent) -> bool {
         if let Self::SkipIfLoaded(services) = self {
             services.iter().any(|i| i.satisfies(ident))
@@ -251,7 +251,7 @@ fn maybe_delete<U>(ui: &mut U,
                    install: &PackageInstall,
                    strategy: ExecutionStrategy,
                    excludes: &[PackageIdent],
-                   uninstall_if_loaded: UninstallIfLoaded)
+                   uninstall_if_loaded: UninstallMode)
                    -> Result<bool>
     where U: UIWriter
 {
