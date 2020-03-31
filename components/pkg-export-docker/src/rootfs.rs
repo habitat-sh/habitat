@@ -1,10 +1,8 @@
-use std::{fs,
-          path::Path};
-
-use crate::hcore::util;
-
 use crate::{error::Result,
             util::write_file};
+use habitat_core::util;
+use std::{fs,
+          path::Path};
 
 /// The default password file contents.
 const ETC_PASSWD: &str = include_str!("../defaults/etc/passwd");
@@ -47,13 +45,11 @@ pub fn create<T>(root: T) -> Result<()>
 #[cfg(unix)]
 #[cfg(test)]
 mod test {
+    use super::*;
     use std::{fs::File,
               io::Read,
               os::unix::fs::MetadataExt};
-
     use tempfile::TempDir;
-
-    use super::*;
 
     fn file_content<T: AsRef<Path>>(file: T) -> String {
         let mut content = String::new();

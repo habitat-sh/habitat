@@ -1,39 +1,38 @@
-use super::{BUSYBOX_IDENT,
-            CACERTS_IDENT,
-            VERSION};
-#[cfg(windows)]
-use crate::hcore::util::docker;
 #[cfg(unix)]
 use crate::rootfs;
 use crate::{accounts::{EtcGroupEntry,
                        EtcPasswdEntry},
-            common::{self,
-                     command::package::install::{InstallHookMode,
-                                                 InstallMode,
-                                                 InstallSource,
-                                                 LocalPackageUsage},
-                     ui::{Status,
-                          UIWriter,
-                          UI},
-                     PROGRAM_NAME},
             error::{Error,
                     Result},
-            hcore::{env,
-                    fs::{cache_artifact_path,
-                         cache_key_path,
-                         CACHE_ARTIFACT_PATH,
-                         CACHE_KEY_PATH},
-                    package::{PackageArchive,
-                              PackageIdent,
-                              PackageInstall},
-                    ChannelIdent},
-            util};
+            util,
+            BUSYBOX_IDENT,
+            CACERTS_IDENT,
+            VERSION};
 use clap;
 #[cfg(unix)]
 use failure::SyncFailure;
 #[cfg(unix)]
 use hab;
 use hab::license;
+use habitat_common::{command::package::install::{InstallHookMode,
+                                                 InstallMode,
+                                                 InstallSource,
+                                                 LocalPackageUsage},
+                     ui::{Status,
+                          UIWriter,
+                          UI},
+                     PROGRAM_NAME};
+#[cfg(windows)]
+use habitat_core::util::docker;
+use habitat_core::{env,
+                   fs::{cache_artifact_path,
+                        cache_key_path,
+                        CACHE_ARTIFACT_PATH,
+                        CACHE_KEY_PATH},
+                   package::{PackageArchive,
+                             PackageIdent,
+                             PackageInstall},
+                   ChannelIdent};
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
 #[cfg(windows)]
@@ -346,7 +345,7 @@ impl<'a> BuildSpec<'a> {
                      -> Result<PackageIdent> {
         let install_source: InstallSource = ident_or_archive.parse()?;
         let package_install =
-            common::command::package::install::start(ui,
+            habitat_common::command::package::install::start(ui,
                                                      url,
                                                      channel,
                                                      &install_source,
@@ -753,9 +752,9 @@ impl PkgIdentType {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::hcore::{self,
-                       package::PackageTarget};
     use clap::ArgMatches;
+    use habitat_core::{fs,
+                       package::PackageTarget};
 
     /// Generate Clap ArgMatches for the exporter from a vector of arguments.
     fn arg_matches<'a>(args: &[&str]) -> ArgMatches<'a> {
@@ -825,7 +824,7 @@ mod test {
             if ident.release.is_none() {
                 ident.release = Some("21120102121200".into());
             }
-            let prefix = hcore::fs::pkg_install_path(&ident, Some(self.rootfs.as_path()));
+            let prefix = fs::pkg_install_path(&ident, Some(self.rootfs.as_path()));
             util::write_file(prefix.join("IDENT"), &ident.to_string()).unwrap();
             util::write_file(prefix.join("TARGET"), &PackageTarget::active_target()).unwrap();
 
@@ -833,14 +832,10 @@ mod test {
             util::write_file(prefix.join("SVC_GROUP"), &self.svc_group).unwrap();
 
             if !self.bins.is_empty() {
-                util::write_file(
-                    prefix.join("PATH"),
-                    hcore::fs::pkg_install_path(&ident, None::<&Path>)
-                        .join("bin")
-                        .to_string_lossy()
-                        .as_ref(),
-                )
-                .unwrap();
+                util::write_file(prefix.join("PATH"),
+                                 fs::pkg_install_path(&ident, None::<&Path>).join("bin")
+                                                                            .to_string_lossy()
+                                                                            .as_ref()).unwrap();
                 for bin in self.bins.iter() {
                     util::write_file(prefix.join("bin").join(bin), "").unwrap();
                 }
@@ -853,9 +848,8 @@ mod test {
     }
 
     mod build_spec {
-        use super::{super::*,
-                    *};
-        use crate::common::ui::UI;
+        use super::*;
+        use habitat_common::ui::UI;
         use tempfile::TempDir;
 
         #[test]
@@ -890,17 +884,17 @@ mod test {
             build_spec().link_binaries(&mut ui, rootfs.path(), &base_pkgs)
                         .unwrap();
 
-            assert_eq!(hcore::fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap(),
+            assert_eq!(fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap(),
                                                    None::<&Path>).join("bin/busybox"),
                        rootfs.path().join("bin/busybox").read_link().unwrap(),
                        "busybox program is symlinked into /bin");
             assert_eq!(
-                hcore::fs::pkg_install_path(&base_pkgs.busybox.unwrap(), None::<&Path>)
+                fs::pkg_install_path(&base_pkgs.busybox.unwrap(), None::<&Path>)
                     .join("bin/sh"),
                 rootfs.path().join("bin/sh").read_link().unwrap(),
                 "busybox's sh program is symlinked into /bin"
             );
-            assert_eq!(hcore::fs::pkg_install_path(&base_pkgs.hab, None::<&Path>).join("bin/hab"),
+            assert_eq!(fs::pkg_install_path(&base_pkgs.hab, None::<&Path>).join("bin/hab"),
                        rootfs.path().join("bin/hab").read_link().unwrap(),
                        "hab program is symlinked into /bin");
         }
@@ -914,7 +908,7 @@ mod test {
             build_spec().link_cacerts(&mut ui, rootfs.path(), &base_pkgs)
                         .unwrap();
 
-            assert_eq!(hcore::fs::pkg_install_path(&base_pkgs.cacerts, None::<&Path>).join("ssl"),
+            assert_eq!(fs::pkg_install_path(&base_pkgs.cacerts, None::<&Path>).join("ssl"),
                        rootfs.path().join("etc/ssl").read_link().unwrap(),
                        "cacerts are symlinked into /etc/ssl");
         }
@@ -957,17 +951,16 @@ mod test {
         fn fake_cacerts_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
             let ident = FakePkg::new("acme/cacerts", rootfs.as_ref()).install();
 
-            let prefix = hcore::fs::pkg_install_path(&ident, Some(rootfs));
+            let prefix = fs::pkg_install_path(&ident, Some(rootfs));
             util::write_file(prefix.join("ssl/cacert.pem"), "").unwrap();
             ident
         }
     }
 
     mod build_root_context {
-        use super::{super::*,
-                    *};
-        use crate::{common::PROGRAM_NAME,
-                    hcore::package::PackageIdent};
+        use super::*;
+        use habitat_common::PROGRAM_NAME;
+        use habitat_core::package::PackageIdent;
         use std::str::FromStr;
 
         #[test]

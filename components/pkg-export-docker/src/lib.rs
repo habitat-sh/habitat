@@ -1,36 +1,12 @@
 #[macro_use]
 extern crate clap;
-use habitat_common as common;
-use habitat_core as hcore;
-
+#[macro_use]
+extern crate failure_derive;
 #[macro_use]
 extern crate log;
-
-use rusoto_credential as aws_creds;
-
 #[macro_use]
 extern crate serde_json;
 
-use failure;
-#[macro_use]
-extern crate failure_derive;
-
-mod accounts;
-mod build;
-#[cfg(unix)]
-mod chmod;
-pub mod cli;
-mod docker;
-mod error;
-#[cfg(unix)]
-pub mod rootfs;
-mod util;
-
-use crate::{aws_creds::StaticProvider,
-            common::{ui::{UIWriter,
-                          UI},
-                     PROGRAM_NAME},
-            hcore::url as hurl};
 pub use crate::{build::BuildSpec,
                 cli::{Cli,
                       PkgIdentArgOptions},
@@ -39,8 +15,13 @@ pub use crate::{build::BuildSpec,
                 error::{Error,
                         Result}};
 use clap::App;
-use rusoto_core::{request::*,
+use habitat_common::{ui::{UIWriter,
+                          UI},
+                     PROGRAM_NAME};
+use habitat_core::url::default_bldr_url;
+use rusoto_core::{request::HttpClient,
                   Region};
+use rusoto_credential::StaticProvider;
 use rusoto_ecr::{Ecr,
                  EcrClient,
                  GetAuthorizationTokenRequest};
@@ -48,6 +29,17 @@ use std::{env,
           fmt,
           result,
           str::FromStr};
+
+mod accounts;
+mod build;
+#[cfg(unix)]
+mod chmod;
+mod cli;
+mod docker;
+mod error;
+#[cfg(unix)]
+mod rootfs;
+mod util;
 
 /// The version of this library and program when built.
 pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
@@ -215,7 +207,7 @@ pub async fn export<'a>(ui: &'a mut UI,
 pub async fn export_for_cli_matches(ui: &mut UI,
                                     matches: &clap::ArgMatches<'_>)
                                     -> Result<Option<DockerImage>> {
-    let default_url = hurl::default_bldr_url();
+    let default_url = default_bldr_url();
     let spec = BuildSpec::new_from_cli_matches(&matches, &default_url)?;
     let naming = Naming::new_from_cli_matches(&matches);
 

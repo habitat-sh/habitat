@@ -1,13 +1,11 @@
+use crate::RegistryType;
+use clap::{App,
+           Arg};
+use habitat_core::package::PackageIdent;
 use std::{path::Path,
           result,
           str::FromStr};
-
-use crate::hcore::package::PackageIdent;
-use clap::{App,
-           Arg};
 use url::Url;
-
-use crate::RegistryType;
 
 /// The version of this library and program when built.
 pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));

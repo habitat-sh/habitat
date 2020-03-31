@@ -1,15 +1,15 @@
-use super::{Credentials,
-            Naming};
 use crate::{build::BuildRoot,
-            common::ui::{Status,
-                         UIWriter,
-                         UI},
             error::{Error,
                     Result},
-            hcore::{package::PackageIdent,
-                    util::docker},
-            util};
+            util,
+            Credentials,
+            Naming};
 use failure::SyncFailure;
+use habitat_common::ui::{Status,
+                         UIWriter,
+                         UI};
+use habitat_core::{package::PackageIdent,
+                   util::docker};
 use handlebars::Handlebars;
 use serde_json;
 use std::{fs,
@@ -379,7 +379,7 @@ impl DockerBuildRoot {
 
     #[cfg(unix)]
     fn create_entrypoint(&self, ui: &mut UI) -> Result<()> {
-        use crate::hcore::util::posix_perm;
+        use habitat_core::util::posix_perm;
 
         /// The entrypoint script template.
         const INIT_SH: &str = include_str!("../defaults/init.sh.hbs");
@@ -445,6 +445,7 @@ impl DockerBuildRoot {
         });
         let image_name = match naming.custom_image_name {
                              Some(ref custom) => {
+                                 // TODO (CM): why is this handlebars???
                                  Handlebars::new().template_render(custom, &json)
                                                   .map_err(SyncFailure::new)?
                              }
