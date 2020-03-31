@@ -543,6 +543,16 @@ mod tests {
                                   Some("1.0.0".to_string()),
                                   Some("20150521131555".to_string()));
         assert_eq!(a, b);
+
+        let a = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
+                                  Some("1.0.0".to_string()),
+                                  Some("20150521131555".to_string()));
+        let b = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
+                                  Some("1.0.0".to_string()),
+                                  None);
+        assert_ne!(a, b);
     }
 
     #[test]

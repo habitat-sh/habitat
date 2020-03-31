@@ -142,6 +142,9 @@ lazy_static! {
     static ref CPU_TIME: IntGauge = register_int_gauge!("hab_sup_cpu_time_nanoseconds",
                                                         "CPU time of the supervisor process in \
                                                          nanoseconds").unwrap();
+    /// Depending on the value of `VERSION` this ident may or may not be fully qualified.
+    static ref VERSIONED_IDENT: PackageIdent =
+        PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -615,12 +618,11 @@ impl Manager {
                       sys_ip: IpAddr)
                       -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
-        let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
-        outputln!("{} ({})", SUP_PKG_IDENT, current);
+        outputln!("{} ({})", SUP_PKG_IDENT, *VERSIONED_IDENT);
         let cfg_static = cfg.clone();
         let self_updater = if cfg.auto_update {
-            if current.fully_qualified() {
-                Some(SelfUpdater::new(current, cfg.update_url, cfg.update_channel))
+            if VERSIONED_IDENT.fully_qualified() {
+                Some(SelfUpdater::new(&*VERSIONED_IDENT, cfg.update_url, cfg.update_channel))
             } else {
                 warn!("Supervisor version not fully qualified, unable to start self-updater");
                 None
@@ -961,16 +963,11 @@ impl Manager {
                                       self.feature_flags,
                                       pair.clone());
 
-            let fully_qualified_ident =
-                PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
+            // Only cleanup supervisor packages if we are running the latest installed version. It
+            // is possible to have no versions installed if a development build is being run.
             let ident = SUP_PKG_IDENT.parse().unwrap();
-            // Check if we are running the most recent version of the Supervisor. If we are, cleanup
-            // the Supervisor packages. If we are not, it does not make sense to cleanup because we
-            // might uninstall the package that is running.
-            if let Some(package_install) = pkg::installed(&ident) {
-                if fully_qualified_ident.fully_qualified()
-                   && fully_qualified_ident == package_install.ident
-                {
+            if let Some(latest) = pkg::installed(&ident) {
+                if *VERSIONED_IDENT == latest.ident {
                     self.cleanup_packages(&ident).await;
                 }
             }
