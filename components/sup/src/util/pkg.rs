@@ -3,7 +3,6 @@ use crate::{error::{Error,
             PRODUCT,
             VERSION};
 use hab::{command::pkg::{self,
-                         list,
                          uninstall_impl},
           error::Result as HabResult};
 use habitat_api_client::BuilderAPIClient;
@@ -126,28 +125,17 @@ pub async fn install_channel_head(url: &str,
     install_no_ui(url, &channel_latest_ident.into(), channel).await
 }
 
-/// Uninstall all but the `number_latest_to_keep` packages.
-///
-/// Returns the number of packages that were uninstalled
 pub async fn uninstall_all_but_latest(ident: impl AsRef<PackageIdent>,
                                       number_latest_to_keep: usize)
                                       -> HabResult<usize> {
-    let ident = ident.as_ref().clone();
-    let mut idents = list::package_list(&ident.into())?;
-    if number_latest_to_keep >= idents.len() {
-        return Ok(0);
-    }
-    // Reverse sort the idents so the latest occur first in the list
-    idents.sort_unstable_by(|a, b| b.by_parts_cmp(a));
-    let to_uninstall = &idents[number_latest_to_keep..];
-    uninstall_impl::uninstall_many(&mut NullUi::new(),
-                                   to_uninstall,
-                                   &*FS_ROOT,
-                                   pkg::ExecutionStrategy::Run,
-                                   pkg::Scope::PackageAndDependencies,
-                                   &[],
-                                   false).await?;
-    Ok(to_uninstall.len())
+    uninstall_impl::uninstall_all_but_latest(&mut NullUi::new(),
+                                             ident,
+                                             number_latest_to_keep,
+                                             &*FS_ROOT,
+                                             pkg::ExecutionStrategy::Run,
+                                             pkg::Scope::PackageAndDependencies,
+                                             &[],
+                                             false).await
 }
 
 /// Uninstall multiple packages.

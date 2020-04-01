@@ -1,6 +1,7 @@
 use super::{ExecutionStrategy,
             Scope};
-use crate::{config,
+use crate::{command::pkg::list,
+            config,
             error::{Error,
                     Result}};
 use futures::stream::StreamExt;
@@ -39,6 +40,39 @@ pub async fn uninstall<U>(ui: &mut U,
                    scope,
                    excludes,
                    even_if_loaded).await
+}
+
+/// Uninstall all but the `number_latest_to_keep` packages.
+///
+/// Returns the number of packages that were uninstalled
+#[allow(clippy::too_many_arguments)]
+pub async fn uninstall_all_but_latest<U>(ui: &mut U,
+                                         ident: impl AsRef<PackageIdent>,
+                                         number_latest_to_keep: usize,
+                                         fs_root_path: &Path,
+                                         execution_strategy: ExecutionStrategy,
+                                         scope: Scope,
+                                         excludes: &[PackageIdent],
+                                         even_if_loaded: bool)
+                                         -> Result<usize>
+    where U: UIWriter
+{
+    let ident = ident.as_ref().clone();
+    let mut idents = list::package_list(&ident.into())?;
+    if number_latest_to_keep >= idents.len() {
+        return Ok(0);
+    }
+    // Reverse sort the idents so the latest occur first in the list
+    idents.sort_unstable_by(|a, b| b.by_parts_cmp(a));
+    let to_uninstall = &idents[number_latest_to_keep..];
+    uninstall_many(ui,
+                   to_uninstall,
+                   fs_root_path,
+                   execution_strategy,
+                   scope,
+                   excludes,
+                   even_if_loaded).await?;
+    Ok(to_uninstall.len())
 }
 
 /// Delete packages and all dependencies which are not used by the packages.
