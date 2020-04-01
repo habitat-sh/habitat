@@ -635,6 +635,16 @@ steps:
             - HAB_UPDATE_STRATEGY_FREQUENCY_MS=3000
             - HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK=1
 
+  - label: "[:linux: test_self_keep_latest_packages]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_self_keep_latest_packages
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
   - wait
 
   - label: "[:habicat: Promote to Acceptance]"

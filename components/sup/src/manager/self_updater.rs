@@ -34,10 +34,10 @@ pub struct SelfUpdater {
 // how things are currently structured (The service updater had a worker)
 
 impl SelfUpdater {
-    pub fn new(current: PackageIdent, update_url: String, update_channel: ChannelIdent) -> Self {
+    pub fn new(current: &PackageIdent, update_url: String, update_channel: ChannelIdent) -> Self {
         let rx = Self::init(current.clone(), update_url.clone(), update_channel.clone());
         SelfUpdater { rx,
-                      current,
+                      current: current.clone(),
                       update_url,
                       update_channel }
     }

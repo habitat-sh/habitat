@@ -22,14 +22,33 @@ use std::{fs,
           path::Path,
           str::FromStr};
 
-/// Delete a package and all dependencies which are not used by other packages.
+pub async fn uninstall<U>(ui: &mut U,
+                          ident: impl AsRef<PackageIdent>,
+                          fs_root_path: &Path,
+                          execution_strategy: ExecutionStrategy,
+                          scope: Scope,
+                          excludes: &[PackageIdent],
+                          even_if_loaded: bool)
+                          -> Result<()>
+    where U: UIWriter
+{
+    uninstall_many(ui,
+                   &[ident],
+                   fs_root_path,
+                   execution_strategy,
+                   scope,
+                   excludes,
+                   even_if_loaded).await
+}
+
+/// Delete packages and all dependencies which are not used by the packages.
 /// We do an ordered traverse of the dependencies, updating the graph as we delete a
 /// package. This lets us use simple logic where we continually check if the package
 /// we're trying to delete currently has no packages depending on it.
 ///
 /// The full logic is:
-/// 1. We find the fully qualified package ident and all its dependencies
-/// 2. We find all packages on the filesystem and convert them into a graph
+/// 1. We find all packages on the filesystem and convert them into a graph
+/// 2. We find the fully qualified package ident and all its dependencies
 /// 3. We do a BFS on the graph to get the dependencies in order
 /// 4. We check if the specified package has any reverse deps
 ///     4a. If there are, we throw an error
@@ -39,120 +58,126 @@ use std::{fs,
 ///     5b. If there are not, we delete it from disk and the graph
 ///
 /// `excludes` is a list of user-supplied `PackageIdent`s.
-/// `even_if_running` is a flag indictating that the package should be uninstalled even if it is
-/// running.
-pub async fn uninstall<U>(ui: &mut U,
-                          ident: &PackageIdent,
-                          fs_root_path: &Path,
-                          execution_strategy: ExecutionStrategy,
-                          scope: Scope,
-                          excludes: &[PackageIdent],
-                          even_if_running: bool)
-                          -> Result<()>
+/// `even_if_loaded` indictates that the package should be uninstalled even if it is loaded by the
+/// supervisor. This only applies to packages specified in `idents`. It does not apply to their
+/// dependencies.
+pub async fn uninstall_many<U>(ui: &mut U,
+                               idents: &[impl AsRef<PackageIdent>],
+                               fs_root_path: &Path,
+                               execution_strategy: ExecutionStrategy,
+                               scope: Scope,
+                               excludes: &[PackageIdent],
+                               even_if_loaded: bool)
+                               -> Result<()>
     where U: UIWriter
 {
     // 1.
-    let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
-    let ident = pkg_install.ident();
-    ui.begin(format!("Uninstalling {}", &ident))?;
-
-    let services = if even_if_running {
-        // If we want to uninstall the package even if it is running, dont look up the services that
-        // are running just use an empty vector.
-        Vec::new()
-    } else {
-        supervisor_services().await?
-    };
-    if !services.is_empty() {
-        ui.status(Status::Determining,
-                  "list of running services in supervisor")?;
-        for s in services.iter() {
-            ui.status(Status::Found, format!("running service {}", s))?;
-        }
-    }
-
-    // 2.
     let mut graph = PackageGraph::from_root_path(fs_root_path)?;
 
-    // 3.
-    let deps = graph.owned_ordered_deps(&ident);
-
-    // 4.
-    match graph.count_rdeps(&ident) {
-        None => {
-            // package not in graph - this shouldn't happen but could be a race condition in Step 2
-            // with another hab uninstall. We can continue as what we wanted (package to
-            // be removed) has already happened. We're going to continue and try and delete down
-            // through the dependency tree anyway
-            ui.warn(format!("Tried to find dependant packages of {} but it wasn't in graph.  \
-                             Maybe another uninstall command was run at the same time?",
-                            &ident))?;
-        }
-        Some(0) => {
-            maybe_delete(ui,
-                         &fs_root_path,
-                         &pkg_install,
-                         execution_strategy,
-                         &excludes,
-                         &services)?;
-            graph.remove(&ident);
-        }
-        Some(c) => {
-            return Err(Error::CannotRemovePackage(ident.clone(), c));
+    let loaded_services = supervisor_services().await?;
+    if !loaded_services.is_empty() {
+        ui.status(Status::Determining, "list of loaded services in supervisor")?;
+        for s in loaded_services.iter() {
+            ui.status(Status::Found, format!("loaded service {}", s))?;
         }
     }
+    let uninstall_if_loaded = if even_if_loaded {
+        UninstallMode::Force
+    } else {
+        UninstallMode::SkipIfLoaded(&loaded_services)
+    };
+    // Never uninstall a dependency if it is loaded
+    let dependency_uninstall_if_loaded = UninstallMode::SkipIfLoaded(&loaded_services);
 
-    // 5.
-    let mut count = 0;
-    match scope {
-        Scope::Package => {
-            ui.status(Status::Skipping, "dependencies (--no-deps specified)")?;
+    for ident in idents {
+        // 2.
+        let ident = ident.as_ref();
+        let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
+        let ident = pkg_install.ident();
+        ui.begin(format!("Uninstalling {}", &ident))?;
+
+        // 3.
+        let deps = graph.owned_ordered_deps(&ident);
+
+        // 4.
+        match graph.count_rdeps(&ident) {
+            None => {
+                // package not in graph - this shouldn't happen but could be a race condition in
+                // Step 2 with another hab uninstall. We can continue as what we
+                // wanted (package to be removed) has already happened. We're going
+                // to continue and try and delete down through the dependency tree
+                // anyway
+                ui.warn(format!("Tried to find dependant packages of {} but it wasn't in \
+                                 graph.  Maybe another uninstall command was run at the same \
+                                 time?",
+                                &ident))?;
+            }
+            Some(0) => {
+                maybe_delete(ui,
+                             &fs_root_path,
+                             &pkg_install,
+                             execution_strategy,
+                             &excludes,
+                             uninstall_if_loaded)?;
+                graph.remove(&ident);
+            }
+            Some(c) => {
+                return Err(Error::CannotRemovePackage(ident.clone(), c));
+            }
         }
-        Scope::PackageAndDependencies => {
-            for p in &deps {
-                match graph.count_rdeps(&p) {
-                    None => {
-                        // package not in graph - this shouldn't happen but could be a race
-                        // condition in Step 2 with another hab uninstall. We can
-                        // continue as what we wanted (package to be removed) has already happened.
-                        // We're going to continue and try and delete down through the
-                        // dependency tree anyway
-                        ui.warn(format!("Tried to find dependant packages of {} but it wasn't \
-                                         in graph.  Maybe another uninstall command was run at \
-                                         the same time?",
-                                        &p))?;
-                    }
-                    Some(0) => {
-                        let install = PackageInstall::load(&p, Some(fs_root_path))?;
-                        maybe_delete(ui,
-                                     &fs_root_path,
-                                     &install,
-                                     execution_strategy,
-                                     &excludes,
-                                     &services)?;
 
-                        graph.remove(&p);
-                        count += 1;
-                    }
-                    Some(c) => {
-                        ui.status(Status::Skipping,
-                                  format!("{}. It is a dependency of {} packages", &p, c))?;
+        // 5.
+        let mut count = 0;
+        match scope {
+            Scope::Package => {
+                ui.status(Status::Skipping, "dependencies (--no-deps specified)")?;
+            }
+            Scope::PackageAndDependencies => {
+                for p in &deps {
+                    match graph.count_rdeps(&p) {
+                        None => {
+                            // package not in graph - this shouldn't happen but could be a race
+                            // condition in Step 2 with another hab uninstall. We can
+                            // continue as what we wanted (package to be removed) has already
+                            // happened. We're going to continue and try
+                            // and delete down through the dependency
+                            // tree anyway
+                            ui.warn(format!("Tried to find dependant packages of {} but it \
+                                             wasn't in graph.  Maybe another uninstall command \
+                                             was run at the same time?",
+                                            &p))?;
+                        }
+                        Some(0) => {
+                            let install = PackageInstall::load(&p, Some(fs_root_path))?;
+                            maybe_delete(ui,
+                                         &fs_root_path,
+                                         &install,
+                                         execution_strategy,
+                                         &excludes,
+                                         dependency_uninstall_if_loaded)?;
+
+                            graph.remove(&p);
+                            count += 1;
+                        }
+                        Some(c) => {
+                            ui.status(Status::Skipping,
+                                      format!("{}. It is a dependency of {} packages", &p, c))?;
+                        }
                     }
                 }
             }
         }
+        match execution_strategy {
+            ExecutionStrategy::DryRun => {
+                ui.end(format!("Would uninstall {} and {} dependencies (Dry run)",
+                               &ident, count))?;
+            }
+            ExecutionStrategy::Run => {
+                ui.end(format!("Uninstall of {} and {} dependencies complete",
+                               &ident, count))?;
+            }
+        };
     }
-
-    match execution_strategy {
-        ExecutionStrategy::DryRun => {
-            ui.end(format!("Would uninstall {} and {} dependencies (Dry run)",
-                           &ident, count))?;
-        }
-        ExecutionStrategy::Run => {
-            ui.end(format!("Uninstall of {} and {} dependencies complete",
-                           &ident, count))?;
-        }
-    };
     Ok(())
 }
 
@@ -199,6 +224,22 @@ async fn supervisor_services() -> Result<Vec<PackageIdent>> {
     Ok(out)
 }
 
+#[derive(Clone, Copy)]
+enum UninstallMode<'a> {
+    Force,
+    SkipIfLoaded(&'a [PackageIdent]),
+}
+
+impl UninstallMode<'_> {
+    fn should_skip(&self, ident: &PackageIdent) -> bool {
+        if let Self::SkipIfLoaded(services) = self {
+            services.iter().any(|i| i.satisfies(ident))
+        } else {
+            false
+        }
+    }
+}
+
 /// Delete a package from disk, depending upon the ExecutionStrategy supplied
 ///
 /// Returns:
@@ -210,7 +251,7 @@ fn maybe_delete<U>(ui: &mut U,
                    install: &PackageInstall,
                    strategy: ExecutionStrategy,
                    excludes: &[PackageIdent],
-                   services: &[PackageIdent])
+                   uninstall_if_loaded: UninstallMode)
                    -> Result<bool>
     where U: UIWriter
 {
@@ -224,10 +265,9 @@ fn maybe_delete<U>(ui: &mut U,
         return Ok(false);
     }
 
-    let is_running = services.iter().any(|i| i.satisfies(ident));
-    if is_running {
+    if uninstall_if_loaded.should_skip(ident) {
         ui.status(Status::Skipping,
-                  format!("{}. It is currently running in the supervisor", &ident))?;
+                  format!("{}. It is currently loaded by the supervisor", &ident))?;
         return Ok(false);
     }
 

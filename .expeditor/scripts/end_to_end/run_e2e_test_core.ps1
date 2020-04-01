@@ -202,6 +202,12 @@ function Wait-Release($Ident, $Remote, $Timeout = ($DefaultServiceTimeout)) {
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
 }
 
+function Wait-CommandLinesOfOutput($Cmd, $Lines, $Timeout = 20) {
+    $testScript =  { (Invoke-Expression $Cmd | Measure-Object -Line).Lines -eq $Lines }
+    $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for $Cmd to output exactly $Lines lines" }
+    Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
+}
+
 function Get-Leader($Remote, $ServiceGroup) {
     $json = (Invoke-WebRequest "http://$Remote.habitat.dev:9631/census" | ConvertFrom-Json)
     $id = $json.census_groups.$ServiceGroup.leader_id

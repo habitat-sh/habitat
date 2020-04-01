@@ -2,11 +2,9 @@ use crate::{error::Result,
             hcore::{fs as hfs,
                     package::{list,
                               PackageIdent}}};
-
-use std::{path::Path,
-          str::FromStr};
-
 use clap::ArgMatches;
+use habitat_common::cli::FS_ROOT;
+use std::str::FromStr;
 
 /// There are three options for what we can list:
 ///   - All packages (no prefix supplied)
@@ -44,8 +42,12 @@ impl<'a> From<&'a ArgMatches<'a>> for ListingType {
     }
 }
 
-pub fn start(listing: &ListingType, fs_root_path: &Path) -> Result<()> {
-    let package_path = hfs::pkg_root_path(Some(&fs_root_path));
+impl From<PackageIdent> for ListingType {
+    fn from(ident: PackageIdent) -> Self { ListingType::Ident(ident) }
+}
+
+pub fn package_list(listing: &ListingType) -> Result<Vec<PackageIdent>> {
+    let package_path = hfs::pkg_root_path(Some(&*FS_ROOT));
 
     let mut packages = match listing {
         ListingType::AllPackages => list::all_packages(&package_path)?,
@@ -54,6 +56,11 @@ pub fn start(listing: &ListingType, fs_root_path: &Path) -> Result<()> {
     };
 
     packages.sort_unstable_by(|a, b| a.by_parts_cmp(b));
+    Ok(packages)
+}
+
+pub fn start(listing: &ListingType) -> Result<()> {
+    let packages = package_list(listing)?;
     for p in &packages {
         println!("{}", &p);
     }

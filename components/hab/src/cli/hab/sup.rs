@@ -338,6 +338,15 @@ pub struct SupRun {
     /// process (default: set in plan)
     #[structopt(name = "SHUTDOWN_TIMEOUT", long = "shutdown-timeout")]
     shutdown_timeout: Option<ShutdownTimeout>,
+    /// Automatically cleanup old packages.
+    ///
+    /// The Supervisor will automatically cleanup old packages only keeping the
+    /// `NUM_LATEST_PACKAGES_TO_KEEP` latest packages. If this argument is not specified, no
+    /// automatic package cleanup is performed.
+    #[structopt(name = "NUM_LATEST_PACKAGES_TO_KEEP",
+                long = "keep-latest-packages",
+                env = "HAB_KEEP_LATEST_PACKAGES")]
+    keep_latest_packages: Option<usize>,
 }
 
 #[derive(StructOpt)]

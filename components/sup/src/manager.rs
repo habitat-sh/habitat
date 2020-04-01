@@ -142,6 +142,16 @@ lazy_static! {
     static ref CPU_TIME: IntGauge = register_int_gauge!("hab_sup_cpu_time_nanoseconds",
                                                         "CPU time of the supervisor process in \
                                                          nanoseconds").unwrap();
+
+
+    // The `<origin>/<name>` version of the Supervisor's package ident
+    static ref THIS_SUPERVISOR_FUZZY_IDENT: PackageIdent = SUP_PKG_IDENT.parse().unwrap();
+
+    /// Depending on the value of `VERSION` this ident may or may not be fully qualified. `VERSION`
+    /// produces a fully qualified ident when built with Habitat. If it is built directly from
+    /// `cargo build` no release information will be set.
+    static ref THIS_SUPERVISOR_IDENT: PackageIdent =
+        PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -253,23 +263,27 @@ impl FsCfg {
 
 #[derive(Clone, Debug)]
 pub struct ManagerConfig {
-    pub auto_update:         bool,
-    pub custom_state_path:   Option<PathBuf>,
-    pub cache_key_path:      PathBuf,
-    pub update_url:          String,
-    pub update_channel:      ChannelIdent,
-    pub gossip_listen:       GossipListenAddr,
-    pub ctl_listen:          ListenCtlAddr,
-    pub http_listen:         HttpListenAddr,
-    pub http_disable:        bool,
-    pub gossip_peers:        Vec<SocketAddr>,
-    pub gossip_permanent:    bool,
-    pub ring_key:            Option<SymKey>,
-    pub organization:        Option<String>,
-    pub watch_peer_file:     Option<String>,
-    pub tls_config:          Option<TLSConfig>,
-    pub feature_flags:       FeatureFlag,
-    pub event_stream_config: Option<EventStreamConfig>,
+    pub auto_update:          bool,
+    pub custom_state_path:    Option<PathBuf>,
+    pub cache_key_path:       PathBuf,
+    pub update_url:           String,
+    pub update_channel:       ChannelIdent,
+    pub gossip_listen:        GossipListenAddr,
+    pub ctl_listen:           ListenCtlAddr,
+    pub http_listen:          HttpListenAddr,
+    pub http_disable:         bool,
+    pub gossip_peers:         Vec<SocketAddr>,
+    pub gossip_permanent:     bool,
+    pub ring_key:             Option<SymKey>,
+    pub organization:         Option<String>,
+    pub watch_peer_file:      Option<String>,
+    pub tls_config:           Option<TLSConfig>,
+    pub feature_flags:        FeatureFlag,
+    pub event_stream_config:  Option<EventStreamConfig>,
+    /// If this field is `Some`, keep the indicated number of latest packages and uninstall all
+    /// others during service start. If this field is `None`, automatic package cleanup is
+    /// disabled.
+    pub keep_latest_packages: Option<usize>,
 }
 
 #[derive(Clone, Debug)]
@@ -614,12 +628,11 @@ impl Manager {
                       sys_ip: IpAddr)
                       -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
-        let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
-        outputln!("{} ({})", SUP_PKG_IDENT, current);
+        outputln!("{} ({})", SUP_PKG_IDENT, *THIS_SUPERVISOR_IDENT);
         let cfg_static = cfg.clone();
         let self_updater = if cfg.auto_update {
-            if current.fully_qualified() {
-                Some(SelfUpdater::new(current, cfg.update_url, cfg.update_channel))
+            if THIS_SUPERVISOR_IDENT.fully_qualified() {
+                Some(SelfUpdater::new(&*THIS_SUPERVISOR_IDENT, cfg.update_url, cfg.update_channel))
             } else {
                 warn!("Supervisor version not fully qualified, unable to start self-updater");
                 None
@@ -777,6 +790,21 @@ impl Manager {
         Ok(())
     }
 
+    async fn maybe_uninstall_old_packages(&self, ident: &PackageIdent) {
+        if let Some(number_latest_to_keep) = self.state.cfg.keep_latest_packages {
+            match pkg::uninstall_all_but_latest(ident, number_latest_to_keep).await {
+                Ok(uninstalled) => {
+                    info!("Uninstalled '{}' '{}' packages keeping the '{}' latest",
+                          uninstalled, ident, number_latest_to_keep)
+                }
+                Err(e) => {
+                    error!("Failed to uninstall '{}' packages keeping the '{}' latest, err: {}",
+                           ident, number_latest_to_keep, e)
+                }
+            }
+        }
+    }
+
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
@@ -840,6 +868,8 @@ impl Manager {
                       e);
             return;
         }
+
+        self.maybe_uninstall_old_packages(&ident).await;
 
         self.service_updater.lock().add(&service);
 
@@ -942,6 +972,15 @@ impl Manager {
                                       http_gateway::GatewayAuthenticationToken::configured_value(),
                                       self.feature_flags,
                                       pair.clone());
+
+            // Only cleanup supervisor packages if we are running the latest installed version. It
+            // is possible to have no versions installed if a development build is being run.
+            if let Some(latest) = pkg::installed(&*THIS_SUPERVISOR_FUZZY_IDENT) {
+                if *THIS_SUPERVISOR_IDENT == latest.ident {
+                    self.maybe_uninstall_old_packages(&*THIS_SUPERVISOR_FUZZY_IDENT)
+                        .await;
+                }
+            }
 
             let &(ref lock, ref cvar) = &*pair;
             let mut started = lock.lock().expect("Control mutex is poisoned");
@@ -1421,8 +1460,10 @@ impl Manager {
             event::service_stopped(&service);
             user_config_watcher.remove(&service);
             service_updater.lock().remove(&service.service_group);
+            // At this point the service process is stopped but the package is still loaded by the
+            // Supervisor.
             if let Some(latest_desired_ident) = latest_desired_on_restart {
-                Self::remove_newer_packages(&service.spec_ident, &latest_desired_ident).await;
+                Self::uninstall_newer_packages(&service.spec_ident, &latest_desired_ident).await;
             }
         };
         Self::wrap_async_service_operation(ident,
@@ -1431,18 +1472,18 @@ impl Manager {
                                            stop_it)
     }
 
-    /// Remove packages that are newer than the specified ident.
+    /// Uninstall packages that are newer than the specified ident.
     ///
     /// This can be used to guarantee that when a service restarts it starts with the desired
     /// package.
-    async fn remove_newer_packages(install_ident: &PackageIdent,
-                                   latest_desired_ident: &PackageIdent) {
+    async fn uninstall_newer_packages(install_ident: &PackageIdent,
+                                      latest_desired_ident: &PackageIdent) {
         while let Some(latest_installed) = pkg::installed(install_ident) {
             let latest_ident = latest_installed.ident;
             if latest_ident > *latest_desired_ident {
                 info!("Uninstalling '{}' inorder to ensure '{}' is the latest installed package",
                       latest_ident, latest_desired_ident);
-                if let Err(e) = pkg::uninstall(&latest_ident).await {
+                if let Err(e) = pkg::uninstall_even_if_loaded(&latest_ident).await {
                     error!("Failed to uninstall '{}' unable to ensure '{}' is the latest \
                             installed package. On restart, service will start with the wrong \
                             package. err: {}",
@@ -1928,23 +1969,24 @@ mod test {
     // code, so only implement it under test configuration.
     impl Default for ManagerConfig {
         fn default() -> Self {
-            ManagerConfig { auto_update:         false,
-                            custom_state_path:   None,
-                            cache_key_path:      cache_key_path(Some(&*FS_ROOT)),
-                            update_url:          "".to_string(),
-                            update_channel:      ChannelIdent::default(),
-                            gossip_listen:       GossipListenAddr::default(),
-                            ctl_listen:          ListenCtlAddr::default(),
-                            http_listen:         HttpListenAddr::default(),
-                            http_disable:        false,
-                            gossip_peers:        vec![],
-                            gossip_permanent:    false,
-                            ring_key:            None,
-                            organization:        None,
-                            watch_peer_file:     None,
-                            tls_config:          None,
-                            feature_flags:       FeatureFlag::empty(),
-                            event_stream_config: None, }
+            ManagerConfig { auto_update:          false,
+                            custom_state_path:    None,
+                            cache_key_path:       cache_key_path(Some(&*FS_ROOT)),
+                            update_url:           "".to_string(),
+                            update_channel:       ChannelIdent::default(),
+                            gossip_listen:        GossipListenAddr::default(),
+                            ctl_listen:           ListenCtlAddr::default(),
+                            http_listen:          HttpListenAddr::default(),
+                            http_disable:         false,
+                            gossip_peers:         vec![],
+                            gossip_permanent:     false,
+                            ring_key:             None,
+                            organization:         None,
+                            watch_peer_file:      None,
+                            tls_config:           None,
+                            feature_flags:        FeatureFlag::empty(),
+                            event_stream_config:  None,
+                            keep_latest_packages: None, }
         }
     }
 
