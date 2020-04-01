@@ -142,8 +142,15 @@ lazy_static! {
     static ref CPU_TIME: IntGauge = register_int_gauge!("hab_sup_cpu_time_nanoseconds",
                                                         "CPU time of the supervisor process in \
                                                          nanoseconds").unwrap();
-    /// Depending on the value of `VERSION` this ident may or may not be fully qualified.
-    static ref VERSIONED_IDENT: PackageIdent =
+
+
+    // The `<origin>/<name>` version of the Supervisor's package ident
+    static ref THIS_SUPERVISOR_FUZZY_IDENT: PackageIdent = SUP_PKG_IDENT.parse().unwrap();
+
+    /// Depending on the value of `VERSION` this ident may or may not be fully qualified. `VERSION`
+    /// produces a fully qualified ident when built with Habitat. If it is built directly from
+    /// `cargo build` no release information will be set.
+    static ref THIS_SUPERVISOR_IDENT: PackageIdent =
         PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
 }
 
@@ -273,6 +280,9 @@ pub struct ManagerConfig {
     pub tls_config:           Option<TLSConfig>,
     pub feature_flags:        FeatureFlag,
     pub event_stream_config:  Option<EventStreamConfig>,
+    /// If this field is `Some`, keep the indicated number of latest packages and uninstall all
+    /// others during service start. If this field is `None`, automatic package cleanup is
+    /// disabled.
     pub keep_latest_packages: Option<usize>,
 }
 
@@ -618,11 +628,11 @@ impl Manager {
                       sys_ip: IpAddr)
                       -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
-        outputln!("{} ({})", SUP_PKG_IDENT, *VERSIONED_IDENT);
+        outputln!("{} ({})", SUP_PKG_IDENT, *THIS_SUPERVISOR_IDENT);
         let cfg_static = cfg.clone();
         let self_updater = if cfg.auto_update {
-            if VERSIONED_IDENT.fully_qualified() {
-                Some(SelfUpdater::new(&*VERSIONED_IDENT, cfg.update_url, cfg.update_channel))
+            if THIS_SUPERVISOR_IDENT.fully_qualified() {
+                Some(SelfUpdater::new(&*THIS_SUPERVISOR_IDENT, cfg.update_url, cfg.update_channel))
             } else {
                 warn!("Supervisor version not fully qualified, unable to start self-updater");
                 None
@@ -780,7 +790,7 @@ impl Manager {
         Ok(())
     }
 
-    async fn cleanup_packages(&self, ident: &PackageIdent) {
+    async fn maybe_uninstall_old_packages(&self, ident: &PackageIdent) {
         if let Some(number_latest_to_keep) = self.state.cfg.keep_latest_packages {
             match pkg::uninstall_all_but_latest(ident, number_latest_to_keep).await {
                 Ok(uninstalled) => {
@@ -859,7 +869,7 @@ impl Manager {
             return;
         }
 
-        self.cleanup_packages(&ident).await;
+        self.maybe_uninstall_old_packages(&ident).await;
 
         self.service_updater.lock().add(&service);
 
@@ -965,10 +975,10 @@ impl Manager {
 
             // Only cleanup supervisor packages if we are running the latest installed version. It
             // is possible to have no versions installed if a development build is being run.
-            let ident = SUP_PKG_IDENT.parse().unwrap();
-            if let Some(latest) = pkg::installed(&ident) {
-                if *VERSIONED_IDENT == latest.ident {
-                    self.cleanup_packages(&ident).await;
+            if let Some(latest) = pkg::installed(&*THIS_SUPERVISOR_FUZZY_IDENT) {
+                if *THIS_SUPERVISOR_IDENT == latest.ident {
+                    self.maybe_uninstall_old_packages(&*THIS_SUPERVISOR_FUZZY_IDENT)
+                        .await;
                 }
             }
 
