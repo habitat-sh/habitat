@@ -1,13 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.79 -->
-## [1.5.79](https://github.com/habitat-sh/habitat/tree/1.5.79) (2020-03-30)
+<!-- latest_release 1.5.80 -->
+## [1.5.80](https://github.com/habitat-sh/habitat/tree/1.5.80) (2020-04-01)
 
-#### Merged Pull Requests
-- Add Homebrew PR merge to post-release activities [#7587](https://github.com/habitat-sh/habitat/pull/7587) ([smacfarlane](https://github.com/smacfarlane))
+#### New Features & Enhancements
+- Automatic package cleanup with the `--keep-latest-packages` flag [#7582](https://github.com/habitat-sh/habitat/pull/7582) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.71 -->
 ### Changes since 1.5.71 release
+
+#### New Features & Enhancements
+- Automatic package cleanup with the `--keep-latest-packages` flag [#7582](https://github.com/habitat-sh/habitat/pull/7582) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.80 -->
 
 #### Merged Pull Requests
 - Add Homebrew PR merge to post-release activities [#7587](https://github.com/habitat-sh/habitat/pull/7587) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.5.79 -->
