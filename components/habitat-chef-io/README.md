@@ -1,6 +1,6 @@
-# Chef Workstation Documentation
+# Chef Habitat Documentation
 
-This folder contains the source for the [Chef Workstation documentation](https://docs.chef.io/workstation/)
+This folder contains the source for the [Chef Workstation documentation](https://docs.chef.io/habitat/)
 which is deployed on the [Chef Documenation](https://docs.chef.io) site using a Hugo module.
 
 ## The fastest way to contribute
@@ -36,34 +36,74 @@ few days. The important part is submitting your change.
 ## Local Development Environment
 
 The Chef Documentation website is built using [Hugo](https://gohugo.io/) and
-[NPM](https://www.npmjs.com/). You will need Hugo 0.61 or higher installed and
+[NPM](https://components/habitat-chef-io.npmjs.com/). You will need Hugo 0.61 or higher installed and
 running to build and view our documentation properly.
 
-To install Hugo:
+## Quick Install
 
-- On macOS run: `brew install hugo`
-- On Windows run: `choco install hugo`
+### Binary (Cross-platform)
 
-NPM is distributed with Node.js. To install Node.js:
+Download the appropriate version for your platform from [Hugo Releases][releases]. Once downloaded, the binary can be run from anywhere. You don't need to install it into a global location. This works well for shared hosts and other systems where you don't have a privileged account.
 
-- On macOS run: `brew install node`
-- On Windows, download and run the installer from the [nodejs.org](https://nodejs.org) website.
+Ideally, you should install it somewhere in your `PATH` for easy use. `/usr/local/bin` is the most probable location.
 
-### Preview Workstation Documentation
+### Homebrew (macOS)
+
+If you are on macOS and using [Homebrew](https://brew.sh/), you can install Hugo with the following one-liner:
+
+```
+brew install hugo
+```
+
+For more detailed explanations, read the Hugo installation guides for  [macOS](https://gohugo.io/getting-started/installing/#macos), [Windows](https://gohugo.io/getting-started/installing/#macos) and [Linux](https://gohugo.io/getting-started/installing/#linux).
+
+### Homebrew (Linux)
+
+If you are using [Homebrew](https://docs.brew.sh/Homebrew-on-Linux) on Linux, you can install Hugo with the following one-liner:
+
+```
+brew install hugo
+```
+
+Installation guides for Homebrew on Linux are available on their [website](https://docs.brew.sh/Homebrew-on-Linux).
+
+### Chocolatey (Windows)
+
+If you are on a Windows machine and use [Chocolatey](https://chocolatey.org/) for package management, you can install Hugo with the following one-liner:
+
+```
+choco install hugo -confirm
+```
+
+Or if you need the "extended" Sass/SCSS version:
+
+```
+choco install hugo-extended -confirm
+```
+
+### Scoop (Windows)
+
+If you are on a Windows machine and use [Scoop](https://scoop.sh/) for package management, you can install Hugo with the following one-liner:
+
+```bash
+scoop install hugo
+```
+
+### Preview Habitat Documentation
 
 To build the docs and preview locally:
 
-- Run `make serve`
+- Run `hugo serve`
 - go to http://localhost:1313
 
 The landing page shows navigation menu metadata and the left navigation menu
 shows the menu weight for each page. You can use this information to add,
 remove, or reorganize Workstation documentation in the menu. None of this will
-appear on the [Chef Documentation](https://docs.chef.io) site when the workstation
+appear on the [Chef Documentation](https://docs.chef.io) site when the habitat
 content is updated.
 
 While the Hugo server is running, any changes you make to content
-in the `www/content` directory will be automatically compiled and updated in the
+in the `components/habitat-chef-io/content` directory will be automatically compiled and updated in the
 browser.
 
 ### Clean Your Local Environment
@@ -71,19 +111,17 @@ browser.
 To clean your local development environment:
 
 - Running `make clean` will delete the sass files, javascript, and fonts. These will
-	be rebuilt the next time you run `make serve`.
+  be rebuilt the next time you run `make serve`.
 
-- Running `make clean_all` will delete the node modules used to build this site
-	in addition to the functions of `make clean` described above. Those node
-	modules will be reinstalled the next time you run `make serve`.
+- Running `make clean_all` will delete the node modules used to build this site in addition to the functions of `make clean` described above. Those node modules will be reinstalled the next time you run `make serve`.
 
 ## Creating New Pages
 
-Please keep all your documentation in the `content/workstation` directory.
-To add a new Markdown file, run the following command from the `www` directory:
+Please keep all your documentation in the `content/habitat` directory.
+To add a new Markdown file, run the following command from the `components/habitat-chef-io` directory:
 
 ```
-hugo new content/workstation/<filename>.md
+hugo new content/habitat/<filename>.md
 ```
 
 This will create a draft page with enough front matter to get you going.
@@ -98,8 +136,8 @@ about formatting documentation using Markdown.
 ## Workstation Page Menu
 
 If you add content, it will not automatically show up in the left navigation menu.
-Build the site locally (`make serve`) and see the landing page (`http://localhost:1313`).
-Any page followed by `Workstation Menu: False` has not been added to the left navigation menu.
+Build the site locally (`hugo serve`) and see the landing page (`http://localhost:1313`).
+Any page followed by `Habitat Menu: False` has not been added to the left navigation menu.
 
 Each page needs a page title, an identifier, and a parent.
 
@@ -108,8 +146,7 @@ The title is the name of the page as it appears in the left navigation menu.
 
 **Parent**
 The parent is the path to that page in the left navigation menu. For example, the
-`knife serve` page is found by clicking on Chef Workstation, Chef Workstation Tools,
-and then Knife. So it's parent is `chef_workstation/chef_workstation_tools/knife`.
+`Hab CLI Reference` page is found by selecting Reference --> Hab CLI Reference. So it's parent is `reference`.
 
 **Identifier**
 Each menu identifier must be unique. We use the menu parent value, followed by
@@ -124,42 +161,39 @@ Below is an example of a page menu entry:
 
 ```
 [menu]
-  [menu.workstation]
+  [menu.habitat]
     title = "Page Menu Title"
     identifier = "chef_workstation/<file_name>.md Page Title"
     parent = "chef_workstation"
     weight = 10
 ```
 
-## Workstation Menu Config
+<!-- ## Workstation Menu Config
 
-The framework for the workstation menu is located in the `config_workstation_menu.toml`
-file. This defines the parent menu directories that each page can be added to.
+The framework for the habitat menu is located in the `config_workstation_menu.toml`
+file. This defines the parent menu directories that each page can be added to. -->
 
 In addition, you can add links to the Workstation menu that navigate to other pages on
 the [Chef Documentation](https://docs.chef.io) site or to an external site. See
 the example below.
 
 ```
-[[menu.workstation]]
+[[menu.habitat]]
 title = "Page Menu Title"
-identifier = "chef_workstation/file_name.md Page Title"
-parent = "chef_workstation"
+identifier = "habitat/file_name.md Page Title"
+parent = "habitat"
 url = "relative or absolute URL"
 weight = 10
 ```
 
-See the [Hugo menu documentation](https://gohugo.io/content-management/menus/)
-for additional information about formatting a menu item.
+See the [Hugo menu documentation](https://gohugo.io/content-management/menus/) for additional information about formatting a menu item.
 
 Contact the documentation team if you need help adding a page to the menu.
 
 ## Shortcodes
 
-Shortcodes are simple snippets of code that can be used to modify a Markdown
-page by adding content or changing the appearance of content in a page. See
-Hugo's [shortcode documentation](https://gohugo.io/content-management/shortcodes/)
-for general information about shortcodes.
+Shortcodes are simple snippets of code that can be used to modify a Markdown page by adding content or changing the appearance of content in a page.
+See Hugo's [shortcode documentation](https://gohugo.io/content-management/shortcodes/) for general information about shortcodes.
 
 We primarily use shortcodes in two ways:
 
@@ -171,12 +205,12 @@ provide additional important information
 
 There are often cases where we want to maintain blocks of text that are identical
 from one page to the next. In those cases, we add that text, formatted in Markdown,
-to a shortcode file located in `chef-workstation/www/layouts/shortcodes`.
+to a shortcode file located in `components/habitat-chef-io/layouts/shortcodes`.
 
 Each shortcode in the Chef Workstation documentation must be prefixed with `ws_`.
 For example, `ws_shortcode_name.md`.
 
-To add that shortcode to a page in `chef-workstation/www/content`, add the file name,
+To add that shortcode to a page in `components/habitat-chef-io/content`, add the file name,
 minus the .md suffix, wrapped in double curly braces and percent symbols to
 the location in the Markdown page where you want that text included. For example,
 if you want to add the text in `ws_shortcode_file_name.md` to a page, add
@@ -195,6 +229,7 @@ To include a shortcode in a list or definition list, just add its file name
 to the `shortcode` parameter of `shortcode_indent` without the .md suffix.
 
 For example, if you wanted to add `shortcode_file_name.md` to a list:
+
 ``` md
 1.  Here is some text introducing the shortcode, but it's not necessary.
 
@@ -229,6 +264,7 @@ Warning, and Danger shortcodes. The value of spaces should be set to the number
 of spaces that the note is indented.
 
 For example:
+
 ```
 This is a list:
 
@@ -251,39 +287,43 @@ users from the deleted page to a new or existing page.
 
 ## Structure
 
-### High Level
+### Directory Structure
+
 ```
 .
 ├── Makefile    # contains helpers to quickly start up the development environment
 ├── README.md
-├── www        # the hugo site directory used for local development
+├── habitat-chef-io        # the hugo site directory used for local development
 ```
 
-### Local Content
+### habitat-chef-io Structure
+
 ```
 .
-├── site
+components
+├── habitat-chef-io
+│   ├── archetypes
+│   │   ├── default.md
 │   ├── content
-│   │   ├── workstation                 # where to keep markdown file documentation
+│   │   ├── habitat                 # where to keep markdown file documentation
 │   ├── data
-│   │   ├── chef-workstation            # where to keep structured data files used for data templates
+│   │   ├── chef-habitat            # where to keep structured data files used for data templates
 │   ├── layouts
 |   │   ├── shortcodes
-|   │   │   ├── ws_<shortcode_name>.md  # how to name your workstation-specific shortcodes
+|   │   │   ├── ws_<shortcode_name>.md  # how to name your habitat-specific shortcodes
 |   ├── static
-|   |   ├── images
-|   |   |   ├── chef-workstation        # where to keep any images you need to reference in your documentation
 |   |   ├── css
+|   |   ├── images
+|   |   |   ├── chef-habitat        # where to keep any images you need to reference in your documentation
 ```
 
 ### What is happening behind the scenes
 
-The [Chef Documentation](https://docs.chef.io) site uses [Hugo modules](https://gohugo.io/hugo-modules/)
-to load content directly from the `www` directory in the `chef/chef-workstation`
-repository. Every time `chef/chef-workstation` is promoted to stable, Expeditor
-instructs Hugo to update the version of the `chef/chef-workstation` repository
-that Hugo uses to build Chef Workstation documentation on the [Chef Documentation](https://docs.chef.io)
-site. This is handled by the Expeditor subscriptions in the `chef/chef-web-docs` GitHub repository.
+The [Chef Documentation](https://docs.chef.io) site uses [Hugo modules](https://gohugo.io/hugo-modules/) to load content directly from the `components/habitat-chef-io` directory in the `habitat.sh/habitat`
+repository.
+Every time `habitat.sh/habitat` is promoted to stable, Expeditor instructs Hugo to update the version of the `habitat.sh/habitat` repository
+that Hugo uses to build Chef Workstation documentation on the [Chef Documentation](https://docs.chef.io) site.
+This is handled by the Expeditor subscriptions in the `chef/chef-web-docs` GitHub repository.
 
 ## Sending documentation feedback
 
@@ -312,4 +352,4 @@ If you need tips for making contributions to our documentation, check out the
 If you see an error, open an [issue](https://github.com/chef/chef-web-docs/issues)
 or submit a pull request.
 
-If you have a question about the documentation, send an email to docs@chef.io. 
+If you have a question about the documentation, send an email to docs@chef.io.
