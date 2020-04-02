@@ -3,7 +3,7 @@
 <div class="col-content">
   <div id="{{ anchorize ( .Title )}}"><h1>{{ .Title }}</h1></div>
   <p>
-    Below is a list of all of the pages in the Workstation documentation. It lists
+    Below is a list of all of the pages in the Habitat documentation. It lists
     the page name, the file name, if the page exists in the habitat menu, and
     metadata about the page's menu entry if it is in the menu.
   </p>
@@ -13,7 +13,7 @@
   </p>
   <p>
     To the left, each entry in the menu is listed with its menu weight. Red menu
-    items are links to pages outside of the Chef Habitat documentation.
+    items are links to pages outside of the habitat documentation.
   </p>
   <ul>
     {{ range .Site.RegularPages }}
@@ -24,13 +24,13 @@
           {{ if hasPrefix .File "habitat"}}
             <strong>File name:</strong> {{ .File }}
           {{ else }}
-            <strong>File not in Chef Habitat subdirectory:</strong> <span class="habitat_menu_false">{{ .File }}</span>
+            <strong>File not in habitat subdirectory:</strong> <span class="habitat_menu_false">{{ .File }}</span>
           {{ end }}
           <br>
           <strong>Habitat Menu:</strong>
           {{ if .Params.menu.habitat }}
             <span class="habitat_menu_true">True</span>
-            <br><strong>Title:</strong> {{ .Params.menu.habitat.title }}
+            <br><strong>title =</strong> {{ .Params.menu.habitat.title }}
             <br><strong>Identifier:</strong> {{ .Params.menu.habitat.identifier }}
             <br><strong>Parent:</strong> {{ .Params.menu.habitat.parent }}
             <br><strong>Weight:</strong> {{ .Params.menu.habitat.weight }}

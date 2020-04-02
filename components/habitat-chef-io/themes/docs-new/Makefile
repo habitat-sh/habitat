@@ -41,6 +41,3 @@ assets/sass/vendor/fontawesome: node_modules
 
 static/fonts/fontawesome: node_modules
 	cp -R node_modules/@fortawesome/fontawesome-free/webfonts/ static/fonts/fontawesome
-
-
-

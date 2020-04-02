@@ -106,98 +106,69 @@ identifier = "download"
 url = "https://downloads.chef.io/"
 weight = 60
 
-
-
 ###
 # Chef Habitat Menu ##
 ###
 
 [[menu.habitat]]
 title = "Chef Habitat"
-identifier = "chef_habitat"
+identifier = "habitat"
 weight = 10
 
-  [[menu.habitat]]
-  title = "Overview"
-  identifier = "chef_habitat/overview"
-  parent = "chef_habitat"
-  weight = 20
+[[menu.habitat]]
+title = "Overview"
+identifier = "overview"
+weight = 20
 
-  [[menu.habitat]]
-  title = "Get Started"
-  identifier = "chef_habitat/get_started"
-  parent = "chef_habitat"
-  weight = 30
+[[menu.habitat]]
+title = "Get Started"
+identifier = "get_started"
+weight = 30
 
-  [[menu.habitat]]
-  title = "Builder"
-  identifier = "chef_habitat/builder"
-  parent = "chef_habitat"
-  weight = 50
+[[menu.habitat]]
+title = "Builder"
+identifier = "builder"
+weight = 40
 
-  [[menu.habitat]]
-  title = "Packages"
-  identifier = "chef_habitat/developing-packages"
-  parent = "chef_habitat"
-  weight = 40
+[[menu.habitat]]
+title = "Packages"
+identifier = "packages"
+weight = 50
 
-  [[menu.habitat]]
-  title = "Services"
-  identifier = "chef_habitat/services"
-  parent = "chef_habitat"
-  weight = 60
+[[menu.habitat]]
+title = "Plans"
+identifier = "plans"
+weight = 60
 
-  [[menu.habitat]]
-  title = "Supervisors"
-  identifier = "chef_habitat/supervisors"
-  parent = "chef_habitat"
-  weight = 50
+[[menu.habitat]]
+title = "Services"
+identifier = "services"
+weight = 70
 
-  [[menu.habitat]]
-  title = "Cloud"
-  identifier = "chef_habitat/integrations"
-  parent = "chef_habitat"
-  weight = 70
+[[menu.habitat]]
+title = "Supervisors"
+identifier = "supervisors"
+weight = 80
 
-  [[menu.habitat]]
-  title = "Containers"
-  identifier = "chef_habitat/container"
-  parent = "chef_habitat"
-  weight = 70
+[[menu.habitat]]
+title = "Studio"
+identifier = "studio"
+url = "/studio"
+weight = 90
 
-  [[menu.habitat]]
-  title = "Reference"
-  identifier = "chef_habitat/reference"
-  parent = "chef_habitat"
-  weight = 80
+[[menu.habitat]]
+title = "Containers"
+identifier = "containers"
+weight = 110
+
+[[menu.habitat]]
+title = "Reference"
+identifier = "reference"
+weight = 120
 
   [[menu.habitat]]
   title = "Diagrams"
-  identifier = "chef_habitat/diagrams"
-  parent = "chef_habitat"
-  weight = 90
+  identifier = "reference/diagrams"
+  parent = "reference"
 
-  [[menu.habitat]]
-  title = "Best Practices"
-  identifier = "chef_habitat/best-practices"
-  parent = "chef_habitat"
-  weight = 100
-
-  [[menu.habitat]]
-  title = "Topics"
-  identifier = "chef_habitat/glossary"
-  parent = "chef_habitat"
-  weight = 110
-
-  [[menu.habitat]]
-  title = "Internals"
-  identifier = "chef_habitat/internals"
-  parent = "chef_habitat"
-  weight = 120
-
-  [[menu.habitat]]
-  title = "Habitat Pattern Library"
-  identifier = "chef_habitat/pattern-library"
-  parent = "chef_habitat"
-  weight = 130
 
