@@ -4,6 +4,7 @@ use crate::{accounts::{EtcGroupEntry,
                        EtcPasswdEntry},
             error::{Error,
                     Result},
+            graph::Graph,
             util,
             BUSYBOX_IDENT,
             CACERTS_IDENT,
@@ -146,14 +147,14 @@ impl<'a> BuildSpec<'a> {
         let rootfs = workdir.path().join("rootfs");
         ui.status(Status::Creating,
                   format!("build root in {}", workdir.path().display()))?;
-        self.prepare_rootfs(ui, &rootfs).await?;
-
+        let graph = self.prepare_rootfs(ui, &rootfs).await?;
         Ok(BuildRoot { workdir,
-                       ctx: BuildRootContext::from_spec(&self, &rootfs)? })
+                       ctx: BuildRootContext::from_spec(&self, &rootfs)?,
+                       graph })
     }
 
     #[cfg(unix)]
-    async fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
+    async fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<Graph> {
         ui.status(Status::Creating, "root filesystem")?;
         rootfs::create(rootfs)?;
         self.create_symlink_to_artifact_cache(ui, rootfs)?;
@@ -167,20 +168,24 @@ impl<'a> BuildSpec<'a> {
         self.remove_symlink_to_key_cache(ui, rootfs)?;
         self.remove_symlink_to_artifact_cache(ui, rootfs)?;
 
-        Ok(())
+        let graph = Graph::from_packages(base_pkgs, user_pkgs, &rootfs)?;
+
+        Ok(graph)
     }
 
     #[cfg(windows)]
-    async fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
+    async fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<Graph> {
         ui.status(Status::Creating, "root filesystem")?;
         self.create_symlink_to_artifact_cache(ui, rootfs)?;
         self.create_symlink_to_key_cache(ui, rootfs)?;
-        self.install_base_pkgs(ui, rootfs).await?;
-        self.install_user_pkgs(ui, rootfs).await?;
+        let base_pkgs = self.install_base_pkgs(ui, rootfs).await?;
+        let user_pkgs = self.install_user_pkgs(ui, rootfs).await?;
         self.remove_symlink_to_key_cache(ui, rootfs)?;
         self.remove_symlink_to_artifact_cache(ui, rootfs)?;
 
-        Ok(())
+        let graph = Graph::from_packages(base_pkgs, user_pkgs, &rootfs)?;
+
+        Ok(graph)
     }
 
     fn create_symlink_to_artifact_cache(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
@@ -372,6 +377,9 @@ pub struct BuildRoot {
     workdir: TempDir,
     /// The build root context containing information about Habitat packages, `PATH` info, etc.
     ctx:     BuildRootContext,
+    /// Dependency graph of the Habitat packages installed in the
+    /// build root
+    graph:   Graph,
 }
 
 impl BuildRoot {
@@ -380,6 +388,8 @@ impl BuildRoot {
 
     /// Returns the `BuildRootContext` for this build root.
     pub fn ctx(&self) -> &BuildRootContext { &self.ctx }
+
+    pub fn graph(&self) -> &Graph { &self.graph }
 
     /// Destroys the temporary build root.
     ///
@@ -706,7 +716,7 @@ impl BuildRootContext {
 
 /// The package identifiers for installed base packages.
 #[derive(Debug)]
-struct BasePkgIdents {
+pub struct BasePkgIdents {
     /// Installed package identifer for the Habitat CLI package.
     pub hab:      PackageIdent,
     /// Installed package identifer for the Supervisor package.

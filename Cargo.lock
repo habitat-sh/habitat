@@ -1349,6 +1349,7 @@ dependencies = [
  "habitat_core 0.0.0",
  "handlebars 0.29.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "linked-hash-map 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "rusoto_core 0.43.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rusoto_credential 0.43.0 (registry+https://github.com/rust-lang/crates.io-index)",

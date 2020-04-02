@@ -420,6 +420,7 @@ impl DockerBuildRoot {
             "primary_svc_ident": ctx.primary_svc_ident().to_string(),
             "installed_primary_svc_ident": ctx.installed_primary_svc_ident()?.to_string(),
             "environment": ctx.environment,
+            "packages": self.0.graph().reverse_topological_sort().iter().map(ToString::to_string).collect::<Vec<_>>(),
         });
         util::write_file(self.0.workdir().join("Dockerfile"),
                          &Handlebars::new().template_render(DOCKERFILE, &json)

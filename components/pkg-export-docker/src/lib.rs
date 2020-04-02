@@ -37,6 +37,7 @@ mod chmod;
 mod cli;
 mod docker;
 mod error;
+mod graph;
 #[cfg(unix)]
 mod rootfs;
 mod util;
