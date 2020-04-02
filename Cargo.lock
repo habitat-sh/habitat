@@ -1337,6 +1337,7 @@ dependencies = [
  "threadpool 1.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.5.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "zmq 0.8.3 (git+https://github.com/habitat-sh/rust-zmq?branch=v0.8-symlinks-removed)",
 ]
 

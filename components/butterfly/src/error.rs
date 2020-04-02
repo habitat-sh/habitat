@@ -26,6 +26,7 @@ pub enum Error {
     IncarnationParse(PathBuf, num::ParseIntError),
     InvalidRumorShareLimit,
     NonExistentRumor(String, String),
+    OsError(io::Error),
     ProtocolMismatch(&'static str),
     ServiceConfigDecode(String, toml::de::Error),
     ServiceConfigNotUtf8(String, str::Utf8Error),
@@ -79,6 +80,7 @@ impl fmt::Display for Error {
                 format!("Non existent rumor asked to be written to bytes: {} {}",
                         member_id, rumor_id)
             }
+            Error::OsError(ref err) => format!("OS error: {}", err),
             Error::ProtocolMismatch(ref field) => {
                 format!("Received an unsupported or bad protocol message. Missing field: {}",
                         field)

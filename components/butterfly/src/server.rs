@@ -501,11 +501,11 @@ impl Server {
         socket.set_write_timeout(Some(Duration::from_millis(1000)))
               .map_err(Error::SocketSetReadTimeout)?;
 
-        self.socket = Some(socket.try_clone()?);
+        self.socket = Some(clone_socket(&socket)?);
 
         inbound::spawn_thread(format!("inbound-{}", self.name()),
                               self.clone(),
-                              socket.try_clone()?,
+                              clone_socket(&socket)?,
                               tx_outbound)?;
 
         outbound::spawn_thread(format!("outbound-{}", self.name()),
@@ -1279,6 +1279,33 @@ fn persist_loop(server: &Server) -> ! {
         }
     }
 }
+
+/// There is a bug which surfaced in rust 1.38 where cloned sockets on windows
+/// get inherited by child processes and remain open even after the process that
+/// created the socket terminates as long as the child processes remain alive.
+/// See https://github.com/rust-lang/rust/issues/70719.
+/// Until this is fixed, we explicitly clear the HANDLE_FLAG_INHERIT of the
+/// socket's handle.
+#[cfg(windows)]
+fn clone_socket(socket: &UdpSocket) -> Result<UdpSocket> {
+    use std::os::windows::io::AsRawSocket;
+    use winapi::um::{handleapi,
+                     winbase,
+                     winnt};
+
+    let cloned = socket.try_clone()?;
+    match unsafe {
+              handleapi::SetHandleInformation(cloned.as_raw_socket() as winnt::HANDLE,
+                                              winbase::HANDLE_FLAG_INHERIT,
+                                              0)
+          } {
+        0 => Err(Error::OsError(io::Error::last_os_error())),
+        _ => Ok(cloned),
+    }
+}
+
+#[cfg(unix)]
+fn clone_socket(socket: &UdpSocket) -> std::io::Result<UdpSocket> { socket.try_clone() }
 
 /// This is a proxy struct to represent what information we're writing to the dat file, and
 /// therefore what information gets sent out via the HTTP API. Right now, we're just wrapping the
