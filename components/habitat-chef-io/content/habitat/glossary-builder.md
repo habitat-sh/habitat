@@ -5,10 +5,8 @@ description = "Builder"
 [menu]
   [menu.habitat]
     title = "Builder"
-    identifier = "overview/glossary-builder"
-    parent = "overview"
-    weight = 20
-
+    identifier = "overview/concepts/builder"
+    parent = "overview/concepts"
 +++
 
 Chef Habitat Builder consists of the Builder service and the Depot.

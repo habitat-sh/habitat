@@ -1,13 +1,12 @@
 +++
-title = "Artifacts"
-description = "Artifacts"
+title = "Packages"
+description = "Packages and Artifacts"
 
 [menu]
   [menu.habitat]
-    title = "Artifacts"
-    identifier = "overview/glossary-artifacts"
-    parent = "overview"
-    weight = 20
+    title = "Packages"
+    identifier = "overview/concepts/packages"
+    parent = "overview/concepts"
 
 +++
 
@@ -40,4 +39,3 @@ If the Chef Habitat artifact identifier isn't fully qualified (having fewer than
 - `core/glibc/2.22` assumes that the version of core/glibc is 2.22 and that the release is for the most recent value of core/glibc/2.22.
 
 - `core/glibc/2.22/20160310192356` only refers to the specific Chef Habitat artifact 20160310192356.
-

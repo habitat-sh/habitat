@@ -5,9 +5,8 @@ description = "Chef Habitat Security"
 [menu]
   [menu.habitat]
     title = "Keys"
-    identifier = "overview/keys"
-    parent = "overview"
-    weight = 20
+    identifier = "overview/concepts/keys"
+    parent = "overview/concepts"
 
 +++
 

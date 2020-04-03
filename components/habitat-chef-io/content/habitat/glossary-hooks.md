@@ -5,7 +5,7 @@ description = "Application Lifecycle Hooks"
 [menu]
   [menu.habitat]
     title = "Application Lifecycle Hooks"
-    identifier = "plans/glossary-hooks"
+    identifier = "plans/lifecycle-hooks"
     parent = "plans"
     weight = 20
 

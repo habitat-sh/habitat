@@ -5,9 +5,8 @@ description = "The Supervisor is a process manager that starts, monitors, update
 [menu]
   [menu.habitat]
     title = "Supervisor"
-    identifier = "overview/supervisor"
-    parent = "overview"
-    weight = 20
+    identifier = "overview/concepts/supervisor"
+    parent = "overview/concepts"
 
 +++
 

@@ -5,9 +5,8 @@ description = "Services managed by a Chef Habitat Supervisor"
 [menu]
   [menu.habitat]
     title = "Services"
-    identifier = "overview/glossary-services"
-    parent = "overview"
-    weight = 20
+    identifier = "overview/concepts/services"
+    parent = "overview/concepts"
 
 +++
 

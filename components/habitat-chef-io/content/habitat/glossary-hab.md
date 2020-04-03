@@ -5,9 +5,8 @@ description = "Hab CLI"
 [menu]
   [menu.habitat]
     title = "Hab CLI"
-    identifier = "overview/glossary-hab"
-    parent = "overview"
-    weight = 20
+    identifier = "overview/concepts/hab"
+    parent = "overview/concepts"
 
 +++
 

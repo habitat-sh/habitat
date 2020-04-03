@@ -5,9 +5,8 @@ description = "The Chef Habitat Studio Environment"
 [menu]
   [menu.habitat]
     title = "Studio"
-    identifier = "overview/glossary-studio"
-    parent = "overview"
-    weight = 20
+    identifier = "overview/concepts/studio"
+    parent = "overview/concepts"
 
 +++
 

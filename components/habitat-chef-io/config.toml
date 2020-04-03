@@ -120,6 +120,12 @@ title = "Overview"
 identifier = "overview"
 weight = 20
 
+  [[menu.habitat]]
+  title = "Concepts"
+  identifier = "overview/concepts"
+  parent = "overview"
+  weight = 100
+
 [[menu.habitat]]
 title = "Get Started"
 identifier = "get_started"

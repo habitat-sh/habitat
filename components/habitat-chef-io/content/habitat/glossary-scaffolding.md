@@ -5,7 +5,7 @@ description = "Scaffolding"
 [menu]
   [menu.habitat]
     title = "Scaffolding"
-    identifier = "plans/glossary-scaffolding"
+    identifier = "plans/scaffolding"
     parent = "plans"
     weight = 20
 

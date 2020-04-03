@@ -1,13 +1,12 @@
 +++
-title = "Chef Habitat Plans for Linux and Windows Systems"
-description = "Plan.sh and Plan.ps1 files"
+title = "Plans"
+description = "Chef Habitat Plans for Linux and Windows Systems"
 
 [menu]
   [menu.habitat]
-    title = "Chef Habitat Plans for Linux and Windows Systems"
-    identifier = "overview/glossary-plan"
-    parent = "overview"
-    weight = 20
+    title = "Plans"
+    identifier = "overview/concepts/plan"
+    parent = "overview/concepts"
 
 +++
 
