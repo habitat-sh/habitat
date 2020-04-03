@@ -33,6 +33,9 @@ toml = { version = "*", default-features = false }
 uuid = { version = "*", features = ["v4"] }
 zmq = { git = "https://github.com/habitat-sh/rust-zmq", branch = "v0.8-symlinks-removed" }
 
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "*", features = ["handleapi", "winbase"] }
+
 [dev-dependencies]
 mktemp = "*"
 

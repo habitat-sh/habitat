@@ -54,7 +54,7 @@ function Initialize-Environment {
     $env:PATH                       = New-PathString -StartingPath $env:PATH -Path "$protobufDir\bin;$zeromqDir\bin;$libarchiveDir\bin;$libsodiumDir\bin;$zlibDir\bin;$xzDir\bin;$opensslDir\bin"
 
     $vsDir = & hab pkg path core/visual-cpp-build-tools-2015
-    $env:LIB = (Get-Content "$vsDir\LIB_DIRS")
+    $env:LIB = "$(Get-Content "$vsDir\LIB_DIRS");$env:LIBZMQ_PREFIX\lib"
     $env:INCLUDE = (Get-Content "$vsDir\INCLUDE_DIRS")
     $env:PATH = New-PathString -StartingPath $env:PATH -Path (Get-Content "$vsDir\PATH")
 }
