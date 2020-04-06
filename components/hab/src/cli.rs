@@ -10,8 +10,7 @@ use clap::{App,
            AppSettings,
            Arg,
            ArgMatches};
-use configopt::{ConfigOptDefaults,
-                TomlConfigGenerator};
+use configopt::ConfigOpt;
 use habitat_common::{cli::{file_into_idents,
                            is_toml_file,
                            BINLINK_DIR_ENVVAR,
@@ -41,17 +40,13 @@ use habitat_core::{crypto::{keys::PairType,
                    ChannelIdent};
 use habitat_sup_protocol;
 use rants::Address as NatsAddress;
-use serde::de::DeserializeOwned;
-use std::{env,
-          fs,
-          net::{Ipv4Addr,
+use std::{net::{Ipv4Addr,
                 SocketAddr},
           path::Path,
           process,
           result,
           str::FromStr};
 use structopt::StructOpt;
-use toml;
 use url::Url;
 
 const UPDATE_CONDITION_HELP: &str = "The condition dictating when this service should update";
@@ -62,20 +57,26 @@ const UPDATE_CONDITION_LONG_HELP: &str =
      package from a channel will cause the package to rollback to an older version of the \
      package. A ramification of enabling this condition is packages newer than the package at the \
      head of the channel will be automatically uninstalled during a service rollback.";
-
-fn get_subcommand_mut<'a>(app: &'a mut App<'static, 'static>,
-                          name: &str)
-                          -> &'a mut App<'static, 'static> {
-    app.p
-       .subcommands
-       .iter_mut()
-       .find(|s| s.p.meta.name == name)
-       .unwrap_or_else(|| panic!("expected to find subcommand '{}'", name))
-}
+/// Process exit code from Supervisor which indicates to Launcher that the Supervisor
+/// ran to completion with a successful result. The Launcher should not attempt to restart
+/// the Supervisor and should exit immediately with a successful exit code.
+pub const OK_NO_RETRY_EXCODE: i32 = 84;
 
 pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
     if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
-        return Hab::clap();
+        let mut hab = Hab::clap();
+        // Populate the `configopt` version of `Hab` with config files. Use these values to set the
+        // defaults of the `Hab` app.
+        // Ignore any CLI parsing errors. We will catch them later on when `get_matches` is called.
+        // When we switch to using `structopt` exclusivly this will be cleaned up.
+        if let Ok(mut defaults) = ConfigOptHab::from_args_safe_ignore_help() {
+            if let Err(e) = defaults.patch_with_config_files() {
+                error!("Failed to parse config files, err: {}", e);
+                process::exit(OK_NO_RETRY_EXCODE);
+            }
+            configopt::set_defaults(&mut hab, &defaults);
+        }
+        return hab;
     }
 
     let alias_apply = sub_config_apply().about("Alias for 'config apply'")
@@ -956,7 +957,19 @@ fn sub_cli_setup() -> App<'static, 'static> {
 
 pub fn sup_commands(feature_flags: FeatureFlag) -> App<'static, 'static> {
     if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
-        return Sup::clap();
+        let mut sup = Sup::clap();
+        // Populate the `configopt` version of `Sup` with config files. Use these values to set the
+        // defaults of the `Sup` app.
+        // Ignore any CLI parsing errors. We will catch them later on when `get_matches` is called.
+        // When we switch to using `structopt` exclusivly this will be cleaned up.
+        if let Ok(mut defaults) = ConfigOptSup::from_args_safe_ignore_help() {
+            if let Err(e) = defaults.patch_with_config_files() {
+                error!("Failed to parse config files, err: {}", e);
+                process::exit(OK_NO_RETRY_EXCODE);
+            }
+            configopt::set_defaults(&mut sup, &defaults);
+        }
+        return sup;
     }
     // Define all of the `hab sup *` subcommands in one place.
     // This removes the need to duplicate this in `hab-sup`.
@@ -1198,10 +1211,10 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                               (Note: This option is explicitly undocumented and for testing purposes only. Do not use it in a production system. Use the corresponding environment variable instead.) \
                               (ex: hab sup run --ring-key 'SYM-SEC-1 foo-20181113185935 GCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')")
                             (@arg CHANNEL: --channel +takes_value default_value[stable]
-                             "Receive Supervisor updates from the specified release channel")
+                             "Receive updates from the specified release channel")
                             (@arg BLDR_URL: -u --url +takes_value {valid_url}
                              "Specify an alternate Builder endpoint. If not specified, the value will \
-                              be taken from the HAB_BLDR_URL environment variable if defined (default: \
+                              be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                               https://bldr.habitat.sh)")
 
                             (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
@@ -1355,7 +1368,7 @@ fn sub_svc_load() -> App<'static, 'static> {
         (@arg APPLICATION: --application -a +multiple +hidden "DEPRECATED")
         (@arg ENVIRONMENT: --environment -e +multiple +hidden "DEPRECATED")
         (@arg CHANNEL: --channel +takes_value default_value[stable]
-            "Receive package updates from the specified release channel")
+            "Receive updates from the specified release channel")
         (@arg GROUP: --group +takes_value
             "The service group; shared config and topology [default: default]")
         (@arg BLDR_URL: -u --url +takes_value {valid_url}

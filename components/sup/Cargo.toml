@@ -19,7 +19,7 @@ bytes = "*"
 actix-web = { version = "*", default-features = false, features = [ "rustls" ] }
 actix-rt = "*"
 byteorder = "*"
-clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
+clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
 cpu-time = "*"
 futures = { version = "0.3.1" }
 glob = "*"

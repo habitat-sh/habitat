@@ -8,7 +8,7 @@ workspace = "../../"
 [dependencies]
 actix-rt = "*"
 actix-web = { version = "*", default-features = false, features = [ "rustls" ] }
-clap = "*"
+clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
 serde = "*"
 serde_derive = "*"
 serde_json = "*"

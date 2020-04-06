@@ -253,6 +253,15 @@ fn compare(app1: &mut App, app2: &mut App, path: &str) {
     println!("=== Comparing app '{}' subcommands '{} and '{}' ===",
              path, app1.p.meta.name, app2.p.meta.name);
 
+    let p1 = &mut app1.p;
+    let p2 = &mut app2.p;
+
+    // Ignore config file flags
+    p1.opts.retain(|f| f.b.name != "generate-config");
+    p2.opts.retain(|f| f.b.name != "generate-config");
+    p1.opts.retain(|f| f.b.name != "config-files");
+    p2.opts.retain(|f| f.b.name != "config-files");
+
     // Compare help messages
     let help1 = help(app1);
     let help2 = help(app2);

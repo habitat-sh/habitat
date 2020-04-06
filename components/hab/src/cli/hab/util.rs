@@ -18,7 +18,7 @@ pub struct AuthToken {
     auth_token: Option<String>,
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(ConfigOpt, StructOpt, Deserialize)]
 #[structopt(no_version)]
 #[allow(dead_code)]
 pub struct BldrUrl {
@@ -49,7 +49,7 @@ pub struct CacheKeyPath {
     cache_key_path: PathBuf,
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(ConfigOpt, StructOpt, Deserialize)]
 #[structopt(no_version)]
 #[allow(dead_code)]
 pub struct PkgIdent {
@@ -67,7 +67,7 @@ pub struct FullyQualifiedPkgIdent {
     pkg_ident: PackageIdent,
 }
 
-#[derive(ConfigOpt, StructOpt)]
+#[derive(ConfigOpt, StructOpt, Deserialize)]
 #[structopt(no_version)]
 #[allow(dead_code)]
 pub struct RemoteSup {
