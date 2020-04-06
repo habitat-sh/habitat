@@ -1,6 +1,5 @@
 use crate::{error::Result,
             util::write_file};
-use habitat_core::util;
 use std::{fs,
           path::Path};
 
@@ -24,20 +23,20 @@ pub fn create<T>(root: T) -> Result<()>
     where T: AsRef<Path>
 {
     let root = root.as_ref();
+
+    // We'll create links to all the busybox utilities here, as well
+    // as links to `hab` and user package binaries.
     fs::create_dir_all(root.join("bin"))?;
+
+    // We'll put all our custom /etc content in the rootfs, as well.
     fs::create_dir_all(root.join("etc"))?;
-
-    fs::create_dir_all(root.join("root"))?;
-    util::posix_perm::set_permissions(root.join("root").to_string_lossy().as_ref(), 0o0750)?;
-    fs::create_dir_all(root.join("tmp"))?;
-    util::posix_perm::set_permissions(root.join("tmp").to_string_lossy().as_ref(), 0o1777)?;
-    fs::create_dir_all(root.join("var/tmp"))?;
-    util::posix_perm::set_permissions(root.join("var/tmp").to_string_lossy().as_ref(), 0o1777)?;
-
     write_file(root.join("etc/passwd"), ETC_PASSWD)?;
     write_file(root.join("etc/group"), ETC_GROUP)?;
     write_file(root.join("etc/resolv.conf"), ETC_RESOLV_CONF)?;
     write_file(root.join("etc/nsswitch.conf"), ETC_NSSWITCH_CONF)?;
+
+    // Note that other required directories are currently handled
+    // directly in the Dockerfile.
 
     Ok(())
 }
@@ -47,8 +46,7 @@ pub fn create<T>(root: T) -> Result<()>
 mod test {
     use super::*;
     use std::{fs::File,
-              io::Read,
-              os::unix::fs::MetadataExt};
+              io::Read};
     use tempfile::TempDir;
 
     fn file_content<T: AsRef<Path>>(file: T) -> String {
@@ -65,18 +63,6 @@ mod test {
 
         assert!(root.path().join("bin").is_dir());
         assert!(root.path().join("etc").is_dir());
-
-        let root_home = root.path().join("root");
-        assert!(root_home.is_dir());
-        assert_eq!(0o40750, root_home.metadata().unwrap().mode()); // the `4` refers to file type
-
-        let tmp = root.path().join("tmp");
-        assert!(tmp.is_dir());
-        assert_eq!(0o41777, tmp.metadata().unwrap().mode()); // the `4` refers to file type
-
-        let var_tmp = root.path().join("var").join("tmp");
-        assert!(var_tmp.is_dir());
-        assert_eq!(0o41777, var_tmp.metadata().unwrap().mode()); // the `4` refers to file type
 
         let etc_passwd = root.path().join("etc").join("passwd");
         assert!(etc_passwd.is_file());
