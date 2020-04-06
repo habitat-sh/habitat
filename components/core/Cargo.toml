@@ -36,7 +36,8 @@ typemap = "*"
 url = "*"
 
 [target.'cfg(not(windows))'.dependencies]
-users = "*"
+# Pulling from git until https://github.com/nix-rust/nix/commit/3c2107bdc221a90b02d3f7118dd96f3496762cd0 is released
+nix = { git = "https://github.com/nix-rust/nix.git" }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
