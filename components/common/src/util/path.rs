@@ -6,8 +6,9 @@ use crate::{command::package::install::{self,
                     Result},
             ui,
             PROGRAM_NAME};
-use habitat_core::{fs::{cache_artifact_path,
-                        find_command,
+use habitat_core::{self,
+                   fs::{cache_artifact_path,
+                        fs_rooted_path,
                         FS_ROOT_PATH},
                    package::{PackageIdent,
                              PackageInstall,
@@ -21,17 +22,15 @@ use std::{env,
           path::PathBuf,
           str::FromStr};
 
-/// The package identifier for the OS specific interpreter which the Supervisor is built with,
-/// or which may be independently installed
+// The package identifier for the OS specific interpreter which the Supervisor is built with,
+// or which may be independently installed
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-const INTERPRETER_IDENT: &str = "core/busybox-static";
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-const INTERPRETER_COMMAND: &str = "busybox";
+habitat_core::env_config_string!(InterpreterIdent,
+                                 HAB_INTERPRETER_IDENT,
+                                 "core/busybox-static");
 
 #[cfg(target_os = "windows")]
-const INTERPRETER_IDENT: &str = "core/powershell";
-#[cfg(target_os = "windows")]
-const INTERPRETER_COMMAND: &str = "pwsh";
+habitat_core::env_config_string!(InterpreterIdent, HAB_INTERPRETER_IDENT, "core/powershell");
 
 const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
@@ -49,19 +48,15 @@ const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 ///     * No
 ///         * Can we find any installed interpreter package?
 ///             * Yes: use the latest installed interpreter release & return its `PATH` entries
-///             * No
-///                 * Is the interpreter binary present on `$PATH`?
-///                     * Yes: return the parent directory which holds the interpreter binary
-///                     * No: out of ideas, so return an error after warning the user we're done
+///             * No: install the interpreter package
 ///
 /// # Errors
 ///
 /// * If an installed package should exist, but cannot be loaded
 /// * If a installed package's path metadata cannot be read or returned
 /// * If a known-working package identifier string cannot be parsed
-/// * If the parent directory of a located interpreter binary cannot be computed
 /// * If the Supervisor is not executing inside a package, and if no interpreter package is
-///   installed, and if no interpreter binary can be found on the `PATH`
+///   installed
 async fn interpreter_paths() -> Result<Vec<PathBuf>> {
     // First, we'll check if we're running inside a package. If we are, then we should  be able to
     // access the `../DEPS` metadata file and read it to get the specific version of the
@@ -70,7 +65,7 @@ async fn interpreter_paths() -> Result<Vec<PathBuf>> {
         Ok(p) => {
             match p.parent() {
                 Some(p) => {
-                    let metafile = p.join("DEPS");
+                    let metafile = p.join("../DEPS");
                     if metafile.is_file() {
                         interpreter_dep_from_metafile(metafile)
                     } else {
@@ -92,49 +87,31 @@ async fn interpreter_paths() -> Result<Vec<PathBuf>> {
         // If we're not running out of a package, then see if any package of the interpreter is
         // installed.
         None => {
-            let ident = PackageIdent::from_str(INTERPRETER_IDENT)?;
+            let ident = PackageIdent::from_str(&InterpreterIdent::configured_value().0)?;
             match PackageInstall::load(&ident, Some(FS_ROOT_PATH.as_ref())) {
                 // We found a version of the interpreter. Get its path metadata.
                 Ok(pkg_install) => pkg_install.paths()?,
                 // Nope, no packages of the interpreter installed. Now we're going to see if the
                 // interpreter command is present on `PATH`.
                 Err(_) => {
-                    match find_command(INTERPRETER_COMMAND) {
-                        // We found the interpreter on `PATH`, so that its `dirname` and return
-                        // that.
-                        Some(bin) => {
-                            match bin.parent() {
-                                Some(dir) => vec![dir.to_path_buf()],
-                                None => {
-                                    let path = bin.to_string_lossy().into_owned();
-                                    println!("An unexpected error has occurred. {} was found at \
-                                              {}, yet the parent directory could not be \
-                                              computed. Aborting...",
-                                             INTERPRETER_COMMAND, &path);
-                                    return Err(Error::FileNotFound(path));
-                                }
-                            }
-                        }
-                        None => {
-                            install::type_erased_start(&mut ui::NullUi::new(),
-                                                       &default_bldr_url(),
-                                                       &ChannelIdent::stable(),
-                                                       &(ident.clone(),
-                                                         PackageTarget::active_target())
-                                                                                        .into(),
-                                                       &*PROGRAM_NAME,
-                                                       VERSION,
-                                                       FS_ROOT_PATH.as_path(),
-                                                       &cache_artifact_path(None::<String>),
-                                                       None,
-                                                       &InstallMode::default(),
-                                                       &LocalPackageUsage::default(),
-                                                       InstallHookMode::default()).await?;
-                            let pkg_install =
-                                PackageInstall::load(&ident, Some(FS_ROOT_PATH.as_ref()))?;
-                            pkg_install.paths()?
-                        }
-                    }
+                    if install::type_erased_start(&mut ui::NullUi::new(),
+                                                &default_bldr_url(),
+                                                &ChannelIdent::stable(),
+                                                &(ident.clone(),
+                                                    PackageTarget::active_target())
+                                                                                .into(),
+                                                &*PROGRAM_NAME,
+                                                VERSION,
+                                                FS_ROOT_PATH.as_path(),
+                                                &cache_artifact_path(None::<String>),
+                                                None,
+                                                &InstallMode::default(),
+                                                &LocalPackageUsage::default(),
+                                                InstallHookMode::default()).await.is_err() {
+                                                    return Err(Error::InterpreterNotFound(ident));
+                                                }
+                    let pkg_install = PackageInstall::load(&ident, Some(FS_ROOT_PATH.as_ref()))?;
+                    pkg_install.paths()?
                 }
             }
         }
@@ -142,8 +119,15 @@ async fn interpreter_paths() -> Result<Vec<PathBuf>> {
     Ok(interpreter_paths)
 }
 
+fn root_paths(paths: &mut Vec<PathBuf>) {
+    for path in &mut paths.iter_mut() {
+        *path = fs_rooted_path(&path, FS_ROOT_PATH.as_ref());
+    }
+}
+
 pub async fn append_interpreter_and_path(path_entries: &mut Vec<PathBuf>) -> Result<String> {
     let mut paths = interpreter_paths().await?;
+    root_paths(&mut paths);
     path_entries.append(&mut paths);
     if let Some(val) = env::var_os("PATH") {
         let mut os_paths = env::split_paths(&val).collect();
@@ -167,7 +151,7 @@ fn interpreter_dep_from_metafile(metafile: PathBuf) -> Option<PackageIdent> {
             Ok(l) => l,
             Err(_) => return None,
         };
-        if line.contains(INTERPRETER_IDENT) {
+        if line.contains(&InterpreterIdent::configured_value().0) {
             match PackageIdent::from_str(&line) {
                 Ok(pi) => return Some(pi),
                 Err(_) => return None,
