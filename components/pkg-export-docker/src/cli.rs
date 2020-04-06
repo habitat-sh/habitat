@@ -289,6 +289,30 @@ impl<'a, 'b> Cli<'a, 'b> {
 
         Cli { app }
     }
+
+    pub fn add_layer_arg(self) -> Self {
+        let app =
+            self.app
+                .arg(Arg::with_name("MULTI_LAYER").value_name("MULTI_LAYER")
+                                                  .long("multi-layer")
+                                                  .required(false)
+                                                  .takes_value(false)
+                                                  .multiple(false)
+                                                  .help("If specified, creates an image where \
+                                                         each Habitat package is added in its \
+                                                         own layer, in dependency order (that \
+                                                         is, low-level dependencies are added \
+                                                         first, with user packages added last). \
+                                                         This will allow for reusable layers, \
+                                                         reducing storage and network \
+                                                         transmission costs. If the resulting \
+                                                         image cannot be built because there \
+                                                         are too many layers, re-build without \
+                                                         specifying this option to add all \
+                                                         Habitat packages in a single layer \
+                                                         (which is the default behavior)."));
+        Cli { app }
+    }
 }
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP

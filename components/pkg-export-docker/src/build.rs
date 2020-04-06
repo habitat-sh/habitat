@@ -105,6 +105,9 @@ pub struct BuildSpec<'a> {
     pub auth:               Option<&'a str>,
     /// Base image used in From of dockerfile
     pub base_image:         String,
+    /// Whether or not to create an image with a single layer for each
+    /// Habitat package.
+    pub multi_layer:        bool,
 }
 
 impl<'a> BuildSpec<'a> {
@@ -131,7 +134,8 @@ impl<'a> BuildSpec<'a> {
                                             .unwrap_or_else(|| {
                                                 default_docker_base_image().expect("No base image \
                                                                                     supported")
-                                            }), })
+                                            }),
+                       multi_layer:        m.is_present("MULTI_LAYER"), })
     }
 
     /// Creates a `BuildRoot` for the given specification.
@@ -408,6 +412,9 @@ pub struct BuildRootContext {
     rootfs:          PathBuf,
     /// Base image used in From of dockerfile
     base_image:      String,
+    /// Whether or not to create an image with a single layer for each
+    /// Habitat package.
+    multi_layer:     bool,
 }
 
 impl BuildRootContext {
@@ -471,7 +478,8 @@ impl BuildRootContext {
                                          env_path: bin_path.to_string_lossy().into_owned(),
                                          channel: spec.channel.clone(),
                                          rootfs,
-                                         base_image: spec.base_image.clone() };
+                                         base_image: spec.base_image.clone(),
+                                         multi_layer: spec.multi_layer };
         context.validate()?;
 
         Ok(context)
@@ -680,6 +688,8 @@ impl BuildRootContext {
     /// Returns the base image for the dockerfile From
     pub fn base_image(&self) -> &str { self.base_image.as_str() }
 
+    pub fn multi_layer(&self) -> bool { self.multi_layer }
+
     fn validate(&self) -> Result<()> {
         // A valid context for a build root will contain at least one service package, called the
         // primary service package.
@@ -762,7 +772,8 @@ mod test {
                     base_pkgs_channel:  ChannelIdent::from("base_pkgs_channel"),
                     idents_or_archives: Vec::new(),
                     auth:               Some("heresafakeauthtokenduh"),
-                    base_image:         String::from("scratch"), }
+                    base_image:         String::from("scratch"),
+                    multi_layer:        false, }
     }
 
     struct FakePkg {

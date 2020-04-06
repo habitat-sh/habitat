@@ -240,6 +240,7 @@ pub fn cli<'a, 'b>() -> App<'a, 'b> {
                                        .add_tagging_args()
                                        .add_publishing_args()
                                        .add_memory_arg()
+                                       .add_layer_arg()
                                        .add_pkg_ident_arg(PkgIdentArgOptions { multiple: true });
     if cfg!(windows) {
         cli = cli.add_base_image_arg();

@@ -417,6 +417,7 @@ impl DockerBuildRoot {
                 .to_string_lossy()
                 .replace("\\", "/"),
             "exposes": ctx.svc_exposes().join(" "),
+            "multi_layer": ctx.multi_layer(),
             "primary_svc_ident": ctx.primary_svc_ident().to_string(),
             "installed_primary_svc_ident": ctx.installed_primary_svc_ident()?.to_string(),
             "environment": ctx.environment,
