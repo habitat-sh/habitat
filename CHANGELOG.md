@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.84 -->
-## [1.5.84](https://github.com/habitat-sh/habitat/tree/1.5.84) (2020-04-07)
+<!-- latest_release 1.5.85 -->
+## [1.5.85](https://github.com/habitat-sh/habitat/tree/1.5.85) (2020-04-07)
 
-#### New Features & Enhancements
-- Add `--keep-latest` to `hab pkg uninstall` [#7595](https://github.com/habitat-sh/habitat/pull/7595) ([davidMcneil](https://github.com/davidMcneil))
+#### Merged Pull Requests
+- tag windows 2019 studio image with latest [#7605](https://github.com/habitat-sh/habitat/pull/7605) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.71 -->
 ### Changes since 1.5.71 release
@@ -14,6 +14,7 @@
 - Automatic package cleanup with the `--keep-latest-packages` flag [#7582](https://github.com/habitat-sh/habitat/pull/7582) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.80 -->
 
 #### Merged Pull Requests
+- tag windows 2019 studio image with latest [#7605](https://github.com/habitat-sh/habitat/pull/7605) ([mwrock](https://github.com/mwrock)) <!-- 1.5.85 -->
 - fix 2016 studio image [#7603](https://github.com/habitat-sh/habitat/pull/7603) ([mwrock](https://github.com/mwrock)) <!-- 1.5.83 -->
 - Fixes truncated CLI spaces [#7589](https://github.com/habitat-sh/habitat/pull/7589) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.5.82 -->
 - fix UDP port remaining open after supervisor terminates when a hook is still executing [#7597](https://github.com/habitat-sh/habitat/pull/7597) ([mwrock](https://github.com/mwrock)) <!-- 1.5.81 -->
