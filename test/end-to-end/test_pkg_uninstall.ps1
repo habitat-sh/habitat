@@ -11,6 +11,7 @@ $pkgs = @(
     "$pkg/4.0.14/20200319184753",
     "$pkg/4.0.14/20200319200053"
 )
+$env:HAB_NOCOLORING="true"
 
 Describe "pkg uninstall" {
     It "installs core/redis" {
@@ -36,13 +37,19 @@ Describe "pkg uninstall" {
         hab pkg list "$pkg" | Should -BeExactly $pkgs[,0+4..8]
     }
 
+    It "uninstall with a fully qualified ident" {
+        hab pkg uninstall --keep-latest=3 "$pkg/3.2.3/20161102201135" | Should -Contain "… Skipping Only 1 packages installed"
+        hab pkg uninstall --keep-latest=0 "$pkg/3.2.3/20161102201135"
+        hab pkg list "$pkg" | Should -BeExactly $pkgs[4..8]
+    }
+
     It "uninstall all but the three latest" {
         hab pkg uninstall --keep-latest=3 "$pkg"
         hab pkg list "$pkg" | Should -BeExactly $pkgs[6..8]
     }
 
     It "uninstall does nothing if keeping all" {
-        hab pkg uninstall --keep-latest=10 "$pkg"
+        hab pkg uninstall --keep-latest=10 "$pkg" | Should -Contain "… Skipping Only 3 packages installed"
         hab pkg list "$pkg" | Should -BeExactly $pkgs[6..8]
     }
 
