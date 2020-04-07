@@ -57,9 +57,13 @@ pub async fn uninstall_all_but_latest<U>(ui: &mut U,
                                          -> Result<usize>
     where U: UIWriter
 {
-    let ident = ident.as_ref().clone();
-    let mut idents = list::package_list(&ident.into())?;
+    let ident = ident.as_ref();
+    let mut idents = list::package_list(&ident.clone().into())?;
     if number_latest_to_keep >= idents.len() {
+        ui.begin(format!("Uninstalling {}", ident))?;
+        ui.status(Status::Skipping,
+                  format!("Only {} packages installed", idents.len()))?;
+        ui.end(format!("Uninstall of {} complete", ident))?;
         return Ok(0);
     }
     // Reverse sort the idents so the latest occur first in the list
