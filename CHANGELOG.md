@@ -1,15 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.83 -->
-## [1.5.83](https://github.com/habitat-sh/habitat/tree/1.5.83) (2020-04-07)
+<!-- latest_release 1.5.84 -->
+## [1.5.84](https://github.com/habitat-sh/habitat/tree/1.5.84) (2020-04-07)
 
-#### Merged Pull Requests
-- fix 2016 studio image [#7603](https://github.com/habitat-sh/habitat/pull/7603) ([mwrock](https://github.com/mwrock))
+#### New Features & Enhancements
+- Add `--keep-latest` to `hab pkg uninstall` [#7595](https://github.com/habitat-sh/habitat/pull/7595) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.71 -->
 ### Changes since 1.5.71 release
 
 #### New Features & Enhancements
+- Add `--keep-latest` to `hab pkg uninstall` [#7595](https://github.com/habitat-sh/habitat/pull/7595) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.84 -->
 - Automatic package cleanup with the `--keep-latest-packages` flag [#7582](https://github.com/habitat-sh/habitat/pull/7582) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.80 -->
 
 #### Merged Pull Requests
