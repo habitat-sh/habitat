@@ -101,7 +101,7 @@ ENTRYPOINT ["/hab/pkgs/$ident/bin/powershell/pwsh.exe", "-ExecutionPolicy", "byp
         Write-Error "docker build failed, aborting"
     }
 
-    if($BaseTag -eq "ltsc2016") {
+    if($BaseTag -eq "ltsc2019") {
         Write-Host "Tagging latest image to ${imageName}:$BaseTag-$version"
         docker tag ${imageName}:$BaseTag-$version ${imageName}:latest
         if ($LASTEXITCODE -ne 0) {
