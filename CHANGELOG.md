@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.82 -->
-## [1.5.82](https://github.com/habitat-sh/habitat/tree/1.5.82) (2020-04-03)
+<!-- latest_release 1.5.83 -->
+## [1.5.83](https://github.com/habitat-sh/habitat/tree/1.5.83) (2020-04-07)
 
 #### Merged Pull Requests
-- Fixes truncated CLI spaces [#7589](https://github.com/habitat-sh/habitat/pull/7589) ([kagarmoe](https://github.com/kagarmoe))
+- fix 2016 studio image [#7603](https://github.com/habitat-sh/habitat/pull/7603) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.71 -->
 ### Changes since 1.5.71 release
@@ -13,6 +13,7 @@
 - Automatic package cleanup with the `--keep-latest-packages` flag [#7582](https://github.com/habitat-sh/habitat/pull/7582) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.80 -->
 
 #### Merged Pull Requests
+- fix 2016 studio image [#7603](https://github.com/habitat-sh/habitat/pull/7603) ([mwrock](https://github.com/mwrock)) <!-- 1.5.83 -->
 - Fixes truncated CLI spaces [#7589](https://github.com/habitat-sh/habitat/pull/7589) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.5.82 -->
 - fix UDP port remaining open after supervisor terminates when a hook is still executing [#7597](https://github.com/habitat-sh/habitat/pull/7597) ([mwrock](https://github.com/mwrock)) <!-- 1.5.81 -->
 - Add Homebrew PR merge to post-release activities [#7587](https://github.com/habitat-sh/habitat/pull/7587) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.5.79 -->
