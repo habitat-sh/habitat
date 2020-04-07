@@ -30,7 +30,7 @@ try {
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to remotely tag image"
     }
-    if($docker_base_image_tag -eq "ltsc2016") {
+    if($docker_base_image_tag -eq "ltsc2019") {
         Write-Host "Pushing latest tag for $docker_image_version"
         docker push "${docker_image}:latest"
         if ($LASTEXITCODE -ne 0) {
