@@ -94,24 +94,24 @@ async fn interpreter_paths() -> Result<Vec<PathBuf>> {
                 // Nope, no packages of the interpreter installed. Now we're going to see if the
                 // interpreter command is present on `PATH`.
                 Err(_) => {
-                    if install::type_erased_start(&mut ui::NullUi::new(),
-                                                &default_bldr_url(),
-                                                &ChannelIdent::stable(),
-                                                &(ident.clone(),
-                                                    PackageTarget::active_target())
-                                                                                .into(),
-                                                &*PROGRAM_NAME,
-                                                VERSION,
-                                                FS_ROOT_PATH.as_path(),
-                                                &cache_artifact_path(None::<String>),
-                                                None,
-                                                &InstallMode::default(),
-                                                &LocalPackageUsage::default(),
-                                                InstallHookMode::default()).await.is_err() {
-                                                    return Err(Error::InterpreterNotFound(ident));
-                                                }
-                    let pkg_install = PackageInstall::load(&ident, Some(FS_ROOT_PATH.as_ref()))?;
-                    pkg_install.paths()?
+                    match install::type_erased_start(&mut ui::NullUi::new(),
+                                                     &default_bldr_url(),
+                                                     &ChannelIdent::stable(),
+                                                     &(ident.clone(),
+                                                       PackageTarget::active_target())
+                                                                                      .into(),
+                                                     &*PROGRAM_NAME,
+                                                     VERSION,
+                                                     FS_ROOT_PATH.as_path(),
+                                                     &cache_artifact_path(None::<String>),
+                                                     None,
+                                                     &InstallMode::default(),
+                                                     &LocalPackageUsage::default(),
+                                                     InstallHookMode::default()).await
+                    {
+                        Ok(pkg_install) => pkg_install.paths()?,
+                        Err(err) => return Err(Error::InterpreterNotFound(ident, Box::new(err))),
+                    }
                 }
             }
         }
