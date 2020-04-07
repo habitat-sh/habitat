@@ -3,7 +3,8 @@ use crate::{error::{Error,
             PRODUCT,
             VERSION};
 use hab::{command::pkg::{self,
-                         uninstall_impl},
+                         uninstall_impl::{self,
+                                          UninstallSafety}},
           error::Result as HabResult};
 use habitat_api_client::BuilderAPIClient;
 use habitat_common::{cli::FS_ROOT,
@@ -135,7 +136,7 @@ pub async fn uninstall_all_but_latest(ident: impl AsRef<PackageIdent>,
                                              pkg::ExecutionStrategy::Run,
                                              pkg::Scope::PackageAndDependencies,
                                              &[],
-                                             false).await
+                                             UninstallSafety::Safe).await
 }
 
 /// Uninstall multiple packages.
@@ -146,7 +147,7 @@ pub async fn uninstall_many(idents: &[impl AsRef<PackageIdent>]) -> HabResult<()
                                    pkg::ExecutionStrategy::Run,
                                    pkg::Scope::PackageAndDependencies,
                                    &[],
-                                   false).await
+                                   UninstallSafety::Safe).await
 }
 
 /// Uninstall a package given a package identifier.
@@ -161,5 +162,5 @@ pub async fn uninstall_even_if_loaded(ident: impl AsRef<PackageIdent>) -> HabRes
                               pkg::ExecutionStrategy::Run,
                               pkg::Scope::PackageAndDependencies,
                               &[],
-                              true).await
+                              UninstallSafety::Force).await
 }

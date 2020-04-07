@@ -1,6 +1,7 @@
 use super::{ExecutionStrategy,
             Scope};
-use crate::{command::pkg::uninstall_impl,
+use crate::{command::pkg::uninstall_impl::{self,
+                                           UninstallSafety},
             error::Result};
 use clap::ArgMatches;
 use habitat_common::ui::UI;
@@ -38,7 +39,7 @@ pub async fn start(ui: &mut UI,
                                       execution_strategy,
                                       scope,
                                       excludes,
-                                      false).await
+                                      UninstallSafety::Safe).await
         }
         UninstallMode::KeepLatest(number_latest_to_keep) => {
             uninstall_impl::uninstall_all_but_latest(ui,
@@ -48,7 +49,7 @@ pub async fn start(ui: &mut UI,
                                                      execution_strategy,
                                                      scope,
                                                      excludes,
-                                                     false).await?;
+                                                     UninstallSafety::Safe).await?;
             Ok(())
         }
     }
