@@ -1,6 +1,7 @@
 use super::{ExecutionStrategy,
             Scope};
-use crate::{config,
+use crate::{command::pkg::list,
+            config,
             error::{Error,
                     Result}};
 use futures::stream::StreamExt;
@@ -22,13 +23,22 @@ use std::{fs,
           path::Path,
           str::FromStr};
 
+/// `Force` indictates that the package should be uninstalled even if it is loaded by the
+/// supervisor. This only applies to packages specified in `idents`. It does not apply to their
+/// dependencies.
+#[derive(Clone, Copy)]
+pub enum UninstallSafety {
+    Safe,
+    Force,
+}
+
 pub async fn uninstall<U>(ui: &mut U,
                           ident: impl AsRef<PackageIdent>,
                           fs_root_path: &Path,
                           execution_strategy: ExecutionStrategy,
                           scope: Scope,
                           excludes: &[PackageIdent],
-                          even_if_loaded: bool)
+                          safety: UninstallSafety)
                           -> Result<()>
     where U: UIWriter
 {
@@ -38,7 +48,44 @@ pub async fn uninstall<U>(ui: &mut U,
                    execution_strategy,
                    scope,
                    excludes,
-                   even_if_loaded).await
+                   safety).await
+}
+
+/// Uninstall all but the `number_latest_to_keep` packages.
+///
+/// Returns the number of packages that were uninstalled
+#[allow(clippy::too_many_arguments)]
+pub async fn uninstall_all_but_latest<U>(ui: &mut U,
+                                         ident: impl AsRef<PackageIdent>,
+                                         number_latest_to_keep: usize,
+                                         fs_root_path: &Path,
+                                         execution_strategy: ExecutionStrategy,
+                                         scope: Scope,
+                                         excludes: &[PackageIdent],
+                                         safety: UninstallSafety)
+                                         -> Result<usize>
+    where U: UIWriter
+{
+    let ident = ident.as_ref();
+    let mut idents = list::package_list(&ident.clone().into())?;
+    if number_latest_to_keep >= idents.len() {
+        ui.begin(format!("Uninstalling {}", ident))?;
+        ui.status(Status::Skipping,
+                  format!("Only {} packages installed", idents.len()))?;
+        ui.end(format!("Uninstall of {} complete", ident))?;
+        return Ok(0);
+    }
+    // Reverse sort the idents so the latest occur first in the list
+    idents.sort_unstable_by(|a, b| b.by_parts_cmp(a));
+    let to_uninstall = &idents[number_latest_to_keep..];
+    uninstall_many(ui,
+                   to_uninstall,
+                   fs_root_path,
+                   execution_strategy,
+                   scope,
+                   excludes,
+                   safety).await?;
+    Ok(to_uninstall.len())
 }
 
 /// Delete packages and all dependencies which are not used by the packages.
@@ -58,16 +105,13 @@ pub async fn uninstall<U>(ui: &mut U,
 ///     5b. If there are not, we delete it from disk and the graph
 ///
 /// `excludes` is a list of user-supplied `PackageIdent`s.
-/// `even_if_loaded` indictates that the package should be uninstalled even if it is loaded by the
-/// supervisor. This only applies to packages specified in `idents`. It does not apply to their
-/// dependencies.
 pub async fn uninstall_many<U>(ui: &mut U,
                                idents: &[impl AsRef<PackageIdent>],
                                fs_root_path: &Path,
                                execution_strategy: ExecutionStrategy,
                                scope: Scope,
                                excludes: &[PackageIdent],
-                               even_if_loaded: bool)
+                               safety: UninstallSafety)
                                -> Result<()>
     where U: UIWriter
 {
@@ -81,13 +125,12 @@ pub async fn uninstall_many<U>(ui: &mut U,
             ui.status(Status::Found, format!("loaded service {}", s))?;
         }
     }
-    let uninstall_if_loaded = if even_if_loaded {
-        UninstallMode::Force
-    } else {
-        UninstallMode::SkipIfLoaded(&loaded_services)
+    let safety = match safety {
+        UninstallSafety::Safe => UninstallSafetyImpl::SkipIfLoaded(&loaded_services),
+        UninstallSafety::Force => UninstallSafetyImpl::Force,
     };
     // Never uninstall a dependency if it is loaded
-    let dependency_uninstall_if_loaded = UninstallMode::SkipIfLoaded(&loaded_services);
+    let dependency_safety = UninstallSafetyImpl::SkipIfLoaded(&loaded_services);
 
     for ident in idents {
         // 2.
@@ -118,7 +161,7 @@ pub async fn uninstall_many<U>(ui: &mut U,
                              &pkg_install,
                              execution_strategy,
                              &excludes,
-                             uninstall_if_loaded)?;
+                             safety)?;
                 graph.remove(&ident);
             }
             Some(c) => {
@@ -154,7 +197,7 @@ pub async fn uninstall_many<U>(ui: &mut U,
                                          &install,
                                          execution_strategy,
                                          &excludes,
-                                         dependency_uninstall_if_loaded)?;
+                                         dependency_safety)?;
 
                             graph.remove(&p);
                             count += 1;
@@ -225,12 +268,12 @@ async fn supervisor_services() -> Result<Vec<PackageIdent>> {
 }
 
 #[derive(Clone, Copy)]
-enum UninstallMode<'a> {
-    Force,
+enum UninstallSafetyImpl<'a> {
     SkipIfLoaded(&'a [PackageIdent]),
+    Force,
 }
 
-impl UninstallMode<'_> {
+impl UninstallSafetyImpl<'_> {
     fn should_skip(&self, ident: &PackageIdent) -> bool {
         if let Self::SkipIfLoaded(services) = self {
             services.iter().any(|i| i.satisfies(ident))
@@ -251,7 +294,7 @@ fn maybe_delete<U>(ui: &mut U,
                    install: &PackageInstall,
                    strategy: ExecutionStrategy,
                    excludes: &[PackageIdent],
-                   uninstall_if_loaded: UninstallMode)
+                   safety: UninstallSafetyImpl)
                    -> Result<bool>
     where U: UIWriter
 {
@@ -265,7 +308,7 @@ fn maybe_delete<U>(ui: &mut U,
         return Ok(false);
     }
 
-    if uninstall_if_loaded.should_skip(ident) {
+    if safety.should_skip(ident) {
         ui.status(Status::Skipping,
                   format!("{}. It is currently loaded by the supervisor", &ident))?;
         return Ok(false);

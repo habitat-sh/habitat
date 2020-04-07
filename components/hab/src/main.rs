@@ -719,6 +719,7 @@ async fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     } else {
         command::pkg::ExecutionStrategy::Run
     };
+    let mode = command::pkg::uninstall::UninstallMode::from(m);
     let scope = if m.is_present("NO_DEPS") {
         command::pkg::Scope::Package
     } else {
@@ -726,7 +727,13 @@ async fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     };
     let excludes = excludes_from_matches(&m);
 
-    command::pkg::uninstall::start(ui, &ident, &*FS_ROOT, execute_strategy, scope, &excludes).await
+    command::pkg::uninstall::start(ui,
+                                   &ident,
+                                   &*FS_ROOT,
+                                   execute_strategy,
+                                   mode,
+                                   scope,
+                                   &excludes).await
 }
 
 async fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {

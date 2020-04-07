@@ -694,6 +694,8 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                 (@arg DRYRUN: -d --dryrun "Just show what would be uninstalled, don't actually do it")
+                (@arg KEEP_LATEST: --("keep-latest") +takes_value {valid_numeric::<usize>}
+                    "Only keep this number of latest packages uninstalling all others")
                 (@arg EXCLUDE: --exclude +takes_value +multiple {valid_ident}
                     "Identifier of one or more packages that should not be uninstalled. \
                     (ex: core/redis, core/busybox-static/1.42.2/21120102031201)")
