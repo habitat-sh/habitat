@@ -11,7 +11,7 @@ The commands for the Chef Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 1.5.71/20200318171932 (linux) | 19 Mar 2020 |
+| hab 1.5.86/20200408002109 (linux) | 8 Apr 2020 |
 
 ## hab
 
@@ -2382,7 +2382,8 @@ hab pkg uninstall [FLAGS] [OPTIONS] <PKG_IDENT>
 **OPTIONS**
 
 ```
---exclude <EXCLUDE>...    Identifier of one or more packages that should not be uninstalled. (ex: core/redis, core/busybox-static/1.42.2/21120102031201)
+--exclude <EXCLUDE>...         Identifier of one or more packages that should not be uninstalled. (ex: core/redis, core/busybox-static/1.42.2/21120102031201)
+    --keep-latest <KEEP_LATEST>    Only keep this number of latest packages uninstalling all others
 ```
 
 **ARGS**
@@ -2991,6 +2992,8 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
     --listen-gossip <LISTEN_GOSSIP> The listen address for the Gossip System Gateway [env: HAB_LISTEN_GOSSIP=]  [default: 0.0.0.0:9638]
 
     --listen-http <LISTEN_HTTP> The listen address for the HTTP Gateway [env: HAB_LISTEN_HTTP=]  [default: 0.0.0.0:9631]
+
+    --keep-latest-packages <NUM_LATEST_PACKAGES_TO_KEEP> Automatically cleanup old packages [env: HAB_KEEP_LATEST_PACKAGES=]
 
     --org <ORGANIZATION> The organization that the Supervisor and its subsequent services are part of
 
