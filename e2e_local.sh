@@ -10,6 +10,9 @@ test_name=${2:-}
 
 echo ".expeditor/scripts/end_to_end/run_e2e_test.sh '$channel' '$test_name'"
 
+# Note: the Docker socket is added just for testing docker export
+# functionality locally.
+
 if [ -n "$test_name" ]; then
     docker run \
            --rm \
@@ -19,6 +22,7 @@ if [ -n "$test_name" ]; then
            --env-file="$(pwd)/e2e_env" \
            --volume="$(pwd):/workdir" \
            --workdir=/workdir \
+           -v /var/run/docker.sock:/var/run/docker.sock \
            chefes/buildkite bash -c ".expeditor/scripts/end_to_end/run_e2e_test.sh $channel $test_name"
 else
     docker run \
@@ -29,5 +33,6 @@ else
            --env-file="$(pwd)/e2e_env" \
            --volume="$(pwd):/workdir" \
            --workdir=/workdir \
+           -v /var/run/docker.sock:/var/run/docker.sock \
            chefes/buildkite bash -c ".expeditor/scripts/end_to_end/run_e2e_test.sh $channel"
 fi
