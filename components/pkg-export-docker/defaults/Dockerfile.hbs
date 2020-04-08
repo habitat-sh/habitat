@@ -2,6 +2,13 @@ FROM {{base_image}}
 ENV PATH {{path}}
 ADD {{rootfs}} /
 
+# Remember, in order to be able to run a Supervisor as non-root,
+# we must at least have write access to the /hab directory. If you
+# further wish to run an *updating* Supervisor (or one that
+# updates its services), you will (generically) require write
+# access to everything under `/hab/pkgs` as well.
+RUN find /hab -type d -exec chmod g=u {} \;
+
 EXPOSE 9631 {{exposes}}
 RUN HAB_FEAT_OFFLINE_INSTALL=ON \
     {{~ #if environment}}

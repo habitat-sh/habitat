@@ -161,7 +161,6 @@ impl<'a> BuildSpec<'a> {
         self.create_symlink_to_key_cache(ui, rootfs)?;
         let base_pkgs = self.install_base_pkgs(ui, rootfs).await?;
         let user_pkgs = self.install_user_pkgs(ui, rootfs).await?;
-        self.chmod_hab_directory(ui, rootfs)?;
         self.link_binaries(ui, rootfs, &base_pkgs)?;
         self.link_cacerts(ui, rootfs, &base_pkgs)?;
         self.link_user_pkgs(ui, rootfs, &user_pkgs)?;
@@ -278,25 +277,6 @@ impl<'a> BuildSpec<'a> {
         symlink(src, dst)?;
 
         Ok(())
-    }
-
-    /// Perform a recursive `chmod` on the `/hab` directory inside the
-    /// rootfs (assumes that directory has been created and populated
-    /// already).
-    ///
-    /// See the [`chmod`] module documentation for further details on
-    /// why we do this.
-    ///
-    /// [`chmod`]: chmod/index.html
-    #[cfg(unix)]
-    fn chmod_hab_directory(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
-        use crate::chmod;
-        use habitat_common::ui::Glyph;
-
-        let target = rootfs.join("hab");
-        ui.status(Status::Custom(Glyph::CheckMark, "Changing permissions on".into()),
-                  format!("{:?}", target))?;
-        chmod::recursive_g_equal_u(target)
     }
 
     fn remove_symlink_to_artifact_cache(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {

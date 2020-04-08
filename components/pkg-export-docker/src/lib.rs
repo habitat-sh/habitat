@@ -32,8 +32,6 @@ use std::{env,
 
 mod accounts;
 mod build;
-#[cfg(unix)]
-mod chmod;
 mod cli;
 mod docker;
 mod error;
