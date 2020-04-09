@@ -5,9 +5,15 @@
 
 #### Merged Pull Requests
 - [Docs] Emphasize the necessity of TCP for Supervisor function [#7611](https://github.com/habitat-sh/habitat/pull/7611) ([christophermaier](https://github.com/christophermaier))
+
 <!-- latest_release -->
-<!-- release_rollup since=1.5.71 -->
-### Changes since 1.5.71 release
+<!-- release_rollup since=1.5.86 -->
+### Changes since 1.5.86 release
+<!-- release_rollup -->
+
+<!-- latest_stable_release -->
+## [1.5.86](https://github.com/habitat-sh/habitat/tree/1.5.86) (2020-04-08)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/1.5.71...1.5.86)
 
 #### New Features & Enhancements
 - Add `--keep-latest` to `hab pkg uninstall` [#7595](https://github.com/habitat-sh/habitat/pull/7595) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.84 -->
@@ -27,9 +33,7 @@
 - Error if using `-d` when entering Windows studio [#7585](https://github.com/habitat-sh/habitat/pull/7585) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.77 -->
 - Move builder-worker post release step higher in the release readme [#7577](https://github.com/habitat-sh/habitat/pull/7577) ([mwrock](https://github.com/mwrock)) <!-- 1.5.76 -->
 - Update changelog post 1.5.71 [#7566](https://github.com/habitat-sh/habitat/pull/7566) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.75 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release -->
 ## [1.5.71](https://github.com/habitat-sh/habitat/tree/1.5.71) (2020-03-19)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/1.5.50...1.5.71)
 
