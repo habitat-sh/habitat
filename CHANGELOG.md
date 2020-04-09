@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.88 -->
-## [1.5.88](https://github.com/habitat-sh/habitat/tree/1.5.88) (2020-04-08)
+<!-- latest_release 1.5.89 -->
+## [1.5.89](https://github.com/habitat-sh/habitat/tree/1.5.89) (2020-04-09)
 
 #### Merged Pull Requests
-- Rustfmt and Nightly Rust Bump to nightly-2020-04-08 [#7608](https://github.com/habitat-sh/habitat/pull/7608) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
+- [Docs] Emphasize the necessity of TCP for Supervisor function [#7611](https://github.com/habitat-sh/habitat/pull/7611) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.71 -->
 ### Changes since 1.5.71 release
@@ -14,6 +14,7 @@
 - Automatic package cleanup with the `--keep-latest-packages` flag [#7582](https://github.com/habitat-sh/habitat/pull/7582) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.5.80 -->
 
 #### Merged Pull Requests
+- [Docs] Emphasize the necessity of TCP for Supervisor function [#7611](https://github.com/habitat-sh/habitat/pull/7611) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.89 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-04-08 [#7608](https://github.com/habitat-sh/habitat/pull/7608) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.88 -->
 - Automated update of Habitat Documentation [#7607](https://github.com/habitat-sh/habitat/pull/7607) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.87 -->
 - extend windows launcher build timeout to 45 minutes [#7606](https://github.com/habitat-sh/habitat/pull/7606) ([mwrock](https://github.com/mwrock)) <!-- 1.5.86 -->
