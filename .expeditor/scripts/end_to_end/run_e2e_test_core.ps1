@@ -23,8 +23,9 @@ if ($IsLinux -Or $IsMacOS) {
 
 # It may take a while to download a given service package, and
 # services may have long init scripts. Let's be generous in how long
-# we're willing to wait.
-$DefaultServiceTimeout = 40
+# we're willing to wait. Also note that tests may take considerably
+# longer to complete on buildkite than they do locally.
+$DefaultServiceTimeout = 90
 
 function Wait-True([ScriptBlock]$TestScript, [ScriptBlock]$TimeoutScript, [int]$Timeout) {
     $startTime = Get-Date
@@ -182,7 +183,7 @@ function Stop-Supervisor {
 }
 
 function Wait-Process($ProcessName, $Timeout = 1) {
-    $testScript =  { Get-Process $ProcessName -ErrorAction SilentlyContinue }
+    $testScript =  { Get-Process $ProcessName* -ErrorAction SilentlyContinue }
     $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for $ProcessName to start" }
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
 }
