@@ -8,7 +8,7 @@ Describe "Using a Launcher that cannot provide service PIDs" {
     hab pkg install core/hab-launcher/12605/20191112144831
 
     Start-Supervisor -Timeout 20
-    Load-SupervisorService -PackageName "core/redis" -Timeout 20
+    Load-SupervisorService -PackageName "core/redis"
     Wait-Process redis-server -Timeout 10
 
     It "should create PID file" {
@@ -17,7 +17,7 @@ Describe "Using a Launcher that cannot provide service PIDs" {
 
     Context "Supervisor is restarted" {
         $supProc = Get-Process hab-sup
-        $redisProc = Get-Process redis-server
+        $redisProc = Get-Process redis-server*
         Restart-Supervisor
         Wait-Process redis-server -Timeout 10
         $newSupProc = Get-Process hab-sup

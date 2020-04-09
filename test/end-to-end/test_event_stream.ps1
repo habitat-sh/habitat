@@ -31,7 +31,7 @@ Describe "event stream connection to nats" {
     )
 
     # Start the NATS Server
-    Load-SupervisorService -PackageName $natsPkg -Timeout 20 -HealthCheckInterval 1
+    Load-SupervisorService -PackageName $natsPkg -HealthCheckInterval 1
 
     It "event stream connects and sends a health check" {
         # Wait for a few health checks to run
