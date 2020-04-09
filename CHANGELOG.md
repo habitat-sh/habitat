@@ -1,14 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.89 -->
-## [1.5.89](https://github.com/habitat-sh/habitat/tree/1.5.89) (2020-04-09)
+<!-- latest_release 1.5.90 -->
+## [1.5.90](https://github.com/habitat-sh/habitat/tree/1.5.90) (2020-04-09)
 
 #### Merged Pull Requests
-- [Docs] Emphasize the necessity of TCP for Supervisor function [#7611](https://github.com/habitat-sh/habitat/pull/7611) ([christophermaier](https://github.com/christophermaier))
-
+- update changelog for 1.5.86 [#7610](https://github.com/habitat-sh/habitat/pull/7610) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.86 -->
 ### Changes since 1.5.86 release
+
+#### Merged Pull Requests
+- update changelog for 1.5.86 [#7610](https://github.com/habitat-sh/habitat/pull/7610) ([mwrock](https://github.com/mwrock)) <!-- 1.5.90 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release -->
