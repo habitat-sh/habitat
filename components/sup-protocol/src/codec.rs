@@ -349,11 +349,10 @@ impl Decoder for SrvCodec {
     }
 }
 
-impl Encoder for SrvCodec {
+impl Encoder<SrvMessage> for SrvCodec {
     type Error = io::Error;
-    type Item = SrvMessage;
 
-    fn encode(&mut self, msg: Self::Item, buf: &mut BytesMut) -> io::Result<()> {
+    fn encode(&mut self, msg: SrvMessage, buf: &mut BytesMut) -> io::Result<()> {
         buf.reserve(msg.size());
         buf.put_u32(msg.header().0);
         if let Some(txn) = msg.transaction {
