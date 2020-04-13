@@ -5,8 +5,8 @@ description = "Upload and Promote Packages"
 [menu]
   [menu.habitat]
     title = "Upload and Promote Packages"
-    identifier = "builder/sharing-pkgs"
-    parent = "builder"
+    identifier = "habitat/builder/sharing-pkgs"
+    parent = "habitat/builder"
     weight = 20
 
 +++

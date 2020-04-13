@@ -5,8 +5,8 @@ description = "Application Rebuild Flow"
 [menu]
   [menu.habitat]
     title = "Application Rebuild Flow"
-    identifier = "reference/diagrams/application-rebuild-flow Application Rebuild Flow"
-    parent = "reference/diagrams"
+    identifier = "habitat/reference/diagrams/application-rebuild-flow Application Rebuild Flow"
+    parent = "habitat/reference/diagrams"
     weight = 20
 
 +++

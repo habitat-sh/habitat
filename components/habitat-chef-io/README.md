@@ -163,8 +163,8 @@ Below is an example of a page menu entry:
 [menu]
   [menu.habitat]
     title = "Page Menu Title"
-    identifier = "chef_workstation/<file_name>.md Page Title"
-    parent = "chef_workstation"
+    identifier = "habitat/chef_workstation/<file_name>.md Page Title"
+    parent = "habitat/chef_workstation"
     weight = 10
 ```
 
@@ -180,8 +180,8 @@ the example below.
 ```
 [[menu.habitat]]
 title = "Page Menu Title"
-identifier = "habitat/file_name.md Page Title"
-parent = "habitat"
+identifier = "habitat/habitat/file_name.md Page Title"
+parent = "habitat/habitat"
 url = "relative or absolute URL"
 weight = 10
 ```

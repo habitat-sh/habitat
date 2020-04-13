@@ -5,8 +5,8 @@ description = "Chef Habitat and Provisioning Tools"
 [menu]
   [menu.habitat]
     title = "Chef Habitat and Provisioning Tools"
-    identifier = "containers/habitat-and-provisioning"
-    parent = "containers"
+    identifier = "habitat/containers/habitat-and-provisioning"
+    parent = "habitat/containers"
     weight = 20
 
 +++

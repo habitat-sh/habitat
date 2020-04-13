@@ -5,8 +5,8 @@ description = "Using Origin Secrets"
 [menu]
   [menu.habitat]
     title = "Origin Secrets"
-    identifier = "builder/origin-secrets"
-    parent = "builder"
+    identifier = "habitat/builder/origin-secrets"
+    parent = "habitat/builder"
     weight = 20
 
 +++

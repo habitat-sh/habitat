@@ -5,8 +5,8 @@ description = "Chef Habitat Builder Architecture"
 [menu]
   [menu.habitat]
     title = "Chef Habitat Builder Architecture"
-    identifier = "builder/builder-architecture"
-    parent = "builder"
+    identifier = "habitat/builder/builder-architecture"
+    parent = "habitat/builder"
     weight = 20
 
 +++

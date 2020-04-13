@@ -5,8 +5,8 @@ description = "The Chef Habitat Studio Environment"
 [menu]
   [menu.habitat]
     title = "Studio"
-    identifier = "overview/concepts/studio"
-    parent = "overview/concepts"
+    identifier = "habitat/overview/concepts/studio"
+    parent = "habitat/overview/concepts"
 
 +++
 

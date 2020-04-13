@@ -5,8 +5,8 @@ description = "Set up Automated Builds"
 [menu]
   [menu.habitat]
     title = "Automated Builds"
-    identifier = "builder/automated-builds Automated Builds"
-    parent = "builder"
+    identifier = "habitat/builder/automated-builds Automated Builds"
+    parent = "habitat/builder"
     weight = 20
 
 +++

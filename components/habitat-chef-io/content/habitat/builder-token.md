@@ -5,8 +5,8 @@ description = "Personal Access Token Management"
 [menu]
   [menu.habitat]
     title = "Personal Access Token Management"
-    identifier = "builder/builder-token"
-    parent = "builder"
+    identifier = "habitat/builder/builder-token"
+    parent = "habitat/builder"
     weight = 20
 
 +++

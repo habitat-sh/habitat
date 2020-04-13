@@ -5,8 +5,8 @@ description = "Using Origin Keys"
 [menu]
   [menu.habitat]
     title = "Origin Keys"
-    identifier = "builder/origin-keys"
-    parent = "builder"
+    identifier = "habitat/builder/origin-keys"
+    parent = "habitat/builder"
     weight = 20
 
 +++

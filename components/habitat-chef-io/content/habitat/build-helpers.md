@@ -5,8 +5,8 @@ description = "Define how your package builds with helper functions."
 [menu]
   [menu.habitat]
     title = "Build Helpers"
-    identifier = "builder/build-helpers"
-    parent = "builder"
+    identifier = "habitat/builder/build-helpers"
+    parent = "habitat/builder"
     weight = 20
 
 +++

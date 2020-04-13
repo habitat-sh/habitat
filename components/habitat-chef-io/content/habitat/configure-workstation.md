@@ -5,8 +5,8 @@ description = "Setup the Chef Habitat CLI"
 [menu]
   [menu.habitat]
     title = "Configure the Chef Habitat CLI"
-    identifier = "get_started/configure-workstation.md Install Chef Habitat"
-    parent = "get_started"
+    identifier = "habitat/get_started/configure-workstation.md Install Chef Habitat"
+    parent = "habitat/get_started"
     weight = 20
 
 +++

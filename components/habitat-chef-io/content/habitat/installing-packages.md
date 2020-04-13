@@ -5,8 +5,8 @@ description = "Install the Chef Habitat CLI and configure your workstation for C
 [menu]
   [menu.habitat]
     title = "Get Chef Habitat"
-    identifier = "get_started/installing-packages"
-    parent = "get_started"
+    identifier = "habitat/get_started/installing-packages"
+    parent = "habitat/get_started"
     weight = 20
 
 +++

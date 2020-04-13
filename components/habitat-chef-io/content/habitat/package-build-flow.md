@@ -5,8 +5,8 @@ description = "Initial Package Build Flow"
 [menu]
   [menu.habitat]
     title = "Initial Package Build Flow"
-    identifier = "reference/diagrams/package-build-flow"
-    parent = "reference/diagrams"
+    identifier = "habitat/reference/diagrams/package-build-flow"
+    parent = "habitat/reference/diagrams"
     weight = 20
 
 +++

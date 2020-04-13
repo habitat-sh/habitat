@@ -5,8 +5,8 @@ description = "Apache Mesos and DC/OS"
 [menu]
   [menu.habitat]
     title = "Apache Mesos and DC/OS"
-    identifier = "containers/mesos-dcos"
-    parent = "containers"
+    identifier = "habitat/containers/mesos-dcos"
+    parent = "habitat/containers"
     weight = 20
 
 +++

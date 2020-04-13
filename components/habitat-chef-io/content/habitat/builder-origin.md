@@ -5,8 +5,8 @@ description = "Create an Origin on Builder"
 [menu]
   [menu.habitat]
     title = "Create an Origin on Builder"
-    identifier = "builder/builder-origin"
-    parent = "builder"
+    identifier = "habitat/builder/builder-origin"
+    parent = "habitat/builder"
     weight = 20
 
 +++

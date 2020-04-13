@@ -5,8 +5,8 @@ description = "Customize and configure your Chef Habitat Studio and Supervisor e
 [menu]
   [menu.habitat]
     title = "Environment Variables"
-    identifier = "reference/environment-variables"
-    parent = "reference"
+    identifier = "habitat/reference/environment-variables"
+    parent = "habitat/reference"
     weight = 20
 
 +++

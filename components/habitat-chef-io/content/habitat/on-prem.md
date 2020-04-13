@@ -5,8 +5,8 @@ description = "Builder on-prem"
 [menu]
   [menu.habitat]
     title = "Builder on-prem"
-    identifier = "overview/concepts/on-prem"
-    parent = "overview/concepts"
+    identifier = "habitat/overview/concepts/on-prem"
+    parent = "habitat/overview/concepts"
 +++
 
 In addition to our hosted service, we also support installing and running a Chef Habitat Builder Depot on-premises, using your own network and infrastructure, which allows you to choose from a wider selection of authentication providers and to manage how Builder fits into your existing CI/CD processes.

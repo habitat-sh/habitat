@@ -5,8 +5,8 @@ description = "Control service runtime actions with application lifecycle hooks"
 [menu]
   [menu.habitat]
     title = "Application Lifecycle Hooks"
-    identifier = "plans/application-lifecycle-hooks.md Application Lifecycle Hooks"
-    parent = "plans"
+    identifier = "habitat/plans/application-lifecycle-hooks.md Application Lifecycle Hooks"
+    parent = "habitat/plans"
     weight = 20
 
 +++

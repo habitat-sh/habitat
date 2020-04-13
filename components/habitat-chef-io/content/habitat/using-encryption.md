@@ -5,8 +5,8 @@ description = "Securing Supervisor Networks"
 [menu]
   [menu.habitat]
     title = "Securing Supervisor Networks"
-    identifier = "supervisors/using-encryption"
-    parent = "supervisors"
+    identifier = "habitat/supervisors/using-encryption"
+    parent = "habitat/supervisors"
     weight = 20
 
 +++

@@ -5,8 +5,8 @@ description = "Export Chef Habitat packages to Docker, Kubernetes, Helm, Mesos, 
 [menu]
   [menu.habitat]
     title = "Package Export Formats"
-    identifier = "packages/pkg-exports.md Export Chef Habitat Packages"
-    parent = "packages"
+    identifier = "habitat/packages/pkg-exports.md Export Chef Habitat Packages"
+    parent = "habitat/packages"
     weight = 20
 
 +++

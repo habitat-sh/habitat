@@ -6,7 +6,7 @@ description = "About the Chef Habitat Studio"
 [menu]
   [menu.habitat]
     title = "Studio"
-    parent = "studio"
+    parent = "habitat/studio"
 
 +++
 

@@ -19,3 +19,6 @@ serve: assets
 
 lint: assets
 	hugo -D
+
+debug: assets
+	hugo --debug

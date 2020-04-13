@@ -5,8 +5,8 @@ description = "Set package, service, and cache paths, compiler options, install 
 [menu]
   [menu.habitat]
     title = "Plan Variables"
-    identifier = "plans/plan-variables"
-    parent = "plans"
+    identifier = "habitat/plans/plan-variables"
+    parent = "habitat/plans"
     weight = 20
 
 +++

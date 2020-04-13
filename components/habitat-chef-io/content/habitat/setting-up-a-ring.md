@@ -5,8 +5,8 @@ description = "Setting Up a Ring"
 [menu]
   [menu.habitat]
     title = "Setting Up a Ring"
-    identifier = "supervisors/setting-up-a-ring"
-    parent = "supervisors"
+    identifier = "habitat/supervisors/setting-up-a-ring"
+    parent = "habitat/supervisors"
     weight = 20
 
 +++

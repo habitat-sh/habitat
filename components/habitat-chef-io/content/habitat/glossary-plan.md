@@ -5,8 +5,8 @@ description = "Chef Habitat Plans for Linux and Windows Systems"
 [menu]
   [menu.habitat]
     title = "Plans"
-    identifier = "overview/concepts/plan"
-    parent = "overview/concepts"
+    identifier = "habitat/overview/concepts/concepts/plan"
+    parent = "habitat/overview/concepts"
 
 +++
 

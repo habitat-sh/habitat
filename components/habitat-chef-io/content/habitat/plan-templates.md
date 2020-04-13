@@ -5,8 +5,8 @@ description = "Using templates and tags to tune your application configuration f
 [menu]
   [menu.habitat]
     title = "Configuration Templates"
-    identifier = "plans/configuration-templates.md Customize Chef Habitat Packages Configuration"
-    parent = "plans"
+    identifier = "habitat/plans/configuration-templates.md Customize Chef Habitat Packages Configuration"
+    parent = "habitat/plans"
     weight = 20
 
 +++

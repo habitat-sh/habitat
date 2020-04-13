@@ -5,8 +5,8 @@ description = "Chef Habitat and Kubernetes Overview"
 [menu]
   [menu.habitat]
     title = "Chef Habitat and Kubernetes Overview"
-    identifier = "reference/diagrams/kubernetes-flow"
-    parent = "reference/diagrams"
+    identifier = "habitat/reference/diagrams/kubernetes-flow"
+    parent = "habitat/reference/diagrams"
     weight = 20
 
 +++

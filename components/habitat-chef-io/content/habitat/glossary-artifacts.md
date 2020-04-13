@@ -5,8 +5,8 @@ description = "Packages and Artifacts"
 [menu]
   [menu.habitat]
     title = "Packages"
-    identifier = "overview/concepts/packages"
-    parent = "overview/concepts"
+    identifier = "habitat/overview/concepts/packages"
+    parent = "habitat/overview/concepts"
 
 +++
 

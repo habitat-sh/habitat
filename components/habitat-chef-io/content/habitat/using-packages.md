@@ -5,8 +5,8 @@ description = "Running Chef Habitat Packages"
 [menu]
   [menu.habitat]
     title = "Running Chef Habitat Packages"
-    identifier = "packages/using-packages"
-    parent = "packages"
+    identifier = "habitat/packages/using-packages"
+    parent = "habitat/packages"
     weight = 20
 
 +++

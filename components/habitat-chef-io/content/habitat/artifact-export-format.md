@@ -5,8 +5,8 @@ description = "Chef Habitat Artifact Export Formats"
 [menu]
   [menu.habitat]
     title = "Chef Habitat Artifact Export Formats"
-    identifier = "packages/artifact-export-format Export Artifacts"
-    parent = "packages"
+    identifier = "habitat/packages/artifact-export-format Export Artifacts"
+    parent = "habitat/packages"
     weight = 20
 
 +++

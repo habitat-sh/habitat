@@ -5,8 +5,8 @@ description = "Set up your Builder account online"
 [menu]
   [menu.habitat]
     title = "Create a Builder Account"
-    identifier = "builder/builder-account"
-    parent = "builder"
+    identifier = "habitat/builder/builder-account"
+    parent = "habitat/builder"
     weight = 20
 
 +++

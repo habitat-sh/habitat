@@ -5,8 +5,8 @@ description = "Update Services with File Uploads"
 [menu]
   [menu.habitat]
     title = "File Uploads"
-    identifier = "services/file-uploads"
-    parent = "services"
+    identifier = "habitat/services/file-uploads"
+    parent = "habitat/services"
     weight = 20
 
 +++

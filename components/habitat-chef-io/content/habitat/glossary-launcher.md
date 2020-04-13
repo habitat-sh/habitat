@@ -5,8 +5,8 @@ description = "Launcher"
 [menu]
   [menu.habitat]
     title = "Launcher"
-    identifier = "supervisors/launcher"
-    parent = "supervisors"
+    identifier = "habitat/supervisors/launcher"
+    parent = "habitat/supervisors"
     weight = 20
 
 +++

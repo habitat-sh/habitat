@@ -5,8 +5,8 @@ description = "Building Multiple Packages"
 [menu]
   [menu.habitat]
     title = "Building Multiple Packages"
-    identifier = "builder/multiple-plans-builder"
-    parent = "builder"
+    identifier = "habitat/builder/multiple-plans-builder"
+    parent = "habitat/builder"
     weight = 20
 
 +++

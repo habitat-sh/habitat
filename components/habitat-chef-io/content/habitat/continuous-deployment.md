@@ -5,8 +5,8 @@ description = "Continuous Deployment"
 [menu]
   [menu.habitat]
     title = "Continuous Deployment"
-    identifier = "builder/continuous-deployment"
-    parent = "builder"
+    identifier = "habitat/builder/continuous-deployment"
+    parent = "habitat/builder"
     weight = 20
 
 +++

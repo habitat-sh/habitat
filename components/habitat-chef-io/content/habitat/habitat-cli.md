@@ -5,8 +5,8 @@ draft= false
 [menu]
   [menu.habitat]
     title = "hab CLI Reference"
-    identifier = "reference/habitat-cli"
-    parent = "reference"
+    identifier = "habitat/reference/habitat-cli"
+    parent = "habitat/reference"
     weight = 20
 
 +++

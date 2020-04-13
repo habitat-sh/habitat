@@ -5,8 +5,8 @@ description = "Amazon ECS and Chef Habitat"
 [menu]
   [menu.habitat]
     title = "Amazon ECS and Chef Habitat"
-    identifier = "containers/ecs-and-habitat"
-    parent = "containers"
+    identifier = "habitat/containers/ecs-and-habitat"
+    parent = "habitat/containers"
     weight = 20
 
 +++

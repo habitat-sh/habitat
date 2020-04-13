@@ -5,8 +5,8 @@ description = "Monitoring Services"
 [menu]
   [menu.habitat]
     title = "Monitoring Services"
-    identifier = "services/monitor-services"
-    parent = "services"
+    identifier = "habitat/services/monitor-services"
+    parent = "habitat/services"
     weight = 20
 
 +++

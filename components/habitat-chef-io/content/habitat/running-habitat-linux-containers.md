@@ -5,8 +5,8 @@ description = "Running Chef Habitat Linux Containers"
 [menu]
   [menu.habitat]
     title = "Running Chef Habitat Linux Containers"
-    identifier = "containers/running-habitat-linux-containers Linux Containers"
-    parent = "containers"
+    identifier = "habitat/containers/running-habitat-linux-containers Linux Containers"
+    parent = "habitat/containers"
     weight = 20
 
 +++

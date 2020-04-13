@@ -5,8 +5,8 @@ description = "Define package binds in your plan file"
 [menu]
   [menu.habitat]
     title = "Service Binds"
-    identifier = "plans/pkg-binds"
-    parent = "plans"
+    identifier = "habitat/plans/pkg-binds"
+    parent = "habitat/plans"
     weight = 20
 
 +++

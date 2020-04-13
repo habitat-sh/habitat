@@ -5,8 +5,8 @@ description = "Chef Habitat works with Terraform, Cloud Formation, Docker, CoreO
 [menu]
   [menu.habitat]
     title = "Chef Habitat and Other Software"
-    identifier = "containers/habitat-and-others"
-    parent = "containers"
+    identifier = "habitat/containers/habitat-and-others"
+    parent = "habitat/containers"
     weight = 20
 
 +++

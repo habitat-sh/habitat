@@ -5,8 +5,8 @@ description = "Configure the Supervisor for faster package development"
 [menu]
   [menu.habitat]
     title = "Iterative Package Development"
-    identifier = "packages/iterative-development"
-    parent = "packages"
+    identifier = "habitat/packages/iterative-development"
+    parent = "habitat/packages"
     weight = 20
 
 +++

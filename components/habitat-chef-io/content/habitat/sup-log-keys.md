@@ -5,8 +5,8 @@ description = "Supervisor log code reference"
 [menu]
   [menu.habitat]
     title = "Supervisor Log Key"
-    identifier = "supervisors/sup-log-key"
-    parent = "supervisors"
+    identifier = "habitat/supervisors/sup-log-key"
+    parent = "habitat/supervisors"
     weight = 20
 
 +++

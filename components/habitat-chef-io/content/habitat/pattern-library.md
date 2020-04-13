@@ -5,8 +5,8 @@ description = "Example code for Chef Habitat plans and more!"
 [menu]
   [menu.habitat]
     title = "Pattern Library"
-    identifier = "pattern_library"
-    parent = "reference"
+    identifier = "habitat/pattern_library"
+    parent = "habitat/reference"
 
 +++
 

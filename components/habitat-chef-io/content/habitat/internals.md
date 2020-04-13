@@ -5,8 +5,8 @@ description = "Chef Habitat Supervisor topologies, cryptography, and bootstrappi
 [menu]
   [menu.habitat]
     title = "Chef Habitat Internals"
-    identifier = "supervisors/internals"
-    parent = "supervisors"
+    identifier = "habitat/supervisors/internals"
+    parent = "habitat/supervisors"
     weight = 20
 
 +++

@@ -5,8 +5,8 @@ draft = true
 [menu]
   [menu.habitat]
     title = "{{ replace .Name "-" " " | title }}"
-    identifier = "{{ .Name }}.md {{ replace .Name "-" " " | title }}"
-    parent = "overview"
+    identifier = "habitat/{{ .Name }}.md {{ replace .Name "-" " " | title }}"
+    parent = "habitat/overview"
     weight = 10
 
 +++

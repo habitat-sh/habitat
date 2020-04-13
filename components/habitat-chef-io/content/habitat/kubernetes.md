@@ -5,8 +5,8 @@ description = "Export your Chef Habitat package as a Docker and run it on a Kube
 [menu]
   [menu.habitat]
     title = "Kubernetes Development Patterns"
-    identifier = "containers/kubernetes"
-    parent = "containers/kubernetes"
+    identifier = "habitat/containers/kubernetes"
+    parent = "habitat/containers/kubernetes"
     weight = 20
 
 +++

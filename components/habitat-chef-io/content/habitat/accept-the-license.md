@@ -6,8 +6,8 @@ description = "Chef Habitat License"
 [menu]
   [menu.habitat]
     title = "Accept the License"
-    identifier = "get_started/accept-the-license.md The Chef Software License"
-    parent = "get_started"
+    identifier = "habitat/get_started/accept-the-license.md The Chef Software License"
+    parent = "habitat/get_started"
     weight = 20
 
 +++

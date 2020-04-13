@@ -5,8 +5,8 @@ description = "Override default behavior with build phase callbacks"
 [menu]
   [menu.habitat]
     title = "Build Phase Callbacks"
-    identifier = "builder/build-phase-callbacks"
-    parent = "builder"
+    identifier = "habitat/builder/build-phase-callbacks"
+    parent = "habitat/builder"
     weight = 20
 
 +++

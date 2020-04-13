@@ -5,8 +5,8 @@ description = "Service Group Topologies"
 [menu]
   [menu.habitat]
     title = "Service Group Topologies"
-    identifier = "services/topologies"
-    parent = "services"
+    identifier = "habitat/services/topologies"
+    parent = "habitat/services"
     weight = 20
 
 +++

@@ -5,8 +5,8 @@ description = "Documentation for writing Chef Habitat Plan files including confi
 [menu]
   [menu.habitat]
     title = "Developing Packages"
-    identifier = "packages/developing-packages Develop Chef Habitat Packages"
-    parent = "packages"
+    identifier = "habitat/packages/developing-packages Develop Chef Habitat Packages"
+    parent = "habitat/packages"
     weight = 20
 
 +++

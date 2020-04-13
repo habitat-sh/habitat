@@ -5,8 +5,8 @@ description = "Define basic information about your artifact with plan settings"
 [menu]
   [menu.habitat]
     title = "Plan Settings"
-    identifier = "plans/plan-settings"
-    parent = "plans"
+    identifier = "habitat/plans/plan-settings"
+    parent = "habitat/plans"
     weight = 20
 
 +++

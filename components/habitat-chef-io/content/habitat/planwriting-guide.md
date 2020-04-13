@@ -5,8 +5,8 @@ description = "Advanced Plan Writing Guide"
 [menu]
   [menu.habitat]
     title = "Advanced Plan Writing Guide"
-    identifier = "plans/planwriting-guide"
-    parent = "plans"
+    identifier = "habitat/plans/planwriting-guide"
+    parent = "habitat/plans"
     weight = 20
 
 +++

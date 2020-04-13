@@ -7,8 +7,8 @@ aliases = ["/install-habitat.html"]
 [menu]
   [menu.habitat]
     title = "Install Chef Habitat"
-    identifier = "get_started/install-habitat.md Install Chef Habitat"
-    parent = "get_started"
+    identifier = "habitat/get_started/install-habitat.md Install Chef Habitat"
+    parent = "habitat/get_started"
     weight = 10
 
 +++
