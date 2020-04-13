@@ -142,7 +142,7 @@ pub struct Credentials {
 }
 
 impl Credentials {
-    pub fn new(registry_type: RegistryType, username: &str, password: &str) -> Result<Self> {
+    pub async fn new(registry_type: RegistryType, username: &str, password: &str) -> Result<Self> {
         match registry_type {
             RegistryType::Amazon => {
                 // The username and password should be valid IAM credentials
@@ -152,7 +152,7 @@ impl Credentials {
                 let client = EcrClient::new_with(HttpClient::new()?, provider, Region::UsWest2);
                 let auth_token_req = GetAuthorizationTokenRequest { registry_ids: None };
                 let token = client.get_authorization_token(auth_token_req)
-                                  .sync()
+                                  .await
                                   .map_err(Error::TokenFetchFailed)
                                   .and_then(|resp| {
                                       resp.authorization_data
@@ -227,7 +227,7 @@ pub async fn export_for_cli_matches(ui: &mut UI,
                                            matches.value_of("REGISTRY_USERNAME")
                                                   .expect("Username not specified"),
                                            matches.value_of("REGISTRY_PASSWORD")
-                                                  .expect("Password not specified"))?;
+                                                  .expect("Password not specified")).await?;
         docker_image.push(ui, &credentials, naming.registry_url)?;
     }
     if matches.is_present("RM_IMAGE") {
