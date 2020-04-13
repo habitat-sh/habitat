@@ -1,15 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.91 -->
-## [1.5.91](https://github.com/habitat-sh/habitat/tree/1.5.91) (2020-04-09)
+<!-- latest_release 1.5.92 -->
+## [1.5.92](https://github.com/habitat-sh/habitat/tree/1.5.92) (2020-04-13)
 
 #### Merged Pull Requests
-- Prepare e2e tests for powershell 7.0 [#7588](https://github.com/habitat-sh/habitat/pull/7588) ([mwrock](https://github.com/mwrock))
+- Cargo Update [#7609](https://github.com/habitat-sh/habitat/pull/7609) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.86 -->
 ### Changes since 1.5.86 release
 
 #### Merged Pull Requests
+- Cargo Update [#7609](https://github.com/habitat-sh/habitat/pull/7609) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.92 -->
 - Prepare e2e tests for powershell 7.0 [#7588](https://github.com/habitat-sh/habitat/pull/7588) ([mwrock](https://github.com/mwrock)) <!-- 1.5.91 -->
 - update changelog for 1.5.86 [#7610](https://github.com/habitat-sh/habitat/pull/7610) ([mwrock](https://github.com/mwrock)) <!-- 1.5.90 -->
 <!-- release_rollup -->
