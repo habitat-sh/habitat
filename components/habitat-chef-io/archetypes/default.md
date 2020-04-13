@@ -1,6 +1,9 @@
 +++
 title = "{{ replace .Name "-" " " | title }}"
 draft = true
+date = ["date", "publishDate", "lastmod"]
+lastmod = [":git", "lastmod", "date", "publishDate"]
+publishDate = ["publishDate", "date"]
 
 [menu]
   [menu.habitat]
