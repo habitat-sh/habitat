@@ -1,10 +1,11 @@
 baseURL = "/"
 languageCode = "en-us"
-title = "Chef Habitat Docs"
+title = "Habitat Documentation"
 theme = "docs-new"
 enableGitInfo = true
 pluralizeListTitles = false
 
+disableKinds = false
 
 [markup]
   defaultMarkdownHandler = "goldmark"
@@ -60,6 +61,7 @@ pluralizeListTitles = false
 [params]
   enable_search = true
   robots = ''
+  menuOrder = ["infra", "workstation", "habitat", "inspec", "automate", "legacy", "api", "extra"]
 
 [taxonomies]
   category = "categories"
@@ -104,58 +106,75 @@ identifier = "download"
 url = "https://downloads.chef.io/"
 weight = 60
 
+###
+# Chef Habitat Menu ##
+###
 
-## Docs Menu ##
-
-[[menu.docs]]
+[[menu.habitat]]
 title = "Chef Habitat"
+identifier = "habitat"
+weight = 10
+
+[[menu.habitat]]
+title = "Overview"
 identifier = "overview"
 weight = 20
 
-  [[menu.docs]]
-  title = "Community"
-  identifier = "community"
+  [[menu.habitat]]
+  title = "Concepts"
+  identifier = "overview/concepts"
   parent = "overview"
-  weight = 20
+  weight = 100
 
-  [[menu.docs]]
-  title = "Packages & Platforms"
-  identifier = "packages_&_platforms"
-  parent = "overview"
-  weight = 30
+[[menu.habitat]]
+title = "Get Started"
+identifier = "get_started"
+weight = 30
 
-  [[menu.docs]]
-  title = "Licensing"
-  identifier = "licensing"
-  parent = "overview"
-  weight = 50
+[[menu.habitat]]
+title = "Builder"
+identifier = "builder"
+weight = 40
 
-[[menu.docs]]
-title = "Available on GitHub"
-identifier = "github"
-url = "https://github.com/habitat.sh/habitat"
+[[menu.habitat]]
+title = "Packages"
+identifier = "packages"
+weight = 50
+
+[[menu.habitat]]
+title = "Plans"
+identifier = "plans"
+weight = 60
+
+[[menu.habitat]]
+title = "Services"
+identifier = "services"
+weight = 70
+
+[[menu.habitat]]
+title = "Supervisors"
+identifier = "supervisors"
+weight = 80
+
+[[menu.habitat]]
+title = "Studio"
+identifier = "studio"
+url = "/studio"
 weight = 90
 
-[[menu.docs]]
-title = "Get Chef"
-identifier = "get chef"
-url = "https://www.chef.io/get-chef"
-weight = 100
-
-[[menu.docs]]
-title = "Send Feedback"
-identifier = "send feedback"
-url = "/feedback/"
+[[menu.habitat]]
+title = "Containers"
+identifier = "containers"
 weight = 110
 
-[[menu.docs]]
-title = "Support"
-identifier = "support"
-url = "https://www.chef.io/support/"
+[[menu.habitat]]
+title = "Reference"
+identifier = "reference"
 weight = 120
 
-[[menu.docs]]
-title = "Archive"
-identifier = "archive"
-url = "https://docs-archive.chef.io/"
-weight = 130
+  [[menu.habitat]]
+  title = "Diagrams"
+  identifier = "reference/diagrams"
+  parent = "reference"
+
+

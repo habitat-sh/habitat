@@ -15,7 +15,7 @@ clean_all:
 	rm -rf results/
 
 serve: assets
-	hugo server --buildDrafts --noHTTPCache
+	hugo server --buildDrafts --noHTTPCache --config=config.toml,config_habitat_menu.toml
 
 lint: assets
 	hugo -D

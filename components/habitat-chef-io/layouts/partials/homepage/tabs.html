@@ -1,0 +1,67 @@
+<section id="tabs" class="section-tabs bg-gray padding-top padding-bottom">
+<div class="grid-container">
+    <!-- Nav tabs -->
+    <ul class="tabs-nav tabs" data-responsive-accordion-tabs="tabs small-accordion medium-tabs" id="tabs">
+      <li class="tabs-title is-active"><a href="#tab1" aria-selected="true">Ad-Hoc Configuration</a></li>
+      <li class="tabs-title"><a href="#tab2" aria-selected="true">Cloud Integrated</a></li>
+      <li class="tabs-title"><a href="#tab3" aria-selected="true">Operational Insights</a></li>
+    </ul>
+
+    <!-- Tab panes -->
+    <div class="tabs-content" data-tabs-content="tabs">
+      <div class="tabs-panel is-active" id="tab1">
+        <div class="grid-x">
+          <div class="cell large-6 large-offset-1 large-order-2 medium-order-1">
+            <!-- <div class="text-center">
+              <img src="{{ "images/chef-workstation/chef-run.gif" | relURL }}" alt="Ad-Hoc Configuration with Chef Workstation">
+            </div>
+          </div> -->
+          <div class="cell large-5 large-order-1 medium-order-2">
+            <div class="valign-large">
+              <ol class="styled-nums">
+                <li>Chef Workstation lets you execute Chef resources and recipes on servers whether or not they've been bootstrapped with the Chef Client.</li>
+                <li>With the full Chef Development Kit included, Chef Workstation provides everything you need for consuming or creating Chef code.</li>
+              </ol>
+              <a href="/docs/chef-workstation/getting-started/" class="cta">Start using Chef Workstation Today</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tabs-panel" id="tab2">
+        <div class="grid-x">
+          <div class="cell large-6 large-offset-1 large-order-2 medium-order-1">
+            <!-- <div class="text-center">
+              <img src="{{ "images/chef/cloud_resources.png" | relURL }}" alt="Chef Cloud Resources">
+            </div>
+          </div> -->
+          <div class="cell large-5 large-order-1 medium-order-2">
+            <ol class="styled-nums">
+              <li>Chef integrates with cloud provisioning APIs so you can launch, bootstrap, and configure new instances with a single command.</li>
+              <li>Cloud resources let you manage cloud storage, database, access control, and virtual networking solutions with the same code you use to configure your on-premises estate.</li>
+            </ol>
+            <a href="https://learn.chef.io/tracks/chef-on-aws#/" class="cta" target="_blank">Learn how to use Chef in AWS</a>
+            <a href="https://learn.chef.io/tracks/chef-on-azure#/" class="cta" target="_blank">Learn how to use Chef in Azure</a>
+          </div>
+        </div>
+      </div>
+      <div class="tabs-panel" id="tab3">
+        <div class="grid-x">
+          <!-- <div class="cell large-6 large-offset-1 large-order-2 medium-order-1">
+            <div class="text-center">
+              <img src="{{ "images/chef-automate/client_runs.png" | relURL }}" alt="Chef Client Run Data in Chef Automate">
+            </div>
+          </div> -->
+          <div class="cell large-5 large-order-1 medium-order-2">
+            <div class="valign-large">
+              <ol class="styled-nums">
+                <li>Chef Automate provides operational visibility of every change implemented across your estate.</li>
+                <li>Event feeds show not just how your environments are changing, but when Chef code is updated and by whom.</li>
+              </ol>
+              <a href="https://automate.chef.io" class="cta">Learn more about Chef Automate</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

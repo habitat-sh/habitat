@@ -1,0 +1,14 @@
++++
+title = "Studio"
+description = "The Chef Habitat Studio Environment"
+
+[menu]
+  [menu.habitat]
+    title = "Studio"
+    identifier = "overview/concepts/studio"
+    parent = "overview/concepts"
+
++++
+
+The Chef Habitat Studio is a clean, self-contained, minimal environment in which you can develop, build, and package software that is free from any upstream operating system distribution. All tools and dependencies included in the Studio are installed through Chef Habitat packages, thus preventing any unwanted dependencies from being used by your package.
+

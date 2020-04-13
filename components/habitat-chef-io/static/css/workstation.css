@@ -1,0 +1,20 @@
+#sidebar-nav > .nav > .accordion-menu .nested.is-accordion-submenu .is-accordion-submenu-item a{
+  padding-bottom: 0px;
+}
+
+.accordion-menu .is-accordion-submenu-parent:not(.has-submenu-toggle) > a{
+  padding-bottom: 0px;
+}
+
+.menu_weight{
+  padding: 0 0 12px 20px;
+  font-size: 10px;
+}
+
+.workstation_menu_true {
+  color: green;
+}
+
+.workstation_menu_false {
+  color: red;
+}
