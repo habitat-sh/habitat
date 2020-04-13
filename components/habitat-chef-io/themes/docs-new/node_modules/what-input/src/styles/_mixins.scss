@@ -1,0 +1,70 @@
+@mixin clearfix {
+  &::after {
+    clear: both;
+    content: '';
+    display: table;
+  }
+}
+
+@mixin null-margins {
+  > :first-child {
+    margin-top: 0 !important;
+  }
+
+  > :last-child {
+    margin-bottom: 0 !important;
+  }
+}
+
+@mixin hover {
+  &:focus,
+  &:hover {
+    @content;
+  }
+}
+
+@mixin a11y-focus {
+  &:active,
+  &:focus {
+    box-shadow: 0 0 0 3px orange !important;
+    outline: none !important;
+  }
+
+  [data-whatintent='mouse'] &:active,
+  [data-whatintent='mouse'] &:focus,
+  [data-whatintent='touch'] &:active,
+  [data-whatintent='touch'] &:focus {
+    box-shadow: none !important;
+  }
+}
+
+@mixin input-style-base {
+  appearance: none;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: #555;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  height: ($unit * 4);
+  margin: 0;
+  padding: 0 $unit;
+  width: 100%;
+}
+
+@mixin placeholder {
+  &::-webkit-input-placeholder {
+    // Chrome/Opera/Safari
+    @content;
+  }
+
+  &::-moz-placeholder {
+    // Firefox 19+
+    @content;
+  }
+
+  &:-ms-input-placeholder {
+    // IE 10+
+    @content;
+  }
+}

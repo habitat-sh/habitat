@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>/habitat/</loc>
+    <lastmod>2020-03-10T12:05:21-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/</loc>
+    <lastmod>2020-03-10T12:05:21-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/habitat/supported_platforms/</loc>
+    <lastmod>2020-03-10T12:05:21-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/habitat/community/</loc>
+    <lastmod>2020-03-10T12:04:00-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/habitat/planwriting-guide/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/ecs-and-habitat/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/mesos-dcos/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/application-lifecycle-hooks/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/glossary-hooks/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/application-rebuild-flow/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/glossary-artifacts/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/docker-automated-flow/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/automated-builds/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/aks-and-habitat/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/binary-wrapper/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/plan-builds/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/build-helpers/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/build-phase-callbacks/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/glossary-builder/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/on-prem/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/multiple-plans-builder/</loc>
+  </url>
+  
+  <url>
+    <loc>/categories/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/habitat-and-configuration-management/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/habitat-and-orchestration/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/habitat-and-containers/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/habitat-and-continuous-integration/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/kubernetes-flow/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/habitat-and-others/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/habitat-and-provisioning/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/architecture-overview/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/artifact-export-format/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/builder-architecture/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/on-prem-flow/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/internals/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/package-contents/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/glossary-plan/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/reference/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/plan-templates/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/configure-workstation/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/container-orchestration/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/best-practices/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/continuous-deployment/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/remote-control/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/builder-account/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/builder-token/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/builder-origin/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/using-custom-certs/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/dependency-update-flow/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/developing-packages/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/docker-flow/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/install-faq/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/environment-variables/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/file-uploads/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/installing-packages/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/gcr-and-habitat/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/glossary-hab/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/habitat-cli/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/package-build-flow/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/install-habitat/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/iterative-development/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/glossary-keys/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/kubernetes/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/glossary-launcher/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/monitor-services/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/origin-keys/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/origin-secrets/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/pkg-binds/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/pkg-exports/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/pattern-library/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/plan-helpers/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/plan-settings/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/plan-variables/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/promote-packages/</loc>
+  </url>
+  
+  <url>
+    <loc>/resources/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/running-habitat-linux-containers/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/running-habitat-servers/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/using-packages/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/running-habitat-windows-containers/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/template-data/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/runtime-binding/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/glossary-scaffolding/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/using-encryption/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/topologies/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/using-updates/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/service-groups/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/config-updates/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/glossary-services/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/setting-up-a-ring/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/sitemap/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/glossary-studio/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/glossary-supervisor/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/sup-log-configuration/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/sup-log-keys/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/robust-supervisor-networks/</loc>
+  </url>
+  
+  <url>
+    <loc>/tags/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/accept-the-license/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/under-construction/</loc>
+  </url>
+  
+  <url>
+    <loc>/habitat/sharing-pkgs/</loc>
+  </url>
+  
+</urlset>

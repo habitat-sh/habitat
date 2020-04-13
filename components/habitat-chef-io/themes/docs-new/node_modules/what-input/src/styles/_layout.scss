@@ -1,0 +1,225 @@
+.container {
+  box-sizing: content-box;
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0 auto;
+  max-width: $container-width;
+  padding: 0 ($unit * 2);
+
+  @media (min-width: 800px) {
+    padding: 0 ($unit * 3);
+  }
+}
+
+.lede {
+  font-size: 20px;
+  font-weight: 300;
+  line-height: ($unit * 4);
+
+  @media (min-width: 800px) {
+    font-size: 22px;
+  }
+}
+
+.well {
+  @include clearfix;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  margin: ($unit * 3) 0;
+  padding: ($unit * 3);
+}
+
+.well-row {
+  @media (min-width: 800px) {
+    display: flex;
+    margin-left: ($unit * -3);
+  }
+}
+
+.well-column {
+  @include null-margins;
+
+  @media (max-width: 799px) {
+    + .well-column {
+      border-top: 1px solid #ccc;
+      margin-top: ($unit * 4);
+      padding-top: ($unit * 3);
+    }
+  }
+
+  @media (min-width: 800px) {
+    padding-left: ($unit * 3);
+    width: 50%;
+  }
+}
+
+.list-group {
+  list-style: none;
+  padding: 0;
+}
+
+.list-group-item {
+  &:first-child a {
+    border-radius: 4px 4px 0 0;
+  }
+
+  &:last-child a {
+    border-bottom: 1px solid #ddd;
+    border-radius: 0 0 4px 4px;
+  }
+
+  a {
+    @include a11y-focus;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    color: #555;
+    display: block;
+    padding: ($unit * 2) ($unit * 2);
+    text-decoration: none;
+    transition: all 0.2s ease;
+
+    @include hover {
+      background-color: #f5f5f5;
+    }
+
+    &:active,
+    &:focus {
+      position: relative;
+    }
+  }
+}
+
+.well-column {
+  button {
+    appearance: none;
+    background-color: #337ab7;
+    border: 1px solid #2e6da4;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    margin: 0;
+    padding: $unit ($unit * 2);
+    text-align: center;
+    transition: all 0.2s ease;
+
+    @include hover {
+      background-color: #286090;
+      border-color: #204d74;
+    }
+  }
+
+  label {
+    color: #333;
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: ($unit * 3);
+  }
+
+  p {
+    margin: ($unit * 2) 0;
+
+    &.checkbox label {
+      font-weight: 400;
+    }
+  }
+
+  input {
+    &:not([type='submit']):not([type='checkbox']):not([type='radio']) {
+      @include input-style-base;
+      box-shadow: inset 0 1px 1px rgba(#000, 0.075);
+      transition: all 0.2s ease;
+
+      @include placeholder {
+        color: #999;
+      }
+
+      [data-whatintent='mouse'] &:focus {
+        border-color: #31708f;
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075),
+          0 0 8px rgba(49, 112, 143, 0.6);
+      }
+
+      [data-whatinput='touch'] &:focus {
+        border-color: #8a6d3b;
+      }
+    }
+  }
+
+  select {
+    @include input-style-base;
+    background-image: url(../images/select-arrow.svg);
+    background-position: calc(100% - 10px) 50%;
+    background-repeat: no-repeat;
+    background-size: 10px 6px;
+    padding-right: 30px;
+
+    [data-whatintent='mouse'] &:focus {
+      border-color: #31708f;
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075),
+        0 0 8px rgba(49, 112, 143, 0.6);
+    }
+
+    [data-whatinput='touch'] &:focus {
+      border-color: #8a6d3b;
+    }
+
+    @media (min-width: 800px) {
+      min-width: 50%;
+      width: auto;
+    }
+
+    // hide arrow in IE
+    &::-ms-expand {
+      display: none;
+    }
+  }
+
+  textarea {
+    @include input-style-base;
+    box-shadow: inset 0 1px 1px rgba(#000, 0.075);
+    height: 5em;
+    padding-bottom: $unit;
+    padding-top: $unit;
+    transition: all 0.2s ease;
+
+    [data-whatinput='touch'] &:focus {
+      border-color: #8a6d3b;
+    }
+
+    [data-whatintent='mouse'] &:focus {
+      border-color: #31708f;
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075),
+        0 0 8px rgba(49, 112, 143, 0.6);
+    }
+  }
+}
+
+footer {
+  @include clearfix;
+  font-size: 14px;
+  margin: ($unit * 4) 0;
+
+  p {
+    margin: 0;
+  }
+
+  .text-love {
+    color: #a94442;
+  }
+
+  .pull-left {
+    float: left;
+    margin: 0;
+  }
+
+  .pull-right {
+    float: right;
+    margin: 0;
+  }
+}

@@ -1,0 +1,51 @@
+@import 'variables';
+@import 'mixins';
+@import 'html';
+@import 'layout';
+
+/*
+ * what-input styles
+ */
+
+// indicator
+.input-indicator,
+.input-intent {
+  border-radius: 3px;
+  display: inline-block;
+  padding: 0 3px;
+  transition: all 0.2s ease;
+}
+
+[data-whatinput='mouse'] .input-indicator.-mouse,
+[data-whatintent='mouse'] .input-intent.-mouse {
+  background-color: rgba(#337ab7, 0.2);
+  box-shadow: 0 0 0 1px rgba(#337ab7, 0.3);
+  color: #337ab7;
+}
+
+[data-whatinput='keyboard'] .input-indicator.-keyboard,
+[data-whatintent='keyboard'] .input-intent.-keyboard {
+  background-color: rgba(orange, 0.1);
+  box-shadow: 0 0 0 1px rgba(orange, 0.3);
+  color: orange;
+}
+
+[data-whatinput='touch'] .input-indicator.-touch,
+[data-whatintent='touch'] .input-intent.-touch {
+  background-color: rgba(#8a6d3b, 0.1);
+  box-shadow: 0 0 0 1px rgba(#8a6d3b, 0.3);
+  color: #8a6d3b;
+}
+
+// suppress focus outline for mouse and touch
+[data-whatintent='mouse'],
+[data-whatintent='touch'] {
+  *:focus {
+    outline: none;
+  }
+}
+
+// divs or sections with `tabindex`
+html:not([data-whatinput='keyboard']) div:focus {
+  outline: none;
+}

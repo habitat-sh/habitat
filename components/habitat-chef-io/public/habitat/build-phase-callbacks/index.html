@@ -1,0 +1,2227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="robots" content="">
+  <title>Build Phase Callbacks</title>
+  <link rel="shortcut icon" type="image/png" href="/images/favicon.ico" />
+  
+  
+  <link rel="stylesheet" href="/sass/main.css" />
+  <link rel="stylesheet" href="/css/habitat.css" />
+</head>
+
+<body>
+  <a class="skip-main" href="#main-content-col">Skip to main content</a>
+
+  <nav id="utility-bar" class = "show-for-medium">
+    <div class="utility-bar-logo">
+      <a href="/"><img src="/images/chef-logo.svg" alt="Chef Documentation" class="chef"></a>
+    </div>
+
+    <ul class="menu align-right top-nav">
+      
+      <li><a href="https://www.chef.io/">Chef.io</a></li>
+      
+      <li><a href="https://learn.chef.io/">Learn Chef</a></li>
+      
+      <li><a href="https://blog.chef.io/">Blog</a></li>
+      
+      <li><a href="https://community.chef.io/">Community</a></li>
+      
+      <li><a href="https://training.chef.io/">Training</a></li>
+      
+      <li><a href="https://downloads.chef.io/">Download</a></li>
+      
+    </ul>
+</nav>
+
+  <nav id="utility-bar" class = "show-for-small-only">
+  <div class="">
+    <button id="header-toggle" type="button" class="utility-bar-nav-bars " data-toggle="left-nav-off-canvas">
+      <i class="fas fa-bars fa-lg"></i>
+    </button>
+    <div class="utility-bar-logo">
+      <a href="/"><img src="/images/chef-logo.svg" alt="Chef Documentation" class="chef"></a>
+    </div>
+  </div>
+</nav>
+
+
+  <div id="left-nav-off-canvas" class="hide-for-medium" data-toggler=".reveal">
+    
+
+
+<aside class="sticky" data-sticky data-top-anchor="utility-bar:bottom" data-btm-anchor="footer:top" data-margin-top="0" data-margin-bottom="2">
+  <div>
+    <button class="close-button" data-toggle="left-nav-off-canvas">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <nav id="sidebar-nav" class="offCanvas">
+    
+      <div class="search">
+        <form class="basic-form" method="" action="">
+          <input type="text" class="st-default-search-input" placeholder="Search...">
+        </form>
+      </div>
+    
+    <div class="nav">
+      <ul class="vertical menu accordion-menu" data-accordion-menu>
+        
+          
+          
+        
+          
+          
+        
+          
+          
+            
+              <li>
+                <a href="">chef_habitat</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/" >
+                          About Chef Habitat
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/community/" >
+                          Chef Habitat Community
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/supported_platforms/" >
+                          Supported Packages &amp; Platforms
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/builder</a>
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li>
+                        <a href="/habitat/automated-builds/" >
+                          Automated Builds
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/build-helpers/" >
+                          Build Helpers
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li class="active" >
+                        <a href="/habitat/build-phase-callbacks/" >
+                          Build Phase Callbacks
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/multiple-plans-builder/" >
+                          Building Multiple Packages
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/habitat-and-continuous-integration/" >
+                          Chef Habitat and Continuous Integration
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/builder-architecture/" >
+                          Chef Habitat Builder Architecture
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/continuous-deployment/" >
+                          Continuous Deployment
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/builder-account/" >
+                          Create a Builder Account
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/builder-token/" >
+                          Personal Access Token Management
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/builder-origin/" >
+                          Create an Origin on Builder
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/origin-secrets/" >
+                          Origin Secrets
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/sharing-pkgs/" >
+                          Upload and Promote Packages
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/containers</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/ecs-and-habitat/" >
+                          Amazon ECS and Chef Habitat
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/mesos-dcos/" >
+                          Apache Mesos and DC/OS
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/habitat-and-orchestration/" >
+                          Chef Habitat and Container Orchestration
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/habitat-and-containers/" >
+                          Chef Habitat and Containers
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/habitat-and-others/" >
+                          Chef Habitat and Other Software
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/habitat-and-provisioning/" >
+                          Chef Habitat and Provisioning Tools
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/container-orchestration/" >
+                          Container Orchestration
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/best-practices/" >
+                          containers
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/gcr-and-habitat/" >
+                          Google Container Registry (GCR)
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/diagrams/package-build-flow</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/package-build-flow/">Initial Package Build Flow</a>
+                        <ul class="menu vertical nested">
+                          
+                            
+                              <li>
+                                <a href="/habitat/application-rebuild-flow/" >Application Rebuild Flow</a>
+                              </li>
+                            
+                          
+                            
+                              <li>
+                                <a href="/habitat/docker-automated-flow/" >Automate Docker Container Publishing Flow</a>
+                              </li>
+                            
+                          
+                            
+                              <li>
+                                <a href="/habitat/kubernetes-flow/" >Chef Habitat and Kubernetes Overview</a>
+                              </li>
+                            
+                          
+                            
+                              <li>
+                                <a href="/habitat/architecture-overview/" >Architecture Overview</a>
+                              </li>
+                            
+                          
+                            
+                              <li>
+                                <a href="/habitat/on-prem-flow/" >Chef Habitat Builder on-prem Flow</a>
+                              </li>
+                            
+                          
+                            
+                              <li>
+                                <a href="/habitat/dependency-update-flow/" >Dependency Update Flow</a>
+                              </li>
+                            
+                          
+                            
+                              <li>
+                                <a href="/habitat/docker-flow/" >Docker Container Publishing Flow</a>
+                              </li>
+                            
+                          
+                            
+                              <li>
+                                <a href="/habitat/runtime-binding/" >Runtime Services Group Binding</a>
+                              </li>
+                            
+                          
+                        </ul>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/get_started</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/install-habitat/" >
+                          Install Chef Habitat
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/configure-workstation/" >
+                          Configure the Chef Habitat CLI
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/installing-packages/" >
+                          Get Chef Habitat
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/accept-the-license/" >
+                          Accept the License
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/install-faq/" >
+                          Download and Install FAQ
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/glossary</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/application-lifecycle-hooks/" >
+                          Application Lifecycle Hooks
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/integrations</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/aks-and-habitat/" >
+                          Azure Container Services (AKS)
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/overview</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-artifacts/" >
+                          Artifacts
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-builder/" >
+                          Builder
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/on-prem/" >
+                          Builder on-prem
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-plan/" >
+                          Chef Habitat Plans for Linux and Windows Systems
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-keys/" >
+                          Keys
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/running-habitat-linux-containers/" >
+                          Running Chef Habitat Linux Containers
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/running-habitat-servers/" >
+                          Running Chef Habitat on Servers (Linux and Windows)
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/running-habitat-windows-containers/" >
+                          Running Chef Habitat Windows Containers
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-services/" >
+                          Services
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-studio/" >
+                          Studio
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-supervisor/" >
+                          Supervisor
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/packages</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/artifact-export-format/" >
+                          Chef Habitat Artifact Export Formats
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/package-contents/" >
+                          Chef Habitat Package Contents
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/developing-packages/" >
+                          Developing Packages
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/iterative-development/" >
+                          Iterative Package Development
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/pkg-exports/" >
+                          Package Export Formats
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/using-packages/" >
+                          Running Chef Habitat Packages
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/pattern_library</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/pattern-library/" >
+                          Pattern Library
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/plans</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/planwriting-guide/" >
+                          Advanced Plan Writing Guide
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-hooks/" >
+                          Application Lifecycle Hooks
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/binary-wrapper/" >
+                          Binary Wrapper Packages
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/plan-builds/" >
+                          Build
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/plan-templates/" >
+                          Configuration Templates
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/pkg-binds/" >
+                          Service Binds
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/plan-helpers/" >
+                          Plan Helpers
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/plan-settings/" >
+                          Plan Settings
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/plan-variables/" >
+                          Plan Variables
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-scaffolding/" >
+                          Scaffolding
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/reference</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/reference/" >
+                          Chef Habitat Reference Overview
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/using-custom-certs/" >
+                          Custom Certificates
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/environment-variables/" >
+                          Environment Variables
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/habitat-cli/" >
+                          hab CLI Reference
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/template-data/" >
+                          Runtime Configuration Settings
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/services</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/file-uploads/" >
+                          File Uploads
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/monitor-services/" >
+                          Monitoring Services
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/config-updates/" >
+                          Service Updates
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/supervisiors</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/robust-supervisor-networks/" >
+                          Supervisor Networks
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/supervisor</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/internals/" >
+                          Chef Habitat Internals
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-launcher/" >
+                          Launcher
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/supervisors</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/remote-control/" >
+                          Control Supervisors Remotely
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/using-encryption/" >
+                          Securing Supervisor Networks
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/using-updates/" >
+                          Service Group Update Strategy
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/setting-up-a-ring/" >
+                          Setting Up a Ring
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/sup-log-configuration/" >
+                          Supervisor Log Configuration
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/sup-log-keys/" >
+                          Supervisor Log Key
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+      </ul>
+      <ul class="vertical menu accordion-menu show-for-small-only" data-accordion-menu>
+        
+          <li>
+            <a href="https://www.chef.io/"  class="external" target="_blank">
+            Chef.io
+          </a>
+          </li>
+        
+          <li>
+            <a href="https://learn.chef.io/"  class="external" target="_blank">
+            Learn Chef
+          </a>
+          </li>
+        
+          <li>
+            <a href="https://blog.chef.io/"  class="external" target="_blank">
+            Blog
+          </a>
+          </li>
+        
+          <li>
+            <a href="https://community.chef.io/"  class="external" target="_blank">
+            Community
+          </a>
+          </li>
+        
+          <li>
+            <a href="https://training.chef.io/"  class="external" target="_blank">
+            Training
+          </a>
+          </li>
+        
+          <li>
+            <a href="https://downloads.chef.io/"  class="external" target="_blank">
+            Download
+          </a>
+          </li>
+        
+      </ul>
+    </div>
+  </nav>
+</aside>
+
+  </div>
+
+  <div class="off-canvas-wrapper">
+    <div class="grid-container">
+      <div class="grid-x">
+
+        <div class="cell position-left off-canvas-absolute reveal-for-medium col-sidebar" id="left-nav-on-canvas" data-off-canvas data-transition="overlap" >
+            
+
+
+<aside class="sticky sidebar" data-sticky data-top-anchor="utility-bar:bottom" data-btm-anchor="footer:top">
+  <nav id="sidebar-nav">
+    <div class="nav">
+      <ul class="vertical menu accordion-menu" data-accordion-menu>
+        
+          
+          
+        
+          
+          
+        
+          
+          
+            
+              <li>
+
+                <a href="">chef_habitat</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/">About Chef Habitat</a>
+                        
+                        <span class="menu_weight">Weight: 10</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/community/">Chef Habitat Community</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/supported_platforms/">Supported Packages &amp; Platforms</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/builder</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/automated-builds/">Automated Builds</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/build-helpers/">Build Helpers</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  class="active"  >
+                        
+                          <a href="/habitat/build-phase-callbacks/">Build Phase Callbacks</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/multiple-plans-builder/">Building Multiple Packages</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/habitat-and-continuous-integration/">Chef Habitat and Continuous Integration</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/builder-architecture/">Chef Habitat Builder Architecture</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/continuous-deployment/">Continuous Deployment</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/builder-account/">Create a Builder Account</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/builder-token/">Personal Access Token Management</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/builder-origin/">Create an Origin on Builder</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/origin-secrets/">Origin Secrets</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/sharing-pkgs/">Upload and Promote Packages</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/containers</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/ecs-and-habitat/">Amazon ECS and Chef Habitat</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/mesos-dcos/">Apache Mesos and DC/OS</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/habitat-and-orchestration/">Chef Habitat and Container Orchestration</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/habitat-and-containers/">Chef Habitat and Containers</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/habitat-and-others/">Chef Habitat and Other Software</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/habitat-and-provisioning/">Chef Habitat and Provisioning Tools</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/container-orchestration/">Container Orchestration</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/best-practices/">containers</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/gcr-and-habitat/">Google Container Registry (GCR)</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/diagrams/package-build-flow</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li>
+                        <a href="/habitat/package-build-flow/">Initial Package Build Flow</a>
+                        <span class = "menu_weight">Weight: 20</span>
+
+                        <ul class="menu vertical nested">
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/application-rebuild-flow/">Application Rebuild Flow</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/docker-automated-flow/">Automate Docker Container Publishing Flow</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/kubernetes-flow/">Chef Habitat and Kubernetes Overview</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/architecture-overview/">Architecture Overview</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/on-prem-flow/">Chef Habitat Builder on-prem Flow</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/dependency-update-flow/">Dependency Update Flow</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/docker-flow/">Docker Container Publishing Flow</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/runtime-binding/">Runtime Services Group Binding</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+                        </ul>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/get_started</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/install-habitat/">Install Chef Habitat</a>
+                        
+                        <span class="menu_weight">Weight: 10</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/configure-workstation/">Configure the Chef Habitat CLI</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/installing-packages/">Get Chef Habitat</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/accept-the-license/">Accept the License</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/install-faq/">Download and Install FAQ</a>
+                        
+                        <span class="menu_weight">Weight: 30</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/glossary</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/application-lifecycle-hooks/">Application Lifecycle Hooks</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/integrations</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/aks-and-habitat/">Azure Container Services (AKS)</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/overview</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-artifacts/">Artifacts</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-builder/">Builder</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/on-prem/">Builder on-prem</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-plan/">Chef Habitat Plans for Linux and Windows Systems</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-keys/">Keys</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/running-habitat-linux-containers/">Running Chef Habitat Linux Containers</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/running-habitat-servers/">Running Chef Habitat on Servers (Linux and Windows)</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/running-habitat-windows-containers/">Running Chef Habitat Windows Containers</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-services/">Services</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-studio/">Studio</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-supervisor/">Supervisor</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/packages</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/artifact-export-format/">Chef Habitat Artifact Export Formats</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/package-contents/">Chef Habitat Package Contents</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/developing-packages/">Developing Packages</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/iterative-development/">Iterative Package Development</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/pkg-exports/">Package Export Formats</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/using-packages/">Running Chef Habitat Packages</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/pattern_library</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/pattern-library/">Pattern Library</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/plans</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/planwriting-guide/">Advanced Plan Writing Guide</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-hooks/">Application Lifecycle Hooks</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/binary-wrapper/">Binary Wrapper Packages</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/plan-builds/">Build</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/plan-templates/">Configuration Templates</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/pkg-binds/">Service Binds</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/plan-helpers/">Plan Helpers</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/plan-settings/">Plan Settings</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/plan-variables/">Plan Variables</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-scaffolding/">Scaffolding</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/reference</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/reference/">Chef Habitat Reference Overview</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/using-custom-certs/">Custom Certificates</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/environment-variables/">Environment Variables</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/habitat-cli/">hab CLI Reference</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/template-data/">Runtime Configuration Settings</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/services</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/file-uploads/">File Uploads</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/monitor-services/">Monitoring Services</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/config-updates/">Service Updates</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/supervisiors</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/robust-supervisor-networks/">Supervisor Networks</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/supervisor</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/internals/">Chef Habitat Internals</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-launcher/">Launcher</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/supervisors</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/remote-control/">Control Supervisors Remotely</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/using-encryption/">Securing Supervisor Networks</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/using-updates/">Service Group Update Strategy</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/setting-up-a-ring/">Setting Up a Ring</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/sup-log-configuration/">Supervisor Log Configuration</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/sup-log-keys/">Supervisor Log Key</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+      </ul>
+    </div>
+  </nav>
+</aside>
+
+        </div>
+
+        <div id="main-content" class="cell off-canvas-content cell auto" data-off-canvas-content>
+            
+<main id="main-content-col" tabindex="-1">
+<div class="col-content">
+  <div id="build-phase-callbacks"><h1>Build Phase Callbacks</h1></div>
+
+  
+  
+    <button type="button" class="TOC-button hide-for-large" data-toggle="offCanvasRightTOC" data-close="left-nav-off-canvas">
+      <i class="fas fa-bars"></i> Table of Contents
+    </button>
+  
+    <div class="prose">
+      <h1 id="a-namebuild-phase-callbacks-idbuild-phase-callbacks-data-magellan-targetbuild-phase-callbacksbuild-phase-callbacksa"><a name="build-phase-callbacks" id="build-phase-callbacks" data-magellan-target="build-phase-callbacks">Build Phase Callbacks</a></h1>
+<p>When defining your plan, you can override the default behavior of Chef Habitat in each build phase through a callback. To define a callback, simply create a shell function of the same name in your plan file and then write your script. If you do not want to use the default callback behavior, you must override the callback and <code>return 0</code> in the function definition or simply provide no implementation in a <code>plan.ps1</code>.</p>
+<p>These callbacks are listed in the order that they executed by the package build script.</p>
+<blockquote>
+<p><strong>Note</strong> Bash callbacks are prefixed with <code>do_</code> and use an underscore convention. Powershell plans prefix callbacks with <code>Invoke-</code> and use a PascalCase convention.</p>
+</blockquote>
+<p>You can also use <a href="/docs/reference/plan-variables">plan variables</a> in your plans to place binaries, libraries, and files into their correct locations during package compilation or when running as a service.</p>
+<p>Additionally, <a href="/docs/reference/build-helpers">plan helper functions</a> can be useful in your plan to help you build your package correctly. They are mostly used for building packages - attach() is used for debugging.</p>
+<dl>
+<dt><strong>do_begin()/Invoke-Begin</strong></dt>
+<dd>Used to execute arbitrary commands before anything else happens. Note that at this phase of the build, no dependencies are resolved, the <code>$PATH</code> and environment is not set, and no external source has been downloaded. For a phase that is more completely set up, see the <code>do_before()</code> phase.</dd>
+<dt><strong>do_begin_default()/Invoke-BeginDefault</strong></dt>
+<dd>There is an empty default implementation of this callback.</dd>
+<dt><strong>do_setup_environment()/Invoke-SetupEnvironment</strong></dt>
+<dd>Use this to declare buildtime and runtime environment variables that overwrite or are in addition to the default environment variables created by Chef Habitat during the build process. Examples of common environment variables you might wish to add or modify are those such as <code>JAVA_HOME</code> or <code>GEM_PATH</code>.</dd>
+</dl>
+<blockquote>
+<p><strong>Note</strong> You do not have to override this callback if you do not wish to modify your environment variables. The build system will always set up your environment according to your dependencies. For example, it will ensure that dependency binaries are always present on your <code>PATH</code> variable, and so on.</p>
+</blockquote>
+<p>Runtime environments of dependencies are layered together in the order they are declared in your <code>pkg_deps</code> array, followed by modifications made in this callback. In turn, these computed values will be made available to packages that use the current package as a dependency, and so on.</p>
+<p>The buildtime environment is assembled by processing the <em>runtime</em> environments of your <code>pkg_build_deps</code> dependencies (because they will be running in your build) in a similar manner. The final environment in which your package will be built consists of:</p>
+<ul>
+<li>The system environment of your Studio as the base layer</li>
+<li>The assembled runtime environment of your package on top of the base</li>
+<li>Any buildtime environment information on top of the assembled runtime environment</li>
+</ul>
+<p>Only the runtime portion of this combined buildtime environment is made available to your package when it is running in a Supervisor (or when it is being used as a dependency of another Chef Habitat package).</p>
+<p>To add or modify your environment variables, there are special functions to call within this callback to ensure that the variables are set up appropriately.</p>
+<p>Bash:</p>
+<div class="highlight"><pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">set_runtime_env <span style="color:#666">[</span>-f<span style="color:#666">]</span> VARIABLE_NAME VALUE
+set_buildtime_env <span style="color:#666">[</span>-f<span style="color:#666">]</span> VARIABLE_NAME VALUE
+</code></pre></div><p>Powershell:</p>
+<pre><code class="language-PS" data-lang="PS">Set-RuntimeEnv VARIABLE_NAME VALUE [-force] [-IsPath]
+Set-BuildtimeEnv VARIABLE_NAME VALUE [-force] [-IsPath]
+</code></pre><p>In Powershell plans, if your variable contains values that are file paths pointing inside the Chef Habitat <code>/hab</code> directory, you can use the <code>-IsPath</code> flag to ensure that the path remains portable accross different Chef Habitat environments. For example in a local (non-Docker) Windows Studio, the following line:</p>
+<div class="highlight"><pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell"><span style="color:#007020">Set-RuntimeEnv</span> SSL_CERT_FILE <span style="color:#4070a0">&#34;</span>$(<span style="color:#007020">Get-HabPackagePath</span> cacerts)<span style="color:#4070a0">/ssl/cert.pem&#34;</span>
+</code></pre></div><p>will set <code>SSL_CERT_FILE</code> to the <code>ssl/cert.pem</code> file inside of the <code>cacerts</code> package path. This path will be located inside of <code>c:/hab/studios</code> which will not be valid inside of a non-Studio Supervisor or inside of a Docker Studio. Instead, use the following code:</p>
+<div class="highlight"><pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell"><span style="color:#007020">Set-RuntimeEnv</span> SSL_CERT_FILE <span style="color:#4070a0">&#34;</span>$(<span style="color:#007020">Get-HabPackagePath</span> cacerts)<span style="color:#4070a0">/ssl/cert.pem&#34;</span> -IsPath
+</code></pre></div><p>This will hint to the packaging system that this path should be properly rooted inside of the Chef Habitat filesystem of the current running environment.</p>
+<p>These functions allow you to <em>set</em> an environment variable&rsquo;s value. If one of your dependencies has already declared a value for this, it will result in a build failure, protecting you from inadvertently breaking anything. If you really do want to replace the value, you can supply the <code>-f</code> or <code>-force</code> flag.</p>
+<p>For pushing new values onto a multi-valued environment variable (like <code>PATH</code>), use the following functions:</p>
+<p>Bash:</p>
+<div class="highlight"><pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">push_runtime_env VARIABLE_NAME VALUE
+push_buildtime_env VARIABLE_NAME VALUE
+</code></pre></div><p>Powershell:</p>
+<pre><code class="language-PS" data-lang="PS">Push-RuntimeEnv VARIABLE_NAME VALUE [-IsPath]
+Push-BuildtimeEnv VARIABLE_NAME VALUE [-IsPath]
+</code></pre><p>These functions allow you to push a new value onto a multi-valued environment variable without overwriting the existing values. These multi-valued variables are referred to as &ldquo;aggregate&rdquo; variables in Chef Habitat. Single-value environment variables are known as &ldquo;primitive&rdquo; variables.</p>
+<p>By default, Chef Habitat treats all variables as &ldquo;primitive&rdquo; variables. If you are working with a value that is actually an &ldquo;aggregate&rdquo; type, you must set the following special environment variable somewhere in the top level of your plan.</p>
+<p>Bash:</p>
+<div class="highlight"><pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#007020">export</span> <span style="color:#bb60d5">HAB_ENV_FOO_TYPE</span><span style="color:#666">=</span>aggregate
+</code></pre></div><p>Powershell:</p>
+<pre><code class="language-PS" data-lang="PS">$env:HAB_ENV_FOO_TYPE=&quot;aggregate&quot;
+</code></pre><p>Similarly, Chef Habitat defaults to using the colon (<code>:</code>) as a separator for aggregate variables on Linux. If the hypothetical <code>FOO</code> variable uses a semicolon (<code>;</code>) as a separator instead, then you must add <code>export HAB_ENV_FOO_SEPARATOR=;</code> at the top level of the plan. On Windows, <code>;</code> is the default separator.</p>
+<p>In all cases, when Chef Habitat is assuming a default strategy, it will emit log messages to notify you of that along with instructions on how to change the behavior.</p>
+<blockquote>
+<p><strong>Note</strong> If you discover common environment variables that Chef Habitat doesn&rsquo;t currently treat appropriately, feel free to request an addition to the codebase, or even to submit a pull request yourself.</p>
+</blockquote>
+<dl>
+<dt><strong>do_before()/Invoke-Before</strong></dt>
+<dd>At this phase of the build, the origin key has been checked for, all package dependencies have been resolved and downloaded, and the <code>$PATH</code> and environment are set, but this is just before any source downloading would occur (if <code>$pkg_source</code> is set). This could be a suitable phase in which to compute a dynamic version of a package given the state of a Git repository, fire an API call, start timing something, etc.</dd>
+<dt><strong>do_before_default()/Invoke-BeforeDefault</strong></dt>
+<dd>There is an empty default implementation of this callback.</dd>
+<dt><strong>do_download()/Invoke-Download</strong></dt>
+<dd>If <code>$pkg_source</code> is being used, download the software and place it in <code>$HAB_CACHE_SRC_PATH/$pkg_filename</code>. If the source already exists in the cache, verify that the checksum is what we expect, and skip the download. Delegates most of the implementation to the <code>do_default_download()</code> function.</dd>
+<dt><strong>do_download_default()/Invoke-DownloadDefault</strong></dt>
+<dd>The default implementation is that the software specified in <code>$pkg_source</code> is downloaded, checksum-verified, and placed in <code>$HAB_CACHE_SRC_PATH/$pkg_filename</code>, which resolves to a path like <code>/hab/cache/src/filename.tar.gz</code>. You should override this behavior if you need to change how your binary source is downloaded, if you are not downloading any source code at all, or if you are cloning from git. If you do clone a repo from git, you must override <strong>do_verify()</strong> to return 0.</dd>
+<dt><strong>do_verify()/Invoke-Verify</strong></dt>
+<dd>If <code>$pkg_source</code> is being used, verify that the package we have in <code>$HAB_CACHE_SRC_PATH/$pkg_filename</code> has the <code>$pkg_shasum</code> we expect. Delegates most of the implementation to the <code>do_default_verify()</code> function.</dd>
+</dl>
+<p>If you do clone a repo from git, you must override <strong>do_verify()</strong> to return 0.</p>
+<dl>
+<dt><strong>do_verify_default()/Invoke-VerifyDefault</strong></dt>
+<dd>The default implementation tries to verify the checksum specified in the plan against the computed checksum after downloading the source tarball to disk. If the specified checksum doesn&rsquo;t match the computed checksum, then an error and a message specifying the mismatch will be printed to stderr. You should not need to override this behavior unless your package does not download any files.</dd>
+<dt><strong>do_clean()Invoke-Clean</strong></dt>
+<dd>Clean up the remnants of any previous build job, ensuring it can&rsquo;t pollute out new output. Delegates most of the implementation to the <code>do_default_clean()</code> function.</dd>
+<dt><strong>do_default_clean()/Invoke-DefaultClean</strong></dt>
+<dd>The default implementation removes the <code>HAB_CACHE_SRC_PATH/$pkg_dirname</code> folder in case there was a previously-built version of your package installed on disk. This ensures you start with a clean build environment.</dd>
+<dt><strong>do_unpack()/Invoke-Unpack</strong></dt>
+<dd>If <code>$pkg_source</code> is being used, we take the <code>$HAB_CACHE_SRC_PATH/$pkg_filename</code> from the download step and unpack it,as long as the method of extraction can be determined. This takes place in the $HAB_CACHE_SRC_PATH directory. Delegates most of the implementation to the <code>do_default_unpack()</code> function.</dd>
+<dt><strong>do_default_unpack()/Invoke-DefaultUnpack</strong></dt>
+<dd>The default implementation extracts your tarball source file into <code>HAB_CACHE_SRC_PATH</code>. The supported archive extensions on Linux are: .tar, .tar.bz2, .tar.gz, .tar.xz, .rar, .zip, .Z, .7z. Only .zip is supported on Windows. If the file archive could not be found or has an unsupported extension, then a message will be printed to stderr with additional information.</dd>
+<dt><strong>do_prepare()/Invoke-Prepare</strong></dt>
+<dd>There is no default implementation of this callback. At this point in the build process, the tarball source has been downloaded, unpacked, and the build environment variables have been set, so you can use this callback to perform any actions before the package starts building, such as exporting variables, adding symlinks, and so on.</dd>
+</dl>
+<p>A step that exists to be overridden. Do what you need to do before we actually run the build steps.</p>
+<dl>
+<dt><strong>do_default_prepare()/Invoke-DefaultPrepare</strong></dt>
+<dd>There is an empty default implementation of this callback.</dd>
+<dt><strong>do_build()/Invoke-Build</strong></dt>
+<dd>You should override this behavior if you have additional configuration changes to make or other software to build and install as part of building your package. This step builds the software; assumes the GNU pattern. Delegates most of the implementation to the <code>do_default_build()</code> function.</dd>
+</dl>
+<p><strong>do_default_build()/Invoke-DefaultBuild</strong>
+:The default implementation is to update the prefix path for the configure script to use <code>$pkg_prefix</code> and then run <code>make</code> to compile the downloaded source. This means the script in the default implementation does <code>./configure --prefix=$pkg_prefix &amp;&amp; make</code>.</p>
+<dl>
+<dt><strong>do_check()/Invoke-Check</strong></dt>
+<dd>Will run post-compile tests and checks, provided 2 conditions are true:</dd>
+</dl>
+<ol>
+<li>A <code>do_check()</code> function has been declared. By default, no such function
+exists, so Plan author must add one explicitly&ndash;there is no reasonably
+good default here.</li>
+<li>A <code>$DO_CHECK</code> environment variable is set to some non-empty value. As
+tests can dramatically inflate the build time of a Plan, this has been
+left as an opt-in option.</li>
+</ol>
+<p>Here&rsquo;s an example of a vanilla Plan such as <code>sed</code>:</p>
+<div class="highlight"><pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#bb60d5">pkg_name</span><span style="color:#666">=</span>sed
+<span style="color:#60a0b0;font-style:italic"># other Plan metadata...</span>
+
+do_check<span style="color:#666">()</span> <span style="color:#666">{</span>
+  make check
+<span style="color:#666">}</span>
+</code></pre></div><dl>
+<dt><strong>do_install()/Invoke-Install</strong></dt>
+<dd>Installs the software. Delegates most of the implementation to the <code>do_default_install()</code> function. You should override this behavior if you need to perform custom installation steps, such as copying files from <code>HAB_CACHE_SRC_PATH</code> to specific directories in your package, or installing pre-built binaries into your package.</dd>
+<dt><strong>do_default_install()/Invoke-DefaultInstall</strong></dt>
+<dd>The default implementation is to run <code>make install</code> on the source files and place the compiled binaries or libraries in <code>HAB_CACHE_SRC_PATH/$pkg_dirname</code>, which resolves to a path like <code>/hab/cache/src/packagename-version/</code>. It uses this location because of <strong>do_build()</strong> using the <code>--prefix</code> option when calling the configure script.</dd>
+<dt><strong>do_build_config()/Invoke-BuildConfig</strong></dt>
+<dd>Copy the <code>./config</code> directory, relative to the Plan, to <code>$pkg_prefix/config</code>. Do the same with <code>default.toml</code>. Delegates most of the implementation to the <code>do_default_build_config()</code> function.</dd>
+</dl>
+<p>Allows users to depend on a core plan and pull in its configuration but set their own unique configurations at build time.</p>
+<dl>
+<dt><strong>do_default_build_config()/Invoke-DefaultBuildConfig</strong></dt>
+<dd>Default implementation for the <code>do_build_config()</code> phase.</dd>
+<dt><strong>do_build_service()/Invoke-BuildService</strong></dt>
+<dd>Write out the <code>$pkg_prefix/run</code> file. If a file named <code>hooks/run</code> exists, we skip this step. Otherwise, we look for <code>$pkg_svc_run</code>, and use that. We assume that the binary used in the <code>$pkg_svc_run</code> command is set in the $PATH.</dd>
+</dl>
+<p>This will write a <code>run</code> script that uses <code>chpst</code> to run the command as the <code>$pkg_svc_user</code> and <code>$pkg_svc_group</code>. These are <code>hab</code> by default.</p>
+<p>Delegates most of the implementation to the <code>do_default_build_server()</code> function.</p>
+<dl>
+<dt><strong>do_default_build_service()/Invoke-DefaultBuildService</strong></dt>
+<dd>Default implementation of the <code>do_build_service()</code> phase.</dd>
+<dt><strong>do_strip()</strong></dt>
+<dd><code>plan.sh</code> only. You should override this behavior if you want to change how the binaries are stripped, which additional binaries located in subdirectories might also need to be stripped, or whether you do not want the binaries stripped at all.</dd>
+<dt><strong>do_default_strip()</strong></dt>
+<dd><code>plan.sh</code> only. The default implementation is to strip any binaries in <code>$pkg_prefix</code> of their debugging symbols. Goal of this step is to reduce our total size.</dd>
+<dt><strong>do_after()/Invoke-After</strong></dt>
+<dd>At this phase, the package has been built, installed, stripped, but before the package metadata is written and the artifact is created and signed.</dd>
+<dt><strong>do_default_after()/Invoke-DefaultAfter</strong></dt>
+<dd>There is an empty default implementation of this callback.</dd>
+<dt><strong>do_end()/Invoke-End</strong></dt>
+<dd>A function for cleaning up after yourself, this is called after the package artifact has been created. You can use this callback to remove any temporary files or perform other post-build clean-up actions.</dd>
+<dt><strong>do_default_end()/Invoke-DefaultEnd</strong></dt>
+<dd>There is an empty default implementation of this callback.</dd>
+<dt><strong>do_after_success()</strong></dt>
+<dd><code>plan.sh</code> only. A function that is called at the absolute end of a successful build process. This can be used to provide integration points with external systems, among other things, particularly if you are not using Builder (a Notifications feature is coming to Builder in H2 2018). Failure of this callback will not fail your build, nor will it trigger a <code>do_after_failure</code> call.</dd>
+<dt><strong>do_after_failure()</strong></dt>
+<dd><code>plan.sh</code> only. A function that is called at the absolute end of a failed build process. This can be used to provide integration points with external systems, among other things, particularly if you are not using Builder (a Notifications feature is coming to Builder in H2 2018). The result of this callback cannot affect the disposition of the overall build; once the build has failed, it&rsquo;s failed. Keep in mind that since a build could potentially fail at any time, certain variables or data structures may not be present or initialized when this callback is called, so code accordingly.</dd>
+</dl>
+
+    </div>
+  </div>
+</main>
+
+        </div>
+
+        
+        
+          <div class="cell off-canvas position-right toc off-canvas-absolute reveal-for-large" id="onCanvasRightTOC" data-off-canvas >
+            <aside class="sticky sidebar" data-sticky data-top-anchor="utility-bar:bottom" data-btm-anchor="footer:top">
+  <span>
+    <strong>
+      <h4 class="mini-toc-header">Table Of Contents</h4>
+    </strong>
+    <button class="close-button hide-for-large" aria-label="Close menu" type="button" data-close>
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </span>
+  <a href="#build-phase-callbacks">Build Phase Callbacks</a><nav id="TableOfContents">
+  <ul>
+    <li><a href="#a-namebuild-phase-callbacks-idbuild-phase-callbacks-data-magellan-targetbuild-phase-callbacksbuild-phase-callbacksa"><a name="build-phase-callbacks" id="build-phase-callbacks" data-magellan-target="build-phase-callbacks">Build Phase Callbacks</a></a></li>
+  </ul>
+</nav></aside>
+
+          </div>
+        
+
+      </div>
+    </div>
+  </div>
+
+  
+  
+
+    <div class="off-canvas position-right toc off-canvas-absolute hide-for-large" id="offCanvasRightTOC" data-off-canvas
+      data-transition="overlap">
+      <aside class="sticky sidebar" data-sticky data-top-anchor="utility-bar:bottom" data-btm-anchor="footer:top">
+  <span>
+    <strong>
+      <h4 class="mini-toc-header">Table Of Contents</h4>
+    </strong>
+    <button class="close-button hide-for-large" aria-label="Close menu" type="button" data-close>
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </span>
+  <a href="#build-phase-callbacks">Build Phase Callbacks</a><nav id="TableOfContents">
+  <ul>
+    <li><a href="#a-namebuild-phase-callbacks-idbuild-phase-callbacks-data-magellan-targetbuild-phase-callbacksbuild-phase-callbacksa"><a name="build-phase-callbacks" id="build-phase-callbacks" data-magellan-target="build-phase-callbacks">Build Phase Callbacks</a></a></li>
+  </ul>
+</nav></aside>
+
+    </div>
+
+  
+
+  <div id="footer" class="cell small-12">
+    <div class="grid-x">
+      <div class="cell small-12">
+        <nav>
+          
+<footer id="footer">
+  <div class="grid-container">
+    <div class="grid-x align-middle">
+      <div class="cell small-12 large-3 logo"><a href="/"><img src="/images/chef-logo-light.svg" alt="Habitat Documentation"></a></div>
+      <div class="cell small-12 large-9">
+        <ul class="menu vertical medium-horizontal">
+          <li><a href="/sitemap/" target="_self">Site Map</a></li>
+          <li><a href="https://www.chef.io/online-master-agreement/" target="_blank">Licensing</a></li>
+          <li><a href="https://www.chef.io/terms-of-service/" target="_blank">Terms &amp; Conditions</a></li>
+          <li><a href="https://www.chef.io/trademark-policy/" target="_blank">Trademark Policy</a></li>
+          <li><a href="https://www.chef.io/privacy-policy/" target="_blank">Privacy Policy</a></li>
+          <li><a href="https://www.chef.io/cookie-policy/" target="_blank">Cookie Policy</a></li>
+        </ul>
+        
+          <p class="modified">Page Last Modified: 0001-01-01 00:00:00 &#43;0000 UTC</p>
+        
+        <p class="legal">&copy; 2008-2020 Chef Software, Inc. All Rights Reserved.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+        </nav>
+      </div>
+    </div>
+  </div>
+  
+<script src="/js/core-bundle.min.b46adaaa9b34baa80cf4b98cb38321e111475886368cfc1e52ed3afcc03b5b22.js" type="text/javascript"></script>
+<script src="/js/custom-bundle.min.e560508c0a1795f3e94b9dc46263787768b40136412317331f860cdc22837c6a.js" type="text/javascript"></script>
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+  (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+  e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+  
+  _st('install','s1Pemn_yrUKJw9_K5zRT','2.0.0');
+</script>
+
+  </body>
+</html>

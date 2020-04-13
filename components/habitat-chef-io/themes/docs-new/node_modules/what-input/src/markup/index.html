@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>What Input?</title>
+
+    <link rel="stylesheet" href="styles/index.css">
+  </head>
+  <body>
+    <div class="container">
+      <h1>What Input?</h1>
+
+      <p class="lede">
+        A global utility for tracking the current input method (<span class="input-indicator -mouse">mouse</span>, <span class="input-indicator -keyboard">keyboard</span>, or <span class="input-indicator -touch">touch</span>), as well as the current <em>intent</em> (<span class="input-intent -mouse">mouse</span>, <span class="input-intent -keyboard">keyboard</span>, or <span class="input-intent -touch">touch</span>).
+      </p>
+
+      <p>
+        Tab, click or tap the links and form controls to see how What Input allows them to be styled differently.
+      </p>
+
+      <div class="well">
+        <div class="well-row">
+          <div class="well-column">
+            <ul class="list-group">
+              <li class="list-group-item"><a href="#">Cras justo odio</a></li>
+              <li class="list-group-item">
+                <a href="#">Dapibus ac facilisis in</a>
+              </li>
+              <li class="list-group-item"><a href="#">Morbi leo risus</a></li>
+              <li class="list-group-item">
+                <a href="#">Porta ac consectetur ac</a>
+              </li>
+              <li class="list-group-item">
+                <a href="#">Vestibulum at eros</a>
+              </li>
+            </ul>
+
+            <p>
+              <button data-module="alert" data-message="This button is not inside a form.">Do Something</button>
+            </p>
+          </div>
+
+          <form class="well-column">
+            <p>
+              <label for="exampleInput">Example Text Input</label>
+              <input type="email" id="exampleInput" name="exampleInput">
+            </p>
+
+            <p>
+              <label for="exampleSelect">Selection</label>
+              <select id="exampleSelect" name="exampleSelect">
+                <option value="" disabled selected>Select an Option</option>
+                <option>Option 1</option>
+                <option>Option 2</option>
+                <option>Option 3</option>
+              </select>
+            </p>
+
+            <p>
+              <label for="exampleTextarea">Example Textarea</label>
+              <textarea id="exampleTextarea" name="exampleTextarea"></textarea>
+            </p>
+
+            <p class="checkbox">
+              <label><input type="checkbox"> Check me out</label>
+            </p>
+
+            <p>
+              <button type="submit" data-module="alert" data-message="This button is inside a form.">Form Submit</button>
+            </p>
+          </form>
+        </div>
+      </div>
+
+      <footer>
+        <p class="pull-left">
+          Made with <span class="text-love">&hearts;</span> at
+          <a href="http://viget.com/">Viget</a>.
+        </p>
+
+        <p class="pull-right">
+          Check out the project
+          <a href="https://github.com/ten1seven/what-input">on Github</a>.
+        </p>
+      </footer>
+    </div>
+
+    <script src="scripts/what-input.js"></script>
+    <script>
+      // use `whatInput.ask()`
+      var links = document.querySelectorAll('a, button')
+      for (var i = 0, len = links.length; i < len; i++) {
+        links[i].addEventListener('click', function(event) {
+          console.log(
+            '[script test] ' + whatInput.ask() + ' ' + whatInput.element()
+          )
+
+          event.preventDefault()
+        })
+      }
+
+      var links = document.querySelectorAll('input, textarea, select')
+      for (var i = 0, len = links.length; i < len; i++) {
+        links[i].addEventListener('click', function(event) {
+          console.log(
+            '[script test] ' + whatInput.ask() + ' ' + whatInput.element()
+          )
+        })
+      }
+
+      // use `whatInput.registerOnChange()`
+      var myInputFunction = function(type) {
+        console.log('input: ' + type)
+      }
+
+      var myIntentFunction = function(type) {
+        console.log('intent: ' + type)
+      }
+
+      whatInput.registerOnChange(myInputFunction)
+      whatInput.registerOnChange(myIntentFunction, 'intent')
+
+      // don't let the form submit because it's not real
+      var form = document.querySelector('form')
+      form.addEventListener('submit', function(event) {
+        event.preventDefault()
+      })
+
+      // alert functionality
+      var alerts = document.querySelectorAll('[data-module="alert"]')
+      for (var i = 0, len = alerts.length; i < len; i++) {
+        alerts[i].addEventListener('click', function(event) {
+          alert(this.dataset.message)
+          event.preventDefault()
+        })
+      }
+    </script>
+  </body>
+</html>

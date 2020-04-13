@@ -1,0 +1,3875 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="robots" content="">
+  <title>hab CLI Reference</title>
+  <link rel="shortcut icon" type="image/png" href="/images/favicon.ico" />
+  
+  
+  <link rel="stylesheet" href="/sass/main.css" />
+  <link rel="stylesheet" href="/css/habitat.css" />
+</head>
+
+<body>
+  <a class="skip-main" href="#main-content-col">Skip to main content</a>
+
+  <nav id="utility-bar" class = "show-for-medium">
+    <div class="utility-bar-logo">
+      <a href="/"><img src="/images/chef-logo.svg" alt="Chef Documentation" class="chef"></a>
+    </div>
+
+    <ul class="menu align-right top-nav">
+      
+      <li><a href="https://www.chef.io/">Chef.io</a></li>
+      
+      <li><a href="https://learn.chef.io/">Learn Chef</a></li>
+      
+      <li><a href="https://blog.chef.io/">Blog</a></li>
+      
+      <li><a href="https://community.chef.io/">Community</a></li>
+      
+      <li><a href="https://training.chef.io/">Training</a></li>
+      
+      <li><a href="https://downloads.chef.io/">Download</a></li>
+      
+    </ul>
+</nav>
+
+  <nav id="utility-bar" class = "show-for-small-only">
+  <div class="">
+    <button id="header-toggle" type="button" class="utility-bar-nav-bars " data-toggle="left-nav-off-canvas">
+      <i class="fas fa-bars fa-lg"></i>
+    </button>
+    <div class="utility-bar-logo">
+      <a href="/"><img src="/images/chef-logo.svg" alt="Chef Documentation" class="chef"></a>
+    </div>
+  </div>
+</nav>
+
+
+  <div id="left-nav-off-canvas" class="hide-for-medium" data-toggler=".reveal">
+    
+
+
+<aside class="sticky" data-sticky data-top-anchor="utility-bar:bottom" data-btm-anchor="footer:top" data-margin-top="0" data-margin-bottom="2">
+  <div>
+    <button class="close-button" data-toggle="left-nav-off-canvas">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <nav id="sidebar-nav" class="offCanvas">
+    
+      <div class="search">
+        <form class="basic-form" method="" action="">
+          <input type="text" class="st-default-search-input" placeholder="Search...">
+        </form>
+      </div>
+    
+    <div class="nav">
+      <ul class="vertical menu accordion-menu" data-accordion-menu>
+        
+          
+          
+        
+          
+          
+        
+          
+          
+            
+              <li>
+                <a href="">chef_habitat</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/" >
+                          About Chef Habitat
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/community/" >
+                          Chef Habitat Community
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/supported_platforms/" >
+                          Supported Packages &amp; Platforms
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/builder</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/automated-builds/" >
+                          Automated Builds
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/build-helpers/" >
+                          Build Helpers
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/build-phase-callbacks/" >
+                          Build Phase Callbacks
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/multiple-plans-builder/" >
+                          Building Multiple Packages
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/habitat-and-continuous-integration/" >
+                          Chef Habitat and Continuous Integration
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/builder-architecture/" >
+                          Chef Habitat Builder Architecture
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/continuous-deployment/" >
+                          Continuous Deployment
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/builder-account/" >
+                          Create a Builder Account
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/builder-token/" >
+                          Personal Access Token Management
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/builder-origin/" >
+                          Create an Origin on Builder
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/origin-secrets/" >
+                          Origin Secrets
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/sharing-pkgs/" >
+                          Upload and Promote Packages
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/containers</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/ecs-and-habitat/" >
+                          Amazon ECS and Chef Habitat
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/mesos-dcos/" >
+                          Apache Mesos and DC/OS
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/habitat-and-orchestration/" >
+                          Chef Habitat and Container Orchestration
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/habitat-and-containers/" >
+                          Chef Habitat and Containers
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/habitat-and-others/" >
+                          Chef Habitat and Other Software
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/habitat-and-provisioning/" >
+                          Chef Habitat and Provisioning Tools
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/container-orchestration/" >
+                          Container Orchestration
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/best-practices/" >
+                          containers
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/gcr-and-habitat/" >
+                          Google Container Registry (GCR)
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/diagrams/package-build-flow</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/package-build-flow/">Initial Package Build Flow</a>
+                        <ul class="menu vertical nested">
+                          
+                            
+                              <li>
+                                <a href="/habitat/application-rebuild-flow/" >Application Rebuild Flow</a>
+                              </li>
+                            
+                          
+                            
+                              <li>
+                                <a href="/habitat/docker-automated-flow/" >Automate Docker Container Publishing Flow</a>
+                              </li>
+                            
+                          
+                            
+                              <li>
+                                <a href="/habitat/kubernetes-flow/" >Chef Habitat and Kubernetes Overview</a>
+                              </li>
+                            
+                          
+                            
+                              <li>
+                                <a href="/habitat/architecture-overview/" >Architecture Overview</a>
+                              </li>
+                            
+                          
+                            
+                              <li>
+                                <a href="/habitat/on-prem-flow/" >Chef Habitat Builder on-prem Flow</a>
+                              </li>
+                            
+                          
+                            
+                              <li>
+                                <a href="/habitat/dependency-update-flow/" >Dependency Update Flow</a>
+                              </li>
+                            
+                          
+                            
+                              <li>
+                                <a href="/habitat/docker-flow/" >Docker Container Publishing Flow</a>
+                              </li>
+                            
+                          
+                            
+                              <li>
+                                <a href="/habitat/runtime-binding/" >Runtime Services Group Binding</a>
+                              </li>
+                            
+                          
+                        </ul>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/get_started</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/install-habitat/" >
+                          Install Chef Habitat
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/configure-workstation/" >
+                          Configure the Chef Habitat CLI
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/installing-packages/" >
+                          Get Chef Habitat
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/accept-the-license/" >
+                          Accept the License
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/install-faq/" >
+                          Download and Install FAQ
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/glossary</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/application-lifecycle-hooks/" >
+                          Application Lifecycle Hooks
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/integrations</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/aks-and-habitat/" >
+                          Azure Container Services (AKS)
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/overview</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-artifacts/" >
+                          Artifacts
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-builder/" >
+                          Builder
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/on-prem/" >
+                          Builder on-prem
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-plan/" >
+                          Chef Habitat Plans for Linux and Windows Systems
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-keys/" >
+                          Keys
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/running-habitat-linux-containers/" >
+                          Running Chef Habitat Linux Containers
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/running-habitat-servers/" >
+                          Running Chef Habitat on Servers (Linux and Windows)
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/running-habitat-windows-containers/" >
+                          Running Chef Habitat Windows Containers
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-services/" >
+                          Services
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-studio/" >
+                          Studio
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-supervisor/" >
+                          Supervisor
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/packages</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/artifact-export-format/" >
+                          Chef Habitat Artifact Export Formats
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/package-contents/" >
+                          Chef Habitat Package Contents
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/developing-packages/" >
+                          Developing Packages
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/iterative-development/" >
+                          Iterative Package Development
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/pkg-exports/" >
+                          Package Export Formats
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/using-packages/" >
+                          Running Chef Habitat Packages
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/pattern_library</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/pattern-library/" >
+                          Pattern Library
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/plans</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/planwriting-guide/" >
+                          Advanced Plan Writing Guide
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-hooks/" >
+                          Application Lifecycle Hooks
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/binary-wrapper/" >
+                          Binary Wrapper Packages
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/plan-builds/" >
+                          Build
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/plan-templates/" >
+                          Configuration Templates
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/pkg-binds/" >
+                          Service Binds
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/plan-helpers/" >
+                          Plan Helpers
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/plan-settings/" >
+                          Plan Settings
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/plan-variables/" >
+                          Plan Variables
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-scaffolding/" >
+                          Scaffolding
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/reference</a>
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li>
+                        <a href="/habitat/reference/" >
+                          Chef Habitat Reference Overview
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/using-custom-certs/" >
+                          Custom Certificates
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/environment-variables/" >
+                          Environment Variables
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li class="active" >
+                        <a href="/habitat/habitat-cli/" >
+                          hab CLI Reference
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/template-data/" >
+                          Runtime Configuration Settings
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/services</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/file-uploads/" >
+                          File Uploads
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/monitor-services/" >
+                          Monitoring Services
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/config-updates/" >
+                          Service Updates
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/supervisiors</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/robust-supervisor-networks/" >
+                          Supervisor Networks
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/supervisor</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/internals/" >
+                          Chef Habitat Internals
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/glossary-launcher/" >
+                          Launcher
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+                <a href="">chef_habitat/supervisors</a>
+                <ul class="menu vertical nested">
+                  
+                    
+                      <li>
+                        <a href="/habitat/remote-control/" >
+                          Control Supervisors Remotely
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/using-encryption/" >
+                          Securing Supervisor Networks
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/using-updates/" >
+                          Service Group Update Strategy
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/setting-up-a-ring/" >
+                          Setting Up a Ring
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/sup-log-configuration/" >
+                          Supervisor Log Configuration
+                        </a>
+                      </li>
+                    
+                  
+                    
+                      <li>
+                        <a href="/habitat/sup-log-keys/" >
+                          Supervisor Log Key
+                        </a>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+      </ul>
+      <ul class="vertical menu accordion-menu show-for-small-only" data-accordion-menu>
+        
+          <li>
+            <a href="https://www.chef.io/"  class="external" target="_blank">
+            Chef.io
+          </a>
+          </li>
+        
+          <li>
+            <a href="https://learn.chef.io/"  class="external" target="_blank">
+            Learn Chef
+          </a>
+          </li>
+        
+          <li>
+            <a href="https://blog.chef.io/"  class="external" target="_blank">
+            Blog
+          </a>
+          </li>
+        
+          <li>
+            <a href="https://community.chef.io/"  class="external" target="_blank">
+            Community
+          </a>
+          </li>
+        
+          <li>
+            <a href="https://training.chef.io/"  class="external" target="_blank">
+            Training
+          </a>
+          </li>
+        
+          <li>
+            <a href="https://downloads.chef.io/"  class="external" target="_blank">
+            Download
+          </a>
+          </li>
+        
+      </ul>
+    </div>
+  </nav>
+</aside>
+
+  </div>
+
+  <div class="off-canvas-wrapper">
+    <div class="grid-container">
+      <div class="grid-x">
+
+        <div class="cell position-left off-canvas-absolute reveal-for-medium col-sidebar" id="left-nav-on-canvas" data-off-canvas data-transition="overlap" >
+            
+
+
+<aside class="sticky sidebar" data-sticky data-top-anchor="utility-bar:bottom" data-btm-anchor="footer:top">
+  <nav id="sidebar-nav">
+    <div class="nav">
+      <ul class="vertical menu accordion-menu" data-accordion-menu>
+        
+          
+          
+        
+          
+          
+        
+          
+          
+            
+              <li>
+
+                <a href="">chef_habitat</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/">About Chef Habitat</a>
+                        
+                        <span class="menu_weight">Weight: 10</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/community/">Chef Habitat Community</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/supported_platforms/">Supported Packages &amp; Platforms</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/builder</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/automated-builds/">Automated Builds</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/build-helpers/">Build Helpers</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/build-phase-callbacks/">Build Phase Callbacks</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/multiple-plans-builder/">Building Multiple Packages</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/habitat-and-continuous-integration/">Chef Habitat and Continuous Integration</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/builder-architecture/">Chef Habitat Builder Architecture</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/continuous-deployment/">Continuous Deployment</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/builder-account/">Create a Builder Account</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/builder-token/">Personal Access Token Management</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/builder-origin/">Create an Origin on Builder</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/origin-secrets/">Origin Secrets</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/sharing-pkgs/">Upload and Promote Packages</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/containers</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/ecs-and-habitat/">Amazon ECS and Chef Habitat</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/mesos-dcos/">Apache Mesos and DC/OS</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/habitat-and-orchestration/">Chef Habitat and Container Orchestration</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/habitat-and-containers/">Chef Habitat and Containers</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/habitat-and-others/">Chef Habitat and Other Software</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/habitat-and-provisioning/">Chef Habitat and Provisioning Tools</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/container-orchestration/">Container Orchestration</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/best-practices/">containers</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/gcr-and-habitat/">Google Container Registry (GCR)</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/diagrams/package-build-flow</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li>
+                        <a href="/habitat/package-build-flow/">Initial Package Build Flow</a>
+                        <span class = "menu_weight">Weight: 20</span>
+
+                        <ul class="menu vertical nested">
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/application-rebuild-flow/">Application Rebuild Flow</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/docker-automated-flow/">Automate Docker Container Publishing Flow</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/kubernetes-flow/">Chef Habitat and Kubernetes Overview</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/architecture-overview/">Architecture Overview</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/on-prem-flow/">Chef Habitat Builder on-prem Flow</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/dependency-update-flow/">Dependency Update Flow</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/docker-flow/">Docker Container Publishing Flow</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+
+                            
+                              <li>
+                                
+                                  <a href="/habitat/runtime-binding/">Runtime Services Group Binding</a>
+                                
+                                <span class="menu_weight">Weight: 20</span>
+                              </li>
+                            
+                          
+                        </ul>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/get_started</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/install-habitat/">Install Chef Habitat</a>
+                        
+                        <span class="menu_weight">Weight: 10</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/configure-workstation/">Configure the Chef Habitat CLI</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/installing-packages/">Get Chef Habitat</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/accept-the-license/">Accept the License</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/install-faq/">Download and Install FAQ</a>
+                        
+                        <span class="menu_weight">Weight: 30</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/glossary</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/application-lifecycle-hooks/">Application Lifecycle Hooks</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/integrations</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/aks-and-habitat/">Azure Container Services (AKS)</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/overview</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-artifacts/">Artifacts</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-builder/">Builder</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/on-prem/">Builder on-prem</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-plan/">Chef Habitat Plans for Linux and Windows Systems</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-keys/">Keys</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/running-habitat-linux-containers/">Running Chef Habitat Linux Containers</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/running-habitat-servers/">Running Chef Habitat on Servers (Linux and Windows)</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/running-habitat-windows-containers/">Running Chef Habitat Windows Containers</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-services/">Services</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-studio/">Studio</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-supervisor/">Supervisor</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/packages</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/artifact-export-format/">Chef Habitat Artifact Export Formats</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/package-contents/">Chef Habitat Package Contents</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/developing-packages/">Developing Packages</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/iterative-development/">Iterative Package Development</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/pkg-exports/">Package Export Formats</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/using-packages/">Running Chef Habitat Packages</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/pattern_library</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/pattern-library/">Pattern Library</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/plans</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/planwriting-guide/">Advanced Plan Writing Guide</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-hooks/">Application Lifecycle Hooks</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/binary-wrapper/">Binary Wrapper Packages</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/plan-builds/">Build</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/plan-templates/">Configuration Templates</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/pkg-binds/">Service Binds</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/plan-helpers/">Plan Helpers</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/plan-settings/">Plan Settings</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/plan-variables/">Plan Variables</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-scaffolding/">Scaffolding</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/reference</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/reference/">Chef Habitat Reference Overview</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/using-custom-certs/">Custom Certificates</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/environment-variables/">Environment Variables</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  class="active"  >
+                        
+                          <a href="/habitat/habitat-cli/">hab CLI Reference</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/template-data/">Runtime Configuration Settings</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/services</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/file-uploads/">File Uploads</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/monitor-services/">Monitoring Services</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/config-updates/">Service Updates</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/supervisiors</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/robust-supervisor-networks/">Supervisor Networks</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/supervisor</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/internals/">Chef Habitat Internals</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/glossary-launcher/">Launcher</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+            
+              <li>
+
+                <a href="">chef_habitat/supervisors</a>
+                <span class="menu_weight">Weight: 0</span>
+
+                <ul class="menu vertical nested is-active">
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/remote-control/">Control Supervisors Remotely</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/using-encryption/">Securing Supervisor Networks</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/using-updates/">Service Group Update Strategy</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/setting-up-a-ring/">Setting Up a Ring</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/sup-log-configuration/">Supervisor Log Configuration</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                    
+                      <li  >
+                        
+                          <a href="/habitat/sup-log-keys/">Supervisor Log Key</a>
+                        
+                        <span class="menu_weight">Weight: 20</span>
+                      </li>
+                    
+                  
+                </ul>
+              </li>
+            
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+      </ul>
+    </div>
+  </nav>
+</aside>
+
+        </div>
+
+        <div id="main-content" class="cell off-canvas-content cell auto" data-off-canvas-content>
+            
+<main id="main-content-col" tabindex="-1">
+<div class="col-content">
+  <div id="hab-cli-reference"><h1>hab CLI Reference</h1></div>
+
+  
+  
+    <button type="button" class="TOC-button hide-for-large" data-toggle="offCanvasRightTOC" data-close="left-nav-off-canvas">
+      <i class="fas fa-bars"></i> Table of Contents
+    </button>
+  
+    <div class="prose">
+      <!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
+<h1 id="chef-habitat-command-line-interface-cli-reference">Chef Habitat Command-Line Interface (CLI) Reference</h1>
+<p>The commands for the Chef Habitat CLI (<code>hab</code>) are listed below.</p>
+<p>| Applies to Version | Last Updated |
+| ++++++- | ++++++++++++ |
+| hab 1.5.50/20200303162333 (linux) | 3 Mar 2020 |</p>
+<h2 id="hab">hab</h2>
+<p><strong>USAGE</strong></p>
+<pre><code>hab &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>ALIASES</strong></p>
+<pre><code>apply      Alias for: 'config apply'
+install    Alias for: 'pkg install'
+run        Alias for: 'sup run'
+setup      Alias for: 'cli setup'
+start      Alias for: 'svc start'
+stop       Alias for: 'svc stop'
+term       Alias for: 'sup term'
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-bldr">hab bldr</a> | Commands relating to Habitat Builder |
+| <a href="#hab-cli">hab cli</a> | Commands relating to Habitat runtime config |
+| <a href="#hab-config">hab config</a> | Commands relating to a Service&rsquo;s runtime config |
+| <a href="#hab-file">hab file</a> | Commands relating to Habitat files |
+| <a href="#hab-license">hab license</a> | Commands relating to Habitat license agreements |
+| <a href="#hab-origin">hab origin</a> | Commands relating to Habitat Builder origins |
+| <a href="#hab-pkg">hab pkg</a> | Commands relating to Habitat packages |
+| <a href="#hab-plan">hab plan</a> | Commands relating to plans and other app-specific configuration |
+| <a href="#hab-ring">hab ring</a> | Commands relating to Habitat rings |
+| <a href="#hab-studio">hab studio</a> | Commands relating to Habitat Studios |
+| <a href="#hab-sup">hab sup</a> | The Habitat Supervisor |
+| <a href="#hab-supportbundle">hab supportbundle</a> | Create a tarball of Habitat Supervisor data to send to support |
+| <a href="#hab-svc">hab svc</a> | Commands relating to Habitat services |
+| <a href="#hab-user">hab user</a> | Commands relating to Habitat users |
++++</p>
+<h2 id="hab-bldr">hab bldr</h2>
+<p>Commands relating to Habitat Builder</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab bldr &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-bldr-channel">hab bldr channel</a> | Commands relating to Habitat Builder channels |
+| <a href="#hab-bldr-job">hab bldr job</a> | Commands relating to Habitat Builder jobs |
++++</p>
+<h3 id="hab-bldr-channel">hab bldr channel</h3>
+<p>Commands relating to Habitat Builder channels</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab bldr channel &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-bldr-channel-create">hab bldr channel create</a> | Creates a new channel |
+| <a href="#hab-bldr-channel-demote">hab bldr channel demote</a> | Atomically demotes selected packages in a target channel |
+| <a href="#hab-bldr-channel-destroy">hab bldr channel destroy</a> | Destroys a channel |
+| <a href="#hab-bldr-channel-list">hab bldr channel list</a> | Lists origin channels |
+| <a href="#hab-bldr-channel-promote">hab bldr channel promote</a> | Atomically promotes all packages in channel |
++++</p>
+<h3 id="hab-bldr-channel-create">hab bldr channel create</h3>
+<p>Creates a new channel</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab bldr channel create [OPTIONS] &lt;CHANNEL&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-u, --url &lt;BLDR_URL&gt;     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin &lt;ORIGIN&gt;    Sets the origin to which the channel will belong. Default is from 'HAB_ORIGIN' or cli.toml
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;CHANNEL&gt;    The channel name
+</code></pre><p>+++</p>
+<h3 id="hab-bldr-channel-demote">hab bldr channel demote</h3>
+<p>Atomically demotes selected packages in a target channel</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab bldr channel demote [OPTIONS] &lt;SOURCE_CHANNEL&gt; &lt;TARGET_CHANNEL&gt; --origin &lt;ORIGIN&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin &lt;ORIGIN&gt;      The origin for the channels. Default is from 'HAB_ORIGIN' or cli.toml
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;SOURCE_CHANNEL&gt;    The channel from which all packages will be selected for demotion
+&lt;TARGET_CHANNEL&gt;    The channel selected packages will be removed from
+</code></pre><p>+++</p>
+<h3 id="hab-bldr-channel-destroy">hab bldr channel destroy</h3>
+<p>Destroys a channel</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab bldr channel destroy [OPTIONS] &lt;CHANNEL&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-u, --url &lt;BLDR_URL&gt;     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin &lt;ORIGIN&gt;    Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN' or cli.toml
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;CHANNEL&gt;    The channel name
+</code></pre><p>+++</p>
+<h3 id="hab-bldr-channel-list">hab bldr channel list</h3>
+<p>Lists origin channels</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab bldr channel list [OPTIONS] [ORIGIN]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-u, --url &lt;BLDR_URL&gt;    Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;ORIGIN&gt;    The origin for which channels will be listed. Default is from 'HAB_ORIGIN' or cli.toml
+</code></pre><p>+++</p>
+<h3 id="hab-bldr-channel-promote">hab bldr channel promote</h3>
+<p>Atomically promotes all packages in channel</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab bldr channel promote [OPTIONS] &lt;SOURCE_CHANNEL&gt; &lt;TARGET_CHANNEL&gt; --origin &lt;ORIGIN&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin &lt;ORIGIN&gt;      The origin for the channels. Default is from 'HAB_ORIGIN' or cli.toml
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;SOURCE_CHANNEL&gt;    The channel from which all packages will be selected for promotion
+&lt;TARGET_CHANNEL&gt;    The channel to which packages will be promoted
+</code></pre><p>+++</p>
+<h3 id="hab-bldr-job">hab bldr job</h3>
+<p>Commands relating to Habitat Builder jobs</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab bldr job &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-bldr-job-cancel">hab bldr job cancel</a> | Cancel a build job group and any in-progress builds |
+| <a href="#hab-bldr-job-demote">hab bldr job demote</a> | Demote packages from a completed build job from a specified channel |
+| <a href="#hab-bldr-job-promote">hab bldr job promote</a> | Promote packages from a completed build job to a specified channel |
+| <a href="#hab-bldr-job-start">hab bldr job start</a> | Schedule a build job or group of jobs |
+| <a href="#hab-bldr-job-status">hab bldr job status</a> | Get the status of one or more job groups |
++++</p>
+<h3 id="hab-bldr-job-cancel">hab bldr job cancel</h3>
+<p>Cancel a build job group and any in-progress builds</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab bldr job cancel [FLAGS] [OPTIONS] &lt;GROUP_ID&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-f, --force      Don't prompt for confirmation
+-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;GROUP_ID&gt;    The job group id that was returned from &quot;hab bldr job start&quot; (ex: 771100000000000000)
+</code></pre><p>+++</p>
+<h3 id="hab-bldr-job-demote">hab bldr job demote</h3>
+<p>Demote packages from a completed build job from a specified channel</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab bldr job demote [FLAGS] [OPTIONS] &lt;GROUP_ID&gt; &lt;CHANNEL&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-i, --interactive    Allow editing the list of demotable packages
+-h, --help           Prints help information
+-V, --version        Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin &lt;ORIGIN&gt;      Limit the demotable packages to the specified origin
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;GROUP_ID&gt;    The job group id that was returned from &quot;hab bldr job start&quot; (ex: 771100000000000000)
+&lt;CHANNEL&gt;     The name of the channel to demote from
+</code></pre><p>+++</p>
+<h3 id="hab-bldr-job-promote">hab bldr job promote</h3>
+<p>Promote packages from a completed build job to a specified channel</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab bldr job promote [FLAGS] [OPTIONS] &lt;GROUP_ID&gt; &lt;CHANNEL&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-i, --interactive    Allow editing the list of promotable packages
+-h, --help           Prints help information
+-V, --version        Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin &lt;ORIGIN&gt;      Limit the promotable packages to the specified origin
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;GROUP_ID&gt;    The job group id that was returned from &quot;hab bldr job start&quot; (ex: 771100000000000000)
+&lt;CHANNEL&gt;     The target channel name
+</code></pre><p>+++</p>
+<h3 id="hab-bldr-job-start">hab bldr job start</h3>
+<p>Schedule a build job or group of jobs</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab bldr job start [FLAGS] [OPTIONS] &lt;PKG_IDENT&gt; [PKG_TARGET]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-g, --group      Schedule jobs for this package and all of its reverse dependencies
+-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;     A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+&lt;PKG_TARGET&gt;    A package target (ex: x86_64-windows) (default: system appropriate target) [env: HAB_PACKAGE_TARGET=]
+</code></pre><p>+++</p>
+<h3 id="hab-bldr-job-status">hab bldr job status</h3>
+<p>Get the status of one or more job groups</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab bldr job status [FLAGS] [OPTIONS] &lt;GROUP_ID|--origin &lt;ORIGIN&gt;&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-s, --showjobs    Show the status of all build jobs for a retrieved job group
+-h, --help        Prints help information
+-V, --version     Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-u, --url &lt;BLDR_URL&gt;     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-l, --limit &lt;LIMIT&gt;      Limit how many job groups to retrieve, ordered by most recent (default: 10)
+-o, --origin &lt;ORIGIN&gt;    Show the status of recent job groups created in this origin (default: 10 most recent)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;GROUP_ID&gt;    The job group id that was returned from &quot;hab bldr job start&quot; (ex: 771100000000000000)
+</code></pre><p>+++</p>
+<h2 id="hab-cli">hab cli</h2>
+<p>Commands relating to Habitat runtime config</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab cli &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-cli-completers">hab cli completers</a> | Creates command-line completers for your shell |
+| <a href="#hab-cli-setup">hab cli setup</a> | Sets up the CLI with reasonable defaults |
++++</p>
+<h3 id="hab-cli-completers">hab cli completers</h3>
+<p>Creates command-line completers for your shell</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab cli completers --shell &lt;SHELL&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-s, --shell &lt;SHELL&gt;    The name of the shell you want to generate the command-completion [possible values: Bash, Fish, Zsh, PowerShell]
+</code></pre><p>+++</p>
+<h3 id="hab-cli-setup">hab cli setup</h3>
+<p>Sets up the CLI with reasonable defaults</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab cli setup --cache-key-path &lt;CACHE_KEY_PATH&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+</code></pre><p>+++</p>
+<h2 id="hab-config">hab config</h2>
+<p>Commands relating to a Service&rsquo;s runtime config</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab config &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-config-apply">hab config apply</a> | Sets a configuration to be shared by members of a Service Group |
+| <a href="#hab-config-show">hab config show</a> | Displays the default configuration options for a service |
++++</p>
+<h3 id="hab-config-apply">hab config apply</h3>
+<p>Sets a configuration to be shared by members of a Service Group</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab config apply [OPTIONS] &lt;SERVICE_GROUP&gt; &lt;VERSION_NUMBER&gt; --cache-key-path &lt;CACHE_KEY_PATH&gt; [FILE]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+-r, --remote-sup &lt;REMOTE_SUP&gt;            Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+-u, --user &lt;USER&gt;                        Name of a user key to use for encryption
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;SERVICE_GROUP&gt;     Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)
+&lt;VERSION_NUMBER&gt;    A version number (positive integer) for this configuration (ex: 42)
+&lt;FILE&gt;              Path to local file on disk (ex: /tmp/config.toml, default: &lt;stdin&gt;)
+</code></pre><p>+++</p>
+<h3 id="hab-config-show">hab config show</h3>
+<p>Displays the default configuration options for a service</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab config show [OPTIONS] &lt;PKG_IDENT&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-r, --remote-sup &lt;REMOTE_SUP&gt;    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+</code></pre><p>+++</p>
+<h2 id="hab-file">hab file</h2>
+<p>Commands relating to Habitat files</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab file &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-file-upload">hab file upload</a> | Uploads a file to be shared between members of a Service Group |
++++</p>
+<h3 id="hab-file-upload">hab file upload</h3>
+<p>Uploads a file to be shared between members of a Service Group</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab file upload [OPTIONS] &lt;SERVICE_GROUP&gt; &lt;VERSION_NUMBER&gt; &lt;FILE&gt; --cache-key-path &lt;CACHE_KEY_PATH&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+-r, --remote-sup &lt;REMOTE_SUP&gt;            Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+-u, --user &lt;USER&gt;                        Name of the user key
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;SERVICE_GROUP&gt;     Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)
+&lt;VERSION_NUMBER&gt;    A version number (positive integer) for this configuration (ex: 42)
+&lt;FILE&gt;              Path to local file on disk
+</code></pre><p>+++</p>
+<h2 id="hab-license">hab license</h2>
+<p>Commands relating to Habitat license agreements</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab license &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-license-accept">hab license accept</a> | Accept the Chef Binary Distribution Agreement without prompting |
++++</p>
+<h3 id="hab-license-accept">hab license accept</h3>
+<p>Accept the Chef Binary Distribution Agreement without prompting</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab license accept
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p>+++</p>
+<h2 id="hab-origin">hab origin</h2>
+<p>Commands relating to Habitat Builder origins</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-origin-create">hab origin create</a> | Creates a new Builder origin |
+| <a href="#hab-origin-delete">hab origin delete</a> | Removes an unused/empty origin |
+| <a href="#hab-origin-depart">hab origin depart</a> | Departs membership from selected origin |
+| <a href="#hab-origin-info">hab origin info</a> | Displays general information about an origin |
+| <a href="#hab-origin-invitations">hab origin invitations</a> | Manage origin member invitations |
+| <a href="#hab-origin-key">hab origin key</a> | Commands relating to Habitat origin key maintenance |
+| <a href="#hab-origin-secret">hab origin secret</a> | Commands related to secret management |
+| <a href="#hab-origin-transfer">hab origin transfer</a> | Transfers ownership of an origin to another member of that origin |
++++</p>
+<h3 id="hab-origin-create">hab origin create</h3>
+<p>Creates a new Builder origin</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin create [OPTIONS] &lt;ORIGIN&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;ORIGIN&gt;    The origin to be created
+</code></pre><p>+++</p>
+<h3 id="hab-origin-delete">hab origin delete</h3>
+<p>Removes an unused/empty origin</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin delete [OPTIONS] &lt;ORIGIN&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;ORIGIN&gt;    The origin name
+</code></pre><p>+++</p>
+<h3 id="hab-origin-depart">hab origin depart</h3>
+<p>Departs membership from selected origin</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin depart [OPTIONS] &lt;ORIGIN&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;ORIGIN&gt;    The origin name
+</code></pre><p>+++</p>
+<h3 id="hab-origin-info">hab origin info</h3>
+<p>Displays general information about an origin</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin info [FLAGS] [OPTIONS] &lt;ORIGIN&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-j, --json       Output will be rendered in json
+-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;ORIGIN&gt;    The origin name to be queried
+</code></pre><p>+++</p>
+<h3 id="hab-origin-invitations">hab origin invitations</h3>
+<p>Manage origin member invitations</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin invitations &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-origin-invitations-accept">hab origin invitations accept</a> | Accept an origin member invitation |
+| <a href="#hab-origin-invitations-ignore">hab origin invitations ignore</a> | Ignore an origin member invitation |
+| <a href="#hab-origin-invitations-list">hab origin invitations list</a> | List origin invitations sent to your account |
+| <a href="#hab-origin-invitations-pending">hab origin invitations pending</a> | List pending invitations for a particular origin. Requires that you are the origin owner |
+| <a href="#hab-origin-invitations-rescind">hab origin invitations rescind</a> | Rescind an existing origin member invitation |
+| <a href="#hab-origin-invitations-send">hab origin invitations send</a> | Send an origin member invitation |
++++</p>
+<h3 id="hab-origin-invitations-accept">hab origin invitations accept</h3>
+<p>Accept an origin member invitation</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin invitations accept [OPTIONS] &lt;ORIGIN&gt; &lt;INVITATION_ID&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;ORIGIN&gt;           The origin name the invitation applies to
+&lt;INVITATION_ID&gt;    The id of the invitation to accept
+</code></pre><p>+++</p>
+<h3 id="hab-origin-invitations-ignore">hab origin invitations ignore</h3>
+<p>Ignore an origin member invitation</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin invitations ignore [OPTIONS] &lt;ORIGIN&gt; &lt;INVITATION_ID&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;ORIGIN&gt;           The origin name the invitation applies to
+&lt;INVITATION_ID&gt;    The id of the invitation to ignore
+</code></pre><p>+++</p>
+<h3 id="hab-origin-invitations-list">hab origin invitations list</h3>
+<p>List origin invitations sent to your account</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin invitations list [OPTIONS]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p>+++</p>
+<h3 id="hab-origin-invitations-pending">hab origin invitations pending</h3>
+<p>List pending invitations for a particular origin. Requires that you are the origin owner</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin invitations pending [OPTIONS] &lt;ORIGIN&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;ORIGIN&gt;    The name of the origin you wish to list invitations for
+</code></pre><p>+++</p>
+<h3 id="hab-origin-invitations-rescind">hab origin invitations rescind</h3>
+<p>Rescind an existing origin member invitation</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin invitations rescind [OPTIONS] &lt;ORIGIN&gt; &lt;INVITATION_ID&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;ORIGIN&gt;           The origin name the invitation applies to
+&lt;INVITATION_ID&gt;    The id of the invitation to rescind
+</code></pre><p>+++</p>
+<h3 id="hab-origin-invitations-send">hab origin invitations send</h3>
+<p>Send an origin member invitation</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin invitations send [OPTIONS] &lt;ORIGIN&gt; &lt;INVITEE_ACCOUNT&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;ORIGIN&gt;             The origin name the invitation applies to
+&lt;INVITEE_ACCOUNT&gt;    The account name to invite into the origin
+</code></pre><p>+++</p>
+<h3 id="hab-origin-key">hab origin key</h3>
+<p>Commands relating to Habitat origin key maintenance</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin key &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-origin-key-download">hab origin key download</a> | Download origin key(s) |
+| <a href="#hab-origin-key-export">hab origin key export</a> | Outputs the latest origin key contents to stdout |
+| <a href="#hab-origin-key-generate">hab origin key generate</a> | Generates a Habitat origin key pair |
+| <a href="#hab-origin-key-import">hab origin key import</a> | Reads a stdin stream containing a public or private origin key contents and writes the key to disk |
+| <a href="#hab-origin-key-upload">hab origin key upload</a> | Upload origin keys to Builder |
++++</p>
+<h3 id="hab-origin-key-download">hab origin key download</h3>
+<p>Download origin key(s)</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin key download [FLAGS] [OPTIONS] &lt;ORIGIN&gt; --cache-key-path &lt;CACHE_KEY_PATH&gt; [REVISION]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-e, --encryption    Download public encryption key instead of origin public key
+-s, --secret        Download origin private key instead of origin public key
+-h, --help          Prints help information
+-V, --version       Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;                  Authentication token for Builder (required for downloading origin private keys)
+-u, --url &lt;BLDR_URL&gt;                     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;ORIGIN&gt;      The origin name
+&lt;REVISION&gt;    The origin key revision
+</code></pre><p>+++</p>
+<h3 id="hab-origin-key-export">hab origin key export</h3>
+<p>Outputs the latest origin key contents to stdout</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin key export [OPTIONS] &lt;ORIGIN&gt; --cache-key-path &lt;CACHE_KEY_PATH&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+-t, --type &lt;PAIR_TYPE&gt;                   Export either the 'public' or 'secret' key. The 'secret' key is the origin private key
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;ORIGIN&gt;    The origin name
+</code></pre><p>+++</p>
+<h3 id="hab-origin-key-generate">hab origin key generate</h3>
+<p>Generates a Habitat origin key pair</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin key generate --cache-key-path &lt;CACHE_KEY_PATH&gt; [ORIGIN]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;ORIGIN&gt;    The origin name
+</code></pre><p>+++</p>
+<h3 id="hab-origin-key-import">hab origin key import</h3>
+<p>Reads a stdin stream containing a public or private origin key contents and writes the key to disk</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin key import --cache-key-path &lt;CACHE_KEY_PATH&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+</code></pre><p>+++</p>
+<h3 id="hab-origin-key-upload">hab origin key upload</h3>
+<p>Upload origin keys to Builder</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin key upload [FLAGS] [OPTIONS] --cache-key-path &lt;CACHE_KEY_PATH&gt; &lt;ORIGIN|--pubfile &lt;PUBLIC_FILE&gt;&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-s, --secret     Upload origin private key in addition to the public key
+-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;                  Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;                     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+    --pubfile &lt;PUBLIC_FILE&gt;              Path to a local public origin key file on disk
+    --secfile &lt;SECRET_FILE&gt;              Path to a local origin private key file on disk
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;ORIGIN&gt;    The origin name
+</code></pre><p>+++</p>
+<h3 id="hab-origin-secret">hab origin secret</h3>
+<p>Commands related to secret management</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin secret &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-origin-secret-delete">hab origin secret delete</a> | Delete a secret for your origin |
+| <a href="#hab-origin-secret-list">hab origin secret list</a> | List all secrets for your origin |
+| <a href="#hab-origin-secret-upload">hab origin secret upload</a> | Create and upload a secret for your origin |
++++</p>
+<h3 id="hab-origin-secret-delete">hab origin secret delete</h3>
+<p>Delete a secret for your origin</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin secret delete [OPTIONS] &lt;KEY_NAME&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin &lt;ORIGIN&gt;      The origin for which the secret will be deleted. Default is from 'HAB_ORIGIN' or cli.toml
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;KEY_NAME&gt;    The name of the variable key to be injected into the studio
+</code></pre><p>+++</p>
+<h3 id="hab-origin-secret-list">hab origin secret list</h3>
+<p>List all secrets for your origin</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin secret list [OPTIONS]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin &lt;ORIGIN&gt;      The origin for which secrets will be listed. Default is from 'HAB_ORIGIN' or cli.toml
+</code></pre><p>+++</p>
+<h3 id="hab-origin-secret-upload">hab origin secret upload</h3>
+<p>Create and upload a secret for your origin</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin secret upload [OPTIONS] &lt;KEY_NAME&gt; &lt;SECRET&gt; --cache-key-path &lt;CACHE_KEY_PATH&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;                  Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;                     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+-o, --origin &lt;ORIGIN&gt;                    The origin for which the secret will be uploaded. Default is from HAB_ORIGIN' or cli.toml
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;KEY_NAME&gt;    The name of the variable key to be injected into the studio. Ex: KEY=&quot;some_value&quot;
+&lt;SECRET&gt;      The contents of the variable to be injected into the studio
+</code></pre><p>+++</p>
+<h3 id="hab-origin-transfer">hab origin transfer</h3>
+<p>Transfers ownership of an origin to another member of that origin</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab origin transfer [OPTIONS] &lt;ORIGIN&gt; &lt;NEW_OWNER_ACCOUNT&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;ORIGIN&gt;               The origin name
+&lt;NEW_OWNER_ACCOUNT&gt;    The account name of the new origin owner
+</code></pre><p>+++</p>
+<h2 id="hab-pkg">hab pkg</h2>
+<p>Commands relating to Habitat packages</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-pkg-binds">hab pkg binds</a> | Displays the binds for a service |
+| <a href="#hab-pkg-binlink">hab pkg binlink</a> | Creates a binlink for a package binary in a common &lsquo;PATH&rsquo; location |
+| <a href="#hab-pkg-build">hab pkg build</a> | Builds a Plan using a Studio |
+| <a href="#hab-pkg-bulkupload">hab pkg bulkupload</a> | Bulk Uploads Habitat Artifacts to a Depot from a local directory |
+| <a href="#hab-pkg-channels">hab pkg channels</a> | Find out what channels a package belongs to |
+| <a href="#hab-pkg-config">hab pkg config</a> | Displays the default configuration options for a service |
+| <a href="#hab-pkg-delete">hab pkg delete</a> | Removes a package from Builder |
+| <a href="#hab-pkg-demote">hab pkg demote</a> | Demote a package from a specified channel |
+| <a href="#hab-pkg-dependencies">hab pkg dependencies</a> | Returns the Habitat Artifact dependencies. By default it will return the direct dependencies of the package |
+| <a href="#hab-pkg-download">hab pkg download</a> | Download Habitat artifacts (including dependencies and keys) from Builder |
+| <a href="#hab-pkg-env">hab pkg env</a> | Prints the runtime environment of a specific installed package |
+| <a href="#hab-pkg-exec">hab pkg exec</a> | Executes a command using the &lsquo;PATH&rsquo; context of an installed package |
+| <a href="#hab-pkg-export">hab pkg export</a> | Exports the package to the specified format |
+| <a href="#hab-pkg-hash">hab pkg hash</a> | Generates a blake2b hashsum from a target at any given filepath |
+| <a href="#hab-pkg-info">hab pkg info</a> | Returns the Habitat Artifact information |
+| <a href="#hab-pkg-install">hab pkg install</a> | Installs a Habitat package from Builder or locally from a Habitat Artifact |
+| <a href="#hab-pkg-list">hab pkg list</a> | List all versions of installed packages |
+| <a href="#hab-pkg-path">hab pkg path</a> | Prints the path to a specific installed release of a package |
+| <a href="#hab-pkg-promote">hab pkg promote</a> | Promote a package to a specified channel |
+| <a href="#hab-pkg-provides">hab pkg provides</a> | Search installed Habitat packages for a given file |
+| <a href="#hab-pkg-search">hab pkg search</a> | Search for a package in Builder |
+| <a href="#hab-pkg-sign">hab pkg sign</a> | Signs an archive with an origin key, generating a Habitat Artifact |
+| <a href="#hab-pkg-uninstall">hab pkg uninstall</a> | Safely uninstall a package and dependencies from the local filesystem |
+| <a href="#hab-pkg-upload">hab pkg upload</a> | Uploads a local Habitat Artifact to Builder |
+| <a href="#hab-pkg-verify">hab pkg verify</a> | Verifies a Habitat Artifact with an origin key |
++++</p>
+<h3 id="hab-pkg-binds">hab pkg binds</h3>
+<p>Displays the binds for a service</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg binds &lt;PKG_IDENT&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-binlink">hab pkg binlink</h3>
+<p>Creates a binlink for a package binary in a common &lsquo;PATH&rsquo; location</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg binlink [FLAGS] [OPTIONS] &lt;PKG_IDENT&gt; [BINARY]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-f, --force      Overwrite existing binlinks
+-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-d, --dest &lt;DEST_DIR&gt;    Sets the destination directory [env: HAB_BINLINK_DIR=]  [default: /bin]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+&lt;BINARY&gt;       The command to binlink (ex: bash)
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-build">hab pkg build</h3>
+<p>Builds a Plan using a Studio</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg build [FLAGS] [OPTIONS] &lt;PLAN_CONTEXT&gt; --cache-key-path &lt;CACHE_KEY_PATH&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-D, --docker     Uses a Dockerized Studio for the build
+-R, --reuse      Reuses a previous Studio for the build (default: clean up before building)
+-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+-k, --keys &lt;HAB_ORIGIN_KEYS&gt;             Installs secret origin keys (ex: &quot;unicorn&quot;, &quot;acme,other,acme-ops&quot;)
+-r, --root &lt;HAB_STUDIO_ROOT&gt;             Sets the Studio root (default: /hab/studios/&lt;DIR_NAME&gt;)
+-s, --src &lt;SRC_PATH&gt;                     Sets the source path (default: $PWD)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PLAN_CONTEXT&gt;    A directory containing a plan file or a habitat/ directory which contains the plan file
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-bulkupload">hab pkg bulkupload</h3>
+<p>Bulk Uploads Habitat Artifacts to a Depot from a local directory</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg bulkupload [FLAGS] [OPTIONS] &lt;UPLOAD_DIRECTORY&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>--auto-build             Enable auto-build for all packages in this upload. Only applicable to SaaS Builder
+    --auto-create-origins    Skip the confirmation prompt and automatically create origins that do not exist in the target Builder
+    --force                  Skip checking availability of package and force uploads, potentially overwriting a stored copy of a package
+-h, --help                   Prints help information
+-V, --version                Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-c, --channel &lt;CHANNEL&gt;    Optional additional release channel to upload package to. Packages are always uploaded to unstable, regardless of the value of this option
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;UPLOAD_DIRECTORY&gt;    Directory Path from which artifacts will be uploaded
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-channels">hab pkg channels</h3>
+<p>Find out what channels a package belongs to</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg channels [OPTIONS] &lt;PKG_IDENT&gt; [PKG_TARGET]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;     A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
+&lt;PKG_TARGET&gt;    A package target (ex: x86_64-windows) (default: system appropriate target) [env: HAB_PACKAGE_TARGET=]
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-config">hab pkg config</h3>
+<p>Displays the default configuration options for a service</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg config &lt;PKG_IDENT&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-delete">hab pkg delete</h3>
+<p>Removes a package from Builder</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg delete [OPTIONS] &lt;PKG_IDENT&gt; [PKG_TARGET]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;     A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
+&lt;PKG_TARGET&gt;    A package target (ex: x86_64-windows) (default: system appropriate target) [env: HAB_PACKAGE_TARGET=]
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-demote">hab pkg demote</h3>
+<p>Demote a package from a specified channel</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg demote [OPTIONS] &lt;PKG_IDENT&gt; &lt;CHANNEL&gt; [PKG_TARGET]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;     A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
+&lt;CHANNEL&gt;       Demote from the specified release channel
+&lt;PKG_TARGET&gt;    A package target (ex: x86_64-windows) (default: system appropriate target) [env: HAB_PACKAGE_TARGET=]
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-dependencies">hab pkg dependencies</h3>
+<p>Returns the Habitat Artifact dependencies. By default it will return the direct dependencies of the package</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg dependencies [FLAGS] &lt;PKG_IDENT&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-r, --reverse       Show packages which are dependant on this one
+-t, --transitive    Show transitive dependencies
+-h, --help          Prints help information
+-V, --version       Prints version information
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-download">hab pkg download</h3>
+<p>Download Habitat artifacts (including dependencies and keys) from Builder</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg download [FLAGS] [OPTIONS] [--] [PKG_IDENT]...
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>--ignore-missing-seeds    Ignore packages specified that are not present on the target Builder
+    --verify                  Verify package integrity after download (Warning: this can be slow)
+-h, --help                    Prints help information
+-V, --version                 Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;                          Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt; Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-c, --channel &lt;CHANNEL&gt; Download from the specified release channel. Overridden if channel is specified in toml file [env: HAB_BLDR_CHANNEL=]  [default: stable]
+    --download-directory &lt;DOWNLOAD_DIRECTORY&gt;    The path to store downloaded artifacts
+    --file &lt;PKG_IDENT_FILE&gt;... File with newline separated package identifiers, or TOML file (ending with .toml extension)
+
+-t, --target &lt;PKG_TARGET&gt; Target architecture to fetch. E.g. x86_64-linux. Overridden if architecture is specified in toml file
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;...    One or more Habitat package identifiers (ex: acme/redis)
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-env">hab pkg env</h3>
+<p>Prints the runtime environment of a specific installed package</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg env &lt;PKG_IDENT&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-exec">hab pkg exec</h3>
+<p>Executes a command using the &lsquo;PATH&rsquo; context of an installed package</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg exec &lt;PKG_IDENT&gt; &lt;CMD&gt; [ARGS]...
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+&lt;CMD&gt;          The command to execute (ex: ls)
+&lt;ARGS&gt;...      Arguments to the command (ex: -l /tmp)
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-export">hab pkg export</h3>
+<p>Exports the package to the specified format</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg export [OPTIONS] &lt;FORMAT&gt; &lt;PKG_IDENT&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-c, --channel &lt;CHANNEL&gt;    Retrieve the container's package from the specified release channel [env: HAB_BLDR_CHANNEL=]  [default: stable]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;FORMAT&gt;       The export format (ex: cf, docker, mesos, or tar)
+&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2) or filepath to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-hash">hab pkg hash</h3>
+<p>Generates a blake2b hashsum from a target at any given filepath</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg hash [SOURCE]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;SOURCE&gt;    A filepath of the target
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-info">hab pkg info</h3>
+<p>Returns the Habitat Artifact information</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg info [FLAGS] &lt;SOURCE&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-j, --json       Output will be rendered in json
+-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;SOURCE&gt;    A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-install">hab pkg install</h3>
+<p>Installs a Habitat package from Builder or locally from a Habitat Artifact</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg install [FLAGS] [OPTIONS] &lt;PKG_IDENT_OR_ARTIFACT&gt;...
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-b, --binlink                Binlink all binaries from installed package(s) into BINLINK_DIR
+-f, --force                  Overwrite existing binlinks
+    --ignore-install-hook    Do not run any install hooks
+-h, --help                   Prints help information
+-V, --version                Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;            Authentication token for Builder
+    --binlink-dir &lt;BINLINK_DIR&gt;    Binlink all binaries from installed package(s) into BINLINK_DIR [env: HAB_BINLINK_DIR=]  [default: /bin]
+-u, --url &lt;BLDR_URL&gt;               Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-c, --channel &lt;CHANNEL&gt;            Install from the specified release channel [env: HAB_BLDR_CHANNEL=]  [default: stable]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT_OR_ARTIFACT&gt;...    One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-list">hab pkg list</h3>
+<p>List all versions of installed packages</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg list [OPTIONS] &lt;--all|--origin &lt;ORIGIN&gt;|PKG_IDENT&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-a, --all        List all installed packages
+-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-o, --origin &lt;ORIGIN&gt;    An origin to list
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-path">hab pkg path</h3>
+<p>Prints the path to a specific installed release of a package</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg path &lt;PKG_IDENT&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-promote">hab pkg promote</h3>
+<p>Promote a package to a specified channel</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg promote [OPTIONS] &lt;PKG_IDENT&gt; &lt;CHANNEL&gt; [PKG_TARGET]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;     A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
+&lt;CHANNEL&gt;       Promote to the specified release channel
+&lt;PKG_TARGET&gt;    A package target (ex: x86_64-windows) (default: system appropriate target) [env: HAB_PACKAGE_TARGET=]
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-provides">hab pkg provides</h3>
+<p>Search installed Habitat packages for a given file</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg provides [FLAGS] &lt;FILE&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-p               Show full path to file
+-r               Show fully qualified package names (ex: core/busybox-static/1.24.2/20160708162350)
+-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;FILE&gt;    File name to find
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-search">hab pkg search</h3>
+<p>Search for a package in Builder</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg search [OPTIONS] &lt;SEARCH_TERM&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;    Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-l, --limit &lt;LIMIT&gt;        Limit how many packages to retrieve [default: 50]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;SEARCH_TERM&gt;    Search term
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-sign">hab pkg sign</h3>
+<p>Signs an archive with an origin key, generating a Habitat Artifact</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg sign [OPTIONS] &lt;SOURCE&gt; &lt;DEST&gt; --cache-key-path &lt;CACHE_KEY_PATH&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+    --origin &lt;ORIGIN&gt;                    Origin key used to create signature
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;SOURCE&gt;    A path to a source archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)
+&lt;DEST&gt;      The destination path to the signed Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201- x86_64-linux.hart)
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-uninstall">hab pkg uninstall</h3>
+<p>Safely uninstall a package and dependencies from the local filesystem</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg uninstall [FLAGS] [OPTIONS] &lt;PKG_IDENT&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-d, --dryrun     Just show what would be uninstalled, don't actually do it
+    --no-deps    Don't uninstall dependencies
+-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--exclude &lt;EXCLUDE&gt;...    Identifier of one or more packages that should not be uninstalled. (ex: core/redis, core/busybox-static/1.42.2/21120102031201)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-upload">hab pkg upload</h3>
+<p>Uploads a local Habitat Artifact to Builder</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg upload [FLAGS] [OPTIONS] &lt;HART_FILE&gt;... --cache-key-path &lt;CACHE_KEY_PATH&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>--force       Skips checking availability of package and force uploads, potentially overwriting a stored copy of a package. (default: false)
+    --no-build    Disable auto-build for all packages in this upload
+-h, --help        Prints help information
+-V, --version     Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-z, --auth &lt;AUTH_TOKEN&gt;                  Authentication token for Builder
+-u, --url &lt;BLDR_URL&gt;                     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+-c, --channel &lt;CHANNEL&gt;                  Optional additional release channel to upload package to. Packages are always uploaded to unstable, regardless of the value of this option
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;HART_FILE&gt;...    One or more filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64- linux.hart)
+</code></pre><p>+++</p>
+<h3 id="hab-pkg-verify">hab pkg verify</h3>
+<p>Verifies a Habitat Artifact with an origin key</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab pkg verify &lt;SOURCE&gt; --cache-key-path &lt;CACHE_KEY_PATH&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;SOURCE&gt;    A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+</code></pre><p>+++</p>
+<h2 id="hab-plan">hab plan</h2>
+<p>Commands relating to plans and other app-specific configuration</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab plan &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-plan-init">hab plan init</a> | Generates common package specific configuration files. Executing without argument will create a habitat directory in your current folder for the plan. If PKG_NAME is specified it will create a folder with that name. Environment variables (those starting with &lsquo;pkg_') that are set will be used in the generated plan |
+| <a href="#hab-plan-render">hab plan render</a> | Renders plan config files |
++++</p>
+<h3 id="hab-plan-init">hab plan init</h3>
+<p>Generates common package specific configuration files. Executing without argument will create a habitat directory in</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab plan init [FLAGS] [OPTIONS] [PKG_NAME]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-m, --min        Create a minimal plan file
+-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-o, --origin &lt;ORIGIN&gt;              Origin for the new app
+-s, --scaffolding &lt;SCAFFOLDING&gt;    Specify explicit Scaffolding for your app (ex: node, ruby)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_NAME&gt;    Name for the new app
+</code></pre><p>+++</p>
+<h3 id="hab-plan-render">hab plan render</h3>
+<p>Renders plan config files</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab plan render [FLAGS] [OPTIONS] &lt;TEMPLATE_PATH&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-n, --no-render    Don't write anything to disk, ignores --render-dir
+-p, --print        Prints config to STDOUT
+-q, --quiet        Don't print any helper messages.  When used with --print will only print config file
+-h, --help         Prints help information
+-V, --version      Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-d, --default-toml &lt;DEFAULT_TOML&gt;    Path to default.toml [default: ./default.toml]
+-m, --mock-data &lt;MOCK_DATA&gt;          Path to json file with mock data for template, defaults to none
+-r, --render-dir &lt;RENDER_DIR&gt;        Path to render templates [default: ./results]
+-u, --user-toml &lt;USER_TOML&gt;          Path to user.toml, defaults to none
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;TEMPLATE_PATH&gt;    Path to config to render
+</code></pre><p>+++</p>
+<h2 id="hab-ring">hab ring</h2>
+<p>Commands relating to Habitat rings</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab ring &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-ring-key">hab ring key</a> | Commands relating to Habitat ring keys |
++++</p>
+<h3 id="hab-ring-key">hab ring key</h3>
+<p>Commands relating to Habitat ring keys</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab ring key &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-ring-key-export">hab ring key export</a> | Outputs the latest ring key contents to stdout |
+| <a href="#hab-ring-key-generate">hab ring key generate</a> | Generates a Habitat ring key |
+| <a href="#hab-ring-key-import">hab ring key import</a> | Reads a stdin stream containing ring key contents and writes the key to disk |
++++</p>
+<h3 id="hab-ring-key-export">hab ring key export</h3>
+<p>Outputs the latest ring key contents to stdout</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab ring key export &lt;RING&gt; --cache-key-path &lt;CACHE_KEY_PATH&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;RING&gt;    Ring key name
+</code></pre><p>+++</p>
+<h3 id="hab-ring-key-generate">hab ring key generate</h3>
+<p>Generates a Habitat ring key</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab ring key generate &lt;RING&gt; --cache-key-path &lt;CACHE_KEY_PATH&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;RING&gt;    Ring key name
+</code></pre><p>+++</p>
+<h3 id="hab-ring-key-import">hab ring key import</h3>
+<p>Reads a stdin stream containing ring key contents and writes the key to disk</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab ring key import --cache-key-path &lt;CACHE_KEY_PATH&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+</code></pre><p>+++</p>
+<h2 id="hab-studio">hab studio</h2>
+<p><strong>USAGE</strong></p>
+<pre><code>hab studio [FLAGS] [OPTIONS] &lt;SUBCOMMAND&gt; [ARG ..]
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-studio-build">hab studio build</a> | Build using a Studio |
+| <a href="#hab-studio-enter">hab studio enter</a> | Interactively enter a Studio |
+| <a href="#hab-studio-new">hab studio new</a> | Creates a new Studio |
+| <a href="#hab-studio-rm">hab studio rm</a> | Destroys a Studio |
+| <a href="#hab-studio-run">hab studio run</a> | Run a command in a Studio |
+| <a href="#hab-studio-version">hab studio version</a> | Prints version information |
++++</p>
+<h3 id="hab-studio-build">hab studio build</h3>
+<p><strong>USAGE</strong></p>
+<pre><code>hab studio [COMMON_FLAGS] [COMMON_OPTIONS] build [FLAGS] [PLAN_DIR]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-R  Reuse a previous Studio state (default: clean up before building)
+</code></pre><p>+++</p>
+<h3 id="hab-studio-enter">hab studio enter</h3>
+<p><strong>USAGE</strong></p>
+<pre><code>hab studio [COMMON_FLAGS] [COMMON_OPTIONS] enter
+</code></pre><p>+++</p>
+<h3 id="hab-studio-new">hab studio new</h3>
+<p><strong>USAGE</strong></p>
+<pre><code>hab studio [COMMON_FLAGS] [COMMON_OPTIONS] new
+</code></pre><p>+++</p>
+<h3 id="hab-studio-rm">hab studio rm</h3>
+<p><strong>USAGE</strong></p>
+<pre><code>hab studio [COMMON_FLAGS] [COMMON_OPTIONS] rm
+</code></pre><p>+++</p>
+<h3 id="hab-studio-run">hab studio run</h3>
+<p><strong>USAGE</strong></p>
+<pre><code>hab studio [COMMON_FLAGS] [COMMON_OPTIONS] run [CMD] [ARG ..]
+</code></pre><p>+++</p>
+<h3 id="hab-studio-version">hab studio version</h3>
+<p>+++</p>
+<h2 id="hab-sup">hab sup</h2>
+<p><strong>USAGE</strong></p>
+<pre><code>hab sup &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-sup-bash">hab sup bash</a> | Start an interactive Bash-like shell |
+| <a href="#hab-sup-depart">hab sup depart</a> | Depart a Supervisor from the gossip ring; kicking and banning the target from joining again with the same member-id |
+| <a href="#hab-sup-run">hab sup run</a> | Run the Habitat Supervisor |
+| <a href="#hab-sup-secret">hab sup secret</a> | Commands relating to a Habitat Supervisor&rsquo;s Control Gateway secret |
+| <a href="#hab-sup-sh">hab sup sh</a> | Start an interactive Bourne-like shell |
+| <a href="#hab-sup-status">hab sup status</a> | Query the status of Habitat services |
+| <a href="#hab-sup-term">hab sup term</a> | Gracefully terminate the Habitat Supervisor and all of its running services |
++++</p>
+<h3 id="hab-sup-bash">hab sup bash</h3>
+<p>Start an interactive Bash-like shell</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab sup bash
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help    Prints help information
+</code></pre><p>+++</p>
+<h3 id="hab-sup-depart">hab sup depart</h3>
+<p>Depart a Supervisor from the gossip ring; kicking and banning the target from joining again with the same member-id</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab sup depart [OPTIONS] &lt;MEMBER_ID&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help    Prints help information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-r, --remote-sup &lt;REMOTE_SUP&gt;    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;MEMBER_ID&gt;    The member-id of the Supervisor to depart
+</code></pre><p>+++</p>
+<h3 id="hab-sup-run">hab sup run</h3>
+<p>Run the Habitat Supervisor</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-A, --auto-update          Enable automatic updates for the Supervisor itself
+-D, --http-disable         Disable the HTTP Gateway completely
+    --json-logging         Use structured JSON logging for the Supervisor. Implies NO_COLOR
+    --local-gossip-mode    Start the supervisor in local mode
+    --no-color             Turn ANSI color off
+-I, --permanent-peer       If this Supervisor is a permanent peer
+-v                         Verbose output; shows file and line/column numbers
+-h, --help                 Prints help information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--bind &lt;BIND&gt;... One or more service groups to bind to a configuration
+
+    --binding-mode &lt;BINDING_MODE&gt; Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] [values: relaxed, strict]
+-u, --url &lt;BLDR_URL&gt; Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined (default: https://bldr.habitat.sh)
+    --cache-key-path &lt;CACHE_KEY_PATH&gt; Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+    --ca-certs &lt;CA_CERT_FILE&gt; Used for enabling client-authentication with TLS for the HTTP gateway. Read CA certificate from CA_CERT_FILE. This should contain PEM-format certificate that can be used to validate client requests
+    --certs &lt;CERT_FILE&gt; Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. This should contain PEM-format certificates in the right order (the first certificate should certify KEY_FILE, the last should be a root CA)
+    --channel &lt;CHANNEL&gt; Receive Supervisor updates from the specified release channel [default: stable]
+
+    --config-from &lt;CONFIG_DIR&gt; Use package config from this path, rather than the package itself
+
+    --event-stream-application &lt;EVENT_STREAM_APPLICATION&gt; The name of the application for event stream purposes. This will be attached to all events generated by this Supervisor
+    --event-stream-connect-timeout &lt;EVENT_STREAM_CONNECT_TIMEOUT&gt; How long in seconds to wait for an event stream connection before exiting the Supervisor. Set to '0' to immediately start the Supervisor and continue running regardless of the initial connection status [env: HAB_EVENT_STREAM_CONNECT_TIMEOUT=]  [default: 0]
+    --event-stream-environment &lt;EVENT_STREAM_ENVIRONMENT&gt; The name of the environment for event stream purposes. This will be attached to all events generated by this Supervisor
+    --event-meta &lt;EVENT_STREAM_METADATA&gt;... An arbitrary key-value pair to add to each event generated by this Supervisor
+
+    --event-stream-server-certificate &lt;EVENT_STREAM_SERVER_CERTIFICATE&gt; The path to Chef Automate's event stream certificate in PEM format used to establish a TLS connection
+
+    --event-stream-site &lt;EVENT_STREAM_SITE&gt; The name of the site where this Supervisor is running for event stream purposes
+
+    --event-stream-token &lt;EVENT_STREAM_TOKEN&gt; The authentication token for connecting the event stream to Chef Automate [env: HAB_AUTOMATE_AUTH_TOKEN=]
+
+    --event-stream-url &lt;EVENT_STREAM_URL&gt; The event stream connection string (host:port) used by this Supervisor to send events to Chef Automate. This enables the event stream and requires --event-stream-application, --event-stream-environment, and --event- stream-token also be set
+    --group &lt;GROUP&gt; The service group; shared config and topology [default: default]
+
+-i, --health-check-interval &lt;HEALTH_CHECK_INTERVAL&gt; The interval (seconds) on which to run health checks [default: 30]
+
+    --key &lt;KEY_FILE&gt; Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. This should be a RSA private key or PKCS8-encoded private key, in PEM format
+    --listen-ctl &lt;LISTEN_CTL&gt; The listen address for the Control Gateway. If not specified, the value will be taken from the HAB_LISTEN_CTL environment variable if defined [env: HAB_LISTEN_CTL=]  [default: 127.0.0.1:9632]
+    --listen-gossip &lt;LISTEN_GOSSIP&gt; The listen address for the Gossip System Gateway [env: HAB_LISTEN_GOSSIP=]  [default: 0.0.0.0:9638]
+
+    --listen-http &lt;LISTEN_HTTP&gt; The listen address for the HTTP Gateway [env: HAB_LISTEN_HTTP=]  [default: 0.0.0.0:9631]
+
+    --org &lt;ORGANIZATION&gt; The organization that the Supervisor and its subsequent services are part of
+
+    --peer &lt;PEER&gt;... The listen address of one or more initial peers (IP[:PORT])
+
+    --peer-watch-file &lt;PEER_WATCH_FILE&gt; Watch this file for connecting to the ring
+
+-r, --ring &lt;RING&gt; The name of the ring used by the Supervisor when running with wire encryption. (ex: hab sup run --ring myring) [env: HAB_RING=]
+    --shutdown-timeout &lt;SHUTDOWN_TIMEOUT&gt; The number of seconds after sending a shutdown signal to wait before killing a service process (default: set in plan)
+-s, --strategy &lt;STRATEGY&gt; The update strategy; [default: none] [values: none, at-once, rolling]
+
+    --sys-ip-address &lt;SYS_IP_ADDRESS&gt; The IPv4 address to use as the sys.ip template variable. If this argument is not set, the supervisor tries to dynamically determine an IP address. If that fails, the supervisor defaults to using 127.0.0.1
+-t, --topology &lt;TOPOLOGY&gt; Service topology; [default: none] [possible values: standalone, leader]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT_OR_ARTIFACT&gt;    Load the given Habitat package as part of the Supervisor startup specified by a package identifier (ex: core/redis) or filepath to a Habitat Artifact (ex: home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)
+</code></pre><p>+++</p>
+<h3 id="hab-sup-secret">hab sup secret</h3>
+<p>Commands relating to a Habitat Supervisor&rsquo;s Control Gateway secret</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab sup secret &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help    Prints help information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-sup-secret-generate">hab sup secret generate</a> | Generate a secret key to use as a Supervisor&rsquo;s Control Gateway secret |
++++</p>
+<h3 id="hab-sup-secret-generate">hab sup secret generate</h3>
+<p>Generate a secret key to use as a Supervisor&rsquo;s Control Gateway secret</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab sup secret generate
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p>+++</p>
+<h3 id="hab-sup-sh">hab sup sh</h3>
+<p>Start an interactive Bourne-like shell</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab sup sh
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help    Prints help information
+</code></pre><p>+++</p>
+<h3 id="hab-sup-status">hab sup status</h3>
+<p>Query the status of Habitat services</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab sup status [OPTIONS] [PKG_IDENT]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help    Prints help information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-r, --remote-sup &lt;REMOTE_SUP&gt;    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+</code></pre><p>+++</p>
+<h3 id="hab-sup-term">hab sup term</h3>
+<p>Gracefully terminate the Habitat Supervisor and all of its running services</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab sup term [OPTIONS]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help    Prints help information
+</code></pre><p>+++</p>
+<h2 id="hab-supportbundle">hab supportbundle</h2>
+<p>Create a tarball of Habitat Supervisor data to send to support</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab supportbundle
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p>+++</p>
+<h2 id="hab-svc">hab svc</h2>
+<p>Commands relating to Habitat services</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab svc &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-svc-key">hab svc key</a> | Commands relating to Habitat service keys |
+| <a href="#hab-svc-load">hab svc load</a> | Load a service to be started and supervised by Habitat from a package identifier. If an installed package doesn&rsquo;t satisfy the given package identifier, a suitable package will be installed from Builder |
+| <a href="#hab-svc-start">hab svc start</a> | Start a loaded, but stopped, Habitat service |
+| <a href="#hab-svc-status">hab svc status</a> | Query the status of Habitat services |
+| <a href="#hab-svc-stop">hab svc stop</a> | Stop a running Habitat service |
+| <a href="#hab-svc-unload">hab svc unload</a> | Unload a service loaded by the Habitat Supervisor. If the service is running it will additionally be stopped |
++++</p>
+<h3 id="hab-svc-key">hab svc key</h3>
+<p>Commands relating to Habitat service keys</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab svc key &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-svc-key-generate">hab svc key generate</a> | Generates a Habitat service key |
++++</p>
+<h3 id="hab-svc-key-generate">hab svc key generate</h3>
+<p>Generates a Habitat service key</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab svc key generate &lt;SERVICE_GROUP&gt; --cache-key-path &lt;CACHE_KEY_PATH&gt; [ORG]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;SERVICE_GROUP&gt;    Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)
+&lt;ORG&gt;              The service organization
+</code></pre><p>+++</p>
+<h3 id="hab-svc-load">hab svc load</h3>
+<p>Load a service to be started and supervised by Habitat from a package identifier. If an installed package doesn&rsquo;t</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab svc load [FLAGS] [OPTIONS] &lt;PKG_IDENT&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-f, --force      Load or reload an already loaded service. If the service was previously loaded and running this operation will also restart the service
+-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--bind &lt;BIND&gt;...                                   One or more service groups to bind to a configuration
+    --binding-mode &lt;BINDING_MODE&gt; Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] [values: relaxed, strict]
+-u, --url &lt;BLDR_URL&gt; Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --channel &lt;CHANNEL&gt; Receive package updates from the specified release channel [default: stable]
+
+    --group &lt;GROUP&gt; The service group; shared config and topology [default: default]
+
+-i, --health-check-interval &lt;HEALTH_CHECK_INTERVAL&gt; The interval (seconds) on which to run health checks [default: 30]
+
+-r, --remote-sup &lt;REMOTE_SUP&gt; Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+
+    --shutdown-timeout &lt;SHUTDOWN_TIMEOUT&gt; The number of seconds after sending a shutdown signal to wait before killing a service process (default: set in plan)
+-s, --strategy &lt;STRATEGY&gt; The update strategy; [default: none] [values: none, at-once, rolling]
+
+-t, --topology &lt;TOPOLOGY&gt; Service topology; [default: none] [possible values: standalone, leader]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+</code></pre><p>+++</p>
+<h3 id="hab-svc-start">hab svc start</h3>
+<p>Start a loaded, but stopped, Habitat service</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab svc start [OPTIONS] &lt;PKG_IDENT&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-r, --remote-sup &lt;REMOTE_SUP&gt;    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+</code></pre><p>+++</p>
+<h3 id="hab-svc-status">hab svc status</h3>
+<p>Query the status of Habitat services</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab svc status [OPTIONS] [PKG_IDENT]
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-r, --remote-sup &lt;REMOTE_SUP&gt;    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+</code></pre><p>+++</p>
+<h3 id="hab-svc-stop">hab svc stop</h3>
+<p>Stop a running Habitat service</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab svc stop [OPTIONS] &lt;PKG_IDENT&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-r, --remote-sup &lt;REMOTE_SUP&gt; Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+
+    --shutdown-timeout &lt;SHUTDOWN_TIMEOUT&gt; The number of seconds after sending a shutdown signal to wait before killing a service process (default: set in plan)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+</code></pre><p>+++</p>
+<h3 id="hab-svc-unload">hab svc unload</h3>
+<p>Unload a service loaded by the Habitat Supervisor. If the service is running it will additionally be stopped</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab svc unload [OPTIONS] &lt;PKG_IDENT&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>-r, --remote-sup &lt;REMOTE_SUP&gt; Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+
+    --shutdown-timeout &lt;SHUTDOWN_TIMEOUT&gt; The number of seconds after sending a shutdown signal to wait before killing a service process (default: set in plan)
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;PKG_IDENT&gt;    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+</code></pre><p>+++</p>
+<h2 id="hab-user">hab user</h2>
+<p>Commands relating to Habitat users</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab user &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-user-key">hab user key</a> | Commands relating to Habitat user keys |
++++</p>
+<h3 id="hab-user-key">hab user key</h3>
+<p>Commands relating to Habitat user keys</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab user key &lt;SUBCOMMAND&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>SUBCOMMANDS</strong></p>
+<p>| Command | Description |
+| ++++++- | +++++++++&ndash; |
+| <a href="#hab-user-key-generate">hab user key generate</a> | Generates a Habitat user key |
++++</p>
+<h3 id="hab-user-key-generate">hab user key generate</h3>
+<p>Generates a Habitat user key</p>
+<p><strong>USAGE</strong></p>
+<pre><code>hab user key generate &lt;USER&gt; --cache-key-path &lt;CACHE_KEY_PATH&gt;
+</code></pre><p><strong>FLAGS</strong></p>
+<pre><code>-h, --help       Prints help information
+-V, --version    Prints version information
+</code></pre><p><strong>OPTIONS</strong></p>
+<pre><code>--cache-key-path &lt;CACHE_KEY_PATH&gt;    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+</code></pre><p><strong>ARGS</strong></p>
+<pre><code>&lt;USER&gt;    Name of the user key
+</code></pre><p>+++</p>
+
+    </div>
+  </div>
+</main>
+
+        </div>
+
+        
+        
+          <div class="cell off-canvas position-right toc off-canvas-absolute reveal-for-large" id="onCanvasRightTOC" data-off-canvas >
+            <aside class="sticky sidebar" data-sticky data-top-anchor="utility-bar:bottom" data-btm-anchor="footer:top">
+  <span>
+    <strong>
+      <h4 class="mini-toc-header">Table Of Contents</h4>
+    </strong>
+    <button class="close-button hide-for-large" aria-label="Close menu" type="button" data-close>
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </span>
+  <a href="#hab-cli-reference">hab CLI Reference</a><nav id="TableOfContents">
+  <ul>
+    <li><a href="#chef-habitat-command-line-interface-cli-reference">Chef Habitat Command-Line Interface (CLI) Reference</a>
+      <ul>
+        <li><a href="#hab">hab</a></li>
+        <li><a href="#hab-bldr">hab bldr</a>
+          <ul>
+            <li><a href="#hab-bldr-channel">hab bldr channel</a></li>
+            <li><a href="#hab-bldr-channel-create">hab bldr channel create</a></li>
+            <li><a href="#hab-bldr-channel-demote">hab bldr channel demote</a></li>
+            <li><a href="#hab-bldr-channel-destroy">hab bldr channel destroy</a></li>
+            <li><a href="#hab-bldr-channel-list">hab bldr channel list</a></li>
+            <li><a href="#hab-bldr-channel-promote">hab bldr channel promote</a></li>
+            <li><a href="#hab-bldr-job">hab bldr job</a></li>
+            <li><a href="#hab-bldr-job-cancel">hab bldr job cancel</a></li>
+            <li><a href="#hab-bldr-job-demote">hab bldr job demote</a></li>
+            <li><a href="#hab-bldr-job-promote">hab bldr job promote</a></li>
+            <li><a href="#hab-bldr-job-start">hab bldr job start</a></li>
+            <li><a href="#hab-bldr-job-status">hab bldr job status</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-cli">hab cli</a>
+          <ul>
+            <li><a href="#hab-cli-completers">hab cli completers</a></li>
+            <li><a href="#hab-cli-setup">hab cli setup</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-config">hab config</a>
+          <ul>
+            <li><a href="#hab-config-apply">hab config apply</a></li>
+            <li><a href="#hab-config-show">hab config show</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-file">hab file</a>
+          <ul>
+            <li><a href="#hab-file-upload">hab file upload</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-license">hab license</a>
+          <ul>
+            <li><a href="#hab-license-accept">hab license accept</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-origin">hab origin</a>
+          <ul>
+            <li><a href="#hab-origin-create">hab origin create</a></li>
+            <li><a href="#hab-origin-delete">hab origin delete</a></li>
+            <li><a href="#hab-origin-depart">hab origin depart</a></li>
+            <li><a href="#hab-origin-info">hab origin info</a></li>
+            <li><a href="#hab-origin-invitations">hab origin invitations</a></li>
+            <li><a href="#hab-origin-invitations-accept">hab origin invitations accept</a></li>
+            <li><a href="#hab-origin-invitations-ignore">hab origin invitations ignore</a></li>
+            <li><a href="#hab-origin-invitations-list">hab origin invitations list</a></li>
+            <li><a href="#hab-origin-invitations-pending">hab origin invitations pending</a></li>
+            <li><a href="#hab-origin-invitations-rescind">hab origin invitations rescind</a></li>
+            <li><a href="#hab-origin-invitations-send">hab origin invitations send</a></li>
+            <li><a href="#hab-origin-key">hab origin key</a></li>
+            <li><a href="#hab-origin-key-download">hab origin key download</a></li>
+            <li><a href="#hab-origin-key-export">hab origin key export</a></li>
+            <li><a href="#hab-origin-key-generate">hab origin key generate</a></li>
+            <li><a href="#hab-origin-key-import">hab origin key import</a></li>
+            <li><a href="#hab-origin-key-upload">hab origin key upload</a></li>
+            <li><a href="#hab-origin-secret">hab origin secret</a></li>
+            <li><a href="#hab-origin-secret-delete">hab origin secret delete</a></li>
+            <li><a href="#hab-origin-secret-list">hab origin secret list</a></li>
+            <li><a href="#hab-origin-secret-upload">hab origin secret upload</a></li>
+            <li><a href="#hab-origin-transfer">hab origin transfer</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-pkg">hab pkg</a>
+          <ul>
+            <li><a href="#hab-pkg-binds">hab pkg binds</a></li>
+            <li><a href="#hab-pkg-binlink">hab pkg binlink</a></li>
+            <li><a href="#hab-pkg-build">hab pkg build</a></li>
+            <li><a href="#hab-pkg-bulkupload">hab pkg bulkupload</a></li>
+            <li><a href="#hab-pkg-channels">hab pkg channels</a></li>
+            <li><a href="#hab-pkg-config">hab pkg config</a></li>
+            <li><a href="#hab-pkg-delete">hab pkg delete</a></li>
+            <li><a href="#hab-pkg-demote">hab pkg demote</a></li>
+            <li><a href="#hab-pkg-dependencies">hab pkg dependencies</a></li>
+            <li><a href="#hab-pkg-download">hab pkg download</a></li>
+            <li><a href="#hab-pkg-env">hab pkg env</a></li>
+            <li><a href="#hab-pkg-exec">hab pkg exec</a></li>
+            <li><a href="#hab-pkg-export">hab pkg export</a></li>
+            <li><a href="#hab-pkg-hash">hab pkg hash</a></li>
+            <li><a href="#hab-pkg-info">hab pkg info</a></li>
+            <li><a href="#hab-pkg-install">hab pkg install</a></li>
+            <li><a href="#hab-pkg-list">hab pkg list</a></li>
+            <li><a href="#hab-pkg-path">hab pkg path</a></li>
+            <li><a href="#hab-pkg-promote">hab pkg promote</a></li>
+            <li><a href="#hab-pkg-provides">hab pkg provides</a></li>
+            <li><a href="#hab-pkg-search">hab pkg search</a></li>
+            <li><a href="#hab-pkg-sign">hab pkg sign</a></li>
+            <li><a href="#hab-pkg-uninstall">hab pkg uninstall</a></li>
+            <li><a href="#hab-pkg-upload">hab pkg upload</a></li>
+            <li><a href="#hab-pkg-verify">hab pkg verify</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-plan">hab plan</a>
+          <ul>
+            <li><a href="#hab-plan-init">hab plan init</a></li>
+            <li><a href="#hab-plan-render">hab plan render</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-ring">hab ring</a>
+          <ul>
+            <li><a href="#hab-ring-key">hab ring key</a></li>
+            <li><a href="#hab-ring-key-export">hab ring key export</a></li>
+            <li><a href="#hab-ring-key-generate">hab ring key generate</a></li>
+            <li><a href="#hab-ring-key-import">hab ring key import</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-studio">hab studio</a>
+          <ul>
+            <li><a href="#hab-studio-build">hab studio build</a></li>
+            <li><a href="#hab-studio-enter">hab studio enter</a></li>
+            <li><a href="#hab-studio-new">hab studio new</a></li>
+            <li><a href="#hab-studio-rm">hab studio rm</a></li>
+            <li><a href="#hab-studio-run">hab studio run</a></li>
+            <li><a href="#hab-studio-version">hab studio version</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-sup">hab sup</a>
+          <ul>
+            <li><a href="#hab-sup-bash">hab sup bash</a></li>
+            <li><a href="#hab-sup-depart">hab sup depart</a></li>
+            <li><a href="#hab-sup-run">hab sup run</a></li>
+            <li><a href="#hab-sup-secret">hab sup secret</a></li>
+            <li><a href="#hab-sup-secret-generate">hab sup secret generate</a></li>
+            <li><a href="#hab-sup-sh">hab sup sh</a></li>
+            <li><a href="#hab-sup-status">hab sup status</a></li>
+            <li><a href="#hab-sup-term">hab sup term</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-supportbundle">hab supportbundle</a></li>
+        <li><a href="#hab-svc">hab svc</a>
+          <ul>
+            <li><a href="#hab-svc-key">hab svc key</a></li>
+            <li><a href="#hab-svc-key-generate">hab svc key generate</a></li>
+            <li><a href="#hab-svc-load">hab svc load</a></li>
+            <li><a href="#hab-svc-start">hab svc start</a></li>
+            <li><a href="#hab-svc-status">hab svc status</a></li>
+            <li><a href="#hab-svc-stop">hab svc stop</a></li>
+            <li><a href="#hab-svc-unload">hab svc unload</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-user">hab user</a>
+          <ul>
+            <li><a href="#hab-user-key">hab user key</a></li>
+            <li><a href="#hab-user-key-generate">hab user key generate</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav></aside>
+
+          </div>
+        
+
+      </div>
+    </div>
+  </div>
+
+  
+  
+
+    <div class="off-canvas position-right toc off-canvas-absolute hide-for-large" id="offCanvasRightTOC" data-off-canvas
+      data-transition="overlap">
+      <aside class="sticky sidebar" data-sticky data-top-anchor="utility-bar:bottom" data-btm-anchor="footer:top">
+  <span>
+    <strong>
+      <h4 class="mini-toc-header">Table Of Contents</h4>
+    </strong>
+    <button class="close-button hide-for-large" aria-label="Close menu" type="button" data-close>
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </span>
+  <a href="#hab-cli-reference">hab CLI Reference</a><nav id="TableOfContents">
+  <ul>
+    <li><a href="#chef-habitat-command-line-interface-cli-reference">Chef Habitat Command-Line Interface (CLI) Reference</a>
+      <ul>
+        <li><a href="#hab">hab</a></li>
+        <li><a href="#hab-bldr">hab bldr</a>
+          <ul>
+            <li><a href="#hab-bldr-channel">hab bldr channel</a></li>
+            <li><a href="#hab-bldr-channel-create">hab bldr channel create</a></li>
+            <li><a href="#hab-bldr-channel-demote">hab bldr channel demote</a></li>
+            <li><a href="#hab-bldr-channel-destroy">hab bldr channel destroy</a></li>
+            <li><a href="#hab-bldr-channel-list">hab bldr channel list</a></li>
+            <li><a href="#hab-bldr-channel-promote">hab bldr channel promote</a></li>
+            <li><a href="#hab-bldr-job">hab bldr job</a></li>
+            <li><a href="#hab-bldr-job-cancel">hab bldr job cancel</a></li>
+            <li><a href="#hab-bldr-job-demote">hab bldr job demote</a></li>
+            <li><a href="#hab-bldr-job-promote">hab bldr job promote</a></li>
+            <li><a href="#hab-bldr-job-start">hab bldr job start</a></li>
+            <li><a href="#hab-bldr-job-status">hab bldr job status</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-cli">hab cli</a>
+          <ul>
+            <li><a href="#hab-cli-completers">hab cli completers</a></li>
+            <li><a href="#hab-cli-setup">hab cli setup</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-config">hab config</a>
+          <ul>
+            <li><a href="#hab-config-apply">hab config apply</a></li>
+            <li><a href="#hab-config-show">hab config show</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-file">hab file</a>
+          <ul>
+            <li><a href="#hab-file-upload">hab file upload</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-license">hab license</a>
+          <ul>
+            <li><a href="#hab-license-accept">hab license accept</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-origin">hab origin</a>
+          <ul>
+            <li><a href="#hab-origin-create">hab origin create</a></li>
+            <li><a href="#hab-origin-delete">hab origin delete</a></li>
+            <li><a href="#hab-origin-depart">hab origin depart</a></li>
+            <li><a href="#hab-origin-info">hab origin info</a></li>
+            <li><a href="#hab-origin-invitations">hab origin invitations</a></li>
+            <li><a href="#hab-origin-invitations-accept">hab origin invitations accept</a></li>
+            <li><a href="#hab-origin-invitations-ignore">hab origin invitations ignore</a></li>
+            <li><a href="#hab-origin-invitations-list">hab origin invitations list</a></li>
+            <li><a href="#hab-origin-invitations-pending">hab origin invitations pending</a></li>
+            <li><a href="#hab-origin-invitations-rescind">hab origin invitations rescind</a></li>
+            <li><a href="#hab-origin-invitations-send">hab origin invitations send</a></li>
+            <li><a href="#hab-origin-key">hab origin key</a></li>
+            <li><a href="#hab-origin-key-download">hab origin key download</a></li>
+            <li><a href="#hab-origin-key-export">hab origin key export</a></li>
+            <li><a href="#hab-origin-key-generate">hab origin key generate</a></li>
+            <li><a href="#hab-origin-key-import">hab origin key import</a></li>
+            <li><a href="#hab-origin-key-upload">hab origin key upload</a></li>
+            <li><a href="#hab-origin-secret">hab origin secret</a></li>
+            <li><a href="#hab-origin-secret-delete">hab origin secret delete</a></li>
+            <li><a href="#hab-origin-secret-list">hab origin secret list</a></li>
+            <li><a href="#hab-origin-secret-upload">hab origin secret upload</a></li>
+            <li><a href="#hab-origin-transfer">hab origin transfer</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-pkg">hab pkg</a>
+          <ul>
+            <li><a href="#hab-pkg-binds">hab pkg binds</a></li>
+            <li><a href="#hab-pkg-binlink">hab pkg binlink</a></li>
+            <li><a href="#hab-pkg-build">hab pkg build</a></li>
+            <li><a href="#hab-pkg-bulkupload">hab pkg bulkupload</a></li>
+            <li><a href="#hab-pkg-channels">hab pkg channels</a></li>
+            <li><a href="#hab-pkg-config">hab pkg config</a></li>
+            <li><a href="#hab-pkg-delete">hab pkg delete</a></li>
+            <li><a href="#hab-pkg-demote">hab pkg demote</a></li>
+            <li><a href="#hab-pkg-dependencies">hab pkg dependencies</a></li>
+            <li><a href="#hab-pkg-download">hab pkg download</a></li>
+            <li><a href="#hab-pkg-env">hab pkg env</a></li>
+            <li><a href="#hab-pkg-exec">hab pkg exec</a></li>
+            <li><a href="#hab-pkg-export">hab pkg export</a></li>
+            <li><a href="#hab-pkg-hash">hab pkg hash</a></li>
+            <li><a href="#hab-pkg-info">hab pkg info</a></li>
+            <li><a href="#hab-pkg-install">hab pkg install</a></li>
+            <li><a href="#hab-pkg-list">hab pkg list</a></li>
+            <li><a href="#hab-pkg-path">hab pkg path</a></li>
+            <li><a href="#hab-pkg-promote">hab pkg promote</a></li>
+            <li><a href="#hab-pkg-provides">hab pkg provides</a></li>
+            <li><a href="#hab-pkg-search">hab pkg search</a></li>
+            <li><a href="#hab-pkg-sign">hab pkg sign</a></li>
+            <li><a href="#hab-pkg-uninstall">hab pkg uninstall</a></li>
+            <li><a href="#hab-pkg-upload">hab pkg upload</a></li>
+            <li><a href="#hab-pkg-verify">hab pkg verify</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-plan">hab plan</a>
+          <ul>
+            <li><a href="#hab-plan-init">hab plan init</a></li>
+            <li><a href="#hab-plan-render">hab plan render</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-ring">hab ring</a>
+          <ul>
+            <li><a href="#hab-ring-key">hab ring key</a></li>
+            <li><a href="#hab-ring-key-export">hab ring key export</a></li>
+            <li><a href="#hab-ring-key-generate">hab ring key generate</a></li>
+            <li><a href="#hab-ring-key-import">hab ring key import</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-studio">hab studio</a>
+          <ul>
+            <li><a href="#hab-studio-build">hab studio build</a></li>
+            <li><a href="#hab-studio-enter">hab studio enter</a></li>
+            <li><a href="#hab-studio-new">hab studio new</a></li>
+            <li><a href="#hab-studio-rm">hab studio rm</a></li>
+            <li><a href="#hab-studio-run">hab studio run</a></li>
+            <li><a href="#hab-studio-version">hab studio version</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-sup">hab sup</a>
+          <ul>
+            <li><a href="#hab-sup-bash">hab sup bash</a></li>
+            <li><a href="#hab-sup-depart">hab sup depart</a></li>
+            <li><a href="#hab-sup-run">hab sup run</a></li>
+            <li><a href="#hab-sup-secret">hab sup secret</a></li>
+            <li><a href="#hab-sup-secret-generate">hab sup secret generate</a></li>
+            <li><a href="#hab-sup-sh">hab sup sh</a></li>
+            <li><a href="#hab-sup-status">hab sup status</a></li>
+            <li><a href="#hab-sup-term">hab sup term</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-supportbundle">hab supportbundle</a></li>
+        <li><a href="#hab-svc">hab svc</a>
+          <ul>
+            <li><a href="#hab-svc-key">hab svc key</a></li>
+            <li><a href="#hab-svc-key-generate">hab svc key generate</a></li>
+            <li><a href="#hab-svc-load">hab svc load</a></li>
+            <li><a href="#hab-svc-start">hab svc start</a></li>
+            <li><a href="#hab-svc-status">hab svc status</a></li>
+            <li><a href="#hab-svc-stop">hab svc stop</a></li>
+            <li><a href="#hab-svc-unload">hab svc unload</a></li>
+          </ul>
+        </li>
+        <li><a href="#hab-user">hab user</a>
+          <ul>
+            <li><a href="#hab-user-key">hab user key</a></li>
+            <li><a href="#hab-user-key-generate">hab user key generate</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav></aside>
+
+    </div>
+
+  
+
+  <div id="footer" class="cell small-12">
+    <div class="grid-x">
+      <div class="cell small-12">
+        <nav>
+          
+<footer id="footer">
+  <div class="grid-container">
+    <div class="grid-x align-middle">
+      <div class="cell small-12 large-3 logo"><a href="/"><img src="/images/chef-logo-light.svg" alt="Habitat Documentation"></a></div>
+      <div class="cell small-12 large-9">
+        <ul class="menu vertical medium-horizontal">
+          <li><a href="/sitemap/" target="_self">Site Map</a></li>
+          <li><a href="https://www.chef.io/online-master-agreement/" target="_blank">Licensing</a></li>
+          <li><a href="https://www.chef.io/terms-of-service/" target="_blank">Terms &amp; Conditions</a></li>
+          <li><a href="https://www.chef.io/trademark-policy/" target="_blank">Trademark Policy</a></li>
+          <li><a href="https://www.chef.io/privacy-policy/" target="_blank">Privacy Policy</a></li>
+          <li><a href="https://www.chef.io/cookie-policy/" target="_blank">Cookie Policy</a></li>
+        </ul>
+        
+          <p class="modified">Page Last Modified: 0001-01-01 00:00:00 &#43;0000 UTC</p>
+        
+        <p class="legal">&copy; 2008-2020 Chef Software, Inc. All Rights Reserved.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+        </nav>
+      </div>
+    </div>
+  </div>
+  
+<script src="/js/core-bundle.min.b46adaaa9b34baa80cf4b98cb38321e111475886368cfc1e52ed3afcc03b5b22.js" type="text/javascript"></script>
+<script src="/js/custom-bundle.min.e560508c0a1795f3e94b9dc46263787768b40136412317331f860cdc22837c6a.js" type="text/javascript"></script>
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+  (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+  e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+  
+  _st('install','s1Pemn_yrUKJw9_K5zRT','2.0.0');
+</script>
+
+  </body>
+</html>

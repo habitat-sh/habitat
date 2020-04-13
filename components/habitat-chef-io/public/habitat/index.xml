@@ -1,0 +1,947 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>About Chef Habitat on Habitat Documentation</title>
+    <link>/habitat/</link>
+    <description>Recent content in About Chef Habitat on Habitat Documentation</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 10 Mar 2020 12:05:21 -0700</lastBuildDate>
+    
+	<atom:link href="/habitat/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Packages &amp; Platforms</title>
+      <link>/habitat/supported_platforms/</link>
+      <pubDate>Tue, 10 Mar 2020 12:05:21 -0700</pubDate>
+      
+      <guid>/habitat/supported_platforms/</guid>
+      <description>About supported documentation.</description>
+    </item>
+    
+    <item>
+      <title>Community</title>
+      <link>/habitat/community/</link>
+      <pubDate>Tue, 10 Mar 2020 12:04:00 -0700</pubDate>
+      
+      <guid>/habitat/community/</guid>
+      <description>About Community</description>
+    </item>
+    
+    <item>
+      <title>Advanced Plan Writing Guide</title>
+      <link>/habitat/planwriting-guide/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/planwriting-guide/</guid>
+      <description>Advanced Plan Writing Guide The following is a best practice guide to how to write a production quality plan. These best practices are reflected in the requirements for a user to contribute a plan to the Chef Habitat Core Plans.
+If you haven&amp;rsquo;t already, a good first step is to read the Developing Packages articles.
+A well written plan consists of well-formed:
+ Package Metadata Package Name Conventions Plan syntax  Package Metadata Each package plan should contain a value adhering to the guidelines for each of the following elements:</description>
+    </item>
+    
+    <item>
+      <title>Amazon ECS and Chef Habitat</title>
+      <link>/habitat/ecs-and-habitat/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/ecs-and-habitat/</guid>
+      <description>Amazon ECS and Chef Habitat Amazon Web Services provides a container management service called EC2 Container Service (ECS). ECS provides a Docker registry, container hosting and tooling to make deploying Docker-based containers fairly straightforward. ECS will schedule and deploy your Docker containers within a Task while Chef Habitat manages the applications.
+EC2 Container Registry EC2 Container Registry (ECR) is a fully-managed Docker registry provided by Amazon Web Services. Applications exported to Docker with hab pkg export docker put the containers into namespaced repositories, so you will need to create these within ECR.</description>
+    </item>
+    
+    <item>
+      <title>Apache Mesos and DC/OS</title>
+      <link>/habitat/mesos-dcos/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/mesos-dcos/</guid>
+      <description>Apache Mesos and DC/OS Apache Mesos is an open source distributed systems kernel and the distributed systems kernel for Mesosphere&amp;rsquo;s DC/OS distributed platform.
+Mesos Containerizers Mesos has support for containerizers for running commands and applications within isolated containers. Mesos supports Docker and its own Mesos containerizer format. The Mesos containerizer provides lightweight containerization with cgroups/namespaces isolation without actual isolation. The hab pkg export mesos command creates a mostly empty base filesystem with the application and the Chef Habitat Supervisor and packages it into a compressed tarball.</description>
+    </item>
+    
+    <item>
+      <title>Application Lifecycle Hooks</title>
+      <link>/habitat/application-lifecycle-hooks/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/application-lifecycle-hooks/</guid>
+      <description>Application Lifecycle Hooks Each plan can specify lifecycle event handlers, or hooks, to perform certain actions during a service&amp;rsquo;s runtime. Each hook is a script with a shebang defined at the top to specify the interpreter to be used. On Windows, Powershell Core is the only interpreter ever used.
+To define a hook, simply create a bash file of the same name in /my_plan_name/hooks/, for example, /postgresql/hooks/health-check.
+ Important You cannot block the thread in a hook unless it is in the run hook.</description>
+    </item>
+    
+    <item>
+      <title>Application Lifecycle Hooks</title>
+      <link>/habitat/glossary-hooks/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/glossary-hooks/</guid>
+      <description>Application Lifecycle Hooks Each plan can specify application lifecycle event handlers, or hooks, to perform certain actions during a service&amp;rsquo;s runtime. Each hook is a script with a shebang defined at the top to specify the interpreter to be used.
+ Important: You cannot block the thread in a hook unless it is in the run hook. Never call hab or sleep in a hook that is not the run hook.</description>
+    </item>
+    
+    <item>
+      <title>Application Rebuild Flow</title>
+      <link>/habitat/application-rebuild-flow/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/application-rebuild-flow/</guid>
+      <description>Application Rebuild Flow ![Chef Habitat Application Rebuild Flow Diagram](/images/infographics/habitat-application-rebuild-flow.png)  Click image to view full size in new tab </description>
+    </item>
+    
+    <item>
+      <title>Artifacts</title>
+      <link>/habitat/glossary-artifacts/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/glossary-artifacts/</guid>
+      <description>Artifacts A Chef Habitat artifact refers to a binary distribution for a given package built with Chef Habitat. A Chef Habitat artifact is a signed tarball with a .hart file extension. Chef Habitat artifacts are composed of a software library or application, the configuration information for that software, and lifecycle hooks. They are created from a the plan file, a plan.sh on Linux systems or a plan.ps1 on Windows systems, and are built with Chef Habitat tools.</description>
+    </item>
+    
+    <item>
+      <title>Automate Docker Container Publishing Flow</title>
+      <link>/habitat/docker-automated-flow/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/docker-automated-flow/</guid>
+      <description>Automated Docker Container Publishing Flow ![Chef Habitat Automated Docker Container Publishing Flow Diagram](/images/infographics/habitat-automated-docker-container-publishing-flow.png)  Click image to view full size in new tab </description>
+    </item>
+    
+    <item>
+      <title>Automated Builds</title>
+      <link>/habitat/automated-builds/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/automated-builds/</guid>
+      <description>Set up Automated Builds By connecting a plan file in Chef Habitat Builder, you can trigger both manual (via the web UI, or via the hab command line) as well as automated package rebuilds whenever a change is merged into the master branch of the repository containing your Chef Habitat plan, or when a dependent package updates (rebuilds).
+Connect a Plan To connect a plan to Builder, view one of your origins (while signed in), click the Connect a plan file button, and complete the following steps:</description>
+    </item>
+    
+    <item>
+      <title>Azure Container Services (AKS)</title>
+      <link>/habitat/aks-and-habitat/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/aks-and-habitat/</guid>
+      <description>Azure Container Services (AKS) Azure Container Services (AKS) is a fully managed Kubernetes service running on the Azure platform.
+Azure Container Registry (ACR) Azure Container Registry is a managed Docker container registry service used for storing private Docker container images. It&amp;rsquo;s a fully managed Azure resource and gives you local, network-close storage of your container images when deploying to AKS. Chef Habitat Builder has native integration with this service so you can publish your packages directly to Azure Container Registry.</description>
+    </item>
+    
+    <item>
+      <title>Binary Wrapper Packages</title>
+      <link>/habitat/binary-wrapper/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/binary-wrapper/</guid>
+      <description>Binary Wrapper Packages While Chef Habitat provides the best behavior for applications that can be compiled from source into the Chef Habitat ecosystem, it can also bring the same management benefits to applications distributed in binary-only form.
+You can write plans to package up these binary artifacts with minimal special handling. This article covers some tips and tricks for getting this software into Chef Habitat.
+Override The Build Phases You Don&amp;rsquo;t Need A Chef Habitat package build proceeds in phases: download, verification, unpacking (where you would also patch source code, if you had it), build, and finally installation.</description>
+    </item>
+    
+    <item>
+      <title>Build</title>
+      <link>/habitat/plan-builds/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/plan-builds/</guid>
+      <description>Plan Builds Packages need to be signed with a private origin key at buildtime. Generate an origin key pair manually by running the following command on your host machine:
+hab origin key generate &amp;lt;ORIGIN&amp;gt; The hab-origin subcommand will place the origin key files, originname-timestamp.sig.key (the private key) and originname-timestamp.pub files (the public key), in the $HOME/.hab/cache/keys directory. If you&amp;rsquo;re creating origin keys in the Studio container, or you are running as root on a Linux machine, your keys will be stored in /hab/cache/keys.</description>
+    </item>
+    
+    <item>
+      <title>Build Helpers</title>
+      <link>/habitat/build-helpers/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/build-helpers/</guid>
+      <description>Build Helpers The following helper functions can be useful in your plan to help you build your package correctly. Attach() specifically is to help with debugging - the other helper functions are to help you in building your package.
+ Note: Most of the following helper functions are not available in Powershell plans (plan.ps1). However in most cases, the standard Powershell cmdlets provide the same functionality. For example: use Resolve-Path instead of abspath or Get-Command instead of exists.</description>
+    </item>
+    
+    <item>
+      <title>Build Phase Callbacks</title>
+      <link>/habitat/build-phase-callbacks/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/build-phase-callbacks/</guid>
+      <description>Build Phase Callbacks When defining your plan, you can override the default behavior of Chef Habitat in each build phase through a callback. To define a callback, simply create a shell function of the same name in your plan file and then write your script. If you do not want to use the default callback behavior, you must override the callback and return 0 in the function definition or simply provide no implementation in a plan.</description>
+    </item>
+    
+    <item>
+      <title>Builder</title>
+      <link>/habitat/glossary-builder/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/glossary-builder/</guid>
+      <description>Builder Chef Habitat Builder consists of the Builder service and the Depot.
+Chef Habitat Builder Users have the option to connect their GitHub repositories to Builder to enable continuous builds of their plans. Checking in new code to GitHub initiates a new build through a GitHub hook. If you&amp;rsquo;ve added your Chef Habitat plan to the root of your source code repository and your project depends on any of the Chef Habitat Core Packages (for example, openssl, ruby, or node), when these packages are updated, Builder automatically rebuilds your software and posts the updated package to your project&amp;rsquo;s unstable channel, where it will wait until you review and promote it according to your regular release procedure.</description>
+    </item>
+    
+    <item>
+      <title>Builder on-prem</title>
+      <link>/habitat/on-prem/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/on-prem/</guid>
+      <description>Install and Use Builder On-Premises In addition to our hosted service, we also support installing and running a Chef Habitat Builder Depot on-premises, using your own network and infrastructure, which allows you to choose from a wider selection of authentication providers and to manage how Builder fits into your existing CI/CD processes.
+Currently, our on-premises Builder depot only stores packages for download and upload by Supervisors and Studios. We intend to bring the full capabilities of Chef Habitat Builder to our on premises option in the future.</description>
+    </item>
+    
+    <item>
+      <title>Building Multiple Packages</title>
+      <link>/habitat/multiple-plans-builder/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/multiple-plans-builder/</guid>
+      <description>Building Multiple Packages If you have a GitHub repository with multiple components inside, you will most likely also have individual plans for those components that are located inside of component subfolders. By default, Builder will only look for a package plan in either the root of the repository, or in a habitat subfolder at the root. If it does not find a plan file in those locations, it will not automatically issue builds when it detects file changes in the repository.</description>
+    </item>
+    
+    <item>
+      <title>Chef Habitat and Configuration Management</title>
+      <link>/habitat/habitat-and-configuration-management/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/habitat-and-configuration-management/</guid>
+      <description>Chef Habitat and Configuration Management Examples: Ansible, Chef, Puppet, and Salt
+Configuration management tools allow you write configuration files, using a declarative language to manage a server. These tools focus on building working servers by installing and configuring system settings, system libraries, and application libraries before an application is installed on the server. Chef Habitat focuses on the application first instead of the server. Chef Habitat builds and packages your application&amp;rsquo;s entire binary toolchain, including the system libraries, application libraries, and runtime dependencies necessary for your application to function.</description>
+    </item>
+    
+    <item>
+      <title>Chef Habitat and Container Orchestration</title>
+      <link>/habitat/habitat-and-orchestration/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/habitat-and-orchestration/</guid>
+      <description>Chef Habitat and Container Orchestration Example: Kubernetes
+Kubernetes is a portable, extensible open-source platform for managing containerized workloads and services that has declarative configuration and automation. Applications are run within Docker containers, grouped into pods. Kubernetes provides the control plane and API layer to schedule those pods.
+Chef Habitat is not a scheduling tool, and does not schedule container resources such as replicas, deployments, firewalls, networking, geo-location (affinity), etc. Instead, Chef Habitat&amp;rsquo;s responsibility is the service running inside the container.</description>
+    </item>
+    
+    <item>
+      <title>Chef Habitat and Containers</title>
+      <link>/habitat/habitat-and-containers/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/habitat-and-containers/</guid>
+      <description>&amp;lt;a name=&amp;quot;habitat-and-containers&amp;rdquo; id=&amp;quot;habitat-and-containers&amp;rdquo; data-magellan-target=&amp;quot;habitat-and-containers type=&amp;quot;anchor&amp;quot;&amp;gt;Chef Habitat and Containers Examples: Docker and CoreOS
+Containers enable you to build an immutable snapshot of your runtime environment, including your operating system, system libraries, application libraries, and application. The container is built with a CLI tool, and then pushed to a container-specific artifact repository, known as a container registry. Chef Habitat is not a container format and exports your application to the container format of your choice.</description>
+    </item>
+    
+    <item>
+      <title>Chef Habitat and Continuous Integration</title>
+      <link>/habitat/habitat-and-continuous-integration/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/habitat-and-continuous-integration/</guid>
+      <description>Chef Habitat and Continuous Integration Examples: Jenkins, TravisCI, and Drone
+Continuous integration allows you to build, test, and deploy your code by using CLI tools and plugins. Chef Habitat includes the Chef Habitat Studio which allows you to do interactive builds on your developer workstation, or non-interactive builds with your continuous integration server. Your continuous integration server can also call the Chef Habitat CLI to promote your Chef Habitat packages to different channels, enabling your applications to update themselves.</description>
+    </item>
+    
+    <item>
+      <title>Chef Habitat and Kubernetes Overview</title>
+      <link>/habitat/kubernetes-flow/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/kubernetes-flow/</guid>
+      <description>Chef Habitat and Kubernetes ![Chef Habitat and Kubernetes: Three Tiers of Service Deployment Diagram](/images/infographics/habitat-and-kubernetes-three-tiers-of-service-deployment.png)  Click image to view full size in new tab ![Deploy Services to Kubernetes with Chef Habitat Flow Diagram](/images/infographics/deploy-services-to-kubernetes-with-habitat-flow.png)  Click image to view full size in new tab </description>
+    </item>
+    
+    <item>
+      <title>Chef Habitat and Other Software</title>
+      <link>/habitat/habitat-and-others/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/habitat-and-others/</guid>
+      <description>Chef Habitat and Other Software Chef Habitat helps build, deploy, and manage your applications. To help understand Chef Habitat, we explore how Chef Habitat integrates, complements, or overlaps with other popular software.</description>
+    </item>
+    
+    <item>
+      <title>Chef Habitat and Provisioning Tools</title>
+      <link>/habitat/habitat-and-provisioning/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/habitat-and-provisioning/</guid>
+      <description>Chef Habitat and Provisioning Tools Examples: Terraform and CloudFormation
+Provisioning tools like Terraform or CloudFormation enable you to write a configuration file to manage infrastructure resources. The configuration file is used along with a CLI tool to create, read, update, and delete infrastructure resources in a declarative way. Chef Habitat is not a provisioning tool and works well with the provisioning tool of your choice.</description>
+    </item>
+    
+    <item>
+      <title>Chef Habitat Architecture Overview</title>
+      <link>/habitat/architecture-overview/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/architecture-overview/</guid>
+      <description>Chef Habitat Architecture Overview ![Chef Habitat Architecture Overview Diagram](/images/infographics/habitat-architecture-overview.png)  Click image to view full size in new tab </description>
+    </item>
+    
+    <item>
+      <title>Chef Habitat Artifact Export Formats</title>
+      <link>/habitat/artifact-export-format/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/artifact-export-format/</guid>
+      <description>Chef Habitat Artifact Export Formats Chef Habitat .hart files can be exported in a number of different formats depending on what you need and where you need it. This is powerful because you can use the same immutable Chef Habitat artifact by exporting it into a format that you need for a specific job. For example, when you can use one format for iterating locally in a Docker container, another to deploy that Chef Habitat artifact to an environment running Kubernetes, and a third to deploy it to a data center that&amp;rsquo;s running virtual machines, but the Chef Habitat artifact is identical in each location+++it&amp;rsquo;s simply exported to the correct format for the job you are trying to do.</description>
+    </item>
+    
+    <item>
+      <title>Chef Habitat Builder Architecture</title>
+      <link>/habitat/builder-architecture/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/builder-architecture/</guid>
+      <description>Builder Architecture ![Chef Habitat Builder Architecture Diagram](/images/infographics/habitat-builder-architecture.png)  Click image to view full size in new tab </description>
+    </item>
+    
+    <item>
+      <title>Chef Habitat Builder on-prem Flow</title>
+      <link>/habitat/on-prem-flow/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/on-prem-flow/</guid>
+      <description>Chef Habitat Builder on-prem Flow ![Chef Habitat On-premises Builder Depot Flow Diagram](/images/infographics/habitat-on-premises-builder-depot-flow.png)  Click image to view full size in new tab </description>
+    </item>
+    
+    <item>
+      <title>Chef Habitat Internals</title>
+      <link>/habitat/internals/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/internals/</guid>
+      <description>Internals This section will dive into the implementation details of important Chef Habitat components. These topics are for advanced users. It is not necessary to learn these concepts in order to use Chef Habitat.</description>
+    </item>
+    
+    <item>
+      <title>Chef Habitat Package Contents</title>
+      <link>/habitat/package-contents/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/package-contents/</guid>
+      <description>Package Contents During the build process, the hab-plan-build script creates several files that specify dependency, build, and configuration information. When packages are unpacked (extracted) and installed during the initialization phase of a Chef Habitat service, these files define what those packages need to run.
+Packages are installed in the /hab/pkgs/ directory, and then further organized in subdirectories corresponding to fully-qualified package identifiers: origin/name/version/release. For more information on package identifiers, see Packages.</description>
+    </item>
+    
+    <item>
+      <title>Chef Habitat Plans for Linux and Windows Systems</title>
+      <link>/habitat/glossary-plan/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/glossary-plan/</guid>
+      <description>Plan.sh and Plan.ps1 A plan is a set of files that describe how to build a Chef Habitat package. At the heart of the plan is a configurable script named plan.sh for Linux and plan.ps1 for Windows, containing instructions on how to download, compile, and install its software.
+Chef Habitat&amp;rsquo;s build phase defaults can be overridden using callbacks. Application lifecycle hooks for services can be defined so the Supervisor running your services takes specific actions in response to specific lifecycle events.</description>
+    </item>
+    
+    <item>
+      <title>Chef Habitat Reference Overview</title>
+      <link>/habitat/reference/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/reference/</guid>
+      <description>Chef Habitat Reference When defining a package in Chef Habitat, there are different files, settings, variables, and functions that you can use to set up specific installation and configuration details. You have a great deal of flexibility in how you build and define your application.
+This section will cover as many of the modules and APIs that Chef Habitat is built upon to serve as helpful reference as you&amp;rsquo;re developing your Chef Habitat packages.</description>
+    </item>
+    
+    <item>
+      <title>Configuration Templates</title>
+      <link>/habitat/plan-templates/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/plan-templates/</guid>
+      <description>Configuration Templates Chef Habitat allows you to templatize your application&amp;rsquo;s native configuration files using Handlebars syntax. The following sections describe how to create tunable configuration elements for your application or service.
+Template variables, also referred to as tags, are indicated by double curly braces: {{a_variable}}. In Chef Habitat, tunable config elements are prefixed with cfg. to indicate that the value is user-tunable.
+Here&amp;rsquo;s an example of how to make a configuration element user-tunable.</description>
+    </item>
+    
+    <item>
+      <title>Configure the Chef Habitat CLI</title>
+      <link>/habitat/configure-workstation/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/configure-workstation/</guid>
+      <description>Configure Your Workstation Once Chef Habitat has been installed, the hab CLI makes it easy to get your workstation configured by guiding through the setup process. To set up your workstation, run hab cli setup and follow the instructions.
+Setup asks you to create a new origin and a set of origin keys.
+Optionally, you can also provide a Chef Habitat personal access token to upload packages to the public depot and share them with the Chef Habitat community.</description>
+    </item>
+    
+    <item>
+      <title>Container Orchestration</title>
+      <link>/habitat/container-orchestration/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/container-orchestration/</guid>
+      <description>Container Orchestration with Chef Habitat Chef Habitat packages may be exported with the Supervisor directly into a a variety of container formats, but frequently the container is running in a container orchestrator such as Kubernetes or Mesos. Container orchestrators provide scheduling and resource allocation, ensuring workloads are running and available. Containerized Chef Habitat packages can run within these runtimes, managing the applications while the runtimes handle the environment surrounding the application (ie.</description>
+    </item>
+    
+    <item>
+      <title>Containers</title>
+      <link>/habitat/best-practices/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/best-practices/</guid>
+      <description>Chef Habitat Best Practice Guides This chapter covers recommended best practices for runtime and buildtime. We focus on best practices for packages that use Chef Habitat Builder for continuous builds.</description>
+    </item>
+    
+    <item>
+      <title>Continuous Deployment</title>
+      <link>/habitat/continuous-deployment/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/continuous-deployment/</guid>
+      <description>Continuous Deployment Continuous deployment is a well-known software development practice of building and testing code changes in preparation for a release to a production environment.
+Continuous Deployment Using Channels &amp;lt;%= partial &amp;ldquo;/partials/global/channel-overview&amp;rdquo; %&amp;gt;
+By default, every new package is placed in the unstable channel by Builder. Packages in the unstable channel cannot be started or installed unless you specify the --channel flag in the hab CLI, or set the HAB_BLDR_CHANNEL environment variable to a non-stable channel.</description>
+    </item>
+    
+    <item>
+      <title>Control Supervisors Remotely</title>
+      <link>/habitat/remote-control/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/remote-control/</guid>
+      <description>Controlling Supervisors Remotely Since the 0.56.0 Supervisor release, it is possible to command and control one or more Supervisors from a remote location. Before this, the only way to interact with a Supervisor was by taking action directly on machine on which the Supervisor was running. While that is still an option (and is indeed the default behavior), remote command and control opens up more possibilities for using and managing Chef Habitat.</description>
+    </item>
+    
+    <item>
+      <title>Create a Builder Account</title>
+      <link>/habitat/builder-account/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/builder-account/</guid>
+      <description>Create a Builder Account Setting up your Chef Habitat account is easy! All you need is a valid GitHub account.
+Sign-in and Authorize Chef Habitat Use the button below to simultaneously sign in to Builder and create your account. Chef Habitat Builder uses GitHub for authorization, so you&amp;rsquo;ll see the prompt below authorizing the application.
+Sign in to Builder
+Once you have authorized Chef Habitat and signed in, you&amp;rsquo;ll arrive at the &amp;lsquo;My Origins&amp;rsquo; view.</description>
+    </item>
+    
+    <item>
+      <title>Create an Access Token</title>
+      <link>/habitat/builder-token/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/builder-token/</guid>
+      <description>Create an Access Token You can build and install Habitat artifacts without authenticating to Builder; however, some operations, like uploading your artifacts to Builder, or checking the status of your build jobs from the Habitat CLI, will require an access token.
+From the Builder site, select your user icon in the upper right-hand side, and select Profile.
+At the bottom of the profile page, select Generate Token.
+Copy your token from this page.</description>
+    </item>
+    
+    <item>
+      <title>Create an Origin on Builder</title>
+      <link>/habitat/builder-origin/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/builder-origin/</guid>
+      <description>Create an Origin on Builder Origins are unique namespaces that can be used to denote a particular upstream of a package. For example, the &amp;ldquo;core&amp;rdquo; origin is the set of foundational packages that are managed and versioned by the core Chef Habitat maintainers.
+From the My Origins page in the Chef Habitat Builder web app, click the Create origin button.
+ Note To join an existing origin, a current member of that origin will need to invite you.</description>
+    </item>
+    
+    <item>
+      <title>Custom Certificates</title>
+      <link>/habitat/using-custom-certs/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/using-custom-certs/</guid>
+      <description>Using Custom Certificates Many enterprise environments use custom certificates (for example, self-signed). For example, an on-premises Chef Habitat Builder Depot might have a self-signed SSL certificate.
+Attempting to perform an operation using the Habitat client to communicate with a service that has a custom certificate can produce an error, such as:
+✗✗✗ ✗✗✗ the handshake failed: The OpenSSL library reported an error: error:14090086:SSL routines:ssl3_get_server_certificate:certificate verify failed:s3_clnt.c:1269:: unable to get local issuer certificate ✗✗✗ One option to remediate this error is to define a SSL_CERT_FILE environment variable pointing to the custom certificate path before performing the client operation.</description>
+    </item>
+    
+    <item>
+      <title>Dependency Update Flow</title>
+      <link>/habitat/dependency-update-flow/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/dependency-update-flow/</guid>
+      <description>Dependency Update Flow ![Chef Habitat Dependency Update Flow Diagram](/images/infographics/habitat-dependency-update-flow.png)  Click image to view full size in new tab </description>
+    </item>
+    
+    <item>
+      <title>Developing Packages</title>
+      <link>/habitat/developing-packages/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/developing-packages/</guid>
+      <description>&#39;
+Develop Packages In Chef Habitat the unit of automation is the application itself. This chapter includes content related specifically to the process and workflow of developing a plan that will instruct Chef Habitat in how to build, deploy, and manage your application.
+Writing Plans Artifacts are the cryptographically-signed tarballs that are uploaded, downloaded, unpacked, and installed in Chef Habitat. They are built from shell scripts known as plans, but may also include application lifecycle hooks and service configuration files that describe the behavior and configuration of a running service.</description>
+    </item>
+    
+    <item>
+      <title>Docker Container Publishing Flow</title>
+      <link>/habitat/docker-flow/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/docker-flow/</guid>
+      <description>Initial Docker Container Publishing Flow ![Chef Habitat Initial Docker Container Publishing Flow Diagram](/images/infographics/habitat-initial-docker-container-publishing-flow.png)  Click image to view full size in new tab </description>
+    </item>
+    
+    <item>
+      <title>Download and Install FAQ</title>
+      <link>/habitat/install-faq/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/install-faq/</guid>
+      <description>Download and Install FAQ This section tracks some questions that are frequently encountered when downloading and installing the hab binary.
+Q: Can I just download a GitHub release of Chef Habitat?
+A: While we do cut releases in GitHub as part of our release process those archives are going to be a .tar point in time of our source code. As the hab cli is written in Rust, if you follow this approach you&amp;rsquo;ll need to compile the source for your platform.</description>
+    </item>
+    
+    <item>
+      <title>Environment Variables</title>
+      <link>/habitat/environment-variables/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/environment-variables/</guid>
+      <description>Environment Variables This is a list of all environment variables that can be used to modify the operation of the Chef Habitat Studio and Supervisor.
+| Variable | Context | Default | Description | |+++++++++-|+++++++++|+++++++++|++++++++++++-| | HAB_AUTH_TOKEN | build system | no default | Authorization token used to perform privileged operations against the depot, e.g. uploading packages or keys. | HAB_BINLINK_DIR | build system | /hab/bin | Allows you to change the target directory for the symlink created when you run hab pkg binlink.</description>
+    </item>
+    
+    <item>
+      <title>File Uploads</title>
+      <link>/habitat/file-uploads/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/file-uploads/</guid>
+      <description>File Uploads Uploading files to a service group In addition to configuration updates, you can upload files to a service group. Keep these small - we recommend 4k or less per file, and keep the count of files to a minimum.
+Usage When submitting a file to a service group, you must specify a peer in the ring to connect to, the version number of the file, and the new path to the file itself.</description>
+    </item>
+    
+    <item>
+      <title>Get Chef Habitat</title>
+      <link>/habitat/installing-packages/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/installing-packages/</guid>
+      <description>Installing Chef Habitat Below you&amp;rsquo;ll find installation instructions for each platform and their requirements. The Chef Habitat CLI is currently supported on Linux, Mac, and Windows.
+ </description>
+    </item>
+    
+    <item>
+      <title>Google Container Registry (GCR)</title>
+      <link>/habitat/gcr-and-habitat/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/gcr-and-habitat/</guid>
+      <description>Google Cloud Google Container Registry is a private Docker repository that works with popular continuous delivery systems. It runs on GCP to provide consistent uptime on an infrastructure protected by Google&amp;rsquo;s security. The registry service hosts your private images in Cloud Storage under your GCP project.
+Before you can push or pull images, you must configure Docker to use the gcloud command-line tool to authenticate requests to Container Registry. To do so, run the following command (you are only required to do this once):</description>
+    </item>
+    
+    <item>
+      <title>Hab CLI</title>
+      <link>/habitat/glossary-hab/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/glossary-hab/</guid>
+      <description>Hab Almost anything you could want to do in Chef Habitat can be managed via the hab CLI.
+It includes subcommands for executing package builds, loading services into the process Supervisor, uploading packages to Builder, and entering the Studio. For more information on all of the functionality of hab checkout our CLI command documentation.</description>
+    </item>
+    
+    <item>
+      <title>hab CLI Reference</title>
+      <link>/habitat/habitat-cli/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/habitat-cli/</guid>
+      <description>Chef Habitat Command-Line Interface (CLI) Reference The commands for the Chef Habitat CLI (hab) are listed below.
+| Applies to Version | Last Updated | | ++++++- | ++++++++++++ | | hab 1.5.50/20200303162333 (linux) | 3 Mar 2020 |
+hab USAGE
+hab &amp;lt;SUBCOMMAND&amp;gt; FLAGS
+-h, --help Prints help information -V, --version Prints version information ALIASES
+apply Alias for: &#39;config apply&#39; install Alias for: &#39;pkg install&#39; run Alias for: &#39;sup run&#39; setup Alias for: &#39;cli setup&#39; start Alias for: &#39;svc start&#39; stop Alias for: &#39;svc stop&#39; term Alias for: &#39;sup term&#39; SUBCOMMANDS</description>
+    </item>
+    
+    <item>
+      <title>Initial Package Build Flow</title>
+      <link>/habitat/package-build-flow/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/package-build-flow/</guid>
+      <description>Initial Package Build Flow ![Chef Habitat Initial Package Build Flow Diagram](/images/infographics/habitat-initial-package-build-flow.png)  Click image to view full size in new tab </description>
+    </item>
+    
+    <item>
+      <title>Install Chef Habitat</title>
+      <link>/habitat/install-habitat/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/install-habitat/</guid>
+      <description>Installing Chef Habitat In this section, you&amp;rsquo;ll find installation instructions for each platform and their requirements. The Chef Habitat CLI is currently supported on Linux, Mac, and Windows.</description>
+    </item>
+    
+    <item>
+      <title>Iterative Package Development</title>
+      <link>/habitat/iterative-development/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/iterative-development/</guid>
+      <description>Iterative Development To assist in creating new packages, or modifying existing ones, the Supervisor has an option to allow you to use the configuration directly from a specific directory, rather than the one it includes in the compiled artifact. This can significantly shorten the cycle time when working on configuration and application lifecycle hooks.
+Build the plan as you normally would. When you start the Supervisor, pass the name of the directory with your plan inside it:</description>
+    </item>
+    
+    <item>
+      <title>Keys</title>
+      <link>/habitat/glossary-keys/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/glossary-keys/</guid>
+      <description>Keys Chef Habitat has strong cryptography built into Chef Habitat Builder, the Supervisor, and the hab CLI commands. This means there are several different kinds of keys.
+Origin Key Pairs Every Chef Habitat artifact belongs to an origin and is cryptographically signed with that origin&amp;rsquo;s private key. Chef Habitat requires the private key for producing artifacts and requires the public key for verification of artifacts before installation. If it is present on Builder, Chef Habitat will automatically download the public key for an origin when necessary.</description>
+    </item>
+    
+    <item>
+      <title>Kubernetes Development Patterns</title>
+      <link>/habitat/kubernetes/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/kubernetes/</guid>
+      <description>Kubernetes Kubernetes is an open source container cluster manager that is available as a stand-alone platform or embedded in several distributed platforms including Google&amp;rsquo;s Container Engine, AWS Elastic Kubernetes Service, Azure Kubernetes Service, and Red Hat OpenShift. Chef Habitat and Kubernetes are complementary. While Kubernetes provides a platform for deployment, scaling, and operations of application containers across clusters of hosts, Chef Habitat manages the build pipeline and lifecycle of those application containers.</description>
+    </item>
+    
+    <item>
+      <title>Launcher</title>
+      <link>/habitat/glossary-launcher/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/glossary-launcher/</guid>
+      <description>Launcher Chef Habitat&amp;rsquo;s Launcher is a sidecar process for the Supervisor which provides a mechanism for launching processes on behalf of the Supervisor. It is the entry point for running the Supervisor and is the Supervisor for the Supervisor. Whereas the Supervisor is able to automatically update itself, the Launcher is currently released a bit differently, by design; it should be rare that the Launcher ever needs to change.
+To update your Launchers, run:</description>
+    </item>
+    
+    <item>
+      <title>Monitoring Services</title>
+      <link>/habitat/monitor-services/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/monitor-services/</guid>
+      <description>Monitoring Services Use the HTTP API to monitor services. When a service starts, the Supervisor exposes the status of its services&amp;rsquo; health and other information through an HTTP API endpoint. This information can be useful in monitoring service health, results of leader elections, and so on.
+Authentication The Supervisor currently supports simple HTTP authentication using Bearer tokens. By default, no authentication is used. If you would like to require authentication, export the HAB_SUP_GATEWAY_AUTH_TOKEN environment variable before starting the Supervisor.</description>
+    </item>
+    
+    <item>
+      <title>Origin Keys</title>
+      <link>/habitat/origin-keys/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/origin-keys/</guid>
+      <description>Using Origin Keys Creating an origin automatically generates an origin key pair.
+Origin key cryptography is asymmetric: it has a public origin key that you can distribute freely, and a private origin key that you should distribute only to members of the origin.
+Habitat Builder and Habitat Depot require access to at least the public origin key to verify artifacts uploaded to the origin.
+Habitat uses the public origin key to verify the integrity of a downloaded Habitat artifact before installing it.</description>
+    </item>
+    
+    <item>
+      <title>Origin Secrets</title>
+      <link>/habitat/origin-secrets/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/origin-secrets/</guid>
+      <description>Using Origin Secrets With the Chef Habitat CLI and a Builder account, you can encrypt and store secrets to expose at build time as environment variables in your Builder builds. This feature is helpful for plans requiring access to protected resources at build time, such as private source-code repositories, cloud storage providers and the like. Secrets are defined at the origin level, which makes them usable in any plan belonging to that origin.</description>
+    </item>
+    
+    <item>
+      <title>Package Binds</title>
+      <link>/habitat/pkg-binds/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/pkg-binds/</guid>
+      <description>Runtime Binds and Exports Runtime binding in Chef Habitat refers to the ability for one service group to connect to another, forming a producer-consumer relationship where the consumer service can use the producer service&amp;rsquo;s current configuration in order to configure itself at runtime. When the producer&amp;rsquo;s configuration change, the consumer is notified and can reconfigure itself as needed.
+With runtime binding, a consumer service can use a &amp;ldquo;binding name&amp;rdquo; of their choosing in their configuration and lifecycle hook templates as a kind of handle to refer to the configuration values they need from the producer service.</description>
+    </item>
+    
+    <item>
+      <title>Package Export Formats</title>
+      <link>/habitat/pkg-exports/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/pkg-exports/</guid>
+      <description>Package Export Formats You can export packages into several different external, immutable runtime formats. This topic will be updated as more formats are supported in the future. Currently there are exports for: docker, mesos, tar, and cloudfoundry.
+The command to export a package is hab pkg export &amp;lt;FORMAT&amp;gt; &amp;lt;PKG_IDENT&amp;gt;. See the Chef Habitat CLI Reference Guide for more CLI information.
+ Note If you specify an origin/package identifier, such as core/postgresql, the Chef Habitat CLI will check Builder for the latest stable version of the package and export that.</description>
+    </item>
+    
+    <item>
+      <title>Pattern Library Introduction</title>
+      <link>/habitat/pattern-library/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/pattern-library/</guid>
+      <description>Chef Habitat Pattern Library The Chef Habitat Pattern Library is an evolving set of design patterns to use as starting-points. These patterns are examples and require configuration and customization for your unique situation.
+For help with Chef Habitat and these patterns, ask:
+ Your customer support agent In the Chef Habitat Forum In the Chef Habitat Slack  +++
+Kubernetes Bastion Ring Pattern A bastion ring is a robust type of Supervisor network in which a small number of Supervisors are set up as permanent peers and that are dedicated to anchoring Supervisor network communication.</description>
+    </item>
+    
+    <item>
+      <title>Plan Helpers</title>
+      <link>/habitat/plan-helpers/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/plan-helpers/</guid>
+      <description>Plan Helpers Chef Habitat allows you to use Handlebars-based tuneables in your plan, and you can also use both built-in Handlebars helpers and Chef Habitat-specific helpers in defining your configuration logic.
+ Built-in Helpers Plan Helpers  Built-In Helpers You can use block expressions to add basic logic to your template such as checking if a value exists or iterating through a list of items.
+Block expressions use a helper function to perform the logic.</description>
+    </item>
+    
+    <item>
+      <title>Plan Settings</title>
+      <link>/habitat/plan-settings/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/plan-settings/</guid>
+      <description>Plan Settings The following settings are defined at the beginning of your plan. They specify basic information about your plan such as name, version, and dependencies.
+ Note: We are using Bash syntax here, but Powershell plans use the same variable names and should conform to standard Powershell language rules (ie. $ before variable names and quoting string values).
+ General Settings  pkg_name Required. Sets the name of the package.</description>
+    </item>
+    
+    <item>
+      <title>Plan Variables</title>
+      <link>/habitat/plan-variables/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/plan-variables/</guid>
+      <description>Plan Variables The following variables can be used in your plans to help get binaries and libraries to build and install in the correct locations in your package.
+ $pkg_prefix The absolute path for your package. $pkg_dirname Set to ${pkg_name}-${pkg_version} by default. If a .tar file extracts to a directory that&amp;rsquo;s different from the filename, then you would need to override this value to match the directory name created during extraction.</description>
+    </item>
+    
+    <item>
+      <title>Promote Packages Through Channels</title>
+      <link>/habitat/promote-packages/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/promote-packages/</guid>
+      <description>Promote Packages Through Channels ![Chef Habitat Promote Packages Through Channels Diagram](/images/infographics/habitat-promote-packages-through-channels.png)  Click image to view full size in new tab </description>
+    </item>
+    
+    <item>
+      <title>Running Chef Habitat Linux Containers</title>
+      <link>/habitat/running-habitat-linux-containers/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/running-habitat-linux-containers/</guid>
+      <description>Running Chef Habitat Linux Containers Container Setup and Assumptions When you run hab pkg export docker, you&amp;rsquo;ll get a Docker container that provides a few things. First, a minimal Linux OS filesystem is provided, with just enough configuration (e.g., /etc/passwd, /etc/resolv.conf, etc.) to run. Second, the contents of the exported Chef Habitat package, along with its complete dependency tree, as well as a complete Chef Habitat Supervisor installation, are provided, unpacked, in the /hab/pkgs directory.</description>
+    </item>
+    
+    <item>
+      <title>Running Chef Habitat on Servers (Linux and Windows)</title>
+      <link>/habitat/running-habitat-servers/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/running-habitat-servers/</guid>
+      <description>Running Chef Habitat on Servers (Linux and Windows) Chef Habitat can be run on bare metal servers, as well as virtual machines. Currently, Chef Habitat can run on Linux and Windows platforms, and in all cases, running a Supervisor boils down to running hab sup run. How that happens depends on which platform you choose to use.
+Running Chef Habitat on Linux First, you must install Chef Habitat itself on the machine.</description>
+    </item>
+    
+    <item>
+      <title>Running Chef Habitat Packages</title>
+      <link>/habitat/using-packages/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/using-packages/</guid>
+      <description>Running Chef Habitat Packages Use Chef Habitat packages to start services under the Chef Habitat Supervisor. At runtime, you can join services together in a service group running the same topology, send configuration updates to that group, and more. You can also export the Supervisor together with the package to an external immutable format, such as a Docker container or a virtual machine.
+&amp;lt;%= partial &amp;lsquo;partials/global/package_platform_support&amp;rsquo; %&amp;gt;
+Information about installing Chef Habitat and configuring your workstation can be found in the previous section.</description>
+    </item>
+    
+    <item>
+      <title>Running Chef Habitat Windows Containers</title>
+      <link>/habitat/running-habitat-windows-containers/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/running-habitat-windows-containers/</guid>
+      <description>Running Chef Habitat Windows Containers Container Base Image Exported Windows images use microsoft/windowsservercore as their base. This is the equivalent of a minimal Windows Server 2016 Core install. So you should not expect non default features and roles to be enabled such as IIS or Active Directory. Consider using an init hook to install any features needed by your Chef Habitat service.
+Container Pull and Startup Time The microsoft/windowsservercore image is approximately 5GB.</description>
+    </item>
+    
+    <item>
+      <title>Runtime Configuration Settings</title>
+      <link>/habitat/template-data/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/template-data/</guid>
+      <description>-- </description>
+    </item>
+    
+    <item>
+      <title>Runtime Services Group Binding</title>
+      <link>/habitat/runtime-binding/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/runtime-binding/</guid>
+      <description>Runtime Services Group Binding ![Chef Habitat Runtime Services Group Binding Diagram](/images/infographics/habitat-runtime-service-group-binding.png)  Click image to view full size in new tab </description>
+    </item>
+    
+    <item>
+      <title>Scaffolding</title>
+      <link>/habitat/glossary-scaffolding/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/glossary-scaffolding/</guid>
+      <description>Scaffolding Chef Habitat scaffoldings are standardized plans for automated building and running your application. Each scaffolding is tuned to the way your application was built, which allows it to create the appropriate application lifecycle hooks and add in the correct runtime dependencies when building the package for your application. Scaffoldings also provide some default health check hooks where appropriate to ensure your application is functioning reliably. Customized Scaffolding can be created to facilitate re-usability of common patterns in your organization for developing, building, and running your applications.</description>
+    </item>
+    
+    <item>
+      <title>Securing Supervisor Networks</title>
+      <link>/habitat/using-encryption/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/using-encryption/</guid>
+      <description>Securing Supervisor Networks By default, a Supervisor runs unsecured. It communicates with other Supervisors in cleartext, and it allows any user to apply new configuration without authentication. While this is beneficial for demonstrating the concepts of Chef Habitat, users will want to provide external security on production deployments of Chef Habitat Supervisor networks.
+There are several types of security measures that can be undertaken by the operator:
+ Wire encryption of inter-Supervisor traffic Trust relationships between supervisors and users  Wire Encryption Supervisors running in a ring can be configured to encrypt all traffic between them.</description>
+    </item>
+    
+    <item>
+      <title>Service Group Topologies</title>
+      <link>/habitat/topologies/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/topologies/</guid>
+      <description>Topologies A topology describes the intended relationship between peers within a service group. Two topologies ship with Chef Habitat by default: standalone, and leader-follower. The leader-follower topology employs leader election to define a leader.
+Standalone The standalone topology is what a Supervisor starts with by default if no topology is specified, or if the topology is explicitly specified with --topology standalone when starting the Supervisor. The standalone topology means that the service group members do not have any defined relationship with one another, other than sharing the same configuration.</description>
+    </item>
+    
+    <item>
+      <title>Service Group Update Strategy</title>
+      <link>/habitat/using-updates/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/using-updates/</guid>
+      <description>Update Strategy The Chef Habitat Supervisor can be configured to leverage an optional update strategy, which describes how the Supervisor and its peers within a service group should respond when a new version of a package is available.
+To use an update strategy, the Supervisor is configured to subscribe to Chef Habitat Builder, and more specifically, a channel for new versions.
+Configuring an Update Strategy Chef Habitat supports three update strategies: none, rolling, and at-once.</description>
+    </item>
+    
+    <item>
+      <title>Service Groups</title>
+      <link>/habitat/service-groups/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/service-groups/</guid>
+      <description>Service Groups A service group is a logical grouping of services with the same package and topology type connected together across a Supervisor network. They are created to share configuration and file updates among the services within those groups and can be segmented based on workflow or deployment needs (QA, Production, and so on). Updates can also be encrypted so that only members of a specific service group can decrypt the contents.</description>
+    </item>
+    
+    <item>
+      <title>Service Updates</title>
+      <link>/habitat/config-updates/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/config-updates/</guid>
+      <description>Configuration Updates One of the key features of Chef Habitat is the ability to define an immutable package with a default configuration which can then be updated dynamically at runtime. You can update service configuration on two levels: individual services (for testing purposes), or a service group.
+Apply Configuration Updates to an Individual Service When starting a single service, you can provide alternate configuration values to those specified in default.toml.</description>
+    </item>
+    
+    <item>
+      <title>Services</title>
+      <link>/habitat/glossary-services/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/glossary-services/</guid>
+      <description>&amp;lt;a name=&amp;quot;glossary-services&amp;rdquo; id=&amp;quot;glossary-services&amp;rdquo; data-magellan-target=&amp;quot;glossary-services&amp;quot;type=&amp;quot;anchor&amp;quot;&amp;gt;Services A service in Chef Habitat is defined as a Chef Habitat package running under a Chef Habitat Supervisor.
+Service Group A set of one or more running services with a shared configuration and topology makes up a service group. If a service is started without explicitly naming the group, it&amp;rsquo;s assigned to the default group for the name of that package. For example:
+ redis.default postgres.financialdb (possibly running in a cluster) postgres.</description>
+    </item>
+    
+    <item>
+      <title>Setting Up a Ring</title>
+      <link>/habitat/setting-up-a-ring/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/setting-up-a-ring/</guid>
+      <description>Setting Up a Ring Bastion Ring / Permanent Peers A &amp;ldquo;Bastion Ring&amp;rdquo; is a pattern for preventing rumor loss and a split brain in a network of Chef Habitat Supervisors - it is highly recommended for any real environment use case. Create a minimum of 3 Supervisors and join them together. They should not run any services and they should be marked as permanent peers - their only job is to spread rumors to each other.</description>
+    </item>
+    
+    <item>
+      <title>Site Map</title>
+      <link>/habitat/sitemap/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/sitemap/</guid>
+      <description>[edit on GitHub]
+This is the documentation for:
+ Chef Habitat  Documentation for other Chef products:
+ Chef Automate 2.0 Chef Habitat Chef InSpec  This page has links to each topic in this doc set. You can also use the navigation tool or the search box to find what you&amp;rsquo;re looking for.
+If you are new to Chef Infra, we highly recommend the Getting Started track on Learn Chef to familiarize yourself with Chef Infra concepts.</description>
+    </item>
+    
+    <item>
+      <title>Studio</title>
+      <link>/habitat/glossary-studio/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/glossary-studio/</guid>
+      <description>Studio The Chef Habitat Studio is a clean, self-contained, minimal environment in which you can develop, build, and package software that is free from any upstream operating system distribution. All tools and dependencies included in the Studio are installed through Chef Habitat packages, thus preventing any unwanted dependencies from being used by your package.</description>
+    </item>
+    
+    <item>
+      <title>Supervisor</title>
+      <link>/habitat/glossary-supervisor/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/glossary-supervisor/</guid>
+      <description>Supervisor The Supervisor is a process manager that has two primary responsibilities. First, it starts and monitors child services defined in the plan it is running. Second, it receives and acts upon information from the other Supervisors to which it is connected. A service will be reconfigured through application lifecycle hooks if its configuration has changed.
+The Supervisor Ring Supervisors typically run in a network, which we refer to as a ring (although it is more like a peer-to-peer network rather than a circular ring).</description>
+    </item>
+    
+    <item>
+      <title>Supervisor Log Configuration</title>
+      <link>/habitat/sup-log-configuration/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/sup-log-configuration/</guid>
+      <description>Supervisor Log Configuration With the 0.83.0 release of the Chef Habitat Supervisor, it is possible to have greater control over logging output, including the ability to dynamically adjust the logging configuration of a running Supervisor. There are two main ways of configuring logging, each of which has their own strengths and weaknesses: using environment variables, and using a configuration file.
+Environment Variable Configuration It is still possible to configure logging via the RUST_LOG environment variable.</description>
+    </item>
+    
+    <item>
+      <title>Supervisor Log Key</title>
+      <link>/habitat/sup-log-keys/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/sup-log-keys/</guid>
+      <description>Supervisor Log Key When running services with the Chef Habitat Supervisor you&amp;rsquo;ll see log output similar to this:
+redis.default(SR): Initializing redis.default(SV): Starting redis.default(O): The letters in parentheses are called &amp;ldquo;log keys&amp;rdquo; and signify what type of log message is being shown. This can be useful for log filtering.
+They are mostly organized by the part of the Chef Habitat Supervisor code base that they are running from, so they often are of value to somebody troubleshooting problems in the Chef Habitat Supervisor source code.</description>
+    </item>
+    
+    <item>
+      <title>Supervisor Networks</title>
+      <link>/habitat/robust-supervisor-networks/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/robust-supervisor-networks/</guid>
+      <description>Robust Supervisor Networks Chef Habitat Supervisors communicate amongst each other using &amp;ldquo;gossip&amp;rdquo; algorithms, which underpin the membership management, leadership election, and service discovery mechanics of Chef Habitat. By simply being &amp;ldquo;peered&amp;rdquo; to a single existing Supervisor, a new Supervisor will gradually come to know about all the Supervisors in a Chef Habitat network. The gossip algorithm has built-in features to counteract brief network splits, but care must be taken to set up a robust Supervisor network.</description>
+    </item>
+    
+    <item>
+      <title>Accept the License</title>
+      <link>/habitat/accept-the-license/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/accept-the-license/</guid>
+      <description>Accept the License Please visit the license acceptance page on the Chef docs site for more information.</description>
+    </item>
+    
+    <item>
+      <title>Under Construction</title>
+      <link>/habitat/under-construction/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/under-construction/</guid>
+      <description>This page is currently under construction. Please return soon. </description>
+    </item>
+    
+    <item>
+      <title>Upload and Promote Packages</title>
+      <link>/habitat/sharing-pkgs/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/habitat/sharing-pkgs/</guid>
+      <description>Upload and Promote Packages While you can build and run Chef Habitat packages without sharing them on Chef Habitat Builder, uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated.
+ Note: Chef Habitat Builder can only build Linux based plans (plan.sh) at this time.
+ Setting up Chef Habitat Builder is easily done on the website: these steps take you through connecting your local Studio development experience with Builder.</description>
+    </item>
+    
+  </channel>
+</rss>
