@@ -1,13 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.94 -->
-## [1.5.94](https://github.com/habitat-sh/habitat/tree/1.5.94) (2020-04-13)
+<!-- latest_release 1.5.95 -->
+## [1.5.95](https://github.com/habitat-sh/habitat/tree/1.5.95) (2020-04-14)
 
-#### Merged Pull Requests
-- dont need to put gh release link in forum post [#7614](https://github.com/habitat-sh/habitat/pull/7614) ([mwrock](https://github.com/mwrock))
+#### Bug Fixes
+- Prevent infinite loop on Windows after losing connection to Automate [#7616](https://github.com/habitat-sh/habitat/pull/7616) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.86 -->
 ### Changes since 1.5.86 release
+
+#### Bug Fixes
+- Prevent infinite loop on Windows after losing connection to Automate [#7616](https://github.com/habitat-sh/habitat/pull/7616) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.95 -->
 
 #### Merged Pull Requests
 - dont need to put gh release link in forum post [#7614](https://github.com/habitat-sh/habitat/pull/7614) ([mwrock](https://github.com/mwrock)) <!-- 1.5.94 -->
