@@ -345,7 +345,6 @@ steps:
     expeditor:
       executor:
         windows:
-          os_version: 2019
     retry:
       automatic:
         limit: 1
@@ -414,7 +413,6 @@ steps:
     expeditor:
       executor:
         windows:
-          os_version: 2019
     retry:
       automatic:
         limit: 1
@@ -688,7 +686,6 @@ steps:
     expeditor:
       executor:
         windows:
-          os_version: 2019
           privileged: true
 
   - wait
