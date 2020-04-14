@@ -4,86 +4,16 @@ description: Uploading, building, and deploying application packages with Chef H
 ---
 # <a name="using-builder" id="using-builder" data-magellan-target="using-builder">Using Builder</a>
 
-[Chef Habitat Builder](https://bldr.habitat.sh/) is the publicly available site for storing, discovering, building, and deploying your Chef Habitat packages. This documentation covers actions that you can take on the Chef Habitat Builder site and from the command line, including creating an account, making and managing an origin, uploading and downloading packages, setting up automated builds, and exporting packages to a variety of container registries.
+[Chef Habitat Builder](https://bldr.habitat.sh/) is the publicly available site for storing, discovering, building, and deploying your Chef Habitat packages. This documentation covers actions that you can take on the Chef Habitat Builder site and from the `hab` command line, including creating an account, making and managing an origin, uploading and downloading packages, setting up automated builds, and exporting packages to a variety of container registries.
 
 Chef Habitat Builder supports both public and private origins, packages, and Github repositories.
 
-## CLI Commands
+Many Chef Habitat Builder actions have corresponding `hab` CLI commands, with a few exceptions where actions are possible only from the website or from the `hab` CLI. This documentation tries to be explicit about actions that are exclusive to either the website or the command line. When both are possible, we provide the Builder actions first.
 
-
-hab bldr
-
-USAGE:
-    hab bldr <SUBCOMMAND>
-
-
-SUBCOMMANDS:
-    channel    Commands relating to Habitat Builder channels
-    help       Prints this message or the help of the given subcommand(s)
-    job        Commands relating to Habitat Builder jobs
-
-`hab origin`
-
-USAGE:
-  hab origin <SUBCOMMAND>
-
-SUBCOMMANDS:
-    `create`         Creates a new Builder origin
-    `delete`         Removes an unused/empty origin
-    `depart`         Departs membership from selected origin
-    `help`           Prints this message or the help of the given subcommand(s)
-    `info`           Displays general information about an origin
-    `invitations`    Manage origin member invitations
-    `key`            Commands relating to Habitat origin key maintenance
-    `secret`         Commands related to secret management
-    `transfer`       Transfers ownership of an origin to another member of that origin
-
-<!--
-/conbody
-  /section
-  /example
-  -->
-
-section: landing page, log in, authentication
-section: My origins
-  explain page
-  sub-section: Inside an origin page. Define terms:
-    Packages
-    Build jobs
-    Keys
-    Members
-    Settings
-    Integrations
-
-<!--Using Builder is a task
-
-/task
-  /title
-  /taskbody
-    /prereq
-    /context
-    /steps-informal
-    /tutorial-info
-    /tutorial-info
-    /result
-    /postreq
--->
+We'll primarily use the `hab origin` command in this documentation. You'll also need `hab pkg` to upload packages from---and download to--your local environment and `hab bldr` for actions related to build jobs and channels. For more information on CLI commands covered in this section, see the full [hab CLI documentation](/docs/habitat-cli/).
 
 ---
-
 ## <a name="builder-account" id="builder-account" data-magellan-target="builder-account">Create a Builder Account</a>
-<!--Create a Builder Account is a task
-/task
-  /title
-  /taskbody
-    /prereq
-    /context
-    /steps-informal
-    /tutorial-info
-    /tutorial-info
-    /result
-    /postreq
--->
 
 ### Prerequisites
 
@@ -109,22 +39,9 @@ Once you've signed in, authorize the Chef Habitat Builder application to work wi
 ---
 ## <a name="builder-profile" id="builder-profile" data-magellan-target="builder-profile">Set up your Builder Profile</a>
 
-<!--Set up your Builder Account is a task
-/task
-  /title
-  /taskbody
-    /prereq
-    /context
-    /steps-informal
-    /tutorial-info
-    /tutorial-info
-    /result
-    /postreq
--->
+Access your Builder profile by selecting the round icon at the top right corner of the Builder page. To set up your profile, including creating an access token, select the "profiles" option from the drop-down menu.
 
-Access your Builder account by selecting the round profile icon at the top right corner of the Builder page. To set up your profile, including creating an access token, select the "profiles" option from the drop-down menu.
-
-The Builder Profile shows three pieces of information:
+The Builder Profile contains three parts:
 
 * The GitHub account that you used for signing in to Builder
 * An optional email field to associate with your profile
@@ -275,8 +192,7 @@ What happens:
 
 <img src="/images/screenshots/builder-origin-settings.png">
 
-INTRODUCE ORIGIN SECRETS & WHERE WE DISCUSS IT
-
+---
 ## <a name="origin-settings" id="origin-settings" data-magellan-target="origin-settings">Origin Settings</a>
 
 ### Default Package Settings
