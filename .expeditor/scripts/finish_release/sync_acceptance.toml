@@ -1,0 +1,43 @@
+format_version = 1
+file_descriptor = "Packages to sync acceptamce from production after release"
+
+# These are all packages that we officially produce in a release.
+
+[[x86_64-linux]]
+channel = "stable"
+packages = [
+  "core/hab-launcher",
+  "core/hab",
+  "core/hab-sup",
+  "core/hab-studio",
+  "core/hab-plan-build",
+  "core/hab-backline",
+  "core/hab-pkg-export-docker",
+  "core/hab-pkg-export-tar",
+  "core/hab-pkg-mesosize",
+  "core/hab-pkg-cfize"
+]
+
+[[x86_64-linux-kernel2]]
+channel = "stable"
+packages = [
+  "core/hab-launcher",
+  "core/hab",
+  "core/hab-sup",
+  "core/hab-studio",
+  "core/hab-plan-build",
+  "core/hab-backline"
+]
+
+[[x86_64-windows]]
+channel = "stable"
+packages = [
+  "core/windows-service",
+  "core/hab-launcher",
+  "core/hab",
+  "core/hab-sup",
+  "core/hab-studio",
+  "core/hab-plan-build-ps1",
+  "core/hab-pkg-export-docker",
+  "core/hab-pkg-export-tar"
+]
