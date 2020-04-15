@@ -95,6 +95,7 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
                             String::from("HAB_ORIGIN"),
                             String::from("HAB_ORIGIN_KEYS"),
                             String::from("HAB_STUDIO_BACKLINE_PKG"),
+                            String::from("HAB_STUDIO_NOPROFILE"),
                             String::from("HAB_STUDIO_NOSTUDIORC"),
                             String::from("HAB_STUDIO_SUP"),
                             String::from("HAB_UPDATE_STRATEGY_FREQUENCY_MS"),
