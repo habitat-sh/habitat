@@ -17,7 +17,8 @@ use habitat_core::{self,
                    ChannelIdent};
 use std::{env,
           fs::File,
-          io::{prelude::*,
+          io::{self,
+               prelude::*,
                BufReader},
           path::PathBuf,
           str::FromStr};
@@ -134,8 +135,9 @@ pub async fn append_interpreter_and_path(path_entries: &mut Vec<PathBuf>) -> Res
         path_entries.append(&mut os_paths);
     }
     let joined = env::join_paths(path_entries)?;
-    let path_str = joined.into_string()
-                         .expect("Unable to convert OsStr path to string!");
+    let path_str =
+        joined.into_string()
+              .map_err(|s| io::Error::new(io::ErrorKind::InvalidData, s.to_string_lossy()))?;
     Ok(path_str)
 }
 
