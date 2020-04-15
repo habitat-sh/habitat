@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.95 -->
-## [1.5.95](https://github.com/habitat-sh/habitat/tree/1.5.95) (2020-04-14)
+<!-- latest_release 1.5.96 -->
+## [1.5.96](https://github.com/habitat-sh/habitat/tree/1.5.96) (2020-04-15)
 
-#### Bug Fixes
-- Prevent infinite loop on Windows after losing connection to Automate [#7616](https://github.com/habitat-sh/habitat/pull/7616) ([christophermaier](https://github.com/christophermaier))
+#### Merged Pull Requests
+- append existing path to package path in hab pkg exec [#7615](https://github.com/habitat-sh/habitat/pull/7615) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.86 -->
 ### Changes since 1.5.86 release
@@ -13,6 +13,7 @@
 - Prevent infinite loop on Windows after losing connection to Automate [#7616](https://github.com/habitat-sh/habitat/pull/7616) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.95 -->
 
 #### Merged Pull Requests
+- append existing path to package path in hab pkg exec [#7615](https://github.com/habitat-sh/habitat/pull/7615) ([mwrock](https://github.com/mwrock)) <!-- 1.5.96 -->
 - dont need to put gh release link in forum post [#7614](https://github.com/habitat-sh/habitat/pull/7614) ([mwrock](https://github.com/mwrock)) <!-- 1.5.94 -->
 - cleanup adding interpreter paths and make it configurable [#7601](https://github.com/habitat-sh/habitat/pull/7601) ([mwrock](https://github.com/mwrock)) <!-- 1.5.93 -->
 - Cargo Update [#7609](https://github.com/habitat-sh/habitat/pull/7609) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.92 -->
