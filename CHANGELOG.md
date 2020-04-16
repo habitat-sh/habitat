@@ -1,13 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.5.97 -->
-## [1.5.97](https://github.com/habitat-sh/habitat/tree/1.5.97) (2020-04-15)
+<!-- latest_release 1.5.98 -->
+## [1.5.98](https://github.com/habitat-sh/habitat/tree/1.5.98) (2020-04-16)
 
-#### Merged Pull Requests
-- sync stable acceptance packages with prod after release [#7617](https://github.com/habitat-sh/habitat/pull/7617) ([mwrock](https://github.com/mwrock))
+#### New Features & Enhancements
+- Layered images from `hab pkg export docker` [#7596](https://github.com/habitat-sh/habitat/pull/7596) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 <!-- release_rollup since=1.5.86 -->
 ### Changes since 1.5.86 release
+
+#### New Features & Enhancements
+- Layered images from `hab pkg export docker` [#7596](https://github.com/habitat-sh/habitat/pull/7596) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.98 -->
 
 #### Bug Fixes
 - Prevent infinite loop on Windows after losing connection to Automate [#7616](https://github.com/habitat-sh/habitat/pull/7616) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.95 -->
