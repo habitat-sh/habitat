@@ -13,7 +13,7 @@ Install-Habitat
 $binPath = Join-Path -Path $env:SystemDrive -ChildPath hab | Join-Path -ChildPath bin
 $env:PATH = New-PathString $env:PATH $binPath
 
-Write-Host "--- Installing latest core/hab from $env:HAB_BLDR_URL, $Channel channel"
+Write-Host "--- Installing latest core/hab from $BuilderUrl, $Channel channel"
 Invoke-NativeCommand hab pkg install core/hab `
     --binlink `
     --force `
@@ -21,7 +21,12 @@ Invoke-NativeCommand hab pkg install core/hab `
     --url="$BuilderUrl"
 Write-Host "--- Using core/hab $(hab --version)"
 
-Write-Host "--- Installing latest core/powershell from $env:HAB_BLDR_URL, stable channel"
+Write-Host "--- Installing latest core/hab-pkg-export-docker from $BuilderUrl, $Channel channel"
+Invoke-NativeCommand hab pkg install core/hab-pkg-export-docker `
+    --channel "$Channel" `
+    --url="$BuilderUrl"
+
+Write-Host "--- Installing latest core/powershell from $BuilderUrl, stable channel"
 Invoke-NativeCommand hab pkg install core/powershell `
     --binlink `
     --force `
@@ -29,7 +34,7 @@ Invoke-NativeCommand hab pkg install core/powershell `
     --url="$BuilderUrl"
 Write-Host "--- Using core/powershell $(pwsh --version)"
 
-Write-Host "--- Installing latest core/pester from $env:HAB_BLDR_URL, stable channel"
+Write-Host "--- Installing latest core/pester from $BuilderUrl, stable channel"
 Invoke-NativeCommand hab pkg install core/pester `
     --channel=stable `
     --url="$BuilderUrl"

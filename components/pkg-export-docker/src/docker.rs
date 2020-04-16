@@ -1,15 +1,15 @@
-use super::{Credentials,
-            Naming};
 use crate::{build::BuildRoot,
-            common::ui::{Status,
-                         UIWriter,
-                         UI},
             error::{Error,
                     Result},
-            hcore::{package::PackageIdent,
-                    util::docker},
-            util};
+            util,
+            Credentials,
+            Naming};
 use failure::SyncFailure;
+use habitat_common::ui::{Status,
+                         UIWriter,
+                         UI};
+use habitat_core::{package::PackageIdent,
+                   util::docker};
 use handlebars::Handlebars;
 use serde_json;
 use std::{fs,
@@ -70,10 +70,7 @@ impl<'a> DockerBuilder<'a> {
     /// * If building the Docker image fails
     pub fn build(self) -> Result<DockerImage> {
         let mut cmd = docker_cmd();
-        cmd.current_dir(self.workdir)
-           .arg("build")
-           .arg("--force-rm")
-           .arg("--no-cache");
+        cmd.current_dir(self.workdir).arg("build").arg("--force-rm");
         if let Some(mem) = self.memory {
             cmd.arg("--memory").arg(mem);
         }
@@ -382,7 +379,7 @@ impl DockerBuildRoot {
 
     #[cfg(unix)]
     fn create_entrypoint(&self, ui: &mut UI) -> Result<()> {
-        use crate::hcore::util::posix_perm;
+        use habitat_core::util::posix_perm;
 
         /// The entrypoint script template.
         const INIT_SH: &str = include_str!("../defaults/init.sh.hbs");
@@ -420,9 +417,11 @@ impl DockerBuildRoot {
                 .to_string_lossy()
                 .replace("\\", "/"),
             "exposes": ctx.svc_exposes().join(" "),
+            "multi_layer": ctx.multi_layer(),
             "primary_svc_ident": ctx.primary_svc_ident().to_string(),
             "installed_primary_svc_ident": ctx.installed_primary_svc_ident()?.to_string(),
             "environment": ctx.environment,
+            "packages": self.0.graph().reverse_topological_sort().iter().map(ToString::to_string).collect::<Vec<_>>(),
         });
         util::write_file(self.0.workdir().join("Dockerfile"),
                          &Handlebars::new().template_render(DOCKERFILE, &json)
@@ -448,6 +447,7 @@ impl DockerBuildRoot {
         });
         let image_name = match naming.custom_image_name {
                              Some(ref custom) => {
+                                 // TODO (CM): why is this handlebars???
                                  Handlebars::new().template_render(custom, &json)
                                                   .map_err(SyncFailure::new)?
                              }

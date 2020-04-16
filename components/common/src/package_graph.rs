@@ -68,7 +68,10 @@ impl PackageGraph {
     }
 
     /// Extend a graph by adding in dependencies for a package
-    fn extend(&mut self, package: &PackageIdent, deps: &[PackageIdent]) -> (usize, usize) {
+    // NOTE: I suppose in an ideal world, `deps` would be something
+    // like a slice of &PackageIdent to cut down on needless cloning,
+    // but it's fine for now.
+    pub fn extend(&mut self, package: &PackageIdent, deps: &[PackageIdent]) -> (usize, usize) {
         let idx = self.node_idx(package);
 
         for dep in deps {
@@ -200,6 +203,10 @@ impl PackageGraph {
     pub fn rdeps(&self, package: &PackageIdent) -> Vec<&PackageIdent> {
         self.neighbours(package, petgraph::Incoming)
     }
+}
+
+impl Default for PackageGraph {
+    fn default() -> PackageGraph { PackageGraph::empty() }
 }
 
 #[cfg(test)]

@@ -345,7 +345,6 @@ steps:
     expeditor:
       executor:
         windows:
-          os_version: 2019
     retry:
       automatic:
         limit: 1
@@ -414,7 +413,6 @@ steps:
     expeditor:
       executor:
         windows:
-          os_version: 2019
     retry:
       automatic:
         limit: 1
@@ -668,6 +666,27 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: test_docker_exporter]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_docker_exporter
+    env:
+      BUILD_PKG_TARGET: x86_64-linux
+    expeditor:
+      executor:
+        linux:
+          single-use: true
+          privileged: true
+
+  - label: "[:windows: test_docker_exporter]"
+    command:
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_docker_exporter
+    env:
+      BUILD_PKG_TARGET: x86_64-windows
+    expeditor:
+      executor:
+        windows:
+          privileged: true
 
   - wait
 

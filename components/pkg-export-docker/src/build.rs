@@ -1,39 +1,39 @@
-use super::{BUSYBOX_IDENT,
-            CACERTS_IDENT,
-            VERSION};
-#[cfg(windows)]
-use crate::hcore::util::docker;
 #[cfg(unix)]
 use crate::rootfs;
 use crate::{accounts::{EtcGroupEntry,
                        EtcPasswdEntry},
-            common::{self,
-                     command::package::install::{InstallHookMode,
-                                                 InstallMode,
-                                                 InstallSource,
-                                                 LocalPackageUsage},
-                     ui::{Status,
-                          UIWriter,
-                          UI},
-                     PROGRAM_NAME},
             error::{Error,
                     Result},
-            hcore::{env,
-                    fs::{cache_artifact_path,
-                         cache_key_path,
-                         CACHE_ARTIFACT_PATH,
-                         CACHE_KEY_PATH},
-                    package::{PackageArchive,
-                              PackageIdent,
-                              PackageInstall},
-                    ChannelIdent},
-            util};
+            graph::Graph,
+            util,
+            BUSYBOX_IDENT,
+            CACERTS_IDENT,
+            VERSION};
 use clap;
 #[cfg(unix)]
 use failure::SyncFailure;
 #[cfg(unix)]
 use hab;
 use hab::license;
+use habitat_common::{command::package::install::{InstallHookMode,
+                                                 InstallMode,
+                                                 InstallSource,
+                                                 LocalPackageUsage},
+                     ui::{Status,
+                          UIWriter,
+                          UI},
+                     PROGRAM_NAME};
+#[cfg(windows)]
+use habitat_core::util::docker;
+use habitat_core::{env,
+                   fs::{cache_artifact_path,
+                        cache_key_path,
+                        CACHE_ARTIFACT_PATH,
+                        CACHE_KEY_PATH},
+                   package::{PackageArchive,
+                             PackageIdent,
+                             PackageInstall},
+                   ChannelIdent};
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
 #[cfg(windows)]
@@ -105,6 +105,9 @@ pub struct BuildSpec<'a> {
     pub auth:               Option<&'a str>,
     /// Base image used in From of dockerfile
     pub base_image:         String,
+    /// Whether or not to create an image with a single layer for each
+    /// Habitat package.
+    pub multi_layer:        bool,
 }
 
 impl<'a> BuildSpec<'a> {
@@ -131,7 +134,8 @@ impl<'a> BuildSpec<'a> {
                                             .unwrap_or_else(|| {
                                                 default_docker_base_image().expect("No base image \
                                                                                     supported")
-                                            }), })
+                                            }),
+                       multi_layer:        m.is_present("MULTI_LAYER"), })
     }
 
     /// Creates a `BuildRoot` for the given specification.
@@ -147,41 +151,44 @@ impl<'a> BuildSpec<'a> {
         let rootfs = workdir.path().join("rootfs");
         ui.status(Status::Creating,
                   format!("build root in {}", workdir.path().display()))?;
-        self.prepare_rootfs(ui, &rootfs).await?;
-
+        let graph = self.prepare_rootfs(ui, &rootfs).await?;
         Ok(BuildRoot { workdir,
-                       ctx: BuildRootContext::from_spec(&self, &rootfs)? })
+                       ctx: BuildRootContext::from_spec(&self, &rootfs)?,
+                       graph })
     }
 
     #[cfg(unix)]
-    async fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
+    async fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<Graph> {
         ui.status(Status::Creating, "root filesystem")?;
         rootfs::create(rootfs)?;
         self.create_symlink_to_artifact_cache(ui, rootfs)?;
         self.create_symlink_to_key_cache(ui, rootfs)?;
         let base_pkgs = self.install_base_pkgs(ui, rootfs).await?;
         let user_pkgs = self.install_user_pkgs(ui, rootfs).await?;
-        self.chmod_hab_directory(ui, rootfs)?;
         self.link_binaries(ui, rootfs, &base_pkgs)?;
         self.link_cacerts(ui, rootfs, &base_pkgs)?;
         self.link_user_pkgs(ui, rootfs, &user_pkgs)?;
         self.remove_symlink_to_key_cache(ui, rootfs)?;
         self.remove_symlink_to_artifact_cache(ui, rootfs)?;
 
-        Ok(())
+        let graph = Graph::from_packages(base_pkgs, user_pkgs, &rootfs)?;
+
+        Ok(graph)
     }
 
     #[cfg(windows)]
-    async fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
+    async fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<Graph> {
         ui.status(Status::Creating, "root filesystem")?;
         self.create_symlink_to_artifact_cache(ui, rootfs)?;
         self.create_symlink_to_key_cache(ui, rootfs)?;
-        self.install_base_pkgs(ui, rootfs).await?;
-        self.install_user_pkgs(ui, rootfs).await?;
+        let base_pkgs = self.install_base_pkgs(ui, rootfs).await?;
+        let user_pkgs = self.install_user_pkgs(ui, rootfs).await?;
         self.remove_symlink_to_key_cache(ui, rootfs)?;
         self.remove_symlink_to_artifact_cache(ui, rootfs)?;
 
-        Ok(())
+        let graph = Graph::from_packages(base_pkgs, user_pkgs, &rootfs)?;
+
+        Ok(graph)
     }
 
     fn create_symlink_to_artifact_cache(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
@@ -276,25 +283,6 @@ impl<'a> BuildSpec<'a> {
         Ok(())
     }
 
-    /// Perform a recursive `chmod` on the `/hab` directory inside the
-    /// rootfs (assumes that directory has been created and populated
-    /// already).
-    ///
-    /// See the [`chmod`] module documentation for further details on
-    /// why we do this.
-    ///
-    /// [`chmod`]: chmod/index.html
-    #[cfg(unix)]
-    fn chmod_hab_directory(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
-        use crate::chmod;
-        use habitat_common::ui::Glyph;
-
-        let target = rootfs.join("hab");
-        ui.status(Status::Custom(Glyph::CheckMark, "Changing permissions on".into()),
-                  format!("{:?}", target))?;
-        chmod::recursive_g_equal_u(target)
-    }
-
     fn remove_symlink_to_artifact_cache(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
         ui.status(Status::Deleting, "artifact cache symlink")?;
         stdfs::remove_dir_all(rootfs.join(CACHE_ARTIFACT_PATH))?;
@@ -346,7 +334,7 @@ impl<'a> BuildSpec<'a> {
                      -> Result<PackageIdent> {
         let install_source: InstallSource = ident_or_archive.parse()?;
         let package_install =
-            common::command::package::install::start(ui,
+            habitat_common::command::package::install::start(ui,
                                                      url,
                                                      channel,
                                                      &install_source,
@@ -373,6 +361,9 @@ pub struct BuildRoot {
     workdir: TempDir,
     /// The build root context containing information about Habitat packages, `PATH` info, etc.
     ctx:     BuildRootContext,
+    /// Dependency graph of the Habitat packages installed in the
+    /// build root
+    graph:   Graph,
 }
 
 impl BuildRoot {
@@ -381,6 +372,8 @@ impl BuildRoot {
 
     /// Returns the `BuildRootContext` for this build root.
     pub fn ctx(&self) -> &BuildRootContext { &self.ctx }
+
+    pub fn graph(&self) -> &Graph { &self.graph }
 
     /// Destroys the temporary build root.
     ///
@@ -419,6 +412,9 @@ pub struct BuildRootContext {
     rootfs:          PathBuf,
     /// Base image used in From of dockerfile
     base_image:      String,
+    /// Whether or not to create an image with a single layer for each
+    /// Habitat package.
+    multi_layer:     bool,
 }
 
 impl BuildRootContext {
@@ -482,7 +478,8 @@ impl BuildRootContext {
                                          env_path: bin_path.to_string_lossy().into_owned(),
                                          channel: spec.channel.clone(),
                                          rootfs,
-                                         base_image: spec.base_image.clone() };
+                                         base_image: spec.base_image.clone(),
+                                         multi_layer: spec.multi_layer };
         context.validate()?;
 
         Ok(context)
@@ -691,6 +688,8 @@ impl BuildRootContext {
     /// Returns the base image for the dockerfile From
     pub fn base_image(&self) -> &str { self.base_image.as_str() }
 
+    pub fn multi_layer(&self) -> bool { self.multi_layer }
+
     fn validate(&self) -> Result<()> {
         // A valid context for a build root will contain at least one service package, called the
         // primary service package.
@@ -707,7 +706,7 @@ impl BuildRootContext {
 
 /// The package identifiers for installed base packages.
 #[derive(Debug)]
-struct BasePkgIdents {
+pub struct BasePkgIdents {
     /// Installed package identifer for the Habitat CLI package.
     pub hab:      PackageIdent,
     /// Installed package identifer for the Supervisor package.
@@ -753,9 +752,9 @@ impl PkgIdentType {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::hcore::{self,
-                       package::PackageTarget};
     use clap::ArgMatches;
+    use habitat_core::{fs,
+                       package::PackageTarget};
 
     /// Generate Clap ArgMatches for the exporter from a vector of arguments.
     fn arg_matches<'a>(args: &[&str]) -> ArgMatches<'a> {
@@ -773,7 +772,8 @@ mod test {
                     base_pkgs_channel:  ChannelIdent::from("base_pkgs_channel"),
                     idents_or_archives: Vec::new(),
                     auth:               Some("heresafakeauthtokenduh"),
-                    base_image:         String::from("scratch"), }
+                    base_image:         String::from("scratch"),
+                    multi_layer:        false, }
     }
 
     struct FakePkg {
@@ -825,7 +825,7 @@ mod test {
             if ident.release.is_none() {
                 ident.release = Some("21120102121200".into());
             }
-            let prefix = hcore::fs::pkg_install_path(&ident, Some(self.rootfs.as_path()));
+            let prefix = fs::pkg_install_path(&ident, Some(self.rootfs.as_path()));
             util::write_file(prefix.join("IDENT"), &ident.to_string()).unwrap();
             util::write_file(prefix.join("TARGET"), &PackageTarget::active_target()).unwrap();
 
@@ -833,14 +833,10 @@ mod test {
             util::write_file(prefix.join("SVC_GROUP"), &self.svc_group).unwrap();
 
             if !self.bins.is_empty() {
-                util::write_file(
-                    prefix.join("PATH"),
-                    hcore::fs::pkg_install_path(&ident, None::<&Path>)
-                        .join("bin")
-                        .to_string_lossy()
-                        .as_ref(),
-                )
-                .unwrap();
+                util::write_file(prefix.join("PATH"),
+                                 fs::pkg_install_path(&ident, None::<&Path>).join("bin")
+                                                                            .to_string_lossy()
+                                                                            .as_ref()).unwrap();
                 for bin in self.bins.iter() {
                     util::write_file(prefix.join("bin").join(bin), "").unwrap();
                 }
@@ -853,9 +849,8 @@ mod test {
     }
 
     mod build_spec {
-        use super::{super::*,
-                    *};
-        use crate::common::ui::UI;
+        use super::*;
+        use habitat_common::ui::UI;
         use tempfile::TempDir;
 
         #[test]
@@ -890,17 +885,17 @@ mod test {
             build_spec().link_binaries(&mut ui, rootfs.path(), &base_pkgs)
                         .unwrap();
 
-            assert_eq!(hcore::fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap(),
+            assert_eq!(fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap(),
                                                    None::<&Path>).join("bin/busybox"),
                        rootfs.path().join("bin/busybox").read_link().unwrap(),
                        "busybox program is symlinked into /bin");
             assert_eq!(
-                hcore::fs::pkg_install_path(&base_pkgs.busybox.unwrap(), None::<&Path>)
+                fs::pkg_install_path(&base_pkgs.busybox.unwrap(), None::<&Path>)
                     .join("bin/sh"),
                 rootfs.path().join("bin/sh").read_link().unwrap(),
                 "busybox's sh program is symlinked into /bin"
             );
-            assert_eq!(hcore::fs::pkg_install_path(&base_pkgs.hab, None::<&Path>).join("bin/hab"),
+            assert_eq!(fs::pkg_install_path(&base_pkgs.hab, None::<&Path>).join("bin/hab"),
                        rootfs.path().join("bin/hab").read_link().unwrap(),
                        "hab program is symlinked into /bin");
         }
@@ -914,7 +909,7 @@ mod test {
             build_spec().link_cacerts(&mut ui, rootfs.path(), &base_pkgs)
                         .unwrap();
 
-            assert_eq!(hcore::fs::pkg_install_path(&base_pkgs.cacerts, None::<&Path>).join("ssl"),
+            assert_eq!(fs::pkg_install_path(&base_pkgs.cacerts, None::<&Path>).join("ssl"),
                        rootfs.path().join("etc/ssl").read_link().unwrap(),
                        "cacerts are symlinked into /etc/ssl");
         }
@@ -957,17 +952,16 @@ mod test {
         fn fake_cacerts_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
             let ident = FakePkg::new("acme/cacerts", rootfs.as_ref()).install();
 
-            let prefix = hcore::fs::pkg_install_path(&ident, Some(rootfs));
+            let prefix = fs::pkg_install_path(&ident, Some(rootfs));
             util::write_file(prefix.join("ssl/cacert.pem"), "").unwrap();
             ident
         }
     }
 
     mod build_root_context {
-        use super::{super::*,
-                    *};
-        use crate::{common::PROGRAM_NAME,
-                    hcore::package::PackageIdent};
+        use super::*;
+        use habitat_common::PROGRAM_NAME;
+        use habitat_core::package::PackageIdent;
         use std::str::FromStr;
 
         #[test]

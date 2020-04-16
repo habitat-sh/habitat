@@ -1,13 +1,11 @@
+use crate::error::Result;
+use habitat_core::package::{PackageIdent,
+                            PackageInstall};
 use std::{fs::{self,
                File},
           io::Write,
           path::{Path,
                  PathBuf}};
-
-use crate::hcore::package::{PackageIdent,
-                            PackageInstall};
-
-use crate::error::Result;
 
 const BIN_PATH: &str = "/bin";
 
