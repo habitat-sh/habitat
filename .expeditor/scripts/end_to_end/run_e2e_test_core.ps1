@@ -47,6 +47,21 @@ function Wait-PathUpdatedAfter($Path, $Time, $Timeout) {
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
 }
 
+function Wait-PathIncludesContent($Path, $Content, $Timeout = ($DefaultServiceTimeout)) {
+    $testScript = {
+        (Test-Path -Path $Path) -And ((Get-Content -Path $Path | Out-String).Contains($Content))
+    }
+    $timeoutScript = {
+        if(Test-Path -Path $Path) {
+            $got = "'$(Get-Content -Path $Path | Out-String)'"
+        } else {
+            $got = "...oh...actually...the file doesn't even exist"
+        }
+        Write-Error "Timed out waiting $Timeout seconds for '$Path' to include content '$Content' but got $got"
+    }
+    Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
+}
+
 function Wait-PathHasContent($Path, $Time, $Timeout) {
     $testScript = {
         (Test-Path -Path $Path) -And ((Get-Content -Path $Path).Length -gt 0)

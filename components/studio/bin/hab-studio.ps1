@@ -62,15 +62,16 @@ SUBCOMMANDS:
     version   Prints version information
 
 ENVIRONMENT VARIABLES:
-    HAB_LICENSE       Set to 'accept' or 'accept-no-persist' to accept the Habitat license
-    HAB_ORIGIN        Propagates this variable into any studios
-    HAB_ORIGIN_KEYS   Installs secret keys (\`-k' option overrides)
-    HAB_STUDIOS_HOME  Sets a home path for all Studios (default: /hab/studios)
-    HAB_STUDIO_ROOT   Sets a Studio root (\`-r' option overrides)
-    NO_SRC_PATH       If set, do not mount source path (\`-n' flag overrides)
-    QUIET             Prints less output (\`-q' flag overrides)
-    SRC_PATH          Sets the source path (\`-s' option overrides)
-    VERBOSE           Prints more verbose output (\`-v' flag overrides)
+    HAB_LICENSE           Set to 'accept' or 'accept-no-persist' to accept the Habitat license
+    HAB_ORIGIN            Propagates this variable into any studios
+    HAB_ORIGIN_KEYS       Installs secret keys (\`-k' option overrides)
+    HAB_STUDIOS_HOME      Sets a home path for all Studios (default: /hab/studios)
+    HAB_STUDIO_NOPROFILE  Disables sourcing a \`.studio_profile.ps1' in \`studio enter'
+    HAB_STUDIO_ROOT       Sets a Studio root (\`-r' option overrides)
+    NO_SRC_PATH           If set, do not mount source path (\`-n' flag overrides)
+    QUIET                 Prints less output (\`-q' flag overrides)
+    SRC_PATH              Sets the source path (\`-s' option overrides)
+    VERBOSE               Prints more verbose output (\`-v' flag overrides)
 
 SUBCOMMAND HELP:
     $program <SUBCOMMAND> -h
@@ -421,6 +422,11 @@ function Enter-Studio {
 
         New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $env:HAB_STUDIO_ENTER_ROOT | Out-Null
         Set-Location "Habitat:\src"
+
+        if((Test-Path studio_profile.ps1) -and (!$env:HAB_STUDIO_NOPROFILE)) {
+            Write-Host "--> Detected and loading studio_profile.ps1"
+            . .\studio_profile.ps1
+        }
     }
 
     if($shouldStartStudio -and (Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")) {

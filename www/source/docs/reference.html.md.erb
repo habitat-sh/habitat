@@ -39,7 +39,8 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_STUDIOS_HOME` | build system | `/hab/studios` | Directory in which to create build Studios |
 | `HAB_STUDIO_BACKLINE_PKG` | build system | `core/hab-backline/{{studio_version}}` | Overrides the default package identifier for the "backline" package which installs the Studio baseline package set. |
 | `HAB_STUDIO_ROOT` | build system | no default | Root of the current Studio under `$HAB_STUDIOS_HOME`. Infrequently overridden. |
-| `HAB_STUDIO_NOSTUDIORC` | build system | no default | When set to a non-empty value, a `.studiorc` will not be sourced when entering an interactive Studio via `hab studio enter`. |
+| `HAB_STUDIO_NOPROFILE` | build system (Windows) | no default | When set to a non-empty value, a `studio_profile.ps1` will not be sourced when entering an interactive Studio via `hab studio enter`. |
+| `HAB_STUDIO_NOSTUDIORC` | build system (Linux) | no default | When set to a non-empty value, a `.studiorc` will not be sourced when entering an interactive Studio via `hab studio enter`. |
 | `HAB_STUDIO_SUP` | build system | no default | Used to customize the arguments passed to an automatically launched Supervisor, or to disable the automatic launching by setting it to `false`, `no`, or `0`. |
 | `HAB_GLYPH_STYLE` | build system | `full` (`limited` on Windows) | Used to customize the rendering of unicode glyphs in UI messages. Valid values are `full`, `limited`, or `ascii`. |
 | `HAB_UPDATE_STRATEGY_FREQUENCY_MS` | Supervisor | 60000 | Frequency of milliseconds to check for updates when running with an [update strategy](/docs/using-habitat#using-updates) |
@@ -52,15 +53,15 @@ This is a list of all environment variables that can be used to modify the opera
 
 ### Customizing Studio
 
-When you enter a Studio, Chef Habitat will attempt to locate `/src/.studiorc` and
-source it. Think `~/.bashrc`. This file can be used to export any
+When you enter a Studio, Chef Habitat will attempt to locate `/src/.studiorc` on Linux or `/src/studio_profile.ps1` on Windows and
+source it. Think `~/.bashrc` or `$PROFILE`. This file can be used to export any
 environment variables like the ones you see above as well as any other shell
 customizations to help you develop your plans from within the Studio.
 
-To use this feature, place a `.studiorc` in the current working directory
+To use this feature, place a `.studiorc` (Linux) or `studio_profile.ps1` (Windows) in the current working directory
 where you will run `hab studio enter`.
 
-Note that a `.studiorc` will only be source when using `hab studio enter`--it will not be sourced when calling `hab studio run` or `hab studio build` (also `hab pkg build`).
+Note that a `.studiorc` or `studio_profile.ps1` will only be sourced when using `hab studio enter`--it will not be sourced when calling `hab studio run` or `hab studio build` (also `hab pkg build`).
 
 ---
 ## <a name="plan-settings" id="plan-settings" data-magellan-target="plan-settings">Plan settings</a>
