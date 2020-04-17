@@ -287,6 +287,13 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         _ => unreachable!(),
                     }
                 }
+                ("rbac", Some(m)) => {
+                    match m.subcommand() {
+                        ("set", Some(sc)) => sub_origin_member_role_set(ui, sc).await?,
+                        ("show", Some(sc)) => sub_origin_member_role_show(ui, sc).await?,
+                        _ => unreachable!(),
+                    }
+                }
                 ("secret", Some(m)) => {
                     match m.subcommand() {
                         ("upload", Some(sc)) => sub_origin_secret_upload(ui, sc).await?,
@@ -639,6 +646,33 @@ async fn sub_send_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<(
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
     command::origin::invitations::send::start(ui, &url, &origin, &token, &invitee_account).await
+}
+
+async fn sub_origin_member_role_show(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let origin = m.value_of("ORIGIN").expect("required ORIGIN");
+    let member_account = m.value_of("MEMBER_ACCOUNT")
+                          .expect("required MEMBER_ACCOUNT");
+    let url = bldr_url_from_matches(&m)?;
+    let token = auth_token_param_or_env(&m)?;
+    let to_json = m.is_present("TO_JSON");
+    command::origin::rbac::show_role::start(ui, &url, &origin, &token, &member_account, to_json).await
+}
+
+async fn sub_origin_member_role_set(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let origin = m.value_of("ORIGIN").expect("required ORIGIN");
+    let member_account = m.value_of("MEMBER_ACCOUNT")
+                          .expect("required MEMBER_ACCOUNT");
+    let role = m.value_of("ROLE").expect("required ROLE");
+    let url = bldr_url_from_matches(&m)?;
+    let token = auth_token_param_or_env(&m)?;
+    let no_prompt = m.is_present("NO_PROMPT");
+    command::origin::rbac::set_role::start(ui,
+                                           &url,
+                                           &origin,
+                                           &token,
+                                           &member_account,
+                                           &role,
+                                           no_prompt).await
 }
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {

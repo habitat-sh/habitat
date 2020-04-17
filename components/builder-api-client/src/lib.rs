@@ -23,7 +23,8 @@ use regex::Regex;
 
 use std::{fmt,
           io::Write,
-          path::Path};
+          path::Path,
+          result};
 
 use chrono::{DateTime,
              Utc};
@@ -378,6 +379,53 @@ impl Client {
 
         Ok(client)
     }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub enum OriginMemberRole {
+    Member,
+    Maintainer,
+    Administrator,
+    Owner,
+}
+
+impl Default for OriginMemberRole {
+    fn default() -> OriginMemberRole { OriginMemberRole::Member }
+}
+
+impl fmt::Display for OriginMemberRole {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = match *self {
+            OriginMemberRole::Member => "member",
+            OriginMemberRole::Maintainer => "maintainer",
+            OriginMemberRole::Administrator => "administrator",
+            OriginMemberRole::Owner => "owner",
+        };
+        write!(f, "{}", value)
+    }
+}
+
+impl FromStr for OriginMemberRole {
+    type Err = Error;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        match value.to_lowercase().as_ref() {
+            "member" => Ok(OriginMemberRole::Member),
+            "maintainer" => Ok(OriginMemberRole::Maintainer),
+            "administrator" => Ok(OriginMemberRole::Administrator),
+            "owner" => Ok(OriginMemberRole::Owner),
+            _ => Err(Error::BadOriginMemberRole(value.to_string())),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct OriginMemberRoleResponse {
+    pub role: String,
+}
+
+impl PortableText for OriginMemberRoleResponse {
+    fn as_json(&self) -> Result<Json> { convert_to_json(&self) }
 }
 
 #[cfg(test)]

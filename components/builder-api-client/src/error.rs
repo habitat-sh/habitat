@@ -14,6 +14,7 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum Error {
     APIError(reqwest::StatusCode, String),
     BadResponseBody(reqwest::Error),
+    BadOriginMemberRole(String),
     DownloadWrite(PathBuf, io::Error),
     HabitatCore(hab_core::Error),
     HabitatHttpClient(hab_http::Error),
@@ -40,6 +41,9 @@ impl fmt::Display for Error {
             Error::APIError(ref c, ref m) if !m.is_empty() => format!("[{}] {}", c, m),
             Error::APIError(ref c, _) => format!("[{}]", c),
             Error::BadResponseBody(ref e) => format!("Failed to read response body, {}", e),
+            Error::BadOriginMemberRole(ref value) => {
+                format!("Unknown origin member role '{}'", value)
+            }
             Error::DownloadWrite(ref p, ref e) => {
                 format!("Failed to write contents of builder response, {}, {}",
                         p.display(),
