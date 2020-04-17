@@ -1,5 +1,5 @@
 function Stop-ProcessTree($Id) {
-    Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $Id } | ForEach-Object { Kill-Tree $_.ProcessId }
+    Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $Id } | ForEach-Object { Stop-ProcessTree $_.ProcessId }
     Stop-Process -Id $Id -ErrorAction SilentlyContinue
 }
 
@@ -38,12 +38,16 @@ Describe "hab studio enter with studio_profile.ps1" {
             }
             $proc = Start-Process @procArgs
             Wait-PathIncludesContent -Path out.log -Content "[HAB-STUDIO] Habitat:\src>"
-            Kill-Tree $proc.Id
+            Stop-ProcessTree $proc.Id
         }
     }
     AfterAll {
         Remove-Item studio_profile.ps1
-        Remove-Item out.log
+        # For some reason buildkite runs complain that the log file is in use by another
+        # process even though we have just stopped the entire process tree. Local
+        # runs do not have this problem. Because buildkite runs occur in a container,
+        # its not a big deal if the file is not deleted.
+        Remove-Item out.log -Force -ErrorAction SilentlyContinue
         if($env:DOCKER_STUDIO_TEST) {
             docker ps -q --filter "label=buildkitejob=$env:BUILDKITE_JOB_ID" | ForEach-Object { docker stop $_ }
         }
