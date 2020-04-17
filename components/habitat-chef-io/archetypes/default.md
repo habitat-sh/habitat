@@ -14,3 +14,4 @@ publishDate = ["publishDate", "date"]
 
 +++
 
+[\[edit on GitHub\]](https://github.com/habitat/habitat.sh/blob/master/components/habitat-chef-io/content/docs/{{ .Name }}.md)
