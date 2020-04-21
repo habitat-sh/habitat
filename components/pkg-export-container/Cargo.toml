@@ -1,5 +1,5 @@
 [package]
-name = "habitat_pkg_export_docker"
+name = "habitat_pkg_export_container"
 version = "0.0.0"
 edition = "2018"
 authors = ["The Habitat Maintainers <humans@habitat.sh>"]
@@ -7,10 +7,10 @@ build = "build.rs"
 workspace = "../../"
 
 [lib]
-name = "habitat_pkg_export_docker"
+name = "habitat_pkg_export_container"
 
 [[bin]]
-name = "hab-pkg-export-docker"
+name = "hab-pkg-export-container"
 path = "src/main.rs"
 doc = false
 

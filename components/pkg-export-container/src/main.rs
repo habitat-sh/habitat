@@ -4,9 +4,9 @@ extern crate log;
 use env_logger;
 use habitat_common::ui::{UIWriter,
                          UI};
-use habitat_pkg_export_docker::{cli,
-                                export_for_cli_matches,
-                                Result};
+use habitat_pkg_export_container::{cli,
+                                   export_for_cli_matches,
+                                   Result};
 
 #[tokio::main]
 async fn main() {

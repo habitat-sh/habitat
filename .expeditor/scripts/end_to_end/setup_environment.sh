@@ -20,8 +20,8 @@ sudo -E hab pkg install core/hab \
     --url="${HAB_BLDR_URL}"
 echo "--- Using core/hab version $(hab --version)"
 
-echo "--- Installing latest core/hab-pkg-export-docker from ${HAB_BLDR_URL}, ${channel} channel"
-sudo -E hab pkg install core/hab-pkg-export-docker \
+echo "--- Installing latest core/hab-pkg-export-container from ${HAB_BLDR_URL}, ${channel} channel"
+sudo -E hab pkg install core/hab-pkg-export-container \
     --channel="${channel}" \
     --url="${HAB_BLDR_URL}"
 

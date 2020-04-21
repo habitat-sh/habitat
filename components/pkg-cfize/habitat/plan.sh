@@ -6,7 +6,7 @@ pkg_license=('Apache-2.0')
 pkg_description="Habitat Cloud Foundry image exporter"
 pkg_upstream_url="https://github.com/habitat-sh/habitat"
 
-# Docker is actually also pulled in by hab-pkg-export-docker, but we
+# Docker is actually also pulled in by hab-pkg-export-container, but we
 # explicitly call it here, so it's a dependency. Docker doesn't have
 # any dependencies, so we can unpin here without worrying about
 # getting dependency conflicts.
@@ -14,7 +14,7 @@ pkg_deps=(core/coreutils
           core/findutils
           core/grep
           core/gawk
-          core/hab-pkg-export-docker
+          core/hab-pkg-export-container
           core/docker)
 pkg_bin_dirs=(bin)
 

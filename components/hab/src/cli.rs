@@ -569,7 +569,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (about: "Exports the package to the specified format")
                 (aliases: &["exp"])
                 (@arg FORMAT: +required +takes_value
-                    "The export format (ex: cf, docker, mesos, or tar)")
+                    "The export format (ex: cf, container, mesos, or tar)")
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2) or \
                     filepath to a Habitat Artifact \
@@ -579,7 +579,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                      be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                      https://bldr.habitat.sh)")
                 (@arg CHANNEL: --channel -c +takes_value default_value[stable] env(ChannelIdent::ENVVAR)
-                    "Retrieve the container's package from the specified release channel")
+                    "Retrieve the package-to-export from the specified release channel")
             )
             (@subcommand hash =>
                 (about: "Generates a blake2b hashsum from a target at any given filepath")
