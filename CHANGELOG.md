@@ -16,6 +16,7 @@
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/1.5.86...1.6.0)
 
 #### New Features & Enhancements
+- Source studio_profile.ps1 in studio enter if present [#7618](https://github.com/habitat-sh/habitat/pull/7618) ([mwrock](https://github.com/mwrock)) <!-- 1.5.99 -->
 - Layered images from `hab pkg export docker` [#7596](https://github.com/habitat-sh/habitat/pull/7596) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.98 -->
 
 #### Bug Fixes
@@ -24,7 +25,6 @@
 #### Merged Pull Requests
 - Bump version to 1.6.0 [#7629](https://github.com/habitat-sh/habitat/pull/7629) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.0 -->
 - fix profile e2e tests [#7625](https://github.com/habitat-sh/habitat/pull/7625) ([mwrock](https://github.com/mwrock)) <!-- 1.5.100 -->
-- source studio_profile.ps1 in studio enter if present [#7618](https://github.com/habitat-sh/habitat/pull/7618) ([mwrock](https://github.com/mwrock)) <!-- 1.5.99 -->
 - sync stable acceptance packages with prod after release [#7617](https://github.com/habitat-sh/habitat/pull/7617) ([mwrock](https://github.com/mwrock)) <!-- 1.5.97 -->
 - append existing path to package path in hab pkg exec [#7615](https://github.com/habitat-sh/habitat/pull/7615) ([mwrock](https://github.com/mwrock)) <!-- 1.5.96 -->
 - dont need to put gh release link in forum post [#7614](https://github.com/habitat-sh/habitat/pull/7614) ([mwrock](https://github.com/mwrock)) <!-- 1.5.94 -->
