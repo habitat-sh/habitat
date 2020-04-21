@@ -6,8 +6,14 @@
 #### Merged Pull Requests
 - Bump version to 1.6.0 [#7629](https://github.com/habitat-sh/habitat/pull/7629) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
-<!-- release_rollup since=1.5.86 -->
-### Changes since 1.5.86 release
+
+<!-- release_rollup since=1.6.0 -->
+### Changes since 1.6.0 release
+<!-- release_rollup -->
+
+<!-- latest_stable_release -->
+## [1.6.0](https://github.com/habitat-sh/habitat/tree/1.6.0) (2020-04-20)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/1.5.86...1.6.0)
 
 #### New Features & Enhancements
 - Layered images from `hab pkg export docker` [#7596](https://github.com/habitat-sh/habitat/pull/7596) ([christophermaier](https://github.com/christophermaier)) <!-- 1.5.98 -->
@@ -26,9 +32,8 @@
 - Cargo Update [#7609](https://github.com/habitat-sh/habitat/pull/7609) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.5.92 -->
 - Prepare e2e tests for powershell 7.0 [#7588](https://github.com/habitat-sh/habitat/pull/7588) ([mwrock](https://github.com/mwrock)) <!-- 1.5.91 -->
 - update changelog for 1.5.86 [#7610](https://github.com/habitat-sh/habitat/pull/7610) ([mwrock](https://github.com/mwrock)) <!-- 1.5.90 -->
-<!-- release_rollup -->
-
 <!-- latest_stable_release -->
+
 ## [1.5.86](https://github.com/habitat-sh/habitat/tree/1.5.86) (2020-04-08)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/1.5.71...1.5.86)
 
@@ -420,7 +425,6 @@
 - Audit `habitat_sup::manager::Manager` locking [#6940](https://github.com/habitat-sh/habitat/pull/6940) ([baumanj](https://github.com/baumanj))
 - Fix the rustfmt instructions and add helper script [#6946](https://github.com/habitat-sh/habitat/pull/6946) ([davidMcneil](https://github.com/davidMcneil))
 - Redo the locks inside the butterfly::server module. [#6941](https://github.com/habitat-sh/habitat/pull/6941) ([raskchanky](https://github.com/raskchanky))
-<!-- latest_stable_release -->
 
 ## [0.85.0](https://github.com/habitat-sh/habitat/tree/0.85.0) (2019-09-09)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.83.0...0.85.0)
