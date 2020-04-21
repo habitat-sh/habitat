@@ -4,13 +4,19 @@ description: Uploading, building, and deploying application packages with Chef H
 ---
 # <a name="using-builder" id="using-builder" data-magellan-target="using-builder">Using Builder</a>
 
-[Chef Habitat Builder](https://bldr.habitat.sh/) is the publicly available site for storing, discovering, building, and deploying your Chef Habitat packages. This documentation covers actions that you can take on the Chef Habitat Builder site and from the `hab` command line, including creating an account, making and managing an origin, uploading and downloading packages, setting up automated builds, and exporting packages to a variety of container registries.
+[Chef Habitat Builder](https://bldr.habitat.sh/) is the publicly available site for storing, discovering, building, and deploying your Chef Habitat packages. Chef Habitat Builder supports public and private origins, packages, and Github repositories. Use the Chef Habitat Builder site to:
 
-Chef Habitat Builder supports both public and private origins, packages, and Github repositories.
+* Create an account
+* Make and manage origins
+* Set up automated builds
+* Export packages to container registries
+* Discover packages and origins
 
-Many Chef Habitat Builder actions have corresponding `hab` CLI commands, with a few exceptions where actions are possible only from the website or from the `hab` CLI. This documentation tries to be explicit about actions that are exclusive to either the website or the command line. When both are possible, we provide the Builder actions first.
+Many Chef Habitat Builder actions have corresponding `hab` CLI commands, with a few exceptions where actions are possible only from either the website or from the `hab` CLI. We'll try to be clear about actions that are exclusive to either the website or the command line. When both are possible, we provide the Builder actions first.
 
 We'll primarily use the `hab origin` command in this documentation. You'll also need `hab pkg` to upload packages from---and download to--your local environment and `hab bldr` for actions related to build jobs and channels. For more information on CLI commands covered in this section, see the full [hab CLI documentation](/docs/habitat-cli/).
+
+<Navigate to Builder circled>
 
 ---
 ## <a name="builder-account" id="builder-account" data-magellan-target="builder-account">Create a Builder Account</a>
@@ -18,88 +24,69 @@ We'll primarily use the `hab origin` command in this documentation. You'll also 
 ### Prerequisites
 
 * Download and install the Chef Habitat CLI
-* A valid [GitHub account](https://github.com/join)
+* A [GitHub account](https://github.com/join)
 
 ### Sign-in and Authorize Chef Habitat
 
-Signing in to Chef Habitat Builder automatically creates your account. Chef Habitat Builder uses GitHub for authorization. The first time you sign in, you will also need to authorize the Chef Habitat Builder application in Github.
+Signing in to Chef Habitat Builder automatically creates your account. Builder uses GitHub for authorization. The first time you sign in, you will also need to authorize the Chef Habitat Builder application in Github.
 
-Use this button to start your sign-in:
+Select this button for a quick start your sign-in:
 
 <a href="https://bldr.habitat.sh/#/sign-in" class="button cta" target="_blank">Sign in to Chef Habitat Builder</a>
 
-Select "Sign in with GitHub" if you already have a GitHub account. To open a GitHub account, select the "Sign up here" link and return to the Builder sign-in page once you're done.
+Select *Sign in with GitHub* to sign in with an existing GitHub account. If you need to set up a GitHub account, select the *Sign up here* link.
 
 ![Habitat sign in with Github](/images/screenshots/builder_signin.png)
 
-Once you've signed in, authorize the Chef Habitat Builder application to work with your GitHub account. Once you have authorized Chef Habitat and signed in, you'll arrive at the 'My Origins' view.
+You also need to set up the Chef Habitat Builder application to use GitHub's authorization process the first time you sign in with GitHub. Once you have authorized Chef Habitat and signed in, you'll arrive at the 'My Origins' view.
 
 <img src="/images/screenshots/builder_authorize.png">
 
 ---
 ## <a name="builder-profile" id="builder-profile" data-magellan-target="builder-profile">Set up your Builder Profile</a>
 
-Access your Builder profile by selecting the round icon at the top right corner of the Builder page. To set up your profile, including creating an access token, select the "profiles" option from the drop-down menu.
+Access your Builder profile by selecting the *round icon at the top right corner* of the Builder page. Select the *profiles* option from the drop-down menu to customize your profile, including creating your personal access token.
 
-The Builder Profile contains three parts:
+The Builder Profile:
 
-* The GitHub account that you used for signing in to Builder
-* An optional email field to associate with your profile
-* The tool for creating a personal access token
+* Shows the GitHub account used to sign-in to Builder
+* Lets you add an email to your profile (optional)
+* Lets you create you personal access token (PAT)
 
 <img src="/images/screenshots/builder_profile.png">
 
-### <a name="builder-settings" id="builder-settings" data-magellan-target="builder-settings">User Settings</a>
+### Register an Email Address
 
-<!--User settings is a sub-task of Creating an Account
-/task
-  /title
-  /taskbody
-    /prereq
-    /context
-    /steps-informal
-    /result
-    /postreq
--->
-You cannot directly edit the GitHub account on the Builder profile.
-task: Set email
-result: shows avatar
-
-That are not connected under a single user account, then you will also need to have more than one Builder account. If you have more than one GitHub account, for example a work account and a personal account, associating these accounts through GitHub allows you to access all of your repos with Habitat plan files through Builder. You can choose which profile to connect to Builder by entering your preferred email address. The generic profile icon will change to show the gravatar associated with the GitHub account associated with that email. Save your changes by selecting `save`.
+Adding an email address to your Chef Habitat Builder profile account gives us permission to contact you directly about important information. If you use an email address associated with a GitHub account, it will also use your GitHub avatar on Builder. Save your changes by selecting `save`.
 
 <img src="/images/screenshots/builder_profile_user.png">
 
-### <a name="builder-token" id="builder-token" data-magellan-target="builder-token">Personal Access Token</a>
+### <a name="builder-token" id="builder-token" data-magellan-target="builder-token">Create a Personal Access Token (PAT)</a>
 
-<!--Creating a PAT is a sub-task of making an account
-/task : Generate a personal Access Token
-  /title
-  /taskbody
-    /prereq
-    /context
-    /steps-informal
-    /result
-    /postreq
--->
-
-<%# context: %>
-Chef Habitat Builder requires a _personal access token_ to interact with your command-line environment. The personal access token is another level of authentication, which helps secure activities such as uploading your artifacts to Builder, or checking the status of your build jobs.
+You need a _personal access token_ to authenticate interactions between your local environment and Chef Habitat Builder, such as uploading your artifacts to Builder, or checking the status of your build jobs
 
 <%# step 1 %>
 Create your personal access token at the bottom of the profile page (below the save button), by selecting **Generate Token**.
 
 <img src="/images/screenshots/generate-token.png">
+
 <%# step 2 %>
 Copy your token from this page and save it in a safe location.
-If you forget your personal access token, you will need to generate a new one.
+If you forget your personal access token, then you will need to generate a new one.
 
-### PAT as an environment variable
+###  Use the PAT as an Environment Variable
 
-The next sections cover setting your personal access token as an environment variable in Windows and MacOS/Linux operating systems.
+You can use your PAT as an environment variable for a single session by passing it in the command line or use it continuously by saving it in your user settings.
 
 #### Windows
 
-Save your Habitat authorization token as a permanent environment variable in Windows using:
+##### PowerShell
+
+```PS
+
+```
+
+Set your PAT as a permanent environment variable in the Windows PowerShell using:
 
 ```PS
 SETX HAB_AUTH_TOKEN <token> /m
@@ -107,21 +94,24 @@ SETX HAB_AUTH_TOKEN <token> /m
 
 Replacing <token> with the contents of your generated token.
 
-You can also save your Habitat authorization token as a permanent environment variable using the Windows user interface. In your Windows help bar, enter `environment` and select `Edit the system environment variables` from the list of suggestions.
+##### Windows User Interface
 
-This opens the `System Properties` window on the `Advanced` tab. Select the `Environment Variables` button.
+You can also set your PAT as a permanent environment variable through the Windows user interface.
+
+1. In your Windows help bar, enter *environment* and select *Edit the system environment variables` from the list of suggestions*
+1. This opens the _System Properties_ window on the _Advanced_ tab. Here, select the *Environment Variables* button.
 
 <img src='/images/screenshots/environment_variable.png'>
 
-In the next window, select the `New` button in the top part. This opens a dialog box that lets you set individual user variables.
+1. In the _Environment Variables_ window, select the *New* button. This opens a dialog box that lets you change individual user variables.
 
 <img src='/images/screenshots/environment_variable_new.png'>
 
-Create a permanent environment variable by entering `HAB_AUTH_TOKEN` as the variable name. Next, paste the authorization token that you copied after you generated a new token on your profile page as the variable value. After you select the `OK`, you will see the new token in the user variables field.
+1. In the dialog box, entering `HAB_AUTH_TOKEN` as the variable name and copy your PAT into the variable value field. Select the *OK* to save the setting. You'll see your PAT displayed in list of user variables.
 
 <img src='/images/screenshots/environment_variable_new_var.png'>
 
-To test that your new token works, open the Command Prompt---which you can find by entering command in the Windows search box---and entering `echo %HAB_AUTH_TOKEN%`. You should see the value that you pasted into the environment variable.
+1. Test that your new token works, open the Command Prompt---which you can find by entering *command* in the Windows search box---and entering `echo %HAB_AUTH_TOKEN%`. You should see the value that you copied into the environment variable.
 
 <img src='/images/screenshots/environment_variable_set.png'>
 
@@ -150,21 +140,12 @@ source ~/.bashrc
 ---
 ## <a name="builder-origin" id="builder-origin" data-magellan-target="builder-origin">Create an Origin on Builder</a>
 
-<!--Create an Origin is a task
-/task
-  /title
-  /taskbody
-    /prereq
-    /context
-    /steps-informal
-    /tutorial-info
-    /tutorial-info
-    /result
-    /postreq
--->
-Origins are unique namespaces that can be used to denote a particular upstream of a package. An origin could be the name of your organization or work group, the "core" origin is the set of foundational packages that are managed and versioned by the core Chef Habitat maintainers.
+An origin is space in Builder for storing and sharing packages.
+Each origin is a unique namespace.
+Use the origin to denote a particular upstream of a package.
+An origin could be the name of your organization or work group, the "core" origin is the set of foundational packages that are managed and versioned by the core Chef Habitat maintainers.
 
-From the My Origins page in the Chef Habitat Builder web app, click the **Create origin** button.
+From the My Origins page in the Chef Habitat Builder web app, select the **Create origin** button.
 
 <img src="/images/screenshots/create-origin.png">
 
@@ -395,7 +376,7 @@ Get-ChildItem C:\hab\cache\keys
 
 ### Download Origin Keys from Builder
 
-To download your private or public origin key, select the download icon from the right end of the key details, under the "Actions" heading.
+To download your private or public origin key, select the **download** icon from the right end of the key details, under the "Actions" heading.
 
 <img src="/images/screenshots/origin-key-download.png">
 
