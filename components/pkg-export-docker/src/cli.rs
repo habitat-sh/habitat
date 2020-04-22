@@ -22,7 +22,7 @@ pub fn cli<'a, 'b>() -> App<'a, 'b> {
                                        .add_publishing_args()
                                        .add_memory_arg()
                                        .add_layer_arg()
-                                       .add_pkg_ident_arg(PkgIdentArgOptions { multiple: true });
+                                       .add_pkg_ident_arg();
     if cfg!(windows) {
         cli = cli.add_base_image_arg();
     }
@@ -35,11 +35,6 @@ struct Cli<'a, 'b>
     where 'a: 'b
 {
     pub app: App<'a, 'b>,
-}
-
-#[derive(Clone, Copy)]
-pub struct PkgIdentArgOptions {
-    pub multiple: bool,
 }
 
 impl<'a, 'b> Cli<'a, 'b> {
@@ -267,20 +262,16 @@ impl<'a, 'b> Cli<'a, 'b> {
         Cli { app }
     }
 
-    fn add_pkg_ident_arg(self, options: PkgIdentArgOptions) -> Self {
-        let help = if options.multiple {
-            "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a \
-             Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)"
-        } else {
-            "A Habitat package identifier (ex: acme/redis) and/or filepath to a Habitat Artifact \
-             (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)"
-        };
+    fn add_pkg_ident_arg(self) -> Self {
+        let help = "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to \
+                    a Habitat Artifact (ex: \
+                    /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)";
 
         let app =
             self.app
                 .arg(Arg::with_name("PKG_IDENT_OR_ARTIFACT").value_name("PKG_IDENT_OR_ARTIFACT")
                                                             .required(true)
-                                                            .multiple(options.multiple)
+                                                            .multiple(true)
                                                             .help(help));
 
         Cli { app }
