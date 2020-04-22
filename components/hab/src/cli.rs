@@ -10,7 +10,8 @@ use clap::{App,
            AppSettings,
            Arg,
            ArgMatches};
-use configopt::ConfigOpt;
+use configopt::{ConfigOptType,
+                IgnoreHelp};
 use habitat_common::{cli::{file_into_idents,
                            is_toml_file,
                            BINLINK_DIR_ENVVAR,
@@ -69,7 +70,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         // defaults of the `Hab` app.
         // Ignore any CLI parsing errors. We will catch them later on when `get_matches` is called.
         // When we switch to using `structopt` exclusivly this will be cleaned up.
-        if let Ok(mut defaults) = ConfigOptHab::from_args_safe_ignore_help() {
+        if let Ok(mut defaults) = ConfigOptHab::try_from_args_ignore_help() {
             if let Err(e) = defaults.patch_with_config_files() {
                 error!("Failed to parse config files, err: {}", e);
                 process::exit(OK_NO_RETRY_EXCODE);
@@ -962,7 +963,7 @@ pub fn sup_commands(feature_flags: FeatureFlag) -> App<'static, 'static> {
         // defaults of the `Sup` app.
         // Ignore any CLI parsing errors. We will catch them later on when `get_matches` is called.
         // When we switch to using `structopt` exclusivly this will be cleaned up.
-        if let Ok(mut defaults) = ConfigOptSup::from_args_safe_ignore_help() {
+        if let Ok(mut defaults) = ConfigOptSup::try_from_args_ignore_help() {
             if let Err(e) = defaults.patch_with_config_files() {
                 error!("Failed to parse config files, err: {}", e);
                 process::exit(OK_NO_RETRY_EXCODE);

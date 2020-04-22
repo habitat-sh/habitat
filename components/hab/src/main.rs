@@ -10,7 +10,8 @@ extern crate log;
 use crate::cli::hab::ConfigOptHab;
 use clap::{ArgMatches,
            Shell};
-use configopt::ConfigOpt;
+use configopt::{ConfigOptType,
+                IgnoreHelp};
 use env_logger;
 use futures::stream::StreamExt;
 use hab::{cli::{self,
@@ -132,7 +133,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     // `get_matches` is called. When we switch to using `structopt` exclusivly this will be cleaned
     // up.
     if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
-        if let Ok(mut hab) = ConfigOptHab::from_args_safe_ignore_help() {
+        if let Ok(mut hab) = ConfigOptHab::try_from_args_ignore_help() {
             if let Err(e) = hab.patch_with_config_files() {
                 error!("Failed to parse config files, err: {}", e);
                 process::exit(0);
