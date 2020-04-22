@@ -4,8 +4,7 @@ use super::util::{CacheKeyPath,
                   ConfigOptRemoteSup,
                   PkgIdent,
                   RemoteSup};
-use configopt::{configopt_fields,
-                ConfigOpt};
+use configopt::ConfigOpt;
 use habitat_core::{os::process::ShutdownTimeout,
                    package::PackageIdent,
                    service::{HealthCheckInterval,
@@ -170,7 +169,6 @@ pub struct SharedLoad {
     environment:           Vec<String>,
 }
 
-#[configopt_fields]
 #[derive(ConfigOpt, StructOpt, Deserialize)]
 #[configopt(attrs(serde))]
 #[serde(deny_unknown_fields)]
