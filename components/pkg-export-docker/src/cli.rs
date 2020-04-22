@@ -273,7 +273,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                                                          .long("memory")
                                                          .short("m")
                                                          .help("Memory limit passed to docker \
-                                                                build's --memory arg (ex: 2bg)"));
+                                                                build's --memory arg (ex: 2gb)"));
 
         Cli { app }
     }
