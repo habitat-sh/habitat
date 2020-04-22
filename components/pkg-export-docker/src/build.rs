@@ -758,7 +758,7 @@ mod test {
 
     /// Generate Clap ArgMatches for the exporter from a vector of arguments.
     fn arg_matches<'a>(args: &[&str]) -> ArgMatches<'a> {
-        let app = crate::cli();
+        let app = crate::cli::cli();
         app.get_matches_from(args)
     }
 
