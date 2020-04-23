@@ -1,19 +1,20 @@
 use crate::{build::BasePkgIdents,
             error::Result};
 use habitat_common::package_graph::PackageGraph;
-use habitat_core::package::PackageIdent;
+use habitat_core::package::{FullyQualifiedPackageIdent,
+                            PackageIdent};
 use linked_hash_map::LinkedHashMap;
 use std::path::Path;
 
 pub struct Graph {
     g:    PackageGraph,
     base: BasePkgIdents,
-    user: Vec<PackageIdent>,
+    user: Vec<FullyQualifiedPackageIdent>,
 }
 
 impl Graph {
     pub fn from_packages(base: BasePkgIdents,
-                         user: Vec<PackageIdent>,
+                         user: Vec<FullyQualifiedPackageIdent>,
                          rootfs: &Path)
                          -> Result<Graph> {
         let g = PackageGraph::from_root_path(rootfs)?;
@@ -27,15 +28,31 @@ impl Graph {
     /// order, one layer at a time, in order to try and maximize
     /// layer caching.
     fn idents_from_base(&self) -> Vec<PackageIdent> {
+        // TODO (CM): Yes, we store the idents natively as
+        // fully-qualified, but the type abstraction for that isn't
+        // fully done yet, and the underlying PackageGraph hasn't yet
+        // been converted to transparently handle FQPIs. Thus, we use
+        // this as a boundary point and use `as_ref()` calls to get at
+        // the underlying PackageIdents directly.
+
         let mut idents = vec![];
         if let Some(ref busybox) = self.base.busybox {
-            idents.push(busybox.clone());
+            idents.push(busybox.as_ref().clone());
         }
-        idents.push(self.base.launcher.clone());
-        idents.push(self.base.hab.clone());
-        idents.push(self.base.sup.clone());
-        idents.push(self.base.cacerts.clone());
+        idents.push(self.base.launcher.as_ref().clone());
+        idents.push(self.base.hab.as_ref().clone());
+        idents.push(self.base.sup.as_ref().clone());
+        idents.push(self.base.cacerts.as_ref().clone());
         idents
+    }
+
+    /// Similarly to how `idents_from_base` returns a
+    /// `Vec<PackageIdent>` to form a boundary between this type and
+    /// the underlying package graph, we do the same thing here. Once
+    /// the type abstractions are more harmonized, we can dispense
+    /// with this.
+    fn user_idents(&self) -> Vec<PackageIdent> {
+        self.user.iter().map(|fqpi| fqpi.as_ref().clone()).collect()
     }
 
     /// Return the list of packages to install in the image in
@@ -51,7 +68,7 @@ impl Graph {
     pub fn reverse_topological_sort(&self) -> Vec<PackageIdent> {
         self.idents_from_base()
             .into_iter()
-            .chain(self.user.clone())
+            .chain(self.user_idents())
             .map(|ident| {
                 let mut pkgs = self.g.owned_ordered_deps(&ident);
                 // We want the most basic dependencies first.
@@ -93,6 +110,7 @@ impl Graph {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::convert::TryFrom;
 
     /// Helper macro to create PackageIdents and make them easily
     /// accessible via function invocation.
@@ -102,12 +120,23 @@ mod tests {
         };
     }
 
+    /// Helper macro to convert a PackageIdent into a
+    /// FullyQualifiedPackageIdent with a minimum of ceremony.
+    macro_rules! fqpi {
+        ($ident:expr) => {
+            FullyQualifiedPackageIdent::try_from($ident).unwrap()
+        };
+    }
+
     // These are all the packages needed for hab, hab-sup,
     // hab-launcher and redis
 
     // These are the packages that go into every Docker container
     // (well, specific *releases* of those packages, for the purpose
     // of testing).
+    //
+    // Yes, these are properly all FullyQualifiedPackageIdents, but
+    // the PackageGraph doesn't yet handle those.
     pkg!(hab, "core/hab/1.5.71/20200318171932");
     pkg!(sup, "core/hab-sup/1.5.71/20200318174937");
     pkg!(launcher, "core/hab-launcher/13458/20200318174911");
@@ -168,13 +197,13 @@ mod tests {
         // User package and its dependencies
         graph.extend(&redis(), &[glibc()]);
 
-        let base = BasePkgIdents { hab:      hab(),
-                                   sup:      sup(),
-                                   launcher: launcher(),
-                                   busybox:  Some(busybox()),
-                                   cacerts:  cacerts(), };
+        let base = BasePkgIdents { hab:      fqpi!(hab()),
+                                   sup:      fqpi!(sup()),
+                                   launcher: fqpi!(launcher()),
+                                   busybox:  Some(fqpi!(busybox())),
+                                   cacerts:  fqpi!(cacerts()), };
 
-        let user = vec![redis()];
+        let user = vec![fqpi!(redis())];
 
         Ok(Graph { base,
                    user,

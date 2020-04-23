@@ -8,7 +8,8 @@ use failure::SyncFailure;
 use habitat_common::ui::{Status,
                          UIWriter,
                          UI};
-use habitat_core::package::PackageIdent;
+use habitat_core::package::{ident::Identifiable,
+                            PackageIdent};
 use handlebars::Handlebars;
 use serde_json;
 use std::{fs,
@@ -403,11 +404,11 @@ impl DockerBuildRoot {
                   -> Result<DockerImage> {
         ui.status(Status::Creating, "Docker image")?;
         let ident = self.0.ctx().installed_primary_svc_ident()?;
-        let version = &ident.version.expect("version exists");
-        let release = &ident.release.expect("release exists");
+        let version = ident.version();
+        let release = ident.release();
         let json = json!({
-            "pkg_origin": ident.origin,
-            "pkg_name": ident.name,
+            "pkg_origin": ident.origin(),
+            "pkg_name": ident.name(),
             "pkg_version": &version,
             "pkg_release": &release,
             "channel": self.0.ctx().channel().as_str(),
@@ -418,7 +419,7 @@ impl DockerBuildRoot {
                                  Handlebars::new().template_render(custom, &json)
                                                   .map_err(SyncFailure::new)?
                              }
-                             None => format!("{}/{}", ident.origin, ident.name),
+                             None => format!("{}/{}", ident.origin(), ident.name()),
                          }.to_lowercase();
 
         let image_name = match naming.registry_url {
@@ -431,10 +432,10 @@ impl DockerBuildRoot {
             builder = builder.tag(format!("{}-{}", &version, &release));
         }
         if naming.version_tag {
-            builder = builder.tag(version.clone());
+            builder = builder.tag(version);
         }
         if naming.latest_tag {
-            builder = builder.tag("latest".to_string());
+            builder = builder.tag("latest");
         }
         if let Some(memory) = memory {
             builder = builder.memory(memory);
