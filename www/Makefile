@@ -30,3 +30,6 @@ endif
 
 clean_tmp:
 	rm -Rf tmp
+
+serve:
+	bundle exec middleman serve

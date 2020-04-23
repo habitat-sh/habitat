@@ -224,6 +224,7 @@ pre, pre code {
   line-height: 1.45em;
   // font-family: $pre-font-family;
   font-family: $font-family-monospace;
+  white-space: pre-wrap !important;
 }
 
 // Styles for pre's which aren't highlighted by Octopress's highlighter
@@ -238,6 +239,7 @@ pre:not(.code-highlight-pre),
   overflow-x: auto;
   line-height: 1.45em;
   font-size: .9em;
+  white-space: pre-wrap !important;
 }
 
 
