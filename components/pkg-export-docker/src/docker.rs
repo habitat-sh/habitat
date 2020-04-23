@@ -177,9 +177,6 @@ impl DockerImage {
         Ok(())
     }
 
-    /// Returns the ID of this image.
-    pub fn id(&self) -> &str { self.id.as_str() }
-
     /// Returns the name of this image.
     pub fn name(&self) -> &str { self.name.as_str() }
 
