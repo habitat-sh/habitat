@@ -29,36 +29,34 @@ const DOCKERFILE: &str = include_str!("../defaults/Dockerfile_win.hbs");
 const BUILD_REPORT: &str = include_str!("../defaults/last_docker_export.env.hbs");
 
 /// A builder used to create a Docker image.
-pub struct DockerBuilder<'a> {
+pub struct DockerBuilder {
     /// The base workdir which hosts the root file system.
-    workdir: &'a Path,
+    workdir: PathBuf,
     /// The name for the image.
     name:    String,
     /// A list of tags for the image.
     tags:    Vec<String>,
     /// Optional memory limit to pass to pass to the docker build
-    memory:  Option<&'a str>,
+    memory:  Option<String>,
 }
 
-impl<'a> DockerBuilder<'a> {
-    fn new<S>(workdir: &'a Path, name: S) -> Self
-        where S: Into<String>
-    {
-        DockerBuilder { workdir,
-                        name: name.into(),
-                        tags: Vec::new(),
-                        memory: None }
+impl DockerBuilder {
+    fn new(workdir: &Path, name: &str) -> Self {
+        DockerBuilder { workdir: workdir.to_path_buf(),
+                        name:    name.to_string(),
+                        tags:    Vec::new(),
+                        memory:  None, }
     }
 
     /// Adds a tag for the Docker image.
-    pub fn tag<S: Into<String>>(mut self, tag: S) -> Self {
-        self.tags.push(tag.into());
+    pub fn tag(mut self, tag: String) -> Self {
+        self.tags.push(tag);
         self
     }
 
     /// Specifies an amount of memory to allocate to build
-    pub fn memory(mut self, memory: &'a str) -> Self {
-        self.memory = Some(memory);
+    pub fn memory(mut self, memory: &str) -> Self {
+        self.memory = Some(memory.to_string());
         self
     }
 
@@ -69,8 +67,10 @@ impl<'a> DockerBuilder<'a> {
     /// * If building the Docker image fails
     pub fn build(self) -> Result<DockerImage> {
         let mut cmd = util::docker_cmd();
-        cmd.current_dir(self.workdir).arg("build").arg("--force-rm");
-        if let Some(mem) = self.memory {
+        cmd.current_dir(&self.workdir)
+           .arg("build")
+           .arg("--force-rm");
+        if let Some(ref mem) = self.memory {
             cmd.arg("--memory").arg(mem);
         }
         if self.tags.is_empty() {
@@ -124,7 +124,7 @@ pub struct DockerImage {
     workdir: PathBuf,
 }
 
-impl<'a> DockerImage {
+impl DockerImage {
     /// Pushes the Docker image, with all tags, to a remote registry using the provided
     /// `Credentials`.
     ///
@@ -427,15 +427,15 @@ impl DockerBuildRoot {
                              None => image_name,
                          }.to_lowercase();
 
-        let mut builder = DockerBuilder::new(self.0.workdir(), image_name);
+        let mut builder = DockerBuilder::new(self.0.workdir(), &image_name);
         if naming.version_release_tag {
             builder = builder.tag(format!("{}-{}", &version, &release));
         }
         if naming.version_tag {
-            builder = builder.tag(version);
+            builder = builder.tag(version.to_string());
         }
         if naming.latest_tag {
-            builder = builder.tag("latest");
+            builder = builder.tag("latest".to_string());
         }
         if let Some(memory) = memory {
             builder = builder.memory(memory);

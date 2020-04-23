@@ -84,27 +84,27 @@ fn default_docker_base_image() -> Result<String> {
 /// When a `BuildSpec` is created, a `BuildRoot` is returned which can be used to produce exported
 /// images, archives, etc.
 #[derive(Debug)]
-pub struct BuildSpec<'a> {
+pub struct BuildSpec {
     /// A string representation of a Habitat Package Identifer for the Habitat CLI package.
-    pub hab:                &'a str,
+    pub hab:                String,
     /// A string representation of a Habitat Package Identifer for the Habitat Launcher package.
-    pub hab_launcher:       &'a str,
+    pub hab_launcher:       String,
     /// A string representation of a Habitat Package Identifer for the Habitat Supervisor package.
-    pub hab_sup:            &'a str,
+    pub hab_sup:            String,
     /// The Builder URL which is used to install all service and extra Habitat packages.
-    pub url:                &'a str,
+    pub url:                String,
     /// The Habitat release channel which is used to install all service and extra Habitat
     /// packages.
     pub channel:            ChannelIdent,
     /// The Builder URL which is used to install all base Habitat packages.
-    pub base_pkgs_url:      &'a str,
+    pub base_pkgs_url:      String,
     /// The Habitat release channel which is used to install all base Habitat packages.
     pub base_pkgs_channel:  ChannelIdent,
     /// A list of either Habitat Package Identifiers or local paths to Habitat Artifact files which
     /// will be installed.
-    pub idents_or_archives: Vec<&'a str>,
+    pub idents_or_archives: Vec<String>,
     /// The Builder Auth Token to use in the request
-    pub auth:               Option<&'a str>,
+    pub auth:               Option<String>,
     /// Base image used in From of dockerfile
     pub base_image:         String,
     /// Whether or not to create an image with a single layer for each
@@ -112,24 +112,34 @@ pub struct BuildSpec<'a> {
     pub multi_layer:        bool,
 }
 
-impl<'a> BuildSpec<'a> {
+impl BuildSpec {
     /// Creates a `BuildSpec` from cli arguments.
-    pub fn new_from_cli_matches(m: &'a clap::ArgMatches<'_>, default_url: &'a str) -> Result<Self> {
-        Ok(BuildSpec { hab:                m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
+    pub fn new_from_cli_matches(m: &clap::ArgMatches<'_>, default_url: &str) -> Result<Self> {
+        Ok(BuildSpec { hab:                m.value_of("HAB_PKG")
+                                            .unwrap_or(DEFAULT_HAB_IDENT)
+                                            .to_string(),
                        hab_launcher:       m.value_of("HAB_LAUNCHER_PKG")
-                                            .unwrap_or(DEFAULT_LAUNCHER_IDENT),
-                       hab_sup:            m.value_of("HAB_SUP_PKG").unwrap_or(DEFAULT_SUP_IDENT),
-                       url:                m.value_of("BLDR_URL").unwrap_or(&default_url),
+                                            .unwrap_or(DEFAULT_LAUNCHER_IDENT)
+                                            .to_string(),
+                       hab_sup:            m.value_of("HAB_SUP_PKG")
+                                            .unwrap_or(DEFAULT_SUP_IDENT)
+                                            .to_string(),
+                       url:                m.value_of("BLDR_URL")
+                                            .unwrap_or(&default_url)
+                                            .to_string(),
                        channel:            m.value_of("CHANNEL")
                                             .map(ChannelIdent::from)
                                             .unwrap_or_default(),
-                       base_pkgs_url:      m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(&default_url),
+                       base_pkgs_url:      m.value_of("BASE_PKGS_BLDR_URL")
+                                            .unwrap_or(&default_url)
+                                            .to_string(),
                        base_pkgs_channel:  m.value_of("BASE_PKGS_CHANNEL")
                                             .map(ChannelIdent::from)
                                             .unwrap_or_default(),
-                       auth:               m.value_of("BLDR_AUTH_TOKEN"),
+                       auth:               m.value_of("BLDR_AUTH_TOKEN").map(ToString::to_string),
                        idents_or_archives: m.values_of("PKG_IDENT_OR_ARTIFACT")
                                             .expect("No package specified")
+                                            .map(str::to_string)
                                             .collect(),
                        base_image:         m.value_of("BASE_IMAGE")
                                             .map(str::to_string)
@@ -220,9 +230,10 @@ impl<'a> BuildSpec<'a> {
     }
 
     async fn install_base_pkgs(&self, ui: &mut UI, rootfs: &Path) -> Result<BasePkgIdents> {
-        let hab = self.install_base_pkg(ui, self.hab, rootfs).await?;
-        let sup = self.install_base_pkg(ui, self.hab_sup, rootfs).await?;
-        let launcher = self.install_base_pkg(ui, self.hab_launcher, rootfs).await?;
+        let hab = self.install_base_pkg(ui, &self.hab, rootfs).await?;
+        let sup = self.install_base_pkg(ui, &self.hab_sup, rootfs).await?;
+        let launcher = self.install_base_pkg(ui, &self.hab_launcher, rootfs)
+                           .await?;
         let busybox = if cfg!(target_os = "linux") {
             Some(self.install_base_pkg(ui, BUSYBOX_IDENT, rootfs).await?)
         } else {
@@ -314,7 +325,7 @@ impl<'a> BuildSpec<'a> {
                               -> Result<FullyQualifiedPackageIdent> {
         self.install(ui,
                      ident_or_archive,
-                     self.base_pkgs_url,
+                     &self.base_pkgs_url,
                      &self.base_pkgs_channel,
                      fs_root_path,
                      None)
@@ -328,10 +339,10 @@ impl<'a> BuildSpec<'a> {
                               -> Result<FullyQualifiedPackageIdent> {
         self.install(ui,
                      ident_or_archive,
-                     self.url,
+                     &self.url,
                      &self.channel,
                      fs_root_path,
-                     self.auth)
+                     self.auth.as_ref().map(String::as_str)) //eww
             .await
     }
 
@@ -448,7 +459,7 @@ impl BuildRootContext {
     /// * If an artifact file cannot be read or if a Package Identifier cannot be determined
     /// * If a Package Identifier cannot be parsed from an string representation
     /// * If package metadata cannot be read
-    pub fn from_spec<P: Into<PathBuf>>(spec: &BuildSpec<'_>, rootfs: P) -> Result<Self> {
+    pub fn from_spec<P: Into<PathBuf>>(spec: &BuildSpec, rootfs: P) -> Result<Self> {
         let rootfs = rootfs.into();
         let mut idents = Vec::new();
         let mut tdeps = Vec::new();
@@ -783,17 +794,17 @@ mod test {
         app.get_matches_from(args)
     }
 
-    fn build_spec<'a>() -> BuildSpec<'a> {
-        BuildSpec { hab:                "hab",
-                    hab_launcher:       "hab_launcher",
-                    hab_sup:            "hab_sup",
-                    url:                "url",
+    fn build_spec() -> BuildSpec {
+        BuildSpec { hab:                "hab".to_string(),
+                    hab_launcher:       "hab_launcher".to_string(),
+                    hab_sup:            "hab_sup".to_string(),
+                    url:                "url".to_string(),
                     channel:            ChannelIdent::from("channel"),
-                    base_pkgs_url:      "base_pkgs_url",
+                    base_pkgs_url:      "base_pkgs_url".to_string(),
                     base_pkgs_channel:  ChannelIdent::from("base_pkgs_channel"),
                     idents_or_archives: Vec::new(),
-                    auth:               Some("heresafakeauthtokenduh"),
-                    base_image:         String::from("scratch"),
+                    auth:               Some("heresafakeauthtokenduh".to_string()),
+                    base_image:         "scratch".to_string(),
                     multi_layer:        false, }
     }
 
@@ -996,7 +1007,9 @@ mod test {
                                                              .install();
 
             let mut spec = build_spec();
-            spec.idents_or_archives = vec!["acme/libby", "acme/runna", "acme/jogga"];
+            spec.idents_or_archives = vec!["acme/libby".to_string(),
+                                           "acme/runna".to_string(),
+                                           "acme/jogga".to_string()];
             let ctx = BuildRootContext::from_spec(&spec, rootfs.path()).unwrap();
 
             assert_eq!(vec![&PackageIdent::from_str("acme/runna").unwrap(),

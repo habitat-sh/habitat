@@ -174,7 +174,7 @@ impl Credentials {
 /// * If building the Docker image fails
 /// * If destroying the temporary build root directory fails
 pub async fn export<'a>(ui: &'a mut UI,
-                        build_spec: BuildSpec<'a>,
+                        build_spec: BuildSpec,
                         naming: &'a Naming<'a>,
                         memory: Option<&'a str>)
                         -> Result<DockerImage> {
