@@ -7,6 +7,7 @@ extern crate log;
 #[macro_use]
 extern crate serde_json;
 
+use crate::naming::Naming;
 pub use crate::{build::BuildSpec,
                 cli::cli,
                 docker::{DockerBuildRoot,
@@ -33,6 +34,7 @@ mod cli;
 mod docker;
 mod error;
 mod graph;
+mod naming;
 mod os;
 #[cfg(unix)]
 mod rootfs;
@@ -45,47 +47,6 @@ pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 const BUSYBOX_IDENT: &str = "core/busybox-static";
 /// The Habitat Package Identifier string for SSL certificate authorities (CA) certificates package.
 const CACERTS_IDENT: &str = "core/cacerts";
-
-/// An image naming policy.
-///
-/// This is a value struct which captures the naming and tagging intentions for an image.
-#[derive(Debug)]
-pub struct Naming<'a> {
-    /// An optional custom image name which would override a computed default value.
-    pub custom_image_name:   Option<&'a str>,
-    /// Whether or not to tag the image with a latest value.
-    pub latest_tag:          bool,
-    /// Whether or not to tag the image with a value containing a version from a Package
-    /// Identifier.
-    pub version_tag:         bool,
-    /// Whether or not to tag the image with a value containing a version and release from a
-    /// Package Identifier.
-    pub version_release_tag: bool,
-    /// An optional custom tag value for the image.
-    pub custom_tag:          Option<&'a str>,
-    /// A URL to a custom Docker registry to publish to. This will be used as part of every tag
-    /// before pushing.
-    pub registry_url:        Option<&'a str>,
-    /// The type of registry we're publishing to. Ex: Amazon, Docker, Google, Azure.
-    pub registry_type:       RegistryType,
-}
-
-impl<'a> Naming<'a> {
-    /// Creates a `Naming` from cli arguments.
-    pub fn new_from_cli_matches(m: &'a clap::ArgMatches<'_>) -> Self {
-        let registry_type =
-            value_t!(m.value_of("REGISTRY_TYPE"), RegistryType).unwrap_or(RegistryType::Docker);
-        let registry_url = m.value_of("REGISTRY_URL");
-
-        Naming { custom_image_name: m.value_of("IMAGE_NAME"),
-                 latest_tag: !m.is_present("NO_TAG_LATEST"),
-                 version_tag: !m.is_present("NO_TAG_VERSION"),
-                 version_release_tag: !m.is_present("NO_TAG_VERSION_RELEASE"),
-                 custom_tag: m.value_of("TAG_CUSTOM"),
-                 registry_url,
-                 registry_type }
-    }
-}
 
 #[derive(Clone, Copy, Debug)]
 pub enum RegistryType {
@@ -120,6 +81,10 @@ impl fmt::Display for RegistryType {
         };
         write!(f, "{}", disp)
     }
+}
+
+impl Default for RegistryType {
+    fn default() -> Self { RegistryType::Docker }
 }
 
 /// A credentials username and password pair.
@@ -175,7 +140,7 @@ impl Credentials {
 /// * If destroying the temporary build root directory fails
 pub async fn export<'a>(ui: &'a mut UI,
                         build_spec: BuildSpec,
-                        naming: &'a Naming<'a>,
+                        naming: &Naming,
                         memory: Option<&'a str>)
                         -> Result<DockerImage> {
     ui.begin(format!("Building a runnable Docker image with: {}",
@@ -219,7 +184,7 @@ pub async fn export_for_cli_matches(ui: &mut UI,
                                                   .expect("Username not specified"),
                                            matches.value_of("REGISTRY_PASSWORD")
                                                   .expect("Password not specified")).await?;
-        docker_image.push(ui, &credentials, naming.registry_url)?;
+        docker_image.push(ui, &credentials, naming.registry_url.as_deref())?;
     }
     if matches.is_present("RM_IMAGE") {
         docker_image.rm(ui)?;

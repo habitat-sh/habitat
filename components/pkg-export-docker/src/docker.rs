@@ -1,15 +1,14 @@
 use crate::{build::BuildRoot,
             error::{Error,
                     Result},
+            naming::Naming,
             util,
-            Credentials,
-            Naming};
+            Credentials};
 use failure::SyncFailure;
 use habitat_common::ui::{Status,
                          UIWriter,
                          UI};
-use habitat_core::package::{ident::Identifiable,
-                            PackageIdent};
+use habitat_core::package::PackageIdent;
 use handlebars::Handlebars;
 use serde_json;
 use std::{fs,
@@ -404,46 +403,18 @@ impl DockerBuildRoot {
                   -> Result<DockerImage> {
         ui.status(Status::Creating, "Docker image")?;
         let ident = self.0.ctx().installed_primary_svc_ident()?;
-        let version = ident.version();
-        let release = ident.release();
-        let json = json!({
-            "pkg_origin": ident.origin(),
-            "pkg_name": ident.name(),
-            "pkg_version": &version,
-            "pkg_release": &release,
-            "channel": self.0.ctx().channel().as_str(),
-        });
-        let image_name = match naming.custom_image_name {
-                             Some(ref custom) => {
-                                 // TODO (CM): why is this handlebars???
-                                 Handlebars::new().template_render(custom, &json)
-                                                  .map_err(SyncFailure::new)?
-                             }
-                             None => format!("{}/{}", ident.origin(), ident.name()),
-                         }.to_lowercase();
+        let channel = self.0.ctx().channel();
 
-        let image_name = match naming.registry_url {
-                             Some(ref url) => format!("{}/{}", url, image_name),
-                             None => image_name,
-                         }.to_lowercase();
+        // TODO (CM): Ideally, we'd toss this error much earlier,
+        // since this error would be based on user input errors
+        let (image_name, tags) = naming.image_identifiers(&ident, &channel)?;
 
         let mut builder = DockerBuilder::new(self.0.workdir(), &image_name);
-        if naming.version_release_tag {
-            builder = builder.tag(format!("{}-{}", &version, &release));
-        }
-        if naming.version_tag {
-            builder = builder.tag(version.to_string());
-        }
-        if naming.latest_tag {
-            builder = builder.tag("latest".to_string());
+        for tag in tags {
+            builder = builder.tag(tag);
         }
         if let Some(memory) = memory {
             builder = builder.memory(memory);
-        }
-        if let Some(ref custom) = naming.custom_tag {
-            builder = builder.tag(Handlebars::new().template_render(custom, &json)
-                                                   .map_err(SyncFailure::new)?
-                                                   .to_lowercase());
         }
         builder.build()
     }
