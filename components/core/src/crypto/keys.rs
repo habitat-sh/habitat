@@ -100,8 +100,8 @@ impl Drop for TmpKeyfile {
 /// the keys may not be present due to the loading context. For example, the act of verifying a
 /// signed message or artifact only requires the public key to be present, whereas the act of
 /// signing will require the secret key to be present.
-#[derive(Clone)]
-pub struct KeyPair<P, S> {
+#[derive(Clone, PartialEq)]
+pub struct KeyPair<P: PartialEq, S: PartialEq> {
     /// The name of the key, ex: "habitat"
     pub name:   String,
     /// The revision of the key, which is a timestamp, ex: "201604051449"
@@ -112,7 +112,7 @@ pub struct KeyPair<P, S> {
     pub secret: Option<S>,
 }
 
-impl<P, S> KeyPair<P, S> {
+impl<P: PartialEq, S: PartialEq> KeyPair<P, S> {
     /// Creates a new `KeyPair`.
     pub fn new(name: String, rev: String, p: Option<P>, s: Option<S>) -> KeyPair<P, S> {
         KeyPair { name,

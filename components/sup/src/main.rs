@@ -45,6 +45,7 @@ use habitat_core::{self,
                             SymKey},
                    os::{process::ShutdownTimeout,
                         signals},
+                   service::HealthCheckInterval,
                    url::{bldr_url_from_env,
                          default_bldr_url},
                    ChannelIdent};
@@ -510,6 +511,7 @@ fn svc_load_from_input(m: &ArgMatches) -> Result<sup_proto::ctl::SvcLoad> {
     }
     msg.group = get_group_from_input(m);
     msg.svc_encrypted_password = get_password_from_input(m)?;
+    msg.health_check_interval = get_health_check_interval_from_input(m);
     msg.binding_mode = get_binding_mode_from_input(m).map(|v| v as i32);
     msg.topology = get_topology_from_input(m).map(|v| v as i32);
     msg.update_strategy = get_strategy_from_input(m).map(|v| v as i32);
@@ -517,6 +519,14 @@ fn svc_load_from_input(m: &ArgMatches) -> Result<sup_proto::ctl::SvcLoad> {
     msg.shutdown_timeout =
         parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
     Ok(msg)
+}
+
+fn get_health_check_interval_from_input(m: &ArgMatches<'_>)
+                                        -> Option<sup_proto::types::HealthCheckInterval> {
+    // Value will have already been validated by `cli::valid_health_check_interval`
+    m.value_of("HEALTH_CHECK_INTERVAL")
+     .and_then(|s| HealthCheckInterval::from_str(s).ok())
+     .map(HealthCheckInterval::into)
 }
 
 #[cfg(test)]
@@ -554,25 +564,44 @@ mod test {
     mod manager_config {
 
         use super::*;
-        use std::iter::FromIterator;
+        use habitat_common::{cli::FS_ROOT,
+                             types::EventStreamConnectMethod};
+        use habitat_core::fs::cache_key_path;
+        use std::{collections::HashMap,
+                  fs::File,
+                  iter::FromIterator};
 
         locked_env_var!(HAB_CACHE_KEY_PATH, lock_var);
 
+        fn cmd_vec_from_cmd_str(cmd: &str) -> Vec<&str> { Vec::from_iter(cmd.split_whitespace()) }
+
+        fn matches_from_cmd_vec(cmd_vec: Vec<&str>) -> ArgMatches {
+            let matches = cli(no_feature_flags()).get_matches_from_safe(cmd_vec)
+                                                 .expect("Error while getting matches");
+            matches.subcommand_matches("run")
+                   .expect("Error getting sub command matches")
+                   .clone()
+        }
+
+        fn matches_from_cmd_str(cmd: &str) -> ArgMatches {
+            let cmd_vec = cmd_vec_from_cmd_str(cmd);
+            matches_from_cmd_vec(cmd_vec)
+        }
+
+        fn config_from_cmd_vec(cmd_vec: Vec<&str>) -> ManagerConfig {
+            let matches = matches_from_cmd_vec(cmd_vec);
+            mgrcfg_from_sup_run_matches(&matches, no_feature_flags()).expect("Could not get \
+                                                                              ManagerConfig")
+        }
+
         fn config_from_cmd_str(cmd: &str) -> ManagerConfig {
-            let cmd_vec = cmd_vec_from_cmd_str(&cmd);
+            let cmd_vec = cmd_vec_from_cmd_str(cmd);
             config_from_cmd_vec(cmd_vec)
         }
 
-        fn cmd_vec_from_cmd_str(cmd: &str) -> Vec<&str> { Vec::from_iter(cmd.split_whitespace()) }
-
-        fn config_from_cmd_vec(cmd_vec: Vec<&str>) -> ManagerConfig {
-            let matches = cli(no_feature_flags()).get_matches_from_safe(cmd_vec)
-                                                 .expect("Error while getting matches");
-            let (_, sub_matches) = matches.subcommand();
-            let sub_matches = sub_matches.expect("Error getting sub command matches");
-
-            mgrcfg_from_sup_run_matches(&sub_matches, no_feature_flags()).expect("Could not get \
-                                                                                  config")
+        fn service_load_from_cmd_str(cmd: &str) -> sup_proto::ctl::SvcLoad {
+            let matches = matches_from_cmd_str(cmd);
+            svc_load_from_input(&matches).expect("Could not get SvcLoad")
         }
 
         #[test]
@@ -762,6 +791,343 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
                              .expect("No ring key on manager config")
                              .name_with_rev(),
                        "foobar-20160504220722");
+        }
+
+        #[test]
+        fn test_hab_sup_run_no_args() {
+            let config = config_from_cmd_str("hab-sup run");
+            assert_eq!(ManagerConfig { auto_update:          false,
+                                       custom_state_path:    None,
+                                       cache_key_path:       cache_key_path(Some(&*FS_ROOT)),
+                                       update_url:
+                                           String::from("https://bldr.habitat.sh"),
+                                       update_channel:       ChannelIdent::default(),
+                                       gossip_listen:        GossipListenAddr::default(),
+                                       ctl_listen:           ListenCtlAddr::default(),
+                                       http_listen:          HttpListenAddr::default(),
+                                       http_disable:         false,
+                                       gossip_peers:         vec![],
+                                       gossip_permanent:     false,
+                                       ring_key:             None,
+                                       organization:         None,
+                                       watch_peer_file:      None,
+                                       tls_config:           None,
+                                       feature_flags:        FeatureFlag::empty(),
+                                       event_stream_config:  None,
+                                       keep_latest_packages: None, },
+                       config);
+
+            let service_load = service_load_from_cmd_str("hab-sup run");
+            assert_eq!(sup_proto::ctl::SvcLoad { ident:                   None,
+                                                 application_environment: None,
+                                                 binds:                   None,
+                                                 specified_binds:         None,
+                                                 binding_mode:            None,
+                                                 bldr_url:
+                                                     Some(String::from("https://bldr.habitat.sh")),
+                                                 bldr_channel:
+                                                     Some(String::from("stable")),
+                                                 config_from:             None,
+                                                 force:                   None,
+                                                 group:                   None,
+                                                 svc_encrypted_password:  None,
+                                                 topology:                None,
+                                                 update_strategy:         None,
+                                                 health_check_interval:   None,
+                                                 shutdown_timeout:        None,
+                                                 update_condition:        Some(0), },
+                       service_load);
+        }
+
+        #[test]
+        fn test_hab_sup_run_with_args() {
+            let temp_dir = TempDir::new().expect("Could not create tempdir");
+            let temp_dir_str = temp_dir.path().to_str().unwrap();
+
+            // Setup key file
+            let key_content =
+                "SYM-SEC-1\ntester-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
+            let (sym_key, _) = SymKey::write_file_from_str(key_content, temp_dir.path())
+                                       .expect("Could not write key pair");
+
+            // Setup cert files
+            let key_path = temp_dir.path().join("key");
+            let key_path_str = key_path.to_str().unwrap();
+            File::create(&key_path).unwrap();
+            let cert_path = temp_dir.path().join("cert");
+            let cert_path_str = cert_path.to_str().unwrap();
+            File::create(&cert_path).unwrap();
+            let ca_cert_path = temp_dir.path().join("ca_cert");
+            let ca_cert_path_str = ca_cert_path.to_str().unwrap();
+            File::create(&ca_cert_path).unwrap();
+
+            let args =
+                format!("hab-sup run --listen-gossip=1.2.3.4:4321 --listen-http=5.5.5.5:11111 \
+                         --http-disable --listen-ctl=7.8.9.1:12 --org=MY_ORG --peer 1.1.1.1:1111 \
+                         2.2.2.2:2222 --permanent-peer --ring tester --cache-key-path={} \
+                         --auto-update --key={} --certs={} --ca-certs {} --keep-latest-packages=5",
+                        temp_dir_str, key_path_str, cert_path_str, ca_cert_path_str);
+
+            let config = config_from_cmd_str(&args);
+            assert_eq!(ManagerConfig { auto_update:          true,
+                                       custom_state_path:    None,
+                                       cache_key_path:       PathBuf::from(temp_dir_str),
+                                       update_url:
+                                           String::from("https://bldr.habitat.sh"),
+                                       update_channel:       ChannelIdent::default(),
+                                       gossip_listen:
+                                           GossipListenAddr::from_str("1.2.3.4:4321").unwrap(),
+                                       ctl_listen:
+                                           ListenCtlAddr::from_str("7.8.9.1:12").unwrap(),
+                                       http_listen:
+                                           HttpListenAddr::from_str("5.5.5.5:11111").unwrap(),
+                                       http_disable:         true,
+                                       gossip_peers:         vec!["1.1.1.1:1111".parse().unwrap(),
+                                                                  "2.2.2.2:2222".parse().unwrap()],
+                                       gossip_permanent:     true,
+                                       ring_key:             Some(sym_key),
+                                       organization:         Some(String::from("MY_ORG")),
+                                       watch_peer_file:      None,
+                                       tls_config:           Some(TLSConfig { cert_path,
+                                                                              key_path,
+                                                                              ca_cert_path:
+                                                                                  Some(ca_cert_path) }),
+                                       feature_flags:        FeatureFlag::empty(),
+                                       event_stream_config:  None,
+                                       keep_latest_packages: Some(5), },
+                       config);
+
+            let service_load = service_load_from_cmd_str(&args);
+            assert_eq!(sup_proto::ctl::SvcLoad { ident:                   None,
+                                                 application_environment: None,
+                                                 binds:                   None,
+                                                 specified_binds:         None,
+                                                 binding_mode:            None,
+                                                 bldr_url:
+                                                     Some(String::from("https://bldr.habitat.sh")),
+                                                 bldr_channel:
+                                                     Some(String::from("stable")),
+                                                 config_from:             None,
+                                                 force:                   None,
+                                                 group:                   None,
+                                                 svc_encrypted_password:  None,
+                                                 topology:                None,
+                                                 update_strategy:         None,
+                                                 health_check_interval:   None,
+                                                 shutdown_timeout:        None,
+                                                 update_condition:        Some(0), },
+                       service_load);
+        }
+
+        #[test]
+        fn test_hab_sup_run_with_args2() {
+            let args = "hab-sup run --local-gossip-mode";
+
+            let config = config_from_cmd_str(args);
+            assert_eq!(ManagerConfig { auto_update:          false,
+                                       custom_state_path:    None,
+                                       cache_key_path:       cache_key_path(Some(&*FS_ROOT)),
+                                       update_url:
+                                           String::from("https://bldr.habitat.sh"),
+                                       update_channel:       ChannelIdent::default(),
+                                       gossip_listen:
+                                           GossipListenAddr::from_str("127.0.0.2:9638").unwrap(),
+                                       ctl_listen:           ListenCtlAddr::default(),
+                                       http_listen:          HttpListenAddr::default(),
+                                       http_disable:         false,
+                                       gossip_peers:         vec![],
+                                       gossip_permanent:     false,
+                                       ring_key:             None,
+                                       organization:         None,
+                                       watch_peer_file:      None,
+                                       tls_config:           None,
+                                       feature_flags:        FeatureFlag::empty(),
+                                       event_stream_config:  None,
+                                       keep_latest_packages: None, },
+                       config);
+        }
+
+        #[test]
+        fn test_hab_sup_run_with_args3() {
+            let args = "hab-sup run --peer-watch-file=/some/path";
+
+            let config = config_from_cmd_str(args);
+            assert_eq!(ManagerConfig { auto_update:          false,
+                                       custom_state_path:    None,
+                                       cache_key_path:       cache_key_path(Some(&*FS_ROOT)),
+                                       update_url:
+                                           String::from("https://bldr.habitat.sh"),
+                                       update_channel:       ChannelIdent::default(),
+                                       gossip_listen:        GossipListenAddr::default(),
+                                       ctl_listen:           ListenCtlAddr::default(),
+                                       http_listen:          HttpListenAddr::default(),
+                                       http_disable:         false,
+                                       gossip_peers:         vec![],
+                                       gossip_permanent:     false,
+                                       ring_key:             None,
+                                       organization:         None,
+                                       watch_peer_file:      Some(String::from("/some/path")),
+                                       tls_config:           None,
+                                       feature_flags:        FeatureFlag::empty(),
+                                       event_stream_config:  None,
+                                       keep_latest_packages: None, },
+                       config);
+        }
+
+        #[test]
+        fn test_hab_sup_run_logging_args() {
+            let args = "hab-sup run";
+            let m = matches_from_cmd_str(args);
+            assert!(!m.is_present("VERBOSE"));
+            assert!(!m.is_present("NO_COLOR"));
+            assert!(!m.is_present("JSON"));
+
+            let args = "hab-sup run -v --no-color --json-logging";
+            let m = matches_from_cmd_str(args);
+            assert!(m.is_present("VERBOSE"));
+            assert!(m.is_present("NO_COLOR"));
+            assert!(m.is_present("JSON"));
+        }
+
+        #[test]
+        fn test_hab_sup_run_event_stream_args() {
+            let temp_dir = TempDir::new().expect("Could not create tempdir");
+
+            // Setup cert files
+            let certificate_path = temp_dir.path().join("certificate.pem");
+            let certificate_path_str = certificate_path.to_str().unwrap();
+            let mut file = File::create(&certificate_path).unwrap();
+            file.write_all(r#"-----BEGIN CERTIFICATE-----
+MIIDPTCCAiWgAwIBAgIJAJCSLX9jr5W7MA0GCSqGSIb3DQEBBQUAMHAxCzAJBgNV
+BAYTAlVTMQswCQYDVQQIDAJDQTEQMA4GA1UECgwHU3luYWRpYTEQMA4GA1UECwwH
+bmF0cy5pbzESMBAGA1UEAwwJbG9jYWxob3N0MRwwGgYJKoZIhvcNAQkBFg1kZXJl
+a0BuYXRzLmlvMB4XDTE5MTAxNzEzNTcyNloXDTI5MTAxNDEzNTcyNlowDTELMAkG
+A1UEBhMCVVMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDm+0dlzcmi
+La+LzdVqeVQ8B1/rWnErK+VvvjH7FmVodg5Z5+RXyojpd9ZBrVd6QrLSVMQPfFvB
+vGGX4yI6Ph5KXUefa31vNOOMhp2FGSmaEVhETKGQ0xRh4VfaAerOP5Cunl0TbSyJ
+yjkVa7aeMtcqTEiFL7Ae2EtiMhTrMrYpBDQ8rzm2i1IyTb9DX5v7DUOmrSynQSlV
+yXCztRVGNL/kHlItpEku1SHt/AD3ogu8EgqQZFB8xRRw9fubYgh4Q0kx80e4k9Qt
+TKncF3B2NGb/ZcE5Z+mmHIBq8J2zKMijOrdd3m5TbQmzDbETEOjs4L1eoZRLcL/c
+vYu5gmXdr4F7AgMBAAGjPTA7MBoGA1UdEQQTMBGCCWxvY2FsaG9zdIcEfwAAATAd
+BgNVHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUHAwEwDQYJKoZIhvcNAQEFBQADggEB
+ADQYaEjWlOb9YzUnFGjfDC06dRZjRmK8TW/4GiDHIDk5TyZ1ROtskvyhVyTZJ5Vs
+qXOKJwpps0jK2edtrvZ7xIGw+Y41oPgYYhr5TK2c+oi2UOHG4BXqRbuwz/5cU+nM
+ZWOG1OrHBCbrMSeFsn7rzETnd8SZnw6ZE7LI62WstdoCY0lvNfjNv3kY/6hpPm+9
+0bVzurZ28pdJ6YEJYgbPcOvxSzGDXTw9LaKEmqknTsrBKI2qm+myVTbRTimojYTo
+rw/xjHESAue/HkpOwWnFTOiTT+V4hZnDXygiSy+LWKP4zLnYOtsn0lN9OmD0z+aa
+gpoVMSncu2jMIDZX63IkQII=
+-----END CERTIFICATE-----
+"#.as_bytes())
+                .unwrap();
+
+            let args = format!("hab-sup run --event-stream-application=MY_APP \
+                                --event-stream-environment=MY_ENV \
+                                --event-stream-connect-timeout=5 --event-stream-url \
+                                127.0.0.1:3456 --event-stream-site my_site --event-stream-token \
+                                some_token --event-meta key1=val1 key2=val2 keyA=valA \
+                                --event-stream-server-certificate={}",
+                               certificate_path_str);
+
+            let config = config_from_cmd_str(&args);
+            let mut meta = HashMap::new();
+            meta.insert(String::from("key1"), String::from("val1"));
+            meta.insert(String::from("key2"), String::from("val2"));
+            meta.insert(String::from("keyA"), String::from("valA"));
+            assert_eq!(ManagerConfig { auto_update:          false,
+                                       custom_state_path:    None,
+                                       cache_key_path:       cache_key_path(Some(&*FS_ROOT)),
+                                       update_url:
+                                           String::from("https://bldr.habitat.sh"),
+                                       update_channel:       ChannelIdent::default(),
+                                       gossip_listen:        GossipListenAddr::default(),
+                                       ctl_listen:           ListenCtlAddr::default(),
+                                       http_listen:          HttpListenAddr::default(),
+                                       http_disable:         false,
+                                       gossip_peers:         vec![],
+                                       gossip_permanent:     false,
+                                       ring_key:             None,
+                                       organization:         None,
+                                       watch_peer_file:      None,
+                                       tls_config:           None,
+                                       feature_flags:        FeatureFlag::empty(),
+                                       event_stream_config:  Some(EventStreamConfig {
+                                        environment: String::from("MY_ENV"),
+                                        application: String::from("MY_APP"),
+                                        site: Some(String::from("my_site")),
+                                        meta: meta.into(),
+                                        token: "some_token".parse().unwrap(),
+                                        url: "127.0.0.1:3456".parse().unwrap(),
+                                        connect_method: EventStreamConnectMethod::Timeout {secs: 5},
+                                        server_certificate: Some(certificate_path_str.parse().unwrap()),
+                                       }),
+                                       keep_latest_packages: None, },
+                       config,);
+        }
+
+        #[test]
+        fn test_hab_sup_run_svc_args() {
+            let temp_dir = TempDir::new().expect("Could not create tempdir");
+            let temp_dir_str = temp_dir.path().to_str().unwrap();
+
+            let args = format!("hab-sup run --channel my_channel --bind one:service1.default \
+                                two:service2.default --binding-mode strict --url http://my_url.com \
+                                --config-from={} --group MyGroup --topology standalone \
+                                --strategy at-once --update-condition track-channel --health-check-interval 17 \
+                                --shutdown-timeout=12 core/redis",
+                               temp_dir_str);
+
+            let mut binds = ServiceBindList::default();
+            binds.binds
+                 .push(ServiceBind::from_str("one:service1.default").unwrap());
+            binds.binds
+                 .push(ServiceBind::from_str("two:service2.default").unwrap());
+            let health_check_interval = sup_proto::types::HealthCheckInterval { seconds: 17 };
+
+            let service_load = service_load_from_cmd_str(&args);
+            assert_eq!(sup_proto::ctl::SvcLoad { ident:                   None,
+                                                 application_environment: None,
+                                                 binds:                   Some(binds),
+                                                 specified_binds:         None,
+                                                 binding_mode:            Some(1),
+                                                 bldr_url:
+                                                     Some(String::from("http://my_url.com")),
+                                                 bldr_channel:
+                                                     Some(String::from("my_channel")),
+                                                 config_from:
+                                                     Some(String::from(temp_dir_str)),
+                                                 force:                   None,
+                                                 group:
+                                                     Some(String::from("MyGroup")),
+                                                 svc_encrypted_password:  None,
+                                                 topology:                Some(0),
+                                                 update_strategy:         Some(1),
+                                                 health_check_interval:
+                                                     Some(health_check_interval),
+                                                 shutdown_timeout:        Some(12),
+                                                 update_condition:        Some(1), },
+                       service_load);
+        }
+
+        #[test]
+        fn test_hab_sup_run_svc_pkg_ident() {
+            let args = "hab-sup run core/redis";
+            let m = matches_from_cmd_str(args);
+            let pkg = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
+            assert_eq!("core/redis".parse::<InstallSource>().unwrap(),
+                       pkg.parse::<InstallSource>().unwrap());
+
+            let args = "hab-sup run core/redis/4.0.14/20200421191514";
+            let m = matches_from_cmd_str(args);
+            let pkg = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
+            assert_eq!("core/redis/4.0.14/20200421191514".parse::<InstallSource>()
+                                                         .unwrap(),
+                       pkg.parse::<InstallSource>().unwrap());
+
+            let args = "hab-sup run /some/path/pkg.hrt";
+            let m = matches_from_cmd_str(args);
+            let pkg = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
+            assert_eq!("/some/path/pkg.hrt".parse::<InstallSource>().unwrap(),
+                       pkg.parse::<InstallSource>().unwrap());
         }
     }
 }

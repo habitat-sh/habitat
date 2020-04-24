@@ -82,7 +82,7 @@ pub const RETRY_WAIT: Duration = Duration::from_millis(3000);
 /// In other words, you are probably more interested in the
 /// `InstallSource` enum; this struct is just an implementation
 /// detail.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct LocalArchive {
     // In an ideal world, we would just implement `InstallSource` in
     // terms of a `PackageArchive` directly, since that can provide
@@ -106,7 +106,7 @@ pub struct LocalArchive {
 }
 
 /// Encapsulate all possible sources we can install packages from.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum InstallSource {
     /// We can install from a package identifier
     Ident(PackageIdent, PackageTarget),

@@ -261,7 +261,7 @@ impl FsCfg {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ManagerConfig {
     pub auto_update:          bool,
     pub custom_state_path:    Option<PathBuf>,
@@ -286,7 +286,7 @@ pub struct ManagerConfig {
     pub keep_latest_packages: Option<usize>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TLSConfig {
     pub cert_path:    PathBuf,
     pub key_path:     PathBuf,

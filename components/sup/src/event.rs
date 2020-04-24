@@ -85,16 +85,18 @@ pub async fn init(sys: &Sys, fqdn: String, config: EventStreamConfig) -> Result<
 
 /// Captures all event stream-related configuration options that would
 /// be passed in by a user
-#[derive(Clone, Debug)]
+// TODO (DM): The fields of this struct are only public for testing. We should refactor the crate
+// layout so this can be avoided.
+#[derive(Clone, Debug, PartialEq)]
 pub struct EventStreamConfig {
-    environment:        String,
-    application:        String,
-    site:               Option<String>,
-    meta:               EventStreamMetadata,
-    token:              AutomateAuthToken,
-    url:                Address,
-    connect_method:     EventStreamConnectMethod,
-    server_certificate: Option<EventStreamServerCertificate>,
+    pub environment:        String,
+    pub application:        String,
+    pub site:               Option<String>,
+    pub meta:               EventStreamMetadata,
+    pub token:              AutomateAuthToken,
+    pub url:                Address,
+    pub connect_method:     EventStreamConnectMethod,
+    pub server_certificate: Option<EventStreamServerCertificate>,
 }
 
 impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
