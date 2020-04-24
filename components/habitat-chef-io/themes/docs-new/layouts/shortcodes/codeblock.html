@@ -1,0 +1,8 @@
+<div class="codeblock">
+  {{- with .Get "title" -}}
+  <div class="title">{{. | markdownify}}</div>
+  {{- end -}}
+
+  {{- highlight (trim .Inner "\n") (.Get "lang" | default "") (.Get "options" | default "") -}}
+</div>
+

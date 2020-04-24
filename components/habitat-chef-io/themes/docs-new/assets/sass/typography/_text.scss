@@ -1,0 +1,221 @@
+.white-text {
+  color: white;
+  *:not(.button):not(.cta) {
+    color: white;
+  }
+}
+
+.weight-300 {
+  font-weight: 300;
+}
+
+.weight-400 {
+  font-weight: 400;
+}
+
+.weight-500 {
+  font-weight: 500;
+}
+
+.weight-600 {
+  font-weight: 600;
+}
+
+.weight-700 {
+  font-weight: 700;
+}
+
+.weight-800 {
+  font-weight: 800;
+}
+
+.text-150 {
+  font-size: 150%;
+}
+
+.text-140 {
+  font-size: 140%;
+}
+
+.text-130 {
+  font-size: 130%;
+}
+
+.text-120 {
+  font-size: 120%;
+}
+
+.text-110 {
+  font-size: 110%;
+}
+
+.text-90 {
+  font-size: 90%;
+}
+
+.text-80 {
+  font-size: 80%;
+}
+
+.text-70 {
+  font-size: 70%;
+}
+
+.text-60 {
+  font-size: 60%;
+}
+
+.text-50 {
+  font-size: 50%;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.normalcase {
+  text-transform: none;
+}
+
+.lowercase {
+  text-transform: lowercase;
+}
+
+.lineheight {
+  &-1 {
+    line-height: 1;
+  }
+  &-1-1 {
+    line-height: 1.1;
+  }
+  &-1-2 {
+    line-height: 1.2;
+  }
+  &-1-3 {
+    line-height: 1.3;
+  }
+  &-1-4 {
+    line-height: 1.4;
+  }
+  &-1-5 {
+    line-height: 1.5;
+  }
+  &-1-6 {
+    line-height: 1.6;
+  }
+  &-1-7 {
+    line-height: 1.7;
+  }
+  &-1-8 {
+    line-height: 1.8;
+  }
+  &-1-9 {
+    line-height: 1.9;
+  }
+  &-2 {
+    line-height: 2;
+  }
+}
+
+.margin-bottom {
+  &-0 {
+    margin-bottom: 0px;
+  }
+  &-5 {
+    margin-bottom: 5px;
+  }
+  &-10 {
+    margin-bottom: 10px;
+  }
+  &-15 {
+    margin-bottom: 15px;
+  }
+  &-20 {
+    margin-bottom: 20px;
+  }
+  &-25 {
+    margin-bottom: 25px;
+  }
+  &-30 {
+    margin-bottom: 30px;
+  }
+  &-35 {
+    margin-bottom: 35px;
+  }
+  &-40 {
+    margin-bottom: 40px;
+  }
+  &-45 {
+    margin-bottom: 45px;
+  }
+  &-50 {
+    margin-bottom: 50px;
+  }
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-charcoal {
+  color: $charcoal;
+}
+
+.text-blue {
+  color: $blue-darker;
+}
+
+.text-orange {
+  color: $orange;
+}
+
+div {
+  &.valign {
+    top: 50%;
+    position: relative;
+    transform: translateY(-50%);
+    &-large {
+      @include breakpoint(large) {
+        top: 50%;
+        position: relative;
+        transform: translateY(-50%);
+      }
+    }
+    &-medium {
+      @include breakpoint(medium) {
+        top: 50%;
+        position: relative;
+        transform: translateY(-50%);
+      }
+    }
+    &-small {
+      @include breakpoint(small) {
+        top: 50%;
+        position: relative;
+        transform: translateY(-50%);
+      }
+    }
+  }
+  &.padded {
+    padding-left: 8.5%;
+    padding-right: 8.5%;
+  }
+  &.padded-small {
+    @include breakpoint(small) {
+      padding-left: 8.5%;
+      padding-right: 8.5%;
+    }
+  }
+  &.padded-medium {
+    @include breakpoint(medium) {
+      padding-left: 8.5%;
+      padding-right: 8.5%;
+    }
+  }
+  &.padded-large {
+    @include breakpoint(large) {
+      padding-left: 8.5%;
+      padding-right: 8.5%;
+    }
+  }
+}

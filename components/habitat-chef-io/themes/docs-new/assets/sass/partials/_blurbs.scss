@@ -1,0 +1,25 @@
+#blurbs {
+  margin: rem-calc(64) auto rem-calc(24);
+
+  .cell {
+
+    @include breakpoint(medium) {
+      border-left: 1px solid $menu-item-background-active;
+    };
+
+    &:first-child {
+      border-left: none;
+    }
+  }
+
+  p {
+    margin: rem-calc(24) auto rem-calc(40);
+    width: rem-calc(270);
+
+
+    @include breakpoint(medium) {
+      margin: rem-calc(24) auto rem-calc(8);
+      width: auto;
+    };
+  }
+}

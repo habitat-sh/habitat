@@ -1,0 +1,225 @@
+nav {
+  &#utility-bar{
+    position: relative;
+    background-color: $topbar-background;
+    height: rem-calc(50px);
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    z-index: 10;
+    justify-content: space-between;
+    border-bottom: 1px solid $border;
+
+
+    button.utility-bar-nav-bars{
+      color: $charcoal;
+      display: inline;
+      position: relative;
+      top: 0.5rem;
+      left: 0.5rem;
+    }
+
+    .utility-bar-logo{
+      display: inline;
+      position: relative;
+      top: 0.5rem;
+      left: 1.25rem;
+      
+
+      .chef{
+        height: 28px;
+        display: inline;
+      }
+    }
+
+    .utility-bar {
+      &-wrapper {
+        background-color: $charcoal;
+        border-radius: 4px;
+        position: relative;
+        top: rem-calc(8px);
+      }
+
+      &-button {
+        color: $white;
+        background: rgba(255,255,255,0.1);
+        border-radius: 4px;
+        height: rem-calc(34px);
+        padding: rem-calc(8px 16px);
+        cursor: pointer;
+
+        .chef-logo {
+          width: 57px;
+          height: 18px;
+          display: inline-block;
+          background-repeat: no-repeat;
+          background-size: 100% 100%;
+          background-position: center center;
+          background-image: url("/images/chef-logo-white.svg");
+          margin-bottom: -5px;
+        }
+
+        .arrow {
+          background: none;
+          border: none;
+          padding: 0 0 0 5px;
+          margin: 0;
+
+          @include breakpoint(small down) {
+            right: 11px;
+          }
+
+          &:after {
+            @include fa-icon;
+            @extend .fas;
+            content: fa-content($fa-var-angle-down);
+            font-size: 16px;
+            color: #a0a0a0;
+            position: relative;
+            top: 0;
+          }
+
+          &:focus {
+            outline: none;
+          }
+        }
+      }
+
+      &-content {
+        display: none;
+        padding: 0;
+        margin-top: rem-calc(7px);
+        border-top: 1px solid $ash;
+
+        p {
+          margin: 0;
+          display: inline-block;
+        }
+
+        a {
+          color: $body-font-color;
+        }
+
+        .oss-projects {
+          > div {
+            padding: rem-calc(28px 15px);
+
+            &:not(:last-child) {
+              @include breakpoint(small only) {
+                border-bottom: 1px solid $ash;
+              }
+
+              @include breakpoint(medium) {
+                border-right: 1px solid $ash;
+              }
+            }
+          }
+
+          img {
+            margin-bottom: 15px;
+
+            &.inspec {
+              top: -7px;
+              position: relative;
+            }
+
+            &.habitat {
+              top: 9px;
+              position: relative;
+            }
+          }
+        }
+
+        .automate {
+          background-color: rgba(236, 239, 241, 0.5);
+          padding: rem-calc(28px 55px 28px 15px);
+          position: relative;
+
+          img {
+            float: left;
+            margin-right: rem-calc(20px);
+          }
+
+          .with-arrow-button {
+            padding-right: 53px;
+
+            &:after {
+              @include fa-icon;
+              @extend .fas;
+              content: fa-content($fa-var-angle-right);
+              font-size: 16px;
+              color: $charcoal;
+              position: absolute;
+              top: 50%;
+              height: 30px;
+              background-color: $orange;
+              border-radius: 50%;
+              display: block;
+              width: 30px;
+              transform: translateY(-50%);
+              right: 15px;
+              line-height: 27px;
+              text-align: center;
+              padding-left: 1px;
+              padding-top: 1px;
+            }
+          }
+        }
+
+        .footer {
+          text-align: right;
+          padding: rem-calc(15px 10px);
+        }
+      }
+    }
+
+
+
+    .utility-bar-wrapper {
+
+      &.active {
+                    background-color: $white;
+            @include box-shadow();
+        .utility-bar {
+          &-wrapper {
+            background-color: $white;
+            @include box-shadow();
+          }
+
+          &-button {
+            color: $charcoal;
+
+            .chef-logo {
+              background-image: url("/images/chef-logo.svg");
+            }
+          }
+
+          &-content {
+            display: flex;
+          }
+        }
+      }
+    }
+  }
+  ul.top-nav{
+    float: right;
+    margin-top: .5rem;
+    margin-right: 2rem;
+    font-weight: bold;
+    a{
+      color: $charcoal;
+      &:hover {
+        color:$blue-darker;
+      }
+    }
+  }
+}
+
+#left-nav-off-canvas{
+  display: none;
+
+  &.reveal{
+    display: block;
+    z-index: 10;
+  }
+}

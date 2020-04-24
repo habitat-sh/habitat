@@ -1,0 +1,14 @@
+<aside class="sticky sidebar" data-sticky data-top-anchor="utility-bar:bottom" data-btm-anchor="footer:top">
+  <span>
+    <strong>
+      <h4 class="mini-toc-header">Table Of Contents</h4>
+    </strong>
+    <button class="close-button hide-for-large" aria-label="Close menu" type="button" data-close>
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </span>
+  <a href="#{{ anchorize ( .Title )}}">{{ .Title }}</a>
+  {{- $toc := .TableOfContents -}}
+  {{- $toc := replaceRE `<ul>\n<li>\n<ul>` `<ul>` $toc -}}
+  {{- safeHTML $toc -}}
+</aside>

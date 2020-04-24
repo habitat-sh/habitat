@@ -1,0 +1,73 @@
+.padding-bottom {
+  padding-bottom: 40px;
+
+  &-150 {
+    padding-bottom: 60px;
+  }
+
+  @include breakpoint(medium) {
+    padding-bottom: 65px;
+
+    &-150 {
+      padding-bottom: 90px;
+    }
+  }
+}
+
+.valign {
+  top: 50%;
+  position: relative;
+  transform: translateY(-50%);
+
+  &-large {
+      @include breakpoint(large) {
+          top: 50%;
+          position: relative;
+          transform: translateY(-50%);
+      }
+  }
+
+  &-medium {
+      @include breakpoint(medium) {
+          top: 50%;
+          position: relative;
+          transform: translateY(-50%);
+      }
+  }
+
+  &-small {
+      @include breakpoint(small) {
+          top: 50%;
+          position: relative;
+          transform: translateY(-50%);
+      }
+  }
+}
+
+.padding-top {
+  padding-top: 40px;
+
+  &-50 {
+    padding-top: 20px;
+  }
+
+  &-150 {
+    padding-top: 60px;
+  }
+
+  @include breakpoint(medium) {
+    padding-top: 65px;
+
+    &-150 {
+      padding-top: 90px;
+    }
+  }
+}
+
+.header-content {
+  margin-bottom: 43px;
+
+  &.margin-top {
+    margin-top: 43px;
+  }
+}

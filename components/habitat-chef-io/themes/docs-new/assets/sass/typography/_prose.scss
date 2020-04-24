@@ -1,0 +1,40 @@
+.prose {
+
+  h1, h2, h3, h4, h5, h6 {
+    .svg-inline--fa {
+      font-size: .75em;
+    } 
+  }
+
+  > p, .p {
+    @include base-type();
+    margin-bottom: .5rem;
+    color: $charcoal;
+
+    &.intro {
+      font-size: 20px;
+      line-height: 1.6;
+
+      &-medium {
+        font-size: 22px;
+        line-height: 1.45;
+      }
+    }
+
+    &.desc {
+      font-size: 16px;
+      line-height: 1.5;
+    }
+  }
+}
+
+#main-content
+  .index-prose {
+    li {
+      margin-bottom: 0;
+    }
+    h4{
+      margin-top: .5rem;
+    }
+
+  }

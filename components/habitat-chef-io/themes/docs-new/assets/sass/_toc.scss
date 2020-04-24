@@ -1,0 +1,16 @@
+.toc {
+  padding-left: 10px;
+  overflow-y: scroll;
+  overflow-wrap: break-word;
+  height: 100%;
+  font-size: rem-calc(13);
+  z-index: 30;
+
+  li {
+    text-indent: 8px;
+  }
+}
+
+.position-right.is-transition-push {
+  box-shadow: none;
+}

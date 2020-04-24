@@ -1,0 +1,77 @@
+.section-overlay-dropdown {
+
+  .overlay-dropdown {
+    margin: -30px auto 0;
+    width: 300px;
+
+    @include breakpoint(medium) {
+      width: 660px;
+    }
+
+    @include breakpoint(large) {
+      width: 780px;
+    }
+  }
+
+  button.overlay-dropdown-bar {
+    position: relative;
+    width: 100%;
+    background-color: $charcoal;
+    border-radius: $border-radius-base;
+    color: $white;
+    padding: rem-calc(16px 48px 16px 24px);
+    cursor: pointer;
+    text-align: left;
+
+    @include breakpoint(medium) {
+      padding: rem-calc(16px 48px 16px 32px);
+    };
+
+    & p {
+      display: inline;
+    }
+
+    .dropdown-icon {
+      position: absolute;
+      right: rem-calc(24);
+      top: rem-calc(20);
+      @include transition();
+
+      @include breakpoint(medium) {
+        right: rem-calc(32);
+      };
+    }
+
+    &.hover {
+      border-radius: $border-radius-base $border-radius-base 0 0;
+      .dropdown-icon {
+        @include transform(rotate(180deg));
+      }
+    }
+  }
+
+  .overlay-dropdown-content {
+    @include transition();
+
+    border: transparent;
+    border: none;
+    border-radius: 0 0 $border-radius-base $border-radius-base;
+    box-shadow: none;
+
+    width: 300px;
+    padding: rem-calc(8 24 24);
+
+    @include breakpoint(medium) {
+      padding: rem-calc(8 32 32);
+      width: 660px;
+    }
+
+    @include breakpoint(large) {
+      width: 780px;
+    }
+
+    p, li {
+      color: $white;
+    }
+  }
+}

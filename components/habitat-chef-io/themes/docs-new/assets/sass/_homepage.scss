@@ -1,0 +1,116 @@
+#main-content {
+  background-color: $white;
+
+  &-col {
+    padding-right: rem-calc(12px);
+    max-width: 1000px;
+    min-height: 100vh;
+    margin-bottom: 30px;
+    &:focus {
+      outline: none;
+    }
+
+    a {
+      text-decoration: underline;
+    }
+  }
+
+  &-col.resource-page h1{
+    a{
+      text-decoration: none;
+      .hidden-icon{
+        visibility:hidden;
+        width: .9em;
+        vertical-align: -.2em;
+      }
+    }
+    a:hover .hidden-icon {
+      visibility:visible;
+      color: $lightgray;
+    }
+  }
+
+}
+
+#hero {
+  padding: rem-calc(48) 0 rem-calc(96);
+  background-color: $white;
+
+  p {
+    margin-bottom: rem-calc(32);
+  }
+
+  img {
+    margin-top: rem-calc(32);
+    max-width: 100%;
+    width: 100%;
+    border-radius: $border-radius-base;
+
+    @include breakpoint(large) {
+      margin-top: 0;
+    };
+  }
+}
+
+.index-page {
+
+  max-width: 1000px;
+
+  h4 {
+
+    >img{
+      height: 16px;
+      transform: translate(0, -10%);
+      margin: 0 8px 0 4px;
+    }
+    > svg{
+      height: 16px;
+      transform: translate(0, -10%);
+      margin: 0 8px 0 4px;
+    }
+  }
+  
+
+  .grid-container{
+    margin: 40px 0;
+  }
+
+  h3{
+    margin: 8px;
+    border-bottom: 1px solid $border-dark;
+  }
+
+  .cell{
+    border: 1px solid $border;
+    box-shadow: 0 3.2px 7.2px 0 $border-dark,0 .6px 1.8px 0 $border;
+  }
+
+}
+
+
+// Skip links //
+a.skip-main {
+    left:-999px;
+    position:absolute;
+    top:auto;
+    width:1px;
+    height:1px;
+    overflow:hidden;
+    z-index:-999;
+}
+a.skip-main:focus, a.skip-main:active {
+    color: #fff;
+    background-color:#000;
+    left: auto;
+    top: auto;
+    width: 30%;
+    height: auto;
+    overflow:auto;
+    margin: 10px 35%;
+    padding:5px;
+    border-radius: 15px;
+    border:4px solid yellow;
+    text-align:center;
+    font-size:1.2em;
+    z-index:999;
+}
