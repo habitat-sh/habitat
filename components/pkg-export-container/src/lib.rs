@@ -130,32 +130,6 @@ impl Credentials {
     }
 }
 
-/// Creates a container image from a build specification and naming policy.
-///
-/// # Errors
-///
-/// * If a generic and temporary build root directory cannot be created containing a root
-/// file system
-/// * If additional related files cannot be created in the root file system
-/// * If building the image fails
-/// * If destroying the temporary build root directory fails
-pub async fn export<'a>(ui: &'a mut UI,
-                        build_spec: BuildSpec,
-                        naming: &Naming,
-                        memory: Option<&'a str>)
-                        -> Result<ContainerImage> {
-    ui.begin(format!("Building a container image with: {}",
-                     build_spec.idents_or_archives.join(", ")))?;
-    let build_root = BuildContext::from_build_root(build_spec.create(ui).await?, ui)?;
-    let image = build_root.export(ui, naming, memory)?;
-    build_root.destroy(ui)?;
-    ui.end(format!("Container image '{}' created with tags: {}",
-                   image.name(),
-                   image.tags().join(", ")))?;
-
-    Ok(image)
-}
-
 /// Creates a build specification and naming policy from CLI
 /// arguments, and then creates a container image from them.
 ///
@@ -174,8 +148,19 @@ pub async fn export_for_cli_matches(ui: &mut UI,
 
     let spec = BuildSpec::try_from(matches)?;
     let naming = Naming::from(matches);
+    let memory = matches.value_of("MEMORY_LIMIT");
 
-    let container_image = export(ui, spec, &naming, matches.value_of("MEMORY_LIMIT")).await?;
+    ui.begin(format!("Building a container image with: {}",
+                     spec.idents_or_archives.join(", ")))?;
+
+    let build_context = BuildContext::from_build_root(spec.create(ui).await?, ui)?;
+    let container_image = build_context.export(ui, &naming, memory)?;
+
+    build_context.destroy(ui)?;
+    ui.end(format!("Container image '{}' created with tags: {}",
+                   container_image.name(),
+                   container_image.tags().join(", ")))?;
+
     container_image.create_report(ui, env::current_dir()?.join("results"))?;
 
     if matches.is_present("PUSH_IMAGE") {
