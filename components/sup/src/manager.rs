@@ -284,6 +284,7 @@ pub struct ManagerConfig {
     /// others during service start. If this field is `None`, automatic package cleanup is
     /// disabled.
     pub keep_latest_packages: Option<usize>,
+    pub sys_ip:               IpAddr,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -591,10 +592,7 @@ impl Manager {
     ///
     /// # Locking (see locking.md)
     /// * `MemberList::initial_members` (write)
-    pub async fn load_imlw(cfg: ManagerConfig,
-                           launcher: LauncherCli,
-                           sys_ip: IpAddr)
-                           -> Result<Manager> {
+    pub async fn load_imlw(cfg: ManagerConfig, launcher: LauncherCli) -> Result<Manager> {
         let state_path = cfg.sup_root();
         let fs_cfg = FsCfg::new(state_path);
         Self::create_state_path_dirs(&fs_cfg)?;
@@ -604,7 +602,7 @@ impl Manager {
         }
         obtain_process_lock(&fs_cfg)?;
 
-        Self::new_imlw(cfg, fs_cfg, launcher, sys_ip).await
+        Self::new_imlw(cfg, fs_cfg, launcher).await
     }
 
     pub fn term(proc_lock_file: &Path) -> Result<()> {
@@ -622,11 +620,7 @@ impl Manager {
 
     /// # Locking (see locking.md)
     /// * `MemberList::initial_members` (write)
-    async fn new_imlw(cfg: ManagerConfig,
-                      fs_cfg: FsCfg,
-                      launcher: LauncherCli,
-                      sys_ip: IpAddr)
-                      -> Result<Manager> {
+    async fn new_imlw(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
         outputln!("{} ({})", SUP_PKG_IDENT, *THIS_SUPERVISOR_IDENT);
         let cfg_static = cfg.clone();
@@ -644,7 +638,7 @@ impl Manager {
                                cfg.gossip_listen,
                                cfg.ctl_listen,
                                cfg.http_listen,
-                               sys_ip);
+                               cfg.sys_ip);
         let member = Self::load_member(&mut sys, &fs_cfg)?;
         let services = Arc::default();
         let suitability_lookup = Arc::clone(&services) as Arc<dyn Suitability>;
@@ -1947,7 +1941,8 @@ mod test {
     use habitat_core::fs::{cache_key_path,
                            FS_ROOT_PATH};
     use habitat_sup_protocol::STATE_PATH_PREFIX;
-    use std::path::PathBuf;
+    use std::{net::Ipv4Addr,
+              path::PathBuf};
 
     mod reconciliation_flag {
         use super::*;
@@ -1986,7 +1981,8 @@ mod test {
                             tls_config:           None,
                             feature_flags:        FeatureFlag::empty(),
                             event_stream_config:  None,
-                            keep_latest_packages: None, }
+                            keep_latest_packages: None,
+                            sys_ip:               IpAddr::V4(Ipv4Addr::LOCALHOST), }
         }
     }
 

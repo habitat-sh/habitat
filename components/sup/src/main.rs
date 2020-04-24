@@ -208,19 +208,7 @@ async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m: &ArgMatches<'_>,
 
     let cfg = mgrcfg_from_sup_run_matches(m, feature_flags)?;
 
-    let sys_ip = m.value_of("SYS_IP_ADDRESS")
-                  .and_then(|s| IpAddr::from_str(s).ok())
-                  .or_else(|| {
-                      let result_ip = habitat_core::util::sys::ip();
-                      if let Err(e) = &result_ip {
-                          warn!("{}", e);
-                      }
-                      result_ip.ok()
-                  })
-                  .unwrap_or(IpAddr::V4(Ipv4Addr::LOCALHOST));
-    info!("Using sys IP address {}", sys_ip);
-
-    let manager = Manager::load_imlw(cfg, launcher, sys_ip).await?;
+    let manager = Manager::load_imlw(cfg, launcher).await?;
 
     // We need to determine if we have an initial service to start
     let svc = if let Some(pkg) = m.value_of("PKG_IDENT_OR_ARTIFACT") {
@@ -322,7 +310,19 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
         feature_flags,
         event_stream_config,
         keep_latest_packages: m.value_of("NUM_LATEST_PACKAGES_TO_KEEP").and_then(|s| s.parse().ok()),
+        sys_ip: m.value_of("SYS_IP_ADDRESS")
+            .and_then(|s| IpAddr::from_str(s).ok())
+            .or_else(|| {
+                let result_ip = habitat_core::util::sys::ip();
+                if let Err(e) = &result_ip {
+                    warn!("{}", e);
+                }
+                result_ip.ok()
+            })
+            .unwrap_or(IpAddr::V4(Ipv4Addr::LOCALHOST)), 
     };
+
+    info!("Using sys IP address {}", cfg.sys_ip);
 
     Ok(cfg)
 }
@@ -814,7 +814,8 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
                                        tls_config:           None,
                                        feature_flags:        FeatureFlag::empty(),
                                        event_stream_config:  None,
-                                       keep_latest_packages: None, },
+                                       keep_latest_packages: None,
+                                       sys_ip:               habitat_core::util::sys::ip().unwrap(), },
                        config);
 
             let service_load = service_load_from_cmd_str("hab-sup run");
@@ -861,12 +862,13 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
             let ca_cert_path_str = ca_cert_path.to_str().unwrap();
             File::create(&ca_cert_path).unwrap();
 
-            let args =
-                format!("hab-sup run --listen-gossip=1.2.3.4:4321 --listen-http=5.5.5.5:11111 \
-                         --http-disable --listen-ctl=7.8.9.1:12 --org=MY_ORG --peer 1.1.1.1:1111 \
-                         2.2.2.2:2222 --permanent-peer --ring tester --cache-key-path={} \
-                         --auto-update --key={} --certs={} --ca-certs {} --keep-latest-packages=5",
-                        temp_dir_str, key_path_str, cert_path_str, ca_cert_path_str);
+            let args = format!("hab-sup run --listen-gossip=1.2.3.4:4321 \
+                                --listen-http=5.5.5.5:11111 --http-disable \
+                                --listen-ctl=7.8.9.1:12 --org=MY_ORG --peer 1.1.1.1:1111 \
+                                2.2.2.2:2222 --permanent-peer --ring tester --cache-key-path={} \
+                                --auto-update --key={} --certs={} --ca-certs {} \
+                                --keep-latest-packages=5 --sys-ip-address 7.8.9.0",
+                               temp_dir_str, key_path_str, cert_path_str, ca_cert_path_str);
 
             let config = config_from_cmd_str(&args);
             assert_eq!(ManagerConfig { auto_update:          true,
@@ -894,7 +896,8 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
                                                                                   Some(ca_cert_path) }),
                                        feature_flags:        FeatureFlag::empty(),
                                        event_stream_config:  None,
-                                       keep_latest_packages: Some(5), },
+                                       keep_latest_packages: Some(5),
+                                       sys_ip:               "7.8.9.0".parse().unwrap(), },
                        config);
 
             let service_load = service_load_from_cmd_str(&args);
@@ -943,7 +946,8 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
                                        tls_config:           None,
                                        feature_flags:        FeatureFlag::empty(),
                                        event_stream_config:  None,
-                                       keep_latest_packages: None, },
+                                       keep_latest_packages: None,
+                                       sys_ip:               habitat_core::util::sys::ip().unwrap(), },
                        config);
         }
 
@@ -970,7 +974,8 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
                                        tls_config:           None,
                                        feature_flags:        FeatureFlag::empty(),
                                        event_stream_config:  None,
-                                       keep_latest_packages: None, },
+                                       keep_latest_packages: None,
+                                       sys_ip:               habitat_core::util::sys::ip().unwrap(), },
                        config);
         }
 
@@ -1060,7 +1065,8 @@ gpoVMSncu2jMIDZX63IkQII=
                                         connect_method: EventStreamConnectMethod::Timeout {secs: 5},
                                         server_certificate: Some(certificate_path_str.parse().unwrap()),
                                        }),
-                                       keep_latest_packages: None, },
+                                       keep_latest_packages: None,
+                                       sys_ip:               habitat_core::util::sys::ip().unwrap(), },
                        config,);
         }
 
