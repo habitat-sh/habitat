@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1 -->
-## [1.6.1](https://github.com/habitat-sh/habitat/tree/1.6.1) (2020-04-21)
+<!-- latest_release 1.6.2 -->
+## [1.6.2](https://github.com/habitat-sh/habitat/tree/1.6.2) (2020-04-24)
 
 #### Merged Pull Requests
-- Update changelog post 1.6.0 [#7630](https://github.com/habitat-sh/habitat/pull/7630) ([davidMcneil](https://github.com/davidMcneil))
+- New Documentation Component [#7544](https://github.com/habitat-sh/habitat/pull/7544) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
 ### Changes since 1.6.0 release
 
 #### Merged Pull Requests
+- New Documentation Component [#7544](https://github.com/habitat-sh/habitat/pull/7544) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.2 -->
 - Update changelog post 1.6.0 [#7630](https://github.com/habitat-sh/habitat/pull/7630) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.1 -->
 <!-- release_rollup -->
 
