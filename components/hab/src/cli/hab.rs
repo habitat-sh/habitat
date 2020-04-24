@@ -13,7 +13,7 @@ mod svc;
 #[cfg(test)]
 mod tests;
 mod user;
-mod util;
+pub mod util;
 
 use self::{bldr::{Bldr,
                   ConfigOptBldr},

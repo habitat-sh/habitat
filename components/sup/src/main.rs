@@ -25,7 +25,8 @@ use crate::sup::{cli::cli,
                            PROC_LOCK_FILE},
                  util};
 use clap::ArgMatches;
-use hab::cli::parse_optional_arg;
+use hab::cli::{hab::util as cli_util,
+               parse_optional_arg};
 use habitat_common::{cli::cache_key_path_from_matches,
                      command::package::install::InstallSource,
                      liveliness_checker,
@@ -62,9 +63,7 @@ use std::{env,
           io::{self,
                Write},
           net::{IpAddr,
-                Ipv4Addr,
-                SocketAddr,
-                ToSocketAddrs},
+                Ipv4Addr},
           path::{Path,
                  PathBuf},
           process,
@@ -275,6 +274,10 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
         None
     };
 
+    let gossip_peers =
+        cli_util::socket_addrs_with_default_port(m.values_of("PEER").into_iter().flatten(),
+                                                 GossipListenAddr::DEFAULT_PORT)?;
+
     #[rustfmt::skip]
     let cfg = ManagerConfig {
         auto_update: m.is_present("AUTO_UPDATE"),
@@ -286,7 +289,7 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
         organization: m.value_of("ORGANIZATION").map(str::to_string),
         gossip_permanent: m.is_present("PERMANENT_PEER"),
         ring_key: get_ring_key(m, &cache_key_path_from_matches(m))?,
-        gossip_peers: get_peers(m)?,
+        gossip_peers,
         watch_peer_file: m.value_of("PEER_WATCH_FILE").map(str::to_string),
         gossip_listen: if m.is_present("LOCAL_GOSSIP_MODE") {
             GossipListenAddr::local_only()
@@ -329,32 +332,6 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
 
 // Various CLI Parsing Functions
 ////////////////////////////////////////////////////////////////////////
-
-fn get_peers(matches: &ArgMatches) -> Result<Vec<SocketAddr>> {
-    // TODO fn: Clean this up--using a for loop doesn't feel good however an iterator was
-    // causing a lot of developer/compiler type confusion
-    let mut gossip_peers = Vec::new();
-    if let Some(peers) = matches.values_of("PEER") {
-        for peer in peers {
-            let peer_addr = if peer.find(':').is_some() {
-                peer.to_string()
-            } else {
-                format!("{}:{}", peer, GossipListenAddr::DEFAULT_PORT)
-            };
-            let addrs: Vec<SocketAddr> = match peer_addr.to_socket_addrs() {
-                Ok(addrs) => addrs.collect(),
-                Err(e) => {
-                    outputln!("Failed to resolve peer: {}", peer_addr);
-                    return Err(Error::NameLookup(e));
-                }
-            };
-            if let Some(addr) = addrs.get(0) {
-                gossip_peers.push(*addr);
-            }
-        }
-    }
-    Ok(gossip_peers)
-}
 
 // TODO: Make this more testable.
 // The use of env variables here makes it difficult to unit test. Since tests are run in parallel,
@@ -865,39 +842,42 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
             let args = format!("hab-sup run --listen-gossip=1.2.3.4:4321 \
                                 --listen-http=5.5.5.5:11111 --http-disable \
                                 --listen-ctl=7.8.9.1:12 --org=MY_ORG --peer 1.1.1.1:1111 \
-                                2.2.2.2:2222 --permanent-peer --ring tester --cache-key-path={} \
-                                --auto-update --key={} --certs={} --ca-certs {} \
-                                --keep-latest-packages=5 --sys-ip-address 7.8.9.0",
+                                2.2.2.2:2222 3.3.3.3 --permanent-peer --ring tester \
+                                --cache-key-path={} --auto-update --key={} --certs={} --ca-certs \
+                                {} --keep-latest-packages=5 --sys-ip-address 7.8.9.0",
                                temp_dir_str, key_path_str, cert_path_str, ca_cert_path_str);
 
+            let gossip_peers = vec!["1.1.1.1:1111".parse().unwrap(),
+                                    "2.2.2.2:2222".parse().unwrap(),
+                                    format!("3.3.3.3:{}", GossipListenAddr::DEFAULT_PORT).parse()
+                                                                                         .unwrap()];
+
             let config = config_from_cmd_str(&args);
-            assert_eq!(ManagerConfig { auto_update:          true,
-                                       custom_state_path:    None,
-                                       cache_key_path:       PathBuf::from(temp_dir_str),
-                                       update_url:
-                                           String::from("https://bldr.habitat.sh"),
-                                       update_channel:       ChannelIdent::default(),
+            assert_eq!(ManagerConfig { auto_update: true,
+                                       custom_state_path: None,
+                                       cache_key_path: PathBuf::from(temp_dir_str),
+                                       update_url: String::from("https://bldr.habitat.sh"),
+                                       update_channel: ChannelIdent::default(),
                                        gossip_listen:
                                            GossipListenAddr::from_str("1.2.3.4:4321").unwrap(),
                                        ctl_listen:
                                            ListenCtlAddr::from_str("7.8.9.1:12").unwrap(),
                                        http_listen:
                                            HttpListenAddr::from_str("5.5.5.5:11111").unwrap(),
-                                       http_disable:         true,
-                                       gossip_peers:         vec!["1.1.1.1:1111".parse().unwrap(),
-                                                                  "2.2.2.2:2222".parse().unwrap()],
-                                       gossip_permanent:     true,
-                                       ring_key:             Some(sym_key),
-                                       organization:         Some(String::from("MY_ORG")),
-                                       watch_peer_file:      None,
-                                       tls_config:           Some(TLSConfig { cert_path,
-                                                                              key_path,
-                                                                              ca_cert_path:
-                                                                                  Some(ca_cert_path) }),
-                                       feature_flags:        FeatureFlag::empty(),
-                                       event_stream_config:  None,
+                                       http_disable: true,
+                                       gossip_peers,
+                                       gossip_permanent: true,
+                                       ring_key: Some(sym_key),
+                                       organization: Some(String::from("MY_ORG")),
+                                       watch_peer_file: None,
+                                       tls_config: Some(TLSConfig { cert_path,
+                                                                    key_path,
+                                                                    ca_cert_path:
+                                                                        Some(ca_cert_path) }),
+                                       feature_flags: FeatureFlag::empty(),
+                                       event_stream_config: None,
                                        keep_latest_packages: Some(5),
-                                       sys_ip:               "7.8.9.0".parse().unwrap(), },
+                                       sys_ip: "7.8.9.0".parse().unwrap() },
                        config);
 
             let service_load = service_load_from_cmd_str(&args);
