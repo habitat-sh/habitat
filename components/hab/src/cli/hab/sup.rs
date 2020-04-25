@@ -1,6 +1,7 @@
 use super::{svc::{ConfigOptSharedLoad,
                   SharedLoad},
-            util::{CacheKeyPath,
+            util::{self,
+                   CacheKeyPath,
                    ConfigOptCacheKeyPath,
                    ConfigOptRemoteSup,
                    RemoteSup}};
@@ -23,6 +24,7 @@ use habitat_core::{env::Config,
 use rants::{error::Error as RantsError,
             Address as NatsAddress};
 use std::{fmt,
+          io,
           net::{Ipv4Addr,
                 SocketAddr},
           path::PathBuf,
@@ -90,6 +92,10 @@ impl FromStr for EventStreamAddress {
     fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(EventStreamAddress(s.parse()?)) }
 }
 
+fn parse_peer(s: &str) -> io::Result<SocketAddr> {
+    util::socket_addr_with_default_port(s, GossipListenAddr::DEFAULT_PORT)
+}
+
 #[configopt_fields]
 #[derive(ConfigOpt, StructOpt, Deserialize)]
 #[configopt(attrs(serde))]
@@ -100,52 +106,46 @@ impl FromStr for EventStreamAddress {
             // set custom usage string, otherwise the binary
             // is displayed confusingly as `hab-sup`
             // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
-            usage = "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]"
+            usage = "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]",
+            rename_all = "screamingsnake",
         )]
 #[allow(dead_code)]
 pub struct SupRun {
-    /// The listen address for the Gossip System Gateway
-    #[structopt(name = "LISTEN_GOSSIP",
-                long = "listen-gossip",
+    /// The listen address for the Gossip Gateway
+    #[structopt(long = "listen-gossip",
                 env = GossipListenAddr::ENVVAR,
                 default_value = GossipListenAddr::default_as_str())]
-    listen_gossip: SocketAddr,
+    listen_gossip: GossipListenAddr,
     /// Start the supervisor in local mode
-    #[structopt(name = "LOCAL_GOSSIP_MODE",
-                long = "local-gossip-mode",
+    #[structopt(long = "local-gossip-mode",
                 conflicts_with_all = &["LISTEN_GOSSIP", "PEER", "PEER_WATCH_FILE"])]
     local_gossip_mode: bool,
     /// The listen address for the HTTP Gateway
-    #[structopt(name = "LISTEN_HTTP",
-                long = "listen-http",
+    #[structopt(long = "listen-http",
                 env = HttpListenAddr::ENVVAR,
                 default_value = HttpListenAddr::default_as_str())]
-    listen_http: SocketAddr,
+    listen_http: HttpListenAddr,
     /// Disable the HTTP Gateway completely
-    #[structopt(name = "HTTP_DISABLE", long = "http-disable", short = "D")]
+    #[structopt(long = "http-disable", short = "D")]
     http_disable: bool,
-    /// The listen address for the Control Gateway. If not specified, the value will be taken from
-    /// the HAB_LISTEN_CTL environment variable if defined
-    #[structopt(name = "LISTEN_CTL",
-                long = "listen-ctl",
+    /// The listen address for the Control Gateway
+    #[structopt(long = "listen-ctl",
                 env = ListenCtlAddr::ENVVAR,
                 default_value = ListenCtlAddr::default_as_str())]
-    listen_ctl: SocketAddr,
-    /// The organization that the Supervisor and its subsequent services are part of
-    #[structopt(name = "ORGANIZATION", long = "org")]
+    listen_ctl: ListenCtlAddr,
+    /// The organization the Supervisor and its services are part of
+    #[structopt(long = "org")]
     organization: Option<String>,
     /// The listen address of one or more initial peers (IP[:PORT])
-    #[structopt(name = "PEER", long = "peer")]
+    #[structopt(long = "peer", parse(try_from_str = parse_peer))]
     #[serde(default)]
-    // TODO (DM): This could probably be a different type for better validation (Vec<SockAddr>?)
-    peer: Vec<String>,
-    /// If this Supervisor is a permanent peer
-    #[structopt(name = "PERMANENT_PEER", long = "permanent-peer", short = "I")]
+    peer: Vec<SocketAddr>,
+    /// Make this Supervisor a permanent peer
+    #[structopt(long = "permanent-peer", short = "I")]
     permanent_peer: bool,
     /// Watch this file for connecting to the ring
-    #[structopt(name = "PEER_WATCH_FILE",
-                long = "peer-watch-file",
-                conflicts_with = "PEER")]
+    // TODO (DM): Should we check that this file exists?
+    #[structopt(long = "peer-watch-file", conflicts_with = "PEER")]
     peer_watch_file: Option<PathBuf>,
     #[structopt(flatten)]
     #[serde(flatten)]

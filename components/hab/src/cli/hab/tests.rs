@@ -261,6 +261,10 @@ fn compare(app1: &mut App, app2: &mut App, path: &str) {
     p2.opts.retain(|f| f.b.name != "generate-config");
     p1.opts.retain(|f| f.b.name != "config-files");
     p2.opts.retain(|f| f.b.name != "config-files");
+    p1.opts.retain(|f| f.b.name != "GENERATE_CONFIG");
+    p2.opts.retain(|f| f.b.name != "GENERATE_CONFIG");
+    p1.opts.retain(|f| f.b.name != "CONFIG_FILES");
+    p2.opts.retain(|f| f.b.name != "CONFIG_FILES");
 
     // Compare help messages
     let help1 = help(app1);

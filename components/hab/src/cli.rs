@@ -1185,7 +1185,7 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                             // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
                             (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
                             (@arg LISTEN_GOSSIP: --("listen-gossip") env(GossipListenAddr::ENVVAR) default_value(GossipListenAddr::default_as_str()) {valid_socket_addr}
-                             "The listen address for the Gossip System Gateway")
+                             "The listen address for the Gossip Gateway")
                             (@arg LOCAL_GOSSIP_MODE: --("local-gossip-mode") conflicts_with("LISTEN_GOSSIP") conflicts_with("PEER") conflicts_with("PEER_WATCH_FILE")
                              "Start the supervisor in local mode")
                             (@arg LISTEN_HTTP: --("listen-http") env(HttpListenAddr::ENVVAR) default_value(HttpListenAddr::default_as_str()) {valid_socket_addr}
@@ -1193,13 +1193,12 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                             (@arg HTTP_DISABLE: --("http-disable") -D
                              "Disable the HTTP Gateway completely")
                             (@arg LISTEN_CTL: --("listen-ctl") env(ListenCtlAddr::ENVVAR) default_value(ListenCtlAddr::default_as_str()) {valid_socket_addr}
-                             "The listen address for the Control Gateway. If not specified, the value will \
-                              be taken from the HAB_LISTEN_CTL environment variable if defined")
+                             "The listen address for the Control Gateway")
                             (@arg ORGANIZATION: --org +takes_value
-                             "The organization that the Supervisor and its subsequent services are part of")
+                             "The organization the Supervisor and its services are part of")
                             (@arg PEER: --peer +takes_value +multiple
                              "The listen address of one or more initial peers (IP[:PORT])")
-                            (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
+                            (@arg PERMANENT_PEER: --("permanent-peer") -I "Make this Supervisor is a permanent peer")
                             (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with("PEER")
                              "Watch this file for connecting to the ring"
                             )

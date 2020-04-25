@@ -513,6 +513,8 @@ mod test {
                                 HttpListenAddr,
                                 ListenCtlAddr};
     use habitat_core::locked_env_var;
+    use std::net::{SocketAddr,
+                   ToSocketAddrs};
 
     fn no_feature_flags() -> FeatureFlag { FeatureFlag::empty() }
 
