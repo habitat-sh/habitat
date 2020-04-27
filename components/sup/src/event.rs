@@ -31,10 +31,10 @@ use crate::manager::{service::{HealthCheckHookStatus,
 use clap::ArgMatches;
 pub use error::{Error,
                 Result};
-use habitat_common::types::{AutomateAuthToken,
-                            EventStreamConnectMethod,
+use habitat_common::types::{EventStreamConnectMethod,
                             EventStreamMetadata,
-                            EventStreamServerCertificate};
+                            EventStreamServerCertificate,
+                            EventStreamToken};
 use habitat_core::{package::ident::PackageIdent,
                    service::HealthCheckInterval};
 use nats_message_stream::{NatsMessage,
@@ -93,7 +93,7 @@ pub struct EventStreamConfig {
     pub application:        String,
     pub site:               Option<String>,
     pub meta:               EventStreamMetadata,
-    pub token:              AutomateAuthToken,
+    pub token:              EventStreamToken,
     pub url:                Address,
     pub connect_method:     EventStreamConnectMethod,
     pub server_certificate: Option<EventStreamServerCertificate>,
@@ -109,7 +109,7 @@ impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
                                                  .expect("Required option for EventStream feature"),
                             site:               m.value_of("EVENT_STREAM_SITE").map(str::to_string),
                             meta:               EventStreamMetadata::from(m),
-                            token:              AutomateAuthToken::from(m),
+                            token:              EventStreamToken::from(m),
                             url:                m.value_of("EVENT_STREAM_URL")
                                                  .expect("Required option for EventStream feature")
                                                  .parse()

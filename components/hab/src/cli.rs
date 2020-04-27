@@ -20,10 +20,10 @@ use habitat_common::{cli::{file_into_idents,
                            PACKAGE_TARGET_ENVVAR,
                            RING_ENVVAR,
                            RING_KEY_ENVVAR},
-                     types::{AutomateAuthToken,
-                             EventStreamConnectMethod,
+                     types::{EventStreamConnectMethod,
                              EventStreamMetadata,
                              EventStreamServerCertificate,
+                             EventStreamToken,
                              GossipListenAddr,
                              HttpListenAddr,
                              ListenCtlAddr},
@@ -1245,23 +1245,19 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
 
     // clap_app macro does not allow setting short and long help seperately
     let sub =
-        sub.arg(Arg::with_name("NUM_LATEST_PACKAGES_TO_KEEP").long("keep-latest-packages")
-                                                             .takes_value(true)
-                                                             .validator(valid_numeric::<usize>)
-                                                             .env("HAB_KEEP_LATEST_PACKAGES")
-                                                             .help("Automatically cleanup old \
-                                                                    packages")
-                                                             .long_help("Automatically cleanup \
-                                                                         old packages.\n\nThe \
-                                                                         Supervisor will \
-                                                                         automatically cleanup \
-                                                                         old packages only \
-                                                                         keeping the `NUM_LATEST_PACKAGES_TO_KEEP` latest \
-                                                                         packages. If this \
-                                                                         argument is not \
-                                                                         specified, no \
-                                                                         automatic package \
-                                                                         cleanup is performed."));
+        sub.arg(Arg::with_name("KEEP_LATEST_PACKAGES").long("keep-latest-packages")
+                                                      .takes_value(true)
+                                                      .validator(valid_numeric::<usize>)
+                                                      .env("HAB_KEEP_LATEST_PACKAGES")
+                                                      .help("Automatically cleanup old packages")
+                                                      .long_help("Automatically cleanup old \
+                                                                  packages.\n\nThe Supervisor \
+                                                                  will automatically cleanup \
+                                                                  old packages only keeping the \
+                                                                  `KEEP_LATEST_PACKAGES` latest \
+                                                                  packages. If this argument is \
+                                                                  not specified, no automatic \
+                                                                  package cleanup is performed."));
 
     // The clap_app macro does not allow "-" in possible values
     let sub = sub.arg(Arg::with_name("UPDATE_CONDITION").long("update-condition")
@@ -1416,31 +1412,20 @@ fn add_event_stream_options(app: App<'static, 'static>) -> App<'static, 'static>
                                                       .required(false)
                                                       .takes_value(true)
                                                       .validator(non_empty))
-       .arg(Arg::with_name(ConnectMethod::ARG_NAME).help("How long in seconds to wait for an \
-                                                          event stream connection before exiting \
-                                                          the Supervisor. Set to '0' to \
-                                                          immediately start the Supervisor and \
-                                                          continue running regardless of the \
-                                                          initial connection status")
+       .arg(Arg::with_name(ConnectMethod::ARG_NAME).help("Event stream connection timeout before exiting the Supervisor")
                                                    .long("event-stream-connect-timeout")
                                                    .required(false)
                                                    .takes_value(true)
                                                    .env(ConnectMethod::ENVVAR)
                                                    .default_value("0")
                                                    .validator(valid_numeric::<u64>))
-       .arg(Arg::with_name("EVENT_STREAM_URL").help("The event stream connection string \
-                                                     (host:port) used by this Supervisor to send \
-                                                     events to Chef Automate. This enables \
-                                                     the event stream and requires \
-                                                     --event-stream-application, \
-                                                     --event-stream-environment, and \
-                                                     --event-stream-token also be set")
+       .arg(Arg::with_name("EVENT_STREAM_URL").help("The event stream connection url used to send events to Chef Automate")
                                               .long("event-stream-url")
                                               .required(false)
                                               .requires_all(&[
                                                     "EVENT_STREAM_APPLICATION",
                                                     "EVENT_STREAM_ENVIRONMENT",
-                                                    AutomateAuthToken::ARG_NAME
+                                                    EventStreamToken::ARG_NAME
                                                 ])
                                               .takes_value(true)
                                               .validator(nats_address))
@@ -1450,14 +1435,14 @@ fn add_event_stream_options(app: App<'static, 'static>) -> App<'static, 'static>
                                                .required(false)
                                                .takes_value(true)
                                                .validator(non_empty))
-       .arg(Arg::with_name(AutomateAuthToken::ARG_NAME).help("The authentication token for \
+       .arg(Arg::with_name(EventStreamToken::ARG_NAME).help("The authentication token for \
                                                               connecting the event stream to \
                                                               Chef Automate")
                                                        .long("event-stream-token")
                                                        .required(false)
                                                        .takes_value(true)
-                                                       .validator(AutomateAuthToken::validate)
-                                                       .env(AutomateAuthToken::ENVVAR))
+                                                       .validator(EventStreamToken::validate)
+                                                       .env(EventStreamToken::ENVVAR))
        .arg(Arg::with_name(EventStreamMetadata::ARG_NAME).help("An arbitrary key-value pair to \
                                                                 add to each event generated by \
                                                                 this Supervisor")
@@ -2005,7 +1990,7 @@ mod tests {
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
             assert_eq!(error.info,
-                       Some(vec![AutomateAuthToken::ARG_NAME.to_string()]));
+                       Some(vec![EventStreamToken::ARG_NAME.to_string()]));
         }
 
         #[test]
