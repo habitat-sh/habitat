@@ -5,7 +5,8 @@ use std::{path::Path,
 
 #[cfg(windows)]
 use crate::{common::cli::DEFAULT_BINLINK_DIR,
-            hcore::fs::FS_ROOT_PATH};
+            hcore::fs::{self,
+                        FS_ROOT_PATH}};
 use crate::{common::ui::{UIReader,
                          UIWriter,
                          UI},
