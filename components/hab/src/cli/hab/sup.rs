@@ -11,6 +11,7 @@ use configopt::{self,
                 ConfigOpt};
 use habitat_common::{cli::{RING_ENVVAR,
                            RING_KEY_ENVVAR},
+                     command::package::install::InstallSource,
                      types::{AutomateAuthToken,
                              EventStreamConnectMethod,
                              EventStreamMetadata,
@@ -144,79 +145,85 @@ pub struct SupRun {
     #[structopt(long = "permanent-peer", short = "I")]
     permanent_peer: bool,
     /// Watch this file for connecting to the ring
-    // TODO (DM): Should we check that this file exists?
     #[structopt(long = "peer-watch-file", conflicts_with = "PEER")]
     peer_watch_file: Option<PathBuf>,
     #[structopt(flatten)]
     #[serde(flatten)]
     cache_key_path: CacheKeyPath,
-    /// The name of the ring used by the Supervisor when running with wire encryption. (ex: hab sup
-    /// run --ring myring)
-    #[structopt(name = "RING",
-                long = "ring",
+    /// The name of the ring used by the Supervisor when running with wire encryption
+    #[structopt(long = "ring",
                 short = "r",
                 env = RING_ENVVAR,
                 conflicts_with = "RING_KEY")]
     ring: Option<String>,
-    /// The contents of the ring key when running with wire encryption. (Note: This option is
-    /// explicitly undocumented and for testing purposes only. Do not use it in a production
-    /// system. Use the corresponding environment variable instead.) (ex: hab sup run --ring-key
-    /// 'SYM-SEC-1 foo-20181113185935 GCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')
-    #[structopt(name = "RING_KEY",
-                long = "ring-key",
+    /// The contents of the ring key when running with wire encryption
+    ///
+    /// This option is explicitly undocumented and for testing purposes only. Do not use it in a
+    /// production system. Use the corresponding environment variable instead. (ex:
+    /// 'SYM-SEC-1\nfoo-20181113185935\n\nGCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')
+    #[structopt(long = "ring-key",
                 env = RING_KEY_ENVVAR,
                 hidden = true,
                 conflicts_with = "RING")]
     ring_key: Option<String>,
-    /// Use package config from this path, rather than the package itself
-    #[structopt(name = "CONFIG_DIR", long = "config-from")]
-    config_dir: Option<PathBuf>,
+    /// Use the package config from this path rather than the package itself
+    #[structopt(long = "config-from")]
+    config_from: Option<PathBuf>,
     /// Enable automatic updates for the Supervisor itself
-    #[structopt(name = "AUTO_UPDATE", long = "auto-update", short = "A")]
+    #[structopt(long = "auto-update", short = "A")]
     auto_update: bool,
-    /// Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. This should be
-    /// a RSA private key or PKCS8-encoded private key, in PEM format
-    #[structopt(name = "KEY_FILE", long = "key", requires = "CERT_FILE")]
+    /// The private key for HTTP Gateway TLS encryption
+    ///
+    /// Read private key from KEY_FILE. This should be an RSA private key or PKCS8-encoded private
+    /// key in PEM format.
+    #[structopt(long = "key", requires = "CERT_FILE")]
     key_file: Option<PathBuf>,
-    /// Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. This
-    /// should contain PEM-format certificates in the right order (the first certificate should
-    /// certify KEY_FILE, the last should be a root CA)
-    #[structopt(name = "CERT_FILE", long = "certs", requires = "KEY_FILE")]
+    /// The server certificates for HTTP Gateway TLS encryption
+    ///
+    /// Read server certificates from CERT_FILE. This should contain PEM-format certificates in the
+    /// right order (the first certificate should certify KEY_FILE, the last should be a root
+    /// CA)
+    #[structopt(long = "certs", requires = "KEY_FILE")]
     cert_file: Option<PathBuf>,
-    /// Used for enabling client-authentication with TLS for the HTTP gateway. Read CA certificate
-    /// from CA_CERT_FILE. This should contain PEM-format certificate that can be used to validate
-    /// client requests
-    #[structopt(name = "CA_CERT_FILE",
-                long = "ca-certs",
+    /// The CA certificate for HTTP Gateway TLS encryption
+    ///
+    /// Read CA certificate from CA_CERT_FILE. This should contain PEM-format certificate that can
+    /// be used to validate client requests
+    #[structopt(long = "ca-certs",
                 requires_all = &["CERT_FILE", "KEY_FILE"])]
     ca_cert_file: Option<PathBuf>,
-    /// Load the given Habitat package as part of the Supervisor startup specified by a package
-    /// identifier (ex: core/redis) or filepath to a Habitat Artifact (ex:
-    /// /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)
-    // TODO (DM): We could probably do better validation here
-    #[structopt(name = "PKG_IDENT_OR_ARTIFACT")]
-    pkg_ident_or_artifact: Option<String>,
-    /// Verbose output; shows file and line/column numbers
-    #[structopt(name = "VERBOSE", short = "v")]
+    /// Load a Habitat package as part of the Supervisor startup
+    ///
+    /// The package can be specified by a package identifier (ex: core/redis) or filepath to a
+    /// Habitat artifact (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).
+    #[structopt()]
+    pkg_ident_or_artifact: Option<InstallSource>,
+    /// Verbose output showing file and line/column numbers
+    #[structopt(short = "v")]
     verbose: bool,
     /// Turn ANSI color off
-    #[structopt(name = "NO_COLOR", long = "no-color")]
+    #[structopt(long = "no-color")]
     no_color: bool,
-    /// Use structured JSON logging for the Supervisor. Implies NO_COLOR
-    #[structopt(name = "JSON", long = "json-logging")]
+    /// Use structured JSON logging for the Supervisor
+    ///
+    /// This option also sets NO_COLOR
+    #[structopt(long = "json-logging")]
     json_logging: bool,
-    /// The IPv4 address to use as the `sys.ip` template variable. If this argument is not set, the
-    /// supervisor tries to dynamically determine an IP address. If that fails, the supervisor
-    /// defaults to using `127.0.0.1`
-    #[structopt(name = "SYS_IP_ADDRESS", long = "sys-ip-address")]
+    /// The IPv4 address to use as the `sys.ip` template variable
+    ///
+    /// If this argument is not set, the supervisor tries to dynamically determine an IP address.
+    /// If that fails, the supervisor defaults to using `127.0.0.1`.
+    #[structopt(long = "sys-ip-address")]
     sys_ip_address: Option<Ipv4Addr>,
-    /// The name of the application for event stream purposes. This will be attached to all events
-    /// generated by this Supervisor
-    #[structopt(name = "EVENT_STREAM_APPLICATION", long = "event-stream-application")]
+    /// The name of the application for event stream purposes
+    ///
+    /// This will be attached to all events generated by this Supervisor.
+    #[structopt(long = "event-stream-application")]
     event_stream_application: Option<String>,
-    /// The name of the environment for event stream purposes. This will be attached to all events
-    /// generated by this Supervisor
-    #[structopt(name = "EVENT_STREAM_ENVIRONMENT", long = "event-stream-environment")]
+    /// The name of the environment for event stream purposes
+    ///
+    /// This will be attached to all events generated by this Supervisor.
+    #[structopt(long = "event-stream-environment")]
     event_stream_environment: Option<String>,
     /// How long in seconds to wait for an event stream connection before exiting the Supervisor.
     /// Set to '0' to immediately start the Supervisor and continue running regardless of the

@@ -453,7 +453,7 @@ fn set_supervisor_logging_options(m: &ArgMatches) {
     if m.is_present("NO_COLOR") {
         output::set_format(OutputFormat::NoColor)
     }
-    if m.is_present("JSON") {
+    if m.is_present("JSON_LOGGING") {
         output::set_format(OutputFormat::JSON)
     }
 }
@@ -966,13 +966,13 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
             let m = matches_from_cmd_str(args);
             assert!(!m.is_present("VERBOSE"));
             assert!(!m.is_present("NO_COLOR"));
-            assert!(!m.is_present("JSON"));
+            assert!(!m.is_present("JSON_LOGGING"));
 
             let args = "hab-sup run -v --no-color --json-logging";
             let m = matches_from_cmd_str(args);
             assert!(m.is_present("VERBOSE"));
             assert!(m.is_present("NO_COLOR"));
-            assert!(m.is_present("JSON"));
+            assert!(m.is_present("JSON_LOGGING"));
         }
 
         #[test]

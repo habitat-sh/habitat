@@ -1197,12 +1197,9 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                             )
                             (arg: arg_cache_key_path())
                             (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY") {non_empty}
-                             "The name of the ring used by the Supervisor when running with wire encryption. \
-                              (ex: hab sup run --ring myring)")
+                             "The name of the ring used by the Supervisor when running with wire encryption")
                             (@arg RING_KEY: --("ring-key") env(RING_KEY_ENVVAR) conflicts_with("RING") +hidden {non_empty}
-                             "The contents of the ring key when running with wire encryption. \
-                              (Note: This option is explicitly undocumented and for testing purposes only. Do not use it in a production system. Use the corresponding environment variable instead.) \
-                              (ex: hab sup run --ring-key 'SYM-SEC-1 foo-20181113185935 GCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')")
+                             "The contents of the ring key when running with wire encryption")
                             (@arg CHANNEL: --channel +takes_value default_value[stable]
                              "Receive updates from the specified release channel")
                             (@arg BLDR_URL: -u --url +takes_value {valid_url}
@@ -1210,25 +1207,18 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                               be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                               https://bldr.habitat.sh)")
 
-                            (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
-                             "Use package config from this path, rather than the package itself")
+                            (@arg CONFIG_FROM: --("config-from") +takes_value {dir_exists}
+                             "Use the package config from this path rather than the package itself")
                             (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
                                                                      itself")
                             (@arg KEY_FILE: --key +takes_value {file_exists} requires[CERT_FILE]
-                             "Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. \
-                              This should be a RSA private key or PKCS8-encoded private key, in PEM format")
+                             "The private key for HTTP Gateway TLS encryption")
                             (@arg CERT_FILE: --certs +takes_value {file_exists} requires[KEY_FILE]
-                             "Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. \
-                              This should contain PEM-format certificates in the right order (the first certificate \
-                              should certify KEY_FILE, the last should be a root CA)")
+                             "The server certificates for HTTP Gateway TLS encryption")
                             (@arg CA_CERT_FILE: --("ca-certs") +takes_value {file_exists} requires[CERT_FILE] requires[KEY_FILE]
-                             "Used for enabling client-authentication with TLS for the HTTP gateway. Read CA certificate from CA_CERT_FILE. \
-                              This should contain PEM-format certificate that can be used to validate client requests")
+                             "The CA certificate for HTTP Gateway TLS encryption")
                             // === Optional arguments to additionally load an initial service for the Supervisor
-                            (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
-                                                                       the Supervisor startup specified by a package identifier \
-                                                                       (ex: core/redis) or filepath to a Habitat Artifact \
-                                                                       (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+                            (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load a Habitat package as part of the Supervisor startup")
                             // TODO (DM): These flags can eventually be removed.
                             // See https://github.com/habitat-sh/habitat/issues/7339
                             (@arg APPLICATION: --application -a +multiple +hidden "DEPRECATED")
@@ -1244,17 +1234,13 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                             (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
                              "Governs how the presence or absence of binds affects service startup. `strict` blocks \
                               startup until all binds are present. [default: strict] [values: relaxed, strict]")
-                            (@arg VERBOSE: -v "Verbose output; shows file and line/column numbers")
+                            (@arg VERBOSE: -v "Verbose output showing file and line/column numbers")
                             (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
-                            (@arg JSON: --("json-logging") "Use structured JSON logging for the Supervisor. \
-                                                            Implies NO_COLOR")
+                            (@arg JSON_LOGGING: --("json-logging") "Use structured JSON logging for the Supervisor")
                             (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
                              "The interval (seconds) on which to run health checks [default: 30]")
                             (@arg SYS_IP_ADDRESS: --("sys-ip-address") +takes_value {valid_ipv4_address}
-                             "The IPv4 address to use as the `sys.ip` template variable. If this \
-                             argument is not set, the supervisor tries to dynamically determine \
-                             an IP address. If that fails, the supervisor defaults to using \
-                             `127.0.0.1`")
+                             "The IPv4 address to use as the `sys.ip` template variable")
     );
 
     // clap_app macro does not allow setting short and long help seperately
@@ -1419,17 +1405,13 @@ fn add_event_stream_options(app: App<'static, 'static>) -> App<'static, 'static>
     // Create shorter alias so formating works correctly
     type ConnectMethod = EventStreamConnectMethod;
     app.arg(Arg::with_name("EVENT_STREAM_APPLICATION").help("The name of the application for \
-                                                             event stream purposes. This \
-                                                             will be attached to all events \
-                                                             generated by this Supervisor")
+                                                             event stream purposes")
                                                       .long("event-stream-application")
                                                       .required(false)
                                                       .takes_value(true)
                                                       .validator(non_empty))
        .arg(Arg::with_name("EVENT_STREAM_ENVIRONMENT").help("The name of the environment for \
-                                                             event stream purposes. This \
-                                                             will be attached to all events \
-                                                             generated by this Supervisor")
+                                                             event stream purposes")
                                                       .long("event-stream-environment")
                                                       .required(false)
                                                       .takes_value(true)
