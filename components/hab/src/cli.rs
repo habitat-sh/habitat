@@ -1223,22 +1223,21 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                             // See https://github.com/habitat-sh/habitat/issues/7339
                             (@arg APPLICATION: --application -a +multiple +hidden "DEPRECATED")
                             (@arg ENVIRONMENT: --environment -e +multiple +hidden "DEPRECATED")
-                            (@arg GROUP: --group +takes_value
-                             "The service group; shared config and topology [default: default]")
+                            (@arg GROUP: --group +takes_value default_value[default]
+                             "The service group with shared config and topology")
                             (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
-                             "Service topology; [default: none]")
-                            (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
-                             "The update strategy; [default: none] [values: none, at-once, rolling]")
+                             "Service topology")
+                            (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy} default_value[none]
+                             "The update strategy")
                             (@arg BIND: --bind +takes_value +multiple
                              "One or more service groups to bind to a configuration")
-                            (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
-                             "Governs how the presence or absence of binds affects service startup. `strict` blocks \
-                              startup until all binds are present. [default: strict] [values: relaxed, strict]")
+                            (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode} default_value[strict]
+                             "Governs how the presence or absence of binds affects service startup")
                             (@arg VERBOSE: -v "Verbose output showing file and line/column numbers")
                             (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
                             (@arg JSON_LOGGING: --("json-logging") "Use structured JSON logging for the Supervisor")
                             (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
-                             "The interval (seconds) on which to run health checks [default: 30]")
+                             "The interval (seconds) on which to run health checks")
                             (@arg SYS_IP_ADDRESS: --("sys-ip-address") +takes_value {valid_ipv4_address}
                              "The IPv4 address to use as the `sys.ip` template variable")
     );
@@ -1344,27 +1343,26 @@ fn sub_svc_load() -> App<'static, 'static> {
         (@arg ENVIRONMENT: --environment -e +multiple +hidden "DEPRECATED")
         (@arg CHANNEL: --channel +takes_value default_value[stable]
             "Receive updates from the specified release channel")
-        (@arg GROUP: --group +takes_value
-            "The service group; shared config and topology [default: default]")
+        (@arg GROUP: --group +takes_value default_value[default]
+            "The service group with shared config and topology")
         (@arg BLDR_URL: -u --url +takes_value {valid_url}
             "Specify an alternate Builder endpoint. If not specified, the value will \
              be taken from the HAB_BLDR_URL environment variable if defined. (default: \
              https://bldr.habitat.sh)")
         (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
-            "Service topology; [default: none]")
-        (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
-            "The update strategy; [default: none] [values: none, at-once, rolling]")
+            "Service topology")
+        (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy} default_value[none]
+            "The update strategy")
         (@arg BIND: --bind +takes_value +multiple
             "One or more service groups to bind to a configuration")
-        (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
-             "Governs how the presence or absence of binds affects service startup. `strict` blocks \
-              startup until all binds are present. [default: strict] [values: relaxed, strict]")
+        (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode} default_value[strict]
+             "Governs how the presence or absence of binds affects service startup")
         (@arg FORCE: --force -f "Load or reload an already loaded service. If the service \
             was previously loaded and running this operation will also restart the service")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
-            "The interval (seconds) on which to run health checks [default: 30]")
+            "The interval (seconds) on which to run health checks")
     );
 
     // The clap_app macro does not allow "-" in possible values
@@ -1680,9 +1678,9 @@ fn non_empty(val: String) -> result::Result<(), String> {
 
 /// Adds extra configuration option for shutting down a service with a customized timeout.
 fn add_shutdown_timeout_option(app: App<'static, 'static>) -> App<'static, 'static> {
-    app.arg(Arg::with_name("SHUTDOWN_TIMEOUT").help("The number of seconds after sending a \
+    app.arg(Arg::with_name("SHUTDOWN_TIMEOUT").help("The delay (seconds) after sending the \
                                                      shutdown signal to wait before killing a \
-                                                     service process (default: set in plan)")
+                                                     service process")
                                               .long("shutdown-timeout")
                                               .validator(valid_shutdown_timeout)
                                               .takes_value(true))

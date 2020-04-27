@@ -312,7 +312,7 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
         }),
         feature_flags,
         event_stream_config,
-        keep_latest_packages: m.value_of("NUM_LATEST_PACKAGES_TO_KEEP").and_then(|s| s.parse().ok()),
+        keep_latest_packages: m.value_of("KEEP_LATEST_PACKAGES").and_then(|s| s.parse().ok()),
         sys_ip: m.value_of("SYS_IP_ADDRESS")
             .and_then(|s| IpAddr::from_str(s).ok())
             .or_else(|| {
@@ -423,7 +423,7 @@ fn get_binding_mode_from_input(m: &ArgMatches) -> Option<BindingMode> {
 }
 
 fn get_config_from_input(m: &ArgMatches) -> Option<String> {
-    if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
+    if let Some(ref config_from) = m.value_of("CONFIG_FROM") {
         warn!("");
         warn!("WARNING: Setting '--config-from' should only be used in development, not \
                production!");
@@ -801,17 +801,18 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
                                                  application_environment: None,
                                                  binds:                   None,
                                                  specified_binds:         None,
-                                                 binding_mode:            None,
+                                                 binding_mode:            Some(1),
                                                  bldr_url:
                                                      Some(String::from("https://bldr.habitat.sh")),
                                                  bldr_channel:
                                                      Some(String::from("stable")),
                                                  config_from:             None,
                                                  force:                   None,
-                                                 group:                   None,
+                                                 group:
+                                                     Some(String::from("default")),
                                                  svc_encrypted_password:  None,
                                                  topology:                None,
-                                                 update_strategy:         None,
+                                                 update_strategy:         Some(0),
                                                  health_check_interval:   None,
                                                  shutdown_timeout:        None,
                                                  update_condition:        Some(0), },
@@ -886,17 +887,18 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
                                                  application_environment: None,
                                                  binds:                   None,
                                                  specified_binds:         None,
-                                                 binding_mode:            None,
+                                                 binding_mode:            Some(1),
                                                  bldr_url:
                                                      Some(String::from("https://bldr.habitat.sh")),
                                                  bldr_channel:
                                                      Some(String::from("stable")),
                                                  config_from:             None,
                                                  force:                   None,
-                                                 group:                   None,
+                                                 group:
+                                                     Some(String::from("default")),
                                                  svc_encrypted_password:  None,
                                                  topology:                None,
-                                                 update_strategy:         None,
+                                                 update_strategy:         Some(0),
                                                  health_check_interval:   None,
                                                  shutdown_timeout:        None,
                                                  update_condition:        Some(0), },
@@ -1057,7 +1059,7 @@ gpoVMSncu2jMIDZX63IkQII=
             let temp_dir_str = temp_dir.path().to_str().unwrap();
 
             let args = format!("hab-sup run --channel my_channel --bind one:service1.default \
-                                two:service2.default --binding-mode strict --url http://my_url.com \
+                                two:service2.default --binding-mode relaxed --url http://my_url.com \
                                 --config-from={} --group MyGroup --topology standalone \
                                 --strategy at-once --update-condition track-channel --health-check-interval 17 \
                                 --shutdown-timeout=12 core/redis",
@@ -1075,7 +1077,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                                  application_environment: None,
                                                  binds:                   Some(binds),
                                                  specified_binds:         None,
-                                                 binding_mode:            Some(1),
+                                                 binding_mode:            Some(0),
                                                  bldr_url:
                                                      Some(String::from("http://my_url.com")),
                                                  bldr_channel:
