@@ -16,14 +16,14 @@ pub use crate::{build::BuildSpec,
                         Result}};
 use habitat_common::ui::{UIWriter,
                          UI};
-use habitat_core::url::default_bldr_url;
 use rusoto_core::{request::HttpClient,
                   Region};
 use rusoto_credential::StaticProvider;
 use rusoto_ecr::{Ecr,
                  EcrClient,
                  GetAuthorizationTokenRequest};
-use std::{env,
+use std::{convert::TryFrom,
+          env,
           fmt,
           result,
           str::FromStr};
@@ -171,8 +171,7 @@ pub async fn export_for_cli_matches(ui: &mut UI,
                                     -> Result<Option<DockerImage>> {
     os::ensure_proper_docker_platform()?;
 
-    let default_url = default_bldr_url();
-    let spec = BuildSpec::new_from_cli_matches(&matches, &default_url)?;
+    let spec = BuildSpec::try_from(matches)?;
     let naming = Naming::from(matches);
 
     let docker_image = export(ui, spec, &naming, matches.value_of("MEMORY_LIMIT")).await?;

@@ -9,7 +9,8 @@ use crate::{accounts::{EtcGroupEntry,
             BUSYBOX_IDENT,
             CACERTS_IDENT,
             VERSION};
-use clap;
+use clap::{self,
+           ArgMatches};
 #[cfg(unix)]
 use failure::SyncFailure;
 #[cfg(unix)]
@@ -34,6 +35,7 @@ use habitat_core::{env,
                              PackageArchive,
                              PackageIdent,
                              PackageInstall},
+                   url::default_bldr_url,
                    ChannelIdent};
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
@@ -112,9 +114,13 @@ pub struct BuildSpec {
     pub multi_layer:        bool,
 }
 
-impl BuildSpec {
-    /// Creates a `BuildSpec` from cli arguments.
-    pub fn new_from_cli_matches(m: &clap::ArgMatches<'_>, default_url: &str) -> Result<Self> {
+impl TryFrom<&ArgMatches<'_>> for BuildSpec {
+    type Error = crate::error::Error;
+
+    fn try_from(m: &ArgMatches<'_>) -> std::result::Result<Self, Self::Error> {
+        // TODO (CM): incorporate this into our CLAP definition better
+        let default_url = default_bldr_url();
+
         Ok(BuildSpec { hab:                m.value_of("HAB_PKG")
                                             .unwrap_or(DEFAULT_HAB_IDENT)
                                             .to_string(),
@@ -149,7 +155,9 @@ impl BuildSpec {
                                             }),
                        multi_layer:        m.is_present("MULTI_LAYER"), })
     }
+}
 
+impl BuildSpec {
     /// Creates a `BuildRoot` for the given specification.
     ///
     /// # Errors
@@ -1048,8 +1056,7 @@ mod test {
             let matches =
                 arg_matches(&[&*PROGRAM_NAME, "acme/my_pkg", "--base-image", "some/image"]);
 
-            let build_spec =
-                BuildSpec::new_from_cli_matches(&matches, "https://bldr.habitat.sh").unwrap();
+            let build_spec = BuildSpec::try_from(&matches).unwrap();
             let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();
 
             let (users, groups) = ctx.svc_users_and_groups().unwrap();
@@ -1075,8 +1082,7 @@ mod test {
             let matches =
                 arg_matches(&[&*PROGRAM_NAME, "acme/my_pkg", "--base-image", "some/image"]);
 
-            let build_spec =
-                BuildSpec::new_from_cli_matches(&matches, "https://bldr.habitat.sh").unwrap();
+            let build_spec = BuildSpec::try_from(&matches).unwrap();
             let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();
 
             let (users, groups) = ctx.svc_users_and_groups().unwrap();
