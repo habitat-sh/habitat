@@ -733,8 +733,7 @@ mod tests {
                                     service_config::ServiceConfig as ServiceConfigRumor,
                                     service_file::ServiceFile as ServiceFileRumor,
                                     RumorStore}};
-    use habitat_core::{fs::{cache_key_path,
-                            FS_ROOT_PATH},
+    use habitat_core::{fs::CACHE_KEY_PATH,
                        package::ident::PackageIdent,
                        service::ServiceGroup};
     use serde_json;
@@ -825,7 +824,7 @@ mod tests {
         let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
         let mut ring = CensusRing::new("member-b".to_string());
-        ring.update_from_rumors_rsr_mlr(&cache_key_path(Some(&*FS_ROOT_PATH)),
+        ring.update_from_rumors_rsr_mlr(&*CACHE_KEY_PATH,
                                         &service_store,
                                         &election_store,
                                         &election_update_store,

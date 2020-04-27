@@ -543,9 +543,8 @@ mod test {
     mod manager_config {
 
         use super::*;
-        use habitat_common::{cli::FS_ROOT,
-                             types::EventStreamConnectMethod};
-        use habitat_core::fs::cache_key_path;
+        use habitat_common::types::EventStreamConnectMethod;
+        use habitat_core::fs::CACHE_KEY_PATH;
         use std::{collections::HashMap,
                   fs::File,
                   iter::FromIterator};
@@ -777,7 +776,7 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
             let config = config_from_cmd_str("hab-sup run");
             assert_eq!(ManagerConfig { auto_update:          false,
                                        custom_state_path:    None,
-                                       cache_key_path:       cache_key_path(Some(&*FS_ROOT)),
+                                       cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:       ChannelIdent::default(),
@@ -911,7 +910,7 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
             let config = config_from_cmd_str(args);
             assert_eq!(ManagerConfig { auto_update:          false,
                                        custom_state_path:    None,
-                                       cache_key_path:       cache_key_path(Some(&*FS_ROOT)),
+                                       cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:       ChannelIdent::default(),
@@ -940,7 +939,7 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
             let config = config_from_cmd_str(args);
             assert_eq!(ManagerConfig { auto_update:          false,
                                        custom_state_path:    None,
-                                       cache_key_path:       cache_key_path(Some(&*FS_ROOT)),
+                                       cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:       ChannelIdent::default(),
@@ -1022,7 +1021,7 @@ gpoVMSncu2jMIDZX63IkQII=
             meta.insert(String::from("keyA"), String::from("valA"));
             assert_eq!(ManagerConfig { auto_update:          false,
                                        custom_state_path:    None,
-                                       cache_key_path:       cache_key_path(Some(&*FS_ROOT)),
+                                       cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:       ChannelIdent::default(),

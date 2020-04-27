@@ -2,8 +2,9 @@ use crate::cli::valid_fully_qualified_ident;
 use configopt::{self,
                 ConfigOpt};
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
-                   fs::CACHE_KEY_PATH,
+                   fs as hab_core_fs,
                    package::PackageIdent};
+use lazy_static::lazy_static;
 use std::{io,
           net::{SocketAddr,
                 ToSocketAddrs},
@@ -31,23 +32,20 @@ pub struct BldrUrl {
     bldr_url: Option<Url>,
 }
 
+lazy_static! {
+    pub static ref CACHE_KEY_PATH_DEFAULT: String =
+        hab_core_fs::CACHE_KEY_PATH.to_string_lossy().to_string();
+}
+
 #[derive(ConfigOpt, StructOpt, Debug, Deserialize)]
 #[configopt(derive(Debug), attrs(serde))]
 #[serde(deny_unknown_fields)]
-#[structopt(no_version)]
-#[allow(dead_code)]
+#[structopt(no_version, rename_all = "screamingsnake")]
 pub struct CacheKeyPath {
-    /// Cache for creating and searching encryption keys. Default value is hab/cache/keys if root
-    /// and .hab/cache/keys under the home directory otherwise.
-    #[structopt(name = "CACHE_KEY_PATH",
-                long = "cache-key-path",
+    /// Cache for creating and searching for encryption keys
+    #[structopt(long = "cache-key-path",
                 env = CACHE_KEY_PATH_ENV_VAR,
-                required = true,
-                // TODO (DM): This default value needs to be set dynamically based on user. We should set it
-                // here instead of looking up the correct value later on. I dont understand why this value
-                // has to be required.
-                default_value = CACHE_KEY_PATH,
-                hide_default_value = true)]
+                default_value = &*CACHE_KEY_PATH_DEFAULT)]
     cache_key_path: PathBuf,
 }
 
@@ -88,9 +86,10 @@ pub fn socket_addr_with_default_port<S: AsRef<str>>(addr: S,
         (addr, default_port).to_socket_addrs()
     }?;
     // We expect exactly one address
-    iter.next()
-        .ok_or(io::Error::new(io::ErrorKind::InvalidInput,
-                              "input did not resolve to SocketAddr or error"))
+    iter.next().ok_or_else(|| {
+                   io::Error::new(io::ErrorKind::InvalidInput,
+                                  "input did not resolve to SocketAddr or error")
+               })
 }
 
 pub fn socket_addrs_with_default_port<I>(addrs: I, default_port: u16) -> io::Result<Vec<SocketAddr>>

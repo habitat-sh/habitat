@@ -217,7 +217,7 @@ fn check_filename(keyname: &str,
 }
 
 /// Take a key name (ex "habitat"), and find all revisions of that
-/// keyname in the default_cache_key_path().
+/// keyname in the `cache_key_path`.
 fn get_key_revisions<P>(keyname: &str,
                         cache_key_path: P,
                         pair_type: Option<&PairType>,

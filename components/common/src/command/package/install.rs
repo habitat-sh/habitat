@@ -292,9 +292,7 @@ pub async fn start<U>(ui: &mut U,
                       -> Result<PackageInstall>
     where U: UIWriter
 {
-    // TODO (CM): rename fs::cache_key_path so the naming is
-    // consistent and flows better.
-    let key_cache_path = &cache_key_path(Some(fs_root_path));
+    let key_cache_path = &cache_key_path(fs_root_path);
     debug!("install key_cache_path: {}", key_cache_path.display());
 
     let api_client = Client::new(url, product, version, Some(fs_root_path))?;

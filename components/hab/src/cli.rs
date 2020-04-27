@@ -2,6 +2,7 @@ pub mod hab;
 
 use crate::{cli::hab::{sup::{ConfigOptSup,
                              Sup},
+                       util::CACHE_KEY_PATH_DEFAULT,
                        ConfigOptHab,
                        Hab},
             command::studio};
@@ -30,7 +31,6 @@ use habitat_common::{cli::{file_into_idents,
 use habitat_core::{crypto::{keys::PairType,
                             CACHE_KEY_PATH_ENV_VAR},
                    env::Config,
-                   fs::CACHE_KEY_PATH,
                    os::process::ShutdownTimeout,
                    package::{ident,
                              Identifiable,
@@ -1019,19 +1019,12 @@ fn sub_cli_completers() -> App<'static, 'static> {
                                    .possible_values(&supported_shells))
 }
 
-// We need a default_value so that the argument can be required and validated. We hide the
-// default because it's a special value that will be internally mapped according to the
-// user type. This is to allow us to apply consistent validation to the env var override.
 fn arg_cache_key_path() -> Arg<'static, 'static> {
     Arg::with_name("CACHE_KEY_PATH").long("cache-key-path")
-                                    .required(true)
                                     .validator(non_empty)
                                     .env(CACHE_KEY_PATH_ENV_VAR)
-                                    .default_value(CACHE_KEY_PATH)
-                                    .hide_default_value(true)
-                                    .help("Cache for creating and searching encryption keys. \
-                                           Default value is hab/cache/keys if root and \
-                                           .hab/cache/keys under the home directory otherwise")
+                                    .default_value(&*CACHE_KEY_PATH_DEFAULT)
+                                    .help("Cache for creating and searching for encryption keys")
 }
 
 fn arg_target() -> Arg<'static, 'static> {
@@ -1198,7 +1191,7 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                              "The organization the Supervisor and its services are part of")
                             (@arg PEER: --peer +takes_value +multiple
                              "The listen address of one or more initial peers (IP[:PORT])")
-                            (@arg PERMANENT_PEER: --("permanent-peer") -I "Make this Supervisor is a permanent peer")
+                            (@arg PERMANENT_PEER: --("permanent-peer") -I "Make this Supervisor a permanent peer")
                             (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with("PEER")
                              "Watch this file for connecting to the ring"
                             )

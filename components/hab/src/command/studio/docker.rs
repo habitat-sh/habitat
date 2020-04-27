@@ -6,9 +6,9 @@ use crate::{command::studio::enter::{ARTIFACT_PATH_ENVVAR,
                     Result},
             hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
                     env as henv,
-                    fs::{cache_key_path,
-                         CACHE_ARTIFACT_PATH,
+                    fs::{CACHE_ARTIFACT_PATH,
                          CACHE_KEY_PATH,
+                         CACHE_KEY_PATH_POSTFIX,
                          CACHE_SSL_PATH},
                     os::process,
                     package::target,
@@ -52,7 +52,7 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
 
     let local_cache_key_path = match henv::var(CACHE_KEY_PATH_ENV_VAR) {
         Ok(val) => PathBuf::from(val),
-        Err(_) => cache_key_path(None::<PathBuf>),
+        Err(_) => (&*CACHE_KEY_PATH).to_path_buf(),
     };
     if !local_cache_key_path.exists() {
         return Err(Error::FileNotFound(format!("{}\nRun `hab setup` to \
@@ -69,7 +69,7 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
                            format!("{}:{}/{}",
                                    local_cache_key_path.display(),
                                    mnt_prefix,
-                                   CACHE_KEY_PATH),];
+                                   CACHE_KEY_PATH_POSTFIX),];
     if let Ok(cache_artifact_path) = henv::var(ARTIFACT_PATH_ENVVAR) {
         // Don't use Path::join here as "\" can cause problems in Docker mounts
         volumes.push(format!("{}:{}/{}",

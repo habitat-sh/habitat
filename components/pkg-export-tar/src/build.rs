@@ -9,9 +9,9 @@ use crate::{common::{self,
                      PROGRAM_NAME},
             error::Result,
             hcore::{fs::{cache_artifact_path,
-                         cache_key_path,
                          CACHE_ARTIFACT_PATH,
-                         CACHE_KEY_PATH},
+                         CACHE_KEY_PATH,
+                         CACHE_KEY_PATH_POSTFIX},
                     package::PackageIdent,
                     ChannelIdent}};
 use clap;
@@ -134,8 +134,8 @@ impl<'a> BuildSpec<'a> {
 
     fn create_symlink_to_key_cache<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
         ui.status(Status::Creating, "key cache symlink")?;
-        let src = cache_key_path(None::<P>);
-        let dst = rootfs.as_ref().join(CACHE_KEY_PATH);
+        let src = &*CACHE_KEY_PATH;
+        let dst = rootfs.as_ref().join(CACHE_KEY_PATH_POSTFIX);
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
         debug!("Symlinking src: {} to dst: {}",
                src.display(),
@@ -229,7 +229,7 @@ impl<'a> BuildSpec<'a> {
 
     fn remove_symlink_to_key_cache<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
         ui.status(Status::Deleting, "artifact key symlink")?;
-        stdfs::remove_dir_all(rootfs.as_ref().join(CACHE_KEY_PATH))?;
+        stdfs::remove_dir_all(rootfs.as_ref().join(CACHE_KEY_PATH_POSTFIX))?;
 
         Ok(())
     }

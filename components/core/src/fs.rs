@@ -31,7 +31,7 @@ pub const CACHE_PATH: &str = "hab/cache";
 /// The default download root path for package artifacts, used on package installation
 pub const CACHE_ARTIFACT_PATH: &str = "hab/cache/artifacts";
 /// The default path where cryptographic keys are stored
-pub const CACHE_KEY_PATH: &str = "hab/cache/keys";
+pub const CACHE_KEY_PATH_POSTFIX: &str = "hab/cache/keys";
 /// The default path where source artifacts are downloaded, extracted, & compiled
 pub const CACHE_SRC_PATH: &str = "hab/cache/src";
 /// The default path where SSL-related artifacts are placed
@@ -153,16 +153,19 @@ lazy_static::lazy_static! {
         }
     };
 
-    static ref MY_CACHE_KEY_PATH: PathBuf = {
+    static ref MY_CACHE_KEY_PATH_POSTFIX: PathBuf = {
         if am_i_root() {
-            PathBuf::from(CACHE_KEY_PATH)
+            PathBuf::from(CACHE_KEY_PATH_POSTFIX)
         } else {
             match dirs::home_dir() {
-                Some(home) => home.join(format!(".{}", CACHE_KEY_PATH)),
-                None => PathBuf::from(CACHE_KEY_PATH),
+                Some(home) => home.join(format!(".{}", CACHE_KEY_PATH_POSTFIX)),
+                None => PathBuf::from(CACHE_KEY_PATH_POSTFIX),
             }
         }
     };
+
+    /// The path to the keys cache rooted at `FS_ROOT_PATH`
+    pub static ref CACHE_KEY_PATH: PathBuf = cache_key_path(&*FS_ROOT_PATH);
 
     static ref MY_CACHE_SRC_PATH: PathBuf = {
         if am_i_root() {
@@ -206,14 +209,9 @@ pub fn cache_artifact_path<T>(fs_root_path: Option<T>) -> PathBuf
     }
 }
 
-/// Returns the path to the keys cache, optionally taking a custom filesystem root.
-pub fn cache_key_path<T>(fs_root_path: Option<T>) -> PathBuf
-    where T: AsRef<Path>
-{
-    match fs_root_path {
-        Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_KEY_PATH),
-        None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_KEY_PATH),
-    }
+/// Returns the path to the keys cache with a custom filesystem root.
+pub fn cache_key_path(root_path: impl AsRef<Path>) -> PathBuf {
+    root_path.as_ref().join(&*MY_CACHE_KEY_PATH_POSTFIX)
 }
 
 /// Returns the path to the src cache, optionally taking a custom filesystem root.

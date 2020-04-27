@@ -1938,8 +1938,7 @@ fn track_memory_stats() {}
 #[cfg(test)]
 mod test {
     use super::*;
-    use habitat_core::fs::{cache_key_path,
-                           FS_ROOT_PATH};
+    use habitat_core::fs::CACHE_KEY_PATH;
     use habitat_sup_protocol::STATE_PATH_PREFIX;
     use std::{net::Ipv4Addr,
               path::PathBuf};
@@ -1966,7 +1965,7 @@ mod test {
         fn default() -> Self {
             ManagerConfig { auto_update:          false,
                             custom_state_path:    None,
-                            cache_key_path:       cache_key_path(Some(&*FS_ROOT_PATH)),
+                            cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                             update_url:           "".to_string(),
                             update_channel:       ChannelIdent::default(),
                             gossip_listen:        GossipListenAddr::default(),
