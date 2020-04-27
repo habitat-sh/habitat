@@ -202,7 +202,7 @@ impl TestSup {
         let service_group = service_group.to_string();
 
         cmd.env(
-            "TESTING_FS_ROOT",
+            "FS_ROOT",
             fs_root.as_ref().to_string_lossy().as_ref(),
         )
         .env("HAB_SUP_BINARY", &sup_exe)

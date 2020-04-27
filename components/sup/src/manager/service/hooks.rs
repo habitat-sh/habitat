@@ -688,14 +688,14 @@ mod tests {
                                     service_config::ServiceConfig as ServiceConfigRumor,
                                     service_file::ServiceFile as ServiceFileRumor,
                                     RumorStore}};
-    use habitat_common::{cli::FS_ROOT,
-                         templating::{config::Cfg,
+    use habitat_common::{templating::{config::Cfg,
                                       package::Pkg,
                                       test_helpers::*},
                          types::{GossipListenAddr,
                                  HttpListenAddr,
                                  ListenCtlAddr}};
-    use habitat_core::{fs::cache_key_path,
+    use habitat_core::{fs::{cache_key_path,
+                            FS_ROOT_PATH},
                        locked_env_var,
                        package::{PackageIdent,
                                  PackageInstall},
@@ -795,7 +795,7 @@ mod tests {
         let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
 
-        ring.update_from_rumors_rsr_mlr(&cache_key_path(Some(&*FS_ROOT)),
+        ring.update_from_rumors_rsr_mlr(&cache_key_path(Some(&*FS_ROOT_PATH)),
                                         &service_store,
                                         &election_store,
                                         &election_update_store,

@@ -57,8 +57,8 @@ export PKG_CONFIG_PATH
 PKG_CONFIG_PATH="$(hab pkg path core/libarchive)/lib/pkgconfig:$(hab pkg path core/libsodium)/lib/pkgconfig:$(hab pkg path core/openssl)/lib/pkgconfig"
 
 # Set testing filesystem root
-export TESTING_FS_ROOT
-TESTING_FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
+export FS_ROOT
+FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
 
 export RUST_BACKTRACE=1
 
