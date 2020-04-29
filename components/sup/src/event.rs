@@ -28,7 +28,6 @@ use crate::manager::{service::{HealthCheckHookStatus,
                                Service,
                                StandardStreams},
                      sys::Sys};
-use clap::ArgMatches;
 pub use error::{Error,
                 Result};
 use habitat_common::types::{EventStreamConnectMethod,
@@ -97,26 +96,6 @@ pub struct EventStreamConfig {
     pub url:                Address,
     pub connect_method:     EventStreamConnectMethod,
     pub server_certificate: Option<EventStreamServerCertificate>,
-}
-
-impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
-    fn from(m: &ArgMatches) -> Self {
-        EventStreamConfig { environment:        m.value_of("EVENT_STREAM_ENVIRONMENT")
-                                                 .map(str::to_string)
-                                                 .expect("Required option for EventStream feature"),
-                            application:        m.value_of("EVENT_STREAM_APPLICATION")
-                                                 .map(str::to_string)
-                                                 .expect("Required option for EventStream feature"),
-                            site:               m.value_of("EVENT_STREAM_SITE").map(str::to_string),
-                            meta:               EventStreamMetadata::from(m),
-                            token:              EventStreamToken::from(m),
-                            url:                m.value_of("EVENT_STREAM_URL")
-                                                 .expect("Required option for EventStream feature")
-                                                 .parse()
-                                                 .expect("To parse NATS address"),
-                            connect_method:     EventStreamConnectMethod::from(m),
-                            server_certificate: EventStreamServerCertificate::from_arg_matches(m), }
-    }
 }
 
 /// Send an event for the start of a Service.

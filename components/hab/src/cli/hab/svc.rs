@@ -8,6 +8,7 @@ use configopt::ConfigOpt;
 use habitat_core::{os::process::ShutdownTimeout,
                    package::PackageIdent,
                    service::{HealthCheckInterval,
+                             ServiceBind,
                              ServiceGroup},
                    ChannelIdent};
 use habitat_sup_protocol::types::UpdateCondition;
@@ -46,8 +47,8 @@ pub enum Svc {
         pkg_ident:        PkgIdent,
         #[structopt(flatten)]
         remote_sup:       RemoteSup,
-        /// The delay (seconds) after sending the shutdown signal to wait before killing a service
-        /// process
+        /// The delay in seconds after sending the shutdown signal to wait before killing the
+        /// service process
         ///
         /// The default value is set in the packages plan file.
         #[structopt(name = "SHUTDOWN_TIMEOUT", long = "shutdown-timeout")]
@@ -60,8 +61,8 @@ pub enum Svc {
         pkg_ident:        PkgIdent,
         #[structopt(flatten)]
         remote_sup:       RemoteSup,
-        /// The delay (seconds) after sending the shutdown signal to wait before killing a service
-        /// process
+        /// The delay in seconds after sending the shutdown signal to wait before killing the
+        /// service process
         ///
         /// The default value is set in the packages plan file.
         #[structopt(name = "SHUTDOWN_TIMEOUT", long = "shutdown-timeout")]
@@ -99,31 +100,33 @@ lazy_static::lazy_static! {
 pub struct SharedLoad {
     /// Receive updates from the specified release channel
     #[structopt(long = "channel", default_value = &*CHANNEL_IDENT_DEFAULT)]
-    channel:               ChannelIdent,
+    pub channel:               ChannelIdent,
     /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
     /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
     // TODO (DM): This should probably use `env` and `default_value`
     // TODO (DM): Nested flattens do no work
     #[structopt(name = "BLDR_URL", short = "u", long = "url")]
-    bldr_url:              Option<Url>,
+    pub bldr_url:              Option<Url>,
     /// The service group with shared config and topology
     #[structopt(long = "group", default_value = "default")]
-    group:                 String,
+    pub group:                 String,
     /// Service topology
     #[structopt(long = "topology",
             short = "t",
             possible_values = &["standalone", "leader"])]
-    topology:              Option<habitat_sup_protocol::types::Topology>,
+    pub topology:              Option<habitat_sup_protocol::types::Topology>,
     /// The update strategy
-    // TODO (DM): possible_values = &["none", "at-once", "rolling"]
-    #[structopt(long = "strategy", short = "s", default_value = "none")]
-    strategy:              habitat_sup_protocol::types::UpdateStrategy,
+    #[structopt(long = "strategy",
+                short = "s",
+                default_value = "none",
+                possible_values = &["none", "at-once", "rolling"])]
+    pub strategy:              habitat_sup_protocol::types::UpdateStrategy,
     /// The condition dictating when this service should update
     ///
-    /// `latest`: Runs the latest package that can be found in the configured channel and local
+    /// latest: Runs the latest package that can be found in the configured channel and local
     /// packages.
     ///
-    /// `track-channel`: Always run what is at the head of a given channel. This enables service
+    /// track-channel: Always run what is at the head of a given channel. This enables service
     /// rollback where demoting a package from a channel will cause the package to rollback to
     /// an older version of the package. A ramification of enabling this condition is packages
     /// newer than the package at the head of the channel will be automatically uninstalled
@@ -131,40 +134,43 @@ pub struct SharedLoad {
     #[structopt(long = "update-condition",
                 default_value = UpdateCondition::Latest.as_str(),
                 possible_values = UpdateCondition::VARIANTS)]
-    update_condition:      UpdateCondition,
+    pub update_condition:      UpdateCondition,
     /// One or more service groups to bind to a configuration
-    // TODO (DM): Can this be a better type?
     #[structopt(long = "bind")]
     #[serde(default)]
-    bind:                  Vec<String>,
+    pub bind:                  Vec<ServiceBind>,
     /// Governs how the presence or absence of binds affects service startup
     ///
-    /// `strict`: blocks startup until all binds are present.
-    // TODO (DM): possible_values = &["none", "strict", "relaxed"]
-    #[structopt(long = "binding-mode", default_value = "strict")]
-    binding_mode:          Option<habitat_sup_protocol::types::BindingMode>,
-    /// The interval (seconds) on which to run health checks
-    // TODO (DM): Add this default value
-    #[structopt(long = "health-check-interval", short = "i")]
-    health_check_interval: Option<HealthCheckInterval>,
-    /// The delay (seconds) after sending the shutdown signal to wait before killing a service
+    /// strict: blocks startup until all binds are present.
+    #[structopt(long = "binding-mode",
+                default_value = "strict",
+                possible_values = &["strict", "relaxed"])]
+    pub binding_mode:          habitat_sup_protocol::types::BindingMode,
+    /// The interval in seconds on which to run health checks
+    #[structopt(long = "health-check-interval", short = "i", default_value = "30")]
+    pub health_check_interval: HealthCheckInterval,
+    /// The delay in seconds after sending the shutdown signal to wait before killing the service
     /// process
     ///
-    /// The default value is set in the packages plan file.
+    /// The default value can be set in the packages plan file.
     #[structopt(long = "shutdown-timeout")]
-    shutdown_timeout:      Option<ShutdownTimeout>,
+    pub shutdown_timeout:      Option<ShutdownTimeout>,
+    #[cfg(target_os = "windows")]
+    /// Password of the service user
+    #[structopt(long = "password")]
+    password:                  Option<String>,
     // TODO (DM): This flag can eventually be removed.
     // See https://github.com/habitat-sh/habitat/issues/7339
     /// DEPRECATED
     #[structopt(long = "application", short = "a", takes_value = false, hidden = true)]
     #[serde(skip)]
-    application:           Vec<String>,
+    pub application:           Vec<String>,
     // TODO (DM): This flag can eventually be removed.
     // See https://github.com/habitat-sh/habitat/issues/7339
     /// DEPRECATED
     #[structopt(long = "environment", short = "e", takes_value = false, hidden = true)]
     #[serde(skip)]
-    environment:           Vec<String>,
+    pub environment:           Vec<String>,
 }
 
 #[derive(ConfigOpt, StructOpt, Deserialize)]
@@ -183,10 +189,6 @@ pub struct Load {
     #[structopt(flatten)]
     #[serde(flatten)]
     remote_sup:  RemoteSup,
-    #[cfg(target_os = "windows")]
-    /// Password of the service user
-    #[structopt(name = "PASSWORD", long = "password")]
-    password:    Option<String>,
     #[structopt(flatten)]
     #[serde(flatten)]
     shared_load: SharedLoad,

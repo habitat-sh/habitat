@@ -13,7 +13,7 @@ use habitat_common::{cli::{RING_ENVVAR,
                            RING_KEY_ENVVAR},
                      command::package::install::InstallSource,
                      types::{EventStreamConnectMethod,
-                             EventStreamMetadata,
+                             EventStreamMetaPair,
                              EventStreamServerCertificate,
                              EventStreamToken,
                              GossipListenAddr,
@@ -26,7 +26,7 @@ use rants::{error::Error as RantsError,
             Address as NatsAddress};
 use std::{fmt,
           io,
-          net::{Ipv4Addr,
+          net::{IpAddr,
                 SocketAddr},
           path::PathBuf,
           str::FromStr};
@@ -82,7 +82,7 @@ pub enum Sup {
 // https://github.com/serde-rs/serde/issues/723. The easiest way to get around the issue is by
 // using a wrapper type.
 #[derive(Deserialize, Serialize, Debug)]
-struct EventStreamAddress(#[serde(with = "serde_string")] NatsAddress);
+pub struct EventStreamAddress(#[serde(with = "serde_string")] NatsAddress);
 
 impl fmt::Display for EventStreamAddress {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.0) }
@@ -92,6 +92,10 @@ impl FromStr for EventStreamAddress {
     type Err = RantsError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(EventStreamAddress(s.parse()?)) }
+}
+
+impl From<EventStreamAddress> for NatsAddress {
+    fn from(address: EventStreamAddress) -> Self { address.0 }
 }
 
 fn parse_peer(s: &str) -> io::Result<SocketAddr> {
@@ -117,46 +121,46 @@ pub struct SupRun {
     #[structopt(long = "listen-gossip",
                 env = GossipListenAddr::ENVVAR,
                 default_value = GossipListenAddr::default_as_str())]
-    listen_gossip: GossipListenAddr,
+    pub listen_gossip: GossipListenAddr,
     /// Start the supervisor in local mode
     #[structopt(long = "local-gossip-mode",
                 conflicts_with_all = &["LISTEN_GOSSIP", "PEER", "PEER_WATCH_FILE"])]
-    local_gossip_mode: bool,
+    pub local_gossip_mode: bool,
     /// The listen address for the HTTP Gateway
     #[structopt(long = "listen-http",
                 env = HttpListenAddr::ENVVAR,
                 default_value = HttpListenAddr::default_as_str())]
-    listen_http: HttpListenAddr,
+    pub listen_http: HttpListenAddr,
     /// Disable the HTTP Gateway completely
     #[structopt(long = "http-disable", short = "D")]
-    http_disable: bool,
+    pub http_disable: bool,
     /// The listen address for the Control Gateway
     #[structopt(long = "listen-ctl",
                 env = ListenCtlAddr::ENVVAR,
                 default_value = ListenCtlAddr::default_as_str())]
-    listen_ctl: ListenCtlAddr,
+    pub listen_ctl: ListenCtlAddr,
     /// The organization the Supervisor and its services are part of
     #[structopt(long = "org")]
-    organization: Option<String>,
+    pub organization: Option<String>,
     /// The listen address of one or more initial peers (IP[:PORT])
     #[structopt(long = "peer", parse(try_from_str = parse_peer))]
     #[serde(default)]
-    peer: Vec<SocketAddr>,
+    pub peer: Vec<SocketAddr>,
     /// Make this Supervisor a permanent peer
     #[structopt(long = "permanent-peer", short = "I")]
-    permanent_peer: bool,
+    pub permanent_peer: bool,
     /// Watch this file for connecting to the ring
     #[structopt(long = "peer-watch-file", conflicts_with = "PEER")]
-    peer_watch_file: Option<PathBuf>,
+    pub peer_watch_file: Option<PathBuf>,
     #[structopt(flatten)]
     #[serde(flatten)]
-    cache_key_path: CacheKeyPath,
+    pub cache_key_path: CacheKeyPath,
     /// The name of the ring used by the Supervisor when running with wire encryption
     #[structopt(long = "ring",
                 short = "r",
                 env = RING_ENVVAR,
                 conflicts_with = "RING_KEY")]
-    ring: Option<String>,
+    pub ring: Option<String>,
     /// The contents of the ring key when running with wire encryption
     ///
     /// This option is explicitly undocumented and for testing purposes only. Do not use it in a
@@ -164,109 +168,110 @@ pub struct SupRun {
     /// 'SYM-SEC-1\nfoo-20181113185935\n\nGCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')
     #[structopt(long = "ring-key",
                 env = RING_KEY_ENVVAR,
-                hidden = true,
-                conflicts_with = "RING")]
-    ring_key: Option<String>,
+                hidden = true)]
+    pub ring_key: Option<String>,
     /// Use the package config from this path rather than the package itself
     #[structopt(long = "config-from")]
-    config_from: Option<PathBuf>,
+    pub config_from: Option<PathBuf>,
     /// Enable automatic updates for the Supervisor itself
     #[structopt(long = "auto-update", short = "A")]
-    auto_update: bool,
+    pub auto_update: bool,
     /// The private key for HTTP Gateway TLS encryption
     ///
-    /// Read private key from KEY_FILE. This should be an RSA private key or PKCS8-encoded private
-    /// key in PEM format.
+    /// Read the private key from KEY_FILE. This should be an RSA private key or PKCS8-encoded
+    /// private key in PEM format.
     #[structopt(long = "key", requires = "CERT_FILE")]
-    key_file: Option<PathBuf>,
+    pub key_file: Option<PathBuf>,
     /// The server certificates for HTTP Gateway TLS encryption
     ///
-    /// Read server certificates from CERT_FILE. This should contain PEM-format certificates in the
-    /// right order (the first certificate should certify KEY_FILE, the last should be a root
-    /// CA)
+    /// Read server certificates from CERT_FILE. This should contain PEM-format certificates in
+    /// the right order. The first certificate should certify KEY_FILE. The last should be a
+    /// root CA.
     #[structopt(long = "certs", requires = "KEY_FILE")]
-    cert_file: Option<PathBuf>,
+    pub cert_file: Option<PathBuf>,
     /// The CA certificate for HTTP Gateway TLS encryption
     ///
-    /// Read CA certificate from CA_CERT_FILE. This should contain PEM-format certificate that can
-    /// be used to validate client requests
+    /// Read the CA certificate from CA_CERT_FILE. This should contain PEM-format certificate that
+    /// can be used to validate client requests
     #[structopt(long = "ca-certs",
                 requires_all = &["CERT_FILE", "KEY_FILE"])]
-    ca_cert_file: Option<PathBuf>,
+    pub ca_cert_file: Option<PathBuf>,
     /// Load a Habitat package as part of the Supervisor startup
     ///
     /// The package can be specified by a package identifier (ex: core/redis) or filepath to a
     /// Habitat artifact (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).
     #[structopt()]
-    pkg_ident_or_artifact: Option<InstallSource>,
+    pub pkg_ident_or_artifact: Option<InstallSource>,
     /// Verbose output showing file and line/column numbers
     #[structopt(short = "v")]
-    verbose: bool,
+    pub verbose: bool,
     /// Turn ANSI color off
     #[structopt(long = "no-color")]
-    no_color: bool,
+    pub no_color: bool,
     /// Use structured JSON logging for the Supervisor
     ///
-    /// This option also sets NO_COLOR
+    /// This option also sets NO_COLOR.
     #[structopt(long = "json-logging")]
-    json_logging: bool,
+    pub json_logging: bool,
     /// The IPv4 address to use as the `sys.ip` template variable
     ///
     /// If this argument is not set, the supervisor tries to dynamically determine an IP address.
     /// If that fails, the supervisor defaults to using `127.0.0.1`.
     #[structopt(long = "sys-ip-address")]
-    sys_ip_address: Option<Ipv4Addr>,
+    pub sys_ip_address: Option<IpAddr>,
     /// The name of the application for event stream purposes
     ///
     /// This will be attached to all events generated by this Supervisor.
-    #[structopt(long = "event-stream-application")]
-    event_stream_application: Option<String>,
+    #[structopt(long = "event-stream-application", empty_values = false)]
+    pub event_stream_application: Option<String>,
     /// The name of the environment for event stream purposes
     ///
     /// This will be attached to all events generated by this Supervisor.
-    #[structopt(long = "event-stream-environment")]
-    event_stream_environment: Option<String>,
+    #[structopt(long = "event-stream-environment", empty_values = false)]
+    pub event_stream_environment: Option<String>,
     /// Event stream connection timeout before exiting the Supervisor
     ///
     /// Set to '0' to immediately start the Supervisor and continue running regardless of the
     /// initial connection status.
     #[structopt(long = "event-stream-connect-timeout",
-                default_value = "0",
-                env = EventStreamConnectMethod::ENVVAR)]
-    event_stream_connect_timeout: EventStreamConnectMethod,
+                env = EventStreamConnectMethod::ENVVAR,
+                default_value = "0")]
+    pub event_stream_connect_timeout: EventStreamConnectMethod,
     /// The event stream connection url used to send events to Chef Automate
     ///
-    /// This enables the event stream and requires --event-stream-application,
-    /// --event-stream-environment, and --event-stream-token also be set
+    /// This enables the event stream and requires EVENT_STREAM_APPLICATION,
+    /// EVENT_STREAM_ENVIRONMENT, and EVENT_STREAM_TOKEN also be set.
     #[structopt(long = "event-stream-url",
                 requires_all = &["EVENT_STREAM_APPLICATION", 
                                  "EVENT_STREAM_ENVIRONMENT",
                                  EventStreamToken::ARG_NAME])]
-    event_stream_url: Option<EventStreamAddress>,
+    pub event_stream_url: Option<EventStreamAddress>,
     /// The name of the site where this Supervisor is running for event stream purposes
-    #[structopt(long = "event-stream-site")]
-    event_stream_site: Option<String>,
+    #[structopt(long = "event-stream-site", empty_values = false)]
+    pub event_stream_site: Option<String>,
     /// The authentication token for connecting the event stream to Chef Automate
     #[structopt(long = "event-stream-token",
                 env = EventStreamToken::ENVVAR)]
-    event_stream_token: Option<EventStreamToken>,
+    pub event_stream_token: Option<EventStreamToken>,
     /// An arbitrary key-value pair to add to each event generated by this Supervisor
-    #[structopt(long = "event-meta", multiple = true)]
-    event_meta: Option<EventStreamMetadata>,
-    /// The path to Chef Automate's event stream certificate in PEM format used to establish a TLS
-    /// connection
+    #[structopt(long = "event-meta")]
+    #[serde(default)]
+    pub event_meta: Vec<EventStreamMetaPair>,
+    /// The path to Chef Automate's event stream certificate used to establish a TLS connection
+    ///
+    /// The certificate should be in PEM format.
     #[structopt(long = "event-stream-server-certificate")]
-    event_stream_server_certificate: Option<EventStreamServerCertificate>,
+    pub event_stream_server_certificate: Option<EventStreamServerCertificate>,
     /// Automatically cleanup old packages
     ///
     /// The Supervisor will automatically cleanup old packages only keeping the
-    /// `KEEP_LATEST_PACKAGES` latest packages. If this argument is not specified, no
+    /// KEEP_LATEST_PACKAGES latest packages. If this argument is not specified, no
     /// automatic package cleanup is performed.
     #[structopt(long = "keep-latest-packages", env = "HAB_KEEP_LATEST_PACKAGES")]
-    keep_latest_packages: Option<usize>,
+    pub keep_latest_packages: Option<usize>,
     #[structopt(flatten)]
     #[serde(flatten)]
-    shared_load: SharedLoad,
+    pub shared_load: SharedLoad,
 }
 
 #[derive(ConfigOpt, StructOpt)]

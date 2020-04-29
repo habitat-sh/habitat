@@ -46,7 +46,7 @@ pub struct CacheKeyPath {
     #[structopt(long = "cache-key-path",
                 env = CACHE_KEY_PATH_ENV_VAR,
                 default_value = &*CACHE_KEY_PATH_DEFAULT)]
-    cache_key_path: PathBuf,
+    pub cache_key_path: PathBuf,
 }
 
 #[derive(ConfigOpt, StructOpt, Deserialize)]

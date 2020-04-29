@@ -1240,19 +1240,24 @@ fn sub_svc_load() -> App<'static, 'static> {
              https://bldr.habitat.sh)")
         (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
             "Service topology")
-        (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy} default_value[none]
-            "The update strategy")
         (@arg BIND: --bind +takes_value +multiple
             "One or more service groups to bind to a configuration")
-        (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode} default_value[strict]
+        (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode} default_value[strict] possible_value[strict relaxed]
              "Governs how the presence or absence of binds affects service startup")
         (@arg FORCE: --force -f "Load or reload an already loaded service. If the service \
             was previously loaded and running this operation will also restart the service")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
-        (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
-            "The interval (seconds) on which to run health checks")
     );
+
+    // The clap_app macro does not allow "-" in possible values
+    sub = sub.arg(Arg::with_name("STRATEGY").short("s")
+                                            .long("strategy")
+                                            .takes_value(true)
+                                            .default_value("none")
+                                            .possible_values(&["none", "at-once", "rolling"])
+                                            .validator(valid_update_strategy)
+                                            .help("The update strategy"));
 
     // The clap_app macro does not allow "-" in possible values
     sub = sub.arg(Arg::with_name("UPDATE_CONDITION").long("update-condition")
@@ -1262,6 +1267,15 @@ fn sub_svc_load() -> App<'static, 'static> {
                                                     .validator(valid_update_condition)
                                                     .help(UPDATE_CONDITION_HELP)
                                                     .long_help(UPDATE_CONDITION_LONG_HELP));
+
+    // The clap_app macro does not support numbers in default_value
+    sub = sub.arg(Arg::with_name("HEALTH_CHECK_INTERVAL").short("i")
+                                                         .long("health-check-interval")
+                                                         .takes_value(true)
+                                                         .default_value("30")
+                                                         .validator(valid_health_check_interval)
+                                                         .help("The interval in seconds on \
+                                                                which to run health checks"));
 
     if cfg!(windows) {
         sub = sub.arg(Arg::with_name("PASSWORD").long("password")
@@ -1474,8 +1488,8 @@ fn non_empty(val: String) -> result::Result<(), String> {
 
 /// Adds extra configuration option for shutting down a service with a customized timeout.
 fn add_shutdown_timeout_option(app: App<'static, 'static>) -> App<'static, 'static> {
-    app.arg(Arg::with_name("SHUTDOWN_TIMEOUT").help("The delay (seconds) after sending the \
-                                                     shutdown signal to wait before killing a \
+    app.arg(Arg::with_name("SHUTDOWN_TIMEOUT").help("The delay in seconds after sending the \
+                                                     shutdown signal to wait before killing the \
                                                      service process")
                                               .long("shutdown-timeout")
                                               .validator(valid_shutdown_timeout)
@@ -1628,7 +1642,7 @@ mod tests {
             ]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
-            assert_eq!(error.kind, clap::ErrorKind::ValueValidation);
+            assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
         }
 
         #[test]
@@ -1665,7 +1679,7 @@ mod tests {
             ]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
-            assert_eq!(error.kind, clap::ErrorKind::ValueValidation);
+            assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
         }
 
         #[test]
@@ -1844,7 +1858,7 @@ mod tests {
             ]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
-            assert_eq!(error.kind, clap::ErrorKind::ValueValidation);
+            assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
         }
 
         #[test]
