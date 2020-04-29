@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.4 -->
-## [1.6.4](https://github.com/habitat-sh/habitat/tree/1.6.4) (2020-04-29)
+<!-- latest_release 1.6.5 -->
+## [1.6.5](https://github.com/habitat-sh/habitat/tree/1.6.5) (2020-04-29)
 
 #### Merged Pull Requests
-- Update configopt [#7600](https://github.com/habitat-sh/habitat/pull/7600) ([davidMcneil](https://github.com/davidMcneil))
+- Post-refresh cleanup [#7648](https://github.com/habitat-sh/habitat/pull/7648) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
 ### Changes since 1.6.0 release
 
 #### Merged Pull Requests
+- Post-refresh cleanup [#7648](https://github.com/habitat-sh/habitat/pull/7648) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.5 -->
 - Update configopt [#7600](https://github.com/habitat-sh/habitat/pull/7600) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.4 -->
 - Automated update of Habitat Documentation [#7632](https://github.com/habitat-sh/habitat/pull/7632) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.4 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-04-21 [#7631](https://github.com/habitat-sh/habitat/pull/7631) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.3 -->
