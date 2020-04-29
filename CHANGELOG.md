@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.3 -->
-## [1.6.3](https://github.com/habitat-sh/habitat/tree/1.6.3) (2020-04-29)
+<!-- latest_release 1.6.4 -->
+## [1.6.4](https://github.com/habitat-sh/habitat/tree/1.6.4) (2020-04-29)
 
 #### Merged Pull Requests
-- Rustfmt and Nightly Rust Bump to nightly-2020-04-21 [#7631](https://github.com/habitat-sh/habitat/pull/7631) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
+- Update configopt [#7600](https://github.com/habitat-sh/habitat/pull/7600) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
 ### Changes since 1.6.0 release
 
 #### Merged Pull Requests
+- Update configopt [#7600](https://github.com/habitat-sh/habitat/pull/7600) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.4 -->
+- Automated update of Habitat Documentation [#7632](https://github.com/habitat-sh/habitat/pull/7632) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.4 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-04-21 [#7631](https://github.com/habitat-sh/habitat/pull/7631) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.3 -->
 - New Documentation Component [#7544](https://github.com/habitat-sh/habitat/pull/7544) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.2 -->
 - Update changelog post 1.6.0 [#7630](https://github.com/habitat-sh/habitat/pull/7630) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.1 -->
