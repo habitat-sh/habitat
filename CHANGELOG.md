@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.6 -->
-## [1.6.6](https://github.com/habitat-sh/habitat/tree/1.6.6) (2020-04-29)
+<!-- latest_release 1.6.7 -->
+## [1.6.7](https://github.com/habitat-sh/habitat/tree/1.6.7) (2020-04-29)
 
 #### Merged Pull Requests
-- [CI] Ensure release pipeline is not poisoned by old dependencies [#7650](https://github.com/habitat-sh/habitat/pull/7650) ([christophermaier](https://github.com/christophermaier))
+- Cargo Update [#7633](https://github.com/habitat-sh/habitat/pull/7633) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
 ### Changes since 1.6.0 release
 
 #### Merged Pull Requests
+- Cargo Update [#7633](https://github.com/habitat-sh/habitat/pull/7633) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.7 -->
 - [CI] Ensure release pipeline is not poisoned by old dependencies [#7650](https://github.com/habitat-sh/habitat/pull/7650) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.6 -->
 - Post-refresh cleanup [#7648](https://github.com/habitat-sh/habitat/pull/7648) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.5 -->
 - Update configopt [#7600](https://github.com/habitat-sh/habitat/pull/7600) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.4 -->
