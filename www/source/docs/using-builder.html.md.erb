@@ -1,119 +1,72 @@
 ---
-title: Chef Habitat Builder
+title: Using Builder
 description: Uploading, building, and deploying application packages with Chef Habitat Builder
 ---
-# <a name="using-builder" id="using-builder" data-magellan-target="using-builder">Chef Habitat Builder</a>
+# <a name="using-builder" id="using-builder" data-magellan-target="using-builder">Using Builder</a>
 
-[Chef Habitat Builder](httpowershell://bldr.habitat.sh/) is the publicly available site for storing, discovering, building, and deploying your Chef Habitat packages. Chef Habitat Builder supports public and private origins, packages, and Github repositories. Use the Chef Habitat Builder site to:
+<a target="_blank" href="https://bldr.habitat.sh/#/sign-in">Chef Habitat Builder</a> allows you to store, automatically build, and deploy your Chef Habitat packages. The documentation below covers everything from creating an account to setting up automated builds and exporting packages to a variety of container registries.
 
-* Create an account
-* Make and manage origins
-* Set up automated builds
-* Export packages to container registries
-* Discover packages and origins
-
-With some exceptions, Chef Habitat Builder actions have corresponding `hab` CLI commands. We'll try to be clear about actions that are exclusive to either the website or the command line. When both are possible, we provide the Builder actions first.
-
-We'll primarily use the `hab origin` command in this documentation. You'll also need `hab pkg` to upload packages from---and download to--your local environment and `hab bldr` for actions related to build jobs and channels. For more information on CLI commands covered in this section, see the full [hab CLI documentation](/docs/habitat-cli/).
-
-<Navigate to Builder circled>
+> For a guided walk-through of this process, try the [Build System demo](/demo/build-system/steps/1/).
 
 ---
-## <a name="builder-account" id="builder-account" data-magellan-target="builder-account">Create an Account</a>
+## <a name="builder-account" id="builder-account" data-magellan-target="builder-account">Create a Builder Account</a>
 
-### Prerequisites
+Setting up your Chef Habitat account is easy! All you need is a valid [GitHub account](https://github.com/join).
 
-* Download and install the Chef Habitat CLI
-* A [GitHub account](httpowershell://github.com/join)
+### Sign-in and Authorize Chef Habitat
 
-### Sign-in and Authorize Chef Habitat Builder
+Use the button below to simultaneously sign in to Builder and create your account. Chef Habitat Builder uses GitHub for authorization, so you'll see the prompt below authorizing the application.
 
-Signing in to Chef Habitat Builder automatically creates your account. Chef Habitat Builder uses GitHub for authorization. The first time you sign in, you will also need to authorize the Chef Habitat Builder application in Github.
+<a href="https://bldr.habitat.sh/#/sign-in" class="button cta" target="_blank">Sign in to Builder</a>
 
-Select this button for a quick start your sign-in:
+<img src="/images/screenshots/authorize.png">
 
-<a href="httpowershell://bldr.habitat.sh/#/sign-in" class="button cta" target="_blank">Sign in to Chef Habitat Builder</a>
-
-Select **Sign in with GitHub** to sign in with an existing GitHub account. If you need to set up a GitHub account, select the **Sign up here** link.
-
-![Chef Habitat sign in with Github](/images/screenshots/builder_signin.png)
-
-You also need to set up the Chef Habitat Builder application to use GitHub's authorization process the first time you sign in with GitHub. Once you have authorized Chef Habitat and signed in, you'll arrive at the 'My Origins' view.
-
-<img src="/images/screenshots/builder_authorize.png">
+Once you have authorized Chef Habitat and signed in, you'll arrive at the 'My Origins' view. At this point, other Chef Habitat users can invite you to existing origins or you can proceed to create your own (see the next section).
 
 ---
-## <a name="builder-profile" id="builder-profile" data-magellan-target="builder-profile">Set Up Your Profile</a>
+## <a name="builder-token" id="builder-token" data-magellan-target="builder-token">Create an Access Token</a>
 
-Access your Builder profile by selecting the **round icon at the top right corner** of the Builder page. Select the **profiles** option from the drop-down menu to customize your profile, including creating your personal access token.
+You can build and install Habitat artifacts without authenticating to Builder; however, some operations, like uploading your artifacts to Builder, or checking the status of your build jobs from the Habitat CLI, will require an access token.
 
-The Builder Profile:
+From the Builder site, select your user icon in the upper right-hand side, and select **Profile**.
 
-* Shows the GitHub account used to sign-in to Builder
-* Lets you add an email to your profile (optional)
-* Lets you create you personal access token (PAT)
+<img src="/images/screenshots/profile.png">
 
-<img src="/images/screenshots/builder_profile.png">
-
-### Register an Email Address
-
-Adding an email address to your Chef Habitat Builder profile account gives us permission to contact you directly about important information. If you use an email address associated with a GitHub account, it will also use your GitHub avatar on Builder. Save your changes by selecting `save`.
-
-<img src="/images/screenshots/builder_profile_user.png">
-
-### <a name="builder-token" id="builder-token" data-magellan-target="builder-token">Create a Personal Access Token (PAT)</a>
-
-You need a _personal access token_ to authenticate interactions between your local environment and Chef Habitat Builder, such as uploading your artifacts to Builder, or checking the status of your build jobs
-
-Create your personal access token at the bottom of the profile page (below the save button), by selecting **Generate Token**.
+At the bottom of the profile page, select **Generate Token**.
 
 <img src="/images/screenshots/generate-token.png">
 
-Copy your token from this page and save it in a safe location.
-If you forget your personal access token, then you will need to generate a new one.
+Copy your token from this page.
 
-####  <a name="builder-token-win" id="builder-token-win" data-magellan-target="builder-token-win">Set the PAT as a Windows Environment Variable</a>
+### Windows
 
-You can use your PAT as a [Windows environment variable](httpowershell://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-7) for a single session by passing it in the command line or use it continuously by saving it in your user settings.
+Save your Habitat authorization token as a permanent environment variable in Windows using:
 
-Set your PAT as a temporary environment variable from the command prompt with:
-
-```powershell
-$Env:HAB_AUTH_TOKEN = "<token>"
-```
-
-Replacing `<token>` with the contents of your generated token.
-
-Set your PAT as a permanent environment variable in the Windows Powerpowershell with the [setx command](httpowershell://docs.microsoft.com/en-us/windows-server/administration/windows-commands/setx):
-
-```powershell
+```PS
 SETX HAB_AUTH_TOKEN <token> /m
 ```
 
 Replacing <token> with the contents of your generated token.
 
-#### <a name="builder-token-win-ui" id="builder-token-win-ui" data-magellan-target="builder-token-win-ui">Set the PAT with the Windows User Interface</a>
+You can also save your Habitat authorization token as a permanent environment variable using the Windows user interface. In your Windows help bar, enter `environment` and select `Edit the system environment variables` from the list of suggestions.
 
-You can also set your PAT as a permanent environment variable through the Windows user interface.
-
-1. In your Windows help bar, enter **environment** and select **Edit the system environment variables` from the list of suggestions**
-1. This opens the _System Properties_ window on the _Advanced_ tab. Here, select the **Environment Variables** button.
+This opens the `System Properties` window on the `Advanced` tab. Select the `Environment Variables` button.
 
 <img src='/images/screenshots/environment_variable.png'>
 
-1. In the _Environment Variables_ window, select the **New** button. This opens a dialog box that lets you change individual user variables.
+In the next window, select the `New` button in the top part. This opens a dialog box that lets you set individual user variables.
 
 <img src='/images/screenshots/environment_variable_new.png'>
 
-1. In the dialog box, entering `HAB_AUTH_TOKEN` as the variable name and copy your PAT into the variable value field. Select the **OK** to save the setting. You'll see your PAT displayed in list of user variables.
+Create a permanent environment variable by entering `HAB_AUTH_TOKEN` as the variable name. Next, paste the authorization token that you copied after you generated a new token on your Habitat profile page as the variable value. After you select the `OK`, you will see the new token in the user variables field.
 
 <img src='/images/screenshots/environment_variable_new_var.png'>
 
-1. Test that your new token works, open the Command Prompt---which you can find by entering **command** in the Windows search box---and entering `echo %HAB_AUTH_TOKEN%`. You should see the value that you copied into the environment variable.
+To test that your new token works correctly, open the Command Prompt---which you can find by entering command in the Windows search box---and entering `echo %HAB_AUTH_TOKEN%`. You should see the value that you pasted into the environment variable.
 
 <img src='/images/screenshots/environment_variable_set.png'>
 
-####  <a name="builder-token-macos" id="builder-token-macos" data-magellan-target="builder-token-macos">Set the PAT as a MacOS Environment Variable</a>
+### MacOS
 
 Set the HAB_AUTH_TOKEN in the CLI with:
 
@@ -136,177 +89,129 @@ source ~/.bashrc
 ```
 
 ---
-## <a name="builder-origin" id="builder-origin" data-magellan-target="builder-origin">Create an Origin</a>
+## <a name="builder-origin" id="builder-origin" data-magellan-target="builder-origin">Create an Origin on Builder</a>
 
-An origin is a unique namespace in Builder for storing and sharing packages. You'll use the origin as the conceptual location of a package. For example, the "core" origin in Chef Habitat Builder is the namespace for the set of foundational packages maintained by the Chef Habitat team.
+Origins are unique namespaces that can be used to denote a particular upstream of a package. For example, the "core" origin is the set of foundational packages that are managed and versioned by the core Chef Habitat maintainers.
 
-From the _My Origins_ page in the Chef Habitat Builder web app, select the **Create origin** button, which opens the _Create New Origin_ form.
+From the My Origins page in the Chef Habitat Builder web app, click the **Create origin** button.
+
+> **Note** To join an existing origin, a current member of that origin will need to invite you. Pending invites will appear on the **My Origins** page for you to accept.
 
 <img src="/images/screenshots/create-origin.png">
 
-First, enter a unique name that you want to associate with a given set of packages. Some examples that you'll see in Chef Habitat Builder are team names, a user names, and abstract concepts, such as the "core" origin, is the set of foundational packages managed and versioned by the core Chef Habitat maintainers.
+### Choose an Origin Name
 
-Next, choose a privacy setting. This is the default privacy setting for new packages. You can override this setting when uploading individual packages from the CLI or by connecting a plan file that declares a package as private.
+Pick an origin that is your company name, team name, personal name, or some other unique name that you want to associate with a given set of packages. It's important to note that once you have uploaded a package into the depot, the origin that you chose when building that package can neither be edited nor deleted.
 
-  - Anyone can find and use public packages
-  - Only origin members can find and use private packages
+### Choose a Privacy Setting
 
-<img src="/images/screenshots/builder-create-origin-form.png">
+This is the default privacy setting applied to new packages. You can override this setting on individual packages when uploading or connecting a plan file.
 
-When you select **Save and Continue**, Chef Habitat Builder:
+Public packages will appear in public search results and can be used by any user, while private packages are restricted to members of the origin.
 
-1. Creates your origin
-1. Creates an origin key pair
-1. Redirects Chef Habitat Builder to the origin page
+---
+## <a name="origin-keys" id="origin keys" data-magellan-target="origin-keys">Using Origin Keys</a>
 
-### Create an Origin with the Chef Habitat CLI
+Creating an origin automatically generates an origin key pair.
 
-Use the [hab origin] commands to manage your origins from the command line.
+Origin key cryptography is asymmetric: it has a public origin key that you can distribute freely, and a private origin key that you should distribute only to members of the origin.
 
-Dreate an origin from the command line with the [hab origin create](/docs/habitat-cli/#hab-origin-create/) command
+Habitat Builder and Habitat Depot require access to at least the public origin key to verify artifacts uploaded to the origin.
 
-```
-hab origin create <origin>
-```
+Habitat uses the public origin key to verify the integrity of a downloaded Habitat artifact before installing it.
 
-The results of this command differ slightly from creating an origin on the Chef Habitat Builder site. The CLI command:
+Habitat only installs artifacts for which it has the public origin key.
 
-1. Creates an origin on the Chef Habitat Builder site
-1. Does not generate an origin key pair
+## Finding Origin Keys on Builder
 
-For more information, see the [`hab origin create`](/docs/habitat-cli/#hab-origin-create) CLI documentation.
-
-## <a name="origin-keys" id="origin keys" data-magellan-target="origin-keys">Origin Keys</a>
-
-When you create an origin through the site, Chef Habitat Builder automatically generates an origin key pair. Find your origin keys on the Builder site by navigating to your  origin and selecting the **Keys** tab.
+You can find your origin keys on the Builder site by navigating to the relevant origin and selecting the **Keys** tab.
 
 <img src="/images/screenshots/origin-keys.png">
 
-Download your private or public origin key, by selecting select the **download** icon from the right end of the key details, under the _Actions_ heading.
+### Finding Origin Keys Locally
 
-<img src="/images/screenshots/origin-key-download.png">
-
-Origin key cryptography is asymmetric: it has a public origin key that you can distribute freely, and a private origin key that you should distribute only to members of the origin. The key names follow a defined format:
-
-```hab
-<origin>-<datetime>.pub (public key)
-<origin>-<datetime>.sig.key (private key, also called a "signing key")
-```
-
-For example:
-
-```hab
-test-origin-20190416223046.pub
-test-origin-20190416223046.sig.key
-```
-
-* "test-origin" is the origin's name
-* "20190416223046" is the date and time of the key's creation, which was 2019-04-16 22:30:46.
-* `.pub` is the file extension for the public key
-* `.sig.key` is the file extension for the private key, also called a "signing key"
-
-Chef Habitat uses origin keys across its ecosystem:
-
-* Chef Habitat Builder and Chef Habitat Builder on-prem use origin keys to verify artifacts uploaded to the origin
-* Chef Habitat signs artifacts with the private origin key during the build
-* Chef Habitat authorizes installing artifacts with the public origin; Chef Habitat only installs artifacts for which it has the public origin key
-* Chef Habitat verifies the integrity of downloaded artifacts with the public origin key before installation
-
-### Managing Origin Keys with the Chef Habitat CLI
-
-Prerequisites:
-
-* [Download the Chef Habitat CLI](/docs/install-habitat)
-* [Create a Chef Habitat Builder account](/#builder-account)
-* [Generate a personal access token](/#builder-token)
-* [Create an origin with `hab origin create`](/#create-origin)
-
-Run Chef Habitat CLI commands from your local environment or from within the Chef Habitat Studio.
-
-#### Download Origin Keys from Builder
-
-To get your public origin key from Builder from the command line, use the command:
-
-```hab
-hab origin key download <ORIGIN>
-```
-
-#### View Local Origin Keys
-
-Chef Habitat stores your public and private origin keys at `~/.hab/cache/keys` on Linux systems, `C:\hab\cache\keys` on Windows, and at `/hab/cache/keys` inside of the Chef Habitat Studio environment.
-
-To see your existing origin keys in your local environment,
-
-On Linux or MacOS:
+You'll find your saved private and public origin keys at `~/.hab/cache/keys` on your host(local) machine and  at `/hab/cache/keys` inside the studio environment. To see your existing origin keys, from your host command line, run:
 
 ```bash
 ls -la ~/.hab/cache/keys
 ```
 
-On Windows:
-
-```PowerShell
+```PS
 Get-ChildItem C:\hab\cache\keys
 ```
 
-From inside of the Chef Habitat Studio,
-
-On Linux or MacOS:
+From within Habitat Studio, run:
 
 ```bash
 ls -la /hab/cache/keys
 ```
 
-On Windows:
-```powershell
+```PS
 Get-ChildItem C:\hab\cache\keys
 ```
 
-#### Generate Origin Keys
+### Creating Origin Keys
 
-The Chef Habitat CLI creates origin key pairs through two different commands, for two different uses:
+Creating an origin key pair on the Habitat Builder site automatically generates two keys, a private origin key and a public origin key. Habitat will use the private origin key to sign your Habitat artifacts when they are created and the public origin key to verify the integrity of artifacts for the origin when they are installed.
 
-* Use the [CLI setup](/docs/install-habitat) process to generate your first origin key pair
-* Use the `hab origin key generate <ORIGIN>` command if you created an another origin with the `hab origin create` command
+You can create an origin key pair during your initial Habitat installation by following the instructions in the `hab cli setup` interaction.
+If you've already installed Habitat, you can create keys for additional origins by running `hab origin key generate <ORIGIN>`, where <ORIGIN> is the name for your new Habitat origin, from either the host machine or from within the studio.
 
-Create origin keys with the `hab` command:
+To create origin keys from your host machine, use:
 
-```hab
+```bash
 hab origin key generate <ORIGIN>
 ```
 
-#### Upload Origin Keys to Builder
+Your keys will be stored in `~/.hab/cache/keys` on Linux systems.
 
-Creating an origin with the `hab origin create` command registers the origin on Chef Habitat Builder without creating an origin key pair. The `hab origin key generate` command creates the key pair and saves them in your local environment, but it does not upload either origin key to Chef Habitat Builder.
+```bash
+ls ~/.hab/cache/keys
 
-* Builder requires the public origin key to upload artifacts for that origin, so you'll need to upload it.
-* Builder requires the private origin key to enable new artifact builds from packages with plans linked to that origin.
-
-You can upload origin keys through the Chef Habitat Builder site.
-
-<img src="/images/screenshots/builder-origin-keys.png">
-
-Upload origin keys with the `hab` command:
-
-```hab
-hab origin key upload <ORIGIN>
+test-origin-20190416223046.pub
+test-origin-20190416223046.sig.key
 ```
 
-Upload the origin private key:
+In this case, the origin is named "test-origin". The string of numbers, "20190416223046" show the date and time the key was created, in this case, 2019-04-16 22:30:46. The public key has the file extension `.pub` and the private key has `.sig.key`, since the private key is used for cryptographically signing Habitat artifacts.
 
-```hab
+### Download Origin Keys from Builder
+
+To download your private or public origin key, select the download icon from the right end of the key details, under the "Actions" heading.
+
+<img src="/images/screenshots/origin-key-download.png">
+
+To get your public origin key from Builder from the command line, use the command:
+
+```bash
+hab origin key download <ORIGIN>
+```
+
+### Upload Origin Keys to Builder
+
+When you create Habitat origin keys on your workstation or in the Studio with `hab origin key generate <ORIGIN>`, your origin key pairs are stored in that environment. Habitat Builder cannot access origin keys stored on your workstation or in the Studio, which means that you need to upload keys to Builder either to upload or download your Habitat origins.
+
+At the very least, Builder requires the public origin key to verify the integrity of artifacts associated with the origin, so you'll need to upload it. Builder requires the public origin key to upload artifacts for that origin. You can also upload your private origin key to enable Builder to build new artifacts from packages whose plans are linked within the origin.
+
+Upload origin keys through the Builder web interface, or by using the `hab origin key upload` command. Uploading origin keys uses the Habitat access token for authentication.
+
+#### Upload Command
+
+The simplest method for uploading your keys is to use the commands:
+
+```bash
+hab origin key upload <ORIGIN>
 hab origin key upload --secret <ORIGIN>
 ```
 
-Upload both origin keys at the same time:
+To upload both origin keys at the same time, use:
 
-```hab
+```bash
 hab origin key upload  --secfile <PATH_TO_PRIVATE_KEY> --pubfile <PATH_TO_PUBLIC_KEY>
 ```
 
 #### Import Command
 
-Use `hab origin key import` to read the key from a standard input stream into Chef Habitat Builder:
+Use `hab origin key import` to read the key from a standard input stream:
 
 ```bash
 hab origin key import <enter or paste key>
@@ -330,48 +235,18 @@ Initialize the setting from the command line with:
  source ~/.bashrc
 ```
 
-For more information, see the [`hab origin key`](/docs/habitat-cli/#hab-origin-key) CLI documentation.
-
 ---
-## <a name="origin-settings" id="origin-settings" data-magellan-target="origin-settings">Origin Settings</a>
+## <a name="origin-secrets" id="origin-secrets" data-magellan-target="origin-secrets">Using Origin Secrets</a>
 
-The _Origin Settings_ tab contains:
+With the Chef Habitat CLI and a Builder account, you can encrypt and store secrets to expose at build time as environment variables in your Builder builds. This feature is helpful for plans requiring access to protected resources at build time, such as private source-code repositories, cloud storage providers and the like. Secrets are defined at the origin level, which makes them usable in any plan belonging to that origin.
 
-* _Default Package Settings_. Change the default setting for the origin by toggling between the **Public** and **Private** options.
-* _Origin Secrets_. Delete origin secrets by selecting the 'x'.
+To work with origin secrets, first create an [access token](#builder-token), and then apply it on the command line using either the `HAB_AUTH_TOKEN` environment variable or the `--auth` option, along with the associated origin. For example, to list the names of all secrets defined for a given origin, use the `list` subcommand:
 
-<img src="/images/screenshots/builder-origin-settings.png">
-
-## <a name="origin-secrets" id="origin-secrets" data-magellan-target="origin-secrets">Origin Secrets</a>
-
-Prerequisites:
-
-* [Download the Chef Habitat CLI](/docs/install-habitat)
-* [Create a Chef Habitat Builder account](/#builder-account)
-* [Generate a personal access token](/#builder-token)
-* [Create an origin with `hab origin create`](/#create-origin)
-* [Get origin keys](/#origin-keys)
-
-Origin secrets let you encrypt and store secrets as environment variables. Origin secrets are useful for plans requiring access to protected resources at build time, such as private source-code repositories and cloud storage providers. Origin secrets are defined at the origin level and they are available for any package belonging to that origin. Origin secrets are encrypted in your local environment using an origin encryption key. Only Chef Habitat Builder can read the encrypted origin secrets.
-
-![Chef Habitat Builder origin secrets](/images/screenshots/origin-secrets.png)
-
-### Manage Origin Secrets with the Chef Habitat CLI
-
-For example, to list the names of all secrets defined for a given origin, use the `list` subcommand:
-
-```hab
+```bash
 hab origin secret list --origin <ORIGIN> --auth <TOKEN>
 ```
 
-To save an origin secret, give the secret a name and string value:
-
-```hab
-hab origin secret upload AWS_ACCESS_KEY_ID <your-key-id>
-hab origin secret upload AWS_SECRET_ACCESS_KEY <your-secret-access-key>
-```
-
-Set your origin, token, and secrets as environment variables:
+You can also set your origin and token as environment variables:
 
 ```bash
 export HAB_ORIGIN=<ORIGIN>
@@ -379,24 +254,18 @@ export HAB_AUTH_TOKEN=<TOKEN>
 hab origin secret list
 ```
 
-You can delete a secret either from the _Origin Settings_ tab or with the Chef Habitat CLI:
+To create a new secret, give the secret a name and string value:
 
-```hab
-hab origin secret delete AWS_ACCESS_KEY_ID
-hab origin secret delete AWS_SECRET_ACCESS_KEY
+```bash
+hab origin secret upload AWS_ACCESS_KEY_ID your-key-id
+hab origin secret upload AWS_SECRET_ACCESS_KEY your-secret-access-key
 ```
 
-For more information, see the [`hab origin secret`](/docs/habitat-cli/#hab-origin-secret) CLI documentation.
+Once your secret has been uploaded, you can refer to it in your plan file as an environment variable, and Builder will supply its decrypted value during your build job.
 
-### <a name="origin-secrets-plan" id="origin-secrets-plan" data-magellan-target="origin-secrets-plan">Using Origin Secrets in Plans</a>
+For instance, if a plan required access to a file kept in a private bucket on Amazon S3, you might use the AWS CLI provided by the `core/awscli` package to download the file using secrets named `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, which would allow the `aws` binary to read them as environment variables at build time:
 
-After uploading your origin secret, you can refer to it in your plan file as an environment variable, for Chef Habitat Builder to supply its decrypted value during your build job.
-
-The followint plan uses the AWS CLI provided by the `core/awscli` package to download a file from a private Amazon S3 bucket using the origin secrets named `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
-
-This plan allows the `aws` binary to read the origin secrets as environment variables at build time:
-
-```rust
+```bash
 ...
 pkg_build_deps=(core/awscli)
 
@@ -408,66 +277,69 @@ do_download() {
 ...
 ```
 
----
+You can delete a secret either with the Chef Habitat CLI:
 
-## <a name="origin-members" id="origin-members" data-magellan-target="origin-members">Origin Membership</a>
+```bash
+hab origin secret delete AWS_ACCESS_KEY_ID
+hab origin secret delete AWS_SECRET_ACCESS_KEY
+```
 
-The creator of an origin automatically owns it.
+or in the Builder web interface, under the Settings tab for your origin:
 
-Whoever creates an origin owns it, unless
-    `depart`         Departs membership from selected origin
-    `help`           Prints this message or the help of the given subcommand(s)
-    `info`           Displays general information about an origin
-    `invitations`    Manage origin member invitations
-    `key`            Commands relating to Chef Habitat origin key maintenance
-    `secret`         Commands related to secret management
-    `transfer`       Transfers ownership of an origin to another member of that origin
+![Builder origin secrets](/images/screenshots/origin-secrets.png)
+
+> Secrets are encrypted locally using an origin encryption key. Their values are readable only by Builder.
 
 ---
-## <a name="origin-integrations" id="origin-integrations" data-magellan-target="origin-integrations">Integrations</a>
+## <a name="sharing-pkgs" id="sharing-pkgs" data-magellan-target="sharing-pkgs">Upload and Promote Packages</a>
 
-- [Download the Chef Habitat CLI](/docs/install-habitat)
-- [Create a Builder Account](/#builder-account)
-- [Generate a Personal Access Token](/#builder-token)
-- [Create an Origin](/#create-origin)
-- [Get Origin Keys](/#origin-keys)
+While you can build and run Chef Habitat packages without sharing them on [Chef Habitat Builder](https://bldr.habitat.sh), uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated.
 
-Docker Hub, its a docker hub account and password
+> Note: Chef Habitat Builder can only build Linux based plans (`plan.sh`) at this time.
 
-AmazonCR its an amazon container registry, and an IAM access key and secret
+Setting up Chef Habitat Builder is easily done on the website: these steps take you through connecting your local Studio development experience with Builder.
 
-Azure CR its an azure container registry, a  service principle id, and password
+You interact with Chef Habitat Builder by:
 
----
-## <a name="origin-packages" id="origin-packages" data-magellan-target="origin-packages">Packages in Builder</a>
+* Creating an account.
+* Creating an origin, or being invited to join an origin that already exists.
+* Setting up `hab` to authenticate with Builder.
+* Uploading the private and public keys for that origin.
+* Connecting your Github repositories and opting into rebuilds.
 
-While you can build and run Chef Habitat packages without sharing them on [Chef Habitat Builder](httpowershell://bldr.habitat.sh), uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated.
+Chef Habitat Builder supports both public and private origins, packages, and Github repositories.
 
-<img src=>
-### <a name="sharing-pkgs" id="sharing-pkgs" data-magellan-target="sharing-pkgs">Upload and Promote Packages</a>
+### Create a Builder Account
 
-Prerequisites:
+If you haven't created an account yet, see the [Create a Builder Account](/docs/using-builder/#builder-account) section above.
 
-* [Download the Chef Habitat CLI](/docs/install-habitat)
-* [Create a Chef Habitat Builder account](/#builder-account)
-* [Generate a personal access token](/#builder-token)
-* [Create an origin with `hab origin create`](/#create-origin)
-* [Get origin keys](/#origin-keys)
-* Connecting your Github repositories and opt into rebuilds
+### Create or Join an Existing Origin
 
+You can create your own origin in Builder or be invited to join an existing one. If you already built some Chef Habitat packages on your local computer prior to signing up for an account, you must rename your local packages' `pkg_origin` if the origin you want already exists.
 
-## Package Settings
+### Set up Chef Habitat to Authenticate to Builder
 
-- DEFAULT VISIBILITY
-- CONNECTED Plans
+When you upload a package to Builder, you are required to supply an auth token as part of the `hab pkg upload` subcommand. You can generate a Chef Habitat personal access token via the Builder site [Profile page](https://bldr.habitat.sh/#/profile) for use with the `hab` command-line utility.
 
-## PACKAGES
+Once you have this token, you can set the `HAB_AUTH_TOKEN` [environment variable](/docs/reference#environment-variables) to this value, so that any commands requiring authentication will use it.
 
-When you upload a package to Builder, you are required to supply an auth token as part of the `hab pkg upload` subcommand. You can generate a Chef Habitat personal access token via the Builder site [Profile page](httpowershell://bldr.habitat.sh/#/profile) for use with the `hab` command-line utility.
+### Create an Origin Key Pair
+
+After finishing the basic account creation steps, you need to create your origin key pair. Habitat will use the private origin key to sign the artifacts (`.hart` files) created by building your plan and verify the integrity of your artifacts with the public origin key.
+
+You can create an origin key pair by running `hab cli setup` from your host machine, or by running `hab origin key generate <ORIGIN>` from either the host machine or from within the studio.
+
+Your public and private origin keys are located at `~/.hab/cache/keys` on your host machine and at `/hab/cache/keys` inside the studio environment.
+
+### Upload Your Origin Keys
+
+If you created a new Habitat origin from your host machine or from the Studio, Builder will not have either of the origin keys corresponding to your artifact. Builder will not accept uploaded artifacts without first having the correct origin public key.
+
+You can upload keys for the origin through the web interface for Builder, or by using the `hab origin key upload` command. You must have the access token for authentication, as described earlier, before you can upload keys.
 
 ### Upload Packages to Builder
 
-As long as you are already a member of the Chef Habitat origin, once Builder possesses at least the public origin key, then you may upload one or more artifacts to that origin with the `hab pkg upload` command. After Chef Habitat validates the cryptographic integrity of the artifact, it is then uploaded and stored on Builder. Uploading artifacts is a privileged operation for which you must have the access token.
+As long as you are already a member of the Habitat origin, once Builder possesses at least the public origin key, then you may upload one or more artifacts to that origin with the `hab pkg upload` command. After Habitat validates the cryptographic integrity of the artifact, it is then uploaded and stored on Builder. Uploading artifacts is a privileged operation for which you must have the access token.
 
 ### Promote Packages
 
@@ -475,21 +347,21 @@ As long as you are already a member of the Chef Habitat origin, once Builder pos
 
 By default, newly uploaded packages are placed in the `unstable` channel. However, the default package that is downloaded is the latest `stable` version of a package, unless overridden in commands such as `hab sup run`, `hab svc load`, and `hab pkg install`. If you want to promote your package to the `stable` channel, run the `hab pkg promote` command as follows:
 
-```hab
+```bash
 $ hab pkg promote -z <TOKEN> origin/package/version/release stable
 ```
 
-> **Note** You can also promote packages to the `stable` channel using the **promote to stable** button in the web app.
+> **Note** You can also promote packages to the `stable` channel using the *promote to stable* button in the web app.
 
 For more information on how to use channels, see [Continuous Deployment Using Channels](/docs/using-habitat/#continuous-deployment).
 
-### Download Packages
+### Running Packages from Builder
 
 > **Note:** When running private packages from Builder, it's necessary to add your [Chef Habitat access token](/docs/using-builder/#builder-token) to the machine where you intend to deploy the package, via `export HAB_AUTH_TOKEN=<token>`.
 
 You can instruct the Supervisor to download and run packages from Builder by using the `hab sup` and `hab svc` commands, for example:
 
-```hab
+```bash
 $ hab sup run
 $ hab svc load core/postgresql
 ```
@@ -498,7 +370,7 @@ If the Supervisor does not have the `core/postgresql` package in its local cache
 
 You may also supply a `--channel` argument to instruct the Supervisor to use a different channel for the purposes of continuous deployment:
 
-```hab
+```bash
 $ hab svc load core/postgresql --channel unstable
 ```
 
@@ -509,58 +381,20 @@ An exported tarball package contains the Chef Habitat client/binary as well as d
 After deploying the tarball to your target server, extract the contents to the root filesystem (`/`):
 
 ```bash
-tar zxf core-nginx-1.11.10-20170616000025.tar.gz --directory /
+$ tar zxf core-nginx-1.11.10-20170616000025.tar.gz --directory /
 ```
 
 You can instruct the Supervisor to run packages from an exported tarball:
 
 ```bash
-/hab/bin/hab svc start core/nginx
+$ /hab/bin/hab svc start core/nginx
 ```
 
 Note: On a clean server, this will download additional packages to satisfy the Supervisor dependencies. You will also require a `hab` group and `hab` user on the system for most services.
 
 ---
+## <a name="multiple-plans-builder" id="multiple-plans-builder" data-magellan-target="multiple-plans-builder">Using Multiple Plans</a>
 
-## <a name="origin-builds" id="origin-builds" data-magellan-target="origin-builds">Build Jobs</a>
-
-What is a build job?
-Prerequisites
-
-## Package Settings
-
-- Default Visibility
-- Connect a plan
-- Connect multiple plans
-
-### Connect a Plan
-
-By connecting a plan file in <a href="httpowershell://bldr.habitat.sh/#/sign-in" class="link-external" target="_blank">Chef Habitat Builder</a>, you can trigger both manual (via the web UI, or via the `hab` command line) as well as automated package rebuilds whenever a change is merged into the `master` branch of the repository containing your Chef Habitat plan, or when a dependent package updates (rebuilds).
-
-To connect a plan to Builder, view one of your origins (while signed in), select **Connect a plan file** and complete the following stepowershell:
-
-  - Select the plan's operating system
-  - Choose the GitHub organization and repository containing your Chef Habitat plan
-  - Enter the path to your plan file
-  - Review the privacy setting for the package
-  - Specify container registry publishing settings (optional, default is none)
-  - Specify automatic dependency rebuild option (default is off)
-  - Select **Save the Connection**
-
-You can connect plans for more than one operating system [architecture?] in Builder, which supports for Linux, Linux Kernel 2, and Windows systems.
-
-#### Container registry publishing settings
-
-Toggle the switch to the on positions reveals and select from the of enabled registries. See the origin Integrations tab for more information on enabling registries.
-
-#### Automatic Dependency Rebuild
-
-The auto-build option controls whether or not your package will get automatically re-built. This option is a useful capability to have - for example, if you have a demo app that doesn’t need to be kept constantly up to date when some underlying dependency updates. Auto-build encompasses both builds that are triggered by Github web hooks (on commits to master), as well as builds that are triggered by a dependency updating.
-
-By default, new plan connections will have auto-build turned off.
-
-#### <a name="multiple-plans-builder" id="multiple-plans-builder" data-magellan-target="multiple-plans-builder">Building Plans with Multiple Components</a>
-<%# Move this section to Plans %>
 If you have a GitHub repository with multiple components inside, you will most likely also have individual plans for those components that are located inside of component subfolders. By default, Builder will only look for a package plan in either the root of the repository, or in a `habitat` subfolder at the root. If it does not find a plan file in those locations, it will not automatically issue builds when it detects file changes in the repository.
 
 In order to tell Builder about the location of the individual plan files, and in order provide more fine-grained control over when component packages are built, you can programmatically customize how and when Builder will build your plans by specifying build behavior in a `.bldr.toml` file at the root of the repository that you connect to Builder.
@@ -575,7 +409,7 @@ To enable this functionality, do the following:
 
     The `.bldr.toml` file is in TOML format, so create a TOML table specifying the `$pkg_name` value for that plan and then add a `plan_path` field specifying the path to your `plan.sh` file (you do not need to include plan.sh explicitly in the path). If all the files related to the plan are under the plan path, then you are done. Otherwise, you will need an additional 'paths' field specifying Unix-style path globs to files that are associated with the plan you specified in the 'plan_path'. File or directory changes made in these path locations determine which packages will be rebuilt. Basically, when a file is committed, Builder will check to see whether it falls underneath the `plan_path` hierarchy, or matches one of the globs in the `paths` field if it was specified - if the answer is yes, then Builder will issue a build for that commit.
 
-    It's important to note that the entries for `plan_path` and `paths` do not behave the same. If you have something like `plan_path = "habitat"`, that behaves as if you had written `plan_path = "habitat/**"` - that is, it will automatically check every file under the `habitat` directory. However, if you have something like `paths = [ "src" ]`, that is _not_ automatically expanded to `src/**`. That line will only watch for changes to a file called `src`. If you're wanting to watch for changes to any file inside the `src` directory, then you must explicitly specify the glob, like so: `paths = [ "src/**" ]`.
+    It's important to note that the entries for `plan_path` and `paths` do not behave the same. If you have something like `plan_path = "habitat"`, that behaves as if you had written `plan_path = "habitat/*"` - that is, it will automatically check every file under the `habitat` directory. However, if you have something like `paths = [ "src" ]`, that is _not_ automatically expanded to `src/*`. That line will only watch for changes to a file called `src`. If you're wanting to watch for changes to any file inside the `src` directory, then you must explicitly specify the glob, like so: `paths = [ "src/*" ]`.
 
     For example, in the Chef Habitat repository itself, this TOML states that the `hab-launcher`, `hab-studio`, and `hab-sup` packages will be rebuilt if there are any changes in any of the specified `components` sub-directories. Note that `hab-studio` does not need to specify a `path` because all of it's files are within the `plan_path` hierarchy, but that is not the case for the other projects.
 
@@ -584,8 +418,8 @@ To enable this functionality, do the following:
     [hab-launcher]
     plan_path = "components/launcher/habitat"
     paths = [
-      "components/launcher/**",
-      "components/launcher-protocol/**",
+      "components/launcher/*",
+      "components/launcher-protocol/*",
       "support/ci/builder-base-plan.sh",
     ]
 
@@ -595,24 +429,24 @@ To enable this functionality, do the following:
     [hab-sup]
     plan_path = "components/sup"
     paths = [
-      "components/sup/**",
-      "components/eventsrv-client/**",
-      "components/launcher-client/**",
-      "components/butterfly/**",
-      "components/core/**",
-      "components/builder-depot-client/**",
+      "components/sup/*",
+      "components/eventsrv-client/*",
+      "components/launcher-client/*",
+      "components/butterfly/*",
+      "components/core/*",
+      "components/builder-depot-client/*",
     ]
     ```
 
-    Notice that in order to specify that we're interested in all files inside of the directories in our `paths` entries, we had to add the `/**` glob to the end manually.
+    Notice that in order to specify that we're interested in all files inside of the directories in our `paths` entries, we had to add the `/*` glob to the end manually.
 
     It's also worth pointing out that there are multiple wildcard characters you can use when specifying path components.
 
-** `?` will match any single character.
-** `**` will match any (possibly empty) sequence of characters
-** `**` matches the current directory and arbitrary subdirectories. This sequence must form a single path component, so both `**a` and `b**` are invalid. More than two consecutive `**` characters is also invalid.
-** `[...]` matches any character inside the brackets. You can also specify a range, such as `[0-9]` to match any digit or `[a-z]` to match any lowercase letter.
-** `[!...]` is the negation of `[...]` so it will match any character **not** in the brackets.
+* `?` will match any single character.
+* `*` will match any (possibly empty) sequence of characters
+* `**` matches the current directory and arbitrary subdirectories. This sequence must form a single path component, so both `**a` and `b**` are invalid. More than two consecutive `*` characters is also invalid.
+* `[...]` matches any character inside the brackets. You can also specify a range, such as `[0-9]` to match any digit or `[a-z]` to match any lowercase letter.
+* `[!...]` is the negation of `[...]` so it will match any character *not* in the brackets.
 
     Note that while the above set of rules bears a remarkable resemblance to regular expressions, we do not support full regular expression syntax. Only what's shown here is supported. Here is an example.
 
@@ -622,37 +456,48 @@ To enable this functionality, do the following:
     plan_path = "components/sup"          # automatically checks every file inside the 'sup' directory
     paths = [
       "components/sup/?",                 # matches any file with a single character file name inside the 'sup' directory
-      "components/eventsrv-client/**",     # matches any file inside the 'eventsrv-client' directory
-      "components/launcher-client/**/**",  # matches any file inside the 'launcher-client' directory and also any of its sub-directories
-      "components/butterfly/[0-9]**"       # matches any file inside the 'butterfly' directory that begins with a number
+      "components/eventsrv-client/*",     # matches any file inside the 'eventsrv-client' directory
+      "components/launcher-client/**/*",  # matches any file inside the 'launcher-client' directory and also any of its sub-directories
+      "components/butterfly/[0-9]*"       # matches any file inside the 'butterfly' directory that begins with a number
     ]
     ```
----
-## <a name="package-search" id="package-search" data-magellan-target="package-search">Search for Packages</a>
-
-section: Search Packages
-  explain: search works on the origin and package level.
-  explain: Once you're on the package, clicking the origin sends you to the package list for that origin. You cannot get to an origin list from search
-  explain: that this search is stupid
-  explain: Does not accept wild cards
-  explain: using `/` breaks search **unless** it is the middle (exact string match). Likewise, leaving it out `core ruby` returns nothing.
-  explain: `ruby` is different from `ruby26`
 
 ---
-## <a name="on-prem" id="on-prem" data-magellan-target="on-prem">Install and Use Builder On-Prem</a>
+## <a name="automated-builds" id="automated-builds" data-magellan-target="automated-builds">Set up Automated Builds</a>
 
-Chef also supports installing and running a Chef Habitat Builder on-premises on your own network and infrastructure, which allows you to choose from a wider selection of authentication providers and to manage how Builder fits into your existing CI/CD processes.
+By connecting a plan file in <a href="https://bldr.habitat.sh/#/sign-in" class="link-external" target="_blank">Chef Habitat Builder</a>, you can trigger both manual (via the web UI, or via the `hab` command line) as well as automated package rebuilds whenever a change is merged into the `master` branch of the repository containing your Chef Habitat plan, or when a dependent package updates (rebuilds).
 
-Currently, Builder on-prem stores packages for download and upload by Supervisors and Studios.
+### Connect a Plan
 
-For a detailed explanation of features, requirements and setup instructions, [see the GitHub repository](httpowershell://github.com/habitat-sh/on-prem-builder).
+To connect a plan to Builder, view one of your origins (while signed in), click the **Connect a plan file** button, and complete the following steps:
+
+  - Install the Builder GitHub App
+  - Choose the GitHub organization and repository containing your Chef Habitat plan
+  - Choose a privacy setting for the package
+  - Specify container-registry publishing settings (optional)
+  - Specify auto-build option (default is off)
+
+#### Auto-build Option
+
+The auto-build option controls whether or not your package will get automatically re-built. This option is a useful capability to have - for example, if you have a demo app that doesn’t need to be kept constantly up to date when some underlying dependency updates. Auto-build encompasses both builds that are triggered by Github web hooks (on commits to master), as well as builds that are triggered by a dependency updating.
+
+By default, new plan connections will have auto-build turned off.
+
+---
+## <a name="on-prem" id="on-prem" data-magellan-target="on-prem">Install and Use Builder On-Premises</a>
+
+In addition to our hosted service, we also support installing and running a Chef Habitat Builder Depot on-premises, using your own network and infrastructure, which allows you to choose from a wider selection of authentication providers and to manage how Builder fits into your existing CI/CD processes.
+
+Currently, our on-premises Builder depot only stores packages for download and upload by Supervisors and Studios. We intend to bring the full capabilities of Chef Habitat Builder to our on premises option in the future.
+
+For a detailed explanation of features, requirements and setup instructions, [see the GitHub repository](https://github.com/habitat-sh/on-prem-builder).
 
 ---
 ## <a name="using-custom-certs" id="using-custom-certs" data-magellan-target="using-custom-certs">Using Custom Certificates</a>
 
-Enterprise environments often use custom certificates (for example, self-signed). For example, an on-premises Chef Habitat Builder Depot might have a self-signed SSL certificate.
+Many enterprise environments use custom certificates (for example, self-signed). For example, an on-premises Chef Habitat Builder Depot might have a self-signed SSL certificate.
 
-Attempting to perform an operation using the Chef Habitat client to communicate with a service that has a custom certificate can produce an error, such as:
+Attempting to perform an operation using the Habitat client to communicate with a service that has a custom certificate can produce an error, such as:
 ```
 ✗✗✗
 ✗✗✗ the handshake failed: The OpenSSL library reported an error: error:14090086:SSL routines:ssl3_get_server_certificate:certificate verify failed:s3_clnt.c:1269:: unable to get local issuer certificate
@@ -661,8 +506,8 @@ Attempting to perform an operation using the Chef Habitat client to communicate 
 
 One option to remediate this error is to define a `SSL_CERT_FILE` environment variable pointing to the custom certificate path before performing the client operation.
 
-The Chef Habitat 0.85.0 release in September 2019 improved the handling of custom certificates.  Now Chef Habitat knows to look for custom certificates in the `~/.hab/cache/ssl` directory, which is `/hab/cache/ssl` when you are running as root. Copying certificates--for example, a self-signed certificate and a custom certificate authority certificate--to the Chef Habitat cache directory makes them automatically available to the Chef Habitat client.
+The Habitat 0.85.0 release in September 2019 improved the handling of custom certificates.  Now Habitat knows to look for custom certificates in the `~/.hab/cache/ssl` directory, which is `/hab/cache/ssl` when you are running as root. Copying multiple certificates--for example, a self-signed certificate and a custom certificate authority certificate--to the Chef Habitat cache directory makes them automatically available to the Habitat client.
 
-The `/hab/cache/ssl` directory is also available inside a Chef Habitat Studio. As long as the certificates are inside the cache directory before you enter the Studio, you'll also find them inside the Studio. If you've set the `SSL_CERT_FILE` environment variable, you'll also find both it and the file that it points to inside the Studio`/hab/cache/ssl` directory.
+The `/hab/cache/ssl` directory is also available inside a Habitat Studio. As long as the certificates are inside the cache directory before you enter the Studio, you'll also find them inside the Studio. In addition, if you've set the `SSL_CERT_FILE` environment variable, you'll also find both it and the file that it points to inside the Studio`/hab/cache/ssl` directory.
 
-Note: The `cert.pem` file name is reserved for Chef Habitat. Do not use `cert.pem` as a file name when copying certs into the cache directory.
+Note: The `cert.pem` file name is reserved for Habitat. Do not use `cert.pem` as a file name when copying certs into the cache directory.
