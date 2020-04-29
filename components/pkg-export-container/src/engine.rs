@@ -37,6 +37,26 @@ enum EngineError {
     PushFailed(ExitStatus),
     #[fail(display = "Unknown Container Engine '{}' was specified.", _0)]
     UnknownEngine(String),
+    #[fail(display = "Cannot use `--engine=buildah` with `--multi-layer` due to https://github.com/containers/buildah/issues/2215. Please use `--engine=docker` or remove `--multi-layer`.")]
+    BuildahIncompatibleWithMultiLayer,
+}
+
+/// Due to a bug in Buildah, any layers that we create in a
+/// multi-layer build won't get reused, which eliminates any benefit
+/// we might get from them.
+///
+/// Until that bug is fixed, we'll prevent using Buildah to create
+/// multi-layer images, as the confusion arising from generating
+/// multiple layers but not being able to reuse any of them is
+/// something that's better to avoid.
+///
+/// When https://github.com/containers/buildah/issues/2215 is fixed,
+/// we can update our Buildah dependency and remove this check.
+pub fn fail_if_buildah_and_multilayer(matches: &ArgMatches) -> Result<()> {
+    if matches.value_of("ENGINE") == Some("buildah") && matches.is_present("MULTI_LAYER") {
+        return Err(EngineError::BuildahIncompatibleWithMultiLayer.into());
+    }
+    Ok(())
 }
 
 /// Things that can build containers!

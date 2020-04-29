@@ -12,7 +12,8 @@ pub use crate::{build::BuildSpec,
                 cli::cli,
                 container::{BuildContext,
                             ContainerImage},
-                engine::Engine,
+                engine::{fail_if_buildah_and_multilayer,
+                         Engine},
                 error::{Error,
                         Result}};
 use habitat_common::ui::{Status,
@@ -147,6 +148,8 @@ pub async fn export_for_cli_matches(ui: &mut UI,
                                     matches: &clap::ArgMatches<'_>)
                                     -> Result<Option<ContainerImage>> {
     os::ensure_proper_docker_platform()?;
+
+    fail_if_buildah_and_multilayer(matches)?;
 
     let spec = BuildSpec::try_from(matches)?;
     let naming = Naming::from(matches);
