@@ -577,6 +577,7 @@ steps:
         limit: 1
 
   - label: "[build] :linux: backline"
+    skip: "Don't build in verify pipeline until after May 2020 release"
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
@@ -616,6 +617,7 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-cfize"
+    skip: "Don't build in verify pipeline until after May 2020 release"
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
