@@ -291,6 +291,78 @@ or in the Builder web interface, under the Settings tab for your origin:
 > Secrets are encrypted locally using an origin encryption key. Their values are readable only by Builder.
 
 ---
+## <a name="origin-members" id="origin-members" data-magellan-target="origin-members">Origin Membership</a>
+
+The creator of an origin is automatically its owner and can invite other GitHub members to your origin from the _Origin Members_ tab.
+Members are able to upload and use any of the private and public packages in the origin and invite new members. In addition to regular member privileges, the owner can remove other members and transfer origin ownership (Chef Habitat CLI).
+
+![Manage origin members](../images/screenshots/builder_origin_members.png)
+
+### Comparison of Origin Owner and Member Actions
+
+| Action | Owner | Member |
+|---------|-------| -------|
+| Use public packages | Yes | Yes |
+| Use private packages | Yes | Yes |
+| See invitations as user| Yes | Yes |
+| Accept invitations as user| Yes | Yes |
+| Ignore invitations as user| Yes | Yes |
+| Invite members to origin | Yes | Yes |
+| Rescind pending origin invitation | Yes | Yes |
+| See pending origin invitations | Yes | No |
+| Transfer origin ownership | Yes | No |
+
+
+### Manage Origin Membership with the Chef Habitat CLI
+
+Manage Chef Habitat Builder origin membership with the Chef Habitat CLI, using the [hab origin invitations](/docs/habitat-cli/#hab-origin-invitations) command.
+
+All Chef Habitat Builder users can accept, ignore, and see invitations for their accounts:
+
+View origin invitations:
+
+```bash
+hab origin invitations list
+```
+
+Accept origin invitations:
+
+```bash
+hab origin invitations accept <ORIGIN> <INVITATION_ID>
+```
+
+Ignore origin invitations:
+
+```bash
+hab origin invitations ignore <ORIGIN> <INVITATION_ID>
+```
+
+All origin members can send origin membership invitations:
+
+```bash
+hab origin invitations send <ORIGIN> <INVITEE_ACCOUNT>
+```
+
+Origin owners can see all pending origin membership invitations and rescind invitations:
+
+```bash
+hab origin invitations pending <ORIGIN>
+```
+
+Rescind an origin membership invitation:
+
+
+```bash
+hab origin invitations rescind <ORIGIN> <INVITATION_ID>
+```
+
+Origin owners can transfer origin ownership to another member with the [`hab origin tranfer`](/docs/habitat-cli/#hab-origin-transfer) command:
+
+```bash
+hab origin transfer [OPTIONS] <ORIGIN> <NEW_OWNER_ACCOUNT>
+```
+
+---
 ## <a name="sharing-pkgs" id="sharing-pkgs" data-magellan-target="sharing-pkgs">Upload and Promote Packages</a>
 
 While you can build and run Chef Habitat packages without sharing them on [Chef Habitat Builder](https://bldr.habitat.sh), uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated.
