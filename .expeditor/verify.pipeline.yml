@@ -578,7 +578,6 @@ steps:
         limit: 1
 
   - label: "[build] :linux: backline"
-    skip: "Don't build in verify pipeline until after May 2020 release"
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux"
@@ -621,7 +620,6 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-cfize"
-    skip: "Don't build in verify pipeline until after May 2020 release"
     env:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-linux"
@@ -747,7 +745,6 @@ steps:
           privileged: true
 
   - label: "[build] :linux: :two: build hab-backline"
-    skip: "Don't build in verify pipeline until after May 2020 release"
     command:
       - .expeditor/scripts/verify/build_package.sh components/backline
     env:
