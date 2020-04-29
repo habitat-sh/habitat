@@ -8,13 +8,8 @@ Add-Type -TypeDefinition (Get-Content "$PSScriptroot/../../.expeditor/scripts/en
 $env:FS_ROOT = (Join-Path ([System.IO.Path]::GetTempPath()) ([System.IO.Path]::GetRandomFileName()))
 New-Item $env:FS_ROOT -ItemType Directory -Force
 
-# Installing the launcher here because FS_ROOT is an imperfect
-# abstraction that needs to be removed. It turns out that even if
-# FS_ROOT is in place, we still look for the launcher in
-# `/hab` when we start up.
-#
-# Once we remove FS_ROOT completely, we'll need to rethink how
-# this test works, since we can't really make `/` read-only
+# Installing the launcher here because FS_ROOT is an imperfect abstraction. It turns out that even
+# if FS_ROOT is in place, we still look for the launcher in `/hab` when we start up.
 hab pkg install core/hab-launcher
 
 Describe "Supervisor startup failure" {
