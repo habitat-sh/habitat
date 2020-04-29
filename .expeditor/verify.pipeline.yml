@@ -628,19 +628,6 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[build] :linux: pkg-dockerize"
-    env:
-      HAB_LICENSE: "accept-no-persist"
-    command:
-      - .expeditor/scripts/verify/build_package.sh components/pkg-dockerize
-    expeditor:
-      executor:
-        linux:
-          privileged: true
-    retry:
-      automatic:
-        limit: 1
-
   - label: "[build] :linux: pkg-export-docker"
     env:
       HAB_LICENSE: "accept-no-persist"
