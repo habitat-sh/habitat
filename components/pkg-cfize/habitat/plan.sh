@@ -10,13 +10,6 @@ pkg_upstream_url="https://github.com/habitat-sh/habitat"
 # explicitly call it here, so it's a dependency. Docker doesn't have
 # any dependencies, so we can unpin here without worrying about
 # getting dependency conflicts.
-#
-# We're pinning the other dependencies to their pre base-plans refresh
-# versions for the time being for explicitness, due to a bug in how
-# `hab pkg install` works in the context of our release pipeline.
-#
-# It's a bit of a moot point, though, since Docker's not going to run
-# on older kernels anyway.
 pkg_deps=(core/coreutils
           core/findutils
           core/grep
