@@ -146,25 +146,45 @@ source ~/.bashrc
 ```
 
 ---
-## <a name="builder-origin" id="builder-origin" data-magellan-target="builder-origin">Create an Origin on Builder</a>
+## <a name="builder-origin" id="builder-origin" data-magellan-target="builder-origin">Create an Origin</a>
 
-Origins are unique namespaces that can be used to denote a particular upstream of a package. For example, the "core" origin is the set of foundational packages that are managed and versioned by the core Chef Habitat maintainers.
+An origin is a unique namespace in Builder for storing and sharing packages. You'll use the origin as the conceptual location of a package. For example, the "core" origin in Chef Habitat Builder is the namespace for the set of foundational packages maintained by the Chef Habitat team.
 
-From the My Origins page in the Chef Habitat Builder web app, click the **Create origin** button.
-
-> **Note** To join an existing origin, a current member of that origin will need to invite you. Pending invites will appear on the **My Origins** page for you to accept.
+From the _My Origins_ page in the Chef Habitat Builder web app, select the **Create origin** button, which opens the _Create New Origin_ form.
 
 <img src="/images/screenshots/create-origin.png">
 
-### Choose an Origin Name
+First, enter a unique name that you want to associate with a given set of packages. Some examples that you'll see in Chef Habitat Builder are team names, a user names, and abstract concepts, such as the "core" origin, is the set of foundational packages managed and versioned by the core Chef Habitat maintainers.
 
-Pick an origin that is your company name, team name, personal name, or some other unique name that you want to associate with a given set of packages. It's important to note that once you have uploaded a package into the depot, the origin that you chose when building that package can neither be edited nor deleted.
+Next, choose a privacy setting. This is the default privacy setting for new packages. You can override this setting when uploading individual packages from the CLI or by connecting a plan file that declares a package as private.
 
-### Choose a Privacy Setting
+  - Anyone can find and use public packages
+  - Only origin members can find and use private packages
 
-This is the default privacy setting applied to new packages. You can override this setting on individual packages when uploading or connecting a plan file.
+<img src="/images/screenshots/builder-create-origin-form.png">
 
-Public packages will appear in public search results and can be used by any user, while private packages are restricted to members of the origin.
+When you select **Save and Continue**, Chef Habitat Builder:
+
+1. Creates your origin
+1. Creates an origin key pair
+1. Redirects Chef Habitat Builder to the origin page
+
+### Create an Origin with the Chef Habitat CLI
+
+Use the [hab origin] commands to manage your origins from the command line.
+
+Dreate an origin from the command line with the [hab origin create](/docs/habitat-cli/#hab-origin-create/) command
+
+```
+hab origin create <origin>
+```
+
+The results of this command differ slightly from creating an origin on the Chef Habitat Builder site. The CLI command:
+
+1. Creates an origin on the Chef Habitat Builder site
+1. Does not generate an origin key pair
+
+For more information, see the [`hab origin create`](/docs/habitat-cli/#hab-origin-create) CLI documentation.
 
 ---
 ## <a name="origin-keys" id="origin keys" data-magellan-target="origin-keys">Using Origin Keys</a>
