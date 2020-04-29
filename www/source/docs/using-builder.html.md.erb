@@ -360,17 +360,45 @@ Initialize the setting from the command line with:
 ```
 
 ---
-## <a name="origin-secrets" id="origin-secrets" data-magellan-target="origin-secrets">Using Origin Secrets</a>
+## <a name="origin-settings" id="origin-settings" data-magellan-target="origin-settings">Origin Settings</a>
 
-With the Chef Habitat CLI and a Builder account, you can encrypt and store secrets to expose at build time as environment variables in your Builder builds. This feature is helpful for plans requiring access to protected resources at build time, such as private source-code repositories, cloud storage providers and the like. Secrets are defined at the origin level, which makes them usable in any plan belonging to that origin.
+The _Origin Settings_ tab contains:
 
-To work with origin secrets, first create an [access token](#builder-token), and then apply it on the command line using either the `HAB_AUTH_TOKEN` environment variable or the `--auth` option, along with the associated origin. For example, to list the names of all secrets defined for a given origin, use the `list` subcommand:
+* _Default Package Settings_. Change the default setting for the origin by toggling between the **Public** and **Private** options.
+* _Origin Secrets_. Delete origin secrets by selecting the 'x'.
 
-```bash
+<img src="/images/screenshots/builder-origin-settings.png">
+
+## <a name="origin-secrets" id="origin-secrets" data-magellan-target="origin-secrets">Origin Secrets</a>
+
+Prerequisites:
+
+* [Download the Chef Habitat CLI](/docs/install-habitat)
+* [Create a Chef Habitat Builder account](/#builder-account)
+* [Generate a personal access token](/#builder-token)
+* [Create an origin with `hab origin create`](/#create-origin)
+* [Get origin keys](/#origin-keys)
+
+Origin secrets let you encrypt and store secrets as environment variables. Origin secrets are useful for plans requiring access to protected resources at build time, such as private source-code repositories and cloud storage providers. Origin secrets are defined at the origin level and they are available for any package belonging to that origin. Origin secrets are encrypted in your local environment using an origin encryption key. Only Chef Habitat Builder can read the encrypted origin secrets.
+
+![Chef Habitat Builder origin secrets](/images/screenshots/origin-secrets.png)
+
+### Manage Origin Secrets with the Chef Habitat CLI
+
+For example, to list the names of all secrets defined for a given origin, use the `list` subcommand:
+
+```hab
 hab origin secret list --origin <ORIGIN> --auth <TOKEN>
 ```
 
-You can also set your origin and token as environment variables:
+To save an origin secret, give the secret a name and string value:
+
+```hab
+hab origin secret upload AWS_ACCESS_KEY_ID <your-key-id>
+hab origin secret upload AWS_SECRET_ACCESS_KEY <your-secret-access-key>
+```
+
+Set your origin, token, and secrets as environment variables:
 
 ```bash
 export HAB_ORIGIN=<ORIGIN>
@@ -378,16 +406,22 @@ export HAB_AUTH_TOKEN=<TOKEN>
 hab origin secret list
 ```
 
-To create a new secret, give the secret a name and string value:
+You can delete a secret either from the _Origin Settings_ tab or with the Chef Habitat CLI:
 
-```bash
-hab origin secret upload AWS_ACCESS_KEY_ID your-key-id
-hab origin secret upload AWS_SECRET_ACCESS_KEY your-secret-access-key
+```hab
+hab origin secret delete AWS_ACCESS_KEY_ID
+hab origin secret delete AWS_SECRET_ACCESS_KEY
 ```
 
-Once your secret has been uploaded, you can refer to it in your plan file as an environment variable, and Builder will supply its decrypted value during your build job.
+For more information, see the [`hab origin secret`](/docs/habitat-cli/#hab-origin-secret) CLI documentation.
 
-For instance, if a plan required access to a file kept in a private bucket on Amazon S3, you might use the AWS CLI provided by the `core/awscli` package to download the file using secrets named `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, which would allow the `aws` binary to read them as environment variables at build time:
+### <a name="origin-secrets-plan" id="origin-secrets-plan" data-magellan-target="origin-secrets-plan">Using Origin Secrets in Plans</a>
+
+After uploading your origin secret, you can refer to it in your plan file as an environment variable, for Chef Habitat Builder to supply its decrypted value during your build job.
+
+The following plan uses the AWS CLI provided by the `core/awscli` package to download a file from a private Amazon S3 bucket using the origin secrets named `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+
+This plan allows the `aws` binary to read the origin secrets as environment variables at build time:
 
 ```bash
 ...
@@ -400,19 +434,6 @@ do_download() {
 }
 ...
 ```
-
-You can delete a secret either with the Chef Habitat CLI:
-
-```bash
-hab origin secret delete AWS_ACCESS_KEY_ID
-hab origin secret delete AWS_SECRET_ACCESS_KEY
-```
-
-or in the Builder web interface, under the Settings tab for your origin:
-
-![Builder origin secrets](/images/screenshots/origin-secrets.png)
-
-> Secrets are encrypted locally using an origin encryption key. Their values are readable only by Builder.
 
 ---
 ## <a name="sharing-pkgs" id="sharing-pkgs" data-magellan-target="sharing-pkgs">Upload and Promote Packages</a>
