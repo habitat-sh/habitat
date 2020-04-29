@@ -131,7 +131,7 @@ app_root/
 
 On Windows, only a `plan.ps1` will be used and a `plan.sh` will only be used on Linux or Linux kernel 2. So if your application requires different plans for Linux and Linux Kernel 2, even without hooks and configuration templates, you will need to use target folders for each platform.
 
-### Buildtime Workflow
+## <a name="buildtime-workflow" id="buildtime-workflow" data-magellan-target="buildtime-workflow" type="anchor">Buildtime Workflow</a>
 
 For buildtime installation and configuration, workflow steps need to be included in the plan file to define how you will install your application source files into a package. Before writing your plan, you should know and understand how your application binaries are currently built, installed, what their dependencies are, and where your application or software library expects to find those dependencies.
 
@@ -145,7 +145,7 @@ The main steps in the buildtime workflow are the following:
 
 The following sections describe each of these steps in more detail.
 
-#### Create your Package Identifier
+### Create your Package Identifier
 
 The origin is a place for you to set default privacy rules, store your packages, and collaborate with teammates. For example, the "core" origin is where the core maintainers of Chef Habitat share packages that are foundational to building other packages. If you would like to browse them, they are located in the [core-plans repo](https://github.com/habitat-sh/core-plans), and on [Chef Habitat Builder's Core Origin](https://bldr.habitat.sh/#/pkgs/core).
 
@@ -153,7 +153,7 @@ Creating artifacts for a specific origin requires that you have access to the th
 
 The next important part of your package identifier is the name of the package. Standard naming convention is to base the name of the package off of the name of the source or project you download and install into the package.
 
-#### Add Licensing and Contact Information
+### Add Licensing and Contact Information
 
 You should enter your contact information in your plan.
 
@@ -161,7 +161,7 @@ Most importantly, you should update the `pkg_license` value to indicate the type
 
 > Note: Because all arrays in the pkg_* settings are shell arrays, they are whitespace delimited.
 
-#### Download and Unpack Your Source Files
+### Download and Unpack Your Source Files
 
 Add in the `pkg_source` value that points to where your source files are located at. Any `wget` url will work; however, unless you're downloading a tarball from a public endpoint, you may need to modify how you download your source files and where in your plan.sh you perform the download operation.
 
@@ -200,7 +200,7 @@ After you have either specified your source in `pkg_source`, or overridden the *
 
 If your package does not download any application or service source files, then you will need to override the **do_download()**, **do_verify()**, and **do_unpack()** callbacks. See [Callbacks](/docs/reference#reference-callbacks) for more details.
 
-#### Define Your Dependencies
+### Define Your Dependencies
 
 Applications have two types of dependencies: buildtime and runtime.
 
@@ -210,7 +210,7 @@ The package `core/glibc` is typically listed as a run dependency and `core/coreu
 
 There is a third type of dependencies, transitive dependencies, that are the run dependencies of either the build or run dependencies listed in your plan. You do not need to explicitly declare transitive dependencies, but they are included in the list of files when your package is built. See [Package contents](/docs/reference/#package-contents) for more information.
 
-#### Override Build Phase Defaults with Callbacks
+### Override Build Phase Defaults with Callbacks
 
 As shown in an example above, there are occasions when you want to override the default behavior of the hab-plan-build script. The Plan syntax guide lists the default implementations for [build phase callbacks](/docs/reference/#reference-callbacks), but if you need to reference specific packages in the process of building your applications or services, then you need to override the default implementations as in the example below.
 
@@ -269,7 +269,27 @@ Here the plan is building an application written in Rust. So it overrides `Invok
 
 When overriding any callbacks, you may use any of the variables, settings, or functions in the [Plan syntax guide](/docs/reference/), except for the runtime template data. Those can only be used in Application Lifecycle hooks once a Chef Habitat service is running.
 
-### Runtime Workflow
+### Using Origin Secrets in Plans
+
+One way of using secrets in plan files is to call on [origin secrets saved in Chef Habitat Builder](docs/using-builder/#origin-secrets). You can use origin secrets in plan files as an environment variables and Chef Habitat Builder will supply the decrypted value during the build job.
+
+In the following example, the hab plan installs the AWS CLI provided by the `core/awscli` package and uses it to download a file from a private Amazon S3 bucket, for which it needs the origin secrets named `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+
+This plan allows the `aws` binary to read the origin secrets as environment variables at build time:
+
+```bash
+...
+pkg_build_deps=(core/awscli)
+
+do_download() {
+  # When present, the AWS CLI will use the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+  # environment variables to authenticate with Amazon S3.
+  aws s3 cp s3://your-private-bucket/your-file.tar.gz .
+}
+...
+```
+
+## <a name="runtime-workflow" id="runtime-workflow" data-magellan-target="runtime-workflow">Runtime Workflow</a>
 
 Similar to defining the setup and installation experience at buildtime, behavior for your application or service needs to be defined for the Supervisor. This is done at runtime through Application lifecycle hooks. See [Application Lifecycle hooks](/docs/reference/#reference-hooks) for more information and examples.
 

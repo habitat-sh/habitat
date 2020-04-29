@@ -360,17 +360,54 @@ Initialize the setting from the command line with:
 ```
 
 ---
-## <a name="origin-secrets" id="origin-secrets" data-magellan-target="origin-secrets">Using Origin Secrets</a>
+## <a name="origin-settings" id="origin-settings" data-magellan-target="origin-settings">Origin Settings</a>
 
-With the Chef Habitat CLI and a Builder account, you can encrypt and store secrets to expose at build time as environment variables in your Builder builds. This feature is helpful for plans requiring access to protected resources at build time, such as private source-code repositories, cloud storage providers and the like. Secrets are defined at the origin level, which makes them usable in any plan belonging to that origin.
+The _Origin Settings_ tab contains:
 
-To work with origin secrets, first create an [access token](#builder-token), and then apply it on the command line using either the `HAB_AUTH_TOKEN` environment variable or the `--auth` option, along with the associated origin. For example, to list the names of all secrets defined for a given origin, use the `list` subcommand:
+* Default Package Settings
+* Origin Secrets
 
-```bash
-hab origin secret list --origin <ORIGIN> --auth <TOKEN>
+![The origin settings tab with a public default package setting and a saved origin secret](/images/screenshots/origin-secrets.png)
+
+### <a name="package-settings" id="package-settings" data-magellan-target="package-settings">Default Package Settings</a>
+
+The _Default Package Settings_ define the visibility of build artifacts (.hart files).
+
+* Public packages are visible in search results and can be used by every Chef Habitat Builder user
+* Private artifacts do not appear in search results and are available only to origin members
+
+Change the default setting for the origin by switching from **Public artifacts** to **Private artifact**. The default setting required for each origin and users with more than one origin can set some as public and others as private. Packages can have different default visibility settings than their origin's. Change the default visibility setting in for individual packages in that package's setting tab (Builder > Origin > Package > Settings).
+
+### <a name="origin-secrets" id="origin-secrets" data-magellan-target="origin-secrets">Origin Secrets</a>
+
+Origin secrets, located on the bottom of the _Settings_ tab (Builder > Origin > Settings > "Origin Secrets") let you encrypt and store secrets as environment variables. Origin secrets are useful for plans that require access to protected resources at build time, such as private source-code repositories and cloud storage providers.
+
+Origin secrets are retained by the origin and are available for any of that origin's packages. The origin secrets in your local environment are encrypted with an origin encryption key. Only Chef Habitat Builder can read encrypted origin secrets.
+
+#### Manage Origin Secrets with the Chef Habitat CLI
+
+You can view the list of origin secrets and delete them in Chef Habitat Builder.
+However, the primary way of interacting with origin secrets is with the Chef Habitat CLI.
+
+Prerequisites:
+
+* [Download the Chef Habitat CLI](/docs/install-habitat)
+* [Create a Chef Habitat Builder account](/#builder-account)
+* [Generate a personal access token](/#builder-token)
+* [Create an origin](/#create-origin)
+* [Get origin keys](/#origin-keys)
+
+##### List Secrets
+
+To list all of the secrets in an origin, use:
+
+```hab
+hab origin secret list --origin <ORIGIN>
 ```
 
-You can also set your origin and token as environment variables:
+##### Set Origin Secrets as Environment Variables
+
+Add your origin secrets as environment variables in your local environment:
 
 ```bash
 export HAB_ORIGIN=<ORIGIN>
@@ -378,41 +415,193 @@ export HAB_AUTH_TOKEN=<TOKEN>
 hab origin secret list
 ```
 
-To create a new secret, give the secret a name and string value:
+##### Save an Origin Secret
 
-```bash
-hab origin secret upload AWS_ACCESS_KEY_ID your-key-id
-hab origin secret upload AWS_SECRET_ACCESS_KEY your-secret-access-key
+To save an origin secret give the secret a name and the key value:
+
+```hab
+hab origin secret upload AWS_ACCESS_KEY_ID <your-key-id>
+hab origin secret upload AWS_SECRET_ACCESS_KEY <your-secret-access-key>
 ```
 
-Once your secret has been uploaded, you can refer to it in your plan file as an environment variable, and Builder will supply its decrypted value during your build job.
-
-For instance, if a plan required access to a file kept in a private bucket on Amazon S3, you might use the AWS CLI provided by the `core/awscli` package to download the file using secrets named `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, which would allow the `aws` binary to read them as environment variables at build time:
+The output should similar to:
 
 ```bash
-...
-pkg_build_deps=(core/awscli)
-
-do_download() {
-  # When present, the AWS CLI will use the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
-  # environment variables to authenticate with Amazon S3.
-  aws s3 cp s3://your-private-bucket/your-file.tar.gz .
-}
-...
+$ hab origin secret upload AWS_ACCESS_KEY_ID 1234567890EXAMPLE
+↓ Downloading latest public encryption key
+    79 B / 79 B | [========================================] 100.00 % 120.23 KB/s
+☑ Cached habicat-20200123456789.pub
+☛ Encrypting value for key AWS_ACCESS_KEY_ID.
+✓ Encrypted AWS_ACCESS_KEY_ID=[REDACTED].
+↑ Uploading secret for key AWS_ACCESS_KEY_ID.
+✓ Uploaded secret for AWS_ACCESS_KEY_ID.
 ```
 
-You can delete a secret either with the Chef Habitat CLI:
+##### Delete an Origin Secret
 
-```bash
+To delete an origin secret from an origin with the CLI
+
+```hab
 hab origin secret delete AWS_ACCESS_KEY_ID
 hab origin secret delete AWS_SECRET_ACCESS_KEY
 ```
 
-or in the Builder web interface, under the Settings tab for your origin:
+See [Using Origin Secrets in Plans](/docs/developing-packages/#buildtime-workflow) for guidance on using origin secrets.
 
-![Builder origin secrets](/images/screenshots/origin-secrets.png)
+See the [`hab origin secret`](/docs/habitat-cli/#hab-origin-secret) CLI documentation for more information on these commands.
 
-> Secrets are encrypted locally using an origin encryption key. Their values are readable only by Builder.
+---
+## <a name="origin-members" id="origin-members" data-magellan-target="origin-members">Origin Membership</a>
+
+Prerequisites:
+
+* [Download the Chef Habitat CLI](/docs/install-habitat)
+* [Create a Chef Habitat Builder account](/#builder-account)
+* [Generate a personal access token](/#builder-token)
+* [Create an origin](/#create-origin)
+* [Get origin keys](/#origin-keys)
+
+### Role-Based Access Control (RBAC) for Chef Habitat Builder (SaaS and on-prem)
+
+TODO:New in: SEMVER
+
+RBAC provides your organization with better operational safety by letting you assign specific levels of access to each origin member. With RBAC in place, existing standard origin members from earlier versions are assigned the `Maintainer` role. This role has similar permissions of the previous generic member role and the areas of difference are are detailed below. The origin owner role remains unchanged.
+
+RBAC Origin Member Roles:
+
+* Read-Only: This user can read an origin's packages, channels, members, jobs, keys, integrations, invitations, roles, settings but cannot add to, change, or delete anything else in the origin, including uploading packages and inviting members. Read-Only is the default membership role for all new origin members.
+* Member: In addition to Read-Only access, an origin Member can upload and build packages in the 'unstable' channel, but they cannot promote packages to other channels.
+* Maintainer: Current origin members are now 'Maintainers'. This role has full read and write access to packages, channels, members, jobs, integrations, invitations, settings. However, the Maintainer role is more limited than the past role, in that Maintainers only have read access to packages, channels, members, jobs, keys, integrations, and settings. Origin Maintainers can read origin member roles and see and send invitations to new members, but they cannot otherwise change origin membership--their own or anybody else's. Finally, Maintainers can neither read nor write origin secrets.
+* Administrator: In addition to Maintainer access, the Administrator role adds the missing privileges for writing origin keys and member roles, as well as for reading and writing origin secrets. Administrators have full read and write access to packages, channels, members, jobs, keys, integrations, invitations, roles, secrets, settings.
+* Owner: As in the past, the origin Owner has full read and write access to the origin. Only Owners can delete the origin or transfer ownership to another member.
+
+### Comparison of RBAC Member Roles and Actions
+
+| Action | Read-Only | Member | Maintainer | Administrator | Owner |
+|---------|-------|-------|-------|-------|-------|
+| **Packages** |
+| View packages | Y | Y | Y | Y | Y |
+| Upload packages to `unstable` | N | Y | Y | Y | Y |
+| Promote packages from `unstable` | N | N | Y | Y | Y |
+| **Build Jobs** |
+| View build jobs | Y | Y | Y | Y | Y |
+| Trigger `unstable` build job | N | Y | Y | Y | Y |
+| **Channels** |
+| View channels | Y | Y | Y | Y | Y |
+| Add/Update/Delete channels | N | N | Y | Y | Y |
+| **Origin Keys** |
+| View keys | Y | Y | Y | Y | Y |
+| Add/Update/Delete keys | N | N | N | Y | Y |
+| **Origin Membership** |
+| View members | Y | Y | Y | Y | Y |
+| View invitations | Y | Y | Y | Y | Y |
+| Send Invitations | N | N | Y | Y | Y |
+| Revoke Invitations | N | N | Y | Y | Y |
+| **Member Roles** |
+| View member roles | Y | Y | Y | Y | Y |
+| Update member roles | N | N | N | Y | Y |
+| **Origin Settings** |
+| View settings | Y | Y | Y | Y | Y |
+| Add/Update/Delete settings | N | N | N | Y | Y |
+| **Origin Secrets** |
+| View secrets | N | N | N | Y | Y |
+| Add/Update/Delete secrets | N | N | N | Y | Y |
+| **Cloud Integrations** |
+| View integrations | Y | Y | Y | Y | Y |
+| Add/Update/Delete integrations | N | N | Y | Y | Y |
+| **Ownership** |
+| Transfer Origin | N | N | N | N | Y |
+| Delete Origin | N | N | N | N | Y |
+
+### Manage Origin Members in Builder
+
+In tandem with the changes to the Builder membership roles, we've also updated the `hab` CLI to support RBAC. We're working on adding role management to the Chef Habitat Builder site, but in the meantime, you'll need to use the CLI for now.
+
+![Manage origin members](../images/screenshots/origin_members.png)
+
+### Manage Origin Membership with `hab origin invitations`
+
+Manage Chef Habitat Builder origin membership with the Chef Habitat CLI, using the [hab origin invitations](/docs/habitat-cli/#hab-origin-invitations) command.
+
+All Chef Habitat Builder users can accept, ignore, and see invitations for their accounts.
+
+View origin invitations:
+
+```bash
+hab origin invitations list
+```
+
+Accept origin invitations:
+
+```bash
+hab origin invitations accept <ORIGIN> <INVITATION_ID>
+```
+
+Ignore origin invitations:
+
+```bash
+hab origin invitations ignore <ORIGIN> <INVITATION_ID>
+```
+
+All origin members can send origin membership invitations:
+
+```bash
+hab origin invitations send <ORIGIN> <INVITEE_ACCOUNT>
+```
+
+Origin owners can see all pending origin membership invitations:
+
+```bash
+hab origin invitations pending <ORIGIN>
+```
+
+Origin owners can rescind an origin membership invitation:
+
+
+```bash
+hab origin invitations rescind <ORIGIN> <INVITATION_ID>
+```
+
+Origin owners can transfer origin ownership to another member:
+
+```bash
+hab origin transfer [OPTIONS] <ORIGIN> <NEW_OWNER_ACCOUNT>
+```
+
+### Manage Member Roles with `hab rbac`
+
+You can use role based access control (RBAC) from the command line.
+An origin `MEMBER_ACCOUNT` is the name used to signin to Chef Habitat builder. You can find the list of user names on an origin's _Members Tab_. (Builder > Origin > Members)
+
+The RBAC command syntax is:
+
+```bash
+hab origin rbac <SUBCOMMAND>
+```
+
+The syntax for the `show` subcommand is:
+
+```bash
+hab origin rbac show <MEMBER_ACCOUNT> --origin <ORIGIN>
+```
+
+See an origin member's RBAC role:
+
+```
+hab origin rbac show bluewhale --origin two-tier-app
+```
+
+The syntax for the `set` subcommand is:
+
+```bash
+hab origin rbac set [FLAGS] [OPTIONS] <MEMBER_ACCOUNT> <ROLE> --origin <ORIGIN>
+```
+
+Set a member's RBAC role with:
+
+```bash
+hab origin rbac set bluewhale admin --origin two-tier-app
+```
 
 ---
 ## <a name="sharing-pkgs" id="sharing-pkgs" data-magellan-target="sharing-pkgs">Upload and Promote Packages</a>
