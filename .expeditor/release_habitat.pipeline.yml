@@ -12,6 +12,8 @@ expeditor:
       env:
         HAB_ORIGIN: "core"
         PIPELINE_HAB_BLDR_URL: "https://bldr.habitat.sh"
+        # Necessary to prevent old studios from poisoning builds after core plans refreshes
+        HAB_STUDIO_SECRET_HAB_FEAT_IGNORE_LOCAL: "true"
 
 steps:
 #######################################################################
