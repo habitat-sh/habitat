@@ -1,7 +1,8 @@
-mod hab;
+pub mod hab;
 
-use crate::{cli::hab::{sup::{PartialSupRun,
+use crate::{cli::hab::{sup::{ConfigOptSup,
                              Sup},
+                       ConfigOptHab,
                        Hab},
             command::studio};
 
@@ -9,6 +10,8 @@ use clap::{App,
            AppSettings,
            Arg,
            ArgMatches};
+use configopt::{ConfigOptType,
+                IgnoreHelp};
 use habitat_common::{cli::{file_into_idents,
                            is_toml_file,
                            BINLINK_DIR_ENVVAR,
@@ -38,15 +41,13 @@ use habitat_core::{crypto::{keys::PairType,
                    ChannelIdent};
 use habitat_sup_protocol;
 use rants::Address as NatsAddress;
-use std::{env,
-          fs,
-          net::{Ipv4Addr,
+use std::{net::{Ipv4Addr,
                 SocketAddr},
           path::Path,
+          process,
           result,
           str::FromStr};
 use structopt::StructOpt;
-use toml;
 use url::Url;
 
 const UPDATE_CONDITION_HELP: &str = "The condition dictating when this service should update";
@@ -57,47 +58,25 @@ const UPDATE_CONDITION_LONG_HELP: &str =
      package from a channel will cause the package to rollback to an older version of the \
      package. A ramification of enabling this condition is packages newer than the package at the \
      head of the channel will be automatically uninstalled during a service rollback.";
-
-fn get_subcommand_mut<'a>(app: &'a mut App<'static, 'static>,
-                          name: &str)
-                          -> &'a mut App<'static, 'static> {
-    app.p
-       .subcommands
-       .iter_mut()
-       .find(|s| s.p.meta.name == name)
-       .unwrap_or_else(|| panic!("expected to find subcommand '{}'", name))
-}
-
-fn config_file_to_hab_sup_run_defaults(config_file: &str)
-                                       -> Result<PartialSupRun, Box<dyn std::error::Error>> {
-    let contents = fs::read_to_string(config_file)?;
-    Ok(toml::from_str(&contents)?)
-}
-
-fn overide_hab_sup_run_defaults_with_config_file(hab_sup_run: &mut App<'static, 'static>) {
-    if let Ok(config_file) = env::var("HAB_FEAT_CONFIG_FILE") {
-        // If we have a config file try and parse it as a `PartialSupRun`. `PartialSupRun`
-        // implements `ConfigOptDefaults` which allows it to set the default values of a
-        // `clap::App`.
-        match config_file_to_hab_sup_run_defaults(&config_file) {
-            Ok(defaults) => {
-                // Set the defaults of the `clap::App` this is how config file values are
-                // interleaved with CLI specified arguments.
-                configopt::set_defaults(hab_sup_run, &defaults)
-            }
-            Err(e) => error!("Failed to parse config file, err: {}", e),
-        }
-    }
-}
+/// Process exit code from Supervisor which indicates to Launcher that the Supervisor
+/// ran to completion with a successful result. The Launcher should not attempt to restart
+/// the Supervisor and should exit immediately with a successful exit code.
+pub const OK_NO_RETRY_EXCODE: i32 = 84;
 
 pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
     if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
         let mut hab = Hab::clap();
-        // Get a reference to the hab sup run subcommand. This is currently the only subcommand with
-        // config file support.
-        let hab_sup = get_subcommand_mut(&mut hab, "sup");
-        let hab_sup_run = get_subcommand_mut(hab_sup, "run");
-        overide_hab_sup_run_defaults_with_config_file(hab_sup_run);
+        // Populate the `configopt` version of `Hab` with config files. Use these values to set the
+        // defaults of the `Hab` app.
+        // Ignore any CLI parsing errors. We will catch them later on when `get_matches` is called.
+        // When we switch to using `structopt` exclusivly this will be cleaned up.
+        if let Ok(mut defaults) = ConfigOptHab::try_from_args_ignore_help() {
+            if let Err(e) = defaults.patch_with_config_files() {
+                error!("Failed to parse config files, err: {}", e);
+                process::exit(OK_NO_RETRY_EXCODE);
+            }
+            configopt::set_defaults(&mut hab, &defaults);
+        }
         return hab;
     }
 
@@ -980,10 +959,17 @@ fn sub_cli_setup() -> App<'static, 'static> {
 pub fn sup_commands(feature_flags: FeatureFlag) -> App<'static, 'static> {
     if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
         let mut sup = Sup::clap();
-        // Get a reference to the sup run subcommand. This is currently the only subcommand with
-        // config file support.
-        let sup_run = get_subcommand_mut(&mut sup, "run");
-        overide_hab_sup_run_defaults_with_config_file(sup_run);
+        // Populate the `configopt` version of `Sup` with config files. Use these values to set the
+        // defaults of the `Sup` app.
+        // Ignore any CLI parsing errors. We will catch them later on when `get_matches` is called.
+        // When we switch to using `structopt` exclusivly this will be cleaned up.
+        if let Ok(mut defaults) = ConfigOptSup::try_from_args_ignore_help() {
+            if let Err(e) = defaults.patch_with_config_files() {
+                error!("Failed to parse config files, err: {}", e);
+                process::exit(OK_NO_RETRY_EXCODE);
+            }
+            configopt::set_defaults(&mut sup, &defaults);
+        }
         return sup;
     }
     // Define all of the `hab sup *` subcommands in one place.
@@ -1226,10 +1212,10 @@ fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
                               (Note: This option is explicitly undocumented and for testing purposes only. Do not use it in a production system. Use the corresponding environment variable instead.) \
                               (ex: hab sup run --ring-key 'SYM-SEC-1 foo-20181113185935 GCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')")
                             (@arg CHANNEL: --channel +takes_value default_value[stable]
-                             "Receive Supervisor updates from the specified release channel")
+                             "Receive updates from the specified release channel")
                             (@arg BLDR_URL: -u --url +takes_value {valid_url}
                              "Specify an alternate Builder endpoint. If not specified, the value will \
-                              be taken from the HAB_BLDR_URL environment variable if defined (default: \
+                              be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                               https://bldr.habitat.sh)")
 
                             (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
@@ -1383,7 +1369,7 @@ fn sub_svc_load() -> App<'static, 'static> {
         (@arg APPLICATION: --application -a +multiple +hidden "DEPRECATED")
         (@arg ENVIRONMENT: --environment -e +multiple +hidden "DEPRECATED")
         (@arg CHANNEL: --channel +takes_value default_value[stable]
-            "Receive package updates from the specified release channel")
+            "Receive updates from the specified release channel")
         (@arg GROUP: --group +takes_value
             "The service group; shared config and topology [default: default]")
         (@arg BLDR_URL: -u --url +takes_value {valid_url}

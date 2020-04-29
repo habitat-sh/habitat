@@ -13,7 +13,6 @@ cc = "*"
 [dependencies]
 base64 = "*"
 chrono = "*"
-configopt = { git = "https://github.com/davidMcneil/configopt" }
 dirs = "*"
 dns-lookup = "*"
 errno = "*"

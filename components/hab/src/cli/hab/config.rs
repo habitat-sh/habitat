@@ -1,11 +1,15 @@
 use super::util::{CacheKeyPath,
+                  ConfigOptCacheKeyPath,
+                  ConfigOptPkgIdent,
+                  ConfigOptRemoteSup,
                   PkgIdent,
                   RemoteSup};
 use crate::cli::file_exists_or_stdin;
+use configopt::ConfigOpt;
 use habitat_core::service::ServiceGroup;
 use structopt::StructOpt;
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to a Service's runtime config
 pub enum ServiceConfig {

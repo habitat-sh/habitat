@@ -7,8 +7,11 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 
+use crate::cli::hab::ConfigOptHab;
 use clap::{ArgMatches,
            Shell};
+use configopt::{ConfigOptType,
+                IgnoreHelp};
 use env_logger;
 use futures::stream::StreamExt;
 use hab::{cli::{self,
@@ -123,6 +126,20 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
         return Ok(());
     } else {
         license::check_for_license_acceptance_and_prompt(ui)?;
+    }
+
+    // Check if `--generate-config` was passed to any subcommands. If it was print the config to
+    // stdout and exit. Ignore any CLI parsing errors. We will catch them later on when
+    // `get_matches` is called. When we switch to using `structopt` exclusivly this will be cleaned
+    // up.
+    if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
+        if let Ok(mut hab) = ConfigOptHab::try_from_args_ignore_help() {
+            if let Err(e) = hab.patch_with_config_files() {
+                error!("Failed to parse config files, err: {}", e);
+                process::exit(0);
+            }
+            hab.maybe_generate_config_file_and_exit();
+        }
     }
 
     // TODO JB: this feels like an anti-pattern to me. I get that in certain cases, we want to hand

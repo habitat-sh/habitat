@@ -16,7 +16,8 @@ atty = "*"
 base64 = "*"
 bitflags = "*"
 chrono = {version = "*", features = ["serde"]}
-configopt = { git = "https://github.com/davidMcneil/configopt" }
+clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
+configopt = { git = "https://github.com/davidMcneil/configopt.git" }
 dirs = "*"
 env_logger = "*"
 flate2 = "*"
@@ -44,7 +45,7 @@ serde = "*"
 serde_derive = "*"
 serde_json = "*"
 serde_yaml = "*"
-structopt = "*"
+structopt = { git = "https://github.com/habitat-sh/structopt.git" }
 tabwriter = "*"
 tar = "*"
 termcolor = "*"
@@ -52,10 +53,6 @@ tokio = { version = "*", features = ["full"] }
 toml = { version = "*", default-features = false }
 url = { version = "*", features = ["serde"] }
 walkdir = "*"
-
-[dependencies.clap]
-version = "*"
-features = [ "suggestions", "color", "unstable" ]
 
 [dependencies.uuid]
 version = "*"

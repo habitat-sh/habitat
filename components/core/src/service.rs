@@ -1,6 +1,5 @@
 use crate::error::{Error,
                    Result};
-use configopt::ConfigOptToString;
 use regex::Regex;
 use serde_derive::{Deserialize,
                    Serialize};
@@ -276,8 +275,6 @@ impl fmt::Display for HealthCheckInterval {
         write!(f, "({}s)", self.0.as_secs())
     }
 }
-
-impl ConfigOptToString for HealthCheckInterval {}
 
 impl Default for HealthCheckInterval {
     fn default() -> Self { Self::from(30) }

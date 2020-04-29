@@ -1,9 +1,13 @@
-use super::util::{CacheKeyPath,
-                  RemoteSup};
+use super::{svc::{ConfigOptSharedLoad,
+                  SharedLoad},
+            util::{CacheKeyPath,
+                   ConfigOptCacheKeyPath,
+                   ConfigOptRemoteSup,
+                   RemoteSup}};
 use crate::VERSION;
-use configopt::{ConfigOptDefaults,
-                ConfigOptToString,
-                Partial};
+use configopt::{self,
+                configopt_fields,
+                ConfigOpt};
 use habitat_common::{cli::{RING_ENVVAR,
                            RING_KEY_ENVVAR},
                      types::{AutomateAuthToken,
@@ -14,14 +18,8 @@ use habitat_common::{cli::{RING_ENVVAR,
                              HttpListenAddr,
                              ListenCtlAddr}};
 use habitat_core::{env::Config,
-                   os::process::ShutdownTimeout,
                    package::PackageIdent,
-                   service::HealthCheckInterval,
                    util::serde_string};
-use habitat_sup_protocol::types::{BindingMode,
-                                  Topology,
-                                  UpdateCondition,
-                                  UpdateStrategy};
 use rants::{error::Error as RantsError,
             Address as NatsAddress};
 use std::{fmt,
@@ -31,9 +29,8 @@ use std::{fmt,
           str::FromStr};
 use structopt::{clap::AppSettings,
                 StructOpt};
-use url::Url;
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "hab",
             version = VERSION,
             about = "The Habitat Supervisor",
@@ -93,11 +90,9 @@ impl FromStr for EventStreamAddress {
     fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(EventStreamAddress(s.parse()?)) }
 }
 
-impl ConfigOptToString for EventStreamAddress {}
-
-#[derive(ConfigOptDefaults, Partial, StructOpt, Deserialize)]
-#[configopt_defaults(type = "PartialSupRun")]
-#[partial(derive(Debug, Default, Deserialize), attrs(serde))]
+#[configopt_fields]
+#[derive(ConfigOpt, StructOpt, Deserialize)]
+#[configopt(attrs(serde))]
 #[serde(deny_unknown_fields)]
 #[structopt(name = "run",
             no_version,
@@ -141,6 +136,7 @@ pub struct SupRun {
     organization: Option<String>,
     /// The listen address of one or more initial peers (IP[:PORT])
     #[structopt(name = "PEER", long = "peer")]
+    #[serde(default)]
     // TODO (DM): This could probably be a different type for better validation (Vec<SockAddr>?)
     peer: Vec<String>,
     /// If this Supervisor is a permanent peer
@@ -152,6 +148,7 @@ pub struct SupRun {
                 conflicts_with = "PEER")]
     peer_watch_file: Option<PathBuf>,
     #[structopt(flatten)]
+    #[serde(flatten)]
     cache_key_path: CacheKeyPath,
     /// The name of the ring used by the Supervisor when running with wire encryption. (ex: hab sup
     /// run --ring myring)
@@ -171,19 +168,6 @@ pub struct SupRun {
                 hidden = true,
                 conflicts_with = "RING")]
     ring_key: Option<String>,
-    /// Receive Supervisor updates from the specified release channel
-    #[structopt(name = "CHANNEL", long = "channel", default_value = "stable")]
-    channel: String,
-    /// Specify an alternate Builder endpoint. If not specified, the value will be taken from the
-    /// HAB_BLDR_URL environment variable if defined (default: https://bldr.habitat.sh)
-    #[structopt(name = "BLDR_URL",
-                long = "url",
-                short = "u",
-                // TODO (DM): These fields are not actual set in the clap macro but I think they should
-                // env = BLDR_URL_ENVVAR,
-                // default_value = DEFAULT_BLDR_URL
-            )]
-    bldr_url: Option<Url>,
     /// Use package config from this path, rather than the package itself
     #[structopt(name = "CONFIG_DIR", long = "config-from")]
     config_dir: Option<PathBuf>,
@@ -212,63 +196,6 @@ pub struct SupRun {
     // TODO (DM): We could probably do better validation here
     #[structopt(name = "PKG_IDENT_OR_ARTIFACT")]
     pkg_ident_or_artifact: Option<String>,
-    // TODO (DM): This flag can eventually be removed.
-    // See https://github.com/habitat-sh/habitat/issues/7339
-    /// DEPRECATED
-    #[structopt(name = "APPLICATION",
-                long = "application",
-                short = "a",
-                takes_value = false,
-                hidden = true)]
-    application: Vec<String>,
-    // TODO (DM): This flag can eventually be removed.
-    // See https://github.com/habitat-sh/habitat/issues/7339
-    /// DEPRECATED
-    #[structopt(name = "ENVIRONMENT",
-                long = "environment",
-                short = "e",
-                takes_value = false,
-                hidden = true)]
-    environment: Vec<String>,
-    /// The service group; shared config and topology [default: default]
-    // TODO (DM): This should set a default value
-    #[structopt(name = "GROUP", long = "group")]
-    group: Option<String>,
-    /// Service topology; [default: none]
-    // TODO (DM): I dont think saying the default is none makes sense here
-    #[structopt(name = "TOPOLOGY",
-                long = "topology",
-                short = "t",
-                possible_values = &["standalone", "leader"])]
-    topology: Option<Topology>,
-    /// The update strategy; [default: none] [values: none, at-once, rolling]
-    // TODO (DM): this should set a default_value and use possible_values = &["none", "at-once",
-    // "rolling"]
-    #[structopt(name = "STRATEGY", long = "strategy", short = "s")]
-    strategy: Option<UpdateStrategy>,
-    /// The condition dictating when this service should update
-    ///
-    /// latest: Runs the latest package that can be found in the configured channel and local
-    /// packages.
-    ///
-    /// track-channel: Always run what is at the head of a given channel. This enables service
-    /// rollback where demoting a package from a channel will cause the package to rollback to
-    /// an older version of the package. A ramification of enabling this condition is packages
-    /// newer than the package at the head of the channel will be automatically uninstalled
-    /// during a service rollback.
-    #[structopt(name = "UPDATE_CONDITION",
-                long = "update-condition",
-                default_value = UpdateCondition::Latest.as_str(),
-                possible_values = UpdateCondition::VARIANTS)]
-    update_condition: UpdateCondition,
-    /// One or more service groups to bind to a configuration
-    #[structopt(name = "BIND", long = "bind")]
-    bind: Vec<String>,
-    /// Governs how the presence or absence of binds affects service startup. `strict` blocks
-    /// startup until all binds are present. [default: strict] [values: relaxed, strict]
-    // TODO (DM): This should set default_value and use possible_values
-    #[structopt(name = "BINDING_MODE", long = "binding-mode")]
-    binding_mode: Option<BindingMode>,
     /// Verbose output; shows file and line/column numbers
     #[structopt(name = "VERBOSE", short = "v")]
     verbose: bool,
@@ -278,12 +205,6 @@ pub struct SupRun {
     /// Use structured JSON logging for the Supervisor. Implies NO_COLOR
     #[structopt(name = "JSON", long = "json-logging")]
     json_logging: bool,
-    /// The interval (seconds) on which to run health checks [default: 30]
-    // TODO (DM): Should use default_value = "30"
-    #[structopt(name = "HEALTH_CHECK_INTERVAL",
-                long = "health-check-interval",
-                short = "i")]
-    health_check_interval: Option<HealthCheckInterval>,
     /// The IPv4 address to use as the `sys.ip` template variable. If this argument is not set, the
     /// supervisor tries to dynamically determine an IP address. If that fails, the supervisor
     /// defaults to using `127.0.0.1`
@@ -324,9 +245,11 @@ pub struct SupRun {
                 validator = AutomateAuthToken::validate)]
     automate_auth_token: Option<String>,
     /// An arbitrary key-value pair to add to each event generated by this Supervisor
+    // TODO: This should be a different types
     #[structopt(name = "EVENT_STREAM_METADATA",
                 long = "event-meta",
                 validator = EventStreamMetadata::validate)]
+    #[serde(default)]
     event_meta: Vec<String>,
     /// The path to Chef Automate's event stream certificate in PEM format used to establish a TLS
     /// connection
@@ -334,10 +257,6 @@ pub struct SupRun {
                 long = "event-stream-server-certificate",
                 validator = EventStreamServerCertificate::validate)]
     event_stream_server_certificate: Option<String>,
-    /// The number of seconds after sending a shutdown signal to wait before killing a service
-    /// process (default: set in plan)
-    #[structopt(name = "SHUTDOWN_TIMEOUT", long = "shutdown-timeout")]
-    shutdown_timeout: Option<ShutdownTimeout>,
     /// Automatically cleanup old packages.
     ///
     /// The Supervisor will automatically cleanup old packages only keeping the
@@ -347,9 +266,12 @@ pub struct SupRun {
                 long = "keep-latest-packages",
                 env = "HAB_KEEP_LATEST_PACKAGES")]
     keep_latest_packages: Option<usize>,
+    #[structopt(flatten)]
+    #[serde(flatten)]
+    shared_load: SharedLoad,
 }
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to a Habitat Supervisor's Control Gateway secret
 pub enum Secret {

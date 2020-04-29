@@ -9,7 +9,7 @@ workspace = "../../"
 [dependencies]
 bimap = "*"
 bitflags = "*"
-clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
+clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
 glob = "*"
 habitat_api_client = { path = "../builder-api-client" }
 habitat_core = { path = "../core" }

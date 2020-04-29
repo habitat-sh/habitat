@@ -1,13 +1,17 @@
 use super::util::{AuthToken,
                   BldrUrl,
-                  CacheKeyPath};
+                  CacheKeyPath,
+                  ConfigOptAuthToken,
+                  ConfigOptBldrUrl,
+                  ConfigOptCacheKeyPath};
 use crate::cli::valid_origin;
+use configopt::ConfigOpt;
 use habitat_core::crypto::keys::PairType;
 use std::path::PathBuf;
 use structopt::{clap::ArgGroup,
                 StructOpt};
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat Builder origins
 pub enum Origin {
@@ -72,7 +76,7 @@ pub enum Origin {
     },
 }
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 /// Manage origin member invitations
 pub enum Invitations {
@@ -147,7 +151,7 @@ pub enum Invitations {
     },
 }
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat origin key maintenance
 pub enum Key {
@@ -220,7 +224,7 @@ pub enum Key {
     },
 }
 
-#[derive(StructOpt, Debug)]
+#[derive(ConfigOpt, StructOpt, Debug)]
 #[structopt(group = ArgGroup::with_name("upload").required(true), no_version)]
 pub struct UploadGroup {
     /// The origin name
@@ -231,7 +235,7 @@ pub struct UploadGroup {
     public_file: Option<PathBuf>,
 }
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 /// Commands related to secret management
 pub enum Secret {

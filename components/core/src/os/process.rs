@@ -25,7 +25,6 @@ pub use self::windows::{become_command,
                         Pid};
 use crate::{error::Error,
             util::serde_string};
-use configopt::ConfigOptToString;
 use serde_derive::{Deserialize,
                    Serialize};
 use std::{fmt,
@@ -66,8 +65,6 @@ impl From<ShutdownTimeout> for u32 {
 impl From<ShutdownTimeout> for Duration {
     fn from(timeout: ShutdownTimeout) -> Self { Duration::from_secs(timeout.0.into()) }
 }
-
-impl ConfigOptToString for ShutdownTimeout {}
 
 // This defines a handful of Unix signals that we want to deal with,
 // but we are making it available on Windows as well for situations

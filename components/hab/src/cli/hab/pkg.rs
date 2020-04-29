@@ -1,12 +1,18 @@
 use super::util::{AuthToken,
                   BldrUrl,
                   CacheKeyPath,
+                  ConfigOptAuthToken,
+                  ConfigOptBldrUrl,
+                  ConfigOptCacheKeyPath,
+                  ConfigOptFullyQualifiedPkgIdent,
+                  ConfigOptPkgIdent,
                   FullyQualifiedPkgIdent,
                   PkgIdent};
 use crate::cli::{dir_exists,
                  file_exists,
                  valid_ident_or_toml_file,
                  valid_origin};
+use configopt::ConfigOpt;
 use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
                            PACKAGE_TARGET_ENVVAR},
@@ -21,7 +27,7 @@ use structopt::{clap::{AppSettings,
                        ArgGroup},
                 StructOpt};
 
-#[derive(StructOpt, Debug)]
+#[derive(ConfigOpt, StructOpt, Debug)]
 #[structopt(group = ArgGroup::with_name("prefix").required(true), no_version)]
 pub struct List {
     /// List all installed packages
@@ -38,7 +44,7 @@ pub struct List {
     pkg_ident: Option<PackageIdent>,
 }
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 #[allow(clippy::large_enum_variant)]
 /// Commands relating to Habitat packages

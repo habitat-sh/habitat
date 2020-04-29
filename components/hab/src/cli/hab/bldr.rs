@@ -1,13 +1,17 @@
 use super::util::{AuthToken,
                   BldrUrl,
+                  ConfigOptAuthToken,
+                  ConfigOptBldrUrl,
+                  ConfigOptPkgIdent,
                   PkgIdent};
 use crate::cli::valid_origin;
+use configopt::ConfigOpt;
 use habitat_common::cli::PACKAGE_TARGET_ENVVAR;
 use habitat_core::package::PackageTarget;
 use structopt::{clap::ArgGroup,
                 StructOpt};
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat Builder
 pub enum Bldr {
@@ -17,7 +21,7 @@ pub enum Bldr {
     Job(Job),
 }
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat Builder channels
 pub enum Channel {
@@ -98,7 +102,7 @@ pub enum Channel {
     },
 }
 
-#[derive(StructOpt, Debug)]
+#[derive(ConfigOpt, StructOpt, Debug)]
 #[structopt(group = ArgGroup::with_name("status").required(true), no_version)]
 pub struct BldrJobStatusSourceGroup {
     /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
@@ -113,7 +117,7 @@ pub struct BldrJobStatusSourceGroup {
     origin:   Option<String>,
 }
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 /// Commands relating to Habitat Builder jobs
 pub enum Job {

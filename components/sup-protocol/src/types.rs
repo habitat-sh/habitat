@@ -12,7 +12,6 @@ use crate::{core::{self,
             net::{self,
                   ErrCode,
                   NetErr}};
-use configopt::ConfigOptToString;
 use std::{fmt,
           str::FromStr};
 
@@ -56,8 +55,6 @@ impl fmt::Display for BindingMode {
         write!(f, "{}", value)
     }
 }
-
-impl ConfigOptToString for BindingMode {}
 
 impl fmt::Display for PackageIdent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -292,8 +289,6 @@ impl fmt::Display for Topology {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
 }
 
-impl ConfigOptToString for Topology {}
-
 impl UpdateStrategy {
     fn as_str(&self) -> &str {
         match *self {
@@ -321,8 +316,6 @@ impl fmt::Display for UpdateStrategy {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
 }
 
-impl ConfigOptToString for UpdateStrategy {}
-
 impl UpdateCondition {
     pub const VARIANTS: &'static [&'static str] = &["latest", "track-channel"];
 
@@ -349,8 +342,6 @@ impl FromStr for UpdateCondition {
 impl fmt::Display for UpdateCondition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
 }
-
-impl ConfigOptToString for UpdateCondition {}
 
 #[cfg(test)]
 mod test {
