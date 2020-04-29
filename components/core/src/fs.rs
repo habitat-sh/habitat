@@ -45,10 +45,11 @@ pub const LAUNCHER_ROOT_PATH: &str = "hab/launcher";
 pub const PKG_PATH: &str = "hab/pkgs";
 #[cfg(target_os = "windows")]
 pub const PKG_PATH: &str = "hab\\pkgs";
-/// The environment variable pointing to the filesystem root. This exists for internal
-/// Habitat team usage and is not intended to be used by Habitat consumers.
-/// Using this variable could lead to broken Supervisor services and it should
-/// be used with extreme caution.
+/// The environment variable pointing to the filesystem root. This exists for internal Habitat team
+/// usage and is not intended to be used by Habitat consumers. Using this variable could lead to
+/// broken Supervisor services and should be used with extreme caution. The services may break due
+/// to absolute paths in package binaries and libraries. Valid use cases include limited  testing or
+/// creating new self-contained root filesystems for tarballs or containers.
 pub const FS_ROOT_ENVVAR: &str = "FS_ROOT";
 pub const SYSTEMDRIVE_ENVVAR: &str = "SYSTEMDRIVE";
 /// The file where user-defined configuration for each service is found.
@@ -98,7 +99,9 @@ impl Default for Permissions {
 lazy_static::lazy_static! {
     /// The default filesystem root path to base all commands from. This is lazily generated on
     /// first call and reflects on the presence and value of the environment variable keyed as
-    /// `FS_ROOT_ENVVAR`.
+    /// `FS_ROOT_ENVVAR`. This should be the only use of `FS_ROOT_ENVAR`. The environment variable will not
+    /// be referenced, exported, or consumed anywhere else in the system to ensure that it is **ONLY**
+    /// used internally in test suites. See `FS_ROOT_ENVVAR` documentation.
     pub static ref FS_ROOT_PATH: PathBuf = {
         if cfg!(target_os = "windows") {
             match (henv::var(FS_ROOT_ENVVAR), henv::var(SYSTEMDRIVE_ENVVAR)) {
