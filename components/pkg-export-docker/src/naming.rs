@@ -5,6 +5,20 @@ use habitat_core::{package::{FullyQualifiedPackageIdent,
                              Identifiable},
                    ChannelIdent};
 use handlebars::Handlebars;
+use serde::Serialize;
+
+const DEFAULT_IMAGE_NAME_TEMPLATE: &str = "{{pkg_origin}}/{{pkg_name}}";
+const VERSION_RELEASE_TAG_TEMPLATE: &str = "{{pkg_version}}-{{pkg_release}}";
+const VERSION_TAG_TEMPLATE: &str = "{{pkg_version}}";
+
+/// Helper macro to mark all Handlebars templating calls that are not based
+/// on user input, and can thus be safely unwrapped.
+macro_rules! safe {
+    ($render_result:expr) => {
+        $render_result.expect("We are in control of all inputs to this rendering, and thus the \
+                           result should always be safe to unwrap")
+    };
+}
 
 /// An image naming policy.
 ///
@@ -75,32 +89,37 @@ impl Naming {
                  registry_type }
     }
 
+    // TODO (CM): I am skeptical of use of "channel" in any container
+    // identifier, since that is not anything inherent to the package
+    // we are containerizing.
+
+    /// Return the image name, along with a (possibly empty) vector of
+    /// additional tags.
     pub fn image_identifiers(&self,
                              ident: &FullyQualifiedPackageIdent,
                              channel: &ChannelIdent)
                              -> Result<(String, Vec<String>)> {
-        let name = self.image_name(ident, channel)?;
+        let context = Self::rendering_context(ident, channel);
+
+        let name = self.image_name(&context)?;
         let tags = vec![self.latest_tag(),
-                        self.version_tag(&ident),
-                        self.version_release_tag(&ident),
-                        self.custom_tag(ident, channel)?].into_iter()
-                                                         .filter_map(|e| e)
-                                                         .collect();
+                        self.version_tag(&context),
+                        self.version_release_tag(&context),
+                        self.custom_tag(&context)?].into_iter()
+                                                   .filter_map(|e| e)
+                                                   .collect();
         Ok((name, tags))
     }
 
-    fn image_name(&self,
-                  ident: &FullyQualifiedPackageIdent,
-                  channel: &ChannelIdent)
-                  -> Result<String> {
-        let json = Self::json_payload(ident, channel);
+    ////////////////////////////////////////////////////////////////////////
 
-        let image_name = match self.custom_image_name {
-            Some(ref custom) => {
-                Handlebars::new().template_render(custom, &json)
-                                 .map_err(SyncFailure::new)?
-            }
-            None => format!("{}/{}", ident.origin(), ident.name()),
+    fn image_name<S>(&self, context: &S) -> Result<String>
+        where S: Serialize
+    {
+        let image_name = if let Some(ref template) = self.custom_image_name {
+            Self::render(&template, &context)?
+        } else {
+            safe!(Self::render(DEFAULT_IMAGE_NAME_TEMPLATE, &context))
         };
 
         // TODO (CM): perhaps we should prepend the registry URL to
@@ -114,19 +133,21 @@ impl Naming {
         Ok(image_name.to_lowercase())
     }
 
-    fn version_release_tag(&self, ident: &FullyQualifiedPackageIdent) -> Option<String> {
+    fn version_release_tag<S>(&self, context: &S) -> Option<String>
+        where S: Serialize
+    {
         if self.version_release_tag {
-            Some(format!("{}-{}",
-                         FullyQualifiedPackageIdent::version(ident),
-                         FullyQualifiedPackageIdent::release(ident)))
+            Some(safe!(Self::render(VERSION_RELEASE_TAG_TEMPLATE, &context)))
         } else {
             None
         }
     }
 
-    fn version_tag(&self, ident: &FullyQualifiedPackageIdent) -> Option<String> {
+    fn version_tag<S>(&self, context: &S) -> Option<String>
+        where S: Serialize
+    {
         if self.version_tag {
-            Some(FullyQualifiedPackageIdent::version(ident).to_string())
+            Some(safe!(Self::render(VERSION_TAG_TEMPLATE, &context)))
         } else {
             None
         }
@@ -142,24 +163,40 @@ impl Naming {
         }
     }
 
-    fn custom_tag(&self,
-                  ident: &FullyQualifiedPackageIdent,
-                  channel: &ChannelIdent)
-                  -> Result<Option<String>> {
-        if let Some(ref custom) = self.custom_tag {
-            let json = Self::json_payload(ident, channel);
-            let tag = Handlebars::new().template_render(&custom, &json)
-                                       .map_err(SyncFailure::new)
-                                       .map(|s| s.to_lowercase())?;
-            Ok(Some(tag))
+    fn custom_tag<S>(&self, context: &S) -> Result<Option<String>>
+        where S: Serialize
+    {
+        if let Some(ref custom_tag_template) = self.custom_tag {
+            Ok(Some(Self::render(custom_tag_template, &context)?))
         } else {
             Ok(None)
         }
     }
 
-    fn json_payload(ident: &FullyQualifiedPackageIdent,
-                    channel: &ChannelIdent)
-                    -> serde_json::Value {
+    // TODO (CM): need to generate better error cases for this... if a
+    // user inputs invalid input, the results can be cryptic:
+    //
+    // For instance, a template of "{{" give the error
+    //
+    //   ✗✗✗ Template "Unnamed template" line 1, col 3: invalid
+    //   handlebars syntax.
+    //
+    // Not terribly useful, as there's no indication of what the
+    // offending input is.
+    //
+    // We might want to pass more context to this render call (so
+    // users can know which template was the offender)
+    fn render<S>(template: &str, context: &S) -> Result<String>
+        where S: Serialize
+    {
+        Ok(Handlebars::new().template_render(template, context)
+                            .map_err(SyncFailure::new)
+                            .map(|s| s.to_lowercase())?)
+    }
+
+    fn rendering_context(ident: &FullyQualifiedPackageIdent,
+                         channel: &ChannelIdent)
+                         -> impl Serialize {
         json!({
             "pkg_origin": ident.origin(),
             "pkg_name": ident.name(),
@@ -176,18 +213,23 @@ mod tests {
 
     fn ident() -> FullyQualifiedPackageIdent { "core/foo/1.2.3/20200430153200".parse().unwrap() }
 
+    fn context() -> impl Serialize {
+        let ident = ident();
+        let channel = ChannelIdent::default();
+        Naming::rendering_context(&ident, &channel)
+    }
+
     #[test]
     fn default_naming_policy() {
         let naming = Naming::default();
-        let ident = ident();
-        let channel = ChannelIdent::default();
+        let context = context();
 
         assert!(naming.latest_tag().is_none());
-        assert!(naming.custom_tag(&ident, &channel).unwrap().is_none());
-        assert!(naming.version_tag(&ident).is_none());
-        assert!(naming.version_release_tag(&ident).is_none());
+        assert!(naming.custom_tag(&context).unwrap().is_none());
+        assert!(naming.version_tag(&context).is_none());
+        assert!(naming.version_release_tag(&context).is_none());
 
-        assert_eq!(naming.image_name(&ident, &channel).unwrap(), "core/foo");
+        assert_eq!(naming.image_name(&context).unwrap(), "core/foo");
     }
 
     #[test]
@@ -201,35 +243,37 @@ mod tests {
     fn version_tag() {
         let mut naming = Naming::default();
         naming.version_tag = true;
-        assert_eq!(naming.version_tag(&ident()).unwrap(), "1.2.3");
+
+        let context = context();
+        assert_eq!(naming.version_tag(&context).unwrap(), "1.2.3");
     }
 
     #[test]
     fn version_release_tag() {
         let mut naming = Naming::default();
         naming.version_release_tag = true;
-        assert_eq!(naming.version_release_tag(&ident()).unwrap(),
+
+        let context = context();
+        assert_eq!(naming.version_release_tag(&context).unwrap(),
                    "1.2.3-20200430153200");
     }
 
     #[test]
     fn image_name_with_registry_url() {
-        let ident = ident();
-        let channel = ChannelIdent::default();
-
         let mut naming = Naming::default();
         // TODO (CM): IMPLEMENTATION QUIRK
         // Registry type has no bearing on this! Fix it!
         naming.registry_url = Some(String::from("registry.mycompany.com:8080/v1"));
 
-        let name = naming.image_name(&ident, &channel).unwrap();
+        let context = context();
+
+        let name = naming.image_name(&context).unwrap();
         assert_eq!(name, "registry.mycompany.com:8080/v1/core/foo");
     }
 
     #[test]
     fn custom_image_names() {
-        let ident = ident();
-        let channel = ChannelIdent::default();
+        let context = context();
 
         // Template, Expected Result
         //
@@ -262,7 +306,7 @@ mod tests {
 
             let template = String::from(template);
             naming.custom_image_name = Some(template.clone());
-            let actual_name = naming.image_name(&ident, &channel);
+            let actual_name = naming.image_name(&context);
 
             if let Some(expected_name) = expected {
                 // expected success
@@ -287,8 +331,7 @@ mod tests {
 
     #[test]
     fn custom_tag_names() {
-        let ident = ident();
-        let channel = ChannelIdent::default();
+        let context = context();
 
         // Template, Expected Result
         //
@@ -321,7 +364,7 @@ mod tests {
 
             let template = String::from(template);
             naming.custom_tag = Some(template.clone());
-            let actual_tag = naming.custom_tag(&ident, &channel);
+            let actual_tag = naming.custom_tag(&context);
 
             if let Some(expected_tag) = expected {
                 // expected success
