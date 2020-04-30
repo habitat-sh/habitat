@@ -105,7 +105,7 @@ fn parse_peer(s: &str) -> io::Result<SocketAddr> {
 #[configopt_fields]
 #[derive(ConfigOpt, StructOpt, Deserialize)]
 #[configopt(attrs(serde))]
-#[cfg_attr(linux,
+#[cfg_attr(not(windows),
            configopt(default_config_file("/hab/sup/default/config/sup.toml")))]
 #[cfg_attr(windows,
            configopt(default_config_file("\\hab\\sup\\default\\config\\sup.toml")))]
