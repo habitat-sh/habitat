@@ -20,7 +20,7 @@ actix-web = { version = "*", default-features = false, features = [ "rustls" ] }
 actix-rt = "*"
 byteorder = "*"
 clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
-configopt = { path = "/home/david/Desktop/work/configopt/configopt" }
+configopt = { git = "https://github.com/davidMcneil/configopt.git" }
 cpu-time = "*"
 futures = { version = "0.3.1" }
 glob = "*"

@@ -1465,6 +1465,9 @@ pkg_ident_or_artifact = "core/redis"
 
         #[test]
         fn test_hab_sup_run_config_file_and_cli() {
+            let lock = lock_var();
+            lock.unset();
+
             let temp_dir = TempDir::new().expect("Could not create tempdir");
 
             // Setup config file one
