@@ -173,7 +173,7 @@ pub async fn export_for_cli_matches(ui: &mut UI,
 
     let default_url = default_bldr_url();
     let spec = BuildSpec::new_from_cli_matches(&matches, &default_url)?;
-    let naming = Naming::new_from_cli_matches(&matches);
+    let naming = Naming::from(matches);
 
     let docker_image = export(ui, spec, &naming, matches.value_of("MEMORY_LIMIT")).await?;
     docker_image.create_report(ui, env::current_dir()?.join("results"))?;

@@ -1,5 +1,6 @@
 use crate::{error::Result,
             RegistryType};
+use clap::ArgMatches;
 use failure::SyncFailure;
 use habitat_core::{package::{FullyQualifiedPackageIdent,
                              Identifiable},
@@ -50,6 +51,27 @@ pub struct Naming {
     pub registry_type: RegistryType,
 }
 
+impl From<&ArgMatches<'_>> for Naming {
+    fn from(matches: &ArgMatches) -> Self {
+        let registry_type =
+            clap::value_t!(matches.value_of("REGISTRY_TYPE"), RegistryType).unwrap_or_default();
+
+        // TODO (CM): If registry_type is Docker, we must set this to
+        // dockerhub. Otherwise, it MUST be present, because of how
+        // clap is set up.
+        let registry_url = matches.value_of("REGISTRY_URL").map(ToString::to_string);
+
+        Naming { custom_image_name_template: matches.value_of("IMAGE_NAME")
+                                                    .map(ToString::to_string),
+                 include_latest_tag: !matches.is_present("NO_TAG_LATEST"),
+                 include_version_tag: !matches.is_present("NO_TAG_VERSION"),
+                 include_version_release_tag: !matches.is_present("NO_TAG_VERSION_RELEASE"),
+                 custom_tag_template: matches.value_of("TAG_CUSTOM").map(ToString::to_string),
+                 registry_url,
+                 registry_type }
+    }
+}
+
 // TODO (CM): must validate custom names and tags w/r/t tag spec
 // https://docs.docker.com/engine/reference/commandline/tag/
 //
@@ -70,25 +92,6 @@ pub struct Naming {
 // maximum of 128 characters.
 
 impl Naming {
-    /// Creates a `Naming` from cli arguments.
-    pub fn new_from_cli_matches(m: &clap::ArgMatches) -> Self {
-        let registry_type =
-            clap::value_t!(m.value_of("REGISTRY_TYPE"), RegistryType).unwrap_or_default();
-
-        // TODO (CM): If registry_type is Docker, we must set this to
-        // dockerhub. Otherwise, it MUST be present, because of how
-        // clap is set up.
-        let registry_url = m.value_of("REGISTRY_URL").map(ToString::to_string);
-
-        Naming { custom_image_name_template: m.value_of("IMAGE_NAME").map(ToString::to_string),
-                 include_latest_tag: !m.is_present("NO_TAG_LATEST"),
-                 include_version_tag: !m.is_present("NO_TAG_VERSION"),
-                 include_version_release_tag: !m.is_present("NO_TAG_VERSION_RELEASE"),
-                 custom_tag_template: m.value_of("TAG_CUSTOM").map(ToString::to_string),
-                 registry_url,
-                 registry_type }
-    }
-
     // TODO (CM): I am skeptical of use of "channel" in any container
     // identifier, since that is not anything inherent to the package
     // we are containerizing.
