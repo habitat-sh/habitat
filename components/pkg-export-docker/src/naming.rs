@@ -26,17 +26,17 @@ macro_rules! safe {
 #[derive(Debug, Default)]
 pub struct Naming {
     /// An optional custom image name which would override a computed default value.
-    custom_image_name:   Option<String>,
+    custom_image_name_template:  Option<String>,
     /// Whether or not to tag the image with a latest value.
-    latest_tag:          bool,
+    include_latest_tag:          bool,
     /// Whether or not to tag the image with a value containing a version from a Package
     /// Identifier.
-    version_tag:         bool,
+    include_version_tag:         bool,
     /// Whether or not to tag the image with a value containing a version and release from a
     /// Package Identifier.
-    version_release_tag: bool,
+    include_version_release_tag: bool,
     /// An optional custom tag value for the image.
-    custom_tag:          Option<String>,
+    custom_tag_template:         Option<String>,
 
     // TODO (CM): I don't think either of these really belongs to this
     // Naming type
@@ -80,11 +80,11 @@ impl Naming {
         // clap is set up.
         let registry_url = m.value_of("REGISTRY_URL").map(ToString::to_string);
 
-        Naming { custom_image_name: m.value_of("IMAGE_NAME").map(ToString::to_string),
-                 latest_tag: !m.is_present("NO_TAG_LATEST"),
-                 version_tag: !m.is_present("NO_TAG_VERSION"),
-                 version_release_tag: !m.is_present("NO_TAG_VERSION_RELEASE"),
-                 custom_tag: m.value_of("TAG_CUSTOM").map(ToString::to_string),
+        Naming { custom_image_name_template: m.value_of("IMAGE_NAME").map(ToString::to_string),
+                 include_latest_tag: !m.is_present("NO_TAG_LATEST"),
+                 include_version_tag: !m.is_present("NO_TAG_VERSION"),
+                 include_version_release_tag: !m.is_present("NO_TAG_VERSION_RELEASE"),
+                 custom_tag_template: m.value_of("TAG_CUSTOM").map(ToString::to_string),
                  registry_url,
                  registry_type }
     }
@@ -116,7 +116,7 @@ impl Naming {
     fn image_name<S>(&self, context: &S) -> Result<String>
         where S: Serialize
     {
-        let image_name = if let Some(ref template) = self.custom_image_name {
+        let image_name = if let Some(ref template) = self.custom_image_name_template {
             Self::render(&template, &context)?
         } else {
             safe!(Self::render(DEFAULT_IMAGE_NAME_TEMPLATE, &context))
@@ -136,7 +136,7 @@ impl Naming {
     fn version_release_tag<S>(&self, context: &S) -> Option<String>
         where S: Serialize
     {
-        if self.version_release_tag {
+        if self.include_version_release_tag {
             Some(safe!(Self::render(VERSION_RELEASE_TAG_TEMPLATE, &context)))
         } else {
             None
@@ -146,7 +146,7 @@ impl Naming {
     fn version_tag<S>(&self, context: &S) -> Option<String>
         where S: Serialize
     {
-        if self.version_tag {
+        if self.include_version_tag {
             Some(safe!(Self::render(VERSION_TAG_TEMPLATE, &context)))
         } else {
             None
@@ -156,7 +156,7 @@ impl Naming {
     // TODO (CM): not sure how useful this is, since I think "latest"
     // is *always* created.
     fn latest_tag(&self) -> Option<String> {
-        if self.latest_tag {
+        if self.include_latest_tag {
             Some("latest".to_string())
         } else {
             None
@@ -166,7 +166,7 @@ impl Naming {
     fn custom_tag<S>(&self, context: &S) -> Result<Option<String>>
         where S: Serialize
     {
-        if let Some(ref custom_tag_template) = self.custom_tag {
+        if let Some(ref custom_tag_template) = self.custom_tag_template {
             Ok(Some(Self::render(custom_tag_template, &context)?))
         } else {
             Ok(None)
@@ -235,14 +235,14 @@ mod tests {
     #[test]
     fn latest_tag() {
         let mut naming = Naming::default();
-        naming.latest_tag = true;
+        naming.include_latest_tag = true;
         assert_eq!(naming.latest_tag().unwrap(), "latest");
     }
 
     #[test]
     fn version_tag() {
         let mut naming = Naming::default();
-        naming.version_tag = true;
+        naming.include_version_tag = true;
 
         let context = context();
         assert_eq!(naming.version_tag(&context).unwrap(), "1.2.3");
@@ -251,7 +251,7 @@ mod tests {
     #[test]
     fn version_release_tag() {
         let mut naming = Naming::default();
-        naming.version_release_tag = true;
+        naming.include_version_release_tag = true;
 
         let context = context();
         assert_eq!(naming.version_release_tag(&context).unwrap(),
@@ -305,7 +305,7 @@ mod tests {
             let mut naming = Naming::default();
 
             let template = String::from(template);
-            naming.custom_image_name = Some(template.clone());
+            naming.custom_image_name_template = Some(template.clone());
             let actual_name = naming.image_name(&context);
 
             if let Some(expected_name) = expected {
@@ -363,7 +363,7 @@ mod tests {
             let mut naming = Naming::default();
 
             let template = String::from(template);
-            naming.custom_tag = Some(template.clone());
+            naming.custom_tag_template = Some(template.clone());
             let actual_tag = naming.custom_tag(&context);
 
             if let Some(expected_tag) = expected {
@@ -397,14 +397,15 @@ mod tests {
 
     #[test]
     fn all_the_image_identifiers() {
-        let naming = Naming { custom_image_name:   Some(String::from("my-nifty/{{pkg_name}}")),
-                              latest_tag:          true,
-                              version_tag:         true,
-                              version_release_tag: true,
-                              custom_tag:          Some(String::from("new-hotness")),
-                              registry_url:        Some(String::from("registry.mycompany.com:\
-                                                                      8080/v1")),
-                              registry_type:       RegistryType::Docker, };
+        let naming = Naming { custom_image_name_template:
+                                  Some(String::from("my-nifty/{{pkg_name}}")),
+                              include_latest_tag:          true,
+                              include_version_tag:         true,
+                              include_version_release_tag: true,
+                              custom_tag_template:         Some(String::from("new-hotness")),
+                              registry_url:
+                                  Some(String::from("registry.mycompany.com:8080/v1")),
+                              registry_type:               RegistryType::Docker, };
 
         let ident = ident();
         let channel = ChannelIdent::default();
