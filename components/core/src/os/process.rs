@@ -35,7 +35,7 @@ use std::{fmt,
 /// This type encapsulates the number of seconds we should wait after
 /// send a shutdown signal to a process before we kill it.
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Copy, Hash)]
-#[serde(from = "u32")]
+#[serde(from = "u32", into = "u32")]
 pub struct ShutdownTimeout(u32);
 
 impl Default for ShutdownTimeout {

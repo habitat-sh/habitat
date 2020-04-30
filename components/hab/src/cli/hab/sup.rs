@@ -80,7 +80,7 @@ pub enum Sup {
 
 // TODO (DM): This is unnecessarily difficult due to this issue in serde
 // https://github.com/serde-rs/serde/issues/723. The easiest way to get around the issue is by
-// using a wrapper type.
+// using a wrapper type since NatsAddress is not defined in this crate.
 #[derive(Deserialize, Serialize, Debug)]
 pub struct EventStreamAddress(#[serde(with = "serde_string")] NatsAddress);
 
@@ -105,6 +105,10 @@ fn parse_peer(s: &str) -> io::Result<SocketAddr> {
 #[configopt_fields]
 #[derive(ConfigOpt, StructOpt, Deserialize)]
 #[configopt(attrs(serde))]
+#[cfg_attr(linux,
+           configopt(default_config_file("/hab/sup/default/config/sup.toml")))]
+#[cfg_attr(windows,
+           configopt(default_config_file("\\hab\\sup\\default\\config\\sup.toml")))]
 #[serde(deny_unknown_fields)]
 #[structopt(name = "run",
             no_version,
@@ -143,6 +147,9 @@ pub struct SupRun {
     #[structopt(long = "org")]
     pub organization: Option<String>,
     /// The listen address of one or more initial peers (IP[:PORT])
+    // TODO (DM): Currently there is not a good way to use `parse_peer` when deserializing. Due to
+    // https://github.com/serde-rs/serde/issues/723. There are workarounds but they are all ugly.
+    // This means that you have to specify the port when setting this with a config file.
     #[structopt(long = "peer", parse(try_from_str = parse_peer))]
     #[serde(default)]
     pub peer: Vec<SocketAddr>,

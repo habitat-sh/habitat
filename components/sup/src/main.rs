@@ -24,6 +24,7 @@ use crate::sup::{cli::cli,
                            TLSConfig,
                            PROC_LOCK_FILE},
                  util};
+use configopt::ConfigOpt;
 use hab::cli::hab::sup::SupRun;
 use habitat_common::{command::package::install::InstallSource,
                      liveliness_checker,
@@ -56,7 +57,6 @@ use std::{env,
                 Ipv4Addr},
           process,
           str::{self}};
-use structopt::StructOpt;
 use tokio::{self,
             runtime::Builder as RuntimeBuilder};
 use url::Url;
@@ -166,11 +166,11 @@ async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFlag) -> Resul
             // structopt/configopt instead of querying clap `ArgMatches` directly. We skip the first
             // arg ("sup") to construct a `SupRun`. Eventually, when we switch to exclusivly using
             // structopt/configopt this will go away and everything will be much cleaner.
-            let sup_run = match SupRun::from_iter_safe(env::args().skip(1)) {
+            let sup_run = match SupRun::try_from_iter_with_configopt(env::args().skip(1)) {
                 Ok(sup) => sup,
                 Err(err) => {
                     if launcher.is_some() {
-                        err.exit();
+                        err.exit_with_codes(ERR_NO_RETRY_EXCODE, ERR_NO_RETRY_EXCODE);
                     } else {
                         err.exit();
                     }
@@ -481,6 +481,7 @@ mod test {
     mod manager_config {
 
         use super::*;
+        use configopt::ConfigOpt;
         use habitat_common::types::EventStreamConnectMethod;
         use habitat_core::fs::CACHE_KEY_PATH;
         use std::{collections::HashMap,
@@ -489,14 +490,14 @@ mod test {
                   iter::FromIterator,
                   path::PathBuf,
                   str::FromStr};
-        use structopt::StructOpt;
 
         locked_env_var!(HAB_CACHE_KEY_PATH, lock_var);
 
         fn cmd_vec_from_cmd_str(cmd: &str) -> Vec<&str> { Vec::from_iter(cmd.split_whitespace()) }
 
         fn sup_run_from_cmd_vec(cmd_vec: Vec<&str>) -> SupRun {
-            let sup = Sup::from_iter_safe(cmd_vec).expect("Error while getting sup_run");
+            let sup =
+                Sup::try_from_iter_with_configopt(cmd_vec).expect("Error while getting sup_run");
             match sup {
                 Sup::Run(sup_run) => sup_run,
                 _ => panic!("Error getting sub command sup run"),
@@ -716,6 +717,28 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
                        "foobar-20160504220722");
         }
 
+        const CERT_FILE_CONTENTS: &str = r#"-----BEGIN CERTIFICATE-----
+MIIDPTCCAiWgAwIBAgIJAJCSLX9jr5W7MA0GCSqGSIb3DQEBBQUAMHAxCzAJBgNV
+BAYTAlVTMQswCQYDVQQIDAJDQTEQMA4GA1UECgwHU3luYWRpYTEQMA4GA1UECwwH
+bmF0cy5pbzESMBAGA1UEAwwJbG9jYWxob3N0MRwwGgYJKoZIhvcNAQkBFg1kZXJl
+a0BuYXRzLmlvMB4XDTE5MTAxNzEzNTcyNloXDTI5MTAxNDEzNTcyNlowDTELMAkG
+A1UEBhMCVVMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDm+0dlzcmi
+La+LzdVqeVQ8B1/rWnErK+VvvjH7FmVodg5Z5+RXyojpd9ZBrVd6QrLSVMQPfFvB
+vGGX4yI6Ph5KXUefa31vNOOMhp2FGSmaEVhETKGQ0xRh4VfaAerOP5Cunl0TbSyJ
+yjkVa7aeMtcqTEiFL7Ae2EtiMhTrMrYpBDQ8rzm2i1IyTb9DX5v7DUOmrSynQSlV
+yXCztRVGNL/kHlItpEku1SHt/AD3ogu8EgqQZFB8xRRw9fubYgh4Q0kx80e4k9Qt
+TKncF3B2NGb/ZcE5Z+mmHIBq8J2zKMijOrdd3m5TbQmzDbETEOjs4L1eoZRLcL/c
+vYu5gmXdr4F7AgMBAAGjPTA7MBoGA1UdEQQTMBGCCWxvY2FsaG9zdIcEfwAAATAd
+BgNVHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUHAwEwDQYJKoZIhvcNAQEFBQADggEB
+ADQYaEjWlOb9YzUnFGjfDC06dRZjRmK8TW/4GiDHIDk5TyZ1ROtskvyhVyTZJ5Vs
+qXOKJwpps0jK2edtrvZ7xIGw+Y41oPgYYhr5TK2c+oi2UOHG4BXqRbuwz/5cU+nM
+ZWOG1OrHBCbrMSeFsn7rzETnd8SZnw6ZE7LI62WstdoCY0lvNfjNv3kY/6hpPm+9
+0bVzurZ28pdJ6YEJYgbPcOvxSzGDXTw9LaKEmqknTsrBKI2qm+myVTbRTimojYTo
+rw/xjHESAue/HkpOwWnFTOiTT+V4hZnDXygiSy+LWKP4zLnYOtsn0lN9OmD0z+aa
+gpoVMSncu2jMIDZX63IkQII=
+-----END CERTIFICATE-----
+"#;
+
         #[test]
         fn test_hab_sup_run_empty() {
             let lock = lock_var();
@@ -772,6 +795,9 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
 
         #[test]
         fn test_hab_sup_run_cli_1() {
+            let lock = lock_var();
+            lock.unset();
+
             let temp_dir = TempDir::new().expect("Could not create tempdir");
             let temp_dir_str = temp_dir.path().to_str().unwrap();
 
@@ -832,31 +858,6 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
                                        keep_latest_packages: Some(5),
                                        sys_ip: "7.8.9.0".parse().unwrap() },
                        config);
-
-            let health_check_interval = sup_proto::types::HealthCheckInterval { seconds: 30 };
-
-            let service_load = service_load_from_cmd_str(&args);
-            assert_eq!(sup_proto::ctl::SvcLoad { ident:                   None,
-                                                 application_environment: None,
-                                                 binds:                   None,
-                                                 specified_binds:         None,
-                                                 binding_mode:            Some(1),
-                                                 bldr_url:
-                                                     Some(String::from("https://bldr.habitat.sh")),
-                                                 bldr_channel:
-                                                     Some(String::from("stable")),
-                                                 config_from:             None,
-                                                 force:                   None,
-                                                 group:
-                                                     Some(String::from("default")),
-                                                 svc_encrypted_password:  None,
-                                                 topology:                None,
-                                                 update_strategy:         Some(0),
-                                                 health_check_interval:
-                                                     Some(health_check_interval),
-                                                 shutdown_timeout:        None,
-                                                 update_condition:        Some(0), },
-                       service_load);
         }
 
         #[test]
@@ -948,28 +949,7 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
             let certificate_path = temp_dir.path().join("certificate.pem");
             let certificate_path_str = certificate_path.to_str().unwrap();
             let mut file = File::create(&certificate_path).unwrap();
-            file.write_all(r#"-----BEGIN CERTIFICATE-----
-MIIDPTCCAiWgAwIBAgIJAJCSLX9jr5W7MA0GCSqGSIb3DQEBBQUAMHAxCzAJBgNV
-BAYTAlVTMQswCQYDVQQIDAJDQTEQMA4GA1UECgwHU3luYWRpYTEQMA4GA1UECwwH
-bmF0cy5pbzESMBAGA1UEAwwJbG9jYWxob3N0MRwwGgYJKoZIhvcNAQkBFg1kZXJl
-a0BuYXRzLmlvMB4XDTE5MTAxNzEzNTcyNloXDTI5MTAxNDEzNTcyNlowDTELMAkG
-A1UEBhMCVVMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDm+0dlzcmi
-La+LzdVqeVQ8B1/rWnErK+VvvjH7FmVodg5Z5+RXyojpd9ZBrVd6QrLSVMQPfFvB
-vGGX4yI6Ph5KXUefa31vNOOMhp2FGSmaEVhETKGQ0xRh4VfaAerOP5Cunl0TbSyJ
-yjkVa7aeMtcqTEiFL7Ae2EtiMhTrMrYpBDQ8rzm2i1IyTb9DX5v7DUOmrSynQSlV
-yXCztRVGNL/kHlItpEku1SHt/AD3ogu8EgqQZFB8xRRw9fubYgh4Q0kx80e4k9Qt
-TKncF3B2NGb/ZcE5Z+mmHIBq8J2zKMijOrdd3m5TbQmzDbETEOjs4L1eoZRLcL/c
-vYu5gmXdr4F7AgMBAAGjPTA7MBoGA1UdEQQTMBGCCWxvY2FsaG9zdIcEfwAAATAd
-BgNVHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUHAwEwDQYJKoZIhvcNAQEFBQADggEB
-ADQYaEjWlOb9YzUnFGjfDC06dRZjRmK8TW/4GiDHIDk5TyZ1ROtskvyhVyTZJ5Vs
-qXOKJwpps0jK2edtrvZ7xIGw+Y41oPgYYhr5TK2c+oi2UOHG4BXqRbuwz/5cU+nM
-ZWOG1OrHBCbrMSeFsn7rzETnd8SZnw6ZE7LI62WstdoCY0lvNfjNv3kY/6hpPm+9
-0bVzurZ28pdJ6YEJYgbPcOvxSzGDXTw9LaKEmqknTsrBKI2qm+myVTbRTimojYTo
-rw/xjHESAue/HkpOwWnFTOiTT+V4hZnDXygiSy+LWKP4zLnYOtsn0lN9OmD0z+aa
-gpoVMSncu2jMIDZX63IkQII=
------END CERTIFICATE-----
-"#.as_bytes())
-                .unwrap();
+            file.write_all(CERT_FILE_CONTENTS.as_bytes()).unwrap();
 
             let args = format!("hab-sup run --event-stream-application=MY_APP \
                                 --event-stream-environment=MY_ENV \
@@ -1084,8 +1064,460 @@ gpoVMSncu2jMIDZX63IkQII=
         #[test]
         fn test_hab_sup_run_cli_password() {
             let args = "hab-sup run --password keep_it_secret_keep_it_safe core/redis";
-            let m = sup_run_from_cmd_str(args);
-            assert_eq!(m.password.unwrap(), "keep_it_secret_keep_it_safe");
+            let service_load = service_load_from_cmd_str(&args);
+            assert_eq!(service_load.svc_encrypted_password.unwrap(),
+                       "keep_it_secret_keep_it_safe");
+        }
+
+        #[test]
+        fn test_hab_sup_run_config_file_1() {
+            let lock = lock_var();
+            lock.unset();
+
+            let temp_dir = TempDir::new().expect("Could not create tempdir");
+            let temp_dir_str = temp_dir.path().to_str().unwrap();
+
+            // Setup key file
+            let key_content =
+                "SYM-SEC-1\ntester-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
+            let (sym_key, _) = SymKey::write_file_from_str(key_content, temp_dir.path())
+                               .expect("Could not write key pair");
+
+            // Setup cert files
+            let key_path = temp_dir.path().join("key");
+            let key_path_str = key_path.to_str().unwrap();
+            File::create(&key_path).unwrap();
+            let cert_path = temp_dir.path().join("cert");
+            let cert_path_str = cert_path.to_str().unwrap();
+            File::create(&cert_path).unwrap();
+            let ca_cert_path = temp_dir.path().join("ca_cert");
+            let ca_cert_path_str = ca_cert_path.to_str().unwrap();
+            File::create(&ca_cert_path).unwrap();
+
+            // Setup config file
+            let config_contents =
+                format!(
+                        r#"
+listen_gossip = "1.2.3.4:4321"
+listen_http = "5.5.5.5:11111"
+http_disable = true
+listen_ctl = "7.8.9.1:12"
+organization = "MY_ORG"
+# TODO (DM): We have to always explicitly set the port instead of relying on defaults
+peer = ["1.1.1.1:1111", "2.2.2.2:2222", "3.3.3.3:9638"]
+permanent_peer = true
+ring = "tester"
+cache_key_path = "{}"
+auto_update = true
+key_file = "{}"
+cert_file = "{}"
+ca_cert_file = "{}"
+keep_latest_packages = 5
+sys_ip_address = "7.8.9.0"
+    "#,
+                        temp_dir_str, key_path_str, cert_path_str, ca_cert_path_str
+                );
+            let config_path = temp_dir.path().join("config.toml");
+            let config_path_str = config_path.to_str().unwrap();
+            let mut config_file = File::create(&config_path).unwrap();
+            write!(config_file, "{}", config_contents).expect("to write config file contents");
+
+            let args = format!("hab-sup run --config-files {}", config_path_str);
+
+            let gossip_peers = vec!["1.1.1.1:1111".parse().unwrap(),
+                                    "2.2.2.2:2222".parse().unwrap(),
+                                    format!("3.3.3.3:{}", GossipListenAddr::DEFAULT_PORT).parse()
+                                                                                         .unwrap()];
+
+            let config = config_from_cmd_str(&args);
+            assert_eq!(ManagerConfig { auto_update: true,
+                                       custom_state_path: None,
+                                       cache_key_path: PathBuf::from(temp_dir_str),
+                                       update_url: String::from("https://bldr.habitat.sh"),
+                                       update_channel: ChannelIdent::default(),
+                                       gossip_listen:
+                                           GossipListenAddr::from_str("1.2.3.4:4321").unwrap(),
+                                       ctl_listen:
+                                           ListenCtlAddr::from_str("7.8.9.1:12").unwrap(),
+                                       http_listen:
+                                           HttpListenAddr::from_str("5.5.5.5:11111").unwrap(),
+                                       http_disable: true,
+                                       gossip_peers,
+                                       gossip_permanent: true,
+                                       ring_key: Some(sym_key),
+                                       organization: Some(String::from("MY_ORG")),
+                                       watch_peer_file: None,
+                                       tls_config: Some(TLSConfig { cert_path,
+                                                                    key_path,
+                                                                    ca_cert_path:
+                                                                        Some(ca_cert_path) }),
+                                       feature_flags: FeatureFlag::empty(),
+                                       event_stream_config: None,
+                                       keep_latest_packages: Some(5),
+                                       sys_ip: "7.8.9.0".parse().unwrap() },
+                       config);
+        }
+
+        #[test]
+        fn test_hab_sup_run_config_file_2() {
+            let temp_dir = TempDir::new().expect("Could not create tempdir");
+
+            let lock = lock_var();
+            lock.set(PathBuf::from("/cache/key/path"));
+
+            // Setup config file
+            let config_contents = r#"local_gossip_mode = true"#;
+            let config_path = temp_dir.path().join("config.toml");
+            let config_path_str = config_path.to_str().unwrap();
+            let mut config_file = File::create(&config_path).unwrap();
+            write!(config_file, "{}", config_contents).expect("to write config file contents");
+
+            let args = format!("hab-sup run --config-files {}", config_path_str);
+
+            let config = config_from_cmd_str(&args);
+            assert_eq!(ManagerConfig { auto_update:          false,
+                                       custom_state_path:    None,
+                                       cache_key_path:       PathBuf::from("/cache/key/path"),
+                                       update_url:
+                                           String::from("https://bldr.habitat.sh"),
+                                       update_channel:       ChannelIdent::default(),
+                                       gossip_listen:
+                                           GossipListenAddr::from_str("127.0.0.2:9638").unwrap(),
+                                       ctl_listen:           ListenCtlAddr::default(),
+                                       http_listen:          HttpListenAddr::default(),
+                                       http_disable:         false,
+                                       gossip_peers:         vec![],
+                                       gossip_permanent:     false,
+                                       ring_key:             None,
+                                       organization:         None,
+                                       watch_peer_file:      None,
+                                       tls_config:           None,
+                                       feature_flags:        FeatureFlag::empty(),
+                                       event_stream_config:  None,
+                                       keep_latest_packages: None,
+                                       sys_ip:               habitat_core::util::sys::ip().unwrap(), },
+                       config);
+        }
+
+        #[test]
+        fn test_hab_sup_run_config_file_3() {
+            let temp_dir = TempDir::new().expect("Could not create tempdir");
+
+            let lock = lock_var();
+            lock.unset();
+
+            // Setup config file
+            let config_contents = r#"peer_watch_file = "/some/path""#;
+            let config_path = temp_dir.path().join("config.toml");
+            let config_path_str = config_path.to_str().unwrap();
+            let mut config_file = File::create(&config_path).unwrap();
+            write!(config_file, "{}", config_contents).expect("to write config file contents");
+
+            let args = format!("hab-sup run --config-files {}", config_path_str);
+
+            let config = config_from_cmd_str(&args);
+            assert_eq!(ManagerConfig { auto_update:          false,
+                                       custom_state_path:    None,
+                                       cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
+                                       update_url:
+                                           String::from("https://bldr.habitat.sh"),
+                                       update_channel:       ChannelIdent::default(),
+                                       gossip_listen:        GossipListenAddr::default(),
+                                       ctl_listen:           ListenCtlAddr::default(),
+                                       http_listen:          HttpListenAddr::default(),
+                                       http_disable:         false,
+                                       gossip_peers:         vec![],
+                                       gossip_permanent:     false,
+                                       ring_key:             None,
+                                       organization:         None,
+                                       watch_peer_file:      Some(String::from("/some/path")),
+                                       tls_config:           None,
+                                       feature_flags:        FeatureFlag::empty(),
+                                       event_stream_config:  None,
+                                       keep_latest_packages: None,
+                                       sys_ip:               habitat_core::util::sys::ip().unwrap(), },
+                       config);
+        }
+
+        #[test]
+        fn test_hab_sup_run_config_file_logging() {
+            let temp_dir = TempDir::new().expect("Could not create tempdir");
+
+            let config_path = temp_dir.path().join("config.toml");
+            let config_path_str = config_path.to_str().unwrap();
+
+            // Setup config file
+            let config_contents = r#"
+verbose = true
+no_color = true
+json_logging = true
+"#;
+            let mut config_file = File::create(&config_path).unwrap();
+            write!(config_file, "{}", config_contents).expect("to write config file contents");
+
+            let args = format!("hab-sup run --config-files {}", config_path_str);
+
+            let m = sup_run_from_cmd_str(&args);
+            assert!(m.verbose);
+            assert!(m.no_color);
+            assert!(m.json_logging);
+
+            // Setup config file
+            let config_contents = r#"
+verbose = true
+no_color = false
+json_logging = false
+"#;
+            let mut config_file = File::create(&config_path).unwrap();
+            write!(config_file, "{}", config_contents).expect("to write config file contents");
+
+            let args = format!("hab-sup run --config-files {} --no-color", config_path_str);
+
+            let m = sup_run_from_cmd_str(&args);
+            assert!(m.verbose);
+            assert!(m.no_color);
+            assert!(!m.json_logging);
+        }
+
+        #[test]
+        fn test_hab_sup_run_config_file_event_stream() {
+            let lock = lock_var();
+            lock.unset();
+
+            let temp_dir = TempDir::new().expect("Could not create tempdir");
+
+            // Setup cert files
+            let certificate_path = temp_dir.path().join("certificate.pem");
+            let certificate_path_str = certificate_path.to_str().unwrap();
+            let mut file = File::create(&certificate_path).unwrap();
+            file.write_all(CERT_FILE_CONTENTS.as_bytes()).unwrap();
+
+            // Setup config file
+            let config_contents = format!(
+                                          r#"
+event_stream_application = "MY_APP"
+event_stream_environment = "MY_ENV"
+event_stream_connect_timeout = 5
+event_stream_url = "127.0.0.1:3456"
+event_stream_site = "my_site"
+event_stream_token = "some_token"
+event_meta = ["key1=val1", "key2=val2", "keyA=valA"]
+event_stream_server_certificate = "{}"
+"#,
+                                          certificate_path_str
+            );
+            let config_path = temp_dir.path().join("config.toml");
+            let config_path_str = config_path.to_str().unwrap();
+            let mut config_file = File::create(&config_path).unwrap();
+            write!(config_file, "{}", config_contents).expect("to write config file contents");
+
+            let args = format!("hab-sup run --config-files {}", config_path_str);
+
+            let config = config_from_cmd_str(&args);
+            let mut meta = HashMap::new();
+            meta.insert(String::from("key1"), String::from("val1"));
+            meta.insert(String::from("key2"), String::from("val2"));
+            meta.insert(String::from("keyA"), String::from("valA"));
+            assert_eq!(ManagerConfig { auto_update:          false,
+                                       custom_state_path:    None,
+                                       cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
+                                       update_url:
+                                           String::from("https://bldr.habitat.sh"),
+                                       update_channel:       ChannelIdent::default(),
+                                       gossip_listen:        GossipListenAddr::default(),
+                                       ctl_listen:           ListenCtlAddr::default(),
+                                       http_listen:          HttpListenAddr::default(),
+                                       http_disable:         false,
+                                       gossip_peers:         vec![],
+                                       gossip_permanent:     false,
+                                       ring_key:             None,
+                                       organization:         None,
+                                       watch_peer_file:      None,
+                                       tls_config:           None,
+                                       feature_flags:        FeatureFlag::empty(),
+                                       event_stream_config:  Some(EventStreamConfig {
+                                        environment: String::from("MY_ENV"),
+                                        application: String::from("MY_APP"),
+                                        site: Some(String::from("my_site")),
+                                        meta: meta.into(),
+                                        token: "some_token".parse().unwrap(),
+                                        url: "127.0.0.1:3456".parse().unwrap(),
+                                        connect_method: EventStreamConnectMethod::Timeout {secs: 5},
+                                        server_certificate: Some(certificate_path_str.parse().unwrap()),
+                                       }),
+                                       keep_latest_packages: None,
+                                       sys_ip:               habitat_core::util::sys::ip().unwrap(), },
+                       config,);
+        }
+
+        #[test]
+        fn test_hab_sup_run_config_file_svc() {
+            let temp_dir = TempDir::new().expect("Could not create tempdir");
+            let temp_dir_str = temp_dir.path().to_str().unwrap();
+
+            // Setup config file
+            let config_contents = format!(
+                                          r#"
+channel = "my_channel"
+bind = ["one:service1.default", "two:service2.default"]
+binding_mode = "relaxed"
+bldr_url = "http://my_url.com"
+config_from = "{}"
+group = "MyGroup"
+topology = "standalone"
+strategy = "at-once"
+update_condition = "track-channel"
+health_check_interval = 17
+shutdown_timeout = 12
+pkg_ident_or_artifact = "core/redis"
+"#,
+                                          temp_dir_str
+            );
+            let config_path = temp_dir.path().join("config.toml");
+            let config_path_str = config_path.to_str().unwrap();
+            let mut config_file = File::create(&config_path).unwrap();
+            write!(config_file, "{}", config_contents).expect("to write config file contents");
+
+            let args = format!("hab-sup run --config-files {}", config_path_str);
+
+            let mut binds = ServiceBindList::default();
+            binds.binds
+                 .push(ServiceBind::from_str("one:service1.default").unwrap());
+            binds.binds
+                 .push(ServiceBind::from_str("two:service2.default").unwrap());
+            let health_check_interval = sup_proto::types::HealthCheckInterval { seconds: 17 };
+
+            let service_load = service_load_from_cmd_str(&args);
+            assert_eq!(sup_proto::ctl::SvcLoad { ident:                   None,
+                                                 application_environment: None,
+                                                 binds:                   Some(binds),
+                                                 specified_binds:         None,
+                                                 binding_mode:            Some(0),
+                                                 bldr_url:
+                                                     Some(String::from("http://my_url.com/")),
+                                                 bldr_channel:
+                                                     Some(String::from("my_channel")),
+                                                 config_from:
+                                                     Some(String::from(temp_dir_str)),
+                                                 force:                   None,
+                                                 group:
+                                                     Some(String::from("MyGroup")),
+                                                 svc_encrypted_password:  None,
+                                                 topology:                Some(0),
+                                                 update_strategy:         Some(1),
+                                                 health_check_interval:
+                                                     Some(health_check_interval),
+                                                 shutdown_timeout:        Some(12),
+                                                 update_condition:        Some(1), },
+                       service_load);
+        }
+
+        #[test]
+        fn test_hab_sup_run_config_file_svc_pkg_ident_args() {
+            let temp_dir = TempDir::new().expect("Could not create tempdir");
+            let config_path = temp_dir.path().join("config.toml");
+            let config_path_str = config_path.to_str().unwrap();
+
+            let args = format!("hab-sup run --config-files {}", config_path_str);
+
+            let mut config_file = File::create(&config_path).unwrap();
+            write!(config_file,
+                   "pkg_ident_or_artifact = \"core/redis\"",
+                   ).expect("to write config file contents");
+            let pkg = sup_run_from_cmd_str(&args).pkg_ident_or_artifact.unwrap();
+            assert_eq!("core/redis".parse::<InstallSource>().unwrap(), pkg);
+
+            let mut config_file = File::create(&config_path).unwrap();
+            write!(config_file,
+                   "pkg_ident_or_artifact = \"core/redis/4.0.14/20200421191514\"",
+                   ).expect("to write config file contents");
+            let pkg = sup_run_from_cmd_str(&args).pkg_ident_or_artifact.unwrap();
+            assert_eq!("core/redis/4.0.14/20200421191514".parse::<InstallSource>()
+                                                         .unwrap(),
+                       pkg);
+
+            let mut config_file = File::create(&config_path).unwrap();
+            write!(config_file,
+                   "pkg_ident_or_artifact = \"/some/path/pkg.hrt\"",).expect("to write config \
+                                                                              file contents");
+            let pkg = sup_run_from_cmd_str(&args).pkg_ident_or_artifact.unwrap();
+            assert_eq!("/some/path/pkg.hrt".parse::<InstallSource>().unwrap(), pkg);
+        }
+
+        #[cfg(windows)]
+        #[test]
+        fn test_hab_sup_run_cli_password() {
+            let temp_dir = TempDir::new().expect("Could not create tempdir");
+
+            // Setup config file
+            let config_path = temp_dir.path().join("config.toml");
+            let config_path_str = config_path.to_str().unwrap();
+            let mut config_file = File::create(&config_path).unwrap();
+            write!(config_file,
+                   "password = \"keep_it_secret_keep_it_safe\"",
+                   config_contents).expect("to write config file contents");
+
+            let args = format!("hab-sup run --config-files {}", config_path_str);
+            let service_load = service_load_from_cmd_str(&args);
+            assert_eq!(service_load.svc_encrypted_password.unwrap(),
+                       "keep_it_secret_keep_it_safe");
+        }
+
+        #[test]
+        fn test_hab_sup_run_config_file_and_cli() {
+            let temp_dir = TempDir::new().expect("Could not create tempdir");
+
+            // Setup config file one
+            let config1_path = temp_dir.path().join("config1.toml");
+            let config1_path_str = config1_path.to_str().unwrap();
+            let config1_contents = r#"
+listen_gossip = "1.2.3.4:4321"
+listen_http = "5.5.5.5:11111"
+listen_ctl = "7.8.9.1:12"
+organization = "MY_ORG_FROM_FIRST_CONFG"
+"#;
+            let mut config1_file = File::create(&config1_path).unwrap();
+            write!(config1_file, "{}", config1_contents).expect("to write config file contents");
+
+            // Setup config file two
+            let config2_path = temp_dir.path().join("config2.toml");
+            let config2_path_str = config2_path.to_str().unwrap();
+            let config2_contents = r#"
+listen_ctl = "7.7.7.7:7777"
+organization = "MY_ORG_FROM_SECOND_CONFG"
+"#;
+            let mut config2_file = File::create(&config2_path).unwrap();
+            write!(config2_file, "{}", config2_contents).expect("to write config file contents");
+
+            let args = format!("hab-sup run --config-files {} {} --listen-http 3.3.3.3:3333",
+                               config1_path_str, config2_path_str);
+
+            let config = config_from_cmd_str(&args);
+            assert_eq!(ManagerConfig { auto_update:          false,
+                                       custom_state_path:    None,
+                                       cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
+                                       update_url:
+                                           String::from("https://bldr.habitat.sh"),
+                                       update_channel:       ChannelIdent::default(),
+                                       gossip_listen:
+                                           GossipListenAddr::from_str("1.2.3.4:4321").unwrap(),
+                                       ctl_listen:
+                                           ListenCtlAddr::from_str("7.7.7.7:7777").unwrap(),
+                                       http_listen:
+                                           HttpListenAddr::from_str("3.3.3.3:3333").unwrap(),
+                                       http_disable:         false,
+                                       gossip_peers:         vec![],
+                                       gossip_permanent:     false,
+                                       ring_key:             None,
+                                       organization:
+                                           Some(String::from("MY_ORG_FROM_SECOND_CONFG")),
+                                       watch_peer_file:      None,
+                                       tls_config:           None,
+                                       feature_flags:        FeatureFlag::empty(),
+                                       event_stream_config:  None,
+                                       keep_latest_packages: None,
+                                       sys_ip:               habitat_core::util::sys::ip().unwrap(), },
+                       config);
         }
     }
 }

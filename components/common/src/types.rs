@@ -40,7 +40,11 @@ pub struct UserInfo {
     pub gid:       Option<u32>,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
+// TODO (DM): This is unnecessarily difficult due to this issue in serde
+// https://github.com/serde-rs/serde/issues/723. The easiest way to get around the issue is to use
+// these proxy types.
+#[serde(try_from = "&str", into = "String")]
 pub struct EventStreamMetaPair(String, String);
 
 impl FromStr for EventStreamMetaPair {
@@ -63,6 +67,16 @@ impl FromStr for EventStreamMetaPair {
 
 impl fmt::Display for EventStreamMetaPair {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}={} ", self.0, self.1) }
+}
+
+impl std::convert::TryFrom<&str> for EventStreamMetaPair {
+    type Error = Error;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> { Ok(EventStreamMetaPair::from_str(s)?) }
+}
+
+impl Into<String> for EventStreamMetaPair {
+    fn into(self) -> String { self.to_string() }
 }
 
 /// Captures arbitrary key-value pair metadata to attach to all events
@@ -149,7 +163,8 @@ impl fmt::Display for EventStreamToken {
 }
 
 /// The event stream connection method.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(from = "u64", into = "u64")]
 pub enum EventStreamConnectMethod {
     /// Immediately start the supervisor regardless of the event stream status.
     Immediate,
@@ -168,35 +183,35 @@ impl EventStreamConnectMethod {
 impl FromStr for EventStreamConnectMethod {
     type Err = ParseIntError;
 
+    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
+        let secs = s.parse::<u64>()?;
+        Ok(Self::from(secs))
+    }
+}
+
+impl From<u64> for EventStreamConnectMethod {
     /// A numeric value of zero indicates there is no timeout and the `Immediate` variant is
     /// returned. Otherwise, the `Timeout` variant is returned.
-    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
-        let secs = s.parse()?;
+    fn from(secs: u64) -> Self {
         if secs == 0 {
-            Ok(EventStreamConnectMethod::Immediate)
+            EventStreamConnectMethod::Immediate
         } else {
-            Ok(EventStreamConnectMethod::Timeout { secs })
+            EventStreamConnectMethod::Timeout { secs }
+        }
+    }
+}
+
+impl From<EventStreamConnectMethod> for u64 {
+    fn from(connect_method: EventStreamConnectMethod) -> Self {
+        match connect_method {
+            EventStreamConnectMethod::Immediate => 0,
+            EventStreamConnectMethod::Timeout { secs } => secs,
         }
     }
 }
 
 impl fmt::Display for EventStreamConnectMethod {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            EventStreamConnectMethod::Immediate => write!(f, "0"),
-            EventStreamConnectMethod::Timeout { secs } => write!(f, "{}", secs),
-        }
-    }
-}
-
-impl<'a> From<&'a ArgMatches<'a>> for EventStreamConnectMethod {
-    /// Create an instance of `EventStreamConnectMethod` from validated user input.
-    fn from(m: &ArgMatches) -> Self {
-        m.value_of(Self::ARG_NAME)
-         .expect("EVENT_STREAM_CONNECT_TIMEOUT should be set")
-         .parse()
-         .expect("EVENT_STREAM_CONNECT_TIMEOUT should be validated")
-    }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", u64::from(*self)) }
 }
 
 impl Into<Option<Duration>> for EventStreamConnectMethod {
