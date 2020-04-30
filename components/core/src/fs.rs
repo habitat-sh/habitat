@@ -45,10 +45,11 @@ pub const LAUNCHER_ROOT_PATH: &str = "hab/launcher";
 pub const PKG_PATH: &str = "hab/pkgs";
 #[cfg(target_os = "windows")]
 pub const PKG_PATH: &str = "hab\\pkgs";
-/// The environment variable pointing to the filesystem root. This exists for internal
-/// Habitat team usage and is not intended to be used by Habitat consumers.
-/// Using this variable could lead to broken Supervisor services and it should
-/// be used with extreme caution.
+/// The environment variable pointing to the filesystem root. This exists for internal Habitat team
+/// usage and is not intended to be used by Habitat consumers. Using this variable could lead to
+/// broken Supervisor services and should be used with extreme caution. The services may break due
+/// to absolute paths in package binaries and libraries. Valid use cases include limited  testing or
+/// creating new self-contained root filesystems for tarballs or containers.
 pub const FS_ROOT_ENVVAR: &str = "FS_ROOT";
 pub const SYSTEMDRIVE_ENVVAR: &str = "SYSTEMDRIVE";
 /// The file where user-defined configuration for each service is found.
@@ -96,11 +97,28 @@ impl Default for Permissions {
 }
 
 lazy_static::lazy_static! {
-    /// The default filesystem root path.
-    ///
-    /// WARNING: On Windows this variable mutates on first call if an environment variable with
-    ///          the key of `FS_ROOT_ENVVAR` is set.
-    pub static ref FS_ROOT_PATH: PathBuf = fs_root_path();
+    /// The default filesystem root path to base all commands from. This is lazily generated on
+    /// first call and reflects on the presence and value of the environment variable keyed as
+    /// `FS_ROOT_ENVVAR`. This should be the only use of `FS_ROOT_ENVAR`. The environment variable will not
+    /// be referenced, exported, or consumed anywhere else in the system to ensure that it is **ONLY**
+    /// used internally in test suites. See `FS_ROOT_ENVVAR` documentation.
+    pub static ref FS_ROOT_PATH: PathBuf = {
+        if cfg!(target_os = "windows") {
+            match (henv::var(FS_ROOT_ENVVAR), henv::var(SYSTEMDRIVE_ENVVAR)) {
+                (Ok(path), _) => PathBuf::from(path),
+                (Err(_), Ok(system_drive)) => PathBuf::from(format!("{}{}", system_drive, "\\")),
+                (Err(_), Err(_)) => unreachable!(
+                    "Windows should always have a SYSTEMDRIVE \
+                    environment variable."
+                ),
+            }
+        } else if let Ok(root) = henv::var(FS_ROOT_ENVVAR) {
+            PathBuf::from(root)
+        } else {
+            PathBuf::from("/")
+        }
+    };
+
 
     /// The root path containing all runtime service directories and files
     pub static ref SVC_ROOT: PathBuf = {
@@ -662,51 +680,6 @@ fn find_command_with_pathext(candidate: &PathBuf) -> Option<PathBuf> {
 ///
 /// See, for example, Linux capabilities.
 pub fn am_i_root() -> bool { *EUID == 0u32 }
-
-/// Returns a `PathBuf` which represents the filesystem root for Habitat.
-///
-/// **Note** with the current exception of behavior on Windows (see below), an absolute default
-/// path of `"/"` should always be returned. This function is used to populate a one-time static
-/// value which cannot be altered for the execution length of a program. Packages in Habitat may
-/// contain binaries and libraries having dependent libraries which are located in absolute paths
-/// meaning that changing the value from this function will render existing packages un-runnable in
-/// the Supervisor. Furthermore as a rule in this codebase, external environment variables should
-/// *not* influence the behavior of inner libraries--any environment variables should be detected
-/// in a program at CLI parsing time and explicitly passed to inner module functions.
-///
-/// There is one exception to this rule which is supported for testing only--primarily exercising
-/// the Supervisor behavior. It allows setting a testing-only environment variable to influence the
-/// file system root for the duration of a running program.  Note that when using such an
-/// environment varible, any existing/actual Habitat packages may not run correctly due to the
-/// presence of absolute paths in package binaries and libraries. The environment variable will not
-/// be referenced, exported, or consumed anywhere else in the system to ensure that it is *only*
-/// used internally in test suites.
-///
-/// Please contact a project maintainer or current owner with any questions. Thanks!
-fn fs_root_path() -> PathBuf {
-    // This behavior must never be expected, used, or counted on in production. This is explicitly
-    // unsupported.
-    if let Ok(path) = henv::var("TESTING_FS_ROOT") {
-        writeln!(io::stderr(),
-                 "DEBUG: setting custom filesystem root for testing only (TESTING_FS_ROOT='{}')",
-                 &path).expect("Could not write to stderr");
-        return PathBuf::from(path);
-    }
-
-    // JW TODO: When Windows container studios are available the platform reflection should
-    // be removed.
-    if cfg!(target_os = "windows") {
-        match (henv::var(FS_ROOT_ENVVAR), henv::var(SYSTEMDRIVE_ENVVAR)) {
-            (Ok(path), _) => PathBuf::from(path),
-            (Err(_), Ok(system_drive)) => PathBuf::from(format!("{}{}", system_drive, "\\")),
-            (Err(_), Err(_)) => {
-                unreachable!("Windows should always have a SYSTEMDRIVE environment variable.")
-            }
-        }
-    } else {
-        PathBuf::from("/")
-    }
-}
 
 /// parent returns the parent directory of the given path, accounting
 /// for the fact that a relative path with no directory separator

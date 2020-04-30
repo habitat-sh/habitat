@@ -5,13 +5,13 @@ use crate::{command::pkg::list,
             error::{Error,
                     Result}};
 use futures::stream::StreamExt;
-use habitat_common::{cli::FS_ROOT,
-                     package_graph::PackageGraph,
+use habitat_common::{package_graph::PackageGraph,
                      types::ListenCtlAddr,
                      ui::{Status,
                           UIWriter}};
 use habitat_core::{error as herror,
-                   fs as hfs,
+                   fs::{self as hfs,
+                        FS_ROOT_PATH},
                    package::{list::temp_package_directory,
                              Identifiable,
                              PackageIdent,
@@ -234,7 +234,7 @@ fn launcher_is_running(fs_root_path: &Path) -> bool {
 }
 
 async fn supervisor_services() -> Result<Vec<PackageIdent>> {
-    if !launcher_is_running(&*FS_ROOT) {
+    if !launcher_is_running(&*FS_ROOT_PATH) {
         return Ok(vec![]);
     }
 

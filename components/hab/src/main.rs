@@ -32,8 +32,7 @@ use hab::{cli::{self,
           VERSION};
 use habitat_api_client::BuildOnUpload;
 use habitat_common::{self as common,
-                     cli::{cache_key_path_from_matches,
-                           FS_ROOT},
+                     cli::cache_key_path_from_matches,
                      command::package::install::{InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,
@@ -53,7 +52,8 @@ use habitat_core::{crypto::{init,
                             SigKeyPair},
                    env::{self as henv,
                          Config as _},
-                   fs::cache_artifact_path,
+                   fs::{cache_artifact_path,
+                        FS_ROOT_PATH},
                    os::process::ShutdownTimeout,
                    package::{target,
                              PackageIdent,
@@ -586,9 +586,11 @@ fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let force = m.is_present("FORCE");
     match m.value_of("BINARY") {
         Some(binary) => {
-            command::pkg::binlink::start(ui, &ident, &binary, dest_dir, &FS_ROOT, force)
+            command::pkg::binlink::start(ui, &ident, &binary, dest_dir, &FS_ROOT_PATH, force)
         }
-        None => command::pkg::binlink::binlink_all_in_pkg(ui, &ident, dest_dir, &FS_ROOT, force),
+        None => {
+            command::pkg::binlink::binlink_all_in_pkg(ui, &ident, dest_dir, &FS_ROOT_PATH, force)
+        }
     }
 }
 
@@ -622,14 +624,14 @@ async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 fn sub_pkg_config(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
 
-    common::command::package::config::start(&ident, &*FS_ROOT)?;
+    common::command::package::config::start(&ident, &*FS_ROOT_PATH)?;
     Ok(())
 }
 
 fn sub_pkg_binds(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
 
-    common::command::package::binds::start(&ident, &*FS_ROOT)?;
+    common::command::package::binds::start(&ident, &*FS_ROOT_PATH)?;
     Ok(())
 }
 
@@ -646,7 +648,7 @@ fn sub_pkg_dependencies(m: &ArgMatches<'_>) -> Result<()> {
     } else {
         command::pkg::DependencyRelation::Requires
     };
-    command::pkg::dependencies::start(&ident, scope, direction, &*FS_ROOT)
+    command::pkg::dependencies::start(&ident, scope, direction, &*FS_ROOT_PATH)
 }
 
 async fn sub_pkg_download(ui: &mut UI,
@@ -691,7 +693,7 @@ async fn sub_pkg_download(ui: &mut UI,
 fn sub_pkg_env(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
 
-    command::pkg::env::start(&ident, &*FS_ROOT)
+    command::pkg::env::start(&ident, &*FS_ROOT_PATH)
 }
 
 fn sub_pkg_exec(m: &ArgMatches<'_>, cmd_args: &[OsString]) -> Result<()> {
@@ -746,7 +748,7 @@ async fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
     command::pkg::uninstall::start(ui,
                                    &ident,
-                                   &*FS_ROOT,
+                                   &*FS_ROOT_PATH,
                                    execute_strategy,
                                    mode,
                                    scope,
@@ -935,8 +937,8 @@ async fn sub_pkg_install(ui: &mut UI,
                                                      install_source,
                                                      PRODUCT,
                                                      VERSION,
-                                                     &*FS_ROOT,
-                                                     &cache_artifact_path(Some(&*FS_ROOT)),
+                                                     &*FS_ROOT_PATH,
+                                                     &cache_artifact_path(Some(&*FS_ROOT_PATH)),
                                                      token.as_ref().map(String::as_str),
                                                      &install_mode,
                                                      &local_package_usage,
@@ -947,7 +949,7 @@ async fn sub_pkg_install(ui: &mut UI,
             command::pkg::binlink::binlink_all_in_pkg(ui,
                                                       pkg_install.ident(),
                                                       &dest_dir,
-                                                      &FS_ROOT,
+                                                      &FS_ROOT_PATH,
                                                       force)?;
         }
     }
@@ -957,7 +959,7 @@ async fn sub_pkg_install(ui: &mut UI,
 fn sub_pkg_path(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
 
-    command::pkg::path::start(&ident, &*FS_ROOT)
+    command::pkg::path::start(&ident, &*FS_ROOT_PATH)
 }
 
 fn sub_pkg_list(m: &ArgMatches<'_>) -> Result<()> {
@@ -972,7 +974,7 @@ fn sub_pkg_provides(m: &ArgMatches<'_>) -> Result<()> {
     let full_releases = m.is_present("FULL_RELEASES");
     let full_paths = m.is_present("FULL_PATHS");
 
-    command::pkg::provides::start(&filename, &*FS_ROOT, full_releases, full_paths)
+    command::pkg::provides::start(&filename, &*FS_ROOT_PATH, full_releases, full_paths)
 }
 
 async fn sub_pkg_search(m: &ArgMatches<'_>) -> Result<()> {

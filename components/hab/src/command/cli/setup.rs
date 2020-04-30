@@ -4,9 +4,9 @@ use std::{path::Path,
           result};
 
 #[cfg(windows)]
-use crate::{common::cli::{DEFAULT_BINLINK_DIR,
-                          FS_ROOT},
-            hcore::fs};
+use crate::{common::cli::DEFAULT_BINLINK_DIR,
+            hcore::fs::{self,
+                        FS_ROOT_PATH}};
 use crate::{common::ui::{UIReader,
                          UIWriter,
                          UI},
@@ -173,7 +173,8 @@ pub fn start(ui: &mut UI, cache_path: &Path) -> Result<()> {
     #[cfg(windows)]
     {
         let binlink_path =
-            Path::new(&*FS_ROOT).join(Path::new(DEFAULT_BINLINK_DIR).strip_prefix("/").unwrap());
+            Path::new(&*FS_ROOT_PATH).join(Path::new(DEFAULT_BINLINK_DIR).strip_prefix("/")
+                                                                         .unwrap());
         ui.heading("Habitat Binlink Path")?;
         ui.para("The `hab` command-line tool can create binlinks for package binaries in the \
                  'PATH' when using the 'pkg binlink' or 'pkg install --binlink' commands. By \
