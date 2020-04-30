@@ -84,7 +84,7 @@ bitflags::bitflags! {
         const OFFLINE_INSTALL            = 0b0000_0100_0000;
         const IGNORE_LOCAL               = 0b0000_1000_0000;
         const TRIGGER_ELECTION           = 0b0010_0000_0000;
-        const CONFIG_FILE                = 0b0100_0000_0000;
+        const STRUCTOPT_CLI              = 0b0100_0000_0000;
         const NO_NAMED_PIPE_HEALTH_CHECK = 0b1000_0000_0000;
     }
 }
@@ -98,7 +98,7 @@ lazy_static! {
                            (FeatureFlag::OFFLINE_INSTALL, "HAB_FEAT_OFFLINE_INSTALL"),
                            (FeatureFlag::IGNORE_LOCAL, "HAB_FEAT_IGNORE_LOCAL"),
                            (FeatureFlag::TRIGGER_ELECTION, "HAB_FEAT_TRIGGER_ELECTION"),
-                           (FeatureFlag::CONFIG_FILE, "HAB_FEAT_CONFIG_FILE"),
+                           (FeatureFlag::STRUCTOPT_CLI, "HAB_FEAT_STRUCTOPT_CLI"),
                            (FeatureFlag::NO_NAMED_PIPE_HEALTH_CHECK,
                             "HAB_FEAT_NO_NAMED_PIPE_HEALTH_CHECK"),];
 

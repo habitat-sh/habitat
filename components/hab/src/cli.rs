@@ -1,10 +1,8 @@
 pub mod hab;
 
-use crate::{cli::hab::{sup::{ConfigOptSup,
-                             Sup,
+use crate::{cli::hab::{sup::{Sup,
                              SupRun},
                        util::CACHE_KEY_PATH_DEFAULT,
-                       ConfigOptHab,
                        Hab},
             command::studio};
 
@@ -12,8 +10,6 @@ use clap::{App,
            AppSettings,
            Arg,
            ArgMatches};
-use configopt::{ConfigOptType,
-                IgnoreHelp};
 use habitat_common::{cli::{file_into_idents,
                            is_toml_file,
                            BINLINK_DIR_ENVVAR,
@@ -33,7 +29,6 @@ use habitat_core::{crypto::{keys::PairType,
                    ChannelIdent};
 use habitat_sup_protocol;
 use std::{path::Path,
-          process,
           result,
           str::FromStr};
 use structopt::StructOpt;
@@ -53,20 +48,8 @@ const UPDATE_CONDITION_LONG_HELP: &str =
 pub const OK_NO_RETRY_EXCODE: i32 = 84;
 
 pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
-    if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
-        let mut hab = Hab::clap();
-        // Populate the `configopt` version of `Hab` with config files. Use these values to set the
-        // defaults of the `Hab` app.
-        // Ignore any CLI parsing errors. We will catch them later on when `get_matches` is called.
-        // When we switch to using `structopt` exclusivly this will be cleaned up.
-        if let Ok(mut defaults) = ConfigOptHab::try_from_args_ignore_help() {
-            if let Err(e) = defaults.patch_with_config_files() {
-                error!("Failed to parse config files, err: {}", e);
-                process::exit(OK_NO_RETRY_EXCODE);
-            }
-            configopt::set_defaults(&mut hab, &defaults);
-        }
-        return hab;
+    if feature_flags.contains(FeatureFlag::STRUCTOPT_CLI) {
+        return Hab::clap();
     }
 
     let alias_apply = sub_config_apply().about("Alias for 'config apply'")
@@ -946,21 +929,10 @@ fn sub_cli_setup() -> App<'static, 'static> {
 }
 
 pub fn sup_commands(feature_flags: FeatureFlag) -> App<'static, 'static> {
-    if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
-        let mut sup = Sup::clap();
-        // Populate the `configopt` version of `Sup` with config files. Use these values to set the
-        // defaults of the `Sup` app.
-        // Ignore any CLI parsing errors. We will catch them later on when `get_matches` is called.
-        // When we switch to using `structopt` exclusivly this will be cleaned up.
-        if let Ok(mut defaults) = ConfigOptSup::try_from_args_ignore_help() {
-            if let Err(e) = defaults.patch_with_config_files() {
-                error!("Failed to parse config files, err: {}", e);
-                process::exit(OK_NO_RETRY_EXCODE);
-            }
-            configopt::set_defaults(&mut sup, &defaults);
-        }
-        return sup;
+    if feature_flags.contains(FeatureFlag::STRUCTOPT_CLI) {
+        return Sup::clap();
     }
+
     // Define all of the `hab sup *` subcommands in one place.
     // This removes the need to duplicate this in `hab-sup`.
     // The 'sup' App name here is significant for the `hab` binary as it

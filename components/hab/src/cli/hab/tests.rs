@@ -9,7 +9,7 @@ fn no_feature_flags() -> FeatureFlag { FeatureFlag::empty() }
 
 fn config_file_enabled() -> FeatureFlag {
     let mut f = FeatureFlag::empty();
-    f.insert(FeatureFlag::CONFIG_FILE);
+    f.insert(FeatureFlag::STRUCTOPT_CLI);
     f
 }
 
