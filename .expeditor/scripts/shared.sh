@@ -364,7 +364,7 @@ macos_use_cert_file_from_linux_cacerts_package() {
     # package.
     cacerts_scratch_dir="cacerts_scratch"
     mkdir "${cacerts_scratch_dir}"
-    ${hab_binary} pkg download core/cacerts \
+    hab pkg download core/cacerts \
         --target=x86_64-linux \
         --download-directory="${cacerts_scratch_dir}"
     cacerts_hart=$(find "${cacerts_scratch_dir}"/artifacts -type f -name 'core-cacerts-*-x86_64-linux.hart')
