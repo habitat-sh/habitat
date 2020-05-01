@@ -1386,7 +1386,6 @@ dependencies = [
  "caps",
  "cc",
  "chrono",
- "configopt",
  "ctrlc",
  "dirs",
  "dns-lookup",

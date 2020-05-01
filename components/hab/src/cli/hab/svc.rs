@@ -7,8 +7,7 @@ use super::util::{CacheKeyPath,
 use configopt::ConfigOpt;
 use habitat_core::{os::process::ShutdownTimeout,
                    package::PackageIdent,
-                   service::{HealthCheckInterval,
-                             ServiceBind,
+                   service::{ServiceBind,
                              ServiceGroup},
                    ChannelIdent};
 use habitat_sup_protocol::types::UpdateCondition;
@@ -147,8 +146,12 @@ pub struct SharedLoad {
                 possible_values = &["strict", "relaxed"])]
     pub binding_mode:          habitat_sup_protocol::types::BindingMode,
     /// The interval in seconds on which to run health checks
+    // We would prefer to use `HealthCheckInterval`. However, `HealthCheckInterval` uses a map based
+    // serialization format. We want to allow the user to simply specify a `u64` to be consistent
+    // with the CLI, but we cannot change the serialization because the spec file depends on the map
+    // based format.
     #[structopt(long = "health-check-interval", short = "i", default_value = "30")]
-    pub health_check_interval: HealthCheckInterval,
+    pub health_check_interval: u64,
     /// The delay in seconds after sending the shutdown signal to wait before killing the service
     /// process
     ///

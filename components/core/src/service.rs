@@ -1,11 +1,9 @@
 use crate::error::{Error,
                    Result};
-use configopt::ConfigOptDefaults;
 use regex::Regex;
 use serde_derive::{Deserialize,
                    Serialize};
-use std::{ffi::OsString,
-          fmt,
+use std::{fmt,
           num::ParseIntError,
           ops::{Deref,
                 DerefMut},
@@ -258,7 +256,6 @@ impl FromStr for ServiceGroup {
 
 /// Represents how far apart to run health checks for individual services
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(from = "u64", into = "u64")]
 pub struct HealthCheckInterval(Duration);
 
 impl HealthCheckInterval {
@@ -276,13 +273,6 @@ impl Into<u64> for HealthCheckInterval {
 impl fmt::Display for HealthCheckInterval {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({}s)", self.0.as_secs())
-    }
-}
-
-// Because `Display` has special formating we have to explicitly define this trait
-impl ConfigOptDefaults for HealthCheckInterval {
-    fn arg_default(&self, _arg_path: &[String]) -> Option<OsString> {
-        Some(format!("{}", self.0.as_secs()).into())
     }
 }
 

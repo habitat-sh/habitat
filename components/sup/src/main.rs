@@ -46,7 +46,8 @@ use habitat_core::{self,
                    url::default_bldr_url,
                    ChannelIdent};
 use habitat_launcher_client::{LauncherCli,
-                              ERR_NO_RETRY_EXCODE};
+                              ERR_NO_RETRY_EXCODE,
+                              OK_NO_RETRY_EXCODE};
 use habitat_sup_protocol::{self as sup_proto,
                            ctl::ServiceBindList,
                            types::ServiceBind};
@@ -170,7 +171,12 @@ async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFlag) -> Resul
                 Ok(sup) => sup,
                 Err(err) => {
                     if launcher.is_some() {
-                        err.exit_with_codes(ERR_NO_RETRY_EXCODE, ERR_NO_RETRY_EXCODE);
+                        let exit_code = if err.use_stderr() {
+                            ERR_NO_RETRY_EXCODE
+                        } else {
+                            OK_NO_RETRY_EXCODE
+                        };
+                        err.exit_with_codes(exit_code, exit_code);
                     } else {
                         err.exit();
                     }
@@ -371,7 +377,8 @@ fn split_apart_sup_run(sup_run: SupRun,
     };
     msg.group = Some(shared_load.group);
     msg.svc_encrypted_password = password;
-    msg.health_check_interval = Some(shared_load.health_check_interval.into());
+    msg.health_check_interval =
+        Some(sup_proto::types::HealthCheckInterval { seconds: shared_load.health_check_interval, });
     msg.binding_mode = Some(shared_load.binding_mode as i32);
     msg.topology = shared_load.topology.map(i32::from);
     msg.update_strategy = Some(shared_load.strategy as i32);
