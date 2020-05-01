@@ -30,7 +30,8 @@ use habitat_core::{env,
                         cache_key_path,
                         CACHE_ARTIFACT_PATH,
                         CACHE_KEY_PATH},
-                   package::{PackageArchive,
+                   package::{FullyQualifiedPackageIdent,
+                             PackageArchive,
                              PackageIdent,
                              PackageInstall},
                    ChannelIdent};
@@ -39,6 +40,7 @@ use std::os::unix::fs::symlink;
 #[cfg(windows)]
 use std::os::windows::fs::symlink_dir as symlink;
 use std::{collections::HashMap,
+          convert::TryFrom,
           fs as stdfs,
           path::{Path,
                  PathBuf},
@@ -235,7 +237,10 @@ impl<'a> BuildSpec<'a> {
                            cacerts })
     }
 
-    async fn install_user_pkgs(&self, ui: &mut UI, rootfs: &Path) -> Result<Vec<PackageIdent>> {
+    async fn install_user_pkgs(&self,
+                               ui: &mut UI,
+                               rootfs: &Path)
+                               -> Result<Vec<FullyQualifiedPackageIdent>> {
         let mut idents = Vec::new();
         for ioa in self.idents_or_archives.iter() {
             idents.push(self.install_user_pkg(ui, ioa, rootfs).await?);
@@ -245,10 +250,14 @@ impl<'a> BuildSpec<'a> {
     }
 
     #[cfg(unix)]
-    fn link_user_pkgs(&self, ui: &mut UI, rootfs: &Path, user_pkgs: &[PackageIdent]) -> Result<()> {
+    fn link_user_pkgs(&self,
+                      ui: &mut UI,
+                      rootfs: &Path,
+                      user_pkgs: &[FullyQualifiedPackageIdent])
+                      -> Result<()> {
         let dst = util::bin_path();
         for pkg in user_pkgs.iter() {
-            hab::command::pkg::binlink::binlink_all_in_pkg(ui, &pkg, &dst, rootfs, true)
+            hab::command::pkg::binlink::binlink_all_in_pkg(ui, pkg.as_ref(), &dst, rootfs, true)
                 .map_err(SyncFailure::new)?;
         }
         Ok(())
@@ -257,14 +266,16 @@ impl<'a> BuildSpec<'a> {
     #[cfg(unix)]
     fn link_binaries(&self, ui: &mut UI, rootfs: &Path, base_pkgs: &BasePkgIdents) -> Result<()> {
         let dst = util::bin_path();
+
         hab::command::pkg::binlink::binlink_all_in_pkg(ui,
-                                                       &base_pkgs.busybox
-                                                                 .clone()
-                                                                 .expect("No busybox in idents"),
+                                                       base_pkgs.busybox
+                                                                .as_ref()
+                                                                .expect("No busybox in idents")
+                                                                .as_ref(),
                                                        &dst,
                                                        rootfs,
                                                        true).map_err(SyncFailure::new)?;
-        hab::command::pkg::binlink::start(ui, &base_pkgs.hab, "hab", &dst, rootfs, true)
+        hab::command::pkg::binlink::start(ui, base_pkgs.hab.as_ref(), "hab", &dst, rootfs, true)
             .map_err(SyncFailure::new)?;
         Ok(())
     }
@@ -272,7 +283,7 @@ impl<'a> BuildSpec<'a> {
     #[cfg(unix)]
     fn link_cacerts(&self, ui: &mut UI, rootfs: &Path, base_pkgs: &BasePkgIdents) -> Result<()> {
         ui.status(Status::Creating, "cacerts symlink into /etc")?;
-        let src = util::pkg_path_for(&base_pkgs.cacerts, rootfs)?.join("ssl");
+        let src = util::pkg_path_for(base_pkgs.cacerts.as_ref(), rootfs)?.join("ssl");
         let dst = rootfs.join("etc").join("ssl");
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
         debug!("Symlinking src: {} to dst: {}",
@@ -300,7 +311,7 @@ impl<'a> BuildSpec<'a> {
                               ui: &mut UI,
                               ident_or_archive: &str,
                               fs_root_path: &Path)
-                              -> Result<PackageIdent> {
+                              -> Result<FullyQualifiedPackageIdent> {
         self.install(ui,
                      ident_or_archive,
                      self.base_pkgs_url,
@@ -314,7 +325,7 @@ impl<'a> BuildSpec<'a> {
                               ui: &mut UI,
                               ident_or_archive: &str,
                               fs_root_path: &Path)
-                              -> Result<PackageIdent> {
+                              -> Result<FullyQualifiedPackageIdent> {
         self.install(ui,
                      ident_or_archive,
                      self.url,
@@ -331,7 +342,7 @@ impl<'a> BuildSpec<'a> {
                      channel: &ChannelIdent,
                      fs_root_path: &Path,
                      token: Option<&str>)
-                     -> Result<PackageIdent> {
+                     -> Result<FullyQualifiedPackageIdent> {
         let install_source: InstallSource = ident_or_archive.parse()?;
         let package_install =
             habitat_common::command::package::install::start(ui,
@@ -350,7 +361,16 @@ impl<'a> BuildSpec<'a> {
                                                      // ignore-local mode
                                                      &LocalPackageUsage::default(),
                                                      InstallHookMode::Ignore).await?;
-        Ok(package_install.into())
+
+        // TODO (CM): Ideally, the typing of PackageInstall would be
+        // such that we'd automatically get a
+        // FullyQualifiedPackageIdent, but that's a change that will
+        // have larger impact on the code base. For now, we can handle
+        // the conversion locally, and then remove that once the
+        // broader refactoring has occurred.
+        let ident: PackageIdent = package_install.into();
+        Ok(FullyQualifiedPackageIdent::try_from(ident).expect("should always be a \
+                                                               fully-qualified identifier"))
     }
 }
 
@@ -514,9 +534,9 @@ impl BuildRootContext {
     /// # Errors
     ///
     /// * If the primary service package could not be loaded from disk
-    pub fn installed_primary_svc_ident(&self) -> Result<PackageIdent> {
+    pub fn installed_primary_svc_ident(&self) -> Result<FullyQualifiedPackageIdent> {
         let pkg_install = self.primary_svc()?;
-        Ok(pkg_install.ident().clone())
+        Ok(FullyQualifiedPackageIdent::try_from(pkg_install.ident()).expect("We should always have a fully-qualified package identifier at this point"))
     }
 
     /// Returns the list of package port exposes over all service packages.
@@ -708,15 +728,15 @@ impl BuildRootContext {
 #[derive(Debug)]
 pub struct BasePkgIdents {
     /// Installed package identifer for the Habitat CLI package.
-    pub hab:      PackageIdent,
+    pub hab:      FullyQualifiedPackageIdent,
     /// Installed package identifer for the Supervisor package.
-    pub sup:      PackageIdent,
+    pub sup:      FullyQualifiedPackageIdent,
     /// Installed package identifer for the Launcher package.
-    pub launcher: PackageIdent,
+    pub launcher: FullyQualifiedPackageIdent,
     /// Installed package identifer for the Busybox package.
-    pub busybox:  Option<PackageIdent>,
+    pub busybox:  Option<FullyQualifiedPackageIdent>,
     /// Installed package identifer for the CA certs package.
-    pub cacerts:  PackageIdent,
+    pub cacerts:  FullyQualifiedPackageIdent,
 }
 
 /// A service identifier representing a Habitat package which contains a runnable service.
@@ -754,7 +774,8 @@ mod test {
     use super::*;
     use clap::ArgMatches;
     use habitat_core::{fs,
-                       package::PackageTarget};
+                       package::{FullyQualifiedPackageIdent,
+                                 PackageTarget}};
 
     /// Generate Clap ArgMatches for the exporter from a vector of arguments.
     fn arg_matches<'a>(args: &[&str]) -> ArgMatches<'a> {
@@ -817,7 +838,7 @@ mod test {
             self
         }
 
-        pub fn install(&self) -> PackageIdent {
+        pub fn install(&self) -> FullyQualifiedPackageIdent {
             let mut ident = PackageIdent::from_str(&self.ident).unwrap();
             if ident.version.is_none() {
                 ident.version = Some("1.2.3".into());
@@ -844,7 +865,8 @@ mod test {
             if self.is_svc {
                 util::write_file(prefix.join("run"), "").unwrap();
             }
-            ident
+            FullyQualifiedPackageIdent::try_from(ident).expect("this must always be \
+                                                                fully-qualified")
         }
     }
 
@@ -885,17 +907,15 @@ mod test {
             build_spec().link_binaries(&mut ui, rootfs.path(), &base_pkgs)
                         .unwrap();
 
-            assert_eq!(fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap(),
-                                                   None::<&Path>).join("bin/busybox"),
+            assert_eq!(fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap().as_ref(),
+                                            None::<&Path>).join("bin/busybox"),
                        rootfs.path().join("bin/busybox").read_link().unwrap(),
                        "busybox program is symlinked into /bin");
-            assert_eq!(
-                fs::pkg_install_path(&base_pkgs.busybox.unwrap(), None::<&Path>)
-                    .join("bin/sh"),
-                rootfs.path().join("bin/sh").read_link().unwrap(),
-                "busybox's sh program is symlinked into /bin"
-            );
-            assert_eq!(fs::pkg_install_path(&base_pkgs.hab, None::<&Path>).join("bin/hab"),
+            assert_eq!(fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap().as_ref(),
+                                            None::<&Path>).join("bin/sh"),
+                       rootfs.path().join("bin/sh").read_link().unwrap(),
+                       "busybox's sh program is symlinked into /bin");
+            assert_eq!(fs::pkg_install_path(base_pkgs.hab.as_ref(), None::<&Path>).join("bin/hab"),
                        rootfs.path().join("bin/hab").read_link().unwrap(),
                        "hab program is symlinked into /bin");
         }
@@ -909,7 +929,7 @@ mod test {
             build_spec().link_cacerts(&mut ui, rootfs.path(), &base_pkgs)
                         .unwrap();
 
-            assert_eq!(fs::pkg_install_path(&base_pkgs.cacerts, None::<&Path>).join("ssl"),
+            assert_eq!(fs::pkg_install_path(base_pkgs.cacerts.as_ref(), None::<&Path>).join("ssl"),
                        rootfs.path().join("etc/ssl").read_link().unwrap(),
                        "cacerts are symlinked into /etc/ssl");
         }
@@ -924,35 +944,35 @@ mod test {
         }
 
         #[cfg(not(windows))]
-        fn fake_hab_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
+        fn fake_hab_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
             FakePkg::new("acme/hab", rootfs.as_ref()).add_bin("hab")
                                                      .install()
         }
 
         #[cfg(not(windows))]
-        fn fake_sup_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
+        fn fake_sup_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
             FakePkg::new("acme/hab-sup", rootfs.as_ref()).add_bin("hab-sup")
                                                          .install()
         }
 
         #[cfg(not(windows))]
-        fn fake_launcher_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
+        fn fake_launcher_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
             FakePkg::new("acme/hab-launcher", rootfs.as_ref()).add_bin("hab-launch")
                                                               .install()
         }
 
         #[cfg(not(windows))]
-        fn fake_busybox_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
+        fn fake_busybox_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
             FakePkg::new("acme/busybox", rootfs.as_ref()).add_bin("busybox")
                                                          .add_bin("sh")
                                                          .install()
         }
 
         #[cfg(not(windows))]
-        fn fake_cacerts_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
+        fn fake_cacerts_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
             let ident = FakePkg::new("acme/cacerts", rootfs.as_ref()).install();
 
-            let prefix = fs::pkg_install_path(&ident, Some(rootfs));
+            let prefix = fs::pkg_install_path(ident.as_ref(), Some(rootfs));
             util::write_file(prefix.join("ssl/cacert.pem"), "").unwrap();
             ident
         }
