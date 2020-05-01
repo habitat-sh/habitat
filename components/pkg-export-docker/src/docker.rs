@@ -194,8 +194,19 @@ impl DockerImage {
         self.create_docker_config_file(credentials, registry_url)
             .unwrap();
 
-        for identifier in self.expanded_identifiers() {
-            self.push_image(ui, &identifier)?;
+        for image_tag in self.expanded_identifiers() {
+            ui.status(Status::Uploading,
+                      format!("image '{}' to remote registry", image_tag))?;
+            let mut cmd = util::docker_cmd();
+            cmd.arg("--config");
+            cmd.arg(self.workdir.to_str().unwrap());
+            cmd.arg("push").arg(&image_tag);
+            debug!("Running: {:?}", &cmd);
+            let exit_status = cmd.spawn()?.wait()?;
+            if !exit_status.success() {
+                return Err(Error::PushImageFailed(exit_status).into());
+            }
+            ui.status(Status::Uploaded, format!("image '{}'", &image_tag))?;
         }
 
         ui.end(format!("Docker image '{}' published with tags: {}",
@@ -214,8 +225,15 @@ impl DockerImage {
         ui.begin(format!("Cleaning up local Docker image '{}' with all tags",
                          self.name))?;
 
-        for identifier in self.expanded_identifiers() {
-            self.rm_image(ui, &identifier)?;
+        for image_tag in self.expanded_identifiers() {
+            ui.status(Status::Deleting, format!("local image '{}'", image_tag))?;
+            let mut cmd = util::docker_cmd();
+            cmd.arg("rmi").arg(image_tag);
+            debug!("Running: {:?}", &cmd);
+            let exit_status = cmd.spawn()?.wait()?;
+            if !exit_status.success() {
+                return Err(Error::RemoveImageFailed(exit_status).into());
+            }
         }
 
         ui.end(format!("Local Docker image '{}' with tags: {} cleaned up",
@@ -270,36 +288,6 @@ impl DockerImage {
             }
         });
         util::write_file(&config, &serde_json::to_string(&json).unwrap())?;
-        Ok(())
-    }
-
-    fn push_image(&self, ui: &mut UI, image_tag: &str) -> Result<()> {
-        ui.status(Status::Uploading,
-                  format!("image '{}' to remote registry", image_tag))?;
-        let mut cmd = util::docker_cmd();
-        cmd.arg("--config");
-        cmd.arg(self.workdir.to_str().unwrap());
-        cmd.arg("push").arg(image_tag);
-        debug!("Running: {:?}", &cmd);
-        let exit_status = cmd.spawn()?.wait()?;
-        if !exit_status.success() {
-            return Err(Error::PushImageFailed(exit_status).into());
-        }
-        ui.status(Status::Uploaded, format!("image '{}'", &image_tag))?;
-
-        Ok(())
-    }
-
-    fn rm_image(&self, ui: &mut UI, image_tag: &str) -> Result<()> {
-        ui.status(Status::Deleting, format!("local image '{}'", image_tag))?;
-        let mut cmd = util::docker_cmd();
-        cmd.arg("rmi").arg(image_tag);
-        debug!("Running: {:?}", &cmd);
-        let exit_status = cmd.spawn()?.wait()?;
-        if !exit_status.success() {
-            return Err(Error::RemoveImageFailed(exit_status).into());
-        }
-
         Ok(())
     }
 }
