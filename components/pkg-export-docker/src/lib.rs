@@ -33,6 +33,7 @@ mod cli;
 mod docker;
 mod error;
 mod graph;
+mod os;
 #[cfg(unix)]
 mod rootfs;
 mod util;
@@ -203,6 +204,8 @@ pub async fn export<'a>(ui: &'a mut UI,
 pub async fn export_for_cli_matches(ui: &mut UI,
                                     matches: &clap::ArgMatches<'_>)
                                     -> Result<Option<DockerImage>> {
+    os::ensure_proper_docker_platform()?;
+
     let default_url = default_bldr_url();
     let spec = BuildSpec::new_from_cli_matches(&matches, &default_url)?;
     let naming = Naming::new_from_cli_matches(&matches);

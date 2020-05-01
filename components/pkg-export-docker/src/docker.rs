@@ -8,14 +8,12 @@ use failure::SyncFailure;
 use habitat_common::ui::{Status,
                          UIWriter,
                          UI};
-use habitat_core::{package::PackageIdent,
-                   util::docker};
+use habitat_core::package::PackageIdent;
 use handlebars::Handlebars;
 use serde_json;
 use std::{fs,
           path::{Path,
                  PathBuf},
-          process::Command,
           str::FromStr};
 
 // This code makes heavy use of `#[cfg(unix)]` and `#[cfg(windows)]`. This should potentially be
@@ -69,7 +67,7 @@ impl<'a> DockerBuilder<'a> {
     ///
     /// * If building the Docker image fails
     pub fn build(self) -> Result<DockerImage> {
-        let mut cmd = docker_cmd();
+        let mut cmd = util::docker_cmd();
         cmd.current_dir(self.workdir).arg("build").arg("--force-rm");
         if let Some(mem) = self.memory {
             cmd.arg("--memory").arg(mem);
@@ -100,7 +98,7 @@ impl<'a> DockerBuilder<'a> {
     }
 
     fn image_id(&self, image_tag: &str) -> Result<String> {
-        let mut cmd = docker_cmd();
+        let mut cmd = util::docker_cmd();
         cmd.arg("images").arg("-q").arg(image_tag);
         debug!("Running: {:?}", &cmd);
         let output = cmd.output()?;
@@ -244,7 +242,7 @@ impl<'a> DockerImage {
         };
         ui.status(Status::Uploading,
                   format!("image '{}' to remote registry", &image_tag))?;
-        let mut cmd = docker_cmd();
+        let mut cmd = util::docker_cmd();
         cmd.arg("--config");
         cmd.arg(self.workdir.to_str().unwrap());
         cmd.arg("push").arg(&image_tag);
@@ -264,7 +262,7 @@ impl<'a> DockerImage {
             None => self.name.to_string(),
         };
         ui.status(Status::Deleting, format!("local image '{}'", &image_tag))?;
-        let mut cmd = docker_cmd();
+        let mut cmd = util::docker_cmd();
         cmd.arg("rmi").arg(&image_tag);
         debug!("Running: {:?}", &cmd);
         let exit_status = cmd.spawn()?.wait()?;
@@ -314,38 +312,6 @@ impl DockerBuildRoot {
     ///
     /// * If the temporary work directory cannot be removed
     pub fn destroy(self, ui: &mut UI) -> Result<()> { self.0.destroy(ui) }
-
-    /// Build the Docker image locally using the provided naming policy.
-    ///
-    /// # Errors
-    ///
-    /// * If the Docker image cannot be created successfully
-    #[cfg(unix)]
-    pub fn export(&self,
-                  ui: &mut UI,
-                  naming: &Naming,
-                  memory: Option<&str>)
-                  -> Result<DockerImage> {
-        self.build_docker_image(ui, naming, memory)
-    }
-
-    #[cfg(windows)]
-    pub fn export(&self,
-                  ui: &mut UI,
-                  naming: &Naming,
-                  memory: Option<&str>)
-                  -> Result<DockerImage> {
-        let mut cmd = docker_cmd();
-        cmd.arg("version").arg("--format='{{.Server.Os}}'");
-        debug!("Running command: {:?}", cmd);
-        let result = cmd.output().expect("Docker command failed to spawn");
-        let os = String::from_utf8_lossy(&result.stdout);
-        if !os.contains("windows") {
-            return Err(Error::DockerNotInWindowsMode(os.to_string()).into());
-        }
-
-        self.build_docker_image(ui, naming, memory)
-    }
 
     #[cfg(unix)]
     fn add_users_and_groups(&self, ui: &mut UI) -> Result<()> {
@@ -429,11 +395,12 @@ impl DockerBuildRoot {
         Ok(())
     }
 
-    fn build_docker_image(&self,
-                          ui: &mut UI,
-                          naming: &Naming,
-                          memory: Option<&str>)
-                          -> Result<DockerImage> {
+    /// Build the Docker image locally using the provided naming policy.
+    pub fn export(&self,
+                  ui: &mut UI,
+                  naming: &Naming,
+                  memory: Option<&str>)
+                  -> Result<DockerImage> {
         ui.status(Status::Creating, "Docker image")?;
         let ident = self.0.ctx().installed_primary_svc_ident()?;
         let version = &ident.version.expect("version exists");
@@ -479,9 +446,4 @@ impl DockerBuildRoot {
         }
         builder.build()
     }
-}
-
-/// Returns a `Command` for the Docker program.
-fn docker_cmd() -> Command {
-    Command::new(docker::command_path().expect("Unable to locate docker"))
 }
