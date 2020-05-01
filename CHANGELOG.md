@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.8 -->
-## [1.6.8](https://github.com/habitat-sh/habitat/tree/1.6.8) (2020-04-30)
+<!-- latest_release 1.6.9 -->
+## [1.6.9](https://github.com/habitat-sh/habitat/tree/1.6.9) (2020-05-01)
 
 #### Merged Pull Requests
-- Cleanup `FS_ROOT` [#7642](https://github.com/habitat-sh/habitat/pull/7642) ([davidMcneil](https://github.com/davidMcneil))
+- [TYPO] Gigabytes are &quot;gb&quot;, not &quot;bg&quot; [#7652](https://github.com/habitat-sh/habitat/pull/7652) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
 ### Changes since 1.6.0 release
 
 #### Merged Pull Requests
+- [TYPO] Gigabytes are &quot;gb&quot;, not &quot;bg&quot; [#7652](https://github.com/habitat-sh/habitat/pull/7652) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.9 -->
 - Cleanup `FS_ROOT` [#7642](https://github.com/habitat-sh/habitat/pull/7642) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.8 -->
 - Cargo Update [#7633](https://github.com/habitat-sh/habitat/pull/7633) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.7 -->
 - [CI] Ensure release pipeline is not poisoned by old dependencies [#7650](https://github.com/habitat-sh/habitat/pull/7650) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.6 -->
