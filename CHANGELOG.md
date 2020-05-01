@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.9 -->
-## [1.6.9](https://github.com/habitat-sh/habitat/tree/1.6.9) (2020-05-01)
+<!-- latest_release 1.6.10 -->
+## [1.6.10](https://github.com/habitat-sh/habitat/tree/1.6.10) (2020-05-01)
 
 #### Merged Pull Requests
-- [TYPO] Gigabytes are &quot;gb&quot;, not &quot;bg&quot; [#7652](https://github.com/habitat-sh/habitat/pull/7652) ([christophermaier](https://github.com/christophermaier))
+- [REFACTOR] Use FullyQualifiedPackageIdent in Docker exporter [#7657](https://github.com/habitat-sh/habitat/pull/7657) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
 ### Changes since 1.6.0 release
 
 #### Merged Pull Requests
+- [REFACTOR] Use FullyQualifiedPackageIdent in Docker exporter [#7657](https://github.com/habitat-sh/habitat/pull/7657) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.10 -->
+- [REFACTOR] Docker Exporter CLI consolidation, cleanup [#7654](https://github.com/habitat-sh/habitat/pull/7654) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.10 -->
+- [REFACTOR] Push Windows Docker Engine check earlier [#7655](https://github.com/habitat-sh/habitat/pull/7655) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.10 -->
 - [TYPO] Gigabytes are &quot;gb&quot;, not &quot;bg&quot; [#7652](https://github.com/habitat-sh/habitat/pull/7652) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.9 -->
 - Cleanup `FS_ROOT` [#7642](https://github.com/habitat-sh/habitat/pull/7642) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.8 -->
 - Cargo Update [#7633](https://github.com/habitat-sh/habitat/pull/7633) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.7 -->
