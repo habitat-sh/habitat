@@ -1,6 +1,7 @@
 use crate::RegistryType;
 use clap::{App,
            Arg};
+use habitat_common::PROGRAM_NAME;
 use habitat_core::package::PackageIdent;
 use std::{path::Path,
           result,
@@ -8,23 +9,36 @@ use std::{path::Path,
 use url::Url;
 
 /// The version of this library and program when built.
-pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+
+/// Create the Clap CLI for the Docker exporter
+pub fn cli<'a, 'b>() -> App<'a, 'b> {
+    let name: &str = &*PROGRAM_NAME;
+    let about = "Creates (and optionally pushes) a Docker image from a set of Habitat packages";
+
+    let mut cli = Cli::new(name, about).add_base_packages_args()
+                                       .add_builder_args()
+                                       .add_tagging_args()
+                                       .add_publishing_args()
+                                       .add_memory_arg()
+                                       .add_layer_arg()
+                                       .add_pkg_ident_arg();
+    if cfg!(windows) {
+        cli = cli.add_base_image_arg();
+    }
+    cli.app
+}
 
 /// A Docker-specific clap:App wrapper
 #[derive(Clone)]
-pub struct Cli<'a, 'b>
+struct Cli<'a, 'b>
     where 'a: 'b
 {
     pub app: App<'a, 'b>,
 }
 
-#[derive(Clone, Copy)]
-pub struct PkgIdentArgOptions {
-    pub multiple: bool,
-}
-
 impl<'a, 'b> Cli<'a, 'b> {
-    pub fn new(name: &str, about: &'a str) -> Self {
+    fn new(name: &str, about: &'a str) -> Self {
         Cli { app: clap_app!(
               (name) =>
               (about: about)
@@ -36,7 +50,7 @@ impl<'a, 'b> Cli<'a, 'b> {
               ), }
     }
 
-    pub fn add_base_packages_args(self) -> Self {
+    fn add_base_packages_args(self) -> Self {
         let app = self
             .app
             .arg(
@@ -78,7 +92,7 @@ impl<'a, 'b> Cli<'a, 'b> {
         Cli { app }
     }
 
-    pub fn add_builder_args(self) -> Self {
+    fn add_builder_args(self) -> Self {
         let app = self
             .app
             .arg(
@@ -129,7 +143,7 @@ impl<'a, 'b> Cli<'a, 'b> {
         Cli { app }
     }
 
-    pub fn add_tagging_args(self) -> Self {
+    fn add_tagging_args(self) -> Self {
         let app = self
             .app
             .arg(
@@ -183,7 +197,7 @@ impl<'a, 'b> Cli<'a, 'b> {
         Cli { app }
     }
 
-    pub fn add_publishing_args(self) -> Self {
+    fn add_publishing_args(self) -> Self {
         let app = self
             .app
             .arg(
@@ -248,26 +262,22 @@ impl<'a, 'b> Cli<'a, 'b> {
         Cli { app }
     }
 
-    pub fn add_pkg_ident_arg(self, options: PkgIdentArgOptions) -> Self {
-        let help = if options.multiple {
-            "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a \
-             Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)"
-        } else {
-            "A Habitat package identifier (ex: acme/redis) and/or filepath to a Habitat Artifact \
-             (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)"
-        };
+    fn add_pkg_ident_arg(self) -> Self {
+        let help = "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to \
+                    a Habitat Artifact (ex: \
+                    /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)";
 
         let app =
             self.app
                 .arg(Arg::with_name("PKG_IDENT_OR_ARTIFACT").value_name("PKG_IDENT_OR_ARTIFACT")
                                                             .required(true)
-                                                            .multiple(options.multiple)
+                                                            .multiple(true)
                                                             .help(help));
 
         Cli { app }
     }
 
-    pub fn add_memory_arg(self) -> Self {
+    fn add_memory_arg(self) -> Self {
         let app = self.app
                       .arg(Arg::with_name("MEMORY_LIMIT").value_name("MEMORY_LIMIT")
                                                          .long("memory")
@@ -278,7 +288,7 @@ impl<'a, 'b> Cli<'a, 'b> {
         Cli { app }
     }
 
-    pub fn add_base_image_arg(self) -> Self {
+    fn add_base_image_arg(self) -> Self {
         let app = self.app
                       .arg(Arg::with_name("BASE_IMAGE").value_name("BASE_IMAGE")
                                                        .long("base-image")
@@ -290,7 +300,7 @@ impl<'a, 'b> Cli<'a, 'b> {
         Cli { app }
     }
 
-    pub fn add_layer_arg(self) -> Self {
+    fn add_layer_arg(self) -> Self {
         let app =
             self.app
                 .arg(Arg::with_name("MULTI_LAYER").value_name("MULTI_LAYER")
