@@ -832,7 +832,7 @@ steps:
 # Things that have no tests but should be built to make sure they
 # still build. - MacOS
 #######################################################################
-  - label: "[:mac: build hab]"
+  - label: "[build] :mac: hab"
     command:
       # We need to install bash 4+ so we are able to use all the modern capabilities.
       - brew install bash
