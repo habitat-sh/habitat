@@ -610,7 +610,7 @@ checksum = "370c83b49aedf022ee27942e8ae1d9de1cf40dc9653ee6550e4455d08f6406f9"
 [[package]]
 name = "configopt"
 version = "0.1.0"
-source = "git+https://github.com/davidMcneil/configopt.git#9f761662fc654cb45cf97746c74b6e8a240e2630"
+source = "git+https://github.com/davidMcneil/configopt.git#f96c9f07928c01dcc7568c7e0d1bf85134d630cd"
 dependencies = [
  "colosseum",
  "configopt-derive",
@@ -622,7 +622,7 @@ dependencies = [
 [[package]]
 name = "configopt-derive"
 version = "0.1.0"
-source = "git+https://github.com/davidMcneil/configopt.git#9f761662fc654cb45cf97746c74b6e8a240e2630"
+source = "git+https://github.com/davidMcneil/configopt.git#f96c9f07928c01dcc7568c7e0d1bf85134d630cd"
 dependencies = [
  "heck",
  "proc-macro2",

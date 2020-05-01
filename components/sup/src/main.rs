@@ -490,6 +490,8 @@ mod test {
         use super::*;
         use configopt::ConfigOpt;
         use habitat_common::types::EventStreamConnectMethod;
+        #[cfg(windows)]
+        use habitat_core::crypto::dpapi::decrypt;
         use habitat_core::fs::CACHE_KEY_PATH;
         use std::{collections::HashMap,
                   fs::File,
@@ -1072,7 +1074,7 @@ gpoVMSncu2jMIDZX63IkQII=
         fn test_hab_sup_run_cli_password() {
             let args = "hab-sup run --password keep_it_secret_keep_it_safe core/redis";
             let service_load = service_load_from_cmd_str(&args);
-            assert_eq!(service_load.svc_encrypted_password.unwrap(),
+            assert_eq!(decrypt(&service_load.svc_encrypted_password.unwrap()).unwrap(),
                        "keep_it_secret_keep_it_safe");
         }
 
@@ -1102,9 +1104,8 @@ gpoVMSncu2jMIDZX63IkQII=
             File::create(&ca_cert_path).unwrap();
 
             // Setup config file
-            let config_contents =
-                format!(
-                        r#"
+            let config_contents = format!(
+                                          r#"
 listen_gossip = "1.2.3.4:4321"
 listen_http = "5.5.5.5:11111"
 http_disable = true
@@ -1122,8 +1123,11 @@ ca_cert_file = "{}"
 keep_latest_packages = 5
 sys_ip_address = "7.8.9.0"
     "#,
-                        temp_dir_str, key_path_str, cert_path_str, ca_cert_path_str
-                );
+                                          temp_dir_str.replace("\\", "/"),
+                                          key_path_str.replace("\\", "/"),
+                                          cert_path_str.replace("\\", "/"),
+                                          ca_cert_path_str.replace("\\", "/")
+            );
             let config_path = temp_dir.path().join("config.toml");
             let config_path_str = config_path.to_str().unwrap();
             let mut config_file = File::create(&config_path).unwrap();
@@ -1301,8 +1305,7 @@ json_logging = false
 
             // Setup config file
             let config_contents = format!(
-                                          r#"
-event_stream_application = "MY_APP"
+                                          r#"event_stream_application = "MY_APP"
 event_stream_environment = "MY_ENV"
 event_stream_connect_timeout = 5
 event_stream_url = "127.0.0.1:3456"
@@ -1311,7 +1314,7 @@ event_stream_token = "some_token"
 event_meta = ["key1=val1", "key2=val2", "keyA=valA"]
 event_stream_server_certificate = "{}"
 "#,
-                                          certificate_path_str
+                                          certificate_path_str.replace("\\", "/")
             );
             let config_path = temp_dir.path().join("config.toml");
             let config_path_str = config_path.to_str().unwrap();
@@ -1378,7 +1381,7 @@ health_check_interval = 17
 shutdown_timeout = 12
 pkg_ident_or_artifact = "core/redis"
 "#,
-                                          temp_dir_str
+                                          temp_dir_str.replace("\\", "/")
             );
             let config_path = temp_dir.path().join("config.toml");
             let config_path_str = config_path.to_str().unwrap();
@@ -1405,7 +1408,7 @@ pkg_ident_or_artifact = "core/redis"
                                                  bldr_channel:
                                                      Some(String::from("my_channel")),
                                                  config_from:
-                                                     Some(String::from(temp_dir_str)),
+                                                     Some(temp_dir_str.replace("\\", "/")),
                                                  force:                   None,
                                                  group:
                                                      Some(String::from("MyGroup")),
@@ -1465,7 +1468,7 @@ pkg_ident_or_artifact = "core/redis"
 
             let args = format!("hab-sup run --config-files {}", config_path_str);
             let service_load = service_load_from_cmd_str(&args);
-            assert_eq!(service_load.svc_encrypted_password.unwrap(),
+            assert_eq!(decrypt(&service_load.svc_encrypted_password.unwrap()).unwrap(),
                        "keep_it_secret_keep_it_safe");
         }
 
