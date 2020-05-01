@@ -1446,16 +1446,15 @@ pkg_ident_or_artifact = "core/redis"
 
         #[cfg(windows)]
         #[test]
-        fn test_hab_sup_run_cli_password() {
+        fn test_hab_sup_run_config_file_password() {
             let temp_dir = TempDir::new().expect("Could not create tempdir");
 
             // Setup config file
             let config_path = temp_dir.path().join("config.toml");
             let config_path_str = config_path.to_str().unwrap();
             let mut config_file = File::create(&config_path).unwrap();
-            write!(config_file,
-                   "password = \"keep_it_secret_keep_it_safe\"",
-                   config_contents).expect("to write config file contents");
+            write!(config_file, "password = \"keep_it_secret_keep_it_safe\"")
+                .expect("to write config file contents");
 
             let args = format!("hab-sup run --config-files {}", config_path_str);
             let service_load = service_load_from_cmd_str(&args);

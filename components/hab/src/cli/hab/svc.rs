@@ -158,7 +158,7 @@ pub struct SharedLoad {
     #[cfg(target_os = "windows")]
     /// Password of the service user
     #[structopt(long = "password")]
-    password:                  Option<String>,
+    pub password:              Option<String>,
     // TODO (DM): This flag can eventually be removed.
     // See https://github.com/habitat-sh/habitat/issues/7339
     /// DEPRECATED
