@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.10 -->
-## [1.6.10](https://github.com/habitat-sh/habitat/tree/1.6.10) (2020-05-01)
+<!-- latest_release 1.6.11 -->
+## [1.6.11](https://github.com/habitat-sh/habitat/tree/1.6.11) (2020-05-04)
 
 #### Merged Pull Requests
-- [REFACTOR] Use FullyQualifiedPackageIdent in Docker exporter [#7657](https://github.com/habitat-sh/habitat/pull/7657) ([christophermaier](https://github.com/christophermaier))
+- [CI] Fix e2e test that broke after the core plans refresh [#7661](https://github.com/habitat-sh/habitat/pull/7661) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
 ### Changes since 1.6.0 release
 
 #### Merged Pull Requests
+- [CI] Fix e2e test that broke after the core plans refresh [#7661](https://github.com/habitat-sh/habitat/pull/7661) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.11 -->
 - [REFACTOR] Use FullyQualifiedPackageIdent in Docker exporter [#7657](https://github.com/habitat-sh/habitat/pull/7657) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.10 -->
 - [REFACTOR] Docker Exporter CLI consolidation, cleanup [#7654](https://github.com/habitat-sh/habitat/pull/7654) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.10 -->
 - [REFACTOR] Push Windows Docker Engine check earlier [#7655](https://github.com/habitat-sh/habitat/pull/7655) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.10 -->
