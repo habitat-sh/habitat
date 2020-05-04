@@ -342,7 +342,7 @@ impl BuildSpec {
                      &self.url,
                      &self.channel,
                      fs_root_path,
-                     self.auth.as_ref().map(String::as_str)) //eww
+                     self.auth.as_deref())
             .await
     }
 
