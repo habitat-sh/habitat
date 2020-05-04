@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.12 -->
-## [1.6.12](https://github.com/habitat-sh/habitat/tree/1.6.12) (2020-05-04)
+<!-- latest_release 1.6.13 -->
+## [1.6.13](https://github.com/habitat-sh/habitat/tree/1.6.13) (2020-05-04)
 
 #### Merged Pull Requests
-- Bump jquery from 3.4.1 to 3.5.0 in /components/habitat-chef-io/themes/docs-new [#7656](https://github.com/habitat-sh/habitat/pull/7656) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Update MacOS Bootstrapper version [#7663](https://github.com/habitat-sh/habitat/pull/7663) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
 ### Changes since 1.6.0 release
 
 #### Merged Pull Requests
+- Update MacOS Bootstrapper version [#7663](https://github.com/habitat-sh/habitat/pull/7663) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.6.13 -->
 - Bump jquery from 3.4.1 to 3.5.0 in /components/habitat-chef-io/themes/docs-new [#7656](https://github.com/habitat-sh/habitat/pull/7656) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.12 -->
 - [CI] Fix e2e test that broke after the core plans refresh [#7661](https://github.com/habitat-sh/habitat/pull/7661) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.11 -->
 - [REFACTOR] Use FullyQualifiedPackageIdent in Docker exporter [#7657](https://github.com/habitat-sh/habitat/pull/7657) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.10 -->
