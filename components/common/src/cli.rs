@@ -48,8 +48,7 @@ pub const DEFAULT_BINLINK_DIR: &str = "/bin";
 pub const DEFAULT_BINLINK_DIR: &str = "/usr/local/bin";
 
 pub fn cache_key_path_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
-    let path = clap::value_t!(matches, "CACHE_KEY_PATH", PathBuf).expect("CACHE_KEY_PATH required");
-    PathBuf::from(path)
+    clap::value_t!(matches, "CACHE_KEY_PATH", PathBuf).expect("CACHE_KEY_PATH required")
 }
 
 pub fn is_toml_file(val: &str) -> bool {
