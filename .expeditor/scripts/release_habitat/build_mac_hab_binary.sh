@@ -15,7 +15,7 @@ channel=$(get_release_channel)
 
 echo "--- Channel: $channel - bldr url: $HAB_BLDR_URL"
 
-macos_install_boostrap_package
+macos_install_bootstrap_package
 
 declare -g hab_binary
 curlbash_hab "$BUILD_PKG_TARGET"
