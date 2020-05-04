@@ -37,9 +37,10 @@ function Test-GzipIdent {
     Test-IdentDownloaded "core-pcre"
     Test-IdentDownloaded "core-less"
     Test-IdentDownloaded "core-ncurses"
+    Test-IdentDownloaded "core-zlib"
 
-    if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 8) {
-        Write-Error "did not find 8 gzip artifacts"
+    if((Get-ChildItem (Join-Path $cacheDir "artifacts") -File).Count -ne 9) {
+        Write-Error "did not find 9 gzip artifacts"
     }
 }
 
