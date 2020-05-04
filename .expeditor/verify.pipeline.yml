@@ -827,3 +827,24 @@ steps:
     retry:
       automatic:
         limit: 1
+
+        #######################################################################
+# Things that have no tests but should be built to make sure they
+# still build. - MacOS
+#######################################################################
+  - label: "[build] :mac: hab"
+    command:
+      # We need to install bash 4+ so we are able to use all the modern capabilities.
+      - brew install bash
+      - .expeditor/scripts/verify/build_mac_package.sh components/hab
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      BUILD_PKG_TARGET: "x86_64-darwin"
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+    expeditor:
+      executor:
+        macos:
+          os-version: "10.13"
+          inherit-environment-vars: true
+      buildkite:
+        timeout_in_minutes: 45
