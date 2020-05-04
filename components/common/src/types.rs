@@ -290,6 +290,8 @@ impl fmt::Display for EventStreamServerCertificate {
     }
 }
 
+// This impl is only use for testing. We cannot annotate it with `#[test]` because the tests are in
+// a different crate.
 impl PartialEq<EventStreamServerCertificate> for EventStreamServerCertificate {
     fn eq(&self, other: &EventStreamServerCertificate) -> bool {
         match (self.certificate.to_der(), other.certificate.to_der()) {
