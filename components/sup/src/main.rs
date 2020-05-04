@@ -457,7 +457,8 @@ mod test {
                                 HttpListenAddr,
                                 ListenCtlAddr};
     use habitat_core::locked_env_var;
-    use habitat_sup_protocol::types::{Topology,
+    use habitat_sup_protocol::types::{BindingMode,
+                                      Topology,
                                       UpdateCondition,
                                       UpdateStrategy};
     use std::net::{SocketAddr,
@@ -1541,6 +1542,36 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
                                        keep_latest_packages: None,
                                        sys_ip:               habitat_core::util::sys::ip().unwrap(), },
                        config);
+        }
+
+        #[test]
+        fn test_hab_sup_run_all_possible_values() {
+            let args = "hab-sup run --topology standalone --strategy none --update-condition \
+                        latest --binding-mode strict";
+            let svc_load = service_load_from_cmd_str(&args);
+            assert_eq!(i32::from(Topology::Standalone), svc_load.topology.unwrap());
+            assert_eq!(i32::from(UpdateStrategy::None),
+                       svc_load.update_strategy.unwrap());
+            assert_eq!(i32::from(UpdateCondition::Latest),
+                       svc_load.update_condition.unwrap());
+            assert_eq!(i32::from(BindingMode::Strict),
+                       svc_load.binding_mode.unwrap());
+
+            let args = "hab-sup run --topology leader --strategy at-once --update-condition \
+                        track-channel --binding-mode relaxed";
+            let svc_load = service_load_from_cmd_str(&args);
+            assert_eq!(i32::from(Topology::Leader), svc_load.topology.unwrap());
+            assert_eq!(i32::from(UpdateStrategy::AtOnce),
+                       svc_load.update_strategy.unwrap());
+            assert_eq!(i32::from(UpdateCondition::TrackChannel),
+                       svc_load.update_condition.unwrap());
+            assert_eq!(i32::from(BindingMode::Relaxed),
+                       svc_load.binding_mode.unwrap());
+
+            let args = "hab-sup run --strategy rolling ";
+            let svc_load = service_load_from_cmd_str(&args);
+            assert_eq!(i32::from(UpdateStrategy::Rolling),
+                       svc_load.update_strategy.unwrap());
         }
     }
 }
