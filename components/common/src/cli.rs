@@ -3,7 +3,8 @@
 //! Eventually this will be composed of fully typed default values. But as a first step we
 //! need a spot to consolidate those values and help simplify some of the logic around them.
 
-use clap::ArgMatches;
+use clap::{value_t,
+           ArgMatches};
 
 use habitat_core::{self,
                    os::process::{ShutdownSignal,
@@ -47,8 +48,7 @@ pub const DEFAULT_BINLINK_DIR: &str = "/bin";
 pub const DEFAULT_BINLINK_DIR: &str = "/usr/local/bin";
 
 pub fn cache_key_path_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
-    let path = matches.value_of("CACHE_KEY_PATH")
-                      .expect("CACHE_KEY_PATH required");
+    let path = clap::value_t!(matches, "CACHE_KEY_PATH", PathBuf).expect("CACHE_KEY_PATH required");
     PathBuf::from(path)
 }
 

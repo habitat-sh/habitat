@@ -457,6 +457,9 @@ mod test {
                                 HttpListenAddr,
                                 ListenCtlAddr};
     use habitat_core::locked_env_var;
+    use habitat_sup_protocol::types::{Topology,
+                                      UpdateCondition,
+                                      UpdateStrategy};
     use std::net::{SocketAddr,
                    ToSocketAddrs};
     use tempfile::TempDir;
@@ -794,11 +797,13 @@ gpoVMSncu2jMIDZX63IkQII=
                                                      Some(String::from("default")),
                                                  svc_encrypted_password:  None,
                                                  topology:                None,
-                                                 update_strategy:         Some(0),
+                                                 update_strategy:
+                                                     Some(UpdateStrategy::None.into()),
                                                  health_check_interval:
                                                      Some(health_check_interval),
                                                  shutdown_timeout:        None,
-                                                 update_condition:        Some(0), },
+                                                 update_condition:
+                                                     Some(UpdateCondition::Latest.into()), },
                        service_load);
         }
 
@@ -1012,8 +1017,8 @@ gpoVMSncu2jMIDZX63IkQII=
 
             let args = format!("hab-sup run --channel my_channel --bind one:service1.default \
                                 two:service2.default --binding-mode relaxed --url http://my_url.com \
-                                --config-from={} --group MyGroup --topology standalone \
-                                --strategy at-once --update-condition track-channel --health-check-interval 17 \
+                                --config-from={} --group MyGroup --topology leader \
+                                --strategy rolling --update-condition track-channel --health-check-interval 17 \
                                 --shutdown-timeout=12 core/redis",
                                temp_dir_str);
 
@@ -1040,12 +1045,15 @@ gpoVMSncu2jMIDZX63IkQII=
                                                  group:
                                                      Some(String::from("MyGroup")),
                                                  svc_encrypted_password:  None,
-                                                 topology:                Some(0),
-                                                 update_strategy:         Some(1),
+                                                 topology:
+                                                     Some(Topology::Leader.into()),
+                                                 update_strategy:
+                                                     Some(UpdateStrategy::Rolling.into()),
                                                  health_check_interval:
                                                      Some(health_check_interval),
                                                  shutdown_timeout:        Some(12),
-                                                 update_condition:        Some(1), },
+                                                 update_condition:
+                                                     Some(UpdateCondition::TrackChannel.into()), },
                        service_load);
         }
 
@@ -1413,12 +1421,15 @@ pkg_ident_or_artifact = "core/redis"
                                                  group:
                                                      Some(String::from("MyGroup")),
                                                  svc_encrypted_password:  None,
-                                                 topology:                Some(0),
-                                                 update_strategy:         Some(1),
+                                                 topology:
+                                                     Some(Topology::Standalone.into()),
+                                                 update_strategy:
+                                                     Some(UpdateStrategy::AtOnce.into()),
                                                  health_check_interval:
                                                      Some(health_check_interval),
                                                  shutdown_timeout:        Some(12),
-                                                 update_condition:        Some(1), },
+                                                 update_condition:
+                                                     Some(UpdateCondition::TrackChannel.into()), },
                        service_load);
         }
 

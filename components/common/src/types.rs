@@ -94,11 +94,10 @@ impl From<HashMap<String, String>> for EventStreamMetadata {
 
 impl From<Vec<EventStreamMetaPair>> for EventStreamMetadata {
     fn from(pairs: Vec<EventStreamMetaPair>) -> Self {
-        let mut h = HashMap::new();
-        for pair in pairs {
-            h.insert(pair.0, pair.1);
-        }
-        EventStreamMetadata(h)
+        pairs.into_iter()
+             .map(|p| (p.0, p.1))
+             .collect::<HashMap<_, _>>()
+             .into()
     }
 }
 
