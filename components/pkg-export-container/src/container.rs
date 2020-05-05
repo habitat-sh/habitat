@@ -71,7 +71,7 @@ pub(crate) trait Identified {
     }
 }
 
-/// A builder used to create a Docker image.
+/// A builder used to create a container image.
 pub struct ImageBuilder {
     /// The base workdir which hosts the root file system.
     workdir: PathBuf,
@@ -79,7 +79,7 @@ pub struct ImageBuilder {
     name:    String,
     /// A list of tags for the image.
     tags:    Vec<String>,
-    /// Optional memory limit to pass to pass to the docker build
+    /// Optional memory limit to pass to pass to the container build
     memory:  Option<String>,
 }
 
@@ -97,7 +97,7 @@ impl ImageBuilder {
                        memory:  None, }
     }
 
-    /// Adds a tag for the Docker image.
+    /// Adds a tag for the image.
     pub fn tag(mut self, tag: String) -> Self {
         self.tags.push(tag);
         self
@@ -113,7 +113,7 @@ impl ImageBuilder {
     ///
     /// # Errors
     ///
-    /// * If building the Docker image fails
+    /// * If building the image fails
     pub fn build(self) -> Result<ContainerImage> {
         let mut cmd = util::docker_cmd();
         cmd.current_dir(&self.workdir)
@@ -157,7 +157,7 @@ impl ImageBuilder {
     }
 }
 
-/// A built Docker image which exists locally.
+/// A built container image which exists locally.
 pub struct ContainerImage {
     /// The image ID for this image.
     id:      String,
@@ -176,7 +176,7 @@ impl Identified for ContainerImage {
 }
 
 impl ContainerImage {
-    /// Pushes the Docker image, with all tags, to a remote registry using the provided
+    /// Pushes the image, with all tags, to a remote registry using the provided
     /// `Credentials`.
     ///
     /// # Errors
@@ -189,7 +189,7 @@ impl ContainerImage {
                 credentials: &Credentials,
                 registry_url: Option<&str>)
                 -> Result<()> {
-        ui.begin(format!("Pushing Docker image '{}' with all tags to remote registry",
+        ui.begin(format!("Pushing image '{}' with all tags to remote registry",
                          self.name))?;
         self.create_docker_config_file(credentials, registry_url)
             .unwrap();
@@ -209,21 +209,20 @@ impl ContainerImage {
             ui.status(Status::Uploaded, format!("image '{}'", &image_tag))?;
         }
 
-        ui.end(format!("Docker image '{}' published with tags: {}",
+        ui.end(format!("Image '{}' published with tags: {}",
                        self.name,
                        self.tags.join(", "),))?;
 
         Ok(())
     }
 
-    /// Removes the image from the local Docker engine along with all tags.
+    /// Removes the image from the local system along with all tags.
     ///
     /// # Errors
     ///
     /// * If one or more of the image tags cannot be removed
     pub fn rm(self, ui: &mut UI) -> Result<()> {
-        ui.begin(format!("Cleaning up local Docker image '{}' with all tags",
-                         self.name))?;
+        ui.begin(format!("Removing local image '{}' with all tags", self.name))?;
 
         for image_tag in self.expanded_identifiers() {
             ui.status(Status::Deleting, format!("local image '{}'", image_tag))?;
@@ -236,7 +235,7 @@ impl ContainerImage {
             }
         }
 
-        ui.end(format!("Local Docker image '{}' with tags: {} cleaned up",
+        ui.end(format!("Local image '{}' with tags: {} cleaned up",
                        self.name,
                        self.tags.join(", "),))?;
         Ok(())
@@ -416,13 +415,13 @@ impl BuildContext {
         Ok(())
     }
 
-    /// Build the Docker image locally using the provided naming policy.
+    /// Build the image locally using the provided naming policy.
     pub fn export(&self,
                   ui: &mut UI,
                   naming: &Naming,
                   memory: Option<&str>)
                   -> Result<ContainerImage> {
-        ui.status(Status::Creating, "Docker image")?;
+        ui.status(Status::Creating, "image")?;
         let ident = self.0.ctx().installed_primary_svc_ident()?;
         let channel = self.0.ctx().channel();
 

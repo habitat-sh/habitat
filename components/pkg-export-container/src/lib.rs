@@ -130,34 +130,34 @@ impl Credentials {
     }
 }
 
-/// Exports a Docker image to a Docker engine from a build specification and naming policy.
+/// Creates a container image from a build specification and naming policy.
 ///
 /// # Errors
 ///
 /// * If a generic and temporary build root directory cannot be created containing a root
 /// file system
-/// * If additional Docker-related files cannot be created in the root file system
-/// * If building the Docker image fails
+/// * If additional related files cannot be created in the root file system
+/// * If building the image fails
 /// * If destroying the temporary build root directory fails
 pub async fn export<'a>(ui: &'a mut UI,
                         build_spec: BuildSpec,
                         naming: &Naming,
                         memory: Option<&'a str>)
                         -> Result<ContainerImage> {
-    ui.begin(format!("Building a runnable Docker image with: {}",
+    ui.begin(format!("Building a container image with: {}",
                      build_spec.idents_or_archives.join(", ")))?;
     let build_root = BuildContext::from_build_root(build_spec.create(ui).await?, ui)?;
     let image = build_root.export(ui, naming, memory)?;
     build_root.destroy(ui)?;
-    ui.end(format!("Docker image '{}' created with tags: {}",
+    ui.end(format!("Container image '{}' created with tags: {}",
                    image.name(),
                    image.tags().join(", ")))?;
 
     Ok(image)
 }
 
-/// Creates a build specification and naming policy from Cli arguments, and then exports a Docker
-/// image to a Docker engine from them.
+/// Creates a build specification and naming policy from CLI
+/// arguments, and then creates a container image from them.
 ///
 /// # Errors
 ///
