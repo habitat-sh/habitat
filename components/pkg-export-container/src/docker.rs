@@ -292,11 +292,13 @@ impl ContainerImage {
     }
 }
 
-/// A temporary file system build root for building a Docker image, based on Habitat packages.
-pub struct DockerBuildRoot(BuildRoot);
+/// A build context for building a container
+///
+/// (i.e. the `.` in `docker build -t foo .`)
+pub struct BuildContext(BuildRoot);
 
-impl DockerBuildRoot {
-    /// Builds a completed Docker build root from a `BuildRoot`, performing any final tasks on the
+impl BuildContext {
+    /// Builds a completed build root from a `BuildRoot`, performing any final tasks on the
     /// root file system.
     ///
     /// # Errors
@@ -304,26 +306,27 @@ impl DockerBuildRoot {
     /// * If any remaining tasks cannot be performed in the build root
     #[cfg(unix)]
     pub fn from_build_root(build_root: BuildRoot, ui: &mut UI) -> Result<Self> {
-        let root = DockerBuildRoot(build_root);
-        root.add_users_and_groups(ui)?;
-        root.create_entrypoint(ui)?;
-        root.create_dockerfile(ui)?;
+        let context = BuildContext(build_root);
+        context.add_users_and_groups(ui)?;
+        context.create_entrypoint(ui)?;
+        context.create_dockerfile(ui)?;
 
-        Ok(root)
+        Ok(context)
     }
 
     #[cfg(windows)]
     pub fn from_build_root(build_root: BuildRoot, ui: &mut UI) -> Result<Self> {
-        let root = DockerBuildRoot(build_root);
-        root.create_dockerfile(ui)?;
+        let context = BuildContext(build_root);
+        context.create_dockerfile(ui)?;
 
-        Ok(root)
+        Ok(context)
     }
 
-    /// Destroys the temporary build root.
+    /// Destroys the temporary build context.
     ///
-    /// Note that the build root will automatically destroy itself when it falls out of scope, so
-    /// a call to this method is not required, but calling this will provide more user-facing
+    /// Note that the build context will automatically destroy itself
+    /// when it falls out of scope, so a call to this method is not
+    /// required, but calling this will provide more user-facing
     /// progress and error reporting.
     ///
     /// # Errors

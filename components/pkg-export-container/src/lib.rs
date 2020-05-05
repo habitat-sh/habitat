@@ -9,8 +9,8 @@ extern crate serde_json;
 
 pub use crate::{build::BuildSpec,
                 cli::cli,
-                docker::{ContainerImage,
-                         DockerBuildRoot},
+                container::{BuildContext,
+                            ContainerImage},
                 error::{Error,
                         Result}};
 use crate::{docker::Identified,
@@ -146,7 +146,7 @@ pub async fn export<'a>(ui: &'a mut UI,
                         -> Result<ContainerImage> {
     ui.begin(format!("Building a runnable Docker image with: {}",
                      build_spec.idents_or_archives.join(", ")))?;
-    let build_root = DockerBuildRoot::from_build_root(build_spec.create(ui).await?, ui)?;
+    let build_root = BuildContext::from_build_root(build_spec.create(ui).await?, ui)?;
     let image = build_root.export(ui, naming, memory)?;
     build_root.destroy(ui)?;
     ui.end(format!("Docker image '{}' created with tags: {}",
