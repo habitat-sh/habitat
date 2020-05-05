@@ -9,8 +9,8 @@ extern crate serde_json;
 
 pub use crate::{build::BuildSpec,
                 cli::cli,
-                docker::{DockerBuildRoot,
-                         DockerImage},
+                docker::{ContainerImage,
+                         DockerBuildRoot},
                 error::{Error,
                         Result}};
 use crate::{docker::Identified,
@@ -143,7 +143,7 @@ pub async fn export<'a>(ui: &'a mut UI,
                         build_spec: BuildSpec,
                         naming: &Naming,
                         memory: Option<&'a str>)
-                        -> Result<DockerImage> {
+                        -> Result<ContainerImage> {
     ui.begin(format!("Building a runnable Docker image with: {}",
                      build_spec.idents_or_archives.join(", ")))?;
     let build_root = DockerBuildRoot::from_build_root(build_spec.create(ui).await?, ui)?;
@@ -169,14 +169,14 @@ pub async fn export<'a>(ui: &'a mut UI,
 /// * The image (tags) cannot be removed.
 pub async fn export_for_cli_matches(ui: &mut UI,
                                     matches: &clap::ArgMatches<'_>)
-                                    -> Result<Option<DockerImage>> {
+                                    -> Result<Option<ContainerImage>> {
     os::ensure_proper_docker_platform()?;
 
     let spec = BuildSpec::try_from(matches)?;
     let naming = Naming::from(matches);
 
-    let docker_image = export(ui, spec, &naming, matches.value_of("MEMORY_LIMIT")).await?;
-    docker_image.create_report(ui, env::current_dir()?.join("results"))?;
+    let container_image = export(ui, spec, &naming, matches.value_of("MEMORY_LIMIT")).await?;
+    container_image.create_report(ui, env::current_dir()?.join("results"))?;
 
     if matches.is_present("PUSH_IMAGE") {
         let credentials = Credentials::new(naming.registry_type,
@@ -184,13 +184,13 @@ pub async fn export_for_cli_matches(ui: &mut UI,
                                                   .expect("Username not specified"),
                                            matches.value_of("REGISTRY_PASSWORD")
                                                   .expect("Password not specified")).await?;
-        docker_image.push(ui, &credentials, naming.registry_url.as_deref())?;
+        container_image.push(ui, &credentials, naming.registry_url.as_deref())?;
     }
     if matches.is_present("RM_IMAGE") {
-        docker_image.rm(ui)?;
+        container_image.rm(ui)?;
 
         Ok(None)
     } else {
-        Ok(Some(docker_image))
+        Ok(Some(container_image))
     }
 }

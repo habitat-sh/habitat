@@ -109,12 +109,12 @@ impl ImageBuilder {
         self
     }
 
-    /// Builds the Docker image locally and returns the corresponding `DockerImage`.
+    /// Builds the container image locally and returns the corresponding `ContainerImage`.
     ///
     /// # Errors
     ///
     /// * If building the Docker image fails
-    pub fn build(self) -> Result<DockerImage> {
+    pub fn build(self) -> Result<ContainerImage> {
         let mut cmd = util::docker_cmd();
         cmd.current_dir(&self.workdir)
            .arg("build")
@@ -137,10 +137,10 @@ impl ImageBuilder {
             None => self.image_id(&self.name)?,
         };
 
-        Ok(DockerImage { id,
-                         name: self.name,
-                         tags: self.tags,
-                         workdir: self.workdir.to_owned() })
+        Ok(ContainerImage { id,
+                            name: self.name,
+                            tags: self.tags,
+                            workdir: self.workdir.to_owned() })
     }
 
     fn image_id(&self, image_tag: &str) -> Result<String> {
@@ -158,7 +158,7 @@ impl ImageBuilder {
 }
 
 /// A built Docker image which exists locally.
-pub struct DockerImage {
+pub struct ContainerImage {
     /// The image ID for this image.
     id:      String,
     /// The name of this image.
@@ -169,13 +169,13 @@ pub struct DockerImage {
     workdir: PathBuf,
 }
 
-impl Identified for DockerImage {
+impl Identified for ContainerImage {
     fn name(&self) -> String { self.name.clone() }
 
     fn tags(&self) -> Vec<String> { self.tags.clone() }
 }
 
-impl DockerImage {
+impl ContainerImage {
     /// Pushes the Docker image, with all tags, to a remote registry using the provided
     /// `Credentials`.
     ///
@@ -418,7 +418,7 @@ impl DockerBuildRoot {
                   ui: &mut UI,
                   naming: &Naming,
                   memory: Option<&str>)
-                  -> Result<DockerImage> {
+                  -> Result<ContainerImage> {
         ui.status(Status::Creating, "Docker image")?;
         let ident = self.0.ctx().installed_primary_svc_ident()?;
         let channel = self.0.ctx().channel();
