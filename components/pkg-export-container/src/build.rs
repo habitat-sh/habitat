@@ -107,7 +107,7 @@ pub struct BuildSpec {
     pub idents_or_archives: Vec<String>,
     /// The Builder Auth Token to use in the request
     pub auth:               Option<String>,
-    /// Base image used in From of dockerfile
+    /// Base image used in Dockerfile
     pub base_image:         String,
     /// Whether or not to create an image with a single layer for each
     /// Habitat package.
@@ -449,7 +449,7 @@ pub struct BuildRootContext {
     channel:         ChannelIdent,
     /// The path to the root of the file system.
     rootfs:          PathBuf,
-    /// Base image used in From of dockerfile
+    /// Base image used in Dockerfile
     base_image:      String,
     /// Whether or not to create an image with a single layer for each
     /// Habitat package.
@@ -724,7 +724,7 @@ impl BuildRootContext {
     /// Returns the root file system which is used to export an image.
     pub fn rootfs(&self) -> &Path { self.rootfs.as_ref() }
 
-    /// Returns the base image for the dockerfile From
+    /// Returns the base image used in the Dockerfile
     pub fn base_image(&self) -> &str { self.base_image.as_str() }
 
     pub fn multi_layer(&self) -> bool { self.multi_layer }
