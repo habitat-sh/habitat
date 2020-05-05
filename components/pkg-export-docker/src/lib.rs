@@ -7,13 +7,14 @@ extern crate log;
 #[macro_use]
 extern crate serde_json;
 
-use crate::naming::Naming;
 pub use crate::{build::BuildSpec,
                 cli::cli,
                 docker::{DockerBuildRoot,
                          DockerImage},
                 error::{Error,
                         Result}};
+use crate::{docker::Identified,
+            naming::Naming};
 use habitat_common::ui::{UIWriter,
                          UI};
 use habitat_core::url::default_bldr_url;

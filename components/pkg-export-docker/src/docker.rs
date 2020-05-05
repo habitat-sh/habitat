@@ -27,6 +27,50 @@ const DOCKERFILE: &str = include_str!("../defaults/Dockerfile_win.hbs");
 /// The build report template.
 const BUILD_REPORT: &str = include_str!("../defaults/last_docker_export.env.hbs");
 
+// TODO (CM): public temporarily
+pub(crate) trait Identified {
+    /// The base name of an image.
+    fn name(&self) -> String;
+
+    /// The possibly-empty list of tags for an image.
+    fn tags(&self) -> Vec<String>;
+
+    /// Returns a non-empty collection of names this image is known
+    /// by.
+    ///
+    /// If an image has no tags, it includes just the name. If it
+    /// *does* have tags, it includes the tags prepended with the
+    /// name.
+    ///
+    /// Thus, you could get as little as:
+    ///
+    /// core/redis
+    ///
+    /// or as much as:
+    ///
+    /// core/redis:latest
+    /// core/redis:4.0.14
+    /// core/redis:4.0.14-20190319155852
+    /// core/redis:latest
+    /// core/redis:my-custom-tag
+    fn expanded_identifiers(&self) -> Vec<String> {
+        let mut ids = vec![];
+
+        let tags = self.tags();
+        let name = self.name();
+
+        if tags.is_empty() {
+            ids.push(name);
+        } else {
+            for tag in tags {
+                ids.push(format!("{}:{}", name, tag));
+            }
+        }
+
+        ids
+    }
+}
+
 /// A builder used to create a Docker image.
 pub struct DockerBuilder {
     /// The base workdir which hosts the root file system.
@@ -37,6 +81,12 @@ pub struct DockerBuilder {
     tags:    Vec<String>,
     /// Optional memory limit to pass to pass to the docker build
     memory:  Option<String>,
+}
+
+impl Identified for DockerBuilder {
+    fn name(&self) -> String { self.name.clone() }
+
+    fn tags(&self) -> Vec<String> { self.tags.clone() }
 }
 
 impl DockerBuilder {
@@ -72,12 +122,8 @@ impl DockerBuilder {
         if let Some(ref mem) = self.memory {
             cmd.arg("--memory").arg(mem);
         }
-        if self.tags.is_empty() {
-            cmd.arg("--tag").arg(&self.name);
-        } else {
-            for tag in &self.tags {
-                cmd.arg("--tag").arg(format!("{}:{}", &self.name, tag));
-            }
+        for identifier in &self.expanded_identifiers() {
+            cmd.arg("--tag").arg(identifier);
         }
         cmd.arg(".");
         debug!("Running: {:?}", &cmd);
@@ -123,6 +169,12 @@ pub struct DockerImage {
     workdir: PathBuf,
 }
 
+impl Identified for DockerImage {
+    fn name(&self) -> String { self.name.clone() }
+
+    fn tags(&self) -> Vec<String> { self.tags.clone() }
+}
+
 impl DockerImage {
     /// Pushes the Docker image, with all tags, to a remote registry using the provided
     /// `Credentials`.
@@ -138,19 +190,28 @@ impl DockerImage {
                 registry_url: Option<&str>)
                 -> Result<()> {
         ui.begin(format!("Pushing Docker image '{}' with all tags to remote registry",
-                         self.name()))?;
+                         self.name))?;
         self.create_docker_config_file(credentials, registry_url)
             .unwrap();
-        if self.tags.is_empty() {
-            self.push_image(ui, None)?;
-        } else {
-            for tag in &self.tags {
-                self.push_image(ui, Some(tag))?;
+
+        for image_tag in self.expanded_identifiers() {
+            ui.status(Status::Uploading,
+                      format!("image '{}' to remote registry", image_tag))?;
+            let mut cmd = util::docker_cmd();
+            cmd.arg("--config");
+            cmd.arg(self.workdir.to_str().unwrap());
+            cmd.arg("push").arg(&image_tag);
+            debug!("Running: {:?}", &cmd);
+            let exit_status = cmd.spawn()?.wait()?;
+            if !exit_status.success() {
+                return Err(Error::PushImageFailed(exit_status).into());
             }
+            ui.status(Status::Uploaded, format!("image '{}'", &image_tag))?;
         }
+
         ui.end(format!("Docker image '{}' published with tags: {}",
-                       self.name(),
-                       self.tags().join(", "),))?;
+                       self.name,
+                       self.tags.join(", "),))?;
 
         Ok(())
     }
@@ -162,29 +223,24 @@ impl DockerImage {
     /// * If one or more of the image tags cannot be removed
     pub fn rm(self, ui: &mut UI) -> Result<()> {
         ui.begin(format!("Cleaning up local Docker image '{}' with all tags",
-                         self.name()))?;
-        if self.tags.is_empty() {
-            self.rm_image(ui, None)?;
-        } else {
-            for tag in &self.tags {
-                self.rm_image(ui, Some(tag))?;
+                         self.name))?;
+
+        for image_tag in self.expanded_identifiers() {
+            ui.status(Status::Deleting, format!("local image '{}'", image_tag))?;
+            let mut cmd = util::docker_cmd();
+            cmd.arg("rmi").arg(image_tag);
+            debug!("Running: {:?}", &cmd);
+            let exit_status = cmd.spawn()?.wait()?;
+            if !exit_status.success() {
+                return Err(Error::RemoveImageFailed(exit_status).into());
             }
         }
-        ui.end(format!("Local Docker image '{}' with tags: {} cleaned up",
-                       self.name(),
-                       self.tags().join(", "),))?;
 
+        ui.end(format!("Local Docker image '{}' with tags: {} cleaned up",
+                       self.name,
+                       self.tags.join(", "),))?;
         Ok(())
     }
-
-    /// Returns the ID of this image.
-    pub fn id(&self) -> &str { self.id.as_str() }
-
-    /// Returns the name of this image.
-    pub fn name(&self) -> &str { self.name.as_str() }
-
-    /// Returns the list of tags for this image.
-    pub fn tags(&self) -> &[String] { &self.tags }
 
     /// Create a build report with image metadata in the given path.
     ///
@@ -232,44 +288,6 @@ impl DockerImage {
             }
         });
         util::write_file(&config, &serde_json::to_string(&json).unwrap())?;
-        Ok(())
-    }
-
-    fn push_image(&self, ui: &mut UI, tag: Option<&str>) -> Result<()> {
-        let image_tag = match tag {
-            Some(tag) => format!("{}:{}", &self.name, tag),
-            None => self.name.to_string(),
-        };
-        ui.status(Status::Uploading,
-                  format!("image '{}' to remote registry", &image_tag))?;
-        let mut cmd = util::docker_cmd();
-        cmd.arg("--config");
-        cmd.arg(self.workdir.to_str().unwrap());
-        cmd.arg("push").arg(&image_tag);
-        debug!("Running: {:?}", &cmd);
-        let exit_status = cmd.spawn()?.wait()?;
-        if !exit_status.success() {
-            return Err(Error::PushImageFailed(exit_status).into());
-        }
-        ui.status(Status::Uploaded, format!("image '{}'", &image_tag))?;
-
-        Ok(())
-    }
-
-    fn rm_image(&self, ui: &mut UI, tag: Option<&str>) -> Result<()> {
-        let image_tag = match tag {
-            Some(tag) => format!("{}:{}", &self.name, tag),
-            None => self.name.to_string(),
-        };
-        ui.status(Status::Deleting, format!("local image '{}'", &image_tag))?;
-        let mut cmd = util::docker_cmd();
-        cmd.arg("rmi").arg(&image_tag);
-        debug!("Running: {:?}", &cmd);
-        let exit_status = cmd.spawn()?.wait()?;
-        if !exit_status.success() {
-            return Err(Error::RemoveImageFailed(exit_status).into());
-        }
-
         Ok(())
     }
 }
