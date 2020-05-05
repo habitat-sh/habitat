@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.14 -->
-## [1.6.14](https://github.com/habitat-sh/habitat/tree/1.6.14) (2020-05-04)
+<!-- latest_release 1.6.15 -->
+## [1.6.15](https://github.com/habitat-sh/habitat/tree/1.6.15) (2020-05-05)
 
-#### Merged Pull Requests
-- Correct bootstrap typo [#7665](https://github.com/habitat-sh/habitat/pull/7665) ([smacfarlane](https://github.com/smacfarlane))
+#### New Features & Enhancements
+- Config file support for `hab sup run` [#7658](https://github.com/habitat-sh/habitat/pull/7658) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
 ### Changes since 1.6.0 release
+
+#### New Features & Enhancements
+- Config file support for `hab sup run` [#7658](https://github.com/habitat-sh/habitat/pull/7658) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.15 -->
 
 #### Merged Pull Requests
 - Correct bootstrap typo [#7665](https://github.com/habitat-sh/habitat/pull/7665) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.6.14 -->
