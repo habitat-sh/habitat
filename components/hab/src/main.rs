@@ -384,7 +384,7 @@ async fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> 
                                           revision,
                                           with_secret,
                                           with_encryption,
-                                          token.as_ref().map(String::as_str),
+                                          token.as_deref(),
                                           &cache_key_path).await
 }
 
@@ -667,7 +667,7 @@ async fn sub_pkg_download(ui: &mut UI,
                                   VERSION,
                                   &package_sets,
                                   download_dir.as_ref(),
-                                  token.as_ref().map(String::as_str),
+                                  token.as_deref(),
                                   verify,
                                   ignore_missing_seeds).await?;
     Ok(())
@@ -922,7 +922,7 @@ async fn sub_pkg_install(ui: &mut UI,
                                                      VERSION,
                                                      &*FS_ROOT_PATH,
                                                      &cache_artifact_path(Some(&*FS_ROOT_PATH)),
-                                                     token.as_ref().map(String::as_str),
+                                                     token.as_deref(),
                                                      &install_mode,
                                                      &local_package_usage,
                                                      install_hook_mode).await?;
@@ -968,10 +968,7 @@ async fn sub_pkg_search(m: &ArgMatches<'_>) -> Result<()> {
                  .parse()
                  .expect("valid LIMIT");
     let token = maybe_auth_token(&m);
-    command::pkg::search::start(&search_term,
-                                &url,
-                                limit,
-                                token.as_ref().map(String::as_str)).await
+    command::pkg::search::start(&search_term, &url, limit, token.as_deref()).await
 }
 
 fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -1103,10 +1100,7 @@ async fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let token = maybe_auth_token(&m);
     let target = target_from_matches(m)?;
 
-    command::pkg::channels::start(ui,
-                                  &url,
-                                  (&ident, target),
-                                  token.as_ref().map(String::as_str)).await
+    command::pkg::channels::start(ui, &url, (&ident, target), token.as_deref()).await
 }
 
 async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
@@ -1388,10 +1382,7 @@ async fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
     msg.member_id = Some(m.value_of("MEMBER_ID").unwrap().to_string());
 
     ui.begin(format!("Permanently marking {} as departed",
-                     msg.member_id
-                        .as_ref()
-                        .map(String::as_str)
-                        .unwrap_or("UNKNOWN")))
+                     msg.member_id.as_deref().unwrap_or("UNKNOWN")))
       .unwrap();
     ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
       .unwrap();

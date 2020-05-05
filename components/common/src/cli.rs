@@ -70,7 +70,7 @@ pub fn file_into_idents(path: &str) -> Result<Vec<PackageIdent>, habitat_core::e
 }
 
 fn line_to_ident(line: &str) -> Option<Result<PackageIdent, habitat_core::error::Error>> {
-    let trimmed = line.split('#').nth(0).unwrap_or("").trim();
+    let trimmed = line.split('#').next().unwrap_or("").trim();
     match trimmed.len() {
         0 => None,
         _ => Some(PackageIdent::from_str(trimmed)),

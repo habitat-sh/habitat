@@ -62,7 +62,6 @@ clippy::type_repetition_in_bounds
 clippy::unit_arg
 clippy::unnecessary_operation
 clippy::unreadable_literal
-clippy::unused_label
 clippy::unused_unit
 clippy::useless_asref
 clippy::useless_format

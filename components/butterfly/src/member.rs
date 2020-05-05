@@ -972,7 +972,7 @@ mod tests {
         fn pingreq_targets() {
             let ml = populated_member_list(10);
             ml.with_member_iter(|mut i| {
-                  let from = i.nth(0).unwrap();
+                  let from = i.next().unwrap();
                   let target = i.nth(1).unwrap();
                   let mut counter: usize = 0;
                   ml.with_pingreq_targets_mlr(&from.id, &target.id, |_m| counter += 1);
@@ -984,7 +984,7 @@ mod tests {
         fn pingreq_targets_excludes_pinging_member() {
             let ml = populated_member_list(3);
             ml.with_member_iter(|mut i| {
-                  let from = i.nth(0).unwrap();
+                  let from = i.next().unwrap();
                   let target = i.nth(1).unwrap();
                   let mut excluded_appears: bool = false;
                   ml.with_pingreq_targets_mlr(&from.id, &target.id, |m| {
@@ -1000,7 +1000,7 @@ mod tests {
         fn pingreq_targets_excludes_target_member() {
             let ml = populated_member_list(3);
             ml.with_member_iter(|mut i| {
-                  let from = i.nth(0).unwrap();
+                  let from = i.next().unwrap();
                   let target = i.nth(1).unwrap();
                   let mut excluded_appears: bool = false;
                   ml.with_pingreq_targets_mlr(&from.id, &target.id, |m| {
@@ -1016,7 +1016,7 @@ mod tests {
         fn pingreq_targets_minimum_viable_pingreq_size_is_three() {
             let ml = populated_member_list(3);
             ml.with_member_iter(|mut i| {
-                  let from = i.nth(0).unwrap();
+                  let from = i.next().unwrap();
                   let target = i.nth(1).unwrap();
                   let mut counter: isize = 0;
                   ml.with_pingreq_targets_mlr(&from.id, &target.id, |_m| counter += 1);
