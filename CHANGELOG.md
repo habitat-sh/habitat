@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.16 -->
-## [1.6.16](https://github.com/habitat-sh/habitat/tree/1.6.16) (2020-05-05)
+<!-- latest_release 1.6.17 -->
+## [1.6.17](https://github.com/habitat-sh/habitat/tree/1.6.17) (2020-05-05)
 
 #### Merged Pull Requests
-- [REFACTOR] Remove some lifetimes to simplify Docker exporter [#7660](https://github.com/habitat-sh/habitat/pull/7660) ([christophermaier](https://github.com/christophermaier))
+- [REFACTOR] Extract and consolidate naming data for Docker exporter [#7659](https://github.com/habitat-sh/habitat/pull/7659) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
@@ -14,6 +14,7 @@
 - Config file support for `hab sup run` [#7658](https://github.com/habitat-sh/habitat/pull/7658) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.15 -->
 
 #### Merged Pull Requests
+- [REFACTOR] Extract and consolidate naming data for Docker exporter [#7659](https://github.com/habitat-sh/habitat/pull/7659) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.17 -->
 - [REFACTOR] Remove some lifetimes to simplify Docker exporter [#7660](https://github.com/habitat-sh/habitat/pull/7660) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.16 -->
 - Correct bootstrap typo [#7665](https://github.com/habitat-sh/habitat/pull/7665) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.6.14 -->
 - Update MacOS Bootstrapper version [#7663](https://github.com/habitat-sh/habitat/pull/7663) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.6.13 -->
