@@ -261,7 +261,7 @@ impl FsCfg {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ManagerConfig {
     pub auto_update:          bool,
     pub custom_state_path:    Option<PathBuf>,
@@ -284,9 +284,10 @@ pub struct ManagerConfig {
     /// others during service start. If this field is `None`, automatic package cleanup is
     /// disabled.
     pub keep_latest_packages: Option<usize>,
+    pub sys_ip:               IpAddr,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TLSConfig {
     pub cert_path:    PathBuf,
     pub key_path:     PathBuf,
@@ -591,10 +592,7 @@ impl Manager {
     ///
     /// # Locking (see locking.md)
     /// * `MemberList::initial_members` (write)
-    pub async fn load_imlw(cfg: ManagerConfig,
-                           launcher: LauncherCli,
-                           sys_ip: IpAddr)
-                           -> Result<Manager> {
+    pub async fn load_imlw(cfg: ManagerConfig, launcher: LauncherCli) -> Result<Manager> {
         let state_path = cfg.sup_root();
         let fs_cfg = FsCfg::new(state_path);
         Self::create_state_path_dirs(&fs_cfg)?;
@@ -604,7 +602,7 @@ impl Manager {
         }
         obtain_process_lock(&fs_cfg)?;
 
-        Self::new_imlw(cfg, fs_cfg, launcher, sys_ip).await
+        Self::new_imlw(cfg, fs_cfg, launcher).await
     }
 
     pub fn term(proc_lock_file: &Path) -> Result<()> {
@@ -622,11 +620,7 @@ impl Manager {
 
     /// # Locking (see locking.md)
     /// * `MemberList::initial_members` (write)
-    async fn new_imlw(cfg: ManagerConfig,
-                      fs_cfg: FsCfg,
-                      launcher: LauncherCli,
-                      sys_ip: IpAddr)
-                      -> Result<Manager> {
+    async fn new_imlw(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
         outputln!("{} ({})", SUP_PKG_IDENT, *THIS_SUPERVISOR_IDENT);
         let cfg_static = cfg.clone();
@@ -644,7 +638,7 @@ impl Manager {
                                cfg.gossip_listen,
                                cfg.ctl_listen,
                                cfg.http_listen,
-                               sys_ip);
+                               cfg.sys_ip);
         let member = Self::load_member(&mut sys, &fs_cfg)?;
         let services = Arc::default();
         let suitability_lookup = Arc::clone(&services) as Arc<dyn Suitability>;
@@ -1944,10 +1938,10 @@ fn track_memory_stats() {}
 #[cfg(test)]
 mod test {
     use super::*;
-    use habitat_core::fs::{cache_key_path,
-                           FS_ROOT_PATH};
+    use habitat_core::fs::CACHE_KEY_PATH;
     use habitat_sup_protocol::STATE_PATH_PREFIX;
-    use std::path::PathBuf;
+    use std::{net::Ipv4Addr,
+              path::PathBuf};
 
     mod reconciliation_flag {
         use super::*;
@@ -1971,7 +1965,7 @@ mod test {
         fn default() -> Self {
             ManagerConfig { auto_update:          false,
                             custom_state_path:    None,
-                            cache_key_path:       cache_key_path(Some(&*FS_ROOT_PATH)),
+                            cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                             update_url:           "".to_string(),
                             update_channel:       ChannelIdent::default(),
                             gossip_listen:        GossipListenAddr::default(),
@@ -1986,7 +1980,8 @@ mod test {
                             tls_config:           None,
                             feature_flags:        FeatureFlag::empty(),
                             event_stream_config:  None,
-                            keep_latest_packages: None, }
+                            keep_latest_packages: None,
+                            sys_ip:               IpAddr::V4(Ipv4Addr::LOCALHOST), }
         }
     }
 

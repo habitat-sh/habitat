@@ -20,6 +20,7 @@ actix-web = { version = "*", default-features = false, features = [ "rustls" ] }
 actix-rt = "*"
 byteorder = "*"
 clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
+configopt = { git = "https://github.com/davidMcneil/configopt.git" }
 cpu-time = "*"
 futures = { version = "0.3.1" }
 glob = "*"
@@ -55,6 +56,7 @@ serde_json = "*"
 serde_yaml = "*"
 serde-transcode = "*"
 state = "*"
+structopt = { git = "https://github.com/habitat-sh/structopt.git" }
 tempfile = "*"
 termcolor = "*"
 toml = { version = "*", default-features = false }

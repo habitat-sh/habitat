@@ -28,13 +28,12 @@ use crate::manager::{service::{HealthCheckHookStatus,
                                Service,
                                StandardStreams},
                      sys::Sys};
-use clap::ArgMatches;
 pub use error::{Error,
                 Result};
-use habitat_common::types::{AutomateAuthToken,
-                            EventStreamConnectMethod,
+use habitat_common::types::{EventStreamConnectMethod,
                             EventStreamMetadata,
-                            EventStreamServerCertificate};
+                            EventStreamServerCertificate,
+                            EventStreamToken};
 use habitat_core::{package::ident::PackageIdent,
                    service::HealthCheckInterval};
 use nats_message_stream::{NatsMessage,
@@ -85,36 +84,18 @@ pub async fn init(sys: &Sys, fqdn: String, config: EventStreamConfig) -> Result<
 
 /// Captures all event stream-related configuration options that would
 /// be passed in by a user
-#[derive(Clone, Debug)]
+// TODO (DM): The fields of this struct are only public for testing. We should refactor the crate
+// layout so this can be avoided.
+#[derive(Clone, Debug, PartialEq)]
 pub struct EventStreamConfig {
-    environment:        String,
-    application:        String,
-    site:               Option<String>,
-    meta:               EventStreamMetadata,
-    token:              AutomateAuthToken,
-    url:                Address,
-    connect_method:     EventStreamConnectMethod,
-    server_certificate: Option<EventStreamServerCertificate>,
-}
-
-impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
-    fn from(m: &ArgMatches) -> Self {
-        EventStreamConfig { environment:        m.value_of("EVENT_STREAM_ENVIRONMENT")
-                                                 .map(str::to_string)
-                                                 .expect("Required option for EventStream feature"),
-                            application:        m.value_of("EVENT_STREAM_APPLICATION")
-                                                 .map(str::to_string)
-                                                 .expect("Required option for EventStream feature"),
-                            site:               m.value_of("EVENT_STREAM_SITE").map(str::to_string),
-                            meta:               EventStreamMetadata::from(m),
-                            token:              AutomateAuthToken::from(m),
-                            url:                m.value_of("EVENT_STREAM_URL")
-                                                 .expect("Required option for EventStream feature")
-                                                 .parse()
-                                                 .expect("To parse NATS address"),
-                            connect_method:     EventStreamConnectMethod::from(m),
-                            server_certificate: EventStreamServerCertificate::from_arg_matches(m), }
-    }
+    pub environment:        String,
+    pub application:        String,
+    pub site:               Option<String>,
+    pub meta:               EventStreamMetadata,
+    pub token:              EventStreamToken,
+    pub url:                Address,
+    pub connect_method:     EventStreamConnectMethod,
+    pub server_certificate: Option<EventStreamServerCertificate>,
 }
 
 /// Send an event for the start of a Service.

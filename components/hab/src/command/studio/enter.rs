@@ -85,9 +85,9 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     }
 
     if henv::var(CACHE_KEY_PATH_ENV_VAR).is_err() {
-        let path = fs::cache_key_path(None::<&str>);
+        let path = &*fs::CACHE_KEY_PATH;
         debug!("Setting {}={}", CACHE_KEY_PATH_ENV_VAR, path.display());
-        env::set_var(CACHE_KEY_PATH_ENV_VAR, &path);
+        env::set_var(CACHE_KEY_PATH_ENV_VAR, path);
     };
 
     let artifact_path = match henv::var(ARTIFACT_PATH_ENVVAR) {

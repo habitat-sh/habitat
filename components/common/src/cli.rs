@@ -3,11 +3,10 @@
 //! Eventually this will be composed of fully typed default values. But as a first step we
 //! need a spot to consolidate those values and help simplify some of the logic around them.
 
-use clap::ArgMatches;
+use clap::{value_t,
+           ArgMatches};
 
-use habitat_core::{fs::{cache_key_path,
-                        CACHE_KEY_PATH,
-                        FS_ROOT_PATH},
+use habitat_core::{self,
                    os::process::{ShutdownSignal,
                                  ShutdownTimeout},
                    package::PackageIdent};
@@ -48,17 +47,8 @@ pub const DEFAULT_BINLINK_DIR: &str = "/bin";
 #[cfg(target_os = "macos")]
 pub const DEFAULT_BINLINK_DIR: &str = "/usr/local/bin";
 
-/// We require the value at the clap layer (see cli::arg_cache_key_path),
-/// so we can safely unwrap, but we need some additional logic to calculate
-// the dynamic "default" value if the argument has the default signifier value:
-/// CACHE_KEY_PATH. An empty value can't stand for default since it is invalid.
 pub fn cache_key_path_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
-    match matches.value_of("CACHE_KEY_PATH")
-                 .expect("CACHE_KEY_PATH required")
-    {
-        CACHE_KEY_PATH => cache_key_path(Some(&*FS_ROOT_PATH)),
-        val => PathBuf::from(val),
-    }
+    clap::value_t!(matches, "CACHE_KEY_PATH", PathBuf).expect("CACHE_KEY_PATH required")
 }
 
 pub fn is_toml_file(val: &str) -> bool {

@@ -1,8 +1,8 @@
 pub mod hab;
 
-use crate::{cli::hab::{sup::{ConfigOptSup,
-                             Sup},
-                       ConfigOptHab,
+use crate::{cli::hab::{sup::{Sup,
+                             SupRun},
+                       util::CACHE_KEY_PATH_DEFAULT,
                        Hab},
             command::studio};
 
@@ -10,27 +10,15 @@ use clap::{App,
            AppSettings,
            Arg,
            ArgMatches};
-use configopt::{ConfigOptType,
-                IgnoreHelp};
 use habitat_common::{cli::{file_into_idents,
                            is_toml_file,
                            BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
-                           PACKAGE_TARGET_ENVVAR,
-                           RING_ENVVAR,
-                           RING_KEY_ENVVAR},
-                     types::{AutomateAuthToken,
-                             EventStreamConnectMethod,
-                             EventStreamMetadata,
-                             EventStreamServerCertificate,
-                             GossipListenAddr,
-                             HttpListenAddr,
-                             ListenCtlAddr},
+                           PACKAGE_TARGET_ENVVAR},
                      FeatureFlag};
 use habitat_core::{crypto::{keys::PairType,
                             CACHE_KEY_PATH_ENV_VAR},
                    env::Config,
-                   fs::CACHE_KEY_PATH,
                    os::process::ShutdownTimeout,
                    package::{ident,
                              Identifiable,
@@ -40,11 +28,7 @@ use habitat_core::{crypto::{keys::PairType,
                              ServiceGroup},
                    ChannelIdent};
 use habitat_sup_protocol;
-use rants::Address as NatsAddress;
-use std::{net::{Ipv4Addr,
-                SocketAddr},
-          path::Path,
-          process,
+use std::{path::Path,
           result,
           str::FromStr};
 use structopt::StructOpt;
@@ -64,20 +48,8 @@ const UPDATE_CONDITION_LONG_HELP: &str =
 pub const OK_NO_RETRY_EXCODE: i32 = 84;
 
 pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
-    if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
-        let mut hab = Hab::clap();
-        // Populate the `configopt` version of `Hab` with config files. Use these values to set the
-        // defaults of the `Hab` app.
-        // Ignore any CLI parsing errors. We will catch them later on when `get_matches` is called.
-        // When we switch to using `structopt` exclusivly this will be cleaned up.
-        if let Ok(mut defaults) = ConfigOptHab::try_from_args_ignore_help() {
-            if let Err(e) = defaults.patch_with_config_files() {
-                error!("Failed to parse config files, err: {}", e);
-                process::exit(OK_NO_RETRY_EXCODE);
-            }
-            configopt::set_defaults(&mut hab, &defaults);
-        }
-        return hab;
+    if feature_flags.contains(FeatureFlag::STRUCTOPT_CLI) {
+        return Hab::clap();
     }
 
     let alias_apply = sub_config_apply().about("Alias for 'config apply'")
@@ -957,21 +929,10 @@ fn sub_cli_setup() -> App<'static, 'static> {
 }
 
 pub fn sup_commands(feature_flags: FeatureFlag) -> App<'static, 'static> {
-    if feature_flags.contains(FeatureFlag::CONFIG_FILE) {
-        let mut sup = Sup::clap();
-        // Populate the `configopt` version of `Sup` with config files. Use these values to set the
-        // defaults of the `Sup` app.
-        // Ignore any CLI parsing errors. We will catch them later on when `get_matches` is called.
-        // When we switch to using `structopt` exclusivly this will be cleaned up.
-        if let Ok(mut defaults) = ConfigOptSup::try_from_args_ignore_help() {
-            if let Err(e) = defaults.patch_with_config_files() {
-                error!("Failed to parse config files, err: {}", e);
-                process::exit(OK_NO_RETRY_EXCODE);
-            }
-            configopt::set_defaults(&mut sup, &defaults);
-        }
-        return sup;
+    if feature_flags.contains(FeatureFlag::STRUCTOPT_CLI) {
+        return Sup::clap();
     }
+
     // Define all of the `hab sup *` subcommands in one place.
     // This removes the need to duplicate this in `hab-sup`.
     // The 'sup' App name here is significant for the `hab` binary as it
@@ -1019,19 +980,12 @@ fn sub_cli_completers() -> App<'static, 'static> {
                                    .possible_values(&supported_shells))
 }
 
-// We need a default_value so that the argument can be required and validated. We hide the
-// default because it's a special value that will be internally mapped according to the
-// user type. This is to allow us to apply consistent validation to the env var override.
 fn arg_cache_key_path() -> Arg<'static, 'static> {
     Arg::with_name("CACHE_KEY_PATH").long("cache-key-path")
-                                    .required(true)
                                     .validator(non_empty)
                                     .env(CACHE_KEY_PATH_ENV_VAR)
-                                    .default_value(CACHE_KEY_PATH)
-                                    .hide_default_value(true)
-                                    .help("Cache for creating and searching encryption keys. \
-                                           Default value is hab/cache/keys if root and \
-                                           .hab/cache/keys under the home directory otherwise")
+                                    .default_value(&*CACHE_KEY_PATH_DEFAULT)
+                                    .help("Cache for creating and searching for encryption keys")
 }
 
 fn arg_target() -> Arg<'static, 'static> {
@@ -1177,127 +1131,7 @@ fn sub_sup_bash() -> App<'static, 'static> {
     )
 }
 
-fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> {
-    let sub = clap_app!(@subcommand run =>
-                            (about: "Run the Habitat Supervisor")
-                            // set custom usage string, otherwise the binary
-                            // is displayed confusingly as `hab-sup`
-                            // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
-                            (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
-                            (@arg LISTEN_GOSSIP: --("listen-gossip") env(GossipListenAddr::ENVVAR) default_value(GossipListenAddr::default_as_str()) {valid_socket_addr}
-                             "The listen address for the Gossip System Gateway")
-                            (@arg LOCAL_GOSSIP_MODE: --("local-gossip-mode") conflicts_with("LISTEN_GOSSIP") conflicts_with("PEER") conflicts_with("PEER_WATCH_FILE")
-                             "Start the supervisor in local mode")
-                            (@arg LISTEN_HTTP: --("listen-http") env(HttpListenAddr::ENVVAR) default_value(HttpListenAddr::default_as_str()) {valid_socket_addr}
-                             "The listen address for the HTTP Gateway")
-                            (@arg HTTP_DISABLE: --("http-disable") -D
-                             "Disable the HTTP Gateway completely")
-                            (@arg LISTEN_CTL: --("listen-ctl") env(ListenCtlAddr::ENVVAR) default_value(ListenCtlAddr::default_as_str()) {valid_socket_addr}
-                             "The listen address for the Control Gateway. If not specified, the value will \
-                              be taken from the HAB_LISTEN_CTL environment variable if defined")
-                            (@arg ORGANIZATION: --org +takes_value
-                             "The organization that the Supervisor and its subsequent services are part of")
-                            (@arg PEER: --peer +takes_value +multiple
-                             "The listen address of one or more initial peers (IP[:PORT])")
-                            (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
-                            (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with("PEER")
-                             "Watch this file for connecting to the ring"
-                            )
-                            (arg: arg_cache_key_path())
-                            (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY") {non_empty}
-                             "The name of the ring used by the Supervisor when running with wire encryption. \
-                              (ex: hab sup run --ring myring)")
-                            (@arg RING_KEY: --("ring-key") env(RING_KEY_ENVVAR) conflicts_with("RING") +hidden {non_empty}
-                             "The contents of the ring key when running with wire encryption. \
-                              (Note: This option is explicitly undocumented and for testing purposes only. Do not use it in a production system. Use the corresponding environment variable instead.) \
-                              (ex: hab sup run --ring-key 'SYM-SEC-1 foo-20181113185935 GCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')")
-                            (@arg CHANNEL: --channel +takes_value default_value[stable]
-                             "Receive updates from the specified release channel")
-                            (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                             "Specify an alternate Builder endpoint. If not specified, the value will \
-                              be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                              https://bldr.habitat.sh)")
-
-                            (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
-                             "Use package config from this path, rather than the package itself")
-                            (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
-                                                                     itself")
-                            (@arg KEY_FILE: --key +takes_value {file_exists} requires[CERT_FILE]
-                             "Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. \
-                              This should be a RSA private key or PKCS8-encoded private key, in PEM format")
-                            (@arg CERT_FILE: --certs +takes_value {file_exists} requires[KEY_FILE]
-                             "Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. \
-                              This should contain PEM-format certificates in the right order (the first certificate \
-                              should certify KEY_FILE, the last should be a root CA)")
-                            (@arg CA_CERT_FILE: --("ca-certs") +takes_value {file_exists} requires[CERT_FILE] requires[KEY_FILE]
-                             "Used for enabling client-authentication with TLS for the HTTP gateway. Read CA certificate from CA_CERT_FILE. \
-                              This should contain PEM-format certificate that can be used to validate client requests")
-                            // === Optional arguments to additionally load an initial service for the Supervisor
-                            (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
-                                                                       the Supervisor startup specified by a package identifier \
-                                                                       (ex: core/redis) or filepath to a Habitat Artifact \
-                                                                       (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-                            // TODO (DM): These flags can eventually be removed.
-                            // See https://github.com/habitat-sh/habitat/issues/7339
-                            (@arg APPLICATION: --application -a +multiple +hidden "DEPRECATED")
-                            (@arg ENVIRONMENT: --environment -e +multiple +hidden "DEPRECATED")
-                            (@arg GROUP: --group +takes_value
-                             "The service group; shared config and topology [default: default]")
-                            (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
-                             "Service topology; [default: none]")
-                            (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
-                             "The update strategy; [default: none] [values: none, at-once, rolling]")
-                            (@arg BIND: --bind +takes_value +multiple
-                             "One or more service groups to bind to a configuration")
-                            (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
-                             "Governs how the presence or absence of binds affects service startup. `strict` blocks \
-                              startup until all binds are present. [default: strict] [values: relaxed, strict]")
-                            (@arg VERBOSE: -v "Verbose output; shows file and line/column numbers")
-                            (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
-                            (@arg JSON: --("json-logging") "Use structured JSON logging for the Supervisor. \
-                                                            Implies NO_COLOR")
-                            (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
-                             "The interval (seconds) on which to run health checks [default: 30]")
-                            (@arg SYS_IP_ADDRESS: --("sys-ip-address") +takes_value {valid_ipv4_address}
-                             "The IPv4 address to use as the `sys.ip` template variable. If this \
-                             argument is not set, the supervisor tries to dynamically determine \
-                             an IP address. If that fails, the supervisor defaults to using \
-                             `127.0.0.1`")
-    );
-
-    // clap_app macro does not allow setting short and long help seperately
-    let sub =
-        sub.arg(Arg::with_name("NUM_LATEST_PACKAGES_TO_KEEP").long("keep-latest-packages")
-                                                             .takes_value(true)
-                                                             .validator(valid_numeric::<usize>)
-                                                             .env("HAB_KEEP_LATEST_PACKAGES")
-                                                             .help("Automatically cleanup old \
-                                                                    packages")
-                                                             .long_help("Automatically cleanup \
-                                                                         old packages.\n\nThe \
-                                                                         Supervisor will \
-                                                                         automatically cleanup \
-                                                                         old packages only \
-                                                                         keeping the `NUM_LATEST_PACKAGES_TO_KEEP` latest \
-                                                                         packages. If this \
-                                                                         argument is not \
-                                                                         specified, no \
-                                                                         automatic package \
-                                                                         cleanup is performed."));
-
-    // The clap_app macro does not allow "-" in possible values
-    let sub = sub.arg(Arg::with_name("UPDATE_CONDITION").long("update-condition")
-                                                        .takes_value(true)
-                                                        .default_value("latest")
-                                                        .possible_values(&["latest",
-                                                                           "track-channel"])
-                                                        .validator(valid_update_condition)
-                                                        .help(UPDATE_CONDITION_HELP)
-                                                        .long_help(UPDATE_CONDITION_LONG_HELP));
-
-    let sub = add_event_stream_options(sub);
-    add_shutdown_timeout_option(sub)
-}
+fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> { SupRun::clap() }
 
 fn sub_sup_sh() -> App<'static, 'static> {
     clap_app!(@subcommand sh =>
@@ -1370,28 +1204,32 @@ fn sub_svc_load() -> App<'static, 'static> {
         (@arg ENVIRONMENT: --environment -e +multiple +hidden "DEPRECATED")
         (@arg CHANNEL: --channel +takes_value default_value[stable]
             "Receive updates from the specified release channel")
-        (@arg GROUP: --group +takes_value
-            "The service group; shared config and topology [default: default]")
+        (@arg GROUP: --group +takes_value default_value[default]
+            "The service group with shared config and topology")
         (@arg BLDR_URL: -u --url +takes_value {valid_url}
             "Specify an alternate Builder endpoint. If not specified, the value will \
              be taken from the HAB_BLDR_URL environment variable if defined. (default: \
              https://bldr.habitat.sh)")
         (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
-            "Service topology; [default: none]")
-        (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
-            "The update strategy; [default: none] [values: none, at-once, rolling]")
+            "Service topology")
         (@arg BIND: --bind +takes_value +multiple
             "One or more service groups to bind to a configuration")
-        (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
-             "Governs how the presence or absence of binds affects service startup. `strict` blocks \
-              startup until all binds are present. [default: strict] [values: relaxed, strict]")
+        (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode} default_value[strict] possible_value[strict relaxed]
+             "Governs how the presence or absence of binds affects service startup")
         (@arg FORCE: --force -f "Load or reload an already loaded service. If the service \
             was previously loaded and running this operation will also restart the service")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
-        (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
-            "The interval (seconds) on which to run health checks [default: 30]")
     );
+
+    // The clap_app macro does not allow "-" in possible values
+    sub = sub.arg(Arg::with_name("STRATEGY").short("s")
+                                            .long("strategy")
+                                            .takes_value(true)
+                                            .default_value("none")
+                                            .possible_values(&["none", "at-once", "rolling"])
+                                            .validator(valid_update_strategy)
+                                            .help("The update strategy"));
 
     // The clap_app macro does not allow "-" in possible values
     sub = sub.arg(Arg::with_name("UPDATE_CONDITION").long("update-condition")
@@ -1401,6 +1239,15 @@ fn sub_svc_load() -> App<'static, 'static> {
                                                     .validator(valid_update_condition)
                                                     .help(UPDATE_CONDITION_HELP)
                                                     .long_help(UPDATE_CONDITION_LONG_HELP));
+
+    // The clap_app macro does not support numbers in default_value
+    sub = sub.arg(Arg::with_name("HEALTH_CHECK_INTERVAL").short("i")
+                                                         .long("health-check-interval")
+                                                         .takes_value(true)
+                                                         .default_value("30")
+                                                         .validator(valid_health_check_interval)
+                                                         .help("The interval in seconds on \
+                                                                which to run health checks"));
 
     if cfg!(windows) {
         sub = sub.arg(Arg::with_name("PASSWORD").long("password")
@@ -1421,84 +1268,6 @@ fn sub_svc_unload() -> App<'static, 'static> {
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     );
     add_shutdown_timeout_option(sub)
-}
-
-fn add_event_stream_options(app: App<'static, 'static>) -> App<'static, 'static> {
-    // Create shorter alias so formating works correctly
-    type ConnectMethod = EventStreamConnectMethod;
-    app.arg(Arg::with_name("EVENT_STREAM_APPLICATION").help("The name of the application for \
-                                                             event stream purposes. This \
-                                                             will be attached to all events \
-                                                             generated by this Supervisor")
-                                                      .long("event-stream-application")
-                                                      .required(false)
-                                                      .takes_value(true)
-                                                      .validator(non_empty))
-       .arg(Arg::with_name("EVENT_STREAM_ENVIRONMENT").help("The name of the environment for \
-                                                             event stream purposes. This \
-                                                             will be attached to all events \
-                                                             generated by this Supervisor")
-                                                      .long("event-stream-environment")
-                                                      .required(false)
-                                                      .takes_value(true)
-                                                      .validator(non_empty))
-       .arg(Arg::with_name(ConnectMethod::ARG_NAME).help("How long in seconds to wait for an \
-                                                          event stream connection before exiting \
-                                                          the Supervisor. Set to '0' to \
-                                                          immediately start the Supervisor and \
-                                                          continue running regardless of the \
-                                                          initial connection status")
-                                                   .long("event-stream-connect-timeout")
-                                                   .required(false)
-                                                   .takes_value(true)
-                                                   .env(ConnectMethod::ENVVAR)
-                                                   .default_value("0")
-                                                   .validator(valid_numeric::<u64>))
-       .arg(Arg::with_name("EVENT_STREAM_URL").help("The event stream connection string \
-                                                     (host:port) used by this Supervisor to send \
-                                                     events to Chef Automate. This enables \
-                                                     the event stream and requires \
-                                                     --event-stream-application, \
-                                                     --event-stream-environment, and \
-                                                     --event-stream-token also be set")
-                                              .long("event-stream-url")
-                                              .required(false)
-                                              .requires_all(&[
-                                                    "EVENT_STREAM_APPLICATION",
-                                                    "EVENT_STREAM_ENVIRONMENT",
-                                                    AutomateAuthToken::ARG_NAME
-                                                ])
-                                              .takes_value(true)
-                                              .validator(nats_address))
-       .arg(Arg::with_name("EVENT_STREAM_SITE").help("The name of the site where this Supervisor \
-                                                      is running for event stream purposes")
-                                               .long("event-stream-site")
-                                               .required(false)
-                                               .takes_value(true)
-                                               .validator(non_empty))
-       .arg(Arg::with_name(AutomateAuthToken::ARG_NAME).help("The authentication token for \
-                                                              connecting the event stream to \
-                                                              Chef Automate")
-                                                       .long("event-stream-token")
-                                                       .required(false)
-                                                       .takes_value(true)
-                                                       .validator(AutomateAuthToken::validate)
-                                                       .env(AutomateAuthToken::ENVVAR))
-       .arg(Arg::with_name(EventStreamMetadata::ARG_NAME).help("An arbitrary key-value pair to \
-                                                                add to each event generated by \
-                                                                this Supervisor")
-                                                         .long("event-meta")
-                                                         .takes_value(true)
-                                                         .multiple(true)
-                                                         .validator(EventStreamMetadata::validate))
-       .arg(Arg::with_name("EVENT_STREAM_SERVER_CERTIFICATE").help("The path to Chef Automate's \
-                                                                    event stream certificate in \
-                                                                    PEM format used to establish \
-                                                                    a TLS connection")
-                                              .long("event-stream-server-certificate")
-                                              .required(false)
-                                              .takes_value(true)
-                                              .validator(EventStreamServerCertificate::validate))
 }
 
 // CLAP Validation Functions
@@ -1552,28 +1321,6 @@ fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
         Ok(())
     } else {
         file_exists(val)
-    }
-}
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_ipv4_address(val: String) -> result::Result<(), String> {
-    match Ipv4Addr::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => {
-            Err(format!("'{}' is not a valid IPv4 address, eg: \
-                         '192.168.1.105'",
-                        val))
-        }
-    }
-}
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_socket_addr(val: String) -> result::Result<(), String> {
-    match SocketAddr::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => {
-            Err("Socket address should include both IP and port, eg: '0.0.0.0:9700'".to_string())
-        }
     }
 }
 
@@ -1703,14 +1450,6 @@ fn valid_shutdown_timeout(val: String) -> result::Result<(), String> {
 }
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn nats_address(val: String) -> result::Result<(), String> {
-    match NatsAddress::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!("'{}' is not a valid event stream address", val)),
-    }
-}
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn non_empty(val: String) -> result::Result<(), String> {
     if val.is_empty() {
         Err("must not be empty (check env overrides)".to_string())
@@ -1721,9 +1460,9 @@ fn non_empty(val: String) -> result::Result<(), String> {
 
 /// Adds extra configuration option for shutting down a service with a customized timeout.
 fn add_shutdown_timeout_option(app: App<'static, 'static>) -> App<'static, 'static> {
-    app.arg(Arg::with_name("SHUTDOWN_TIMEOUT").help("The number of seconds after sending a \
-                                                     shutdown signal to wait before killing a \
-                                                     service process (default: set in plan)")
+    app.arg(Arg::with_name("SHUTDOWN_TIMEOUT").help("The delay in seconds after sending the \
+                                                     shutdown signal to wait before killing the \
+                                                     service process")
                                               .long("shutdown-timeout")
                                               .validator(valid_shutdown_timeout)
                                               .takes_value(true))
@@ -1737,6 +1476,8 @@ mod tests {
     fn no_feature_flags() -> FeatureFlag { FeatureFlag::empty() }
 
     use super::*;
+    use habitat_common::types::{EventStreamMetadata,
+                                EventStreamToken};
 
     #[test]
     fn legacy_appliction_and_environment_args() {
@@ -1873,7 +1614,7 @@ mod tests {
             ]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
-            assert_eq!(error.kind, clap::ErrorKind::ValueValidation);
+            assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
         }
 
         #[test]
@@ -1910,7 +1651,7 @@ mod tests {
             ]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
-            assert_eq!(error.kind, clap::ErrorKind::ValueValidation);
+            assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
         }
 
         #[test]
@@ -2031,7 +1772,7 @@ mod tests {
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
             assert_eq!(error.info,
-                       Some(vec![AutomateAuthToken::ARG_NAME.to_string()]));
+                       Some(vec![EventStreamToken::ARG_NAME.to_string()]));
         }
 
         #[test]
@@ -2089,7 +1830,7 @@ mod tests {
             ]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
-            assert_eq!(error.kind, clap::ErrorKind::ValueValidation);
+            assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
         }
 
         #[test]

@@ -213,12 +213,8 @@
 pub use self::keys::{box_key_pair::BoxKeyPair,
                      sig_key_pair::SigKeyPair,
                      sym_key::SymKey};
-use crate::{env as henv,
-            fs::cache_key_path};
 use crypto;
 pub use sodiumoxide::init;
-use std::path::{Path,
-                PathBuf};
 
 /// The suffix on the end of a public sig/box file
 pub static PUBLIC_KEY_SUFFIX: &str = "pub";
@@ -252,13 +248,6 @@ pub mod artifact;
 pub mod dpapi;
 pub mod hash;
 pub mod keys;
-
-pub fn default_cache_key_path(fs_root_path: Option<&Path>) -> PathBuf {
-    match henv::var(CACHE_KEY_PATH_ENV_VAR) {
-        Ok(val) => PathBuf::from(val),
-        Err(_) => cache_key_path(fs_root_path),
-    }
-}
 
 /// A comparison function that takes a consistent amount of time to compare
 /// values of a given number of bytes so as to be resistant to timing attacks.
