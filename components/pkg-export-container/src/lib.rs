@@ -13,7 +13,7 @@ pub use crate::{build::BuildSpec,
                             ContainerImage},
                 error::{Error,
                         Result}};
-use crate::{docker::Identified,
+use crate::{container::Identified,
             naming::Naming};
 use habitat_common::ui::{UIWriter,
                          UI};
@@ -32,7 +32,7 @@ use std::{convert::TryFrom,
 mod accounts;
 mod build;
 mod cli;
-mod docker;
+mod container;
 mod error;
 mod graph;
 mod naming;
