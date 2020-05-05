@@ -72,7 +72,7 @@ pub(crate) trait Identified {
 }
 
 /// A builder used to create a Docker image.
-pub struct DockerBuilder {
+pub struct ImageBuilder {
     /// The base workdir which hosts the root file system.
     workdir: PathBuf,
     /// The name for the image.
@@ -83,18 +83,18 @@ pub struct DockerBuilder {
     memory:  Option<String>,
 }
 
-impl Identified for DockerBuilder {
+impl Identified for ImageBuilder {
     fn name(&self) -> String { self.name.clone() }
 
     fn tags(&self) -> Vec<String> { self.tags.clone() }
 }
 
-impl DockerBuilder {
+impl ImageBuilder {
     fn new(workdir: &Path, name: &str) -> Self {
-        DockerBuilder { workdir: workdir.to_path_buf(),
-                        name:    name.to_string(),
-                        tags:    Vec::new(),
-                        memory:  None, }
+        ImageBuilder { workdir: workdir.to_path_buf(),
+                       name:    name.to_string(),
+                       tags:    Vec::new(),
+                       memory:  None, }
     }
 
     /// Adds a tag for the Docker image.
@@ -427,7 +427,7 @@ impl DockerBuildRoot {
         // since this error would be based on user input errors
         let (image_name, tags) = naming.image_identifiers(&ident, &channel)?;
 
-        let mut builder = DockerBuilder::new(self.0.workdir(), &image_name);
+        let mut builder = ImageBuilder::new(self.0.workdir(), &image_name);
         for tag in tags {
             builder = builder.tag(tag);
         }
