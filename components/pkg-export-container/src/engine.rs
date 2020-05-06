@@ -2,8 +2,7 @@
 //! dealing with container images, while remaining unconcerned about
 //! which underlying tool is actually performing those tasks.
 
-use crate::error::{Error,
-                   Result};
+use crate::error::Result;
 use habitat_core::fs::find_command;
 use std::{path::{Path,
                  PathBuf},
@@ -12,9 +11,18 @@ use std::{path::{Path,
 
 #[derive(Debug, Fail)]
 enum EngineError {
+    #[fail(display = "Container image build failed with exit code: {}", _0)]
+    BuildFailed(ExitStatus),
     #[fail(display = "Could not find the container engine executable '{}' on the PATH",
            _0)]
     ExecutableNotFound(String),
+    #[fail(display = "Could not determine container image ID for: {}", _0)]
+    ImageIdNotFound(String),
+    #[fail(display = "Removing local container images failed with exit code: {}",
+           _0)]
+    RemoveFailed(ExitStatus),
+    #[fail(display = "Container image push failed with exit code: {}", _0)]
+    PushFailed(ExitStatus),
 }
 
 pub struct Engine {
@@ -39,14 +47,14 @@ impl Engine {
         let stdout = String::from_utf8_lossy(&output.stdout);
         match stdout.lines().next() {
             Some(id) => Ok(id.to_string()),
-            None => Err(Error::DockerImageIdNotFound(image_reference.to_string()).into()),
+            None => Err(EngineError::ImageIdNotFound(image_reference.to_string()).into()),
         }
     }
 
     /// Delete the referenced image in the local image store.
     pub fn remove_image(&self, image_reference: &str) -> Result<()> {
         Engine::run(self.image_removal_command(image_reference),
-                    Error::RemoveImageFailed)
+                    EngineError::RemoveFailed)
     }
 
     /// Pushes the specified container image to a remote repository, using
@@ -56,7 +64,7 @@ impl Engine {
     // handling the config directory stuff internally?
     pub fn push_image(&self, image_reference: &str, config_dir: &Path) -> Result<()> {
         Engine::run(self.image_push_command(image_reference, config_dir),
-                    Error::PushImageFailed)
+                    EngineError::PushFailed)
     }
 
     /// Actually create the image.
@@ -73,14 +81,14 @@ impl Engine {
                                 memory: Option<&str>)
                                 -> Result<()> {
         Engine::run(self.build_command(build_context, tags, memory),
-                    Error::BuildFailed)
+                    EngineError::BuildFailed)
     }
 
     ////////////////////////////////////////////////////////////////////////
 
     /// General helper function for actually executing all these commands
     fn run<F>(mut cmd: Command, err_fn: F) -> Result<()>
-        where F: Fn(ExitStatus) -> Error
+        where F: Fn(ExitStatus) -> EngineError
     {
         debug!("Running: {:?}", &cmd);
         let exit_status = cmd.spawn()?.wait()?;
