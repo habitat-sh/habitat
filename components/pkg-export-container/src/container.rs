@@ -25,7 +25,14 @@ const DOCKERFILE: &str = include_str!("../defaults/Dockerfile.hbs");
 #[cfg(windows)]
 const DOCKERFILE: &str = include_str!("../defaults/Dockerfile_win.hbs");
 /// The build report template.
-const BUILD_REPORT: &str = include_str!("../defaults/last_docker_export.env.hbs");
+const BUILD_REPORT: &str = include_str!("../defaults/last_container_export.env.hbs");
+
+/// The file that the build report will be written to.
+const BUILD_REPORT_FILE_NAME: &str = "last_container_export.env";
+
+/// Provided only for backwards compatibility; will contain a
+/// duplicate of the standard build report.
+const OLD_BUILD_REPORT_FILE_NAME: &str = "last_docker_export.env";
 
 // TODO (CM): public temporarily
 pub(crate) trait Identified {
@@ -248,7 +255,7 @@ impl ContainerImage {
     /// * If the destination directory cannot be created
     /// * If the report file cannot be written
     pub fn create_report<P: AsRef<Path>>(&self, ui: &mut UI, dst: P) -> Result<()> {
-        let report = dst.as_ref().join("last_docker_export.env");
+        let report = Self::report_path(&dst);
         ui.status(Status::Creating,
                   format!("build report {}", report.display()))?;
         fs::create_dir_all(&dst)?;
@@ -265,7 +272,47 @@ impl ContainerImage {
         util::write_file(&report,
                          &Handlebars::new().template_render(BUILD_REPORT, &json)
                                            .map_err(SyncFailure::new)?)?;
+
+        Self::create_old_report(ui, dst);
+
         Ok(())
+    }
+
+    fn report_path<P: AsRef<Path>>(dir: P) -> PathBuf { dir.as_ref().join(BUILD_REPORT_FILE_NAME) }
+
+    /// When this was the "Docker exporter", we wrote the report out
+    /// to "last_docker_export.env". Now that it is the "container
+    /// exporter", this name makes less sense, and we instead create
+    /// "last_container_export.env".
+    ///
+    /// For backwards compatibility, however, we'll continue to write
+    /// out the same report to "last_docker_export.env", in case users
+    /// have automation that depends on that specific location.
+    ///
+    /// This function assumes that "last_container_export.env" has
+    /// already been written out in the `dst` directory, and that
+    /// `dst` already exists.
+    ///
+    /// It intentionally does not return an error because this is a
+    /// best-effort attempt. We've already done all the main work of
+    /// this exporter and it makes no sense to fail the entire
+    /// operation at this point.
+    fn create_old_report<P: AsRef<Path>>(ui: &mut UI, dst: P) {
+        let current_report = Self::report_path(&dst);
+        let old_report = dst.as_ref().join(OLD_BUILD_REPORT_FILE_NAME);
+        ui.status(Status::Creating,
+                  format!("old build report '{}' for backwards compatibility; please favor '{}' \
+                           going forward",
+                          old_report.display(),
+                          current_report.display()))
+          .ok(); // don't care about an error here
+
+        if let Err(e) = std::fs::copy(&current_report, &old_report) {
+            error!("Failed to create '{}' for backwards-compatibility purposes; this may safely \
+                    be ignored: {}",
+                   old_report.display(),
+                   e);
+        }
     }
 
     pub fn create_docker_config_file(&self,
