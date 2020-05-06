@@ -76,64 +76,6 @@ pub(crate) trait Identified {
     }
 }
 
-/// A builder used to create a container image.
-pub struct ImageBuilder {
-    /// The base workdir which hosts the root file system.
-    workdir: PathBuf,
-    /// The name for the image.
-    name:    String,
-    /// A list of tags for the image.
-    tags:    Vec<String>,
-    /// Optional memory limit to pass to pass to the container build
-    memory:  Option<String>,
-}
-
-impl Identified for ImageBuilder {
-    fn name(&self) -> String { self.name.clone() }
-
-    fn tags(&self) -> Vec<String> { self.tags.clone() }
-}
-
-impl ImageBuilder {
-    fn new(workdir: &Path, name: &str) -> Self {
-        ImageBuilder { workdir: workdir.to_path_buf(),
-                       name:    name.to_string(),
-                       tags:    Vec::new(),
-                       memory:  None, }
-    }
-
-    /// Adds a tag for the image.
-    pub fn tag(mut self, tag: String) -> Self {
-        self.tags.push(tag);
-        self
-    }
-
-    /// Specifies an amount of memory to allocate to build
-    pub fn memory(mut self, memory: &str) -> Self {
-        self.memory = Some(memory.to_string());
-        self
-    }
-
-    /// Builds the container image locally and returns the corresponding `ContainerImage`.
-    ///
-    /// # Errors
-    ///
-    /// * If building the image fails
-    pub fn build(self, engine: &Engine) -> Result<ContainerImage> {
-        let id = engine.build(&self.workdir,
-                              &self.expanded_identifiers(),
-                              self.memory.as_deref())?;
-
-        // TODO (CM): Once ContainerImage doesn't need access to
-        // workdir, we could just have Engine::build return a
-        // ContainerImage directly, which is appealing.
-        Ok(ContainerImage { id,
-                            name: self.name,
-                            tags: self.tags,
-                            workdir: self.workdir.to_owned() })
-    }
-}
-
 /// A built container image which exists locally.
 pub struct ContainerImage {
     /// The image ID for this image.
@@ -361,15 +303,16 @@ impl BuildContext {
 
         // TODO (CM): Ideally, we'd toss this error much earlier,
         // since this error would be based on user input errors
-        let (image_name, tags) = naming.image_identifiers(&ident, &channel)?;
+        let (name, tags, expanded_identifiers) = naming.image_identifiers(&ident, &channel)?;
 
-        let mut builder = ImageBuilder::new(self.0.workdir(), &image_name);
-        for tag in tags {
-            builder = builder.tag(tag);
-        }
-        if let Some(memory) = memory {
-            builder = builder.memory(memory);
-        }
-        builder.build(engine)
+        let id = engine.build(self.0.workdir(), &expanded_identifiers, memory)?;
+
+        // TODO (CM): Once ContainerImage doesn't need access to
+        // workdir, we could just have Engine::build return a
+        // ContainerImage directly, which is appealing.
+        Ok(ContainerImage { id,
+                            name,
+                            tags,
+                            workdir: self.0.workdir().to_path_buf() })
     }
 }
