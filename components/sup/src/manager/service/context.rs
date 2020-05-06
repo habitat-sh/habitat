@@ -34,12 +34,10 @@
 //! anything else, and so, they _can't_ be used for anything else.
 
 use crate::{census::{CensusGroup,
-                     CensusMember,
+                     CensusMemberProxy,
                      CensusRing,
-                     ElectionStatus,
-                     MemberId},
+                     ElectionStatus},
             manager::Sys};
-use habitat_butterfly::rumor::service::SysInfo;
 use habitat_common::templating::{config::Cfg,
                                  package::{Env,
                                            Pkg}};
@@ -56,7 +54,8 @@ use std::{borrow::Cow,
           net::IpAddr,
           path::PathBuf,
           result};
-use toml;
+
+type SvcMember<'a> = CensusMemberProxy<'a>;
 
 /// The context of a rendering call, exposing information on the
 /// currently-running Supervisor and service, its service group, and
@@ -255,11 +254,11 @@ struct Svc<'a> {
     service_group:          Cow<'a, ServiceGroup>,
     election_status:        Cow<'a, ElectionStatus>,
     update_election_status: Cow<'a, ElectionStatus>,
-    members:                Cow<'a, Vec<SvcMember<'a>>>,
-    leader:                 Cow<'a, Option<SvcMember<'a>>>,
-    update_leader:          Cow<'a, Option<SvcMember<'a>>>,
-    me:                     Cow<'a, SvcMember<'a>>,
-    first:                  Cow<'a, SvcMember<'a>>,
+    members:                Vec<SvcMember<'a>>,
+    leader:                 Option<SvcMember<'a>>,
+    update_leader:          Option<SvcMember<'a>>,
+    me:                     SvcMember<'a>,
+    first:                  SvcMember<'a>,
 }
 
 impl<'a> Svc<'a> {
@@ -268,27 +267,21 @@ impl<'a> Svc<'a> {
         Svc { service_group:          Cow::Borrowed(&census_group.service_group),
               election_status:        Cow::Borrowed(&census_group.election_status),
               update_election_status: Cow::Borrowed(&census_group.update_election_status),
-              members:                Cow::Owned(census_group.active_members()
-                                                             .map(|m| {
-                                                                 SvcMember::from_census_member(m)
-                                                             })
-                                                             .collect()),
-              me:                     Cow::Owned(census_group.me()
-                                                             .map(|m| {
-                                                                 SvcMember::from_census_member(m)
-                                                             })
-                                                             .expect("Missing 'me'")),
-              leader:
-                  Cow::Owned(census_group.leader()
-                                         .map(|m| SvcMember::from_census_member(m))),
-              update_leader:
-                  Cow::Owned(census_group.update_leader()
-                                         .map(|m| SvcMember::from_census_member(m))),
+              members:                census_group.active_members()
+                                                             .map(|m| SvcMember::new(m))
+                                                             .collect(),
+              me:                     census_group.me()
+                                                             .map(|m| SvcMember::new(m))
+                                                             .expect("Missing 'me'"),
+              leader:                 census_group.leader()
+                                                             .map(|m| SvcMember::new(m)),
+              update_leader:          census_group.update_leader()
+                                                             .map(|m| SvcMember::new(m)),
               first:
-                  Cow::Owned(select_first(census_group).expect("First should always be present \
+                  select_first(census_group).expect("First should always be present \
                                                                 on svc" /* i.e. `me` will
                                                                          * always be
-                                                                         * here, and alive */)), }
+                                                                         * here, and alive */), }
     }
 }
 
@@ -359,140 +352,8 @@ struct BindGroup<'a> {
 impl<'a> BindGroup<'a> {
     fn new(group: &'a CensusGroup) -> Self {
         BindGroup { first:   select_first(group),
-                    leader:  group.leader().map(|m| SvcMember::from_census_member(m)),
-                    members: group.active_members()
-                                  .map(|m| SvcMember::from_census_member(m))
-                                  .collect(), }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////
-
-/// Templating proxy for a `census::CensusMember` struct.
-///
-/// Not exposed via a top-level key, but ultimately available through
-/// the `svc` and `bind` keys.
-#[derive(Clone, Debug)]
-struct SvcMember<'a> {
-    member_id: Cow<'a, MemberId>,
-    pkg: Cow<'a, PackageIdent>,
-    service: Cow<'a, String>,
-    group: Cow<'a, String>,
-    org: Cow<'a, Option<String>>,
-    persistent: Cow<'a, bool>,
-    leader: Cow<'a, bool>,
-    follower: Cow<'a, bool>,
-    update_leader: Cow<'a, bool>,
-    update_follower: Cow<'a, bool>,
-    election_is_running: Cow<'a, bool>,
-    election_is_no_quorum: Cow<'a, bool>,
-    election_is_finished: Cow<'a, bool>,
-    update_election_is_running: Cow<'a, bool>,
-    update_election_is_no_quorum: Cow<'a, bool>,
-    update_election_is_finished: Cow<'a, bool>,
-    sys: Cow<'a, SysInfo>,
-    alive: Cow<'a, bool>,
-    suspect: Cow<'a, bool>,
-    confirmed: Cow<'a, bool>,
-    departed: Cow<'a, bool>,
-    cfg: Cow<'a, toml::value::Table>,
-}
-
-impl<'a> SvcMember<'a> {
-    fn from_census_member(c: &'a CensusMember) -> Self {
-        SvcMember { member_id: Cow::Borrowed(&c.member_id),
-                    pkg: Cow::Borrowed(&c.pkg),
-                    service: Cow::Borrowed(&c.service),
-                    group: Cow::Borrowed(&c.group),
-                    org: Cow::Borrowed(&c.org),
-                    persistent: Cow::Borrowed(&c.persistent),
-                    leader: Cow::Borrowed(&c.leader),
-                    follower: Cow::Borrowed(&c.follower),
-                    update_leader: Cow::Borrowed(&c.update_leader),
-                    update_follower: Cow::Borrowed(&c.update_follower),
-                    election_is_running: Cow::Borrowed(&c.election_is_running),
-                    election_is_no_quorum: Cow::Borrowed(&c.election_is_no_quorum),
-                    election_is_finished: Cow::Borrowed(&c.election_is_finished),
-                    update_election_is_running: Cow::Borrowed(&c.update_election_is_running),
-                    update_election_is_no_quorum: Cow::Borrowed(&c.update_election_is_no_quorum),
-                    update_election_is_finished: Cow::Borrowed(&c.update_election_is_finished),
-
-                    // TODO (CM): unify this with manager::Sys; they're not
-                    // the same types, but very close as far as templating is
-                    // concerned.
-                    sys: Cow::Borrowed(&c.sys),
-
-                    alive:     Cow::Owned(c.alive()),
-                    suspect:   Cow::Owned(c.suspect()),
-                    confirmed: Cow::Owned(c.confirmed()),
-                    departed:  Cow::Owned(c.departed()),
-
-                    cfg: Cow::Borrowed(&c.cfg), }
-    }
-}
-
-impl<'a> Serialize for SvcMember<'a> {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        // Explicitly focusing on JSON serialization, which does not
-        // need a length hint (thus the `None`)
-        let mut map = serializer.serialize_map(None)?;
-
-        map.serialize_entry("member_id", &self.member_id)?;
-
-        // TODO (CM): pkg is currently serialized as a map with
-        // origin, name, version, and release keys. We should also add
-        // another field (e.g. "pkg_ident"?) that exposes a single
-        // string.
-        //
-        // We should also normalize this pattern across our templating data.
-
-        // TODO (CM): assuming these are all meant to be Some and
-        // fully-qualified once we get to this point, right?
-        map.serialize_entry("pkg", &self.pkg)?;
-
-        // TODO (CM): add entry for entire service_group name in a
-        // single string
-        map.serialize_entry("service", &self.service)?;
-        map.serialize_entry("group", &self.group)?;
-        map.serialize_entry("org", &self.org)?;
-
-        // TODO (CM): add an "is_permanent" field to make it clear
-        // it's a boolean ("permanent", because this is actually the
-        // permanent peer status of this member)
-        map.serialize_entry("persistent", &self.persistent)?;
-        // TODO (CM): add an "is_leader" field to make it clear it's a boolean
-        map.serialize_entry("leader", &self.leader)?;
-        // TODO (CM): is_follower
-        map.serialize_entry("follower", &self.follower)?;
-        // TODO (CM): is_update_leader
-        map.serialize_entry("update_leader", &self.update_leader)?;
-        // TODO (CM): is_update_follower
-        map.serialize_entry("update_follower", &self.update_follower)?;
-
-        map.serialize_entry("election_is_running", &self.election_is_running)?;
-        map.serialize_entry("election_is_no_quorum", &self.election_is_no_quorum)?;
-        map.serialize_entry("election_is_finished", &self.election_is_finished)?;
-        map.serialize_entry("update_election_is_running",
-                            &self.update_election_is_running)?;
-        map.serialize_entry("update_election_is_no_quorum",
-                            &self.update_election_is_no_quorum)?;
-        map.serialize_entry("update_election_is_finished",
-                            &self.update_election_is_finished)?;
-
-        // TODO (CM): this is a SysInfo, not a Sys or
-        // SystemInfo... ugh; NORMALIZE IT ALL
-        map.serialize_entry("sys", &self.sys)?;
-
-        map.serialize_entry("alive", &self.alive)?;
-        map.serialize_entry("suspect", &self.suspect)?;
-        map.serialize_entry("confirmed", &self.confirmed)?;
-        map.serialize_entry("departed", &self.departed)?;
-
-        map.serialize_entry("cfg", &self.cfg)?;
-
-        map.end()
+                    leader:  group.leader().map(|m| SvcMember::new(m)),
+                    members: group.active_members().map(|m| SvcMember::new(m)).collect(), }
     }
 }
 
@@ -511,12 +372,8 @@ impl<'a> Serialize for SvcMember<'a> {
 /// `members[0]`, or `leader`.
 fn select_first(census_group: &CensusGroup) -> Option<SvcMember<'_>> {
     match census_group.leader() {
-        Some(member) => Some(SvcMember::from_census_member(member)),
-        None => {
-            census_group.members()
-                        .next()
-                        .map(SvcMember::from_census_member)
-        }
+        Some(member) => Some(SvcMember::new(member)),
+        None => census_group.members().next().map(SvcMember::new),
     }
 }
 
@@ -525,7 +382,8 @@ fn select_first(census_group: &CensusGroup) -> Option<SvcMember<'_>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{manager::service::Cfg,
+    use crate::{census::CensusMember,
+                manager::service::Cfg,
                 test_helpers::*};
     use habitat_butterfly::rumor::service::SysInfo;
     use habitat_common::templating::{config::PackageConfigPaths,
@@ -599,28 +457,29 @@ two = 2
     /// Create a basic SvcMember struct for use in tests
     fn default_svc_member<'a>() -> SvcMember<'a> {
         let ident = PackageIdent::new("core", "test_pkg", Some("1.0.0"), Some("20180321150416"));
-        SvcMember { member_id: Cow::Owned("MEMBER_ID".into()),
-                    pkg: Cow::Owned(ident),
-                    service: Cow::Owned("foo".into()),
-                    group: Cow::Owned("default".into()),
-                    org: Cow::Owned(None),
-                    persistent: Cow::Owned(true),
-                    leader: Cow::Owned(false),
-                    follower: Cow::Owned(false),
-                    update_leader: Cow::Owned(false),
-                    update_follower: Cow::Owned(false),
-                    election_is_running: Cow::Owned(false),
-                    election_is_no_quorum: Cow::Owned(false),
-                    election_is_finished: Cow::Owned(false),
-                    update_election_is_running: Cow::Owned(false),
-                    update_election_is_no_quorum: Cow::Owned(false),
-                    update_election_is_finished: Cow::Owned(false),
-                    sys: Cow::Owned(SysInfo::default()),
-                    alive: Cow::Owned(true),
-                    suspect: Cow::Owned(false),
-                    confirmed: Cow::Owned(false),
-                    departed: Cow::Owned(false),
-                    cfg: Cow::Owned(toml::value::Table::new()), }
+        let census_member = CensusMember { member_id: "MEMBER_ID".into(),
+                                           pkg: ident,
+                                           service: "foo".into(),
+                                           group: "default".into(),
+                                           org: None,
+                                           persistent: true,
+                                           leader: false,
+                                           follower: false,
+                                           update_leader: false,
+                                           update_follower: false,
+                                           election_is_running: false,
+                                           election_is_no_quorum: false,
+                                           election_is_finished: false,
+                                           update_election_is_running: false,
+                                           update_election_is_no_quorum: false,
+                                           update_election_is_finished: false,
+                                           sys: SysInfo::default(),
+                                           alive: true,
+                                           suspect: false,
+                                           confirmed: false,
+                                           departed: false,
+                                           cfg: toml::value::Table::new(), };
+        SvcMember::new_owned(census_member)
     }
 
     /// Just create a basic RenderContext that could be used in tests.
@@ -686,17 +545,18 @@ two = 2
         svc_member_cfg.insert("foo".into(), "bar".into());
 
         let mut me = default_svc_member();
-        me.pkg = Cow::Owned(ident.into());
-        me.cfg = Cow::Owned(svc_member_cfg);
+        let me_mut = me.to_mut();
+        me_mut.pkg = ident.into();
+        me_mut.cfg = svc_member_cfg;
 
         let svc = Svc { service_group:          Cow::Owned(group),
                         election_status:        Cow::Owned(ElectionStatus::ElectionInProgress),
                         update_election_status: Cow::Owned(ElectionStatus::ElectionFinished),
-                        members:                Cow::Owned(vec![me.clone()]),
-                        leader:                 Cow::Owned(None),
-                        update_leader:          Cow::Owned(None),
-                        me:                     Cow::Owned(me.clone()),
-                        first:                  Cow::Owned(me.clone()), };
+                        members:                vec![me.clone()],
+                        leader:                 None,
+                        update_leader:          None,
+                        me:                     me.clone(),
+                        first:                  me.clone(), };
 
         let mut bind_map = BTreeMap::new();
         let bind_group = BindGroup { first:   Some(me.clone()),
@@ -824,7 +684,7 @@ two = 2
 
         // Let's create a new leader, with a custom member_id
         let mut svc_member = default_svc_member();
-        svc_member.member_id = Cow::Owned("samshamandthepharaohs".into());
+        svc_member.to_mut().member_id = "samshamandthepharaohs".into();
 
         // Set up our own bind with a leader
         let mut bind_map = BTreeMap::new();

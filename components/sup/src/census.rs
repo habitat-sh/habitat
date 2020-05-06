@@ -578,16 +578,15 @@ pub struct CensusMember {
     pub update_election_is_no_quorum: bool,
     pub update_election_is_finished: bool,
     pub sys: SysInfo,
-
-    alive:     bool,
-    suspect:   bool,
-    confirmed: bool,
-    departed:  bool,
+    pub alive: bool,
+    pub suspect: bool,
+    pub confirmed: bool,
+    pub departed: bool,
     // Maps must be represented last in a serializable struct for the current version of the toml
     // crate. Additionally, this deserialization method is required to correct any ordering issues
     // with the table being serialized - https://docs.rs/toml/0.4.0/toml/ser/fn.tables_last.html
     #[serde(serialize_with = "toml::ser::tables_last")]
-    pub cfg:   toml::value::Table,
+    pub cfg: toml::value::Table,
 }
 
 impl CensusMember {
@@ -668,10 +667,23 @@ impl CensusMember {
 }
 
 /// This data structure just wraps the CensusMember and allows us to tweak the serialization logic.
-pub struct CensusMemberProxy<'a>(&'a CensusMember);
+#[derive(Debug, Clone)]
+pub struct CensusMemberProxy<'a>(Cow<'a, CensusMember>);
 
 impl<'a> CensusMemberProxy<'a> {
-    pub fn new(c: &'a CensusMember) -> Self { CensusMemberProxy(&c) }
+    pub fn new(c: &'a CensusMember) -> Self { CensusMemberProxy(Cow::Borrowed(&c)) }
+
+    #[cfg(test)]
+    pub fn new_owned(c: CensusMember) -> Self { CensusMemberProxy(Cow::Owned(c)) }
+
+    #[cfg(test)]
+    pub fn to_mut(&mut self) -> &mut CensusMember { self.0.to_mut() }
+}
+
+impl std::ops::Deref for CensusMemberProxy<'_> {
+    type Target = CensusMember;
+
+    fn deref(&self) -> &Self::Target { &(self.0) }
 }
 
 impl<'a> Serialize for CensusMemberProxy<'a> {
@@ -679,33 +691,33 @@ impl<'a> Serialize for CensusMemberProxy<'a> {
         where S: Serializer
     {
         let mut strukt = serializer.serialize_struct("census_member", 24)?;
-        strukt.serialize_field("member_id", &self.0.member_id)?;
-        strukt.serialize_field("pkg", &self.0.pkg)?;
+        strukt.serialize_field("member_id", &self.member_id)?;
+        strukt.serialize_field("pkg", &self.pkg)?;
 
-        strukt.serialize_field("package", &self.0.pkg.to_string())?;
-        strukt.serialize_field("service", &self.0.service)?;
-        strukt.serialize_field("group", &self.0.group)?;
-        strukt.serialize_field("org", &self.0.org)?;
-        strukt.serialize_field("persistent", &self.0.persistent)?;
-        strukt.serialize_field("leader", &self.0.leader)?;
-        strukt.serialize_field("follower", &self.0.follower)?;
-        strukt.serialize_field("update_leader", &self.0.update_leader)?;
-        strukt.serialize_field("update_follower", &self.0.update_follower)?;
-        strukt.serialize_field("election_is_running", &self.0.election_is_running)?;
-        strukt.serialize_field("election_is_no_quorum", &self.0.election_is_no_quorum)?;
-        strukt.serialize_field("election_is_finished", &self.0.election_is_finished)?;
+        strukt.serialize_field("package", &self.pkg.to_string())?;
+        strukt.serialize_field("service", &self.service)?;
+        strukt.serialize_field("group", &self.group)?;
+        strukt.serialize_field("org", &self.org)?;
+        strukt.serialize_field("persistent", &self.persistent)?;
+        strukt.serialize_field("leader", &self.leader)?;
+        strukt.serialize_field("follower", &self.follower)?;
+        strukt.serialize_field("update_leader", &self.update_leader)?;
+        strukt.serialize_field("update_follower", &self.update_follower)?;
+        strukt.serialize_field("election_is_running", &self.election_is_running)?;
+        strukt.serialize_field("election_is_no_quorum", &self.election_is_no_quorum)?;
+        strukt.serialize_field("election_is_finished", &self.election_is_finished)?;
         strukt.serialize_field("update_election_is_running",
-                               &self.0.update_election_is_running)?;
+                               &self.update_election_is_running)?;
         strukt.serialize_field("update_election_is_no_quorum",
-                               &self.0.update_election_is_no_quorum)?;
+                               &self.update_election_is_no_quorum)?;
         strukt.serialize_field("update_election_is_finished",
-                               &self.0.update_election_is_finished)?;
-        strukt.serialize_field("sys", &self.0.sys)?;
-        strukt.serialize_field("alive", &self.0.alive)?;
-        strukt.serialize_field("suspect", &self.0.suspect)?;
-        strukt.serialize_field("confirmed", &self.0.confirmed)?;
-        strukt.serialize_field("departed", &self.0.departed)?;
-        strukt.serialize_field("cfg", &self.0.cfg)?;
+                               &self.update_election_is_finished)?;
+        strukt.serialize_field("sys", &self.sys)?;
+        strukt.serialize_field("alive", &self.alive)?;
+        strukt.serialize_field("suspect", &self.suspect)?;
+        strukt.serialize_field("confirmed", &self.confirmed)?;
+        strukt.serialize_field("departed", &self.departed)?;
+        strukt.serialize_field("cfg", &self.cfg)?;
         strukt.end()
     }
 }
