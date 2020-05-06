@@ -32,50 +32,6 @@ const BUILD_REPORT_FILE_NAME: &str = "last_container_export.env";
 /// duplicate of the standard build report.
 const OLD_BUILD_REPORT_FILE_NAME: &str = "last_docker_export.env";
 
-// TODO (CM): public temporarily
-pub(crate) trait Identified {
-    /// The base name of an image.
-    fn name(&self) -> String;
-
-    /// The possibly-empty list of tags for an image.
-    fn tags(&self) -> Vec<String>;
-
-    /// Returns a non-empty collection of names this image is known
-    /// by.
-    ///
-    /// If an image has no tags, it includes just the name. If it
-    /// *does* have tags, it includes the tags prepended with the
-    /// name.
-    ///
-    /// Thus, you could get as little as:
-    ///
-    /// core/redis
-    ///
-    /// or as much as:
-    ///
-    /// core/redis:latest
-    /// core/redis:4.0.14
-    /// core/redis:4.0.14-20190319155852
-    /// core/redis:latest
-    /// core/redis:my-custom-tag
-    fn expanded_identifiers(&self) -> Vec<String> {
-        let mut ids = vec![];
-
-        let tags = self.tags();
-        let name = self.name();
-
-        if tags.is_empty() {
-            ids.push(name);
-        } else {
-            for tag in tags {
-                ids.push(format!("{}:{}", name, tag));
-            }
-        }
-
-        ids
-    }
-}
-
 /// A built container image which exists locally.
 pub struct ContainerImage {
     /// The image ID for this image.
@@ -86,17 +42,20 @@ pub struct ContainerImage {
     tags:    Vec<String>,
     /// The base workdir which hosts the root file system.
     workdir: PathBuf,
-}
 
-impl Identified for ContainerImage {
-    fn name(&self) -> String { self.name.clone() }
-
-    fn tags(&self) -> Vec<String> { self.tags.clone() }
+    /// All the identifiers for this image (in {name}:{tag} format)
+    expanded_identifiers: Vec<String>,
 }
 
 impl ContainerImage {
     // TODO (CM): temporary; we shouldn't use this at all
     pub fn workdir(&self) -> &Path { self.workdir.as_path() }
+
+    pub fn expanded_identifiers(&self) -> &Vec<String> { &self.expanded_identifiers }
+
+    pub fn name(&self) -> String { self.name.clone() }
+
+    pub fn tags(&self) -> Vec<String> { self.tags.clone() }
 
     /// Create a build report with image metadata in the given path.
     ///
@@ -313,6 +272,7 @@ impl BuildContext {
         Ok(ContainerImage { id,
                             name,
                             tags,
+                            expanded_identifiers,
                             workdir: self.0.workdir().to_path_buf() })
     }
 }

@@ -7,6 +7,7 @@ extern crate log;
 #[macro_use]
 extern crate serde_json;
 
+use crate::naming::Naming;
 pub use crate::{build::BuildSpec,
                 cli::cli,
                 container::{BuildContext,
@@ -14,8 +15,6 @@ pub use crate::{build::BuildSpec,
                 engine::Engine,
                 error::{Error,
                         Result}};
-use crate::{container::Identified,
-            naming::Naming};
 use habitat_common::ui::{Status,
                          UIWriter,
                          UI};
