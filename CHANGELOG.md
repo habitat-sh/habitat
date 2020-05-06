@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.19 -->
-## [1.6.19](https://github.com/habitat-sh/habitat/tree/1.6.19) (2020-05-05)
+<!-- latest_release 1.6.20 -->
+## [1.6.20](https://github.com/habitat-sh/habitat/tree/1.6.20) (2020-05-06)
 
 #### Merged Pull Requests
-- [REFACTOR] Use TryFrom for BuildSpec [#7669](https://github.com/habitat-sh/habitat/pull/7669) ([christophermaier](https://github.com/christophermaier))
+- Remove duplicated serialization logic in SvcMember [#7673](https://github.com/habitat-sh/habitat/pull/7673) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
@@ -14,6 +14,7 @@
 - Config file support for `hab sup run` [#7658](https://github.com/habitat-sh/habitat/pull/7658) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.15 -->
 
 #### Merged Pull Requests
+- Remove duplicated serialization logic in SvcMember [#7673](https://github.com/habitat-sh/habitat/pull/7673) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.20 -->
 - [REFACTOR] Use TryFrom for BuildSpec [#7669](https://github.com/habitat-sh/habitat/pull/7669) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.19 -->
 - [REFACTOR]  Factor out an Identified trait for DockerBuilder and DockerImage [#7668](https://github.com/habitat-sh/habitat/pull/7668) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.18 -->
 - [REFACTOR] Extract and consolidate naming data for Docker exporter [#7659](https://github.com/habitat-sh/habitat/pull/7659) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.17 -->
