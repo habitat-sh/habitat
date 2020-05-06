@@ -1,19 +1,12 @@
 use crate::error::Result;
-use habitat_core::{package::{PackageIdent,
-                             PackageInstall},
-                   util::docker};
+use habitat_core::package::{PackageIdent,
+                            PackageInstall};
 use std::{fs::{self,
                File},
           io::Write,
           path::{Path,
-                 PathBuf},
-          process::Command};
+                 PathBuf}};
 const BIN_PATH: &str = "/bin";
-
-/// Returns a `Command` for the Docker program.
-pub(crate) fn docker_cmd() -> Command {
-    Command::new(docker::command_path().expect("Unable to locate docker"))
-}
 
 /// Returns the `bin` path used for symlinking programs.
 pub fn bin_path() -> &'static Path { Path::new(BIN_PATH) }

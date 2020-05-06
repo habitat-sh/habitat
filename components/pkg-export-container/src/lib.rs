@@ -11,11 +11,13 @@ pub use crate::{build::BuildSpec,
                 cli::cli,
                 container::{BuildContext,
                             ContainerImage},
+                engine::Engine,
                 error::{Error,
                         Result}};
 use crate::{container::Identified,
             naming::Naming};
-use habitat_common::ui::{UIWriter,
+use habitat_common::ui::{Status,
+                         UIWriter,
                          UI};
 use rusoto_core::{request::HttpClient,
                   Region};
@@ -26,13 +28,14 @@ use rusoto_ecr::{Ecr,
 use std::{convert::TryFrom,
           env,
           fmt,
+          path::Path,
           result,
           str::FromStr};
-
 mod accounts;
 mod build;
 mod cli;
 mod container;
+mod engine;
 mod error;
 mod graph;
 mod naming;
@@ -148,13 +151,14 @@ pub async fn export_for_cli_matches(ui: &mut UI,
 
     let spec = BuildSpec::try_from(matches)?;
     let naming = Naming::from(matches);
+    let engine = Engine::new()?;
     let memory = matches.value_of("MEMORY_LIMIT");
 
     ui.begin(format!("Building a container image with: {}",
                      spec.idents_or_archives.join(", ")))?;
 
     let build_context = BuildContext::from_build_root(spec.create(ui).await?, ui)?;
-    let container_image = build_context.export(ui, &naming, memory)?;
+    let container_image = build_context.export(ui, &naming, memory, &engine)?;
 
     build_context.destroy(ui)?;
     ui.end(format!("Container image '{}' created with tags: {}",
@@ -169,13 +173,85 @@ pub async fn export_for_cli_matches(ui: &mut UI,
                                                   .expect("Username not specified"),
                                            matches.value_of("REGISTRY_PASSWORD")
                                                   .expect("Password not specified")).await?;
-        container_image.push(ui, &credentials, naming.registry_url.as_deref())?;
+        push_image(ui,
+                   &engine,
+                   &container_image,
+                   &credentials,
+                   naming.registry_url.as_deref())?;
     }
     if matches.is_present("RM_IMAGE") {
-        container_image.rm(ui)?;
-
+        remove_image(ui, &engine, &container_image)?;
         Ok(None)
     } else {
         Ok(Some(container_image))
     }
+}
+
+fn remove_image(ui: &mut UI, engine: &Engine, image: &ContainerImage) -> Result<()> {
+    ui.begin(format!("Cleaning up local Docker image '{}' with all tags",
+                     image.name()))?;
+
+    for identifier in image.expanded_identifiers() {
+        ui.status(Status::Deleting, format!("local image '{}'", identifier))?;
+        engine.remove_image(&identifier)?;
+    }
+
+    ui.end(format!("Local Docker image '{}' with tags: {} cleaned up",
+                   image.name(),
+                   image.tags().join(", "),))?;
+    Ok(())
+}
+
+fn push_image(ui: &mut UI,
+              engine: &Engine,
+              image: &ContainerImage,
+              credentials: &Credentials,
+              registry_url: Option<&str>)
+              -> Result<()> {
+    ui.begin(format!("Pushing Docker image '{}' with all tags to remote registry",
+                     image.name()))?;
+
+    // TODO (CM): UGH
+    // This is just until we can sort out a better place for the
+    // config file. The Engine will probably handle it.
+    let workdir = image.workdir();
+
+    create_docker_config_file(credentials, registry_url, workdir)?;
+
+    for image_tag in image.expanded_identifiers() {
+        ui.status(Status::Uploading,
+                  format!("image '{}' to remote registry", image_tag))?;
+        engine.push_image(&image_tag, workdir)?;
+        ui.status(Status::Uploaded, format!("image '{}'", image_tag))?;
+    }
+
+    ui.end(format!("Docker image '{}' published with tags: {}",
+                   image.name(),
+                   image.tags().join(", "),))?;
+    Ok(())
+}
+
+fn create_docker_config_file(credentials: &Credentials,
+                             registry_url: Option<&str>,
+                             workdir: &Path)
+                             -> Result<()> {
+    std::fs::create_dir_all(workdir)?; // why wouldn't this already exist?
+    let config = workdir.join("config.json");
+
+    let registry = match registry_url {
+        Some(url) => url,
+        None => "https://index.docker.io/v1/",
+    };
+
+    debug!("Using registry: {:?}", registry);
+    let json = json!({
+        "auths": {
+            registry: {
+                "auth": credentials.token
+            }
+        }
+    });
+
+    util::write_file(&config, &serde_json::to_string(&json).unwrap())?;
+    Ok(())
 }
