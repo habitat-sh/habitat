@@ -3,8 +3,7 @@ use failure;
 use rusoto_core::RusotoError;
 use rusoto_ecr::GetAuthorizationTokenError;
 use std::{process::ExitStatus,
-          result,
-          string::FromUtf8Error};
+          result};
 
 pub type Result<T> = result::Result<T, failure::Error>;
 
@@ -18,12 +17,6 @@ pub enum Error {
     DockerImageIdNotFound(String),
     #[fail(display = "Invalid registry type: {}", _0)]
     InvalidRegistryType(String),
-    #[fail(display = "{}", _0)]
-    InvalidToken(FromUtf8Error),
-    #[fail(display = "Docker login failed with exit code: {}", _0)]
-    LoginFailed(ExitStatus),
-    #[fail(display = "Docker logout failed with exit code: {}", _0)]
-    LogoutFailed(ExitStatus),
     #[fail(display = "No ECR Tokens returned")]
     NoECRTokensReturned,
     #[fail(display = "{}", _0)]
