@@ -23,7 +23,8 @@ use self::{context::RenderContext,
            hooks::{HookCompileTable,
                    HookTable},
            supervisor::Supervisor};
-pub use self::{health::{HealthCheckHookStatus,
+pub use self::{health::{HealthCheckBundle,
+                        HealthCheckHookStatus,
                         HealthCheckResult},
                hooks::{HealthCheckHook,
                        ProcessOutput,
@@ -36,14 +37,14 @@ use crate::{census::{CensusGroup,
                      ServiceFile},
             error::{Error,
                     Result},
-            manager::{sync::GatewayState,
+            manager::{event,
+                      sync::GatewayState,
                       FsCfg,
                       ServicePidSource,
                       ShutdownConfig,
                       Sys}};
 use futures::future::{self,
-                      AbortHandle,
-                      FutureExt};
+                      AbortHandle};
 use habitat_butterfly::rumor::service::Service as ServiceRumor;
 #[cfg(windows)]
 use habitat_common::templating::package::DEFAULT_USER;
@@ -402,33 +403,45 @@ impl Service {
         *self.initialization_state.read() == InitializationState::Initialized
     }
 
-    /// Create the state necessary for managing a repeatedly-running
-    /// health check hook.
-    fn health_state(&self) -> health::State {
-        health::State::new(self.hooks.health_check.clone(),
-                           self.service_group.clone(),
-                           self.pkg.clone(),
-                           self.svc_encrypted_password.clone(),
-                           self.to_service_metadata(),
-                           Arc::clone(&self.supervisor),
-                           self.health_check_interval,
-                           Arc::clone(&self.health_check_result),
-                           Arc::clone(&self.gateway_state))
-    }
-
-    /// Initiate an endless future that performs periodic health
-    /// checks for the service
+    /// Initiate an endless task that performs periodic health checks for the service and takes
+    /// appropriate actions upon receiving the results of a health check. The actions taken are:
+    ///
+    /// * Cache the health check result for this service
+    /// * Set the health check result for this service in the gateway state
+    /// * Send a `HealthCheckEvent` over the event stream
     fn start_health_checks(&mut self) {
         debug!("Starting health checks for {}", self.pkg.ident);
-        self.health_state().init_gateway_state_gsw();
-        let (f, handle) = future::abortable(self.health_state().check_repeatedly_gsw());
-
+        let (mut rx, handle) = health::check_repeatedly(Arc::clone(&self.supervisor),
+                                                        self.hooks.health_check.clone(),
+                                                        self.health_check_interval,
+                                                        self.service_group.clone(),
+                                                        self.pkg.clone(),
+                                                        self.svc_encrypted_password.clone());
         self.health_check_handle = Some(handle);
 
         let service_group = self.service_group.clone();
-        tokio::spawn(f.map(move |_| {
-                          outputln!(preamble service_group, "Health checking has been stopped");
-                      }));
+        let service_event_metadata = self.to_service_metadata();
+        let service_health_result = Arc::clone(&self.health_check_result);
+        let gateway_state = Arc::clone(&self.gateway_state);
+        // Initialize the gateway_state for this service to Unknown.
+        gateway_state.lock_gsw()
+                     .set_health_of(service_group.clone(), HealthCheckResult::Unknown);
+        tokio::spawn(async move {
+            while let Some(HealthCheckBundle { status,
+                                               result,
+                                               interval, }) = rx.recv().await
+            {
+                debug!("Caching HealthCheckResult = '{}' for '{}'",
+                       result, service_group);
+                *service_health_result.lock()
+                                      .expect("Could not unlock service_health_result") = result;
+
+                gateway_state.lock_gsw()
+                             .set_health_of(service_group.clone(), result);
+
+                event::health_check(service_event_metadata.clone(), result, status, interval);
+            }
+        });
     }
 
     /// Stop the endless future that performs health checks for the
