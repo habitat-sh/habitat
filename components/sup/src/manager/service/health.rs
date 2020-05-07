@@ -13,7 +13,6 @@ use habitat_core::service::{HealthCheckInterval,
                             ServiceGroup};
 use std::{convert::TryFrom,
           fmt,
-          ops::Deref,
           sync::{Arc,
                  Mutex},
           time::Duration};
@@ -145,31 +144,19 @@ impl State {
             .set_health_of(self.service_group, HealthCheckResult::Unknown);
     }
 
-    /// Creates a future that runs the health check and then waits for
-    /// a suitable interval. Multiple such iterations will then be
-    /// chained together for an unending stream of health checks.
-    /// # Locking for the returned Future (see locking.md)
-    /// * `GatewayState::inner` (write)
-    async fn single_iteration_gsw(self) {
-        let State { hook,
-                    service_group,
-                    package,
-                    svc_encrypted_password,
-                    service_event_metadata,
-                    supervisor,
-                    nominal_interval,
-                    service_health_result,
-                    gateway_state, } = self;
-
-        // Use an Arc to avoid having to have full clones everywhere. :/
-        let service_group = Arc::new(service_group);
-
-        let health_check_hook_status = if let Some(hook) = hook {
+    /// Run the health check hook and get the hook status and result.
+    async fn health_check(supervisor: Arc<Mutex<Supervisor>>,
+                          hook: Option<Arc<HealthCheckHook>>,
+                          service_group: ServiceGroup,
+                          package: Pkg,
+                          password: Option<String>)
+                          -> (HealthCheckHookStatus, HealthCheckResult) {
+        let status = if let Some(hook) = hook {
             let result = hook_runner::HookRunner::new(hook,
-                                                      service_group.deref().clone(),
+                                                      service_group.clone(),
                                                       package.clone(),
-                                                      svc_encrypted_password).into_future()
-                                                                             .await;
+                                                      password).into_future()
+                                                               .await;
             match result {
                 Ok((output, duration)) => HealthCheckHookStatus::Ran(output, duration),
                 Err(Error::WithDuration(e, duration)) => {
@@ -177,7 +164,7 @@ impl State {
                            service_group, e);
                     HealthCheckHookStatus::FailedToRun(duration)
                 }
-                Err(_) => {
+                Err(e) => {
                     error!("Error starting health check hook for {}: {:?}",
                            service_group, e);
                     HealthCheckHookStatus::FailedToStart
@@ -186,7 +173,8 @@ impl State {
         } else {
             HealthCheckHookStatus::NoHook
         };
-        let health_check_result = match &health_check_hook_status {
+
+        let result = match &status {
             HealthCheckHookStatus::Ran(output, _) => {
                 // The hook ran. Try and convert its exit status to a `HealthCheckResult`.
                 output.exit_status()
@@ -220,34 +208,10 @@ impl State {
             }
         };
 
-        let interval = if health_check_result == HealthCheckResult::Ok {
-            // routine health check
-            nominal_interval
-        } else {
-            // special health check interval
-            HealthCheckInterval::default()
-        };
-
-        event::health_check(service_event_metadata,
-                            health_check_result,
-                            health_check_hook_status,
-                            interval);
-
-        debug!("Caching HealthCheckResult = '{}' for '{}'",
-               health_check_result, service_group);
-        *service_health_result.lock()
-                              .expect("Could not unlock service_health_result") =
-            health_check_result;
-        gateway_state.lock_gsw()
-                     .set_health_of(service_group.deref().clone(), health_check_result);
-
-        trace!("Next health check for {} in {}", service_group, interval);
-
-        time::delay_for(interval.into()).await;
+        (status, result)
     }
 
-    /// Repeatedly runs a health check, followed by an appropriate
-    /// delay, forever.
+    /// Repeatedly check the health, followed by an appropriate delay, forever.
     /// # Locking for the returned Future (see locking.md)
     /// * `GatewayState::inner` (write)
     pub async fn check_repeatedly_gsw(self) {
@@ -256,7 +220,42 @@ impl State {
         // do similar historical tracking, here's where we'd do
         // it.
         loop {
-            self.clone().single_iteration_gsw().await;
+            let State { hook,
+                        service_group,
+                        package,
+                        svc_encrypted_password,
+                        service_event_metadata,
+                        supervisor,
+                        nominal_interval,
+                        service_health_result,
+                        gateway_state, } = self.clone();
+
+            let (status, result) = Self::health_check(supervisor,
+                                                      hook,
+                                                      service_group.clone(),
+                                                      package,
+                                                      svc_encrypted_password).await;
+
+            let interval = if result == HealthCheckResult::Ok {
+                // routine health check
+                nominal_interval
+            } else {
+                // special health check interval
+                HealthCheckInterval::default()
+            };
+
+            event::health_check(service_event_metadata, result, status, interval);
+
+            debug!("Caching HealthCheckResult = '{}' for '{}'",
+                   result, service_group);
+            *service_health_result.lock()
+                                  .expect("Could not unlock service_health_result") = result;
+            gateway_state.lock_gsw()
+                         .set_health_of(service_group.clone(), result);
+
+            trace!("Next health check for {} in {}", service_group, interval);
+
+            time::delay_for(interval.into()).await;
         }
     }
 }
