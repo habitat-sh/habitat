@@ -1,4 +1,5 @@
-use crate::RegistryType;
+use crate::{engine,
+            RegistryType};
 use clap::{App,
            Arg};
 use habitat_common::PROGRAM_NAME;
@@ -23,7 +24,8 @@ pub fn cli<'a, 'b>() -> App<'a, 'b> {
                                        .add_publishing_args()
                                        .add_memory_arg()
                                        .add_layer_arg()
-                                       .add_pkg_ident_arg();
+                                       .add_pkg_ident_arg()
+                                       .add_engine_arg();
     if cfg!(windows) {
         cli = cli.add_base_image_arg();
     }
@@ -321,6 +323,12 @@ impl<'a, 'b> Cli<'a, 'b> {
                                                          specifying this option to add all \
                                                          Habitat packages in a single layer \
                                                          (which is the default behavior)."));
+        Cli { app }
+    }
+
+    fn add_engine_arg(self) -> Self {
+        let arg = engine::cli_arg();
+        let app = self.app.arg(arg);
         Cli { app }
     }
 }

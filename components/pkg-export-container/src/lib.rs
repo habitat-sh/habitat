@@ -150,14 +150,14 @@ pub async fn export_for_cli_matches(ui: &mut UI,
 
     let spec = BuildSpec::try_from(matches)?;
     let naming = Naming::from(matches);
-    let engine = Engine::new()?;
+    let engine: Box<dyn Engine> = TryFrom::try_from(matches)?;
     let memory = matches.value_of("MEMORY_LIMIT");
 
     ui.begin(format!("Building a container image with: {}",
                      spec.idents_or_archives.join(", ")))?;
 
     let build_context = BuildContext::from_build_root(spec.create(ui).await?, ui)?;
-    let container_image = build_context.export(ui, &naming, memory, &engine)?;
+    let container_image = build_context.export(ui, &naming, memory, engine.as_ref())?;
 
     build_context.destroy(ui)?;
     ui.end(format!("Container image '{}' created with tags: {}",
@@ -173,20 +173,20 @@ pub async fn export_for_cli_matches(ui: &mut UI,
                                            matches.value_of("REGISTRY_PASSWORD")
                                                   .expect("Password not specified")).await?;
         push_image(ui,
-                   &engine,
+                   engine.as_ref(),
                    &container_image,
                    &credentials,
                    naming.registry_url.as_deref())?;
     }
     if matches.is_present("RM_IMAGE") {
-        remove_image(ui, &engine, &container_image)?;
+        remove_image(ui, engine.as_ref(), &container_image)?;
         Ok(None)
     } else {
         Ok(Some(container_image))
     }
 }
 
-fn remove_image(ui: &mut UI, engine: &Engine, image: &ContainerImage) -> Result<()> {
+fn remove_image(ui: &mut UI, engine: &dyn Engine, image: &ContainerImage) -> Result<()> {
     ui.begin(format!("Cleaning up local Docker image '{}' with all tags",
                      image.name()))?;
 
@@ -202,7 +202,7 @@ fn remove_image(ui: &mut UI, engine: &Engine, image: &ContainerImage) -> Result<
 }
 
 fn push_image(ui: &mut UI,
-              engine: &Engine,
+              engine: &dyn Engine,
               image: &ContainerImage,
               credentials: &Credentials,
               registry_url: Option<&str>)
