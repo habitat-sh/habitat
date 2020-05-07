@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.20 -->
-## [1.6.20](https://github.com/habitat-sh/habitat/tree/1.6.20) (2020-05-06)
+<!-- latest_release 1.6.21 -->
+## [1.6.21](https://github.com/habitat-sh/habitat/tree/1.6.21) (2020-05-07)
 
-#### Merged Pull Requests
-- Remove duplicated serialization logic in SvcMember [#7673](https://github.com/habitat-sh/habitat/pull/7673) ([davidMcneil](https://github.com/davidMcneil))
+#### Behavioral Changes
+- `hab pkg export docker` is now `hab pkg export container` [#7674](https://github.com/habitat-sh/habitat/pull/7674) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
 ### Changes since 1.6.0 release
+
+#### Behavioral Changes
+- `hab pkg export docker` is now `hab pkg export container` [#7674](https://github.com/habitat-sh/habitat/pull/7674) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.21 -->
 
 #### New Features & Enhancements
 - Config file support for `hab sup run` [#7658](https://github.com/habitat-sh/habitat/pull/7658) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.15 -->
