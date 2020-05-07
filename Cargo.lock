@@ -1433,7 +1433,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "habitat_pkg_export_docker"
+name = "habitat_pkg_export_container"
 version = "0.0.0"
 dependencies = [
  "base64 0.12.0",

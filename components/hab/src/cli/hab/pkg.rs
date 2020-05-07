@@ -234,7 +234,7 @@ pub enum Pkg {
     },
     /// Exports the package to the specified format
     Export {
-        /// The export format (ex: cf, docker, mesos, or tar)
+        /// The export format (ex: cf, container, mesos, or tar)
         #[structopt(name = "FORMAT")]
         format:    String,
         /// A package identifier (ex: core/redis, core/busybox-static/1.42.2) or filepath to a
@@ -243,7 +243,7 @@ pub enum Pkg {
         pkg_ident: PackageIdent,
         #[structopt(flatten)]
         bldr_url:  BldrUrl,
-        /// Retrieve the container's package from the specified release channel
+        /// Retrieve the package-to-export from the specified release channel
         #[structopt(name = "CHANNEL",
             short = "c",
             long = "channel",

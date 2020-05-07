@@ -11,10 +11,11 @@ use url::Url;
 /// The version of this library and program when built.
 const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
-/// Create the Clap CLI for the Docker exporter
+/// Create the Clap CLI for the container exporter
 pub fn cli<'a, 'b>() -> App<'a, 'b> {
     let name: &str = &*PROGRAM_NAME;
-    let about = "Creates (and optionally pushes) a Docker image from a set of Habitat packages";
+    let about = "Creates a container image from a set of Habitat packages (and optionally pushes \
+                 to a remote repository)";
 
     let mut cli = Cli::new(name, about).add_base_packages_args()
                                        .add_builder_args()
@@ -29,7 +30,6 @@ pub fn cli<'a, 'b>() -> App<'a, 'b> {
     cli.app
 }
 
-/// A Docker-specific clap:App wrapper
 #[derive(Clone)]
 struct Cli<'a, 'b>
     where 'a: 'b

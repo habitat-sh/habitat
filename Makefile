@@ -43,7 +43,7 @@ endif
 
 # launcher is intentionally omitted from the standard build process
 # see https://github.com/habitat-sh/habitat/blob/master/components/launcher/README.md
-BIN = hab pkg-export-docker sup
+BIN = hab pkg-export-container sup
 LIB = butterfly common builder-api-client sup-protocol sup-client
 ALL = $(BIN) $(LIB)
 VERSION := $(shell cat VERSION)
@@ -182,9 +182,9 @@ unit-sup: build-launcher-for-supervisor-tests
 TOOLCHAIN := $(shell cat rust-toolchain)
 lint: image ## executes the $1 component's linter checks
 	$(run) .expeditor/scripts/verify/run_clippy.sh $(TOOLCHAIN) support/unexamined_lints.txt \
-	                                       support/allowed_lints.txt \
-	                                       support/lints_to_fix.txt \
-	                                       support/denied_lints.txt
+										   support/allowed_lints.txt \
+										   support/lints_to_fix.txt \
+										   support/denied_lints.txt
 .PHONY: lint
 
 define FUNCTIONAL

@@ -1,5 +1,5 @@
 # shellcheck disable=2154
-pkg_name=hab-pkg-export-docker
+pkg_name=hab-pkg-export-container
 _pkg_distname=$pkg_name
 pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"

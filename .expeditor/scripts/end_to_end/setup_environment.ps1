@@ -21,8 +21,8 @@ Invoke-NativeCommand hab pkg install core/hab `
     --url="$BuilderUrl"
 Write-Host "--- Using core/hab $(hab --version)"
 
-Write-Host "--- Installing latest core/hab-pkg-export-docker from $BuilderUrl, $Channel channel"
-Invoke-NativeCommand hab pkg install core/hab-pkg-export-docker `
+Write-Host "--- Installing latest core/hab-pkg-export-container from $BuilderUrl, $Channel channel"
+Invoke-NativeCommand hab pkg install core/hab-pkg-export-container `
     --channel "$Channel" `
     --url="$BuilderUrl"
 

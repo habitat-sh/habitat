@@ -9,11 +9,11 @@ extern crate serde_json;
 
 pub use crate::{build::BuildSpec,
                 cli::cli,
-                docker::{DockerBuildRoot,
-                         DockerImage},
+                container::{BuildContext,
+                            ContainerImage},
                 error::{Error,
                         Result}};
-use crate::{docker::Identified,
+use crate::{container::Identified,
             naming::Naming};
 use habitat_common::ui::{UIWriter,
                          UI};
@@ -32,7 +32,7 @@ use std::{convert::TryFrom,
 mod accounts;
 mod build;
 mod cli;
-mod docker;
+mod container;
 mod error;
 mod graph;
 mod naming;
@@ -130,34 +130,34 @@ impl Credentials {
     }
 }
 
-/// Exports a Docker image to a Docker engine from a build specification and naming policy.
+/// Creates a container image from a build specification and naming policy.
 ///
 /// # Errors
 ///
 /// * If a generic and temporary build root directory cannot be created containing a root
 /// file system
-/// * If additional Docker-related files cannot be created in the root file system
-/// * If building the Docker image fails
+/// * If additional related files cannot be created in the root file system
+/// * If building the image fails
 /// * If destroying the temporary build root directory fails
 pub async fn export<'a>(ui: &'a mut UI,
                         build_spec: BuildSpec,
                         naming: &Naming,
                         memory: Option<&'a str>)
-                        -> Result<DockerImage> {
-    ui.begin(format!("Building a runnable Docker image with: {}",
+                        -> Result<ContainerImage> {
+    ui.begin(format!("Building a container image with: {}",
                      build_spec.idents_or_archives.join(", ")))?;
-    let build_root = DockerBuildRoot::from_build_root(build_spec.create(ui).await?, ui)?;
+    let build_root = BuildContext::from_build_root(build_spec.create(ui).await?, ui)?;
     let image = build_root.export(ui, naming, memory)?;
     build_root.destroy(ui)?;
-    ui.end(format!("Docker image '{}' created with tags: {}",
+    ui.end(format!("Container image '{}' created with tags: {}",
                    image.name(),
                    image.tags().join(", ")))?;
 
     Ok(image)
 }
 
-/// Creates a build specification and naming policy from Cli arguments, and then exports a Docker
-/// image to a Docker engine from them.
+/// Creates a build specification and naming policy from CLI
+/// arguments, and then creates a container image from them.
 ///
 /// # Errors
 ///
@@ -169,14 +169,14 @@ pub async fn export<'a>(ui: &'a mut UI,
 /// * The image (tags) cannot be removed.
 pub async fn export_for_cli_matches(ui: &mut UI,
                                     matches: &clap::ArgMatches<'_>)
-                                    -> Result<Option<DockerImage>> {
+                                    -> Result<Option<ContainerImage>> {
     os::ensure_proper_docker_platform()?;
 
     let spec = BuildSpec::try_from(matches)?;
     let naming = Naming::from(matches);
 
-    let docker_image = export(ui, spec, &naming, matches.value_of("MEMORY_LIMIT")).await?;
-    docker_image.create_report(ui, env::current_dir()?.join("results"))?;
+    let container_image = export(ui, spec, &naming, matches.value_of("MEMORY_LIMIT")).await?;
+    container_image.create_report(ui, env::current_dir()?.join("results"))?;
 
     if matches.is_present("PUSH_IMAGE") {
         let credentials = Credentials::new(naming.registry_type,
@@ -184,13 +184,13 @@ pub async fn export_for_cli_matches(ui: &mut UI,
                                                   .expect("Username not specified"),
                                            matches.value_of("REGISTRY_PASSWORD")
                                                   .expect("Password not specified")).await?;
-        docker_image.push(ui, &credentials, naming.registry_url.as_deref())?;
+        container_image.push(ui, &credentials, naming.registry_url.as_deref())?;
     }
     if matches.is_present("RM_IMAGE") {
-        docker_image.rm(ui)?;
+        container_image.rm(ui)?;
 
         Ok(None)
     } else {
-        Ok(Some(docker_image))
+        Ok(Some(container_image))
     }
 }

@@ -202,9 +202,9 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :linux: pkg-export-docker"
+  - label: "[unit] :linux: pkg-export-container"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh pkg-export-docker
+      - .expeditor/scripts/verify/run_cargo_test.sh pkg-export-container
     expeditor:
       executor:
         docker:
@@ -438,9 +438,9 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :windows: pkg-export-docker"
+  - label: "[unit] :windows: pkg-export-container"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 pkg-export-docker
+      - .expeditor/scripts/verify/run_cargo_test.ps1 pkg-export-container
     expeditor:
       executor:
         docker:
@@ -630,11 +630,11 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[build] :linux: pkg-export-docker"
+  - label: "[build] :linux: pkg-export-container"
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_package.sh components/pkg-export-docker
+      - .expeditor/scripts/verify/build_package.sh components/pkg-export-container
     expeditor:
       executor:
         linux:
@@ -743,11 +743,11 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[build] :windows: pkg-export-docker"
+  - label: "[build] :windows: pkg-export-container"
     env:
       HAB_LICENSE: "accept-no-persist"
     command:
-      - .expeditor/scripts/verify/build_package.ps1 components/pkg-export-docker
+      - .expeditor/scripts/verify/build_package.ps1 components/pkg-export-container
     expeditor:
       executor:
         docker:

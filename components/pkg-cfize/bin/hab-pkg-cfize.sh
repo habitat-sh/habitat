@@ -76,7 +76,7 @@ build_cf_image() {
   tmp_dir="$(mktemp -t -d "${program}-XXXX")"
 
   dockerize_out="${tmp_dir}/dockerize-out"
-  hab-pkg-export-docker "${hab_package}" | tee "${dockerize_out}"
+  hab-pkg-export-container "${hab_package}" | tee "${dockerize_out}"
 
   docker_tag_array=$(dockerize_tags "${dockerize_out}")
   cf_docker_tag_array=("${docker_tag_array[@]/:/:cf-}")

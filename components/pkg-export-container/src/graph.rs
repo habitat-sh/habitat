@@ -89,7 +89,7 @@ impl Graph {
                 // we can always revert to using a Vec directly. It's
                 // not as efficient, of course, but this call is not
                 // likely to be any sort of bottlneck in the creation
-                // of a Docker image.
+                // of a container image.
 
                 // You have to check first before inserting;
                 // otherwise, it increments the insertion order
@@ -131,9 +131,9 @@ mod tests {
     // These are all the packages needed for hab, hab-sup,
     // hab-launcher and redis
 
-    // These are the packages that go into every Docker container
-    // (well, specific *releases* of those packages, for the purpose
-    // of testing).
+    // These are the packages that go into every container (well,
+    // specific *releases* of those packages, for the purpose of
+    // testing).
     //
     // Yes, these are properly all FullyQualifiedPackageIdents, but
     // the PackageGraph doesn't yet handle those.

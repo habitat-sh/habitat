@@ -43,8 +43,8 @@ paths = [
   "components/sup-protocol/*",
 ]
 
-[hab-pkg-export-docker]
-plan_path = "components/pkg-export-docker"
+[hab-pkg-export-container]
+plan_path = "components/pkg-export-container"
 paths = [
   "components/common/*",
   "components/core/*",
@@ -62,7 +62,7 @@ paths = [
 [hab-pkg-cfize]
 plan_path = "components/pkg-cfize"
 paths = [
-  "components/pkg-export-docker/*"
+  "components/pkg-export-container/*"
 ]
 
 [hab-pkg-mesosize]

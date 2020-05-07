@@ -224,9 +224,9 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
-  - label: "[:linux: build hab-pkg-export-docker]"
+  - label: "[:linux: build hab-pkg-export-container]"
     command:
-      - .expeditor/scripts/release_habitat/build_component.sh pkg-export-docker
+      - .expeditor/scripts/release_habitat/build_component.sh pkg-export-container
     expeditor:
       executor:
         docker:
@@ -234,9 +234,9 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  - label: "[:windows: build hab-pkg-export-docker]"
+  - label: "[:windows: build hab-pkg-export-container]"
     command:
-      - powershell .expeditor/scripts/release_habitat/build_component.ps1 pkg-export-docker
+      - powershell .expeditor/scripts/release_habitat/build_component.ps1 pkg-export-container
     expeditor:
       executor:
         docker:
@@ -301,7 +301,7 @@ steps:
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
   # The cfize export currently has a dependency on
-  # hab-pkg-export-docker, so it must be built after that.
+  # hab-pkg-export-container, so it must be built after that.
   - label: "[:linux: build hab-pkg-cfize]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh pkg-cfize

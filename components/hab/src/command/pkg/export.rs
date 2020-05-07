@@ -4,7 +4,7 @@ use habitat_core::{package::PackageIdent,
                    ChannelIdent};
 
 pub mod cf;
-pub mod docker;
+pub mod container;
 pub mod tar;
 
 mod export_common;

@@ -12,7 +12,7 @@ members = [
   "components/launcher",
   "components/launcher-client",
   "components/launcher-protocol",
-  "components/pkg-export-docker",
+  "components/pkg-export-container",
   "components/pkg-export-tar",
   "components/rst-reader",
   "components/sup",
