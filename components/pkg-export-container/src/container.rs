@@ -120,15 +120,13 @@ impl ImageBuilder {
     ///
     /// * If building the image fails
     pub fn build(self, engine: &Engine) -> Result<ContainerImage> {
-        engine.build(&self.workdir,
-                     &self.expanded_identifiers(),
-                     self.memory.as_deref())?;
+        let id = engine.build(&self.workdir,
+                              &self.expanded_identifiers(),
+                              self.memory.as_deref())?;
 
-        let id = match self.tags.first() {
-            Some(tag) => engine.image_id(&format!("{}:{}", &self.name, tag))?,
-            None => engine.image_id(&self.name)?,
-        };
-
+        // TODO (CM): Once ContainerImage doesn't need access to
+        // workdir, we could just have Engine::build return a
+        // ContainerImage directly, which is appealing.
         Ok(ContainerImage { id,
                             name: self.name,
                             tags: self.tags,

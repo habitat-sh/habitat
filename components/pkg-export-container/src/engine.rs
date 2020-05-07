@@ -75,13 +75,20 @@ impl Engine {
     ///
     /// `memory` governs how much memory is provided to the build
     /// process.
+    ///
+    /// Returns the ID of the image that was built.
     pub fn build<S: AsRef<str>>(&self,
                                 build_context: &Path,
                                 tags: &[S],
                                 memory: Option<&str>)
-                                -> Result<()> {
+                                -> Result<String> {
         Engine::run(self.build_command(build_context, tags, memory),
-                    EngineError::BuildFailed)
+                    EngineError::BuildFailed)?;
+
+        let identifier = tags.first()
+                             .expect("There should always be at least one tag")
+                             .as_ref();
+        self.image_id(identifier)
     }
 
     ////////////////////////////////////////////////////////////////////////
