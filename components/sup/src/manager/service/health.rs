@@ -4,6 +4,7 @@ use crate::{error::Error,
                                supervisor::Supervisor,
                                ProcessOutput,
                                ProcessState}};
+use habitat_butterfly::protocol::newscast::service_health;
 use habitat_common::{outputln,
                      templating::package::Pkg};
 use habitat_core::service::{HealthCheckInterval,
@@ -40,6 +41,17 @@ impl TryFrom<i32> for HealthCheckResult {
             2 => Ok(HealthCheckResult::Critical),
             3 => Ok(HealthCheckResult::Unknown),
             v => Err(Error::InvalidHealthCheckResult(v)),
+        }
+    }
+}
+
+impl Into<service_health::Health> for HealthCheckResult {
+    fn into(self) -> service_health::Health {
+        match self {
+            HealthCheckResult::Ok => service_health::Health::Ok,
+            HealthCheckResult::Warning => service_health::Health::Warning,
+            HealthCheckResult::Critical => service_health::Health::Critical,
+            HealthCheckResult::Unknown => service_health::Health::Unknown,
         }
     }
 }

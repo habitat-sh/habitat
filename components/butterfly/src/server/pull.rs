@@ -123,6 +123,9 @@ fn run_loop(server: &Server) -> ! {
             RumorKind::ServiceFile(service_file) => {
                 server.insert_service_file_rsw_rhw(service_file);
             }
+            RumorKind::ServiceHealth(service_health) => {
+                server.insert_service_health_rsw_rhw(service_health);
+            }
             RumorKind::Election(election) => {
                 server.insert_election_rsw_mlr_rhw_msr(election);
             }

@@ -33,6 +33,7 @@ use crate::{error::{Error,
                     service::Service,
                     service_config::ServiceConfig,
                     service_file::ServiceFile,
+                    service_health::ServiceHealth,
                     ConstIdRumor,
                     Rumor,
                     RumorKey,
@@ -281,6 +282,7 @@ pub struct Server {
     pub service_store:        RumorStore<Service>,
     pub service_config_store: RumorStore<ServiceConfig>,
     pub service_file_store:   RumorStore<ServiceFile>,
+    pub service_health_store: RumorStore<ServiceHealth>,
     pub election_store:       RumorStore<Election>,
     pub update_store:         RumorStore<ElectionUpdate>,
     pub departure_store:      RumorStore<Departure>,
@@ -310,6 +312,7 @@ impl Clone for Server {
                  service_store:        self.service_store.clone(),
                  service_config_store: self.service_config_store.clone(),
                  service_file_store:   self.service_file_store.clone(),
+                 service_health_store: self.service_health_store.clone(),
                  election_store:       self.election_store.clone(),
                  update_store:         self.update_store.clone(),
                  departure_store:      self.departure_store.clone(),
@@ -372,6 +375,7 @@ impl Server {
                             service_store: RumorStore::default(),
                             service_config_store: RumorStore::default(),
                             service_file_store: RumorStore::default(),
+                            service_health_store: RumorStore::default(),
                             election_store: RumorStore::default(),
                             update_store: RumorStore::default(),
                             departure_store: RumorStore::default(),
@@ -763,6 +767,18 @@ impl Server {
     pub fn insert_service_file_rsw_rhw(&self, service_file: ServiceFile) {
         let rk = RumorKey::from(&service_file);
         if self.service_file_store.insert_rsw(service_file) {
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
+        }
+    }
+
+    /// Insert a service health rumor into the service health store.
+    ///
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `RumorHeat::inner` (write)
+    pub fn insert_service_health_rsw_rhw(&self, service_health: ServiceHealth) {
+        let rk = RumorKey::from(&service_health);
+        if self.service_health_store.insert_rsw(service_health) {
             self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }

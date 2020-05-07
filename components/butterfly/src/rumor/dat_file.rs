@@ -11,7 +11,8 @@ use crate::{error::{Error,
                     RumorStore,
                     Service,
                     ServiceConfig,
-                    ServiceFile},
+                    ServiceFile,
+                    ServiceHealth},
             server::Server};
 use byteorder::{ByteOrder,
                 LittleEndian};
@@ -137,6 +138,10 @@ impl DatFileReader {
 
         for service_file in self.read_rumors::<ServiceFile>()? {
             server.insert_service_file_rsw_rhw(service_file);
+        }
+
+        for service_health in self.read_rumors::<ServiceHealth>()? {
+            server.insert_service_health_rsw_rhw(service_health);
         }
 
         for election in self.read_rumors::<Election>()? {

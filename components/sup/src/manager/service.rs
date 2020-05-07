@@ -45,7 +45,8 @@ use crate::{census::{CensusGroup,
                       Sys}};
 use futures::future::{self,
                       AbortHandle};
-use habitat_butterfly::rumor::service::Service as ServiceRumor;
+use habitat_butterfly::rumor::{service::Service as ServiceRumor,
+                               service_health::ServiceHealth};
 #[cfg(windows)]
 use habitat_common::templating::package::DEFAULT_USER;
 pub use habitat_common::templating::{config::{Cfg,
@@ -825,7 +826,7 @@ impl Service {
         (template_data_changed, template_update)
     }
 
-    pub fn to_rumor(&self, incarnation: u64) -> ServiceRumor {
+    pub fn to_service_rumor(&self, incarnation: u64) -> ServiceRumor {
         let exported = match self.cfg.to_exported(&self.pkg) {
             Ok(exported) => Some(exported),
             Err(err) => {
@@ -840,6 +841,17 @@ impl Service {
                                           self.service_group.clone(),
                                           self.sys.as_sys_info(),
                                           exported);
+        rumor.incarnation = incarnation;
+        rumor
+    }
+
+    pub fn to_service_health_rumor(&self, incarnation: u64) -> ServiceHealth {
+        let health = (*self.health_check_result
+                           .lock()
+                           .expect("failed to acquire health_check_result lock")).into();
+        let mut rumor = ServiceHealth::new(self.sys.member_id.clone(),
+                                           self.service_group.clone(),
+                                           health);
         rumor.incarnation = incarnation;
         rumor
     }

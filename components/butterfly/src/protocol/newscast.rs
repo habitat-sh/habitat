@@ -5,7 +5,8 @@ use crate::rumor::{departure::Departure as CDeparture,
                               ElectionUpdate as CElectionUpdate},
                    service::Service as CService,
                    service_config::ServiceConfig as CServiceConfig,
-                   service_file::ServiceFile as CServiceFile};
+                   service_file::ServiceFile as CServiceFile,
+                   service_health::ServiceHealth as CServiceHealth};
 
 include!(concat!(env!("OUT_DIR"), "/butterfly.newscast.rs"));
 
@@ -20,6 +21,7 @@ impl fmt::Display for RumorType {
             RumorType::Election => "election",
             RumorType::ServiceConfig => "service-config",
             RumorType::ServiceFile => "service-file",
+            RumorType::ServiceHealth => "service-health",
             RumorType::Fake => "fake",
             RumorType::Fake2 => "fake2",
             RumorType::ElectionUpdate => "election-update",
@@ -110,5 +112,14 @@ impl From<CServiceFile> for Rumor {
                 tag:     Vec::default(),
                 from_id: Some(value.from_id),
                 payload: Some(RumorPayload::ServiceFile(payload)), }
+    }
+}
+
+impl From<CServiceHealth> for Rumor {
+    fn from(value: CServiceHealth) -> Self {
+        Rumor { r#type:  RumorType::ServiceHealth as i32,
+                tag:     Vec::default(),
+                from_id: Some(value.member_id.clone()),
+                payload: Some(RumorPayload::ServiceHealth(value.into())), }
     }
 }

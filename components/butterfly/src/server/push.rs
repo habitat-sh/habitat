@@ -239,6 +239,23 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
                     }
                 }
             }
+            RumorType::ServiceHealth => {
+                match server.service_health_store
+                            .lock_rsr()
+                            .encode_rumor_for(&rumor_key)
+                {
+                    Ok(bytes) => bytes,
+                    Err(e) => {
+                        error!("Could not write our own rumor to bytes; abandoning sending \
+                                rumor: {:?}",
+                               e);
+                        let label_values = &["service_health_rumor_encode", "failure"];
+                        GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                        GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
+                        continue 'rumorlist;
+                    }
+                }
+            }
             RumorType::Departure => {
                 match server.departure_store
                             .lock_rsr()

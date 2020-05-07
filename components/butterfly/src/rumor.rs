@@ -13,6 +13,7 @@ pub mod heat;
 pub mod service;
 pub mod service_config;
 pub mod service_file;
+pub mod service_health;
 
 use crate::{error::{Error,
                     Result},
@@ -39,6 +40,7 @@ pub use self::{departure::Departure,
                service::Service,
                service_config::ServiceConfig,
                service_file::ServiceFile,
+               service_health::ServiceHealth,
                storage::{RumorStore,
                          RumorStoreProxy}};
 pub use crate::protocol::newscast::{Rumor as ProtoRumor,
@@ -61,6 +63,7 @@ pub enum RumorKind {
     Service(Box<Service>), // Boxed due to clippy::large_enum_variant
     ServiceConfig(ServiceConfig),
     ServiceFile(ServiceFile),
+    ServiceHealth(ServiceHealth),
 }
 
 impl From<RumorKind> for RumorPayload {
@@ -75,6 +78,9 @@ impl From<RumorKind> for RumorPayload {
                 RumorPayload::ServiceConfig(service_config.into())
             }
             RumorKind::ServiceFile(service_file) => RumorPayload::ServiceFile(service_file.into()),
+            RumorKind::ServiceHealth(service_health) => {
+                RumorPayload::ServiceHealth(service_health.into())
+            }
         }
     }
 }
@@ -493,6 +499,7 @@ impl RumorEnvelope {
             RumorType::Service => RumorKind::Service(Box::new(Service::from_proto(proto)?)),
             RumorType::ServiceConfig => RumorKind::ServiceConfig(ServiceConfig::from_proto(proto)?),
             RumorType::ServiceFile => RumorKind::ServiceFile(ServiceFile::from_proto(proto)?),
+            RumorType::ServiceHealth => RumorKind::ServiceHealth(ServiceHealth::from_proto(proto)?),
             RumorType::Fake | RumorType::Fake2 => panic!("fake rumor"),
         };
         Ok(RumorEnvelope { r#type,
