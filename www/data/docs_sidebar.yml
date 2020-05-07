@@ -96,6 +96,8 @@ sidebar_links:
     sub_links:
     - title: Environment Variables
       link: "/docs/reference/#environment-variables"
+    - title: Supervisor Configuration File
+      link: "/docs/reference/#supervisor-config"
     - title: Plan Settings
       link: "/docs/reference/#plan-settings"
     - title: Plan Variables
