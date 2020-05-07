@@ -844,8 +844,8 @@ impl Service {
             let initialization_state_for_err = Arc::clone(&self.initialization_state);
             let f = async move {
                 match hook_runner.into_future().await {
-                    Ok((maybe_exit_value, _)) => {
-                        *initialization_state.write() = if maybe_exit_value.unwrap_or(false) {
+                    Ok((exit_value, _)) => {
+                        *initialization_state.write() = if exit_value {
                             InitializationState::InitializerFinished
                         } else {
                             InitializationState::Uninitialized

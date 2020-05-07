@@ -24,7 +24,8 @@ use std::{env,
           result,
           str,
           string,
-          sync::mpsc};
+          sync::mpsc,
+          time::Duration};
 use tokio::task::JoinError;
 use toml;
 
@@ -104,6 +105,16 @@ pub enum Error {
     TryRecvError(mpsc::TryRecvError),
     UnpackFailed,
     UserNotFound(String),
+    WithDuration(Box<Self>, Duration),
+}
+
+impl Error {
+    /// Give this error an associated duration.
+    ///
+    /// This is useful for providing feedback on failible, long running tasks.
+    pub fn with_duration(self, duration: Duration) -> Self {
+        Self::WithDuration(Box::new(self), duration)
+    }
 }
 
 impl fmt::Display for Error {
@@ -250,6 +261,9 @@ impl fmt::Display for Error {
             Error::TryRecvError(ref err) => err.to_string(),
             Error::UnpackFailed => "Failed to unpack a package".to_string(),
             Error::UserNotFound(ref e) => format!("No UID for user '{}' could be found", e),
+            Error::WithDuration(ref e, ref duration) => {
+                format!("{} ({} s)", e, duration.as_secs_f64())
+            }
         };
 
         // TODO (CM): Consider implementing Error::source() for all

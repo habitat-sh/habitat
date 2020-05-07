@@ -10,14 +10,15 @@
 
 use super::{hook_timer,
             Pkg};
+use crate::error::{Error,
+                   Result};
 use habitat_common::templating::hooks::Hook;
 use habitat_core::service::ServiceGroup;
 use std::{clone::Clone,
           sync::Arc,
           time::{Duration,
                  Instant}};
-use tokio::{task,
-            task::JoinError};
+use tokio::task;
 
 pub struct HookRunner<H: Hook + Sync> {
     hook:          Arc<H>,
@@ -53,9 +54,8 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
     pub async fn retryable_future(self) {
         loop {
             match self.clone().into_future().await {
-                Ok((maybe_exit_value, _duration)) => {
-                    // If we did not get an exit value always retry
-                    if maybe_exit_value.as_ref().map_or(true, H::should_retry) {
+                Ok((exit_value, _duration)) => {
+                    if H::should_retry(&exit_value) {
                         debug!("Retrying the '{}' hook", H::file_name());
                     } else {
                         break;
@@ -66,7 +66,7 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
         }
     }
 
-    pub async fn into_future(self) -> Result<(Option<H::ExitValue>, Duration), JoinError> {
+    pub async fn into_future(self) -> Result<(H::ExitValue, Duration)> {
         // TODO (CM): May want to consider adding a configurable
         // timeout to how long this hook is allowed to run.
         task::spawn_blocking(move || {
@@ -75,11 +75,11 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
             // we're not able to use the same timer for both :(
             let _timer = hook_timer(H::file_name());
             let start = Instant::now();
-            let exit_value = self.hook
-                                 .run(&self.service_group, &self.pkg, self.passwd.as_ref())
-                                 .ok();
+            let result = self.hook
+                             .run(&self.service_group, &self.pkg, self.passwd.as_ref());
             let run_time = start.elapsed();
-            (exit_value, run_time)
-        }).await
+            let exit_value = result.map_err(|e| Error::from(e).with_duration(run_time))?;
+            Ok((exit_value, run_time))
+        }).await?
     }
 }

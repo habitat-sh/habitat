@@ -1,5 +1,4 @@
-use crate::{error::{self,
-                    Error},
+use crate::{error::Error,
             manager::{event::{self,
                               ServiceMetadata as ServiceEventMetadata},
                       service::{hook_runner,
@@ -61,6 +60,7 @@ impl fmt::Display for HealthCheckResult {
 pub enum HealthCheckHookStatus {
     Ran(ProcessOutput, Duration),
     FailedToRun(Duration),
+    FailedToStart,
     NoHook,
 }
 
@@ -69,15 +69,14 @@ impl HealthCheckHookStatus {
         match &self {
             Self::Ran(_, duration) => Some(*duration),
             Self::FailedToRun(duration) => Some(*duration),
-            Self::NoHook => None,
+            Self::FailedToStart | Self::NoHook => None,
         }
     }
 
     pub fn maybe_process_output(self) -> Option<ProcessOutput> {
         match self {
             Self::Ran(process_output, _) => Some(process_output),
-            Self::FailedToRun(_) => None,
-            Self::NoHook => None,
+            Self::FailedToRun(_) | Self::FailedToStart | Self::NoHook => None,
         }
     }
 }
@@ -151,7 +150,7 @@ impl State {
     /// chained together for an unending stream of health checks.
     /// # Locking for the returned Future (see locking.md)
     /// * `GatewayState::inner` (write)
-    async fn single_iteration_gsw(self) -> error::Result<()> {
+    async fn single_iteration_gsw(self) {
         let State { hook,
                     service_group,
                     package,
@@ -166,16 +165,23 @@ impl State {
         let service_group = Arc::new(service_group);
 
         let health_check_hook_status = if let Some(hook) = hook {
-            let (output, duration) =
-                hook_runner::HookRunner::new(hook,
-                                             service_group.deref().clone(),
-                                             package.clone(),
-                                             svc_encrypted_password).into_future()
-                                                                    .await?;
-            if let Some(output) = output {
-                HealthCheckHookStatus::Ran(output, duration)
-            } else {
-                HealthCheckHookStatus::FailedToRun(duration)
+            let result = hook_runner::HookRunner::new(hook,
+                                                      service_group.deref().clone(),
+                                                      package.clone(),
+                                                      svc_encrypted_password).into_future()
+                                                                             .await;
+            match result {
+                Ok((output, duration)) => HealthCheckHookStatus::Ran(output, duration),
+                Err(Error::WithDuration(e, duration)) => {
+                    error!("Error running health check hook for {}: {:?}",
+                           service_group, e);
+                    HealthCheckHookStatus::FailedToRun(duration)
+                }
+                Err(_) => {
+                    error!("Error starting health check hook for {}: {:?}",
+                           service_group, e);
+                    HealthCheckHookStatus::FailedToStart
+                }
             }
         } else {
             HealthCheckHookStatus::NoHook
@@ -197,7 +203,7 @@ impl State {
                       })
                       .unwrap_or(HealthCheckResult::Unknown)
             }
-            HealthCheckHookStatus::FailedToRun(_) => {
+            HealthCheckHookStatus::FailedToRun(_) | HealthCheckHookStatus::FailedToStart => {
                 // There was a hook but it did not successfully run. The health check result is
                 // unknown.
                 HealthCheckResult::Unknown
@@ -238,7 +244,6 @@ impl State {
         trace!("Next health check for {} in {}", service_group, interval);
 
         time::delay_for(interval.into()).await;
-        Ok(())
     }
 
     /// Repeatedly runs a health check, followed by an appropriate
@@ -250,15 +255,8 @@ impl State {
         // a health check has failed in the past X executions, or
         // do similar historical tracking, here's where we'd do
         // it.
-        let service_group = self.service_group.clone();
         loop {
-            if let Err(e) = self.clone().single_iteration_gsw().await {
-                error!("Error running health check hook for {}: {:?}",
-                       service_group, e)
-            } else {
-                trace!("Health check future for {} succeeded; continuing loop",
-                       service_group);
-            }
+            self.clone().single_iteration_gsw().await;
         }
     }
 }
