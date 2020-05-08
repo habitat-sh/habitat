@@ -1244,6 +1244,12 @@ Packages are installed in the `/hab/pkgs/` directory, and then further organized
 
 Generate a Supervisor configuration file use it to set any of the 40+ Supervisor configuration settings instead of configuring them on the command line.
 
+<div style="justify-content: center; display: flex; padding-top:2rem; padding-bottom:2rem">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/B_ppJ1xaC5o" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen ></iframe>
+</div>
+
+Chef Habitat looks for Supervisor configuration settings in four locations and applies them in order, which means that settings defined in later locations overwrite earlier ones.
+
 ```bash
 hab sup run --generate-config
 ```
@@ -1251,8 +1257,6 @@ hab sup run --generate-config
 ```bash
 hab sup run --generate-config > config.toml
 ```
-
-Chef Habitat looks for Supervisor configuration settings in four locations and applies them in order, which means that settings defined in later locations overwrite earlier ones.
 
 The Supervisor settings look-up order:
 
@@ -1263,9 +1267,7 @@ The Supervisor settings look-up order:
 3. From [environment variables](/docs/reference/#environment-variables), if they exist
 4. From settings passed from the [`hab sup run` command](/docs/habitat-cli/#hab-sup-run)
 
-<%# TODO: Check if command works on Windows %>
-
-```toml
+```toml config.toml
 ### The listen address for the Gossip Gateway
 listen_gossip = 'sdlfsldf'
 ​
