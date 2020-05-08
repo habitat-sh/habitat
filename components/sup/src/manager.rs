@@ -811,6 +811,7 @@ impl Manager {
                                          self.fs_cfg.clone(),
                                          self.organization.as_ref().map(String::as_str),
                                          self.state.gateway_state.clone(),
+                                         self.butterfly.clone(),
                                          self.pid_source,
                                          self.feature_flags).await
         {
@@ -1285,23 +1286,6 @@ impl Manager {
             .insert_service_rsw_mlw_rhw(service.to_service_rumor(incarnation));
     }
 
-    // Creates a rumor for the specified service's health.
-    /// # Locking (see locking.md)
-    /// * `RumorStore::list` (write)
-    /// * `MemberList::entries` (write)
-    /// * `RumorHeat::inner` (write)
-    fn gossip_latest_service_health_rumor_rsw_mlw_rhw(&self, service: &Service) {
-        let incarnation = self.butterfly
-                              .service_health_store
-                              .lock_rsr()
-                              .service_group(&service.service_group)
-                              .map_rumor(&self.sys.member_id, |rumor| rumor.incarnation + 1)
-                              .unwrap_or(1);
-
-        self.butterfly
-            .insert_service_health_rsw_rhw(service.to_service_health_rumor(incarnation));
-    }
-
     fn check_for_departure(&self) -> bool { self.butterfly.is_departed() }
 
     /// # Locking (see locking.md)
@@ -1397,6 +1381,7 @@ impl Manager {
                                           self.fs_cfg.clone(),
                                           self.organization.as_ref().map(String::as_str),
                                           self.state.gateway_state.clone(),
+                                          self.butterfly.clone(),
                                           self.pid_source,
                                           self.feature_flags).await;
                 match result {

@@ -45,8 +45,9 @@ use crate::{census::{CensusGroup,
                       Sys}};
 use futures::future::{self,
                       AbortHandle};
-use habitat_butterfly::rumor::{service::Service as ServiceRumor,
-                               service_health::ServiceHealth};
+use habitat_butterfly::{rumor::{service::Service as ServiceRumor,
+                                service_health::ServiceHealth},
+                        Server as ButterflyServer};
 #[cfg(windows)]
 use habitat_common::templating::package::DEFAULT_USER;
 pub use habitat_common::templating::{config::{Cfg,
@@ -243,6 +244,7 @@ pub struct Service {
     health_check_interval:  HealthCheckInterval,
 
     gateway_state: Arc<GatewayState>,
+    butterfly:     ButterflyServer,
 
     /// A "handle" to the never-ending future that periodically runs
     /// health checks on this service. This is the means by which we
@@ -260,6 +262,7 @@ impl Service {
                           manager_fs_cfg: Arc<FsCfg>,
                           organization: Option<&str>,
                           gateway_state: Arc<GatewayState>,
+                          butterfly: ButterflyServer,
                           pid_source: ServicePidSource,
                           feature_flags: FeatureFlag)
                           -> Result<Service> {
@@ -304,6 +307,7 @@ impl Service {
                      svc_encrypted_password: spec.svc_encrypted_password,
                      health_check_interval: spec.health_check_interval,
                      gateway_state,
+                     butterfly,
                      health_check_handle: None,
                      post_run_handle: None,
                      initialize_handle: None,
@@ -352,11 +356,13 @@ impl Service {
                    .join("hooks")
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn new(sys: Arc<Sys>,
                      spec: ServiceSpec,
                      manager_fs_cfg: Arc<FsCfg>,
                      organization: Option<&str>,
                      gateway_state: Arc<GatewayState>,
+                     butterfly: ButterflyServer,
                      pid_source: ServicePidSource,
                      feature_flags: FeatureFlag)
                      -> Result<Service> {
@@ -369,6 +375,7 @@ impl Service {
                               manager_fs_cfg,
                               organization,
                               gateway_state,
+                              butterfly,
                               pid_source,
                               feature_flags).await?)
     }
@@ -410,6 +417,7 @@ impl Service {
     /// * Cache the health check result for this service
     /// * Set the health check result for this service in the gateway state
     /// * Send a `HealthCheckEvent` over the event stream
+    /// * Gossip the `HealthCheckResult`
     fn start_health_checks(&mut self) {
         debug!("Starting health checks for {}", self.pkg.ident);
         let mut rx = health::check_repeatedly(Arc::clone(&self.supervisor),
@@ -426,6 +434,7 @@ impl Service {
         // Initialize the gateway_state for this service to Unknown.
         gateway_state.lock_gsw()
                      .set_health_of(service_group.clone(), HealthCheckResult::Unknown);
+        let gossip_latest_health = self.gossip_latest_health_generator_rumor_rsw_mlw_rhw();
         let f = async move {
             while let Some(HealthCheckBundle { status,
                                                result,
@@ -440,6 +449,8 @@ impl Service {
                              .set_health_of(service_group.clone(), result);
 
                 event::health_check(service_event_metadata.clone(), result, status, interval);
+
+                gossip_latest_health(result);
             }
         };
         let (f, handle) = future::abortable(f);
@@ -845,15 +856,27 @@ impl Service {
         rumor
     }
 
-    pub fn to_service_health_rumor(&self, incarnation: u64) -> ServiceHealth {
-        let health = (*self.health_check_result
-                           .lock()
-                           .expect("failed to acquire health_check_result lock")).into();
-        let mut rumor = ServiceHealth::new(self.sys.member_id.clone(),
-                                           self.service_group.clone(),
-                                           health);
-        rumor.incarnation = incarnation;
-        rumor
+    /// Creates a function which rumors the provided service health for this service.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (write)
+    /// * `RumorHeat::inner` (write)
+    fn gossip_latest_health_generator_rumor_rsw_mlw_rhw(&self) -> impl Fn(HealthCheckResult) {
+        let butterfly = self.butterfly.clone();
+        let member_id = self.sys.member_id.clone();
+        let service_group = self.service_group.clone();
+        move |health| {
+            let incarnation = butterfly.service_health_store
+                                       .lock_rsr()
+                                       .service_group(&service_group)
+                                       .map_rumor(&member_id, |rumor| rumor.incarnation + 1)
+                                       .unwrap_or(1);
+            let mut rumor =
+                ServiceHealth::new(member_id.clone(), service_group.clone(), health.into());
+            rumor.incarnation = incarnation;
+
+            butterfly.insert_service_health_rsw_rhw(rumor);
+        }
     }
 
     /// Run initialization hook if present.
@@ -1311,7 +1334,8 @@ impl<'a> Serialize for ServiceProxy<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_helpers::*;
+    use crate::{test_helpers::*,
+                util::test as test_util};
     use habitat_common::types::{GossipListenAddr,
                                 HttpListenAddr,
                                 ListenCtlAddr};
@@ -1351,12 +1375,14 @@ mod tests {
         let afs = Arc::new(fscfg);
 
         let gs = Arc::default();
+        let butterfly = test_util::start_butterfly_server();
         Service::with_package(asys,
                               &install,
                               spec,
                               afs,
                               Some("haha"),
                               gs,
+                              butterfly,
                               ServicePidSource::Launcher,
                               FeatureFlag::empty()).await
                                                    .expect("I wanted a service to load, but it \
