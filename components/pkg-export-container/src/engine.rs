@@ -88,6 +88,7 @@ pub fn cli_arg<'a, 'b>() -> Arg<'a, 'b> {
         Arg::with_name("ENGINE").value_name("ENGINE")
         .long("engine")
         .required(true)
+        .env("HAB_PKG_EXPORT_CONTAINER_ENGINE")
         .takes_value(true)
         .multiple(false)
         .default_value("docker")
