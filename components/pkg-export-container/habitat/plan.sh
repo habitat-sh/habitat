@@ -5,6 +5,7 @@ pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_deps=(
+    core/buildah
     core/docker
 )
 pkg_build_deps=(
