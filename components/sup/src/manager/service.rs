@@ -411,13 +411,12 @@ impl Service {
     /// * Send a `HealthCheckEvent` over the event stream
     fn start_health_checks(&mut self) {
         debug!("Starting health checks for {}", self.pkg.ident);
-        let (mut rx, handle) = health::check_repeatedly(Arc::clone(&self.supervisor),
-                                                        self.hooks.health_check.clone(),
-                                                        self.health_check_interval,
-                                                        self.service_group.clone(),
-                                                        self.pkg.clone(),
-                                                        self.svc_encrypted_password.clone());
-        self.health_check_handle = Some(handle);
+        let mut rx = health::check_repeatedly(Arc::clone(&self.supervisor),
+                                              self.hooks.health_check.clone(),
+                                              self.health_check_interval,
+                                              self.service_group.clone(),
+                                              self.pkg.clone(),
+                                              self.svc_encrypted_password.clone());
 
         let service_group = self.service_group.clone();
         let service_event_metadata = self.to_service_metadata();
@@ -426,7 +425,7 @@ impl Service {
         // Initialize the gateway_state for this service to Unknown.
         gateway_state.lock_gsw()
                      .set_health_of(service_group.clone(), HealthCheckResult::Unknown);
-        tokio::spawn(async move {
+        let f = async move {
             while let Some(HealthCheckBundle { status,
                                                result,
                                                interval, }) = rx.recv().await
@@ -441,7 +440,10 @@ impl Service {
 
                 event::health_check(service_event_metadata.clone(), result, status, interval);
             }
-        });
+        };
+        let (f, handle) = future::abortable(f);
+        self.health_check_handle = Some(handle);
+        tokio::spawn(f);
     }
 
     /// Stop the endless future that performs health checks for the

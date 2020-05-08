@@ -1,14 +1,9 @@
 use crate::{error::Error,
-            manager::{event::ServiceMetadata as ServiceEventMetadata,
-                      service::{hook_runner,
-                                hooks::HealthCheckHook,
-                                supervisor::Supervisor,
-                                ProcessOutput,
-                                ProcessState},
-                      sync::GatewayState}};
-use futures::future::{self,
-                      AbortHandle,
-                      FutureExt};
+            manager::service::{hook_runner,
+                               hooks::HealthCheckHook,
+                               supervisor::Supervisor,
+                               ProcessOutput,
+                               ProcessState}};
 use habitat_common::{outputln,
                      templating::package::Pkg};
 use habitat_core::service::{HealthCheckInterval,
@@ -166,15 +161,16 @@ async fn check(supervisor: Arc<Mutex<Supervisor>>,
 }
 
 /// Start a task to repeatedly check the service health, followed by an appropriate delay, forever.
-/// The function returns a channel receiver as a stream of `HealthCheckBundle`s and an
-/// `AbortHandle` which can be used to stop the checks.
+/// The function returns the receiving end of a channel that acts as a stream of
+/// `HealthCheckBundle`s. When this receiving end is dropped or closed health checking will be
+/// stopped.
 pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
                         hook: Option<Arc<HealthCheckHook>>,
                         nominal_interval: HealthCheckInterval,
                         service_group: ServiceGroup,
                         package: Pkg,
                         password: Option<String>)
-                        -> (UnboundedReceiver<HealthCheckBundle>, AbortHandle) {
+                        -> UnboundedReceiver<HealthCheckBundle> {
     // TODO (CM): If we wanted to keep track of how many times
     // a health check has failed in the past X executions, or
     // do similar historical tracking, here's where we'd do
@@ -183,7 +179,7 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
     let service_group_clone = service_group.clone();
     let (tx, rx) = mpsc::unbounded_channel();
 
-    let f = async move {
+    tokio::spawn(async move {
         loop {
             let (status, result) = check(Arc::clone(&supervisor),
                                          hook.as_ref().map(Arc::clone),
@@ -199,26 +195,21 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
                 HealthCheckInterval::default()
             };
 
-            // TODO (DM): This can only fail if the receiving end is closed or dorpped. With that
-            // said, instead of returning an `AbortHandle` we could have the caller drop the
-            // receiving end and use that to break from this loop, but this would require reworking
-            // of the manger.
-            tx.send(HealthCheckBundle { status,
-                                        result,
-                                        interval })
-              .ok();
+            // This can only fail if the receiving end is closed or dropped indicating to stop
+            // executing health checks.
+            if tx.send(HealthCheckBundle { status,
+                                           result,
+                                           interval })
+                 .is_err()
+            {
+                break;
+            }
 
             trace!("Next health check for {} in {}", service_group, interval);
-
             time::delay_for(interval.into()).await;
         }
-    };
+        outputln!(preamble service_group_clone, "Health checking has been stopped");
+    });
 
-    let (f, handle) = future::abortable(f);
-    let f = f.map(move |_| {
-                 outputln!(preamble service_group_clone, "Health checking has been stopped");
-             });
-    tokio::spawn(f);
-
-    (rx, handle)
+    rx
 }
