@@ -1,4 +1,5 @@
-use crate::error::Error;
+use crate::{error::Error,
+            manager::service::HealthCheckResult};
 use habitat_butterfly::{member::{Health,
                                  Member,
                                  MemberList,
@@ -10,6 +11,7 @@ use habitat_butterfly::{member::{Health,
                                           SysInfo},
                                 service_config::ServiceConfig as ServiceConfigRumor,
                                 service_file::ServiceFile as ServiceFileRumor,
+                                service_health::ServiceHealth as ServiceHealthRumor,
                                 ConstIdRumor as _,
                                 RumorStore}};
 use habitat_common::outputln;
@@ -44,6 +46,7 @@ pub struct CensusRing {
     last_membership_counter: usize,
     last_service_config_counter: usize,
     last_service_file_counter: usize,
+    last_service_health_counter: usize,
 }
 
 impl CensusRing {
@@ -62,7 +65,8 @@ impl CensusRing {
                      last_election_update_counter: 0,
                      last_membership_counter: 0,
                      last_service_config_counter: 0,
-                     last_service_file_counter: 0, }
+                     last_service_file_counter: 0,
+                     last_service_health_counter: 0, }
     }
 
     /// # Locking (see locking.md)
@@ -76,7 +80,8 @@ impl CensusRing {
                                       election_update_rumors: &RumorStore<ElectionUpdateRumor>,
                                       member_list: &MemberList,
                                       service_config_rumors: &RumorStore<ServiceConfigRumor>,
-                                      service_file_rumors: &RumorStore<ServiceFileRumor>) {
+                                      service_file_rumors: &RumorStore<ServiceFileRumor>,
+                                      service_health_rumors: &RumorStore<ServiceHealthRumor>) {
         // If ANY new rumor, of any type, has been received,
         // reconstruct the entire census state to ensure consistency
         if (service_rumors.get_update_counter() > self.last_service_counter)
@@ -85,6 +90,7 @@ impl CensusRing {
            || (election_update_rumors.get_update_counter() > self.last_election_update_counter)
            || (service_config_rumors.get_update_counter() > self.last_service_config_counter)
            || (service_file_rumors.get_update_counter() > self.last_service_file_counter)
+           || (service_health_rumors.get_update_counter() > self.last_service_health_counter)
         {
             self.changed = true;
 
@@ -93,6 +99,7 @@ impl CensusRing {
             self.update_from_election_update_store_rsr(election_update_rumors);
             self.update_from_service_config_rsr(cache_key_path, service_config_rumors);
             self.update_from_service_files_rsr(cache_key_path, service_file_rumors);
+            self.update_from_service_health_rsr(service_health_rumors);
 
             // Update our counters to reflect current state.
             self.last_membership_counter = member_list.get_update_counter();
@@ -101,6 +108,7 @@ impl CensusRing {
             self.last_election_update_counter = election_update_rumors.get_update_counter();
             self.last_service_config_counter = service_config_rumors.get_update_counter();
             self.last_service_file_counter = service_file_rumors.get_update_counter();
+            self.last_service_health_counter = service_health_rumors.get_update_counter();
         } else {
             self.changed = false;
         }
@@ -216,6 +224,21 @@ impl CensusRing {
             }
         }
     }
+
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (read)
+    fn update_from_service_health_rsr(&mut self,
+                                      service_health_rumors: &RumorStore<ServiceHealthRumor>) {
+        for (service_group, rumors) in service_health_rumors.lock_rsr().iter() {
+            if let Ok(sg) = service_group_from_str(service_group) {
+                if let Some(service_health) = rumors.get(ServiceHealthRumor::const_id()) {
+                    if let Some(census_group) = self.census_groups.get_mut(&sg) {
+                        census_group.update_from_service_health_rumor(service_health);
+                    }
+                }
+            }
+        }
+    }
 }
 
 /// This is a proxy struct to represent what information we're writing to the dat file, and
@@ -245,6 +268,8 @@ impl<'a> Serialize for CensusRingProxy<'a> {
                                &self.0.last_service_config_counter)?;
         strukt.serialize_field("last_service_file_counter",
                                &self.0.last_service_file_counter)?;
+        strukt.serialize_field("last_service_health_counter",
+                               &self.0.last_service_health_counter)?;
         strukt.end()
     }
 }
@@ -506,6 +531,12 @@ impl CensusGroup {
         }
     }
 
+    fn update_from_service_health_rumor(&mut self, service_health: &ServiceHealthRumor) {
+        if let Some(census_member) = self.find_member_mut(&service_health.member_id) {
+            census_member.update_from_service_health_rumor(service_health);
+        }
+    }
+
     fn find_member_mut(&mut self, member_id: &str) -> Option<&mut CensusMember> {
         self.population.get_mut(member_id)
     }
@@ -580,6 +611,8 @@ pub struct CensusMember {
     pub suspect: bool,
     pub confirmed: bool,
     pub departed: bool,
+    pub service_health: HealthCheckResult,
+    pub service_health_incarnation: u64,
     // Maps must be represented last in a serializable struct for the current version of the toml
     // crate. Additionally, this deserialization method is required to correct any ordering issues
     // with the table being serialized - https://docs.rs/toml/0.4.0/toml/ser/fn.tables_last.html
@@ -601,6 +634,12 @@ impl CensusMember {
         };
         self.sys = rumor.sys.clone();
         self.cfg = toml::from_slice(&rumor.cfg).unwrap_or_default();
+    }
+
+    fn update_from_service_health_rumor(&mut self, rumor: &ServiceHealthRumor) {
+        if rumor.incarnation > self.service_health_incarnation {
+            self.service_health = rumor.health.into();
+        }
     }
 
     fn update_from_election_rumor(&mut self, election: &ElectionRumor) -> bool {
@@ -715,6 +754,9 @@ impl<'a> Serialize for CensusMemberProxy<'a> {
         strukt.serialize_field("suspect", &self.suspect)?;
         strukt.serialize_field("confirmed", &self.confirmed)?;
         strukt.serialize_field("departed", &self.departed)?;
+        strukt.serialize_field("service_health", &self.service_health)?;
+        strukt.serialize_field("service_health_incarnation",
+                               &self.service_health_incarnation)?;
         strukt.serialize_field("cfg", &self.cfg)?;
         strukt.end()
     }
@@ -833,6 +875,7 @@ mod tests {
 
         let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
+        let service_health_store: RumorStore<ServiceHealthRumor> = RumorStore::default();
         let mut ring = CensusRing::new("member-b".to_string());
         ring.update_from_rumors_rsr_mlr(&*CACHE_KEY_PATH,
                                         &service_store,
@@ -840,7 +883,8 @@ mod tests {
                                         &election_update_store,
                                         &member_list,
                                         &service_config_store,
-                                        &service_file_store);
+                                        &service_file_store,
+                                        &service_health_store);
 
         (ring, sg_one, sg_two)
     }
@@ -870,6 +914,8 @@ mod tests {
                        suspect: health == Health::Suspect,
                        confirmed: health == Health::Confirmed,
                        departed: health == Health::Departed,
+                       service_health: HealthCheckResult::Unknown,
+                       service_health_incarnation: 0,
                        cfg: toml::value::Table::new() }
     }
 

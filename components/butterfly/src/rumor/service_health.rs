@@ -6,7 +6,8 @@ use crate::{error::{Error,
                                   Rumor as ProtoRumor,
                                   RumorPayload},
                        FromProto},
-            rumor::{Rumor,
+            rumor::{ConstIdRumor,
+                    Rumor,
                     RumorType}};
 use habitat_core::service::ServiceGroup;
 use std::{cmp::Ordering,
@@ -128,4 +129,8 @@ impl Rumor for ServiceHealth {
     fn id(&self) -> &str { &self.member_id }
 
     fn key(&self) -> &str { &self.service_group }
+}
+
+impl ConstIdRumor for ServiceHealth {
+    fn const_id() -> &'static str { "service_health" }
 }

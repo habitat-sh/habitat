@@ -687,6 +687,7 @@ mod tests {
                                               SysInfo},
                                     service_config::ServiceConfig as ServiceConfigRumor,
                                     service_file::ServiceFile as ServiceFileRumor,
+                                    service_health::ServiceHealth as ServiceHealthRumor,
                                     RumorStore}};
     use habitat_common::{templating::{config::Cfg,
                                       package::Pkg,
@@ -793,6 +794,7 @@ mod tests {
 
         let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
+        let service_health_store: RumorStore<ServiceHealthRumor> = RumorStore::default();
 
         ring.update_from_rumors_rsr_mlr(&*CACHE_KEY_PATH,
                                         &service_store,
@@ -800,7 +802,8 @@ mod tests {
                                         &election_update_store,
                                         &member_list,
                                         &service_config_store,
-                                        &service_file_store);
+                                        &service_file_store,
+                                        &service_health_store);
 
         let bindings = iter::empty::<&ServiceBind>();
 

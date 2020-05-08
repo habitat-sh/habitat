@@ -1135,7 +1135,8 @@ impl Manager {
                                             &self.butterfly.update_store,
                                             &self.butterfly.member_list,
                                             &self.butterfly.service_config_store,
-                                            &self.butterfly.service_file_store);
+                                            &self.butterfly.service_file_store,
+                                            &self.butterfly.service_health_store);
 
             if self.check_for_changed_services_msr() || self.census_ring.read().changed() {
                 self.persist_state_rsr_mlr_gsw_msr().await;

@@ -56,6 +56,17 @@ impl Into<service_health::Health> for HealthCheckResult {
     }
 }
 
+impl From<service_health::Health> for HealthCheckResult {
+    fn from(health: service_health::Health) -> Self {
+        match health {
+            service_health::Health::Ok => HealthCheckResult::Ok,
+            service_health::Health::Warning => HealthCheckResult::Warning,
+            service_health::Health::Critical => HealthCheckResult::Critical,
+            service_health::Health::Unknown => HealthCheckResult::Unknown,
+        }
+    }
+}
+
 impl fmt::Display for HealthCheckResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
@@ -66,6 +77,10 @@ impl fmt::Display for HealthCheckResult {
         };
         write!(f, "{}", msg)
     }
+}
+
+impl Default for HealthCheckResult {
+    fn default() -> Self { Self::Unknown }
 }
 
 /// The possible statuses from running a health check hook.

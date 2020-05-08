@@ -383,7 +383,8 @@ fn select_first(census_group: &CensusGroup) -> Option<SvcMember<'_>> {
 mod tests {
     use super::*;
     use crate::{census::CensusMember,
-                manager::service::Cfg,
+                manager::service::{Cfg,
+                                   HealthCheckResult},
                 test_helpers::*};
     use habitat_butterfly::rumor::service::SysInfo;
     use habitat_common::templating::{config::PackageConfigPaths,
@@ -478,6 +479,8 @@ two = 2
                                            suspect: false,
                                            confirmed: false,
                                            departed: false,
+                                           service_health: HealthCheckResult::Unknown,
+                                           service_health_incarnation: 0,
                                            cfg: toml::value::Table::new(), };
         SvcMember::new_owned(census_member)
     }
