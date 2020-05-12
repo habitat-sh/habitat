@@ -10,7 +10,6 @@ brew update
 
 brew install \
   libarchive \
-  libsodium \
   node \
   openssl \
   pkg-config \

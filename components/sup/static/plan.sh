@@ -6,7 +6,6 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_deps=(core/busybox-static)
 pkg_build_deps=(
   core/musl core/zlib-musl core/xz-musl core/bzip2-musl core/libarchive-musl
-  core/openssl-musl core/libsodium-musl
   core/coreutils core/cacerts core/rust/"$(cat "$SRC_PATH/../../../rust-toolchain")" core/gcc
 )
 
@@ -34,7 +33,6 @@ do_prepare() {
   export OPENSSL_LIB_DIR=$(pkg_path_for openssl-musl)/lib
   export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl-musl)/include
   export OPENSSL_STATIC=true
-  export SODIUM_LIB_DIR=$(pkg_path_for libsodium-musl)/lib
 
   # Used to find libgcc_s.so.1 when compiling `build.rs` in dependencies. Since
   # this used only at build time, we will use the version found in the gcc

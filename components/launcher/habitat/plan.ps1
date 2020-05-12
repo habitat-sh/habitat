@@ -6,7 +6,6 @@ $pkg_deps=@(
     "core/openssl",
     "core/zlib",
     "core/libarchive",
-    "core/libsodium",
     "core/xz"
 )
 $pkg_bin_dirs = @("bin")
@@ -29,7 +28,6 @@ function Invoke-Prepare {
     $env:PLAN_VERSION               = "$pkg_version/$pkg_release"
     $env:LIB                        += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
     $env:INCLUDE                    += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
-    $env:SODIUM_LIB_DIR             = "$(Get-HabPackagePath "libsodium")/lib"
     $env:LIBARCHIVE_INCLUDE_DIR     = "$(Get-HabPackagePath "libarchive")/include"
     $env:LIBARCHIVE_LIB_DIR         = "$(Get-HabPackagePath "libarchive")/lib"
     $env:OPENSSL_LIBS               = 'ssleay32:libeay32'
@@ -63,7 +61,6 @@ function Invoke-Install {
     Copy-Item "$(Get-HabPackagePath "openssl")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "zlib")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "libarchive")/bin/*.dll" "$pkg_prefix/bin"
-    Copy-Item "$(Get-HabPackagePath "libsodium")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "xz")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2015")/bin/*" "$pkg_prefix/bin"
 }

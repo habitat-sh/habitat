@@ -10,7 +10,6 @@ sudo -E pacman -S --noconfirm \
   gdb \
   git \
   libarchive \
-  libsodium \
   man \
   npm \
   openssl \
