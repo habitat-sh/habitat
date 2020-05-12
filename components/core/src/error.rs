@@ -146,6 +146,8 @@ pub enum Error {
     WaitpidFailed(String),
     /// Occurs when a `kill` libc call returns an error.
     SignalFailed(i32, io::Error),
+    /// Occurs when the sodium library cannot be initialized.
+    SodiumInitFailed,
     /// Occurs when a `CreateToolhelp32Snapshot` win32 call returns an error.
     CreateToolhelp32SnapshotFailed(String),
     /// Occurs when a `GetExitCodeProcess` win32 call returns an error.
@@ -338,6 +340,7 @@ impl fmt::Display for Error {
             Error::SignalFailed(ref r, ref e) => {
                 format!("Failed to send a signal to the child process: {}, {}", r, e)
             }
+            Error::SodiumInitFailed => "Sodium library initialization failed".to_string(),
             Error::GetExitCodeProcessFailed(ref e) => e.to_string(),
             Error::CreateToolhelp32SnapshotFailed(ref e) => e.to_string(),
             Error::WaitForSingleObjectFailed(ref e) => e.to_string(),

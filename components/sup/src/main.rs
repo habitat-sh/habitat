@@ -107,7 +107,7 @@ fn main() {
 }
 
 fn boot() -> Option<LauncherCli> {
-    if !crypto::init() {
+    if crypto::init().is_err() {
         println!("Crypto initialization failed!");
         process::exit(1);
     }

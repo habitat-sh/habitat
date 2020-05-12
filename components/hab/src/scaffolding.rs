@@ -21,7 +21,7 @@ const SCAFFOLDING_RUBY_IDENT: &str = "core/scaffolding-ruby";
 pub fn scaffold_check(ui: &mut UI, maybe_scaffold: Option<&str>) -> Result<Option<PackageIdent>> {
     match maybe_scaffold {
         Some(scaffold) => {
-            init();
+            init()?;
             match scaffold.to_lowercase().as_ref() {
                 SCAFFOLDING_GO_IDENT | "go" => {
                     let ident = PackageIdent::from_str(SCAFFOLDING_GO_IDENT)?;

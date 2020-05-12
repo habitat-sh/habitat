@@ -23,8 +23,9 @@ pub fn hash_file<P>(filename: P) -> Result<String>
 }
 
 pub fn hash_string(data: &str) -> String {
-    let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES];
+    let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES as usize];
     let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
+    #[allow(clippy::cast_ptr_alignment)]
     let pst = st.as_mut_ptr() as *mut libsodium_sys::crypto_generichash_state;
     unsafe {
         libsodium_sys::crypto_generichash_init(pst, ptr::null_mut(), 0, out.len());
@@ -35,8 +36,9 @@ pub fn hash_string(data: &str) -> String {
 }
 
 pub fn hash_bytes(data: &[u8]) -> String {
-    let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES];
+    let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES as usize];
     let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
+    #[allow(clippy::cast_ptr_alignment)]
     let pst = st.as_mut_ptr() as *mut libsodium_sys::crypto_generichash_state;
     unsafe {
         libsodium_sys::crypto_generichash_init(pst, ptr::null_mut(), 0, out.len());
@@ -47,8 +49,9 @@ pub fn hash_bytes(data: &[u8]) -> String {
 }
 
 pub fn hash_reader(reader: &mut BufReader<File>) -> Result<String> {
-    let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES];
+    let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES as usize];
     let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
+    #[allow(clippy::cast_ptr_alignment)]
     let pst = st.as_mut_ptr() as *mut libsodium_sys::crypto_generichash_state;
     unsafe {
         libsodium_sys::crypto_generichash_init(pst, ptr::null_mut(), 0, out.len());
