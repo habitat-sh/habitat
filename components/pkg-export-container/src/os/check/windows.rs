@@ -1,5 +1,6 @@
-use crate::{error::Result,
-            util};
+use crate::error::Result;
+use habitat_core::util::docker;
+use std::process::Command;
 
 /// Currently when exporting containers on Windows, the Docker daemon
 /// *must* be in Windows mode (i.e., only Windows containers can be
@@ -42,7 +43,7 @@ impl DockerOS {
     /// daemon may report "Windows" or "Linux", depending on what mode
     /// it is currently running in.
     fn current() -> DockerOS {
-        let mut cmd = util::docker_cmd();
+        let mut cmd = Command::new(docker::command_path().expect("Unable to locate docker"));
         cmd.arg("version").arg("--format='{{.Server.Os}}'");
         debug!("Running command: {:?}", cmd);
         let result = cmd.output().expect("Docker command failed to spawn");

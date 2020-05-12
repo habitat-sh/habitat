@@ -1,16 +1,14 @@
 use crate::{build::BuildRoot,
-            error::{Error,
-                    Result},
+            engine::Engine,
+            error::Result,
             naming::Naming,
-            util,
-            Credentials};
+            util};
 use failure::SyncFailure;
 use habitat_common::ui::{Status,
                          UIWriter,
                          UI};
 use habitat_core::package::PackageIdent;
 use handlebars::Handlebars;
-use serde_json;
 use std::{fs,
           path::{Path,
                  PathBuf},
@@ -121,46 +119,18 @@ impl ImageBuilder {
     /// # Errors
     ///
     /// * If building the image fails
-    pub fn build(self) -> Result<ContainerImage> {
-        let mut cmd = util::docker_cmd();
-        cmd.current_dir(&self.workdir)
-           .arg("build")
-           .arg("--force-rm");
-        if let Some(ref mem) = self.memory {
-            cmd.arg("--memory").arg(mem);
-        }
-        for identifier in &self.expanded_identifiers() {
-            cmd.arg("--tag").arg(identifier);
-        }
-        cmd.arg(".");
-        debug!("Running: {:?}", &cmd);
-        let exit_status = cmd.spawn()?.wait()?;
-        if !exit_status.success() {
-            return Err(Error::BuildFailed(exit_status).into());
-        }
+    pub fn build(self, engine: &Engine) -> Result<ContainerImage> {
+        let id = engine.build(&self.workdir,
+                              &self.expanded_identifiers(),
+                              self.memory.as_deref())?;
 
-        let id = match self.tags.first() {
-            Some(tag) => self.image_id(&format!("{}:{}", &self.name, tag))?,
-            None => self.image_id(&self.name)?,
-        };
-
+        // TODO (CM): Once ContainerImage doesn't need access to
+        // workdir, we could just have Engine::build return a
+        // ContainerImage directly, which is appealing.
         Ok(ContainerImage { id,
                             name: self.name,
                             tags: self.tags,
                             workdir: self.workdir.to_owned() })
-    }
-
-    fn image_id(&self, image_tag: &str) -> Result<String> {
-        let mut cmd = util::docker_cmd();
-        cmd.arg("images").arg("-q").arg(image_tag);
-        debug!("Running: {:?}", &cmd);
-        let output = cmd.output()?;
-        let stdout = String::from_utf8_lossy(&output.stdout);
-
-        match stdout.lines().next() {
-            Some(id) => Ok(id.to_string()),
-            None => Err(Error::DockerImageIdNotFound(image_tag.to_string()).into()),
-        }
     }
 }
 
@@ -183,70 +153,8 @@ impl Identified for ContainerImage {
 }
 
 impl ContainerImage {
-    /// Pushes the image, with all tags, to a remote registry using the provided
-    /// `Credentials`.
-    ///
-    /// # Errors
-    ///
-    /// * If a registry login is not successful
-    /// * If a pushing one or more of the image tags fails
-    /// * If a registry logout is not successful
-    pub fn push(&self,
-                ui: &mut UI,
-                credentials: &Credentials,
-                registry_url: Option<&str>)
-                -> Result<()> {
-        ui.begin(format!("Pushing image '{}' with all tags to remote registry",
-                         self.name))?;
-        self.create_docker_config_file(credentials, registry_url)
-            .unwrap();
-
-        for image_tag in self.expanded_identifiers() {
-            ui.status(Status::Uploading,
-                      format!("image '{}' to remote registry", image_tag))?;
-            let mut cmd = util::docker_cmd();
-            cmd.arg("--config");
-            cmd.arg(self.workdir.to_str().unwrap());
-            cmd.arg("push").arg(&image_tag);
-            debug!("Running: {:?}", &cmd);
-            let exit_status = cmd.spawn()?.wait()?;
-            if !exit_status.success() {
-                return Err(Error::PushImageFailed(exit_status).into());
-            }
-            ui.status(Status::Uploaded, format!("image '{}'", &image_tag))?;
-        }
-
-        ui.end(format!("Image '{}' published with tags: {}",
-                       self.name,
-                       self.tags.join(", "),))?;
-
-        Ok(())
-    }
-
-    /// Removes the image from the local system along with all tags.
-    ///
-    /// # Errors
-    ///
-    /// * If one or more of the image tags cannot be removed
-    pub fn rm(self, ui: &mut UI) -> Result<()> {
-        ui.begin(format!("Removing local image '{}' with all tags", self.name))?;
-
-        for image_tag in self.expanded_identifiers() {
-            ui.status(Status::Deleting, format!("local image '{}'", image_tag))?;
-            let mut cmd = util::docker_cmd();
-            cmd.arg("rmi").arg(image_tag);
-            debug!("Running: {:?}", &cmd);
-            let exit_status = cmd.spawn()?.wait()?;
-            if !exit_status.success() {
-                return Err(Error::RemoveImageFailed(exit_status).into());
-            }
-        }
-
-        ui.end(format!("Local image '{}' with tags: {} cleaned up",
-                       self.name,
-                       self.tags.join(", "),))?;
-        Ok(())
-    }
+    // TODO (CM): temporary; we shouldn't use this at all
+    pub fn workdir(&self) -> &Path { self.workdir.as_path() }
 
     /// Create a build report with image metadata in the given path.
     ///
@@ -313,28 +221,6 @@ impl ContainerImage {
                    old_report.display(),
                    e);
         }
-    }
-
-    pub fn create_docker_config_file(&self,
-                                     credentials: &Credentials,
-                                     registry_url: Option<&str>)
-                                     -> Result<()> {
-        let config = self.workdir.join("config.json");
-        fs::create_dir_all(&self.workdir)?;
-        let registry = match registry_url {
-            Some(url) => url,
-            None => "https://index.docker.io/v1/",
-        };
-        debug!("Using registry: {:?}", registry);
-        let json = json!({
-            "auths": {
-                registry: {
-                    "auth": credentials.token
-                }
-            }
-        });
-        util::write_file(&config, &serde_json::to_string(&json).unwrap())?;
-        Ok(())
     }
 }
 
@@ -466,7 +352,8 @@ impl BuildContext {
     pub fn export(&self,
                   ui: &mut UI,
                   naming: &Naming,
-                  memory: Option<&str>)
+                  memory: Option<&str>,
+                  engine: &Engine)
                   -> Result<ContainerImage> {
         ui.status(Status::Creating, "image")?;
         let ident = self.0.ctx().installed_primary_svc_ident()?;
@@ -483,6 +370,6 @@ impl BuildContext {
         if let Some(memory) = memory {
             builder = builder.memory(memory);
         }
-        builder.build()
+        builder.build(engine)
     }
 }
