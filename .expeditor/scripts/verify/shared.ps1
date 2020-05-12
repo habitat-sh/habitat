@@ -48,7 +48,6 @@ function Initialize-Environment {
     $env:OPENSSL_INCLUDE_DIR        = "$opensslDir\include"
     $env:LIBZMQ_PREFIX              = "$zeromqDir"
     $env:SSL_CERT_FILE              = "$cacertsDir\ssl\certs\cacert.pem"
-    $env:SODIUM_STATIC              = "true"
     $env:OPENSSL_STATIC             = "true"
     $env:LD_LIBRARY_PATH            = "$env:LIBZMQ_PREFIX\lib;$env:SODIUM_LIB_DIR;$zlibDir\lib;$xzDir\lib"
     $env:PATH                       = New-PathString -StartingPath $env:PATH -Path "$protobufDir\bin;$zeromqDir\bin;$libarchiveDir\bin;$libsodiumDir\bin;$zlibDir\bin;$xzDir\bin;$opensslDir\bin"

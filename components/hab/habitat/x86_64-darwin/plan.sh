@@ -43,7 +43,6 @@ do_prepare() {
   export OPENSSL_STATIC=true
 
   export SODIUM_LIB_DIR=/opt/mac-bootstrapper/embedded/lib
-  export SODIUM_STATIC=true
 }
 
 # Override the do_strip implementation that the x86_64-linux plan.sh includes
