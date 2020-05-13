@@ -56,7 +56,7 @@ pub async fn start(ui: &mut UI,
                    auto_build: BuildOnUpload,
                    key_path: &Path)
                    -> Result<()> {
-    let mut archive = PackageArchive::new(PathBuf::from(archive_path));
+    let mut archive = PackageArchive::new(PathBuf::from(archive_path))?;
 
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
@@ -211,7 +211,7 @@ async fn attempt_upload_dep(ui: &mut UI,
     let candidate_path = archives_dir.join(ident.archive_name_with_target(target).unwrap());
 
     if candidate_path.is_file() {
-        let mut archive = PackageArchive::new(candidate_path);
+        let mut archive = PackageArchive::new(candidate_path)?;
         upload_public_key(ui, &token, api_client, &mut archive, key_path).await?;
         upload_into_depot(ui,
                           api_client,

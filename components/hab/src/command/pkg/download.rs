@@ -347,7 +347,7 @@ impl<'a> DownloadTask<'a> {
         }
 
         // At this point the artifact is in the download directory...
-        let mut artifact = PackageArchive::new(self.downloaded_artifact_path(ident, target));
+        let mut artifact = PackageArchive::new(self.downloaded_artifact_path(ident, target))?;
         self.fetch_keys_and_verify_artifact(ui, ident, target, &mut artifact)
             .await?;
         Ok(artifact)
