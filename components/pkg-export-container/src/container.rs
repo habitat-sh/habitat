@@ -1,7 +1,8 @@
 use crate::{build::BuildRoot,
             engine::Engine,
             error::Result,
-            naming::Naming,
+            naming::{ImageIdentifiers,
+                     Naming},
             util};
 use failure::SyncFailure;
 use habitat_common::ui::{Status,
@@ -262,7 +263,10 @@ impl BuildContext {
 
         // TODO (CM): Ideally, we'd toss this error much earlier,
         // since this error would be based on user input errors
-        let (name, tags, expanded_identifiers) = naming.image_identifiers(&ident, &channel)?;
+        let ImageIdentifiers { name,
+                               tags,
+                               expanded_identifiers, } =
+            naming.image_identifiers(&ident, &channel)?;
 
         let id = engine.build(self.0.workdir(), &expanded_identifiers, memory)?;
 
