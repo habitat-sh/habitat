@@ -51,7 +51,7 @@ impl ContainerImage {
     // TODO (CM): temporary; we shouldn't use this at all
     pub fn workdir(&self) -> &Path { self.workdir.as_path() }
 
-    pub fn expanded_identifiers(&self) -> &Vec<String> { &self.expanded_identifiers }
+    pub fn expanded_identifiers(&self) -> &[String] { &self.expanded_identifiers }
 
     pub fn name(&self) -> String { self.name.clone() }
 
