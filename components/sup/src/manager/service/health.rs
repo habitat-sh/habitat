@@ -8,7 +8,8 @@ use habitat_common::{outputln,
                      templating::package::Pkg};
 use habitat_core::service::{HealthCheckInterval,
                             ServiceGroup};
-use std::{convert::TryFrom,
+use std::{cmp,
+          convert::TryFrom,
           fmt,
           sync::{Arc,
                  Mutex},
@@ -191,8 +192,12 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
                 // routine health check
                 nominal_interval
             } else {
-                // special health check interval
-                HealthCheckInterval::default()
+                // TODO (DM): Implment exponential backoff
+                // https://github.com/habitat-sh/habitat/issues/7265
+                // Until exponential backoff is implmented never wait longer than the default
+                // interval following a failing health check. If the configured interval is less
+                // than the default interval use it instead.
+                cmp::min(nominal_interval, HealthCheckInterval::default())
             };
 
             // This can only fail if the receiving end is closed or dropped indicating to stop

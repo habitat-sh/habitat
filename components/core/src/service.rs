@@ -255,7 +255,16 @@ impl FromStr for ServiceGroup {
 }
 
 /// Represents how far apart to run health checks for individual services
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug,
+         Clone,
+         Copy,
+         Ord,
+         PartialOrd,
+         PartialEq,
+         Eq,
+         Hash,
+         Serialize,
+         Deserialize)]
 pub struct HealthCheckInterval(Duration);
 
 impl HealthCheckInterval {
