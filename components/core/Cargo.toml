@@ -18,7 +18,6 @@ dns-lookup = "*"
 errno = "*"
 hex = "*"
 lazy_static = "*"
-libarchive = "*"
 libc = "*"
 libsodium-sys = "*"
 log = "*"
@@ -30,10 +29,12 @@ serde = "*"
 serde_derive = "*"
 serde_json = "*"
 sodiumoxide = "*"
+tar = "*"
 tempfile = "*"
 toml = { version = "*", default-features = false }
 typemap = "*"
 url = "*"
+xz2 = "*"
 
 [target.'cfg(not(windows))'.dependencies]
 # Pulling from git until

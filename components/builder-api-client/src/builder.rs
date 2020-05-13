@@ -1012,13 +1012,13 @@ impl BuilderAPIClient {
         let req_builder = self.0.get_with_custom_url(&package_download(ident), |u| {
                                     u.set_query(Some(&format!("target={}", target)))
                                 });
-        self.download(req_builder,
-                      dst_path.as_ref(),
-                      token,
-                      DEFAULT_CACHED_ARTIFACT_PERMISSIONS,
-                      progress)
-            .await
-            .map(PackageArchive::new)
+        let path = self.download(req_builder,
+                                 dst_path.as_ref(),
+                                 token,
+                                 DEFAULT_CACHED_ARTIFACT_PERMISSIONS,
+                                 progress)
+                       .await?;
+        Ok(PackageArchive::new(path)?)
     }
 
     /// Checks whether a specified package exists
