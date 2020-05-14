@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.23 -->
-## [1.6.23](https://github.com/habitat-sh/habitat/tree/1.6.23) (2020-05-12)
+<!-- latest_release 1.6.24 -->
+## [1.6.24](https://github.com/habitat-sh/habitat/tree/1.6.24) (2020-05-14)
 
 #### Merged Pull Requests
-- [REFACTOR] Introduce &quot;Engine&quot; abstraction to `hab pkg export container` [#7677](https://github.com/habitat-sh/habitat/pull/7677) ([christophermaier](https://github.com/christophermaier))
+- REFACTOR: Remove ImageBuilder struct [#7682](https://github.com/habitat-sh/habitat/pull/7682) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
@@ -17,6 +17,7 @@
 - Config file support for `hab sup run` [#7658](https://github.com/habitat-sh/habitat/pull/7658) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.15 -->
 
 #### Merged Pull Requests
+- REFACTOR: Remove ImageBuilder struct [#7682](https://github.com/habitat-sh/habitat/pull/7682) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.24 -->
 - [REFACTOR] Introduce &quot;Engine&quot; abstraction to `hab pkg export container` [#7677](https://github.com/habitat-sh/habitat/pull/7677) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.23 -->
 - Cleanup health checking [#7676](https://github.com/habitat-sh/habitat/pull/7676) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.22 -->
 - Remove duplicated serialization logic in SvcMember [#7673](https://github.com/habitat-sh/habitat/pull/7673) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.20 -->
