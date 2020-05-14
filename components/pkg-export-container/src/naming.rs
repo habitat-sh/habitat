@@ -91,17 +91,36 @@ impl From<&ArgMatches<'_>> for Naming {
 // name may not start with a period or a dash and may contain a
 // maximum of 128 characters.
 
+/// Simple value type to contain the various kinds of image
+/// identifiers we're passing around.
+///
+/// With future refactorings, this hopefully goes away, but for now
+/// we'll err on the side of explicitness.
+pub struct ImageIdentifiers {
+    /// The bare name of an image, like "core/redis"
+    pub name:                 String,
+    /// A possibly empty `Vec` of bare tags, like "latest"
+    pub tags:                 Vec<String>,
+    /// A `Vec` containing the bare name concatenated with each bare
+    /// tag (or just the bare name, if no tags), like
+    /// "core/redis:latest".
+    ///
+    /// Guaranteed to have at least one member.
+    pub expanded_identifiers: Vec<String>,
+}
+
 impl Naming {
     // TODO (CM): I am skeptical of use of "channel" in any container
     // identifier, since that is not anything inherent to the package
     // we are containerizing.
 
     /// Return the image name, along with a (possibly empty) vector of
-    /// additional tags.
+    /// additional bare tags, and a vector containing "name:tag"
+    /// identifiers (or just "name" if there are no tags).
     pub fn image_identifiers(&self,
                              ident: &FullyQualifiedPackageIdent,
                              channel: &ChannelIdent)
-                             -> Result<(String, Vec<String>)> {
+                             -> Result<ImageIdentifiers> {
         let context = Self::rendering_context(ident, channel);
 
         let name = self.image_name(&context)?;
@@ -110,8 +129,13 @@ impl Naming {
                         self.version_release_tag(&context),
                         self.custom_tag(&context)?].into_iter()
                                                    .filter_map(|e| e)
-                                                   .collect();
-        Ok((name, tags))
+                                                   .collect::<Vec<String>>();
+
+        let expanded_identifiers = Self::expanded_identifiers(&name, &tags);
+
+        Ok(ImageIdentifiers { name,
+                              tags,
+                              expanded_identifiers })
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -207,6 +231,38 @@ impl Naming {
             "pkg_release": ident.release(),
             "channel": channel,
         })
+    }
+
+    /// Returns a non-empty collection of names this image is known
+    /// by.
+    ///
+    /// If an image has no tags, it includes just the name. If it
+    /// *does* have tags, it includes the tags prepended with the
+    /// name.
+    ///
+    /// Thus, you could get as little as:
+    ///
+    /// core/redis
+    ///
+    /// or as much as:
+    ///
+    /// core/redis:latest
+    /// core/redis:4.0.14
+    /// core/redis:4.0.14-20190319155852
+    /// core/redis:latest
+    /// core/redis:my-custom-tag
+    fn expanded_identifiers<S: AsRef<str>>(name: &str, tags: &[S]) -> Vec<String> {
+        let mut ids = vec![];
+
+        if tags.is_empty() {
+            ids.push(name.to_string());
+        } else {
+            for tag in tags {
+                ids.push(format!("{}:{}", name, tag.as_ref()));
+            }
+        }
+
+        ids
     }
 }
 
@@ -394,10 +450,14 @@ mod tests {
         let ident = ident();
         let channel = ChannelIdent::default();
 
-        let (name, tags) = naming.image_identifiers(&ident, &channel).unwrap();
+        let ImageIdentifiers { name,
+                               tags,
+                               expanded_identifiers, } =
+            naming.image_identifiers(&ident, &channel).unwrap();
 
         assert_eq!(name, "core/foo");
         assert!(tags.is_empty());
+        assert_eq!(expanded_identifiers, ["core/foo"])
     }
 
     #[test]
@@ -415,10 +475,18 @@ mod tests {
         let ident = ident();
         let channel = ChannelIdent::default();
 
-        let (name, tags) = naming.image_identifiers(&ident, &channel).unwrap();
+        let ImageIdentifiers { name,
+                               tags,
+                               expanded_identifiers, } =
+            naming.image_identifiers(&ident, &channel).unwrap();
 
         assert_eq!(name, "registry.mycompany.com:8080/v1/my-nifty/foo");
         assert_eq!(tags,
                    ["latest", "1.2.3", "1.2.3-20200430153200", "new-hotness"]);
+        assert_eq!(expanded_identifiers,
+                   ["registry.mycompany.com:8080/v1/my-nifty/foo:latest",
+                    "registry.mycompany.com:8080/v1/my-nifty/foo:1.2.3",
+                    "registry.mycompany.com:8080/v1/my-nifty/foo:1.2.3-20200430153200",
+                    "registry.mycompany.com:8080/v1/my-nifty/foo:new-hotness"]);
     }
 }
