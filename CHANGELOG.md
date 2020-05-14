@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.25 -->
-## [1.6.25](https://github.com/habitat-sh/habitat/tree/1.6.25) (2020-05-14)
+<!-- latest_release 1.6.26 -->
+## [1.6.26](https://github.com/habitat-sh/habitat/tree/1.6.26) (2020-05-14)
 
 #### Merged Pull Requests
-- Update sodiumoxide dependency [#7680](https://github.com/habitat-sh/habitat/pull/7680) ([davidMcneil](https://github.com/davidMcneil))
+- Fix minimum health check interval [#7683](https://github.com/habitat-sh/habitat/pull/7683) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
@@ -17,6 +17,7 @@
 - Config file support for `hab sup run` [#7658](https://github.com/habitat-sh/habitat/pull/7658) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.15 -->
 
 #### Merged Pull Requests
+- Fix minimum health check interval [#7683](https://github.com/habitat-sh/habitat/pull/7683) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.26 -->
 - Update sodiumoxide dependency [#7680](https://github.com/habitat-sh/habitat/pull/7680) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.25 -->
 - REFACTOR: Remove ImageBuilder struct [#7682](https://github.com/habitat-sh/habitat/pull/7682) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.24 -->
 - [REFACTOR] Introduce &quot;Engine&quot; abstraction to `hab pkg export container` [#7677](https://github.com/habitat-sh/habitat/pull/7677) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.23 -->
