@@ -33,6 +33,7 @@ sudo -E apt-get install -y --no-install-recommends \
   vim \
   wget
 
+# Install libsodium for zmq even though it will be automatically vendered with the sodiumoxide crate
 (cd /tmp && git clone https://github.com/jedisct1/libsodium.git)
 (cd /tmp/libsodium \
   && ./autogen.sh \

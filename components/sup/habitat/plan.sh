@@ -8,7 +8,6 @@ pkg_deps=(core/busybox-static
           core/glibc
           core/gcc-libs
           core/libarchive
-          core/libsodium
           core/openssl
           core/zeromq)
 pkg_build_deps=(core/coreutils
@@ -66,7 +65,6 @@ do_prepare() {
   export LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for libarchive)/include
   export OPENSSL_LIB_DIR=$(pkg_path_for openssl)/lib
   export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl)/include
-  export SODIUM_LIB_DIR=$(pkg_path_for libsodium)/lib
   export LIBZMQ_PREFIX=$(pkg_path_for zeromq)
 
   # TODO (CM, FN): This is not needed to build the supervisor,

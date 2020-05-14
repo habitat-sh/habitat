@@ -12,7 +12,6 @@ pkg_build_deps=(core/musl
                 core/bzip2-musl
                 core/libarchive-musl
                 core/openssl-musl
-                core/libsodium-musl
                 core/coreutils
                 core/rust/"$(cat "$SRC_PATH/../../rust-toolchain")"
                 core/gcc
@@ -73,8 +72,6 @@ do_prepare() {
   export OPENSSL_LIB_DIR=$(pkg_path_for openssl-musl)/lib
   export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl-musl)/include
   export OPENSSL_STATIC=true
-  export SODIUM_LIB_DIR=$(pkg_path_for libsodium-musl)/lib
-  export SODIUM_STATIC=true
 
   # Used to find libgcc_s.so.1 when compiling `build.rs` in dependencies. Since
   # this used only at build time, we will use the version found in the gcc

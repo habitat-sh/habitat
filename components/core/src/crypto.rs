@@ -213,8 +213,10 @@
 pub use self::keys::{box_key_pair::BoxKeyPair,
                      sig_key_pair::SigKeyPair,
                      sym_key::SymKey};
+use crate::error::{Error,
+                   Result};
 use crypto;
-pub use sodiumoxide::init;
+use sodiumoxide;
 
 /// The suffix on the end of a public sig/box file
 pub static PUBLIC_KEY_SUFFIX: &str = "pub";
@@ -248,6 +250,8 @@ pub mod artifact;
 pub mod dpapi;
 pub mod hash;
 pub mod keys;
+
+pub fn init() -> Result<()> { sodiumoxide::init().map_err(|_| Error::SodiumInitFailed) }
 
 /// A comparison function that takes a consistent amount of time to compare
 /// values of a given number of bytes so as to be resistant to timing attacks.

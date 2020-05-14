@@ -35,7 +35,7 @@ mod inner {
         let command = match henv::var(EXPORT_CMD_ENVVAR) {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
-                init();
+                init()?;
                 let ident = match henv::var(EXPORT_PKG_IDENT_ENVVAR) {
                     Ok(ref ident_str) => PackageIdent::from_str(ident_str)?,
                     Err(_) => {
