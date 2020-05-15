@@ -161,3 +161,14 @@ Describe "hab pkg export container --multi-layer" {
         }
     }
 }
+
+if ($IsLinux) {
+    # TODO: Try to run the container when we have a core/podman package
+    Describe "hab pkg export container --engine=buildah" {
+        It "Runs successfully" {
+            $tag = New-CustomTag
+            hab pkg export container core/nginx --engine=buildah --tag-custom="$tag"
+            hab pkg exec core/buildah buildah rmi "core/nginx:$tag"
+        }
+    }
+}
