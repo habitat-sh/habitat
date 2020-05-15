@@ -9,7 +9,7 @@ install_rustup
 install_rust_toolchain "$toolchain"
 
 # TODO: these should be in a shared script?
-install_hab_pkg core/openssl core/xz core/zeromq core/protobuf
+install_hab_pkg core/openssl core/zeromq core/protobuf
 export OPENSSL_DIR # so the openssl crate knows what to build against
 OPENSSL_DIR="$(hab pkg path core/openssl)"
 export OPENSSL_STATIC=true # so the openssl crate builds statically
@@ -20,7 +20,7 @@ export LD_LIBRARY_PATH
 LD_LIBRARY_PATH="$(hab pkg path core/zeromq)/lib"
 # include these so that the cargo tests can bind to openssl at *runtime*
 export LIBRARY_PATH
-LIBRARY_PATH="$(hab pkg path core/openssl)/lib:$(hab pkg path core/xz)/lib"
+LIBRARY_PATH="$(hab pkg path core/openssl)/lib"
 # setup pkgconfig so the openssl crate can use pkg-config at *build* time
 export PKG_CONFIG_PATH
 PKG_CONFIG_PATH="$(hab pkg path core/openssl)/lib/pkgconfig"

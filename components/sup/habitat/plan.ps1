@@ -8,7 +8,6 @@ $pkg_deps=@(
     "core/openssl",
     "core/zlib",
     "core/visual-cpp-redist-2015",
-    "core/xz",
     "core/zeromq"
 )
 $pkg_build_deps = @(
@@ -66,7 +65,6 @@ function Invoke-Install {
     Copy-Item "$PLAN_CONTEXT/../static/named_pipe_service.ps1" "$pkg_prefix/bin/named_pipe_service.ps1"
     Copy-Item "$(Get-HabPackagePath "openssl")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "zlib")/bin/*.dll" "$pkg_prefix/bin"
-    Copy-Item "$(Get-HabPackagePath "xz")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "zeromq")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2015")/bin/*.dll" "$pkg_prefix/bin"
 }

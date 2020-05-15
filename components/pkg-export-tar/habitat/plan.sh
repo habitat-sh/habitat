@@ -7,7 +7,6 @@ pkg_license=('Apache-2.0')
 pkg_deps=()
 pkg_build_deps=(core/musl
                 core/zlib-musl
-                core/xz-musl
                 core/openssl-musl
                 core/coreutils
                 core/rust/"$(cat "$SRC_PATH/../../rust-toolchain")"
@@ -58,7 +57,6 @@ do_prepare() {
   build_line "Setting rustc_target=$rustc_target"
 
   la_ldflags="-L$(pkg_path_for zlib-musl)/lib -lz"
-  la_ldflags="$la_ldflags -L$(pkg_path_for xz-musl)/lib -llzma"
   la_ldflags="$la_ldflags -L$(pkg_path_for openssl-musl)/lib -lssl -lcrypto"
 
   export OPENSSL_LIB_DIR=$(pkg_path_for openssl-musl)/lib
