@@ -22,7 +22,6 @@ function Initialize-Environment {
         "core/openssl",
         "core/protobuf",
         "core/visual-cpp-build-tools-2015",
-        "core/xz",
         "core/zeromq",
         "core/zlib"
     )
@@ -31,7 +30,6 @@ function Initialize-Environment {
     $cacertsDir     = & hab pkg path core/cacerts
     $opensslDir     = & hab pkg path core/openssl
     $protobufDir    = & hab pkg path core/protobuf
-    $xzDir          = & hab pkg path core/xz
     $zeromqDir      = & hab pkg path core/zeromq
     $zlibDir        = & hab pkg path core/zlib
 
@@ -42,8 +40,8 @@ function Initialize-Environment {
     $env:LIBZMQ_PREFIX              = "$zeromqDir"
     $env:SSL_CERT_FILE              = "$cacertsDir\ssl\certs\cacert.pem"
     $env:OPENSSL_STATIC             = "true"
-    $env:LD_LIBRARY_PATH            = "$env:LIBZMQ_PREFIX\lib;$env:SODIUM_LIB_DIR;$zlibDir\lib;$xzDir\lib"
-    $env:PATH                       = New-PathString -StartingPath $env:PATH -Path "$protobufDir\bin;$zeromqDir\bin;$zlibDir\bin;$xzDir\bin;$opensslDir\bin"
+    $env:LD_LIBRARY_PATH            = "$env:LIBZMQ_PREFIX\lib;$env:SODIUM_LIB_DIR;$zlibDir\lib"
+    $env:PATH                       = New-PathString -StartingPath $env:PATH -Path "$protobufDir\bin;$zeromqDir\bin;$zlibDir\bin;$opensslDir\bin"
 
     $vsDir = & hab pkg path core/visual-cpp-build-tools-2015
     $env:LIB = "$(Get-Content "$vsDir\LIB_DIRS");$env:LIBZMQ_PREFIX\lib"

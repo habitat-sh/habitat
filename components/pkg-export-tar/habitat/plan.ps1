@@ -7,8 +7,7 @@ $pkg_deps=@(
     "core/docker",
     "core/openssl",
     "core/zlib",
-    "core/visual-cpp-redist-2015",
-    "core/xz"
+    "core/visual-cpp-redist-2015"
 )
 $pkg_build_deps = @(
     "core/visual-cpp-build-tools-2015",
@@ -62,6 +61,5 @@ function Invoke-Install {
     Copy-Item "$env:CARGO_TARGET_DIR/release/hab-pkg-export-tar.exe" "$pkg_prefix/bin/hab-pkg-export-tar.exe"
     Copy-Item "$(Get-HabPackagePath "openssl")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "zlib")/bin/*.dll" "$pkg_prefix/bin"
-    Copy-Item "$(Get-HabPackagePath "xz")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2015")/bin/*.dll" "$pkg_prefix/bin"
 }
