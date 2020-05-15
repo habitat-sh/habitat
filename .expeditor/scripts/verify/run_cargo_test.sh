@@ -31,7 +31,6 @@ if ${BUILDKITE:-false}; then
 fi
 
 # TODO: these should be in a shared script?
-sudo hab pkg install core/bzip2
 sudo hab pkg install core/openssl
 sudo hab pkg install core/xz
 sudo hab pkg install core/zeromq
@@ -47,7 +46,7 @@ export LD_LIBRARY_PATH
 LD_LIBRARY_PATH="$(hab pkg path core/zeromq)/lib"
 # include these so that the cargo tests can bind to openssl at *runtime*
 export LIBRARY_PATH
-LIBRARY_PATH="$(hab pkg path core/bzip2)/lib:$(hab pkg path core/openssl)/lib:$(hab pkg path core/xz)/lib"
+LIBRARY_PATH="$(hab pkg path core/openssl)/lib:$(hab pkg path core/xz)/lib"
 # setup pkgconfig so the openssl crate can use pkg-config at *build* time
 export PKG_CONFIG_PATH
 PKG_CONFIG_PATH="$(hab pkg path core/openssl)/lib/pkgconfig"
