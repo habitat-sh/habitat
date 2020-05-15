@@ -613,7 +613,7 @@ Set-RuntimeEnv VARIABLE_NAME VALUE [-force] [-IsPath]
 Set-BuildtimeEnv VARIABLE_NAME VALUE [-force] [-IsPath]
 ```
 
-In Powershell plans, if your variable contains values that are file paths pointing inside the Chef Habitat `/hab` directory, you can use the `-IsPath` flag to ensure that the path remains portable accross different Chef Habitat environments. For example in a local (non-Docker) Windows Studio, the following line:
+In Powershell plans, if your variable contains values that are file paths pointing inside the Chef Habitat `/hab` directory, you can use the `-IsPath` flag to ensure that the path remains portable across different Chef Habitat environments. For example in a local (non-Docker) Windows Studio, the following line:
 
 ```powershell
 Set-RuntimeEnv SSL_CERT_FILE "$(Get-HabPackagePath cacerts)/ssl/cert.pem"
@@ -1242,7 +1242,7 @@ Packages are installed in the `/hab/pkgs/` directory, and then further organized
 ---
 ## <a name="supervisor-config" id="supervisor-config" data-magellan-target="supervisor-config"> Supervisor Configuration File</a>
 
-Generate a Supervisor configuration file use it to set any of the 40+ Supervisor configuration settings instead of configuring them on the command line.
+Generate a Supervisor configuration file and use it to set any of the 40+ Supervisor configuration settings instead of configuring them on the command line.
 
 <div style="justify-content: center; display: flex; padding-top:2rem; padding-bottom:2rem">
   <iframe width="560" height="315" src="https://www.youtube.com/embed/B_ppJ1xaC5o" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen ></iframe>
@@ -1262,7 +1262,7 @@ The Supervisor settings look-up order:
 
 1. The fixed config file location `/hab/sup/default/config/sup.toml` on the Supervisor
 2. Files passed with the command, `hab sup run --config-files /config/file1.toml /config/file2.toml`, where
-    * You can pass more than one files command
+    * You can pass more than one file command
     * The settings in the later files overwrite those from the earlier, which means that for the same settings specified in both files in the command `hab sup run --config-files /config/file1.toml /config/file2.toml`, you will end up with the settings from `file2.toml` applied to the Supervisor
 3. From [environment variables](/docs/reference/#environment-variables), if they exist
 4. From settings passed from the [`hab sup run` command](/docs/habitat-cli/#hab-sup-run)
