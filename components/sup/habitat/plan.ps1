@@ -6,7 +6,6 @@ $pkg_bin_dirs = @("bin")
 $pkg_deps=@(
     "core/powershell/$(Get-Content "$PLAN_CONTEXT/../../../POWERSHELL_VERSION")",
     "core/openssl",
-    "core/zlib",
     "core/visual-cpp-redist-2015",
     "core/zeromq"
 )
@@ -64,7 +63,6 @@ function Invoke-Install {
     Copy-Item "$env:CARGO_TARGET_DIR/release/hab-sup.exe" "$pkg_prefix/bin/hab-sup.exe"
     Copy-Item "$PLAN_CONTEXT/../static/named_pipe_service.ps1" "$pkg_prefix/bin/named_pipe_service.ps1"
     Copy-Item "$(Get-HabPackagePath "openssl")/bin/*.dll" "$pkg_prefix/bin"
-    Copy-Item "$(Get-HabPackagePath "zlib")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "zeromq")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2015")/bin/*.dll" "$pkg_prefix/bin"
 }
