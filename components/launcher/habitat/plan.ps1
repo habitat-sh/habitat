@@ -3,8 +3,7 @@ $pkg_origin = "core"
 $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
 $pkg_deps=@(
-    "core/openssl",
-    "core/zlib"
+    "core/openssl"
 )
 $pkg_bin_dirs = @("bin")
 $pkg_build_deps = @(
@@ -55,6 +54,5 @@ function Invoke-Build {
 function Invoke-Install {
     Copy-Item "$env:CARGO_TARGET_DIR/release/hab-launch.exe" "$pkg_prefix/bin/hab-launch.exe"
     Copy-Item "$(Get-HabPackagePath "openssl")/bin/*.dll" "$pkg_prefix/bin"
-    Copy-Item "$(Get-HabPackagePath "zlib")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2015")/bin/*" "$pkg_prefix/bin"
 }

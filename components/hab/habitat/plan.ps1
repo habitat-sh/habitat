@@ -4,7 +4,6 @@ $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
 $pkg_deps=@(
     "core/openssl",
-    "core/zlib",
     "core/visual-cpp-redist-2015"
 )
 $pkg_bin_dirs = @("bin")
@@ -60,7 +59,6 @@ function Invoke-Install {
     Write-BuildLine "$HAB_CACHE_SRC_PATH/$pkg_dirname"
     Copy-Item "$env:CARGO_TARGET_DIR/release/hab.exe" "$pkg_prefix/bin/hab.exe"
     Copy-Item "$(Get-HabPackagePath "openssl")/bin/*.dll" "$pkg_prefix/bin"
-    Copy-Item "$(Get-HabPackagePath "zlib")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2015")/bin/*.dll" "$pkg_prefix/bin"
 }
 
