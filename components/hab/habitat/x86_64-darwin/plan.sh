@@ -33,11 +33,6 @@ do_prepare() {
   la_ldflags="$la_ldflags -L/opt/mac-bootstrapper/embedded/lib -lexpat"
   la_ldflags="$la_ldflags -L/opt/mac-bootstrapper/embedded/lib -liconv"
 
-  export LIBARCHIVE_LIB_DIR=/opt/mac-bootstrapper/embedded/lib
-  export LIBARCHIVE_INCLUDE_DIR=/opt/mac-bootstrapper/embedded/include
-  export LIBARCHIVE_LDFLAGS="$la_ldflags"
-  export LIBARCHIVE_STATIC=true
-
   export OPENSSL_LIB_DIR=/opt/mac-bootstrapper/embedded/lib
   export OPENSSL_INCLUDE_DIR=/opt/mac-bootstrapper/embedded/include
   export OPENSSL_STATIC=true

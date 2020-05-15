@@ -150,7 +150,6 @@ mod tests {
     // These are all the dependencies of all of the above
     pkg!(gcc_libs, "core/gcc-libs/8.2.0/20190115011926");
     pkg!(glibc, "core/glibc/2.27/20190115002733");
-    pkg!(libarchive, "core/libarchive/3.3.3/20190305214120");
     pkg!(libsodium, "core/libsodium/1.0.16/20190116014025");
     pkg!(openssl, "core/openssl/1.0.2r/20190305210149");
     pkg!(linux_headers, "core/linux-headers/4.17.12/20190115002705");
@@ -171,11 +170,9 @@ mod tests {
         graph.extend(&cacerts(), &[]);
 
         // Launcher and its dependencies
-        graph.extend(&launcher(),
-                     &[gcc_libs(), glibc(), libarchive(), libsodium(), openssl()]);
+        graph.extend(&launcher(), &[gcc_libs(), glibc(), libsodium(), openssl()]);
         graph.extend(&gcc_libs(), &[glibc()]);
         graph.extend(&glibc(), &[linux_headers()]);
-        graph.extend(&libarchive(), &[bzip2(), glibc(), openssl(), xz(), zlib()]);
         graph.extend(&bzip2(), &[glibc()]);
         graph.extend(&openssl(), &[cacerts(), glibc(), openssl_fips()]);
         graph.extend(&openssl_fips(), &[glibc()]);
@@ -188,7 +185,6 @@ mod tests {
                      &[busybox(),
                        gcc_libs(),
                        glibc(),
-                       libarchive(),
                        libsodium(),
                        openssl(),
                        zeromq()]);
@@ -226,7 +222,6 @@ mod tests {
                              openssl_fips(),
                              gcc_libs(),
                              glibc(),
-                             libarchive(),
                              libsodium(),
                              openssl(),
                              launcher(),

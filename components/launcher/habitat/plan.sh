@@ -5,7 +5,6 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_deps=(core/glibc
           core/gcc-libs
-          core/libarchive
           core/openssl)
 pkg_build_deps=(core/coreutils
                 core/rust/"$(cat "$SRC_PATH/../../rust-toolchain")"
@@ -41,8 +40,6 @@ do_prepare() {
   export PLAN_VERSION="${pkg_version}/${pkg_release}"
   build_line "Setting PLAN_VERSION=$PLAN_VERSION"
 
-  export LIBARCHIVE_LIB_DIR=$(pkg_path_for libarchive)/lib
-  export LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for libarchive)/include
   export OPENSSL_LIB_DIR=$(pkg_path_for openssl)/lib
   export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl)/include
 
