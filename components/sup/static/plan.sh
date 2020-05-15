@@ -5,7 +5,7 @@ pkg_name=hab-sup-static
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_deps=(core/busybox-static)
 pkg_build_deps=(
-  core/musl core/zlib-musl core/xz-musl core/bzip2-musl
+  core/musl core/zlib-musl core/xz-musl
   core/coreutils core/cacerts core/rust/"$(cat "$SRC_PATH/../../../rust-toolchain")" core/gcc
 )
 
@@ -23,7 +23,6 @@ do_prepare() {
 
   la_ldflags="-L$(pkg_path_for zlib-musl)/lib -lz"
   la_ldflags="$la_ldflags -L$(pkg_path_for xz-musl)/lib -llzma"
-  la_ldflags="$la_ldflags -L$(pkg_path_for bzip2-musl)/lib -lbz2"
   la_ldflags="$la_ldflags -L$(pkg_path_for openssl-musl)/lib -lssl -lcrypto"
 
   export OPENSSL_LIB_DIR=$(pkg_path_for openssl-musl)/lib

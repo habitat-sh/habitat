@@ -153,7 +153,6 @@ mod tests {
     pkg!(libsodium, "core/libsodium/1.0.16/20190116014025");
     pkg!(openssl, "core/openssl/1.0.2r/20190305210149");
     pkg!(linux_headers, "core/linux-headers/4.17.12/20190115002705");
-    pkg!(bzip2, "core/bzip2/1.0.6/20190115011950");
     pkg!(xz, "core/xz/5.2.4/20190115013348");
     pkg!(zlib, "core/zlib/1.2.11/20190115003728");
     pkg!(openssl_fips, "core/openssl-fips/2.0.16/20190115014207");
@@ -173,7 +172,6 @@ mod tests {
         graph.extend(&launcher(), &[gcc_libs(), glibc(), libsodium(), openssl()]);
         graph.extend(&gcc_libs(), &[glibc()]);
         graph.extend(&glibc(), &[linux_headers()]);
-        graph.extend(&bzip2(), &[glibc()]);
         graph.extend(&openssl(), &[cacerts(), glibc(), openssl_fips()]);
         graph.extend(&openssl_fips(), &[glibc()]);
         graph.extend(&xz(), &[glibc()]);
@@ -215,7 +213,6 @@ mod tests {
                              busybox(),
                              // launcher
                              linux_headers(),
-                             bzip2(),
                              xz(),
                              zlib(),
                              cacerts(),
