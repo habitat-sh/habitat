@@ -9,7 +9,6 @@ fi
 brew update
 
 brew install \
-  libarchive \
   node \
   openssl \
   pkg-config \

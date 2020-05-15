@@ -13,8 +13,6 @@ doc = false
 [dependencies]
 env_logger = "*"
 habitat_common = { path = "../common" }
-# JW TODO: core has external deps that we don't want, libarchive/libsodium. We should either
-# put these things behind a feature flag so we can statically compile the launcher.
 habitat_core = { path = "../core" }
 habitat-launcher-protocol = { path = "../launcher-protocol" }
 ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }

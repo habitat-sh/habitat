@@ -9,7 +9,6 @@ sudo -E pacman -S --noconfirm \
   curl \
   gdb \
   git \
-  libarchive \
   man \
   npm \
   openssl \

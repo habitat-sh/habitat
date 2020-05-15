@@ -10,7 +10,6 @@ pkg_build_deps=(core/musl
                 core/zlib-musl
                 core/xz-musl
                 core/bzip2-musl
-                core/libarchive-musl
                 core/openssl-musl
                 core/coreutils
                 core/rust/"$(cat "$SRC_PATH/../../rust-toolchain")"
@@ -65,10 +64,6 @@ do_prepare() {
   la_ldflags="$la_ldflags -L$(pkg_path_for bzip2-musl)/lib -lbz2"
   la_ldflags="$la_ldflags -L$(pkg_path_for openssl-musl)/lib -lssl -lcrypto"
 
-  export LIBARCHIVE_LIB_DIR=$(pkg_path_for libarchive-musl)/lib
-  export LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for libarchive-musl)/include
-  export LIBARCHIVE_LDFLAGS="$la_ldflags"
-  export LIBARCHIVE_STATIC=true
   export OPENSSL_LIB_DIR=$(pkg_path_for openssl-musl)/lib
   export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl-musl)/include
   export OPENSSL_STATIC=true

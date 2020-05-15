@@ -15,7 +15,7 @@ RUN useradd hab
 
 RUN apt-get update && \
     apt-get -y install jq curl git && \
-    apt-get -y install libarchive-dev libczmq-dev busybox && \
+    apt-get -y install libczmq-dev busybox && \
     git clone https://github.com/sstephenson/bats /bats && \
     cd /bats && \
     git checkout v0.4.0 && \

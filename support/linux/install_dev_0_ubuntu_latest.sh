@@ -14,7 +14,6 @@ sudo -E apt-get install -y --no-install-recommends \
   git \
   httpie \
   iproute2 \
-  libarchive-dev \
   libprotobuf-dev \
   libssl-dev \
   libczmq-dev \

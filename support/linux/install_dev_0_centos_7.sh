@@ -13,7 +13,6 @@ sudo -E yum groupinstall -y 'Development Tools'
 sudo -E yum install -y \
   git \
   gpm-libs \
-  libarchive-devel \
   nodejs \
   openssl-devel \
   protobuf-devel \

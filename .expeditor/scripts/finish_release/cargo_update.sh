@@ -16,9 +16,8 @@ rustup install "$toolchain"
 install_hub
 
 echo "--- :habicat: Installing and configuring build dependencies"
-hab pkg install core/libarchive core/openssl core/zeromq
+hab pkg install core/openssl core/zeromq
 
-PKG_CONFIG_PATH="$(< "$(hab pkg path core/libarchive)"/PKG_CONFIG_PATH)"
 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(< "$(hab pkg path core/openssl)"/PKG_CONFIG_PATH)"
 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(< "$(hab pkg path core/zeromq)"/PKG_CONFIG_PATH)"
 export PKG_CONFIG_PATH 
