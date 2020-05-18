@@ -28,7 +28,7 @@ This will stop the service if it is running and uninstall it from the Windows Se
 
 ## Supervisor Logs
 
-The Habitat Supervisor logs will be located in `$env:systemdrive\hab\svc\windows-service\logs`. The log will rotate every 100MB and will archive up to 10 log files. These rotation settings are configurable (see below).
+The Habitat Supervisor logs will be located in `$env:systemdrive\hab\svc\windows-service\logs`. The log will rotate every 10MB and will archive up to 10 log files. These rotation settings are configurable (see below).
 
 ## Configuring the Habitat service
 
