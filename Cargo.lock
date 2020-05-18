@@ -680,6 +680,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "crossbeam-channel"
+version = "0.3.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c8ec7fcd21571dc78f96cc96243cab8d8f035247c3efd16c687be154c3fa9efa"
+dependencies = [
+ "crossbeam-utils 0.6.6",
+]
+
+[[package]]
+name = "crossbeam-utils"
+version = "0.6.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04973fa96e96579258a5091af6003abde64af786b860f18622b82e026cca60e6"
+dependencies = [
+ "cfg-if",
+ "lazy_static 1.4.0",
+]
+
+[[package]]
 name = "crossbeam-utils"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1209,7 +1228,7 @@ dependencies = [
  "habitat-launcher-protocol",
  "habitat_common",
  "habitat_core",
- "ipc-channel",
+ "ipc-channel 0.12.0",
  "libc",
  "log 0.4.8",
  "prost",
@@ -1226,7 +1245,7 @@ dependencies = [
  "habitat-launcher-protocol",
  "habitat_common",
  "habitat_core",
- "ipc-channel",
+ "ipc-channel 0.9.0",
  "libc",
  "log 0.4.8",
  "prost",
@@ -1774,6 +1793,24 @@ dependencies = [
  "serde",
  "uuid 0.5.1",
  "winapi 0.2.8",
+]
+
+[[package]]
+name = "ipc-channel"
+version = "0.12.0"
+source = "git+https://github.com/habitat-sh/ipc-channel?branch=PR-233-angelortiz1007-windows#24a22072d83ded9ed86999bb51eac8038d4628a1"
+dependencies = [
+ "bincode 1.2.1",
+ "crossbeam-channel",
+ "fnv",
+ "lazy_static 1.4.0",
+ "libc",
+ "mio",
+ "rand 0.6.5",
+ "serde",
+ "tempfile",
+ "uuid 0.7.4",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -3151,7 +3188,7 @@ dependencies = [
  "base64 0.11.0",
  "blake2b_simd",
  "constant_time_eq",
- "crossbeam-utils",
+ "crossbeam-utils 0.7.2",
 ]
 
 [[package]]
