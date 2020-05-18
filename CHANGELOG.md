@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.27 -->
-## [1.6.27](https://github.com/habitat-sh/habitat/tree/1.6.27) (2020-05-15)
+<!-- latest_release 1.6.28 -->
+## [1.6.28](https://github.com/habitat-sh/habitat/tree/1.6.28) (2020-05-18)
 
-#### Merged Pull Requests
-- Upgrade ZMQ dependency off of our fork  [#7681](https://github.com/habitat-sh/habitat/pull/7681) ([christophermaier](https://github.com/christophermaier))
+#### New Features & Enhancements
+- Add Bulidah as an engine for unprivileged container builds [#7685](https://github.com/habitat-sh/habitat/pull/7685) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
@@ -14,6 +14,7 @@
 - `hab pkg export docker` is now `hab pkg export container` [#7674](https://github.com/habitat-sh/habitat/pull/7674) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.21 -->
 
 #### New Features & Enhancements
+- Add Bulidah as an engine for unprivileged container builds [#7685](https://github.com/habitat-sh/habitat/pull/7685) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.28 -->
 - Config file support for `hab sup run` [#7658](https://github.com/habitat-sh/habitat/pull/7658) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.15 -->
 
 #### Merged Pull Requests
