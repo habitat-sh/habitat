@@ -255,7 +255,7 @@ impl BuildContext {
                   ui: &mut UI,
                   naming: &Naming,
                   memory: Option<&str>,
-                  engine: &Engine)
+                  engine: &dyn Engine)
                   -> Result<ContainerImage> {
         ui.status(Status::Creating, "image")?;
         let ident = self.0.ctx().installed_primary_svc_ident()?;

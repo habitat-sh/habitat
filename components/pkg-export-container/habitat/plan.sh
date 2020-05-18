@@ -4,20 +4,23 @@ _pkg_distname=$pkg_name
 pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
-# The result is a portable, static binary. However, we shell out to the
-# Docker command which we need at runtime.
-pkg_deps=(core/docker)
-pkg_build_deps=(core/musl
-                core/zlib-musl
-                core/xz-musl
-                core/bzip2-musl
-                core/libarchive-musl
-                core/openssl-musl
-                core/coreutils
-                core/rust/"$(cat "$SRC_PATH/../../rust-toolchain")"
-                core/gcc
-                core/make
-                core/protobuf)
+pkg_deps=(
+    core/buildah
+    core/docker
+)
+pkg_build_deps=(
+    core/musl
+    core/zlib-musl
+    core/xz-musl
+    core/bzip2-musl
+    core/libarchive-musl
+    core/openssl-musl
+    core/coreutils
+    core/rust/"$(cat "$SRC_PATH/../../rust-toolchain")"
+    core/gcc
+    core/make
+    core/protobuf
+)
 pkg_bin_dirs=(bin)
 
 bin=$_pkg_distname
