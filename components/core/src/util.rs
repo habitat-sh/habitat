@@ -8,6 +8,24 @@ pub mod win_perm;
 
 use std::mem;
 
+/// Same as `Result::ok()`, but logs the error case. Useful for
+/// ignoring error cases, while still leaving a paper trail.
+#[macro_export]
+macro_rules! ok_log {
+    ($result:expr) => {
+        match $result {
+            Ok(val) => Some(val),
+            Err(e) => {
+                warn!("Intentionally ignored error ({}:{}): {:?}",
+                      file!(),
+                      line!(),
+                      e);
+                None
+            }
+        }
+    };
+}
+
 /// returns the common arguments to pass to pwsh.exe when spawning a powershell instance.
 /// These arguments are optimized for a background powershell process running hooks.
 /// The NonInteractive flag specifies that the console is not intended to interact with
