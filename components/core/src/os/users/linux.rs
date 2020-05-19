@@ -1,10 +1,9 @@
+use crate::{error::{Error,
+                    Result},
+            ok_log};
+use nix::unistd::{Group,
+                  User};
 use std::path::PathBuf;
-
-use crate::error::{Error,
-                   Result};
-use users::{self,
-            os::unix::{GroupExt,
-                       UserExt}};
 
 /// This is currently the "master check" for whether the Supervisor
 /// can behave "as root".
@@ -26,46 +25,46 @@ pub fn can_run_services_as_svc_user() -> bool {
 pub fn can_run_services_as_svc_user() -> bool { true }
 
 pub fn get_uid_by_name(owner: &str) -> Option<u32> {
-    users::get_user_by_name(owner).map(|u| u.uid())
+    ok_log!(User::from_name(owner)).flatten()
+                                   .map(|u| u.uid.as_raw())
 }
 
 pub fn get_gid_by_name(group: &str) -> Option<u32> {
-    users::get_group_by_name(group).map(|g| g.gid())
+    ok_log!(Group::from_name(group)).flatten()
+                                    .map(|g| g.gid.as_raw())
 }
 
 /// Any members that fail conversion from OsString to string will be omitted
 pub fn get_members_by_groupname(group: &str) -> Option<Vec<String>> {
-    users::get_group_by_name(group).map(|g| {
-                                       g.members()
-                                        .to_vec()
-                                        .into_iter()
-                                        .filter_map(|os_string| os_string.into_string().ok())
-                                        .collect()
-                                   })
+    ok_log!(Group::from_name(group)).flatten().map(|g| g.mem)
 }
 
 pub fn get_current_username() -> Option<String> {
-    users::get_current_username().and_then(|os_string| os_string.into_string().ok())
+    let uid = nix::unistd::getuid();
+    ok_log!(User::from_uid(uid)).flatten().map(|u| u.name)
 }
 
 pub fn get_current_groupname() -> Option<String> {
-    users::get_current_groupname().and_then(|os_string| os_string.into_string().ok())
+    let gid = nix::unistd::getgid();
+    ok_log!(Group::from_gid(gid)).flatten().map(|g| g.name)
 }
 
 pub fn get_effective_username() -> Option<String> {
-    users::get_effective_username().and_then(|os_string| os_string.into_string().ok())
+    let euid = nix::unistd::geteuid();
+    ok_log!(User::from_uid(euid)).flatten().map(|u| u.name)
 }
 
-pub fn get_effective_uid() -> u32 { users::get_effective_uid() }
+pub fn get_effective_uid() -> u32 { nix::unistd::geteuid().as_raw() }
 
-pub fn get_effective_gid() -> u32 { users::get_effective_gid() }
+pub fn get_effective_gid() -> u32 { nix::unistd::getegid().as_raw() }
 
 pub fn get_effective_groupname() -> Option<String> {
-    users::get_effective_groupname().and_then(|os_string| os_string.into_string().ok())
+    let egid = nix::unistd::getegid();
+    ok_log!(Group::from_gid(egid)).flatten().map(|g| g.name)
 }
 
 pub fn get_home_for_user(username: &str) -> Option<PathBuf> {
-    users::get_user_by_name(username).map(|u| PathBuf::from(u.home_dir()))
+    ok_log!(User::from_name(username)).flatten().map(|u| u.dir)
 }
 
 pub fn root_level_account() -> String { "root".to_string() }
