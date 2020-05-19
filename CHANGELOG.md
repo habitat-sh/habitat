@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.29 -->
-## [1.6.29](https://github.com/habitat-sh/habitat/tree/1.6.29) (2020-05-18)
+<!-- latest_release 1.6.30 -->
+## [1.6.30](https://github.com/habitat-sh/habitat/tree/1.6.30) (2020-05-19)
 
 #### Merged Pull Requests
-- Statically compile the Launcher on Linux [#7688](https://github.com/habitat-sh/habitat/pull/7688) ([christophermaier](https://github.com/christophermaier))
+- core: move from users to nix crate [#7620](https://github.com/habitat-sh/habitat/pull/7620) ([stevendanna](https://github.com/stevendanna))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
@@ -18,6 +18,7 @@
 - Config file support for `hab sup run` [#7658](https://github.com/habitat-sh/habitat/pull/7658) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.15 -->
 
 #### Merged Pull Requests
+- core: move from users to nix crate [#7620](https://github.com/habitat-sh/habitat/pull/7620) ([stevendanna](https://github.com/stevendanna)) <!-- 1.6.30 -->
 - Statically compile the Launcher on Linux [#7688](https://github.com/habitat-sh/habitat/pull/7688) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.29 -->
 - Upgrade ZMQ dependency off of our fork  [#7681](https://github.com/habitat-sh/habitat/pull/7681) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.27 -->
 - Fix minimum health check interval [#7683](https://github.com/habitat-sh/habitat/pull/7683) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.26 -->
