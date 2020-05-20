@@ -49,7 +49,7 @@ pub async fn install<T>(ui: &mut T,
                        VERSION,
                        fs_root_path,
                        &fs::cache_artifact_path(None::<String>),
-                       auth_token.as_ref().map(String::as_str),
+                       auth_token.as_deref(),
                        &InstallMode::default(),
                        &LocalPackageUsage::default(),
                        // Install hooks are run when the supervisor

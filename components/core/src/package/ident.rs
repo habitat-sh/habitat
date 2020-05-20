@@ -509,7 +509,7 @@ fn split_version(version: &str) -> Result<(Vec<&str>, Option<String>)> {
     let extension = match caps.get(2) {
         Some(e) => {
             let mut estr: String = e.as_str().to_string();
-            if estr.len() > 1 && estr.chars().nth(0).unwrap() == '-' {
+            if estr.len() > 1 && estr.starts_with('-') {
                 estr.remove(0);
             }
             Some(estr)

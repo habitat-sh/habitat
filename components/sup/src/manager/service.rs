@@ -387,7 +387,7 @@ impl Service {
                          .start(&self.pkg,
                                 &self.service_group,
                                 launcher,
-                                self.svc_encrypted_password.as_ref().map(String::as_str));
+                                self.svc_encrypted_password.as_deref());
         match result {
             Ok(_) => {
                 self.needs_restart = false;
