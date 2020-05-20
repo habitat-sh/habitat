@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.33 -->
-## [1.6.33](https://github.com/habitat-sh/habitat/tree/1.6.33) (2020-05-20)
+<!-- latest_release 1.6.34 -->
+## [1.6.34](https://github.com/habitat-sh/habitat/tree/1.6.34) (2020-05-20)
 
 #### Merged Pull Requests
-- Add several `ok_***` macros for each logging level [#7700](https://github.com/habitat-sh/habitat/pull/7700) ([christophermaier](https://github.com/christophermaier))
+- Update rust and dependencies [#7575](https://github.com/habitat-sh/habitat/pull/7575) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
@@ -18,6 +18,7 @@
 - Config file support for `hab sup run` [#7658](https://github.com/habitat-sh/habitat/pull/7658) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.15 -->
 
 #### Merged Pull Requests
+- Update rust and dependencies [#7575](https://github.com/habitat-sh/habitat/pull/7575) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.34 -->
 - Add several `ok_***` macros for each logging level [#7700](https://github.com/habitat-sh/habitat/pull/7700) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.33 -->
 - Revert ZMQ Update [#7701](https://github.com/habitat-sh/habitat/pull/7701) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.32 -->
 - supervisor config doc [#7675](https://github.com/habitat-sh/habitat/pull/7675) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.31 -->
