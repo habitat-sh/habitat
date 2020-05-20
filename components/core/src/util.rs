@@ -10,19 +10,61 @@ use std::mem;
 
 /// Same as `Result::ok()`, but logs the error case. Useful for
 /// ignoring error cases, while still leaving a paper trail.
+#[doc(hidden)]
 #[macro_export]
-macro_rules! ok_log {
-    ($result:expr) => {
+macro_rules! __ok_log {
+    ($log_level:expr, $result:expr) => {
         match $result {
             Ok(val) => Some(val),
             Err(e) => {
-                warn!("Intentionally ignored error ({}:{}): {:?}",
-                      file!(),
-                      line!(),
-                      e);
+                log!($log_level,
+                     "Intentionally ignored error ({}:{}): {:?}",
+                     file!(),
+                     line!(),
+                     e);
                 None
             }
         }
+    };
+}
+
+/// Same as `Result::ok()`, but logs the error case at the `error` level.
+#[macro_export]
+macro_rules! ok_error {
+    ($result:expr) => {
+        $crate::__ok_log!(log::Level::Error, $result)
+    };
+}
+
+/// Same as `Result::ok()`, but logs the error case at the `warn` level.
+#[macro_export]
+macro_rules! ok_warn {
+    ($result:expr) => {
+        $crate::__ok_log!(log::Level::Warn, $result)
+    };
+}
+
+/// Same as `Result::ok()`, but logs the error case at the `info` level.
+#[macro_export]
+macro_rules! ok_info {
+    ($result:expr) => {
+        $crate::__ok_log!(log::Level::Info, $result)
+    };
+}
+
+/// Same as `Result::ok()`, but logs the error case at the `debug` level.
+#[macro_export]
+macro_rules! ok_debug {
+    ($result:expr) => {
+        $crate::__ok_log!(log::Level::Debug, $result)
+    };
+}
+
+/// Same as `Result::ok()`, but logs the error case at the `trace` level.
+#[macro_export]
+macro_rules! ok_trace {
+    ($result:expr) => {
+        $crate::__ok_log!(log::Level::Trace, $result)
     };
 }
 

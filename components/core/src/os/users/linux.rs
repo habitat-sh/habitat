@@ -1,6 +1,6 @@
 use crate::{error::{Error,
                     Result},
-            ok_log};
+            ok_warn};
 use nix::unistd::{Group,
                   User};
 use std::path::PathBuf;
@@ -25,33 +25,33 @@ pub fn can_run_services_as_svc_user() -> bool {
 pub fn can_run_services_as_svc_user() -> bool { true }
 
 pub fn get_uid_by_name(owner: &str) -> Option<u32> {
-    ok_log!(User::from_name(owner)).flatten()
-                                   .map(|u| u.uid.as_raw())
+    ok_warn!(User::from_name(owner)).flatten()
+                                    .map(|u| u.uid.as_raw())
 }
 
 pub fn get_gid_by_name(group: &str) -> Option<u32> {
-    ok_log!(Group::from_name(group)).flatten()
-                                    .map(|g| g.gid.as_raw())
+    ok_warn!(Group::from_name(group)).flatten()
+                                     .map(|g| g.gid.as_raw())
 }
 
 /// Any members that fail conversion from OsString to string will be omitted
 pub fn get_members_by_groupname(group: &str) -> Option<Vec<String>> {
-    ok_log!(Group::from_name(group)).flatten().map(|g| g.mem)
+    ok_warn!(Group::from_name(group)).flatten().map(|g| g.mem)
 }
 
 pub fn get_current_username() -> Option<String> {
     let uid = nix::unistd::getuid();
-    ok_log!(User::from_uid(uid)).flatten().map(|u| u.name)
+    ok_warn!(User::from_uid(uid)).flatten().map(|u| u.name)
 }
 
 pub fn get_current_groupname() -> Option<String> {
     let gid = nix::unistd::getgid();
-    ok_log!(Group::from_gid(gid)).flatten().map(|g| g.name)
+    ok_warn!(Group::from_gid(gid)).flatten().map(|g| g.name)
 }
 
 pub fn get_effective_username() -> Option<String> {
     let euid = nix::unistd::geteuid();
-    ok_log!(User::from_uid(euid)).flatten().map(|u| u.name)
+    ok_warn!(User::from_uid(euid)).flatten().map(|u| u.name)
 }
 
 pub fn get_effective_uid() -> u32 { nix::unistd::geteuid().as_raw() }
@@ -60,11 +60,11 @@ pub fn get_effective_gid() -> u32 { nix::unistd::getegid().as_raw() }
 
 pub fn get_effective_groupname() -> Option<String> {
     let egid = nix::unistd::getegid();
-    ok_log!(Group::from_gid(egid)).flatten().map(|g| g.name)
+    ok_warn!(Group::from_gid(egid)).flatten().map(|g| g.name)
 }
 
 pub fn get_home_for_user(username: &str) -> Option<PathBuf> {
-    ok_log!(User::from_name(username)).flatten().map(|u| u.dir)
+    ok_warn!(User::from_name(username)).flatten().map(|u| u.dir)
 }
 
 pub fn root_level_account() -> String { "root".to_string() }
