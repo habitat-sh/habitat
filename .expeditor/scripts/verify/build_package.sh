@@ -22,4 +22,4 @@ HAB_CACHE_KEY_PATH="$JOB_TEMP_ROOT/keys"
 echo "--- :key: Generating fake origin key"
 ${hab_binary} origin key generate
 echo "--- :hab: Running hab pkg build for $package_path"
-${hab_binary} pkg build -D "$package_path"
+${hab_binary} pkg build "$package_path"
