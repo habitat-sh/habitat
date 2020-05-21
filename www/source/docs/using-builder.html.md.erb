@@ -490,7 +490,11 @@ In addition to our hosted service, we also support installing and running a Chef
 
 Currently, the on-prem Builder Depot only stores packages for download and upload by Supervisors and Studios. We intend to bring the full capabilities of Chef Habitat Builder to our on premises option in the future.
 
-Set the `HAB_BLDR_URL` environment variable for a Chef Habitat Builder on-prem installation with: `https://MY_ON_PREM_URL/bldr/v1/`
+To invoke a Chef Automate-installed on-prem Builder from the command line, use:
+
+```bash
+export HAB_BLDR_URL=https://MY_ON_PREM_URL/bldr/v1/`
+```
 
 For a detailed explanation of features, requirements and setup instructions, [see the GitHub repository](https://github.com/habitat-sh/on-prem-builder).
 
