@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.36 -->
-## [1.6.36](https://github.com/habitat-sh/habitat/tree/1.6.36) (2020-05-21)
+<!-- latest_release 1.6.37 -->
+## [1.6.37](https://github.com/habitat-sh/habitat/tree/1.6.37) (2020-05-21)
 
 #### Merged Pull Requests
-- Feature/windows logging [#7691](https://github.com/habitat-sh/habitat/pull/7691) ([collinmcneese](https://github.com/collinmcneese))
+- Use docker executor for kernel2 verify [#7707](https://github.com/habitat-sh/habitat/pull/7707) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
@@ -18,6 +18,7 @@
 - Config file support for `hab sup run` [#7658](https://github.com/habitat-sh/habitat/pull/7658) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.15 -->
 
 #### Merged Pull Requests
+- Use docker executor for kernel2 verify [#7707](https://github.com/habitat-sh/habitat/pull/7707) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.6.37 -->
 - Feature/windows logging [#7691](https://github.com/habitat-sh/habitat/pull/7691) ([collinmcneese](https://github.com/collinmcneese)) <!-- 1.6.36 -->
 - [CI] Build kernel2 packages in verify stage [#7706](https://github.com/habitat-sh/habitat/pull/7706) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.35 -->
 - Update rust and dependencies [#7575](https://github.com/habitat-sh/habitat/pull/7575) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.34 -->
