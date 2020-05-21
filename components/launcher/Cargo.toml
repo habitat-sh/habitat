@@ -17,12 +17,7 @@ habitat_common = { path = "../common" }
 # put these things behind a feature flag so we can statically compile the launcher.
 habitat_core = { path = "../core" }
 habitat-launcher-protocol = { path = "../launcher-protocol" }
-# As suggested by the name, this branch corresponds to
-# https://github.com/servo/ipc-channel/pull/233, requesting to merge
-# https://github.com/angelortiz1007/ipc-channel/tree/windows to master.
-#
-# This is currently the most up-to-date work for Windows compatibility.
-ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "PR-233-angelortiz1007-windows" }
+ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }
 libc = "*"
 log = "*"
 prost = "*"
