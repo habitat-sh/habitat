@@ -732,7 +732,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
     expeditor:
       executor:
-        linux:
+        docker:
           privileged: true
 
   - label: "[build] :linux: :two: build hab-plan-build"
@@ -743,7 +743,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
     expeditor:
       executor:
-        linux:
+        docker:
           privileged: true
 
   - label: "[build] :linux: :two: build hab-backline"
@@ -755,7 +755,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
     expeditor:
       executor:
-        linux:
+        docker:
           privileged: true
 
   - label: "[build] :linux: :two: build hab-studio"
@@ -766,7 +766,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
     expeditor:
       executor:
-        linux:
+        docker:
           privileged: true
 
   - label: "[build] :linux: :two: build launcher"
@@ -777,7 +777,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
     expeditor:
       executor:
-        linux:
+        docker:
           privileged: true
 
   - label: "[build] :linux: :two: build hab-sup"
@@ -788,7 +788,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
     expeditor:
       executor:
-        linux:
+        docker:
           privileged: true
 
   - label: "[build] :linux: :two: build hab-pkg-export-tar"
@@ -799,7 +799,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
     expeditor:
       executor:
-        linux:
+        docker:
           privileged: true
 
 #######################################################################
