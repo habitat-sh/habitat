@@ -55,6 +55,10 @@ do_prepare() {
   export rustc_target="x86_64-unknown-linux-musl"
   build_line "Setting rustc_target=$rustc_target"
 
+  # TODO (DM): `core/openssl-musl` includes the `core/zlib-musl` package even though
+  # `core/openssl-musl` is compiled with `no-zlib`. This package runs into errors linking openssl
+  # to zlib without this link flag. 
+  la_ldflags="-L$(pkg_path_for zlib-musl)/lib -lz"
   la_ldflags="$la_ldflags -L$(pkg_path_for openssl-musl)/lib -lssl -lcrypto"
 
   export OPENSSL_LIB_DIR=$(pkg_path_for openssl-musl)/lib
