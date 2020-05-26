@@ -7,6 +7,7 @@ pkg_license=('Apache-2.0')
 # The result is a portable, static binary in a zero-dependency package.
 pkg_deps=()
 pkg_build_deps=(core/musl
+                core/perl # Needed for vendored openssl-sys
                 core/coreutils
                 core/rust/"$(cat "$SRC_PATH/../../rust-toolchain")"
                 core/gcc
