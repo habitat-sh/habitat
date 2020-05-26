@@ -5,7 +5,6 @@ $pkg_license = @("Apache-2.0")
 $pkg_bin_dirs = @("bin")
 $pkg_deps=@(
     "core/powershell/$(Get-Content "$PLAN_CONTEXT/../../../POWERSHELL_VERSION")",
-    "core/openssl",
     "core/visual-cpp-redist-2015",
     "core/zeromq"
 )
@@ -35,9 +34,6 @@ function Invoke-Prepare {
     $env:SSL_CERT_FILE              = "$(Get-HabPackagePath "cacerts")/ssl/certs/cacert.pem"
     $env:LIB                        += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
     $env:INCLUDE                    += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
-    $env:OPENSSL_LIBS               = 'ssleay32:libeay32'
-    $env:OPENSSL_LIB_DIR            = "$(Get-HabPackagePath "openssl")/lib"
-    $env:OPENSSL_INCLUDE_DIR        = "$(Get-HabPackagePath "openssl")/include"
     $env:LIBZMQ_PREFIX              = "$(Get-HabPackagePath "zeromq")"
 
     # Used by the `build.rs` program to set the version of the binaries
@@ -62,7 +58,6 @@ function Invoke-Build {
 function Invoke-Install {
     Copy-Item "$env:CARGO_TARGET_DIR/release/hab-sup.exe" "$pkg_prefix/bin/hab-sup.exe"
     Copy-Item "$PLAN_CONTEXT/../static/named_pipe_service.ps1" "$pkg_prefix/bin/named_pipe_service.ps1"
-    Copy-Item "$(Get-HabPackagePath "openssl")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "zeromq")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2015")/bin/*.dll" "$pkg_prefix/bin"
 }

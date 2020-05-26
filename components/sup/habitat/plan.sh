@@ -7,7 +7,6 @@ pkg_license=('Apache-2.0')
 pkg_deps=(core/busybox-static
           core/glibc
           core/gcc-libs
-          core/openssl
           core/zeromq)
 pkg_build_deps=(core/coreutils
                 core/cacerts
@@ -60,8 +59,6 @@ do_prepare() {
   export rustc_target="x86_64-unknown-linux-gnu"
   build_line "Setting rustc_target=$rustc_target"
 
-  export OPENSSL_LIB_DIR=$(pkg_path_for openssl)/lib
-  export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl)/include
   export LIBZMQ_PREFIX=$(pkg_path_for zeromq)
 
   # TODO (CM, FN): This is not needed to build the supervisor,

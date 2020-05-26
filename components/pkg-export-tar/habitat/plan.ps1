@@ -5,7 +5,6 @@ $pkg_license = @("Apache-2.0")
 $pkg_bin_dirs = @("bin")
 $pkg_deps=@(
     "core/docker",
-    "core/openssl",
     "core/visual-cpp-redist-2015"
 )
 $pkg_build_deps = @(
@@ -33,9 +32,6 @@ function Invoke-Prepare {
     $env:SSL_CERT_FILE              = "$(Get-HabPackagePath "cacerts")/ssl/certs/cacert.pem"
     $env:LIB                        += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
     $env:INCLUDE                    += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
-    $env:OPENSSL_LIBS               = 'ssleay32:libeay32'
-    $env:OPENSSL_LIB_DIR            = "$(Get-HabPackagePath "openssl")/lib"
-    $env:OPENSSL_INCLUDE_DIR        = "$(Get-HabPackagePath "openssl")/include"
 
     # Used by the `build.rs` program to set the version of the binaries
     $env:PLAN_VERSION = "$pkg_version/$pkg_release"
@@ -58,6 +54,5 @@ function Invoke-Build {
 
 function Invoke-Install {
     Copy-Item "$env:CARGO_TARGET_DIR/release/hab-pkg-export-tar.exe" "$pkg_prefix/bin/hab-pkg-export-tar.exe"
-    Copy-Item "$(Get-HabPackagePath "openssl")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2015")/bin/*.dll" "$pkg_prefix/bin"
 }

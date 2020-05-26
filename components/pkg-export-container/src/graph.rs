@@ -151,9 +151,7 @@ mod tests {
     pkg!(gcc_libs, "core/gcc-libs/8.2.0/20190115011926");
     pkg!(glibc, "core/glibc/2.27/20190115002733");
     pkg!(libsodium, "core/libsodium/1.0.16/20190116014025");
-    pkg!(openssl, "core/openssl/1.0.2r/20190305210149");
     pkg!(linux_headers, "core/linux-headers/4.17.12/20190115002705");
-    pkg!(openssl_fips, "core/openssl-fips/2.0.16/20190115014207");
     pkg!(zeromq, "core/zeromq/4.3.1/20190802173651");
 
     /// Create a Graph manually, bypassing the need to generate one
@@ -167,21 +165,12 @@ mod tests {
         graph.extend(&cacerts(), &[]);
 
         // Launcher and its dependencies
-        graph.extend(&launcher(), &[gcc_libs(), glibc(), libsodium(), openssl()]);
+        graph.extend(&launcher(), &[gcc_libs(), glibc()]);
         graph.extend(&gcc_libs(), &[glibc()]);
         graph.extend(&glibc(), &[linux_headers()]);
-        graph.extend(&openssl(), &[cacerts(), glibc(), openssl_fips()]);
-        graph.extend(&openssl_fips(), &[glibc()]);
-        graph.extend(&libsodium(), &[glibc()]);
 
         // Supervisor and its dependencies
-        graph.extend(&sup(),
-                     &[busybox(),
-                       gcc_libs(),
-                       glibc(),
-                       libsodium(),
-                       openssl(),
-                       zeromq()]);
+        graph.extend(&sup(), &[busybox(), gcc_libs(), glibc(), zeromq()]);
         graph.extend(&zeromq(), &[gcc_libs(), glibc(), libsodium()]);
 
         // User package and its dependencies
@@ -209,19 +198,17 @@ mod tests {
                              busybox(),
                              // launcher
                              linux_headers(),
-                             cacerts(),
-                             openssl_fips(),
                              gcc_libs(),
                              glibc(),
-                             libsodium(),
-                             openssl(),
                              launcher(),
                              // hab
                              hab(),
                              // sup
+                             libsodium(),
                              zeromq(),
                              sup(),
                              // user package(s)
+                             cacerts(),
                              redis()];
 
         assert_eq!(actual_deps, expected_deps);

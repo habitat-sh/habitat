@@ -14,7 +14,6 @@ sudo -E yum install -y \
   git \
   gpm-libs \
   nodejs \
-  openssl-devel \
   protobuf-devel \
   sudo \
   wget \

@@ -10,6 +10,5 @@ brew update
 
 brew install \
   node \
-  openssl \
   pkg-config \
   zeromq

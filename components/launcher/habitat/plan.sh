@@ -4,8 +4,7 @@ pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_deps=(core/glibc
-          core/gcc-libs
-          core/openssl)
+          core/gcc-libs)
 pkg_build_deps=(core/coreutils
                 core/rust/"$(cat "$SRC_PATH/../../rust-toolchain")"
                 core/gcc
@@ -39,9 +38,6 @@ do_prepare() {
   
   export PLAN_VERSION="${pkg_version}/${pkg_release}"
   build_line "Setting PLAN_VERSION=$PLAN_VERSION"
-
-  export OPENSSL_LIB_DIR=$(pkg_path_for openssl)/lib
-  export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl)/include
 
   # Prost (our Rust protobuf library) embeds a `protoc` binary, but
   # it's dynamically linked, which means it won't work in a

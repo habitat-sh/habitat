@@ -11,7 +11,6 @@ sudo -E pacman -S --noconfirm \
   git \
   man \
   npm \
-  openssl \
   pkg-config \
   protobuf \
   redis \

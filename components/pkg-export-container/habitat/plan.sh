@@ -10,7 +10,6 @@ pkg_deps=(
 )
 pkg_build_deps=(
     core/musl
-    core/openssl-musl
     core/coreutils
     core/rust/"$(cat "$SRC_PATH/../../rust-toolchain")"
     core/gcc
@@ -60,12 +59,6 @@ do_prepare() {
 
   export rustc_target="x86_64-unknown-linux-musl"
   build_line "Setting rustc_target=$rustc_target"
-
-  la_ldflags="-L$(pkg_path_for openssl-musl)/lib -lssl -lcrypto"
-
-  export OPENSSL_LIB_DIR=$(pkg_path_for openssl-musl)/lib
-  export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl-musl)/include
-  export OPENSSL_STATIC=true
 
   # Used to find libgcc_s.so.1 when compiling `build.rs` in dependencies. Since
   # this used only at build time, we will use the version found in the gcc

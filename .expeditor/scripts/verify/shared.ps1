@@ -19,7 +19,6 @@ function Initialize-Environment {
 
     Install-HabPkg @(
         "core/cacerts",
-        "core/openssl",
         "core/protobuf",
         "core/visual-cpp-build-tools-2015",
         "core/zeromq"
@@ -27,19 +26,14 @@ function Initialize-Environment {
 
     # Set up some path variables for ease of use later
     $cacertsDir     = & hab pkg path core/cacerts
-    $opensslDir     = & hab pkg path core/openssl
     $protobufDir    = & hab pkg path core/protobuf
     $zeromqDir      = & hab pkg path core/zeromq
 
     # Set some required variables
-    $env:OPENSSL_LIBS               = 'ssleay32:libeay32'
-    $env:OPENSSL_LIB_DIR            = "$opensslDir\lib"
-    $env:OPENSSL_INCLUDE_DIR        = "$opensslDir\include"
     $env:LIBZMQ_PREFIX              = "$zeromqDir"
     $env:SSL_CERT_FILE              = "$cacertsDir\ssl\certs\cacert.pem"
-    $env:OPENSSL_STATIC             = "true"
     $env:LD_LIBRARY_PATH            = "$env:LIBZMQ_PREFIX\lib;$env:SODIUM_LIB_DIR"
-    $env:PATH                       = New-PathString -StartingPath $env:PATH -Path "$protobufDir\bin;$zeromqDir\bin;$opensslDir\bin"
+    $env:PATH                       = New-PathString -StartingPath $env:PATH -Path "$protobufDir\bin;$zeromqDir\bin"
 
     $vsDir = & hab pkg path core/visual-cpp-build-tools-2015
     $env:LIB = "$(Get-Content "$vsDir\LIB_DIRS");$env:LIBZMQ_PREFIX\lib"
