@@ -167,8 +167,8 @@ if ($IsLinux) {
     Describe "hab pkg export container --engine=buildah" {
         It "Runs successfully" {
             $tag = New-CustomTag
-            hab pkg export container core/nginx --engine=buildah --tag-custom="$tag"
-            hab pkg exec core/buildah buildah rmi "core/nginx:$tag"
+            Invoke-NativeCommand hab pkg export container core/nginx --engine=buildah --tag-custom="$tag"
+            Invoke-NativeCommand hab pkg exec core/buildah buildah rmi "core/nginx:$tag"
         }
     }
 }

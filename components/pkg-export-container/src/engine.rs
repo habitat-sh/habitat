@@ -39,6 +39,8 @@ enum EngineError {
     UnknownEngine(String),
     #[fail(display = "Cannot use `--engine=buildah` with `--multi-layer` due to https://github.com/containers/buildah/issues/2215. Please use `--engine=docker` or remove `--multi-layer`.")]
     BuildahIncompatibleWithMultiLayer,
+    #[fail(display = "{}", _0)]
+    EngineSpecificError(failure::Error),
 }
 
 /// Due to a bug in Buildah, any layers that we create in a
