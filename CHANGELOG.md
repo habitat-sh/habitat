@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.38 -->
-## [1.6.38](https://github.com/habitat-sh/habitat/tree/1.6.38) (2020-05-22)
+<!-- latest_release 1.6.39 -->
+## [1.6.39](https://github.com/habitat-sh/habitat/tree/1.6.39) (2020-05-27)
 
 #### Merged Pull Requests
-- Revert &quot;Merge pull request #7688 from habitat-sh/cm/static-launcher&quot; [#7709](https://github.com/habitat-sh/habitat/pull/7709) ([christophermaier](https://github.com/christophermaier))
+- Add a signature policy file for Buildah exports [#7711](https://github.com/habitat-sh/habitat/pull/7711) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.0 -->
@@ -18,6 +18,7 @@
 - Config file support for `hab sup run` [#7658](https://github.com/habitat-sh/habitat/pull/7658) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.15 -->
 
 #### Merged Pull Requests
+- Add a signature policy file for Buildah exports [#7711](https://github.com/habitat-sh/habitat/pull/7711) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.39 -->
 - Revert &quot;Merge pull request #7688 from habitat-sh/cm/static-launcher&quot; [#7709](https://github.com/habitat-sh/habitat/pull/7709) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.38 -->
 - Use docker executor for kernel2 verify [#7707](https://github.com/habitat-sh/habitat/pull/7707) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.6.37 -->
 - Feature/windows logging [#7691](https://github.com/habitat-sh/habitat/pull/7691) ([collinmcneese](https://github.com/collinmcneese)) <!-- 1.6.36 -->
