@@ -1,15 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.39 -->
-## [1.6.39](https://github.com/habitat-sh/habitat/tree/1.6.39) (2020-05-27)
+<!-- latest_release 1.6.40 -->
+## [1.6.40](https://github.com/habitat-sh/habitat/tree/1.6.40) (2020-05-28)
 
 #### Merged Pull Requests
-- Add a signature policy file for Buildah exports [#7711](https://github.com/habitat-sh/habitat/pull/7711) ([christophermaier](https://github.com/christophermaier))
+- Update Changelog [#7716](https://github.com/habitat-sh/habitat/pull/7716) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.39 -->
 ### Changes since 1.6.39 release
 
+#### Merged Pull Requests
+- Update Changelog [#7716](https://github.com/habitat-sh/habitat/pull/7716) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.40 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release -->
