@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.40 -->
-## [1.6.40](https://github.com/habitat-sh/habitat/tree/1.6.40) (2020-05-28)
+<!-- latest_release 1.6.41 -->
+## [1.6.41](https://github.com/habitat-sh/habitat/tree/1.6.41) (2020-05-28)
 
 #### Merged Pull Requests
-- Update Changelog [#7716](https://github.com/habitat-sh/habitat/pull/7716) ([christophermaier](https://github.com/christophermaier))
+- Cargo Update [#7715](https://github.com/habitat-sh/habitat/pull/7715) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.39 -->
 ### Changes since 1.6.39 release
 
 #### Merged Pull Requests
+- Cargo Update [#7715](https://github.com/habitat-sh/habitat/pull/7715) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.41 -->
+- Automated update of Habitat Documentation [#7714](https://github.com/habitat-sh/habitat/pull/7714) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.41 -->
 - Update Changelog [#7716](https://github.com/habitat-sh/habitat/pull/7716) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.40 -->
 <!-- release_rollup -->
 
