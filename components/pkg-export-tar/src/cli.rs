@@ -48,7 +48,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .help(
                         "Launcher package identifier (ex: core/hab-launcher) or filepath to a \
                          Habitat artifact (ex: \
-                         /home/core-hab-launcher-6083-20171101045646-x86_64-linux.hart) to \
+                         /home/core-hab-launcher-13829-20200527165030-x86_64-linux.hart) to \
                          install (default: core/hab-launcher)",
                     ),
             )
@@ -60,7 +60,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .help(
                         "Supervisor package identifier (ex: core/hab-sup) or filepath to a \
                          Habitat artifact (ex: \
-                         /home/ore-hab-sup-0.39.1-20171118011657-x86_64-linux.hart) to install \
+                         /home/core-hab-sup-1.6.39-20200527165021-x86_64-linux.hart) to install \
                          (default: core/hab-sup)",
                     ),
             );
