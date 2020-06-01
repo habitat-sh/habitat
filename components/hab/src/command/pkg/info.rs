@@ -14,7 +14,7 @@ fn convert_to_json<T>(src: &T) -> Json
 }
 
 pub fn start(ui: &mut UI, src: &Path, to_json: bool) -> Result<()> {
-    let ident = PackageArchive::new(src).ident()?;
+    let ident = PackageArchive::new(src)?.ident()?;
 
     if to_json {
         println!("{}", convert_to_json(&ident));

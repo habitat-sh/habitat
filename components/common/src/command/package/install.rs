@@ -128,7 +128,7 @@ impl FromStr for InstallSource {
         if path.is_file() {
             // Is it really an archive? If it can produce an
             // identifer, we'll say "yes".
-            let mut archive = PackageArchive::new(path);
+            let mut archive = PackageArchive::new(path)?;
             let target = archive.target()?;
             match archive.ident() {
                 Ok(ident) => {
@@ -709,7 +709,7 @@ impl<'a> InstallTask<'a> {
                                                      RETRIES, ident, err)));
         }
 
-        let mut artifact = PackageArchive::new(self.cached_artifact_path(ident));
+        let mut artifact = PackageArchive::new(self.cached_artifact_path(ident))?;
         ui.status(Status::Verifying, artifact.ident()?)?;
         self.verify_artifact(ui, ident, token, &mut artifact)
             .await?;
@@ -813,7 +813,7 @@ impl<'a> InstallTask<'a> {
         for file in glob::glob(&glob_path).expect("glob pattern should compile")
                                           .filter_map(StdResult::ok)
         {
-            let mut artifact = PackageArchive::new(&file);
+            let mut artifact = PackageArchive::new(&file)?;
             let artifact_ident = artifact.ident().ok();
             if artifact_ident.is_none() {
                 continue;

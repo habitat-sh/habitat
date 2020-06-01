@@ -3,11 +3,7 @@ $pkg_origin = "core"
 $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
 $pkg_deps=@(
-    "core/openssl",
-    "core/zlib",
-    "core/libarchive",
-    "core/visual-cpp-redist-2015",
-    "core/xz"
+    "core/visual-cpp-redist-2015"
 )
 $pkg_bin_dirs = @("bin")
 $pkg_build_deps = @(
@@ -35,11 +31,6 @@ function Invoke-Prepare {
     $env:SSL_CERT_FILE              = "$(Get-HabPackagePath "cacerts")/ssl/certs/cacert.pem"
     $env:LIB                        += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
     $env:INCLUDE                    += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
-    $env:LIBARCHIVE_INCLUDE_DIR     = "$(Get-HabPackagePath "libarchive")/include"
-    $env:LIBARCHIVE_LIB_DIR         = "$(Get-HabPackagePath "libarchive")/lib"
-    $env:OPENSSL_LIBS               = 'ssleay32:libeay32'
-    $env:OPENSSL_LIB_DIR            = "$(Get-HabPackagePath "openssl")/lib"
-    $env:OPENSSL_INCLUDE_DIR        = "$(Get-HabPackagePath "openssl")/include"
 
     # Used by the `build.rs` program to set the version of the binaries
     $env:PLAN_VERSION = "$pkg_version/$pkg_release"
@@ -63,10 +54,6 @@ function Invoke-Build {
 function Invoke-Install {
     Write-BuildLine "$HAB_CACHE_SRC_PATH/$pkg_dirname"
     Copy-Item "$env:CARGO_TARGET_DIR/release/hab.exe" "$pkg_prefix/bin/hab.exe"
-    Copy-Item "$(Get-HabPackagePath "openssl")/bin/*.dll" "$pkg_prefix/bin"
-    Copy-Item "$(Get-HabPackagePath "zlib")/bin/*.dll" "$pkg_prefix/bin"
-    Copy-Item "$(Get-HabPackagePath "libarchive")/bin/*.dll" "$pkg_prefix/bin"
-    Copy-Item "$(Get-HabPackagePath "xz")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2015")/bin/*.dll" "$pkg_prefix/bin"
 }
 

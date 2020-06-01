@@ -4,12 +4,12 @@ use std::{env,
           fmt,
           io,
           num,
+          num::ParseIntError,
           path::PathBuf,
           result,
           str,
           string};
 
-use libarchive;
 use regex;
 use toml;
 
@@ -21,8 +21,6 @@ pub type Result<T> = result::Result<T, Error>;
 /// Core error types
 #[derive(Debug)]
 pub enum Error {
-    /// Occurs when a `habitat_core::package::PackageArchive` is being read.
-    ArchiveError(libarchive::error::ArchiveError),
     BadBindingMode(String),
     /// An invalid path to a keyfile was given.
     BadKeyPath(String),
@@ -91,6 +89,8 @@ pub enum Error {
     InvalidPackageTarget(String),
     /// Occurs when a package type is not recognized.
     InvalidPackageType(String),
+    /// Occurs when a port is not parsable.
+    InvalidPort(ParseIntError),
     /// Occurs when a service group string cannot be successfully parsed.
     InvalidServiceGroup(String),
     /// Occurs when an origin is in an invalid format
@@ -168,7 +168,6 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
-            Error::ArchiveError(ref err) => format!("{}", err),
             Error::BadBindingMode(ref value) => format!("Unknown binding mode '{}'", value),
             Error::BadKeyPath(ref e) => {
                 format!("Invalid keypath: {}. Specify an absolute path to a file on disk.",
@@ -279,6 +278,7 @@ impl fmt::Display for Error {
                         e)
             }
             Error::InvalidPackageType(ref e) => format!("Invalid package type: {}.", e),
+            Error::InvalidPort(ref e) => format!("Invalid port: {}.", e),
             Error::InvalidServiceGroup(ref e) => {
                 format!("Invalid service group: {}. A valid service group string is in the form \
                          service.group (example: redis.production)",
@@ -377,10 +377,6 @@ impl From<str::Utf8Error> for Error {
 
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Self { Error::IO(err) }
-}
-
-impl From<libarchive::error::ArchiveError> for Error {
-    fn from(err: libarchive::error::ArchiveError) -> Self { Error::ArchiveError(err) }
 }
 
 impl From<num::ParseIntError> for Error {

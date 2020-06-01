@@ -27,7 +27,7 @@ json = "*"
 lazy_static = "*"
 libc = "*"
 log = "*"
-native-tls = "*"
+native-tls = { version = "*", features = ["vendored"] }
 owning_ref = "*"
 parking_lot = "*"
 pbr = "*"

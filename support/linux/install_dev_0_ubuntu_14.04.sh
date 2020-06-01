@@ -16,7 +16,6 @@ sudo -E apt-get install -y --no-install-recommends \
   git \
   httpie \
   iproute2 \
-  libarchive-dev \
   libpcre3-dev \
   libprotobuf-dev \
   libssl-dev \

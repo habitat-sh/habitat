@@ -1408,7 +1408,6 @@ dependencies = [
  "habitat_win_users",
  "hex",
  "lazy_static 1.4.0",
- "libarchive",
  "libc",
  "libsodium-sys",
  "log 0.4.8",
@@ -1422,6 +1421,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "sodiumoxide",
+ "tar",
  "tempfile",
  "toml 0.5.6",
  "typemap",
@@ -1429,6 +1429,7 @@ dependencies = [
  "widestring",
  "winapi 0.3.8",
  "windows-acl",
+ "xz2",
 ]
 
 [[package]]
@@ -1918,26 +1919,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "libarchive"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3da06b22cd19af338a40f5d44a0aa6352ae43839d0855a049881cbc7e1b9c914"
-dependencies = [
- "libarchive3-sys",
- "libc",
-]
-
-[[package]]
-name = "libarchive3-sys"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3cd3beae8f59a4c7a806523269b5392037577c150446e88d684dfa6de6031ca7"
-dependencies = [
- "libc",
- "pkg-config",
-]
-
-[[package]]
 name = "libc"
 version = "0.2.71"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2041,6 +2022,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "31e24f1ad8321ca0e8a1e0ac13f23cb668e6f5466c2c57319f6a5cf1cc8e3b1c"
 dependencies = [
  "linked-hash-map",
+]
+
+[[package]]
+name = "lzma-sys"
+version = "0.1.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53e48818fd597d46155132bbbb9505d6d1b3d360b4ee25cfa91c406f8a90fe91"
+dependencies = [
+ "cc",
+ "libc",
+ "pkg-config",
 ]
 
 [[package]]
@@ -2366,6 +2358,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77af24da69f9d9341038eba93a073b1fdaaa1b788221b00a69bce9e762cb32de"
 
 [[package]]
+name = "openssl-src"
+version = "111.9.0+1.1.1g"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2dbe10ddd1eb335aba3780eb2eaa13e1b7b441d2562fd962398740927f39ec4"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "openssl-sys"
 version = "0.9.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2374,6 +2375,7 @@ dependencies = [
  "autocfg 1.0.0",
  "cc",
  "libc",
+ "openssl-src",
  "pkg-config",
  "vcpkg",
 ]
@@ -4381,6 +4383,15 @@ name = "xml-rs"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b07db065a5cf61a7e4ba64f29e67db906fb1787316516c4e6e5ff0fea1efcd8a"
+
+[[package]]
+name = "xz2"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c179869f34fc7c01830d3ce7ea2086bc3a07e0d35289b667d0a8bf910258926c"
+dependencies = [
+ "lzma-sys",
+]
 
 [[package]]
 name = "yaml-rust"

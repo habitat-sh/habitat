@@ -7,7 +7,6 @@ pkg_bin_dirs=(bin)
 
 pkg_deps=(core/bash
           core/binutils
-          core/bzip2
           core/coreutils
           core/file
           core/findutils

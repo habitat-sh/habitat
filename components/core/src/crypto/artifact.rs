@@ -39,7 +39,7 @@ pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, pair: &SigKeyPair) -> Re
 }
 
 /// return a BufReader to the .tar bytestream, skipping the signed header
-pub fn get_archive_reader<P: AsRef<Path>>(src: &P) -> Result<BufReader<File>> {
+pub fn get_archive_reader<P: AsRef<Path>>(src: P) -> Result<BufReader<File>> {
     let f = File::open(src)?;
     let mut your_format_version = String::new();
     let mut your_key_name = String::new();
