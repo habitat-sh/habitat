@@ -4,12 +4,13 @@ use crate::{error::{Error,
                     Result},
             outputln,
             FeatureFlag};
-use habitat_core::{crypto,
-                   fs};
 #[cfg(windows)]
-use habitat_core::{os::process::windows_child::{Child,
-                                                ExitStatus},
-                   util};
+use habitat_core::os::process::windows_child::{Child,
+                                               ExitStatus};
+use habitat_core::{crypto,
+                   fs,
+                   util::{self,
+                          BufReadLossy}};
 use serde::{Serialize,
             Serializer};
 #[cfg(unix)]
@@ -502,7 +503,7 @@ impl<'a> HookOutput<'a> {
             error!("Failed to create file {:?} to write hook output, {}",
                    path, e);
         }
-        for line in BufReader::new(reader).lines()
+        for line in BufReader::new(reader).lines_lossy()
                                           .filter_map(result::Result::ok)
         {
             outputln!(preamble preamble_str, &line);
