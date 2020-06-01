@@ -248,13 +248,13 @@ impl PackageArchive {
         self.read_deps(MetaFile::BuildTDeps)
     }
 
-    pub fn exposes(&mut self) -> Vec<u16> {
+    pub fn exposes(&mut self) -> Result<Vec<u16>> {
         if let Some(data) = self.read_metadata(MetaFile::Exposes) {
             data.split_whitespace()
-                .filter_map(|port| port.parse().ok())
+                .map(|port| port.parse().map_err(Error::InvalidPort))
                 .collect()
         } else {
-            vec![]
+            Ok(vec![])
         }
     }
 

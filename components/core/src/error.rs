@@ -4,6 +4,7 @@ use std::{env,
           fmt,
           io,
           num,
+          num::ParseIntError,
           path::PathBuf,
           result,
           str,
@@ -88,6 +89,8 @@ pub enum Error {
     InvalidPackageTarget(String),
     /// Occurs when a package type is not recognized.
     InvalidPackageType(String),
+    /// Occurs when a port is not parsable.
+    InvalidPort(ParseIntError),
     /// Occurs when a service group string cannot be successfully parsed.
     InvalidServiceGroup(String),
     /// Occurs when an origin is in an invalid format
@@ -275,6 +278,7 @@ impl fmt::Display for Error {
                         e)
             }
             Error::InvalidPackageType(ref e) => format!("Invalid package type: {}.", e),
+            Error::InvalidPort(ref e) => format!("Invalid port: {}.", e),
             Error::InvalidServiceGroup(ref e) => {
                 format!("Invalid service group: {}. A valid service group string is in the form \
                          service.group (example: redis.production)",
