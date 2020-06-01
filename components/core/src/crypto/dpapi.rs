@@ -1,6 +1,5 @@
 use crate::error::{Error,
                    Result};
-use base64;
 use std::{io,
           mem,
           ptr};

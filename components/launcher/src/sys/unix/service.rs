@@ -6,7 +6,6 @@ use crate::{core::os::{self,
             protocol::{self,
                        ShutdownMethod},
             service::Service};
-use libc;
 use std::{io,
           ops::Neg,
           os::unix::process::CommandExt,

@@ -1,14 +1,8 @@
+use habitat_core as hab_core;
 use std::{error,
           fmt,
           io,
           result};
-
-use native_tls;
-use reqwest;
-use serde_json;
-use url;
-
-use habitat_core as hab_core;
 
 pub type Result<T> = result::Result<T, Error>;
 

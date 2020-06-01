@@ -1,7 +1,5 @@
 use crate::{hab_core,
             hab_http};
-use reqwest;
-use serde_json;
 use std::{error,
           fmt,
           io,
@@ -9,7 +7,6 @@ use std::{error,
           path::PathBuf,
           result};
 use tokio::task::JoinError;
-use url;
 
 pub type Result<T> = result::Result<T, Error>;
 

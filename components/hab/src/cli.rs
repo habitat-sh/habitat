@@ -27,7 +27,6 @@ use habitat_core::{crypto::{keys::PairType,
                    service::{HealthCheckInterval,
                              ServiceGroup},
                    ChannelIdent};
-use habitat_sup_protocol;
 use std::{path::Path,
           result,
           str::FromStr};

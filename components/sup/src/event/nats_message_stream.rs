@@ -4,7 +4,6 @@ use crate::event::{Error,
 use futures::{channel::{mpsc as futures_mpsc,
                         mpsc::UnboundedSender},
               stream::StreamExt};
-use habitat_http_client;
 use rants::{error::Error as RantsError,
             native_tls::TlsConnector,
             Client,

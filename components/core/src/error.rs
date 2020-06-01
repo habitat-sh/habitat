@@ -1,3 +1,5 @@
+use crate::package::{self,
+                     Identifiable};
 use std::{env,
           error,
           ffi,
@@ -9,12 +11,6 @@ use std::{env,
           result,
           str,
           string};
-
-use regex;
-use toml;
-
-use crate::package::{self,
-                     Identifiable};
 
 pub type Result<T> = result::Result<T, Error>;
 

@@ -1,7 +1,6 @@
 #[macro_use]
 extern crate log;
 
-use env_logger;
 use habitat_common::ui::{UIWriter,
                          UI};
 use habitat_pkg_export_container::{cli,

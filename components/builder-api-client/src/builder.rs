@@ -1460,7 +1460,6 @@ mod tests {
     use super::*;
     use futures::future::{self,
                           Ready};
-    use serde_json;
 
     #[test]
     fn json_round_trip_u64_fields() {

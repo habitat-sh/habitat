@@ -215,11 +215,7 @@ fn package_ident_from_dir(origin: &str,
                           active_target: PackageTarget,
                           dir: &Path)
                           -> Option<PackageIdent> {
-    let release = if let Some(rel) = dir.file_name().and_then(OsStr::to_str) {
-        rel
-    } else {
-        return None;
-    };
+    let release = dir.file_name().and_then(OsStr::to_str)?;
 
     if release.starts_with(INSTALL_TMP_PREFIX) {
         debug!("PackageInstall::package_ident_from_dir(): rejected PackageInstall candidate \

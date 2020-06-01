@@ -6,11 +6,6 @@ use std::{error,
           result,
           str};
 
-use habitat_core;
-use prost;
-use toml;
-use zmq;
-
 pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]

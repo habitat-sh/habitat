@@ -15,7 +15,6 @@ use super::{super::{ANONYMOUS_BOX_FORMAT_VERSION,
             KeyType};
 use crate::error::{Error,
                    Result};
-use base64;
 use serde_derive::{Deserialize,
                    Serialize};
 use sodiumoxide::crypto::{box_::{self,

@@ -1,5 +1,4 @@
 use crate::protocol;
-use ipc_channel;
 use std::{error,
           fmt,
           io,

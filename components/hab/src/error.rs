@@ -1,3 +1,8 @@
+use crate::{api_client,
+            common,
+            hcore,
+            protocol::net,
+            sup_client::SrvClientError};
 use std::{env,
           error,
           ffi,
@@ -7,15 +12,6 @@ use std::{env,
           path::{self,
                  PathBuf},
           result};
-
-use crate::{api_client,
-            common,
-            hcore,
-            protocol::net,
-            sup_client::SrvClientError};
-use handlebars;
-use serde_yaml;
-use toml;
 
 pub type Result<T> = result::Result<T, Error>;
 

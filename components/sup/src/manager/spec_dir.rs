@@ -1,7 +1,6 @@
 use super::service::spec::ServiceSpec;
 use crate::error::{Error,
                    Result};
-use glob;
 use habitat_common::outputln;
 use std::{ffi::OsStr,
           iter::IntoIterator,

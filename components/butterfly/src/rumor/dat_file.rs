@@ -501,7 +501,6 @@ impl Header {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand;
     use std::fs;
     use tempfile::tempdir;
 

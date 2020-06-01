@@ -8,7 +8,6 @@ use crate::{census::CensusRing,
                                UpdateStrategy}};
 use futures::future::{self,
                       AbortHandle};
-use habitat_butterfly;
 use habitat_common::outputln;
 use habitat_core::{package::PackageIdent,
                    service::ServiceGroup};
@@ -18,7 +17,6 @@ use std::{self,
           collections::HashMap,
           future::Future,
           sync::Arc};
-use tokio;
 
 static LOGKEY: &str = "SU";
 

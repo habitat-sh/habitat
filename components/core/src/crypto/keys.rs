@@ -9,7 +9,6 @@ use super::{PUBLIC_BOX_KEY_VERSION,
             SECRET_SYM_KEY_VERSION};
 use crate::error::{Error,
                    Result};
-use base64;
 use chrono::Utc;
 use regex::Regex;
 use serde::Deserialize;
@@ -529,7 +528,6 @@ mod test {
                 KeyType,
                 PairType,
                 TmpKeyfile};
-    use hex;
     use std::{collections::HashSet,
               fs::{self,
                    File},

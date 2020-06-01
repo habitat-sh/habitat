@@ -1,13 +1,3 @@
-use std::{fs::File,
-          io::{self,
-               prelude::*,
-               BufReader,
-               BufWriter},
-          path::Path};
-
-use base64;
-use sodiumoxide::crypto::sign;
-
 use super::{hash,
             keys::parse_name_with_rev,
             SigKeyPair,
@@ -15,6 +5,13 @@ use super::{hash,
             SIG_HASH_TYPE};
 use crate::error::{Error,
                    Result};
+use sodiumoxide::crypto::sign;
+use std::{fs::File,
+          io::{self,
+               prelude::*,
+               BufReader,
+               BufWriter},
+          path::Path};
 
 /// Generate and sign a package
 pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, pair: &SigKeyPair) -> Result<()>

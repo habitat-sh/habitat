@@ -1,10 +1,9 @@
-use serde_json;
 use std::{error::Error as StdError,
           fmt,
           io,
           num,
           result};
-use toml;
+
 pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]

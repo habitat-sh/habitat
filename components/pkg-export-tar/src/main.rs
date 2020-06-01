@@ -1,4 +1,3 @@
-use env_logger;
 use habitat_common as common;
 use habitat_pkg_export_tar as export_tar;
 #[macro_use]

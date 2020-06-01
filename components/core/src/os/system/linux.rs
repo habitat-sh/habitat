@@ -2,7 +2,6 @@ use crate::{error::{Error,
                     Result},
             os::system::Uname};
 use errno::errno;
-use libc;
 use std::{ffi::CStr,
           mem};
 

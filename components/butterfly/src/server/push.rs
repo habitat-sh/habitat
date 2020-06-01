@@ -19,7 +19,6 @@ use prometheus::{IntCounterVec,
 use std::{thread,
           time::{Duration,
                  Instant}};
-use zmq;
 
 const FANOUT: usize = 5;
 

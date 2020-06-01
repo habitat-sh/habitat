@@ -8,8 +8,6 @@ pub use self::{membership::Health,
 mod tests {
     use super::*;
 
-    use serde_json;
-
     // Theis test assures that we can properly compare Health values
     // along the spectrum of
     //

@@ -490,7 +490,6 @@ mod tests {
                             server::{Server,
                                      ServerProxy,
                                      Suitability}};
-    use serde_json;
     use std::{fs::File,
               io::Read,
               net::{IpAddr,

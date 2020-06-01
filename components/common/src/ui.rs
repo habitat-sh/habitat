@@ -1,3 +1,4 @@
+use crate::api_client::DisplayProgress;
 use std::{env,
           fmt,
           fs::{self,
@@ -11,15 +12,12 @@ use std::{env,
           process::{self,
                     Command},
           str::FromStr};
-use uuid::Uuid;
-
-use crate::api_client::DisplayProgress;
-use pbr;
 use termcolor::{self,
                 ColorChoice,
                 ColorSpec,
                 StandardStream,
                 WriteColor};
+use uuid::Uuid;
 
 use self::tty::StdStream;
 use crate::error::{Error,

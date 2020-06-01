@@ -1,4 +1,3 @@
-use env_logger;
 use habitat_common::output::{self,
                              OutputFormat,
                              OutputVerbosity};

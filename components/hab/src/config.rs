@@ -4,14 +4,12 @@ use crate::{error::{Error,
                     fs::{am_i_root,
                          FS_ROOT_PATH}},
             CTL_SECRET_ENVVAR};
-use dirs;
 use habitat_core::env as henv;
 use habitat_sup_client::SrvClient;
 use std::{fs::{self,
                File},
           io::Write,
           path::PathBuf};
-use toml;
 
 const CLI_CONFIG_PATH: &str = "hab/etc/cli.toml";
 

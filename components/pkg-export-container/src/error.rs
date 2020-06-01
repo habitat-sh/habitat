@@ -1,5 +1,4 @@
 use base64::DecodeError;
-use failure;
 use rusoto_core::RusotoError;
 use rusoto_ecr::GetAuthorizationTokenError;
 use std::result;

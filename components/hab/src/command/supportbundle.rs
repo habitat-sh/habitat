@@ -14,7 +14,6 @@ use std::{env,
           path::{Path,
                  MAIN_SEPARATOR},
           process};
-use tar;
 
 fn lookup_hostname() -> Result<String> {
     match hostname() {

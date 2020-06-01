@@ -1,5 +1,4 @@
 use crate::types::NetErr;
-use prost;
 use std::{fmt,
           result};
 

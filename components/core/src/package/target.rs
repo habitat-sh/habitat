@@ -63,16 +63,13 @@
 //! [musl]: https://www.musl-libc.org/
 //! [rust_triple]: https://github.com/rust-lang/rust/tree/master/src/librustc_back/target
 
+use crate::{error::Error,
+            util};
+use regex::Regex;
 use std::{fmt,
           ops::Deref,
           result,
           str::FromStr};
-
-use regex::Regex;
-use serde;
-
-use crate::{error::Error,
-            util};
 
 macro_rules! package_targets {
     (
@@ -528,10 +525,8 @@ impl<'a> Iterator for Iter<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-
     use serde_derive::{Deserialize,
                        Serialize};
-    use toml;
 
     // This test explicitly runs the function which returns the active `PackageTarget` for the
     // binary on the current running system. If compiletime support has not yet been added for this

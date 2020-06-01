@@ -13,8 +13,6 @@ use super::{super::{hash,
             TmpKeyfile};
 use crate::error::{Error,
                    Result};
-use base64;
-use hex;
 use sodiumoxide::{crypto::secretbox::{self,
                                       Key as SymSecretKey},
                   randombytes::randombytes};

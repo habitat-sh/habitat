@@ -192,7 +192,6 @@ mod tests {
               path::PathBuf};
 
     use crate::hcore::package::PackageIdent;
-    use serde_json;
     use tempfile::TempDir;
 
     use crate::templating::{config::{Cfg,

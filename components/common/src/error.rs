@@ -7,7 +7,6 @@ use std::{env,
           result,
           str,
           string};
-use toml;
 
 use crate::{api_client,
             hcore::{self,

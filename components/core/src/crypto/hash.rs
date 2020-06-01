@@ -1,13 +1,9 @@
+use crate::error::Result;
 use std::{fs::File,
           io::{BufReader,
                Read},
           path::Path,
           ptr};
-
-use hex;
-use libsodium_sys;
-
-use crate::error::Result;
 
 const BUF_SIZE: usize = 1024;
 

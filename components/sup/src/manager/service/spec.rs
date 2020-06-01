@@ -29,7 +29,6 @@ use std::{collections::HashSet,
                  PathBuf},
           result,
           str::FromStr};
-use toml;
 
 static DEFAULT_GROUP: &str = "default";
 const SPEC_FILE_EXT: &str = "spec";

@@ -9,7 +9,6 @@ extern crate log;
 
 use clap::{ArgMatches,
            Shell};
-use env_logger;
 use futures::stream::StreamExt;
 use hab::{cli::{self,
                 parse_optional_arg},
@@ -67,7 +66,6 @@ use habitat_sup_protocol::{self as sup_proto,
                            ctl::ServiceBindList,
                            net::ErrCode,
                            types::*};
-use pbr;
 use std::{env,
           ffi::OsString,
           fs::File,
@@ -86,7 +84,6 @@ use tabwriter::TabWriter;
 use termcolor::{self,
                 Color,
                 ColorSpec};
-use toml;
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";

@@ -33,7 +33,6 @@ use crate::{api_client::{self,
             ui::{Status,
                  UIWriter},
             FeatureFlag};
-use glob;
 use habitat_core::{self,
                    crypto::{artifact,
                             keys::parse_name_with_rev,

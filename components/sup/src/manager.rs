@@ -88,7 +88,6 @@ use rustls::{internal::pemfile,
              NoClientAuth,
              RootCertStore,
              ServerConfig};
-use serde_json;
 use std::{collections::{HashMap,
                         HashSet},
           ffi::OsStr,
@@ -116,7 +115,6 @@ use std::{collections::{HashMap,
           time::{Duration,
                  Instant,
                  SystemTime}};
-use tokio;
 #[cfg(windows)]
 use winapi::{shared::minwindef::PDWORD,
              um::processthreadsapi};

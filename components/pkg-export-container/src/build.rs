@@ -13,8 +13,6 @@ use clap::{self,
            ArgMatches};
 #[cfg(unix)]
 use failure::SyncFailure;
-#[cfg(unix)]
-use hab;
 use hab::license;
 use habitat_common::{command::package::install::{InstallHookMode,
                                                  InstallMode,

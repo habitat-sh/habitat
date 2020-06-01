@@ -1,4 +1,3 @@
-use serde;
 use std::{error,
           fmt,
           marker::PhantomData,

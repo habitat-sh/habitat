@@ -345,11 +345,8 @@ impl fmt::Display for UpdateCondition {
 
 #[cfg(test)]
 mod test {
-    use toml;
-
-    use std::str::FromStr;
-
     use super::*;
+    use std::str::FromStr;
 
     #[test]
     fn topology_default() {
