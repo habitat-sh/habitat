@@ -15,8 +15,6 @@ use super::{super::{hash,
             TmpKeyfile};
 use crate::error::{Error,
                    Result};
-use base64;
-use hex;
 use sodiumoxide::{crypto::sign::{self,
                                  ed25519::{PublicKey as SigPublicKey,
                                            SecretKey as SigSecretKey}},

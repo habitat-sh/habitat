@@ -23,7 +23,6 @@ use crate::{error::{Error,
 use bytes::BytesMut;
 use prometheus::IntCounterVec;
 use prost::Message as ProstMessage;
-use serde;
 use std::{collections::{hash_map::Entry,
                         HashMap},
           default::Default,

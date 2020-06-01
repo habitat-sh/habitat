@@ -409,7 +409,6 @@ impl Client {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json;
 
     #[test]
     fn json_round_trip_u64_fields() {

@@ -10,8 +10,6 @@ use crate::{error::{Error,
                          TemplateRenderer}};
 use serde::{Serialize,
             Serializer};
-use serde_json;
-use serde_transcode;
 use std::{self,
           borrow::Cow,
           clone::Clone,
@@ -21,7 +19,6 @@ use std::{self,
           path::{Path,
                  PathBuf},
           result};
-use toml;
 
 static LOGKEY: &str = "CF";
 static ENV_VAR_PREFIX: &str = "HAB";
@@ -613,7 +610,6 @@ mod test {
               fs::{self,
                    OpenOptions}};
     use tempfile::TempDir;
-    use toml;
 
     fn curr_username() -> String {
         users::get_current_username().expect("Can get current username")

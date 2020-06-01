@@ -22,7 +22,6 @@ use crate::PROGRAM_NAME;
 use serde::{ser::SerializeMap,
             Serialize,
             Serializer};
-use serde_json;
 use std::{fmt,
           io::{self,
                Write},
@@ -344,7 +343,6 @@ mod tests {
                 OutputFormat,
                 OutputVerbosity,
                 StructuredOutput};
-    use serde_json;
     use termcolor::{BufferWriter,
                     Color,
                     ColorChoice,

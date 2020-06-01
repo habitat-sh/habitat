@@ -1,4 +1,3 @@
-use env_logger;
 use habitat_butterfly::{member,
                         server::{self,
                                  Suitability}};

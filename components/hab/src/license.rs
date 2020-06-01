@@ -39,8 +39,6 @@ use crate::{common::ui::{self,
                     users::get_current_username}};
 use chrono::{DateTime,
              Utc};
-use dirs;
-use serde_yaml;
 use std::{env,
           fs::{self,
                File},

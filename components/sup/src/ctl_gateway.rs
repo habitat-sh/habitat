@@ -19,8 +19,6 @@ use habitat_common::{output::{self,
                               StructuredOutput},
                      ui::UIWriter,
                      PROGRAM_NAME};
-use habitat_core;
-use habitat_sup_protocol;
 use std::{fmt,
           fs::{self,
                File},

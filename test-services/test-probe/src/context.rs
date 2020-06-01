@@ -6,7 +6,6 @@ use crate::{config,
 use actix_web::{web,
                 HttpRequest,
                 HttpResponse};
-use serde_json;
 use std::{borrow::Cow,
           fs,
           path::Path};

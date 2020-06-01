@@ -3,7 +3,6 @@ use crate::error::{Error,
 use clap::ArgMatches;
 use std::{fs,
           path::PathBuf};
-use toml;
 
 pub const DEFAULT_JSON_SOURCE: &str = "/hab/svc/test-probe/config/render_context_file.json";
 pub const DEFAULT_HOST: &str = "0.0.0.0";

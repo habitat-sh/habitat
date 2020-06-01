@@ -1,12 +1,9 @@
+use crate::error::Error;
+use serde::de::DeserializeOwned;
 use std::{error::Error as StdError,
           fs::File,
           io::Read,
           path::Path};
-
-use serde::de::DeserializeOwned;
-use toml;
-
-use crate::error::Error;
 
 pub trait ConfigFile: DeserializeOwned + Sized {
     type Error: StdError + From<Error>;

@@ -22,13 +22,11 @@ use habitat_sup_protocol::{self as protocol,
                            net::{self,
                                  ErrCode,
                                  NetResult}};
-use serde_json;
 use std::{convert::TryFrom,
           fmt,
           result,
           time::{Duration,
                  SystemTime}};
-use toml;
 
 static LOGKEY: &str = "CMD";
 

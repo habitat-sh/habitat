@@ -215,8 +215,6 @@ pub use self::keys::{box_key_pair::BoxKeyPair,
                      sym_key::SymKey};
 use crate::error::{Error,
                    Result};
-use crypto;
-use sodiumoxide;
 
 /// The suffix on the end of a public sig/box file
 pub static PUBLIC_KEY_SUFFIX: &str = "pub";

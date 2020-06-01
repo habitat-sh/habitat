@@ -4,7 +4,6 @@ use habitat_common::{outputln,
                      types::{GossipListenAddr,
                              HttpListenAddr,
                              ListenCtlAddr}};
-use habitat_core;
 use std::{net::{IpAddr,
                 SocketAddr},
           str};

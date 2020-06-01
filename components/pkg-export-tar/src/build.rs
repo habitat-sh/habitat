@@ -1,3 +1,5 @@
+use super::{BUSYBOX_IDENT,
+            VERSION};
 use crate::{common::{self,
                      command::package::install::{InstallHookMode,
                                                  InstallMode,
@@ -13,8 +15,8 @@ use crate::{common::{self,
                          CACHE_KEY_PATH,
                          CACHE_KEY_PATH_POSTFIX},
                     package::PackageIdent,
-                    ChannelIdent}};
-use clap;
+                    ChannelIdent},
+            rootfs};
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
 #[cfg(windows)]
@@ -22,11 +24,6 @@ use std::os::windows::fs::symlink_dir as symlink;
 use std::{fs as stdfs,
           path::Path};
 use tempfile::TempDir;
-
-use super::{BUSYBOX_IDENT,
-            VERSION};
-
-use crate::rootfs;
 
 // Much of this functionality is duplicated (or slightly modified)
 // from the Docker exporter. This needs to be abstacted out in

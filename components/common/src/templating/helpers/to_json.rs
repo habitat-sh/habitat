@@ -1,11 +1,9 @@
+use super::super::RenderResult;
 use handlebars::{Handlebars,
                  Helper,
                  HelperDef,
                  RenderContext,
                  RenderError};
-use serde_json;
-
-use super::super::RenderResult;
 
 #[derive(Clone, Copy)]
 pub struct ToJsonHelper;

@@ -1,3 +1,5 @@
+#[cfg(test)]
+use super::PackageTarget;
 use super::{list::package_list_for_ident,
             metadata::{parse_key_value,
                        read_metafile,
@@ -28,11 +30,6 @@ use std::{cmp::{Ordering,
           str::FromStr};
 use toml::{self,
            Value};
-
-#[cfg(test)]
-use super::PackageTarget;
-#[cfg(test)]
-use std;
 
 pub const DEFAULT_CFG_FILE: &str = "default.toml";
 const PATH_KEY: &str = "PATH";
@@ -687,15 +684,12 @@ impl fmt::Display for PackageInstall {
 
 #[cfg(test)]
 mod test {
-    use std::{fs::File,
-              io::Write};
-
-    use tempfile::Builder;
-    use toml;
-
     use super::*;
     use crate::package::test_support::{fixture_path,
                                        testing_package_install};
+    use std::{fs::File,
+              io::Write};
+    use tempfile::Builder;
 
     /// Write the given contents into the specified metadata file for
     /// the package.

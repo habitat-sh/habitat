@@ -15,7 +15,6 @@ use crate::{command::studio::enter::{ARTIFACT_PATH_ENVVAR,
                     util::docker},
             license,
             VERSION};
-use atty;
 use std::{env,
           ffi::{OsStr,
                 OsString},

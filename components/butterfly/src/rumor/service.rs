@@ -20,7 +20,6 @@ use std::{cmp::Ordering,
           mem,
           result,
           str::FromStr};
-use toml;
 
 #[derive(Debug, Clone)]
 pub struct Service {

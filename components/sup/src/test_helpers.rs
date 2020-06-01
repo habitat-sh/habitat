@@ -1,5 +1,4 @@
 use crate::json;
-use serde_json;
 use std::{fs::File,
           io::Read,
           path::PathBuf};

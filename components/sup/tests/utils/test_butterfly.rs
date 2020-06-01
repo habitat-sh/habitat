@@ -4,14 +4,8 @@
 //!
 //! No ring key or encryption abilities are currently supported.
 
-use self::habitat_butterfly::client::Client as ButterflyClient;
-use habitat_butterfly;
-
-use self::habitat_core::service::ServiceGroup;
-use habitat_core;
-
-use toml;
-
+use habitat_butterfly::client::Client as ButterflyClient;
+use habitat_core::service::ServiceGroup;
 use std::{net::SocketAddr,
           time::{SystemTime,
                  UNIX_EPOCH}};
@@ -46,7 +40,7 @@ impl Client {
         let config = config.as_bytes();
 
         // Validate the TOML, to save you from typos in your tests
-        if let Err(err) = self::toml::de::from_slice::<self::toml::value::Value>(&config) {
+        if let Err(err) = toml::de::from_slice::<toml::value::Value>(&config) {
             panic!("Invalid TOML! {:?} ==> {:?}", config, err);
         }
 

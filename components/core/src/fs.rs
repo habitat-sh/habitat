@@ -1,3 +1,9 @@
+#[cfg(not(windows))]
+use crate::util::posix_perm::{self,
+                              set_permissions};
+#[cfg(windows)]
+use crate::util::win_perm::{self,
+                            set_permissions};
 use crate::{env as henv,
             error::{Error,
                     Result},
@@ -6,15 +12,6 @@ use crate::{env as henv,
             package::{Identifiable,
                       PackageIdent,
                       PackageInstall}};
-
-#[cfg(not(windows))]
-use crate::util::posix_perm::{self,
-                              set_permissions};
-#[cfg(windows)]
-use crate::util::win_perm::{self,
-                            set_permissions};
-
-use dirs;
 use std::{env,
           fs,
           io::{self,
@@ -22,7 +19,6 @@ use std::{env,
           path::{Path,
                  PathBuf},
           str::FromStr};
-use tempfile;
 
 /// The default root path of the Habitat filesystem
 pub const ROOT_PATH: &str = "hab";
@@ -1094,7 +1090,6 @@ mod test_atomic_writer {
                    SeekFrom,
                    Write},
               panic};
-    use tempfile;
 
     const EXPECTED_CONTENT: &str = "A very good file format";
 

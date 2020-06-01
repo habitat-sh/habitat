@@ -1,18 +1,9 @@
 use crate::event;
 use futures::channel::oneshot;
-use glob;
-use habitat_api_client;
-use habitat_butterfly;
-use habitat_common;
 use habitat_core::{self,
                    os::process::Pid,
                    package::{self,
                              Identifiable}};
-use habitat_launcher_client;
-use habitat_sup_protocol;
-use notify;
-use rustls;
-use serde_json;
 use std::{env,
           error::{self,
                   Error as _},
@@ -27,7 +18,6 @@ use std::{env,
           sync::mpsc,
           time::Duration};
 use tokio::task::JoinError;
-use toml;
 
 /// Our result type alias, for easy coding.
 pub type Result<T> = result::Result<T, Error>;

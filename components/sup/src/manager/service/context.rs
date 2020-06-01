@@ -389,7 +389,6 @@ mod tests {
     use habitat_common::templating::{config::PackageConfigPaths,
                                      TemplateRenderer};
     use habitat_core::package::PackageIdent;
-    use serde_json;
     use std::{fs,
               io::{Read,
                    Write},

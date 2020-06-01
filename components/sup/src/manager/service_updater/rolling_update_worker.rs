@@ -3,7 +3,6 @@ use crate::{census::{CensusGroup,
                      CensusRing},
             manager::service::{Service,
                                Topology}};
-use habitat_butterfly;
 use habitat_common::owning_refs::RwLockReadGuardRef;
 use habitat_core::{package::PackageIdent,
                    service::ServiceGroup};

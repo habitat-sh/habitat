@@ -27,7 +27,6 @@ use std::{borrow::Cow,
           path::Path,
           result,
           str::FromStr};
-use toml;
 
 static LOGKEY: &str = "CE";
 
@@ -746,7 +745,6 @@ mod tests {
     use habitat_core::{fs::CACHE_KEY_PATH,
                        package::ident::PackageIdent,
                        service::ServiceGroup};
-    use serde_json;
 
     #[test]
     fn update_from_rumors() {

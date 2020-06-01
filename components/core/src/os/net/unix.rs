@@ -1,8 +1,6 @@
 use std::{ffi::CStr,
           io};
 
-use libc;
-
 pub fn hostname() -> io::Result<String> {
     let len = 255;
     let mut buf = Vec::<u8>::with_capacity(len);

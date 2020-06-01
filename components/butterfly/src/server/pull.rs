@@ -12,7 +12,6 @@ use prometheus::{IntCounterVec,
                  IntGaugeVec};
 use std::{thread,
           time::Duration};
-use zmq;
 
 lazy_static! {
     static ref GOSSIP_MESSAGES_RECEIVED: IntCounterVec =

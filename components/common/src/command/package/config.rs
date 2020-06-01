@@ -15,7 +15,6 @@ use std::{io::{self,
 use crate::hcore::package::{install::DEFAULT_CFG_FILE,
                             PackageIdent,
                             PackageInstall};
-use toml;
 
 use crate::error::Result;
 

@@ -18,7 +18,6 @@ use habitat_core::{error as herror,
                              PackageInstall}};
 use habitat_sup_client::{SrvClient,
                          SrvClientError};
-use habitat_sup_protocol;
 use std::{fs,
           path::Path,
           str::FromStr};

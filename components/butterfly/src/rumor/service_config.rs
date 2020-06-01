@@ -21,7 +21,6 @@ use std::{cmp::Ordering,
           path::Path,
           str::{self,
                 FromStr}};
-use toml;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ServiceConfig {
@@ -172,7 +171,6 @@ mod tests {
     use habitat_core::service::ServiceGroup;
     use std::{cmp::Ordering,
               str::FromStr};
-    use toml;
 
     fn create_rumor_store() -> RumorStore<ServiceConfig> { RumorStore::default() }
 

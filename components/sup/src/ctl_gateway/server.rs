@@ -33,7 +33,6 @@ use pin_project::pin_project;
 use prometheus::{HistogramTimer,
                  HistogramVec,
                  IntCounterVec};
-use prost;
 use std::{error,
           fmt,
           io,

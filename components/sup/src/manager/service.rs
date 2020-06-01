@@ -1303,7 +1303,6 @@ mod tests {
     use habitat_common::types::{GossipListenAddr,
                                 HttpListenAddr,
                                 ListenCtlAddr};
-    use serde_json;
     use std::{net::{IpAddr,
                     Ipv4Addr},
               str::FromStr};

@@ -22,12 +22,9 @@ use habitat_common::{liveliness_checker::{self,
 #[cfg(unix)]
 use habitat_core::os::process::{Pid,
                                 Signal};
-
 use ipc_channel::ipc::{IpcOneShotServer,
                        IpcReceiver,
                        IpcSender};
-#[cfg(unix)]
-use libc;
 use semver::{Version,
              VersionReq};
 #[cfg(unix)]

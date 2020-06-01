@@ -539,8 +539,7 @@ impl HookCompileTable {
     pub fn post_run_changed(&self) -> bool { self.post_run }
 
     pub fn changed(&self) -> bool {
-        match self {
-            Self { health_check,
+        let Self { health_check,
                    init,
                    file_updated,
                    reload,
@@ -548,18 +547,16 @@ impl HookCompileTable {
                    suitability,
                    run,
                    post_run,
-                   post_stop, } => {
-                *health_check
-                || *init
-                || *file_updated
-                || *reload
-                || *reconfigure
-                || *suitability
-                || *run
-                || *post_run
-                || *post_stop
-            }
-        }
+                   post_stop, } = self;
+        *health_check
+        || *init
+        || *file_updated
+        || *reload
+        || *reconfigure
+        || *suitability
+        || *run
+        || *post_run
+        || *post_stop
     }
 }
 

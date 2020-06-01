@@ -18,7 +18,6 @@ use handlebars::{Handlebars,
                  TemplateFileError};
 use regex::Regex;
 use serde::Serialize;
-use serde_json;
 use std::{fmt,
           ops::{Deref,
                 DerefMut},
@@ -169,14 +168,12 @@ mod test {
                              FS_ROOT_PATH},
                         package::PackageIdent},
                 templating::test_helpers::*};
-    use serde_json;
     use std::{collections::BTreeMap,
               env,
               fs::File,
               io::Read,
               path::PathBuf};
     use tempfile::TempDir;
-    use toml;
 
     pub fn root() -> PathBuf { PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests") }
 

@@ -7,7 +7,6 @@ use handlebars::{Handlebars,
                  HelperDef,
                  RenderContext,
                  RenderError};
-use serde_json;
 use std::str::FromStr;
 
 #[derive(Clone, Copy)]
