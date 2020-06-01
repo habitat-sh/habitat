@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.42 -->
-## [1.6.42](https://github.com/habitat-sh/habitat/tree/1.6.42) (2020-05-28)
+<!-- latest_release 1.6.43 -->
+## [1.6.43](https://github.com/habitat-sh/habitat/tree/1.6.43) (2020-06-01)
 
 #### Merged Pull Requests
-- [CI] Re-enable skipped verify builds affected by core-plans refresh  [#7649](https://github.com/habitat-sh/habitat/pull/7649) ([christophermaier](https://github.com/christophermaier))
+- Fix typos and refresh in cli help [#7718](https://github.com/habitat-sh/habitat/pull/7718) ([jsirex](https://github.com/jsirex))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.39 -->
 ### Changes since 1.6.39 release
 
 #### Merged Pull Requests
+- Fix typos and refresh in cli help [#7718](https://github.com/habitat-sh/habitat/pull/7718) ([jsirex](https://github.com/jsirex)) <!-- 1.6.43 -->
 - [CI] Re-enable skipped verify builds affected by core-plans refresh  [#7649](https://github.com/habitat-sh/habitat/pull/7649) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.42 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-05-15 [#7713](https://github.com/habitat-sh/habitat/pull/7713) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.42 -->
 - Cargo Update [#7715](https://github.com/habitat-sh/habitat/pull/7715) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.41 -->
