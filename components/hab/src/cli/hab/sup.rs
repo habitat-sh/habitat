@@ -21,7 +21,7 @@ use habitat_common::{cli::{RING_ENVVAR,
                              ListenCtlAddr}};
 use habitat_core::{env::Config,
                    package::PackageIdent,
-                   util::serde_string};
+                   util as core_util};
 use rants::{error::Error as RantsError,
             Address as NatsAddress};
 use std::{fmt,
@@ -82,7 +82,7 @@ pub enum Sup {
 // https://github.com/serde-rs/serde/issues/723. The easiest way to get around the issue is by
 // using a wrapper type since NatsAddress is not defined in this crate.
 #[derive(Deserialize, Serialize, Debug)]
-pub struct EventStreamAddress(#[serde(with = "serde_string")] NatsAddress);
+pub struct EventStreamAddress(#[serde(with = "core_util::serde::string")] NatsAddress);
 
 impl fmt::Display for EventStreamAddress {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.0) }

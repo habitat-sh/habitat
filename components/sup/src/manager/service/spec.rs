@@ -11,7 +11,7 @@ use habitat_core::{fs::atomic_write,
                    service::{HealthCheckInterval,
                              ServiceBind},
                    url::DEFAULT_BLDR_URL,
-                   util::serde_string,
+                   util,
                    ChannelIdent};
 use habitat_sup_protocol::{self,
                            net};
@@ -77,7 +77,7 @@ impl From<DesiredState> for i32 {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(default = "ServiceSpec::deserialization_base")]
 pub struct ServiceSpec {
-    #[serde(with = "serde_string")]
+    #[serde(with = "util::serde::string")]
     pub ident:                  PackageIdent,
     pub group:                  String,
     pub bldr_url:               String,
@@ -88,7 +88,7 @@ pub struct ServiceSpec {
     pub binds:                  Vec<ServiceBind>,
     pub binding_mode:           BindingMode,
     pub config_from:            Option<PathBuf>,
-    #[serde(with = "serde_string")]
+    #[serde(with = "util::serde::string")]
     pub desired_state:          DesiredState,
     pub shutdown_timeout:       Option<ShutdownTimeout>,
     pub svc_encrypted_password: Option<String>,

@@ -1,7 +1,7 @@
 pub mod docker;
 #[cfg(not(windows))]
 pub mod posix_perm;
-pub mod serde_string;
+pub mod serde;
 pub mod sys;
 #[cfg(windows)]
 pub mod win_perm;

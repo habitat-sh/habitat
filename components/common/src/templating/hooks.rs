@@ -9,8 +9,7 @@ use habitat_core::os::process::windows_child::{Child,
                                                ExitStatus};
 use habitat_core::{crypto,
                    fs,
-                   util::{self,
-                          BufReadLossy}};
+                   util::BufReadLossy};
 use serde::{Serialize,
             Serializer};
 #[cfg(unix)]
