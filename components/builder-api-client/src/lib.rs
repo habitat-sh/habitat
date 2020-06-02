@@ -1,4 +1,5 @@
-use habitat_core as hab_core;
+use habitat_core::{self as hab_core,
+                   util};
 use habitat_http_client as hab_http;
 
 #[macro_use]
@@ -113,43 +114,16 @@ impl fmt::Display for SchedulerResponse {
     }
 }
 
-/// Custom conversion logic to allow `serde` to successfully
-/// round-trip `u64` datatypes through JSON serialization.
-///
-/// To use it, add `#[serde(with = "json_u64")]` to any `u64`-typed struct
-/// fields.
-mod json_u64 {
-    use serde::{self,
-                Deserialize,
-                Deserializer,
-                Serializer};
-
-    #[allow(clippy::trivially_copy_pass_by_ref)]
-    pub fn serialize<S>(num: &u64, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let s = format!("{}", num);
-        serializer.serialize_str(&s)
-    }
-
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<u64, D::Error>
-        where D: Deserializer<'de>
-    {
-        let s = String::deserialize(deserializer)?;
-        s.parse::<u64>().map_err(serde::de::Error::custom)
-    }
-}
-
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct OriginPrivateSigningKey {
-    #[serde(with = "json_u64")]
+    #[serde(with = "util::serde::string")]
     pub id:        u64,
-    #[serde(with = "json_u64")]
+    #[serde(with = "util::serde::string")]
     pub origin_id: u64,
     pub name:      String,
     pub revision:  String,
     pub body:      Vec<u8>,
-    #[serde(with = "json_u64")]
+    #[serde(with = "util::serde::string")]
     pub owner_id:  u64,
 }
 
@@ -200,7 +174,7 @@ pub struct OriginChannelIdent {
 pub struct OriginInfoResponse {
     pub default_package_visibility: String,
     pub name: String,
-    #[serde(with = "json_u64")]
+    #[serde(with = "util::serde::string")]
     pub owner_id: u64,
     pub owner_account: String,
     pub private_key_name: String,
@@ -208,16 +182,16 @@ pub struct OriginInfoResponse {
 
 #[derive(Clone, Deserialize)]
 pub struct OriginInvitation {
-    #[serde(with = "json_u64")]
+    #[serde(with = "util::serde::string")]
     pub id:           u64,
-    #[serde(with = "json_u64")]
+    #[serde(with = "util::serde::string")]
     pub account_id:   u64,
     pub account_name: String,
     #[serde(with = "json_date_format")]
     pub created_at:   DateTime<Utc>,
     pub ignored:      bool,
     pub origin:       String,
-    #[serde(with = "json_u64")]
+    #[serde(with = "util::serde::string")]
     pub owner_id:     u64,
     pub updated_at:   String,
 }
