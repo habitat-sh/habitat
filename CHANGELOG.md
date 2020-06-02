@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.45 -->
-## [1.6.45](https://github.com/habitat-sh/habitat/tree/1.6.45) (2020-06-01)
+<!-- latest_release 1.6.46 -->
+## [1.6.46](https://github.com/habitat-sh/habitat/tree/1.6.46) (2020-06-02)
 
 #### Merged Pull Requests
-- Update rust to 1.43.1 [#7728](https://github.com/habitat-sh/habitat/pull/7728) ([davidMcneil](https://github.com/davidMcneil))
+- read hook stdout/err allowing for lossy utf8 strings [#7724](https://github.com/habitat-sh/habitat/pull/7724) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.39 -->
 ### Changes since 1.6.39 release
 
 #### Merged Pull Requests
+- read hook stdout/err allowing for lossy utf8 strings [#7724](https://github.com/habitat-sh/habitat/pull/7724) ([mwrock](https://github.com/mwrock)) <!-- 1.6.46 -->
 - Update rust to 1.43.1 [#7728](https://github.com/habitat-sh/habitat/pull/7728) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.45 -->
 - Remove libarchive and Vendor openssl [#7710](https://github.com/habitat-sh/habitat/pull/7710) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.44 -->
 - Fix typos and refresh in cli help [#7718](https://github.com/habitat-sh/habitat/pull/7718) ([jsirex](https://github.com/jsirex)) <!-- 1.6.43 -->
