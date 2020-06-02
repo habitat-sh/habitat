@@ -3,6 +3,7 @@ use crate::protocol;
 use core::os::process::windows_child::{ChildStderr,
                                        ChildStdout,
                                        ExitStatus};
+use core::util::BufReadLossy;
 use habitat_common::output::{self,
                              StructuredOutput};
 #[cfg(unix)]
@@ -11,7 +12,6 @@ use std::process::{ChildStderr,
                    ExitStatus};
 use std::{fmt,
           io::{self,
-               BufRead,
                BufReader,
                Read},
           thread};
@@ -72,16 +72,20 @@ impl fmt::Debug for Service {
 fn pipe_stdout<T>(out: T, id: &str)
     where T: Read
 {
-    let mut reader = BufReader::new(out);
-    let mut buffer = String::new();
-    while reader.read_line(&mut buffer).unwrap() > 0 {
-        let content = &buffer.trim_end_matches('\n');
-        let so = StructuredOutput::succinct(&id, "O", output::get_format(), content);
-        if let Err(e) = so.println() {
-            println!("printing output: '{}' to stdout resulted in error: {}",
-                     content, e);
+    for line in BufReader::new(out).lines_lossy() {
+        match line {
+            Ok(line) => {
+                let so = StructuredOutput::succinct(&id, "O", output::get_format(), &line);
+                if let Err(e) = so.println() {
+                    println!("printing output: '{}' to stdout resulted in error: {}",
+                             &line, e);
+                }
+            }
+            Err(e) => {
+                println!("reading output from to stdout resulted in error: {}", e);
+                break;
+            }
         }
-        buffer.clear();
     }
 }
 
@@ -89,15 +93,19 @@ fn pipe_stdout<T>(out: T, id: &str)
 fn pipe_stderr<T>(err: T, id: &str)
     where T: Read
 {
-    let mut reader = BufReader::new(err);
-    let mut buffer = String::new();
-    while reader.read_line(&mut buffer).unwrap() > 0 {
-        let content = &buffer.trim_end_matches('\n');
-        let so = StructuredOutput::succinct(&id, "E", output::get_format(), content);
-        if let Err(e) = so.eprintln() {
-            eprintln!("printing output: '{}' to stderr resulted in error: {}",
-                      content, e);
+    for line in BufReader::new(err).lines_lossy() {
+        match line {
+            Ok(line) => {
+                let so = StructuredOutput::succinct(&id, "E", output::get_format(), &line);
+                if let Err(e) = so.eprintln() {
+                    println!("printing output: '{}' to stderr resulted in error: {}",
+                             &line, e);
+                }
+            }
+            Err(e) => {
+                println!("reading output from to stderr resulted in error: {}", e);
+                break;
+            }
         }
-        buffer.clear();
     }
 }

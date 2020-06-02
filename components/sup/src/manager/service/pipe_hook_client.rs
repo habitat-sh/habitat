@@ -5,7 +5,8 @@ use habitat_common::{error::{Error,
                      templating::package::Pkg};
 use habitat_core::{env as henv,
                    os::process::windows_child::Child,
-                   util};
+                   util::{self,
+                          BufReadLossy}};
 use mio::{Events,
           Poll,
           PollOpt,
@@ -19,7 +20,6 @@ use std::{self,
                OpenOptions},
           io::{self,
                prelude::*,
-               BufRead,
                BufReader,
                Read},
           iter::once,
@@ -265,7 +265,7 @@ fn stream_output<T>(out: T, log_file: &PathBuf, preamble_str: &str)
                                       &log_file.to_string_lossy())
                            });
 
-    for line in BufReader::new(out).lines() {
+    for line in BufReader::new(out).lines_lossy() {
         if let Ok(ref l) = line {
             outputln!(preamble preamble_str, l);
             // we append each line to the log file instead of continuously
