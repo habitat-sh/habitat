@@ -43,6 +43,7 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_GLYPH_STYLE` | build system | `full` (`limited` on Windows) | Used to customize the rendering of unicode glyphs in UI messages. Valid values are `full`, `limited`, or `ascii`. |
 | `HAB_SUP_UPDATE_MS` | Supervisor | 60000 | Frequency in milliseconds governing how often to check for Supervisor updates when running with the [--auto-update](/docs/habitat-cli/#hab-sup-run) flag. |
 | `HAB_UPDATE_STRATEGY_FREQUENCY_MS` | Supervisor | 60000 | Frequency in milliseconds governing how often to check for service updates when running with an [update strategy](/docs/using-habitat#using-updates) |
+| `HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK` | Supervisor | no default | If set to `1`, will enable the Supervisor to utilize the `HAB_UPDATE_STRATEGY_FREQUENCY_MS` variable value from the line above for service updates. |
 | `HAB_USER` | Supervisor | no default | User key to use when running with [service group encryption](/docs/using-habitat#using-encryption) |
 | `http_proxy` | build system, Supervisor | no default | A URL for a local HTTP proxy server optionally supporting basic authentication |
 | `https_proxy` | build system, Supervisor | no default | A URL for a local HTTPS proxy server optionally supporting basic authentication |
