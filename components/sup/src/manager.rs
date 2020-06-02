@@ -624,7 +624,11 @@ impl Manager {
         let cfg_static = cfg.clone();
         let self_updater = if cfg.auto_update {
             if THIS_SUPERVISOR_IDENT.fully_qualified() {
-                Some(SelfUpdater::new(&*THIS_SUPERVISOR_IDENT, cfg.update_url, cfg.update_channel))
+                Some(SelfUpdater::new(&*THIS_SUPERVISOR_IDENT,
+                                      cfg.update_url,
+                                      cfg.update_channel,
+                                      //   TODO (DM): dont hardcode this
+                                      Duration::from_secs(60)))
             } else {
                 warn!("Supervisor version not fully qualified, unable to start self-updater");
                 None
