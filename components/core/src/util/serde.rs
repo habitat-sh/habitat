@@ -43,6 +43,6 @@ pub mod proxy {
         where U: Into<T> + Deserialize<'de>,
               D: Deserializer<'de>
     {
-        U::deserialize(d).map(|u| u.into())
+        U::deserialize(d).map(Into::into)
     }
 }
