@@ -184,10 +184,10 @@ pub struct SupRun {
     /// Enable automatic updates for the Supervisor itself
     #[structopt(long = "auto-update", short = "A")]
     pub auto_update: bool,
-    /// The period of time between checks for a Supervisor update
+    /// The period of time in seconds between checks for a Supervisor update
     #[structopt(long = "auto-update-period", default_value = "60")]
     pub auto_update_period: DurationProxy,
-    /// The max duration of random splay added to the Supervisor update period
+    /// The max duration of random splay in seconds added to the Supervisor update period
     #[structopt(long = "auto-update-splay", default_value = "5")]
     pub auto_update_splay: DurationProxy,
     /// The private key for HTTP Gateway TLS encryption
