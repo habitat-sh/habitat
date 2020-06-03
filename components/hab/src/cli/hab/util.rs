@@ -5,10 +5,14 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    fs as hab_core_fs,
                    package::PackageIdent};
 use lazy_static::lazy_static;
-use std::{io,
+use std::{fmt,
+          io,
           net::{SocketAddr,
                 ToSocketAddrs},
-          path::PathBuf};
+          num::ParseFloatError,
+          path::PathBuf,
+          str::FromStr,
+          time::Duration};
 use structopt::StructOpt;
 use url::Url;
 
@@ -99,6 +103,36 @@ pub fn socket_addrs_with_default_port<I>(addrs: I, default_port: u16) -> io::Res
     addrs.into_iter()
          .map(|a| socket_addr_with_default_port(a, default_port))
          .collect()
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(from = "f64", into = "f64")]
+pub struct DurationProxy(Duration);
+
+impl From<DurationProxy> for f64 {
+    fn from(d: DurationProxy) -> Self { d.0.as_secs_f64() }
+}
+
+impl From<f64> for DurationProxy {
+    fn from(f: f64) -> Self { Self(Duration::from_secs_f64(f)) }
+}
+
+impl From<DurationProxy> for Duration {
+    fn from(d: DurationProxy) -> Self { d.0 }
+}
+
+impl From<Duration> for DurationProxy {
+    fn from(d: Duration) -> Self { Self(d) }
+}
+
+impl FromStr for DurationProxy {
+    type Err = ParseFloatError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(s.parse::<f64>()?.into()) }
+}
+
+impl fmt::Display for DurationProxy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", f64::from(*self)) }
 }
 
 #[cfg(test)]

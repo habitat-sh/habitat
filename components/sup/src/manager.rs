@@ -262,6 +262,7 @@ impl FsCfg {
 #[derive(Clone, Debug, PartialEq)]
 pub struct ManagerConfig {
     pub auto_update:          bool,
+    pub auto_update_period:   Duration,
     pub custom_state_path:    Option<PathBuf>,
     pub cache_key_path:       PathBuf,
     pub update_url:           String,
@@ -627,8 +628,7 @@ impl Manager {
                 Some(SelfUpdater::new(&*THIS_SUPERVISOR_IDENT,
                                       cfg.update_url,
                                       cfg.update_channel,
-                                      //   TODO (DM): dont hardcode this
-                                      Duration::from_secs(60)))
+                                      cfg.auto_update_period))
             } else {
                 warn!("Supervisor version not fully qualified, unable to start self-updater");
                 None
@@ -1966,6 +1966,7 @@ mod test {
     impl Default for ManagerConfig {
         fn default() -> Self {
             ManagerConfig { auto_update:          false,
+                            auto_update_period:   Duration::from_secs(60),
                             custom_state_path:    None,
                             cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                             update_url:           "".to_string(),

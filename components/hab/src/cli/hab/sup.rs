@@ -4,6 +4,7 @@ use super::{svc::{ConfigOptSharedLoad,
                    CacheKeyPath,
                    ConfigOptCacheKeyPath,
                    ConfigOptRemoteSup,
+                   DurationProxy,
                    RemoteSup}};
 use crate::VERSION;
 use configopt::{self,
@@ -183,6 +184,9 @@ pub struct SupRun {
     /// Enable automatic updates for the Supervisor itself
     #[structopt(long = "auto-update", short = "A")]
     pub auto_update: bool,
+    /// The period of time between checks for a Supervisor update
+    #[structopt(long = "auto-update-period", default_value = "60")]
+    pub auto_update_period: DurationProxy,
     /// The private key for HTTP Gateway TLS encryption
     ///
     /// Read the private key from KEY_FILE. This should be an RSA private key or PKCS8-encoded
