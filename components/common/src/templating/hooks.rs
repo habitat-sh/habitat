@@ -228,6 +228,8 @@ pub trait Hook: fmt::Debug + Sized + Send {
         where T: ToString,
               S: AsRef<OsStr>
     {
+        use habitat_core::util;
+
         let ps_cmd = format!("iex $(gc {} | out-string)", path.as_ref().to_string_lossy());
         Ok(Child::spawn("pwsh.exe",
                         &util::pwsh_args(ps_cmd.as_str()),
