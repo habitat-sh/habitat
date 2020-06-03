@@ -163,7 +163,12 @@ impl DurationWithSplay {
     }
 
     pub fn delay(&self) -> Duration {
-        let splay = rand::thread_rng().gen_range(0.0, self.max_splay.as_secs_f64());
+        let max_splay = self.max_splay.as_secs_f64();
+        let splay = if max_splay > 0.0 {
+            rand::thread_rng().gen_range(0.0, max_splay)
+        } else {
+            0.0
+        };
         self.period + Duration::from_secs_f64(splay)
     }
 }
@@ -297,5 +302,7 @@ mod tests {
             assert!(delay >= period);
             assert!(delay <= period + splay);
         }
+        let duration_without_splay = DurationWithSplay::new_without_splay(period);
+        assert_eq!(duration_without_splay.delay(), period);
     }
 }
