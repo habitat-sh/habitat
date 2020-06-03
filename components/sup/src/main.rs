@@ -44,7 +44,6 @@ use habitat_core::{self,
                             SymKey},
                    os::signals,
                    url::default_bldr_url,
-                   util::DurationWithSplay,
                    ChannelIdent};
 use habitat_launcher_client::{LauncherCli,
                               ERR_NO_RETRY_EXCODE,
@@ -322,9 +321,7 @@ fn split_apart_sup_run(sup_run: SupRun,
     };
 
     let cfg = ManagerConfig { auto_update: sup_run.auto_update,
-                              auto_update_period:
-                                  DurationWithSplay::new(sup_run.auto_update_period.into(),
-                                                         sup_run.auto_update_splay.into()),
+                              auto_update_period: sup_run.auto_update_period.into(),
                               custom_state_path: None, // remove entirely?
                               cache_key_path: sup_run.cache_key_path.cache_key_path,
                               update_url: bldr_url(shared_load.bldr_url.as_ref()),
@@ -500,14 +497,14 @@ mod test {
         use habitat_common::types::EventStreamConnectMethod;
         #[cfg(windows)]
         use habitat_core::crypto::dpapi::decrypt;
-        use habitat_core::{fs::CACHE_KEY_PATH,
-                           util::DurationWithSplay};
+        use habitat_core::fs::CACHE_KEY_PATH;
         use std::{collections::HashMap,
                   fs::File,
                   io::Write,
                   iter::FromIterator,
                   path::PathBuf,
-                  str::FromStr};
+                  str::FromStr,
+                  time::Duration};
 
         locked_env_var!(HAB_CACHE_KEY_PATH, lock_var);
 
@@ -764,7 +761,7 @@ gpoVMSncu2jMIDZX63IkQII=
 
             let config = config_from_cmd_str("hab-sup run");
             assert_eq!(ManagerConfig { auto_update:          false,
-                                       auto_update_period:   DurationWithSplay::from_secs(60, 5),
+                                       auto_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
                                        cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:
@@ -839,14 +836,13 @@ gpoVMSncu2jMIDZX63IkQII=
             let ca_cert_path_str = ca_cert_path.to_str().unwrap();
             File::create(&ca_cert_path).unwrap();
 
-            let args = format!("hab-sup run --listen-gossip=1.2.3.4:4321 \
-                                --listen-http=5.5.5.5:11111 --http-disable \
-                                --listen-ctl=7.8.9.1:12 --org=MY_ORG --peer 1.1.1.1:1111 \
-                                2.2.2.2:2222 3.3.3.3 --permanent-peer --ring tester \
-                                --cache-key-path={} --auto-update --auto-update-period 90.54321 \
-                                --auto-update-splay 0.12345 --key={} --certs={} --ca-certs {} \
-                                --keep-latest-packages=5 --sys-ip-address 7.8.9.0",
-                               temp_dir_str, key_path_str, cert_path_str, ca_cert_path_str);
+            let args =
+                format!("hab-sup run --listen-gossip=1.2.3.4:4321 --listen-http=5.5.5.5:11111 \
+                         --http-disable --listen-ctl=7.8.9.1:12 --org=MY_ORG --peer 1.1.1.1:1111 \
+                         2.2.2.2:2222 3.3.3.3 --permanent-peer --ring tester --cache-key-path={} \
+                         --auto-update --auto-update-period 90.54321 --key={} --certs={} \
+                         --ca-certs {} --keep-latest-packages=5 --sys-ip-address 7.8.9.0",
+                        temp_dir_str, key_path_str, cert_path_str, ca_cert_path_str);
 
             let gossip_peers = vec!["1.1.1.1:1111".parse().unwrap(),
                                     "2.2.2.2:2222".parse().unwrap(),
@@ -855,8 +851,7 @@ gpoVMSncu2jMIDZX63IkQII=
 
             let config = config_from_cmd_str(&args);
             assert_eq!(ManagerConfig { auto_update: true,
-                                       auto_update_period:
-                                           DurationWithSplay::from_secs_f64(90.54321, 0.12345),
+                                       auto_update_period: Duration::from_secs_f64(90.54321),
                                        custom_state_path: None,
                                        cache_key_path: PathBuf::from(temp_dir_str),
                                        update_url: String::from("https://bldr.habitat.sh"),
@@ -893,7 +888,7 @@ gpoVMSncu2jMIDZX63IkQII=
 
             let config = config_from_cmd_str(args);
             assert_eq!(ManagerConfig { auto_update:          false,
-                                       auto_update_period:   DurationWithSplay::from_secs(60, 5),
+                                       auto_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
                                        cache_key_path:       PathBuf::from("/cache/key/path"),
                                        update_url:
@@ -926,7 +921,7 @@ gpoVMSncu2jMIDZX63IkQII=
 
             let config = config_from_cmd_str(args);
             assert_eq!(ManagerConfig { auto_update:          false,
-                                       auto_update_period:   DurationWithSplay::from_secs(60, 5),
+                                       auto_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
                                        cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:
@@ -991,7 +986,7 @@ gpoVMSncu2jMIDZX63IkQII=
             meta.insert(String::from("key2"), String::from("val2"));
             meta.insert(String::from("keyA"), String::from("valA"));
             assert_eq!(ManagerConfig { auto_update:          false,
-                auto_update_period:   DurationWithSplay::from_secs(60, 5),
+                auto_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
                                        cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:
@@ -1163,7 +1158,7 @@ sys_ip_address = "7.8.9.0"
 
             let config = config_from_cmd_str(&args);
             assert_eq!(ManagerConfig { auto_update: true,
-                                       auto_update_period: DurationWithSplay::from_secs(60, 5),
+                                       auto_update_period: Duration::from_secs(60),
                                        custom_state_path: None,
                                        cache_key_path: PathBuf::from(temp_dir_str),
                                        update_url: String::from("https://bldr.habitat.sh"),
@@ -1209,7 +1204,7 @@ sys_ip_address = "7.8.9.0"
 
             let config = config_from_cmd_str(&args);
             assert_eq!(ManagerConfig { auto_update:          false,
-                                       auto_update_period:   DurationWithSplay::from_secs(60, 5),
+                                       auto_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
                                        cache_key_path:       PathBuf::from("/cache/key/path"),
                                        update_url:
@@ -1251,7 +1246,7 @@ sys_ip_address = "7.8.9.0"
 
             let config = config_from_cmd_str(&args);
             assert_eq!(ManagerConfig { auto_update:          false,
-                                       auto_update_period:   DurationWithSplay::from_secs(60, 5),
+                                       auto_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
                                        cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:
@@ -1353,7 +1348,7 @@ event_stream_server_certificate = "{}"
             meta.insert(String::from("key2"), String::from("val2"));
             meta.insert(String::from("keyA"), String::from("valA"));
             assert_eq!(ManagerConfig { auto_update:          false,
-                auto_update_period:   DurationWithSplay::from_secs(60, 5),
+                auto_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
                                        cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:
@@ -1534,7 +1529,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
 
             let config = config_from_cmd_str(&args);
             assert_eq!(ManagerConfig { auto_update:          false,
-                                       auto_update_period:   DurationWithSplay::from_secs(60, 5),
+                                       auto_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
                                        cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:

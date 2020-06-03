@@ -6,11 +6,9 @@ pub mod sys;
 #[cfg(windows)]
 pub mod win_perm;
 
-use rand::Rng;
 use std::{io::{self,
                BufRead},
-          mem,
-          time::Duration};
+          mem};
 
 /// Same as `Result::ok()`, but logs the error case. Useful for
 /// ignoring error cases, while still leaving a paper trail.
@@ -138,45 +136,6 @@ pub trait BufReadLossy: BufRead {
 // Implement `BufReadLossy` for all types that implement `BufRead`
 impl<T: BufRead> BufReadLossy for T {}
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct DurationWithSplay {
-    period:    Duration,
-    max_splay: Duration,
-}
-
-impl DurationWithSplay {
-    pub fn new(period: Duration, max_splay: Duration) -> Self { Self { period, max_splay } }
-
-    pub fn new_without_splay(period: Duration) -> Self {
-        Self { period,
-               max_splay: Duration::default() }
-    }
-
-    pub fn from_secs(period: u64, max_splay: u64) -> Self {
-        Self { period:    Duration::from_secs(period),
-               max_splay: Duration::from_secs(max_splay), }
-    }
-
-    pub fn from_secs_f64(period: f64, max_splay: f64) -> Self {
-        Self { period:    Duration::from_secs_f64(period),
-               max_splay: Duration::from_secs_f64(max_splay), }
-    }
-
-    pub fn delay(&self) -> Duration {
-        let max_splay = self.max_splay.as_secs_f64();
-        let splay = if max_splay > 0.0 {
-            rand::thread_rng().gen_range(0.0, max_splay)
-        } else {
-            0.0
-        };
-        self.period + Duration::from_secs_f64(splay)
-    }
-}
-
-impl From<Duration> for DurationWithSplay {
-    fn from(d: Duration) -> Self { Self::new_without_splay(d) }
-}
-
 /// Provide a way to convert numeric types safely to i64
 pub trait ToI64 {
     fn to_i64(self) -> i64;
@@ -290,19 +249,5 @@ mod tests {
         assert_eq!(str_vec[0], "line 1");
         assert_eq!(str_vec[1], "line � 2");
         assert_eq!(str_vec[2], "line 3");
-    }
-
-    #[test]
-    fn duration_with_splay() {
-        let period = Duration::from_secs(10);
-        let splay = Duration::from_secs_f64(0.5);
-        let duration_with_splay = DurationWithSplay::new(period, splay);
-        for _ in 0..100 {
-            let delay = duration_with_splay.delay();
-            assert!(delay >= period);
-            assert!(delay <= period + splay);
-        }
-        let duration_without_splay = DurationWithSplay::new_without_splay(period);
-        assert_eq!(duration_without_splay.delay(), period);
     }
 }

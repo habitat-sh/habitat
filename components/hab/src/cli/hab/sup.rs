@@ -187,9 +187,6 @@ pub struct SupRun {
     /// The period of time in seconds between checks for a Supervisor update
     #[structopt(long = "auto-update-period", default_value = "60")]
     pub auto_update_period: DurationProxy,
-    /// The max duration of random splay in seconds added to the Supervisor update period
-    #[structopt(long = "auto-update-splay", default_value = "5")]
-    pub auto_update_splay: DurationProxy,
     /// The private key for HTTP Gateway TLS encryption
     ///
     /// Read the private key from KEY_FILE. This should be an RSA private key or PKCS8-encoded
