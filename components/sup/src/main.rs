@@ -840,8 +840,8 @@ gpoVMSncu2jMIDZX63IkQII=
                 format!("hab-sup run --listen-gossip=1.2.3.4:4321 --listen-http=5.5.5.5:11111 \
                          --http-disable --listen-ctl=7.8.9.1:12 --org=MY_ORG --peer 1.1.1.1:1111 \
                          2.2.2.2:2222 3.3.3.3 --permanent-peer --ring tester --cache-key-path={} \
-                         --auto-update --auto-update-period 90.54321 --key={} --certs={} \
-                         --ca-certs {} --keep-latest-packages=5 --sys-ip-address 7.8.9.0",
+                         --auto-update --auto-update-period 90 --key={} --certs={} --ca-certs {} \
+                         --keep-latest-packages=5 --sys-ip-address 7.8.9.0",
                         temp_dir_str, key_path_str, cert_path_str, ca_cert_path_str);
 
             let gossip_peers = vec!["1.1.1.1:1111".parse().unwrap(),
@@ -851,7 +851,7 @@ gpoVMSncu2jMIDZX63IkQII=
 
             let config = config_from_cmd_str(&args);
             assert_eq!(ManagerConfig { auto_update: true,
-                                       auto_update_period: Duration::from_secs_f64(90.54321),
+                                       auto_update_period: Duration::from_secs(90),
                                        custom_state_path: None,
                                        cache_key_path: PathBuf::from(temp_dir_str),
                                        update_url: String::from("https://bldr.habitat.sh"),

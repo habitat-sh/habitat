@@ -1966,7 +1966,7 @@ mod test {
     impl Default for ManagerConfig {
         fn default() -> Self {
             ManagerConfig { auto_update:          false,
-                            auto_update_period:   Duration::from_secs(60).into(),
+                            auto_update_period:   Duration::from_secs(60),
                             custom_state_path:    None,
                             cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                             update_url:           "".to_string(),

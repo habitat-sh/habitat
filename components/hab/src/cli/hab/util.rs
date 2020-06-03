@@ -9,7 +9,7 @@ use std::{fmt,
           io,
           net::{SocketAddr,
                 ToSocketAddrs},
-          num::ParseFloatError,
+          num::ParseIntError,
           path::PathBuf,
           str::FromStr,
           time::Duration};
@@ -106,15 +106,15 @@ pub fn socket_addrs_with_default_port<I>(addrs: I, default_port: u16) -> io::Res
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(from = "f64", into = "f64")]
+#[serde(from = "u64", into = "u64")]
 pub struct DurationProxy(Duration);
 
-impl From<DurationProxy> for f64 {
-    fn from(d: DurationProxy) -> Self { d.0.as_secs_f64() }
+impl From<DurationProxy> for u64 {
+    fn from(d: DurationProxy) -> Self { d.0.as_secs() }
 }
 
-impl From<f64> for DurationProxy {
-    fn from(f: f64) -> Self { Self(Duration::from_secs_f64(f)) }
+impl From<u64> for DurationProxy {
+    fn from(n: u64) -> Self { Self(Duration::from_secs(n)) }
 }
 
 impl From<DurationProxy> for Duration {
@@ -126,13 +126,13 @@ impl From<Duration> for DurationProxy {
 }
 
 impl FromStr for DurationProxy {
-    type Err = ParseFloatError;
+    type Err = ParseIntError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(s.parse::<f64>()?.into()) }
+    fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(s.parse::<u64>()?.into()) }
 }
 
 impl fmt::Display for DurationProxy {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", f64::from(*self)) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", u64::from(*self)) }
 }
 
 #[cfg(test)]

@@ -77,11 +77,10 @@ impl SelfUpdater {
                      update_url,
                      update_channel,
                      period, } = runner;
-        let splay =
-            Duration::from_secs_f64(rand::thread_rng().gen_range(0.0, period.as_secs_f64()));
+        let splay = Duration::from_secs(rand::thread_rng().gen_range(0, period.as_secs()));
         debug!("Starting self updater with current package {} in {}s",
                current,
-               splay.as_secs_f64());
+               splay.as_secs());
         tokiotime::delay_for(splay).await;
         loop {
             match util::pkg::install_no_ui(&update_url, &install_source, &update_channel).await {
@@ -99,7 +98,7 @@ impl SelfUpdater {
                     warn!("Self updater failed to get latest, {}", err);
                 }
             }
-            trace!("Self updater delaying for {}s", period.as_secs_f64());
+            trace!("Self updater delaying for {}s", period.as_secs());
             tokiotime::delay_for(period).await;
         }
     }
