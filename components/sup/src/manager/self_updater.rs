@@ -5,9 +5,9 @@ use crate::util;
 use habitat_common::command::package::install::InstallSource;
 use habitat_core::{package::{PackageIdent,
                              PackageInstall},
+                   util::DurationWithSplay,
                    ChannelIdent};
-use std::{borrow::Borrow,
-          time::Duration};
+use std::borrow::Borrow;
 use tokio::{self,
             sync::oneshot::{self,
                             error::TryRecvError,
@@ -22,7 +22,7 @@ pub struct SelfUpdater {
     current:        PackageIdent,
     update_url:     String,
     update_channel: ChannelIdent,
-    period:         Duration,
+    period:         DurationWithSplay,
 }
 
 /// The subset of data from `SelfUpdater` needed to spawn the updater task.
@@ -30,7 +30,7 @@ struct Runner {
     current:        PackageIdent,
     update_url:     String,
     update_channel: ChannelIdent,
-    period:         Duration,
+    period:         DurationWithSplay,
 }
 
 impl<T: Borrow<SelfUpdater>> From<T> for Runner {
@@ -47,7 +47,7 @@ impl SelfUpdater {
     pub fn new(current: &PackageIdent,
                update_url: String,
                update_channel: ChannelIdent,
-               period: Duration)
+               period: DurationWithSplay)
                -> Self {
         let runner = Runner { current: current.clone(),
                               update_url: update_url.clone(),
@@ -93,7 +93,9 @@ impl SelfUpdater {
                     warn!("Self updater failed to get latest, {}", err);
                 }
             }
-            tokiotime::delay_for(period).await;
+            let delay = period.delay();
+            trace!("Self updater delaying for {}s", delay.as_secs_f64());
+            tokiotime::delay_for(delay).await;
         }
     }
 

@@ -72,7 +72,8 @@ use habitat_core::{crypto::SymKey,
                              PackageIdent,
                              PackageInstall},
                    service::ServiceGroup,
-                   util::ToI64,
+                   util::{DurationWithSplay,
+                          ToI64},
                    ChannelIdent};
 use habitat_launcher_client::{LauncherCli,
                               LAUNCHER_LOCK_CLEAN_ENV,
@@ -262,7 +263,7 @@ impl FsCfg {
 #[derive(Clone, Debug, PartialEq)]
 pub struct ManagerConfig {
     pub auto_update:          bool,
-    pub auto_update_period:   Duration,
+    pub auto_update_period:   DurationWithSplay,
     pub custom_state_path:    Option<PathBuf>,
     pub cache_key_path:       PathBuf,
     pub update_url:           String,
@@ -1966,7 +1967,7 @@ mod test {
     impl Default for ManagerConfig {
         fn default() -> Self {
             ManagerConfig { auto_update:          false,
-                            auto_update_period:   Duration::from_secs(60),
+                            auto_update_period:   Duration::from_secs(60).into(),
                             custom_state_path:    None,
                             cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                             update_url:           "".to_string(),
