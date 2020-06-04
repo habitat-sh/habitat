@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.47 -->
-## [1.6.47](https://github.com/habitat-sh/habitat/tree/1.6.47) (2020-06-04)
+<!-- latest_release 1.6.48 -->
+## [1.6.48](https://github.com/habitat-sh/habitat/tree/1.6.48) (2020-06-04)
 
 #### Merged Pull Requests
-- use powershell 7.0.1 [#7730](https://github.com/habitat-sh/habitat/pull/7730) ([mwrock](https://github.com/mwrock))
+- Supervisor update config [#7733](https://github.com/habitat-sh/habitat/pull/7733) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.39 -->
 ### Changes since 1.6.39 release
 
 #### Merged Pull Requests
+- Supervisor update config [#7733](https://github.com/habitat-sh/habitat/pull/7733) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.48 -->
 - use powershell 7.0.1 [#7730](https://github.com/habitat-sh/habitat/pull/7730) ([mwrock](https://github.com/mwrock)) <!-- 1.6.47 -->
 - read hook stdout/err allowing for lossy utf8 strings [#7724](https://github.com/habitat-sh/habitat/pull/7724) ([mwrock](https://github.com/mwrock)) <!-- 1.6.46 -->
 - Update rust to 1.43.1 [#7728](https://github.com/habitat-sh/habitat/pull/7728) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.45 -->
