@@ -261,28 +261,30 @@ impl FsCfg {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ManagerConfig {
-    pub auto_update:          bool,
-    pub custom_state_path:    Option<PathBuf>,
-    pub cache_key_path:       PathBuf,
-    pub update_url:           String,
-    pub update_channel:       ChannelIdent,
-    pub gossip_listen:        GossipListenAddr,
-    pub ctl_listen:           ListenCtlAddr,
-    pub http_listen:          HttpListenAddr,
-    pub http_disable:         bool,
-    pub gossip_peers:         Vec<SocketAddr>,
-    pub gossip_permanent:     bool,
-    pub ring_key:             Option<SymKey>,
-    pub organization:         Option<String>,
-    pub watch_peer_file:      Option<String>,
-    pub tls_config:           Option<TLSConfig>,
-    pub feature_flags:        FeatureFlag,
-    pub event_stream_config:  Option<EventStreamConfig>,
+    pub auto_update:           bool,
+    pub auto_update_period:    Duration,
+    pub service_update_period: Duration,
+    pub custom_state_path:     Option<PathBuf>,
+    pub cache_key_path:        PathBuf,
+    pub update_url:            String,
+    pub update_channel:        ChannelIdent,
+    pub gossip_listen:         GossipListenAddr,
+    pub ctl_listen:            ListenCtlAddr,
+    pub http_listen:           HttpListenAddr,
+    pub http_disable:          bool,
+    pub gossip_peers:          Vec<SocketAddr>,
+    pub gossip_permanent:      bool,
+    pub ring_key:              Option<SymKey>,
+    pub organization:          Option<String>,
+    pub watch_peer_file:       Option<String>,
+    pub tls_config:            Option<TLSConfig>,
+    pub feature_flags:         FeatureFlag,
+    pub event_stream_config:   Option<EventStreamConfig>,
     /// If this field is `Some`, keep the indicated number of latest packages and uninstall all
     /// others during service start. If this field is `None`, automatic package cleanup is
     /// disabled.
-    pub keep_latest_packages: Option<usize>,
-    pub sys_ip:               IpAddr,
+    pub keep_latest_packages:  Option<usize>,
+    pub sys_ip:                IpAddr,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -624,7 +626,10 @@ impl Manager {
         let cfg_static = cfg.clone();
         let self_updater = if cfg.auto_update {
             if THIS_SUPERVISOR_IDENT.fully_qualified() {
-                Some(SelfUpdater::new(&*THIS_SUPERVISOR_IDENT, cfg.update_url, cfg.update_channel))
+                Some(SelfUpdater::new(&*THIS_SUPERVISOR_IDENT,
+                                      cfg.update_url,
+                                      cfg.update_channel,
+                                      cfg.auto_update_period))
             } else {
                 warn!("Supervisor version not fully qualified, unable to start self-updater");
                 None
@@ -685,7 +690,8 @@ impl Manager {
                      self_updater,
                      service_updater:
                          Arc::new(Mutex::new(ServiceUpdater::new(server.clone(),
-                                                                 Arc::clone(&census_ring)))),
+                                                                 Arc::clone(&census_ring),
+                                                                 cfg.service_update_period))),
                      census_ring,
                      butterfly: server,
                      launcher,
@@ -1961,25 +1967,27 @@ mod test {
     // code, so only implement it under test configuration.
     impl Default for ManagerConfig {
         fn default() -> Self {
-            ManagerConfig { auto_update:          false,
-                            custom_state_path:    None,
-                            cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
-                            update_url:           "".to_string(),
-                            update_channel:       ChannelIdent::default(),
-                            gossip_listen:        GossipListenAddr::default(),
-                            ctl_listen:           ListenCtlAddr::default(),
-                            http_listen:          HttpListenAddr::default(),
-                            http_disable:         false,
-                            gossip_peers:         vec![],
-                            gossip_permanent:     false,
-                            ring_key:             None,
-                            organization:         None,
-                            watch_peer_file:      None,
-                            tls_config:           None,
-                            feature_flags:        FeatureFlag::empty(),
-                            event_stream_config:  None,
-                            keep_latest_packages: None,
-                            sys_ip:               IpAddr::V4(Ipv4Addr::LOCALHOST), }
+            ManagerConfig { auto_update:           false,
+                            auto_update_period:    Duration::from_secs(60),
+                            service_update_period: Duration::from_secs(60),
+                            custom_state_path:     None,
+                            cache_key_path:        (&*CACHE_KEY_PATH).to_path_buf(),
+                            update_url:            "".to_string(),
+                            update_channel:        ChannelIdent::default(),
+                            gossip_listen:         GossipListenAddr::default(),
+                            ctl_listen:            ListenCtlAddr::default(),
+                            http_listen:           HttpListenAddr::default(),
+                            http_disable:          false,
+                            gossip_peers:          vec![],
+                            gossip_permanent:      false,
+                            ring_key:              None,
+                            organization:          None,
+                            watch_peer_file:       None,
+                            tls_config:            None,
+                            feature_flags:         FeatureFlag::empty(),
+                            event_stream_config:   None,
+                            keep_latest_packages:  None,
+                            sys_ip:                IpAddr::V4(Ipv4Addr::LOCALHOST), }
         }
     }
 

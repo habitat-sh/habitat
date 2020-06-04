@@ -6,7 +6,9 @@ use habitat_common::command::package::install::InstallSource;
 use habitat_core::{package::{PackageIdent,
                              PackageInstall},
                    ChannelIdent};
-use std::time::Duration;
+use rand::Rng;
+use std::{borrow::Borrow,
+          time::Duration};
 use tokio::{self,
             sync::oneshot::{self,
                             error::TryRecvError,
@@ -15,52 +17,71 @@ use tokio::{self,
             time as tokiotime};
 
 pub const SUP_PKG_IDENT: &str = "core/hab-sup";
-const DEFAULT_PERIOD: Duration = Duration::from_secs(60);
-
-habitat_core::env_config_duration!(
-    /// Represents how far apart checks for updates are, in milliseconds.
-    SelfUpdatePeriod,
-    HAB_SUP_UPDATE_MS => from_millis,
-    DEFAULT_PERIOD);
 
 pub struct SelfUpdater {
     rx:             Receiver<PackageInstall>,
     current:        PackageIdent,
     update_url:     String,
     update_channel: ChannelIdent,
+    period:         Duration,
 }
 
-// TODO (CM): Want to use the Periodic trait here, but can't due to
-// how things are currently structured (The service updater had a worker)
+/// The subset of data from `SelfUpdater` needed to spawn the updater task.
+struct Runner {
+    current:        PackageIdent,
+    update_url:     String,
+    update_channel: ChannelIdent,
+    period:         Duration,
+}
+
+impl<T: Borrow<SelfUpdater>> From<T> for Runner {
+    fn from(other: T) -> Self {
+        let other = other.borrow();
+        Self { current:        other.current.clone(),
+               update_url:     other.update_url.clone(),
+               update_channel: other.update_channel.clone(),
+               period:         other.period, }
+    }
+}
 
 impl SelfUpdater {
-    pub fn new(current: &PackageIdent, update_url: String, update_channel: ChannelIdent) -> Self {
-        let rx = Self::init(current.clone(), update_url.clone(), update_channel.clone());
+    pub fn new(current: &PackageIdent,
+               update_url: String,
+               update_channel: ChannelIdent,
+               period: Duration)
+               -> Self {
+        let runner = Runner { current: current.clone(),
+                              update_url: update_url.clone(),
+                              update_channel: update_channel.clone(),
+                              period };
+        let rx = Self::init(runner);
         SelfUpdater { rx,
                       current: current.clone(),
                       update_url,
-                      update_channel }
+                      update_channel,
+                      period }
     }
 
-    /// Spawn a new Supervisor updater thread.
-    fn init(current: PackageIdent,
-            update_url: String,
-            update_channel: ChannelIdent)
-            -> Receiver<PackageInstall> {
+    /// Spawn a new Supervisor updater task.
+    fn init(runner: Runner) -> Receiver<PackageInstall> {
         let (tx, rx) = oneshot::channel();
-        tokio::spawn(Self::run(tx, current, update_url, update_channel));
+        tokio::spawn(Self::run(tx, runner));
         rx
     }
 
-    async fn run(tx: Sender<PackageInstall>,
-                 current: PackageIdent,
-                 update_url: String,
-                 update_channel: ChannelIdent) {
-        debug!("Self updater current package, {}", current);
+    async fn run(tx: Sender<PackageInstall>, runner: Runner) {
         // SUP_PKG_IDENT will always parse as a valid PackageIdent,
         // and thus a valid InstallSource
         let install_source: InstallSource = SUP_PKG_IDENT.parse().unwrap();
-        let delay = SelfUpdatePeriod::configured_value().into();
+        let Runner { current,
+                     update_url,
+                     update_channel,
+                     period, } = runner;
+        let splay = Duration::from_secs(rand::thread_rng().gen_range(0, period.as_secs()));
+        debug!("Starting self updater with current package {} in {}s",
+               current,
+               splay.as_secs());
+        tokiotime::delay_for(splay).await;
         loop {
             match util::pkg::install_no_ui(&update_url, &install_source, &update_channel).await {
                 Ok(package) => {
@@ -77,7 +98,8 @@ impl SelfUpdater {
                     warn!("Self updater failed to get latest, {}", err);
                 }
             }
-            tokiotime::delay_for(delay).await;
+            trace!("Self updater delaying for {}s", period.as_secs());
+            tokiotime::delay_for(period).await;
         }
     }
 
@@ -87,9 +109,7 @@ impl SelfUpdater {
             Err(TryRecvError::Empty) => None,
             Err(TryRecvError::Closed) => {
                 debug!("Self updater has died, restarting...");
-                self.rx = Self::init(self.current.clone(),
-                                     self.update_url.clone(),
-                                     self.update_channel.clone());
+                self.rx = Self::init(self.into());
                 None
             }
         }

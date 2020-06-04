@@ -321,6 +321,8 @@ fn split_apart_sup_run(sup_run: SupRun,
     };
 
     let cfg = ManagerConfig { auto_update: sup_run.auto_update,
+                              auto_update_period: sup_run.auto_update_period.into(),
+                              service_update_period: sup_run.service_update_period.into(),
                               custom_state_path: None, // remove entirely?
                               cache_key_path: sup_run.cache_key_path.cache_key_path,
                               update_url: bldr_url(shared_load.bldr_url.as_ref()),
@@ -502,7 +504,8 @@ mod test {
                   io::Write,
                   iter::FromIterator,
                   path::PathBuf,
-                  str::FromStr};
+                  str::FromStr,
+                  time::Duration};
 
         locked_env_var!(HAB_CACHE_KEY_PATH, lock_var);
 
@@ -758,26 +761,29 @@ gpoVMSncu2jMIDZX63IkQII=
             lock.unset();
 
             let config = config_from_cmd_str("hab-sup run");
-            assert_eq!(ManagerConfig { auto_update:          false,
-                                       custom_state_path:    None,
-                                       cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
+            assert_eq!(ManagerConfig { auto_update:           false,
+                                       auto_update_period:    Duration::from_secs(60),
+                                       service_update_period: Duration::from_secs(60),
+                                       custom_state_path:     None,
+                                       cache_key_path:        (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
-                                       update_channel:       ChannelIdent::default(),
-                                       gossip_listen:        GossipListenAddr::default(),
-                                       ctl_listen:           ListenCtlAddr::default(),
-                                       http_listen:          HttpListenAddr::default(),
-                                       http_disable:         false,
-                                       gossip_peers:         vec![],
-                                       gossip_permanent:     false,
-                                       ring_key:             None,
-                                       organization:         None,
-                                       watch_peer_file:      None,
-                                       tls_config:           None,
-                                       feature_flags:        FeatureFlag::empty(),
-                                       event_stream_config:  None,
-                                       keep_latest_packages: None,
-                                       sys_ip:               habitat_core::util::sys::ip().unwrap(), },
+                                       update_channel:        ChannelIdent::default(),
+                                       gossip_listen:         GossipListenAddr::default(),
+                                       ctl_listen:            ListenCtlAddr::default(),
+                                       http_listen:           HttpListenAddr::default(),
+                                       http_disable:          false,
+                                       gossip_peers:          vec![],
+                                       gossip_permanent:      false,
+                                       ring_key:              None,
+                                       organization:          None,
+                                       watch_peer_file:       None,
+                                       tls_config:            None,
+                                       feature_flags:         FeatureFlag::empty(),
+                                       event_stream_config:   None,
+                                       keep_latest_packages:  None,
+                                       sys_ip:
+                                           habitat_core::util::sys::ip().unwrap(), },
                        config);
 
             let health_check_interval = sup_proto::types::HealthCheckInterval { seconds: 30 };
@@ -837,8 +843,9 @@ gpoVMSncu2jMIDZX63IkQII=
                                 --listen-http=5.5.5.5:11111 --http-disable \
                                 --listen-ctl=7.8.9.1:12 --org=MY_ORG --peer 1.1.1.1:1111 \
                                 2.2.2.2:2222 3.3.3.3 --permanent-peer --ring tester \
-                                --cache-key-path={} --auto-update --key={} --certs={} --ca-certs \
-                                {} --keep-latest-packages=5 --sys-ip-address 7.8.9.0",
+                                --cache-key-path={} --auto-update --auto-update-period 90 \
+                                --service-update-period 30 --key={} --certs={} --ca-certs {} \
+                                --keep-latest-packages=5 --sys-ip-address 7.8.9.0",
                                temp_dir_str, key_path_str, cert_path_str, ca_cert_path_str);
 
             let gossip_peers = vec!["1.1.1.1:1111".parse().unwrap(),
@@ -848,6 +855,8 @@ gpoVMSncu2jMIDZX63IkQII=
 
             let config = config_from_cmd_str(&args);
             assert_eq!(ManagerConfig { auto_update: true,
+                                       auto_update_period: Duration::from_secs(90),
+                                       service_update_period: Duration::from_secs(30),
                                        custom_state_path: None,
                                        cache_key_path: PathBuf::from(temp_dir_str),
                                        update_url: String::from("https://bldr.habitat.sh"),
@@ -883,27 +892,30 @@ gpoVMSncu2jMIDZX63IkQII=
             let args = "hab-sup run --local-gossip-mode";
 
             let config = config_from_cmd_str(args);
-            assert_eq!(ManagerConfig { auto_update:          false,
-                                       custom_state_path:    None,
-                                       cache_key_path:       PathBuf::from("/cache/key/path"),
+            assert_eq!(ManagerConfig { auto_update:           false,
+                                       auto_update_period:    Duration::from_secs(60),
+                                       service_update_period: Duration::from_secs(60),
+                                       custom_state_path:     None,
+                                       cache_key_path:        PathBuf::from("/cache/key/path"),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
-                                       update_channel:       ChannelIdent::default(),
+                                       update_channel:        ChannelIdent::default(),
                                        gossip_listen:
                                            GossipListenAddr::from_str("127.0.0.2:9638").unwrap(),
-                                       ctl_listen:           ListenCtlAddr::default(),
-                                       http_listen:          HttpListenAddr::default(),
-                                       http_disable:         false,
-                                       gossip_peers:         vec![],
-                                       gossip_permanent:     false,
-                                       ring_key:             None,
-                                       organization:         None,
-                                       watch_peer_file:      None,
-                                       tls_config:           None,
-                                       feature_flags:        FeatureFlag::empty(),
-                                       event_stream_config:  None,
-                                       keep_latest_packages: None,
-                                       sys_ip:               habitat_core::util::sys::ip().unwrap(), },
+                                       ctl_listen:            ListenCtlAddr::default(),
+                                       http_listen:           HttpListenAddr::default(),
+                                       http_disable:          false,
+                                       gossip_peers:          vec![],
+                                       gossip_permanent:      false,
+                                       ring_key:              None,
+                                       organization:          None,
+                                       watch_peer_file:       None,
+                                       tls_config:            None,
+                                       feature_flags:         FeatureFlag::empty(),
+                                       event_stream_config:   None,
+                                       keep_latest_packages:  None,
+                                       sys_ip:
+                                           habitat_core::util::sys::ip().unwrap(), },
                        config);
         }
 
@@ -915,26 +927,29 @@ gpoVMSncu2jMIDZX63IkQII=
             let args = "hab-sup run --peer-watch-file=/some/path";
 
             let config = config_from_cmd_str(args);
-            assert_eq!(ManagerConfig { auto_update:          false,
-                                       custom_state_path:    None,
-                                       cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
+            assert_eq!(ManagerConfig { auto_update:           false,
+                                       auto_update_period:    Duration::from_secs(60),
+                                       service_update_period: Duration::from_secs(60),
+                                       custom_state_path:     None,
+                                       cache_key_path:        (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
-                                       update_channel:       ChannelIdent::default(),
-                                       gossip_listen:        GossipListenAddr::default(),
-                                       ctl_listen:           ListenCtlAddr::default(),
-                                       http_listen:          HttpListenAddr::default(),
-                                       http_disable:         false,
-                                       gossip_peers:         vec![],
-                                       gossip_permanent:     false,
-                                       ring_key:             None,
-                                       organization:         None,
-                                       watch_peer_file:      Some(String::from("/some/path")),
-                                       tls_config:           None,
-                                       feature_flags:        FeatureFlag::empty(),
-                                       event_stream_config:  None,
-                                       keep_latest_packages: None,
-                                       sys_ip:               habitat_core::util::sys::ip().unwrap(), },
+                                       update_channel:        ChannelIdent::default(),
+                                       gossip_listen:         GossipListenAddr::default(),
+                                       ctl_listen:            ListenCtlAddr::default(),
+                                       http_listen:           HttpListenAddr::default(),
+                                       http_disable:          false,
+                                       gossip_peers:          vec![],
+                                       gossip_permanent:      false,
+                                       ring_key:              None,
+                                       organization:          None,
+                                       watch_peer_file:       Some(String::from("/some/path")),
+                                       tls_config:            None,
+                                       feature_flags:         FeatureFlag::empty(),
+                                       event_stream_config:   None,
+                                       keep_latest_packages:  None,
+                                       sys_ip:
+                                           habitat_core::util::sys::ip().unwrap(), },
                        config);
         }
 
@@ -980,6 +995,8 @@ gpoVMSncu2jMIDZX63IkQII=
             meta.insert(String::from("key2"), String::from("val2"));
             meta.insert(String::from("keyA"), String::from("valA"));
             assert_eq!(ManagerConfig { auto_update:          false,
+                auto_update_period:   Duration::from_secs(60),
+                service_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
                                        cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:
@@ -1126,6 +1143,8 @@ permanent_peer = true
 ring = "tester"
 cache_key_path = "{}"
 auto_update = true
+auto_update_period = 3600
+service_update_period = 1_000
 key_file = "{}"
 cert_file = "{}"
 ca_cert_file = "{}"
@@ -1151,6 +1170,8 @@ sys_ip_address = "7.8.9.0"
 
             let config = config_from_cmd_str(&args);
             assert_eq!(ManagerConfig { auto_update: true,
+                                       auto_update_period: Duration::from_secs(3600),
+                                       service_update_period: Duration::from_secs(1_000),
                                        custom_state_path: None,
                                        cache_key_path: PathBuf::from(temp_dir_str),
                                        update_url: String::from("https://bldr.habitat.sh"),
@@ -1195,27 +1216,30 @@ sys_ip_address = "7.8.9.0"
             let args = format!("hab-sup run --config-files {}", config_path_str);
 
             let config = config_from_cmd_str(&args);
-            assert_eq!(ManagerConfig { auto_update:          false,
-                                       custom_state_path:    None,
-                                       cache_key_path:       PathBuf::from("/cache/key/path"),
+            assert_eq!(ManagerConfig { auto_update:           false,
+                                       auto_update_period:    Duration::from_secs(60),
+                                       service_update_period: Duration::from_secs(60),
+                                       custom_state_path:     None,
+                                       cache_key_path:        PathBuf::from("/cache/key/path"),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
-                                       update_channel:       ChannelIdent::default(),
+                                       update_channel:        ChannelIdent::default(),
                                        gossip_listen:
                                            GossipListenAddr::from_str("127.0.0.2:9638").unwrap(),
-                                       ctl_listen:           ListenCtlAddr::default(),
-                                       http_listen:          HttpListenAddr::default(),
-                                       http_disable:         false,
-                                       gossip_peers:         vec![],
-                                       gossip_permanent:     false,
-                                       ring_key:             None,
-                                       organization:         None,
-                                       watch_peer_file:      None,
-                                       tls_config:           None,
-                                       feature_flags:        FeatureFlag::empty(),
-                                       event_stream_config:  None,
-                                       keep_latest_packages: None,
-                                       sys_ip:               habitat_core::util::sys::ip().unwrap(), },
+                                       ctl_listen:            ListenCtlAddr::default(),
+                                       http_listen:           HttpListenAddr::default(),
+                                       http_disable:          false,
+                                       gossip_peers:          vec![],
+                                       gossip_permanent:      false,
+                                       ring_key:              None,
+                                       organization:          None,
+                                       watch_peer_file:       None,
+                                       tls_config:            None,
+                                       feature_flags:         FeatureFlag::empty(),
+                                       event_stream_config:   None,
+                                       keep_latest_packages:  None,
+                                       sys_ip:
+                                           habitat_core::util::sys::ip().unwrap(), },
                        config);
         }
 
@@ -1236,26 +1260,29 @@ sys_ip_address = "7.8.9.0"
             let args = format!("hab-sup run --config-files {}", config_path_str);
 
             let config = config_from_cmd_str(&args);
-            assert_eq!(ManagerConfig { auto_update:          false,
-                                       custom_state_path:    None,
-                                       cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
+            assert_eq!(ManagerConfig { auto_update:           false,
+                                       auto_update_period:    Duration::from_secs(60),
+                                       service_update_period: Duration::from_secs(60),
+                                       custom_state_path:     None,
+                                       cache_key_path:        (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
-                                       update_channel:       ChannelIdent::default(),
-                                       gossip_listen:        GossipListenAddr::default(),
-                                       ctl_listen:           ListenCtlAddr::default(),
-                                       http_listen:          HttpListenAddr::default(),
-                                       http_disable:         false,
-                                       gossip_peers:         vec![],
-                                       gossip_permanent:     false,
-                                       ring_key:             None,
-                                       organization:         None,
-                                       watch_peer_file:      Some(String::from("/some/path")),
-                                       tls_config:           None,
-                                       feature_flags:        FeatureFlag::empty(),
-                                       event_stream_config:  None,
-                                       keep_latest_packages: None,
-                                       sys_ip:               habitat_core::util::sys::ip().unwrap(), },
+                                       update_channel:        ChannelIdent::default(),
+                                       gossip_listen:         GossipListenAddr::default(),
+                                       ctl_listen:            ListenCtlAddr::default(),
+                                       http_listen:           HttpListenAddr::default(),
+                                       http_disable:          false,
+                                       gossip_peers:          vec![],
+                                       gossip_permanent:      false,
+                                       ring_key:              None,
+                                       organization:          None,
+                                       watch_peer_file:       Some(String::from("/some/path")),
+                                       tls_config:            None,
+                                       feature_flags:         FeatureFlag::empty(),
+                                       event_stream_config:   None,
+                                       keep_latest_packages:  None,
+                                       sys_ip:
+                                           habitat_core::util::sys::ip().unwrap(), },
                        config);
         }
 
@@ -1338,6 +1365,8 @@ event_stream_server_certificate = "{}"
             meta.insert(String::from("key2"), String::from("val2"));
             meta.insert(String::from("keyA"), String::from("valA"));
             assert_eq!(ManagerConfig { auto_update:          false,
+                auto_update_period:   Duration::from_secs(60),
+                service_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
                                        cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:
@@ -1517,30 +1546,33 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
                                config1_path_str, config2_path_str);
 
             let config = config_from_cmd_str(&args);
-            assert_eq!(ManagerConfig { auto_update:          false,
-                                       custom_state_path:    None,
-                                       cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
+            assert_eq!(ManagerConfig { auto_update:           false,
+                                       auto_update_period:    Duration::from_secs(60),
+                                       service_update_period: Duration::from_secs(60),
+                                       custom_state_path:     None,
+                                       cache_key_path:        (&*CACHE_KEY_PATH).to_path_buf(),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
-                                       update_channel:       ChannelIdent::default(),
+                                       update_channel:        ChannelIdent::default(),
                                        gossip_listen:
                                            GossipListenAddr::from_str("1.2.3.4:4321").unwrap(),
                                        ctl_listen:
                                            ListenCtlAddr::from_str("7.7.7.7:7777").unwrap(),
                                        http_listen:
                                            HttpListenAddr::from_str("3.3.3.3:3333").unwrap(),
-                                       http_disable:         false,
-                                       gossip_peers:         vec![],
-                                       gossip_permanent:     false,
-                                       ring_key:             None,
+                                       http_disable:          false,
+                                       gossip_peers:          vec![],
+                                       gossip_permanent:      false,
+                                       ring_key:              None,
                                        organization:
                                            Some(String::from("MY_ORG_FROM_SECOND_CONFG")),
-                                       watch_peer_file:      None,
-                                       tls_config:           None,
-                                       feature_flags:        FeatureFlag::empty(),
-                                       event_stream_config:  None,
-                                       keep_latest_packages: None,
-                                       sys_ip:               habitat_core::util::sys::ip().unwrap(), },
+                                       watch_peer_file:       None,
+                                       tls_config:            None,
+                                       feature_flags:         FeatureFlag::empty(),
+                                       event_stream_config:   None,
+                                       keep_latest_packages:  None,
+                                       sys_ip:
+                                           habitat_core::util::sys::ip().unwrap(), },
                        config);
         }
 
