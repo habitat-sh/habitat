@@ -97,7 +97,6 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
                             String::from("HAB_STUDIO_NOPROFILE"),
                             String::from("HAB_STUDIO_NOSTUDIORC"),
                             String::from("HAB_STUDIO_SUP"),
-                            String::from("HAB_UPDATE_STRATEGY_FREQUENCY_MS"),
                             String::from("http_proxy"),
                             String::from("https_proxy"),
                             String::from("RUST_LOG"),
