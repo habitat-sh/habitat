@@ -184,9 +184,12 @@ pub struct SupRun {
     /// Enable automatic updates for the Supervisor itself
     #[structopt(long = "auto-update", short = "A")]
     pub auto_update: bool,
-    /// The period of time in seconds between checks for a Supervisor update
+    /// The period of time in seconds between Supervisor update checks
     #[structopt(long = "auto-update-period", default_value = "60")]
     pub auto_update_period: DurationProxy,
+    /// The period of time in seconds between service update checks
+    #[structopt(long = "service-update-period", default_value = "60")]
+    pub service_update_period: DurationProxy,
     /// The private key for HTTP Gateway TLS encryption
     ///
     /// Read the private key from KEY_FILE. This should be an RSA private key or PKCS8-encoded

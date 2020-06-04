@@ -61,11 +61,12 @@ pub struct RollingUpdateWorker {
 impl RollingUpdateWorker {
     pub fn new(service: &Service,
                census_ring: Arc<RwLock<CensusRing>>,
-               butterfly: habitat_butterfly::Server)
+               butterfly: habitat_butterfly::Server,
+               period: Duration)
                -> Self {
         Self { service_group: service.service_group.clone(),
                topology: service.topology,
-               package_update_worker: PackageUpdateWorker::from(service),
+               package_update_worker: PackageUpdateWorker::new(service, period),
                census_ring,
                butterfly }
     }

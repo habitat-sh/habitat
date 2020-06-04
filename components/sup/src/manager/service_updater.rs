@@ -16,7 +16,8 @@ use parking_lot::{Mutex,
 use std::{self,
           collections::HashMap,
           future::Future,
-          sync::Arc};
+          sync::Arc,
+          time::Duration};
 
 static LOGKEY: &str = "SU";
 
@@ -35,14 +36,19 @@ pub struct ServiceUpdater {
     census_ring: Arc<RwLock<CensusRing>>,
     updates:     Arc<Mutex<HashMap<ServiceGroup, PackageIdent>>>,
     workers:     HashMap<ServiceGroup, Worker>,
+    period:      Duration,
 }
 
 impl ServiceUpdater {
-    pub fn new(butterfly: habitat_butterfly::Server, census_ring: Arc<RwLock<CensusRing>>) -> Self {
+    pub fn new(butterfly: habitat_butterfly::Server,
+               census_ring: Arc<RwLock<CensusRing>>,
+               period: Duration)
+               -> Self {
         ServiceUpdater { butterfly,
                          census_ring,
                          updates: Arc::default(),
-                         workers: HashMap::new() }
+                         workers: HashMap::new(),
+                         period }
     }
 
     /// Register a new service for updates.
@@ -87,7 +93,7 @@ impl ServiceUpdater {
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();
         let updates = Arc::clone(&self.updates);
-        let package_update_worker = PackageUpdateWorker::from(service);
+        let package_update_worker = PackageUpdateWorker::new(service, self.period);
         async move {
             let new_ident = package_update_worker.update().await;
             debug!("'{}' at-once updater found update from '{}' to '{}'",
@@ -107,7 +113,8 @@ impl ServiceUpdater {
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();
         let updates = Arc::clone(&self.updates);
-        let worker = RollingUpdateWorker::new(service, census_ring, self.butterfly.clone());
+        let worker =
+            RollingUpdateWorker::new(service, census_ring, self.butterfly.clone(), self.period);
         async move {
             let new_ident = worker.run().await;
             debug!("'{}' rolling updater found update from '{}' to '{}'",
