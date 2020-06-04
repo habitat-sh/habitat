@@ -5,6 +5,7 @@ use crate::{error::{Error,
 use hab::{command::pkg::{self,
                          uninstall_impl::{self,
                                           UninstallSafety}},
+          config,
           error::Result as HabResult};
 use habitat_api_client::BuilderAPIClient;
 use habitat_common::{command::package::install::{self as install_cmd,
@@ -27,6 +28,11 @@ use std::path::Path;
 
 static LOGKEY: &str = "UT";
 
+fn get_auth_token() -> Option<String> {
+    henv::var(AUTH_TOKEN_ENVVAR).ok()
+                                .or_else(|| config::CACHED.auth_token.clone())
+}
+
 /// Helper function for use in the Supervisor to handle lower-level
 /// arguments needed for installing a package.
 pub async fn install<T>(ui: &mut T,
@@ -37,10 +43,7 @@ pub async fn install<T>(ui: &mut T,
     where T: UIWriter
 {
     let fs_root_path = Path::new(&*FS_ROOT_PATH);
-    let auth_token = match henv::var(AUTH_TOKEN_ENVVAR) {
-        Ok(v) => Some(v),
-        Err(_) => None,
-    };
+    let auth_token = get_auth_token();
     install_cmd::start(ui,
                        url,
                        channel,
@@ -110,10 +113,7 @@ pub async fn install_channel_head(url: &str,
                                   channel: &ChannelIdent)
                                   -> Result<PackageInstall> {
     let fs_root_path = Path::new(&*FS_ROOT_PATH);
-    let auth_token = match henv::var(AUTH_TOKEN_ENVVAR) {
-        Ok(v) => Some(v),
-        Err(_) => None,
-    };
+    let auth_token = get_auth_token();
     let api_client = BuilderAPIClient::new(url, PRODUCT, VERSION, Some(fs_root_path))?;
     // Get the latest package identifier from the channel
     let channel_latest_ident = api_client.show_package((ident.as_ref(),
