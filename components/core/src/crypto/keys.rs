@@ -7,8 +7,11 @@ use super::{PUBLIC_BOX_KEY_VERSION,
             SECRET_SIG_KEY_VERSION,
             SECRET_SYM_KEY_SUFFIX,
             SECRET_SYM_KEY_VERSION};
-use crate::error::{Error,
-                   Result};
+use crate::{error::{Error,
+                    Result},
+            fs::{Permissions,
+                 DEFAULT_PUBLIC_KEY_PERMISSIONS,
+                 DEFAULT_SECRET_KEY_PERMISSIONS}};
 use chrono::Utc;
 use regex::Regex;
 use serde::Deserialize;
@@ -476,7 +479,7 @@ fn write_keypair_files(public_keyfile: Option<&Path>,
         let public_file = File::create(public_keyfile)?;
         let mut public_writer = BufWriter::new(&public_file);
         public_writer.write_all(public_content.as_bytes())?;
-        set_permissions(public_keyfile)?;
+        set_permissions(public_keyfile, DEFAULT_PUBLIC_KEY_PERMISSIONS)?;
     }
 
     if let Some(secret_keyfile) = secret_keyfile {
@@ -498,22 +501,23 @@ fn write_keypair_files(public_keyfile: Option<&Path>,
         let secret_file = File::create(secret_keyfile)?;
         let mut secret_writer = BufWriter::new(&secret_file);
         secret_writer.write_all(secret_content.as_bytes())?;
-        set_permissions(secret_keyfile)?;
+        set_permissions(secret_keyfile, DEFAULT_SECRET_KEY_PERMISSIONS)?;
     }
     Ok(())
 }
 
 #[cfg(not(windows))]
-fn set_permissions<T: AsRef<Path>>(path: T) -> Result<()> {
+fn set_permissions<T: AsRef<Path>>(path: T, perms: Permissions) -> Result<()> {
     use crate::util::posix_perm;
 
-    use super::KEY_PERMISSIONS;
-
-    posix_perm::set_permissions(path.as_ref(), KEY_PERMISSIONS)
+    if let Permissions::Explicit(permissions) = perms {
+        posix_perm::set_permissions(path.as_ref(), permissions)?;
+    }
+    Ok(())
 }
 
 #[cfg(windows)]
-fn set_permissions<T: AsRef<Path>>(path: T) -> Result<()> {
+fn set_permissions<T: AsRef<Path>>(path: T, _perms: Permissions) -> Result<()> {
     use crate::util::win_perm;
 
     win_perm::harden_path(path.as_ref())
