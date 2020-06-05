@@ -103,6 +103,13 @@ Send(m) ==
 Discard(m) ==
     messages' = WithoutMessage(m, messages)
 
+DuplicateMessage(m) ==
+    /\ Send(m)
+    /\ UNCHANGED << elections, leaders, rumorHeat>>
+
+DropMessage(m) ==
+    /\ Discard(m)
+    /\ UNCHANGED << elections, leaders, rumorHeat >>
 
 ----
 
@@ -272,6 +279,8 @@ Next == \/ \E i \in Member: StartElection(i)
         \/ \E i \in Member: AcceptLeader(i)
         \/ \E m \in DOMAIN messages: /\ messages[m] > 0 \* TODO: properly remove entry if we remove the last message
                                      /\ Receive(m)
+        \/ \E m \in DOMAIN messages: DropMessage(m)
+        \/ \E m \in DOMAIN messages: DuplicateMessage(m)
 
 Spec == Init /\ [][Next]_vars
 
