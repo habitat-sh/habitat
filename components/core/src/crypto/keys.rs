@@ -479,7 +479,7 @@ fn write_keypair_files(public_keyfile: Option<&Path>,
         let public_file = File::create(public_keyfile)?;
         let mut public_writer = BufWriter::new(&public_file);
         public_writer.write_all(public_content.as_bytes())?;
-        set_permissions(public_keyfile, DEFAULT_PUBLIC_KEY_PERMISSIONS)?;
+        set_permissions(public_keyfile, &DEFAULT_PUBLIC_KEY_PERMISSIONS)?;
     }
 
     if let Some(secret_keyfile) = secret_keyfile {
@@ -501,23 +501,23 @@ fn write_keypair_files(public_keyfile: Option<&Path>,
         let secret_file = File::create(secret_keyfile)?;
         let mut secret_writer = BufWriter::new(&secret_file);
         secret_writer.write_all(secret_content.as_bytes())?;
-        set_permissions(secret_keyfile, DEFAULT_SECRET_KEY_PERMISSIONS)?;
+        set_permissions(secret_keyfile, &DEFAULT_SECRET_KEY_PERMISSIONS)?;
     }
     Ok(())
 }
 
 #[cfg(not(windows))]
-fn set_permissions<T: AsRef<Path>>(path: T, perms: Permissions) -> Result<()> {
+fn set_permissions<T: AsRef<Path>>(path: T, perms: &Permissions) -> Result<()> {
     use crate::util::posix_perm;
 
     if let Permissions::Explicit(permissions) = perms {
-        posix_perm::set_permissions(path.as_ref(), permissions)?;
+        posix_perm::set_permissions(path.as_ref(), *permissions)?;
     }
     Ok(())
 }
 
 #[cfg(windows)]
-fn set_permissions<T: AsRef<Path>>(path: T, _perms: Permissions) -> Result<()> {
+fn set_permissions<T: AsRef<Path>>(path: T, _perms: &Permissions) -> Result<()> {
     use crate::util::win_perm;
 
     win_perm::harden_path(path.as_ref())
