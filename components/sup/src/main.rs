@@ -278,15 +278,6 @@ fn split_apart_sup_run(sup_run: SupRun,
 
     let shared_load = sup_run.shared_load;
 
-    #[cfg(target_os = "windows")]
-    let password = if let Some(password) = shared_load.password {
-        Some(encrypt(password)?)
-    } else {
-        None
-    };
-    #[cfg(not(target_os = "windows"))]
-    let password = None;
-
     let event_stream_config = if sup_run.event_stream_url.is_some() {
         Some(EventStreamConfig { environment:
                                      sup_run.event_stream_environment
@@ -356,6 +347,15 @@ fn split_apart_sup_run(sup_run: SupRun,
                                              .unwrap_or(IpAddr::V4(Ipv4Addr::LOCALHOST)) };
 
     info!("Using sys IP address {}", cfg.sys_ip);
+
+    #[cfg(target_os = "windows")]
+    let password = if let Some(password) = shared_load.password {
+        Some(encrypt(password)?)
+    } else {
+        None
+    };
+    #[cfg(not(target_os = "windows"))]
+    let password = None;
 
     let mut msg = sup_proto::ctl::SvcLoad::default();
     msg.bldr_url = Some(bldr_url(shared_load.bldr_url.as_ref()));
