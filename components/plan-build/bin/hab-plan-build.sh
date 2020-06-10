@@ -1977,7 +1977,19 @@ do_default_build_config() {
   _do_copy_templates "config"
   _do_copy_templates "config_install"
   if [[ -d "$PLAN_CONTEXT/hooks" ]]; then
-    cp -r "$PLAN_CONTEXT/hooks" "$pkg_prefix"
+    mkdir -p "$pkg_prefix"/hooks
+    for file in "$PLAN_CONTEXT"/hooks/*
+    do
+      # The supervisor does not recognize extensions so all hooks are
+      # copied without extensions
+      local target
+      target="$pkg_prefix"/hooks/"$(basename "${file%.*}")"
+      if [[ -f "$target" ]]; then
+        exit_with "Multiple hook files found for $(basename "${file%.*}") hook. No more than one hook file permitted per lifecycle hook." 1
+      else
+        cp "$file" "$target"
+      fi
+    done
     chmod 755 "$pkg_prefix"/hooks
   fi
   if [[ -f "$PLAN_CONTEXT/default.toml" ]]; then
@@ -2030,7 +2042,7 @@ do_build_service() {
 # Default implementation of the `do_build_service()` phase.
 do_default_build_service() {
   build_line "Writing service management scripts"
-  if [[ -f "${PLAN_CONTEXT}/hooks/run" ]]; then
+  if [[ -f "${PLAN_CONTEXT}/hooks/run" || -f "${PLAN_CONTEXT}/hooks/run.*" ]]; then
     build_line "Using run hook ${PLAN_CONTEXT}/hooks/run"
     return 0
   else
