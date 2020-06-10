@@ -14,13 +14,15 @@ $main-nav-breakpoint: 1060px;
 
 #main-nav {
   position: fixed;
-  z-index: 100;
-  background: $hab-slate;
+  background: $white;
+  border-bottom: 1px solid $docs-gray;
   min-height: $header-height-mobile;
   width: 100%;
   transition: top 0.4s ease;
   box-shadow: 0 0 50px 2px transparent;
-  z-index: 9000;
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+  z-index: 10;
 
   @include large-nav {
     min-height: $header-height;
@@ -32,7 +34,7 @@ $main-nav-breakpoint: 1060px;
 
   &.is-open,
   &.is-sticky {
-    background-color: $hab-navy;
+    background-color: $white;
     box-shadow: 0 0 50px 2px rgba(0, 0, 0, 0.10);
   }
 
@@ -55,8 +57,8 @@ $main-nav-breakpoint: 1060px;
     .main-nav--logo {
       @include large-nav {
         h1 {
-          background: url("../images/chef-habitat-inverse.svg") no-repeat left 50%;
-          background-size: contain;
+          background: url("../images/chef-logo.svg") no-repeat left;
+          background-size: 35%;
         }
       }
     }
@@ -91,7 +93,7 @@ $main-nav-breakpoint: 1060px;
     }
 
     .main-nav--links {
-      background-color: $hab-navy;
+      background-color: $white;
       top: -1px;
       width: 100%;
       padding: 0 rem-calc(20) rem-calc(20);
@@ -115,7 +117,7 @@ $main-nav-breakpoint: 1060px;
       overflow: hidden;
       text-indent: 400%;
       white-space: nowrap;
-      background: url("../images/chef-habitat-inverse.svg") no-repeat left 50%;
+      background: url("../images/chef-logo.svg") no-repeat left 50%;
       color: $white;
       height: $header-height-mobile;
       margin-bottom: 0;
@@ -249,34 +251,37 @@ $main-nav-breakpoint: 1060px;
 .main-nav--link {
   > a {
     position: relative;
-    color: $white;
+    color: $dark-gray;
     transition: color 0.2s ease;
     float: left;
 
     &:hover,
     &:active,
-    &:focus,
-    &.is-current-page {
-      color: $hab-primary;
+    &:focus {
+      color: $chef-primary;
+    }
+
+    &:is-current-page {
+      color: $chef-secondary;
     }
 
     @include small-nav {
       width: 100%;
     }
 
-    @include large-nav {
-      &.is-current-page:before {
-        content: "";
-        position: absolute;
-        background: url("../images/nav-active-icon.png") no-repeat center top;
-        background: url("../images/nav-active-icon.svg") no-repeat center top;
-        background-size: auto 100%;
-        width: 120%;
-        height: rem-calc(18);
-        top: rem-calc(40);
-        left: -10%;
-      }
-    }
+    // @include large-nav {
+    //   &.is-current-page:before {
+    //     content: "";
+    //     position: absolute;
+    //     background: url("../images/nav-active-icon.png") no-repeat center top;
+    //     background: url("../images/nav-active-icon.svg") no-repeat center top;
+    //     background-size: auto 100%;
+    //     width: 120%;
+    //     height: rem-calc(18);
+    //     top: rem-calc(40);
+    //     left: -10%;
+    //   }
+    // }
   }
 
   &.cta-link a {

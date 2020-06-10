@@ -8,25 +8,21 @@
 
   .main-nav--container.row
     .columns.large-2.main-nav--logo
-      a href="/" data-builder-url="#{builder_web_url}"
+      a href="https://community.chef.io/" data-builder-url="#{builder_web_url}"
         h1 habitat
     .columns.large-10.nav.main-nav--links-wrap
       .main-nav--toggle
         = partial "images/icons/icon-nav-toggle.svg"
       ul.main-nav--links
         li.main-nav--link
-          a.learn href="/learn" Learn
+          a.community href="https://community.chef.io/" Community
         li.main-nav--link
           a.docs href="/docs" Docs
         li.main-nav--link
-          a.community href="/community" Community
+          a.learn href="https://learn.chef.io/" target="_blank" Learn Chef
         li.main-nav--link
-          a.search-pkgs href="#{builder_web_url}/#/pkgs" Builder
+          a.training href="https://training.chef.io/" target="_blank" Training
         li.main-nav--link
-          a.enterprise href="/enterprise" Enterprise
+          a.downloads href="https://downloads.chef.io/" target="_blank" Downloads
         li.main-nav--link
-          a.blog href="/blog" Blog
-        li.main-nav--link
-          a.download.with-icon href="/docs/install-habitat/" Download
-        li.main-nav--link
-          a.github.with-icon href="https://github.com/habitat-sh/habitat/" View on GitHub
+          a.enterprise href="https://www.chef.io/" target="_blank" Enterprise

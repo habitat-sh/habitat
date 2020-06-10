@@ -45,6 +45,16 @@
 // 1. Global
 // ---------
 
+// Community Site Colors
+$chef-primary: #FFA300; // Do not change; set Chef brand color until Feb 2020
+$chef-secondary: #DA1884; // Do not change; set Chef brand color until Feb 2020
+$chef-tertiary: #008080; 
+$dark-gray: #292728; // Do not change; set Chef brand color until Feb 2020
+$mid-gray: #666666;
+$light-gray: #F1F2F2; // Do not change; set Chef brand color until Feb 2020
+$docs-gray: #eeeeee; //Gray used on the Docs site
+$white: #fcfcfc;
+
 $global-font-size: 100%;
 $global-width: rem-calc(1200);
 $global-lineheight: 1.5;
@@ -86,11 +96,8 @@ $foundation-palette: (
   warning: #ffae00,
   alert: #ec5840,
 );
-$light-gray: #e6e6e6;
 $medium-gray: #cacaca;
-$dark-gray: #8a8a8a;
 $black: #0a0a0a;
-$white: #fefefe;
 $white-slightly-transparent: rgba(255, 255, 255, 0.97);
 $text-gray: #C3C6C8;
 
@@ -112,10 +119,10 @@ $text-gray: #C3C6C8;
 
 $body-background: $hab-white;
 $body-font-color: $hab-blue-grey;
-$body-font-family: 'Titillium Web', 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
+$body-font-family: 'Muli', 'Helvetica Neue', Helvetica, sans-serif;
 $body-antialiased: true;
-$header-height: 100px;
-$header-height-mobile: 63px;
+$header-height: 55px;
+$header-height-mobile: 55px;
 $global-margin: 1rem;
 $global-padding: 1rem;
 $global-weight-normal: normal;
