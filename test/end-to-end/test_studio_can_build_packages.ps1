@@ -38,6 +38,18 @@ Describe "Studio build" {
 
         $pkg_name | Should -Be "target_plan"
     }
+
+    It "strips hook extension" {
+        Invoke-BuildAndInstall hook-extension-plan
+        . ./results/last_build.ps1
+
+        "/hab/pkgs/$pkg_ident/hooks/install" | Should -Exist
+    }
+
+    It "fails when there are multiple extensions" {
+        hab pkg build test/fixtures/bad-hook-extension-plan
+        $LASTEXITCODE | Should -Not -Be 0
+    }
 }
 
 Describe "working after success callback" {

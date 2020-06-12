@@ -1211,7 +1211,18 @@ function Invoke-DefaultBuildConfig {
     }
     if (Test-Path "$PLAN_CONTEXT/hooks") {
         Write-BuildLine "Writing hooks"
-        Copy-Item "$PLAN_CONTEXT/hooks" $pkg_prefix -Recurse
+        # The supervisor does not recognize extensions so all hooks are
+        # copied without extensions
+        $hooksDir = Join-Path $pkg_prefix hooks
+        New-Item $hooksDir -ItemType Directory
+        foreach ($file in Get-ChildItem "$PLAN_CONTEXT/hooks") {
+            $singleHook = Get-ChildItem "$PLAN_CONTEXT/hooks" | Where-Object { $_.BaseName -eq $file.BaseName } | ForEach-Object { $_.Name }
+            if($singleHook -is [Array]) {
+                throw "No more than one hook file permitted per lifecycle hook. Found '$($singleHook -Join ', ')'"
+            } else {
+                Copy-Item $file (Join-Path $hooksDir $file.BaseName)
+            }
+        }
     }
     if (Test-Path "$PLAN_CONTEXT/default.toml") {
         Write-BuildLine "Writing default.toml"
@@ -1236,7 +1247,7 @@ function Invoke-BuildService {
 # Default implementation of the `Invoke-BuildService` phase.
 function Invoke-DefaultBuildService {
     Write-BuildLine "Writing service management scripts"
-    if (Test-Path "${PLAN_CONTEXT}/hooks/run") {
+    if ((Test-Path "${PLAN_CONTEXT}/hooks/run") -Or (Test-Path "${PLAN_CONTEXT}/hooks/run.ps1")) {
         Write-BuildLine "Using run hook $PLAN_CONTEXT/hooks/run"
     } else {
         if ($pkg_svc_run -ne "") {
