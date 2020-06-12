@@ -17,11 +17,11 @@ Describe "Using a Launcher that cannot provide service PIDs" {
 
     Context "Supervisor is restarted" {
         $supProc = Get-Process hab-sup
-        $redisProc = Get-Process redis-server*
+        $redisProc = Get-Process "redis-server *:6379"
         Restart-Supervisor
         Wait-Process redis-server -Timeout 10
         $newSupProc = Get-Process hab-sup
-        $newRedisProc = Get-Process redis-server*
+        $newRedisProc = Get-Process "redis-server *:6379"
 
         It "starts a new supervisor process" {
             $supProc.Id | Should -Not -Be $newSupProc.Id
