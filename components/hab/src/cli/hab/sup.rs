@@ -178,9 +178,6 @@ pub struct SupRun {
                 env = RING_KEY_ENVVAR,
                 hidden = true)]
     pub ring_key: Option<String>,
-    /// Use the package config from this path rather than the package itself
-    #[structopt(long = "config-from")]
-    pub config_from: Option<PathBuf>,
     /// Enable automatic updates for the Supervisor itself
     #[structopt(long = "auto-update", short = "A")]
     pub auto_update: bool,

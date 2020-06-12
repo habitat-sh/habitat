@@ -11,6 +11,7 @@ use habitat_core::{os::process::ShutdownTimeout,
                              ServiceGroup},
                    ChannelIdent};
 use habitat_sup_protocol::types::UpdateCondition;
+use std::path::PathBuf;
 use structopt::StructOpt;
 use url::Url;
 
@@ -174,6 +175,9 @@ pub struct SharedLoad {
     #[structopt(long = "environment", short = "e", takes_value = false, hidden = true)]
     #[serde(skip)]
     pub environment:           Vec<String>,
+    /// Use the package config from this path rather than the package itself
+    #[structopt(long = "config-from")]
+    pub config_from:           Option<PathBuf>,
 }
 
 #[derive(ConfigOpt, StructOpt, Deserialize)]

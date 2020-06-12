@@ -9,7 +9,7 @@ mod plan;
 mod ring;
 mod studio;
 pub mod sup;
-mod svc;
+pub mod svc;
 #[cfg(test)]
 mod tests;
 mod user;
