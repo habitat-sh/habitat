@@ -27,7 +27,18 @@ pub fn temp_package_directory(path: &Path) -> Result<TempDir> {
         )
                              })?;
     fs::create_dir_all(base)?;
+
+    // If this temp directory is being used for installs, we will be untarring archives
+    // into the directory. Depending on the length of the paths included in the archives
+    // and the length of this temp directory, the final paths may be over 260 characters.
+    // In most cases on Windows, this is the maximum allowable length of a path. We can
+    // canonicalize the base path which will prepend a `\\?\` to the path on windows
+    // causing windows APIs to treat the path as an extended length path permitting 32,767
+    // characters in the path. Now thats a whole lot of path! Note that this is a new
+    // concern since migrating from libarchive to tar-rs where libarchive performed this
+    // path prepending operation and tar-rs does not.
     let cannon_base = base.canonicalize()?;
+
     let temp_install_prefix =
         path.file_name()
             .and_then(OsStr::to_str)
