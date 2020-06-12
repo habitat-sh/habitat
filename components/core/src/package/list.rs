@@ -27,6 +27,7 @@ pub fn temp_package_directory(path: &Path) -> Result<TempDir> {
         )
                              })?;
     fs::create_dir_all(base)?;
+    let cannon_base = base.canonicalize()?;
     let temp_install_prefix =
         path.file_name()
             .and_then(OsStr::to_str)
@@ -37,7 +38,7 @@ pub fn temp_package_directory(path: &Path) -> Result<TempDir> {
                                                       .to_owned())
             })?;
     Ok(Builder::new().prefix(&temp_install_prefix)
-                     .tempdir_in(base)?)
+                     .tempdir_in(cannon_base)?)
 }
 
 /// Returns a list of package structs built from the contents of the given directory.
@@ -343,7 +344,8 @@ mod test {
         let temp_dir = temp_package_directory(p.path()).unwrap();
         let temp_path = temp_dir.path();
 
-        assert_eq!(&p.path().parent(), &temp_path.parent());
+        assert_eq!(&p.path().parent().unwrap().canonicalize().unwrap(),
+                   &temp_path.parent().unwrap());
     }
 
     #[test]
