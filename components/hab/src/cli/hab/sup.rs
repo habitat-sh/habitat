@@ -120,7 +120,6 @@ fn parse_peer(s: &str) -> io::Result<SocketAddr> {
             usage = "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]",
             rename_all = "screamingsnake",
         )]
-#[allow(dead_code)]
 pub struct SupRun {
     /// The listen address for the Gossip Gateway
     #[structopt(long = "listen-gossip",

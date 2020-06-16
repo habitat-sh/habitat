@@ -4,7 +4,8 @@ use super::util::{CacheKeyPath,
                   ConfigOptRemoteSup,
                   PkgIdent,
                   RemoteSup};
-use configopt::ConfigOpt;
+use configopt::{configopt_fields,
+                ConfigOpt};
 use habitat_core::{os::process::ShutdownTimeout,
                    package::PackageIdent,
                    service::{ServiceBind,
@@ -96,7 +97,6 @@ lazy_static::lazy_static! {
 #[configopt(attrs(serde))]
 #[serde(deny_unknown_fields)]
 #[structopt(no_version, rename_all = "screamingsnake")]
-#[allow(dead_code)]
 pub struct SharedLoad {
     /// Receive updates from the specified release channel
     #[structopt(long = "channel", default_value = &*CHANNEL_IDENT_DEFAULT)]
@@ -104,8 +104,8 @@ pub struct SharedLoad {
     /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
     /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
     // TODO (DM): This should probably use `env` and `default_value`
-    // TODO (DM): Nested flattens do no work
-    #[structopt(name = "BLDR_URL", short = "u", long = "url")]
+    // TODO (DM): serde nested flattens do no work https://github.com/serde-rs/serde/issues/1547
+    #[structopt(short = "u", long = "url")]
     pub bldr_url:              Option<Url>,
     /// The service group with shared config and topology
     #[structopt(long = "group", default_value = "default")]
@@ -180,23 +180,22 @@ pub struct SharedLoad {
     pub config_from:           Option<PathBuf>,
 }
 
+#[configopt_fields]
 #[derive(ConfigOpt, StructOpt, Deserialize)]
 #[configopt(attrs(serde))]
 #[serde(deny_unknown_fields)]
-#[structopt(no_version)]
-#[allow(dead_code)]
+#[structopt(name = "load", no_version, rename_all = "screamingsnake")]
 pub struct Load {
     #[structopt(flatten)]
-    #[serde(flatten)]
-    pkg_ident:   PkgIdent,
+    pub pkg_ident:   PkgIdent,
     /// Load or reload an already loaded service. If the service was previously loaded and
     /// running this operation will also restart the service
-    #[structopt(name = "FORCE", short = "f", long = "force")]
-    force:       bool,
+    #[structopt(short = "f", long = "force")]
+    pub force:       bool,
     #[structopt(flatten)]
     #[serde(flatten)]
-    remote_sup:  RemoteSup,
+    pub remote_sup:  RemoteSup,
     #[structopt(flatten)]
     #[serde(flatten)]
-    shared_load: SharedLoad,
+    pub shared_load: SharedLoad,
 }

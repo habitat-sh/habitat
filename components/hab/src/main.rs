@@ -9,8 +9,12 @@ extern crate log;
 
 use clap::{ArgMatches,
            Shell};
+use configopt::{ConfigOpt,
+                Error as ConfigOptError};
 use futures::stream::StreamExt;
 use hab::{cli::{self,
+                hab::{svc::Load as SvcLoad,
+                      Hab},
                 parse_optional_arg},
           command::{self,
                     pkg::{download::{PackageSet,
@@ -55,16 +59,13 @@ use habitat_core::{crypto::{init,
                    package::{target,
                              PackageIdent,
                              PackageTarget},
-                   service::{HealthCheckInterval,
-                             ServiceGroup},
-                   url::{bldr_url_from_env,
-                         default_bldr_url},
+                   service::ServiceGroup,
+                   url::default_bldr_url,
                    ChannelIdent};
 use habitat_sup_client::{SrvClient,
                          SrvClientError};
 use habitat_sup_protocol::{self as sup_proto,
                            codec::*,
-                           ctl::ServiceBindList,
                            net::ErrCode,
                            types::*};
 use std::{env,
@@ -148,14 +149,26 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     // possible stack overflow crashes at runtime. OSX, for instance,
     // will crash with our large tree. This is a known issue:
     // https://github.com/kbknapp/clap-rs/issues/86
+    let f = move || {
+        // We check if the `--generate-config` flag was used and then use the configopt parser to
+        // generate the config file. This is necessary for subcommands that have required arguments
+        // (eg `hab svc load`). If we do not do this here it is necessary to pass in all required
+        // arguments when generating a config file. Eventually, when we switch to exclusively
+        // using structopt/configopt this will go away and everything will be much cleaner.
+        if env::args().any(|a| a.starts_with("--generate-config")) {
+            if let Err(e @ ConfigOptError::ConfigGenerated(_)) = Hab::try_from_args_with_configopt()
+            {
+                e.exit()
+            }
+        }
+
+        cli::get(feature_flags).get_matches_from_safe_borrow(&mut args.iter())
+                               .unwrap_or_else(|e| {
+                                   e.exit();
+                               })
+    };
     let child = thread::Builder::new().stack_size(8 * 1024 * 1024)
-                                      .spawn(move || {
-                                          cli::get(feature_flags)
-                .get_matches_from_safe_borrow(&mut args.iter())
-                .unwrap_or_else(|e| {
-                    e.exit();
-                })
-                                      })
+                                      .spawn(f)
                                       .unwrap();
     let app_matches = child.join().unwrap();
 
@@ -305,7 +318,12 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         _ => unreachable!(),
                     }
                 }
-                ("load", Some(m)) => sub_svc_load(m).await?,
+                ("load", Some(_)) => {
+                    // Switch to using `configopt` to parse `hab svc load`. When we migrate to
+                    // exclusively using structopt this special case will go away.
+                    let svc_load = SvcLoad::from_iter_with_configopt(env::args().skip(2));
+                    sub_svc_load(svc_load).await?
+                }
                 ("unload", Some(m)) => sub_svc_unload(m).await?,
                 ("start", Some(m)) => sub_svc_start(m).await?,
                 ("stop", Some(m)) => sub_svc_stop(m).await?,
@@ -1218,13 +1236,13 @@ async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     Ok(())
 }
 
-async fn sub_svc_load(m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
     let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
+    let listen_ctl_addr = svc_load.remote_sup.remote_sup;
     let secret_key = config::ctl_secret_key(&cfg)?;
-    let mut msg = svc_load_from_input(m)?;
-    let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
-    msg.ident = Some(ident.into());
+    let msg = cli::svc_load_cli_to_ctl(svc_load.pkg_ident.pkg_ident(),
+                                       svc_load.shared_load,
+                                       svc_load.force);
     let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
@@ -1890,72 +1908,6 @@ fn bulkupload_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
            .expect("CLAP-validated upload dir")
 }
 
-/// A Builder URL, but *only* if the user specified it via CLI args or
-/// the environment
-fn bldr_url_from_input(m: &ArgMatches<'_>) -> Option<String> {
-    m.value_of("BLDR_URL")
-     .map(ToString::to_string)
-     .or_else(bldr_url_from_env)
-}
-
-fn get_binds_from_input(m: &ArgMatches<'_>) -> Result<Option<ServiceBindList>> {
-    match m.values_of("BIND") {
-        Some(bind_strs) => {
-            let mut list = ServiceBindList::default();
-            for bind_str in bind_strs {
-                list.binds.push(ServiceBind::from_str(bind_str)?);
-            }
-            Ok(Some(list))
-        }
-        None => Ok(None),
-    }
-}
-
-fn get_binding_mode_from_input(m: &ArgMatches<'_>) -> Option<sup_proto::types::BindingMode> {
-    // There won't be errors, because we validate with `valid_binding_mode`
-    m.value_of("BINDING_MODE")
-     .and_then(|b| BindingMode::from_str(b).ok())
-}
-
-fn get_group_from_input(m: &ArgMatches<'_>) -> Option<String> {
-    m.value_of("GROUP").map(ToString::to_string)
-}
-
-fn get_health_check_interval_from_input(m: &ArgMatches<'_>)
-                                        -> Option<sup_proto::types::HealthCheckInterval> {
-    // Value will have already been validated by `cli::valid_health_check_interval`
-    m.value_of("HEALTH_CHECK_INTERVAL")
-     .and_then(|s| HealthCheckInterval::from_str(s).ok())
-     .map(HealthCheckInterval::into)
-}
-
-#[cfg(target_os = "windows")]
-fn get_password_from_input(m: &ArgMatches) -> Result<Option<String>> {
-    if let Some(password) = m.value_of("PASSWORD") {
-        Ok(Some(encrypt(password.to_string())?))
-    } else {
-        Ok(None)
-    }
-}
-
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-fn get_password_from_input(_m: &ArgMatches<'_>) -> Result<Option<String>> { Ok(None) }
-
-fn get_topology_from_input(m: &ArgMatches<'_>) -> Option<Topology> {
-    m.value_of("TOPOLOGY")
-     .and_then(|f| Topology::from_str(f).ok())
-}
-
-fn get_strategy_from_input(m: &ArgMatches<'_>) -> Option<UpdateStrategy> {
-    m.value_of("STRATEGY")
-     .and_then(|f| UpdateStrategy::from_str(f).ok())
-}
-
-fn get_update_condition_from_input(m: &ArgMatches<'_>) -> Option<UpdateCondition> {
-    m.value_of("UPDATE_CONDITION")
-     .and_then(|f| UpdateCondition::from_str(f).ok())
-}
-
 fn listen_ctl_addr_from_input(m: &ArgMatches<'_>) -> Result<ListenCtlAddr> {
     m.value_of("REMOTE_SUP")
      .map_or(Ok(ListenCtlAddr::default()), resolve_listen_ctl_addr)
@@ -2011,33 +1963,6 @@ fn ui() -> UI {
         None
     };
     UI::default_with(output::get_format().color_choice(), isatty)
-}
-
-/// Set all fields for an `SvcLoad` message that we can from the given opts. This function
-/// populates all *shared* options between `run` and `load`.
-fn svc_load_from_input(m: &ArgMatches) -> Result<sup_proto::ctl::SvcLoad> {
-    // TODO (DM): This check can eventually be removed.
-    // See https://github.com/habitat-sh/habitat/issues/7339
-    if m.is_present("APPLICATION") || m.is_present("ENVIRONMENT") {
-        ui().warn("--application and --environment flags are deprecated and ignored.")?;
-    }
-    let mut msg = sup_proto::ctl::SvcLoad::default();
-    msg.bldr_url = bldr_url_from_input(m);
-    msg.bldr_channel = channel_from_matches(m).map(|c| c.to_string());
-    msg.binds = get_binds_from_input(m)?;
-    if m.is_present("FORCE") {
-        msg.force = Some(true);
-    }
-    msg.group = get_group_from_input(m);
-    msg.svc_encrypted_password = get_password_from_input(m)?;
-    msg.health_check_interval = get_health_check_interval_from_input(m);
-    msg.binding_mode = get_binding_mode_from_input(m).map(|v| v as i32);
-    msg.topology = get_topology_from_input(m).map(|v| v as i32);
-    msg.update_strategy = get_strategy_from_input(m).map(|v| v as i32);
-    msg.update_condition = get_update_condition_from_input(m).map(|v| v as i32);
-    msg.shutdown_timeout =
-        parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
-    Ok(msg)
 }
 
 #[cfg(test)]
