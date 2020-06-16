@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.51 -->
-## [1.6.51](https://github.com/habitat-sh/habitat/tree/1.6.51) (2020-06-16)
+<!-- latest_release 1.6.52 -->
+## [1.6.52](https://github.com/habitat-sh/habitat/tree/1.6.52) (2020-06-16)
 
 #### Merged Pull Requests
-- Use the cli.toml auth_token during package install [#7735](https://github.com/habitat-sh/habitat/pull/7735) ([davidMcneil](https://github.com/davidMcneil))
+- Improve serde usage [#7732](https://github.com/habitat-sh/habitat/pull/7732) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.39 -->
 ### Changes since 1.6.39 release
 
 #### Merged Pull Requests
+- Improve serde usage [#7732](https://github.com/habitat-sh/habitat/pull/7732) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.52 -->
 - Use the cli.toml auth_token during package install [#7735](https://github.com/habitat-sh/habitat/pull/7735) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.51 -->
 - fix e2e failures [#7742](https://github.com/habitat-sh/habitat/pull/7742) ([mwrock](https://github.com/mwrock)) <!-- 1.6.50 -->
 - allow hook extentions in plan [#7740](https://github.com/habitat-sh/habitat/pull/7740) ([mwrock](https://github.com/mwrock)) <!-- 1.6.49 -->
