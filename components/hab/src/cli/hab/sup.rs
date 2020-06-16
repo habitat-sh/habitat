@@ -185,10 +185,16 @@ pub struct SupRun {
     #[structopt(long = "auto-update", short = "A")]
     pub auto_update: bool,
     /// The period of time in seconds between Supervisor update checks
-    #[structopt(long = "auto-update-period", default_value = "60")]
+    #[structopt(long = "auto-update-period",
+                // TODO (DM): This is seconds not really milliseconds
+                env = "HAB_SUP_UPDATE_MS",
+                default_value = "60")]
     pub auto_update_period: DurationProxy,
     /// The period of time in seconds between service update checks
-    #[structopt(long = "service-update-period", default_value = "60")]
+    #[structopt(long = "service-update-period",
+                // TODO (DM): This is seconds not really milliseconds
+                env = "HAB_UPDATE_STRATEGY_FREQUENCY_MS",
+                default_value = "60")]
     pub service_update_period: DurationProxy,
     /// The private key for HTTP Gateway TLS encryption
     ///
