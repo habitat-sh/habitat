@@ -24,7 +24,7 @@ pub use self::windows::{become_command,
                         terminate,
                         Pid};
 use crate::{error::Error,
-            util::serde_string};
+            util};
 use serde_derive::{Deserialize,
                    Serialize};
 use std::{fmt,
@@ -136,7 +136,7 @@ impl fmt::Display for Signal {
 /// send services, and handles translation from external types at the
 /// edges of our system.
 #[derive(Deserialize, Serialize, Debug, Clone, Copy)]
-pub struct ShutdownSignal(#[serde(with = "serde_string")] Signal);
+pub struct ShutdownSignal(#[serde(with = "util::serde::string")] Signal);
 
 impl Default for ShutdownSignal {
     /// Unless otherwise specified, the Supervisor will shut down

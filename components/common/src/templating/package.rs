@@ -7,7 +7,7 @@ use crate::{error::{Error,
                     package::{FullyQualifiedPackageIdent,
                               PackageIdent,
                               PackageInstall},
-                    util::serde_string},
+                    util},
             util::path};
 use serde::{ser::SerializeStruct,
             Serialize,
@@ -69,7 +69,7 @@ impl Env {
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Pkg {
-    #[serde(with = "serde_string")]
+    #[serde(with = "util::serde::string")]
     pub ident:                   FullyQualifiedPackageIdent,
     pub origin:                  String,
     pub name:                    String,
