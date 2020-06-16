@@ -17,6 +17,8 @@ use habitat_common::{cli::{file_into_idents,
                            BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
                            PACKAGE_TARGET_ENVVAR},
+                     ui,
+                     ui::UIWriter,
                      FeatureFlag};
 use habitat_core::{crypto::{keys::PairType,
                             CACHE_KEY_PATH_ENV_VAR},
@@ -908,6 +910,13 @@ pub fn svc_load_cli_to_ctl(ident: PackageIdent,
                                      SvcLoad},
                                types::{HealthCheckInterval,
                                        ServiceBind}};
+
+    // TODO (DM): This check can eventually be removed.
+    // See https://github.com/habitat-sh/habitat/issues/7339
+    if !shared_load.application.is_empty() || !shared_load.environment.is_empty() {
+        ui::ui().warn("--application and --environment flags are deprecated and ignored.")
+                .ok();
+    }
 
     let binds = if shared_load.bind.is_empty() {
         None

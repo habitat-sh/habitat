@@ -38,11 +38,10 @@ use habitat_common::{self as common,
                                                  InstallMode,
                                                  InstallSource,
                                                  LocalPackageUsage},
-                     output,
                      types::ListenCtlAddr,
-                     ui::{Status,
+                     ui::{self,
+                          Status,
                           UIWriter,
-                          NONINTERACTIVE_ENVVAR,
                           UI},
                      FeatureFlag};
 #[cfg(windows)]
@@ -1130,7 +1129,7 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
-    let mut ui = ui();
+    let mut ui = ui::ui();
     let mut validate = sup_proto::ctl::SvcValidateCfg::default();
     validate.service_group = Some(service_group.clone().into());
     let mut buf = Vec::with_capacity(sup_proto::butterfly::MAX_SVC_CFG_SIZE);
@@ -1333,7 +1332,7 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
-    let mut ui = ui();
+    let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SvcFilePut::default();
     let file = Path::new(m.value_of("FILE").unwrap());
     if file.metadata()?.len() > sup_proto::butterfly::MAX_FILE_PUT_SIZE_BYTES as u64 {
@@ -1399,7 +1398,7 @@ async fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
-    let mut ui = ui();
+    let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SupDepart::default();
     msg.member_id = Some(m.value_of("MEMBER_ID").unwrap().to_string());
 
@@ -1426,7 +1425,7 @@ async fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 fn sub_sup_secret_generate() -> Result<()> {
-    let mut ui = ui();
+    let mut ui = ui::ui();
     let mut buf = String::new();
     sup_proto::generate_secret_key(&mut buf);
     ui.info(buf)?;
@@ -1946,23 +1945,6 @@ fn user_param_or_env(m: &ArgMatches<'_>) -> Option<String> {
             }
         }
     }
-}
-
-// Based on UI::default_with_env, but taking into account the setting
-// of the global color variable.
-//
-// TODO: Ideally we'd have a unified way of setting color, so this
-// function wouldn't be necessary. In the meantime, though, it'll keep
-// the scope of change contained.
-fn ui() -> UI {
-    let isatty = if env::var(NONINTERACTIVE_ENVVAR).map(|val| val == "1" || val == "true")
-                                                   .unwrap_or(false)
-    {
-        Some(false)
-    } else {
-        None
-    };
-    UI::default_with(output::get_format().color_choice(), isatty)
 }
 
 #[cfg(test)]

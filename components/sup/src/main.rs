@@ -34,8 +34,7 @@ use habitat_common::{command::package::install::InstallSource,
                               OutputVerbosity},
                      outputln,
                      types::GossipListenAddr,
-                     ui::{UIWriter,
-                          NONINTERACTIVE_ENVVAR,
+                     ui::{self,
                           UI},
                      FeatureFlag};
 #[cfg(windows)]
@@ -203,12 +202,6 @@ async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run: SupRun,
                                               -> Result<()> {
     set_supervisor_logging_options(&sup_run);
 
-    // TODO (DM): This check can eventually be removed.
-    // See https://github.com/habitat-sh/habitat/issues/7339
-    if !sup_run.shared_load.application.is_empty() || !sup_run.shared_load.environment.is_empty() {
-        ui().warn("--application and --environment flags are deprecated and ignored.")?;
-    }
-
     let (manager_cfg, maybe_svc_load_msg) = split_apart_sup_run(sup_run, feature_flags).await?;
     let manager = Manager::load_imlw(manager_cfg, launcher).await?;
     manager.run_rsw_imlw_mlw_gsw_smw_rhw_msw(maybe_svc_load_msg)
@@ -319,8 +312,10 @@ async fn split_apart_sup_run(sup_run: SupRun,
             source @ InstallSource::Archive(_) => {
                 // Install the archive manually then explicitly set the pkg ident to the version
                 // found in the archive. This will lock the software to this specific version.
-                let install =
-                    util::pkg::install(&mut ui(), &bldr_url, &source, &shared_load.channel).await?;
+                let install = util::pkg::install(&mut ui::ui(),
+                                                 &bldr_url,
+                                                 &source,
+                                                 &shared_load.channel).await?;
                 install.ident
             }
             InstallSource::Ident(ident, _) => ident,
@@ -371,23 +366,6 @@ fn set_supervisor_logging_options(sup_run: &SupRun) {
     if sup_run.json_logging {
         output::set_format(OutputFormat::JSON)
     }
-}
-
-// Based on UI::default_with_env, but taking into account the setting
-// of the global color variable.
-//
-// TODO: Ideally we'd have a unified way of setting color, so this
-// function wouldn't be necessary. In the meantime, though, it'll keep
-// the scope of change contained.
-fn ui() -> UI {
-    let isatty = if env::var(NONINTERACTIVE_ENVVAR).map(|val| val == "1" || val == "true")
-                                                   .unwrap_or(false)
-    {
-        Some(false)
-    } else {
-        None
-    };
-    UI::default_with(output::get_format().color_choice(), isatty)
 }
 
 #[cfg(test)]
