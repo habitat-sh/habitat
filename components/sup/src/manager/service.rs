@@ -177,7 +177,6 @@ enum InitializationState {
 pub struct Service {
     spec:                    ServiceSpec,
     pub service_group:       ServiceGroup,
-    pub bldr_url:            String,
     pub channel:             ChannelIdent,
     pub desired_state:       DesiredState,
     pub spec_file:           PathBuf,
@@ -253,6 +252,8 @@ pub struct Service {
 }
 
 impl Service {
+    pub(crate) fn bldr_url(&self) -> String { self.spec.bldr_url.clone() }
+
     #[allow(clippy::too_many_arguments)]
     async fn with_package(sys: Arc<Sys>,
                           package: &PackageInstall,
@@ -275,7 +276,6 @@ impl Service {
                      sys,
                      cfg,
                      config_renderer: CfgRenderer::new(&config_root)?,
-                     bldr_url: spec.bldr_url,
                      channel: spec.channel,
                      desired_state: spec.desired_state,
                      health_check_result: Arc::new(Mutex::new(HealthCheckResult::Unknown)),
@@ -621,7 +621,7 @@ impl Service {
     pub fn to_spec(&self) -> ServiceSpec {
         let mut spec = ServiceSpec::new(self.spec_ident.clone());
         spec.group = self.service_group.group().to_string();
-        spec.bldr_url = self.bldr_url.clone();
+        spec.bldr_url = self.spec.bldr_url.clone();
         spec.channel = self.channel.clone();
         spec.topology = self.topology;
         spec.update_strategy = self.update_strategy;
@@ -1261,7 +1261,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("all_pkg_binds", &s.all_pkg_binds)?;
         strukt.serialize_field("binding_mode", &s.binding_mode)?;
         strukt.serialize_field("binds", &s.binds)?;
-        strukt.serialize_field("bldr_url", &s.bldr_url)?;
+        strukt.serialize_field("bldr_url", &s.spec.bldr_url)?;
 
         if self.config_rendering == ConfigRendering::Full {
             strukt.serialize_field("cfg", &s.cfg)?;
