@@ -177,7 +177,6 @@ enum InitializationState {
 pub struct Service {
     spec:                    ServiceSpec,
     pub service_group:       ServiceGroup,
-    pub desired_state:       DesiredState,
     pub spec_file:           PathBuf,
     pub spec_ident:          PackageIdent,
     pub topology:            Topology,
@@ -277,7 +276,6 @@ impl Service {
                      sys,
                      cfg,
                      config_renderer: CfgRenderer::new(&config_root)?,
-                     desired_state: spec.desired_state,
                      health_check_result: Arc::new(Mutex::new(HealthCheckResult::Unknown)),
                      hooks: HookTable::load(&pkg.name,
                                             &hooks_root,
@@ -1269,7 +1267,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
 
         strukt.serialize_field("channel", &s.spec.channel)?;
         strukt.serialize_field("config_from", &s.config_from)?;
-        strukt.serialize_field("desired_state", &s.desired_state)?;
+        strukt.serialize_field("desired_state", &s.spec.desired_state)?;
         strukt.serialize_field("health_check", &s.health_check_result)?;
         strukt.serialize_field("hooks", &s.hooks)?;
         strukt.serialize_field("initialized", &s.initialized())?;
