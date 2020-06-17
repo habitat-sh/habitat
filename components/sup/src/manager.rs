@@ -222,7 +222,7 @@ pub struct ShutdownConfig {
 impl ShutdownConfig {
     fn new(shutdown_input: Option<&ShutdownInput>, service: &Service) -> Self {
         let timeout = shutdown_input.and_then(|si| si.timeout).unwrap_or_else(|| {
-                                                                  service.shutdown_timeout
+                                                                  service.shutdown_timeout()
                                                                .unwrap_or(service.pkg
                                                                                  .shutdown_timeout)
                                                               });

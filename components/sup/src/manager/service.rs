@@ -185,7 +185,6 @@ pub struct Service {
     pub pkg:                 Pkg,
     pub sys:                 Arc<Sys>,
     pub user_config_updated: bool,
-    pub shutdown_timeout:    Option<ShutdownTimeout>,
     // TODO (DM): This flag is a temporary hack to signal to the `Manager` that this service needs
     // to be restarted. As we continue refactoring lifecycle hooks this flag should be removed.
     pub needs_restart:       bool,
@@ -261,6 +260,8 @@ impl Service {
 
     pub(crate) fn update_condition(&self) -> UpdateCondition { self.spec.update_condition }
 
+    pub(crate) fn shutdown_timeout(&self) -> Option<ShutdownTimeout> { self.spec.shutdown_timeout }
+
     #[allow(clippy::too_many_arguments)]
     async fn with_package(sys: Arc<Sys>,
                           package: &PackageInstall,
@@ -309,8 +310,7 @@ impl Service {
                      gateway_state,
                      health_check_handle: None,
                      post_run_handle: None,
-                     initialize_handle: None,
-                     shutdown_timeout: spec.shutdown_timeout })
+                     initialize_handle: None })
     }
 
     // And now prepare yourself for a little horribleness...Ready?
@@ -635,7 +635,7 @@ impl Service {
             spec.svc_encrypted_password = Some(password.clone())
         }
         spec.health_check_interval = self.health_check_interval;
-        spec.shutdown_timeout = self.shutdown_timeout;
+        spec.shutdown_timeout = self.spec.shutdown_timeout;
         spec
     }
 
