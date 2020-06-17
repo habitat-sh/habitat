@@ -181,7 +181,6 @@ pub struct Service {
     // that's even useful, given that it's always the same value for a
     // given service.
     spec_file:               PathBuf,
-    pub topology:            Topology,
     pub update_strategy:     UpdateStrategy,
     pub update_condition:    UpdateCondition,
     pub cfg:                 Cfg,
@@ -258,6 +257,8 @@ impl Service {
 
     pub(crate) fn spec_ident(&self) -> PackageIdent { self.spec.ident.clone() }
 
+    pub(crate) fn topology(&self) -> Topology { self.spec.topology }
+
     #[allow(clippy::too_many_arguments)]
     async fn with_package(sys: Arc<Sys>,
                           package: &PackageInstall,
@@ -300,7 +301,6 @@ impl Service {
                      unsatisfied_binds: HashSet::new(),
                      binding_mode: spec.binding_mode,
                      spec_file,
-                     topology: spec.topology,
                      update_strategy: spec.update_strategy,
                      update_condition: spec.update_condition,
                      config_from: spec.config_from,
@@ -569,7 +569,7 @@ impl Service {
             self.file_updated();
         }
 
-        match self.topology {
+        match self.spec.topology {
             Topology::Standalone => {
                 self.execute_hooks(launcher, &template_update);
             }
@@ -625,7 +625,7 @@ impl Service {
         spec.group = self.service_group.group().to_string();
         spec.bldr_url = self.spec.bldr_url.clone();
         spec.channel = self.spec.channel.clone();
-        spec.topology = self.topology;
+        spec.topology = self.spec.topology;
         spec.update_strategy = self.update_strategy;
         spec.update_condition = self.update_condition;
         spec.binds = self.binds.clone();
@@ -1294,7 +1294,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("svc_encrypted_password", &s.svc_encrypted_password)?;
         strukt.serialize_field("health_check_interval", &s.health_check_interval)?;
         strukt.serialize_field("sys", &s.sys)?;
-        strukt.serialize_field("topology", &s.topology)?;
+        strukt.serialize_field("topology", &s.spec.topology)?;
         strukt.serialize_field("update_strategy", &s.update_strategy)?;
         strukt.serialize_field("update_condition", &s.update_condition)?;
         strukt.serialize_field("user_config_updated", &s.user_config_updated)?;

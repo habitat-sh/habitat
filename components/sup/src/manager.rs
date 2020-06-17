@@ -855,7 +855,7 @@ impl Manager {
         }
 
         self.gossip_latest_service_rumor_rsw_mlw_rhw(&service);
-        if service.topology == Topology::Leader {
+        if service.topology() == Topology::Leader {
             self.butterfly
                 .start_election_rsw_mlr_rhw_msr(&service.service_group, 0);
         }
