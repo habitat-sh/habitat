@@ -206,9 +206,6 @@ pub struct Service {
     // :(
     health_check_result:    Arc<Mutex<HealthCheckResult>>,
     last_election_status:   ElectionStatus,
-    /// The mapping of bind name to a service group, specified by the
-    /// user when the service definition was loaded into the Supervisor.
-    binds:                  Vec<ServiceBind>,
     /// The binds that the current service package declares, both
     /// required and optional. We don't differentiate because this is
     /// used to validate the user-specified bindings against the
@@ -299,7 +296,6 @@ impl Service {
                                                                      pid_source))),
                      pkg,
                      service_group,
-                     binds: spec.binds,
                      all_pkg_binds,
                      unsatisfied_binds: HashSet::new(),
                      binding_mode: spec.binding_mode,
@@ -628,7 +624,7 @@ impl Service {
         spec.topology = self.spec.topology;
         spec.update_strategy = self.spec.update_strategy;
         spec.update_condition = self.spec.update_condition;
-        spec.binds = self.binds.clone();
+        spec.binds = self.spec.binds.clone();
         spec.binding_mode = self.binding_mode;
         spec.config_from = self.config_from.clone();
         if let Some(ref password) = self.svc_encrypted_password {
@@ -649,7 +645,7 @@ impl Service {
     /// the service, those binds will be removed from the rendering
     /// context, allowing services to take appropriate action.
     fn validate_binds(&mut self, census_ring: &CensusRing) {
-        for bind in self.binds.iter() {
+        for bind in self.spec.binds.iter() {
             let mut bind_is_unsatisfied = true;
 
             match self.current_bind_status(census_ring, bind) {
@@ -1128,7 +1124,8 @@ impl Service {
                            &self.pkg,
                            &self.cfg,
                            census,
-                           self.binds
+                           self.spec
+                               .binds
                                .iter()
                                .filter(|b| !self.unsatisfied_binds.contains(b)))
     }
@@ -1262,7 +1259,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         let mut strukt = serializer.serialize_struct("service", num_fields)?;
         strukt.serialize_field("all_pkg_binds", &s.all_pkg_binds)?;
         strukt.serialize_field("binding_mode", &s.binding_mode)?;
-        strukt.serialize_field("binds", &s.binds)?;
+        strukt.serialize_field("binds", &s.spec.binds)?;
         strukt.serialize_field("bldr_url", &s.spec.bldr_url)?;
 
         if self.config_rendering == ConfigRendering::Full {
