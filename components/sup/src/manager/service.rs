@@ -181,7 +181,6 @@ pub struct Service {
     // that's even useful, given that it's always the same value for a
     // given service.
     spec_file:               PathBuf,
-    pub spec_ident:          PackageIdent,
     pub topology:            Topology,
     pub update_strategy:     UpdateStrategy,
     pub update_condition:    UpdateCondition,
@@ -257,6 +256,8 @@ impl Service {
 
     pub(crate) fn channel(&self) -> ChannelIdent { self.spec.channel.clone() }
 
+    pub(crate) fn spec_ident(&self) -> PackageIdent { self.spec.ident.clone() }
+
     #[allow(clippy::too_many_arguments)]
     async fn with_package(sys: Arc<Sys>,
                           package: &PackageInstall,
@@ -298,7 +299,6 @@ impl Service {
                      all_pkg_binds,
                      unsatisfied_binds: HashSet::new(),
                      binding_mode: spec.binding_mode,
-                     spec_ident: spec.ident,
                      spec_file,
                      topology: spec.topology,
                      update_strategy: spec.update_strategy,
@@ -620,7 +620,8 @@ impl Service {
     }
 
     pub fn to_spec(&self) -> ServiceSpec {
-        let mut spec = ServiceSpec::new(self.spec_ident.clone());
+        // TODO (CM): eventually just return a copy of self.spec
+        let mut spec = ServiceSpec::new(self.spec.ident.clone());
         spec.group = self.service_group.group().to_string();
         spec.bldr_url = self.spec.bldr_url.clone();
         spec.channel = self.spec.channel.clone();
@@ -1287,8 +1288,9 @@ impl<'a> Serialize for ServiceProxy<'a> {
                                 .deref())?;
         strukt.serialize_field("service_group", &s.service_group)?;
         strukt.serialize_field("spec_file", &s.spec_file)?;
-        strukt.serialize_field("spec_ident", &s.spec_ident)?;
-        strukt.serialize_field("spec_identifier", &s.spec_ident.to_string())?;
+        // Deprecated field; use spec_identifier instead
+        strukt.serialize_field("spec_ident", &s.spec.ident)?;
+        strukt.serialize_field("spec_identifier", &s.spec.ident.to_string())?;
         strukt.serialize_field("svc_encrypted_password", &s.svc_encrypted_password)?;
         strukt.serialize_field("health_check_interval", &s.health_check_interval)?;
         strukt.serialize_field("sys", &s.sys)?;

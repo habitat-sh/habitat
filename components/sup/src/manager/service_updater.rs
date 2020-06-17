@@ -90,7 +90,7 @@ impl ServiceUpdater {
         debug!("'{}' service updater spawning at-once worker watching for changes to '{}' from \
                 channel '{}'",
                service.service_group,
-               service.spec_ident,
+               service.spec_ident(),
                service.channel());
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();
@@ -112,7 +112,7 @@ impl ServiceUpdater {
         debug!("'{}' service updater spawning rolling worker watching for changes to '{}' from \
                 channel '{}'",
                service.service_group,
-               service.spec_ident,
+               service.spec_ident(),
                service.channel());
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();

@@ -32,7 +32,7 @@ impl Service {
     // cloning the entire service for eventing.
     pub fn to_service_metadata(&self) -> ServiceMetadata {
         ServiceMetadata { package_ident: self.pkg.ident.to_string(),
-                          spec_ident:    self.spec_ident.to_string(),
+                          spec_ident:    self.spec_ident().to_string(),
                           service_group: self.service_group.to_string(),
                           update_config: self.update_config(), }
     }

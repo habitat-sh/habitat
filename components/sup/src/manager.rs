@@ -862,7 +862,7 @@ impl Manager {
 
         if let Err(e) = self.user_config_watcher.add(&service) {
             outputln!("Unable to start UserConfigWatcher for {}: {}",
-                      service.spec_ident,
+                      service.spec_ident(),
                       e);
             return;
         }
@@ -876,7 +876,7 @@ impl Manager {
         self.state
             .services
             .lock_msw()
-            .insert(service.spec_ident.clone(), service);
+            .insert(service.spec_ident(), service);
     }
 
     // If we ever need to modify this function, it would be an excellent opportunity to
@@ -1297,8 +1297,8 @@ impl Manager {
         let mut service_states = HashMap::new();
         let mut active_services = Vec::new();
         for service in self.state.services.lock_msr().services() {
-            service_states.insert(service.spec_ident.clone(), service.last_state_change());
-            active_services.push(service.spec_ident.clone());
+            service_states.insert(service.spec_ident(), service.last_state_change());
+            active_services.push(service.spec_ident());
         }
 
         for loaded in self.spec_dir
@@ -1367,9 +1367,8 @@ impl Manager {
         };
 
         let service_map = self.state.services.lock_msr();
-        let existing_idents: Vec<PackageIdent> = service_map.services()
-                                                            .map(|s| s.spec_ident.clone())
-                                                            .collect();
+        let existing_idents: Vec<PackageIdent> =
+            service_map.services().map(Service::spec_ident).collect();
 
         // Services that are not active but are being watched for changes
         // These would include stopped persistent services or other
@@ -1452,7 +1451,7 @@ impl Manager {
         // JW TODO: Update service rumor to remove service from
         // cluster
         // TODO (CM): But only if we're not going down for a restart.
-        let ident = service.spec_ident.clone();
+        let ident = service.spec_ident();
         let stop_it = async move {
             service.stop_gsw(shutdown_config).await;
             event::service_stopped(&service);
@@ -1461,7 +1460,7 @@ impl Manager {
             // At this point the service process is stopped but the package is still loaded by the
             // Supervisor.
             if let Some(latest_desired_ident) = latest_desired_on_restart {
-                Self::uninstall_newer_packages(&service.spec_ident, &latest_desired_ident).await;
+                Self::uninstall_newer_packages(&service.spec_ident(), &latest_desired_ident).await;
             }
         };
         Self::wrap_async_service_operation(ident,
@@ -1739,7 +1738,7 @@ impl Manager {
     fn update_running_services_from_user_config_watcher_msw(&mut self) {
         for service in self.state.services.lock_msw().services() {
             if self.user_config_watcher.have_events_for(service) {
-                outputln!("user.toml changes detected for {}", &service.spec_ident);
+                outputln!("user.toml changes detected for {}", &service.spec_ident());
                 service.user_config_updated = true;
             }
         }
