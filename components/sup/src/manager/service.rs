@@ -192,7 +192,7 @@ pub struct Service {
     // `Service` future. See https://github.com/habitat-sh/habitat/issues/7112
     initialization_state:    Arc<RwLock<InitializationState>>,
 
-    config_renderer:        CfgRenderer,
+    config_renderer:      CfgRenderer,
     // Note: This field is really only needed for serializing a
     // Service in the gateway (see ServiceProxy's Serialize
     // implementation). Ideally, we could get rid of this, since we're
@@ -203,14 +203,14 @@ pub struct Service {
     // In order to access this field in an asynchronous health check
     // hook, we need to wrap some Arc<Mutex<_>> protection around it
     // :(
-    health_check_result:    Arc<Mutex<HealthCheckResult>>,
-    last_election_status:   ElectionStatus,
+    health_check_result:  Arc<Mutex<HealthCheckResult>>,
+    last_election_status: ElectionStatus,
     /// The binds that the current service package declares, both
     /// required and optional. We don't differentiate because this is
     /// used to validate the user-specified bindings against the
     /// current state of the census; once you get into the actual
     /// running of the service, the distinction is immaterial.
-    all_pkg_binds:          Vec<Bind>,
+    all_pkg_binds:        Vec<Bind>,
     /// Binds specified by the user that are currently mapped to
     /// service groups that do _not_ satisfy the bind's contract, as
     /// defined in the service's current package.
@@ -222,12 +222,11 @@ pub struct Service {
     /// We don't serialize because this is purely runtime information
     /// that should be reconciled against the current state of the
     /// census.
-    unsatisfied_binds:      HashSet<ServiceBind>,
-    hooks:                  HookTable,
-    config_from:            Option<PathBuf>,
-    manager_fs_cfg:         Arc<FsCfg>,
-    supervisor:             Arc<Mutex<Supervisor>>,
-    svc_encrypted_password: Option<String>,
+    unsatisfied_binds:    HashSet<ServiceBind>,
+    hooks:                HookTable,
+    config_from:          Option<PathBuf>,
+    manager_fs_cfg:       Arc<FsCfg>,
+    supervisor:           Arc<Mutex<Supervisor>>,
 
     gateway_state: Arc<GatewayState>,
 
@@ -295,7 +294,6 @@ impl Service {
                      unsatisfied_binds: HashSet::new(),
                      spec_file,
                      config_from: spec.config_from,
-                     svc_encrypted_password: spec.svc_encrypted_password,
                      gateway_state,
                      health_check_handle: None,
                      post_run_handle: None,
@@ -380,7 +378,7 @@ impl Service {
                          .start(&self.pkg,
                                 &self.service_group,
                                 launcher,
-                                self.svc_encrypted_password.as_deref());
+                                self.spec.svc_encrypted_password.as_deref());
         match result {
             Ok(_) => {
                 self.needs_restart = false;
@@ -409,7 +407,7 @@ impl Service {
                                               self.spec.health_check_interval,
                                               self.service_group.clone(),
                                               self.pkg.clone(),
-                                              self.svc_encrypted_password.clone());
+                                              self.spec.svc_encrypted_password.clone());
 
         let service_group = self.service_group.clone();
         let service_event_metadata = self.to_service_metadata();
@@ -620,9 +618,7 @@ impl Service {
         spec.binds = self.spec.binds.clone();
         spec.binding_mode = self.spec.binding_mode;
         spec.config_from = self.config_from.clone();
-        if let Some(ref password) = self.svc_encrypted_password {
-            spec.svc_encrypted_password = Some(password.clone())
-        }
+        spec.svc_encrypted_password = self.spec.svc_encrypted_password.clone();
         spec.health_check_interval = self.spec.health_check_interval;
         spec.shutdown_timeout = self.spec.shutdown_timeout;
         spec
@@ -846,7 +842,7 @@ impl Service {
             let hook_runner = HookRunner::new(Arc::clone(&hook),
                                               self.service_group.clone(),
                                               self.pkg.clone(),
-                                              self.svc_encrypted_password.clone());
+                                              self.spec.svc_encrypted_password.clone());
             // These clones are unfortunate. async/await will make this much better.
             let service_group = self.service_group.clone();
             let initialization_state = Arc::clone(&self.initialization_state);
@@ -887,14 +883,14 @@ impl Service {
         if let Some(ref hook) = self.hooks.reload {
             hook.run(&self.service_group,
                      &self.pkg,
-                     self.svc_encrypted_password.as_ref())
+                     self.spec.svc_encrypted_password.as_ref())
                 .ok();
         }
 
         if let Some(ref hook) = self.hooks.reconfigure {
             hook.run(&self.service_group,
                      &self.pkg,
-                     self.svc_encrypted_password.as_ref())
+                     self.spec.svc_encrypted_password.as_ref())
                 .ok();
             // The intention here is to do a health check soon after a service's configuration
             // changes, as a way to (among other things) detect potential impacts when bound
@@ -908,7 +904,7 @@ impl Service {
             let hook_runner = HookRunner::new(Arc::clone(&hook),
                                               self.service_group.clone(),
                                               self.pkg.clone(),
-                                              self.svc_encrypted_password.clone());
+                                              self.spec.svc_encrypted_password.clone());
             let f = HookRunner::retryable_future(hook_runner);
             let (f, handle) = future::abortable(f);
             self.post_run_handle = Some(handle);
@@ -929,7 +925,7 @@ impl Service {
                                          HookRunner::new(Arc::clone(&hook),
                                                          self.service_group.clone(),
                                                          self.pkg.clone(),
-                                                         self.svc_encrypted_password.clone())
+                                                         self.spec.svc_encrypted_password.clone())
                                      })
     }
 
@@ -946,7 +942,7 @@ impl Service {
             .and_then(|hook| {
                 hook.run(&self.service_group,
                          &self.pkg,
-                         self.svc_encrypted_password.as_ref())
+                         self.spec.svc_encrypted_password.as_ref())
                     .ok()
             })
             .unwrap_or(None)
@@ -1078,7 +1074,7 @@ impl Service {
             if let Some(ref hook) = self.hooks.file_updated {
                 return hook.run(&self.service_group,
                                 &self.pkg,
-                                self.svc_encrypted_password.as_ref())
+                                self.spec.svc_encrypted_password.as_ref())
                            .unwrap_or(false);
             }
         }
@@ -1281,7 +1277,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         // Deprecated field; use spec_identifier instead
         strukt.serialize_field("spec_ident", &s.spec.ident)?;
         strukt.serialize_field("spec_identifier", &s.spec.ident.to_string())?;
-        strukt.serialize_field("svc_encrypted_password", &s.svc_encrypted_password)?;
+        strukt.serialize_field("svc_encrypted_password", &s.spec.svc_encrypted_password)?;
         strukt.serialize_field("health_check_interval", &s.spec.health_check_interval)?;
         strukt.serialize_field("sys", &s.sys)?;
         strukt.serialize_field("topology", &s.spec.topology)?;
