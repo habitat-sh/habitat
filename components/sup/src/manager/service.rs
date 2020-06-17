@@ -177,7 +177,10 @@ enum InitializationState {
 pub struct Service {
     spec:                    ServiceSpec,
     pub service_group:       ServiceGroup,
-    pub spec_file:           PathBuf,
+    // TODO: `spec_file` is only used for serialization; unsure if
+    // that's even useful, given that it's always the same value for a
+    // given service.
+    spec_file:               PathBuf,
     pub spec_ident:          PackageIdent,
     pub topology:            Topology,
     pub update_strategy:     UpdateStrategy,
