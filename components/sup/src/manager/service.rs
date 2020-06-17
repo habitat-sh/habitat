@@ -212,9 +212,6 @@ pub struct Service {
     /// current state of the census; once you get into the actual
     /// running of the service, the distinction is immaterial.
     all_pkg_binds:          Vec<Bind>,
-    /// Controls how the presence or absence of bound service groups
-    /// impacts the service's start-up.
-    binding_mode:           BindingMode,
     /// Binds specified by the user that are currently mapped to
     /// service groups that do _not_ satisfy the bind's contract, as
     /// defined in the service's current package.
@@ -298,7 +295,6 @@ impl Service {
                      service_group,
                      all_pkg_binds,
                      unsatisfied_binds: HashSet::new(),
-                     binding_mode: spec.binding_mode,
                      spec_file,
                      config_from: spec.config_from,
                      svc_encrypted_password: spec.svc_encrypted_password,
@@ -538,7 +534,7 @@ impl Service {
         // We may need to block the service from starting until all
         // its binds are satisfied
         if !self.initialized() {
-            match self.binding_mode {
+            match self.spec.binding_mode {
                 BindingMode::Relaxed => (),
                 BindingMode::Strict => {
                     self.validate_binds(census_ring);
@@ -625,7 +621,7 @@ impl Service {
         spec.update_strategy = self.spec.update_strategy;
         spec.update_condition = self.spec.update_condition;
         spec.binds = self.spec.binds.clone();
-        spec.binding_mode = self.binding_mode;
+        spec.binding_mode = self.spec.binding_mode;
         spec.config_from = self.config_from.clone();
         if let Some(ref password) = self.svc_encrypted_password {
             spec.svc_encrypted_password = Some(password.clone())
@@ -1258,7 +1254,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         let s = &self.service;
         let mut strukt = serializer.serialize_struct("service", num_fields)?;
         strukt.serialize_field("all_pkg_binds", &s.all_pkg_binds)?;
-        strukt.serialize_field("binding_mode", &s.binding_mode)?;
+        strukt.serialize_field("binding_mode", &s.spec.binding_mode)?;
         strukt.serialize_field("binds", &s.spec.binds)?;
         strukt.serialize_field("bldr_url", &s.spec.bldr_url)?;
 
