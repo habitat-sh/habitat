@@ -53,7 +53,7 @@ impl Service {
         };
 
         Some(UpdateConfig { strategy: strategy.into(),
-                            channel:  self.channel.to_string(), })
+                            channel:  self.channel().to_string(), })
     }
 }
 

@@ -30,7 +30,7 @@ impl PackageUpdateWorker {
                ident: service.spec_ident.clone(),
                full_ident: service.pkg.ident.clone(),
                update_condition: service.update_condition,
-               channel: service.channel.clone(),
+               channel: service.channel(),
                builder_url: service.bldr_url(),
                period }
     }

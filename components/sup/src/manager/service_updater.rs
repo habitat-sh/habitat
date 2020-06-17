@@ -89,7 +89,9 @@ impl ServiceUpdater {
     fn at_once_worker(&mut self, service: &Service) -> impl Future<Output = ()> + Send + 'static {
         debug!("'{}' service updater spawning at-once worker watching for changes to '{}' from \
                 channel '{}'",
-               service.service_group, service.spec_ident, service.channel);
+               service.service_group,
+               service.spec_ident,
+               service.channel());
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();
         let updates = Arc::clone(&self.updates);
@@ -109,7 +111,9 @@ impl ServiceUpdater {
                       -> impl Future<Output = ()> + Send + 'static {
         debug!("'{}' service updater spawning rolling worker watching for changes to '{}' from \
                 channel '{}'",
-               service.service_group, service.spec_ident, service.channel);
+               service.service_group,
+               service.spec_ident,
+               service.channel());
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();
         let updates = Arc::clone(&self.updates);

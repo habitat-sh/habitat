@@ -177,7 +177,7 @@ enum InitializationState {
 pub struct Service {
     spec:                    ServiceSpec,
     pub service_group:       ServiceGroup,
-    pub channel:             ChannelIdent,
+    channel:                 ChannelIdent,
     pub desired_state:       DesiredState,
     pub spec_file:           PathBuf,
     pub spec_ident:          PackageIdent,
@@ -253,6 +253,8 @@ pub struct Service {
 
 impl Service {
     pub(crate) fn bldr_url(&self) -> String { self.spec.bldr_url.clone() }
+
+    pub(crate) fn channel(&self) -> ChannelIdent { self.spec.channel.clone() }
 
     #[allow(clippy::too_many_arguments)]
     async fn with_package(sys: Arc<Sys>,
