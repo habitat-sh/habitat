@@ -68,8 +68,7 @@ use habitat_core::{crypto::hash,
                    package::{metadata::Bind,
                              PackageIdent,
                              PackageInstall},
-                   service::{HealthCheckInterval,
-                             ServiceBind,
+                   service::{ServiceBind,
                              ServiceGroup},
                    ChannelIdent};
 use habitat_launcher_client::LauncherCli;
@@ -229,7 +228,6 @@ pub struct Service {
     manager_fs_cfg:         Arc<FsCfg>,
     supervisor:             Arc<Mutex<Supervisor>>,
     svc_encrypted_password: Option<String>,
-    health_check_interval:  HealthCheckInterval,
 
     gateway_state: Arc<GatewayState>,
 
@@ -298,7 +296,6 @@ impl Service {
                      spec_file,
                      config_from: spec.config_from,
                      svc_encrypted_password: spec.svc_encrypted_password,
-                     health_check_interval: spec.health_check_interval,
                      gateway_state,
                      health_check_handle: None,
                      post_run_handle: None,
@@ -409,7 +406,7 @@ impl Service {
         debug!("Starting health checks for {}", self.pkg.ident);
         let mut rx = health::check_repeatedly(Arc::clone(&self.supervisor),
                                               self.hooks.health_check.clone(),
-                                              self.health_check_interval,
+                                              self.spec.health_check_interval,
                                               self.service_group.clone(),
                                               self.pkg.clone(),
                                               self.svc_encrypted_password.clone());
@@ -626,7 +623,7 @@ impl Service {
         if let Some(ref password) = self.svc_encrypted_password {
             spec.svc_encrypted_password = Some(password.clone())
         }
-        spec.health_check_interval = self.health_check_interval;
+        spec.health_check_interval = self.spec.health_check_interval;
         spec.shutdown_timeout = self.spec.shutdown_timeout;
         spec
     }
@@ -1285,7 +1282,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("spec_ident", &s.spec.ident)?;
         strukt.serialize_field("spec_identifier", &s.spec.ident.to_string())?;
         strukt.serialize_field("svc_encrypted_password", &s.svc_encrypted_password)?;
-        strukt.serialize_field("health_check_interval", &s.health_check_interval)?;
+        strukt.serialize_field("health_check_interval", &s.spec.health_check_interval)?;
         strukt.serialize_field("sys", &s.sys)?;
         strukt.serialize_field("topology", &s.spec.topology)?;
         strukt.serialize_field("update_strategy", &s.spec.update_strategy)?;
