@@ -175,6 +175,7 @@ enum InitializationState {
 
 #[derive(Debug)]
 pub struct Service {
+    spec:                    ServiceSpec,
     pub service_group:       ServiceGroup,
     pub bldr_url:            String,
     pub channel:             ChannelIdent,
@@ -266,11 +267,13 @@ impl Service {
         let all_pkg_binds = package.all_binds()?;
         let pkg = Self::resolve_pkg(&package, &spec).await?;
         let spec_file = manager_fs_cfg.specs_path.join(spec.file());
-        let service_group = ServiceGroup::new(&pkg.name, spec.group, organization)?;
+        let service_group = ServiceGroup::new(&pkg.name, &spec.group, organization)?;
         let config_root = Self::config_root(&pkg, spec.config_from.as_ref());
         let hooks_root = Self::hooks_root(&pkg, spec.config_from.as_ref());
-        Ok(Service { sys,
-                     cfg: Cfg::new(&pkg, spec.config_from.as_ref())?,
+        let cfg = Cfg::new(&pkg, spec.config_from.as_ref())?;
+        Ok(Service { spec,
+                     sys,
+                     cfg,
                      config_renderer: CfgRenderer::new(&config_root)?,
                      bldr_url: spec.bldr_url,
                      channel: spec.channel,
