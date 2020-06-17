@@ -252,6 +252,8 @@ impl Service {
 
     pub(crate) fn shutdown_timeout(&self) -> Option<ShutdownTimeout> { self.spec.shutdown_timeout }
 
+    pub(crate) fn spec(&self) -> ServiceSpec { self.spec.clone() }
+
     #[allow(clippy::too_many_arguments)]
     async fn with_package(sys: Arc<Sys>,
                           package: &PackageInstall,
@@ -602,24 +604,6 @@ impl Service {
             }
         }
         template_data_changed
-    }
-
-    pub fn to_spec(&self) -> ServiceSpec {
-        // TODO (CM): eventually just return a copy of self.spec
-        let mut spec = ServiceSpec::new(self.spec.ident.clone());
-        spec.group = self.service_group.group().to_string();
-        spec.bldr_url = self.spec.bldr_url.clone();
-        spec.channel = self.spec.channel.clone();
-        spec.topology = self.spec.topology;
-        spec.update_strategy = self.spec.update_strategy;
-        spec.update_condition = self.spec.update_condition;
-        spec.binds = self.spec.binds.clone();
-        spec.binding_mode = self.spec.binding_mode;
-        spec.config_from = self.spec.config_from.clone();
-        spec.svc_encrypted_password = self.spec.svc_encrypted_password.clone();
-        spec.health_check_interval = self.spec.health_check_interval;
-        spec.shutdown_timeout = self.spec.shutdown_timeout;
-        spec
     }
 
     /// Iterate through all the service binds, marking any that are

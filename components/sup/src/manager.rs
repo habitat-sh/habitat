@@ -1619,7 +1619,7 @@ impl Manager {
     fn compute_service_operations_msr(&mut self) -> Vec<ServiceOperation> {
         // First, figure out what's currently running.
         let service_map = self.state.services.lock_msr();
-        let currently_running_specs = service_map.services().map(Service::to_spec);
+        let currently_running_specs = service_map.services().map(Service::spec);
 
         // Now, figure out what we should compare against, ignoring
         // any services that are currently doing something
