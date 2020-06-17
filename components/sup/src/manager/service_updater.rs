@@ -57,7 +57,7 @@ impl ServiceUpdater {
         self.remove(&service.service_group);
         // Determine what kind of worker we should use
         let service_group = service.service_group.clone();
-        match service.update_strategy {
+        match service.update_strategy() {
             UpdateStrategy::None => {}
             UpdateStrategy::AtOnce => {
                 let worker = self.at_once_worker(service);

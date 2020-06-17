@@ -44,7 +44,7 @@ impl Service {
     /// coupled with the channel from which the Supervisor pulls
     /// updates.
     fn update_config(&self) -> Option<UpdateConfig> {
-        let strategy = match self.update_strategy {
+        let strategy = match self.update_strategy() {
             DomainUpdateStrategy::None => {
                 return None;
             }
