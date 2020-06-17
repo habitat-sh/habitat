@@ -224,7 +224,6 @@ pub struct Service {
     /// census.
     unsatisfied_binds:    HashSet<ServiceBind>,
     hooks:                HookTable,
-    config_from:          Option<PathBuf>,
     manager_fs_cfg:       Arc<FsCfg>,
     supervisor:           Arc<Mutex<Supervisor>>,
 
@@ -293,7 +292,6 @@ impl Service {
                      all_pkg_binds,
                      unsatisfied_binds: HashSet::new(),
                      spec_file,
-                     config_from: spec.config_from,
                      gateway_state,
                      health_check_handle: None,
                      post_run_handle: None,
@@ -617,7 +615,7 @@ impl Service {
         spec.update_condition = self.spec.update_condition;
         spec.binds = self.spec.binds.clone();
         spec.binding_mode = self.spec.binding_mode;
-        spec.config_from = self.config_from.clone();
+        spec.config_from = self.spec.config_from.clone();
         spec.svc_encrypted_password = self.spec.svc_encrypted_password.clone();
         spec.health_check_interval = self.spec.health_check_interval;
         spec.shutdown_timeout = self.spec.shutdown_timeout;
@@ -1256,7 +1254,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         }
 
         strukt.serialize_field("channel", &s.spec.channel)?;
-        strukt.serialize_field("config_from", &s.config_from)?;
+        strukt.serialize_field("config_from", &s.spec.config_from)?;
         strukt.serialize_field("desired_state", &s.spec.desired_state)?;
         strukt.serialize_field("health_check", &s.health_check_result)?;
         strukt.serialize_field("hooks", &s.hooks)?;
