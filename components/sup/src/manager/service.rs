@@ -181,7 +181,6 @@ pub struct Service {
     // that's even useful, given that it's always the same value for a
     // given service.
     spec_file:               PathBuf,
-    pub update_condition:    UpdateCondition,
     pub cfg:                 Cfg,
     pub pkg:                 Pkg,
     pub sys:                 Arc<Sys>,
@@ -260,6 +259,8 @@ impl Service {
 
     pub(crate) fn update_strategy(&self) -> UpdateStrategy { self.spec.update_strategy }
 
+    pub(crate) fn update_condition(&self) -> UpdateCondition { self.spec.update_condition }
+
     #[allow(clippy::too_many_arguments)]
     async fn with_package(sys: Arc<Sys>,
                           package: &PackageInstall,
@@ -302,7 +303,6 @@ impl Service {
                      unsatisfied_binds: HashSet::new(),
                      binding_mode: spec.binding_mode,
                      spec_file,
-                     update_condition: spec.update_condition,
                      config_from: spec.config_from,
                      svc_encrypted_password: spec.svc_encrypted_password,
                      health_check_interval: spec.health_check_interval,
@@ -627,7 +627,7 @@ impl Service {
         spec.channel = self.spec.channel.clone();
         spec.topology = self.spec.topology;
         spec.update_strategy = self.spec.update_strategy;
-        spec.update_condition = self.update_condition;
+        spec.update_condition = self.spec.update_condition;
         spec.binds = self.binds.clone();
         spec.binding_mode = self.binding_mode;
         spec.config_from = self.config_from.clone();
@@ -1296,7 +1296,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("sys", &s.sys)?;
         strukt.serialize_field("topology", &s.spec.topology)?;
         strukt.serialize_field("update_strategy", &s.spec.update_strategy)?;
-        strukt.serialize_field("update_condition", &s.update_condition)?;
+        strukt.serialize_field("update_condition", &s.spec.update_condition)?;
         strukt.serialize_field("user_config_updated", &s.user_config_updated)?;
         strukt.end()
     }
