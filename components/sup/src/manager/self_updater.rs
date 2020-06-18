@@ -18,6 +18,25 @@ use tokio::{self,
 
 pub const SUP_PKG_IDENT: &str = "core/hab-sup";
 
+// TODO (DM): Remove this deprecated env var
+const DEFAULT_PERIOD: Duration = Duration::from_secs(60);
+habitat_core::env_config_duration!(
+    /// Represents how far apart checks for updates are, in milliseconds.
+    SelfUpdatePeriod,
+    HAB_SUP_UPDATE_MS => from_millis,
+    DEFAULT_PERIOD);
+
+impl SelfUpdatePeriod {
+    fn get() -> Option<Duration> {
+        if habitat_core::env::var(SelfUpdatePeriod::ENVVAR).is_err() {
+            return None;
+        }
+        warn!("Using deprecated environment variable `HAB_SUP_UPDATE_MS`. Prefer using the `hab \
+               sup run --auto-update-period` argument or config file setting.");
+        Some(SelfUpdatePeriod::configured_value().into())
+    }
+}
+
 pub struct SelfUpdater {
     rx:             Receiver<PackageInstall>,
     current:        PackageIdent,
@@ -77,6 +96,7 @@ impl SelfUpdater {
                      update_url,
                      update_channel,
                      period, } = runner;
+        let period = SelfUpdatePeriod::get().unwrap_or(period);
         let splay = Duration::from_secs(rand::thread_rng().gen_range(0, period.as_secs()));
         debug!("Starting self updater with current package {} in {}s",
                current,
