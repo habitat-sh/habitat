@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.54 -->
-## [1.6.54](https://github.com/habitat-sh/habitat/tree/1.6.54) (2020-06-18)
+<!-- latest_release 1.6.55 -->
+## [1.6.55](https://github.com/habitat-sh/habitat/tree/1.6.55) (2020-06-18)
 
 #### Merged Pull Requests
-- Restore and deprecate update period env vars [#7756](https://github.com/habitat-sh/habitat/pull/7756) ([davidMcneil](https://github.com/davidMcneil))
+- [REFACTOR] Store service spec in Service struct [#7752](https://github.com/habitat-sh/habitat/pull/7752) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.39 -->
 ### Changes since 1.6.39 release
 
 #### Merged Pull Requests
+- [REFACTOR] Store service spec in Service struct [#7752](https://github.com/habitat-sh/habitat/pull/7752) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.55 -->
 - Restore and deprecate update period env vars [#7756](https://github.com/habitat-sh/habitat/pull/7756) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.54 -->
 - CtlGateway handshake fix [#7755](https://github.com/habitat-sh/habitat/pull/7755) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.53 -->
 - Improve serde usage [#7732](https://github.com/habitat-sh/habitat/pull/7732) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.52 -->
