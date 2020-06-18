@@ -159,8 +159,16 @@ impl SrvClient {
         // 3. Any other socket io error
         let handshake_result =
             time::timeout(Duration::from_millis(REQ_TIMEOUT), socket.next()).await;
-        handshake_result.map_err(|_| io::Error::new(io::ErrorKind::TimedOut, "client timed out"))?
-                        .ok_or(SrvClientError::ConnectionClosed)??;
+        let handshake_reply = handshake_result.map_err(|_| {
+                                                  io::Error::new(io::ErrorKind::TimedOut,
+                                                                 "client timed out")
+                                              })?
+                                              .ok_or(SrvClientError::ConnectionClosed)??;
+        if handshake_reply.message_id() == "NetErr" {
+            let m = handshake_reply.parse::<protocol::net::NetErr>()
+                                   .map_err(SrvClientError::Decode)?;
+            return Err(SrvClientError::from(m));
+        }
 
         // Send the actual request message
         current_transaction.increment();
