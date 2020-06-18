@@ -164,11 +164,7 @@ impl SrvClient {
                                                                  "client timed out")
                                               })?
                                               .ok_or(SrvClientError::ConnectionClosed)??;
-        if handshake_reply.message_id() == "NetErr" {
-            let m = handshake_reply.parse::<protocol::net::NetErr>()
-                                   .map_err(SrvClientError::Decode)?;
-            return Err(SrvClientError::from(m));
-        }
+        handshake_reply.try_ok()?;
 
         // Send the actual request message
         current_transaction.increment();

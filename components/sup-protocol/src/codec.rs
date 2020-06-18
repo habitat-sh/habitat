@@ -178,6 +178,7 @@ impl fmt::Debug for SrvHeader {
 
 /// The payload of a `SrvProtocol` message. This is the unit to send and receive between any
 /// socket speaking `SrvProtocol`.
+#[must_use]
 #[derive(Clone)]
 pub struct SrvMessage {
     header:      SrvHeader,
@@ -264,7 +265,7 @@ impl SrvMessage {
     /// fail out if the received message contains an error.
     pub fn try_ok(&self) -> NetResult<()> {
         if self.message_id() == NetErr::MESSAGE_ID {
-            let err = NetErr::decode(self.body()).expect("try_ok bad NetErr");
+            let err = self.parse().expect("try_ok bad NetErr");
             return Err(err);
         }
         Ok(())
