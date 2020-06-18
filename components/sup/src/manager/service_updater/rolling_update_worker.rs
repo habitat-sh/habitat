@@ -65,7 +65,7 @@ impl RollingUpdateWorker {
                period: Duration)
                -> Self {
         Self { service_group: service.service_group.clone(),
-               topology: service.topology,
+               topology: service.topology(),
                package_update_worker: PackageUpdateWorker::new(service, period),
                census_ring,
                butterfly }

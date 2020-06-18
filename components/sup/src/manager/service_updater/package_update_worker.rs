@@ -62,11 +62,11 @@ pub struct PackageUpdateWorker {
 impl PackageUpdateWorker {
     pub fn new(service: &Service, period: Duration) -> Self {
         Self { service_group: service.service_group.clone(),
-               ident: service.spec_ident.clone(),
+               ident: service.spec_ident(),
                full_ident: service.pkg.ident.clone(),
-               update_condition: service.update_condition,
-               channel: service.channel.clone(),
-               builder_url: service.bldr_url.clone(),
+               update_condition: service.update_condition(),
+               channel: service.channel(),
+               builder_url: service.bldr_url(),
                period }
     }
 }

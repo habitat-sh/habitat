@@ -32,7 +32,7 @@ impl Service {
     // cloning the entire service for eventing.
     pub fn to_service_metadata(&self) -> ServiceMetadata {
         ServiceMetadata { package_ident: self.pkg.ident.to_string(),
-                          spec_ident:    self.spec_ident.to_string(),
+                          spec_ident:    self.spec_ident().to_string(),
                           service_group: self.service_group.to_string(),
                           update_config: self.update_config(), }
     }
@@ -44,7 +44,7 @@ impl Service {
     /// coupled with the channel from which the Supervisor pulls
     /// updates.
     fn update_config(&self) -> Option<UpdateConfig> {
-        let strategy = match self.update_strategy {
+        let strategy = match self.update_strategy() {
             DomainUpdateStrategy::None => {
                 return None;
             }
@@ -53,7 +53,7 @@ impl Service {
         };
 
         Some(UpdateConfig { strategy: strategy.into(),
-                            channel:  self.channel.to_string(), })
+                            channel:  self.channel().to_string(), })
     }
 }
 

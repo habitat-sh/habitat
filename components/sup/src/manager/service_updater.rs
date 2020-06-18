@@ -57,7 +57,7 @@ impl ServiceUpdater {
         self.remove(&service.service_group);
         // Determine what kind of worker we should use
         let service_group = service.service_group.clone();
-        match service.update_strategy {
+        match service.update_strategy() {
             UpdateStrategy::None => {}
             UpdateStrategy::AtOnce => {
                 let worker = self.at_once_worker(service);
@@ -89,7 +89,9 @@ impl ServiceUpdater {
     fn at_once_worker(&mut self, service: &Service) -> impl Future<Output = ()> + Send + 'static {
         debug!("'{}' service updater spawning at-once worker watching for changes to '{}' from \
                 channel '{}'",
-               service.service_group, service.spec_ident, service.channel);
+               service.service_group,
+               service.spec_ident(),
+               service.channel());
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();
         let updates = Arc::clone(&self.updates);
@@ -109,7 +111,9 @@ impl ServiceUpdater {
                       -> impl Future<Output = ()> + Send + 'static {
         debug!("'{}' service updater spawning rolling worker watching for changes to '{}' from \
                 channel '{}'",
-               service.service_group, service.spec_ident, service.channel);
+               service.service_group,
+               service.spec_ident(),
+               service.channel());
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();
         let updates = Arc::clone(&self.updates);
