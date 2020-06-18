@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.55 -->
-## [1.6.55](https://github.com/habitat-sh/habitat/tree/1.6.55) (2020-06-18)
+<!-- latest_release 1.6.56 -->
+## [1.6.56](https://github.com/habitat-sh/habitat/tree/1.6.56) (2020-06-18)
 
 #### Merged Pull Requests
-- [REFACTOR] Store service spec in Service struct [#7752](https://github.com/habitat-sh/habitat/pull/7752) ([christophermaier](https://github.com/christophermaier))
+- [CI] Bump timeout to 45 minutes [#7757](https://github.com/habitat-sh/habitat/pull/7757) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.39 -->
 ### Changes since 1.6.39 release
 
 #### Merged Pull Requests
+- [CI] Bump timeout to 45 minutes [#7757](https://github.com/habitat-sh/habitat/pull/7757) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.56 -->
 - [REFACTOR] Store service spec in Service struct [#7752](https://github.com/habitat-sh/habitat/pull/7752) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.55 -->
 - Restore and deprecate update period env vars [#7756](https://github.com/habitat-sh/habitat/pull/7756) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.54 -->
 - CtlGateway handshake fix [#7755](https://github.com/habitat-sh/habitat/pull/7755) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.53 -->
