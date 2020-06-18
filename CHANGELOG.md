@@ -7,21 +7,31 @@
 - [CI] Bump timeout to 45 minutes [#7757](https://github.com/habitat-sh/habitat/pull/7757) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.39 -->
-### Changes since 1.6.39 release
+<!-- release_rollup since=1.6.56 -->
+### Changes since 1.6.56 release
+
+<!-- release_rollup -->
+
+<!-- latest_stable_release -->
+## [1.6.56](https://github.com/habitat-sh/habitat/tree/1.6.56) (2020-06-18)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.39..1.6.56)
+
+#### Bug Fixes
+- CtlGateway handshake fix [#7755](https://github.com/habitat-sh/habitat/pull/7755) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.53 -->
+- read hook stdout/err allowing for lossy utf8 strings [#7724](https://github.com/habitat-sh/habitat/pull/7724) ([mwrock](https://github.com/mwrock)) <!-- 1.6.46 -->
+
+#### New Features & Enhancements
+- Use the cli.toml auth_token during package install [#7735](https://github.com/habitat-sh/habitat/pull/7735) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.51 -->
+- allow hook extentions in plan [#7740](https://github.com/habitat-sh/habitat/pull/7740) ([mwrock](https://github.com/mwrock)) <!-- 1.6.49 -->
 
 #### Merged Pull Requests
 - [CI] Bump timeout to 45 minutes [#7757](https://github.com/habitat-sh/habitat/pull/7757) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.56 -->
 - [REFACTOR] Store service spec in Service struct [#7752](https://github.com/habitat-sh/habitat/pull/7752) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.55 -->
 - Restore and deprecate update period env vars [#7756](https://github.com/habitat-sh/habitat/pull/7756) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.54 -->
-- CtlGateway handshake fix [#7755](https://github.com/habitat-sh/habitat/pull/7755) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.53 -->
 - Improve serde usage [#7732](https://github.com/habitat-sh/habitat/pull/7732) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.52 -->
-- Use the cli.toml auth_token during package install [#7735](https://github.com/habitat-sh/habitat/pull/7735) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.51 -->
 - fix e2e failures [#7742](https://github.com/habitat-sh/habitat/pull/7742) ([mwrock](https://github.com/mwrock)) <!-- 1.6.50 -->
-- allow hook extentions in plan [#7740](https://github.com/habitat-sh/habitat/pull/7740) ([mwrock](https://github.com/mwrock)) <!-- 1.6.49 -->
 - Supervisor update config [#7733](https://github.com/habitat-sh/habitat/pull/7733) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.48 -->
 - use powershell 7.0.1 [#7730](https://github.com/habitat-sh/habitat/pull/7730) ([mwrock](https://github.com/mwrock)) <!-- 1.6.47 -->
-- read hook stdout/err allowing for lossy utf8 strings [#7724](https://github.com/habitat-sh/habitat/pull/7724) ([mwrock](https://github.com/mwrock)) <!-- 1.6.46 -->
 - Update rust to 1.43.1 [#7728](https://github.com/habitat-sh/habitat/pull/7728) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.45 -->
 - Remove libarchive and Vendor openssl [#7710](https://github.com/habitat-sh/habitat/pull/7710) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.44 -->
 - Fix typos and refresh in cli help [#7718](https://github.com/habitat-sh/habitat/pull/7718) ([jsirex](https://github.com/jsirex)) <!-- 1.6.43 -->
@@ -30,9 +40,7 @@
 - Cargo Update [#7715](https://github.com/habitat-sh/habitat/pull/7715) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.41 -->
 - Automated update of Habitat Documentation [#7714](https://github.com/habitat-sh/habitat/pull/7714) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.41 -->
 - Update Changelog [#7716](https://github.com/habitat-sh/habitat/pull/7716) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.40 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release -->
 ## [1.6.39](https://github.com/habitat-sh/habitat/tree/1.6.39) (2020-05-28)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.0..1.6.39)
 
