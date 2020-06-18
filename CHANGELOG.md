@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.52 -->
-## [1.6.52](https://github.com/habitat-sh/habitat/tree/1.6.52) (2020-06-16)
+<!-- latest_release 1.6.53 -->
+## [1.6.53](https://github.com/habitat-sh/habitat/tree/1.6.53) (2020-06-18)
 
 #### Merged Pull Requests
-- Improve serde usage [#7732](https://github.com/habitat-sh/habitat/pull/7732) ([davidMcneil](https://github.com/davidMcneil))
+- CtlGateway handshake fix [#7755](https://github.com/habitat-sh/habitat/pull/7755) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.39 -->
 ### Changes since 1.6.39 release
 
 #### Merged Pull Requests
+- CtlGateway handshake fix [#7755](https://github.com/habitat-sh/habitat/pull/7755) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.53 -->
 - Improve serde usage [#7732](https://github.com/habitat-sh/habitat/pull/7732) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.52 -->
 - Use the cli.toml auth_token during package install [#7735](https://github.com/habitat-sh/habitat/pull/7735) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.51 -->
 - fix e2e failures [#7742](https://github.com/habitat-sh/habitat/pull/7742) ([mwrock](https://github.com/mwrock)) <!-- 1.6.50 -->
