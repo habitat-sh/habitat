@@ -8,7 +8,7 @@ expeditor:
     - aws/chef-cd
   defaults:
     buildkite:
-      timeout_in_minutes: 30
+      timeout_in_minutes: 45
       env:
         HAB_ORIGIN: "core"
         PIPELINE_HAB_BLDR_URL: "https://bldr.habitat.sh"
