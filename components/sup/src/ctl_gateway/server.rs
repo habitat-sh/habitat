@@ -190,14 +190,16 @@ impl Client {
                 }
             }
         };
-        let mut reply = if success {
-            SrvMessage::from(net::ok())
+        let (mut reply, result) = if success {
+            (SrvMessage::from(net::ok()), Ok(()))
         } else {
-            SrvMessage::from(net::err(ErrCode::Unauthorized, "secret key mismatch"))
+            (SrvMessage::from(net::err(ErrCode::Unauthorized, "secret key mismatch")),
+             Err(HandlerError::from(io::Error::new(io::ErrorKind::ConnectionAborted,
+                                                   "handshake failed"))))
         };
         reply.reply_for(message.transaction().unwrap(), true);
         socket.send(reply).await?;
-        Ok(())
+        result
     }
 }
 
