@@ -16,7 +16,7 @@ $main-nav-breakpoint: 1060px;
   position: fixed;
   background: $white;
   border-bottom: 1px solid $docs-gray;
-  min-height: $header-height-mobile;
+  max-height: $header-height-mobile;
   width: 100%;
   transition: top 0.4s ease;
   box-shadow: 0 0 50px 2px transparent;
@@ -45,10 +45,6 @@ $main-nav-breakpoint: 1060px;
   @include small-nav {
     position: fixed;
     top: 0;
-
-    &.has-sidebar {
-      background-color: $hab-navy;
-    }
   }
 
   // modifiers for nav on homepage on large screens
@@ -58,7 +54,7 @@ $main-nav-breakpoint: 1060px;
       @include large-nav {
         h1 {
           background: url("../images/chef-logo.svg") no-repeat left;
-          background-size: 35%;
+          background-size: 80%;
         }
       }
     }
@@ -66,7 +62,7 @@ $main-nav-breakpoint: 1060px;
 }
 
 .main-nav--container {
-  max-width: rem-calc(1200);
+  max-width: 1316px;
   margin: 0 auto;
 
   @include small-nav {
@@ -94,7 +90,7 @@ $main-nav-breakpoint: 1060px;
 
     .main-nav--links {
       background-color: $white;
-      top: -1px;
+      top: -10px;
       width: 100%;
       padding: 0 rem-calc(20) rem-calc(20);
     }
@@ -117,15 +113,15 @@ $main-nav-breakpoint: 1060px;
       overflow: hidden;
       text-indent: 400%;
       white-space: nowrap;
-      background: url("../images/chef-logo.svg") no-repeat left 50%;
+      background: url("../images/chef-logo.svg") no-repeat left 10%;
+      background-size: 80%;
       color: $white;
       height: $header-height-mobile;
       margin-bottom: 0;
-      min-width: rem-calc(140);
-      max-width: rem-calc(180);
+      max-width: 130px;
 
       @include large-nav {
-        min-width: rem-calc(250);
+        // min-width: rem-calc(250);
         height: $header-height;
       }
 
@@ -156,6 +152,7 @@ $main-nav-breakpoint: 1060px;
       margin-top: 0;
       height: 45px;
       line-height: 45px;
+      font-weight: 600;
 
       &.signed-out, &.signed-in {
         display: none;
@@ -234,8 +231,8 @@ $main-nav-breakpoint: 1060px;
     display: block;
     float: right;
     clear: none;
-    height: $header-height;
-    line-height: $header-height;
+    // height: $header-height;
+    // line-height: $header-height;
 
     & > li {
       display: inline-block;
@@ -352,9 +349,10 @@ $main-nav-breakpoint: 1060px;
   width: rem-calc(20);
   height: rem-calc(18);
   margin: 0 rem-calc(20) 0 0;
-  padding-top: rem-calc(5);
+  // padding-top: rem-calc(5);
   cursor: pointer;
   transition: all 0.2s ease;
+  margin-top: -1rem;
 
   @include small-nav {
     display: block;
