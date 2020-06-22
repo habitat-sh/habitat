@@ -268,6 +268,17 @@ impl ServiceSpec {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[allow(clippy::large_enum_variant)]
+pub(crate) enum ServiceOperation {
+    Start(ServiceSpec),
+    Stop(ServiceSpec),
+    Restart {
+        to_stop:  ServiceSpec,
+        to_start: ServiceSpec,
+    },
+}
+
 impl FromStr for ServiceSpec {
     type Err = Error;
 

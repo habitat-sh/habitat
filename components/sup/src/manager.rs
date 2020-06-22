@@ -17,7 +17,8 @@ use self::{action::{ShutdownInput,
            peer_watcher::PeerWatcher,
            self_updater::{SelfUpdater,
                           SUP_PKG_IDENT},
-           service::{ConfigRendering,
+           service::{spec::ServiceOperation,
+                     ConfigRendering,
                      DesiredState,
                      HealthCheckResult,
                      Service,
@@ -184,17 +185,6 @@ impl ServicePidSource {
             ServicePidSource::Launcher
         }
     }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[allow(clippy::large_enum_variant)]
-enum ServiceOperation {
-    Start(ServiceSpec),
-    Stop(ServiceSpec),
-    Restart {
-        to_stop:  ServiceSpec,
-        to_start: ServiceSpec,
-    },
 }
 
 /// A Supervisor can stop in a handful of ways.
