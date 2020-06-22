@@ -1,15 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.56 -->
-## [1.6.56](https://github.com/habitat-sh/habitat/tree/1.6.56) (2020-06-18)
+<!-- latest_release 1.6.57 -->
+## [1.6.57](https://github.com/habitat-sh/habitat/tree/1.6.57) (2020-06-22)
 
 #### Merged Pull Requests
-- [CI] Bump timeout to 45 minutes [#7757](https://github.com/habitat-sh/habitat/pull/7757) ([christophermaier](https://github.com/christophermaier))
+- Update changelog for 1.6.56 release [#7760](https://github.com/habitat-sh/habitat/pull/7760) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
 ### Changes since 1.6.56 release
 
+#### Merged Pull Requests
+- Update changelog for 1.6.56 release [#7760](https://github.com/habitat-sh/habitat/pull/7760) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.57 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release -->
