@@ -869,7 +869,7 @@ impl Manager {
 
         self.maybe_uninstall_old_packages(&ident).await;
 
-        self.service_updater.lock().add(&service);
+        self.service_updater.lock().register(&service);
 
         event::service_started(&service);
 

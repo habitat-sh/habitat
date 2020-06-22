@@ -51,8 +51,10 @@ impl ServiceUpdater {
                          period }
     }
 
-    /// Register a new service for updates.
-    pub fn add(&mut self, service: &Service) {
+    /// Register a service for updates. If the service has already
+    /// been registered, the old worker is removed and a new one is
+    /// started in its place.
+    pub fn register(&mut self, service: &Service) {
         // Defensivly remove the service to prevent multiple update workers from running.
         self.remove(&service.service_group);
         // Determine what kind of worker we should use
