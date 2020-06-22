@@ -1654,52 +1654,7 @@ impl Manager {
         }
 
         svc_states.into_iter()
-                  .filter_map(|(ident, ss)| {
-                      match ss {
-                          ServiceState { disk: Some(disk_spec @ ServiceSpec { desired_state: DesiredState::Up, ..}),
-                                         running: None, } => {
-                              debug!("Reconciliation: '{}' queued for start", ident);
-                              Some(ServiceOperation::Start(disk_spec))
-                          }
-                          ServiceState { disk: Some(disk_spec @ ServiceSpec { desired_state: DesiredState::Up, ..}),
-                                         running: Some(running_spec), } => {
-                              if running_spec == disk_spec {
-                                  debug!("Reconciliation: '{}' unchanged", ident);
-                                  None
-                              } else {
-                                  // TODO (CM): In the future, this would be the
-                                  // place where we can evaluate what has changed
-                                  // between the spec-on-disk and our in-memory
-                                  // representation and potentially just bring our
-                                  // in-memory representation in line without having
-                                  // to restart the entire service.
-                                  debug!("Reconciliation: '{}' queued for restart", ident);
-                                  Some(ServiceOperation::Restart { to_stop:  running_spec,
-                                                                   to_start: disk_spec, })
-                              }
-                          }
-                          ServiceState { disk: Some(ServiceSpec { desired_state: DesiredState::Down, ..}),
-                                         running: Some(running_spec), } => {
-                              debug!("Reconciliation: '{}' queued for stop", ident);
-                              Some(ServiceOperation::Stop(running_spec))
-                          }
-
-                          ServiceState { disk: Some(ServiceSpec { desired_state: DesiredState::Down, ..}),
-                                         running: None, } => {
-                              debug!("Reconciliation: '{}' should be down, and is", ident);
-                              None
-                          }
-
-                          ServiceState { disk: None,
-                                         running: Some(running_spec), } => {
-                              debug!("Reconciliation: '{}' queued for shutdown", ident);
-                              Some(ServiceOperation::Stop(running_spec))
-                          }
-
-                          ServiceState { disk: None,
-                                         running: None, } => unreachable!(),
-                      }
-                  })
+                  .filter_map(|(ident, ss)| ServiceSpec::reconcile(&ident, ss.running, ss.disk))
                   .collect()
     }
 

@@ -266,6 +266,64 @@ impl ServiceSpec {
         }
         Ok(self)
     }
+
+    pub(crate) fn reconcile(ident: &PackageIdent,
+                            old: Option<ServiceSpec>,
+                            new: Option<ServiceSpec>)
+                            -> Option<ServiceOperation> {
+        match (new, old) {
+            (Some(disk_spec
+                  @
+                  ServiceSpec { desired_state: DesiredState::Up,
+                                .. }),
+             None) => {
+                debug!("Reconciliation: '{}' queued for start", ident);
+                Some(ServiceOperation::Start(disk_spec))
+            }
+
+            (Some(disk_spec
+                  @
+                  ServiceSpec { desired_state: DesiredState::Up,
+                                .. }),
+             Some(running_spec)) => {
+                if running_spec == disk_spec {
+                    debug!("Reconciliation: '{}' unchanged", ident);
+                    None
+                } else {
+                    // TODO (CM): In the future, this would be the
+                    // place where we can evaluate what has changed
+                    // between the spec-on-disk and our in-memory
+                    // representation and potentially just bring our
+                    // in-memory representation in line without having
+                    // to restart the entire service.
+                    debug!("Reconciliation: '{}' queued for restart", ident);
+                    Some(ServiceOperation::Restart { to_stop:  running_spec,
+                                                     to_start: disk_spec, })
+                }
+            }
+
+            (Some(ServiceSpec { desired_state: DesiredState::Down,
+                                .. }),
+             Some(running_spec)) => {
+                debug!("Reconciliation: '{}' queued for stop", ident);
+                Some(ServiceOperation::Stop(running_spec))
+            }
+
+            (Some(ServiceSpec { desired_state: DesiredState::Down,
+                                .. }),
+             None) => {
+                debug!("Reconciliation: '{}' should be down, and is", ident);
+                None
+            }
+
+            (None, Some(running_spec)) => {
+                debug!("Reconciliation: '{}' queued for shutdown", ident);
+                Some(ServiceOperation::Stop(running_spec))
+            }
+
+            (None, None) => unreachable!(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
