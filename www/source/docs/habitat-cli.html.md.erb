@@ -11,7 +11,7 @@ The commands for the Chef Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 1.6.39/20200527162613 (linux) | 28 May 2020 |
+| hab 1.6.56/20200618202635 (linux) | 22 Jun 2020 |
 
 ## hab
 
@@ -2961,7 +2961,9 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 **OPTIONS**
 
 ```
---bind <BIND>... One or more service groups to bind to a configuration
+--auto-update-period <AUTO_UPDATE_PERIOD> The period of time in seconds between Supervisor update checks [default: 60]
+
+    --bind <BIND>... One or more service groups to bind to a configuration
 
     --binding-mode <BINDING_MODE> Governs how the presence or absence of binds affects service startup [default: strict]  [possible values: strict, relaxed]
 -u, --url <BLDR_URL> Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
@@ -3012,6 +3014,8 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
     --peer-watch-file <PEER_WATCH_FILE> Watch this file for connecting to the ring
 
 -r, --ring <RING> The name of the ring used by the Supervisor when running with wire encryption [env: HAB_RING=]
+
+    --service-update-period <SERVICE_UPDATE_PERIOD> The period of time in seconds between service update checks [default: 60]
 
     --shutdown-timeout <SHUTDOWN_TIMEOUT> The delay in seconds after sending the shutdown signal to wait before killing the service process
 
