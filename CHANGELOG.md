@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.58 -->
-## [1.6.58](https://github.com/habitat-sh/habitat/tree/1.6.58) (2020-06-22)
+<!-- latest_release 1.6.59 -->
+## [1.6.59](https://github.com/habitat-sh/habitat/tree/1.6.59) (2020-06-22)
 
 #### Merged Pull Requests
-- Rustfmt and Nightly Rust Bump to nightly-2020-06-22 [#7759](https://github.com/habitat-sh/habitat/pull/7759) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
+- Automated update of Habitat Documentation [#7758](https://github.com/habitat-sh/habitat/pull/7758) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
 ### Changes since 1.6.56 release
 
 #### Merged Pull Requests
+- Automated update of Habitat Documentation [#7758](https://github.com/habitat-sh/habitat/pull/7758) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.59 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-06-22 [#7759](https://github.com/habitat-sh/habitat/pull/7759) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.58 -->
 - Update changelog for 1.6.56 release [#7760](https://github.com/habitat-sh/habitat/pull/7760) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.57 -->
 <!-- release_rollup -->
