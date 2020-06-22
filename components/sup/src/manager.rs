@@ -1647,7 +1647,7 @@ impl Manager {
         #[derive(Default, Debug)]
         struct ServiceState {
             running: Option<ServiceSpec>,
-            disk:    Option<(DesiredState, ServiceSpec)>,
+            disk:    Option<ServiceSpec>,
         }
 
         for rs in currently_running_specs {
@@ -1660,19 +1660,18 @@ impl Manager {
             let ident = ds.ident.clone();
             svc_states.entry(ident)
                       .or_insert_with(ServiceState::default)
-                      .disk = Some((ds.desired_state, ds));
+                      .disk = Some(ds);
         }
 
         svc_states.into_iter()
                   .filter_map(|(ident, ss)| {
                       match ss {
-                          ServiceState { disk: Some((DesiredState::Up, disk_spec)),
+                          ServiceState { disk: Some(disk_spec @ ServiceSpec { desired_state: DesiredState::Up, ..}),
                                          running: None, } => {
                               debug!("Reconciliation: '{}' queued for start", ident);
                               Some(ServiceOperation::Start(disk_spec))
                           }
-
-                          ServiceState { disk: Some((DesiredState::Up, disk_spec)),
+                          ServiceState { disk: Some(disk_spec @ ServiceSpec { desired_state: DesiredState::Up, ..}),
                                          running: Some(running_spec), } => {
                               if running_spec == disk_spec {
                                   debug!("Reconciliation: '{}' unchanged", ident);
@@ -1689,13 +1688,13 @@ impl Manager {
                                                                    to_start: disk_spec, })
                               }
                           }
-                          ServiceState { disk: Some((DesiredState::Down, _)),
+                          ServiceState { disk: Some(ServiceSpec { desired_state: DesiredState::Down, ..}),
                                          running: Some(running_spec), } => {
                               debug!("Reconciliation: '{}' queued for stop", ident);
                               Some(ServiceOperation::Stop(running_spec))
                           }
 
-                          ServiceState { disk: Some((DesiredState::Down, _)),
+                          ServiceState { disk: Some(ServiceSpec { desired_state: DesiredState::Down, ..}),
                                          running: None, } => {
                               debug!("Reconciliation: '{}' should be down, and is", ident);
                               None
