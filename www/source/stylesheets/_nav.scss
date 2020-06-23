@@ -125,8 +125,8 @@ $main-nav-breakpoint: 1060px;
         height: $header-height;
       }
 
-      @include small-nav {
-        height: 100%;
+      @media screen and (max-width: 639px) {
+        background-size: 100% !important;
       }
     }
   }
