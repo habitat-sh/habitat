@@ -1646,6 +1646,9 @@ impl Manager {
                                              disk:    None, });
         }
 
+        // This is why we need a HashMap; it allows us to easily merge
+        // entries for services that are currently running, yet have
+        // on-disk spec changes that must be reconciled.
         for ds in on_disk_specs {
             let ident = ds.ident.clone();
             svc_states.entry(ident)
@@ -1654,7 +1657,7 @@ impl Manager {
         }
 
         svc_states.into_iter()
-                  .filter_map(|(ident, ss)| ServiceSpec::reconcile(&ident, ss.running, ss.disk))
+                  .filter_map(|(_ident, ss)| ServiceSpec::reconcile(ss.running, ss.disk))
                   .collect()
     }
 

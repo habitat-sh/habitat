@@ -267,17 +267,33 @@ impl ServiceSpec {
         Ok(self)
     }
 
-    pub(crate) fn reconcile(ident: &PackageIdent,
-                            old: Option<ServiceSpec>,
+    /// Given an `old` and a `new` spec, figure out what operations
+    /// are needed in order to turn the `old` state into the `new`
+    /// state.
+    ///
+    /// Here, `old` represents what a currently running service, while
+    /// `new` represents a new version of that spec that we wish to
+    /// make the currently running service. Both are `Option`s, in
+    /// order to capture the scenario in which, say, nothing is
+    /// currently running, but we wish to start a service, or where we
+    /// are running a service, but wish to stop it.
+    ///
+    /// Currently, it is *assumed* that both specs (when present)
+    /// refer to the same service.
+    ///
+    /// Returning `None` indicates that no operation is required.
+    pub(crate) fn reconcile(old: Option<ServiceSpec>,
                             new: Option<ServiceSpec>)
                             -> Option<ServiceOperation> {
+        // TODO (CM): Invariant:
+        // old.is_some() && new.is_some() => old.ident == new.ident
         match (new, old) {
             (Some(disk_spec
                   @
                   ServiceSpec { desired_state: DesiredState::Up,
                                 .. }),
              None) => {
-                debug!("Reconciliation: '{}' queued for start", ident);
+                debug!("Reconciliation: '{}' queued for start", disk_spec.ident);
                 Some(ServiceOperation::Start(disk_spec))
             }
 
@@ -287,7 +303,7 @@ impl ServiceSpec {
                                 .. }),
              Some(running_spec)) => {
                 if running_spec == disk_spec {
-                    debug!("Reconciliation: '{}' unchanged", ident);
+                    debug!("Reconciliation: '{}' unchanged", running_spec.ident);
                     None
                 } else {
                     // TODO (CM): In the future, this would be the
@@ -296,7 +312,8 @@ impl ServiceSpec {
                     // representation and potentially just bring our
                     // in-memory representation in line without having
                     // to restart the entire service.
-                    debug!("Reconciliation: '{}' queued for restart", ident);
+                    debug!("Reconciliation: '{}' queued for restart",
+                           running_spec.ident);
                     Some(ServiceOperation::Restart { to_stop:  running_spec,
                                                      to_start: disk_spec, })
                 }
@@ -305,23 +322,32 @@ impl ServiceSpec {
             (Some(ServiceSpec { desired_state: DesiredState::Down,
                                 .. }),
              Some(running_spec)) => {
-                debug!("Reconciliation: '{}' queued for stop", ident);
+                debug!("Reconciliation: '{}' queued for stop", running_spec.ident);
                 Some(ServiceOperation::Stop(running_spec))
             }
 
-            (Some(ServiceSpec { desired_state: DesiredState::Down,
+            (Some(disk_spec
+                  @
+                  ServiceSpec { desired_state: DesiredState::Down,
                                 .. }),
              None) => {
-                debug!("Reconciliation: '{}' should be down, and is", ident);
+                debug!("Reconciliation: '{}' should be down, and is",
+                       disk_spec.ident);
                 None
             }
 
             (None, Some(running_spec)) => {
-                debug!("Reconciliation: '{}' queued for shutdown", ident);
+                debug!("Reconciliation: '{}' queued for shutdown",
+                       running_spec.ident);
                 Some(ServiceOperation::Stop(running_spec))
             }
 
-            (None, None) => unreachable!(),
+            (None, None) => {
+                // Really, this should be an unreachable state, but
+                // we'll make it a no-op rather than causing a panic.
+                warn!("Reconciliation attempted with no input specs!");
+                None
+            }
         }
     }
 }
