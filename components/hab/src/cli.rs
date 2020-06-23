@@ -2,7 +2,8 @@ pub mod hab;
 
 use crate::{cli::hab::{sup::{Sup,
                              SupRun},
-                       svc::{Load as SvcLoad,
+                       svc::{BulkLoad as SvcBulkLoad,
+                             Load as SvcLoad,
                              SharedLoad},
                        util::CACHE_KEY_PATH_DEFAULT,
                        Hab},
@@ -834,6 +835,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (aliases: &["sv", "ser", "serv", "service"])
             (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
+            (subcommand: SvcBulkLoad::clap())
             (@subcommand key =>
                 (about: "Commands relating to Habitat service keys")
                 (aliases: &["k", "ke"])

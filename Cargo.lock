@@ -611,19 +611,20 @@ checksum = "370c83b49aedf022ee27942e8ae1d9de1cf40dc9653ee6550e4455d08f6406f9"
 [[package]]
 name = "configopt"
 version = "0.1.0"
-source = "git+https://github.com/davidMcneil/configopt.git#2b97af0e2eed75da51dfb34ad3c447642b263d94"
+source = "git+https://github.com/davidMcneil/configopt.git#4f40b5a0889ea0c36d492901491ca18fd663d998"
 dependencies = [
  "colosseum",
  "configopt-derive",
  "lazy_static 1.4.0",
  "serde",
  "structopt",
+ "toml 0.5.6",
 ]
 
 [[package]]
 name = "configopt-derive"
 version = "0.1.0"
-source = "git+https://github.com/davidMcneil/configopt.git#2b97af0e2eed75da51dfb34ad3c447642b263d94"
+source = "git+https://github.com/davidMcneil/configopt.git#4f40b5a0889ea0c36d492901491ca18fd663d998"
 dependencies = [
  "heck",
  "proc-macro2",

@@ -13,7 +13,10 @@ use configopt::{ConfigOpt,
                 Error as ConfigOptError};
 use futures::stream::StreamExt;
 use hab::{cli::{self,
-                hab::{svc::Load as SvcLoad,
+                hab::{svc::{BulkLoad as SvcBulkLoad,
+                            ConfigOptLoad as ConfigOptSvcLoad,
+                            Load as SvcLoad,
+                            Svc},
                       Hab},
                 parse_optional_arg},
           command::{self,
@@ -85,6 +88,7 @@ use tabwriter::TabWriter;
 use termcolor::{self,
                 Color,
                 ColorSpec};
+use walkdir::WalkDir;
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
@@ -144,30 +148,49 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     debug!("clap cli args: {:?}", &args);
     debug!("remaining cli args: {:?}", &remaining_args);
 
+    // Parse and handle commands which have been migrated to use `structopt` here. Once everything
+    // is migrated to use `structopt` the parsing logic below this using clap directly will be gone.
+    match Hab::try_from_args_with_configopt() {
+        Ok(hab) => {
+            #[allow(clippy::single_match)]
+            match hab {
+                Hab::Svc(svc) => {
+                    match svc {
+                        Svc::BulkLoad(svc_bulk_load) => {
+                            return sub_svc_bulk_load(svc_bulk_load).await;
+                        }
+                        Svc::Load(svc_load) => {
+                            return sub_svc_load(svc_load).await;
+                        }
+                        _ => {
+                            // All other commands will be caught by the CLI parsing logic below.
+                        }
+                    }
+                }
+                _ => {
+                    // All other commands will be caught by the CLI parsing logic below.
+                }
+            }
+        }
+        Err(e @ ConfigOptError::ConfigGenerated(_)) => e.exit(),
+        Err(_) => {
+            // Completely ignore all other errors. They will be caught by the CLI parsing logic
+            // below.
+        }
+    };
+
     // We build the command tree in a separate thread to eliminate
     // possible stack overflow crashes at runtime. OSX, for instance,
     // will crash with our large tree. This is a known issue:
     // https://github.com/kbknapp/clap-rs/issues/86
-    let f = move || {
-        // We check if the `--generate-config` flag was used and then use the configopt parser to
-        // generate the config file. This is necessary for subcommands that have required arguments
-        // (eg `hab svc load`). If we do not do this here it is necessary to pass in all required
-        // arguments when generating a config file. Eventually, when we switch to exclusively
-        // using structopt/configopt this will go away and everything will be much cleaner.
-        if env::args().any(|a| a.starts_with("--generate-config")) {
-            if let Err(e @ ConfigOptError::ConfigGenerated(_)) = Hab::try_from_args_with_configopt()
-            {
-                e.exit()
-            }
-        }
-
-        cli::get(feature_flags).get_matches_from_safe_borrow(&mut args.iter())
-                               .unwrap_or_else(|e| {
-                                   e.exit();
-                               })
-    };
     let child = thread::Builder::new().stack_size(8 * 1024 * 1024)
-                                      .spawn(f)
+                                      .spawn(move || {
+                                          cli::get(feature_flags)
+                .get_matches_from_safe_borrow(&mut args.iter())
+                .unwrap_or_else(|e| {
+                    e.exit();
+                })
+                                      })
                                       .unwrap();
     let app_matches = child.join().unwrap();
 
@@ -316,12 +339,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         ("generate", Some(sc)) => sub_service_key_generate(ui, sc)?,
                         _ => unreachable!(),
                     }
-                }
-                ("load", Some(_)) => {
-                    // Switch to using `configopt` to parse `hab svc load`. When we migrate to
-                    // exclusively using structopt this special case will go away.
-                    let svc_load = SvcLoad::from_iter_with_configopt(env::args().skip(2));
-                    sub_svc_load(svc_load).await?
                 }
                 ("unload", Some(m)) => sub_svc_unload(m).await?,
                 ("start", Some(m)) => sub_svc_start(m).await?,
@@ -1246,6 +1263,27 @@ async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         handle_ctl_reply(&reply)?;
+    }
+    Ok(())
+}
+
+async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
+    let default_svc_load = ConfigOptSvcLoad::from_default_config_files()?;
+    for path in svc_bulk_load.svc_config_paths {
+        for entry in WalkDir::new(path) {
+            let entry = entry?;
+            let path = entry.path();
+            if entry.file_type().is_file() {
+                if let Some(extension) = path.extension() {
+                    if extension == "toml" {
+                        let mut svc_load = configopt::from_toml_file(path)?;
+                        // Patch the svc load with values from the default svc load
+                        default_svc_load.clone().patch_for(&mut svc_load);
+                        sub_svc_load(svc_load).await?;
+                    }
+                }
+            }
+        }
     }
     Ok(())
 }

@@ -79,7 +79,7 @@ impl From<PkgIdentStringySerde> for String {
 }
 
 #[derive(ConfigOpt, Debug, StructOpt, Deserialize, Serialize)]
-#[configopt(derive(Serialize), attrs(serde))]
+#[configopt(derive(Clone, Serialize, Debug), attrs(serde))]
 #[structopt(no_version)]
 #[serde(transparent)]
 pub struct PkgIdent {
@@ -101,7 +101,8 @@ pub struct FullyQualifiedPkgIdent {
     pkg_ident: PackageIdent,
 }
 
-#[derive(ConfigOpt, StructOpt, Deserialize)]
+#[derive(ConfigOpt, StructOpt, Deserialize, Debug)]
+#[configopt(derive(Clone, Debug))]
 #[structopt(no_version)]
 pub struct RemoteSup {
     /// Address to a remote Supervisor's Control Gateway
@@ -109,6 +110,7 @@ pub struct RemoteSup {
                 long = "remote-sup",
                 short = "r",
                 default_value = ListenCtlAddr::default_as_str())]
+    #[serde(default)]
     pub remote_sup: ListenCtlAddr,
 }
 
