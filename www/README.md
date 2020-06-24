@@ -41,23 +41,24 @@ merges to master, the web site will automatically be deployed to
 production.
 
 If you would like to deploy your changes to the acceptance
-environment, you can manually invoke the [website-acceptance
-pipeline][]. Hit the "New Build" button and specify your PR
-branch. This pipeline does _not_ run automatically, and is provided as
+environment, you can manually invoke a build. From the [website-acceptance
+pipeline][], select the "New Build" button and specify your PR
+branch instead of "Master".
+This pipeline does _not_ run automatically, and is provided as
 a way to encapsulate all that is necessary to deploy a build to
-acceptance. Alternatively, you may run `make deploy_acceptance`
+acceptance.
+
+Alternatively, you may run `make deploy_acceptance`
 locally, provided you know the appropriate Fastly service ID and have
 an appropriate build environment set up. The pipeline is the preferred
 way, however, as all that is taken care of for you.
 
-Note that there is currently _no_ isolation provided for this
+WARNING: There is currently _no_ isolation provided for the
 acceptance pipeline, so you will need to coordinate with your
 teammates if more than one of you have website changes you'd like to
 see at the same time. We're all adults here, though, so make it
 happen.
 
-Once your PR merges, it would be nice for you to re-invoke the
-[website-acceptance pipeline][] again, pointed to the `master` branch,
-in order to "reset" the acceptance website to its expected state.
+Once your PR merges, "reset" the acceptance website to its expected state by re-invoking the [website-acceptance pipeline][], by pointing it back to the `master` branch.
 
 [website-acceptance pipeline]: https://buildkite.com/chef/habitat-sh-habitat-master-website-acceptance
