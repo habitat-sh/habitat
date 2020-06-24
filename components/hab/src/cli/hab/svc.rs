@@ -281,7 +281,7 @@ pub fn shared_load_cli_to_ctl(ident: PackageIdent,
     use habitat_common::{ui,
                          ui::UIWriter};
     #[cfg(target_os = "windows")]
-    use habitat_core::dapi::crypto;
+    use habitat_core::crypto::dpapi;
     use habitat_sup_protocol::{ctl::{ServiceBindList,
                                      SvcLoad},
                                types::{HealthCheckInterval,
@@ -315,7 +315,7 @@ pub fn shared_load_cli_to_ctl(ident: PackageIdent,
 
     #[cfg(target_os = "windows")]
     let svc_encrypted_password = if let Some(password) = shared_load.password {
-        Some(crypto::encrypt(password)?)
+        Some(dpapi::encrypt(password)?)
     } else {
         None
     };
