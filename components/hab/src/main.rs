@@ -70,7 +70,8 @@ use habitat_sup_protocol::{self as sup_proto,
                            codec::*,
                            net::ErrCode,
                            types::*};
-use std::{env,
+use std::{convert::TryFrom,
+          env,
           ffi::OsString,
           fs::File,
           io::{self,
@@ -1255,7 +1256,7 @@ async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = svc_load.remote_sup.remote_sup;
     let secret_key = config::ctl_secret_key(&cfg)?;
-    let msg = habitat_sup_protocol::ctl::SvcLoad::from(svc_load);
+    let msg = habitat_sup_protocol::ctl::SvcLoad::try_from(svc_load)?;
     let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;

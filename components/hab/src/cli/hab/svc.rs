@@ -13,8 +13,9 @@ use habitat_core::{os::process::ShutdownTimeout,
                              ServiceGroup},
                    ChannelIdent};
 use habitat_sup_protocol::types::UpdateCondition;
-use std::path::{Path,
-                PathBuf};
+use std::{convert::TryFrom,
+          path::{Path,
+                 PathBuf}};
 use structopt::StructOpt;
 use url::Url;
 use walkdir::WalkDir;
@@ -276,9 +277,11 @@ pub fn svc_loads_from_paths<T: AsRef<Path>>(paths: &[T]) -> Result<Vec<Load>> {
 pub fn shared_load_cli_to_ctl(ident: PackageIdent,
                               shared_load: SharedLoad,
                               force: bool)
-                              -> habitat_sup_protocol::ctl::SvcLoad {
+                              -> Result<habitat_sup_protocol::ctl::SvcLoad> {
     use habitat_common::{ui,
                          ui::UIWriter};
+    #[cfg(target_os = "windows")]
+    use habitat_core::dapi::crypto;
     use habitat_sup_protocol::{ctl::{ServiceBindList,
                                      SvcLoad},
                                types::{HealthCheckInterval,
@@ -312,34 +315,36 @@ pub fn shared_load_cli_to_ctl(ident: PackageIdent,
 
     #[cfg(target_os = "windows")]
     let svc_encrypted_password = if let Some(password) = shared_load.password {
-        Some(encrypt(password)?)
+        Some(crypto::encrypt(password)?)
     } else {
         None
     };
     #[cfg(not(target_os = "windows"))]
     let svc_encrypted_password = None;
 
-    SvcLoad { ident: Some(ident.into()),
-              application_environment: None,
-              binds,
-              specified_binds: None,
-              binding_mode: Some(shared_load.binding_mode as i32),
-              bldr_url: Some(habitat_core::url::bldr_url(shared_load.bldr_url)),
-              bldr_channel: Some(shared_load.channel.to_string()),
-              config_from,
-              force: Some(force),
-              group: Some(shared_load.group),
-              svc_encrypted_password,
-              topology: shared_load.topology.map(i32::from),
-              update_strategy: Some(shared_load.strategy as i32),
-              health_check_interval:
-                  Some(HealthCheckInterval { seconds: shared_load.health_check_interval, }),
-              shutdown_timeout: shared_load.shutdown_timeout.map(u32::from),
-              update_condition: Some(shared_load.update_condition as i32) }
+    Ok(SvcLoad { ident: Some(ident.into()),
+                 application_environment: None,
+                 binds,
+                 specified_binds: None,
+                 binding_mode: Some(shared_load.binding_mode as i32),
+                 bldr_url: Some(habitat_core::url::bldr_url(shared_load.bldr_url)),
+                 bldr_channel: Some(shared_load.channel.to_string()),
+                 config_from,
+                 force: Some(force),
+                 group: Some(shared_load.group),
+                 svc_encrypted_password,
+                 topology: shared_load.topology.map(i32::from),
+                 update_strategy: Some(shared_load.strategy as i32),
+                 health_check_interval:
+                     Some(HealthCheckInterval { seconds: shared_load.health_check_interval, }),
+                 shutdown_timeout: shared_load.shutdown_timeout.map(u32::from),
+                 update_condition: Some(shared_load.update_condition as i32) })
 }
 
-impl From<Load> for habitat_sup_protocol::ctl::SvcLoad {
-    fn from(svc_load: Load) -> Self {
+impl TryFrom<Load> for habitat_sup_protocol::ctl::SvcLoad {
+    type Error = crate::error::Error;
+
+    fn try_from(svc_load: Load) -> Result<Self> {
         shared_load_cli_to_ctl(svc_load.pkg_ident.pkg_ident(),
                                svc_load.shared_load,
                                svc_load.force)

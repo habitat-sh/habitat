@@ -47,7 +47,8 @@ use habitat_launcher_client::{LauncherCli,
                               ERR_NO_RETRY_EXCODE,
                               OK_NO_RETRY_EXCODE};
 use habitat_sup_protocol::{self as sup_proto};
-use std::{env,
+use std::{convert::TryInto,
+          env,
           io,
           io::Write,
           net::{IpAddr,
@@ -204,8 +205,10 @@ async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run: SupRun,
 
     let mut svc_load_msgs =
         svc::svc_loads_from_paths(&sup_run.svc_config_paths)?.into_iter()
-                                                             .map(|svc_load| svc_load.into())
-                                                             .collect::<Vec<_>>();
+                                                             .map(|svc_load| {
+                                                                 Ok(svc_load.try_into()?)
+                                                             })
+                                                             .collect::<Result<Vec<_>>>()?;
 
     let (manager_cfg, maybe_svc_load_msg) = split_apart_sup_run(sup_run, feature_flags).await?;
     if let Some(svc_load_msg) = maybe_svc_load_msg {
@@ -331,7 +334,7 @@ async fn split_apart_sup_run(sup_run: SupRun,
         // Always force - running with a package ident is a "do what I mean" operation. You don't
         // care if a service was loaded previously or not and with what options. You want one loaded
         // right now and in this way.
-        Some(svc::shared_load_cli_to_ctl(ident, shared_load, true))
+        Some(svc::shared_load_cli_to_ctl(ident, shared_load, true)?)
     } else {
         None
     };
