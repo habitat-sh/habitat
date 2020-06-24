@@ -3,8 +3,7 @@ pub mod hab;
 use crate::{cli::hab::{sup::{Sup,
                              SupRun},
                        svc::{BulkLoad as SvcBulkLoad,
-                             Load as SvcLoad,
-                             SharedLoad},
+                             Load as SvcLoad},
                        util::CACHE_KEY_PATH_DEFAULT,
                        Hab},
             command::studio};
@@ -18,8 +17,6 @@ use habitat_common::{cli::{file_into_idents,
                            BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
                            PACKAGE_TARGET_ENVVAR},
-                     ui,
-                     ui::UIWriter,
                      FeatureFlag};
 use habitat_core::{crypto::{keys::PairType,
                             CACHE_KEY_PATH_ENV_VAR},
@@ -902,77 +899,6 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             \n"
         )
     )
-}
-
-pub fn shared_load_cli_to_ctl(ident: PackageIdent,
-                              shared_load: SharedLoad,
-                              force: bool)
-                              -> habitat_sup_protocol::ctl::SvcLoad {
-    use habitat_sup_protocol::{ctl::{ServiceBindList,
-                                     SvcLoad},
-                               types::{HealthCheckInterval,
-                                       ServiceBind}};
-
-    // TODO (DM): This check can eventually be removed.
-    // See https://github.com/habitat-sh/habitat/issues/7339
-    if !shared_load.application.is_empty() || !shared_load.environment.is_empty() {
-        ui::ui().warn("--application and --environment flags are deprecated and ignored.")
-                .ok();
-    }
-
-    let binds = if shared_load.bind.is_empty() {
-        None
-    } else {
-        Some(ServiceBindList { binds: shared_load.bind
-                                                 .into_iter()
-                                                 .map(ServiceBind::from)
-                                                 .collect(), })
-    };
-
-    let config_from = if let Some(config_from) = shared_load.config_from {
-        warn!("");
-        warn!("WARNING: Setting '--config-from' should only be used in development, not \
-               production!");
-        warn!("");
-        Some(config_from.to_string_lossy().to_string())
-    } else {
-        None
-    };
-
-    #[cfg(target_os = "windows")]
-    let svc_encrypted_password = if let Some(password) = shared_load.password {
-        Some(encrypt(password)?)
-    } else {
-        None
-    };
-    #[cfg(not(target_os = "windows"))]
-    let svc_encrypted_password = None;
-
-    SvcLoad { ident: Some(ident.into()),
-              application_environment: None,
-              binds,
-              specified_binds: None,
-              binding_mode: Some(shared_load.binding_mode as i32),
-              bldr_url: Some(habitat_core::url::bldr_url(shared_load.bldr_url)),
-              bldr_channel: Some(shared_load.channel.to_string()),
-              config_from,
-              force: Some(force),
-              group: Some(shared_load.group),
-              svc_encrypted_password,
-              topology: shared_load.topology.map(i32::from),
-              update_strategy: Some(shared_load.strategy as i32),
-              health_check_interval:
-                  Some(HealthCheckInterval { seconds: shared_load.health_check_interval, }),
-              shutdown_timeout: shared_load.shutdown_timeout.map(u32::from),
-              update_condition: Some(shared_load.update_condition as i32) }
-}
-
-impl From<SvcLoad> for habitat_sup_protocol::ctl::SvcLoad {
-    fn from(svc_load: SvcLoad) -> Self {
-        shared_load_cli_to_ctl(svc_load.pkg_ident.pkg_ident(),
-                               svc_load.shared_load,
-                               svc_load.force)
-    }
 }
 
 fn alias_run() -> App<'static, 'static> {

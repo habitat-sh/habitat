@@ -25,9 +25,8 @@ use crate::sup::{cli::cli,
                            PROC_LOCK_FILE},
                  util};
 use configopt::ConfigOpt;
-use hab::cli::{self,
-               hab::{sup::SupRun,
-                     svc}};
+use hab::cli::hab::{sup::SupRun,
+                    svc};
 use habitat_common::{command::package::install::InstallSource,
                      liveliness_checker,
                      output::{self,
@@ -332,7 +331,7 @@ async fn split_apart_sup_run(sup_run: SupRun,
         // Always force - running with a package ident is a "do what I mean" operation. You don't
         // care if a service was loaded previously or not and with what options. You want one loaded
         // right now and in this way.
-        Some(cli::shared_load_cli_to_ctl(ident, shared_load, true))
+        Some(svc::shared_load_cli_to_ctl(ident, shared_load, true))
     } else {
         None
     };
