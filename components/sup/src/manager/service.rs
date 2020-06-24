@@ -254,6 +254,11 @@ impl Service {
 
     pub(crate) fn spec(&self) -> ServiceSpec { self.spec.clone() }
 
+    pub(crate) fn set_spec(&mut self, spec: ServiceSpec) {
+        trace!("Setting spec for {}: {:?}", self.spec.ident, spec);
+        self.spec = spec
+    }
+
     #[allow(clippy::too_many_arguments)]
     async fn with_package(sys: Arc<Sys>,
                           package: &PackageInstall,

@@ -17,7 +17,8 @@ use self::{action::{ShutdownInput,
            peer_watcher::PeerWatcher,
            self_updater::{SelfUpdater,
                           SUP_PKG_IDENT},
-           service::{spec::ServiceOperation,
+           service::{spec::{RefreshOperation,
+                            ServiceOperation},
                      ConfigRendering,
                      DesiredState,
                      HealthCheckResult,
@@ -1594,6 +1595,40 @@ impl Manager {
                 ServiceOperation::Start(spec) => {
                     // Execute the future synchronously
                     self.add_service_rsw_mlw_rhw_msr(spec).await;
+                }
+                ServiceOperation::Update(spec, ops) => {
+                    trace!("ServiceOperation::Update! {:?}", spec);
+                    let mut services = self.state.services.lock_msw();
+                    // Relies on spec.ident not having changed, which
+                    // ServiceSpec#reconcile must guarantee.
+                    let ident = spec.ident.clone();
+
+                    // TODO (CM): While it is technically OK to remove
+                    // the service, modify it, and then re-insert it,
+                    // this is conceptually a modify-in-place
+                    // operation. Ideally, the code would reflect
+                    // this.
+                    if let Some(mut s) = services.remove(&ident) {
+                        s.set_spec(spec);
+
+                        for op in ops {
+                            match op {
+                                RefreshOperation::RestartUpdater => {
+                                    self.service_updater.lock().register(&s);
+                                }
+                            }
+                        }
+
+                        services.insert(ident, s);
+                    } else {
+                        // We really don't expect this to
+                        // happen... this would likely mean that a
+                        // service was somehow removed between when we
+                        // started processing everything and now.
+                        outputln!("Tried to update config for service {} but could not find it \
+                                   running, skipping",
+                                  &spec.ident);
+                    }
                 }
             }
         }
