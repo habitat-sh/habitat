@@ -275,6 +275,12 @@ pub struct SupRun {
     /// automatic package cleanup is performed.
     #[structopt(long = "keep-latest-packages", env = "HAB_KEEP_LATEST_PACKAGES")]
     pub keep_latest_packages: Option<usize>,
+    /// Paths to files or directories of service config files to load on startup
+    ///
+    /// See `hab svc bulkload --help` for details
+    #[structopt(long = "svc-config-paths",
+                default_value = "/hab/sup/default/config/svc")]
+    pub svc_config_paths: Vec<PathBuf>,
     #[structopt(flatten)]
     #[serde(flatten)]
     pub shared_load: SharedLoad,

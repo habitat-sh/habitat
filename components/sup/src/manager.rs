@@ -888,7 +888,7 @@ impl Manager {
     /// * `ManagerServices::inner` (write)
     #[allow(clippy::cognitive_complexity)]
     pub async fn run_rsw_imlw_mlw_gsw_smw_rhw_msw(mut self,
-                                                  svc: Option<habitat_sup_protocol::ctl::SvcLoad>)
+                                                  svc_load_msgs: Vec<habitat_sup_protocol::ctl::SvcLoad>)
                                                   -> Result<()> {
         let main_hist = RUN_LOOP_DURATION.with_label_values(&["sup"]);
         let service_hist = RUN_LOOP_DURATION.with_label_values(&["service"]);
@@ -914,8 +914,8 @@ impl Manager {
                                                          });
         tokio::spawn(ctl_handler);
 
-        if let Some(svc_load) = svc {
-            commands::service_load(&self.state, &mut CtlRequest::default(), svc_load).await?;
+        for svc_load_msg in svc_load_msgs {
+            commands::service_load(&self.state, &mut CtlRequest::default(), svc_load_msg).await?;
         }
 
         // This serves to start up any services that need starting

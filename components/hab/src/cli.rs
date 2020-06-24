@@ -904,10 +904,10 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
     )
 }
 
-pub fn svc_load_cli_to_ctl(ident: PackageIdent,
-                           shared_load: SharedLoad,
-                           force: bool)
-                           -> habitat_sup_protocol::ctl::SvcLoad {
+pub fn shared_load_cli_to_ctl(ident: PackageIdent,
+                              shared_load: SharedLoad,
+                              force: bool)
+                              -> habitat_sup_protocol::ctl::SvcLoad {
     use habitat_sup_protocol::{ctl::{ServiceBindList,
                                      SvcLoad},
                                types::{HealthCheckInterval,
@@ -965,6 +965,14 @@ pub fn svc_load_cli_to_ctl(ident: PackageIdent,
                   Some(HealthCheckInterval { seconds: shared_load.health_check_interval, }),
               shutdown_timeout: shared_load.shutdown_timeout.map(u32::from),
               update_condition: Some(shared_load.update_condition as i32) }
+}
+
+impl From<SvcLoad> for habitat_sup_protocol::ctl::SvcLoad {
+    fn from(svc_load: SvcLoad) -> Self {
+        shared_load_cli_to_ctl(svc_load.pkg_ident.pkg_ident(),
+                               svc_load.shared_load,
+                               svc_load.force)
+    }
 }
 
 fn alias_run() -> App<'static, 'static> {

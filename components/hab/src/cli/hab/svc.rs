@@ -4,6 +4,7 @@ use super::util::{CacheKeyPath,
                   ConfigOptRemoteSup,
                   PkgIdent,
                   RemoteSup};
+use crate::error::Result;
 use configopt::{configopt_fields,
                 ConfigOpt};
 use habitat_core::{os::process::ShutdownTimeout,
@@ -12,9 +13,13 @@ use habitat_core::{os::process::ShutdownTimeout,
                              ServiceGroup},
                    ChannelIdent};
 use habitat_sup_protocol::types::UpdateCondition;
-use std::path::PathBuf;
+use std::path::{Path,
+                PathBuf};
 use structopt::StructOpt;
 use url::Url;
+use walkdir::WalkDir;
+
+const DEFAULT_SVC_CONFIG_PATH: &str = "/hab/sup/default/config/svc";
 
 /// Commands relating to Habitat services
 #[derive(ConfigOpt, StructOpt)]
@@ -231,4 +236,34 @@ pub struct Load {
     #[structopt(flatten)]
     #[serde(flatten)]
     pub shared_load: SharedLoad,
+}
+
+pub fn svc_loads_from_paths<T: AsRef<Path>>(paths: &[T]) -> Result<Vec<Load>> {
+    // If the only path is the default location and the directory does not exist do not report an
+    // error. This allows users to run the Supervisor without creating the directory.
+    if paths.len() == 1 {
+        let path = paths[0].as_ref();
+        if path == Path::new(DEFAULT_SVC_CONFIG_PATH) && !path.exists() {
+            return Ok(Vec::new());
+        }
+    }
+    let mut svc_loads = Vec::new();
+    let default_svc_load = ConfigOptLoad::from_default_config_files()?;
+    for path in paths {
+        for entry in WalkDir::new(path) {
+            let entry = entry?;
+            let path = entry.path();
+            if entry.file_type().is_file() {
+                if let Some(extension) = path.extension() {
+                    if extension == "toml" {
+                        let mut svc_load = configopt::from_toml_file(path)?;
+                        // Patch the svc load with values from the default svc load
+                        default_svc_load.clone().patch_for(&mut svc_load);
+                        svc_loads.push(svc_load);
+                    }
+                }
+            }
+        }
+    }
+    Ok(svc_loads)
 }

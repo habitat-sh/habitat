@@ -13,8 +13,8 @@ use configopt::{ConfigOpt,
                 Error as ConfigOptError};
 use futures::stream::StreamExt;
 use hab::{cli::{self,
-                hab::{svc::{BulkLoad as SvcBulkLoad,
-                            ConfigOptLoad as ConfigOptSvcLoad,
+                hab::{svc::{self,
+                            BulkLoad as SvcBulkLoad,
                             Load as SvcLoad,
                             Svc},
                       Hab},
@@ -88,7 +88,6 @@ use tabwriter::TabWriter;
 use termcolor::{self,
                 Color,
                 ColorSpec};
-use walkdir::WalkDir;
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
@@ -1256,9 +1255,7 @@ async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = svc_load.remote_sup.remote_sup;
     let secret_key = config::ctl_secret_key(&cfg)?;
-    let msg = cli::svc_load_cli_to_ctl(svc_load.pkg_ident.pkg_ident(),
-                                       svc_load.shared_load,
-                                       svc_load.force);
+    let msg = habitat_sup_protocol::ctl::SvcLoad::from(svc_load);
     let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
@@ -1268,22 +1265,8 @@ async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
 }
 
 async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
-    let default_svc_load = ConfigOptSvcLoad::from_default_config_files()?;
-    for path in svc_bulk_load.svc_config_paths {
-        for entry in WalkDir::new(path) {
-            let entry = entry?;
-            let path = entry.path();
-            if entry.file_type().is_file() {
-                if let Some(extension) = path.extension() {
-                    if extension == "toml" {
-                        let mut svc_load = configopt::from_toml_file(path)?;
-                        // Patch the svc load with values from the default svc load
-                        default_svc_load.clone().patch_for(&mut svc_load);
-                        sub_svc_load(svc_load).await?;
-                    }
-                }
-            }
-        }
+    for svc_load in svc::svc_loads_from_paths(&svc_bulk_load.svc_config_paths)? {
+        sub_svc_load(svc_load).await?;
     }
     Ok(())
 }
