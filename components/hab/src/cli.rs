@@ -94,8 +94,8 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (aliases: &["sh", "sho"])
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+                    "Address to a remote Supervisor's Control Gateway")
             )
         )
         (@subcommand file =>
@@ -112,8 +112,8 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     "A version number (positive integer) for this configuration (ex: 42)")
                 (@arg FILE: +required +takes_value {file_exists} "Path to local file on disk")
                 (@arg USER: -u --user +takes_value "Name of the user key")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+                    "Address to a remote Supervisor's Control Gateway")
                 (arg: arg_cache_key_path())
             )
         )
@@ -1085,8 +1085,8 @@ fn sub_config_apply() -> App<'static, 'static> {
     (@arg FILE: +takes_value {file_exists_or_stdin}
         "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
     (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
-    (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-        "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+    (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+        "Address to a remote Supervisor's Control Gateway")
     (arg: arg_cache_key_path())
     )
 }
@@ -1099,8 +1099,8 @@ fn sub_sup_depart() -> App<'static, 'static> {
         (about: "Depart a Supervisor from the gossip ring; kicking and banning the target \
             from joining again with the same member-id")
         (@arg MEMBER_ID: +required +takes_value "The member-id of the Supervisor to depart")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+            "Address to a remote Supervisor's Control Gateway")
     )
 }
 
@@ -1152,8 +1152,8 @@ fn sub_svc_start() -> App<'static, 'static> {
         (about: "Start a loaded, but stopped, Habitat service")
         (@arg PKG_IDENT: +required +takes_value {valid_ident}
             "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+            "Address to a remote Supervisor's Control Gateway")
     )
 }
 
@@ -1163,8 +1163,8 @@ fn sub_svc_status() -> App<'static, 'static> {
     clap_app!(@subcommand status =>
         (about: "Query the status of Habitat services")
         (@arg PKG_IDENT: +takes_value {valid_ident} "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-        "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+            "Address to a remote Supervisor's Control Gateway")
     )
 }
 
@@ -1179,8 +1179,8 @@ fn sub_svc_stop() -> App<'static, 'static> {
         (about: "Stop a running Habitat service")
         (@arg PKG_IDENT: +required +takes_value {valid_ident}
             "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+            "Address to a remote Supervisor's Control Gateway")
     );
     add_shutdown_timeout_option(sub)
 }
@@ -1191,8 +1191,8 @@ fn sub_svc_unload() -> App<'static, 'static> {
             running it will additionally be stopped")
         (@arg PKG_IDENT: +required +takes_value {valid_ident}
             "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+            "Address to a remote Supervisor's Control Gateway")
     );
     add_shutdown_timeout_option(sub)
 }

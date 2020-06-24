@@ -30,9 +30,6 @@ pub enum Svc {
     #[structopt(name = "bulkload")]
     BulkLoad(BulkLoad),
     Key(Key),
-    /// Load a service to be started and supervised by Habitat from a package identifier. If an
-    /// installed package doesn't satisfy the given package identifier, a suitable package will be
-    /// installed from Builder.
     #[structopt(no_version)]
     Load(Load),
     /// Start a loaded, but stopped, Habitat service.
@@ -223,6 +220,9 @@ pub struct SharedLoad {
             default_config_file("/hab/sup/default/config/svc.toml"))]
 #[serde(deny_unknown_fields)]
 #[structopt(name = "load", no_version, rename_all = "screamingsnake")]
+/// Load a service to be started and supervised by Habitat from a package identifier. If an
+/// installed package doesn't satisfy the given package identifier, a suitable package will be
+/// installed from Builder.
 pub struct Load {
     #[structopt(flatten)]
     pub pkg_ident:   PkgIdent,
