@@ -650,6 +650,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     "Identifier of one or more packages that should not be uninstalled. \
                     (ex: core/redis, core/busybox-static/1.42.2/21120102031201)")
                 (@arg NO_DEPS: --("no-deps") "Don't uninstall dependencies")
+                (@arg IGNORE_UNINSTALL_HOOK: --("ignore-uninstall-hook") "Do not run any uninstall hooks")
             )
             // alas no hyphens in subcommand names..
             // https://github.com/clap-rs/clap/issues/1297

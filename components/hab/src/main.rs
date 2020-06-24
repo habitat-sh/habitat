@@ -15,7 +15,8 @@ use hab::{cli::{self,
           command::{self,
                     pkg::{download::{PackageSet,
                                      PackageSetFile},
-                          list::ListingType}},
+                          list::ListingType,
+                          uninstall::UninstallHookMode}},
           config,
           error::{Error,
                   Result},
@@ -725,6 +726,11 @@ async fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
         command::pkg::Scope::PackageAndDependencies
     };
     let excludes = excludes_from_matches(&m);
+    let uninstall_hook_mode = if m.is_present("IGNORE_UNINSTALL_HOOK") {
+        UninstallHookMode::Ignore
+    } else {
+        UninstallHookMode::default()
+    };
 
     command::pkg::uninstall::start(ui,
                                    &ident,
@@ -732,7 +738,8 @@ async fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                    execute_strategy,
                                    mode,
                                    scope,
-                                   &excludes).await
+                                   &excludes,
+                                   uninstall_hook_mode).await
 }
 
 async fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {

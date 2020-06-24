@@ -386,6 +386,58 @@ impl Hook for InstallHook {
     fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
+#[derive(Debug, Serialize)]
+pub struct UninstallHook {
+    render_pair:     RenderPair,
+    stdout_log_path: PathBuf,
+    stderr_log_path: PathBuf,
+}
+
+impl UninstallHook {
+    pub const STATUS_FILE: &'static str = "UNINSTALL_HOOK_STATUS";
+}
+
+impl Hook for UninstallHook {
+    type ExitValue = bool;
+
+    fn file_name() -> &'static str { "uninstall" }
+
+    fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
+        UninstallHook { render_pair:     pair,
+                        stdout_log_path: stdout_log_path::<Self>(package_name),
+                        stderr_log_path: stderr_log_path::<Self>(package_name), }
+    }
+
+    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
+        let name = &pkg.name;
+        match status.code() {
+            Some(0) => true,
+            Some(code) => {
+                outputln!(
+                    preamble name,
+                    "Uninstallation failed! '{}' exited with \
+                     status code {}",
+                    Self::file_name(),
+                    code
+                );
+                false
+            }
+            None => {
+                Self::output_termination_message(name, status);
+                false
+            }
+        }
+    }
+
+    fn path(&self) -> &Path { &self.render_pair.path }
+
+    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
+
+    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
+
+    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
+}
+
 /// Cryptographically hash the contents of the compiled hook
 /// file.
 ///
