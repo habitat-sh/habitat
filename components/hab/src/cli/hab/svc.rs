@@ -256,9 +256,14 @@ pub fn svc_loads_from_paths<T: AsRef<Path>>(paths: &[T]) -> Result<Vec<Load>> {
             if entry.file_type().is_file() {
                 if let Some(extension) = path.extension() {
                     if extension == "toml" {
+                        // Patch the service config with values from the default config file. We
+                        // must use two `take` calls instead of a single patch call to ensure
+                        // deserialization default values are correctly overwritten.
+                        let mut configopt_svc_load = configopt::from_toml_file(path)?;
+                        let mut default_svc_load = default_svc_load.clone();
+                        default_svc_load.take(&mut configopt_svc_load);
                         let mut svc_load = configopt::from_toml_file(path)?;
-                        // Patch the svc load with values from the default svc load
-                        default_svc_load.clone().patch_for(&mut svc_load);
+                        default_svc_load.clone().take_for(&mut svc_load);
                         svc_loads.push(svc_load);
                     }
                 }
