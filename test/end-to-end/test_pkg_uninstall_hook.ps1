@@ -35,7 +35,7 @@ Describe "pkg uninstall with uninstall hook" {
 
     It "does not run uninstall hook of uninstalled dependency when there are newer versions on disk" {
         Invoke-BuildAndInstall dep-uninstall-hook
-        $result = hab pkg list $env:HAB_ORIGIN/uninstall-hook/0.1.0 
+        $result = hab pkg list $env:HAB_ORIGIN/uninstall-hook/0.1.0
         $result.Length | Should -BeGreaterThan 0
         hab pkg uninstall $env:HAB_ORIGIN/dep-uninstall-hook
         $log | Should -Not -Exist

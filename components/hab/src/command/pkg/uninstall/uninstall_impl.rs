@@ -425,7 +425,7 @@ async fn maybe_run_uninstall_hook<T>(ui: &mut T, package: &PackageInstall) -> Re
             }
         }
         if !hook.run(&ident.name, &pkg, None::<&str>)
-               .map_err(|e| Error::CannotRunUninstallHook(ident.clone(), Box::new(e)))?
+                .map_err(|e| Error::CannotRunUninstallHook(ident.clone(), Box::new(e)))?
         {
             return Err(Error::UninstallHookFailed(ident.clone()));
         }
