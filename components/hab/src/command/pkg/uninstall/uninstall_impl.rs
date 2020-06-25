@@ -64,7 +64,7 @@ pub async fn uninstall<U>(ui: &mut U,
     where U: UIWriter
 {
     uninstall_many(ui,
-                   &[ident],
+                   &mut [ident],
                    fs_root_path,
                    execution_strategy,
                    scope,
@@ -98,9 +98,16 @@ pub async fn uninstall_all_but_latest<U>(ui: &mut U,
         ui.end(format!("Uninstall of {} complete", ident))?;
         return Ok(0);
     }
-    // sort the idents so the latest occur last in the list
-    idents.sort_unstable_by(|a, b| a.by_parts_cmp(b));
-    let to_uninstall = &mut idents[..(len - number_latest_to_keep)];
+
+    // Reverse sort the idents so the latest occur first in the list. Because we
+    // execute the uninstall hook only when the last revision of a package is
+    // being removed AND we want the most recent uninstall hook to be the one to
+    // run. Performing this sort ensures that the last package to be removed is the
+    // most recent package. This is important because a package's uninstall logic may
+    // include undoing any installation of previous packages.
+    idents.sort_unstable_by(|a, b| b.by_parts_cmp(a));
+
+    let to_uninstall = &mut idents[number_latest_to_keep..];
     uninstall_many(ui,
                    to_uninstall,
                    fs_root_path,
@@ -131,7 +138,7 @@ pub async fn uninstall_all_but_latest<U>(ui: &mut U,
 /// `excludes` is a list of user-supplied `PackageIdent`s.
 #[allow(clippy::too_many_arguments)]
 pub async fn uninstall_many<U>(ui: &mut U,
-                               idents: &[impl AsRef<PackageIdent>],
+                               idents: &mut [impl AsRef<PackageIdent>],
                                fs_root_path: &Path,
                                execution_strategy: ExecutionStrategy,
                                scope: Scope,
@@ -158,6 +165,8 @@ pub async fn uninstall_many<U>(ui: &mut U,
     // Never uninstall a dependency if it is loaded
     let dependency_safety = UninstallSafetyImpl::SkipIfLoaded(&loaded_services);
 
+    // sort the idents so the latest occur last in the list
+    idents.sort_unstable_by(|a, b| a.as_ref().by_parts_cmp(b.as_ref()));
     for ident in idents {
         // 2.
         let ident = ident.as_ref();
@@ -369,6 +378,18 @@ async fn maybe_delete<U>(ui: &mut U,
     }
 }
 
+/// We only want to run the uninstall hook if this is there are no other revisions.
+/// The uninstall hook is intended to be the inverse of the install hook and is
+/// where one would undo anything performed in the install hook.
+/// Note that install hooks are executed only once when a package is initially
+/// installed and are usually used to perform installation or setup that affects
+/// a machine's global state. For example it might be used to enable a "windows
+/// feature" or invoke a complicated software installer (like sql server). Over
+/// time one might update the package with better logic or adding a software patch.
+/// We only want to run the uninstaller if all revisions are being removed from the
+/// machine. Otherwise if an uninstall hook is run when installing an old version
+/// while a newer version remains installed, that hook could potentially corrupt the
+/// state of the existing package.
 async fn maybe_run_uninstall_hook<T>(ui: &mut T, package: &PackageInstall) -> Result<()>
     where T: UIWriter
 {
@@ -379,8 +400,6 @@ async fn maybe_run_uninstall_hook<T>(ui: &mut T, package: &PackageInstall) -> Re
                                                 &package.installed_path.join("hooks"),
                                                 feature_flags)
     {
-        // We only want to run the uninstall hook if this is there are no other
-        // revisions of this package
         let unqualified_ident =
             PackageIdent::from_str(&format!("{}/{}", ident.origin, ident.name))?;
         let installed = list::package_list(&unqualified_ident.clone().into())?;
@@ -405,7 +424,7 @@ async fn maybe_run_uninstall_hook<T>(ui: &mut T, package: &PackageInstall) -> Re
                 pkg.svc_user = user;
             }
         }
-        if hook.run(&ident.name, &pkg, None::<&str>)
+        if !hook.run(&ident.name, &pkg, None::<&str>)
                .map_err(|e| Error::CannotRunUninstallHook(ident.clone(), Box::new(e)))?
         {
             return Err(Error::UninstallHookFailed(ident.clone()));
