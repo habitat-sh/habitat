@@ -285,9 +285,6 @@ impl ServiceSpec {
     pub(crate) fn reconcile(old: Option<ServiceSpec>,
                             new: Option<ServiceSpec>)
                             -> Option<ServiceOperation> {
-        // TODO (CM): Invariant:
-        // old.is_some() && new.is_some() => old.ident == new.ident
-
         // We need to compare the old spec to the new spec, taking
         // into consideration the desired state of each. While we can
         // do that via pattern matching directly, it gets a little
@@ -295,23 +292,22 @@ impl ServiceSpec {
         // one unified match statement and go from there.
         use DesiredState::{Down,
                            Up};
-        match (old.as_ref().map(|o| o.desired_state),
-               old,
-               new.as_ref().map(|n| n.desired_state),
-               new)
+
+        match (old.map(|o| (o.desired_state, o)),
+               new.map(|n| (n.desired_state, n)))
         {
             // theoretically shouldn't happen, but no harm if it does.
-            (_, None, _, None)
+            (None, None)
             // Somebody manually added a spec file that for some
             // reason stated the service should be down. Weird, but
             // okay....
-            | (_, None, Some(Down), Some(_))
+            | (None, Some((Down, _)))
             // A stopped service's spec file was removed
-            | (Some(Down), Some(_), _, None)
+            | (Some((Down, _)), None)
             // A stopped service's spec file was changed, but it is
             // still supposed to be down. This would also likely
             // require manual intervention.
-            | (Some(Down), Some(_), Some(Down), Some(_)) => {
+            | (Some((Down, _)), Some((Down, _))) => {
                 // None of these situations require us to do anything
                 // in the way of starting, stopping, restarting, or
                 // modifying a service.
@@ -320,21 +316,21 @@ impl ServiceSpec {
 
             // A running service's spec file was removed (e.g., hab
             // svc unload)
-            (Some(Up), Some(old), _, None)
+            (Some((Up, old)), None)
             // A running service was told to stop (e.g., hab svc stop)
-            | (Some(Up), Some(old), Some(Down), Some(_)) => {
+            | (Some((Up, old)), Some((Down, _))) => {
                 Some(ServiceOperation::Stop(old))
             }
 
             // A new spec file was added (e.g., hab svc load)
-            (_, None, Some(Up), Some(new))
+            (None, Some((Up, new)))
             // A previously stopped service was started (e.g., hab svc start)
-            | (Some(Down), Some(_), Some(Up), Some(new)) => {
+            | (Some((Down, _)), Some((Up, new))) => {
                 Some(ServiceOperation::Start(new))
             }
 
             // The configuration of a running service was somehow changed
-            (Some(Up), Some(running_spec), Some(Up), Some(disk_spec)) => {
+            (Some((Up, running_spec)), Some((Up, disk_spec))) => {
                 if running_spec == disk_spec {
                     // Given how this function is called, this is
                     // unlikely to happen, but if it does, we don't
@@ -353,13 +349,6 @@ impl ServiceSpec {
                                                      to_start: disk_spec, })
                 }
             }
-
-            // These are unreachable because a None spec can't yield a
-            // desired state, and all specs have a desired state.
-            (Some(_), None, ..)
-            | (_, _, Some(_), None)
-            | (None, Some(_), ..)
-            | (_, _, None, Some(_)) => unreachable!(),
         }
     }
 }
@@ -904,7 +893,7 @@ mod test {
             assert_eq!(ServiceSpec::reconcile(Some(down_spec.clone()), None), None);
             assert_eq!(ServiceSpec::reconcile(None, Some(down_spec.clone())), None);
             assert_eq!(ServiceSpec::reconcile(None, Some(down_spec.clone())), None);
-            assert_eq!(ServiceSpec::reconcile(Some(down_spec.clone()), Some(down_spec.clone())),
+            assert_eq!(ServiceSpec::reconcile(Some(down_spec.clone()), Some(down_spec)),
                        None);
             assert_eq!(ServiceSpec::reconcile(None, None), None);
         }
@@ -914,10 +903,10 @@ mod test {
             let up_spec = spec("core/starter", DesiredState::Up);
             let down_spec = spec("core/starter", DesiredState::Down);
 
-            assert_eq!(ServiceSpec::reconcile(Some(down_spec.clone()), Some(up_spec.clone())),
+            assert_eq!(ServiceSpec::reconcile(Some(down_spec), Some(up_spec.clone())),
                        Some(ServiceOperation::Start(up_spec.clone())));
             assert_eq!(ServiceSpec::reconcile(None, Some(up_spec.clone())),
-                       Some(ServiceOperation::Start(up_spec.clone())));
+                       Some(ServiceOperation::Start(up_spec)));
         }
 
         #[test]
@@ -925,10 +914,10 @@ mod test {
             let up_spec = spec("core/stopper", DesiredState::Up);
             let down_spec = spec("core/stopper", DesiredState::Down);
 
-            assert_eq!(ServiceSpec::reconcile(Some(up_spec.clone()), Some(down_spec.clone())),
+            assert_eq!(ServiceSpec::reconcile(Some(up_spec.clone()), Some(down_spec)),
                        Some(ServiceOperation::Stop(up_spec.clone())));
             assert_eq!(ServiceSpec::reconcile(Some(up_spec.clone()), None),
-                       Some(ServiceOperation::Stop(up_spec.clone())));
+                       Some(ServiceOperation::Stop(up_spec)));
         }
 
         /// Edge case where we end up with identical specs;
@@ -937,8 +926,7 @@ mod test {
         #[test]
         fn identical_up_specs_is_a_no_op() {
             let s = spec("core/blah", DesiredState::Up);
-            assert_eq!(ServiceSpec::reconcile(Some(s.clone()), Some(s.clone())),
-                       None);
+            assert_eq!(ServiceSpec::reconcile(Some(s.clone()), Some(s)), None);
         }
 
         #[test]
