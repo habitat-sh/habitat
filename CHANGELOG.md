@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.61 -->
-## [1.6.61](https://github.com/habitat-sh/habitat/tree/1.6.61) (2020-06-24)
+<!-- latest_release 1.6.62 -->
+## [1.6.62](https://github.com/habitat-sh/habitat/tree/1.6.62) (2020-06-26)
 
 #### Merged Pull Requests
-- correcting multi-target package plan layout example [#7763](https://github.com/habitat-sh/habitat/pull/7763) ([jeremymv2](https://github.com/jeremymv2))
+- [REFACTOR] Clean up and streamline spec reconciliation [#7766](https://github.com/habitat-sh/habitat/pull/7766) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
 ### Changes since 1.6.56 release
 
 #### Merged Pull Requests
+- [REFACTOR] Clean up and streamline spec reconciliation [#7766](https://github.com/habitat-sh/habitat/pull/7766) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.62 -->
 - correcting multi-target package plan layout example [#7763](https://github.com/habitat-sh/habitat/pull/7763) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.61 -->
 - [CI] Simplify PKG_CONFIG_PATH for cargo_update.sh [#7761](https://github.com/habitat-sh/habitat/pull/7761) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.60 -->
 - Automated update of Habitat Documentation [#7758](https://github.com/habitat-sh/habitat/pull/7758) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.59 -->
