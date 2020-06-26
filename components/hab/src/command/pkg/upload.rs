@@ -77,7 +77,7 @@ pub async fn start(ui: &mut UI,
                 let channel = additional_release_channel.clone().unwrap();
                 match promote_to_channel(ui, &api_client, (&ident, target), channel, token).await {
                     Ok(_) => (),
-                    Err(e) => return Err(Error::from(e)),
+                    Err(e) => return Err(e),
                 }
             }
             Ok(())
@@ -189,7 +189,7 @@ async fn upload_into_depot(ui: &mut UI,
         let channel = additional_release_channel.clone().unwrap();
         match promote_to_channel(ui, api_client, (ident, target), channel, token).await {
             Ok(_) => (),
-            Err(e) => return Err(Error::from(e)),
+            Err(e) => return Err(e),
         }
     }
 
