@@ -266,6 +266,102 @@ impl ServiceSpec {
         }
         Ok(self)
     }
+
+    /// Given an `old` and a `new` spec, figure out what operations
+    /// are needed in order to turn the `old` state into the `new`
+    /// state.
+    ///
+    /// Here, `old` represents what a currently running service, while
+    /// `new` represents a new version of that spec that we wish to
+    /// make the currently running service. Both are `Option`s, in
+    /// order to capture the scenario in which, say, nothing is
+    /// currently running, but we wish to start a service, or where we
+    /// are running a service, but wish to stop it.
+    ///
+    /// Currently, it is *assumed* that both specs (when present)
+    /// refer to the same service.
+    ///
+    /// Returning `None` indicates that no operation is required.
+    pub(crate) fn reconcile(old: Option<ServiceSpec>,
+                            new: Option<ServiceSpec>)
+                            -> Option<ServiceOperation> {
+        // We need to compare the old spec to the new spec, taking
+        // into consideration the desired state of each. While we can
+        // do that via pattern matching directly, it gets a little
+        // hairy. Instead, we'll just extract the data we need into
+        // one unified match statement and go from there.
+        use DesiredState::{Down,
+                           Up};
+
+        match (old.map(|o| (o.desired_state, o)),
+               new.map(|n| (n.desired_state, n)))
+        {
+            // theoretically shouldn't happen, but no harm if it does.
+            (None, None)
+            // Somebody manually added a spec file that for some
+            // reason stated the service should be down. Weird, but
+            // okay....
+            | (None, Some((Down, _)))
+            // A stopped service's spec file was removed
+            | (Some((Down, _)), None)
+            // A stopped service's spec file was changed, but it is
+            // still supposed to be down. This would also likely
+            // require manual intervention.
+            | (Some((Down, _)), Some((Down, _))) => {
+                // None of these situations require us to do anything
+                // in the way of starting, stopping, restarting, or
+                // modifying a service.
+                None
+            }
+
+            // A running service's spec file was removed (e.g., hab
+            // svc unload)
+            (Some((Up, old)), None)
+            // A running service was told to stop (e.g., hab svc stop)
+            | (Some((Up, old)), Some((Down, _))) => {
+                Some(ServiceOperation::Stop(old))
+            }
+
+            // A new spec file was added (e.g., hab svc load)
+            (None, Some((Up, new)))
+            // A previously stopped service was started (e.g., hab svc start)
+            | (Some((Down, _)), Some((Up, new))) => {
+                Some(ServiceOperation::Start(new))
+            }
+
+            // The configuration of a running service was somehow changed
+            (Some((Up, running_spec)), Some((Up, disk_spec))) => {
+                if running_spec == disk_spec {
+                    // Given how this function is called, this is
+                    // unlikely to happen, but if it does, we don't
+                    // have to do anything.
+                    None
+                } else {
+                    // TODO (CM): In the future, this would be the
+                    // place where we can evaluate what has changed
+                    // between the spec-on-disk and our in-memory
+                    // representation and potentially just bring our
+                    // in-memory representation in line without having
+                    // to restart the entire service.
+                    debug!("Reconciliation: '{}' queued for restart",
+                           running_spec.ident);
+                    Some(ServiceOperation::Restart { to_stop:  running_spec,
+                                                     to_start: disk_spec, })
+                }
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[allow(clippy::large_enum_variant)]
+pub(crate) enum ServiceOperation {
+    Start(ServiceSpec),
+    Stop(ServiceSpec),
+    Restart {
+        to_stop:  ServiceSpec,
+        to_start: ServiceSpec,
+    },
 }
 
 impl FromStr for ServiceSpec {
@@ -774,5 +870,78 @@ mod test {
                    Some(PathBuf::from("/only/for/development")));
         assert_eq!(spec.health_check_interval,
                    HealthCheckInterval::from_str("5").unwrap());
+    }
+
+    mod reconcile {
+        use super::*;
+
+        fn spec<S>(ident: S, desired_state: DesiredState) -> ServiceSpec
+            where S: AsRef<str>
+        {
+            let mut s = ServiceSpec::new(ident.as_ref()
+                                              .parse()
+                                              .expect("Couldn't create a testing spec from \
+                                                       given ident"));
+            s.desired_state = desired_state;
+            s
+        }
+
+        #[test]
+        fn test_a_bunch_of_no_ops() {
+            let down_spec = spec("core/blah", DesiredState::Down);
+
+            assert_eq!(ServiceSpec::reconcile(Some(down_spec.clone()), None), None);
+            assert_eq!(ServiceSpec::reconcile(None, Some(down_spec.clone())), None);
+            assert_eq!(ServiceSpec::reconcile(None, Some(down_spec.clone())), None);
+            assert_eq!(ServiceSpec::reconcile(Some(down_spec.clone()), Some(down_spec)),
+                       None);
+            assert_eq!(ServiceSpec::reconcile(None, None), None);
+        }
+
+        #[test]
+        fn test_start_cases() {
+            let up_spec = spec("core/starter", DesiredState::Up);
+            let down_spec = spec("core/starter", DesiredState::Down);
+
+            assert_eq!(ServiceSpec::reconcile(Some(down_spec), Some(up_spec.clone())),
+                       Some(ServiceOperation::Start(up_spec.clone())));
+            assert_eq!(ServiceSpec::reconcile(None, Some(up_spec.clone())),
+                       Some(ServiceOperation::Start(up_spec)));
+        }
+
+        #[test]
+        fn test_stop_cases() {
+            let up_spec = spec("core/stopper", DesiredState::Up);
+            let down_spec = spec("core/stopper", DesiredState::Down);
+
+            assert_eq!(ServiceSpec::reconcile(Some(up_spec.clone()), Some(down_spec)),
+                       Some(ServiceOperation::Stop(up_spec.clone())));
+            assert_eq!(ServiceSpec::reconcile(Some(up_spec.clone()), None),
+                       Some(ServiceOperation::Stop(up_spec)));
+        }
+
+        /// Edge case where we end up with identical specs;
+        /// technically possible, but practically unlikely, given
+        /// how the code is called.
+        #[test]
+        fn identical_up_specs_is_a_no_op() {
+            let s = spec("core/blah", DesiredState::Up);
+            assert_eq!(ServiceSpec::reconcile(Some(s.clone()), Some(s)), None);
+        }
+
+        #[test]
+        fn restart() {
+            let s1 = spec("core/blah", DesiredState::Up);
+            let s2 = {
+                let mut s = s1.clone();
+                // NOTE: Ideally, simply changing the URL wouldn't
+                // necesitate a service restart.
+                s.bldr_url = "https://builder.mycompany.com".to_string();
+                s
+            };
+            assert_eq!(ServiceSpec::reconcile(Some(s1.clone()), Some(s2.clone())),
+                       Some(ServiceOperation::Restart { to_stop:  s1,
+                                                        to_start: s2, }));
+        }
     }
 }
