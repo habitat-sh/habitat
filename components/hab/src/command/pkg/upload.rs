@@ -73,10 +73,8 @@ pub async fn start(ui: &mut UI,
             ui.status(Status::Using,
                       format!("existing {} already on target", &ident))?;
             // Always promote to additional_release_channel if specified
-            if additional_release_channel.is_some() {
-                if let Some(channel) = additional_release_channel.clone() {
-                    promote_to_channel(ui, &api_client, (&ident, target), channel, token).await?
-                }
+            if let Some(channel) = additional_release_channel.clone() {
+                promote_to_channel(ui, &api_client, (&ident, target), channel, token).await?
             }
             Ok(())
         }
@@ -183,7 +181,7 @@ async fn upload_into_depot(ui: &mut UI,
     ui.status(Status::Uploaded, ident)?;
 
     // Promote to additional_release_channel if specified
-    if package_exists_in_target && additional_release_channel.is_some() {
+    if package_exists_in_target {
         if let Some(channel) = additional_release_channel.clone() {
             promote_to_channel(ui, api_client, (ident, target), channel, token).await?
         }
