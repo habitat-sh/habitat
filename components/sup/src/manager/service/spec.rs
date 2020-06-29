@@ -337,6 +337,28 @@ impl ServiceSpec {
                     // have to do anything.
                     None
                 } else {
+                    // Destructure the entire spec so the compiler
+                    // ensures that we look at everything.
+                    let ServiceSpec {
+                        ident,
+                        group,
+                        bldr_url,
+                        channel,
+                        topology,
+                        update_strategy,
+                        update_condition,
+                        binds,
+                        binding_mode,
+                        config_from,
+                        // This has to be `Up` if we're in this
+                        // code. As a result, we don't care about
+                        // matching or destructuring it.
+                        desired_state: _,
+                        shutdown_timeout,
+                        svc_encrypted_password,
+                        health_check_interval,
+                    } = &running_spec;
+
                     // Currently, if any of these bits of data are
                     // different, we should restart the service. This
                     // is not to say that it will *always* be that
@@ -346,28 +368,24 @@ impl ServiceSpec {
                     // dynamic in the future. We are proceeding
                     // conservatively.
 
-                    // NOTE: There is no need to compare desired
-                    // state, because we know they must both be `Up`
-                    // for us to be in this code.
-
                     // NOTE: if the idents change in any way, you
                     // *must* restart, since that change may result in
                     // a different version of the service being run.
-                    if running_spec.ident != disk_spec.ident
-                        || running_spec.group != disk_spec.group
+                    if ident != &disk_spec.ident
+                        || group != &disk_spec.group
                         // TODO (CM): This *might* not need to be here
-                        || running_spec.topology != disk_spec.topology
+                        || topology != &disk_spec.topology
                         // TODO (CM): Bind information *may* be able
                         // to be dynamically changed, but that will
                         // need to be investigated more deeply.
-                        || running_spec.binds != disk_spec.binds
-                        || running_spec.binding_mode != disk_spec.binding_mode
-                        || running_spec.config_from != disk_spec.config_from
+                        || binds != &disk_spec.binds
+                        || binding_mode != &disk_spec.binding_mode
+                        || config_from != &disk_spec.config_from
                         // TODO (CM): This probably doesn't need to be here
-                        || running_spec.shutdown_timeout != disk_spec.shutdown_timeout
-                        || running_spec.svc_encrypted_password != disk_spec.svc_encrypted_password
+                        || shutdown_timeout != &disk_spec.shutdown_timeout
+                        || svc_encrypted_password != &disk_spec.svc_encrypted_password
                         // TODO (CM): This probably doesn't need to be here, either
-                        || running_spec.health_check_interval != disk_spec.health_check_interval
+                        || health_check_interval != &disk_spec.health_check_interval
                     {
                         debug!("Reconciliation: '{}' queued for restart",
                                running_spec.ident);
@@ -375,10 +393,10 @@ impl ServiceSpec {
                                                          to_start: disk_spec, })
                     } else {
                         let mut ops = HashSet::new();
-                        if running_spec.bldr_url != disk_spec.bldr_url
-                            || running_spec.channel != disk_spec.channel
-                            || running_spec.update_strategy != disk_spec.update_strategy
-                            || running_spec.update_condition != disk_spec.update_condition
+                        if bldr_url != &disk_spec.bldr_url
+                            || channel != &disk_spec.channel
+                            || update_strategy != &disk_spec.update_strategy
+                            || update_condition != &disk_spec.update_condition
                         {
                             ops.insert(RefreshOperation::RestartUpdater);
                         }
