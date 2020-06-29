@@ -405,6 +405,7 @@ impl ServiceSpec {
                         // here, but if we don't, let's be explicit
                         // about it.
                         if ops.is_empty() {
+                            warn!("No refresh operations computed for {}!", ident);
                             None
                         } else {
                             Some(ServiceOperation::Update(disk_spec, ops))
