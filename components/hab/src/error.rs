@@ -52,6 +52,7 @@ pub enum Error {
     JobGroupPromoteOrDemoteUnprocessable(bool /* promote */),
     JsonErr(serde_json::Error),
     LicenseNotAccepted,
+    Multiple(Vec<Self>),
     NameLookup,
     NetErr(net::NetErr),
     PackageArchiveMalformed(String),
@@ -159,6 +160,12 @@ impl fmt::Display for Error {
             Error::JsonErr(ref e) => e.to_string(),
             Error::JobGroupCancel(ref e) => format!("Failed to cancel job group: {:?}", e),
             Error::LicenseNotAccepted => "License agreement not accepted".to_string(),
+            Error::Multiple(ref e) => {
+                e.iter()
+                 .map(|e| e.to_string())
+                 .collect::<Vec<_>>()
+                 .join("\n")
+            }
             Error::NameLookup => "Error resolving a name or IP address".to_string(),
             Error::NetErr(ref e) => e.to_string(),
             Error::PackageArchiveMalformed(ref e) => {
@@ -245,6 +252,10 @@ impl From<env::JoinPathsError> for Error {
 
 impl From<SrvClientError> for Error {
     fn from(err: SrvClientError) -> Self { Error::CtlClient(err) }
+}
+
+impl From<Vec<Error>> for Error {
+    fn from(errors: Vec<Error>) -> Self { Error::Multiple(errors) }
 }
 
 impl From<net::NetErr> for Error {

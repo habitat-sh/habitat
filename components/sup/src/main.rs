@@ -480,7 +480,7 @@ mod test {
         }
 
         fn service_load_from_cmd_str(cmd: &str) -> sup_proto::ctl::SvcLoad {
-            maybe_service_load_from_cmd_str(cmd).unwrap()
+            maybe_service_load_from_cmd_str(cmd).expect("input that contained `SvcLoad` data")
         }
 
         #[test]

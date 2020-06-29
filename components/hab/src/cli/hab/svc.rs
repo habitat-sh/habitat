@@ -110,7 +110,7 @@ pub enum Key {
 }
 
 lazy_static::lazy_static! {
-    static ref CHANNEL_IDENT_DEFAULT: String = String::from(ChannelIdent::default().as_str());
+    static ref CHANNEL_IDENT_DEFAULT: String = ChannelIdent::default().to_string();
     static ref GROUP_DEFAULT: String = String::from("default");
 }
 

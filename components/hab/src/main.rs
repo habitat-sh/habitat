@@ -1266,10 +1266,17 @@ async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
 }
 
 async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
+    let mut errors = Vec::new();
     for svc_load in svc::svc_loads_from_paths(&svc_bulk_load.svc_config_paths)? {
-        sub_svc_load(svc_load).await?;
+        if let Err(e) = sub_svc_load(svc_load).await {
+            errors.push(e);
+        }
     }
-    Ok(())
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors.into())
+    }
 }
 
 async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
