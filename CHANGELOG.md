@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.62 -->
-## [1.6.62](https://github.com/habitat-sh/habitat/tree/1.6.62) (2020-06-26)
+<!-- latest_release 1.6.63 -->
+## [1.6.63](https://github.com/habitat-sh/habitat/tree/1.6.63) (2020-06-29)
 
-#### Merged Pull Requests
-- [REFACTOR] Clean up and streamline spec reconciliation [#7766](https://github.com/habitat-sh/habitat/pull/7766) ([christophermaier](https://github.com/christophermaier))
+#### Bug Fixes
+- [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
 ### Changes since 1.6.56 release
+
+#### Bug Fixes
+- [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
 - [REFACTOR] Clean up and streamline spec reconciliation [#7766](https://github.com/habitat-sh/habitat/pull/7766) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.62 -->
