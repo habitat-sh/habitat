@@ -74,10 +74,8 @@ pub async fn start(ui: &mut UI,
                       format!("existing {} already on target", &ident))?;
             // Always promote to additional_release_channel if specified
             if additional_release_channel.is_some() {
-                let channel = additional_release_channel.clone().unwrap();
-                match promote_to_channel(ui, &api_client, (&ident, target), channel, token).await {
-                    Ok(_) => (),
-                    Err(e) => return Err(e),
+                if let Some(channel) = additional_release_channel.clone() {
+                    promote_to_channel(ui, &api_client, (&ident, target), channel, token).await?
                 }
             }
             Ok(())
@@ -186,10 +184,8 @@ async fn upload_into_depot(ui: &mut UI,
 
     // Promote to additional_release_channel if specified
     if package_exists_in_target && additional_release_channel.is_some() {
-        let channel = additional_release_channel.clone().unwrap();
-        match promote_to_channel(ui, api_client, (ident, target), channel, token).await {
-            Ok(_) => (),
-            Err(e) => return Err(e),
+        if let Some(channel) = additional_release_channel.clone() {
+            promote_to_channel(ui, api_client, (ident, target), channel, token).await?
         }
     }
 
@@ -214,12 +210,8 @@ async fn promote_to_channel(ui: &mut UI,
         };
     }
 
-    match api_client.promote_package((ident, target), &channel, token)
-                    .await
-    {
-        Ok(_) => (),
-        Err(e) => return Err(Error::from(e)),
-    };
+    api_client.promote_package((ident, target), &channel, token)
+              .await?;
     ui.status(Status::Promoted, ident)?;
 
     Ok(())
