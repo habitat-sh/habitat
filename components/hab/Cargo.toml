@@ -43,14 +43,14 @@ retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous
 same-file = "*"
 serde = "*"
 serde_derive = "*"
-serde_json = "*"
+serde_json = { version = "*", features = [ "preserve_order" ] }
 serde_yaml = "*"
 structopt = { git = "https://github.com/habitat-sh/structopt.git" }
 tabwriter = "*"
 tar = "*"
 termcolor = "*"
 tokio = { version = "*", features = ["full"] }
-toml = { version = "*", default-features = false }
+toml = { version = "*", features = [ "preserve_order" ] }
 url = { version = "*", features = ["serde"] }
 walkdir = "*"
 

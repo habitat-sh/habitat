@@ -43,7 +43,7 @@ tempfile = "*"
 retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
 termcolor = "*"
 tokio = { version = "*", features = ["full"] }
-toml = { version = "*", default-features = false }
+toml = { version = "*", features = ["preserve_order"] }
 uuid = { version = "*", features = ["v4"] }
 valico = "*"
 

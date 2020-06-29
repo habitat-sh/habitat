@@ -27,11 +27,11 @@ regex = "*"
 rust-crypto = "*"
 serde = "*"
 serde_derive = "*"
-serde_json = "*"
+serde_json = { version = "*", features = [ "preserve_order" ] }
 sodiumoxide = "*"
 tar = "*"
 tempfile = "*"
-toml = { version = "*", default-features = false }
+toml = { version = "*", features = [ "preserve_order" ] }
 typemap = "*"
 url = "*"
 xz2 = "*"

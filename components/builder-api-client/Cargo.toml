@@ -21,7 +21,7 @@ regex = "*"
 reqwest = { version = "*", features = ["blocking", "json", "stream"] }
 serde = "*"
 serde_derive = "*"
-serde_json = "*"
+serde_json = { version = "*", features = [ "preserve_order" ] }
 tabwriter = "*"
 tee = "*"
 tokio = { version = "*", features = ["full"] }

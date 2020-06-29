@@ -25,7 +25,7 @@ lazy_static = "*"
 log = "*"
 mktemp = "*"
 serde = { version = "*", features = ["rc"] }
-serde_json = "*"
+serde_json = { version = "*", features = [ "preserve_order" ] }
 tokio = { version = "*", features = ["full"] }
 url = "*"
 failure = "*"
