@@ -1,3 +1,4 @@
+pub mod gateway_util;
 pub mod hab;
 
 use crate::{cli::hab::{sup::{Sup,

@@ -13,6 +13,7 @@ use configopt::{ConfigOpt,
                 Error as ConfigOptError};
 use futures::stream::StreamExt;
 use hab::{cli::{self,
+                gateway_util,
                 hab::{svc::{self,
                             BulkLoad as SvcBulkLoad,
                             Load as SvcLoad,
@@ -86,9 +87,6 @@ use std::{collections::HashMap,
           string::ToString,
           thread};
 use tabwriter::TabWriter;
-use termcolor::{self,
-                Color,
-                ColorSpec};
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
@@ -1255,16 +1253,9 @@ async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
-    let cfg = config::load()?;
-    let listen_ctl_addr = svc_load.remote_sup.remote_sup;
-    let secret_key = config::ctl_secret_key(&cfg)?;
+    let listen_ctl_addr = svc_load.remote_sup.remote_sup.clone();
     let msg = habitat_sup_protocol::ctl::SvcLoad::try_from(svc_load)?;
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
-    while let Some(message_result) = response.next().await {
-        let reply = message_result?;
-        handle_ctl_reply(&reply)?;
-    }
-    Ok(())
+    gateway_util::send(&listen_ctl_addr, msg).await
 }
 
 async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
@@ -1284,35 +1275,20 @@ async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
 
 async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    let secret_key = config::ctl_secret_key(&cfg)?;
     let timeout_in_seconds =
         parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
-
     let msg = sup_proto::ctl::SvcUnload { ident: Some(ident.into()),
                                           timeout_in_seconds };
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
-    while let Some(message_result) = response.next().await {
-        let reply = message_result?;
-        handle_ctl_reply(&reply)?;
-    }
-    Ok(())
+    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
+    gateway_util::send(&listen_ctl_addr, msg).await
 }
 
 async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    let cfg = config::load()?;
+    let msg = sup_proto::ctl::SvcStart { ident: Some(ident.into()),
+                                         ..Default::default() };
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    let secret_key = config::ctl_secret_key(&cfg)?;
-    let mut msg = sup_proto::ctl::SvcStart::default();
-    msg.ident = Some(ident.into());
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
-    while let Some(message_result) = response.next().await {
-        let reply = message_result?;
-        handle_ctl_reply(&reply)?;
-    }
-    Ok(())
+    gateway_util::send(&listen_ctl_addr, msg).await
 }
 
 async fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
@@ -1343,20 +1319,12 @@ async fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
 
 async fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    let secret_key = config::ctl_secret_key(&cfg)?;
     let timeout_in_seconds =
         parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
-
     let msg = sup_proto::ctl::SvcStop { ident: Some(ident.into()),
                                         timeout_in_seconds };
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
-    while let Some(message_result) = response.next().await {
-        let reply = message_result?;
-        handle_ctl_reply(&reply)?;
-    }
-    Ok(())
+    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
+    gateway_util::send(&listen_ctl_addr, msg).await
 }
 
 async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
@@ -1832,43 +1800,6 @@ fn excludes_from_matches(matches: &ArgMatches<'_>) -> Vec<PackageIdent> {
         .unwrap_or_default()
         .map(|i| PackageIdent::from_str(i).unwrap()) // unwrap safe as we've validated the input
         .collect()
-}
-
-fn handle_ctl_reply(reply: &SrvMessage) -> result::Result<(), SrvClientError> {
-    let mut progress_bar = pbr::ProgressBar::<io::Stdout>::new(0);
-    progress_bar.set_units(pbr::Units::Bytes);
-    progress_bar.show_tick = true;
-    progress_bar.message("    ");
-    match reply.message_id() {
-        "ConsoleLine" => {
-            let m = reply.parse::<sup_proto::ctl::ConsoleLine>()
-                         .map_err(SrvClientError::Decode)?;
-            let mut new_spec = ColorSpec::new();
-            let msg_spec = match m.color {
-                Some(color) => {
-                    new_spec.set_fg(Some(Color::from_str(&color)?))
-                            .set_bold(m.bold)
-                }
-                None => new_spec.set_bold(m.bold),
-            };
-            common::ui::print(UI::default_with_env().out(), m.line.as_bytes(), msg_spec)?;
-        }
-        "NetProgress" => {
-            let m = reply.parse::<sup_proto::ctl::NetProgress>()
-                         .map_err(SrvClientError::Decode)?;
-            progress_bar.total = m.total;
-            if progress_bar.set(m.position) >= m.total {
-                progress_bar.finish();
-            }
-        }
-        "NetErr" => {
-            let m = reply.parse::<sup_proto::net::NetErr>()
-                         .map_err(SrvClientError::Decode)?;
-            return Err(SrvClientError::from(m));
-        }
-        _ => (),
-    }
-    Ok(())
 }
 
 fn print_svc_status<T>(out: &mut T,
