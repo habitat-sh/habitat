@@ -162,7 +162,7 @@ impl fmt::Display for Error {
             Error::LicenseNotAccepted => "License agreement not accepted".to_string(),
             Error::Multiple(ref e) => {
                 e.iter()
-                 .map(|e| e.to_string())
+                 .map(ToString::to_string)
                  .collect::<Vec<_>>()
                  .join("\n")
             }
