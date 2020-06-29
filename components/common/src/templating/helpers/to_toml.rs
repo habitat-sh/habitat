@@ -13,6 +13,10 @@ impl HelperDef for ToTomlHelper {
         let param = h.param(0)
                      .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toToml\""))?
                      .value();
+        // Since `param` is a JSON object, this only works reliably if
+        // `serde_json` has been compiled with the `preserve_order`
+        // feature, since order *is* important for TOML (values must
+        // be emitted before tables).
         let bytes = toml::ser::to_vec(&param).map_err(|e| {
                                                  RenderError::new(format!("Can't serialize \
                                                                            parameter to TOML: {}",
