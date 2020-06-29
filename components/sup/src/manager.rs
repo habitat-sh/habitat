@@ -474,6 +474,10 @@ pub(crate) mod sync {
 
         pub fn remove(&mut self, key: &PackageIdent) -> Option<Service> { self.0.remove(key) }
 
+        pub fn get_mut(&mut self, key: &PackageIdent) -> Option<&mut Service> {
+            self.0.get_mut(key)
+        }
+
         pub fn services(&mut self) -> impl Iterator<Item = &mut Service> { self.0.values_mut() }
 
         pub fn drain_services(&mut self) -> DrainServices<'_> {
@@ -1601,16 +1605,8 @@ impl Manager {
                     let mut services = self.state.services.lock_msw();
                     // Relies on spec.ident not having changed, which
                     // ServiceSpec#reconcile must guarantee.
-                    let ident = spec.ident.clone();
-
-                    // TODO (CM): While it is technically OK to remove
-                    // the service, modify it, and then re-insert it,
-                    // this is conceptually a modify-in-place
-                    // operation. Ideally, the code would reflect
-                    // this.
-                    if let Some(mut s) = services.remove(&ident) {
+                    if let Some(s) = services.get_mut(&spec.ident) {
                         s.set_spec(spec);
-
                         for op in ops {
                             match op {
                                 RefreshOperation::RestartUpdater => {
@@ -1618,8 +1614,6 @@ impl Manager {
                                 }
                             }
                         }
-
-                        services.insert(ident, s);
                     } else {
                         // We really don't expect this to
                         // happen... this would likely mean that a
