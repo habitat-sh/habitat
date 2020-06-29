@@ -14,7 +14,7 @@ httparse = "*"
 reqwest = { version = "*", features = ["blocking", "json", "stream"] }
 env_proxy = { git = "https://github.com/inejge/env_proxy.git" }
 serde = "*"
-serde_json = "*"
+serde_json = { version = "*", features = [ "preserve_order" ] }
 url = "*"
 
 [dependencies.habitat_core]

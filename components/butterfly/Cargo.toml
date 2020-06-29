@@ -26,10 +26,10 @@ prost-derive = "*"
 rand = "*"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
-serde_json = "*"
+serde_json = { version = "*", features = [ "preserve_order" ] }
 tempfile = "*"
 threadpool = "*"
-toml = { version = "*", default-features = false }
+toml = { version = "*", features = [ "preserve_order" ] }
 uuid = { version = "*", features = ["v4"] }
 zmq = { git = "https://github.com/habitat-sh/rust-zmq", branch = "v0.8-symlinks-removed" }
 

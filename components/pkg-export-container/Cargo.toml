@@ -30,7 +30,7 @@ rusoto_core = "*"
 rusoto_credential = "*"
 rusoto_ecr = "*"
 serde = { version = "*", features = ["rc"] }
-serde_json = "*"
+serde_json = { version = "*", features = [ "preserve_order" ] }
 tempfile = "*"
 termcolor = "*"
 tokio = { version = "*", features = ["full"] }

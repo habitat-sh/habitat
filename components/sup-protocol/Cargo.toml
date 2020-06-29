@@ -25,4 +25,4 @@ prost-build = "*"
 
 [dev-dependencies]
 tempfile = "*"
-toml = "*"
+toml = { version = "*", features = [ "preserve_order" ] }

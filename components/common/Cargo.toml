@@ -36,14 +36,14 @@ regex = "*"
 reqwest = { version = "*", features = ["blocking", "json", "stream"] }
 serde = "*"
 serde_derive = "*"
-serde_json = "*"
+serde_json = { version = "*", features = ["preserve_order"] }
 serde-transcode = "*"
 serde_yaml = "*"
 tempfile = "*"
 retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
 termcolor = "*"
 tokio = { version = "*", features = ["full"] }
-toml = { version = "*", default-features = false }
+toml = { version = "*", features = ["preserve_order"] }
 uuid = { version = "*", features = ["v4"] }
 valico = "*"
 
