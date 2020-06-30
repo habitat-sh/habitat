@@ -596,7 +596,7 @@ async fn sub_send_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<(
 }
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let ident = required_pkg_ident_from_input(m)?;
     let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap()); // required by clap
     let force = m.is_present("FORCE");
     match m.value_of("BINARY") {
@@ -637,21 +637,19 @@ async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 }
 
 fn sub_pkg_config(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-
+    let ident = required_pkg_ident_from_input(m)?;
     common::command::package::config::start(&ident, &*FS_ROOT_PATH)?;
     Ok(())
 }
 
 fn sub_pkg_binds(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-
+    let ident = required_pkg_ident_from_input(m)?;
     common::command::package::binds::start(&ident, &*FS_ROOT_PATH)?;
     Ok(())
 }
 
 fn sub_pkg_dependencies(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let ident = required_pkg_ident_from_input(m)?;
     let scope = if m.is_present("TRANSITIVE") {
         command::pkg::Scope::PackageAndDependencies
     } else {
@@ -706,20 +704,18 @@ async fn sub_pkg_download(ui: &mut UI,
 }
 
 fn sub_pkg_env(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-
+    let ident = required_pkg_ident_from_input(m)?;
     command::pkg::env::start(&ident, &*FS_ROOT_PATH)
 }
 
 fn sub_pkg_exec(m: &ArgMatches<'_>, cmd_args: &[OsString]) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
+    let ident = required_pkg_ident_from_input(m)?;
     let cmd = m.value_of("CMD").unwrap(); // Required via clap
-
     command::pkg::exec::start(&ident, cmd, cmd_args)
 }
 
 async fn sub_pkg_export(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let ident = required_pkg_ident_from_input(m)?;
     let format = &m.value_of("FORMAT").unwrap();
     let url = bldr_url_from_matches(&m)?;
     let channel = channel_from_matches_or_default(&m);
@@ -747,7 +743,7 @@ fn sub_pkg_hash(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let ident = required_pkg_ident_from_input(m)?;
     let execute_strategy = if m.is_present("DRYRUN") {
         command::pkg::ExecutionStrategy::DryRun
     } else {
@@ -827,7 +823,7 @@ async fn sub_bldr_channel_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> 
 }
 
 async fn sub_bldr_job_start(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
+    let ident = required_pkg_ident_from_input(m)?;
     let url = bldr_url_from_matches(&m)?;
     let target = target_from_matches(m)?;
     let group = m.is_present("GROUP");
@@ -978,8 +974,7 @@ async fn sub_pkg_install(ui: &mut UI,
 }
 
 fn sub_pkg_path(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-
+    let ident = required_pkg_ident_from_input(m)?;
     command::pkg::path::start(&ident, &*FS_ROOT_PATH)
 }
 
@@ -1083,7 +1078,7 @@ async fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 async fn sub_pkg_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let ident = required_pkg_ident_from_input(m)?;
     let target = target_from_matches(m)?;
 
     command::pkg::delete::start(ui, &url, (&ident, target), &token).await?;
@@ -1119,7 +1114,7 @@ async fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
     let target = target_from_matches(m)?;
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
+    let ident = required_pkg_ident_from_input(m)?;
     command::pkg::promote::start(ui, &url, (&ident, target), &channel, &token).await
 }
 
@@ -1128,13 +1123,13 @@ async fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
     let target = target_from_matches(m)?;
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
+    let ident = required_pkg_ident_from_input(m)?;
     command::pkg::demote::start(ui, &url, (&ident, target), &channel, &token).await
 }
 
 async fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
+    let ident = required_pkg_ident_from_input(m)?;
     let token = maybe_auth_token(&m);
     let target = target_from_matches(m)?;
 
@@ -1227,7 +1222,7 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let ident = required_pkg_ident_from_input(m)?;
     let cfg = config::load()?;
     let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
@@ -1274,7 +1269,7 @@ async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
 }
 
 async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let ident = required_pkg_ident_from_input(m)?;
     let timeout_in_seconds =
         parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
     let msg = sup_proto::ctl::SvcUnload { ident: Some(ident.into()),
@@ -1284,7 +1279,7 @@ async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let ident = required_pkg_ident_from_input(m)?;
     let msg = sup_proto::ctl::SvcStart { ident: Some(ident.into()),
                                          ..Default::default() };
     let remote_sup_addr = remote_sup_from_input(m)?;
@@ -1318,7 +1313,7 @@ async fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let ident = required_pkg_ident_from_input(m)?;
     let timeout_in_seconds =
         parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
     let msg = sup_proto::ctl::SvcStop { ident: Some(ident.into()),
@@ -1874,6 +1869,12 @@ fn remote_sup_from_input(m: &ArgMatches<'_>) -> Result<ListenCtlAddr> {
     Ok(m.value_of("REMOTE_SUP")
         .map_or(Ok(ListenCtlAddr::default()),
                 ListenCtlAddr::resolve_listen_ctl_addr)?)
+}
+
+fn required_pkg_ident_from_input(m: &ArgMatches<'_>) -> Result<PackageIdent> {
+    Ok(m.value_of("PKG_IDENT")
+        .expect("PKG_IDENT is a required argument")
+        .parse()?)
 }
 
 /// Check to see if the user has passed in a USER param.
