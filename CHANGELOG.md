@@ -1,19 +1,24 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.64 -->
-## [1.6.64](https://github.com/habitat-sh/habitat/tree/1.6.64) (2020-06-30)
+<!-- latest_release 1.6.65 -->
+## [1.6.65](https://github.com/habitat-sh/habitat/tree/1.6.65) (2020-06-30)
 
 #### Merged Pull Requests
--  Explicit permissions on keys  [#7739](https://github.com/habitat-sh/habitat/pull/7739) ([stevendanna](https://github.com/stevendanna))
+- always promote package on upload if a user specifies a channel [#7768](https://github.com/habitat-sh/habitat/pull/7768) ([jeremymv2](https://github.com/jeremymv2))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
 ### Changes since 1.6.56 release
 
+#### New Features & Enhancements
+- Allow dynamic changes to updater-related config for services  [#7770](https://github.com/habitat-sh/habitat/pull/7770) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.65 -->
+
 #### Bug Fixes
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- always promote package on upload if a user specifies a channel [#7768](https://github.com/habitat-sh/habitat/pull/7768) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.65 -->
+- adding documentation on the HAB_SUP_UPDATE_MS environment variable [#7717](https://github.com/habitat-sh/habitat/pull/7717) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.65 -->
 -  Explicit permissions on keys  [#7739](https://github.com/habitat-sh/habitat/pull/7739) ([stevendanna](https://github.com/stevendanna)) <!-- 1.6.64 -->
 - [REFACTOR] Clean up and streamline spec reconciliation [#7766](https://github.com/habitat-sh/habitat/pull/7766) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.62 -->
 - correcting multi-target package plan layout example [#7763](https://github.com/habitat-sh/habitat/pull/7763) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.61 -->
