@@ -70,13 +70,21 @@ pub async fn start(ui: &mut UI,
                     .await
     {
         Ok(_) if !force_upload => {
-            ui.status(Status::Using, format!("existing {}", &ident))?;
+            ui.status(Status::Using,
+                      format!("existing {} already on target", &ident))?;
+            // Always promote to additional_release_channel if specified
+            if let Some(channel) = additional_release_channel.clone() {
+                promote_to_channel(ui, &api_client, (&ident, target), channel, token).await?
+            }
             Ok(())
         }
         Err(api_client::Error::APIError(StatusCode::NOT_FOUND, _)) | Ok(_) => {
             for dep in tdeps.into_iter() {
                 match api_client.check_package((&dep, target), Some(token)).await {
-                    Ok(_) => ui.status(Status::Using, format!("existing {}", &dep))?,
+                    Ok(_) => {
+                        ui.status(Status::Using,
+                                  format!("existing {} already on target", &dep))?
+                    }
                     Err(api_client::Error::APIError(StatusCode::NOT_FOUND, _)) => {
                         let candidate_path = match archive_path.parent() {
                             Some(p) => PathBuf::from(p),
@@ -144,7 +152,7 @@ async fn upload_into_depot(ui: &mut UI,
                            mut archive: &mut PackageArchive)
                            -> Result<()> {
     ui.status(Status::Uploading, archive.path.display())?;
-    let package_uploaded =
+    let package_exists_in_target =
         match api_client.put_package(&mut archive, token, force_upload, auto_build, ui.progress())
                         .await
         {
@@ -173,28 +181,36 @@ async fn upload_into_depot(ui: &mut UI,
     ui.status(Status::Uploaded, ident)?;
 
     // Promote to additional_release_channel if specified
-    if package_uploaded && additional_release_channel.is_some() {
-        let channel = additional_release_channel.clone().unwrap();
-        ui.begin(format!("Promoting {} to channel '{}'", ident, channel))?;
-
-        if channel != ChannelIdent::stable() && channel != ChannelIdent::unstable() {
-            match api_client.create_channel(&ident.origin, &channel, token)
-                            .await
-            {
-                Ok(_) => (),
-                Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => (),
-                Err(e) => return Err(Error::from(e)),
-            };
+    if package_exists_in_target {
+        if let Some(channel) = additional_release_channel.clone() {
+            promote_to_channel(ui, api_client, (ident, target), channel, token).await?
         }
+    }
 
-        match api_client.promote_package((ident, target), &channel, token)
+    Ok(())
+}
+
+async fn promote_to_channel(ui: &mut UI,
+                            api_client: &BuilderAPIClient,
+                            (ident, target): (&PackageIdent, PackageTarget),
+                            channel: ChannelIdent,
+                            token: &str)
+                            -> Result<()> {
+    ui.begin(format!("Promoting {} to channel '{}'", ident, channel))?;
+
+    if channel != ChannelIdent::stable() && channel != ChannelIdent::unstable() {
+        match api_client.create_channel(&ident.origin, &channel, token)
                         .await
         {
             Ok(_) => (),
+            Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => (),
             Err(e) => return Err(Error::from(e)),
         };
-        ui.status(Status::Promoted, ident)?;
     }
+
+    api_client.promote_package((ident, target), &channel, token)
+              .await?;
+    ui.status(Status::Promoted, ident)?;
 
     Ok(())
 }
@@ -258,7 +274,8 @@ async fn upload_public_key(ui: &mut UI,
         }
         Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
             ui.status(Status::Using,
-                      format!("existing public origin key {}", &public_keyfile_name))?;
+                      format!("existing public origin key {} already on target",
+                              &public_keyfile_name))?;
             Ok(())
         }
         Err(err) => Err(Error::from(err)),
