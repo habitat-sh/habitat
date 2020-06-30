@@ -1452,6 +1452,7 @@ dependencies = [
  "httparse",
  "log 0.4.8",
  "native-tls",
+ "pem",
  "reqwest",
  "serde",
  "serde_json",
@@ -2478,6 +2479,17 @@ dependencies = [
  "libc",
  "time 0.1.43",
  "winapi 0.3.8",
+]
+
+[[package]]
+name = "pem"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59698ea79df9bf77104aefd39cc3ec990cb9693fb59c3b0a70ddf2646fdffb4b"
+dependencies = [
+ "base64 0.12.1",
+ "once_cell",
+ "regex 1.3.9",
 ]
 
 [[package]]

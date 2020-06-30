@@ -1,10 +1,11 @@
-use std::{fs,
-          iter::FromIterator,
-          path::{Path,
-                 PathBuf},
-          str::FromStr,
-          time::Duration};
-
+use crate::error::{Error,
+                   Result};
+use habitat_core::{env,
+                   fs::cache_ssl_path,
+                   package::{PackageIdent,
+                             PackageInstall,
+                             PackageTarget},
+                   util::sys};
 use native_tls::Certificate;
 use reqwest::{header::{HeaderMap,
                        HeaderValue,
@@ -16,16 +17,12 @@ use reqwest::{header::{HeaderMap,
               Proxy,
               RequestBuilder,
               Url};
-
-use habitat_core::{env,
-                   fs::cache_ssl_path,
-                   package::{PackageIdent,
-                             PackageInstall,
-                             PackageTarget},
-                   util::sys};
-
-use crate::error::{Error,
-                   Result};
+use std::{fs,
+          iter::FromIterator,
+          path::{Path,
+                 PathBuf},
+          str::FromStr,
+          time::Duration};
 
 // Read and write TCP socket timeout for Hyper/HTTP client calls.
 const CLIENT_SOCKET_RW_TIMEOUT_SEC: u64 = 300;
@@ -353,8 +350,11 @@ fn process_cache_dir(cache_path: &Path, mut certificates: &mut Vec<Certificate>)
 
 fn process_cert_file(certificates: &mut Vec<Certificate>, file_path: &Path) {
     debug!("Processing cert file: {}", file_path.display());
-    match cert_from_file(&file_path) {
-        Ok(cert) => certificates.push(cert),
+    match certs_from_file(&file_path) {
+        Ok(mut certs) => {
+            debug!("Found {} certs in: {}", certs.len(), file_path.display());
+            certificates.append(&mut certs)
+        }
         Err(err) => {
             debug!("Unable to process cert file: {}, err={}",
                    file_path.display(),
@@ -363,9 +363,14 @@ fn process_cert_file(certificates: &mut Vec<Certificate>, file_path: &Path) {
     }
 }
 
-fn cert_from_file(file_path: &Path) -> Result<Certificate> {
+fn certs_from_pem_file(buf: &[u8]) -> Result<Vec<Certificate>> {
+    pem::parse_many(buf).iter()
+                        .map(|cert| Ok(Certificate::from_der(&cert.contents)?))
+                        .collect()
+}
+
+fn certs_from_file(file_path: &Path) -> Result<Vec<Certificate>> {
     let buf = fs::read(file_path)?;
 
-    Certificate::from_pem(&buf).or_else(|_| Certificate::from_der(&buf))
-                               .map_err(Error::NativeTlsError)
+    certs_from_pem_file(&buf).or_else(|_| Ok(vec![Certificate::from_der(&buf)?]))
 }
