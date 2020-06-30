@@ -55,17 +55,23 @@ impl ServiceUpdater {
     /// been registered, the old worker is removed and a new one is
     /// started in its place.
     pub fn register(&mut self, service: &Service) {
-        // Defensivly remove the service to prevent multiple update workers from running.
+        // Defensivly remove the service to prevent multiple update
+        // workers from running.
+        debug!("Removing any previously-registered updater for {}", service);
         self.remove(&service.service_group);
         // Determine what kind of worker we should use
         let service_group = service.service_group.clone();
         match service.update_strategy() {
-            UpdateStrategy::None => {}
+            UpdateStrategy::None => {
+                debug!("No updater registered for for {}", service);
+            }
             UpdateStrategy::AtOnce => {
+                debug!("Registering at-once updater for {}", service);
                 let worker = self.at_once_worker(service);
                 self.spawn_worker(service_group, worker);
             }
             UpdateStrategy::Rolling => {
+                debug!("Registering rolling updater for {}", service);
                 let worker = self.rolling_worker(service, Arc::clone(&self.census_ring));
                 self.spawn_worker(service_group, worker);
             }

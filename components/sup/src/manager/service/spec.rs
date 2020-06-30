@@ -337,27 +337,113 @@ impl ServiceSpec {
                     // have to do anything.
                     None
                 } else {
-                    // TODO (CM): In the future, this would be the
-                    // place where we can evaluate what has changed
-                    // between the spec-on-disk and our in-memory
-                    // representation and potentially just bring our
-                    // in-memory representation in line without having
-                    // to restart the entire service.
-                    debug!("Reconciliation: '{}' queued for restart",
-                           running_spec.ident);
-                    Some(ServiceOperation::Restart { to_stop:  running_spec,
-                                                     to_start: disk_spec, })
+                    // Destructure the entire spec so the compiler
+                    // ensures that we look at everything.
+                    let ServiceSpec {
+                        ident,
+                        group,
+                        bldr_url,
+                        channel,
+                        topology,
+                        update_strategy,
+                        update_condition,
+                        binds,
+                        binding_mode,
+                        config_from,
+                        // This has to be `Up` if we're in this
+                        // code. As a result, we don't care about
+                        // matching or destructuring it.
+                        desired_state: _,
+                        shutdown_timeout,
+                        svc_encrypted_password,
+                        health_check_interval,
+                    } = &running_spec;
+
+                    // Currently, if any of these bits of data are
+                    // different, we should restart the service. This
+                    // is not to say that it will *always* be that
+                    // way, however. Initially we are allowing dynamic
+                    // update of update-related configuration, but
+                    // nothing prevents us from making more things
+                    // dynamic in the future. We are proceeding
+                    // conservatively.
+
+                    // NOTE: if the idents change in any way, you
+                    // *must* restart, since that change may result in
+                    // a different version of the service being run.
+                    if ident != &disk_spec.ident
+                        || group != &disk_spec.group
+                        // TODO (CM): This *might* not need to be here
+                        || topology != &disk_spec.topology
+                        // TODO (CM): Bind information *may* be able
+                        // to be dynamically changed, but that will
+                        // need to be investigated more deeply.
+                        || binds != &disk_spec.binds
+                        || binding_mode != &disk_spec.binding_mode
+                        || config_from != &disk_spec.config_from
+                        // TODO (CM): This probably doesn't need to be here
+                        || shutdown_timeout != &disk_spec.shutdown_timeout
+                        || svc_encrypted_password != &disk_spec.svc_encrypted_password
+                        // TODO (CM): This probably doesn't need to be here, either
+                        || health_check_interval != &disk_spec.health_check_interval
+                    {
+                        debug!("Reconciliation: '{}' queued for restart",
+                               running_spec.ident);
+                        Some(ServiceOperation::Restart { to_stop:  running_spec,
+                                                         to_start: disk_spec, })
+                    } else {
+                        let mut ops = HashSet::new();
+                        if bldr_url != &disk_spec.bldr_url
+                            || channel != &disk_spec.channel
+                            || update_strategy != &disk_spec.update_strategy
+                            || update_condition != &disk_spec.update_condition
+                        {
+                            ops.insert(RefreshOperation::RestartUpdater);
+                        }
+
+                        // We should have *something* to do down
+                        // here, but if we don't, let's be explicit
+                        // about it.
+                        if ops.is_empty() {
+                            warn!("No refresh operations computed for {}!", ident);
+                            None
+                        } else {
+                            Some(ServiceOperation::Update(disk_spec, ops))
+                        }
+                    }
                 }
             }
         }
     }
 }
 
+/// Everything we could do to a running service as a result of a
+/// configuration change that does *not* require a service restart.
+#[derive(Debug, Copy, Clone, Eq, Hash, PartialEq)]
+pub(crate) enum RefreshOperation {
+    /// Restart the logic for fetching updates to a service.
+    ///
+    /// This can happen if a user wants to change the channel a
+    /// service is updating from, for instance.
+    RestartUpdater,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[allow(clippy::large_enum_variant)]
 pub(crate) enum ServiceOperation {
+    /// Start the specified service, which is not running currently.
     Start(ServiceSpec),
+    /// Stop the specified service, which *is* currently running.
     Stop(ServiceSpec),
+    /// Swap the given configuration into the currently running
+    /// service. The service process *is not* restarted, but the
+    /// specified operations are performed on it.
+    Update(ServiceSpec, HashSet<RefreshOperation>),
+    /// Stop the service specified by `to_stop`, and restart it with
+    /// the `to_start` spec.
+    ///
+    /// This can be seen as a refinement of `Update` that involves
+    /// stopping and starting the service process as well.
     Restart {
         to_stop:  ServiceSpec,
         to_start: ServiceSpec,
@@ -929,19 +1015,96 @@ mod test {
             assert_eq!(ServiceSpec::reconcile(Some(s.clone()), Some(s)), None);
         }
 
-        #[test]
-        fn restart() {
-            let s1 = spec("core/blah", DesiredState::Up);
-            let s2 = {
-                let mut s = s1.clone();
-                // NOTE: Ideally, simply changing the URL wouldn't
-                // necesitate a service restart.
-                s.bldr_url = "https://builder.mycompany.com".to_string();
-                s
+        /// Take two "up" specs that are identical except that the
+        /// second one has `value` set for `field` and reconcile
+        /// them. They should either trigger a restart, or an update
+        /// with the given RefreshOperations.
+        ///
+        /// Each invocation creates an independent test case, named
+        /// `test_name` (because macros can't create functions with
+        /// generated names).
+        macro_rules! reconcile {
+            ($test_name:ident,restart, $field:ident, $value:expr) => {
+                #[test]
+                fn $test_name() {
+                    let running = spec("core/blah", DesiredState::Up);
+                    let disk = {
+                        let mut s = running.clone();
+                        s.$field = $value;
+                        s
+                    };
+
+                    assert_eq!(ServiceSpec::reconcile(Some(running.clone()), Some(disk.clone())),
+                               Some(ServiceOperation::Restart { to_stop:  running,
+                                                                to_start: disk, }))
+                }
             };
-            assert_eq!(ServiceSpec::reconcile(Some(s1.clone()), Some(s2.clone())),
-                       Some(ServiceOperation::Restart { to_stop:  s1,
-                                                        to_start: s2, }));
+            ($test_name:ident,update, $field:ident, $value:expr, $ops:expr) => {
+                #[test]
+                fn $test_name() {
+                    let running = spec("core/blah", DesiredState::Up);
+                    let disk = {
+                        let mut s = running.clone();
+                        s.$field = $value;
+                        s
+                    };
+
+                    assert_eq!(ServiceSpec::reconcile(Some(running), Some(disk.clone())),
+                               Some(ServiceOperation::Update(disk, HashSet::from_iter($ops))));
+                }
+            };
         }
+
+        reconcile!(ident_causes_restart,
+                   restart,
+                   ident,
+                   "core/foo".parse().unwrap());
+        reconcile!(group_causes_restart, restart, group, "prod".to_string());
+        reconcile!(topology_causes_restart, restart, topology, Topology::Leader);
+        reconcile!(binds_causes_restart,
+                   restart,
+                   binds,
+                   vec![ServiceBind::new("foo", "blah.default".parse().unwrap())]);
+        reconcile!(binding_mode_causes_restart,
+                   restart,
+                   binding_mode,
+                   BindingMode::Relaxed);
+        reconcile!(config_from_causes_restart,
+                   restart,
+                   config_from,
+                   Some("blah.config".into()));
+        reconcile!(shutdown_timeout_causes_restart,
+                   restart,
+                   shutdown_timeout,
+                   Some(10.into()));
+        reconcile!(svc_encrypted_password_causes_restart,
+                   restart,
+                   svc_encrypted_password,
+                   Some("monkeys".to_string()));
+        reconcile!(health_check_interval_causes_restart,
+                   restart,
+                   health_check_interval,
+                   10000.into());
+
+        reconcile!(bldr_url_causes_update,
+                   update,
+                   bldr_url,
+                   "http://mybuider.company.com".to_string(),
+                   vec![RefreshOperation::RestartUpdater]);
+        reconcile!(channel_causes_update,
+                   update,
+                   channel,
+                   "new_channel".into(),
+                   vec![RefreshOperation::RestartUpdater]);
+        reconcile!(update_strategy_causes_update,
+                   update,
+                   update_strategy,
+                   UpdateStrategy::AtOnce,
+                   vec![RefreshOperation::RestartUpdater]);
+        reconcile!(update_condition_causes_update,
+                   update,
+                   update_condition,
+                   UpdateCondition::TrackChannel,
+                   vec![RefreshOperation::RestartUpdater]);
     }
 }

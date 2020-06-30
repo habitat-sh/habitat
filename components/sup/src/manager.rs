@@ -17,7 +17,8 @@ use self::{action::{ShutdownInput,
            peer_watcher::PeerWatcher,
            self_updater::{SelfUpdater,
                           SUP_PKG_IDENT},
-           service::{spec::ServiceOperation,
+           service::{spec::{RefreshOperation,
+                            ServiceOperation},
                      ConfigRendering,
                      DesiredState,
                      HealthCheckResult,
@@ -472,6 +473,10 @@ pub(crate) mod sync {
         pub fn insert(&mut self, key: PackageIdent, value: Service) { self.0.insert(key, value); }
 
         pub fn remove(&mut self, key: &PackageIdent) -> Option<Service> { self.0.remove(key) }
+
+        pub fn get_mut(&mut self, key: &PackageIdent) -> Option<&mut Service> {
+            self.0.get_mut(key)
+        }
 
         pub fn services(&mut self) -> impl Iterator<Item = &mut Service> { self.0.values_mut() }
 
@@ -1595,6 +1600,30 @@ impl Manager {
                     // Execute the future synchronously
                     self.add_service_rsw_mlw_rhw_msr(spec).await;
                 }
+                ServiceOperation::Update(spec, ops) => {
+                    trace!("ServiceOperation::Update! {:?}", spec);
+                    let mut services = self.state.services.lock_msw();
+                    // Relies on spec.ident not having changed, which
+                    // ServiceSpec#reconcile must guarantee.
+                    if let Some(s) = services.get_mut(&spec.ident) {
+                        s.set_spec(spec);
+                        for op in ops {
+                            match op {
+                                RefreshOperation::RestartUpdater => {
+                                    self.service_updater.lock().register(&s);
+                                }
+                            }
+                        }
+                    } else {
+                        // We really don't expect this to
+                        // happen... this would likely mean that a
+                        // service was somehow removed between when we
+                        // started processing everything and now.
+                        outputln!("Tried to update config for service {} but could not find it \
+                                   running, skipping",
+                                  &spec.ident);
+                    }
+                }
             }
         }
     }
@@ -1962,188 +1991,5 @@ mod test {
         let path = cfg.sup_root();
 
         assert_eq!(PathBuf::from("/tmp/partay"), path);
-    }
-
-    mod specs_to_operations {
-        //! Testing out the reconciliation of on-disk spec files with
-        //! what is currently running.
-
-        use super::super::*;
-        use habitat_sup_protocol::types::UpdateStrategy;
-
-        /// Helper function for generating a basic spec from an
-        /// identifier string
-        fn new_spec(ident: &str) -> ServiceSpec {
-            ServiceSpec::new(PackageIdent::from_str(ident).expect("couldn't parse ident str"))
-        }
-
-        #[test]
-        fn no_specs_yield_no_changes() {
-            assert!(Manager::specs_to_operations(vec![], vec![]).is_empty());
-        }
-
-        /// If all the currently running services match all the
-        /// current specs, we shouldn't have anything to change.
-        #[test]
-        fn identical_specs_yield_no_changes() {
-            let specs = vec![new_spec("core/foo"), new_spec("core/bar")];
-            assert!(Manager::specs_to_operations(specs.clone(), specs).is_empty());
-        }
-
-        #[test]
-        fn missing_spec_on_disk_means_stop() {
-            let running = vec![new_spec("core/foo")];
-            let on_disk = vec![];
-
-            let operations = Manager::specs_to_operations(running, on_disk);
-            assert_eq!(operations.len(), 1);
-            assert_eq!(operations[0], ServiceOperation::Stop(new_spec("core/foo")));
-        }
-
-        #[test]
-        fn missing_active_spec_means_start() {
-            let running = vec![];
-            let on_disk = vec![new_spec("core/foo")];
-
-            let operations = Manager::specs_to_operations(running, on_disk);
-            assert_eq!(operations.len(), 1);
-            assert_eq!(operations[0], ServiceOperation::Start(new_spec("core/foo")));
-        }
-
-        #[test]
-        fn down_spec_on_disk_means_stop_running_service() {
-            let spec = new_spec("core/foo");
-
-            let running = vec![spec.clone()];
-
-            let down_spec = {
-                let mut s = spec.clone();
-                s.desired_state = DesiredState::Down;
-                s
-            };
-
-            let on_disk = vec![down_spec];
-
-            let operations = Manager::specs_to_operations(running, on_disk);
-            assert_eq!(operations.len(), 1);
-            assert_eq!(operations[0], ServiceOperation::Stop(spec));
-        }
-
-        #[test]
-        fn down_spec_on_disk_with_no_running_service_yields_no_changes() {
-            let running = vec![];
-            let down_spec = {
-                let mut s = new_spec("core/foo");
-                s.desired_state = DesiredState::Down;
-                s
-            };
-            let on_disk = vec![down_spec];
-
-            let operations = Manager::specs_to_operations(running, on_disk);
-            assert!(operations.is_empty());
-        }
-
-        #[test]
-        fn modified_spec_on_disk_means_restart() {
-            let running_spec = new_spec("core/foo");
-
-            let on_disk_spec = {
-                let mut s = running_spec.clone();
-                s.update_strategy = UpdateStrategy::AtOnce;
-                s
-            };
-            assert_ne!(running_spec.update_strategy, on_disk_spec.update_strategy);
-
-            let running = vec![running_spec];
-            let on_disk = vec![on_disk_spec];
-
-            let operations = Manager::specs_to_operations(running, on_disk);
-            assert_eq!(operations.len(), 1);
-
-            match operations[0] {
-                ServiceOperation::Restart { to_stop: ref old,
-                                            to_start: ref new, } => {
-                    assert_eq!(old.ident, new.ident);
-                    assert_eq!(old.update_strategy, UpdateStrategy::None);
-                    assert_eq!(new.update_strategy, UpdateStrategy::AtOnce);
-                }
-                ref other => {
-                    panic!("Should have been a restart operation: got {:?}", other);
-                }
-            }
-        }
-
-        #[test]
-        fn multiple_operations_can_be_determined_at_once() {
-            // Nothing should happen with this; it's already how it
-            // needs to be.
-            let svc_1_running = new_spec("core/foo");
-            let svc_1_on_disk = svc_1_running.clone();
-
-            // Should get shut down.
-            let svc_2_running = new_spec("core/bar");
-            let svc_2_on_disk = {
-                let mut s = svc_2_running.clone();
-                s.desired_state = DesiredState::Down;
-                s
-            };
-
-            // Should get restarted.
-            let svc_3_running = new_spec("core/baz");
-            let svc_3_on_disk = {
-                let mut s = svc_3_running.clone();
-                s.update_strategy = UpdateStrategy::AtOnce;
-                s
-            };
-
-            // Nothing should happen with this; it's already down.
-            let svc_4_on_disk = {
-                let mut s = new_spec("core/quux");
-                s.desired_state = DesiredState::Down;
-                s
-            };
-
-            // This should get started
-            let svc_5_on_disk = new_spec("core/wat");
-
-            // This should get shut down
-            let svc_6_running = new_spec("core/lolwut");
-
-            let running = vec![svc_1_running,
-                               svc_2_running.clone(),
-                               svc_3_running.clone(),
-                               svc_6_running.clone(),];
-
-            let on_disk = vec![svc_1_on_disk,
-                               svc_2_on_disk,
-                               svc_3_on_disk.clone(),
-                               svc_4_on_disk,
-                               svc_5_on_disk.clone(),];
-
-            let operations = Manager::specs_to_operations(running, on_disk);
-
-            let expected_operations = vec![ServiceOperation::Stop(svc_2_running),
-                                           ServiceOperation::Restart { to_stop:  svc_3_running,
-                                                                       to_start: svc_3_on_disk, },
-                                           ServiceOperation::Start(svc_5_on_disk),
-                                           ServiceOperation::Stop(svc_6_running),];
-
-            // Ideally, we'd just sort `operations` and
-            // `expected_operations`, but we can't, since that would
-            // mean we'd need a total ordering on `PackageIdent`,
-            // which we can't do, since identifiers of different
-            // packages (say, `core/foo` and `core/bar`) are not
-            // comparable.
-            //
-            // Instead, we'll just do the verification one at a time.
-            assert_eq!(operations.len(),
-                       expected_operations.len(),
-                       "Didn't generate the expected number of operations");
-            for op in expected_operations {
-                assert!(operations.contains(&op),
-                        "Should have expected operation: {:?}",
-                        op);
-            }
-        }
     }
 }
