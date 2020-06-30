@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.63 -->
-## [1.6.63](https://github.com/habitat-sh/habitat/tree/1.6.63) (2020-06-29)
+<!-- latest_release 1.6.64 -->
+## [1.6.64](https://github.com/habitat-sh/habitat/tree/1.6.64) (2020-06-30)
 
-#### Bug Fixes
-- [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier))
+#### Merged Pull Requests
+-  Explicit permissions on keys  [#7739](https://github.com/habitat-sh/habitat/pull/7739) ([stevendanna](https://github.com/stevendanna))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -14,6 +14,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+-  Explicit permissions on keys  [#7739](https://github.com/habitat-sh/habitat/pull/7739) ([stevendanna](https://github.com/stevendanna)) <!-- 1.6.64 -->
 - [REFACTOR] Clean up and streamline spec reconciliation [#7766](https://github.com/habitat-sh/habitat/pull/7766) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.62 -->
 - correcting multi-target package plan layout example [#7763](https://github.com/habitat-sh/habitat/pull/7763) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.61 -->
 - [CI] Simplify PKG_CONFIG_PATH for cargo_update.sh [#7761](https://github.com/habitat-sh/habitat/pull/7761) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.60 -->
