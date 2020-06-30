@@ -99,12 +99,7 @@ pub async fn uninstall_all_but_latest<U>(ui: &mut U,
         return Ok(0);
     }
 
-    // Reverse sort the idents so the latest occur first in the list. Because we
-    // execute the uninstall hook only when the last revision of a package is
-    // being removed AND we want the most recent uninstall hook to be the one to
-    // run. Performing this sort ensures that the last package to be removed is the
-    // most recent package. This is important because a package's uninstall logic may
-    // include undoing any installation of previous packages.
+    // Reverse sort the idents so the latest occur first in the list
     idents.sort_unstable_by(|a, b| b.by_parts_cmp(a));
 
     let to_uninstall = &mut idents[number_latest_to_keep..];
@@ -165,7 +160,12 @@ pub async fn uninstall_many<U>(ui: &mut U,
     // Never uninstall a dependency if it is loaded
     let dependency_safety = UninstallSafetyImpl::SkipIfLoaded(&loaded_services);
 
-    // sort the idents so the latest occur last in the list
+    // sort the idents so the latest occur last in the list. Because we
+    // execute the uninstall hook only when the last revision of a package is
+    // being removed AND we want the most recent uninstall hook to be the one to
+    // run. Performing this sort ensures that the last package to be removed is the
+    // most recent package. This is important because a package's uninstall logic may
+    // include undoing any installation of previous packages.
     idents.sort_unstable_by(|a, b| a.as_ref().by_parts_cmp(b.as_ref()));
     for ident in idents {
         // 2.
