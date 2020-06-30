@@ -456,6 +456,17 @@ function _return_or_append_to_set($dependency, $depArray) {
     $depArray + $dependency
 }
 
+# **Internal** Appends an entry to the given array and removes any entries
+# already in the array that match the passed entry.
+function _dedupe_and_append_to_set($dependency, $depArray) {
+    # use an arraylist which is not read-only
+    $list = [System.Collections.ArrayList]::new($depArray)
+    while($list.contains($dependency)) {
+        $list.Remove($dependency)
+    }
+    ($list + $dependency)
+}
+
 # **Internal** Prints a dependency graph in a format to the `tree(1)` command.
 # This is used in concert with `_validate_deps` for the purpose of output to an
 # end user.  It accepts a standard in stream as input where each line is a
@@ -704,7 +715,13 @@ function Set-BuildTdepsResolved {
         $tdeps=Get-TdepsFor $dep
         foreach($tdep in $tdeps) {
             $tdep=(Resolve-Path "$HAB_PKG_PATH/$tdep").Path
-            $script:pkg_build_tdeps_resolved=@(_return_or_append_to_set $tdep $pkg_build_tdeps_resolved)
+            # Use _dedupe_and_append_to_set instead of _return_or_append_to_set
+            # so that duplicate entries are removed from the top of the list and
+            # new entries are always added to the bottom. This ensures that dependent
+            # entries will be installed prior to the package with the dependency
+            # otherwise install hooks may fail if they contain logic that depend on
+            # the dependency.
+            $script:pkg_build_tdeps_resolved=@(_dedupe_and_append_to_set $tdep $pkg_build_tdeps_resolved)
         }
     }
 }
@@ -746,7 +763,13 @@ function Resolve-RunDependencyList {
         $tdeps=Get-TdepsFor $dep
         foreach($tdep in $tdeps) {
             $tdep=(Resolve-Path "$HAB_PKG_PATH/$tdep").Path
-            $script:pkg_tdeps_resolved=@(_return_or_append_to_set $tdep $pkg_tdeps_resolved)
+            # Use _dedupe_and_append_to_set instead of _return_or_append_to_set
+            # so that duplicate entries are removed from the top of the list and
+            # new entries are always added to the bottom. This ensures that dependent
+            # entries will be installed prior to the package with the dependency
+            # otherwise install hooks may fail if they contain logic that depend on
+            # the dependency.
+            $script:pkg_tdeps_resolved=@(_dedupe_and_append_to_set $tdep $pkg_tdeps_resolved)
         }
     }
 }
