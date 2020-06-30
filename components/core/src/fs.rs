@@ -66,6 +66,20 @@ pub const DEFAULT_CACHED_ARTIFACT_PERMISSIONS: Permissions = Permissions::Explic
 #[cfg(windows)]
 pub const DEFAULT_CACHED_ARTIFACT_PERMISSIONS: Permissions = Permissions::Standard;
 
+/// Permissions applied to downloaded public keys.
+#[cfg(not(windows))]
+pub const DEFAULT_PUBLIC_KEY_PERMISSIONS: Permissions = Permissions::Explicit(0o444);
+/// Permissions applied to downloaded public keys.
+#[cfg(windows)]
+pub const DEFAULT_PUBLIC_KEY_PERMISSIONS: Permissions = Permissions::Standard;
+
+/// Permissions applied to downloaded secret keys.
+#[cfg(not(windows))]
+pub const DEFAULT_SECRET_KEY_PERMISSIONS: Permissions = Permissions::Explicit(0o400);
+/// Permissions applied to downloaded secret keys.
+#[cfg(windows)]
+pub const DEFAULT_SECRET_KEY_PERMISSIONS: Permissions = Permissions::Standard;
+
 /// An `Option`-like abstraction over platform-specific ways to model
 /// file permissions.
 pub enum Permissions {

@@ -19,7 +19,9 @@ use futures::stream::TryStreamExt;
 use habitat_core::{crypto::keys::box_key_pair::WrappedSealedBox,
                    fs::{AtomicWriter,
                         Permissions,
-                        DEFAULT_CACHED_ARTIFACT_PERMISSIONS},
+                        DEFAULT_CACHED_ARTIFACT_PERMISSIONS,
+                        DEFAULT_PUBLIC_KEY_PERMISSIONS,
+                        DEFAULT_SECRET_KEY_PERMISSIONS},
                    package::{Identifiable,
                              PackageArchive,
                              PackageIdent,
@@ -438,7 +440,7 @@ impl BuilderAPIClient {
                           .get(&format!("depot/origins/{}/encryption_key", origin)),
                       dst_path.as_ref(),
                       Some(token),
-                      Permissions::Standard,
+                      DEFAULT_PUBLIC_KEY_PERMISSIONS,
                       progress)
             .await
     }
@@ -822,7 +824,7 @@ impl BuilderAPIClient {
                           .get(&format!("depot/origins/{}/keys/{}", origin, revision)),
                       dst_path.as_ref(),
                       None,
-                      Permissions::Standard,
+                      DEFAULT_PUBLIC_KEY_PERMISSIONS,
                       progress)
             .await
     }
@@ -844,7 +846,7 @@ impl BuilderAPIClient {
                           .get(&format!("depot/origins/{}/secret_keys/latest", origin)),
                       dst_path.as_ref(),
                       Some(token),
-                      Permissions::Standard,
+                      DEFAULT_SECRET_KEY_PERMISSIONS,
                       progress)
             .await
     }
