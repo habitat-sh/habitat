@@ -203,6 +203,64 @@ impl Client {
     }
 }
 
+/// Helpers for creating `CtlCommand`s in a `SrvHandler` for a given
+/// Supervisor protocol message.
+///
+/// This is only intended for reducing current code redundancies. At
+/// some point the entire architecture of this interaction should be
+/// revisited (it feels like there are too many layers of indirection
+/// at play here).
+mod util {
+    use super::{CtlCommand,
+                CtlSender,
+                HandlerError};
+    use crate::{ctl_gateway::CtlRequest,
+                manager::{action::ActionSender,
+                          ManagerState}};
+    use habitat_sup_protocol::{codec::SrvMessage,
+                               message::MessageStatic,
+                               net::NetResult};
+    use prost::Message;
+
+    /// Helper function to capture the creation of a CtlCommand for an
+    /// action that communicates with the Supervisor via an
+    /// `ActionSender`.
+    pub(super) fn to_supervisor_command<T, F>(msg: &SrvMessage,
+                                              ctl_sender: CtlSender,
+                                              callback: F)
+                                              -> std::result::Result<CtlCommand, HandlerError>
+        where T: Message + MessageStatic + Default + Clone + 'static,
+              F: Fn(&ManagerState, &mut CtlRequest, T, &ActionSender) -> NetResult<()>
+                  + Send
+                  + 'static
+    {
+        let m = msg.parse::<T>().map_err(HandlerError::from)?;
+        Ok(CtlCommand::new(ctl_sender,
+                           msg.transaction(),
+                           move |state, req, action_sender| {
+                               callback(state, req, m.clone(), &action_sender)
+                           }))
+    }
+
+    /// Helper function to capture the creation of a CtlCommand for an
+    /// action that DOES NOT communicate with the Supervisor via an
+    /// `ActionSender`.
+    pub(super) fn to_command<T, F>(msg: &SrvMessage,
+                                   ctl_sender: CtlSender,
+                                   callback: F)
+                                   -> std::result::Result<CtlCommand, HandlerError>
+        where T: Message + MessageStatic + Default + Clone + 'static,
+              F: Fn(&ManagerState, &mut CtlRequest, T) -> NetResult<()> + Send + 'static
+    {
+        let m = msg.parse::<T>().map_err(HandlerError::from)?;
+        Ok(CtlCommand::new(ctl_sender,
+                           msg.transaction(),
+                           move |state, req, _action_sender| {
+                               callback(state, req, m.clone())
+                           }))
+    }
+}
+
 /// A `Future` that will resolve into a stream of one or more `SrvMessage` replies.
 #[must_use = "futures do nothing unless polled"]
 #[pin_project]
@@ -235,43 +293,14 @@ impl SrvHandler {
                                           ctl_sender: CtlSender)
                                           -> std::result::Result<CtlCommand, HandlerError> {
         match msg.message_id() {
-            "SvcGetDefaultCfg" => {
-                let m = msg.parse::<protocol::ctl::SvcGetDefaultCfg>()
-                           .map_err(HandlerError::from)?;
-                Ok(CtlCommand::new(ctl_sender,
-                                   msg.transaction(),
-                                   move |state, req, _action_sender| {
-                                       commands::service_cfg_msr(state, req, m.clone())
-                                   }))
-            }
-            "SvcFilePut" => {
-                let m = msg.parse::<protocol::ctl::SvcFilePut>()
-                           .map_err(HandlerError::from)?;
-                Ok(CtlCommand::new(ctl_sender,
-                                   msg.transaction(),
-                                   move |state, req, _action_sender| {
-                                       commands::service_file_put(state, req, m.clone())
-                                   }))
-            }
-            "SvcSetCfg" => {
-                let m = msg.parse::<protocol::ctl::SvcSetCfg>()
-                           .map_err(HandlerError::from)?;
-                Ok(CtlCommand::new(ctl_sender,
-                                   msg.transaction(),
-                                   move |state, req, _action_sender| {
-                                       commands::service_cfg_set(state, req, m.clone())
-                                   }))
-            }
-            "SvcValidateCfg" => {
-                let m = msg.parse::<protocol::ctl::SvcValidateCfg>()
-                           .map_err(HandlerError::from)?;
-                Ok(CtlCommand::new(ctl_sender,
-                                   msg.transaction(),
-                                   move |state, req, _action_sender| {
-                                       commands::service_cfg_validate(state, req, m.clone())
-                                   }))
-            }
+            "SvcGetDefaultCfg" => util::to_command(msg, ctl_sender, commands::service_cfg_msr),
+            "SvcFilePut" => util::to_command(msg, ctl_sender, commands::service_file_put),
+            "SvcSetCfg" => util::to_command(msg, ctl_sender, commands::service_cfg_set),
+            "SvcValidateCfg" => util::to_command(msg, ctl_sender, commands::service_cfg_validate),
             "SvcLoad" => {
+                // This arm doesn't use a `util` module helper because
+                // it's currently the only thing that behaves like
+                // this.
                 let m = msg.parse::<protocol::ctl::SvcLoad>()
                            .map_err(HandlerError::from)?;
                 Ok(CtlCommand::new(ctl_sender,
@@ -289,54 +318,11 @@ impl SrvHandler {
                                        })
                                    }))
             }
-            "SvcUnload" => {
-                let m = msg.parse::<protocol::ctl::SvcUnload>()
-                           .map_err(HandlerError::from)?;
-                Ok(CtlCommand::new(ctl_sender,
-                                   msg.transaction(),
-                                   move |state, req, action_sender| {
-                                       commands::service_unload(state,
-                                                                req,
-                                                                m.clone(),
-                                                                &action_sender)
-                                   }))
-            }
-            "SvcStart" => {
-                let m = msg.parse::<protocol::ctl::SvcStart>()
-                           .map_err(HandlerError::from)?;
-                Ok(CtlCommand::new(ctl_sender,
-                                   msg.transaction(),
-                                   move |state, req, _action_sender| {
-                                       commands::service_start(state, req, m.clone())
-                                   }))
-            }
-            "SvcStop" => {
-                let m = msg.parse::<protocol::ctl::SvcStop>()
-                           .map_err(HandlerError::from)?;
-                Ok(CtlCommand::new(ctl_sender,
-                                   msg.transaction(),
-                                   move |state, req, action_sender| {
-                                       commands::service_stop(state, req, m.clone(), &action_sender)
-                                   }))
-            }
-            "SvcStatus" => {
-                let m = msg.parse::<protocol::ctl::SvcStatus>()
-                           .map_err(HandlerError::from)?;
-                Ok(CtlCommand::new(ctl_sender,
-                                   msg.transaction(),
-                                   move |state, req, _action_sender| {
-                                       commands::service_status_gsr(state, req, m.clone())
-                                   }))
-            }
-            "SupDepart" => {
-                let m = msg.parse::<protocol::ctl::SupDepart>()
-                           .map_err(HandlerError::from)?;
-                Ok(CtlCommand::new(ctl_sender,
-                                   msg.transaction(),
-                                   move |state, req, _action_sender| {
-                                       commands::supervisor_depart(state, req, m.clone())
-                                   }))
-            }
+            "SvcUnload" => util::to_supervisor_command(msg, ctl_sender, commands::service_unload),
+            "SvcStart" => util::to_command(msg, ctl_sender, commands::service_start),
+            "SvcStop" => util::to_supervisor_command(msg, ctl_sender, commands::service_stop),
+            "SvcStatus" => util::to_command(msg, ctl_sender, commands::service_status_gsr),
+            "SupDepart" => util::to_command(msg, ctl_sender, commands::supervisor_depart),
             _ => {
                 warn!("Unhandled message, {}", msg.message_id());
                 Err(HandlerError::from(io::Error::from(io::ErrorKind::InvalidData)))
