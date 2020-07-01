@@ -21,6 +21,9 @@ url = "*"
 [dependencies.habitat_core]
 path = "../core"
 
+[dev-dependencies]
+tempfile = "*"
+
 [features]
 default = []
 functional = []
