@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.66 -->
-## [1.6.66](https://github.com/habitat-sh/habitat/tree/1.6.66) (2020-07-01)
+<!-- latest_release 1.6.67 -->
+## [1.6.67](https://github.com/habitat-sh/habitat/tree/1.6.67) (2020-07-01)
 
-#### Bug Fixes
-- Fix reading root certs [#7778](https://github.com/habitat-sh/habitat/pull/7778) ([davidMcneil](https://github.com/davidMcneil))
+#### Merged Pull Requests
+- hab-plan-build: don&#39;t fail on empty hooks dir [#7775](https://github.com/habitat-sh/habitat/pull/7775) ([stevendanna](https://github.com/stevendanna))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -18,6 +18,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- hab-plan-build: don&#39;t fail on empty hooks dir [#7775](https://github.com/habitat-sh/habitat/pull/7775) ([stevendanna](https://github.com/stevendanna)) <!-- 1.6.67 -->
 - always promote package on upload if a user specifies a channel [#7768](https://github.com/habitat-sh/habitat/pull/7768) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.65 -->
 - adding documentation on the HAB_SUP_UPDATE_MS environment variable [#7717](https://github.com/habitat-sh/habitat/pull/7717) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.65 -->
 -  Explicit permissions on keys  [#7739](https://github.com/habitat-sh/habitat/pull/7739) ([stevendanna](https://github.com/stevendanna)) <!-- 1.6.64 -->
