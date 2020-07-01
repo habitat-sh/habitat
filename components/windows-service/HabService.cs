@@ -82,6 +82,8 @@ namespace HabService
                 // but not here because there is no actual console. To prevent a larger refactor
                 // and research excercise, we will just emit our glyphs in ascii.
                 Environment.SetEnvironmentVariable("HAB_GLYPH_STYLE", "ascii");
+
+                log.Info(String.Format("Chef Habitat Windows Service {0}", Assembly.GetExecutingAssembly().GetName().Version));
                 
                 proc = new Process();
                 proc.StartInfo.UseShellExecute = false;
@@ -95,8 +97,8 @@ namespace HabService
                     launcherArgs += String.Format(" {0}", ConfigurationManager.AppSettings["launcherArgs"]);
                 }
                 proc.StartInfo.Arguments = launcherArgs;
-                log.Info(String.Format("Habitat windows service is starting launcher at: {0}", LauncherPath));
-                log.Info(String.Format("Habitat windows service is starting launcher with args: {0}", launcherArgs));
+                log.Info(String.Format("Chef Habitat Windows Service is starting launcher at: {0}", LauncherPath));
+                log.Info(String.Format("Chef Habitat Windows Service is starting launcher with args: {0}", launcherArgs));
                 proc.EnableRaisingEvents = true;
                 proc.OutputDataReceived += new DataReceivedEventHandler(SupOutputHandler);
                 proc.ErrorDataReceived += new DataReceivedEventHandler(SupErrorHandler);
@@ -174,7 +176,7 @@ namespace HabService
 
         private void ExitHandler(object sender, System.EventArgs e)
         {
-            log.Error(String.Format("Habitat Supervisor has exited with exit code {0}", proc.ExitCode));
+            log.Error(String.Format("Chef Habitat Supervisor has exited with exit code {0}", proc.ExitCode));
             var mos = new ManagementObjectSearcher("SELECT ProcessId FROM Win32_Process WHERE Name='hab-sup.exe' AND ParentProcessId=" + proc.Id);
             // There should really only be 1 but the searcher returns a collection
             // We want to make sure that the supervisor is allowed time to shut down
@@ -214,8 +216,8 @@ namespace HabService
 
                     if (!proc.WaitForExit(60000))
                     {
-                        log.Error("Habitat Supervisor did not exit after waiting for one minute!");
-                        log.Info("Forcefully terminating Habitat Supervisor process.");
+                        log.Error("Chef Habitat Supervisor did not exit after waiting for one minute!");
+                        log.Info("Forcefully terminating Chef Habitat Supervisor process.");
                         proc.Kill();
                     }
 
@@ -223,7 +225,7 @@ namespace HabService
                     FreeConsole();
                 }
 
-                log.Info("Habitat service stopped");
+                log.Info("Chef Habitat service stopped");
             }
             catch(Exception e)
             {
