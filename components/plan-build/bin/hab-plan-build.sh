@@ -1980,14 +1980,16 @@ do_default_build_config() {
     mkdir -p "$pkg_prefix"/hooks
     for file in "$PLAN_CONTEXT"/hooks/*
     do
-      # The supervisor does not recognize extensions so all hooks are
-      # copied without extensions
-      local target
-      target="$pkg_prefix"/hooks/"$(basename "${file%.*}")"
-      if [[ -f "$target" ]]; then
-        exit_with "Multiple hook files found for $(basename "${file%.*}") hook. No more than one hook file permitted per lifecycle hook." 1
-      else
-        cp "$file" "$target"
+      if [[ -e "$file" ]]; then
+        # The supervisor does not recognize extensions so all hooks are
+        # copied without extensions
+        local target
+        target="$pkg_prefix"/hooks/"$(basename "${file%.*}")"
+        if [[ -f "$target" ]]; then
+          exit_with "Multiple hook files found for $(basename "${file%.*}") hook. No more than one hook file permitted per lifecycle hook." 1
+        else
+          cp "$file" "$target"
+        fi
       fi
     done
     chmod 755 "$pkg_prefix"/hooks
