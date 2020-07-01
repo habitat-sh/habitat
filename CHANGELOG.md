@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.67 -->
-## [1.6.67](https://github.com/habitat-sh/habitat/tree/1.6.67) (2020-07-01)
+<!-- latest_release 1.6.68 -->
+## [1.6.68](https://github.com/habitat-sh/habitat/tree/1.6.68) (2020-07-01)
 
 #### Merged Pull Requests
-- hab-plan-build: don&#39;t fail on empty hooks dir [#7775](https://github.com/habitat-sh/habitat/pull/7775) ([stevendanna](https://github.com/stevendanna))
+- add uninstall hook [#7764](https://github.com/habitat-sh/habitat/pull/7764) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -18,6 +18,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- add uninstall hook [#7764](https://github.com/habitat-sh/habitat/pull/7764) ([mwrock](https://github.com/mwrock)) <!-- 1.6.68 -->
 - hab-plan-build: don&#39;t fail on empty hooks dir [#7775](https://github.com/habitat-sh/habitat/pull/7775) ([stevendanna](https://github.com/stevendanna)) <!-- 1.6.67 -->
 - always promote package on upload if a user specifies a channel [#7768](https://github.com/habitat-sh/habitat/pull/7768) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.65 -->
 - adding documentation on the HAB_SUP_UPDATE_MS environment variable [#7717](https://github.com/habitat-sh/habitat/pull/7717) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.65 -->
