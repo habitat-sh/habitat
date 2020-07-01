@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.65 -->
-## [1.6.65](https://github.com/habitat-sh/habitat/tree/1.6.65) (2020-06-30)
+<!-- latest_release 1.6.66 -->
+## [1.6.66](https://github.com/habitat-sh/habitat/tree/1.6.66) (2020-07-01)
 
-#### Merged Pull Requests
-- always promote package on upload if a user specifies a channel [#7768](https://github.com/habitat-sh/habitat/pull/7768) ([jeremymv2](https://github.com/jeremymv2))
+#### Bug Fixes
+- Fix reading root certs [#7778](https://github.com/habitat-sh/habitat/pull/7778) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -14,6 +14,7 @@
 - Allow dynamic changes to updater-related config for services  [#7770](https://github.com/habitat-sh/habitat/pull/7770) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.65 -->
 
 #### Bug Fixes
+- Fix reading root certs [#7778](https://github.com/habitat-sh/habitat/pull/7778) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.66 -->
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
