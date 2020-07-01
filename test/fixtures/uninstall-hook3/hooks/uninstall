@@ -1,0 +1,5 @@
+#!/usr/bin/env pwsh
+
+write-host "uninstalling {{pkg.version}}"
+
+exit 1

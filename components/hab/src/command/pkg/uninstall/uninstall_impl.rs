@@ -6,12 +6,19 @@ use crate::{command::pkg::list,
                     Result}};
 use futures::stream::StreamExt;
 use habitat_common::{package_graph::PackageGraph,
+                     templating::{self,
+                                  hooks::{Hook,
+                                          UninstallHook},
+                                  package::Pkg},
                      types::ListenCtlAddr,
                      ui::{Status,
-                          UIWriter}};
+                          UIWriter},
+                     FeatureFlag};
 use habitat_core::{error as herror,
                    fs::{self as hfs,
+                        svc_hooks_path,
                         FS_ROOT_PATH},
+                   os::users,
                    package::{list::temp_package_directory,
                              Identifiable,
                              PackageIdent,
@@ -22,6 +29,19 @@ use std::{fs,
           path::Path,
           str::FromStr};
 
+/// Governs how uninstall hooks behave when uninstalling packages
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum UninstallHookMode {
+    /// Run the uninstall hook
+    Run,
+    /// Do not run any uninstall hooks when uninstalling a package
+    Ignore,
+}
+
+impl Default for UninstallHookMode {
+    fn default() -> Self { UninstallHookMode::Run }
+}
+
 /// `Force` indictates that the package should be uninstalled even if it is loaded by the
 /// supervisor. This only applies to packages specified in `idents`. It does not apply to their
 /// dependencies.
@@ -31,22 +51,25 @@ pub enum UninstallSafety {
     Force,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn uninstall<U>(ui: &mut U,
                           ident: impl AsRef<PackageIdent>,
                           fs_root_path: &Path,
                           execution_strategy: ExecutionStrategy,
                           scope: Scope,
                           excludes: &[PackageIdent],
+                          uninstall_hook_mode: UninstallHookMode,
                           safety: UninstallSafety)
                           -> Result<()>
     where U: UIWriter
 {
     uninstall_many(ui,
-                   &[ident],
+                   &mut [ident],
                    fs_root_path,
                    execution_strategy,
                    scope,
                    excludes,
+                   uninstall_hook_mode,
                    safety).await
 }
 
@@ -61,28 +84,32 @@ pub async fn uninstall_all_but_latest<U>(ui: &mut U,
                                          execution_strategy: ExecutionStrategy,
                                          scope: Scope,
                                          excludes: &[PackageIdent],
+                                         uninstall_hook_mode: UninstallHookMode,
                                          safety: UninstallSafety)
                                          -> Result<usize>
     where U: UIWriter
 {
     let ident = ident.as_ref();
     let mut idents = list::package_list(&ident.clone().into())?;
-    if number_latest_to_keep >= idents.len() {
+    let len = idents.len();
+    if number_latest_to_keep >= len {
         ui.begin(format!("Uninstalling {}", ident))?;
-        ui.status(Status::Skipping,
-                  format!("Only {} packages installed", idents.len()))?;
+        ui.status(Status::Skipping, format!("Only {} packages installed", len))?;
         ui.end(format!("Uninstall of {} complete", ident))?;
         return Ok(0);
     }
+
     // Reverse sort the idents so the latest occur first in the list
     idents.sort_unstable_by(|a, b| b.by_parts_cmp(a));
-    let to_uninstall = &idents[number_latest_to_keep..];
+
+    let to_uninstall = &mut idents[number_latest_to_keep..];
     uninstall_many(ui,
                    to_uninstall,
                    fs_root_path,
                    execution_strategy,
                    scope,
                    excludes,
+                   uninstall_hook_mode,
                    safety).await?;
     Ok(to_uninstall.len())
 }
@@ -104,12 +131,14 @@ pub async fn uninstall_all_but_latest<U>(ui: &mut U,
 ///     5b. If there are not, we delete it from disk and the graph
 ///
 /// `excludes` is a list of user-supplied `PackageIdent`s.
+#[allow(clippy::too_many_arguments)]
 pub async fn uninstall_many<U>(ui: &mut U,
-                               idents: &[impl AsRef<PackageIdent>],
+                               idents: &mut [impl AsRef<PackageIdent>],
                                fs_root_path: &Path,
                                execution_strategy: ExecutionStrategy,
                                scope: Scope,
                                excludes: &[PackageIdent],
+                               uninstall_hook_mode: UninstallHookMode,
                                safety: UninstallSafety)
                                -> Result<()>
     where U: UIWriter
@@ -131,6 +160,13 @@ pub async fn uninstall_many<U>(ui: &mut U,
     // Never uninstall a dependency if it is loaded
     let dependency_safety = UninstallSafetyImpl::SkipIfLoaded(&loaded_services);
 
+    // sort the idents so the latest occur last in the list. Because we
+    // execute the uninstall hook only when the last revision of a package is
+    // being removed AND we want the most recent uninstall hook to be the one to
+    // run. Performing this sort ensures that the last package to be removed is the
+    // most recent package. This is important because a package's uninstall logic may
+    // include undoing any installation of previous packages.
+    idents.sort_unstable_by(|a, b| a.as_ref().by_parts_cmp(b.as_ref()));
     for ident in idents {
         // 2.
         let ident = ident.as_ref();
@@ -160,7 +196,8 @@ pub async fn uninstall_many<U>(ui: &mut U,
                              &pkg_install,
                              execution_strategy,
                              &excludes,
-                             safety)?;
+                             uninstall_hook_mode,
+                             safety).await?;
                 graph.remove(&ident);
             }
             Some(c) => {
@@ -196,7 +233,8 @@ pub async fn uninstall_many<U>(ui: &mut U,
                                          &install,
                                          execution_strategy,
                                          &excludes,
-                                         dependency_safety)?;
+                                         uninstall_hook_mode,
+                                         dependency_safety).await?;
 
                             graph.remove(&p);
                             count += 1;
@@ -288,13 +326,14 @@ impl UninstallSafetyImpl<'_> {
 ///   Ok(true) - package is deleted
 ///   Ok(false) - package would be deleted but it's a dry run
 ///   Err(_) -  IO problem deleting package from filesystem
-fn maybe_delete<U>(ui: &mut U,
-                   fs_root_path: &Path,
-                   install: &PackageInstall,
-                   strategy: ExecutionStrategy,
-                   excludes: &[PackageIdent],
-                   safety: UninstallSafetyImpl)
-                   -> Result<bool>
+async fn maybe_delete<U>(ui: &mut U,
+                         fs_root_path: &Path,
+                         install: &PackageInstall,
+                         strategy: ExecutionStrategy,
+                         excludes: &[PackageIdent],
+                         uninstall_hook_mode: UninstallHookMode,
+                         safety: UninstallSafetyImpl<'_>)
+                         -> Result<bool>
     where U: UIWriter
 {
     let ident = install.ident();
@@ -330,10 +369,68 @@ fn maybe_delete<U>(ui: &mut U,
         }
         ExecutionStrategy::Run => {
             ui.status(Status::Deleting, &ident)?;
+            if uninstall_hook_mode == UninstallHookMode::Run {
+                maybe_run_uninstall_hook(ui, &install).await?;
+            }
             let pkg_dir = install.installed_path();
             do_clean_delete(&pkg_root_path, &pkg_dir)
         }
     }
+}
+
+/// We only want to run the uninstall hook if this is there are no other revisions.
+/// The uninstall hook is intended to be the inverse of the install hook and is
+/// where one would undo anything performed in the install hook.
+/// Note that install hooks are executed only once when a package is initially
+/// installed and are usually used to perform installation or setup that affects
+/// a machine's global state. For example it might be used to enable a "windows
+/// feature" or invoke a complicated software installer (like sql server). Over
+/// time one might update the package with better logic or adding a software patch.
+/// We only want to run the uninstaller if all revisions are being removed from the
+/// machine. Otherwise if an uninstall hook is run when installing an old version
+/// while a newer version remains installed, that hook could potentially corrupt the
+/// state of the existing package.
+async fn maybe_run_uninstall_hook<T>(ui: &mut T, package: &PackageInstall) -> Result<()>
+    where T: UIWriter
+{
+    let ident = package.ident();
+    let feature_flags = FeatureFlag::from_env(ui);
+    if let Some(ref hook) = UninstallHook::load(&ident.name,
+                                                &svc_hooks_path(ident.name.clone()),
+                                                &package.installed_path.join("hooks"),
+                                                feature_flags)
+    {
+        let unqualified_ident =
+            PackageIdent::from_str(&format!("{}/{}", ident.origin, ident.name))?;
+        let installed = list::package_list(&unqualified_ident.clone().into())?;
+        if installed.len() > 1 {
+            ui.status(Status::Skipping,
+                      format!("execution of uninstall hook for {}. {} packages are installed \
+                               for {}",
+                              ident,
+                              installed.len(),
+                              unqualified_ident))?;
+            return Ok(());
+        }
+
+        ui.status(Status::Executing, format!("uninstall hook for '{}'", ident))?;
+        templating::compile_for_package_install(package, feature_flags).await?;
+        let mut pkg = Pkg::from_install(package).await?;
+        // Only windows uses svc_password
+        if cfg!(target_os = "windows") {
+            // Install hooks do not have access to svc_passwords so
+            // we execute them under the current user account.
+            if let Some(user) = users::get_current_username() {
+                pkg.svc_user = user;
+            }
+        }
+        if !hook.run(&ident.name, &pkg, None::<&str>)
+                .map_err(|e| Error::CannotRunUninstallHook(ident.clone(), Box::new(e)))?
+        {
+            return Err(Error::UninstallHookFailed(ident.clone()));
+        }
+    }
+    Ok(())
 }
 
 /// Delete empty parent directories from a given path. don't traverse above

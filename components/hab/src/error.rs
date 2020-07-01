@@ -3,6 +3,7 @@ use crate::{api_client,
             hcore,
             protocol::net,
             sup_client::SrvClientError};
+use habitat_core::package::PackageIdent;
 use std::{env,
           error,
           ffi,
@@ -27,6 +28,8 @@ pub enum Error {
     CannotRemoveDockerStudio,
     CannotRemoveFromChannel((String, String)),
     CannotRemovePackage(hcore::package::PackageIdent, usize),
+    // Boxed due to clippy::large_enum_variant
+    CannotRunUninstallHook(PackageIdent, Box<common::Error>),
     CommandNotFoundInPkg((String, String)),
     CryptoCLI(String),
     CtlClient(SrvClientError),
@@ -62,6 +65,7 @@ pub enum Error {
     UnsupportedExportFormat(String),
     TomlDeserializeError(toml::de::Error),
     TomlSerializeError(toml::ser::Error),
+    UninstallHookFailed(PackageIdent),
     Utf8Error(String),
     YamlError(serde_yaml::Error),
 }
@@ -88,6 +92,10 @@ impl fmt::Display for Error {
             Error::CannotRemovePackage(ref p, ref c) => {
                 format!("Can't remove package: {}. It is a dependency of {} packages",
                         p, c)
+            }
+            Error::CannotRunUninstallHook(ref ident, ref e) => {
+                format!("There was an error running the uninstall hook for {} : {}",
+                        ident, e)
             }
             Error::CommandNotFoundInPkg((ref p, ref c)) => {
                 format!("`{}' was not found under any 'PATH' directories in the {} package",
@@ -174,6 +182,9 @@ impl fmt::Display for Error {
             Error::UnsupportedExportFormat(ref e) => format!("Unsupported export format: {}", e),
             Error::TomlDeserializeError(ref e) => format!("Can't deserialize TOML: {}", e),
             Error::TomlSerializeError(ref e) => format!("Can't serialize TOML: {}", e),
+            Error::UninstallHookFailed(ref ident) => {
+                format!("Uninstall hook for {} exited unsuccessfully", ident)
+            }
             Error::Utf8Error(ref e) => format!("Error processing a string as UTF-8: {}", e),
             Error::YamlError(ref e) => format!("{}", e),
         };

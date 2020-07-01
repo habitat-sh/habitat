@@ -19,7 +19,6 @@ pub mod provides;
 pub mod search;
 pub mod sign;
 pub mod uninstall;
-pub mod uninstall_impl;
 pub mod upload;
 pub mod verify;
 

@@ -696,6 +696,31 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
+  - label: "[:linux: test_pkg_uninstall_hook]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_pkg_uninstall_hook
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:windows: test_pkg_uninstall_hook]"
+    command:
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_pkg_uninstall_hook
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+            - HAB_ORIGIN
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[:linux: test_container_exporter]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_container_exporter

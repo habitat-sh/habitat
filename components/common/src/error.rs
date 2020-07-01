@@ -35,7 +35,6 @@ pub enum Error {
     InstallHookFailed(PackageIdent),
     InterpreterNotFound(PackageIdent, Box<Self>),
     InvalidEventStreamToken(String),
-    InvalidInstallHookMode(String),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
     /// Errors when joining paths :)
@@ -113,9 +112,6 @@ impl fmt::Display for Error {
             }
             Error::InvalidEventStreamToken(ref s) => {
                 format!("Invalid event stream token provided: '{}'", s)
-            }
-            Error::InvalidInstallHookMode(ref e) => {
-                format!("Invalid InstallHookMode conversion from {}", e)
             }
             Error::IO(ref err) => format!("{}", err),
             Error::JoinPathsError(ref err) => format!("{}", err),

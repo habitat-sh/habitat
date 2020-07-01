@@ -3,8 +3,9 @@ use crate::{error::{Error,
             PRODUCT,
             VERSION};
 use hab::{command::pkg::{self,
-                         uninstall_impl::{self,
-                                          UninstallSafety}},
+                         uninstall::{self,
+                                     UninstallHookMode,
+                                     UninstallSafety}},
           config,
           error::Result as HabResult};
 use habitat_api_client::BuilderAPIClient;
@@ -128,25 +129,15 @@ pub async fn install_channel_head(url: &str,
 pub async fn uninstall_all_but_latest(ident: impl AsRef<PackageIdent>,
                                       number_latest_to_keep: usize)
                                       -> HabResult<usize> {
-    uninstall_impl::uninstall_all_but_latest(&mut NullUi::new(),
-                                             ident,
-                                             number_latest_to_keep,
-                                             &*FS_ROOT_PATH,
-                                             pkg::ExecutionStrategy::Run,
-                                             pkg::Scope::PackageAndDependencies,
-                                             &[],
-                                             UninstallSafety::Safe).await
-}
-
-/// Uninstall multiple packages.
-pub async fn uninstall_many(idents: &[impl AsRef<PackageIdent>]) -> HabResult<()> {
-    uninstall_impl::uninstall_many(&mut NullUi::new(),
-                                   idents,
-                                   &*FS_ROOT_PATH,
-                                   pkg::ExecutionStrategy::Run,
-                                   pkg::Scope::PackageAndDependencies,
-                                   &[],
-                                   UninstallSafety::Safe).await
+    uninstall::uninstall_all_but_latest(&mut NullUi::new(),
+                                        ident,
+                                        number_latest_to_keep,
+                                        &*FS_ROOT_PATH,
+                                        pkg::ExecutionStrategy::Run,
+                                        pkg::Scope::PackageAndDependencies,
+                                        &[],
+                                        UninstallHookMode::default(),
+                                        UninstallSafety::Safe).await
 }
 
 /// Uninstall a package given a package identifier.
@@ -155,11 +146,12 @@ pub async fn uninstall_many(idents: &[impl AsRef<PackageIdent>]) -> HabResult<()
 /// loaded by the Supervisor. This is needed for service rollback where the package we are
 /// uninstalling is the currently loaded package.
 pub async fn uninstall_even_if_loaded(ident: impl AsRef<PackageIdent>) -> HabResult<()> {
-    uninstall_impl::uninstall(&mut NullUi::new(),
-                              &ident.as_ref(),
-                              &*FS_ROOT_PATH,
-                              pkg::ExecutionStrategy::Run,
-                              pkg::Scope::PackageAndDependencies,
-                              &[],
-                              UninstallSafety::Force).await
+    uninstall::uninstall(&mut NullUi::new(),
+                         &ident.as_ref(),
+                         &*FS_ROOT_PATH,
+                         pkg::ExecutionStrategy::Run,
+                         pkg::Scope::PackageAndDependencies,
+                         &[],
+                         UninstallHookMode::default(),
+                         UninstallSafety::Force).await
 }
