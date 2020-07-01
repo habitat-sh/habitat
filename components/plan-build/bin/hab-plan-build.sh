@@ -876,13 +876,21 @@ _return_or_append_to_set() {
 # not be used as a generic array appender because it could have unexpected results
 # with arbitrary data.
 _add_dep_to_tdep_list() {
-  local appended_set
-  local dedupe_set
-  local deps
-  deps=("${@:2}")
-  dedupe_set=("${deps[@]/$1}")
-  appended_set=("${dedupe_set[@]}" "$1")
-  echo "${appended_set[@]}"
+  local to_add="${1}"
+  local deps=("${@:2}")
+  local result=()
+
+  # Explicitly filter out any instances of the to-be-added dependency
+  # that we may have already seen.
+  for d in "${deps[@]}"; do
+      if [[ "$d" != "${to_add}" ]]; then
+          result=( "${result[@]}" "$d" )
+      fi
+  done
+  # Append the dependency to the end of the list
+  result=( "${result[@]}" "$to_add" )
+
+  echo "${result[@]}"
   return 0
 }
 
