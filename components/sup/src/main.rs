@@ -1430,7 +1430,7 @@ pkg_ident_or_artifact = "core/redis"
             write!(config_file, "password = \"keep_it_secret_keep_it_safe\"")
                 .expect("to write config file contents");
 
-            let args = format!("hab-sup run --config-files {} core/redis", config_path_str);
+            let args = format!("hab-sup run core/redis --config-files {}", config_path_str);
             let service_load = service_load_from_cmd_str(&args);
             assert_eq!(decrypt(&service_load.svc_encrypted_password.unwrap()).unwrap(),
                        "keep_it_secret_keep_it_safe");
