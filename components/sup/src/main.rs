@@ -7,7 +7,6 @@ extern crate jemallocator;
 #[macro_use]
 extern crate log;
 #[cfg(test)]
-#[macro_use]
 extern crate lazy_static;
 extern crate rustls;
 extern crate tempfile;
