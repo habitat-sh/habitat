@@ -4,7 +4,8 @@ use crate::{api_client,
             protocol::net,
             sup_client::SrvClientError};
 use habitat_core::package::PackageIdent;
-use std::{env,
+use std::{collections::HashMap,
+          env,
           error,
           ffi,
           fmt,
@@ -39,6 +40,7 @@ pub enum Error {
     DockerImageNotFound(String),
     DockerNetworkDown(String),
     EnvJoinPathsError(env::JoinPathsError),
+    ErrorPerIdent(HashMap<PackageIdent, Error>),
     ExecCommandNotFound(PathBuf),
     FFINulError(ffi::NulError),
     FileNotFound(String),
@@ -52,7 +54,6 @@ pub enum Error {
     JobGroupPromoteOrDemoteUnprocessable(bool /* promote */),
     JsonErr(serde_json::Error),
     LicenseNotAccepted,
-    Multiple(Vec<Self>),
     NameLookup,
     NetErr(net::NetErr),
     PackageArchiveMalformed(String),
@@ -136,6 +137,12 @@ impl fmt::Display for Error {
                         e)
             }
             Error::EnvJoinPathsError(ref err) => format!("{}", err),
+            Error::ErrorPerIdent(ref e) => {
+                e.iter()
+                 .map(|(ident, error)| format!("{}: {}", ident, error))
+                 .collect::<Vec<_>>()
+                 .join("\n")
+            }
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH",
                         c.display())
@@ -160,12 +167,6 @@ impl fmt::Display for Error {
             Error::JsonErr(ref e) => e.to_string(),
             Error::JobGroupCancel(ref e) => format!("Failed to cancel job group: {:?}", e),
             Error::LicenseNotAccepted => "License agreement not accepted".to_string(),
-            Error::Multiple(ref e) => {
-                e.iter()
-                 .map(ToString::to_string)
-                 .collect::<Vec<_>>()
-                 .join("\n")
-            }
             Error::NameLookup => "Error resolving a name or IP address".to_string(),
             Error::NetErr(ref e) => e.to_string(),
             Error::PackageArchiveMalformed(ref e) => {
@@ -225,6 +226,10 @@ impl From<hcore::Error> for Error {
     fn from(err: hcore::Error) -> Error { Error::HabitatCore(err) }
 }
 
+impl From<HashMap<PackageIdent, Error>> for Error {
+    fn from(errors: HashMap<PackageIdent, Error>) -> Self { Error::ErrorPerIdent(errors) }
+}
+
 impl From<handlebars::TemplateRenderError> for Error {
     fn from(err: handlebars::TemplateRenderError) -> Error {
         Error::HandlebarsRenderError(Box::new(err))
@@ -252,10 +257,6 @@ impl From<env::JoinPathsError> for Error {
 
 impl From<SrvClientError> for Error {
     fn from(err: SrvClientError) -> Self { Error::CtlClient(err) }
-}
-
-impl From<Vec<Error>> for Error {
-    fn from(errors: Vec<Error>) -> Self { Error::Multiple(errors) }
 }
 
 impl From<net::NetErr> for Error {

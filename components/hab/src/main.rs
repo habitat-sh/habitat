@@ -70,7 +70,8 @@ use habitat_sup_protocol::{self as sup_proto,
                            codec::*,
                            net::ErrCode,
                            types::*};
-use std::{convert::TryFrom,
+use std::{collections::HashMap,
+          convert::TryFrom,
           env,
           ffi::OsString,
           fs::File,
@@ -1268,10 +1269,11 @@ async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
 }
 
 async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
-    let mut errors = Vec::new();
+    let mut errors = HashMap::new();
     for svc_load in svc::svc_loads_from_paths(&svc_bulk_load.svc_config_paths)? {
+        let ident = svc_load.pkg_ident.clone().pkg_ident();
         if let Err(e) = sub_svc_load(svc_load).await {
-            errors.push(e);
+            errors.insert(ident, e);
         }
     }
     if errors.is_empty() {

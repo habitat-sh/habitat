@@ -78,7 +78,7 @@ impl From<PkgIdentStringySerde> for String {
     fn from(pkg_ident: PkgIdentStringySerde) -> Self { pkg_ident.to_string() }
 }
 
-#[derive(ConfigOpt, Debug, StructOpt, Deserialize, Serialize)]
+#[derive(Clone, ConfigOpt, Debug, StructOpt, Deserialize, Serialize)]
 #[configopt(derive(Clone, Serialize, Debug), attrs(serde))]
 #[structopt(no_version)]
 #[serde(transparent)]
