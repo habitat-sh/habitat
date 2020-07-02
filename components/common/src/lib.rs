@@ -86,6 +86,7 @@ bitflags::bitflags! {
         const TRIGGER_ELECTION           = 0b0010_0000_0000;
         const STRUCTOPT_CLI              = 0b0100_0000_0000;
         const NO_NAMED_PIPE_HEALTH_CHECK = 0b1000_0000_0000;
+        const SERVICE_CONFIG_FILES       = 0b0000_0001_0000;
     }
 }
 
@@ -100,7 +101,8 @@ lazy_static! {
                            (FeatureFlag::TRIGGER_ELECTION, "HAB_FEAT_TRIGGER_ELECTION"),
                            (FeatureFlag::STRUCTOPT_CLI, "HAB_FEAT_STRUCTOPT_CLI"),
                            (FeatureFlag::NO_NAMED_PIPE_HEALTH_CHECK,
-                            "HAB_FEAT_NO_NAMED_PIPE_HEALTH_CHECK"),];
+                            "HAB_FEAT_NO_NAMED_PIPE_HEALTH_CHECK"),
+                           (FeatureFlag::SERVICE_CONFIG_FILES, "HAB_FEAT_SERVICE_CONFIG_FILES"),];
 
         HashMap::from_iter(mapping)
     };

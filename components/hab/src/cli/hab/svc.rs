@@ -7,6 +7,8 @@ use super::util::{CacheKeyPath,
 use crate::error::Result;
 use configopt::{configopt_fields,
                 ConfigOpt};
+use habitat_common::{FeatureFlag,
+                     FEATURE_FLAGS};
 use habitat_core::{os::process::ShutdownTimeout,
                    package::PackageIdent,
                    service::{ServiceBind,
@@ -20,7 +22,8 @@ use structopt::StructOpt;
 use url::Url;
 use walkdir::WalkDir;
 
-const DEFAULT_SVC_CONFIG_PATH: &str = "/hab/sup/default/config/svc";
+const DEFAULT_SVC_CONFIG_FILE: &str = "/hab/sup/default/config/svc.toml";
+pub const DEFAULT_SVC_CONFIG_DIR: &str = "/hab/sup/default/config/svc";
 
 /// Commands relating to Habitat services
 #[derive(ConfigOpt, StructOpt)]
@@ -213,11 +216,19 @@ pub struct SharedLoad {
     pub config_from:           Option<PathBuf>,
 }
 
-#[configopt_fields]
+fn load_default_config_files() -> Vec<PathBuf> {
+    if FEATURE_FLAGS.contains(FeatureFlag::SERVICE_CONFIG_FILES) {
+        vec![PathBuf::from(DEFAULT_SVC_CONFIG_FILE)]
+    } else {
+        vec![]
+    }
+}
+
+#[configopt_fields(hidden = !FEATURE_FLAGS.contains(FeatureFlag::SERVICE_CONFIG_FILES))]
 #[derive(ConfigOpt, StructOpt, Deserialize, Debug)]
 #[configopt(attrs(serde),
             derive(Clone, Debug),
-            default_config_file("/hab/sup/default/config/svc.toml"))]
+            default_config_file(load_default_config_files))]
 #[serde(deny_unknown_fields)]
 #[structopt(name = "load", no_version, rename_all = "screamingsnake")]
 /// Load a service to be started and supervised by Habitat from a package identifier. If an
@@ -244,7 +255,7 @@ pub fn svc_loads_from_paths<T: AsRef<Path>>(paths: &[T]) -> Result<Vec<Load>> {
     // error. This allows users to run the Supervisor without creating the directory.
     if paths.len() == 1 {
         let path = paths[0].as_ref();
-        if path == Path::new(DEFAULT_SVC_CONFIG_PATH) && !path.exists() {
+        if path == Path::new(DEFAULT_SVC_CONFIG_DIR) && !path.exists() {
             return Ok(Vec::new());
         }
     }

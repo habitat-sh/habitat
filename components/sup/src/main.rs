@@ -203,12 +203,15 @@ async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run: SupRun,
                                               -> Result<()> {
     set_supervisor_logging_options(&sup_run);
 
-    let mut svc_load_msgs =
+    let mut svc_load_msgs = if feature_flags.contains(FeatureFlag::SERVICE_CONFIG_FILES) {
         svc::svc_loads_from_paths(&sup_run.svc_config_paths)?.into_iter()
                                                              .map(|svc_load| {
                                                                  Ok(svc_load.try_into()?)
                                                              })
-                                                             .collect::<Result<Vec<_>>>()?;
+                                                             .collect::<Result<Vec<_>>>()?
+    } else {
+        vec![]
+    };
 
     let (manager_cfg, maybe_svc_load_msg) = split_apart_sup_run(sup_run, feature_flags).await?;
     if let Some(svc_load_msg) = maybe_svc_load_msg {
@@ -1428,7 +1431,7 @@ pkg_ident_or_artifact = "core/redis"
             write!(config_file, "password = \"keep_it_secret_keep_it_safe\"")
                 .expect("to write config file contents");
 
-            let args = format!("hab-sup run --config-files {}", config_path_str);
+            let args = format!("hab-sup run --config-files {} core/redis", config_path_str);
             let service_load = service_load_from_cmd_str(&args);
             assert_eq!(decrypt(&service_load.svc_encrypted_password.unwrap()).unwrap(),
                        "keep_it_secret_keep_it_safe");

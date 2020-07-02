@@ -156,7 +156,9 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
             match hab {
                 Hab::Svc(svc) => {
                     match svc {
-                        Svc::BulkLoad(svc_bulk_load) => {
+                        Svc::BulkLoad(svc_bulk_load)
+                            if feature_flags.contains(FeatureFlag::SERVICE_CONFIG_FILES) =>
+                        {
                             return sub_svc_bulk_load(svc_bulk_load).await;
                         }
                         Svc::Load(svc_load) => {

@@ -1,5 +1,6 @@
 use super::{svc::{ConfigOptSharedLoad,
-                  SharedLoad},
+                  SharedLoad,
+                  DEFAULT_SVC_CONFIG_DIR},
             util::{self,
                    CacheKeyPath,
                    ConfigOptCacheKeyPath,
@@ -19,7 +20,9 @@ use habitat_common::{cli::{RING_ENVVAR,
                              EventStreamToken,
                              GossipListenAddr,
                              HttpListenAddr,
-                             ListenCtlAddr}};
+                             ListenCtlAddr},
+                     FeatureFlag,
+                     FEATURE_FLAGS};
 use habitat_core::{env::Config,
                    package::PackageIdent,
                    util as core_util};
@@ -279,7 +282,8 @@ pub struct SupRun {
     ///
     /// See `hab svc bulkload --help` for details
     #[structopt(long = "svc-config-paths",
-                default_value = "/hab/sup/default/config/svc")]
+                default_value = DEFAULT_SVC_CONFIG_DIR,
+                hidden = !FEATURE_FLAGS.contains(FeatureFlag::SERVICE_CONFIG_FILES))]
     pub svc_config_paths: Vec<PathBuf>,
     #[structopt(flatten)]
     #[serde(flatten)]
