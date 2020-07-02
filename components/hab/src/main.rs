@@ -1143,7 +1143,7 @@ async fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
+    let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let mut ui = ui::ui();
@@ -1190,7 +1190,7 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                         .map(ToString::to_string)
                         .unwrap_or_else(|| "UNKNOWN".to_string()),))?;
     ui.status(Status::Creating, "service configuration")?;
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, validate).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, validate).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1208,8 +1208,8 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
             _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
         }
     }
-    ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))?;
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, set).await?;
+    ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))?;
+    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, set).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1229,11 +1229,11 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
 async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
+    let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcGetDefaultCfg::default();
     msg.ident = Some(ident.into());
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1253,9 +1253,9 @@ async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
-    let listen_ctl_addr = svc_load.remote_sup.remote_sup.clone();
+    let remote_sup_addr = svc_load.remote_sup.remote_sup.clone();
     let msg = habitat_sup_protocol::ctl::SvcLoad::try_from(svc_load)?;
-    gateway_util::send(&listen_ctl_addr, msg).await
+    gateway_util::send(&remote_sup_addr, msg).await
 }
 
 async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
@@ -1279,21 +1279,21 @@ async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
         parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
     let msg = sup_proto::ctl::SvcUnload { ident: Some(ident.into()),
                                           timeout_in_seconds };
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    gateway_util::send(&listen_ctl_addr, msg).await
+    let remote_sup_addr = remote_sup_from_input(m)?;
+    gateway_util::send(&remote_sup_addr, msg).await
 }
 
 async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let msg = sup_proto::ctl::SvcStart { ident: Some(ident.into()),
                                          ..Default::default() };
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    gateway_util::send(&listen_ctl_addr, msg).await
+    let remote_sup_addr = remote_sup_from_input(m)?;
+    gateway_util::send(&remote_sup_addr, msg).await
 }
 
 async fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
+    let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcStatus::default();
     if let Some(pkg) = m.value_of("PKG_IDENT") {
@@ -1301,7 +1301,7 @@ async fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
     }
 
     let mut out = TabWriter::new(io::stdout());
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, msg).await?;
     // Ensure there is at least one result from the server otherwise produce an error
     if let Some(message_result) = response.next().await {
         let reply = message_result?;
@@ -1323,14 +1323,14 @@ async fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
         parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
     let msg = sup_proto::ctl::SvcStop { ident: Some(ident.into()),
                                         timeout_in_seconds };
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    gateway_util::send(&listen_ctl_addr, msg).await
+    let remote_sup_addr = remote_sup_from_input(m)?;
+    gateway_util::send(&remote_sup_addr, msg).await
 }
 
 async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
+    let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SvcFilePut::default();
@@ -1370,9 +1370,9 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
         }
         _ => msg.content = Some(buf.to_vec()),
     }
-    ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
+    ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))
       .unwrap();
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1396,7 +1396,7 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
 
 async fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
+    let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SupDepart::default();
@@ -1405,9 +1405,9 @@ async fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
     ui.begin(format!("Permanently marking {} as departed",
                      msg.member_id.as_deref().unwrap_or("UNKNOWN")))
       .unwrap();
-    ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
+    ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))
       .unwrap();
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1870,7 +1870,7 @@ fn bulkupload_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
            .expect("CLAP-validated upload dir")
 }
 
-fn listen_ctl_addr_from_input(m: &ArgMatches<'_>) -> Result<ListenCtlAddr> {
+fn remote_sup_from_input(m: &ArgMatches<'_>) -> Result<ListenCtlAddr> {
     Ok(m.value_of("REMOTE_SUP")
         .map_or(Ok(ListenCtlAddr::default()),
                 ListenCtlAddr::resolve_listen_ctl_addr)?)

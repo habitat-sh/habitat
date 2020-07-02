@@ -25,13 +25,13 @@ use termcolor::{self,
 ///
 /// Unfortunately not all control gateway-interacting functions use
 /// this logic yet.
-pub async fn send(listen_ctl_addr: &ListenCtlAddr,
+pub async fn send(remote_sup_addr: &ListenCtlAddr,
                   msg: impl Into<SrvMessage> + fmt::Debug)
                   -> Result<()> {
     let cfg = config::load()?;
     let secret_key = config::ctl_secret_key(&cfg)?;
 
-    let mut response = SrvClient::request(listen_ctl_addr, &secret_key, msg).await?;
+    let mut response = SrvClient::request(remote_sup_addr, &secret_key, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         handle_ctl_reply(&reply)?;
