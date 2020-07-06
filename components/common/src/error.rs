@@ -72,7 +72,11 @@ pub enum Error {
     FileNotFound(String),
     GossipFileRelativePath(String),
     HabitatCore(hcore::Error),
-    InstallHookFailed(PackageIdent, CommandExecutionError),
+    HookFailed {
+        package_ident: PackageIdent,
+        hook:          &'static str,
+        error:         CommandExecutionError,
+    },
     InterpreterNotFound(PackageIdent, Box<Self>),
     InvalidEventStreamToken(String),
     /// Occurs when making lower level IO calls.
@@ -114,6 +118,23 @@ pub enum Error {
     WireDecode(String),
 }
 
+impl Error {
+    pub fn hook_run_error(package_ident: PackageIdent, hook: &'static str, error: Error) -> Self {
+        Self::HookFailed { package_ident,
+                           hook,
+                           error: CommandExecutionError::run_error(error) }
+    }
+
+    pub fn hook_exit_status(package_ident: PackageIdent,
+                            hook: &'static str,
+                            exit_status: ExitStatus)
+                            -> Self {
+        Self::HookFailed { package_ident,
+                           hook,
+                           error: CommandExecutionError::exit_status(exit_status) }
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
@@ -144,8 +165,10 @@ impl fmt::Display for Error {
             Error::MissingCLIInputError(ref arg) => {
                 format!("Missing required CLI argument!: {}", arg)
             }
-            Error::InstallHookFailed(ref ident, ref e) => {
-                format!("{} install hook failed: {}", ident, e)
+            Error::HookFailed { ref package_ident,
+                                ref hook,
+                                ref error, } => {
+                format!("{} {} hook failed: {}", package_ident, hook, error)
             }
             Error::InterpreterNotFound(ref ident, ref e) => {
                 format!("Unable to install interpreter ident: {} - {}", ident, e)
@@ -203,7 +226,7 @@ impl error::Error for Error {}
 impl Error {
     pub fn exit_code(&self) -> i32 {
         match self {
-            Self::InstallHookFailed(_, e) => e.exit_code(),
+            Self::HookFailed { error, .. } => error.exit_code(),
             _ => DEFAULT_ERROR_EXIT_CODE,
         }
     }

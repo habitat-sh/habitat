@@ -24,8 +24,7 @@ use crate::{api_client::{self,
                          BuilderAPIClient,
                          Client,
                          Error::APIError},
-            error::{CommandExecutionError,
-                    Error,
+            error::{Error,
                     Result},
             templating::{self,
                          hooks::{Hook,
@@ -441,12 +440,14 @@ async fn run_install_hook<T>(ui: &mut T, package: &PackageInstall) -> Result<()>
         match hook.run(&package.ident().name, &pkg, None::<&str>) {
             Ok(exit_status) if exit_status.success() => Ok(()),
             Ok(exit_status) => {
-                Err(Error::InstallHookFailed(package.ident().clone(),
-                                             CommandExecutionError::exit_status(exit_status)))
+                Err(Error::hook_exit_status(package.ident().clone(),
+                                            InstallHook::FILE_NAME,
+                                            exit_status))
             }
             Err(e) => {
-                Err(Error::InstallHookFailed(package.ident().clone(),
-                                             CommandExecutionError::run_error(e)))
+                Err(Error::hook_run_error(package.ident().clone(),
+                                          InstallHook::FILE_NAME,
+                                          e))
             }
         }
     } else {

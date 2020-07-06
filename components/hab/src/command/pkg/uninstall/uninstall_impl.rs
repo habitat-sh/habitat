@@ -5,7 +5,7 @@ use crate::{command::pkg::list,
             error::{Error,
                     Result}};
 use futures::stream::StreamExt;
-use habitat_common::{error::CommandExecutionError,
+use habitat_common::{error::Error as CommonError,
                      package_graph::PackageGraph,
                      templating::{self,
                                   hooks::{Hook,
@@ -428,12 +428,14 @@ async fn maybe_run_uninstall_hook<T>(ui: &mut T, package: &PackageInstall) -> Re
         match hook.run(&package.ident().name, &pkg, None::<&str>) {
             Ok(exit_status) if exit_status.success() => Ok(()),
             Ok(exit_status) => {
-                Err(Error::UninstallHookFailed(package.ident().clone(),
-                                               CommandExecutionError::exit_status(exit_status)))
+                Err(CommonError::hook_exit_status(package.ident().clone(),
+                                                  UninstallHook::FILE_NAME,
+                                                  exit_status).into())
             }
             Err(e) => {
-                Err(Error::UninstallHookFailed(package.ident().clone(),
-                                               CommandExecutionError::run_error(e)))
+                Err(CommonError::hook_run_error(package.ident().clone(),
+                                                UninstallHook::FILE_NAME,
+                                                e).into())
             }
         }
     } else {

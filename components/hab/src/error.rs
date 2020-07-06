@@ -3,8 +3,7 @@ use crate::{api_client,
             hcore,
             protocol::net,
             sup_client::SrvClientError};
-use habitat_common::error::{CommandExecutionError,
-                            DEFAULT_ERROR_EXIT_CODE};
+use habitat_common::error::DEFAULT_ERROR_EXIT_CODE;
 use habitat_core::package::PackageIdent;
 use std::{collections::HashMap,
           env,
@@ -68,7 +67,6 @@ pub enum Error {
     UnsupportedExportFormat(String),
     TomlDeserializeError(toml::de::Error),
     TomlSerializeError(toml::ser::Error),
-    UninstallHookFailed(PackageIdent, CommandExecutionError),
     Utf8Error(String),
     WalkDir(walkdir::Error),
     YamlError(serde_yaml::Error),
@@ -189,9 +187,6 @@ impl fmt::Display for Error {
             Error::UnsupportedExportFormat(ref e) => format!("Unsupported export format: {}", e),
             Error::TomlDeserializeError(ref e) => format!("Can't deserialize TOML: {}", e),
             Error::TomlSerializeError(ref e) => format!("Can't serialize TOML: {}", e),
-            Error::UninstallHookFailed(ref ident, ref e) => {
-                format!("{} uninstall hook failed: {}", ident, e)
-            }
             Error::Utf8Error(ref e) => format!("Error processing a string as UTF-8: {}", e),
             Error::WalkDir(ref err) => format!("{}", err),
             Error::YamlError(ref e) => format!("{}", e),
@@ -206,7 +201,6 @@ impl Error {
     pub fn exit_code(&self) -> i32 {
         match self {
             Self::HabitatCommon(e) => e.exit_code(),
-            Self::UninstallHookFailed(_, e) => e.exit_code(),
             _ => DEFAULT_ERROR_EXIT_CODE,
         }
     }
