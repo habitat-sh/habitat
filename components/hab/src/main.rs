@@ -78,7 +78,6 @@ use std::{collections::HashMap,
           io::{self,
                prelude::*,
                Read},
-          net::ToSocketAddrs,
           path::{Path,
                  PathBuf},
           process,
@@ -1941,28 +1940,9 @@ fn bulkupload_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
 }
 
 fn listen_ctl_addr_from_input(m: &ArgMatches<'_>) -> Result<ListenCtlAddr> {
-    m.value_of("REMOTE_SUP")
-     .map_or(Ok(ListenCtlAddr::default()), resolve_listen_ctl_addr)
-}
-
-fn resolve_listen_ctl_addr(input: &str) -> Result<ListenCtlAddr> {
-    let listen_ctl_addr = if input.find(':').is_some() {
-        input.to_string()
-    } else {
-        format!("{}:{}", input, ListenCtlAddr::DEFAULT_PORT)
-    };
-
-    listen_ctl_addr.to_socket_addrs()
-                   .and_then(|mut addrs| {
-                       addrs.find(std::net::SocketAddr::is_ipv4).ok_or_else(|| {
-                                                                    io::Error::new(
-                    io::ErrorKind::AddrNotAvailable,
-                    "Address could not be resolved.",
-                )
-                                                                })
-                   })
-                   .map(ListenCtlAddr::from)
-                   .map_err(|e| Error::RemoteSupResolutionError(listen_ctl_addr, e))
+    Ok(m.value_of("REMOTE_SUP")
+        .map_or(Ok(ListenCtlAddr::default()),
+                ListenCtlAddr::resolve_listen_ctl_addr)?)
 }
 
 /// Check to see if the user has passed in a USER param.
@@ -2114,40 +2094,6 @@ mod test {
         fn dest_dir_from_pkg_install(pkg_install_args: &[&str]) -> Option<PathBuf> {
             let pkg_install_matches = &matches_for_pkg_install(pkg_install_args);
             binlink_dest_dir_from_matches(pkg_install_matches)
-        }
-    }
-
-    mod resolve_listen_ctl_addr {
-        use super::*;
-
-        #[test]
-        fn ip_is_resolved() {
-            let expected =
-                ListenCtlAddr::from_str("127.0.0.1:8080").expect("Could not create ListenCtlAddr");
-            let actual =
-                resolve_listen_ctl_addr("127.0.0.1:8080").expect("Could not resolve string");
-
-            assert_eq!(expected, actual);
-        }
-
-        #[test]
-        fn localhost_is_resolved() {
-            let expected =
-                ListenCtlAddr::from_str("127.0.0.1:8080").expect("Could not create ListenCtlAddr");
-            let actual =
-                resolve_listen_ctl_addr("localhost:8080").expect("Could not resolve string");
-
-            assert_eq!(expected, actual);
-        }
-
-        #[test]
-        fn port_is_set_to_default_if_not_specified() {
-            let expected =
-                ListenCtlAddr::from_str(&format!("127.0.0.1:{}", ListenCtlAddr::DEFAULT_PORT))
-                    .expect("Could not create ListenCtlAddr");
-            let actual = resolve_listen_ctl_addr("localhost").expect("Could not resolve string");
-
-            assert_eq!(expected, actual);
         }
     }
 }
