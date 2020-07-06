@@ -971,7 +971,6 @@ gpoVMSncu2jMIDZX63IkQII=
                                                                       .into()),
                                                  application_environment: None,
                                                  binds:                   Some(binds),
-                                                 specified_binds:         None,
                                                  binding_mode:            Some(0),
                                                  bldr_url:
                                                      Some(String::from("http://my_url.com/")),
@@ -1362,7 +1361,6 @@ pkg_ident_or_artifact = "core/redis"
                                                                       .into()),
                                                  application_environment: None,
                                                  binds:                   Some(binds),
-                                                 specified_binds:         None,
                                                  binding_mode:            Some(0),
                                                  bldr_url:
                                                      Some(String::from("http://my_url.com/")),

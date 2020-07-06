@@ -67,15 +67,15 @@ message SvcSetCfg {
 
 // Request to load a new service.
 message SvcLoad {
+  reserved 5;
+  reserved "specified_binds";
+
   // Package identifier for the service to load. Using a more qualified identifier will load a
   // more specific package.
   optional sup.types.PackageIdent ident = 1;
   optional sup.types.ApplicationEnvironment application_environment = 2 [deprecated=true];
   // List of service binds to use when configuring the service.
   optional ServiceBindList binds = 3;
-  // Set to true if any binds were set by the caller. This field is needed because a blank list
-  // and map will be present in a case when no binds were set *and* when binds are removed.
-  optional bool specified_binds = 5;
   // Indicate how bind availability affects service start-up
   optional sup.types.BindingMode binding_mode = 14;
   // Remote http URL for the Builder service to receive package updates from.
