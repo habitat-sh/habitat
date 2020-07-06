@@ -16,7 +16,7 @@ Describe "reading from supervisor and service config files" {
     New-Item -ItemType directory -Force -Path $svcDirConfig
 
     It "Supervisor starts with output of 'hab sup run --generate-config'" {
-        # Run this twice. The first time the output is polluted with installing the launcher. 
+        # Run this twice. The first time the output is polluted with installing the launcher.
         $out = hab sup run --generate-config
         $out = hab sup run --generate-config
         Set-Content -Path $supConfig -Force -Value $out
