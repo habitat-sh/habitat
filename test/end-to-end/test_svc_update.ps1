@@ -31,22 +31,64 @@ Write-Host "HAB_AUTH_TOKEN='$env:HAB_AUTH_TOKEN'"
 
 $testChannelOne="dynamic-update-one-$([DateTime]::Now.Ticks)"
 $testChannelTwo="dynamic-update-two-$([DateTime]::Now.Ticks)"
-$pkg="habitat-testing/nginx"
+$nginx_pkg="habitat-testing/nginx"
 if ($IsWindows) {
-    $release="habitat-testing/nginx/1.18.0/20200626143933"
+    $nginx_release="habitat-testing/nginx/1.18.0/20200626143933"
 } else {
-    $release="habitat-testing/nginx/1.18.0/20200626184200"
+    $nginx_release="habitat-testing/nginx/1.18.0/20200626184200"
 }
 
 Describe "hab svc update" {
+    Context "a bound service" {
+        Start-Supervisor -Timeout 45
+
+        Load-SupervisorService $nginx_pkg
+        Wait-Release -Ident $nginx_release
+
+        Load-SupervisorService habitat-testing/test-probe --bind=thing_with_a_port:nginx.default
+        Wait-Release -Ident habitat-testing/test-probe
+
+        it "starts test-probe bound to nginx" {
+            '/hab/sup/default/specs/test-probe.spec' | Should -FileContentMatchExactly 'binds = ["thing_with_a_port:nginx.default"]'
+        }
+
+        Context "removing binds via hab svc update" {
+            $proc = Get-Process test-probe
+
+            # This is the same as saying "remove binds"... we might
+            # find a better way to express this, though.
+            hab svc update habitat-testing/test-probe --bind
+
+            # Currently, test-probe has some long-running post-stop
+            # and init hooks. They should be done within 30 seconds,
+            # but we'll give *plenty* of extra time for the full
+            # restart, just in case gremlins appear.
+            Start-Sleep -Seconds 45
+
+            It "has the new binds in the spec file" {
+                '/hab/sup/default/specs/test-probe.spec' | Should -FileContentMatchExactly "binds = []"
+            }
+
+            It "DOES restart the service process" {
+                $currentProc = Get-Process test-probe
+                $proc.Id | Should -Not -Be $currentProc.Id
+            }
+        }
+
+        AfterAll {
+            Unload-SupervisorService -PackageName $nginx_pkg -Timeout 20
+            Unload-SupervisorService -PackageName habitat-testing/test-probe -Timeout 30
+            Stop-Supervisor
+        }
+    }
     Context "an updating service" {
         Start-Supervisor -Timeout 45
 
-        hab pkg promote $release $testChannelOne
-        hab pkg promote $release $testChannelTwo
+        hab pkg promote $nginx_release $testChannelOne
+        hab pkg promote $nginx_release $testChannelTwo
 
-        Load-SupervisorService $pkg -Strategy "at-once" -Channel $testChannelOne
-        Wait-Release -Ident $release
+        Load-SupervisorService $nginx_pkg -Strategy "at-once" -Channel $testChannelOne
+        Wait-Release -Ident $nginx_release
 
         $proc = Get-Process nginx
 
@@ -55,7 +97,7 @@ Describe "hab svc update" {
         }
 
         Context "modify update channel" {
-            hab svc update $pkg --channel $testChannelTwo
+            hab svc update $nginx_pkg --channel $testChannelTwo
 
             # Give *plenty* of time to pick up the new spec (as well as
             # time for a service to restart, if things are broken and
@@ -76,7 +118,7 @@ Describe "hab svc update" {
         AfterAll {
             hab bldr channel destroy $testChannelOne --origin habitat-testing
             hab bldr channel destroy $testChannelTwo --origin habitat-testing
-            Unload-SupervisorService -PackageName $pkg -Timeout 20
+            Unload-SupervisorService -PackageName $nginx_pkg -Timeout 20
             Stop-Supervisor
         }
     }
