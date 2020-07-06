@@ -1248,7 +1248,7 @@ async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
-    let remote_sup_addr = svc_load.remote_sup.remote_sup.clone();
+    let remote_sup_addr = svc_load.remote_sup.to_listen_ctl_addr();
     let msg = habitat_sup_protocol::ctl::SvcLoad::try_from(svc_load)?;
     gateway_util::send(&remote_sup_addr, msg).await
 }

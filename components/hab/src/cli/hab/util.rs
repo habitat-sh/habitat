@@ -111,7 +111,11 @@ pub struct RemoteSup {
                 short = "r",
                 default_value = ListenCtlAddr::default_as_str())]
     #[serde(default)]
-    pub remote_sup: ListenCtlAddr,
+    remote_sup: ListenCtlAddr,
+}
+
+impl RemoteSup {
+    pub fn to_listen_ctl_addr(&self) -> ListenCtlAddr { self.remote_sup }
 }
 
 pub fn socket_addr_with_default_port<S: AsRef<str>>(addr: S,
