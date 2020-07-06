@@ -5,7 +5,8 @@ use crate::{command::pkg::list,
             error::{Error,
                     Result}};
 use futures::stream::StreamExt;
-use habitat_common::{package_graph::PackageGraph,
+use habitat_common::{error::CommandExecutionError,
+                     package_graph::PackageGraph,
                      templating::{self,
                                   hooks::{Hook,
                                           UninstallHook},
@@ -424,13 +425,20 @@ async fn maybe_run_uninstall_hook<T>(ui: &mut T, package: &PackageInstall) -> Re
                 pkg.svc_user = user;
             }
         }
-        if !hook.run(&ident.name, &pkg, None::<&str>)
-                .map_err(|e| Error::CannotRunUninstallHook(ident.clone(), Box::new(e)))?
-        {
-            return Err(Error::UninstallHookFailed(ident.clone()));
+        match hook.run(&package.ident().name, &pkg, None::<&str>) {
+            Ok(exit_status) if exit_status.success() => Ok(()),
+            Ok(exit_status) => {
+                Err(Error::UninstallHookFailed(package.ident().clone(),
+                                               CommandExecutionError::exit_status(exit_status)))
+            }
+            Err(e) => {
+                Err(Error::UninstallHookFailed(package.ident().clone(),
+                                               CommandExecutionError::run_error(e)))
+            }
         }
+    } else {
+        Ok(())
     }
-    Ok(())
 }
 
 /// Delete empty parent directories from a given path. don't traverse above

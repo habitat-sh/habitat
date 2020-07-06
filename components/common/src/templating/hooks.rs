@@ -397,7 +397,7 @@ impl UninstallHook {
 }
 
 impl Hook for UninstallHook {
-    type ExitValue = bool;
+    type ExitValue = ExitStatus;
 
     fn file_name() -> &'static str { "uninstall" }
 
@@ -410,8 +410,7 @@ impl Hook for UninstallHook {
     fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
         let name = &pkg.name;
         match status.code() {
-            Some(0) => true,
-            Some(code) => {
+            Some(code) if !status.success() => {
                 outputln!(
                     preamble name,
                     "Uninstallation failed! '{}' exited with \
@@ -419,13 +418,13 @@ impl Hook for UninstallHook {
                     Self::file_name(),
                     code
                 );
-                false
             }
             None => {
                 Self::output_termination_message(name, status);
-                false
             }
+            _ => {}
         }
+        status
     }
 
     fn path(&self) -> &Path { &self.render_pair.path }
