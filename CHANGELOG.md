@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.69 -->
-## [1.6.69](https://github.com/habitat-sh/habitat/tree/1.6.69) (2020-07-01)
+<!-- latest_release 1.6.70 -->
+## [1.6.70](https://github.com/habitat-sh/habitat/tree/1.6.70) (2020-07-06)
 
 #### Merged Pull Requests
-- compile windows-service package version into binary and log version at start of log [#7779](https://github.com/habitat-sh/habitat/pull/7779) ([mwrock](https://github.com/mwrock))
+- ensure tdeps file is built with lower level deps at the bottom of the list [#7776](https://github.com/habitat-sh/habitat/pull/7776) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -18,6 +18,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- ensure tdeps file is built with lower level deps at the bottom of the list [#7776](https://github.com/habitat-sh/habitat/pull/7776) ([mwrock](https://github.com/mwrock)) <!-- 1.6.70 -->
 - compile windows-service package version into binary and log version at start of log [#7779](https://github.com/habitat-sh/habitat/pull/7779) ([mwrock](https://github.com/mwrock)) <!-- 1.6.69 -->
 - add uninstall hook [#7764](https://github.com/habitat-sh/habitat/pull/7764) ([mwrock](https://github.com/mwrock)) <!-- 1.6.68 -->
 - hab-plan-build: don&#39;t fail on empty hooks dir [#7775](https://github.com/habitat-sh/habitat/pull/7775) ([stevendanna](https://github.com/stevendanna)) <!-- 1.6.67 -->
