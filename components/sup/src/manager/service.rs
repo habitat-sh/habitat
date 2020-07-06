@@ -971,14 +971,14 @@ impl Service {
 
     // Copy the "run" file to the svc path.
     fn copy_run(&self) -> Result<()> {
-        let svc_run = self.pkg.svc_path.join(hooks::RunHook::file_name());
+        let svc_run = self.pkg.svc_path.join(hooks::RunHook::FILE_NAME);
         match self.hooks.run {
             Some(ref hook) => {
                 fs::copy(hook.path(), &svc_run)?;
                 Self::set_hook_permissions(&svc_run.to_str().unwrap())?;
             }
             None => {
-                let run = self.pkg.path.join(hooks::RunHook::file_name());
+                let run = self.pkg.path.join(hooks::RunHook::FILE_NAME);
                 match fs::metadata(&run) {
                     Ok(_) => {
                         fs::copy(&run, &svc_run)?;

@@ -36,13 +36,13 @@ static LOGKEY: &str = "HK";
 pub fn stdout_log_path<T>(package_name: &str) -> PathBuf
     where T: Hook
 {
-    fs::svc_logs_path(package_name).join(format!("{}.stdout.log", T::file_name()))
+    fs::svc_logs_path(package_name).join(format!("{}.stdout.log", T::FILE_NAME))
 }
 
 pub fn stderr_log_path<T>(package_name: &str) -> PathBuf
     where T: Hook
 {
-    fs::svc_logs_path(package_name).join(format!("{}.stderr.log", T::file_name()))
+    fs::svc_logs_path(package_name).join(format!("{}.stderr.log", T::FILE_NAME))
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -61,7 +61,7 @@ impl Default for ExitCode {
 pub trait Hook: fmt::Debug + Sized + Send {
     type ExitValue: fmt::Debug + Send;
 
-    fn file_name() -> &'static str;
+    const FILE_NAME: &'static str;
 
     /// Tries to load a hook if a (deprecated) hook file exists.
     ///
@@ -74,9 +74,9 @@ pub trait Hook: fmt::Debug + Sized + Send {
         where C: AsRef<Path>,
               T: AsRef<Path>
     {
-        let file_name = Self::file_name();
-        let deprecated_file_name = if Self::file_name().contains('-') {
-            Some(Self::file_name().replace("-", "_"))
+        let file_name = Self::FILE_NAME;
+        let deprecated_file_name = if Self::FILE_NAME.contains('-') {
+            Some(Self::FILE_NAME.replace("-", "_"))
         } else {
             None
         };
@@ -116,7 +116,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
                    template.display());
             return None;
         };
-        match RenderPair::new(concrete, &template_to_use, Self::file_name()) {
+        match RenderPair::new(concrete, &template_to_use, Self::FILE_NAME) {
             Ok(pair) => Some(Self::new(package_name, pair, feature_flags)),
             Err(err) => {
                 outputln!(preamble package_name, "Failed to load hook: {}", err);
@@ -133,9 +133,9 @@ pub trait Hook: fmt::Debug + Sized + Send {
     fn compile<T>(&self, service_group: &str, ctx: &T) -> Result<bool>
         where T: Serialize
     {
-        let content = self.renderer().render(Self::file_name(), ctx)?;
+        let content = self.renderer().render(Self::FILE_NAME, ctx)?;
         // We make sure we don't use a deprecated file name
-        let path = self.path().with_file_name(Self::file_name());
+        let path = self.path().with_file_name(Self::FILE_NAME);
         if write_hook(&content, &path)? {
             outputln!(preamble service_group,
                       "Modified hook content in {}",
@@ -144,7 +144,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
             Ok(true)
         } else {
             debug!("{}, already compiled to {}",
-                   Self::file_name(),
+                   Self::FILE_NAME,
                    &path.display());
             Ok(false)
         }
@@ -172,7 +172,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
     #[cfg(unix)]
     fn output_termination_message(service_group: &str, status: ExitStatus) {
         outputln!(preamble service_group, "{} was terminated by signal {:?}",
-                  Self::file_name(),
+                  Self::FILE_NAME,
                   status.signal());
     }
 
@@ -209,7 +209,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
     {
         let mut child = Self::exec(self.path(), &pkg, svc_encrypted_password).map_err(|err| {
                             outputln!(preamble service_group,
-                                      "Hook failed to run, {}, {}", Self::file_name(), err);
+                                      "Hook failed to run, {}, {}", Self::FILE_NAME, err);
                             err
                         })?;
         let mut hook_output = HookOutput::new(self.stdout_log_path(), self.stderr_log_path());
@@ -217,7 +217,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
         Ok(child.wait()
                 .map_err(|err| {
                     outputln!(preamble service_group,
-                              "Hook failed to run, {}, {}", Self::file_name(), err);
+                              "Hook failed to run, {}, {}", Self::FILE_NAME, err);
                     err
                 })
                 .map(|status| self.handle_exit(pkg, &hook_output, status))?)
@@ -329,7 +329,7 @@ impl InstallHook {
 impl Hook for InstallHook {
     type ExitValue = ExitStatus;
 
-    fn file_name() -> &'static str { "install" }
+    const FILE_NAME: &'static str = "install";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
         InstallHook { render_pair:     pair,
@@ -364,7 +364,7 @@ impl Hook for InstallHook {
                     preamble name,
                     "Installation failed! '{}' exited with \
                      status code {}",
-                    Self::file_name(),
+                    Self::FILE_NAME,
                     code
                 );
             }
@@ -399,7 +399,7 @@ impl UninstallHook {
 impl Hook for UninstallHook {
     type ExitValue = ExitStatus;
 
-    fn file_name() -> &'static str { "uninstall" }
+    const FILE_NAME: &'static str = "uninstall";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
         UninstallHook { render_pair:     pair,
@@ -415,7 +415,7 @@ impl Hook for UninstallHook {
                     preamble name,
                     "Uninstallation failed! '{}' exited with \
                      status code {}",
-                    Self::file_name(),
+                    Self::FILE_NAME,
                     code
                 );
             }
@@ -568,7 +568,7 @@ impl<'a> HookOutput<'a> {
     }
 
     fn stream_preamble<H: Hook>(service_group: &str) -> String {
-        format!("{} hook[{}]:", service_group, H::file_name())
+        format!("{} hook[{}]:", service_group, H::FILE_NAME)
     }
 
     fn stdout_str_impl(&self) -> Result<String> {
@@ -883,17 +883,17 @@ echo "The message is Hello"
         DirBuilder::new().recursive(true)
                          .create(logs_dir)
                          .expect("couldn't create logs dir");
-        let mut cmd = Command::new(hook_fixtures_path().join(InstallHook::file_name()));
+        let mut cmd = Command::new(hook_fixtures_path().join(InstallHook::FILE_NAME));
         cmd.stdin(Stdio::null())
            .stdout(Stdio::piped())
            .stderr(Stdio::piped());
         let mut child = cmd.spawn().expect("couldn't run hook");
         let stdout_log = tmp_dir.path()
                                 .join("logs")
-                                .join(format!("{}.stdout.log", InstallHook::file_name()));
+                                .join(format!("{}.stdout.log", InstallHook::FILE_NAME));
         let stderr_log = tmp_dir.path()
                                 .join("logs")
-                                .join(format!("{}.stderr.log", InstallHook::file_name()));
+                                .join(format!("{}.stderr.log", InstallHook::FILE_NAME));
         let mut hook_output = HookOutput::new(&stdout_log, &stderr_log);
         let service_group =
             ServiceGroup::new("dummy", "service", None).expect("couldn't create ServiceGroup");
