@@ -327,7 +327,7 @@ impl InstallHook {
 }
 
 impl Hook for InstallHook {
-    type ExitValue = bool;
+    type ExitValue = ExitStatus;
 
     fn file_name() -> &'static str { "install" }
 
@@ -359,8 +359,7 @@ impl Hook for InstallHook {
             }
         }
         match status.code() {
-            Some(0) => true,
-            Some(code) => {
+            Some(code) if !status.success() => {
                 outputln!(
                     preamble name,
                     "Installation failed! '{}' exited with \
@@ -368,13 +367,13 @@ impl Hook for InstallHook {
                     Self::file_name(),
                     code
                 );
-                false
             }
             None => {
                 Self::output_termination_message(name, status);
-                false
             }
+            _ => {}
         }
+        status
     }
 
     fn path(&self) -> &Path { &self.render_pair.path }
@@ -858,7 +857,7 @@ echo "The message is Hello"
         #[cfg(unix)]
         {
             // Run the hook
-            assert!(hook.run(&service_group, &pkg, None::<&str>).unwrap());
+            assert!(matches!(hook.run(&service_group, &pkg, None::<&str>), Ok(exit_status) if exit_status.success()));
 
             // Remove the hook file and try run this should fail
             std::fs::remove_dir_all(&concrete_path).expect("remove temp dir");

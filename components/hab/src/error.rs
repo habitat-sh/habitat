@@ -3,6 +3,7 @@ use crate::{api_client,
             hcore,
             protocol::net,
             sup_client::SrvClientError};
+use habitat_common::error::DEFAULT_ERROR_EXIT_CODE;
 use habitat_core::package::PackageIdent;
 use std::{collections::HashMap,
           env,
@@ -205,6 +206,15 @@ impl fmt::Display for Error {
 }
 
 impl error::Error for Error {}
+
+impl Error {
+    pub fn exit_code(&self) -> i32 {
+        match self {
+            Self::HabitatCommon(e) => e.exit_code(),
+            _ => DEFAULT_ERROR_EXIT_CODE,
+        }
+    }
+}
 
 impl From<api_client::Error> for Error {
     fn from(err: api_client::Error) -> Error { Error::APIClient(err) }

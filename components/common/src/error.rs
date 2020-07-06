@@ -1,3 +1,10 @@
+use crate::{api_client,
+            hcore::{self,
+                    package::PackageIdent}};
+#[cfg(windows)]
+use habitat_core::os::process::windows_child::ExitStatus;
+#[cfg(not(windows))]
+use std::process::ExitStatus;
 use std::{env,
           error,
           fmt,
@@ -8,11 +15,44 @@ use std::{env,
           str,
           string};
 
-use crate::{api_client,
-            hcore::{self,
-                    package::PackageIdent}};
+pub const DEFAULT_ERROR_EXIT_CODE: i32 = 1;
 
 pub type Result<T> = result::Result<T, Error>;
+
+#[derive(Debug)]
+pub enum CommandExecutionError {
+    RunError(Box<Error>),
+    ExitStatus(ExitStatus),
+}
+
+impl CommandExecutionError {
+    pub fn run_error(e: Error) -> Self { Self::RunError(Box::new(e)) }
+
+    pub fn exit_status(e: ExitStatus) -> Self { Self::ExitStatus(e) }
+
+    pub fn exit_code(&self) -> i32 {
+        if let Self::ExitStatus(exit_status) = self {
+            exit_status.code().unwrap_or(DEFAULT_ERROR_EXIT_CODE)
+        } else {
+            DEFAULT_ERROR_EXIT_CODE
+        }
+    }
+}
+
+impl fmt::Display for CommandExecutionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::RunError(e) => write!(f, "execution failed: {}", e),
+            Self::ExitStatus(exit_status) => {
+                if let Some(code) = exit_status.code() {
+                    write!(f, "exited with status {}", code)
+                } else {
+                    write!(f, "exited without status")
+                }
+            }
+        }
+    }
+}
 
 #[derive(Debug)]
 pub enum Error {
@@ -32,7 +72,7 @@ pub enum Error {
     FileNotFound(String),
     GossipFileRelativePath(String),
     HabitatCore(hcore::Error),
-    InstallHookFailed(PackageIdent),
+    InstallHookFailed(PackageIdent, CommandExecutionError),
     InterpreterNotFound(PackageIdent, Box<Self>),
     InvalidEventStreamToken(String),
     /// Occurs when making lower level IO calls.
@@ -104,8 +144,8 @@ impl fmt::Display for Error {
             Error::MissingCLIInputError(ref arg) => {
                 format!("Missing required CLI argument!: {}", arg)
             }
-            Error::InstallHookFailed(ref ident) => {
-                format!("Install hook exited unsuccessfully: {}", ident)
+            Error::InstallHookFailed(ref ident, ref e) => {
+                format!("{} install hook failed: {}", ident, e)
             }
             Error::InterpreterNotFound(ref ident, ref e) => {
                 format!("Unable to install interpreter ident: {} - {}", ident, e)
@@ -159,6 +199,15 @@ impl fmt::Display for Error {
 }
 
 impl error::Error for Error {}
+
+impl Error {
+    pub fn exit_code(&self) -> i32 {
+        match self {
+            Self::InstallHookFailed(_, e) => e.exit_code(),
+            _ => DEFAULT_ERROR_EXIT_CODE,
+        }
+    }
+}
 
 impl From<api_client::Error> for Error {
     fn from(err: api_client::Error) -> Self { Error::APIClient(err) }

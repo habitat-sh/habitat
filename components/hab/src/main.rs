@@ -114,8 +114,9 @@ async fn main() {
     let mut ui = UI::default_with_env();
     let flags = FeatureFlag::from_env(&mut ui);
     if let Err(e) = start(&mut ui, flags).await {
+        let exit_code = e.exit_code();
         ui.fatal(e).unwrap();
-        std::process::exit(1)
+        std::process::exit(exit_code)
     }
 }
 

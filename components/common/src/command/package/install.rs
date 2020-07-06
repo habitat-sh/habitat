@@ -24,7 +24,8 @@ use crate::{api_client::{self,
                          BuilderAPIClient,
                          Client,
                          Error::APIError},
-            error::{Error,
+            error::{CommandExecutionError,
+                    Error,
                     Result},
             templating::{self,
                          hooks::{Hook,
@@ -437,13 +438,20 @@ async fn run_install_hook<T>(ui: &mut T, package: &PackageInstall) -> Result<()>
                 pkg.svc_user = user;
             }
         }
-        if !hook.run(&package.ident().name, &pkg, None::<&str>)
-                .unwrap_or(false)
-        {
-            return Err(Error::InstallHookFailed(package.ident().clone()));
+        match hook.run(&package.ident().name, &pkg, None::<&str>) {
+            Ok(exit_status) if exit_status.success() => Ok(()),
+            Ok(exit_status) => {
+                Err(Error::InstallHookFailed(package.ident().clone(),
+                                             CommandExecutionError::exit_status(exit_status)))
+            }
+            Err(e) => {
+                Err(Error::InstallHookFailed(package.ident().clone(),
+                                             CommandExecutionError::run_error(e)))
+            }
         }
+    } else {
+        Ok(())
     }
-    Ok(())
 }
 
 struct InstallTask<'a> {
