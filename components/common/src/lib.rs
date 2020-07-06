@@ -81,12 +81,12 @@ bitflags::bitflags! {
         const TEST_EXIT                  = 0b0000_0000_0010;
         const TEST_BOOT_FAIL             = 0b0000_0000_0100;
         const REDACT_HTTP                = 0b0000_0000_1000;
+        const SERVICE_CONFIG_FILES       = 0b0000_0001_0000;
         const OFFLINE_INSTALL            = 0b0000_0100_0000;
         const IGNORE_LOCAL               = 0b0000_1000_0000;
         const TRIGGER_ELECTION           = 0b0010_0000_0000;
         const STRUCTOPT_CLI              = 0b0100_0000_0000;
         const NO_NAMED_PIPE_HEALTH_CHECK = 0b1000_0000_0000;
-        const SERVICE_CONFIG_FILES       = 0b0000_0001_0000;
     }
 }
 
