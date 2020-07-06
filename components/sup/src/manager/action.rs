@@ -28,6 +28,9 @@ pub enum SupervisorAction {
         service_spec:   ServiceSpec,
         shutdown_input: ShutdownInput,
     },
+    UpdateService {
+        service_spec: ServiceSpec,
+    },
 }
 
 pub type ActionSender = mpsc::Sender<SupervisorAction>;

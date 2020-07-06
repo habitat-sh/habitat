@@ -318,6 +318,7 @@ impl SrvHandler {
                                        })
                                    }))
             }
+            "SvcUpdate" => util::to_supervisor_command(msg, ctl_sender, commands::service_update),
             "SvcUnload" => util::to_supervisor_command(msg, ctl_sender, commands::service_unload),
             "SvcStart" => util::to_command(msg, ctl_sender, commands::service_start),
             "SvcStop" => util::to_supervisor_command(msg, ctl_sender, commands::service_stop),

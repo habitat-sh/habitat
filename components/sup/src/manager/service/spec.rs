@@ -264,6 +264,50 @@ impl ServiceSpec {
         Ok(self)
     }
 
+    pub fn merge_svc_update(&mut self, svc_update: habitat_sup_protocol::ctl::SvcUpdate) {
+        if let Some(group) = svc_update.group {
+            self.group = group;
+        }
+        if let Some(bldr_url) = svc_update.bldr_url {
+            self.bldr_url = bldr_url;
+        }
+        if let Some(channel) = svc_update.bldr_channel {
+            self.channel = channel.into();
+        }
+        if let Some(topology) = svc_update.topology {
+            if let Some(topology) = Topology::from_i32(topology) {
+                self.topology = topology;
+            }
+        }
+        if let Some(update_strategy) = svc_update.update_strategy {
+            if let Some(update_strategy) = UpdateStrategy::from_i32(update_strategy) {
+                self.update_strategy = update_strategy;
+            }
+        }
+        if let Some(update_condition) = svc_update.update_condition {
+            if let Some(update_condition) = UpdateCondition::from_i32(update_condition) {
+                self.update_condition = update_condition;
+            }
+        }
+        if let Some(list) = svc_update.binds {
+            self.binds = list.into();
+        }
+        if let Some(binding_mode) = svc_update.binding_mode {
+            if let Some(binding_mode) = BindingMode::from_i32(binding_mode) {
+                self.binding_mode = binding_mode;
+            }
+        }
+        if let Some(svc_encrypted_password) = svc_update.svc_encrypted_password {
+            self.svc_encrypted_password = Some(svc_encrypted_password);
+        }
+        if let Some(interval) = svc_update.health_check_interval {
+            self.health_check_interval = interval.seconds.into()
+        }
+        if let Some(shutdown_timeout) = svc_update.shutdown_timeout {
+            self.shutdown_timeout = Some(ShutdownTimeout::from(shutdown_timeout));
+        }
+    }
+
     /// Given an `old` and a `new` spec, figure out what operations
     /// are needed in order to turn the `old` state into the `new`
     /// state.

@@ -162,6 +162,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         Svc::Load(svc_load) => {
                             return sub_svc_load(svc_load).await;
                         }
+                        Svc::Update(svc_update) => return sub_svc_update(svc_update).await,
                         _ => {
                             // All other commands will be caught by the CLI parsing logic below.
                         }
@@ -1276,6 +1277,12 @@ async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
                                           timeout_in_seconds };
     let remote_sup_addr = remote_sup_from_input(m)?;
     gateway_util::send(&remote_sup_addr, msg).await
+}
+
+async fn sub_svc_update(u: hab::cli::hab::svc::Update) -> Result<()> {
+    let ctl_addr = u.remote_sup.to_listen_ctl_addr();
+    let msg: sup_proto::ctl::SvcUpdate = TryFrom::try_from(u)?;
+    gateway_util::send(&ctl_addr, msg).await
 }
 
 async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {

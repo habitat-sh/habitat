@@ -44,6 +44,10 @@ impl message::MessageStatic for SvcLoad {
     const MESSAGE_ID: &'static str = "SvcLoad";
 }
 
+impl message::MessageStatic for SvcUpdate {
+    const MESSAGE_ID: &'static str = "SvcUpdate";
+}
+
 impl message::MessageStatic for SvcUnload {
     const MESSAGE_ID: &'static str = "SvcUnload";
 }

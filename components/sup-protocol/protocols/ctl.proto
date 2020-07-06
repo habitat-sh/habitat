@@ -104,6 +104,34 @@ message SvcLoad {
   optional sup.types.UpdateCondition update_condition = 17;
 }
 
+message SvcUpdate {
+  // Package identifier for the service to update. Must match the
+  // ident the service was started with.
+  optional sup.types.PackageIdent ident = 1;
+  // List of service binds to use when configuring the service.
+  optional ServiceBindList binds = 2;
+  // Indicate how bind availability affects service start-up
+  optional sup.types.BindingMode binding_mode = 3;
+  // Remote http URL for the Builder service to receive package updates from.
+  optional string bldr_url = 4;
+  // Remote channel on the Builder service to receive package updates from.
+  optional string bldr_channel = 5;
+  // Service group name for the service.
+  optional string group = 6;
+  // Encrypted password for a Windows service.
+  optional string svc_encrypted_password = 7;
+  // Topology which the service will run in.
+  optional sup.types.Topology topology = 8;
+  // Update strategy for the service.
+  optional sup.types.UpdateStrategy update_strategy = 9;
+  // Health Check interval for the service
+  optional sup.types.HealthCheckInterval health_check_interval = 10;
+  // The shutdown timeout for the service.
+  optional uint32 shutdown_timeout = 11;
+  // Update condition for the service.
+  optional sup.types.UpdateCondition update_condition = 12;
+}
+
 // Request to unload a loaded service.
 message SvcUnload {
   reserved 2;

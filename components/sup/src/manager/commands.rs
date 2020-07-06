@@ -205,6 +205,25 @@ pub async fn service_load(mgr: &ManagerState,
     Ok(())
 }
 
+pub fn service_update(mgr: &ManagerState,
+                      req: &mut CtlRequest,
+                      opts: protocol::ctl::SvcUpdate,
+                      action_sender: &ActionSender)
+                      -> NetResult<()> {
+    let ident: PackageIdent = opts.ident.clone().ok_or_else(err_update_client)?.into();
+    if let Some(mut service_spec) = mgr.cfg.spec_for_ident(&ident) {
+        service_spec.merge_svc_update(opts);
+        let action = SupervisorAction::UpdateService { service_spec };
+        send_action(action, action_sender)?;
+
+        req.info(format!("Updating {}", ident))?;
+        req.reply_complete(net::ok());
+        Ok(())
+    } else {
+        Err(net::err(ErrCode::Internal, Error::ServiceNotLoaded(ident)))
+    }
+}
+
 pub fn service_unload(mgr: &ManagerState,
                       req: &mut CtlRequest,
                       opts: protocol::ctl::SvcUnload,

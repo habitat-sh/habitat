@@ -1096,6 +1096,13 @@ impl Manager {
                         self.remove_spec_file(&service_spec.ident).ok();
                         self.stop_service_gsw_msw(&service_spec.ident, &shutdown_input);
                     }
+                    UpdateService { service_spec } => {
+                        trace!("Received UpdateService action for {}", service_spec.ident);
+                        if let Err(err) = self.state.cfg.save_spec_for(&service_spec) {
+                            warn!("Tried to update '{}', but couldn't write the spec: {:?}",
+                                  service_spec.ident, err);
+                        }
+                    }
                 }
             }
 
