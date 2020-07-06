@@ -330,7 +330,7 @@ _render_dependency_metadata_file() {
   local deps
 
   deps="$(printf '%s\n' "${arr[@]}" \
-    | cut -d "/" -f ${cutn}- | sort)"
+    | cut -d "/" -f ${cutn}-)"
   if [[ -n "$deps" ]]; then
     debug "Rendering ${metadata_file_name} metadata file"
     echo "$deps" > "${prefix}"/"${metadata_file_name}"

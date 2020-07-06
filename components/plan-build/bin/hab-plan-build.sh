@@ -870,6 +870,30 @@ _return_or_append_to_set() {
   return 0
 }
 
+# **Internal** Appends an entry to the given array and removes any entries
+# already in the array that match the passed entry. Note that this is specifically
+# intended for lists of dependencies used for building TDEPS metadata. This should
+# not be used as a generic array appender because it could have unexpected results
+# with arbitrary data.
+_add_dep_to_tdep_list() {
+  local to_add="${1}"
+  local deps=("${@:2}")
+  local result=()
+
+  # Explicitly filter out any instances of the to-be-added dependency
+  # that we may have already seen.
+  for d in "${deps[@]}"; do
+      if [[ "$d" != "${to_add}" ]]; then
+          result=( "${result[@]}" "$d" )
+      fi
+  done
+  # Append the dependency to the end of the list
+  result=( "${result[@]}" "$to_add" )
+
+  echo "${result[@]}"
+  return 0
+}
+
 # **Internal** Returns 0 (true) if the element is present in the array and
 # non-zero (false) otherwise.
 #
@@ -1070,7 +1094,13 @@ _set_build_tdeps_resolved() {
     mapfile -t tdeps < <(_get_tdeps_for "$dep") # See syntax note @ _get_tdeps_for
     for tdep in "${tdeps[@]}"; do
       tdep="$HAB_PKG_PATH/$tdep"
-      read -r -a pkg_build_tdeps_resolved <<< "$(_return_or_append_to_set "$tdep" "${pkg_build_tdeps_resolved[@]}")" # See syntax note @ _return_or_append_to_set
+      # Use _add_dep_to_tdep_list instead of _return_or_append_to_set
+      # so that duplicate entries are removed from the top of the list and
+      # new entries are always added to the bottom. This ensures that dependent
+      # entries will be installed prior to the package with the dependency
+      # otherwise install hooks may fail if they contain logic that depend on
+      # the dependency.
+      read -r -a pkg_build_tdeps_resolved <<< "$(_add_dep_to_tdep_list "$tdep" "${pkg_build_tdeps_resolved[@]}")"
     done
   done
 }
@@ -1131,7 +1161,13 @@ _resolve_run_dependencies() {
     mapfile -t tdeps < <(_get_tdeps_for "$dep") # See syntax note @ _get_tdeps_for
     for tdep in "${tdeps[@]}"; do
       tdep="$HAB_PKG_PATH/$tdep"
-      read -r -a pkg_tdeps_resolved <<< "$(_return_or_append_to_set "$tdep" "${pkg_tdeps_resolved[@]}")" # See syntax note @ _return_or_append_to_set
+      # Use _add_dep_to_tdep_list instead of _return_or_append_to_set
+      # so that duplicate entries are removed from the top of the list and
+      # new entries are always added to the bottom. This ensures that dependent
+      # entries will be installed prior to the package with the dependency
+      # otherwise install hooks may fail if they contain logic that depend on
+      # the dependency.
+      read -r -a pkg_tdeps_resolved <<< "$(_add_dep_to_tdep_list "$tdep" "${pkg_tdeps_resolved[@]}")" # See syntax note @ _return_or_append_to_set
     done
   done
 }
