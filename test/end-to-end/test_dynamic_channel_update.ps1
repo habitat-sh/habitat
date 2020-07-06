@@ -58,13 +58,14 @@ Describe "modification of Supervisor-specific service configuration" {
         # is not a patchy operation.
         hab svc load $pkg --force --strategy "at-once" --channel $testChannelTwo
 
-        # Give *plenty* of time to pick up the new spec (as welll as
+        # Give *plenty* of time to pick up the new spec (as well as
         # time for a service to restart, if things are broken and
         # that's a thing that could happen).
         Start-Sleep -Seconds 10
 
         It "has the new channel in the spec file" {
             '/hab/sup/default/specs/nginx.spec' | Should -FileContentMatchExactly "channel = `"$testChannelTwo`""
+            '/hab/sup/default/specs/nginx.spec' | Should -FileContentMatchExactly "strategy = `"at-once`""
         }
 
         It "does not restart the service process" {
