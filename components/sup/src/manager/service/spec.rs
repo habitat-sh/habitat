@@ -242,10 +242,7 @@ impl ServiceSpec {
             }
         }
         if let Some(list) = svc_load.binds {
-            self.binds = list.binds
-                             .into_iter()
-                             .map(|pb| ServiceBind::new(&pb.name, pb.service_group.into()))
-                             .collect();
+            self.binds = list.into();
         }
         if let Some(binding_mode) = svc_load.binding_mode {
             if let Some(binding_mode) = BindingMode::from_i32(binding_mode) {
