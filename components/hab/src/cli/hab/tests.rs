@@ -5,15 +5,16 @@ use clap::{App,
 use habitat_common::FeatureFlag;
 use std::str;
 
-fn feature_flags() -> FeatureFlag {
+fn feature_flags_for_cli_test() -> FeatureFlag {
     let mut f = FeatureFlag::empty();
+    // Inorder for the `clap` and `structopt` comparison we must turn on this feature flag because
+    // the `structopt` version does not have a way to conditionally add subcommands at runtime.
     f.insert(FeatureFlag::SERVICE_CONFIG_FILES);
     f
 }
 
-fn config_file_enabled() -> FeatureFlag {
-    let mut f = FeatureFlag::empty();
-    f.insert(FeatureFlag::SERVICE_CONFIG_FILES);
+fn feature_flags_for_cli_test_with_structopt() -> FeatureFlag {
+    let mut f = feature_flags_for_cli_test();
     f.insert(FeatureFlag::STRUCTOPT_CLI);
     f
 }
@@ -403,10 +404,10 @@ fn test_hab_help() {
     let env = lock_service_config_files();
     env.set("1");
 
-    let mut hab1 = cli::get(feature_flags()).after_help("");
+    let mut hab1 = cli::get(feature_flags_for_cli_test()).after_help("");
     // Remove the subcommand aliases
     hab1.p.subcommands.truncate(hab1.p.subcommands.len() - 7);
-    let mut hab2 = cli::get(config_file_enabled()).after_help("");
+    let mut hab2 = cli::get(feature_flags_for_cli_test_with_structopt()).after_help("");
     compare(&mut hab1, &mut hab2, "hab");
 }
 
@@ -416,7 +417,7 @@ fn test_sup_run_help() {
     let env = lock_service_config_files();
     env.set("1");
 
-    let mut sup1 = cli::sub_sup_run(feature_flags()).after_help("");
-    let mut sup2 = cli::sub_sup_run(config_file_enabled()).after_help("");
+    let mut sup1 = cli::sub_sup_run(feature_flags_for_cli_test()).after_help("");
+    let mut sup2 = cli::sub_sup_run(feature_flags_for_cli_test_with_structopt()).after_help("");
     compare(&mut sup1, &mut sup2, "sup");
 }
