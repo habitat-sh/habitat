@@ -30,7 +30,8 @@ use std::{collections::HashMap,
           path::{Path,
                  PathBuf}};
 
-const HEADER_VERSION: u8 = 2;
+const CURRENT_HEADER_VERSION: u8 = 2;
+const OLDEST_HEADER_VERSION: u8 = 1;
 
 // And now for a riveting discussion on version 1 vs version 2 headers in this magical file. The
 // version 1 header was a struct consisting of 6 u64 fields. It did not contain any information on
@@ -45,6 +46,15 @@ const HEADER_VERSION_2_NUM_FIELDS: usize = 7;
 const HEADER_VERSION_1_SIZE: usize = SIZE_OF_HEADER_FIELD * HEADER_VERSION_1_NUM_FIELDS;
 const HEADER_VERSION_2_SIZE: usize =
     (SIZE_OF_HEADER_FIELD * HEADER_VERSION_2_NUM_FIELDS) + SIZE_OF_HEADER_FIELD;
+
+trait WriteExt: Write {
+    fn write_all_with_size(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.write_all(buf)?;
+        Ok(buf.len())
+    }
+}
+
+impl<W: Write> WriteExt for W {}
 
 /// A versioned binary file containing rumors exchanged by the butterfly server which have
 /// been periodically persisted to disk.
@@ -210,9 +220,12 @@ impl DatFileWriter {
         w.with_writer(|mut f| {
              let mut writer = BufWriter::new(&mut f);
              let header_reserve = vec![0; HEADER_VERSION_2_SIZE];
-             writer.write(&[HEADER_VERSION])
-                   .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?;
-             writer.write(&header_reserve)
+             writer.write_all(&[CURRENT_HEADER_VERSION]).map_err(|err| {
+                                                             Error::DatFileIO(self.path()
+                                                                                  .to_path_buf(),
+                                                                              err)
+                                                         })?;
+             writer.write_all(&header_reserve)
                    .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?;
              header.insert_member_offset(self.write_member_list_mlr(&mut writer, member_list)?);
              header.insert_offset_for_rumor(Service::MESSAGE_ID,
@@ -249,8 +262,9 @@ impl DatFileWriter {
         where W: Write
     {
         let bytes = header.write_to_bytes();
-        let total = writer.write(&bytes)
-                          .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?;
+        let total =
+            writer.write_all_with_size(&bytes)
+                  .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?;
         Ok(total)
     }
 
@@ -274,10 +288,11 @@ impl DatFileWriter {
         let mut len_buf = [0; 8];
         let bytes = membership.clone().write_to_bytes().unwrap();
         LittleEndian::write_u64(&mut len_buf, bytes.len() as u64);
-        total += writer.write(&len_buf)
-                       .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?
-                 as u64;
-        total += writer.write(&bytes)
+        total +=
+            writer.write_all_with_size(&len_buf)
+                  .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?
+            as u64;
+        total += writer.write_all_with_size(&bytes)
                        .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?
                  as u64;
         Ok(total)
@@ -304,10 +319,11 @@ impl DatFileWriter {
         let mut rumor_len = [0; 8];
         let bytes = rumor.write_to_bytes().unwrap();
         LittleEndian::write_u64(&mut rumor_len, bytes.len() as u64);
-        total += writer.write(&rumor_len)
-                       .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?
-                 as u64;
-        total += writer.write(&bytes)
+        total +=
+            writer.write_all_with_size(&rumor_len)
+                  .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?
+            as u64;
+        total += writer.write_all_with_size(&bytes)
                        .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?
                  as u64;
         Ok(total)
@@ -322,10 +338,11 @@ impl DatFile {
               .map_err(|err| Error::DatFileIO(path.to_path_buf(), err))?;
         debug!("Header Version: {}", version[0]);
 
-        // If this has happened, it's likely that the file is corrupt
-        if version[0] > HEADER_VERSION {
-            let msg = format!("Unable to read Dat File {}: corrupt file header.",
-                              path.display());
+        // If this has happened, it's likely that the file was mutated in some unexpected way.
+        if version[0] < OLDEST_HEADER_VERSION || version[0] > CURRENT_HEADER_VERSION {
+            let msg = format!("Unable to read Dat File {}: invalid header version: {}",
+                              path.display(),
+                              version[0]);
             let err = io::Error::new(io::ErrorKind::InvalidData, msg);
             return Err(Error::DatFileIO(path.to_path_buf(), err));
         }
@@ -517,7 +534,7 @@ mod tests {
         original.insert_offset_for_rumor(Departure::MESSAGE_ID, rand::random::<u64>());
 
         let bytes = original.write_to_bytes();
-        let restored = Header::from_bytes(&bytes, HEADER_VERSION);
+        let restored = Header::from_bytes(&bytes, CURRENT_HEADER_VERSION);
         assert_eq!(bytes.len() as u64, restored.size);
         assert_eq!(original.offsets, restored.offsets);
         assert_eq!(original.version, restored.version);
@@ -544,7 +561,14 @@ mod tests {
 
         assert!(result.is_ok(), "{:?}", result);
         assert!(file_path.is_file());
+        let dat_path = file_path.clone();
         let dat_file_length = fs::metadata(file_path).map(|md| md.len());
         assert_ne!(dat_file_length.unwrap(), 0);
+
+        // Now that the dat file content was written, re-read the content back in
+        // to ensure underlying filesystem operations occurred successfully.
+        let content = DatFileReader::read(dat_path).unwrap();
+        assert_eq!(content.header.version, 2);
+        assert_eq!(content.header.size, 64);
     }
 }

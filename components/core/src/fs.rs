@@ -4,6 +4,12 @@ use crate::util::posix_perm::{self,
 #[cfg(windows)]
 use crate::util::win_perm::{self,
                             set_permissions};
+#[cfg(windows)]
+use std::{iter,
+          os::windows::ffi::OsStrExt};
+#[cfg(windows)]
+use winapi::um::winbase::MoveFileExW;
+
 use crate::{env as henv,
             error::{Error,
                     Result},
@@ -770,12 +776,8 @@ impl AtomicWriter {
             })?;
         }
         self.tempfile.as_file().sync_all()?;
-        debug!("Renaming {} to {}",
-               self.tempfile.path().to_string_lossy(),
-               &self.dest.to_string_lossy());
-        fs::rename(self.tempfile.into_temp_path(), &self.dest)?;
-        #[cfg(unix)]
-        AtomicWriter::sync_parent(&self.dest)?;
+
+        atomic_rename(self.tempfile.into_temp_path(), &self.dest.as_path())?;
 
         Ok(())
     }
@@ -804,6 +806,60 @@ impl AtomicWriter {
             Ok(())
         }
     }
+}
+
+// `fs::rename` calls `MoveFileExW` on Windows, however the underlying implementation only
+// utilizes the `MOVEFILE_REPLACE_EXISTING` flag which allows for file overwrite but no
+// guarantee on durability. For this, we additionally pass `MOVEFILE_WRITE_THROUGH`.
+// This causes the function to not return until the file is actually moved on the disk.
+// Setting this value guarantees that a move performed as a copy and delete operation is
+// flushed to disk before the function returns. The flush occurs at the end of the copy
+// operation.
+#[cfg(windows)]
+fn rename_windows<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<()> {
+    // Helper function to transform a Path to a `LPCWSTR` Windows string data type. It is
+    // essentially a null-terminated string of 16-bit Unicode characters.
+    fn windows_u16s(s: &Path) -> Vec<u16> {
+        s.as_os_str().encode_wide().chain(iter::once(0)).collect()
+    }
+    unsafe {
+        if MoveFileExW(windows_u16s(from.as_ref()).as_ptr(),
+                       windows_u16s(to.as_ref()).as_ptr(),
+                       winapi::um::winbase::MOVEFILE_WRITE_THROUGH
+                       | winapi::um::winbase::MOVEFILE_REPLACE_EXISTING)
+           == 0
+        {
+            Err(io::Error::last_os_error())
+        } else {
+            Ok(())
+        }
+    }
+}
+
+#[cfg(unix)]
+fn rename_unix<P: AsRef<Path>, Q: AsRef<Path> + std::convert::AsRef<std::path::Path> + Copy>(
+    from: P,
+    to: Q)
+    -> io::Result<()> {
+    fs::rename(from, to)?;
+    AtomicWriter::sync_parent(&PathBuf::from(to.as_ref()))?;
+    Ok(())
+}
+
+/// atomic_rename is a cross platform  helper function for renaming a file atomically with
+/// durability guarantees.
+pub fn atomic_rename<P: AsRef<Path>,
+                     Q: AsRef<Path> + std::convert::AsRef<std::path::Path> + Copy>(
+    from: P,
+    to: Q)
+    -> io::Result<()> {
+    debug!("Renaming {} to {}",
+           from.as_ref().display(),
+           to.as_ref().display());
+    #[cfg(windows)]
+    return rename_windows(from, to);
+    #[cfg(unix)]
+    return rename_unix(from, to);
 }
 
 /// atomic_write is a helper function for the most common use of
