@@ -1,14 +1,12 @@
-Describe "install and uninstall hook error codes are propogated" {
-    BeforeAll {
-        $PkgName = "custom-hook-exit-code"
-        $PkgOrigin = "habitat-testing"
-        $PkgIdent = "$PkgOrigin/$PkgName"
-        $Env:HAB_ORIGIN = $PkgOrigin
-        hab origin key generate $PkgOrigin
-        Invoke-Build $PkgName
-        . ./results/last_build.ps1
-    }
+$PkgName = "custom-hook-exit-code"
+$PkgOrigin = "habitat-testing"
+$PkgIdent = "$PkgOrigin/$PkgName"
+$Env:HAB_ORIGIN = $PkgOrigin
+hab origin key generate $PkgOrigin
+Invoke-Build $PkgName
+. ./results/last_build.ps1
 
+Describe "install and uninstall hook error codes are propogated" {
     It "`hab pkg install` exits with install hook exit code" {
         $Env:CUSTOM_HOOK_EXIT_CODE = 42
         hab pkg install ./results/$pkg_artifact

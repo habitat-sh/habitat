@@ -329,9 +329,9 @@ pub trait HookExt: Hook<ExitValue = ExitStatus> + Sync {
     ///   `templating::compile_for_package_install`)
     /// * run the hook
     /// * return an error if we get a non-zero exit code
-    async fn find_run_and_error_for_status<U>(ui: &mut U, package: &PackageInstall) -> Result<()>
-        where U: UIWriter
-    {
+    async fn find_run_and_error_for_status<U: UIWriter>(ui: &mut U,
+                                                        package: &PackageInstall)
+                                                        -> Result<()> {
         let feature_flags = FeatureFlag::from_env(ui);
         let package_name = &package.ident.name;
         if let Some(ref hook) = Self::load(package_name,
@@ -350,7 +350,7 @@ pub trait HookExt: Hook<ExitValue = ExitStatus> + Sync {
                 let mut pkg = Pkg::from_install(package).await?;
                 // Hooks do not have access to svc_passwords so we execute them under the current
                 // user account.
-                if let Some(user) = users::get_current_username() {
+                if let Some(user) = habitat_core::os::users::get_current_username() {
                     pkg.svc_user = user;
                 }
                 pkg
