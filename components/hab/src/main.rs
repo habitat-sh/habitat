@@ -1287,8 +1287,7 @@ async fn sub_svc_update(u: hab::cli::hab::svc::Update) -> Result<()> {
 
 async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;
-    let msg = sup_proto::ctl::SvcStart { ident: Some(ident.into()),
-                                         ..Default::default() };
+    let msg = sup_proto::ctl::SvcStart { ident: Some(ident.into()), };
     let remote_sup_addr = remote_sup_from_input(m)?;
     gateway_util::send(&remote_sup_addr, msg).await
 }
