@@ -1371,6 +1371,7 @@ dependencies = [
 name = "habitat_common"
 version = "0.0.0"
 dependencies = [
+ "async-trait",
  "bimap",
  "bitflags",
  "clap",

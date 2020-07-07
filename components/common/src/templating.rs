@@ -33,8 +33,8 @@ lazy_static! {
         Regex::new(r"(\{\{[^}]+[^.])(\[)").expect("Failed to compile template deprecation regex");
 }
 
-/// A convenience method that compiles a package's install hook
-/// and any configuration templates in its config_install folder
+/// A convenience method that compiles a package's install and uninstall hooks and any configuration
+/// templates in its config_install folder
 pub async fn compile_for_package_install(package: &PackageInstall,
                                          feature_flags: FeatureFlag)
                                          -> Result<()> {

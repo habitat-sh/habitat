@@ -5,21 +5,15 @@ use crate::{command::pkg::list,
             error::{Error,
                     Result}};
 use futures::stream::StreamExt;
-use habitat_common::{error::Error as CommonError,
-                     package_graph::PackageGraph,
-                     templating::{self,
-                                  hooks::{Hook,
-                                          UninstallHook},
-                                  package::Pkg},
+use habitat_common::{package_graph::PackageGraph,
+                     templating::hooks::{HookExt,
+                                         UninstallHook},
                      types::ListenCtlAddr,
                      ui::{Status,
-                          UIWriter},
-                     FeatureFlag};
+                          UIWriter}};
 use habitat_core::{error as herror,
                    fs::{self as hfs,
-                        svc_hooks_path,
                         FS_ROOT_PATH},
-                   os::users,
                    package::{list::temp_package_directory,
                              Identifiable,
                              PackageIdent,
@@ -395,52 +389,17 @@ async fn maybe_run_uninstall_hook<T>(ui: &mut T, package: &PackageInstall) -> Re
     where T: UIWriter
 {
     let ident = package.ident();
-    let feature_flags = FeatureFlag::from_env(ui);
-    if let Some(ref hook) = UninstallHook::load(&ident.name,
-                                                &svc_hooks_path(ident.name.clone()),
-                                                &package.installed_path.join("hooks"),
-                                                feature_flags)
-    {
-        let unqualified_ident =
-            PackageIdent::from_str(&format!("{}/{}", ident.origin, ident.name))?;
-        let installed = list::package_list(&unqualified_ident.clone().into())?;
-        if installed.len() > 1 {
-            ui.status(Status::Skipping,
-                      format!("execution of uninstall hook for {}. {} packages are installed \
-                               for {}",
-                              ident,
-                              installed.len(),
-                              unqualified_ident))?;
-            return Ok(());
-        }
-
-        ui.status(Status::Executing, format!("uninstall hook for '{}'", ident))?;
-        templating::compile_for_package_install(package, feature_flags).await?;
-        let mut pkg = Pkg::from_install(package).await?;
-        // Only windows uses svc_password
-        if cfg!(target_os = "windows") {
-            // Install hooks do not have access to svc_passwords so
-            // we execute them under the current user account.
-            if let Some(user) = users::get_current_username() {
-                pkg.svc_user = user;
-            }
-        }
-        match hook.run(&package.ident().name, &pkg, None::<&str>) {
-            Ok(exit_status) if exit_status.success() => Ok(()),
-            Ok(exit_status) => {
-                Err(CommonError::hook_exit_status(package.ident().clone(),
-                                                  UninstallHook::FILE_NAME,
-                                                  exit_status).into())
-            }
-            Err(e) => {
-                Err(CommonError::hook_run_error(package.ident().clone(),
-                                                UninstallHook::FILE_NAME,
-                                                e).into())
-            }
-        }
-    } else {
-        Ok(())
+    let unqualified_ident = PackageIdent::from_str(&format!("{}/{}", ident.origin, ident.name))?;
+    let installed = list::package_list(&unqualified_ident.clone().into())?;
+    if installed.len() > 1 {
+        ui.status(Status::Skipping,
+                  format!("execution of uninstall hook for {}. {} packages are installed for {}",
+                          ident,
+                          installed.len(),
+                          unqualified_ident))?;
+        return Ok(());
     }
+    Ok(UninstallHook::find_run_and_error_for_status(ui, package).await?)
 }
 
 /// Delete empty parent directories from a given path. don't traverse above

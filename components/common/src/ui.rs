@@ -303,7 +303,7 @@ pub trait UIReader {
 }
 
 /// Functions applied to an IO stream for sending information to a UI.
-pub trait UIWriter {
+pub trait UIWriter: Send {
     type ProgressBar: DisplayProgress;
 
     /// IO Stream for sending error messages to.

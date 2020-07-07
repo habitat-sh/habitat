@@ -3,12 +3,17 @@ use super::{package::Pkg,
 use crate::{error::{Error,
                     Result},
             outputln,
+            templating,
+            ui::{Status,
+                 UIWriter},
             FeatureFlag};
 #[cfg(windows)]
 use habitat_core::os::process::windows_child::{Child,
                                                ExitStatus};
 use habitat_core::{crypto,
                    fs,
+                   fs::svc_hooks_path,
+                   package::PackageInstall,
                    util::BufReadLossy};
 use serde::{Serialize,
             Serializer};
@@ -314,6 +319,61 @@ pub trait Hook: fmt::Debug + Sized + Send {
 
     fn stderr_log_path(&self) -> &Path;
 }
+
+#[async_trait::async_trait]
+pub trait HookExt: Hook<ExitValue = ExitStatus> + Sync {
+    /// A high level hook operation that adds the following conveniences around `Hook::run`:
+    ///
+    /// * find the hook in a given `PackageInstall`
+    /// * compile the hook (assuming the hook is compiled in
+    ///   `templating::compile_for_package_install`)
+    /// * run the hook
+    /// * return an error if we get a non-zero exit code
+    async fn find_run_and_error_for_status<U>(ui: &mut U, package: &PackageInstall) -> Result<()>
+        where U: UIWriter
+    {
+        let feature_flags = FeatureFlag::from_env(ui);
+        let package_name = &package.ident.name;
+        if let Some(ref hook) = Self::load(package_name,
+                                           &svc_hooks_path(package_name),
+                                           &package.installed_path.join("hooks"),
+                                           feature_flags)
+        {
+            let hook_name = Self::FILE_NAME;
+            ui.status(Status::Executing,
+                      format!("{} hook for '{}'", hook_name, package.ident()))?;
+            templating::compile_for_package_install(package, feature_flags).await?;
+
+            // Only windows uses svc_password
+            #[cfg(target_os = "windows")]
+            let pkg = {
+                let mut pkg = Pkg::from_install(package).await?;
+                // Hooks do not have access to svc_passwords so we execute them under the current
+                // user account.
+                if let Some(user) = users::get_current_username() {
+                    pkg.svc_user = user;
+                }
+                pkg
+            };
+            #[cfg(not(target_os = "windows"))]
+            let pkg = Pkg::from_install(package).await?;
+
+            match hook.run(package_name, &pkg, None::<&str>) {
+                Ok(exit_status) if exit_status.success() => Ok(()),
+                Ok(exit_status) => {
+                    Err(Error::hook_exit_status(pkg.ident.clone(),
+                                                hook_name,
+                                                exit_status))
+                }
+                Err(error) => Err(Error::hook_run_error(pkg.ident.clone(), hook_name, error)),
+            }
+        } else {
+            Ok(())
+        }
+    }
+}
+
+impl<T: Hook<ExitValue = ExitStatus> + Sync> HookExt for T {}
 
 #[derive(Debug, Serialize)]
 pub struct InstallHook {

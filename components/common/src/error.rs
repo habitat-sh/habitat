@@ -1,6 +1,7 @@
 use crate::{api_client,
             hcore::{self,
-                    package::PackageIdent}};
+                    package::{FullyQualifiedPackageIdent,
+                              PackageIdent}}};
 #[cfg(windows)]
 use habitat_core::os::process::windows_child::ExitStatus;
 #[cfg(not(windows))]
@@ -73,7 +74,7 @@ pub enum Error {
     GossipFileRelativePath(String),
     HabitatCore(hcore::Error),
     HookFailed {
-        package_ident: PackageIdent,
+        package_ident: FullyQualifiedPackageIdent,
         hook:          &'static str,
         error:         CommandExecutionError,
     },
@@ -119,13 +120,16 @@ pub enum Error {
 }
 
 impl Error {
-    pub fn hook_run_error(package_ident: PackageIdent, hook: &'static str, error: Error) -> Self {
+    pub fn hook_run_error(package_ident: FullyQualifiedPackageIdent,
+                          hook: &'static str,
+                          error: Error)
+                          -> Self {
         Self::HookFailed { package_ident,
                            hook,
                            error: CommandExecutionError::run_error(error) }
     }
 
-    pub fn hook_exit_status(package_ident: PackageIdent,
+    pub fn hook_exit_status(package_ident: FullyQualifiedPackageIdent,
                             hook: &'static str,
                             exit_status: ExitStatus)
                             -> Self {
