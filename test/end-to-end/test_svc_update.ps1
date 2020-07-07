@@ -24,74 +24,72 @@ Describe "hab svc update" {
 
     Start-Supervisor -Timeout 45
 
-    if($isLinux) { # Temporary, until we have a Windows test-probe service
-        Context "with a bound service" {
-            Load-SupervisorService $nginx_pkg
-            Wait-Release -Ident $nginx_release
+    Context "with a bound service" {
+        Load-SupervisorService $nginx_pkg
+        Wait-Release -Ident $nginx_release
 
-            BeforeEach {
-                Load-SupervisorService habitat-testing/test-probe --bind=thing_with_a_port:nginx.default
-                Wait-Release -Ident habitat-testing/test-probe
+        BeforeEach {
+            Load-SupervisorService habitat-testing/test-probe --bind=thing_with_a_port:nginx.default
+            Wait-Release -Ident habitat-testing/test-probe
+        }
+
+        AfterEach {
+            Unload-SupervisorService -PackageName habitat-testing/test-probe -Timeout 30
+        }
+
+        AfterAll {
+            Unload-SupervisorService -PackageName $nginx_pkg -Timeout 20
+        }
+
+        It "starts test-probe bound to nginx" {
+            '/hab/sup/default/specs/test-probe.spec' | Should -FileContentMatchExactly 'binds = ["thing_with_a_port:nginx.default"]'
+        }
+
+        Context "removing binds via hab svc update" {
+            $proc = Get-Process test-probe
+
+            # This is the same as saying "remove binds"... we might
+            # find a better way to express this, though.
+            hab svc update habitat-testing/test-probe --bind
+
+            # Currently, test-probe has some long-running post-stop
+            # and init hooks. They should be done within 30 seconds,
+            # but we'll give *plenty* of extra time for the full
+            # restart, just in case gremlins appear.
+            Start-Sleep -Seconds 45
+
+            It "has the new binds in the spec file" {
+                '/hab/sup/default/specs/test-probe.spec' | Should -FileContentMatchExactly "binds = []"
             }
 
-            AfterEach {
-                Unload-SupervisorService -PackageName habitat-testing/test-probe -Timeout 30
+            It "DOES restart the service process" {
+                $currentProc = Get-Process test-probe
+                $proc.Id | Should -Not -Be $currentProc.Id
             }
+        }
 
-            AfterAll {
-                Unload-SupervisorService -PackageName $nginx_pkg -Timeout 20
-            }
+        Context "updating another field does not wipe out existing binds" {
+            $proc = Get-Process test-probe
 
-            It "starts test-probe bound to nginx" {
+            hab svc update habitat-testing/test-probe --strategy=at-once
+
+            # This shouldn't take too long to register, and shouldn't
+            # trigger a restart, but to catch potential regressions
+            # that *do* restart the service, we'll wait for the long
+            # post-stop and init hooks to run, as before.
+            Start-Sleep -Seconds 45
+
+            It "leaves the existing binds alone" {
                 '/hab/sup/default/specs/test-probe.spec' | Should -FileContentMatchExactly 'binds = ["thing_with_a_port:nginx.default"]'
             }
 
-            Context "removing binds via hab svc update" {
-                $proc = Get-Process test-probe
-
-                # This is the same as saying "remove binds"... we might
-                # find a better way to express this, though.
-                hab svc update habitat-testing/test-probe --bind
-
-                # Currently, test-probe has some long-running post-stop
-                # and init hooks. They should be done within 30 seconds,
-                # but we'll give *plenty* of extra time for the full
-                # restart, just in case gremlins appear.
-                Start-Sleep -Seconds 45
-
-                It "has the new binds in the spec file" {
-                    '/hab/sup/default/specs/test-probe.spec' | Should -FileContentMatchExactly "binds = []"
-                }
-
-                It "DOES restart the service process" {
-                    $currentProc = Get-Process test-probe
-                    $proc.Id | Should -Not -Be $currentProc.Id
-                }
+            It "updates the update strategy" {
+                '/hab/sup/default/specs/test-probe.spec' | Should -FileContentMatchExactly 'update_strategy = "at-once"'
             }
 
-            Context "updating another field does not wipe out existing binds" {
-                $proc = Get-Process test-probe
-
-                hab svc update habitat-testing/test-probe --strategy=at-once
-
-                # This shouldn't take too long to register, and shouldn't
-                # trigger a restart, but to catch potential regressions
-                # that *do* restart the service, we'll wait for the long
-                # post-stop and init hooks to run, as before.
-                Start-Sleep -Seconds 45
-
-                It "leaves the existing binds alone" {
-                    '/hab/sup/default/specs/test-probe.spec' | Should -FileContentMatchExactly 'binds = ["thing_with_a_port:nginx.default"]'
-                }
-
-                It "updates the update strategy" {
-                    '/hab/sup/default/specs/test-probe.spec' | Should -FileContentMatchExactly 'update_strategy = "at-once"'
-                }
-
-                It "does not restart the service process" {
-                    $currentProc = Get-Process test-probe
-                    $proc.Id | Should -Be $currentProc.Id
-                }
+            It "does not restart the service process" {
+                $currentProc = Get-Process test-probe
+                $proc.Id | Should -Be $currentProc.Id
             }
         }
     }

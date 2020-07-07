@@ -804,6 +804,21 @@ steps:
 # still build. - Windows
 #######################################################################
 
+  - label: "[build] :windows: test-probe"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+    command:
+      - .expeditor/scripts/verify/build_package.ps1 test-services/test-probe
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
+    timeout_in_minutes: 40
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[build] :windows: hab"
     env:
       HAB_LICENSE: "accept-no-persist"
