@@ -302,7 +302,7 @@ steps:
       executor:
         macos:
           inherit-environment-vars: true
-    timeout_in_minutes: 5
+    timeout_in_minutes: 10
     retry:
       automatic:
         limit: 1
@@ -936,5 +936,4 @@ steps:
         macos:
           os-version: "10.13"
           inherit-environment-vars: true
-      buildkite:
-        timeout_in_minutes: 45
+    timeout_in_minutes: 60
