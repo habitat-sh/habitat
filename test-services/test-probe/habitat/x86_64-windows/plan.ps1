@@ -10,7 +10,7 @@ $pkg_build_deps = @(
 )
 
 $pkg_binds_optional = @{
-    thing_with_a_port="port"
+    thing_with_a_port = "port"
 }
 
 function Invoke-Prepare {
