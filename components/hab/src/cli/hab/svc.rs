@@ -462,28 +462,27 @@ impl TryFrom<Update> for ctl::SvcUpdate {
     type Error = Error;
 
     fn try_from(u: Update) -> Result<Self> {
-        let mut msg = ctl::SvcUpdate::default();
+        let msg = ctl::SvcUpdate { ident: Some(From::from(u.pkg_ident.pkg_ident())),
+                                   // We are explicitly *not* using the environment variable as a
+                                   // fallback.
+                                   bldr_url: u.bldr_url.map(|u| u.to_string()),
+                                   bldr_channel: u.channel.map(Into::into),
+                                   binds: u.bind.map(FromIterator::from_iter),
+                                   group: u.group,
+                                   health_check_interval: u.health_check_interval.map(Into::into),
+                                   binding_mode: u.binding_mode.map(|v| v as i32),
+                                   topology: u.topology.map(|v| v as i32),
+                                   update_strategy: u.strategy.map(|v| v as i32),
+                                   update_condition: u.update_condition.map(|v| v as i32),
+                                   shutdown_timeout: u.shutdown_timeout.map(Into::into),
+                                   #[cfg(windows)]
+                                   svc_encrypted_password: u.password,
+                                   #[cfg(not(windows))]
+                                   svc_encrypted_password: None, };
 
-        msg.ident = Some(From::from(u.pkg_ident.pkg_ident()));
-        // We are explicitly *not* using the environment variable as a
-        // fallback.
-        msg.bldr_url = u.bldr_url.map(|u| u.to_string());
-        msg.bldr_channel = u.channel.map(Into::into);
-        msg.binds = u.bind.map(FromIterator::from_iter);
-        msg.group = u.group;
-        msg.health_check_interval = u.health_check_interval.map(From::from);
-        msg.binding_mode = u.binding_mode.map(|v| v as i32);
-        msg.topology = u.topology.map(|v| v as i32);
-        msg.update_strategy = u.strategy.map(|v| v as i32);
-        msg.update_condition = u.update_condition.map(|v| v as i32);
-        msg.shutdown_timeout = u.shutdown_timeout.map(u32::from);
-
-        #[cfg(target_os = "windows")]
-        {
-            msg.svc_encrypted_password = u.password;
-        }
-
-        // Compiler-assisted validation that we've checked everything
+        // Compiler-assisted validation that the user has indeed
+        // specified *something* to change. If they didn't, all the
+        // fields would end up as `None`, and that would be an error.
         if let ctl::SvcUpdate { ident: _,
                                 binds: None,
                                 binding_mode: None,

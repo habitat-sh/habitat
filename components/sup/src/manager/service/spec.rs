@@ -229,16 +229,27 @@ impl ServiceSpec {
         if let Some(topology) = svc_load.topology {
             if let Some(topology) = Topology::from_i32(topology) {
                 self.topology = topology;
+            } else {
+                warn!("Unable to parse topology value from SvcLoad protocol message; ignoring: {}",
+                      topology);
             }
         }
         if let Some(update_strategy) = svc_load.update_strategy {
             if let Some(update_strategy) = UpdateStrategy::from_i32(update_strategy) {
                 self.update_strategy = update_strategy;
+            } else {
+                warn!("Unable to parse update strategy value from SvcLoad protocol message; \
+                       ignoring: {}",
+                      update_strategy);
             }
         }
         if let Some(update_condition) = svc_load.update_condition {
             if let Some(update_condition) = UpdateCondition::from_i32(update_condition) {
                 self.update_condition = update_condition;
+            } else {
+                warn!("Unable to parse update condition value from SvcLoad protocol message; \
+                       ignoring: {}",
+                      update_condition);
             }
         }
         if let Some(list) = svc_load.binds {
@@ -247,6 +258,10 @@ impl ServiceSpec {
         if let Some(binding_mode) = svc_load.binding_mode {
             if let Some(binding_mode) = BindingMode::from_i32(binding_mode) {
                 self.binding_mode = binding_mode;
+            } else {
+                warn!("Unable to parse binding mode value from SvcLoad protocol message; \
+                       ignoring: {}",
+                      binding_mode);
             }
         }
         if let Some(config_from) = svc_load.config_from {
@@ -277,16 +292,28 @@ impl ServiceSpec {
         if let Some(topology) = svc_update.topology {
             if let Some(topology) = Topology::from_i32(topology) {
                 self.topology = topology;
+            } else {
+                warn!("Unable to parse topology value from SvcUpdate protocol message; ignoring: \
+                       {}",
+                      topology);
             }
         }
         if let Some(update_strategy) = svc_update.update_strategy {
             if let Some(update_strategy) = UpdateStrategy::from_i32(update_strategy) {
                 self.update_strategy = update_strategy;
+            } else {
+                warn!("Unable to parse update strategy value from SvcUpdate protocol message; \
+                       ignoring: {}",
+                      update_strategy);
             }
         }
         if let Some(update_condition) = svc_update.update_condition {
             if let Some(update_condition) = UpdateCondition::from_i32(update_condition) {
                 self.update_condition = update_condition;
+            } else {
+                warn!("Unable to parse update condition value from SvcUpdate protocol message; \
+                       ignoring: {}",
+                      update_condition);
             }
         }
         if let Some(list) = svc_update.binds {
@@ -295,6 +322,10 @@ impl ServiceSpec {
         if let Some(binding_mode) = svc_update.binding_mode {
             if let Some(binding_mode) = BindingMode::from_i32(binding_mode) {
                 self.binding_mode = binding_mode;
+            } else {
+                warn!("Unable to parse binding mode value from SvcUpdate protocol message; \
+                       ignoring: {}",
+                      binding_mode);
             }
         }
         if let Some(svc_encrypted_password) = svc_update.svc_encrypted_password {
