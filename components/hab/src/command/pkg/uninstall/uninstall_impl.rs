@@ -6,7 +6,7 @@ use crate::{command::pkg::list,
                     Result}};
 use futures::stream::StreamExt;
 use habitat_common::{package_graph::PackageGraph,
-                     templating::hooks::{HookExt,
+                     templating::hooks::{PackageMaintenanceHookExt,
                                          UninstallHook},
                      types::ListenCtlAddr,
                      ui::{Status,

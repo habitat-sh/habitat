@@ -320,8 +320,16 @@ pub trait Hook: fmt::Debug + Sized + Send {
     fn stderr_log_path(&self) -> &Path;
 }
 
+/// A trait that adds a convenient method for executing one-off hooks
+///
+/// This trait unifies the logic the `install` and `uninstall` hooks use to execute. These hooks
+/// are unique in that they are run in a one-off fashion opposed to running as part of a service
+/// lifecycle.
+///
+/// In future refactoring of the `Hook` trait this should probably be integrated into that trait
+/// directly.
 #[async_trait::async_trait]
-pub trait HookExt: Hook<ExitValue = ExitStatus> + Sync {
+pub trait PackageMaintenanceHookExt: Hook<ExitValue = ExitStatus> + Sync {
     /// A high level hook operation that adds the following conveniences around `Hook::run`:
     ///
     /// * find the hook in a given `PackageInstall`
@@ -373,7 +381,7 @@ pub trait HookExt: Hook<ExitValue = ExitStatus> + Sync {
     }
 }
 
-impl<T: Hook<ExitValue = ExitStatus> + Sync> HookExt for T {}
+impl<T: Hook<ExitValue = ExitStatus> + Sync> PackageMaintenanceHookExt for T {}
 
 #[derive(Debug, Serialize)]
 pub struct InstallHook {
