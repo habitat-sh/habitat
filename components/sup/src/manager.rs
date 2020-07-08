@@ -918,15 +918,20 @@ impl Manager {
             commands::service_load(&self.state, &mut CtlRequest::default(), svc_load).await?;
         }
 
-        // This serves to start up any services that need starting
-        // (which will be all of them at this point!)
-        self.maybe_spawn_service_futures_rsw_mlw_gsw_rhw_msw().await;
-
+        // It is safest to start gossip listener before spawning services
+        // this gives us the chance to sort out initial member state and
+        // process any previously persisted dat file before service rumors
+        // are gossiped and preventing them from unwanted purging.
         outputln!("Starting gossip-listener on {}",
                   self.butterfly.gossip_addr());
         self.butterfly
             .start_rsw_mlw_smw_rhw_msr(&Timing::default())?;
         debug!("gossip-listener started");
+
+        // This serves to start up any services that need starting
+        // (which will be all of them at this point!)
+        self.maybe_spawn_service_futures_rsw_mlw_gsw_rhw_msw().await;
+
         self.persist_state_rsr_mlr_gsw_msr().await;
         let http_listen_addr = self.sys.http_listen();
         let ctl_listen_addr = self.sys.ctl_listen();
