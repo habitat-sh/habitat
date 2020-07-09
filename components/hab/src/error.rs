@@ -4,7 +4,8 @@ use crate::{api_client,
             protocol::net,
             sup_client::SrvClientError};
 use habitat_core::package::PackageIdent;
-use std::{env,
+use std::{collections::HashMap,
+          env,
           error,
           ffi,
           fmt,
@@ -31,6 +32,7 @@ pub enum Error {
     // Boxed due to clippy::large_enum_variant
     CannotRunUninstallHook(PackageIdent, Box<common::Error>),
     CommandNotFoundInPkg((String, String)),
+    ConfigOpt(configopt::Error),
     CryptoCLI(String),
     CtlClient(SrvClientError),
     DockerDaemonDown,
@@ -38,6 +40,7 @@ pub enum Error {
     DockerImageNotFound(String),
     DockerNetworkDown(String),
     EnvJoinPathsError(env::JoinPathsError),
+    ErrorPerIdent(HashMap<PackageIdent, Error>),
     ExecCommandNotFound(PathBuf),
     FFINulError(ffi::NulError),
     FileNotFound(String),
@@ -67,6 +70,7 @@ pub enum Error {
     TomlSerializeError(toml::ser::Error),
     UninstallHookFailed(PackageIdent),
     Utf8Error(String),
+    WalkDir(walkdir::Error),
     YamlError(serde_yaml::Error),
 }
 
@@ -101,6 +105,7 @@ impl fmt::Display for Error {
                 format!("`{}' was not found under any 'PATH' directories in the {} package",
                         c, p)
             }
+            Error::ConfigOpt(ref err) => format!("{}", err),
             Error::CryptoCLI(ref e) => e.to_string(),
             Error::CtlClient(ref e) => e.to_string(),
             Error::DockerDaemonDown => {
@@ -132,6 +137,12 @@ impl fmt::Display for Error {
                         e)
             }
             Error::EnvJoinPathsError(ref err) => format!("{}", err),
+            Error::ErrorPerIdent(ref e) => {
+                e.iter()
+                 .map(|(ident, error)| format!("{}: {}", ident, error))
+                 .collect::<Vec<_>>()
+                 .join("\n")
+            }
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH",
                         c.display())
@@ -186,6 +197,7 @@ impl fmt::Display for Error {
                 format!("Uninstall hook for {} exited unsuccessfully", ident)
             }
             Error::Utf8Error(ref e) => format!("Error processing a string as UTF-8: {}", e),
+            Error::WalkDir(ref err) => format!("{}", err),
             Error::YamlError(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -202,12 +214,20 @@ impl From<common::Error> for Error {
     fn from(err: common::Error) -> Error { Error::HabitatCommon(err) }
 }
 
+impl From<configopt::Error> for Error {
+    fn from(err: configopt::Error) -> Self { Error::ConfigOpt(err) }
+}
+
 impl From<ffi::NulError> for Error {
     fn from(err: ffi::NulError) -> Error { Error::FFINulError(err) }
 }
 
 impl From<hcore::Error> for Error {
     fn from(err: hcore::Error) -> Error { Error::HabitatCore(err) }
+}
+
+impl From<HashMap<PackageIdent, Error>> for Error {
+    fn from(errors: HashMap<PackageIdent, Error>) -> Self { Error::ErrorPerIdent(errors) }
 }
 
 impl From<handlebars::TemplateRenderError> for Error {
@@ -249,4 +269,8 @@ impl From<serde_json::Error> for Error {
 
 impl From<serde_yaml::Error> for Error {
     fn from(err: serde_yaml::Error) -> Error { Error::YamlError(err) }
+}
+
+impl From<walkdir::Error> for Error {
+    fn from(err: walkdir::Error) -> Self { Error::WalkDir(err) }
 }

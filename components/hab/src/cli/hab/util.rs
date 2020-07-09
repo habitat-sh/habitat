@@ -1,6 +1,7 @@
 use crate::cli::valid_fully_qualified_ident;
 use configopt::{self,
                 ConfigOpt};
+use habitat_common::types::ListenCtlAddr;
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    fs as hab_core_fs,
                    package::PackageIdent};
@@ -53,13 +54,42 @@ pub struct CacheKeyPath {
     pub cache_key_path: PathBuf,
 }
 
-#[derive(ConfigOpt, StructOpt, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(try_from = "&str", into = "String")]
+struct PkgIdentStringySerde(PackageIdent);
+
+impl FromStr for PkgIdentStringySerde {
+    type Err = habitat_core::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(Self(s.parse()?)) }
+}
+
+impl std::convert::TryFrom<&str> for PkgIdentStringySerde {
+    type Error = habitat_core::Error;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> { Self::from_str(s) }
+}
+
+impl std::fmt::Display for PkgIdentStringySerde {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result { write!(f, "{}", self.0) }
+}
+
+impl From<PkgIdentStringySerde> for String {
+    fn from(pkg_ident: PkgIdentStringySerde) -> Self { pkg_ident.to_string() }
+}
+
+#[derive(Clone, ConfigOpt, Debug, StructOpt, Deserialize, Serialize)]
+#[configopt(derive(Clone, Serialize, Debug), attrs(serde))]
 #[structopt(no_version)]
-#[allow(dead_code)]
+#[serde(transparent)]
 pub struct PkgIdent {
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
     #[structopt(name = "PKG_IDENT")]
-    pkg_ident: PackageIdent,
+    pkg_ident: PkgIdentStringySerde,
+}
+
+impl PkgIdent {
+    pub fn pkg_ident(self) -> PackageIdent { self.pkg_ident.0 }
 }
 
 #[derive(ConfigOpt, StructOpt)]
@@ -71,13 +101,17 @@ pub struct FullyQualifiedPkgIdent {
     pkg_ident: PackageIdent,
 }
 
-#[derive(ConfigOpt, StructOpt, Deserialize)]
+#[derive(ConfigOpt, StructOpt, Deserialize, Debug)]
+#[configopt(derive(Clone, Debug))]
 #[structopt(no_version)]
-#[allow(dead_code)]
 pub struct RemoteSup {
-    /// Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
-    #[structopt(name = "REMOTE_SUP", long = "remote-sup", short = "r")]
-    remote_sup: Option<SocketAddr>,
+    /// Address to a remote Supervisor's Control Gateway
+    #[structopt(name = "REMOTE_SUP",
+                long = "remote-sup",
+                short = "r",
+                default_value = ListenCtlAddr::default_as_str())]
+    #[serde(default)]
+    pub remote_sup: ListenCtlAddr,
 }
 
 pub fn socket_addr_with_default_port<S: AsRef<str>>(addr: S,

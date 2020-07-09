@@ -1,5 +1,3 @@
-use prost_build;
-
 /// Automatically generate Rust code from our protobuf definitions at
 /// compile time.
 ///

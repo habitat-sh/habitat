@@ -1,7 +1,6 @@
 // Inline common build behavior
 include!("../libbuild.rs");
 
-use prost_build;
 use std::{env,
           fs::File,
           io::{self,

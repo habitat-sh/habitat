@@ -83,6 +83,14 @@ function Wait-Supervisor($Timeout = 1, $port = 9631) {
     Write-Host "Supervisor is now running."
 }
 
+function Wait-StopSupervisor($Timeout = 1, $port = 9631) {
+    Write-Host "Waiting up to $Timeout seconds for Supervisor to stop..."
+    $testScript = { -Not (Test-Connection -ComputerName 127.0.0.1 -TCPPort $port) }
+    $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for Supervisor to stop on port $port" }
+    Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
+    Write-Host "Supervisor is now stopped."
+}
+
 function Start-Supervisor($Timeout = 1, $LogFile = (New-TemporaryFile), $SupArgs = @()) {
     Add-Type -TypeDefinition (Get-Content "$PSScriptroot/SupervisorRunner.cs" | Out-String)
     $sup = New-Object SupervisorRunner
@@ -195,6 +203,7 @@ function Stop-Supervisor {
     } else {
         Stop-Process | Get-Process hab-launch
     }
+    Wait-StopSupervisor
 }
 
 function Wait-Process($ProcessName, $Timeout = 1) {

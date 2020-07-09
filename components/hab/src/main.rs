@@ -9,8 +9,15 @@ extern crate log;
 
 use clap::{ArgMatches,
            Shell};
+use configopt::{ConfigOpt,
+                Error as ConfigOptError};
 use futures::stream::StreamExt;
 use hab::{cli::{self,
+                hab::{svc::{self,
+                            BulkLoad as SvcBulkLoad,
+                            Load as SvcLoad,
+                            Svc},
+                      Hab},
                 parse_optional_arg},
           command::{self,
                     pkg::{download::{PackageSet,
@@ -34,11 +41,10 @@ use habitat_common::{self as common,
                                                  InstallMode,
                                                  InstallSource,
                                                  LocalPackageUsage},
-                     output,
                      types::ListenCtlAddr,
-                     ui::{Status,
+                     ui::{self,
+                          Status,
                           UIWriter,
-                          NONINTERACTIVE_ENVVAR,
                           UI},
                      FeatureFlag};
 #[cfg(windows)]
@@ -55,19 +61,18 @@ use habitat_core::{crypto::{init,
                    package::{target,
                              PackageIdent,
                              PackageTarget},
-                   service::{HealthCheckInterval,
-                             ServiceGroup},
-                   url::{bldr_url_from_env,
-                         default_bldr_url},
+                   service::ServiceGroup,
+                   url::default_bldr_url,
                    ChannelIdent};
 use habitat_sup_client::{SrvClient,
                          SrvClientError};
 use habitat_sup_protocol::{self as sup_proto,
                            codec::*,
-                           ctl::ServiceBindList,
                            net::ErrCode,
                            types::*};
-use std::{env,
+use std::{collections::HashMap,
+          convert::TryFrom,
+          env,
           ffi::OsString,
           fs::File,
           io::{self,
@@ -143,6 +148,39 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     let (args, remaining_args) = raw_parse_args();
     debug!("clap cli args: {:?}", &args);
     debug!("remaining cli args: {:?}", &remaining_args);
+
+    // Parse and handle commands which have been migrated to use `structopt` here. Once everything
+    // is migrated to use `structopt` the parsing logic below this using clap directly will be gone.
+    match Hab::try_from_args_with_configopt() {
+        Ok(hab) => {
+            #[allow(clippy::single_match)]
+            match hab {
+                Hab::Svc(svc) => {
+                    match svc {
+                        Svc::BulkLoad(svc_bulk_load)
+                            if feature_flags.contains(FeatureFlag::SERVICE_CONFIG_FILES) =>
+                        {
+                            return sub_svc_bulk_load(svc_bulk_load).await;
+                        }
+                        Svc::Load(svc_load) => {
+                            return sub_svc_load(svc_load).await;
+                        }
+                        _ => {
+                            // All other commands will be caught by the CLI parsing logic below.
+                        }
+                    }
+                }
+                _ => {
+                    // All other commands will be caught by the CLI parsing logic below.
+                }
+            }
+        }
+        Err(e @ ConfigOptError::ConfigGenerated(_)) => e.exit(),
+        Err(_) => {
+            // Completely ignore all other errors. They will be caught by the CLI parsing logic
+            // below.
+        }
+    };
 
     // We build the command tree in a separate thread to eliminate
     // possible stack overflow crashes at runtime. OSX, for instance,
@@ -305,7 +343,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         _ => unreachable!(),
                     }
                 }
-                ("load", Some(m)) => sub_svc_load(m).await?,
                 ("unload", Some(m)) => sub_svc_unload(m).await?,
                 ("start", Some(m)) => sub_svc_start(m).await?,
                 ("stop", Some(m)) => sub_svc_stop(m).await?,
@@ -1112,7 +1149,7 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
-    let mut ui = ui();
+    let mut ui = ui::ui();
     let mut validate = sup_proto::ctl::SvcValidateCfg::default();
     validate.service_group = Some(service_group.clone().into());
     let mut buf = Vec::with_capacity(sup_proto::butterfly::MAX_SVC_CFG_SIZE);
@@ -1218,19 +1255,32 @@ async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     Ok(())
 }
 
-async fn sub_svc_load(m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
     let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
+    let listen_ctl_addr = svc_load.remote_sup.remote_sup;
     let secret_key = config::ctl_secret_key(&cfg)?;
-    let mut msg = svc_load_from_input(m)?;
-    let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
-    msg.ident = Some(ident.into());
+    let msg = habitat_sup_protocol::ctl::SvcLoad::try_from(svc_load)?;
     let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         handle_ctl_reply(&reply)?;
     }
     Ok(())
+}
+
+async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
+    let mut errors = HashMap::new();
+    for svc_load in svc::svc_loads_from_paths(&svc_bulk_load.svc_config_paths)? {
+        let ident = svc_load.pkg_ident.clone().pkg_ident();
+        if let Err(e) = sub_svc_load(svc_load).await {
+            errors.insert(ident, e);
+        }
+    }
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors.into())
+    }
 }
 
 async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
@@ -1315,7 +1365,7 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
-    let mut ui = ui();
+    let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SvcFilePut::default();
     let file = Path::new(m.value_of("FILE").unwrap());
     if file.metadata()?.len() > sup_proto::butterfly::MAX_FILE_PUT_SIZE_BYTES as u64 {
@@ -1381,7 +1431,7 @@ async fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
-    let mut ui = ui();
+    let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SupDepart::default();
     msg.member_id = Some(m.value_of("MEMBER_ID").unwrap().to_string());
 
@@ -1408,7 +1458,7 @@ async fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 fn sub_sup_secret_generate() -> Result<()> {
-    let mut ui = ui();
+    let mut ui = ui::ui();
     let mut buf = String::new();
     sup_proto::generate_secret_key(&mut buf);
     ui.info(buf)?;
@@ -1890,72 +1940,6 @@ fn bulkupload_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
            .expect("CLAP-validated upload dir")
 }
 
-/// A Builder URL, but *only* if the user specified it via CLI args or
-/// the environment
-fn bldr_url_from_input(m: &ArgMatches<'_>) -> Option<String> {
-    m.value_of("BLDR_URL")
-     .map(ToString::to_string)
-     .or_else(bldr_url_from_env)
-}
-
-fn get_binds_from_input(m: &ArgMatches<'_>) -> Result<Option<ServiceBindList>> {
-    match m.values_of("BIND") {
-        Some(bind_strs) => {
-            let mut list = ServiceBindList::default();
-            for bind_str in bind_strs {
-                list.binds.push(ServiceBind::from_str(bind_str)?);
-            }
-            Ok(Some(list))
-        }
-        None => Ok(None),
-    }
-}
-
-fn get_binding_mode_from_input(m: &ArgMatches<'_>) -> Option<sup_proto::types::BindingMode> {
-    // There won't be errors, because we validate with `valid_binding_mode`
-    m.value_of("BINDING_MODE")
-     .and_then(|b| BindingMode::from_str(b).ok())
-}
-
-fn get_group_from_input(m: &ArgMatches<'_>) -> Option<String> {
-    m.value_of("GROUP").map(ToString::to_string)
-}
-
-fn get_health_check_interval_from_input(m: &ArgMatches<'_>)
-                                        -> Option<sup_proto::types::HealthCheckInterval> {
-    // Value will have already been validated by `cli::valid_health_check_interval`
-    m.value_of("HEALTH_CHECK_INTERVAL")
-     .and_then(|s| HealthCheckInterval::from_str(s).ok())
-     .map(HealthCheckInterval::into)
-}
-
-#[cfg(target_os = "windows")]
-fn get_password_from_input(m: &ArgMatches) -> Result<Option<String>> {
-    if let Some(password) = m.value_of("PASSWORD") {
-        Ok(Some(encrypt(password.to_string())?))
-    } else {
-        Ok(None)
-    }
-}
-
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-fn get_password_from_input(_m: &ArgMatches<'_>) -> Result<Option<String>> { Ok(None) }
-
-fn get_topology_from_input(m: &ArgMatches<'_>) -> Option<Topology> {
-    m.value_of("TOPOLOGY")
-     .and_then(|f| Topology::from_str(f).ok())
-}
-
-fn get_strategy_from_input(m: &ArgMatches<'_>) -> Option<UpdateStrategy> {
-    m.value_of("STRATEGY")
-     .and_then(|f| UpdateStrategy::from_str(f).ok())
-}
-
-fn get_update_condition_from_input(m: &ArgMatches<'_>) -> Option<UpdateCondition> {
-    m.value_of("UPDATE_CONDITION")
-     .and_then(|f| UpdateCondition::from_str(f).ok())
-}
-
 fn listen_ctl_addr_from_input(m: &ArgMatches<'_>) -> Result<ListenCtlAddr> {
     m.value_of("REMOTE_SUP")
      .map_or(Ok(ListenCtlAddr::default()), resolve_listen_ctl_addr)
@@ -1994,50 +1978,6 @@ fn user_param_or_env(m: &ArgMatches<'_>) -> Option<String> {
             }
         }
     }
-}
-
-// Based on UI::default_with_env, but taking into account the setting
-// of the global color variable.
-//
-// TODO: Ideally we'd have a unified way of setting color, so this
-// function wouldn't be necessary. In the meantime, though, it'll keep
-// the scope of change contained.
-fn ui() -> UI {
-    let isatty = if env::var(NONINTERACTIVE_ENVVAR).map(|val| val == "1" || val == "true")
-                                                   .unwrap_or(false)
-    {
-        Some(false)
-    } else {
-        None
-    };
-    UI::default_with(output::get_format().color_choice(), isatty)
-}
-
-/// Set all fields for an `SvcLoad` message that we can from the given opts. This function
-/// populates all *shared* options between `run` and `load`.
-fn svc_load_from_input(m: &ArgMatches) -> Result<sup_proto::ctl::SvcLoad> {
-    // TODO (DM): This check can eventually be removed.
-    // See https://github.com/habitat-sh/habitat/issues/7339
-    if m.is_present("APPLICATION") || m.is_present("ENVIRONMENT") {
-        ui().warn("--application and --environment flags are deprecated and ignored.")?;
-    }
-    let mut msg = sup_proto::ctl::SvcLoad::default();
-    msg.bldr_url = bldr_url_from_input(m);
-    msg.bldr_channel = channel_from_matches(m).map(|c| c.to_string());
-    msg.binds = get_binds_from_input(m)?;
-    if m.is_present("FORCE") {
-        msg.force = Some(true);
-    }
-    msg.group = get_group_from_input(m);
-    msg.svc_encrypted_password = get_password_from_input(m)?;
-    msg.health_check_interval = get_health_check_interval_from_input(m);
-    msg.binding_mode = get_binding_mode_from_input(m).map(|v| v as i32);
-    msg.topology = get_topology_from_input(m).map(|v| v as i32);
-    msg.update_strategy = get_strategy_from_input(m).map(|v| v as i32);
-    msg.update_condition = get_update_condition_from_input(m).map(|v| v as i32);
-    msg.shutdown_timeout =
-        parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
-    Ok(msg)
 }
 
 #[cfg(test)]

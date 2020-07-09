@@ -97,7 +97,7 @@ impl Drop for LockedEnvVar {
 #[macro_export]
 macro_rules! locked_env_var {
     ($env_var_name:ident, $lock_fn:ident) => {
-        lazy_static! {
+        lazy_static::lazy_static! {
             static ref $env_var_name: ::std::sync::Arc<::std::sync::Mutex<String>> =
                 ::std::sync::Arc::new(::std::sync::Mutex::new(String::from(stringify!(
                     $env_var_name

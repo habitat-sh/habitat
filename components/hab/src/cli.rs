@@ -2,10 +2,11 @@ pub mod hab;
 
 use crate::{cli::hab::{sup::{Sup,
                              SupRun},
+                       svc::{BulkLoad as SvcBulkLoad,
+                             Load as SvcLoad},
                        util::CACHE_KEY_PATH_DEFAULT,
                        Hab},
             command::studio};
-
 use clap::{App,
            AppSettings,
            Arg,
@@ -15,7 +16,8 @@ use habitat_common::{cli::{file_into_idents,
                            BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
                            PACKAGE_TARGET_ENVVAR},
-                     FeatureFlag};
+                     FeatureFlag,
+                     FEATURE_FLAGS};
 use habitat_core::{crypto::{keys::PairType,
                             CACHE_KEY_PATH_ENV_VAR},
                    env::Config,
@@ -24,8 +26,7 @@ use habitat_core::{crypto::{keys::PairType,
                              Identifiable,
                              PackageIdent,
                              PackageTarget},
-                   service::{HealthCheckInterval,
-                             ServiceGroup},
+                   service::ServiceGroup,
                    ChannelIdent};
 use std::{path::Path,
           result,
@@ -33,14 +34,6 @@ use std::{path::Path,
 use structopt::StructOpt;
 use url::Url;
 
-const UPDATE_CONDITION_HELP: &str = "The condition dictating when this service should update";
-const UPDATE_CONDITION_LONG_HELP: &str =
-    "The condition dictating when this service should update\n\nlatest: Runs the latest package \
-     that can be found in the configured channel and local packages.\n\ntrack-channel: Always run \
-     what is at the head of a given channel. This enables service rollback where demoting a \
-     package from a channel will cause the package to rollback to an older version of the \
-     package. A ramification of enabling this condition is packages newer than the package at the \
-     head of the channel will be automatically uninstalled during a service rollback.";
 /// Process exit code from Supervisor which indicates to Launcher that the Supervisor
 /// ran to completion with a successful result. The Launcher should not attempt to restart
 /// the Supervisor and should exit immediately with a successful exit code.
@@ -101,8 +94,8 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (aliases: &["sh", "sho"])
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+                    "Address to a remote Supervisor's Control Gateway")
             )
         )
         (@subcommand file =>
@@ -119,8 +112,8 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     "A version number (positive integer) for this configuration (ex: 42)")
                 (@arg FILE: +required +takes_value {file_exists} "Path to local file on disk")
                 (@arg USER: -u --user +takes_value "Name of the user key")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-                    "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+                    "Address to a remote Supervisor's Control Gateway")
                 (arg: arg_cache_key_path())
             )
         )
@@ -839,6 +832,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (aliases: &["sv", "ser", "serv", "service"])
             (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
+            (subcommand: maybe_subcommand::<SvcBulkLoad>(FEATURE_FLAGS.contains(FeatureFlag::SERVICE_CONFIG_FILES)))
             (@subcommand key =>
                 (about: "Commands relating to Habitat service keys")
                 (aliases: &["k", "ke"])
@@ -853,7 +847,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (arg: arg_cache_key_path())
                 )
             )
-            (subcommand: sub_svc_load().aliases(&["l", "lo", "loa"]))
+            (subcommand: SvcLoad::clap().aliases(&["l", "lo", "loa"]))
             (subcommand: sub_svc_start().aliases(&["star"]))
             (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
             (subcommand: sub_svc_stop().aliases(&["sto"]))
@@ -905,6 +899,14 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             \n"
         )
     )
+}
+
+fn maybe_subcommand<T: StructOpt>(condition: bool) -> App<'static, 'static> {
+    if condition {
+        T::clap()
+    } else {
+        App::new("")
+    }
 }
 
 fn alias_run() -> App<'static, 'static> {
@@ -1091,8 +1093,8 @@ fn sub_config_apply() -> App<'static, 'static> {
     (@arg FILE: +takes_value {file_exists_or_stdin}
         "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
     (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
-    (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-        "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+    (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+        "Address to a remote Supervisor's Control Gateway")
     (arg: arg_cache_key_path())
     )
 }
@@ -1105,8 +1107,8 @@ fn sub_sup_depart() -> App<'static, 'static> {
         (about: "Depart a Supervisor from the gossip ring; kicking and banning the target \
             from joining again with the same member-id")
         (@arg MEMBER_ID: +required +takes_value "The member-id of the Supervisor to depart")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+            "Address to a remote Supervisor's Control Gateway")
     )
 }
 
@@ -1158,8 +1160,8 @@ fn sub_svc_start() -> App<'static, 'static> {
         (about: "Start a loaded, but stopped, Habitat service")
         (@arg PKG_IDENT: +required +takes_value {valid_ident}
             "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+            "Address to a remote Supervisor's Control Gateway")
     )
 }
 
@@ -1169,8 +1171,8 @@ fn sub_svc_status() -> App<'static, 'static> {
     clap_app!(@subcommand status =>
         (about: "Query the status of Habitat services")
         (@arg PKG_IDENT: +takes_value {valid_ident} "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-        "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+            "Address to a remote Supervisor's Control Gateway")
     )
 }
 
@@ -1185,76 +1187,9 @@ fn sub_svc_stop() -> App<'static, 'static> {
         (about: "Stop a running Habitat service")
         (@arg PKG_IDENT: +required +takes_value {valid_ident}
             "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+            "Address to a remote Supervisor's Control Gateway")
     );
-    add_shutdown_timeout_option(sub)
-}
-
-fn sub_svc_load() -> App<'static, 'static> {
-    let mut sub = clap_app!(@subcommand load =>
-        (about: "Load a service to be started and supervised by Habitat from a package \
-            identifier. If an installed package doesn't satisfy the given package \
-            identifier, a suitable package will be installed from Builder")
-        (@arg PKG_IDENT: +required +takes_value {valid_ident}
-            "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-        // TODO (DM): These flags can eventually be removed.
-        // See https://github.com/habitat-sh/habitat/issues/7339
-        (@arg APPLICATION: --application -a +multiple +hidden "DEPRECATED")
-        (@arg ENVIRONMENT: --environment -e +multiple +hidden "DEPRECATED")
-        (@arg CHANNEL: --channel +takes_value default_value[stable]
-            "Receive updates from the specified release channel")
-        (@arg GROUP: --group +takes_value default_value[default]
-            "The service group with shared config and topology")
-        (@arg BLDR_URL: -u --url +takes_value {valid_url}
-            "Specify an alternate Builder endpoint. If not specified, the value will \
-             be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-             https://bldr.habitat.sh)")
-        (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
-            "Service topology")
-        (@arg BIND: --bind +takes_value +multiple
-            "One or more service groups to bind to a configuration")
-        (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode} default_value[strict] possible_value[strict relaxed]
-             "Governs how the presence or absence of binds affects service startup")
-        (@arg FORCE: --force -f "Load or reload an already loaded service. If the service \
-            was previously loaded and running this operation will also restart the service")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
-    );
-
-    // The clap_app macro does not allow "-" in possible values
-    sub = sub.arg(Arg::with_name("STRATEGY").short("s")
-                                            .long("strategy")
-                                            .takes_value(true)
-                                            .default_value("none")
-                                            .possible_values(&["none", "at-once", "rolling"])
-                                            .validator(valid_update_strategy)
-                                            .help("The update strategy"));
-
-    // The clap_app macro does not allow "-" in possible values
-    sub = sub.arg(Arg::with_name("UPDATE_CONDITION").long("update-condition")
-                                                    .takes_value(true)
-                                                    .default_value("latest")
-                                                    .possible_values(&["latest", "track-channel"])
-                                                    .validator(valid_update_condition)
-                                                    .help(UPDATE_CONDITION_HELP)
-                                                    .long_help(UPDATE_CONDITION_LONG_HELP));
-
-    // The clap_app macro does not support numbers in default_value
-    sub = sub.arg(Arg::with_name("HEALTH_CHECK_INTERVAL").short("i")
-                                                         .long("health-check-interval")
-                                                         .takes_value(true)
-                                                         .default_value("30")
-                                                         .validator(valid_health_check_interval)
-                                                         .help("The interval in seconds on \
-                                                                which to run health checks"));
-
-    if cfg!(windows) {
-        sub = sub.arg(Arg::with_name("PASSWORD").long("password")
-                                                .takes_value(true)
-                                                .help("Password of the service user"));
-    }
-
     add_shutdown_timeout_option(sub)
 }
 
@@ -1264,22 +1199,14 @@ fn sub_svc_unload() -> App<'static, 'static> {
             running it will additionally be stopped")
         (@arg PKG_IDENT: +required +takes_value {valid_ident}
             "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
+            "Address to a remote Supervisor's Control Gateway")
     );
     add_shutdown_timeout_option(sub)
 }
 
 // CLAP Validation Functions
 ////////////////////////////////////////////////////////////////////////
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_binding_mode(val: String) -> result::Result<(), String> {
-    match habitat_sup_protocol::types::BindingMode::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!("Binding mode: '{}' is not valid", &val)),
-    }
-}
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_pair_type(val: String) -> result::Result<(), String> {
@@ -1337,34 +1264,6 @@ fn valid_numeric<T: FromStr>(val: String) -> result::Result<(), String> {
     match val.parse::<T>() {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("'{}' is not a valid number", &val)),
-    }
-}
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_health_check_interval(val: String) -> result::Result<(), String> {
-    match HealthCheckInterval::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            Err(format!("'{}' is not a valid value for health check \
-                         interval: {}",
-                        val, e))
-        }
-    }
-}
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_update_strategy(val: String) -> result::Result<(), String> {
-    match habitat_sup_protocol::types::UpdateStrategy::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!("Update strategy: '{}' is not valid", &val)),
-    }
-}
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_update_condition(val: String) -> result::Result<(), String> {
-    match habitat_sup_protocol::types::UpdateCondition::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!("Update condition: '{}' is not valid", &val)),
     }
 }
 

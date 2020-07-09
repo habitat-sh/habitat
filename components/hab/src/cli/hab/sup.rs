@@ -1,5 +1,6 @@
 use super::{svc::{ConfigOptSharedLoad,
-                  SharedLoad},
+                  SharedLoad,
+                  DEFAULT_SVC_CONFIG_DIR},
             util::{self,
                    CacheKeyPath,
                    ConfigOptCacheKeyPath,
@@ -19,7 +20,9 @@ use habitat_common::{cli::{RING_ENVVAR,
                              EventStreamToken,
                              GossipListenAddr,
                              HttpListenAddr,
-                             ListenCtlAddr}};
+                             ListenCtlAddr},
+                     FeatureFlag,
+                     FEATURE_FLAGS};
 use habitat_core::{env::Config,
                    package::PackageIdent,
                    util as core_util};
@@ -105,11 +108,7 @@ fn parse_peer(s: &str) -> io::Result<SocketAddr> {
 
 #[configopt_fields]
 #[derive(ConfigOpt, StructOpt, Deserialize)]
-#[configopt(attrs(serde))]
-#[cfg_attr(not(windows),
-           configopt(default_config_file("/hab/sup/default/config/sup.toml")))]
-#[cfg_attr(windows,
-           configopt(default_config_file("\\hab\\sup\\default\\config\\sup.toml")))]
+#[configopt(attrs(serde), default_config_file("/hab/sup/default/config/sup.toml"))]
 #[serde(deny_unknown_fields)]
 #[structopt(name = "run",
             no_version,
@@ -120,7 +119,6 @@ fn parse_peer(s: &str) -> io::Result<SocketAddr> {
             usage = "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]",
             rename_all = "screamingsnake",
         )]
-#[allow(dead_code)]
 pub struct SupRun {
     /// The listen address for the Gossip Gateway
     #[structopt(long = "listen-gossip",
@@ -178,9 +176,6 @@ pub struct SupRun {
                 env = RING_KEY_ENVVAR,
                 hidden = true)]
     pub ring_key: Option<String>,
-    /// Use the package config from this path rather than the package itself
-    #[structopt(long = "config-from")]
-    pub config_from: Option<PathBuf>,
     /// Enable automatic updates for the Supervisor itself
     #[structopt(long = "auto-update", short = "A")]
     pub auto_update: bool,
@@ -283,6 +278,13 @@ pub struct SupRun {
     /// automatic package cleanup is performed.
     #[structopt(long = "keep-latest-packages", env = "HAB_KEEP_LATEST_PACKAGES")]
     pub keep_latest_packages: Option<usize>,
+    /// Paths to files or directories of service config files to load on startup
+    ///
+    /// See `hab svc bulkload --help` for details
+    #[structopt(long = "svc-config-paths",
+                default_value = DEFAULT_SVC_CONFIG_DIR,
+                hidden = !FEATURE_FLAGS.contains(FeatureFlag::SERVICE_CONFIG_FILES))]
+    pub svc_config_paths: Vec<PathBuf>,
     #[structopt(flatten)]
     #[serde(flatten)]
     pub shared_load: SharedLoad,

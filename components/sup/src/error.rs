@@ -45,6 +45,7 @@ pub enum Error {
     FileNotFound(String),
     FileWatcherFileIsRoot,
     GroupNotFound(String),
+    Hab(hab::error::Error),
     HabitatCommon(habitat_common::Error),
     HabitatCore(habitat_core::Error),
     InvalidBinds(Vec<String>),
@@ -158,6 +159,7 @@ impl fmt::Display for Error {
             }
             Error::EventError(ref err) => err.to_string(),
             Error::Permissions(ref err) => err.to_string(),
+            Error::Hab(ref err) => err.to_string(),
             Error::HabitatCommon(ref err) => err.to_string(),
             Error::HabitatCore(ref err) => err.to_string(),
             Error::EnvJoinPathsError(ref err) => err.to_string(),
@@ -304,6 +306,10 @@ impl From<net::AddrParseError> for Error {
 
 impl From<habitat_butterfly::error::Error> for Error {
     fn from(err: habitat_butterfly::error::Error) -> Error { Error::ButterflyError(err) }
+}
+
+impl From<hab::error::Error> for Error {
+    fn from(err: hab::error::Error) -> Error { Error::Hab(err) }
 }
 
 impl From<habitat_common::Error> for Error {
