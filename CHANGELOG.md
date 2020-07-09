@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.72 -->
-## [1.6.72](https://github.com/habitat-sh/habitat/tree/1.6.72) (2020-07-08)
+<!-- latest_release 1.6.73 -->
+## [1.6.73](https://github.com/habitat-sh/habitat/tree/1.6.73) (2020-07-09)
 
 #### Merged Pull Requests
-- start gossip listener before spawning services [#7784](https://github.com/habitat-sh/habitat/pull/7784) ([mwrock](https://github.com/mwrock))
+- Service bootstrap [#7765](https://github.com/habitat-sh/habitat/pull/7765) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -18,6 +18,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- Service bootstrap [#7765](https://github.com/habitat-sh/habitat/pull/7765) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.73 -->
 - start gossip listener before spawning services [#7784](https://github.com/habitat-sh/habitat/pull/7784) ([mwrock](https://github.com/mwrock)) <!-- 1.6.72 -->
 - [CI] Increase macOS timeouts [#7785](https://github.com/habitat-sh/habitat/pull/7785) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.71 -->
 - ensure tdeps file is built with lower level deps at the bottom of the list [#7776](https://github.com/habitat-sh/habitat/pull/7776) ([mwrock](https://github.com/mwrock)) <!-- 1.6.70 -->
