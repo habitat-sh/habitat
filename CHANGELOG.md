@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.76 -->
-## [1.6.76](https://github.com/habitat-sh/habitat/tree/1.6.76) (2020-07-09)
+<!-- latest_release 1.6.77 -->
+## [1.6.77](https://github.com/habitat-sh/habitat/tree/1.6.77) (2020-07-09)
 
 #### Merged Pull Requests
-- [FIX] Ensure --remote-sup option is parsed properly [#7788](https://github.com/habitat-sh/habitat/pull/7788) ([christophermaier](https://github.com/christophermaier))
+- [CI] Bump macOS timeout in release pipeline [#7789](https://github.com/habitat-sh/habitat/pull/7789) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -19,6 +19,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- [CI] Bump macOS timeout in release pipeline [#7789](https://github.com/habitat-sh/habitat/pull/7789) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.77 -->
 - [FIX] Ensure --remote-sup option is parsed properly [#7788](https://github.com/habitat-sh/habitat/pull/7788) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.76 -->
 - Propagate install and uninstall hook exit codes [#7782](https://github.com/habitat-sh/habitat/pull/7782) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.74 -->
 - Service bootstrap [#7765](https://github.com/habitat-sh/habitat/pull/7765) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.73 -->
