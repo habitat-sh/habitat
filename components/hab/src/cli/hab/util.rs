@@ -109,7 +109,8 @@ pub struct RemoteSup {
     #[structopt(name = "REMOTE_SUP",
                 long = "remote-sup",
                 short = "r",
-                default_value = ListenCtlAddr::default_as_str())]
+                default_value = ListenCtlAddr::default_as_str(),
+                parse(try_from_str = ListenCtlAddr::resolve_listen_ctl_addr))]
     #[serde(default)]
     remote_sup: ListenCtlAddr,
 }
