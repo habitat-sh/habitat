@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.74 -->
-## [1.6.74](https://github.com/habitat-sh/habitat/tree/1.6.74) (2020-07-09)
+<!-- latest_release 1.6.75 -->
+## [1.6.75](https://github.com/habitat-sh/habitat/tree/1.6.75) (2020-07-09)
 
-#### Merged Pull Requests
-- Propagate install and uninstall hook exit codes [#7782](https://github.com/habitat-sh/habitat/pull/7782) ([davidMcneil](https://github.com/davidMcneil))
+#### New Features & Enhancements
+- Add `hab svc update` command [#7781](https://github.com/habitat-sh/habitat/pull/7781) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
 ### Changes since 1.6.56 release
 
 #### New Features & Enhancements
+- Add `hab svc update` command [#7781](https://github.com/habitat-sh/habitat/pull/7781) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.75 -->
 - Allow dynamic changes to updater-related config for services  [#7770](https://github.com/habitat-sh/habitat/pull/7770) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.65 -->
 
 #### Bug Fixes
