@@ -17,12 +17,16 @@ Install-Habitat
         'plan.ps1',
         'template_plan.ps1',
         'last_build.ps1',
-        'pre_build.ps1'
+        'pre_build.ps1',
+        'run.ps1',
+        'init.ps1'
     )
     $excludeFormatScripts = @(
         'template_plan.ps1',
         'last_build.ps1',
-        'pre_build.ps1'
+        'pre_build.ps1',
+        'run.ps1',
+        'init.ps1'
     )
 
     Write-Host "Checking Powershell formatting..."

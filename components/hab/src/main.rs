@@ -13,6 +13,7 @@ use configopt::{ConfigOpt,
                 Error as ConfigOptError};
 use futures::stream::StreamExt;
 use hab::{cli::{self,
+                gateway_util,
                 hab::{svc::{self,
                             BulkLoad as SvcBulkLoad,
                             Load as SvcLoad,
@@ -78,7 +79,6 @@ use std::{collections::HashMap,
           io::{self,
                prelude::*,
                Read},
-          net::ToSocketAddrs,
           path::{Path,
                  PathBuf},
           process,
@@ -87,9 +87,6 @@ use std::{collections::HashMap,
           string::ToString,
           thread};
 use tabwriter::TabWriter;
-use termcolor::{self,
-                Color,
-                ColorSpec};
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
@@ -166,6 +163,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         Svc::Load(svc_load) => {
                             return sub_svc_load(svc_load).await;
                         }
+                        Svc::Update(svc_update) => return sub_svc_update(svc_update).await,
                         _ => {
                             // All other commands will be caught by the CLI parsing logic below.
                         }
@@ -600,7 +598,7 @@ async fn sub_send_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<(
 }
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let ident = required_pkg_ident_from_input(m)?;
     let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap()); // required by clap
     let force = m.is_present("FORCE");
     match m.value_of("BINARY") {
@@ -641,21 +639,19 @@ async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 }
 
 fn sub_pkg_config(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-
+    let ident = required_pkg_ident_from_input(m)?;
     common::command::package::config::start(&ident, &*FS_ROOT_PATH)?;
     Ok(())
 }
 
 fn sub_pkg_binds(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-
+    let ident = required_pkg_ident_from_input(m)?;
     common::command::package::binds::start(&ident, &*FS_ROOT_PATH)?;
     Ok(())
 }
 
 fn sub_pkg_dependencies(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let ident = required_pkg_ident_from_input(m)?;
     let scope = if m.is_present("TRANSITIVE") {
         command::pkg::Scope::PackageAndDependencies
     } else {
@@ -710,20 +706,18 @@ async fn sub_pkg_download(ui: &mut UI,
 }
 
 fn sub_pkg_env(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-
+    let ident = required_pkg_ident_from_input(m)?;
     command::pkg::env::start(&ident, &*FS_ROOT_PATH)
 }
 
 fn sub_pkg_exec(m: &ArgMatches<'_>, cmd_args: &[OsString]) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
+    let ident = required_pkg_ident_from_input(m)?;
     let cmd = m.value_of("CMD").unwrap(); // Required via clap
-
     command::pkg::exec::start(&ident, cmd, cmd_args)
 }
 
 async fn sub_pkg_export(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let ident = required_pkg_ident_from_input(m)?;
     let format = &m.value_of("FORMAT").unwrap();
     let url = bldr_url_from_matches(&m)?;
     let channel = channel_from_matches_or_default(&m);
@@ -751,7 +745,7 @@ fn sub_pkg_hash(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let ident = required_pkg_ident_from_input(m)?;
     let execute_strategy = if m.is_present("DRYRUN") {
         command::pkg::ExecutionStrategy::DryRun
     } else {
@@ -831,7 +825,7 @@ async fn sub_bldr_channel_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> 
 }
 
 async fn sub_bldr_job_start(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
+    let ident = required_pkg_ident_from_input(m)?;
     let url = bldr_url_from_matches(&m)?;
     let target = target_from_matches(m)?;
     let group = m.is_present("GROUP");
@@ -982,8 +976,7 @@ async fn sub_pkg_install(ui: &mut UI,
 }
 
 fn sub_pkg_path(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-
+    let ident = required_pkg_ident_from_input(m)?;
     command::pkg::path::start(&ident, &*FS_ROOT_PATH)
 }
 
@@ -1087,7 +1080,7 @@ async fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 async fn sub_pkg_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let ident = required_pkg_ident_from_input(m)?;
     let target = target_from_matches(m)?;
 
     command::pkg::delete::start(ui, &url, (&ident, target), &token).await?;
@@ -1123,7 +1116,7 @@ async fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
     let target = target_from_matches(m)?;
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
+    let ident = required_pkg_ident_from_input(m)?;
     command::pkg::promote::start(ui, &url, (&ident, target), &channel, &token).await
 }
 
@@ -1132,13 +1125,13 @@ async fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
     let target = target_from_matches(m)?;
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
+    let ident = required_pkg_ident_from_input(m)?;
     command::pkg::demote::start(ui, &url, (&ident, target), &channel, &token).await
 }
 
 async fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
+    let ident = required_pkg_ident_from_input(m)?;
     let token = maybe_auth_token(&m);
     let target = target_from_matches(m)?;
 
@@ -1147,7 +1140,7 @@ async fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
+    let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let mut ui = ui::ui();
@@ -1194,7 +1187,7 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                         .map(ToString::to_string)
                         .unwrap_or_else(|| "UNKNOWN".to_string()),))?;
     ui.status(Status::Creating, "service configuration")?;
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, validate).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, validate).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1212,8 +1205,8 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
             _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
         }
     }
-    ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))?;
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, set).await?;
+    ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))?;
+    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, set).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1231,13 +1224,13 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let ident = required_pkg_ident_from_input(m)?;
     let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
+    let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcGetDefaultCfg::default();
     msg.ident = Some(ident.into());
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1257,16 +1250,9 @@ async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
-    let cfg = config::load()?;
-    let listen_ctl_addr = svc_load.remote_sup.remote_sup;
-    let secret_key = config::ctl_secret_key(&cfg)?;
+    let remote_sup_addr = svc_load.remote_sup.to_listen_ctl_addr();
     let msg = habitat_sup_protocol::ctl::SvcLoad::try_from(svc_load)?;
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
-    while let Some(message_result) = response.next().await {
-        let reply = message_result?;
-        handle_ctl_reply(&reply)?;
-    }
-    Ok(())
+    gateway_util::send(&remote_sup_addr, msg).await
 }
 
 async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
@@ -1285,41 +1271,31 @@ async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
 }
 
 async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    let secret_key = config::ctl_secret_key(&cfg)?;
+    let ident = required_pkg_ident_from_input(m)?;
     let timeout_in_seconds =
         parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
-
     let msg = sup_proto::ctl::SvcUnload { ident: Some(ident.into()),
                                           timeout_in_seconds };
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
-    while let Some(message_result) = response.next().await {
-        let reply = message_result?;
-        handle_ctl_reply(&reply)?;
-    }
-    Ok(())
+    let remote_sup_addr = remote_sup_from_input(m)?;
+    gateway_util::send(&remote_sup_addr, msg).await
+}
+
+async fn sub_svc_update(u: hab::cli::hab::svc::Update) -> Result<()> {
+    let ctl_addr = u.remote_sup.to_listen_ctl_addr();
+    let msg: sup_proto::ctl::SvcUpdate = TryFrom::try_from(u)?;
+    gateway_util::send(&ctl_addr, msg).await
 }
 
 async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    let secret_key = config::ctl_secret_key(&cfg)?;
-    let mut msg = sup_proto::ctl::SvcStart::default();
-    msg.ident = Some(ident.into());
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
-    while let Some(message_result) = response.next().await {
-        let reply = message_result?;
-        handle_ctl_reply(&reply)?;
-    }
-    Ok(())
+    let ident = required_pkg_ident_from_input(m)?;
+    let msg = sup_proto::ctl::SvcStart { ident: Some(ident.into()), };
+    let remote_sup_addr = remote_sup_from_input(m)?;
+    gateway_util::send(&remote_sup_addr, msg).await
 }
 
 async fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
+    let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcStatus::default();
     if let Some(pkg) = m.value_of("PKG_IDENT") {
@@ -1327,7 +1303,7 @@ async fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
     }
 
     let mut out = TabWriter::new(io::stdout());
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, msg).await?;
     // Ensure there is at least one result from the server otherwise produce an error
     if let Some(message_result) = response.next().await {
         let reply = message_result?;
@@ -1344,27 +1320,19 @@ async fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
-    let secret_key = config::ctl_secret_key(&cfg)?;
+    let ident = required_pkg_ident_from_input(m)?;
     let timeout_in_seconds =
         parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
-
     let msg = sup_proto::ctl::SvcStop { ident: Some(ident.into()),
                                         timeout_in_seconds };
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
-    while let Some(message_result) = response.next().await {
-        let reply = message_result?;
-        handle_ctl_reply(&reply)?;
-    }
-    Ok(())
+    let remote_sup_addr = remote_sup_from_input(m)?;
+    gateway_util::send(&remote_sup_addr, msg).await
 }
 
 async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
+    let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SvcFilePut::default();
@@ -1404,9 +1372,9 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
         }
         _ => msg.content = Some(buf.to_vec()),
     }
-    ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
+    ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))
       .unwrap();
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1430,7 +1398,7 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
 
 async fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
-    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
+    let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SupDepart::default();
@@ -1439,9 +1407,9 @@ async fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
     ui.begin(format!("Permanently marking {} as departed",
                      msg.member_id.as_deref().unwrap_or("UNKNOWN")))
       .unwrap();
-    ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
+    ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))
       .unwrap();
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1836,43 +1804,6 @@ fn excludes_from_matches(matches: &ArgMatches<'_>) -> Vec<PackageIdent> {
         .collect()
 }
 
-fn handle_ctl_reply(reply: &SrvMessage) -> result::Result<(), SrvClientError> {
-    let mut progress_bar = pbr::ProgressBar::<io::Stdout>::new(0);
-    progress_bar.set_units(pbr::Units::Bytes);
-    progress_bar.show_tick = true;
-    progress_bar.message("    ");
-    match reply.message_id() {
-        "ConsoleLine" => {
-            let m = reply.parse::<sup_proto::ctl::ConsoleLine>()
-                         .map_err(SrvClientError::Decode)?;
-            let mut new_spec = ColorSpec::new();
-            let msg_spec = match m.color {
-                Some(color) => {
-                    new_spec.set_fg(Some(Color::from_str(&color)?))
-                            .set_bold(m.bold)
-                }
-                None => new_spec.set_bold(m.bold),
-            };
-            common::ui::print(UI::default_with_env().out(), m.line.as_bytes(), msg_spec)?;
-        }
-        "NetProgress" => {
-            let m = reply.parse::<sup_proto::ctl::NetProgress>()
-                         .map_err(SrvClientError::Decode)?;
-            progress_bar.total = m.total;
-            if progress_bar.set(m.position) >= m.total {
-                progress_bar.finish();
-            }
-        }
-        "NetErr" => {
-            let m = reply.parse::<sup_proto::net::NetErr>()
-                         .map_err(SrvClientError::Decode)?;
-            return Err(SrvClientError::from(m));
-        }
-        _ => (),
-    }
-    Ok(())
-}
-
 fn print_svc_status<T>(out: &mut T,
                        reply: &SrvMessage,
                        print_header: bool)
@@ -1941,29 +1872,16 @@ fn bulkupload_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
            .expect("CLAP-validated upload dir")
 }
 
-fn listen_ctl_addr_from_input(m: &ArgMatches<'_>) -> Result<ListenCtlAddr> {
-    m.value_of("REMOTE_SUP")
-     .map_or(Ok(ListenCtlAddr::default()), resolve_listen_ctl_addr)
+fn remote_sup_from_input(m: &ArgMatches<'_>) -> Result<ListenCtlAddr> {
+    Ok(m.value_of("REMOTE_SUP")
+        .map_or(Ok(ListenCtlAddr::default()),
+                ListenCtlAddr::resolve_listen_ctl_addr)?)
 }
 
-fn resolve_listen_ctl_addr(input: &str) -> Result<ListenCtlAddr> {
-    let listen_ctl_addr = if input.find(':').is_some() {
-        input.to_string()
-    } else {
-        format!("{}:{}", input, ListenCtlAddr::DEFAULT_PORT)
-    };
-
-    listen_ctl_addr.to_socket_addrs()
-                   .and_then(|mut addrs| {
-                       addrs.find(std::net::SocketAddr::is_ipv4).ok_or_else(|| {
-                                                                    io::Error::new(
-                    io::ErrorKind::AddrNotAvailable,
-                    "Address could not be resolved.",
-                )
-                                                                })
-                   })
-                   .map(ListenCtlAddr::from)
-                   .map_err(|e| Error::RemoteSupResolutionError(listen_ctl_addr, e))
+fn required_pkg_ident_from_input(m: &ArgMatches<'_>) -> Result<PackageIdent> {
+    Ok(m.value_of("PKG_IDENT")
+        .expect("PKG_IDENT is a required argument")
+        .parse()?)
 }
 
 /// Check to see if the user has passed in a USER param.
@@ -2115,40 +2033,6 @@ mod test {
         fn dest_dir_from_pkg_install(pkg_install_args: &[&str]) -> Option<PathBuf> {
             let pkg_install_matches = &matches_for_pkg_install(pkg_install_args);
             binlink_dest_dir_from_matches(pkg_install_matches)
-        }
-    }
-
-    mod resolve_listen_ctl_addr {
-        use super::*;
-
-        #[test]
-        fn ip_is_resolved() {
-            let expected =
-                ListenCtlAddr::from_str("127.0.0.1:8080").expect("Could not create ListenCtlAddr");
-            let actual =
-                resolve_listen_ctl_addr("127.0.0.1:8080").expect("Could not resolve string");
-
-            assert_eq!(expected, actual);
-        }
-
-        #[test]
-        fn localhost_is_resolved() {
-            let expected =
-                ListenCtlAddr::from_str("127.0.0.1:8080").expect("Could not create ListenCtlAddr");
-            let actual =
-                resolve_listen_ctl_addr("localhost:8080").expect("Could not resolve string");
-
-            assert_eq!(expected, actual);
-        }
-
-        #[test]
-        fn port_is_set_to_default_if_not_specified() {
-            let expected =
-                ListenCtlAddr::from_str(&format!("127.0.0.1:{}", ListenCtlAddr::DEFAULT_PORT))
-                    .expect("Could not create ListenCtlAddr");
-            let actual = resolve_listen_ctl_addr("localhost").expect("Could not resolve string");
-
-            assert_eq!(expected, actual);
         }
     }
 }

@@ -161,6 +161,12 @@ impl From<core::service::ServiceBind> for ServiceBind {
     }
 }
 
+impl Into<core::service::ServiceBind> for ServiceBind {
+    fn into(self) -> core::service::ServiceBind {
+        core::service::ServiceBind::new(&self.name, self.service_group.into())
+    }
+}
+
 impl FromStr for ServiceGroup {
     type Err = NetErr;
 

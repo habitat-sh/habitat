@@ -1080,9 +1080,10 @@ impl Manager {
 
             // TODO (CM): eventually, make this a future receiver
             for action in action_receiver.try_iter() {
+                use SupervisorAction::*;
                 match action {
-                    SupervisorAction::StopService { mut service_spec,
-                                                    shutdown_input, } => {
+                    StopService { mut service_spec,
+                                  shutdown_input, } => {
                         service_spec.desired_state = DesiredState::Down;
                         if let Err(err) = self.state.cfg.save_spec_for(&service_spec) {
                             warn!("Tried to stop '{}', but couldn't update the spec: {:?}",
@@ -1090,10 +1091,17 @@ impl Manager {
                         }
                         self.stop_service_gsw_msw(&service_spec.ident, &shutdown_input);
                     }
-                    SupervisorAction::UnloadService { service_spec,
-                                                      shutdown_input, } => {
+                    UnloadService { service_spec,
+                                    shutdown_input, } => {
                         self.remove_spec_file(&service_spec.ident).ok();
                         self.stop_service_gsw_msw(&service_spec.ident, &shutdown_input);
+                    }
+                    UpdateService { service_spec } => {
+                        trace!("Received UpdateService action for {}", service_spec.ident);
+                        if let Err(err) = self.state.cfg.save_spec_for(&service_spec) {
+                            warn!("Tried to update '{}', but couldn't write the spec: {:?}",
+                                  service_spec.ident, err);
+                        }
                     }
                 }
             }

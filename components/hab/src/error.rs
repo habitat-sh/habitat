@@ -60,7 +60,6 @@ pub enum Error {
     ParseIntError(num::ParseIntError),
     PathPrefixError(path::StripPrefixError),
     ProvidesError(String),
-    RemoteSupResolutionError(String, io::Error),
     RootRequired,
     ScheduleStatus(api_client::Error),
     SubcommandNotSupported(String),
@@ -173,10 +172,6 @@ impl fmt::Display for Error {
             Error::ParseIntError(ref err) => format!("{}", err),
             Error::PathPrefixError(ref err) => format!("{}", err),
             Error::ProvidesError(ref err) => format!("Can't find {}", err),
-            Error::RemoteSupResolutionError(ref sup_addr, ref err) => {
-                format!("Failed to resolve remote supervisor '{}': {}",
-                        sup_addr, err,)
-            }
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation".to_string()
             }
