@@ -1,0 +1,3 @@
+#!/usr/bin/env pwsh
+
+exit $Env:CUSTOM_HOOK_EXIT_CODE

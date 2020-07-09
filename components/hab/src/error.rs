@@ -3,6 +3,7 @@ use crate::{api_client,
             hcore,
             protocol::net,
             sup_client::SrvClientError};
+use habitat_common::error::DEFAULT_ERROR_EXIT_CODE;
 use habitat_core::package::PackageIdent;
 use std::{collections::HashMap,
           env,
@@ -29,8 +30,6 @@ pub enum Error {
     CannotRemoveDockerStudio,
     CannotRemoveFromChannel((String, String)),
     CannotRemovePackage(hcore::package::PackageIdent, usize),
-    // Boxed due to clippy::large_enum_variant
-    CannotRunUninstallHook(PackageIdent, Box<common::Error>),
     CommandNotFoundInPkg((String, String)),
     ConfigOpt(configopt::Error),
     CryptoCLI(String),
@@ -68,7 +67,6 @@ pub enum Error {
     UnsupportedExportFormat(String),
     TomlDeserializeError(toml::de::Error),
     TomlSerializeError(toml::ser::Error),
-    UninstallHookFailed(PackageIdent),
     Utf8Error(String),
     WalkDir(walkdir::Error),
     YamlError(serde_yaml::Error),
@@ -96,10 +94,6 @@ impl fmt::Display for Error {
             Error::CannotRemovePackage(ref p, ref c) => {
                 format!("Can't remove package: {}. It is a dependency of {} packages",
                         p, c)
-            }
-            Error::CannotRunUninstallHook(ref ident, ref e) => {
-                format!("There was an error running the uninstall hook for {} : {}",
-                        ident, e)
             }
             Error::CommandNotFoundInPkg((ref p, ref c)) => {
                 format!("`{}' was not found under any 'PATH' directories in the {} package",
@@ -193,9 +187,6 @@ impl fmt::Display for Error {
             Error::UnsupportedExportFormat(ref e) => format!("Unsupported export format: {}", e),
             Error::TomlDeserializeError(ref e) => format!("Can't deserialize TOML: {}", e),
             Error::TomlSerializeError(ref e) => format!("Can't serialize TOML: {}", e),
-            Error::UninstallHookFailed(ref ident) => {
-                format!("Uninstall hook for {} exited unsuccessfully", ident)
-            }
             Error::Utf8Error(ref e) => format!("Error processing a string as UTF-8: {}", e),
             Error::WalkDir(ref err) => format!("{}", err),
             Error::YamlError(ref e) => format!("{}", e),
@@ -205,6 +196,15 @@ impl fmt::Display for Error {
 }
 
 impl error::Error for Error {}
+
+impl Error {
+    pub fn exit_code(&self) -> i32 {
+        match self {
+            Self::HabitatCommon(e) => e.exit_code(),
+            _ => DEFAULT_ERROR_EXIT_CODE,
+        }
+    }
+}
 
 impl From<api_client::Error> for Error {
     fn from(err: api_client::Error) -> Error { Error::APIClient(err) }

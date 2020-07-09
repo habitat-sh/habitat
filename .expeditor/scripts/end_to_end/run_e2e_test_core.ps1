@@ -243,13 +243,18 @@ function Get-Leader($Remote, $ServiceGroup) {
     }
 }
 
-Function Invoke-BuildAndInstall($PackageName) {
+function Invoke-Build($PackageName) {
     hab pkg build test/fixtures/$PackageName --reuse
-    if($IsLinux) {
+    if ($IsLinux) {
         # This changes the format of last_build from `var=value` to `$var='value'`
         # so that powershell can parse and source the script
+        Set-Content -Path "results/last_build.ps1" -Value ""
         Get-Content "results/last_build.env" | ForEach-Object { Add-Content "results/last_build.ps1" -Value "`$$($_.Replace("=", '="'))`"" }
     }
+}
+
+Function Invoke-BuildAndInstall($PackageName) {
+    Invoke-Build $PackageName
     . ./results/last_build.ps1
     hab pkg install ./results/$pkg_artifact
 }

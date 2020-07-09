@@ -62,7 +62,7 @@ pub struct FileUpdatedHook {
 impl Hook for FileUpdatedHook {
     type ExitValue = bool;
 
-    fn file_name() -> &'static str { "file-updated" }
+    const FILE_NAME: &'static str = "file-updated";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
         FileUpdatedHook { render_pair:     pair,
@@ -103,7 +103,7 @@ impl HealthCheckHook {
         if feature_flags.contains(FeatureFlag::NO_NAMED_PIPE_HEALTH_CHECK) {
             None
         } else {
-            Some(PipeHookClient::new(Self::file_name().to_string(), path, out_path, err_path))
+            Some(PipeHookClient::new(Self::FILE_NAME.to_string(), path, out_path, err_path))
         }
     }
 }
@@ -111,7 +111,7 @@ impl HealthCheckHook {
 impl Hook for HealthCheckHook {
     type ExitValue = ProcessOutput;
 
-    fn file_name() -> &'static str { "health-check" }
+    const FILE_NAME: &'static str = "health-check";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
         #[cfg(windows)]
@@ -147,7 +147,7 @@ impl Hook for HealthCheckHook {
                 }
                 Err(err) => {
                     outputln!(preamble service_group,
-                        "Hook failed to run, {}, {}", Self::file_name(), err);
+                        "Hook failed to run, {}, {}", Self::FILE_NAME, err);
                     Err(err)
                 }
             }
@@ -186,7 +186,7 @@ pub struct InitHook {
 impl Hook for InitHook {
     type ExitValue = bool;
 
-    fn file_name() -> &'static str { "init" }
+    const FILE_NAME: &'static str = "init";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
         InitHook { render_pair:     pair,
@@ -200,12 +200,12 @@ impl Hook for InitHook {
             Some(0) => true,
             Some(code) => {
                 outputln!(preamble pkg_name, "Initialization failed! '{}' exited with \
-                    status code {}", Self::file_name(), code);
+                    status code {}", Self::FILE_NAME, code);
                 false
             }
             None => {
                 outputln!(preamble pkg_name, "Initialization failed! '{}' exited without a \
-                    status code", Self::file_name());
+                    status code", Self::FILE_NAME);
                 false
             }
         }
@@ -230,7 +230,7 @@ pub struct RunHook {
 impl Hook for RunHook {
     type ExitValue = ExitCode;
 
-    fn file_name() -> &'static str { "run" }
+    const FILE_NAME: &'static str = "run";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
         RunHook { render_pair:     pair,
@@ -274,7 +274,7 @@ pub struct PostRunHook {
 impl Hook for PostRunHook {
     type ExitValue = ExitCode;
 
-    fn file_name() -> &'static str { "post-run" }
+    const FILE_NAME: &'static str = "post-run";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
         PostRunHook { render_pair:     pair,
@@ -317,7 +317,7 @@ pub struct ReloadHook {
 impl Hook for ReloadHook {
     type ExitValue = ExitCode;
 
-    fn file_name() -> &'static str { "reload" }
+    const FILE_NAME: &'static str = "reload";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
         ReloadHook { render_pair:     pair,
@@ -331,7 +331,7 @@ impl Hook for ReloadHook {
             Some(0) => ExitCode(0),
             Some(code) => {
                 outputln!(preamble pkg_name, "Reload failed! '{}' exited with \
-                    status code {}", Self::file_name(), code);
+                    status code {}", Self::FILE_NAME, code);
                 ExitCode(code)
             }
             None => {
@@ -360,7 +360,7 @@ pub struct ReconfigureHook {
 impl Hook for ReconfigureHook {
     type ExitValue = ExitCode;
 
-    fn file_name() -> &'static str { "reconfigure" }
+    const FILE_NAME: &'static str = "reconfigure";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
         ReconfigureHook { render_pair:     pair,
@@ -415,7 +415,7 @@ impl SuitabilityHook {
                 }
             };
         } else {
-            outputln!(preamble pkg_name, "{} did not print anything to stdout", Self::file_name());
+            outputln!(preamble pkg_name, "{} did not print anything to stdout", Self::FILE_NAME);
         }
         None
     }
@@ -424,7 +424,7 @@ impl SuitabilityHook {
 impl Hook for SuitabilityHook {
     type ExitValue = Option<u64>;
 
-    fn file_name() -> &'static str { "suitability" }
+    const FILE_NAME: &'static str = "suitability";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
         SuitabilityHook { render_pair:     pair,
@@ -452,7 +452,7 @@ impl Hook for SuitabilityHook {
             }
             Some(code) => {
                 outputln!(preamble pkg_name,
-                          "{} exited with status code {}", Self::file_name(), code);
+                          "{} exited with status code {}", Self::FILE_NAME, code);
             }
             None => {
                 Self::output_termination_message(pkg_name, status);
@@ -480,7 +480,7 @@ pub struct PostStopHook {
 impl Hook for PostStopHook {
     type ExitValue = bool;
 
-    fn file_name() -> &'static str { "post-stop" }
+    const FILE_NAME: &'static str = "post-stop";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
         PostStopHook { render_pair:     pair,
@@ -494,7 +494,7 @@ impl Hook for PostStopHook {
             Some(0) => true,
             Some(code) => {
                 outputln!(preamble pkg_name, "Post stop failed! '{}' exited with \
-                    status code {}", Self::file_name(), code);
+                    status code {}", Self::FILE_NAME, code);
                 false
             }
             None => {
@@ -663,7 +663,7 @@ impl HookTable {
             Ok(status) => status,
             Err(e) => {
                 outputln!(preamble service_group,
-                          "Failed to compile {} hook: {}", H::file_name(), e);
+                          "Failed to compile {} hook: {}", H::FILE_NAME, e);
                 false
             }
         }
