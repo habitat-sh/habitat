@@ -4,9 +4,17 @@ description: Uploading, building, and deploying application packages with Chef H
 ---
 # <a name="using-builder" id="using-builder" data-magellan-target="using-builder">Using Builder</a>
 
-<a target="_blank" href="https://bldr.habitat.sh/#/sign-in">Chef Habitat Builder</a> allows you to store, automatically build, and deploy your Chef Habitat packages. The documentation below covers everything from creating an account to setting up automated builds and exporting packages to a variety of container registries.
+<a target="_blank" href="https://bldr.habitat.sh/#/sign-in">Chef Habitat Builder</a> [Chef Habitat Builder](httpowershell://bldr.habitat.sh/) is the publicly available site for storing, discovering, building, and deploying your Chef Habitat packages. Chef Habitat Builder supports public and private origins, packages, and Github repositories. Use the Chef Habitat Builder site to:
 
-> For a guided walk-through of this process, try the [Build System demo](/demo/build-system/steps/1/).
+* Create an account
+* Make and manage origins
+* Set up automated builds
+* Export packages to container registries
+* Discover packages and origins
+
+With some exceptions, Chef Habitat Builder actions have corresponding `hab` CLI commands. We'll try to be clear about actions that are exclusive to either the website or the command line. When both are possible, we provide the Builder actions first.
+
+We'll primarily use the `hab origin` command in this documentation. You'll also need `hab pkg` to upload packages from---and download to--your local environment and `hab bldr` for actions related to build jobs and channels. For more information on CLI commands covered in this section, see the full [hab CLI documentation](/docs/habitat-cli/).
 
 ---
 ## <a name="builder-account" id="builder-account" data-magellan-target="builder-account">Create a Builder Account</a>
