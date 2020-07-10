@@ -1069,6 +1069,23 @@ impl Service {
         false
     }
 
+    /// Writes out all service files for a service.
+    ///
+    /// Must be called before a loaded service starts (even before any
+    /// init hook, since the operation of the hook may depend on the
+    /// presence of service files).
+    ///
+    /// Doesn't return a boolean (cf. `update_service_files` below)
+    /// because we don't particularly care in this case.
+    pub fn write_initial_service_files(&mut self, census_ring: &CensusRing) {
+        // In this case, a service group not being found is fine; this
+        // may be a non-peered Supervisor running this service for the
+        // first time, for instance.
+        if let Some(census_group) = census_ring.census_group_for(&self.service_group) {
+            self.write_service_files(census_group, CensusGroup::service_files);
+        }
+    }
+
     /// Write service files from gossip data to disk under
     /// [`svc_files_path()`](../../fs/fn.svc_files_path.html).
     ///
@@ -1079,11 +1096,28 @@ impl Service {
             census_ring.census_group_for(&self.service_group)
                        .expect("Service update service files failed; unable to find own service \
                                 group");
+        self.write_service_files(census_group, CensusGroup::changed_service_files)
+    }
+
+    /// Abstracts the logic for writing out service files for a
+    /// service.
+    ///
+    /// The key bit here is `file_fn`, which returns the list of files
+    /// to write out. In practice, this will be either
+    /// `CensusGroup::service_files`, to write _all_ files to disk, or
+    /// `CensusGroup::changed_service_files`, to write out only the
+    /// files that have had recent gossip activity.
+    ///
+    /// Returns `true` if any service files were written to disk.
+    fn write_service_files<'a, F, I>(&mut self, census_group: &'a CensusGroup, file_fn: F) -> bool
+        where F: Fn(&'a CensusGroup) -> I,
+              I: IntoIterator<Item = &'a ServiceFile>
+    {
         let mut updated = false;
-        for service_file in census_group.changed_service_files() {
+        for service_file in file_fn(census_group) {
             if self.cache_service_file(&service_file) {
                 outputln!(preamble self.service_group, "Service file updated, {}",
-                    service_file.filename);
+                          service_file.filename);
                 updated = true;
             }
         }
