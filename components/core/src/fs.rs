@@ -924,6 +924,8 @@ mod test_find_command {
     use std::{env,
               path::PathBuf};
 
+    crate::locked_env_var!(PATHEXT, lock_pathext);
+
     #[allow(dead_code)]
     fn setup_pathext(lock: &LockedEnvVar) {
         let path_bufs = vec![PathBuf::from(".BAT"),
@@ -951,8 +953,7 @@ mod test_find_command {
         mod argument_without_extension {
             use super::{find_command,
                         setup_path};
-
-            crate::locked_env_var!(PATHEXT, lock_pathext);
+            use crate::fs::test_find_command::lock_pathext;
 
             #[test]
             fn command_exists() {
@@ -985,9 +986,8 @@ mod test_find_command {
         mod argument_with_extension {
             use super::{find_command,
                         setup_path};
+            use crate::fs::test_find_command::lock_pathext;
             use std::path::PathBuf;
-
-            crate::locked_env_var!(PATHEXT, lock_pathext);
 
             #[test]
             fn command_exists() {
@@ -1039,8 +1039,7 @@ mod test_find_command {
             use super::{find_command,
                         setup_path,
                         setup_pathext};
-
-            crate::locked_env_var!(PATHEXT, lock_pathext);
+            use crate::fs::test_find_command::lock_pathext;
 
             #[test]
             fn command_exists() {
@@ -1095,9 +1094,8 @@ mod test_find_command {
             use super::{find_command,
                         setup_path,
                         setup_pathext};
+            use crate::fs::test_find_command::lock_pathext;
             use std::path::PathBuf;
-
-            crate::locked_env_var!(PATHEXT, lock_pathext);
 
             #[test]
             fn command_exists() {
