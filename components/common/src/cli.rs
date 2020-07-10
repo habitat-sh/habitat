@@ -22,7 +22,7 @@ pub const LISTEN_HTTP_DEFAULT_PORT: u16 = 9631;
 pub const LISTEN_HTTP_DEFAULT_IP: &str = "0.0.0.0";
 lazy_static! {
     pub static ref LISTEN_HTTP_DEFAULT_ADDR: String =
-        { format!("{}:{}", LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT) };
+        format!("{}:{}", LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT);
 }
 
 pub const PACKAGE_TARGET_ENVVAR: &str = "HAB_PACKAGE_TARGET";
