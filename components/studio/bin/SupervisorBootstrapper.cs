@@ -5,7 +5,7 @@ using System.IO;
 public class SupervisorBootstrapper {
     private static String logPath = Path.Combine(Environment.GetEnvironmentVariable("HAB_STUDIO_ENTER_ROOT"), "hab\\sup\\default\\out.log");
 
-    public static void Run(bool isAnsiSupported) {
+    public static void Run(bool isAnsiSupported, String supArgs) {
         var proc = new Process();
         proc.StartInfo.UseShellExecute = false;
         proc.StartInfo.CreateNoWindow = true;
@@ -18,6 +18,10 @@ public class SupervisorBootstrapper {
         else {
             proc.StartInfo.Arguments = "sup run --no-color";
             proc.StartInfo.EnvironmentVariables["HAB_NOCOLORING"] = "1";
+        }
+
+        if(!String.IsNullOrWhiteSpace(supArgs)) {
+            proc.StartInfo.Arguments += " " + supArgs;
         }
         proc.OutputDataReceived += new DataReceivedEventHandler(SupOutputHandler);
         proc.ErrorDataReceived += new DataReceivedEventHandler(SupOutputHandler);
