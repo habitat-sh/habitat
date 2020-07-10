@@ -581,8 +581,8 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "2.33.0"
-source = "git+https://github.com/habitat-sh/clap.git?branch=v2-master#88208fba64d978bb780968031bb4bb22d8cb174a"
+version = "2.33.1"
+source = "git+https://github.com/habitat-sh/clap.git?branch=v2-master#7dcf79090eb06ad1e279c1caa93d7f45697e0768"
 dependencies = [
  "ansi_term",
  "atty",
@@ -611,7 +611,7 @@ checksum = "370c83b49aedf022ee27942e8ae1d9de1cf40dc9653ee6550e4455d08f6406f9"
 [[package]]
 name = "configopt"
 version = "0.1.0"
-source = "git+https://github.com/davidMcneil/configopt.git#541553bfbd674d92d96130e6601c64b7263b08c1"
+source = "git+https://github.com/davidMcneil/configopt.git#8c937d8c20f53bfa61c26fe0506482525af06257"
 dependencies = [
  "colosseum",
  "configopt-derive",
@@ -624,7 +624,7 @@ dependencies = [
 [[package]]
 name = "configopt-derive"
 version = "0.1.0"
-source = "git+https://github.com/davidMcneil/configopt.git#541553bfbd674d92d96130e6601c64b7263b08c1"
+source = "git+https://github.com/davidMcneil/configopt.git#8c937d8c20f53bfa61c26fe0506482525af06257"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -3581,8 +3581,8 @@ checksum = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 
 [[package]]
 name = "structopt"
-version = "0.3.13"
-source = "git+https://github.com/habitat-sh/structopt.git#48e591de17e575ac8a13c4b64b75d3fb2a147336"
+version = "0.3.15"
+source = "git+https://github.com/habitat-sh/structopt.git#63c56f42ae330b15f44a86c160b0cf6868b90a6f"
 dependencies = [
  "clap",
  "lazy_static 1.4.0",
@@ -3591,8 +3591,8 @@ dependencies = [
 
 [[package]]
 name = "structopt-derive"
-version = "0.4.6"
-source = "git+https://github.com/habitat-sh/structopt.git#48e591de17e575ac8a13c4b64b75d3fb2a147336"
+version = "0.4.8"
+source = "git+https://github.com/habitat-sh/structopt.git#63c56f42ae330b15f44a86c160b0cf6868b90a6f"
 dependencies = [
  "heck",
  "proc-macro-error",
