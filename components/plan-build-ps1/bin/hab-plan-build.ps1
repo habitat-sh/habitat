@@ -1012,7 +1012,7 @@ function Set-Environment {
 # step is correct, that is inside the extracted source directory.
 function Invoke-PrepareWrapper {
     Write-BuildLine "Preparing to build"
-    Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
+    Push-Location $SRC_PATH
     try { Invoke-Prepare } finally { Pop-Location }
 }
 
@@ -1033,7 +1033,7 @@ function Invoke-DefaultPrepare {
 # `$HAB_CACHE_SRC_PATH\$pkg_dirname`.
 function Invoke-BuildWrapper {
     Write-BuildLine "Building"
-    Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
+    Push-Location $SRC_PATH
     try { Invoke-Build } finally { Pop-Location }
 }
 
@@ -1179,7 +1179,7 @@ function __resolve_all_version_placeholders_for_provenance($provenance_table, $r
 function Invoke-CheckWrapper {
     if ((Test-Command Invoke-Check) -and (Test-Path Env:\DO_CHECK)) {
         Write-BuildLine "Running post-compile tests"
-        Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
+        Push-Location $SRC_PATH
         try { Invoke-Check } finally { Pop-Location }
     }
 }
@@ -1201,7 +1201,7 @@ function Invoke-InstallWrapper {
     foreach($dir in $pkg_pconfig_dirs) {
         New-Item "$pkg_prefix\$dir" -ItemType Directory -Force | Out-Null
     }
-    Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
+    Push-Location $SRC_PATH
     try { Invoke-Install } finally { Pop-Location }
 }
 
@@ -1565,6 +1565,10 @@ if (-Not (Test-Path "$Context")) {
     throw "Context must be an existing directory"
 }
 $script:PLAN_CONTEXT = (Get-Item $Context).FullName
+# Set the initial source root to be the same as the Plan context directory.
+# This assumes that your application source is local and your Plan exists with
+# your code.
+$script:SRC_PATH = $PLAN_CONTEXT
 
 
 # Look for a plan.ps1 relative to the $PLAN_CONTEXT. Acceptable locations are:
@@ -1695,6 +1699,15 @@ try {
     # Set `$pkg_prefix` if not already set by the `plan.ps1`.
     if ("$pkg_prefix" -eq "") {
         $script:pkg_prefix = "$HAB_PKG_PATH\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
+    }
+
+    # Set the cache path to be under the cache source root path
+    $script:CACHE_PATH = "$HAB_CACHE_SRC_PATH/$pkg_dirname"
+
+    # If `$pkg_source` is used, update the source path to build under the cache
+    # source path.
+    if($pkg_source) {
+        $SRC_PATH = $CACHE_PATH
     }
 
     # Determine the final output path for the package artifact
