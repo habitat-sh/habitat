@@ -68,6 +68,7 @@ ENVIRONMENT VARIABLES:
     HAB_STUDIOS_HOME      Sets a home path for all Studios (default: /hab/studios)
     HAB_STUDIO_NOPROFILE  Disables sourcing a \`.studio_profile.ps1' in \`studio enter'
     HAB_STUDIO_ROOT       Sets a Studio root (\`-r' option overrides)
+    NO_ARTIFACT_PATH      If set, do not mount the source artifact cache path
     NO_SRC_PATH           If set, do not mount source path (\`-n' flag overrides)
     QUIET                 Prints less output (\`-q' flag overrides)
     SRC_PATH              Sets the source path (\`-s' option overrides)
@@ -215,9 +216,25 @@ function New-Studio {
     }
 
     Set-Location $HAB_STUDIO_ROOT
-    if(!(Test-Path src) -and !($doNotMount)) {
+    if(!(Test-Path src) -and !($env:NO_SRC_PATH)) {
         mkdir src | Out-Null
         New-Item -Name src -ItemType Junction -target $SRC_PATH.Path | Out-Null
+    }
+
+    if(!$env:NO_ARTIFACT_PATH) {
+        $cachePath = Join-Path $HAB_STUDIO_ROOT "hab/cache"
+        if(!(Test-Path $cachePath)) {
+            mkdir $cachePath | Out-Null
+        }
+        Push-Location $cachePath
+        try {
+            if(!(Test-Path artifacts)) {
+                mkdir artifacts | Out-Null
+                New-Item -Name artifacts -ItemType Junction -target "/hab/cache/artifacts" | Out-Null
+            }
+        } finally {
+            Pop-Location
+        }
     }
 
     $pathArray = @(
@@ -562,7 +579,7 @@ if ((Test-Path "$env:USERPROFILE\.hab\accepted-licenses\habitat") -or (Test-Path
 }
 
 if($h) { $script:printHelp = $true }
-if($n) { $script:doNotMount = $true }
+if($n) { $env:NO_SRC_PATH = $true }
 if($q) { $script:quiet = $true }
 
 $currentVerbose = $VerbosePreference
