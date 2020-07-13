@@ -36,8 +36,6 @@ use habitat_common::{command::package::install::InstallSource,
                      ui::{self,
                           UI},
                      FeatureFlag};
-#[cfg(windows)]
-use habitat_core::crypto::dpapi::encrypt;
 use habitat_core::{self,
                    crypto::{self,
                             SymKey},

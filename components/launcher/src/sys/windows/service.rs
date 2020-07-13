@@ -201,7 +201,7 @@ fn build_proc_table() -> ProcessTable {
             }
             unsafe { handleapi::CloseHandle(processes_snap_handle) };
         }
-        0 | _ => unsafe {
+        _ => unsafe {
             handleapi::CloseHandle(processes_snap_handle);
         },
     }
