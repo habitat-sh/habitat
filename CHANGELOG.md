@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.80 -->
-## [1.6.80](https://github.com/habitat-sh/habitat/tree/1.6.80) (2020-07-10)
+<!-- latest_release 1.6.81 -->
+## [1.6.81](https://github.com/habitat-sh/habitat/tree/1.6.81) (2020-07-13)
 
 #### Merged Pull Requests
-- use a single env var lock in tests to improve consistency [#7795](https://github.com/habitat-sh/habitat/pull/7795) ([mwrock](https://github.com/mwrock))
+- Add packages for health check performance tests [#7797](https://github.com/habitat-sh/habitat/pull/7797) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -19,6 +19,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- Add packages for health check performance tests [#7797](https://github.com/habitat-sh/habitat/pull/7797) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.81 -->
 - use a single env var lock in tests to improve consistency [#7795](https://github.com/habitat-sh/habitat/pull/7795) ([mwrock](https://github.com/mwrock)) <!-- 1.6.80 -->
 - Update `structopt` [#7793](https://github.com/habitat-sh/habitat/pull/7793) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.79 -->
 - increase rumor file atomicity and durability [#7783](https://github.com/habitat-sh/habitat/pull/7783) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.78 -->
