@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.83 -->
-## [1.6.83](https://github.com/habitat-sh/habitat/tree/1.6.83) (2020-07-13)
+<!-- latest_release 1.6.84 -->
+## [1.6.84](https://github.com/habitat-sh/habitat/tree/1.6.84) (2020-07-13)
 
-#### Bug Fixes
--  Write all service files when a service is loaded  [#7799](https://github.com/habitat-sh/habitat/pull/7799) ([christophermaier](https://github.com/christophermaier))
+#### Merged Pull Requests
+- output SRC_PATH in hab-plan-puild.ps1 results [#7802](https://github.com/habitat-sh/habitat/pull/7802) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -20,6 +20,8 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- output SRC_PATH in hab-plan-puild.ps1 results [#7802](https://github.com/habitat-sh/habitat/pull/7802) ([mwrock](https://github.com/mwrock)) <!-- 1.6.84 -->
+- Make rust compiler warnings errors [#7800](https://github.com/habitat-sh/habitat/pull/7800) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.84 -->
 - unify bash and powershell pwd locations for build, check, prepare and install [#7796](https://github.com/habitat-sh/habitat/pull/7796) ([mwrock](https://github.com/mwrock)) <!-- 1.6.83 -->
 - Add HAB_STUDIO_SUP support to Windows studio [#7791](https://github.com/habitat-sh/habitat/pull/7791) ([mwrock](https://github.com/mwrock)) <!-- 1.6.83 -->
 - symlink artifact cache in windows native studio [#7786](https://github.com/habitat-sh/habitat/pull/7786) ([mwrock](https://github.com/mwrock)) <!-- 1.6.82 -->
