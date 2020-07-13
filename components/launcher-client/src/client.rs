@@ -58,7 +58,10 @@ impl LauncherCli {
         let tx = IpcSender::connect(pipe_to_launcher).map_err(Error::Connect)?;
         let (ipc_srv, pipe_to_sup) = IpcServer::new().map_err(Error::BadPipe)?;
         debug!("IpcServer::new() returned pipe_to_sup: {}", pipe_to_sup);
-        let cmd = protocol::Register { pipe: pipe_to_sup.clone(), };
+        let cmd = protocol::Register { #[cfg(windows)]
+                                       pipe:                      pipe_to_sup,
+                                       #[cfg(not(windows))]
+                                       pipe:                      pipe_to_sup.clone(), };
         Self::send(&tx, &cmd)?;
         let (rx, raw) = ipc_srv.accept().map_err(|_| Error::AcceptConn)?;
         Self::read::<protocol::NetOk>(&raw)?;

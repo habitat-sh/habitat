@@ -48,8 +48,6 @@ use habitat_common::{self as common,
                           UIWriter,
                           UI},
                      FeatureFlag};
-#[cfg(windows)]
-use habitat_core::crypto::dpapi::encrypt;
 use habitat_core::{crypto::{init,
                             keys::PairType,
                             BoxKeyPair,
