@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.82 -->
-## [1.6.82](https://github.com/habitat-sh/habitat/tree/1.6.82) (2020-07-13)
+<!-- latest_release 1.6.83 -->
+## [1.6.83](https://github.com/habitat-sh/habitat/tree/1.6.83) (2020-07-13)
 
-#### Merged Pull Requests
-- symlink artifact cache in windows native studio [#7786](https://github.com/habitat-sh/habitat/pull/7786) ([mwrock](https://github.com/mwrock))
+#### Bug Fixes
+-  Write all service files when a service is loaded  [#7799](https://github.com/habitat-sh/habitat/pull/7799) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -15,10 +15,13 @@
 - Allow dynamic changes to updater-related config for services  [#7770](https://github.com/habitat-sh/habitat/pull/7770) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.65 -->
 
 #### Bug Fixes
+-  Write all service files when a service is loaded  [#7799](https://github.com/habitat-sh/habitat/pull/7799) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.83 -->
 - Fix reading root certs [#7778](https://github.com/habitat-sh/habitat/pull/7778) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.66 -->
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- unify bash and powershell pwd locations for build, check, prepare and install [#7796](https://github.com/habitat-sh/habitat/pull/7796) ([mwrock](https://github.com/mwrock)) <!-- 1.6.83 -->
+- Add HAB_STUDIO_SUP support to Windows studio [#7791](https://github.com/habitat-sh/habitat/pull/7791) ([mwrock](https://github.com/mwrock)) <!-- 1.6.83 -->
 - symlink artifact cache in windows native studio [#7786](https://github.com/habitat-sh/habitat/pull/7786) ([mwrock](https://github.com/mwrock)) <!-- 1.6.82 -->
 - Add packages for health check performance tests [#7797](https://github.com/habitat-sh/habitat/pull/7797) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.81 -->
 - use a single env var lock in tests to improve consistency [#7795](https://github.com/habitat-sh/habitat/pull/7795) ([mwrock](https://github.com/mwrock)) <!-- 1.6.80 -->
