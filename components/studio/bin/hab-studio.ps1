@@ -350,17 +350,17 @@ function Enter-Studio {
     }
     New-Studio
     $env:STUDIO_SCRIPT_ROOT = $PSScriptRoot
-    $shouldStartStudio = $false
+    $startedNativeStudioSup = $false
+    $shouldRunSup = (!(@($false, 0, "no", "false") -contains $env:HAB_STUDIO_SUP))
+    $habSvc = Get-Service Habitat -ErrorAction SilentlyContinue
+    $supRunningAsService = ($habSvc -and ($habSvc.Status -eq "Running"))
 
     if(!(Test-InContainer) -and (Get-Process -Name hab-sup -ErrorAction SilentlyContinue)) {
         Write-Warning "A Habitat Supervisor is already running on this machine."
         Write-Warning "Only one Supervisor can run at a time."
         Write-Warning "A Supervisor will not be started in this Studio."
-    } else {
-        $habSvc = Get-Service Habitat -ErrorAction SilentlyContinue
-        if(!$habSvc -or ($habSvc.Status -eq "Stopped")) {
-            $shouldStartStudio = $true
-
+    } elseif($shouldRunSup) {
+        if(!$supRunningAsService) {
             # Set console encoding to UTF-8 so that any redirected glyphs
             # from the supervisor log are propperly encoded
             [System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -384,14 +384,32 @@ function Enter-Studio {
             }
 
             mkdir $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default -Force | Out-Null
-            [SupervisorBootstrapper]::Run($isAnsiSupported)
+            [SupervisorBootstrapper]::Run($isAnsiSupported, $env:HAB_STUDIO_SUP)
+            $startedNativeStudioSup = $true
+        } elseif($env:HAB_STUDIO_SUP) {
+            [xml]$configXml = Get-Content "/hab/svc/windows-service/HabService.dll.config"
+            $launcherArgs = $configXml.configuration.appSettings.SelectNodes("add[@key='launcherArgs']")[0]
+            $launcherArgs.SetAttribute("value", $env:HAB_STUDIO_SUP) | Out-Null
+            $configXml.Save("/hab/svc/windows-service/HabService.dll.config")
+            Restart-Service Habitat
         }
 
-        Write-Host  "** The Habitat Supervisor has been started in the background." -ForegroundColor Cyan
-        Write-Host  "** Use 'hab svc start' and 'hab svc stop' to start and stop services." -ForegroundColor Cyan
-        Write-Host  "** Use the 'Get-SupervisorLog' command to stream the Supervisor log." -ForegroundColor Cyan
-        Write-Host  "** Use the 'Stop-Supervisor' to terminate the Supervisor." -ForegroundColor Cyan
+        Write-Host  "--> To prevent a Supervisor from running automatically in your" -ForegroundColor Cyan
+        Write-Host  "    Studio, set '`$env:HAB_STUDIO_SUP=`$false' before running" -ForegroundColor Cyan
+        Write-Host  "    'hab studio enter'." -ForegroundColor Cyan
         Write-Host  ""
+        Write-Host "** The Habitat Supervisor has been started in the background." -ForegroundColor Cyan
+        Write-Host "** Use 'hab svc start' and 'hab svc stop' to start and stop services." -ForegroundColor Cyan
+        Write-Host "** Use the 'Get-SupervisorLog' command to stream the Supervisor log." -ForegroundColor Cyan
+        Write-Host "** Use the 'Stop-Supervisor' to terminate the Supervisor." -ForegroundColor Cyan
+        if($null -eq $env:HAB_STUDIO_SUP) {
+            Write-Host "** To pass custom arguments to run the Supervisor, set" -ForegroundColor Cyan
+            Write-Host "      '`$env:HAB_STUDIO_SUP' with the arguments before running" -ForegroundColor Cyan
+            Write-Host "      'hab studio enter'." -ForegroundColor Cyan
+        }
+        Write-Host  ""
+    } elseif($supRunningAsService) {
+        Stop-Service Habitat
     }
     Write-HabInfo "Entering Studio at $HAB_STUDIO_ROOT"
     & "$PSScriptRoot\powershell\pwsh.exe" -NoProfile -ExecutionPolicy bypass -NoLogo -NoExit -Command {
@@ -446,7 +464,7 @@ function Enter-Studio {
         }
     }
 
-    if($shouldStartStudio -and (Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")) {
+    if($startedNativeStudioSup -and (Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")) {
         Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")
         $retry = 0
         while(($retry -lt 5) -and (Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")) {
