@@ -327,9 +327,8 @@ impl GossipListenAddr {
     pub fn local_addr(&self) -> Self {
         let mut addr = *self;
         if addr.0.ip().is_unspecified() {
-            // TODO (CM): Use Ipv4Addr::loopback() when it's no longer experimental
             // TODO (CM): Support IPV6, once we do that more broadly
-            addr.0.set_ip(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)));
+            addr.0.set_ip(IpAddr::V4(Ipv4Addr::LOCALHOST));
         }
         addr
     }

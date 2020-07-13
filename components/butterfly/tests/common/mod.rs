@@ -51,8 +51,8 @@ pub fn start_server_smw_rhw(name: &str, ring_key: Option<SymKey>, suitability: u
         gossip_port = *port_guard;
         *port_guard += 1;
     }
-    let listen_swim = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), swim_port);
-    let listen_gossip = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), gossip_port);
+    let listen_swim = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), swim_port);
+    let listen_gossip = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), gossip_port);
     let mut member = Member::default();
     member.swim_port = swim_port;
     member.gossip_port = gossip_port;
