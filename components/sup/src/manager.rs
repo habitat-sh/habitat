@@ -805,13 +805,13 @@ impl Manager {
     /// * `ManagerServices::inner` (read)
     async fn add_service_rsw_mlw_rhw_msr(&mut self, spec: ServiceSpec) {
         let ident = spec.ident.clone();
-        let service = match Service::new(self.sys.clone(),
-                                         spec,
-                                         self.fs_cfg.clone(),
-                                         self.organization.as_deref(),
-                                         self.state.gateway_state.clone(),
-                                         self.pid_source,
-                                         self.feature_flags).await
+        let mut service = match Service::new(self.sys.clone(),
+                                             spec,
+                                             self.fs_cfg.clone(),
+                                             self.organization.as_deref(),
+                                             self.state.gateway_state.clone(),
+                                             self.pid_source,
+                                             self.feature_flags).await
         {
             Ok(service) => {
                 outputln!("Starting {} ({})", ident, service.pkg.ident);
@@ -848,6 +848,11 @@ impl Manager {
             outputln!("{} failed to start", ident);
             return;
         }
+
+        // Note: This must take place after `service.create_svc_path`
+        // because we need the directories to exist before we can
+        // write files to them.
+        service.write_initial_service_files(&self.census_ring.read());
 
         self.gossip_latest_service_rumor_rsw_mlw_rhw(&service);
         if service.topology() == Topology::Leader {

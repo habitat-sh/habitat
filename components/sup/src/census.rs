@@ -24,6 +24,7 @@ use std::{borrow::Cow,
                         HashMap,
                         HashSet},
           fmt,
+          iter::IntoIterator,
           path::Path,
           result,
           str::FromStr};
@@ -320,7 +321,7 @@ pub struct CensusGroup {
     local_member_id:       MemberId,
     population:            BTreeMap<MemberId, CensusMember>,
     update_leader_id:      Option<MemberId>,
-    changed_service_files: Vec<String>,
+    changed_service_files: HashSet<String>,
     service_files:         HashMap<String, ServiceFile>,
 }
 
@@ -335,7 +336,7 @@ impl CensusGroup {
                       update_leader_id:       None,
                       service_config:         None,
                       service_files:          HashMap::new(),
-                      changed_service_files:  Vec::new(), }
+                      changed_service_files:  HashSet::new(), }
     }
 
     /// Returns the census member in the census ring for the running Supervisor.
@@ -368,10 +369,18 @@ impl CensusGroup {
             .filter(|cm| cm.alive() || cm.suspect())
     }
 
+    /// Return references to all a `CensusGroup`'s `ServiceFiles`.
+    pub fn service_files(&self) -> impl IntoIterator<Item = &ServiceFile> {
+        self.service_files.values()
+    }
+
+    /// Return references to all a `CensusGroup`'s `ServiceFiles` that
+    /// have changed since the last time the rumor network was
+    /// consulted.
     pub fn changed_service_files(&self) -> Vec<&ServiceFile> {
-        self.changed_service_files
-            .iter()
-            .map(|f| &self.service_files[f])
+        self.service_files()
+            .into_iter()
+            .filter(|f| self.changed_service_files.contains(&f.filename))
             .collect()
     }
 
@@ -488,7 +497,7 @@ impl CensusGroup {
             if service_file_rumor.incarnation > file.incarnation {
                 match service_file_rumor.body(cache_key_path) {
                     Ok(body) => {
-                        self.changed_service_files.push(filename.clone());
+                        self.changed_service_files.insert(filename.clone());
                         file.filename = filename.clone();
                         file.incarnation = service_file_rumor.incarnation;
                         file.body = body;
