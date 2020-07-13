@@ -1856,7 +1856,7 @@ try {
 
 # Print the results
 Write-BuildLine
-Write-BuildLine "Source Cache: $HAB_CACHE_SRC_PATH\$pkg_dirname"
+Write-BuildLine "Source Path: $SRC_PATH"
 Write-BuildLine "Installed Path: $pkg_prefix"
 Write-BuildLine "Artifact: $pkg_output_path\$(Split-Path $pkg_artifact -Leaf)"
 Write-BuildLine "Build Report: $pkg_output_path\last_build.ps1"
