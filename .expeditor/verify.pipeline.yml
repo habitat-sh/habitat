@@ -305,7 +305,7 @@ steps:
     timeout_in_minutes: 10
     retry:
       automatic:
-        limit: 1
+        limit: 10 # Addressing current Anka system timeouts due to oversubscription
 
  #################################################################
 
@@ -952,3 +952,6 @@ steps:
           os-version: "10.13"
           inherit-environment-vars: true
     timeout_in_minutes: 60
+    retry:
+      automatic:
+        limit: 10 # Addressing current Anka system timeouts due to oversubscription
