@@ -83,7 +83,7 @@ function Wait-Supervisor($Timeout = 1, $port = 9631) {
     Write-Host "Supervisor is now running."
 }
 
-function Wait-StopSupervisor($Timeout = 1, $port = 9631) {
+function Wait-StopSupervisor($Timeout = 10, $port = 9631) {
     Write-Host "Waiting up to $Timeout seconds for Supervisor to stop..."
     $testScript = { -Not (Test-Connection -ComputerName 127.0.0.1 -TCPPort $port) }
     $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for Supervisor to stop on port $port" }
@@ -198,11 +198,7 @@ function Restart-Supervisor {
 }
 
 function Stop-Supervisor {
-    if ($IsLinux) {
-        pkill --signal=KILL hab-launch
-    } else {
-        Stop-Process | Get-Process hab-launch
-    }
+    Stop-Process -ErrorAction 'silentlycontinue' -Name hab-launch
     Wait-StopSupervisor
 }
 

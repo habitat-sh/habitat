@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 
 public class SupervisorRunner {
     private String logPath = null;
@@ -17,6 +18,10 @@ public class SupervisorRunner {
         proc.StartInfo.RedirectStandardOutput = true;
         proc.StartInfo.RedirectStandardError = true;
         proc.StartInfo.FileName = "hab";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+            // Use the fullpath to avoid running the version installed via chocolatey
+            proc.StartInfo.FileName = "/hab/bin/hab.bat";
+        }
         proc.StartInfo.Arguments = "sup run --no-color " + String.Join(" ", args);
         proc.StartInfo.EnvironmentVariables["HAB_NOCOLORING"] = "1";
         proc.OutputDataReceived += new DataReceivedEventHandler(SupOutputHandler);
