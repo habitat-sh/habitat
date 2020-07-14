@@ -743,9 +743,9 @@ steps:
           privileged: true
 
 
-  - label: "[:linux: test_dynamic_channel_update]"
+  - label: "[:linux: test_svc_update]"
     command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_dynamic_channel_update
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_svc_update
     env:
       BUILD_PKG_TARGET: x86_64-linux
     expeditor:
@@ -756,9 +756,9 @@ steps:
             - BUILD_PKG_TARGET=x86_64-linux
             - PIPELINE_HAB_AUTH_TOKEN
 
-  - label: "[:windows: test_dynamic_channel_update]"
+  - label: "[:windows: test_svc_update]"
     command:
-      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_dynamic_channel_update
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_svc_update
     env:
       BUILD_PKG_TARGET: x86_64-windows
     expeditor:
