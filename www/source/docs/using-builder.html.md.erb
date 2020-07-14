@@ -67,21 +67,37 @@ You also need to set up the Chef Habitat Builder application to use GitHub's aut
 
 ![Authorize the Chef Habitat Application](/images/screenshots/authorize.png)
 ---
-## <a name="builder-token" id="builder-token" data-magellan-target="builder-token">Create an Access Token</a>
+## <a name="builder-profile" id="builder-profile" data-magellan-target="builder-profile">Setup a Profile</a>
 
-You can build and install Habitat artifacts without authenticating to Builder; however, some operations, like uploading your artifacts to Builder, or checking the status of your build jobs from the Habitat CLI, will require an access token.
+Use the Builder Profile to:
 
-From the Builder site, select your user icon in the upper right-hand side, and select **Profile**.
+* See the GitHub account used to sign-in to Builder
+* Add an email to your profile (optional)
+* Create your personal access token
 
-<img src="/images/screenshots/profile.png">
+Access your Builder profile by selecting the **round icon at the top right corner** of the Builder page. Select the **profiles** option from the drop-down menu to  customize your profile and create your personal access token.
 
-At the bottom of the profile page, select **Generate Token**.
+![Access your Chef Habitat Builder profile](/images/screenshots/builder_profile.png)
 
-<img src="/images/screenshots/generate-token.png">
+### Register an Email Address
 
-Copy your token from this page.
+Adding an email address to your Chef Habitat Builder profile account gives us permission to contact you directly about important information. If you use an email address associated with a GitHub account, it will also use your GitHub avatar on Builder. Save your changes by selecting `save`.
 
-### Windows
+![Register your email address](/images/screenshots/builder_profile_user.png)
+
+### <a name="builder-token" id="builder-token" data-magellan-target="builder-token">Create a Personal Access Token </a>
+
+You need a _personal access token_ to authenticate interactions between your local environment and Chef Habitat Builder, such as uploading your artifacts to Builder, or checking the status of your build jobs
+
+Create your personal access token at the bottom of the profile page (below the save button), by selecting **Generate Token**.
+
+![Create your personal access token](/images/screenshots/generate-token.png)
+
+Your generated access token will appear in the field. Make a copy of your access token by selecting the icon on the right side of the field. You can only see an access token immediately after it is generated. Copy and save your access token in a safe location or set it as an environment variable before your navigate away from your builder profile.
+
+![Copy your personal access token](/images/screenshots/copy-token.png)
+
+You can use your personal access token as a [Windows environment variable](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-7) for a single session by passing it in the command line or save it in your user settings for use across sessions.
 
 Save your Habitat authorization token as a permanent environment variable in Windows using:
 
@@ -95,31 +111,29 @@ You can also save your Habitat authorization token as a permanent environment va
 
 This opens the `System Properties` window on the `Advanced` tab. Select the `Environment Variables` button.
 
-<img src='/images/screenshots/environment_variable.png'>
+![Navigate to Windows Environment Variables](/images/screenshots/environment_variable.png)
 
 In the next window, select the `New` button in the top part. This opens a dialog box that lets you set individual user variables.
 
-<img src='/images/screenshots/environment_variable_new.png'>
+![Make new user variable](/images/screenshots/environment_variable_new.png)
 
 Create a permanent environment variable by entering `HAB_AUTH_TOKEN` as the variable name. Next, paste the authorization token that you copied after you generated a new token on your Habitat profile page as the variable value. After you select the `OK`, you will see the new token in the user variables field.
 
-<img src='/images/screenshots/environment_variable_new_var.png'>
+![Save your HAB_AUTH_TOKEN](/images/screenshots/environment_variable_new_var.png)
 
 To test that your new token works correctly, open the Command Prompt---which you can find by entering command in the Windows search box---and entering `echo %HAB_AUTH_TOKEN%`. You should see the value that you pasted into the environment variable.
 
-<img src='/images/screenshots/environment_variable_set.png'>
+####  <a name="builder-token-macos" id="builder-token-macos" data-magellan-target="builder-token-macos">Set the personal access token as a MacOS Environment Variable</a>
 
-### MacOS
-
-Set the HAB_AUTH_TOKEN in the CLI with:
+Set the `HAB_AUTH_TOKEN` in the CLI with:
 
 ```bash
 export HAB_AUTH_TOKEN=<token>
 ```
 
-Replacing `<token>` with the contents of your generated token.
+Replacing `<token>` with the contents of your generated personal access token.
 
-To use your token across sessions, set it as an environment variable in your interactive shell configuration file, such as your `.bashrc`.
+To use your personal access token across sessions, set it as an environment variable in your interactive shell configuration file, such as your `.bashrc`.
 
 ```bash
 export HAB_AUTH_TOKEN=<token>
