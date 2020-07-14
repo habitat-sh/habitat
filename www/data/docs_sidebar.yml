@@ -22,10 +22,10 @@ sidebar_links:
       link: 'https://bldr.habitat.sh/#/pkgs/core'
     - title: Get a Builder Account
       link: "/docs/using-builder/#builder-account"
+    - title: Setup a Profile
+      link: "/docs/using-builder/#builder-profile"
     - title: Create an Origin
       link: "/docs/using-builder/#builder-origin"
-    - title: Generate an Access Token
-      link: "/docs/using-builder/#builder-token"
     - title: Using Origin Keys
       link: "/docs/using-builder/#origin-keys"
     - title: Using Origin Secrets
