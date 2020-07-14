@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.85 -->
-## [1.6.85](https://github.com/habitat-sh/habitat/tree/1.6.85) (2020-07-14)
+<!-- latest_release 1.6.86 -->
+## [1.6.86](https://github.com/habitat-sh/habitat/tree/1.6.86) (2020-07-14)
 
 #### Merged Pull Requests
-- [CI] Fix a forgotten renaming [#7805](https://github.com/habitat-sh/habitat/pull/7805) ([christophermaier](https://github.com/christophermaier))
+- [REFACTOR] A handful of minor tweaks [#7801](https://github.com/habitat-sh/habitat/pull/7801) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -20,6 +20,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- [REFACTOR] A handful of minor tweaks [#7801](https://github.com/habitat-sh/habitat/pull/7801) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.86 -->
 - [CI] Fix a forgotten renaming [#7805](https://github.com/habitat-sh/habitat/pull/7805) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.85 -->
 - output SRC_PATH in hab-plan-puild.ps1 results [#7802](https://github.com/habitat-sh/habitat/pull/7802) ([mwrock](https://github.com/mwrock)) <!-- 1.6.84 -->
 - Make rust compiler warnings errors [#7800](https://github.com/habitat-sh/habitat/pull/7800) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.84 -->
