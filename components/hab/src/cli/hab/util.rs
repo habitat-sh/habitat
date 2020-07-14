@@ -135,15 +135,6 @@ pub fn socket_addr_with_default_port<S: AsRef<str>>(addr: S,
                })
 }
 
-pub fn socket_addrs_with_default_port<I>(addrs: I, default_port: u16) -> io::Result<Vec<SocketAddr>>
-    where I: IntoIterator,
-          I::Item: AsRef<str>
-{
-    addrs.into_iter()
-         .map(|a| socket_addr_with_default_port(a, default_port))
-         .collect()
-}
-
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(from = "u64", into = "u64")]
 pub struct DurationProxy(Duration);
@@ -176,26 +167,14 @@ impl fmt::Display for DurationProxy {
 
 #[cfg(test)]
 mod test {
-    use super::{socket_addr_with_default_port,
-                socket_addrs_with_default_port};
+    use super::socket_addr_with_default_port;
 
     #[test]
-    fn test_socket_addrs_with_default_port() {
+    fn test_socket_addr_with_default_port() {
         assert_eq!(socket_addr_with_default_port("127.0.0.1", 89).unwrap(),
                    "127.0.0.1:89".parse().expect(""));
         assert_eq!(socket_addr_with_default_port("1.2.3.4:1500", 89).unwrap(),
                    "1.2.3.4:1500".parse().expect(""));
         assert!(socket_addr_with_default_port("an_invalid_address", 89).is_err());
-
-        let expected = vec!["1.2.3.4:1500".parse().expect(""),
-                            "0.0.0.0:5567".parse().expect(""),
-                            "127.0.0.1:5567".parse().expect("")];
-        assert_eq!(socket_addrs_with_default_port(&["1.2.3.4:1500", "0.0.0.0", "127.0.0.1"], 5567).unwrap(),
-                   expected);
-        assert!(socket_addrs_with_default_port(&["1.2.3.4:1500",
-                                                 "0.0.0.0",
-                                                 "an_error",
-                                                 "127.0.0.1"],
-                                               5567).is_err(),);
     }
 }
