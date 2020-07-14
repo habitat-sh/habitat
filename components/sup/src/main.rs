@@ -7,7 +7,6 @@ extern crate jemallocator;
 #[macro_use]
 extern crate log;
 #[cfg(test)]
-#[macro_use]
 extern crate lazy_static;
 extern crate rustls;
 extern crate tempfile;
@@ -25,7 +24,8 @@ use crate::sup::{cli::cli,
                            PROC_LOCK_FILE},
                  util};
 use configopt::ConfigOpt;
-use hab::cli::hab::sup::SupRun;
+use hab::cli::hab::{sup::SupRun,
+                    svc};
 use habitat_common::{command::package::install::InstallSource,
                      liveliness_checker,
                      output::{self,
@@ -33,25 +33,19 @@ use habitat_common::{command::package::install::InstallSource,
                               OutputVerbosity},
                      outputln,
                      types::GossipListenAddr,
-                     ui::{UIWriter,
-                          NONINTERACTIVE_ENVVAR,
+                     ui::{self,
                           UI},
                      FeatureFlag};
-#[cfg(windows)]
-use habitat_core::crypto::dpapi::encrypt;
 use habitat_core::{self,
                    crypto::{self,
                             SymKey},
-                   os::signals,
-                   url::default_bldr_url,
-                   ChannelIdent};
+                   os::signals};
 use habitat_launcher_client::{LauncherCli,
                               ERR_NO_RETRY_EXCODE,
                               OK_NO_RETRY_EXCODE};
-use habitat_sup_protocol::{self as sup_proto,
-                           ctl::ServiceBindList,
-                           types::ServiceBind};
-use std::{env,
+use habitat_sup_protocol::{self as sup_proto};
+use std::{convert::TryInto,
+          env,
           io,
           io::Write,
           net::{IpAddr,
@@ -60,7 +54,6 @@ use std::{env,
           str::{self}};
 use tokio::{self,
             runtime::Builder as RuntimeBuilder};
-use url::Url;
 
 /// Our output key
 static LOGKEY: &str = "MN";
@@ -207,49 +200,23 @@ async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run: SupRun,
                                               -> Result<()> {
     set_supervisor_logging_options(&sup_run);
 
-    // TODO (DM): This check can eventually be removed.
-    // See https://github.com/habitat-sh/habitat/issues/7339
-    if !sup_run.shared_load.application.is_empty() || !sup_run.shared_load.environment.is_empty() {
-        ui().warn("--application and --environment flags are deprecated and ignored.")?;
-    }
-
-    let maybe_install_source = sup_run.pkg_ident_or_artifact.clone();
-    let (manager_cfg, mut svc_load_msg) = split_apart_sup_run(sup_run, feature_flags)?;
-
-    let manager = Manager::load_imlw(manager_cfg, launcher).await?;
-
-    // We need to determine if we have an initial service to start
-    let svc = if let Some(install_source) = maybe_install_source {
-        // Always force - running with a package ident is a "do what I mean" operation. You
-        // don't care if a service was loaded previously or not and with what options. You
-        // want one loaded right now and in this way.
-        svc_load_msg.force = Some(true);
-        let ident = match install_source {
-            source @ InstallSource::Archive(_) => {
-                // Install the archive manually then explicitly set the pkg ident to the
-                // version found in the archive. This will lock the software to this
-                // specific version.
-                let install =
-                    util::pkg::install(&mut ui(),
-                                       svc_load_msg.bldr_url
-                                          .as_ref()
-                                          .unwrap_or(&*habitat_sup_protocol::DEFAULT_BLDR_URL),
-                                       &source,
-                                       &svc_load_msg.bldr_channel
-                                           .clone()
-                                           .map(ChannelIdent::from)
-                                           .expect("bldr_channel to always set to Some")).await?;
-                install.ident.into()
-            }
-            InstallSource::Ident(ident, _) => ident.into(),
-        };
-        svc_load_msg.ident = Some(ident);
-        Some(svc_load_msg)
+    let mut svc_load_msgs = if feature_flags.contains(FeatureFlag::SERVICE_CONFIG_FILES) {
+        svc::svc_loads_from_paths(&sup_run.svc_config_paths)?.into_iter()
+                                                             .map(|svc_load| {
+                                                                 Ok(svc_load.try_into()?)
+                                                             })
+                                                             .collect::<Result<Vec<_>>>()?
     } else {
-        None
+        vec![]
     };
 
-    manager.run_rsw_imlw_mlw_gsw_smw_rhw_msw(svc).await
+    let (manager_cfg, maybe_svc_load_msg) = split_apart_sup_run(sup_run, feature_flags).await?;
+    if let Some(svc_load_msg) = maybe_svc_load_msg {
+        svc_load_msgs.push(svc_load_msg);
+    }
+    let manager = Manager::load_imlw(manager_cfg, launcher).await?;
+    manager.run_rsw_imlw_mlw_gsw_smw_rhw_msw(svc_load_msgs)
+           .await
 }
 
 async fn sub_sh() -> Result<()> { command::shell::sh().await }
@@ -271,21 +238,12 @@ fn sub_term() -> Result<()> {
 // Internal Implementation Details
 ////////////////////////////////////////////////////////////////////////
 
-fn split_apart_sup_run(sup_run: SupRun,
-                       feature_flags: FeatureFlag)
-                       -> Result<(ManagerConfig, sup_proto::ctl::SvcLoad)> {
+async fn split_apart_sup_run(sup_run: SupRun,
+                             feature_flags: FeatureFlag)
+                             -> Result<(ManagerConfig, Option<sup_proto::ctl::SvcLoad>)> {
     let ring_key = get_ring_key(&sup_run)?;
 
     let shared_load = sup_run.shared_load;
-
-    #[cfg(target_os = "windows")]
-    let password = if let Some(password) = shared_load.password {
-        Some(encrypt(password)?)
-    } else {
-        None
-    };
-    #[cfg(not(target_os = "windows"))]
-    let password = None;
 
     let event_stream_config = if sup_run.event_stream_url.is_some() {
         Some(EventStreamConfig { environment:
@@ -320,12 +278,14 @@ fn split_apart_sup_run(sup_run: SupRun,
         None
     };
 
+    let bldr_url = habitat_core::url::bldr_url(shared_load.bldr_url.as_ref());
+
     let cfg = ManagerConfig { auto_update: sup_run.auto_update,
                               auto_update_period: sup_run.auto_update_period.into(),
                               service_update_period: sup_run.service_update_period.into(),
                               custom_state_path: None, // remove entirely?
                               cache_key_path: sup_run.cache_key_path.cache_key_path,
-                              update_url: bldr_url(shared_load.bldr_url.as_ref()),
+                              update_url: bldr_url.clone(),
                               update_channel: shared_load.channel.clone(),
                               http_disable: sup_run.http_disable,
                               organization: sup_run.organization,
@@ -357,37 +317,29 @@ fn split_apart_sup_run(sup_run: SupRun,
 
     info!("Using sys IP address {}", cfg.sys_ip);
 
-    let mut msg = sup_proto::ctl::SvcLoad::default();
-    msg.bldr_url = Some(bldr_url(shared_load.bldr_url.as_ref()));
-    msg.bldr_channel = Some(shared_load.channel.to_string());
-    msg.binds = if shared_load.bind.is_empty() {
-        None
+    // Do we have an initial service to start?
+    let maybe_svc_load_msg = if let Some(install_source) = sup_run.pkg_ident_or_artifact {
+        let ident = match install_source {
+            source @ InstallSource::Archive(_) => {
+                // Install the archive manually then explicitly set the pkg ident to the version
+                // found in the archive. This will lock the software to this specific version.
+                let install = util::pkg::install(&mut ui::ui(),
+                                                 &bldr_url,
+                                                 &source,
+                                                 &shared_load.channel).await?;
+                install.ident
+            }
+            InstallSource::Ident(ident, _) => ident,
+        };
+        // Always force - running with a package ident is a "do what I mean" operation. You don't
+        // care if a service was loaded previously or not and with what options. You want one loaded
+        // right now and in this way.
+        Some(svc::shared_load_cli_to_ctl(ident, shared_load, true)?)
     } else {
-        Some(ServiceBindList { binds: shared_load.bind
-                                                 .into_iter()
-                                                 .map(ServiceBind::from)
-                                                 .collect(), })
-    };
-    msg.config_from = if let Some(config_from) = sup_run.config_from {
-        warn!("");
-        warn!("WARNING: Setting '--config-from' should only be used in development, not \
-               production!");
-        warn!("");
-        Some(config_from.to_string_lossy().to_string())
-    } else {
         None
     };
-    msg.group = Some(shared_load.group);
-    msg.svc_encrypted_password = password;
-    msg.health_check_interval =
-        Some(sup_proto::types::HealthCheckInterval { seconds: shared_load.health_check_interval, });
-    msg.binding_mode = Some(shared_load.binding_mode as i32);
-    msg.topology = shared_load.topology.map(i32::from);
-    msg.update_strategy = Some(shared_load.strategy as i32);
-    msg.update_condition = Some(shared_load.update_condition as i32);
-    msg.shutdown_timeout = shared_load.shutdown_timeout.map(u32::from);
 
-    Ok((cfg, msg))
+    Ok((cfg, maybe_svc_load_msg))
 }
 
 // Various CLI Parsing Functions
@@ -412,13 +364,6 @@ fn get_ring_key(sup_run: &SupRun) -> Result<Option<SymKey>> {
     }
 }
 
-/// Resolve a Builder URL. Taken from CLI args, the environment, or
-/// (failing those) a default value.
-fn bldr_url(bldr_url: Option<&Url>) -> String {
-    bldr_url.map(ToString::to_string)
-            .unwrap_or_else(default_bldr_url)
-}
-
 // ServiceSpec Modification Functions
 ////////////////////////////////////////////////////////////////////////
 
@@ -434,23 +379,6 @@ fn set_supervisor_logging_options(sup_run: &SupRun) {
     }
 }
 
-// Based on UI::default_with_env, but taking into account the setting
-// of the global color variable.
-//
-// TODO: Ideally we'd have a unified way of setting color, so this
-// function wouldn't be necessary. In the meantime, though, it'll keep
-// the scope of change contained.
-fn ui() -> UI {
-    let isatty = if env::var(NONINTERACTIVE_ENVVAR).map(|val| val == "1" || val == "true")
-                                                   .unwrap_or(false)
-    {
-        Some(false)
-    } else {
-        None
-    };
-    UI::default_with(output::get_format().color_choice(), isatty)
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -459,10 +387,12 @@ mod test {
                                 HttpListenAddr,
                                 ListenCtlAddr};
     use habitat_core::locked_env_var;
-    use habitat_sup_protocol::types::{BindingMode,
-                                      Topology,
-                                      UpdateCondition,
-                                      UpdateStrategy};
+    use habitat_sup_protocol::{ctl::ServiceBindList,
+                               types::{BindingMode,
+                                       ServiceBind,
+                                       Topology,
+                                       UpdateCondition,
+                                       UpdateStrategy}};
     use std::net::{SocketAddr,
                    ToSocketAddrs};
     use tempfile::TempDir;
@@ -495,10 +425,13 @@ mod test {
 
         use super::*;
         use configopt::ConfigOpt;
+        use futures::executor;
         use habitat_common::types::EventStreamConnectMethod;
         #[cfg(windows)]
         use habitat_core::crypto::dpapi::decrypt;
-        use habitat_core::fs::CACHE_KEY_PATH;
+        use habitat_core::{fs::CACHE_KEY_PATH,
+                           package::PackageIdent,
+                           ChannelIdent};
         use std::{collections::HashMap,
                   fs::File,
                   io::Write,
@@ -527,7 +460,8 @@ mod test {
 
         fn config_from_cmd_vec(cmd_vec: Vec<&str>) -> ManagerConfig {
             let sup_run = sup_run_from_cmd_vec(cmd_vec);
-            split_apart_sup_run(sup_run, no_feature_flags()).expect("Could not get split apart \
+            executor::block_on(split_apart_sup_run(sup_run, no_feature_flags()))
+                                                            .expect("Could not get split apart \
                                                                      SupRun")
                                                             .0
         }
@@ -537,11 +471,16 @@ mod test {
             config_from_cmd_vec(cmd_vec)
         }
 
-        fn service_load_from_cmd_str(cmd: &str) -> sup_proto::ctl::SvcLoad {
+        fn maybe_service_load_from_cmd_str(cmd: &str) -> Option<sup_proto::ctl::SvcLoad> {
             let sup_run = sup_run_from_cmd_str(cmd);
-            split_apart_sup_run(sup_run, no_feature_flags()).expect("Could not get split apart \
+            executor::block_on(split_apart_sup_run(sup_run, no_feature_flags()))
+                                                            .expect("Could not get split apart \
                                                                      SupRun")
                                                             .1
+        }
+
+        fn service_load_from_cmd_str(cmd: &str) -> sup_proto::ctl::SvcLoad {
+            maybe_service_load_from_cmd_str(cmd).expect("input that contained `SvcLoad` data")
         }
 
         #[test]
@@ -562,7 +501,7 @@ mod test {
         #[test]
         fn update_url_is_set_to_default_when_not_specified() {
             let config = config_from_cmd_str("hab-sup run");
-            assert_eq!(config.update_url, default_bldr_url());
+            assert_eq!(config.update_url, habitat_core::url::default_bldr_url());
         }
 
         #[test]
@@ -786,32 +725,8 @@ gpoVMSncu2jMIDZX63IkQII=
                                            habitat_core::util::sys::ip().unwrap(), },
                        config);
 
-            let health_check_interval = sup_proto::types::HealthCheckInterval { seconds: 30 };
-
-            let service_load = service_load_from_cmd_str("hab-sup run");
-            assert_eq!(sup_proto::ctl::SvcLoad { ident:                   None,
-                                                 application_environment: None,
-                                                 binds:                   None,
-                                                 specified_binds:         None,
-                                                 binding_mode:            Some(1),
-                                                 bldr_url:
-                                                     Some(String::from("https://bldr.habitat.sh")),
-                                                 bldr_channel:
-                                                     Some(String::from("stable")),
-                                                 config_from:             None,
-                                                 force:                   None,
-                                                 group:
-                                                     Some(String::from("default")),
-                                                 svc_encrypted_password:  None,
-                                                 topology:                None,
-                                                 update_strategy:
-                                                     Some(UpdateStrategy::None.into()),
-                                                 health_check_interval:
-                                                     Some(health_check_interval),
-                                                 shutdown_timeout:        None,
-                                                 update_condition:
-                                                     Some(UpdateCondition::Latest.into()), },
-                       service_load);
+            let maybe_service_load = maybe_service_load_from_cmd_str("hab-sup run");
+            assert!(maybe_service_load.is_none());
         }
 
         #[test]
@@ -1048,10 +963,12 @@ gpoVMSncu2jMIDZX63IkQII=
             let health_check_interval = sup_proto::types::HealthCheckInterval { seconds: 17 };
 
             let service_load = service_load_from_cmd_str(&args);
-            assert_eq!(sup_proto::ctl::SvcLoad { ident:                   None,
+            assert_eq!(sup_proto::ctl::SvcLoad { ident:
+                                                     Some("core/redis".parse::<PackageIdent>()
+                                                                      .unwrap()
+                                                                      .into()),
                                                  application_environment: None,
                                                  binds:                   Some(binds),
-                                                 specified_binds:         None,
                                                  binding_mode:            Some(0),
                                                  bldr_url:
                                                      Some(String::from("http://my_url.com/")),
@@ -1059,7 +976,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                                      Some(String::from("my_channel")),
                                                  config_from:
                                                      Some(String::from(temp_dir_str)),
-                                                 force:                   None,
+                                                 force:                   Some(true),
                                                  group:
                                                      Some(String::from("MyGroup")),
                                                  svc_encrypted_password:  None,
@@ -1436,10 +1353,12 @@ pkg_ident_or_artifact = "core/redis"
             let health_check_interval = sup_proto::types::HealthCheckInterval { seconds: 17 };
 
             let service_load = service_load_from_cmd_str(&args);
-            assert_eq!(sup_proto::ctl::SvcLoad { ident:                   None,
+            assert_eq!(sup_proto::ctl::SvcLoad { ident:
+                                                     Some("core/redis".parse::<PackageIdent>()
+                                                                      .unwrap()
+                                                                      .into()),
                                                  application_environment: None,
                                                  binds:                   Some(binds),
-                                                 specified_binds:         None,
                                                  binding_mode:            Some(0),
                                                  bldr_url:
                                                      Some(String::from("http://my_url.com/")),
@@ -1447,7 +1366,7 @@ pkg_ident_or_artifact = "core/redis"
                                                      Some(String::from("my_channel")),
                                                  config_from:
                                                      Some(temp_dir_str.replace("\\", "/")),
-                                                 force:                   None,
+                                                 force:                   Some(true),
                                                  group:
                                                      Some(String::from("MyGroup")),
                                                  svc_encrypted_password:  None,
@@ -1507,7 +1426,7 @@ pkg_ident_or_artifact = "core/redis"
             write!(config_file, "password = \"keep_it_secret_keep_it_safe\"")
                 .expect("to write config file contents");
 
-            let args = format!("hab-sup run --config-files {}", config_path_str);
+            let args = format!("hab-sup run core/redis --config-files {}", config_path_str);
             let service_load = service_load_from_cmd_str(&args);
             assert_eq!(decrypt(&service_load.svc_encrypted_password.unwrap()).unwrap(),
                        "keep_it_secret_keep_it_safe");
@@ -1579,7 +1498,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
         #[test]
         fn test_hab_sup_run_all_possible_values() {
             let args = "hab-sup run --topology standalone --strategy none --update-condition \
-                        latest --binding-mode strict";
+                        latest --binding-mode strict core/redis";
             let svc_load = service_load_from_cmd_str(&args);
             assert_eq!(i32::from(Topology::Standalone), svc_load.topology.unwrap());
             assert_eq!(i32::from(UpdateStrategy::None),
@@ -1590,7 +1509,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
                        svc_load.binding_mode.unwrap());
 
             let args = "hab-sup run --topology leader --strategy at-once --update-condition \
-                        track-channel --binding-mode relaxed";
+                        track-channel --binding-mode relaxed core/redis";
             let svc_load = service_load_from_cmd_str(&args);
             assert_eq!(i32::from(Topology::Leader), svc_load.topology.unwrap());
             assert_eq!(i32::from(UpdateStrategy::AtOnce),
@@ -1600,7 +1519,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
             assert_eq!(i32::from(BindingMode::Relaxed),
                        svc_load.binding_mode.unwrap());
 
-            let args = "hab-sup run --strategy rolling ";
+            let args = "hab-sup run --strategy rolling core/redis";
             let svc_load = service_load_from_cmd_str(&args);
             assert_eq!(i32::from(UpdateStrategy::Rolling),
                        svc_load.update_strategy.unwrap());

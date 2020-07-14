@@ -26,23 +26,18 @@ use crate::{api_client::{self,
                          Error::APIError},
             error::{Error,
                     Result},
-            templating::{self,
-                         hooks::{Hook,
-                                 InstallHook},
-                         package::Pkg},
+            templating::hooks::{InstallHook,
+                                PackageMaintenanceHookExt},
             ui::{Status,
-                 UIWriter},
-            FeatureFlag};
+                 UIWriter}};
 use habitat_core::{self,
                    crypto::{artifact,
                             keys::parse_name_with_rev,
                             SigKeyPair},
                    fs::{cache_key_path,
                         pkg_install_path,
-                        svc_hooks_path,
                         AtomicWriter,
                         DEFAULT_CACHED_ARTIFACT_PERMISSIONS},
-                   os::users,
                    package::{list::temp_package_directory,
                              FullyQualifiedPackageIdent,
                              Identifiable,
@@ -394,7 +389,7 @@ async fn run_install_hook_unless_already_successful<T>(ui: &mut T,
 {
     match read_install_hook_status(package.installed_path.join(InstallHook::STATUS_FILE))? {
         Some(0) => Ok(()),
-        _ => run_install_hook(ui, package).await,
+        _ => InstallHook::find_run_and_error_for_status(ui, package).await,
     }
 }
 
@@ -414,36 +409,6 @@ fn read_install_hook_status(path: PathBuf) -> Result<Option<i32>> {
         }
         Err(_) => Ok(None),
     }
-}
-
-async fn run_install_hook<T>(ui: &mut T, package: &PackageInstall) -> Result<()>
-    where T: UIWriter
-{
-    let feature_flags = FeatureFlag::from_env(ui);
-    if let Some(ref hook) = InstallHook::load(&package.ident.name,
-                                              &svc_hooks_path(package.ident.name.clone()),
-                                              &package.installed_path.join("hooks"),
-                                              feature_flags)
-    {
-        ui.status(Status::Executing,
-                  format!("install hook for '{}'", &package.ident(),))?;
-        templating::compile_for_package_install(package, feature_flags).await?;
-        let mut pkg = Pkg::from_install(package).await?;
-        // Only windows uses svc_password
-        if cfg!(target_os = "windows") {
-            // Install hooks do not have access to svc_passwords so
-            // we execute them under the current user account.
-            if let Some(user) = users::get_current_username() {
-                pkg.svc_user = user;
-            }
-        }
-        if !hook.run(&package.ident().name, &pkg, None::<&str>)
-                .unwrap_or(false)
-        {
-            return Err(Error::InstallHookFailed(package.ident().clone()));
-        }
-    }
-    Ok(())
 }
 
 struct InstallTask<'a> {

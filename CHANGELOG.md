@@ -1,19 +1,78 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.48 -->
-## [1.6.48](https://github.com/habitat-sh/habitat/tree/1.6.48) (2020-06-04)
+<!-- latest_release 1.6.87 -->
+## [1.6.87](https://github.com/habitat-sh/habitat/tree/1.6.87) (2020-07-14)
 
 #### Merged Pull Requests
-- Supervisor update config [#7733](https://github.com/habitat-sh/habitat/pull/7733) ([davidMcneil](https://github.com/davidMcneil))
+- [CI] Bump macOS stage retry limits [#7806](https://github.com/habitat-sh/habitat/pull/7806) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.39 -->
-### Changes since 1.6.39 release
+<!-- release_rollup since=1.6.56 -->
+### Changes since 1.6.56 release
+
+#### New Features & Enhancements
+- Add `hab svc update` command [#7781](https://github.com/habitat-sh/habitat/pull/7781) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.75 -->
+- Allow dynamic changes to updater-related config for services  [#7770](https://github.com/habitat-sh/habitat/pull/7770) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.65 -->
+
+#### Bug Fixes
+-  Write all service files when a service is loaded  [#7799](https://github.com/habitat-sh/habitat/pull/7799) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.83 -->
+- Fix reading root certs [#7778](https://github.com/habitat-sh/habitat/pull/7778) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.66 -->
+- [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- [CI] Bump macOS stage retry limits [#7806](https://github.com/habitat-sh/habitat/pull/7806) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.87 -->
+- [REFACTOR] A handful of minor tweaks [#7801](https://github.com/habitat-sh/habitat/pull/7801) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.86 -->
+- [CI] Fix a forgotten renaming [#7805](https://github.com/habitat-sh/habitat/pull/7805) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.85 -->
+- output SRC_PATH in hab-plan-puild.ps1 results [#7802](https://github.com/habitat-sh/habitat/pull/7802) ([mwrock](https://github.com/mwrock)) <!-- 1.6.84 -->
+- Make rust compiler warnings errors [#7800](https://github.com/habitat-sh/habitat/pull/7800) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.84 -->
+- unify bash and powershell pwd locations for build, check, prepare and install [#7796](https://github.com/habitat-sh/habitat/pull/7796) ([mwrock](https://github.com/mwrock)) <!-- 1.6.83 -->
+- Add HAB_STUDIO_SUP support to Windows studio [#7791](https://github.com/habitat-sh/habitat/pull/7791) ([mwrock](https://github.com/mwrock)) <!-- 1.6.83 -->
+- symlink artifact cache in windows native studio [#7786](https://github.com/habitat-sh/habitat/pull/7786) ([mwrock](https://github.com/mwrock)) <!-- 1.6.82 -->
+- Add packages for health check performance tests [#7797](https://github.com/habitat-sh/habitat/pull/7797) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.81 -->
+- use a single env var lock in tests to improve consistency [#7795](https://github.com/habitat-sh/habitat/pull/7795) ([mwrock](https://github.com/mwrock)) <!-- 1.6.80 -->
+- Update `structopt` [#7793](https://github.com/habitat-sh/habitat/pull/7793) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.79 -->
+- increase rumor file atomicity and durability [#7783](https://github.com/habitat-sh/habitat/pull/7783) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.78 -->
+- [CI] Bump macOS timeout in release pipeline [#7789](https://github.com/habitat-sh/habitat/pull/7789) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.77 -->
+- [FIX] Ensure --remote-sup option is parsed properly [#7788](https://github.com/habitat-sh/habitat/pull/7788) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.76 -->
+- Propagate install and uninstall hook exit codes [#7782](https://github.com/habitat-sh/habitat/pull/7782) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.74 -->
+- Service bootstrap [#7765](https://github.com/habitat-sh/habitat/pull/7765) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.73 -->
+- start gossip listener before spawning services [#7784](https://github.com/habitat-sh/habitat/pull/7784) ([mwrock](https://github.com/mwrock)) <!-- 1.6.72 -->
+- [CI] Increase macOS timeouts [#7785](https://github.com/habitat-sh/habitat/pull/7785) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.71 -->
+- ensure tdeps file is built with lower level deps at the bottom of the list [#7776](https://github.com/habitat-sh/habitat/pull/7776) ([mwrock](https://github.com/mwrock)) <!-- 1.6.70 -->
+- compile windows-service package version into binary and log version at start of log [#7779](https://github.com/habitat-sh/habitat/pull/7779) ([mwrock](https://github.com/mwrock)) <!-- 1.6.69 -->
+- add uninstall hook [#7764](https://github.com/habitat-sh/habitat/pull/7764) ([mwrock](https://github.com/mwrock)) <!-- 1.6.68 -->
+- hab-plan-build: don&#39;t fail on empty hooks dir [#7775](https://github.com/habitat-sh/habitat/pull/7775) ([stevendanna](https://github.com/stevendanna)) <!-- 1.6.67 -->
+- always promote package on upload if a user specifies a channel [#7768](https://github.com/habitat-sh/habitat/pull/7768) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.65 -->
+- adding documentation on the HAB_SUP_UPDATE_MS environment variable [#7717](https://github.com/habitat-sh/habitat/pull/7717) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.65 -->
+-  Explicit permissions on keys  [#7739](https://github.com/habitat-sh/habitat/pull/7739) ([stevendanna](https://github.com/stevendanna)) <!-- 1.6.64 -->
+- [REFACTOR] Clean up and streamline spec reconciliation [#7766](https://github.com/habitat-sh/habitat/pull/7766) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.62 -->
+- correcting multi-target package plan layout example [#7763](https://github.com/habitat-sh/habitat/pull/7763) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.61 -->
+- [CI] Simplify PKG_CONFIG_PATH for cargo_update.sh [#7761](https://github.com/habitat-sh/habitat/pull/7761) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.60 -->
+- Automated update of Habitat Documentation [#7758](https://github.com/habitat-sh/habitat/pull/7758) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.59 -->
+- Rustfmt and Nightly Rust Bump to nightly-2020-06-22 [#7759](https://github.com/habitat-sh/habitat/pull/7759) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.58 -->
+- Update changelog for 1.6.56 release [#7760](https://github.com/habitat-sh/habitat/pull/7760) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.57 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release -->
+## [1.6.56](https://github.com/habitat-sh/habitat/tree/1.6.56) (2020-06-18)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.39..1.6.56)
+
+#### Bug Fixes
+- CtlGateway handshake fix [#7755](https://github.com/habitat-sh/habitat/pull/7755) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.53 -->
+- read hook stdout/err allowing for lossy utf8 strings [#7724](https://github.com/habitat-sh/habitat/pull/7724) ([mwrock](https://github.com/mwrock)) <!-- 1.6.46 -->
+
+#### New Features & Enhancements
+- Use the cli.toml auth_token during package install [#7735](https://github.com/habitat-sh/habitat/pull/7735) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.51 -->
+- allow hook extentions in plan [#7740](https://github.com/habitat-sh/habitat/pull/7740) ([mwrock](https://github.com/mwrock)) <!-- 1.6.49 -->
+
+#### Merged Pull Requests
+- [CI] Bump timeout to 45 minutes [#7757](https://github.com/habitat-sh/habitat/pull/7757) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.56 -->
+- [REFACTOR] Store service spec in Service struct [#7752](https://github.com/habitat-sh/habitat/pull/7752) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.55 -->
+- Restore and deprecate update period env vars [#7756](https://github.com/habitat-sh/habitat/pull/7756) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.54 -->
+- Improve serde usage [#7732](https://github.com/habitat-sh/habitat/pull/7732) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.52 -->
+- fix e2e failures [#7742](https://github.com/habitat-sh/habitat/pull/7742) ([mwrock](https://github.com/mwrock)) <!-- 1.6.50 -->
 - Supervisor update config [#7733](https://github.com/habitat-sh/habitat/pull/7733) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.48 -->
 - use powershell 7.0.1 [#7730](https://github.com/habitat-sh/habitat/pull/7730) ([mwrock](https://github.com/mwrock)) <!-- 1.6.47 -->
-- read hook stdout/err allowing for lossy utf8 strings [#7724](https://github.com/habitat-sh/habitat/pull/7724) ([mwrock](https://github.com/mwrock)) <!-- 1.6.46 -->
 - Update rust to 1.43.1 [#7728](https://github.com/habitat-sh/habitat/pull/7728) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.45 -->
 - Remove libarchive and Vendor openssl [#7710](https://github.com/habitat-sh/habitat/pull/7710) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.44 -->
 - Fix typos and refresh in cli help [#7718](https://github.com/habitat-sh/habitat/pull/7718) ([jsirex](https://github.com/jsirex)) <!-- 1.6.43 -->
@@ -22,9 +81,7 @@
 - Cargo Update [#7715](https://github.com/habitat-sh/habitat/pull/7715) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.41 -->
 - Automated update of Habitat Documentation [#7714](https://github.com/habitat-sh/habitat/pull/7714) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.41 -->
 - Update Changelog [#7716](https://github.com/habitat-sh/habitat/pull/7716) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.40 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release -->
 ## [1.6.39](https://github.com/habitat-sh/habitat/tree/1.6.39) (2020-05-28)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.0..1.6.39)
 

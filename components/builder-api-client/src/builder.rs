@@ -19,11 +19,14 @@ use futures::stream::TryStreamExt;
 use habitat_core::{crypto::keys::box_key_pair::WrappedSealedBox,
                    fs::{AtomicWriter,
                         Permissions,
-                        DEFAULT_CACHED_ARTIFACT_PERMISSIONS},
+                        DEFAULT_CACHED_ARTIFACT_PERMISSIONS,
+                        DEFAULT_PUBLIC_KEY_PERMISSIONS,
+                        DEFAULT_SECRET_KEY_PERMISSIONS},
                    package::{Identifiable,
                              PackageArchive,
                              PackageIdent,
                              PackageTarget},
+                   util,
                    ChannelIdent};
 use percent_encoding::{percent_encode,
                        AsciiSet,
@@ -65,43 +68,16 @@ const PATH_SEGMENT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b' ')
                                                     .add(b'%')
                                                     .add(b'/');
 
-/// Custom conversion logic to allow `serde` to successfully
-/// round-trip `u64` datatypes through JSON serialization.
-///
-/// To use it, add `#[serde(with = "json_u64")]` to any `u64`-typed struct
-/// fields.
-mod json_u64 {
-    use serde::{self,
-                Deserialize,
-                Deserializer,
-                Serializer};
-
-    #[allow(clippy::trivially_copy_pass_by_ref)]
-    pub fn serialize<S>(num: &u64, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let s = format!("{}", num);
-        serializer.serialize_str(&s)
-    }
-
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<u64, D::Error>
-        where D: Deserializer<'de>
-    {
-        let s = String::deserialize(deserializer)?;
-        s.parse::<u64>().map_err(serde::de::Error::custom)
-    }
-}
-
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct OriginPrivateSigningKey {
-    #[serde(with = "json_u64")]
+    #[serde(with = "util::serde::string")]
     pub id:        u64,
-    #[serde(with = "json_u64")]
+    #[serde(with = "util::serde::string")]
     pub origin_id: u64,
     pub name:      String,
     pub revision:  String,
     pub body:      Vec<u8>,
-    #[serde(with = "json_u64")]
+    #[serde(with = "util::serde::string")]
     pub owner_id:  u64,
 }
 
@@ -464,7 +440,7 @@ impl BuilderAPIClient {
                           .get(&format!("depot/origins/{}/encryption_key", origin)),
                       dst_path.as_ref(),
                       Some(token),
-                      Permissions::Standard,
+                      DEFAULT_PUBLIC_KEY_PERMISSIONS,
                       progress)
             .await
     }
@@ -848,7 +824,7 @@ impl BuilderAPIClient {
                           .get(&format!("depot/origins/{}/keys/{}", origin, revision)),
                       dst_path.as_ref(),
                       None,
-                      Permissions::Standard,
+                      DEFAULT_PUBLIC_KEY_PERMISSIONS,
                       progress)
             .await
     }
@@ -870,7 +846,7 @@ impl BuilderAPIClient {
                           .get(&format!("depot/origins/{}/secret_keys/latest", origin)),
                       dst_path.as_ref(),
                       Some(token),
-                      Permissions::Standard,
+                      DEFAULT_SECRET_KEY_PERMISSIONS,
                       progress)
             .await
     }

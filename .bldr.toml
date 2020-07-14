@@ -73,3 +73,34 @@ plan_path = "test/fixtures/plans/simple-hooks"
 
 [test-probe]
 plan_path = "test-services/test-probe"
+
+[health-check-performance-00]
+plan_path = "test/fixtures/health-check-performance/health-check-performance-00"
+[health-check-performance-01]
+plan_path = "test/fixtures/health-check-performance/health-check-performance-01"
+[health-check-performance-02]
+plan_path = "test/fixtures/health-check-performance/health-check-performance-02"
+[health-check-performance-03]
+plan_path = "test/fixtures/health-check-performance/health-check-performance-03"
+[health-check-performance-04]
+plan_path = "test/fixtures/health-check-performance/health-check-performance-04"
+[health-check-performance-05]
+plan_path = "test/fixtures/health-check-performance/health-check-performance-05"
+[health-check-performance-06]
+plan_path = "test/fixtures/health-check-performance/health-check-performance-06"
+[health-check-performance-07]
+plan_path = "test/fixtures/health-check-performance/health-check-performance-07"
+[health-check-performance-08]
+plan_path = "test/fixtures/health-check-performance/health-check-performance-08"
+[health-check-performance-09]
+plan_path = "test/fixtures/health-check-performance/health-check-performance-09"
+[health-check-performance-10]
+plan_path = "test/fixtures/health-check-performance/health-check-performance-10"
+[health-check-performance-11]
+plan_path = "test/fixtures/health-check-performance/health-check-performance-11"
+[health-check-performance-12]
+plan_path = "test/fixtures/health-check-performance/health-check-performance-12"
+[health-check-performance-13]
+plan_path = "test/fixtures/health-check-performance/health-check-performance-13"
+[health-check-performance-14]
+plan_path = "test/fixtures/health-check-performance/health-check-performance-14"

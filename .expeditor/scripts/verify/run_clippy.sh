@@ -4,6 +4,8 @@ set -euo pipefail
 
 source .expeditor/scripts/verify/shared.sh
 
+export RUSTFLAGS="-D warnings"
+
 toolchain="${1:-"$(get_toolchain)"}"
 install_rustup
 install_rust_toolchain "$toolchain"

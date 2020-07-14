@@ -11,7 +11,7 @@ use habitat_core::{fs::atomic_write,
                    service::{HealthCheckInterval,
                              ServiceBind},
                    url::DEFAULT_BLDR_URL,
-                   util::serde_string,
+                   util,
                    ChannelIdent};
 use habitat_sup_protocol::{self,
                            net};
@@ -77,7 +77,7 @@ impl From<DesiredState> for i32 {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(default = "ServiceSpec::deserialization_base")]
 pub struct ServiceSpec {
-    #[serde(with = "serde_string")]
+    #[serde(with = "util::serde::string")]
     pub ident:                  PackageIdent,
     pub group:                  String,
     pub bldr_url:               String,
@@ -88,7 +88,7 @@ pub struct ServiceSpec {
     pub binds:                  Vec<ServiceBind>,
     pub binding_mode:           BindingMode,
     pub config_from:            Option<PathBuf>,
-    #[serde(with = "serde_string")]
+    #[serde(with = "util::serde::string")]
     pub desired_state:          DesiredState,
     pub shutdown_timeout:       Option<ShutdownTimeout>,
     pub svc_encrypted_password: Option<String>,
@@ -229,27 +229,39 @@ impl ServiceSpec {
         if let Some(topology) = svc_load.topology {
             if let Some(topology) = Topology::from_i32(topology) {
                 self.topology = topology;
+            } else {
+                warn!("Unable to parse topology value from SvcLoad protocol message; ignoring: {}",
+                      topology);
             }
         }
         if let Some(update_strategy) = svc_load.update_strategy {
             if let Some(update_strategy) = UpdateStrategy::from_i32(update_strategy) {
                 self.update_strategy = update_strategy;
+            } else {
+                warn!("Unable to parse update strategy value from SvcLoad protocol message; \
+                       ignoring: {}",
+                      update_strategy);
             }
         }
         if let Some(update_condition) = svc_load.update_condition {
             if let Some(update_condition) = UpdateCondition::from_i32(update_condition) {
                 self.update_condition = update_condition;
+            } else {
+                warn!("Unable to parse update condition value from SvcLoad protocol message; \
+                       ignoring: {}",
+                      update_condition);
             }
         }
         if let Some(list) = svc_load.binds {
-            self.binds = list.binds
-                             .into_iter()
-                             .map(|pb| ServiceBind::new(&pb.name, pb.service_group.into()))
-                             .collect();
+            self.binds = list.into();
         }
         if let Some(binding_mode) = svc_load.binding_mode {
             if let Some(binding_mode) = BindingMode::from_i32(binding_mode) {
                 self.binding_mode = binding_mode;
+            } else {
+                warn!("Unable to parse binding mode value from SvcLoad protocol message; \
+                       ignoring: {}",
+                      binding_mode);
             }
         }
         if let Some(config_from) = svc_load.config_from {
@@ -266,6 +278,248 @@ impl ServiceSpec {
         }
         Ok(self)
     }
+
+    pub fn merge_svc_update(&mut self, svc_update: habitat_sup_protocol::ctl::SvcUpdate) {
+        if let Some(group) = svc_update.group {
+            self.group = group;
+        }
+        if let Some(bldr_url) = svc_update.bldr_url {
+            self.bldr_url = bldr_url;
+        }
+        if let Some(channel) = svc_update.bldr_channel {
+            self.channel = channel.into();
+        }
+        if let Some(topology) = svc_update.topology {
+            if let Some(topology) = Topology::from_i32(topology) {
+                self.topology = topology;
+            } else {
+                warn!("Unable to parse topology value from SvcUpdate protocol message; ignoring: \
+                       {}",
+                      topology);
+            }
+        }
+        if let Some(update_strategy) = svc_update.update_strategy {
+            if let Some(update_strategy) = UpdateStrategy::from_i32(update_strategy) {
+                self.update_strategy = update_strategy;
+            } else {
+                warn!("Unable to parse update strategy value from SvcUpdate protocol message; \
+                       ignoring: {}",
+                      update_strategy);
+            }
+        }
+        if let Some(update_condition) = svc_update.update_condition {
+            if let Some(update_condition) = UpdateCondition::from_i32(update_condition) {
+                self.update_condition = update_condition;
+            } else {
+                warn!("Unable to parse update condition value from SvcUpdate protocol message; \
+                       ignoring: {}",
+                      update_condition);
+            }
+        }
+        if let Some(list) = svc_update.binds {
+            self.binds = list.into();
+        }
+        if let Some(binding_mode) = svc_update.binding_mode {
+            if let Some(binding_mode) = BindingMode::from_i32(binding_mode) {
+                self.binding_mode = binding_mode;
+            } else {
+                warn!("Unable to parse binding mode value from SvcUpdate protocol message; \
+                       ignoring: {}",
+                      binding_mode);
+            }
+        }
+        if let Some(svc_encrypted_password) = svc_update.svc_encrypted_password {
+            self.svc_encrypted_password = Some(svc_encrypted_password);
+        }
+        if let Some(interval) = svc_update.health_check_interval {
+            self.health_check_interval = interval.seconds.into()
+        }
+        if let Some(shutdown_timeout) = svc_update.shutdown_timeout {
+            self.shutdown_timeout = Some(ShutdownTimeout::from(shutdown_timeout));
+        }
+    }
+
+    /// Given an `old` and a `new` spec, figure out what operations
+    /// are needed in order to turn the `old` state into the `new`
+    /// state.
+    ///
+    /// Here, `old` represents what a currently running service, while
+    /// `new` represents a new version of that spec that we wish to
+    /// make the currently running service. Both are `Option`s, in
+    /// order to capture the scenario in which, say, nothing is
+    /// currently running, but we wish to start a service, or where we
+    /// are running a service, but wish to stop it.
+    ///
+    /// Currently, it is *assumed* that both specs (when present)
+    /// refer to the same service.
+    ///
+    /// Returning `None` indicates that no operation is required.
+    pub(crate) fn reconcile(old: Option<ServiceSpec>,
+                            new: Option<ServiceSpec>)
+                            -> Option<ServiceOperation> {
+        // We need to compare the old spec to the new spec, taking
+        // into consideration the desired state of each. While we can
+        // do that via pattern matching directly, it gets a little
+        // hairy. Instead, we'll just extract the data we need into
+        // one unified match statement and go from there.
+        use DesiredState::{Down,
+                           Up};
+
+        match (old.map(|o| (o.desired_state, o)),
+               new.map(|n| (n.desired_state, n)))
+        {
+            // theoretically shouldn't happen, but no harm if it does.
+            (None, None)
+            // Somebody manually added a spec file that for some
+            // reason stated the service should be down. Weird, but
+            // okay....
+            | (None, Some((Down, _)))
+            // A stopped service's spec file was removed
+            | (Some((Down, _)), None)
+            // A stopped service's spec file was changed, but it is
+            // still supposed to be down. This would also likely
+            // require manual intervention.
+            | (Some((Down, _)), Some((Down, _))) => {
+                // None of these situations require us to do anything
+                // in the way of starting, stopping, restarting, or
+                // modifying a service.
+                None
+            }
+
+            // A running service's spec file was removed (e.g., hab
+            // svc unload)
+            (Some((Up, old)), None)
+            // A running service was told to stop (e.g., hab svc stop)
+            | (Some((Up, old)), Some((Down, _))) => {
+                Some(ServiceOperation::Stop(old))
+            }
+
+            // A new spec file was added (e.g., hab svc load)
+            (None, Some((Up, new)))
+            // A previously stopped service was started (e.g., hab svc start)
+            | (Some((Down, _)), Some((Up, new))) => {
+                Some(ServiceOperation::Start(new))
+            }
+
+            // The configuration of a running service was somehow changed
+            (Some((Up, running_spec)), Some((Up, disk_spec))) => {
+                if running_spec == disk_spec {
+                    // Given how this function is called, this is
+                    // unlikely to happen, but if it does, we don't
+                    // have to do anything.
+                    None
+                } else {
+                    // Destructure the entire spec so the compiler
+                    // ensures that we look at everything.
+                    let ServiceSpec {
+                        ident,
+                        group,
+                        bldr_url,
+                        channel,
+                        topology,
+                        update_strategy,
+                        update_condition,
+                        binds,
+                        binding_mode,
+                        config_from,
+                        // This has to be `Up` if we're in this
+                        // code. As a result, we don't care about
+                        // matching or destructuring it.
+                        desired_state: _,
+                        shutdown_timeout,
+                        svc_encrypted_password,
+                        health_check_interval,
+                    } = &running_spec;
+
+                    // Currently, if any of these bits of data are
+                    // different, we should restart the service. This
+                    // is not to say that it will *always* be that
+                    // way, however. Initially we are allowing dynamic
+                    // update of update-related configuration, but
+                    // nothing prevents us from making more things
+                    // dynamic in the future. We are proceeding
+                    // conservatively.
+
+                    // NOTE: if the idents change in any way, you
+                    // *must* restart, since that change may result in
+                    // a different version of the service being run.
+                    if ident != &disk_spec.ident
+                        || group != &disk_spec.group
+                        // TODO (CM): This *might* not need to be here
+                        || topology != &disk_spec.topology
+                        // TODO (CM): Bind information *may* be able
+                        // to be dynamically changed, but that will
+                        // need to be investigated more deeply.
+                        || binds != &disk_spec.binds
+                        || binding_mode != &disk_spec.binding_mode
+                        || config_from != &disk_spec.config_from
+                        // TODO (CM): This probably doesn't need to be here
+                        || shutdown_timeout != &disk_spec.shutdown_timeout
+                        || svc_encrypted_password != &disk_spec.svc_encrypted_password
+                        // TODO (CM): This probably doesn't need to be here, either
+                        || health_check_interval != &disk_spec.health_check_interval
+                    {
+                        debug!("Reconciliation: '{}' queued for restart",
+                               running_spec.ident);
+                        Some(ServiceOperation::Restart { to_stop:  running_spec,
+                                                         to_start: disk_spec, })
+                    } else {
+                        let mut ops = HashSet::new();
+                        if bldr_url != &disk_spec.bldr_url
+                            || channel != &disk_spec.channel
+                            || update_strategy != &disk_spec.update_strategy
+                            || update_condition != &disk_spec.update_condition
+                        {
+                            ops.insert(RefreshOperation::RestartUpdater);
+                        }
+
+                        // We should have *something* to do down
+                        // here, but if we don't, let's be explicit
+                        // about it.
+                        if ops.is_empty() {
+                            warn!("No refresh operations computed for {}!", ident);
+                            None
+                        } else {
+                            Some(ServiceOperation::Update(disk_spec, ops))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Everything we could do to a running service as a result of a
+/// configuration change that does *not* require a service restart.
+#[derive(Debug, Copy, Clone, Eq, Hash, PartialEq)]
+pub(crate) enum RefreshOperation {
+    /// Restart the logic for fetching updates to a service.
+    ///
+    /// This can happen if a user wants to change the channel a
+    /// service is updating from, for instance.
+    RestartUpdater,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[allow(clippy::large_enum_variant)]
+pub(crate) enum ServiceOperation {
+    /// Start the specified service, which is not running currently.
+    Start(ServiceSpec),
+    /// Stop the specified service, which *is* currently running.
+    Stop(ServiceSpec),
+    /// Swap the given configuration into the currently running
+    /// service. The service process *is not* restarted, but the
+    /// specified operations are performed on it.
+    Update(ServiceSpec, HashSet<RefreshOperation>),
+    /// Stop the service specified by `to_stop`, and restart it with
+    /// the `to_start` spec.
+    ///
+    /// This can be seen as a refinement of `Update` that involves
+    /// stopping and starting the service process as well.
+    Restart {
+        to_stop:  ServiceSpec,
+        to_start: ServiceSpec,
+    },
 }
 
 impl FromStr for ServiceSpec {
@@ -774,5 +1028,155 @@ mod test {
                    Some(PathBuf::from("/only/for/development")));
         assert_eq!(spec.health_check_interval,
                    HealthCheckInterval::from_str("5").unwrap());
+    }
+
+    mod reconcile {
+        use super::*;
+
+        fn spec<S>(ident: S, desired_state: DesiredState) -> ServiceSpec
+            where S: AsRef<str>
+        {
+            let mut s = ServiceSpec::new(ident.as_ref()
+                                              .parse()
+                                              .expect("Couldn't create a testing spec from \
+                                                       given ident"));
+            s.desired_state = desired_state;
+            s
+        }
+
+        #[test]
+        fn test_a_bunch_of_no_ops() {
+            let down_spec = spec("core/blah", DesiredState::Down);
+
+            assert_eq!(ServiceSpec::reconcile(Some(down_spec.clone()), None), None);
+            assert_eq!(ServiceSpec::reconcile(None, Some(down_spec.clone())), None);
+            assert_eq!(ServiceSpec::reconcile(None, Some(down_spec.clone())), None);
+            assert_eq!(ServiceSpec::reconcile(Some(down_spec.clone()), Some(down_spec)),
+                       None);
+            assert_eq!(ServiceSpec::reconcile(None, None), None);
+        }
+
+        #[test]
+        fn test_start_cases() {
+            let up_spec = spec("core/starter", DesiredState::Up);
+            let down_spec = spec("core/starter", DesiredState::Down);
+
+            assert_eq!(ServiceSpec::reconcile(Some(down_spec), Some(up_spec.clone())),
+                       Some(ServiceOperation::Start(up_spec.clone())));
+            assert_eq!(ServiceSpec::reconcile(None, Some(up_spec.clone())),
+                       Some(ServiceOperation::Start(up_spec)));
+        }
+
+        #[test]
+        fn test_stop_cases() {
+            let up_spec = spec("core/stopper", DesiredState::Up);
+            let down_spec = spec("core/stopper", DesiredState::Down);
+
+            assert_eq!(ServiceSpec::reconcile(Some(up_spec.clone()), Some(down_spec)),
+                       Some(ServiceOperation::Stop(up_spec.clone())));
+            assert_eq!(ServiceSpec::reconcile(Some(up_spec.clone()), None),
+                       Some(ServiceOperation::Stop(up_spec)));
+        }
+
+        /// Edge case where we end up with identical specs;
+        /// technically possible, but practically unlikely, given
+        /// how the code is called.
+        #[test]
+        fn identical_up_specs_is_a_no_op() {
+            let s = spec("core/blah", DesiredState::Up);
+            assert_eq!(ServiceSpec::reconcile(Some(s.clone()), Some(s)), None);
+        }
+
+        /// Take two "up" specs that are identical except that the
+        /// second one has `value` set for `field` and reconcile
+        /// them. They should either trigger a restart, or an update
+        /// with the given RefreshOperations.
+        ///
+        /// Each invocation creates an independent test case, named
+        /// `test_name` (because macros can't create functions with
+        /// generated names).
+        macro_rules! reconcile {
+            ($test_name:ident,restart, $field:ident, $value:expr) => {
+                #[test]
+                fn $test_name() {
+                    let running = spec("core/blah", DesiredState::Up);
+                    let disk = {
+                        let mut s = running.clone();
+                        s.$field = $value;
+                        s
+                    };
+
+                    assert_eq!(ServiceSpec::reconcile(Some(running.clone()), Some(disk.clone())),
+                               Some(ServiceOperation::Restart { to_stop:  running,
+                                                                to_start: disk, }))
+                }
+            };
+            ($test_name:ident,update, $field:ident, $value:expr, $ops:expr) => {
+                #[test]
+                fn $test_name() {
+                    let running = spec("core/blah", DesiredState::Up);
+                    let disk = {
+                        let mut s = running.clone();
+                        s.$field = $value;
+                        s
+                    };
+
+                    assert_eq!(ServiceSpec::reconcile(Some(running), Some(disk.clone())),
+                               Some(ServiceOperation::Update(disk, HashSet::from_iter($ops))));
+                }
+            };
+        }
+
+        reconcile!(ident_causes_restart,
+                   restart,
+                   ident,
+                   "core/foo".parse().unwrap());
+        reconcile!(group_causes_restart, restart, group, "prod".to_string());
+        reconcile!(topology_causes_restart, restart, topology, Topology::Leader);
+        reconcile!(binds_causes_restart,
+                   restart,
+                   binds,
+                   vec![ServiceBind::new("foo", "blah.default".parse().unwrap())]);
+        reconcile!(binding_mode_causes_restart,
+                   restart,
+                   binding_mode,
+                   BindingMode::Relaxed);
+        reconcile!(config_from_causes_restart,
+                   restart,
+                   config_from,
+                   Some("blah.config".into()));
+        reconcile!(shutdown_timeout_causes_restart,
+                   restart,
+                   shutdown_timeout,
+                   Some(10.into()));
+        reconcile!(svc_encrypted_password_causes_restart,
+                   restart,
+                   svc_encrypted_password,
+                   Some("monkeys".to_string()));
+        reconcile!(health_check_interval_causes_restart,
+                   restart,
+                   health_check_interval,
+                   10000.into());
+
+        reconcile!(bldr_url_causes_update,
+                   update,
+                   bldr_url,
+                   "http://mybuider.company.com".to_string(),
+                   vec![RefreshOperation::RestartUpdater]);
+        reconcile!(channel_causes_update,
+                   update,
+                   channel,
+                   "new_channel".into(),
+                   vec![RefreshOperation::RestartUpdater]);
+        reconcile!(update_strategy_causes_update,
+                   update,
+                   update_strategy,
+                   UpdateStrategy::AtOnce,
+                   vec![RefreshOperation::RestartUpdater]);
+        reconcile!(update_condition_causes_update,
+                   update,
+                   update_condition,
+                   UpdateCondition::TrackChannel,
+                   vec![RefreshOperation::RestartUpdater]);
     }
 }

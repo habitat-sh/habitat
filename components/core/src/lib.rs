@@ -1,6 +1,5 @@
 // Convenience importing of `debug!`/`info!` macros for entire crate.
 #[cfg(test)]
-#[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;

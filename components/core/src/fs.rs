@@ -4,6 +4,12 @@ use crate::util::posix_perm::{self,
 #[cfg(windows)]
 use crate::util::win_perm::{self,
                             set_permissions};
+#[cfg(windows)]
+use std::{iter,
+          os::windows::ffi::OsStrExt};
+#[cfg(windows)]
+use winapi::um::winbase::MoveFileExW;
+
 use crate::{env as henv,
             error::{Error,
                     Result},
@@ -65,6 +71,20 @@ pub const DEFAULT_CACHED_ARTIFACT_PERMISSIONS: Permissions = Permissions::Explic
 /// their containing directory.
 #[cfg(windows)]
 pub const DEFAULT_CACHED_ARTIFACT_PERMISSIONS: Permissions = Permissions::Standard;
+
+/// Permissions applied to downloaded public keys.
+#[cfg(not(windows))]
+pub const DEFAULT_PUBLIC_KEY_PERMISSIONS: Permissions = Permissions::Explicit(0o444);
+/// Permissions applied to downloaded public keys.
+#[cfg(windows)]
+pub const DEFAULT_PUBLIC_KEY_PERMISSIONS: Permissions = Permissions::Standard;
+
+/// Permissions applied to downloaded secret keys.
+#[cfg(not(windows))]
+pub const DEFAULT_SECRET_KEY_PERMISSIONS: Permissions = Permissions::Explicit(0o400);
+/// Permissions applied to downloaded secret keys.
+#[cfg(windows)]
+pub const DEFAULT_SECRET_KEY_PERMISSIONS: Permissions = Permissions::Standard;
 
 /// An `Option`-like abstraction over platform-specific ways to model
 /// file permissions.
@@ -756,12 +776,8 @@ impl AtomicWriter {
             })?;
         }
         self.tempfile.as_file().sync_all()?;
-        debug!("Renaming {} to {}",
-               self.tempfile.path().to_string_lossy(),
-               &self.dest.to_string_lossy());
-        fs::rename(self.tempfile.into_temp_path(), &self.dest)?;
-        #[cfg(unix)]
-        AtomicWriter::sync_parent(&self.dest)?;
+
+        atomic_rename(self.tempfile.into_temp_path(), &self.dest.as_path())?;
 
         Ok(())
     }
@@ -790,6 +806,60 @@ impl AtomicWriter {
             Ok(())
         }
     }
+}
+
+// `fs::rename` calls `MoveFileExW` on Windows, however the underlying implementation only
+// utilizes the `MOVEFILE_REPLACE_EXISTING` flag which allows for file overwrite but no
+// guarantee on durability. For this, we additionally pass `MOVEFILE_WRITE_THROUGH`.
+// This causes the function to not return until the file is actually moved on the disk.
+// Setting this value guarantees that a move performed as a copy and delete operation is
+// flushed to disk before the function returns. The flush occurs at the end of the copy
+// operation.
+#[cfg(windows)]
+fn rename_windows<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<()> {
+    // Helper function to transform a Path to a `LPCWSTR` Windows string data type. It is
+    // essentially a null-terminated string of 16-bit Unicode characters.
+    fn windows_u16s(s: &Path) -> Vec<u16> {
+        s.as_os_str().encode_wide().chain(iter::once(0)).collect()
+    }
+    unsafe {
+        if MoveFileExW(windows_u16s(from.as_ref()).as_ptr(),
+                       windows_u16s(to.as_ref()).as_ptr(),
+                       winapi::um::winbase::MOVEFILE_WRITE_THROUGH
+                       | winapi::um::winbase::MOVEFILE_REPLACE_EXISTING)
+           == 0
+        {
+            Err(io::Error::last_os_error())
+        } else {
+            Ok(())
+        }
+    }
+}
+
+#[cfg(unix)]
+fn rename_unix<P: AsRef<Path>, Q: AsRef<Path> + std::convert::AsRef<std::path::Path> + Copy>(
+    from: P,
+    to: Q)
+    -> io::Result<()> {
+    fs::rename(from, to)?;
+    AtomicWriter::sync_parent(&PathBuf::from(to.as_ref()))?;
+    Ok(())
+}
+
+/// atomic_rename is a cross platform  helper function for renaming a file atomically with
+/// durability guarantees.
+pub fn atomic_rename<P: AsRef<Path>,
+                     Q: AsRef<Path> + std::convert::AsRef<std::path::Path> + Copy>(
+    from: P,
+    to: Q)
+    -> io::Result<()> {
+    debug!("Renaming {} to {}",
+           from.as_ref().display(),
+           to.as_ref().display());
+    #[cfg(windows)]
+    return rename_windows(from, to);
+    #[cfg(unix)]
+    return rename_unix(from, to);
 }
 
 /// atomic_write is a helper function for the most common use of
@@ -854,6 +924,8 @@ mod test_find_command {
     use std::{env,
               path::PathBuf};
 
+    crate::locked_env_var!(PATHEXT, lock_pathext);
+
     #[allow(dead_code)]
     fn setup_pathext(lock: &LockedEnvVar) {
         let path_bufs = vec![PathBuf::from(".BAT"),
@@ -881,8 +953,7 @@ mod test_find_command {
         mod argument_without_extension {
             use super::{find_command,
                         setup_path};
-
-            crate::locked_env_var!(PATHEXT, lock_pathext);
+            use crate::fs::test_find_command::lock_pathext;
 
             #[test]
             fn command_exists() {
@@ -915,9 +986,8 @@ mod test_find_command {
         mod argument_with_extension {
             use super::{find_command,
                         setup_path};
+            use crate::fs::test_find_command::lock_pathext;
             use std::path::PathBuf;
-
-            crate::locked_env_var!(PATHEXT, lock_pathext);
 
             #[test]
             fn command_exists() {
@@ -969,8 +1039,7 @@ mod test_find_command {
             use super::{find_command,
                         setup_path,
                         setup_pathext};
-
-            crate::locked_env_var!(PATHEXT, lock_pathext);
+            use crate::fs::test_find_command::lock_pathext;
 
             #[test]
             fn command_exists() {
@@ -1025,9 +1094,8 @@ mod test_find_command {
             use super::{find_command,
                         setup_path,
                         setup_pathext};
+            use crate::fs::test_find_command::lock_pathext;
             use std::path::PathBuf;
-
-            crate::locked_env_var!(PATHEXT, lock_pathext);
 
             #[test]
             fn command_exists() {

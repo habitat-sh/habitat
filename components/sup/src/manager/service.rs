@@ -68,8 +68,7 @@ use habitat_core::{crypto::hash,
                    package::{metadata::Bind,
                              PackageIdent,
                              PackageInstall},
-                   service::{HealthCheckInterval,
-                             ServiceBind,
+                   service::{ServiceBind,
                              ServiceGroup},
                    ChannelIdent};
 use habitat_launcher_client::LauncherCli;
@@ -175,20 +174,16 @@ enum InitializationState {
 
 #[derive(Debug)]
 pub struct Service {
+    spec:                    ServiceSpec,
     pub service_group:       ServiceGroup,
-    pub bldr_url:            String,
-    pub channel:             ChannelIdent,
-    pub desired_state:       DesiredState,
-    pub spec_file:           PathBuf,
-    pub spec_ident:          PackageIdent,
-    pub topology:            Topology,
-    pub update_strategy:     UpdateStrategy,
-    pub update_condition:    UpdateCondition,
+    // TODO: `spec_file` is only used for serialization; unsure if
+    // that's even useful, given that it's always the same value for a
+    // given service.
+    spec_file:               PathBuf,
     pub cfg:                 Cfg,
     pub pkg:                 Pkg,
     pub sys:                 Arc<Sys>,
     pub user_config_updated: bool,
-    pub shutdown_timeout:    Option<ShutdownTimeout>,
     // TODO (DM): This flag is a temporary hack to signal to the `Manager` that this service needs
     // to be restarted. As we continue refactoring lifecycle hooks this flag should be removed.
     pub needs_restart:       bool,
@@ -197,7 +192,7 @@ pub struct Service {
     // `Service` future. See https://github.com/habitat-sh/habitat/issues/7112
     initialization_state:    Arc<RwLock<InitializationState>>,
 
-    config_renderer:        CfgRenderer,
+    config_renderer:      CfgRenderer,
     // Note: This field is really only needed for serializing a
     // Service in the gateway (see ServiceProxy's Serialize
     // implementation). Ideally, we could get rid of this, since we're
@@ -208,20 +203,14 @@ pub struct Service {
     // In order to access this field in an asynchronous health check
     // hook, we need to wrap some Arc<Mutex<_>> protection around it
     // :(
-    health_check_result:    Arc<Mutex<HealthCheckResult>>,
-    last_election_status:   ElectionStatus,
-    /// The mapping of bind name to a service group, specified by the
-    /// user when the service definition was loaded into the Supervisor.
-    binds:                  Vec<ServiceBind>,
+    health_check_result:  Arc<Mutex<HealthCheckResult>>,
+    last_election_status: ElectionStatus,
     /// The binds that the current service package declares, both
     /// required and optional. We don't differentiate because this is
     /// used to validate the user-specified bindings against the
     /// current state of the census; once you get into the actual
     /// running of the service, the distinction is immaterial.
-    all_pkg_binds:          Vec<Bind>,
-    /// Controls how the presence or absence of bound service groups
-    /// impacts the service's start-up.
-    binding_mode:           BindingMode,
+    all_pkg_binds:        Vec<Bind>,
     /// Binds specified by the user that are currently mapped to
     /// service groups that do _not_ satisfy the bind's contract, as
     /// defined in the service's current package.
@@ -233,13 +222,10 @@ pub struct Service {
     /// We don't serialize because this is purely runtime information
     /// that should be reconciled against the current state of the
     /// census.
-    unsatisfied_binds:      HashSet<ServiceBind>,
-    hooks:                  HookTable,
-    config_from:            Option<PathBuf>,
-    manager_fs_cfg:         Arc<FsCfg>,
-    supervisor:             Arc<Mutex<Supervisor>>,
-    svc_encrypted_password: Option<String>,
-    health_check_interval:  HealthCheckInterval,
+    unsatisfied_binds:    HashSet<ServiceBind>,
+    hooks:                HookTable,
+    manager_fs_cfg:       Arc<FsCfg>,
+    supervisor:           Arc<Mutex<Supervisor>>,
 
     gateway_state: Arc<GatewayState>,
 
@@ -252,6 +238,27 @@ pub struct Service {
 }
 
 impl Service {
+    pub(crate) fn bldr_url(&self) -> String { self.spec.bldr_url.clone() }
+
+    pub(crate) fn channel(&self) -> ChannelIdent { self.spec.channel.clone() }
+
+    pub(crate) fn spec_ident(&self) -> PackageIdent { self.spec.ident.clone() }
+
+    pub(crate) fn topology(&self) -> Topology { self.spec.topology }
+
+    pub(crate) fn update_strategy(&self) -> UpdateStrategy { self.spec.update_strategy }
+
+    pub(crate) fn update_condition(&self) -> UpdateCondition { self.spec.update_condition }
+
+    pub(crate) fn shutdown_timeout(&self) -> Option<ShutdownTimeout> { self.spec.shutdown_timeout }
+
+    pub(crate) fn spec(&self) -> ServiceSpec { self.spec.clone() }
+
+    pub(crate) fn set_spec(&mut self, spec: ServiceSpec) {
+        trace!("Setting spec for {}: {:?}", self.spec.ident, spec);
+        self.spec = spec
+    }
+
     #[allow(clippy::too_many_arguments)]
     async fn with_package(sys: Arc<Sys>,
                           package: &PackageInstall,
@@ -266,15 +273,14 @@ impl Service {
         let all_pkg_binds = package.all_binds()?;
         let pkg = Self::resolve_pkg(&package, &spec).await?;
         let spec_file = manager_fs_cfg.specs_path.join(spec.file());
-        let service_group = ServiceGroup::new(&pkg.name, spec.group, organization)?;
+        let service_group = ServiceGroup::new(&pkg.name, &spec.group, organization)?;
         let config_root = Self::config_root(&pkg, spec.config_from.as_ref());
         let hooks_root = Self::hooks_root(&pkg, spec.config_from.as_ref());
-        Ok(Service { sys,
-                     cfg: Cfg::new(&pkg, spec.config_from.as_ref())?,
+        let cfg = Cfg::new(&pkg, spec.config_from.as_ref())?;
+        Ok(Service { spec,
+                     sys,
+                     cfg,
                      config_renderer: CfgRenderer::new(&config_root)?,
-                     bldr_url: spec.bldr_url,
-                     channel: spec.channel,
-                     desired_state: spec.desired_state,
                      health_check_result: Arc::new(Mutex::new(HealthCheckResult::Unknown)),
                      hooks: HookTable::load(&pkg.name,
                                             &hooks_root,
@@ -290,23 +296,13 @@ impl Service {
                                                                      pid_source))),
                      pkg,
                      service_group,
-                     binds: spec.binds,
                      all_pkg_binds,
                      unsatisfied_binds: HashSet::new(),
-                     binding_mode: spec.binding_mode,
-                     spec_ident: spec.ident,
                      spec_file,
-                     topology: spec.topology,
-                     update_strategy: spec.update_strategy,
-                     update_condition: spec.update_condition,
-                     config_from: spec.config_from,
-                     svc_encrypted_password: spec.svc_encrypted_password,
-                     health_check_interval: spec.health_check_interval,
                      gateway_state,
                      health_check_handle: None,
                      post_run_handle: None,
-                     initialize_handle: None,
-                     shutdown_timeout: spec.shutdown_timeout })
+                     initialize_handle: None })
     }
 
     // And now prepare yourself for a little horribleness...Ready?
@@ -387,7 +383,7 @@ impl Service {
                          .start(&self.pkg,
                                 &self.service_group,
                                 launcher,
-                                self.svc_encrypted_password.as_deref());
+                                self.spec.svc_encrypted_password.as_deref());
         match result {
             Ok(_) => {
                 self.needs_restart = false;
@@ -413,10 +409,10 @@ impl Service {
         debug!("Starting health checks for {}", self.pkg.ident);
         let mut rx = health::check_repeatedly(Arc::clone(&self.supervisor),
                                               self.hooks.health_check.clone(),
-                                              self.health_check_interval,
+                                              self.spec.health_check_interval,
                                               self.service_group.clone(),
                                               self.pkg.clone(),
-                                              self.svc_encrypted_password.clone());
+                                              self.spec.svc_encrypted_password.clone());
 
         let service_group = self.service_group.clone();
         let service_event_metadata = self.to_service_metadata();
@@ -538,7 +534,7 @@ impl Service {
         // We may need to block the service from starting until all
         // its binds are satisfied
         if !self.initialized() {
-            match self.binding_mode {
+            match self.spec.binding_mode {
                 BindingMode::Relaxed => (),
                 BindingMode::Strict => {
                     self.validate_binds(census_ring);
@@ -565,7 +561,7 @@ impl Service {
             self.file_updated();
         }
 
-        match self.topology {
+        match self.spec.topology {
             Topology::Standalone => {
                 self.execute_hooks(launcher, &template_update);
             }
@@ -615,25 +611,6 @@ impl Service {
         template_data_changed
     }
 
-    pub fn to_spec(&self) -> ServiceSpec {
-        let mut spec = ServiceSpec::new(self.spec_ident.clone());
-        spec.group = self.service_group.group().to_string();
-        spec.bldr_url = self.bldr_url.clone();
-        spec.channel = self.channel.clone();
-        spec.topology = self.topology;
-        spec.update_strategy = self.update_strategy;
-        spec.update_condition = self.update_condition;
-        spec.binds = self.binds.clone();
-        spec.binding_mode = self.binding_mode;
-        spec.config_from = self.config_from.clone();
-        if let Some(ref password) = self.svc_encrypted_password {
-            spec.svc_encrypted_password = Some(password.clone())
-        }
-        spec.health_check_interval = self.health_check_interval;
-        spec.shutdown_timeout = self.shutdown_timeout;
-        spec
-    }
-
     /// Iterate through all the service binds, marking any that are
     /// unsatisfied in `self.unsatisfied_binds`.
     ///
@@ -644,7 +621,7 @@ impl Service {
     /// the service, those binds will be removed from the rendering
     /// context, allowing services to take appropriate action.
     fn validate_binds(&mut self, census_ring: &CensusRing) {
-        for bind in self.binds.iter() {
+        for bind in self.spec.binds.iter() {
             let mut bind_is_unsatisfied = true;
 
             match self.current_bind_status(census_ring, bind) {
@@ -852,7 +829,7 @@ impl Service {
             let hook_runner = HookRunner::new(Arc::clone(&hook),
                                               self.service_group.clone(),
                                               self.pkg.clone(),
-                                              self.svc_encrypted_password.clone());
+                                              self.spec.svc_encrypted_password.clone());
             // These clones are unfortunate. async/await will make this much better.
             let service_group = self.service_group.clone();
             let initialization_state = Arc::clone(&self.initialization_state);
@@ -893,14 +870,14 @@ impl Service {
         if let Some(ref hook) = self.hooks.reload {
             hook.run(&self.service_group,
                      &self.pkg,
-                     self.svc_encrypted_password.as_ref())
+                     self.spec.svc_encrypted_password.as_ref())
                 .ok();
         }
 
         if let Some(ref hook) = self.hooks.reconfigure {
             hook.run(&self.service_group,
                      &self.pkg,
-                     self.svc_encrypted_password.as_ref())
+                     self.spec.svc_encrypted_password.as_ref())
                 .ok();
             // The intention here is to do a health check soon after a service's configuration
             // changes, as a way to (among other things) detect potential impacts when bound
@@ -914,7 +891,7 @@ impl Service {
             let hook_runner = HookRunner::new(Arc::clone(&hook),
                                               self.service_group.clone(),
                                               self.pkg.clone(),
-                                              self.svc_encrypted_password.clone());
+                                              self.spec.svc_encrypted_password.clone());
             let f = HookRunner::retryable_future(hook_runner);
             let (f, handle) = future::abortable(f);
             self.post_run_handle = Some(handle);
@@ -935,7 +912,7 @@ impl Service {
                                          HookRunner::new(Arc::clone(&hook),
                                                          self.service_group.clone(),
                                                          self.pkg.clone(),
-                                                         self.svc_encrypted_password.clone())
+                                                         self.spec.svc_encrypted_password.clone())
                                      })
     }
 
@@ -952,7 +929,7 @@ impl Service {
             .and_then(|hook| {
                 hook.run(&self.service_group,
                          &self.pkg,
-                         self.svc_encrypted_password.as_ref())
+                         self.spec.svc_encrypted_password.as_ref())
                     .ok()
             })
             .unwrap_or(None)
@@ -994,14 +971,14 @@ impl Service {
 
     // Copy the "run" file to the svc path.
     fn copy_run(&self) -> Result<()> {
-        let svc_run = self.pkg.svc_path.join(hooks::RunHook::file_name());
+        let svc_run = self.pkg.svc_path.join(hooks::RunHook::FILE_NAME);
         match self.hooks.run {
             Some(ref hook) => {
                 fs::copy(hook.path(), &svc_run)?;
                 Self::set_hook_permissions(&svc_run.to_str().unwrap())?;
             }
             None => {
-                let run = self.pkg.path.join(hooks::RunHook::file_name());
+                let run = self.pkg.path.join(hooks::RunHook::FILE_NAME);
                 match fs::metadata(&run) {
                     Ok(_) => {
                         fs::copy(&run, &svc_run)?;
@@ -1084,12 +1061,29 @@ impl Service {
             if let Some(ref hook) = self.hooks.file_updated {
                 return hook.run(&self.service_group,
                                 &self.pkg,
-                                self.svc_encrypted_password.as_ref())
+                                self.spec.svc_encrypted_password.as_ref())
                            .unwrap_or(false);
             }
         }
 
         false
+    }
+
+    /// Writes out all service files for a service.
+    ///
+    /// Must be called before a loaded service starts (even before any
+    /// init hook, since the operation of the hook may depend on the
+    /// presence of service files).
+    ///
+    /// Doesn't return a boolean (cf. `update_service_files` below)
+    /// because we don't particularly care in this case.
+    pub fn write_initial_service_files(&mut self, census_ring: &CensusRing) {
+        // In this case, a service group not being found is fine; this
+        // may be a non-peered Supervisor running this service for the
+        // first time, for instance.
+        if let Some(census_group) = census_ring.census_group_for(&self.service_group) {
+            self.write_service_files(census_group, CensusGroup::service_files);
+        }
     }
 
     /// Write service files from gossip data to disk under
@@ -1102,11 +1096,28 @@ impl Service {
             census_ring.census_group_for(&self.service_group)
                        .expect("Service update service files failed; unable to find own service \
                                 group");
+        self.write_service_files(census_group, CensusGroup::changed_service_files)
+    }
+
+    /// Abstracts the logic for writing out service files for a
+    /// service.
+    ///
+    /// The key bit here is `file_fn`, which returns the list of files
+    /// to write out. In practice, this will be either
+    /// `CensusGroup::service_files`, to write _all_ files to disk, or
+    /// `CensusGroup::changed_service_files`, to write out only the
+    /// files that have had recent gossip activity.
+    ///
+    /// Returns `true` if any service files were written to disk.
+    fn write_service_files<'a, F, I>(&mut self, census_group: &'a CensusGroup, file_fn: F) -> bool
+        where F: Fn(&'a CensusGroup) -> I,
+              I: IntoIterator<Item = &'a ServiceFile>
+    {
         let mut updated = false;
-        for service_file in census_group.changed_service_files() {
+        for service_file in file_fn(census_group) {
             if self.cache_service_file(&service_file) {
                 outputln!(preamble self.service_group, "Service file updated, {}",
-                    service_file.filename);
+                          service_file.filename);
                 updated = true;
             }
         }
@@ -1123,7 +1134,8 @@ impl Service {
                            &self.pkg,
                            &self.cfg,
                            census,
-                           self.binds
+                           self.spec
+                               .binds
                                .iter()
                                .filter(|b| !self.unsatisfied_binds.contains(b)))
     }
@@ -1256,17 +1268,17 @@ impl<'a> Serialize for ServiceProxy<'a> {
         let s = &self.service;
         let mut strukt = serializer.serialize_struct("service", num_fields)?;
         strukt.serialize_field("all_pkg_binds", &s.all_pkg_binds)?;
-        strukt.serialize_field("binding_mode", &s.binding_mode)?;
-        strukt.serialize_field("binds", &s.binds)?;
-        strukt.serialize_field("bldr_url", &s.bldr_url)?;
+        strukt.serialize_field("binding_mode", &s.spec.binding_mode)?;
+        strukt.serialize_field("binds", &s.spec.binds)?;
+        strukt.serialize_field("bldr_url", &s.spec.bldr_url)?;
 
         if self.config_rendering == ConfigRendering::Full {
             strukt.serialize_field("cfg", &s.cfg)?;
         }
 
-        strukt.serialize_field("channel", &s.channel)?;
-        strukt.serialize_field("config_from", &s.config_from)?;
-        strukt.serialize_field("desired_state", &s.desired_state)?;
+        strukt.serialize_field("channel", &s.spec.channel)?;
+        strukt.serialize_field("config_from", &s.spec.config_from)?;
+        strukt.serialize_field("desired_state", &s.spec.desired_state)?;
         strukt.serialize_field("health_check", &s.health_check_result)?;
         strukt.serialize_field("hooks", &s.hooks)?;
         strukt.serialize_field("initialized", &s.initialized())?;
@@ -1283,14 +1295,15 @@ impl<'a> Serialize for ServiceProxy<'a> {
                                 .deref())?;
         strukt.serialize_field("service_group", &s.service_group)?;
         strukt.serialize_field("spec_file", &s.spec_file)?;
-        strukt.serialize_field("spec_ident", &s.spec_ident)?;
-        strukt.serialize_field("spec_identifier", &s.spec_ident.to_string())?;
-        strukt.serialize_field("svc_encrypted_password", &s.svc_encrypted_password)?;
-        strukt.serialize_field("health_check_interval", &s.health_check_interval)?;
+        // Deprecated field; use spec_identifier instead
+        strukt.serialize_field("spec_ident", &s.spec.ident)?;
+        strukt.serialize_field("spec_identifier", &s.spec.ident.to_string())?;
+        strukt.serialize_field("svc_encrypted_password", &s.spec.svc_encrypted_password)?;
+        strukt.serialize_field("health_check_interval", &s.spec.health_check_interval)?;
         strukt.serialize_field("sys", &s.sys)?;
-        strukt.serialize_field("topology", &s.topology)?;
-        strukt.serialize_field("update_strategy", &s.update_strategy)?;
-        strukt.serialize_field("update_condition", &s.update_condition)?;
+        strukt.serialize_field("topology", &s.spec.topology)?;
+        strukt.serialize_field("update_strategy", &s.spec.update_strategy)?;
+        strukt.serialize_field("update_condition", &s.spec.update_condition)?;
         strukt.serialize_field("user_config_updated", &s.user_config_updated)?;
         strukt.end()
     }

@@ -56,12 +56,12 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
             match self.clone().into_future().await {
                 Ok((exit_value, _duration)) => {
                     if H::should_retry(&exit_value) {
-                        debug!("Retrying the '{}' hook", H::file_name());
+                        debug!("Retrying the '{}' hook", H::FILE_NAME);
                     } else {
                         break;
                     }
                 }
-                Err(e) => error!("Error running the '{}' hook: {:?}", H::file_name(), e),
+                Err(e) => error!("Error running the '{}' hook: {:?}", H::FILE_NAME, e),
             }
         }
     }
@@ -73,7 +73,7 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
             // _timer is for Prometheus metrics, but we also want
             // the runtime for other purposes. Unfortunately,
             // we're not able to use the same timer for both :(
-            let _timer = hook_timer(H::file_name());
+            let _timer = hook_timer(H::FILE_NAME);
             let start = Instant::now();
             let result = self.hook
                              .run(&self.service_group, &self.pkg, self.passwd.as_ref());

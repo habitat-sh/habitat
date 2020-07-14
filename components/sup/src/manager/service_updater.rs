@@ -51,19 +51,27 @@ impl ServiceUpdater {
                          period }
     }
 
-    /// Register a new service for updates.
-    pub fn add(&mut self, service: &Service) {
-        // Defensivly remove the service to prevent multiple update workers from running.
+    /// Register a service for updates. If the service has already
+    /// been registered, the old worker is removed and a new one is
+    /// started in its place.
+    pub fn register(&mut self, service: &Service) {
+        // Defensivly remove the service to prevent multiple update
+        // workers from running.
+        debug!("Removing any previously-registered updater for {}", service);
         self.remove(&service.service_group);
         // Determine what kind of worker we should use
         let service_group = service.service_group.clone();
-        match service.update_strategy {
-            UpdateStrategy::None => {}
+        match service.update_strategy() {
+            UpdateStrategy::None => {
+                debug!("No updater registered for for {}", service);
+            }
             UpdateStrategy::AtOnce => {
+                debug!("Registering at-once updater for {}", service);
                 let worker = self.at_once_worker(service);
                 self.spawn_worker(service_group, worker);
             }
             UpdateStrategy::Rolling => {
+                debug!("Registering rolling updater for {}", service);
                 let worker = self.rolling_worker(service, Arc::clone(&self.census_ring));
                 self.spawn_worker(service_group, worker);
             }
@@ -89,7 +97,9 @@ impl ServiceUpdater {
     fn at_once_worker(&mut self, service: &Service) -> impl Future<Output = ()> + Send + 'static {
         debug!("'{}' service updater spawning at-once worker watching for changes to '{}' from \
                 channel '{}'",
-               service.service_group, service.spec_ident, service.channel);
+               service.service_group,
+               service.spec_ident(),
+               service.channel());
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();
         let updates = Arc::clone(&self.updates);
@@ -109,7 +119,9 @@ impl ServiceUpdater {
                       -> impl Future<Output = ()> + Send + 'static {
         debug!("'{}' service updater spawning rolling worker watching for changes to '{}' from \
                 channel '{}'",
-               service.service_group, service.spec_ident, service.channel);
+               service.service_group,
+               service.spec_ident(),
+               service.channel());
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();
         let updates = Arc::clone(&self.updates);

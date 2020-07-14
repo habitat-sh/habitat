@@ -11,7 +11,8 @@ use crate::{error::{Error,
             hcore::{fs,
                     package::PackageInstall},
             templating::hooks::{Hook,
-                                InstallHook},
+                                InstallHook,
+                                UninstallHook},
             FeatureFlag};
 use handlebars::{Handlebars,
                  RenderError,
@@ -32,8 +33,8 @@ lazy_static! {
         Regex::new(r"(\{\{[^}]+[^.])(\[)").expect("Failed to compile template deprecation regex");
 }
 
-/// A convenience method that compiles a package's install hook
-/// and any configuration templates in its config_install folder
+/// A convenience method that compiles a package's install and uninstall hooks and any configuration
+/// templates in its config_install folder
 pub async fn compile_for_package_install(package: &PackageInstall,
                                          feature_flags: FeatureFlag)
                                          -> Result<()> {
@@ -50,6 +51,13 @@ pub async fn compile_for_package_install(package: &PackageInstall,
                                               &fs::svc_hooks_path(&pkg.name),
                                               &package.installed_path.join("hooks"),
                                               feature_flags)
+    {
+        hook.compile(&pkg.name, &ctx)?;
+    };
+    if let Some(ref hook) = UninstallHook::load(&pkg.name,
+                                                &fs::svc_hooks_path(&pkg.name),
+                                                &package.installed_path.join("hooks"),
+                                                feature_flags)
     {
         hook.compile(&pkg.name, &ctx)?;
     };
@@ -414,6 +422,8 @@ test: something"#
         std::fs::create_dir_all(&hooks_path).unwrap();
         create_with_content(hooks_path.join("install"),
                             "install message is {{cfg.message}}");
+        create_with_content(hooks_path.join("uninstall"),
+                            "uninstall message is {{cfg.message}}");
         let config_path = root.join("config_install");
         std::fs::create_dir_all(&config_path).unwrap();
         create_with_content(config_path.join("config.txt"),
@@ -428,6 +438,8 @@ test: something"#
         );
         assert_eq!(file_content(fs::svc_hooks_path(&pkg_install.ident().name).join("install")),
                    "install message is Hello");
+        assert_eq!(file_content(fs::svc_hooks_path(&pkg_install.ident().name).join("uninstall")),
+                   "uninstall message is Hello");
 
         env::remove_var(fs::FS_ROOT_ENVVAR);
         std::fs::remove_dir_all(root).expect("removing temp root");

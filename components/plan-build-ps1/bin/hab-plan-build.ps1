@@ -456,6 +456,17 @@ function _return_or_append_to_set($dependency, $depArray) {
     $depArray + $dependency
 }
 
+# **Internal** Appends an entry to the given array and removes any entries
+# already in the array that match the passed entry.
+function _dedupe_and_append_to_set($dependency, $depArray) {
+    # use an arraylist which is not read-only
+    $list = [System.Collections.ArrayList]::new($depArray)
+    while($list.contains($dependency)) {
+        $list.Remove($dependency)
+    }
+    ($list + $dependency)
+}
+
 # **Internal** Prints a dependency graph in a format to the `tree(1)` command.
 # This is used in concert with `_validate_deps` for the purpose of output to an
 # end user.  It accepts a standard in stream as input where each line is a
@@ -704,7 +715,13 @@ function Set-BuildTdepsResolved {
         $tdeps=Get-TdepsFor $dep
         foreach($tdep in $tdeps) {
             $tdep=(Resolve-Path "$HAB_PKG_PATH/$tdep").Path
-            $script:pkg_build_tdeps_resolved=@(_return_or_append_to_set $tdep $pkg_build_tdeps_resolved)
+            # Use _dedupe_and_append_to_set instead of _return_or_append_to_set
+            # so that duplicate entries are removed from the top of the list and
+            # new entries are always added to the bottom. This ensures that dependent
+            # entries will be installed prior to the package with the dependency
+            # otherwise install hooks may fail if they contain logic that depend on
+            # the dependency.
+            $script:pkg_build_tdeps_resolved=@(_dedupe_and_append_to_set $tdep $pkg_build_tdeps_resolved)
         }
     }
 }
@@ -746,7 +763,13 @@ function Resolve-RunDependencyList {
         $tdeps=Get-TdepsFor $dep
         foreach($tdep in $tdeps) {
             $tdep=(Resolve-Path "$HAB_PKG_PATH/$tdep").Path
-            $script:pkg_tdeps_resolved=@(_return_or_append_to_set $tdep $pkg_tdeps_resolved)
+            # Use _dedupe_and_append_to_set instead of _return_or_append_to_set
+            # so that duplicate entries are removed from the top of the list and
+            # new entries are always added to the bottom. This ensures that dependent
+            # entries will be installed prior to the package with the dependency
+            # otherwise install hooks may fail if they contain logic that depend on
+            # the dependency.
+            $script:pkg_tdeps_resolved=@(_dedupe_and_append_to_set $tdep $pkg_tdeps_resolved)
         }
     }
 }
@@ -989,7 +1012,7 @@ function Set-Environment {
 # step is correct, that is inside the extracted source directory.
 function Invoke-PrepareWrapper {
     Write-BuildLine "Preparing to build"
-    Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
+    Push-Location $SRC_PATH
     try { Invoke-Prepare } finally { Pop-Location }
 }
 
@@ -1010,7 +1033,7 @@ function Invoke-DefaultPrepare {
 # `$HAB_CACHE_SRC_PATH\$pkg_dirname`.
 function Invoke-BuildWrapper {
     Write-BuildLine "Building"
-    Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
+    Push-Location $SRC_PATH
     try { Invoke-Build } finally { Pop-Location }
 }
 
@@ -1156,7 +1179,7 @@ function __resolve_all_version_placeholders_for_provenance($provenance_table, $r
 function Invoke-CheckWrapper {
     if ((Test-Command Invoke-Check) -and (Test-Path Env:\DO_CHECK)) {
         Write-BuildLine "Running post-compile tests"
-        Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
+        Push-Location $SRC_PATH
         try { Invoke-Check } finally { Pop-Location }
     }
 }
@@ -1178,7 +1201,7 @@ function Invoke-InstallWrapper {
     foreach($dir in $pkg_pconfig_dirs) {
         New-Item "$pkg_prefix\$dir" -ItemType Directory -Force | Out-Null
     }
-    Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
+    Push-Location $SRC_PATH
     try { Invoke-Install } finally { Pop-Location }
 }
 
@@ -1211,7 +1234,18 @@ function Invoke-DefaultBuildConfig {
     }
     if (Test-Path "$PLAN_CONTEXT/hooks") {
         Write-BuildLine "Writing hooks"
-        Copy-Item "$PLAN_CONTEXT/hooks" $pkg_prefix -Recurse
+        # The supervisor does not recognize extensions so all hooks are
+        # copied without extensions
+        $hooksDir = Join-Path $pkg_prefix hooks
+        New-Item $hooksDir -ItemType Directory
+        foreach ($file in Get-ChildItem "$PLAN_CONTEXT/hooks") {
+            $singleHook = Get-ChildItem "$PLAN_CONTEXT/hooks" | Where-Object { $_.BaseName -eq $file.BaseName } | ForEach-Object { $_.Name }
+            if($singleHook -is [Array]) {
+                throw "No more than one hook file permitted per lifecycle hook. Found '$($singleHook -Join ', ')'"
+            } else {
+                Copy-Item $file (Join-Path $hooksDir $file.BaseName)
+            }
+        }
     }
     if (Test-Path "$PLAN_CONTEXT/default.toml") {
         Write-BuildLine "Writing default.toml"
@@ -1236,7 +1270,7 @@ function Invoke-BuildService {
 # Default implementation of the `Invoke-BuildService` phase.
 function Invoke-DefaultBuildService {
     Write-BuildLine "Writing service management scripts"
-    if (Test-Path "${PLAN_CONTEXT}/hooks/run") {
+    if ((Test-Path "${PLAN_CONTEXT}/hooks/run") -Or (Test-Path "${PLAN_CONTEXT}/hooks/run.ps1")) {
         Write-BuildLine "Using run hook $PLAN_CONTEXT/hooks/run"
     } else {
         if ($pkg_svc_run -ne "") {
@@ -1531,6 +1565,10 @@ if (-Not (Test-Path "$Context")) {
     throw "Context must be an existing directory"
 }
 $script:PLAN_CONTEXT = (Get-Item $Context).FullName
+# Set the initial source root to be the same as the Plan context directory.
+# This assumes that your application source is local and your Plan exists with
+# your code.
+$script:SRC_PATH = $PLAN_CONTEXT
 
 
 # Look for a plan.ps1 relative to the $PLAN_CONTEXT. Acceptable locations are:
@@ -1661,6 +1699,15 @@ try {
     # Set `$pkg_prefix` if not already set by the `plan.ps1`.
     if ("$pkg_prefix" -eq "") {
         $script:pkg_prefix = "$HAB_PKG_PATH\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
+    }
+
+    # Set the cache path to be under the cache source root path
+    $script:CACHE_PATH = "$HAB_CACHE_SRC_PATH/$pkg_dirname"
+
+    # If `$pkg_source` is used, update the source path to build under the cache
+    # source path.
+    if($pkg_source) {
+        $SRC_PATH = $CACHE_PATH
     }
 
     # Determine the final output path for the package artifact
@@ -1809,7 +1856,7 @@ try {
 
 # Print the results
 Write-BuildLine
-Write-BuildLine "Source Cache: $HAB_CACHE_SRC_PATH\$pkg_dirname"
+Write-BuildLine "Source Path: $SRC_PATH"
 Write-BuildLine "Installed Path: $pkg_prefix"
 Write-BuildLine "Artifact: $pkg_output_path\$(Split-Path $pkg_artifact -Leaf)"
 Write-BuildLine "Build Report: $pkg_output_path\last_build.ps1"

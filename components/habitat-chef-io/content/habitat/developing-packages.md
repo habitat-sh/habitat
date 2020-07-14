@@ -102,15 +102,15 @@ For example, an application targeting linux, Linux kernel 2, and Windows may hav
 
 ```
 app_root/
-├── x_86_64-linux/
+├── x86_64-linux/
 |   |   plan.sh
 |   └── hooks/
 |           run
-├── x_86_64-linux-kernel2/
+├── x86_64-linux-kernel2/
 |   |   plan.sh
 |   └── hooks/
 |           run
-└── x_86-64-windows/
+└── x86_64-windows/
     |   plan.ps1
     └── hooks/
             run

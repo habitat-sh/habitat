@@ -1,12 +1,17 @@
+mod uninstall_impl;
+
 use super::{ExecutionStrategy,
             Scope};
-use crate::{command::pkg::uninstall_impl::{self,
-                                           UninstallSafety},
-            error::Result};
+use crate::error::Result;
 use clap::ArgMatches;
 use habitat_common::ui::UI;
 use habitat_core::package::PackageIdent;
 use std::path::Path;
+
+pub use uninstall_impl::{uninstall,
+                         uninstall_all_but_latest,
+                         UninstallHookMode,
+                         UninstallSafety};
 
 #[derive(Clone, Copy)]
 pub enum UninstallMode {
@@ -23,33 +28,37 @@ impl<'a> From<&'a ArgMatches<'a>> for UninstallMode {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn start(ui: &mut UI,
                    ident: &PackageIdent,
                    fs_root_path: &Path,
                    execution_strategy: ExecutionStrategy,
                    mode: UninstallMode,
                    scope: Scope,
-                   excludes: &[PackageIdent])
+                   excludes: &[PackageIdent],
+                   uninstall_hook_mode: UninstallHookMode)
                    -> Result<()> {
     match mode {
         UninstallMode::Single => {
-            uninstall_impl::uninstall(ui,
-                                      ident,
-                                      fs_root_path,
-                                      execution_strategy,
-                                      scope,
-                                      excludes,
-                                      UninstallSafety::Safe).await
+            uninstall(ui,
+                      ident,
+                      fs_root_path,
+                      execution_strategy,
+                      scope,
+                      excludes,
+                      uninstall_hook_mode,
+                      UninstallSafety::Safe).await
         }
         UninstallMode::KeepLatest(number_latest_to_keep) => {
-            uninstall_impl::uninstall_all_but_latest(ui,
-                                                     ident,
-                                                     number_latest_to_keep,
-                                                     fs_root_path,
-                                                     execution_strategy,
-                                                     scope,
-                                                     excludes,
-                                                     UninstallSafety::Safe).await?;
+            uninstall_all_but_latest(ui,
+                                     ident,
+                                     number_latest_to_keep,
+                                     fs_root_path,
+                                     execution_strategy,
+                                     scope,
+                                     excludes,
+                                     uninstall_hook_mode,
+                                     UninstallSafety::Safe).await?;
             Ok(())
         }
     }

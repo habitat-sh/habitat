@@ -3,8 +3,10 @@ use crate::{error::{Error,
             PRODUCT,
             VERSION};
 use hab::{command::pkg::{self,
-                         uninstall_impl::{self,
-                                          UninstallSafety}},
+                         uninstall::{self,
+                                     UninstallHookMode,
+                                     UninstallSafety}},
+          config,
           error::Result as HabResult};
 use habitat_api_client::BuilderAPIClient;
 use habitat_common::{command::package::install::{self as install_cmd,
@@ -27,6 +29,11 @@ use std::path::Path;
 
 static LOGKEY: &str = "UT";
 
+fn get_auth_token() -> Option<String> {
+    henv::var(AUTH_TOKEN_ENVVAR).ok()
+                                .or_else(|| config::CACHED.auth_token.clone())
+}
+
 /// Helper function for use in the Supervisor to handle lower-level
 /// arguments needed for installing a package.
 pub async fn install<T>(ui: &mut T,
@@ -37,10 +44,7 @@ pub async fn install<T>(ui: &mut T,
     where T: UIWriter
 {
     let fs_root_path = Path::new(&*FS_ROOT_PATH);
-    let auth_token = match henv::var(AUTH_TOKEN_ENVVAR) {
-        Ok(v) => Some(v),
-        Err(_) => None,
-    };
+    let auth_token = get_auth_token();
     install_cmd::start(ui,
                        url,
                        channel,
@@ -110,10 +114,7 @@ pub async fn install_channel_head(url: &str,
                                   channel: &ChannelIdent)
                                   -> Result<PackageInstall> {
     let fs_root_path = Path::new(&*FS_ROOT_PATH);
-    let auth_token = match henv::var(AUTH_TOKEN_ENVVAR) {
-        Ok(v) => Some(v),
-        Err(_) => None,
-    };
+    let auth_token = get_auth_token();
     let api_client = BuilderAPIClient::new(url, PRODUCT, VERSION, Some(fs_root_path))?;
     // Get the latest package identifier from the channel
     let channel_latest_ident = api_client.show_package((ident.as_ref(),
@@ -128,25 +129,15 @@ pub async fn install_channel_head(url: &str,
 pub async fn uninstall_all_but_latest(ident: impl AsRef<PackageIdent>,
                                       number_latest_to_keep: usize)
                                       -> HabResult<usize> {
-    uninstall_impl::uninstall_all_but_latest(&mut NullUi::new(),
-                                             ident,
-                                             number_latest_to_keep,
-                                             &*FS_ROOT_PATH,
-                                             pkg::ExecutionStrategy::Run,
-                                             pkg::Scope::PackageAndDependencies,
-                                             &[],
-                                             UninstallSafety::Safe).await
-}
-
-/// Uninstall multiple packages.
-pub async fn uninstall_many(idents: &[impl AsRef<PackageIdent>]) -> HabResult<()> {
-    uninstall_impl::uninstall_many(&mut NullUi::new(),
-                                   idents,
-                                   &*FS_ROOT_PATH,
-                                   pkg::ExecutionStrategy::Run,
-                                   pkg::Scope::PackageAndDependencies,
-                                   &[],
-                                   UninstallSafety::Safe).await
+    uninstall::uninstall_all_but_latest(&mut NullUi::new(),
+                                        ident,
+                                        number_latest_to_keep,
+                                        &*FS_ROOT_PATH,
+                                        pkg::ExecutionStrategy::Run,
+                                        pkg::Scope::PackageAndDependencies,
+                                        &[],
+                                        UninstallHookMode::default(),
+                                        UninstallSafety::Safe).await
 }
 
 /// Uninstall a package given a package identifier.
@@ -155,11 +146,12 @@ pub async fn uninstall_many(idents: &[impl AsRef<PackageIdent>]) -> HabResult<()
 /// loaded by the Supervisor. This is needed for service rollback where the package we are
 /// uninstalling is the currently loaded package.
 pub async fn uninstall_even_if_loaded(ident: impl AsRef<PackageIdent>) -> HabResult<()> {
-    uninstall_impl::uninstall(&mut NullUi::new(),
-                              &ident.as_ref(),
-                              &*FS_ROOT_PATH,
-                              pkg::ExecutionStrategy::Run,
-                              pkg::Scope::PackageAndDependencies,
-                              &[],
-                              UninstallSafety::Force).await
+    uninstall::uninstall(&mut NullUi::new(),
+                         &ident.as_ref(),
+                         &*FS_ROOT_PATH,
+                         pkg::ExecutionStrategy::Run,
+                         pkg::Scope::PackageAndDependencies,
+                         &[],
+                         UninstallHookMode::default(),
+                         UninstallSafety::Force).await
 }

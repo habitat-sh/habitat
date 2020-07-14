@@ -1703,15 +1703,14 @@ mod tests {
                 swim_port = *swim_port_guard;
                 *swim_port_guard += 1;
             }
-            let swim_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), swim_port);
+            let swim_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), swim_port);
             let gossip_port;
             {
                 let mut gossip_port_guard = GOSSIP_PORT.lock().expect("GOSSIP_PORT poisoned");
                 gossip_port = *gossip_port_guard;
                 *gossip_port_guard += 1;
             }
-            let gossip_listen =
-                SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), gossip_port);
+            let gossip_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), gossip_port);
             let mut member = Member::default();
             member.swim_port = swim_port;
             member.gossip_port = gossip_port;
@@ -1731,15 +1730,14 @@ mod tests {
                 swim_port = *swim_port_guard;
                 *swim_port_guard += 1;
             }
-            let swim_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), swim_port);
+            let swim_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), swim_port);
             let gossip_port;
             {
                 let mut gossip_port_guard = GOSSIP_PORT.lock().expect("GOSSIP_PORT poisoned");
                 gossip_port = *gossip_port_guard;
                 *gossip_port_guard += 1;
             }
-            let gossip_listen =
-                SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), gossip_port);
+            let gossip_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), gossip_port);
             let mut member = Member::default();
             member.swim_port = swim_port;
             member.gossip_port = gossip_port;

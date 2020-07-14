@@ -28,15 +28,29 @@ Describe "Studio build" {
     }
 
     It "builds plan in target if also in root" {
-        hab pkg build test/fixtures/plan-in-root-and-target
-        if($IsLinux) {
-            # This changes the format of last_build from `var=value` to `$var='value'`
-            # so that powershell can parse and source the script
-            Get-Content "results/last_build.env" | ForEach-Object { Add-Content "results/last_build.ps1" -Value "`$$($_.Replace("=", '="'))`"" }
-        }
+        Invoke-Build plan-in-root-and-target
         . ./results/last_build.ps1
 
         $pkg_name | Should -Be "target_plan"
+    }
+
+    It "saves hart in linked artifact cache" {
+        Invoke-Build minimal-package
+        . ./results/last_build.ps1
+
+        "/hab/cache/artifacts/$pkg_artifact" | Should -Exist
+    }
+
+    It "strips hook extension" {
+        Invoke-BuildAndInstall hook-extension-plan
+        . ./results/last_build.ps1
+
+        "/hab/pkgs/$pkg_ident/hooks/install" | Should -Exist
+    }
+
+    It "fails when there are multiple extensions" {
+        hab pkg build test/fixtures/bad-hook-extension-plan
+        $LASTEXITCODE | Should -Not -Be 0
     }
 }
 

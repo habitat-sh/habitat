@@ -1,0 +1,5 @@
+#!/bin/bash
+# install
+set -euo pipefail
+
+echo "install hook {{pkg.name}}"

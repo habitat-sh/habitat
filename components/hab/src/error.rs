@@ -3,7 +3,10 @@ use crate::{api_client,
             hcore,
             protocol::net,
             sup_client::SrvClientError};
-use std::{env,
+use habitat_common::error::DEFAULT_ERROR_EXIT_CODE;
+use habitat_core::package::PackageIdent;
+use std::{collections::HashMap,
+          env,
           error,
           ffi,
           fmt,
@@ -28,6 +31,7 @@ pub enum Error {
     CannotRemoveFromChannel((String, String)),
     CannotRemovePackage(hcore::package::PackageIdent, usize),
     CommandNotFoundInPkg((String, String)),
+    ConfigOpt(configopt::Error),
     CryptoCLI(String),
     CtlClient(SrvClientError),
     DockerDaemonDown,
@@ -35,6 +39,7 @@ pub enum Error {
     DockerImageNotFound(String),
     DockerNetworkDown(String),
     EnvJoinPathsError(env::JoinPathsError),
+    ErrorPerIdent(HashMap<PackageIdent, Error>),
     ExecCommandNotFound(PathBuf),
     FFINulError(ffi::NulError),
     FileNotFound(String),
@@ -55,7 +60,6 @@ pub enum Error {
     ParseIntError(num::ParseIntError),
     PathPrefixError(path::StripPrefixError),
     ProvidesError(String),
-    RemoteSupResolutionError(String, io::Error),
     RootRequired,
     ScheduleStatus(api_client::Error),
     SubcommandNotSupported(String),
@@ -63,6 +67,7 @@ pub enum Error {
     TomlDeserializeError(toml::de::Error),
     TomlSerializeError(toml::ser::Error),
     Utf8Error(String),
+    WalkDir(walkdir::Error),
     YamlError(serde_yaml::Error),
 }
 
@@ -93,6 +98,7 @@ impl fmt::Display for Error {
                 format!("`{}' was not found under any 'PATH' directories in the {} package",
                         c, p)
             }
+            Error::ConfigOpt(ref err) => format!("{}", err),
             Error::CryptoCLI(ref e) => e.to_string(),
             Error::CtlClient(ref e) => e.to_string(),
             Error::DockerDaemonDown => {
@@ -124,6 +130,12 @@ impl fmt::Display for Error {
                         e)
             }
             Error::EnvJoinPathsError(ref err) => format!("{}", err),
+            Error::ErrorPerIdent(ref e) => {
+                e.iter()
+                 .map(|(ident, error)| format!("{}: {}", ident, error))
+                 .collect::<Vec<_>>()
+                 .join("\n")
+            }
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH",
                         c.display())
@@ -160,10 +172,6 @@ impl fmt::Display for Error {
             Error::ParseIntError(ref err) => format!("{}", err),
             Error::PathPrefixError(ref err) => format!("{}", err),
             Error::ProvidesError(ref err) => format!("Can't find {}", err),
-            Error::RemoteSupResolutionError(ref sup_addr, ref err) => {
-                format!("Failed to resolve remote supervisor '{}': {}",
-                        sup_addr, err,)
-            }
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation".to_string()
             }
@@ -175,6 +183,7 @@ impl fmt::Display for Error {
             Error::TomlDeserializeError(ref e) => format!("Can't deserialize TOML: {}", e),
             Error::TomlSerializeError(ref e) => format!("Can't serialize TOML: {}", e),
             Error::Utf8Error(ref e) => format!("Error processing a string as UTF-8: {}", e),
+            Error::WalkDir(ref err) => format!("{}", err),
             Error::YamlError(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -182,6 +191,15 @@ impl fmt::Display for Error {
 }
 
 impl error::Error for Error {}
+
+impl Error {
+    pub fn exit_code(&self) -> i32 {
+        match self {
+            Self::HabitatCommon(e) => e.exit_code(),
+            _ => DEFAULT_ERROR_EXIT_CODE,
+        }
+    }
+}
 
 impl From<api_client::Error> for Error {
     fn from(err: api_client::Error) -> Error { Error::APIClient(err) }
@@ -191,12 +209,20 @@ impl From<common::Error> for Error {
     fn from(err: common::Error) -> Error { Error::HabitatCommon(err) }
 }
 
+impl From<configopt::Error> for Error {
+    fn from(err: configopt::Error) -> Self { Error::ConfigOpt(err) }
+}
+
 impl From<ffi::NulError> for Error {
     fn from(err: ffi::NulError) -> Error { Error::FFINulError(err) }
 }
 
 impl From<hcore::Error> for Error {
     fn from(err: hcore::Error) -> Error { Error::HabitatCore(err) }
+}
+
+impl From<HashMap<PackageIdent, Error>> for Error {
+    fn from(errors: HashMap<PackageIdent, Error>) -> Self { Error::ErrorPerIdent(errors) }
 }
 
 impl From<handlebars::TemplateRenderError> for Error {
@@ -238,4 +264,8 @@ impl From<serde_json::Error> for Error {
 
 impl From<serde_yaml::Error> for Error {
     fn from(err: serde_yaml::Error) -> Error { Error::YamlError(err) }
+}
+
+impl From<walkdir::Error> for Error {
+    fn from(err: walkdir::Error) -> Self { Error::WalkDir(err) }
 }

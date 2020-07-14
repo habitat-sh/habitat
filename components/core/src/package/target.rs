@@ -438,7 +438,7 @@ impl<'d> serde::Deserialize<'d> for PackageTarget {
     fn deserialize<D>(deserializer: D) -> result::Result<Self, D::Error>
         where D: serde::Deserializer<'d>
     {
-        util::serde_string::deserialize(deserializer)
+        util::serde::string::deserialize(deserializer)
     }
 }
 

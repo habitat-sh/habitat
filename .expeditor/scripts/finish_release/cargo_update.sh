@@ -18,8 +18,8 @@ install_hub
 echo "--- :habicat: Installing and configuring build dependencies"
 hab pkg install core/zeromq
 
-PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(< "$(hab pkg path core/zeromq)"/PKG_CONFIG_PATH)"
-export PKG_CONFIG_PATH 
+PKG_CONFIG_PATH="$(< "$(hab pkg path core/zeromq)"/PKG_CONFIG_PATH)"
+export PKG_CONFIG_PATH
 
 # The library detection for the zeromq crate needs this additional hint. 
 LD_RUN_PATH="$(hab pkg path core/zeromq)/lib"

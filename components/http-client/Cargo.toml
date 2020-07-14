@@ -10,15 +10,19 @@ workspace = "../../"
 base64 = "*"
 log = "*"
 native-tls = { version = "*", features = ["vendored"] }
+pem = "*"
 httparse = "*"
 reqwest = { version = "*", features = ["blocking", "json", "stream"] }
 env_proxy = { git = "https://github.com/inejge/env_proxy.git" }
 serde = "*"
-serde_json = "*"
+serde_json = { version = "*", features = [ "preserve_order" ] }
 url = "*"
 
 [dependencies.habitat_core]
 path = "../core"
+
+[dev-dependencies]
+tempfile = "*"
 
 [features]
 default = []

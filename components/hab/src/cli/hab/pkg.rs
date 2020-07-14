@@ -385,20 +385,23 @@ pub enum Pkg {
     /// Safely uninstall a package and dependencies from the local filesystem
     Uninstall {
         #[structopt(flatten)]
-        pkg_ident:   PkgIdent,
+        pkg_ident:             PkgIdent,
         /// Just show what would be uninstalled, don't actually do it
         #[structopt(name = "DRYRUN", short = "d", long = "dryrun")]
-        dryrun:      bool,
+        dryrun:                bool,
         /// Only keep this number of latest packages uninstalling all others.
         #[structopt(name = "KEEP_LATEST", long = "keep-latest")]
-        keep_latest: Option<usize>,
+        keep_latest:           Option<usize>,
         /// Identifier of one or more packages that should not be uninstalled. (ex: core/redis,
         /// core/busybox-static/1.42.2/21120102031201)
         #[structopt(name = "EXCLUDE", long = "exclude")]
-        exclude:     Vec<PackageIdent>,
+        exclude:               Vec<PackageIdent>,
         /// Don't uninstall dependencies
         #[structopt(name = "NO_DEPS", long = "no-deps")]
-        no_deps:     bool,
+        no_deps:               bool,
+        /// Do not run any uninstall hooks
+        #[structopt(name = "IGNORE_UNINSTALL_HOOK", long = "ignore-uninstall-hook")]
+        ignore_uninstall_hook: bool,
     },
     /// Uploads a local Habitat Artifact to Builder
     Upload {

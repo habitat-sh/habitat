@@ -52,14 +52,14 @@ regex = "*"
 rustls = "0.16.0"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
-serde_json = "*"
+serde_json = { version = "*", features = [ "preserve_order" ] }
 serde_yaml = "*"
 serde-transcode = "*"
 state = "*"
 structopt = { git = "https://github.com/habitat-sh/structopt.git" }
 tempfile = "*"
 termcolor = "*"
-toml = { version = "*", default-features = false }
+toml = { version = "*", features = ["preserve_order"]}
 tokio = { version = "*", features = ["full"] }
 tokio-util = { version = "*", features = ["full"] }
 url = "*"
