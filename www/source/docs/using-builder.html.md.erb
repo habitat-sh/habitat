@@ -371,21 +371,26 @@ The _Origin Settings_ tab contains:
 
 ## <a name="origin-secrets" id="origin-secrets" data-magellan-target="origin-secrets">Origin Secrets</a>
 
-Prerequisites:
+Origin secrets, located on the bottom of the _Settings_ tab (Builder > Origin > Settings > "Origin Secrets") let you encrypt and store secrets as environment variables. Origin secrets are useful for plans that require access to protected resources at build time, such as private source-code repositories and cloud storage providers.
+
+Origin secrets are retained by the origin and are available for any of that origin's packages. The origin secrets in your local environment are encrypted with an origin encryption key. Only Chef Habitat Builder can read encrypted origin secrets.
+
+### Prerequisites:
+
+You can view the list of origin secrets and delete them in Chef Habitat Builder.
+However, the primary way of interacting with origin secrets is on the command line.
 
 * [Download the Chef Habitat CLI](/docs/install-habitat)
 * [Create a Chef Habitat Builder account](/#builder-account)
 * [Generate a personal access token](/#builder-token)
-* [Create an origin with `hab origin create`](/#create-origin)
+* [Create an origin](/#create-origin)
 * [Get origin keys](/#origin-keys)
-
-Origin secrets let you encrypt and store secrets as environment variables. Origin secrets are useful for plans requiring access to protected resources at build time, such as private source-code repositories and cloud storage providers. Origin secrets are defined at the origin level and they are available for any package belonging to that origin. Origin secrets are encrypted in your local environment using an origin encryption key. Only Chef Habitat Builder can read the encrypted origin secrets.
 
 ![Chef Habitat Builder origin secrets](/images/screenshots/origin-secrets.png)
 
 ### Manage Origin Secrets with the Chef Habitat CLI
 
-For example, to list the names of all secrets defined for a given origin, use the `list` subcommand:
+List the names of all secrets for a given origin:
 
 ```hab
 hab origin secret list --origin <ORIGIN> --auth <TOKEN>
@@ -398,7 +403,20 @@ hab origin secret upload AWS_ACCESS_KEY_ID <your-key-id>
 hab origin secret upload AWS_SECRET_ACCESS_KEY <your-secret-access-key>
 ```
 
-Set your origin, token, and secrets as environment variables:
+Which should output something similar to:
+
+```bash
+$ hab origin secret upload AWS_ACCESS_KEY_ID 123HABICAT456789
+↓ Downloading latest public encryption key
+    79 B / 79 B | [========================================] 100.00 % 120.23 KB/s
+☑ Cached kagarmoe-20200427234239.pub
+☛ Encrypting value for key AWS_ACCESS_KEY_ID.
+✓ Encrypted AWS_ACCESS_KEY_ID=[REDACTED].
+↑ Uploading secret for key AWS_ACCESS_KEY_ID.
+✓ Uploaded secret for AWS_ACCESS_KEY_ID.
+```
+
+Set your origin, token, and secrets as environment variables in your local environment:
 
 ```bash
 export HAB_ORIGIN=<ORIGIN>
@@ -406,7 +424,7 @@ export HAB_AUTH_TOKEN=<TOKEN>
 hab origin secret list
 ```
 
-You can delete a secret either from the _Origin Settings_ tab or with the Chef Habitat CLI:
+Delete a secret either from the _Origin Settings_ tab or with the Chef Habitat CLI:
 
 ```hab
 hab origin secret delete AWS_ACCESS_KEY_ID
@@ -417,9 +435,9 @@ For more information, see the [`hab origin secret`](/docs/habitat-cli/#hab-origi
 
 ### <a name="origin-secrets-plan" id="origin-secrets-plan" data-magellan-target="origin-secrets-plan">Using Origin Secrets in Plans</a>
 
-After uploading your origin secret, you can refer to it in your plan file as an environment variable, for Chef Habitat Builder to supply its decrypted value during your build job.
+Once you've uploaded your secret to the origin, you can use it in plan files as an environment variable and Chef Habitat Builder will supply its decrypted value during the build job.
 
-The following plan uses the AWS CLI provided by the `core/awscli` package to download a file from a private Amazon S3 bucket using the origin secrets named `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+In the following example, the hab plan installs the AWS CLI provided by the `core/awscli` package and uses it to download a file from a private Amazon S3 bucket, for which it needs the origin secrets named `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
 
 This plan allows the `aws` binary to read the origin secrets as environment variables at build time:
 
