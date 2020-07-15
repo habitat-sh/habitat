@@ -23,8 +23,6 @@ pub const ARTIFACT_PATH_ENVVAR: &str = "ARTIFACT_PATH";
 pub const CERT_PATH_ENVVAR: &str = "CERT_PATH";
 pub const SSL_CERT_FILE_ENVVAR: &str = "SSL_CERT_FILE";
 
-const STUDIO_CMD: &str = "hab-studio";
-const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
 const STUDIO_PACKAGE_IDENT: &str = "core/hab-studio";
 
 #[derive(Clone, Copy)]
@@ -150,13 +148,15 @@ mod inner {
               str::FromStr};
 
     const SUDO_CMD: &str = "sudo";
+    const STUDIO_CMD: &str = "hab-studio";
+    const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
 
     pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         rerun_with_sudo_if_needed(ui, &args)?;
         if is_docker_studio(&args) {
             docker::start_docker_studio(ui, args)
         } else {
-            let command = match henv::var(super::STUDIO_CMD_ENVVAR) {
+            let command = match henv::var(STUDIO_CMD_ENVVAR) {
                 Ok(command) => PathBuf::from(command),
                 Err(_) => {
                     init()?;
@@ -164,7 +164,7 @@ mod inner {
                     let ident = PackageIdent::from_str(&format!("{}/{}",
                                                                 super::STUDIO_PACKAGE_IDENT,
                                                                 version[0]))?;
-                    let command = exec::command_from_min_pkg(ui, super::STUDIO_CMD, &ident).await?;
+                    let command = exec::command_from_min_pkg(ui, STUDIO_CMD, &ident).await?;
                     // This is a duplicate of the code in `hab pkg exec` and
                     // should be refactored as part of or after:
                     // https://github.com/habitat-sh/habitat/issues/6633
@@ -176,7 +176,7 @@ mod inner {
                         env::set_var(key, value);
                     }
 
-                    let mut display_args = super::STUDIO_CMD.to_string();
+                    let mut display_args = STUDIO_CMD.to_string();
                     for arg in args {
                         display_args.push(' ');
                         display_args.push_str(arg.to_string_lossy().as_ref());
@@ -255,13 +255,12 @@ mod inner {
                         Result},
                 exec,
                 hcore::{crypto::init,
-                        env as henv,
                         fs::find_command,
                         os::process,
                         package::PackageIdent},
                 VERSION};
+    use ctrlc;
     use std::{ffi::OsString,
-              path::PathBuf,
               str::FromStr};
 
     pub async fn start(_ui: &mut UI, args: &[OsString]) -> Result<()> {
@@ -273,22 +272,30 @@ mod inner {
     }
 
     pub async fn start_windows_studio(ui: &mut UI, args: &[OsString]) -> Result<()> {
-        let command = match henv::var(super::STUDIO_CMD_ENVVAR) {
-            Ok(command) => PathBuf::from(command),
-            Err(_) => {
-                init()?;
-                let version: Vec<&str> = VERSION.split('/').collect();
-                let ident = PackageIdent::from_str(&format!("{}/{}",
-                                                            super::STUDIO_PACKAGE_IDENT,
-                                                            version[0]))?;
-                exec::command_from_min_pkg(ui, super::STUDIO_CMD, &ident).await?
-            }
-        };
+        init()?;
+        let version: Vec<&str> = VERSION.split('/').collect();
+        let ident =
+            PackageIdent::from_str(&format!("{}/{}", super::STUDIO_PACKAGE_IDENT, version[0]))?;
+        let pwsh_command = exec::command_from_min_pkg(ui, "pwsh.exe", &ident).await?;
+        let studio_command = exec::command_from_min_pkg(ui, "hab-studio.ps1", &ident).await?;
 
-        if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-            process::become_command(cmd, args)?;
+        let mut cmd_args: Vec<OsString> = vec!["-NoProfile".into(),
+                                               "-ExecutionPolicy".into(),
+                                               "bypass".into(),
+                                               "-NoLogo".into(),
+                                               "-File".into(),
+                                               studio_command.to_string_lossy().as_ref().into()];
+        cmd_args.extend_from_slice(args);
+
+        if let Some(cmd) = find_command(pwsh_command.to_string_lossy().as_ref()) {
+            // we need to disable the default ctrlc handler for this process (hab)
+            // otherwise when a ctrlc is emitted in the studio, this process will
+            // also respond to ctrlc which results in odd stdin/out behavior and
+            // forces the user to close the console window entirely
+            ctrlc::set_handler(move || {})?;
+            process::become_command(cmd, &cmd_args)?;
         } else {
-            return Err(Error::ExecCommandNotFound(command));
+            return Err(Error::ExecCommandNotFound(pwsh_command));
         }
         Ok(())
     }

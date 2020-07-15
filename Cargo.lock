@@ -1184,6 +1184,7 @@ dependencies = [
  "chrono",
  "clap",
  "configopt",
+ "ctrlc",
  "dirs",
  "env_logger",
  "flate2",

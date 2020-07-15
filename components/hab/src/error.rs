@@ -34,6 +34,7 @@ pub enum Error {
     ConfigOpt(configopt::Error),
     CryptoCLI(String),
     CtlClient(SrvClientError),
+    CtrlcError(ctrlc::Error),
     DockerDaemonDown,
     DockerFileSharingNotEnabled,
     DockerImageNotFound(String),
@@ -101,6 +102,7 @@ impl fmt::Display for Error {
             Error::ConfigOpt(ref err) => format!("{}", err),
             Error::CryptoCLI(ref e) => e.to_string(),
             Error::CtlClient(ref e) => e.to_string(),
+            Error::CtrlcError(ref err) => format!("{}", err),
             Error::DockerDaemonDown => {
                 "Can not connect to Docker. Is the Docker daemon running?".to_string()
             }
@@ -268,4 +270,8 @@ impl From<serde_yaml::Error> for Error {
 
 impl From<walkdir::Error> for Error {
     fn from(err: walkdir::Error) -> Self { Error::WalkDir(err) }
+}
+
+impl From<ctrlc::Error> for Error {
+    fn from(err: ctrlc::Error) -> Self { Error::CtrlcError(err) }
 }
