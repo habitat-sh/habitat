@@ -191,14 +191,6 @@ For more information, see the [`hab origin create`](/docs/habitat-cli/#hab-origi
 ---
 ## <a name="origin-keys" id="origin keys" data-magellan-target="origin-keys">Origin Keys</a>
 
-When you create an origin through the site, Chef Habitat Builder automatically generates an origin key pair. Find your origin keys on the Builder site by navigating to your  origin and selecting the **Keys** tab.
-
-![About Origin Keys](/images/screenshots/origin-keys.png)
-
-Download your private or public origin key, by selecting select the **download** icon from the right end of the key details, under the _Actions_ heading.
-
-<img src="/images/screenshots/origin-key-download.png">
-
 Origin key cryptography is asymmetric: it has a public origin key that you can distribute freely, and a private origin key that you should distribute only to members of the origin. The key names follow a defined format:
 
 ```hab
@@ -236,15 +228,13 @@ Prerequisites:
 
 Run Chef Habitat CLI commands from your local environment or from within the Chef Habitat Studio.
 
-#### Download Origin Keys from Builder
-
-To get your public origin key from Builder from the command line, use the command:
-
-```hab
-hab origin key download <ORIGIN>
-```
+See the CLI documentation for more information on the [`hab origin key`](/docs/habitat-cli/#hab-origin-key) commands.
 
 #### View Local Origin Keys
+
+Find your origin keys on the Builder site by navigating to your  origin and selecting the **Keys** tab. (Builder > Origins > Keys)
+
+![Viewing your origin keys](/images/screenshots/origin-keys.png)
 
 Chef Habitat stores your public and private origin keys at `~/.hab/cache/keys` on Linux systems, `C:\hab\cache\keys` on Windows, and at `/hab/cache/keys` inside of the Chef Habitat Studio environment.
 
@@ -277,6 +267,8 @@ Get-ChildItem C:\hab\cache\keys
 
 #### Generate Origin Keys
 
+When you create an origin through the site, Chef Habitat Builder automatically generates an origin key pair.
+
 The Chef Habitat CLI creates origin key pairs through two different commands, for two different uses:
 
 * Use the [CLI setup](/docs/install-habitat) process to generate your first origin key pair
@@ -288,16 +280,28 @@ Create origin keys with the `hab` command:
 hab origin key generate <ORIGIN>
 ```
 
+#### Download Origin Keys from Builder
+
+Download your private or public origin key by selecting the **download** icon from the right end of the key details, under the _Actions_ heading.
+
+![Detail of the download icon](/images/screenshots/origin-key-download.png)
+
+To get your public origin key from Builder from the command line, use the command:
+
+```hab
+hab origin key download <ORIGIN>
+```
+
 #### Upload Origin Keys to Builder
+
+You can upload origin keys that you generate on the command line to Chef Habitat Builder by selecting either the **Upload a private key** or **Upload a public key** buttons, which opens a form for you to paste your key
+
+![Example form content for uploading an origin key in Builder](/images/screenshots/builder-key-upload.png)
 
 Creating an origin with the `hab origin create` command registers the origin on Chef Habitat Builder without creating an origin key pair. The `hab origin key generate` command creates the key pair and saves them in your local environment, but it does not upload either origin key to Chef Habitat Builder.
 
 * Builder requires the public origin key to upload artifacts for that origin, so you'll need to upload it.
 * Builder requires the private origin key to enable new artifact builds from packages with plans linked to that origin.
-
-You can upload origin keys through the Chef Habitat Builder site by selecting either the **Upload a private key** or **Upload a public key** buttons, which opens a form for you to paste your key
-
-![Uploading an origin key in Builder](/images/screenshots/builder-key-upload.png)
 
 Upload origin keys with the `hab` command:
 
@@ -343,8 +347,6 @@ Initialize the setting from the command line with:
 ```bash
  source ~/.bashrc
 ```
-
-For more information, see the [`hab origin key`](/docs/habitat-cli/#hab-origin-key) CLI documentation.
 
 ---
 ## <a name="origin-secrets" id="origin-secrets" data-magellan-target="origin-secrets">Using Origin Secrets</a>
