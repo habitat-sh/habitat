@@ -4,25 +4,29 @@ pub mod windows_child;
 #[allow(unused_variables)]
 #[cfg(windows)]
 mod windows;
+#[cfg(windows)]
+use windows as implementation;
 
 #[cfg(unix)]
 mod unix;
+#[cfg(unix)]
+use unix as implementation;
+
+// Common platform-independent interface
+pub use implementation::{become_command,
+                         current_pid,
+                         is_alive,
+                         Pid};
 
 #[cfg(unix)]
-pub(crate) use self::unix::SignalCode;
+pub use unix::signal;
 #[cfg(unix)]
-pub use self::unix::{become_command,
-                     current_pid,
-                     is_alive,
-                     signal,
-                     Pid};
+pub(crate) use unix::SignalCode;
+
 #[cfg(windows)]
-pub use self::windows::{become_command,
-                        current_pid,
-                        handle_from_pid,
-                        is_alive,
-                        terminate,
-                        Pid};
+pub use windows::{handle_from_pid,
+                  terminate};
+
 use crate::{error::Error,
             util};
 use serde_derive::{Deserialize,
