@@ -1,0 +1,7 @@
+{
+    "sys": {{toJson sys}},
+    "pkg": {{toJson pkg}},
+    "cfg": {{toJson cfg}},
+    "svc": {{toJson svc}},
+    "bind": {{toJson bind}}
+}
