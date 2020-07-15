@@ -14,7 +14,7 @@ pub use self::windows::{assert_pkg_user_and_group,
                         root_level_account};
 
 #[cfg(unix)]
-pub mod linux;
+mod linux;
 
 #[cfg(unix)]
 pub use self::linux::{assert_pkg_user_and_group,
@@ -27,5 +27,6 @@ pub use self::linux::{assert_pkg_user_and_group,
                       get_effective_username,
                       get_gid_by_name,
                       get_home_for_user,
+                      get_members_by_groupname,
                       get_uid_by_name,
                       root_level_account};

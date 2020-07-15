@@ -133,15 +133,15 @@ mod inner {
                 error::{Error,
                         Result},
                 exec,
-                hcore::{crypto::init,
-                        env as henv,
-                        fs::{am_i_root,
-                             find_command},
-                        os::process,
-                        package::{PackageIdent,
-                                  PackageInstall},
-                        users::linux as group},
                 VERSION};
+    use habitat_core::{crypto::init,
+                       env as henv,
+                       fs::{am_i_root,
+                            find_command},
+                       os::process,
+                       package::{PackageIdent,
+                                 PackageInstall},
+                       users};
     use std::{env,
               ffi::OsString,
               path::PathBuf,
@@ -208,8 +208,8 @@ mod inner {
     }
 
     fn has_docker_group() -> bool {
-        let current_user = group::get_current_username().unwrap();
-        let docker_members = group::get_members_by_groupname("docker");
+        let current_user = users::get_current_username().unwrap();
+        let docker_members = users::get_members_by_groupname("docker");
         docker_members.map_or(false, |d| d.contains(&current_user))
     }
 
