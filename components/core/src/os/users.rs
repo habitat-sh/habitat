@@ -11,7 +11,6 @@ use unix as implementation;
 
 // Common functions across platforms
 pub use implementation::{assert_pkg_user_and_group,
-                         can_run_services_as_svc_user,
                          get_current_groupname,
                          get_current_username,
                          get_effective_uid,

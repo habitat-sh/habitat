@@ -248,7 +248,8 @@ pub trait Hook: fmt::Debug + Sized + Send {
         where T: ToString,
               S: AsRef<OsStr>
     {
-        use habitat_core::os::users;
+        use habitat_core::os::{process,
+                               users};
         use std::io::Error as IoError;
 
         let mut cmd = Command::new(path.as_ref());
@@ -259,7 +260,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
             cmd.env(key, val);
         }
 
-        if users::can_run_services_as_svc_user() {
+        if process::can_run_services_as_svc_user() {
             // If we can SETUID/SETGID, then run the script as the service
             // user; otherwise, we'll just run it as ourselves.
 

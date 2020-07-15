@@ -516,10 +516,10 @@ fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
 
 #[cfg(unix)]
 fn set_permissions(path: &Path, user: &str, group: &str) -> hcore::error::Result<()> {
-    use crate::hcore::{os::users,
+    use habitat_core::{os::process,
                        util::posix_perm};
 
-    if users::can_run_services_as_svc_user() {
+    if process::can_run_services_as_svc_user() {
         posix_perm::set_owner(path, &user, &group)?;
     }
 

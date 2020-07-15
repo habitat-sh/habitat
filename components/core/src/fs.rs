@@ -13,8 +13,9 @@ use winapi::um::winbase::MoveFileExW;
 use crate::{env as henv,
             error::{Error,
                     Result},
-            os::users::{self,
-                        assert_pkg_user_and_group},
+            os::{process,
+                 users::{self,
+                         assert_pkg_user_and_group}},
             package::{Identifiable,
                       PackageIdent,
                       PackageInstall}};
@@ -399,7 +400,7 @@ impl<'a> SvcDir<'a> {
     /// sub-directories. Ownership and permissions are handled as
     /// well.
     pub fn create(&self) -> Result<()> {
-        if users::can_run_services_as_svc_user() {
+        if process::can_run_services_as_svc_user() {
             // The only reason we assert that these users exist is
             // because our `set_owner` calls will fail if they
             // don't. If we don't have the ability to to change
@@ -511,7 +512,7 @@ impl<'a> SvcDir<'a> {
 
     #[cfg(not(windows))]
     fn set_permissions_and_ownership<T: AsRef<Path>>(&self, path: T) -> Result<()> {
-        if users::can_run_services_as_svc_user() {
+        if process::can_run_services_as_svc_user() {
             posix_perm::set_owner(path.as_ref(), &self.svc_user, &self.svc_group)?;
         }
         posix_perm::set_permissions(path.as_ref(), SVC_DIR_PERMISSIONS).map_err(From::from)

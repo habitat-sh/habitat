@@ -92,3 +92,22 @@ fn become_exec_command(command: PathBuf, args: &[OsString]) -> Result<()> {
     // failed to exec to our target program
     Err(error_if_failed.into())
 }
+
+/// This is currently the "master check" for whether the Supervisor
+/// can behave "as root".
+///
+/// All capabilities must be present. If we can run processes as other
+/// users, but can't change ownership, then the processes won't be
+/// able to access their files. Similar logic holds for the reverse.
+#[cfg(target_os = "linux")]
+pub fn can_run_services_as_svc_user() -> bool {
+    use caps::{CapSet,
+               Capability};
+
+    fn has(cap: Capability) -> bool { caps::has_cap(None, CapSet::Effective, cap).unwrap_or(false) }
+
+    has(Capability::CAP_SETUID) && has(Capability::CAP_SETGID) && has(Capability::CAP_CHOWN)
+}
+
+#[cfg(target_os = "macos")]
+pub fn can_run_services_as_svc_user() -> bool { true }

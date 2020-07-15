@@ -10,8 +10,6 @@ extern "C" {
     pub fn GetUserTokenStatus() -> u32;
 }
 
-pub fn can_run_services_as_svc_user() -> bool { true }
-
 fn get_sid_by_name(name: &str) -> Option<String> {
     match Account::from_name(name) {
         Some(acct) => {

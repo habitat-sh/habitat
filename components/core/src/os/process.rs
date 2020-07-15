@@ -14,6 +14,7 @@ use unix as implementation;
 
 // Common platform-independent interface
 pub use implementation::{become_command,
+                         can_run_services_as_svc_user,
                          current_pid,
                          is_alive,
                          Pid};
