@@ -296,9 +296,17 @@ or in the Builder web interface, under the Settings tab for your origin:
 When you create an origin, you are automatically its owner. As the origin owner, you can manage membership, and transfer ownership of the origin to another person (CLI only).
 Origin Members can upload content to the origin and use any of the private and public packages in the origin and invite new members.
 
+### Prerequisites:
+
+* [Download the Chef Habitat CLI](/docs/install-habitat)
+* [Create a Chef Habitat Builder account](/#builder-account)
+* [Generate a personal access token](/#builder-token)
+* [Create an origin](/#create-origin)
+* [Get origin keys](/#origin-keys)
+
 To invite and manage members through Chef Habitat Builder, navigate to the _Members_ tab in your origin. (Builder > Origin > Members)
 
-![Manage origin members](../images/screenshots/builder_origin_members.png)
+![Manage origin members](../images/screenshots/origin_members.png)
 
 ### Comparison of Origin Owner and Member Actions
 
@@ -319,7 +327,7 @@ To invite and manage members through Chef Habitat Builder, navigate to the _Memb
 
 Manage Chef Habitat Builder origin membership with the Chef Habitat CLI, using the [hab origin invitations](/docs/habitat-cli/#hab-origin-invitations) command.
 
-All Chef Habitat Builder users can accept, ignore, and see invitations for their accounts:
+All Chef Habitat Builder users can accept, ignore, and see invitations for their accounts.
 
 View origin invitations:
 
@@ -345,20 +353,20 @@ All origin members can send origin membership invitations:
 hab origin invitations send <ORIGIN> <INVITEE_ACCOUNT>
 ```
 
-Origin owners can see all pending origin membership invitations and rescind invitations:
+Origin owners can see all pending origin membership invitations:
 
 ```bash
 hab origin invitations pending <ORIGIN>
 ```
 
-Rescind an origin membership invitation:
+Origin owners can rescind an origin membership invitation:
 
 
 ```bash
 hab origin invitations rescind <ORIGIN> <INVITATION_ID>
 ```
 
-Origin owners can transfer origin ownership to another member with the [`hab origin tranfer`](/docs/habitat-cli/#hab-origin-transfer) command:
+Origin owners can transfer origin ownership to another member:
 
 ```bash
 hab origin transfer [OPTIONS] <ORIGIN> <NEW_OWNER_ACCOUNT>
