@@ -193,7 +193,7 @@ For more information, see the [`hab origin create`](/docs/habitat-cli/#hab-origi
 
 When you create an origin through the site, Chef Habitat Builder automatically generates an origin key pair. Find your origin keys on the Builder site by navigating to your  origin and selecting the **Keys** tab.
 
-<img src="/images/screenshots/origin-keys.png">
+![About Origin Keys](/images/screenshots/origin-keys.png)
 
 Download your private or public origin key, by selecting select the **download** icon from the right end of the key details, under the _Actions_ heading.
 
@@ -209,11 +209,11 @@ Origin key cryptography is asymmetric: it has a public origin key that you can d
 For example:
 
 ```hab
-test-origin-20190416223046.pub
-test-origin-20190416223046.sig.key
+testorigin-20190416223046.pub
+testorigin-20190416223046.sig.key
 ```
 
-* "test-origin" is the origin's name
+* "testorigin" is the origin's name
 * "20190416223046" is the date and time of the key's creation, which was 2019-04-16 22:30:46.
 * `.pub` is the file extension for the public key
 * `.sig.key` is the file extension for the private key, also called a "signing key"
@@ -295,9 +295,9 @@ Creating an origin with the `hab origin create` command registers the origin on 
 * Builder requires the public origin key to upload artifacts for that origin, so you'll need to upload it.
 * Builder requires the private origin key to enable new artifact builds from packages with plans linked to that origin.
 
-You can upload origin keys through the Chef Habitat Builder site.
+You can upload origin keys through the Chef Habitat Builder site by selecting either the **Upload a private key** or **Upload a public key** buttons, which opens a form for you to paste your key
 
-<img src="/images/screenshots/builder-origin-keys.png">
+![Uploading an origin key in Builder](/images/screenshots/builder-key-upload.png)
 
 Upload origin keys with the `hab` command:
 
@@ -333,8 +333,9 @@ To remediate this failure:
  * Check that your `HAB_AUTH_TOKEN` is properly set and initialized
  * Add your `SSL_CERT_FILE` to the environment variables in your interactive shell configuration file, such as your `.bashrc`.
 
+
 ```bash
-export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
+  export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
 ```
 
 Initialize the setting from the command line with:
