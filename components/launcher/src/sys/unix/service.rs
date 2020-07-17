@@ -7,9 +7,10 @@ use habitat_core::os::{self,
                        process::{exec,
                                  signal,
                                  Signal}};
+use nix::unistd::{Gid,
+                  Uid};
 use std::{io,
           ops::Neg,
-          os::unix::process::CommandExt,
           process::{Child,
                     Command,
                     ExitStatus,
@@ -72,29 +73,33 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
     let mut cmd = Command::new(&msg.binary);
 
     // Favor explicitly set UID/GID over names when present
-    let uid = if let Some(suid) = msg.svc_user_id {
+    let user_id = if let Some(suid) = msg.svc_user_id {
         suid
     } else if let Some(suser) = &msg.svc_user {
         os::users::get_uid_by_name(&suser).ok_or_else(|| Error::UserNotFound(suser.to_string()))?
     } else {
         return Err(Error::UserNotFound(String::from("")));
     };
+    let uid = Uid::from_raw(user_id);
 
-    let gid = if let Some(sgid) = msg.svc_group_id {
+    let group_id = if let Some(sgid) = msg.svc_group_id {
         sgid
     } else if let Some(sgroup) = &msg.svc_group {
         os::users::get_gid_by_name(&sgroup).ok_or_else(|| Error::GroupNotFound(sgroup.to_string()))?
     } else {
         return Err(Error::GroupNotFound(String::from("")));
     };
+    let gid = Gid::from_raw(group_id);
 
     exec::unix::with_own_process_group(&mut cmd);
+    exec::unix::with_user_and_group_information(&mut cmd, uid, gid);
 
+    // NOTE: uid and gid of the spawned process are set in
+    // `with_user_and_group_information`! See documentation there for
+    // more details.
     cmd.stdin(Stdio::null())
        .stdout(Stdio::piped())
-       .stderr(Stdio::piped())
-       .uid(uid)
-       .gid(gid);
+       .stderr(Stdio::piped());
     for (key, val) in msg.env.iter() {
         cmd.env(key, val);
     }

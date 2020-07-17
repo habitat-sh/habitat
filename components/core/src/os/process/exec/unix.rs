@@ -1,4 +1,13 @@
-use std::{io,
+use crate::os::process::can_run_services_as_svc_user;
+use nix::unistd::{getgrouplist,
+                  setgid,
+                  setgroups,
+                  setuid,
+                  Gid,
+                  Uid,
+                  User};
+use std::{ffi::CString,
+          io,
           os::unix::process::CommandExt,
           process::Command,
           result};
@@ -16,7 +25,7 @@ use std::{io,
 /// This basically ensures that all hooks are properly isolated,
 /// without signaling cross-talk between them and the Launcher /
 /// Supervisor.
-pub fn with_own_process_group(cmd: &mut Command) -> &mut Command {
+fn with_own_process_group(cmd: &mut Command) -> &mut Command {
     unsafe {
         cmd.pre_exec(set_own_process_group);
     }
@@ -35,5 +44,74 @@ fn set_own_process_group() -> result::Result<(), io::Error> {
         } else {
             Err(io::Error::last_os_error())
         }
+    }
+}
+/// Sets uid, gid, and supplementary groups on command.
+///
+/// DO NOT call `CommandExt#uid` or `CommandExt#gid` on this command,
+/// either before or after calling this function, or it will probably
+/// not work like you want it to.
+fn with_user_and_group_information(cmd: &mut Command, uid: Uid, gid: Gid) -> &mut Command {
+    unsafe {
+        cmd.pre_exec(set_supplementary_groups(uid, gid));
+    }
+    cmd
+}
+
+/// Stupid little private helper macro to make mapping `Nix` errors to
+/// IO errors for our `pre_exec` hooks.
+///
+/// The format string should have a single variable placeholder for
+/// the actual error.
+///
+/// e.g. `result.map_err(io_err!("blah blah {:?}"))`
+macro_rules! io_error {
+    ($format_string:tt) => {
+        move |e| io::Error::new(io::ErrorKind::Other, format!($format_string, e))
+    };
+}
+
+/// Returns a function that sets the supplementary group IDs of the
+/// process to those that `user_id` belongs to.
+///
+/// Also sets the uid and gid of the process. We must do that here,
+/// rather than using the `CommandExt::uid` and `CommandExt::gid`
+/// methods to ensure that all the IDs are set on the process in the
+/// correct order (that is, supplementary groups, gid, and finally uid).
+///
+/// Once https://github.com/rust-lang/rust/pull/72160 merges, we can
+/// use all `CommandExt` methods, and thus simplify things a (little)
+/// bit.
+fn set_supplementary_groups(user_id: Uid,
+                            group_id: Gid)
+                            -> impl Fn() -> result::Result<(), io::Error> {
+    // Note: since this function will be run a separate process that doesn't
+    // inherit RUST_LOG, none of the log! macros will work actually
+    // work here.
+
+    move || {
+        // Note that if we *can't* run services as another user,
+        // that's OK; not an error. We just won't set supplementary
+        // groups, and run all hooks as the user we currently are.
+        if can_run_services_as_svc_user() {
+            if let Some(user) =
+                User::from_uid(user_id).map_err(io_error!("Error resolving user from ID: {:?}"))?
+            {
+                let user = CString::new(user.name).map_err(io_error!("User name cannot convert \
+                                                                      to CString!: {:?}"))?;
+                let groups =
+                    getgrouplist(&user, group_id).map_err(io_error!("getgrouplist failed!: {:?}"))?;
+                setgroups(&groups).map_err(io_error!("setgroups failed! {:?}"))?; // CAP_SETGID
+            } else {
+                return Err(io::Error::new(io::ErrorKind::Other,
+                                          "Could not find user from user ID"));
+            }
+
+            // These calls replace `CommandExt::uid` and `CommandExt::gid`
+            setgid(group_id).map_err(io_error!("setgid failed! {:?}"))?; // CAP_SETGID
+            setuid(user_id).map_err(io_error!("setuid failed! {:?}"))?; // CAP_SETUID
+        }
+
+        Ok(())
     }
 }

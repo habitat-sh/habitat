@@ -48,6 +48,13 @@ toml = { version = "*", features = ["preserve_order"] }
 uuid = { version = "*", features = ["v4"] }
 valico = "*"
 
+[target.'cfg(not(windows))'.dependencies]
+# Pulling from git until
+# https://github.com/nix-rust/nix/commit/3c2107bdc221a90b02d3f7118dd96f3496762cd0
+# is released, which will be the next release after v0.17.0
+# (A similar pin is in components/core and components/launcher as well).
+nix = {  git = "https://github.com/nix-rust/nix.git", rev = "3c2107bdc221a90b02d3f7118dd96f3496762cd0" }
+
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "*", features = ["consoleapi", "processenv"] }
 

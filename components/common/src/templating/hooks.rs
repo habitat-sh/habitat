@@ -18,8 +18,7 @@ use habitat_core::{crypto,
 use serde::{Serialize,
             Serializer};
 #[cfg(unix)]
-use std::os::unix::process::{CommandExt,
-                             ExitStatusExt};
+use std::os::unix::process::ExitStatusExt;
 #[cfg(not(windows))]
 use std::process::{Child,
                    Command,
@@ -250,6 +249,8 @@ pub trait Hook: fmt::Debug + Sized + Send {
     {
         use habitat_core::os::{process,
                                users};
+        use nix::unistd::{Gid,
+                          Uid};
 
         let mut cmd = Command::new(path.as_ref());
         cmd.stdin(Stdio::null())
@@ -259,32 +260,33 @@ pub trait Hook: fmt::Debug + Sized + Send {
             cmd.env(key, val);
         }
 
+        process::exec::unix::with_own_process_group(&mut cmd);
+
         if process::can_run_services_as_svc_user() {
             // If we can SETUID/SETGID, then run the script as the service
             // user; otherwise, we'll just run it as ourselves.
 
-            let uid = users::get_uid_by_name(&pkg.svc_user).ok_or_else(|| {
+            let uid = users::get_uid_by_name(&pkg.svc_user).map(Uid::from_raw)
+                                                           .ok_or_else(|| {
                                                                Error::PermissionFailed(format!(
                     "No uid for user '{}' could be found",
                     &pkg.svc_user
                 ))
                                                            })?;
-            let gid = users::get_gid_by_name(&pkg.svc_group).ok_or_else(|| {
+            let gid = users::get_gid_by_name(&pkg.svc_group).map(Gid::from_raw)
+                                                            .ok_or_else(|| {
                                                                 Error::PermissionFailed(format!(
                     "No gid for group '{}' could be found",
                     &pkg.svc_group
                 ))
                                                             })?;
-
-            cmd.uid(uid).gid(gid);
+            process::exec::unix::with_user_and_group_information(&mut cmd, uid, gid);
         } else {
             debug!("Current user lacks sufficient capabilites to run {:?} as \"{}\"; running as \
                     self!",
                    path.as_ref(),
                    &pkg.svc_user);
         }
-
-        process::exec::unix::with_own_process_group(&mut cmd);
 
         Ok(cmd.spawn()?)
     }
