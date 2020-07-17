@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.88 -->
-## [1.6.88](https://github.com/habitat-sh/habitat/tree/1.6.88) (2020-07-15)
+<!-- latest_release 1.6.89 -->
+## [1.6.89](https://github.com/habitat-sh/habitat/tree/1.6.89) (2020-07-17)
 
 #### Merged Pull Requests
-- Fix e2e failures [#7807](https://github.com/habitat-sh/habitat/pull/7807) ([davidMcneil](https://github.com/davidMcneil))
+- [CI] Fix service update e2e test [#7813](https://github.com/habitat-sh/habitat/pull/7813) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -20,6 +20,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- [CI] Fix service update e2e test [#7813](https://github.com/habitat-sh/habitat/pull/7813) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.89 -->
 - Fix e2e failures [#7807](https://github.com/habitat-sh/habitat/pull/7807) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.88 -->
 - [CI] Bump macOS stage retry limits [#7806](https://github.com/habitat-sh/habitat/pull/7806) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.87 -->
 - [REFACTOR] A handful of minor tweaks [#7801](https://github.com/habitat-sh/habitat/pull/7801) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.86 -->
