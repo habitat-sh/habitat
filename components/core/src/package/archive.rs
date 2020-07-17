@@ -449,9 +449,9 @@ pub struct PackageArchiveInfo {
 
 impl PackageArchiveInfo {
     pub fn new(path: impl Into<PathBuf>) -> Result<Self> {
-        let path = path.into();
-        let mut archive = PackageArchive::new(path.clone())?;
-        let header = artifact::get_artifact_header(&path)?;
+        let src = path.into();
+        let mut archive = PackageArchive::new(src.clone())?;
+        let header = artifact::get_artifact_header(&src)?;
         let ident = archive.ident()?;
         Ok(PackageArchiveInfo { format_version:    header.format_version,
                                 key_name:          header.key_name,
@@ -464,6 +464,7 @@ impl PackageArchiveInfo {
                                 checksum:          archive.checksum().ok(),
                                 target:            archive.target()
                                                           .expect("pkg info archive target"),
+                                is_a_service:      archive.is_a_service(),
                                 deps:              archive.deps().unwrap_or_default(),
                                 build_deps:        archive.build_deps().unwrap_or_default(),
                                 tdeps:             archive.tdeps().unwrap_or_default(),
@@ -474,18 +475,17 @@ impl PackageArchiveInfo {
                                 manifest:
                                     archive.manifest()
                                            .map_or_else(|_| None, |v| Some(v.to_string())),
-                                config:            archive.config()
-                                                          .map(std::string::ToString::to_string),
                                 svc_user:
                                     archive.svc_user()
                                            .map_or_else(|_| None, |v| Some(v.to_string())),
+                                config:            archive.config()
+                                                          .map(std::string::ToString::to_string),
                                 ld_run_path:       archive.ld_run_path()
                                                           .map(std::string::ToString::to_string),
                                 ldflags:           archive.ldflags()
                                                           .map(std::string::ToString::to_string),
                                 cflags:            archive.cflags()
-                                                          .map(std::string::ToString::to_string),
-                                is_a_service:      archive.is_a_service(), })
+                                                          .map(std::string::ToString::to_string), })
     }
 }
 
