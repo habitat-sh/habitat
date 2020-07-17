@@ -543,8 +543,10 @@ mod test {
 
     #[test]
     fn reading_artifact_extended_metadata() {
-        let src = fixtures().join("unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart");
-        let info = PackageArchiveInfo::new(src).unwrap();
+        let hart =
+            PackageArchive::new(fixtures().join("unhappyhumans-possums-8.1.\
+                                                 4-20160427165340-x86_64-linux.hart")).unwrap();
+        let info = PackageArchiveInfo::from_path(hart.path).unwrap();
         assert_eq!(info.format_version, "HART-1");
         assert_eq!(info.key_name, "happyhumans-20160424223347");
         assert_eq!(info.hash_type, "BLAKE2b");
@@ -552,6 +554,7 @@ mod test {
         assert_eq!(info.target, target::X86_64_LINUX);
         assert_eq!(info.deps.len(), 0);
         assert_eq!(info.tdeps.len(), 1024);
+        assert_eq!(info.tdeps[0], "core/glibc/2.22/20160612063629");
     }
 
     pub fn root() -> PathBuf { PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests") }
