@@ -1,11 +1,12 @@
-use crate::{core::os::{self,
-                       process::{signal,
-                                 Signal}},
-            error::{Error,
+use crate::{error::{Error,
                     Result},
             protocol::{self,
                        ShutdownMethod},
             service::Service};
+use habitat_core::os::{self,
+                       process::{exec,
+                                 signal,
+                                 Signal}};
 use std::{io,
           ops::Neg,
           os::unix::process::CommandExt,
@@ -13,7 +14,6 @@ use std::{io,
                     Command,
                     ExitStatus,
                     Stdio},
-          result,
           time::{Duration,
                  Instant}};
 
@@ -88,9 +88,8 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
         return Err(Error::GroupNotFound(String::from("")));
     };
 
-    unsafe {
-        cmd.pre_exec(owned_pgid);
-    }
+    exec::unix::with_own_process_group(&mut cmd);
+
     cmd.stdin(Stdio::null())
        .stdout(Stdio::piped())
        .stderr(Stdio::piped())
@@ -105,14 +104,4 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
     let process = Process(child);
     debug!(target: "pidfile_tracing", "Launcher spawned {} with PID = {}", msg.binary, process.id());
     Ok(Service::new(msg, process, stdout, stderr))
-}
-
-// we want the command to spawn processes in their own process group
-// and not the same group as the Launcher. Otherwise if a child process
-// sends SIGTERM to the group, the Launcher could be terminated.
-fn owned_pgid() -> result::Result<(), io::Error> {
-    unsafe {
-        libc::setpgid(0, 0);
-    }
-    Ok(())
 }

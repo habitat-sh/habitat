@@ -250,7 +250,6 @@ pub trait Hook: fmt::Debug + Sized + Send {
     {
         use habitat_core::os::{process,
                                users};
-        use std::io::Error as IoError;
 
         let mut cmd = Command::new(path.as_ref());
         cmd.stdin(Stdio::null())
@@ -285,20 +284,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
                    &pkg.svc_user);
         }
 
-        unsafe {
-            cmd.pre_exec(|| {
-                   // Run in your own process group! This prevents terminal
-                   // signals (e.g. ^C) sent to a Supervisor running in the
-                   // foreground from being passed down to any running hooks,
-                   // which could cause them to terminate prematurely, among
-                   // other things.
-                   if libc::setpgid(0, 0) == 0 {
-                       Ok(())
-                   } else {
-                       Err(IoError::last_os_error())
-                   }
-               });
-        }
+        process::exec::unix::with_own_process_group(&mut cmd);
 
         Ok(cmd.spawn()?)
     }

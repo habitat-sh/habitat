@@ -12,6 +12,8 @@ mod unix;
 #[cfg(unix)]
 use unix as implementation;
 
+pub mod exec;
+
 // Common platform-independent interface
 pub use implementation::{become_command,
                          can_run_services_as_svc_user,
