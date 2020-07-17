@@ -422,71 +422,104 @@ pub trait FromArchive: Sized {
 // Exposes the extended archive and header metadata
 #[derive(Deserialize, Serialize)]
 pub struct PackageArchiveInfo {
-    pub format_version:    String,
-    pub key_name:          String,
-    pub hash_type:         String,
-    pub signature_raw:     String,
-    pub origin:            String,
-    pub name:              String,
-    pub version:           Option<String>,
-    pub release:           Option<String>,
-    pub checksum:          Option<String>,
-    pub target:            PackageTarget,
-    pub is_a_service:      bool,
-    pub deps:              Vec<PackageIdent>,
-    pub tdeps:             Vec<PackageIdent>,
-    pub build_deps:        Vec<PackageIdent>,
-    pub build_tdeps:       Vec<PackageIdent>,
-    pub exposes:           Vec<u16>,
-    pub pkg_services:      Vec<PackageIdent>,
-    pub resolved_services: Vec<PackageIdent>,
-    pub manifest:          Option<String>,
-    pub config:            Option<String>,
-    pub svc_user:          Option<String>,
-    pub ld_run_path:       Option<String>,
-    pub ldflags:           Option<String>,
-    pub cflags:            Option<String>,
+    pub format_version: String,
+    pub key_name:       String,
+    pub hash_type:      String,
+    pub signature_raw:  String,
+    pub origin:         String,
+    pub name:           String,
+    pub version:        String,
+    pub release:        String,
+    pub checksum:       String,
+    pub target:         PackageTarget,
+    pub is_a_service:   bool,
+    pub deps:           Vec<String>,
+    pub tdeps:          Vec<String>,
+    pub build_deps:     Vec<String>,
+    pub build_tdeps:    Vec<String>,
+    pub exposes:        Vec<u16>,
+    pub manifest:       String,
+    pub config:         Option<String>,
+    pub svc_user:       Option<String>,
+    pub ld_run_path:    Option<String>,
+    pub ldflags:        Option<String>,
+    pub cflags:         Option<String>,
 }
 
 impl PackageArchiveInfo {
-    pub fn new(path: impl Into<PathBuf>) -> Result<Self> {
+    pub fn from_path(path: impl Into<PathBuf>) -> Result<PackageArchiveInfo> {
         let src = path.into();
-        let mut archive = PackageArchive::new(src.clone())?;
-        let header = artifact::get_artifact_header(&src)?;
+        let mut archive = PackageArchive::new(src)?;
+        PackageArchiveInfo::new(&mut archive)
+    }
+
+    fn new(archive: &mut PackageArchive) -> Result<Self> {
+        let header = artifact::get_artifact_header(&archive.path)?;
         let ident = archive.ident()?;
-        Ok(PackageArchiveInfo { format_version:    header.format_version,
-                                key_name:          header.key_name,
-                                hash_type:         header.hash_type,
-                                signature_raw:     header.signature_raw,
-                                origin:            ident.origin.clone(),
-                                name:              ident.name.clone(),
-                                version:           ident.version,
-                                release:           ident.release,
-                                checksum:          archive.checksum().ok(),
-                                target:            archive.target()
-                                                          .expect("pkg info archive target"),
-                                is_a_service:      archive.is_a_service(),
-                                deps:              archive.deps().unwrap_or_default(),
-                                build_deps:        archive.build_deps().unwrap_or_default(),
-                                tdeps:             archive.tdeps().unwrap_or_default(),
-                                build_tdeps:       archive.build_tdeps().unwrap_or_default(),
-                                exposes:           archive.exposes().unwrap_or_default(),
-                                pkg_services:      archive.pkg_services().unwrap_or_default(),
-                                resolved_services: archive.resolved_services().unwrap_or_default(),
-                                manifest:
-                                    archive.manifest()
-                                           .map_or_else(|_| None, |v| Some(v.to_string())),
-                                svc_user:
-                                    archive.svc_user()
-                                           .map_or_else(|_| None, |v| Some(v.to_string())),
-                                config:            archive.config()
-                                                          .map(std::string::ToString::to_string),
-                                ld_run_path:       archive.ld_run_path()
-                                                          .map(std::string::ToString::to_string),
-                                ldflags:           archive.ldflags()
-                                                          .map(std::string::ToString::to_string),
-                                cflags:            archive.cflags()
-                                                          .map(std::string::ToString::to_string), })
+        Ok(PackageArchiveInfo { format_version: header.format_version,
+                                key_name:       header.key_name,
+                                hash_type:      header.hash_type,
+                                signature_raw:  header.signature_raw,
+                                origin:         ident.origin.clone(),
+                                name:           ident.name.clone(),
+                                version:        ident.version.unwrap_or_default(),
+                                release:        ident.release.unwrap_or_default(),
+                                checksum:       archive.checksum()?,
+                                target:         archive.target()?,
+                                is_a_service:   archive.is_a_service(),
+                                // All of the following unwraps are safe since the version
+                                // and release are guaranteed to be Some by this point.
+                                deps:           archive.deps()
+                                                       .unwrap_or_default()
+                                                       .iter()
+                                                       .map(|x| {
+                                                           format!("{}/{}/{}/{}",
+                                                                   x.origin,
+                                                                   x.name,
+                                                                   x.version.as_ref().unwrap(),
+                                                                   x.release.as_ref().unwrap())
+                                                       })
+                                                       .collect(),
+                                build_deps:     archive.build_deps()
+                                                       .unwrap_or_default()
+                                                       .iter()
+                                                       .map(|x| {
+                                                           format!("{}/{}/{}/{}",
+                                                                   x.origin,
+                                                                   x.name,
+                                                                   x.version.as_ref().unwrap(),
+                                                                   x.release.as_ref().unwrap())
+                                                       })
+                                                       .collect(),
+                                tdeps:          archive.tdeps()
+                                                       .unwrap_or_default()
+                                                       .iter()
+                                                       .map(|x| {
+                                                           format!("{}/{}/{}/{}",
+                                                                   x.origin,
+                                                                   x.name,
+                                                                   x.version.as_ref().unwrap(),
+                                                                   x.release.as_ref().unwrap())
+                                                       })
+                                                       .collect(),
+                                build_tdeps:    archive.build_tdeps()
+                                                       .unwrap_or_default()
+                                                       .iter()
+                                                       .map(|x| {
+                                                           format!("{}/{}/{}/{}",
+                                                                   x.origin,
+                                                                   x.name,
+                                                                   x.version.as_ref().unwrap(),
+                                                                   x.release.as_ref().unwrap())
+                                                       })
+                                                       .collect(),
+                                exposes:        archive.exposes().unwrap_or_default(),
+                                manifest:       archive.manifest()?.to_string(),
+                                svc_user:       archive.svc_user().ok().map(ToString::to_string),
+                                config:         archive.config().map(ToString::to_string),
+                                ld_run_path:    archive.ld_run_path().map(ToString::to_string),
+                                ldflags:        archive.ldflags().map(ToString::to_string),
+                                cflags:         archive.cflags().map(ToString::to_string), })
     }
 }
 

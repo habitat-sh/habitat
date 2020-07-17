@@ -14,7 +14,7 @@ fn convert_to_json<T>(src: &T) -> Result<Json>
 }
 
 pub fn start(ui: &mut UI, src: &Path, to_json: bool) -> Result<()> {
-    let info = PackageArchiveInfo::new(src)?;
+    let info = PackageArchiveInfo::from_path(src)?;
 
     if to_json {
         match convert_to_json(&info) {
@@ -34,10 +34,8 @@ pub fn start(ui: &mut UI, src: &Path, to_json: bool) -> Result<()> {
         println!("Package Path   : {}", &src.display());
         println!("Origin         : {}", info.origin);
         println!("Name           : {}", info.name);
-        println!("Version        : {}",
-                 info.version.unwrap_or_else(|| "".to_string()));
-        println!("Release        : {}",
-                 info.release.unwrap_or_else(|| "".to_string()));
+        println!("Version        : {}", info.version);
+        println!("Release        : {}", info.release);
     }
     Ok(())
 }

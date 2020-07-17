@@ -295,7 +295,7 @@ impl From<FullyQualifiedPackageIdent> for PackageIdent {
 /// Represents a fully-qualified Package Identifier, meaning that the normally optional version and
 /// release package coordinates are guaranteed to be set. This fully-qualified-ness is checked on
 /// construction and as the underlying representation is immutable, this state does not change.
-#[derive(Eq, PartialEq, PartialOrd, Debug, Clone, Hash)]
+#[derive(Eq, PartialEq, PartialOrd, Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct FullyQualifiedPackageIdent(PackageIdent);
 
 impl FullyQualifiedPackageIdent {
