@@ -1,7 +1,6 @@
 use crate::{common::ui::{UIWriter,
                          UI},
-            error::{Error,
-                    Result},
+            error::Result,
             hcore::{crypto::artifact,
                     package::{PackageArchive,
                               PackageIdent,
@@ -60,24 +59,23 @@ pub fn start(ui: &mut UI, src: &Path, to_json: bool) -> Result<()> {
                              release:           ident.release,
                              checksum:          archive.checksum().ok(),
                              target:            archive.target().expect("pkg info archive target"),
-                             deps:              archive.deps().unwrap_or(Vec::new()),
-                             build_deps:        archive.build_deps().unwrap_or(Vec::new()),
-                             tdeps:             archive.tdeps().unwrap_or(Vec::new()),
-                             build_tdeps:       archive.build_tdeps().unwrap_or(Vec::new()),
-                             exposes:           archive.exposes().unwrap_or(Vec::new()),
-                             pkg_services:      archive.pkg_services().unwrap_or(Vec::new()),
-                             resolved_services: archive.resolved_services().unwrap_or(Vec::new()),
+                             deps:              archive.deps().unwrap_or_default(),
+                             build_deps:        archive.build_deps().unwrap_or_default(),
+                             tdeps:             archive.tdeps().unwrap_or_default(),
+                             build_tdeps:       archive.build_tdeps().unwrap_or_default(),
+                             exposes:           archive.exposes().unwrap_or_default(),
+                             pkg_services:      archive.pkg_services().unwrap_or_default(),
+                             resolved_services: archive.resolved_services().unwrap_or_default(),
                              manifest:
                                  archive.manifest()
                                         .map_or_else(|_| None, |v| Some(v.to_string())),
-                             config:            archive.config().and_then(|v| Some(v.to_string())),
+                             config:            archive.config().map(|v| v.to_string()),
                              svc_user:
                                  archive.svc_user()
                                         .map_or_else(|_| None, |v| Some(v.to_string())),
-                             ld_run_path:       archive.ld_run_path()
-                                                       .and_then(|v| Some(v.to_string())),
-                             ldflags:           archive.ldflags().and_then(|v| Some(v.to_string())),
-                             cflags:            archive.cflags().and_then(|v| Some(v.to_string())),
+                             ld_run_path:       archive.ld_run_path().map(|v| v.to_string()),
+                             ldflags:           archive.ldflags().map(|v| v.to_string()),
+                             cflags:            archive.cflags().map(|v| v.to_string()),
                              is_a_service:      archive.is_a_service(), };
 
     if to_json {
@@ -88,7 +86,7 @@ pub fn start(ui: &mut UI, src: &Path, to_json: bool) -> Result<()> {
             }
             Err(e) => {
                 ui.fatal(format!("Failed to deserialize into json! {:?}.", e))?;
-                return Err(Error::from(e));
+                return Err(e);
             }
         }
     } else {
@@ -99,9 +97,9 @@ pub fn start(ui: &mut UI, src: &Path, to_json: bool) -> Result<()> {
         println!("Origin         : {}", info.origin);
         println!("Name           : {}", info.name);
         println!("Version        : {}",
-                 info.version.unwrap_or("".to_string()));
+                 info.version.unwrap_or_else(|| "".to_string()));
         println!("Release        : {}",
-                 info.release.unwrap_or("".to_string()));
+                 info.release.unwrap_or_else(|| "".to_string()));
     }
     Ok(())
 }
