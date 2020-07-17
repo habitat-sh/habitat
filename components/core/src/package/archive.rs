@@ -419,6 +419,8 @@ pub trait FromArchive: Sized {
     fn from_archive(archive: &mut PackageArchive) -> result::Result<Self, Self::Error>;
 }
 
+// Exposes the extended metadata from a PackageArchive
+// for easier display or de-serialization.
 #[derive(Deserialize, Serialize)]
 pub struct PackageArchiveInfo {
     pub format_version:    String,
@@ -505,6 +507,19 @@ mod test {
         assert_eq!(ident.name, "possums");
         assert_eq!(ident.version, Some("8.1.4".to_string()));
         assert_eq!(ident.release, Some("20160427165340".to_string()));
+    }
+
+    #[test]
+    fn reading_artifact_extended_metadata() {
+        let src = fixtures().join("unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart");
+        let info = PackageArchiveInfo::new(src).unwrap();
+        assert_eq!(info.format_version, "HART-1");
+        assert_eq!(info.key_name, "happyhumans-20160424223347");
+        assert_eq!(info.hash_type, "BLAKE2b");
+        assert_eq!(info.signature_raw, "AgdmAKa9wr4ExnSWe5rg2VJh6cc2vOfyXCs3JOnsSm1XtmtQNhhON6fhgp0hW0xZkNcgXmC1lQ7w5WdZU0M4Bjg4MDVlNTU3NWFiOGMwMjllNmQyNTgyNjEzNzlmYmQwMmQ0YmIzZDkwZTIwNjg0N2Q0NTUzYTFiZjczOTVkNjU=");
+        assert_eq!(info.target, target::X86_64_LINUX);
+        assert_eq!(info.deps.len(), 0);
+        assert_eq!(info.tdeps.len(), 1024);
     }
 
     pub fn root() -> PathBuf { PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests") }
