@@ -69,13 +69,17 @@ pub fn start(ui: &mut UI, src: &Path, to_json: bool) -> Result<()> {
                              manifest:
                                  archive.manifest()
                                         .map_or_else(|_| None, |v| Some(v.to_string())),
-                             config:            archive.config().map(|v| v.to_string()),
+                             config:            archive.config()
+                                                       .map(std::string::ToString::to_string),
                              svc_user:
                                  archive.svc_user()
                                         .map_or_else(|_| None, |v| Some(v.to_string())),
-                             ld_run_path:       archive.ld_run_path().map(|v| v.to_string()),
-                             ldflags:           archive.ldflags().map(|v| v.to_string()),
-                             cflags:            archive.cflags().map(|v| v.to_string()),
+                             ld_run_path:       archive.ld_run_path()
+                                                       .map(std::string::ToString::to_string),
+                             ldflags:           archive.ldflags()
+                                                       .map(std::string::ToString::to_string),
+                             cflags:            archive.cflags()
+                                                       .map(std::string::ToString::to_string),
                              is_a_service:      archive.is_a_service(), };
 
     if to_json {
