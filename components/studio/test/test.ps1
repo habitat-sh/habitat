@@ -24,7 +24,7 @@ Copy-Item "$(hab pkg path core/7zip)/bin/*" "bin/7zip"
 Copy-Item "$(hab pkg path core/hab-plan-build-ps1)/bin/*" "bin/"
 
 try {
-    & bin/hab-studio.bat new
+    & bin/powershell/pwsh.exe -NoProfile -ExecutionPolicy bypass -NoLogo -File "bin/hab-studio.ps1" new
     $exit_code = $LASTEXITCODE
 } finally {
     # The test can exit before the Studio has closed all open

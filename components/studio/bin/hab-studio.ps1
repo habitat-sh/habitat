@@ -350,7 +350,7 @@ function Enter-Studio {
     }
     New-Studio
     $env:STUDIO_SCRIPT_ROOT = $PSScriptRoot
-    $startedNativeStudioSup = $false
+    $env:startedNativeStudioSup = $false
     $shouldRunSup = (!(@($false, 0, "no", "false") -contains $env:HAB_STUDIO_SUP))
     $habSvc = Get-Service Habitat -ErrorAction SilentlyContinue
     $supRunningAsService = ($habSvc -and ($habSvc.Status -eq "Running"))
@@ -385,7 +385,7 @@ function Enter-Studio {
 
             mkdir $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default -Force | Out-Null
             [SupervisorBootstrapper]::Run($isAnsiSupported, $env:HAB_STUDIO_SUP)
-            $startedNativeStudioSup = $true
+            $env:startedNativeStudioSup = $true
         } elseif($env:HAB_STUDIO_SUP) {
             [xml]$configXml = Get-Content "/hab/svc/windows-service/HabService.dll.config"
             $launcherArgs = $configXml.configuration.appSettings.SelectNodes("add[@key='launcherArgs']")[0]
@@ -455,6 +455,19 @@ function Enter-Studio {
             }
         }
 
+        Register-EngineEvent -SourceIdentifier PowerShell.Exiting -SupportEvent -Action {
+            if($env:startedNativeStudioSup -and (Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")) {
+                Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")
+                $retry = 0
+                while(($retry -lt 5) -and (Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")) {
+                    $retry += 1
+                    Write-Host "Waiting for Supervisor to finish..."
+                    Start-Sleep -Seconds 5
+                }
+                Remove-Item "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK" -Force -ErrorAction SilentlyContinue
+            }
+        }
+
         New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $env:HAB_STUDIO_ENTER_ROOT | Out-Null
         Set-Location "Habitat:\src"
 
@@ -462,17 +475,6 @@ function Enter-Studio {
             Write-Host "--> Detected and loading studio_profile.ps1"
             . .\studio_profile.ps1
         }
-    }
-
-    if($startedNativeStudioSup -and (Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")) {
-        Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")
-        $retry = 0
-        while(($retry -lt 5) -and (Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")) {
-            $retry += 1
-            Write-Host "Waiting for Supervisor to finish..."
-            Start-Sleep -Seconds 5
-        }
-        Remove-Item "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK" -Force -ErrorAction SilentlyContinue
     }
 }
 
