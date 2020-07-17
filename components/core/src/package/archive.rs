@@ -8,6 +8,8 @@ use crate::{crypto::{artifact,
             error::{Error,
                     Result}};
 use regex::Regex;
+use serde::{Deserialize,
+            Serialize};
 use std::{collections::HashMap,
           error,
           io::Read,
@@ -415,6 +417,76 @@ pub trait FromArchive: Sized {
     type Error: error::Error;
 
     fn from_archive(archive: &mut PackageArchive) -> result::Result<Self, Self::Error>;
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct PackageArchiveInfo {
+    pub format_version:    String,
+    pub key_name:          String,
+    pub hash_type:         String,
+    pub signature_raw:     String,
+    pub origin:            String,
+    pub name:              String,
+    pub version:           Option<String>,
+    pub release:           Option<String>,
+    pub checksum:          Option<String>,
+    pub target:            PackageTarget,
+    pub is_a_service:      bool,
+    pub deps:              Vec<PackageIdent>,
+    pub tdeps:             Vec<PackageIdent>,
+    pub build_deps:        Vec<PackageIdent>,
+    pub build_tdeps:       Vec<PackageIdent>,
+    pub exposes:           Vec<u16>,
+    pub pkg_services:      Vec<PackageIdent>,
+    pub resolved_services: Vec<PackageIdent>,
+    pub manifest:          Option<String>,
+    pub config:            Option<String>,
+    pub svc_user:          Option<String>,
+    pub ld_run_path:       Option<String>,
+    pub ldflags:           Option<String>,
+    pub cflags:            Option<String>,
+}
+
+impl PackageArchiveInfo {
+    pub fn new(path: impl Into<PathBuf>) -> Result<Self> {
+        let path = path.into();
+        let mut archive = PackageArchive::new(path.clone())?;
+        let header = artifact::get_artifact_header(&path)?;
+        let ident = archive.ident()?;
+        Ok(PackageArchiveInfo { format_version:    header.format_version,
+                                key_name:          header.key_name,
+                                hash_type:         header.hash_type,
+                                signature_raw:     header.signature_raw,
+                                origin:            ident.origin.clone(),
+                                name:              ident.name.clone(),
+                                version:           ident.version,
+                                release:           ident.release,
+                                checksum:          archive.checksum().ok(),
+                                target:            archive.target()
+                                                          .expect("pkg info archive target"),
+                                deps:              archive.deps().unwrap_or_default(),
+                                build_deps:        archive.build_deps().unwrap_or_default(),
+                                tdeps:             archive.tdeps().unwrap_or_default(),
+                                build_tdeps:       archive.build_tdeps().unwrap_or_default(),
+                                exposes:           archive.exposes().unwrap_or_default(),
+                                pkg_services:      archive.pkg_services().unwrap_or_default(),
+                                resolved_services: archive.resolved_services().unwrap_or_default(),
+                                manifest:
+                                    archive.manifest()
+                                           .map_or_else(|_| None, |v| Some(v.to_string())),
+                                config:            archive.config()
+                                                          .map(std::string::ToString::to_string),
+                                svc_user:
+                                    archive.svc_user()
+                                           .map_or_else(|_| None, |v| Some(v.to_string())),
+                                ld_run_path:       archive.ld_run_path()
+                                                          .map(std::string::ToString::to_string),
+                                ldflags:           archive.ldflags()
+                                                          .map(std::string::ToString::to_string),
+                                cflags:            archive.cflags()
+                                                          .map(std::string::ToString::to_string),
+                                is_a_service:      archive.is_a_service(), })
+    }
 }
 
 #[cfg(test)]
