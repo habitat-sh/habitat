@@ -419,8 +419,7 @@ pub trait FromArchive: Sized {
     fn from_archive(archive: &mut PackageArchive) -> result::Result<Self, Self::Error>;
 }
 
-// Exposes the extended metadata from a PackageArchive
-// for easier display or de-serialization.
+// Exposes the extended archive and header metadata
 #[derive(Deserialize, Serialize)]
 pub struct PackageArchiveInfo {
     pub format_version:    String,
