@@ -197,10 +197,6 @@ mod inner {
     }
 
     fn is_docker_studio(args: &[OsString]) -> bool {
-        if cfg!(not(target_os = "linux")) {
-            return false;
-        }
-
         for arg in args.iter() {
             let str_arg = arg.to_string_lossy();
             if str_arg == "-D" {
@@ -279,15 +275,17 @@ mod inner {
         let pwsh_command = exec::command_from_min_pkg(ui, "pwsh.exe", &ident).await?;
         let studio_command = exec::command_from_min_pkg(ui, "hab-studio.ps1", &ident).await?;
 
-        let mut cmd_args: Vec<OsString> = vec!["-NoProfile".into(),
-                                               "-ExecutionPolicy".into(),
-                                               "bypass".into(),
-                                               "-NoLogo".into(),
-                                               "-File".into(),
-                                               studio_command.to_string_lossy().as_ref().into()];
+        let mut cmd_args: Vec<OsString> = vec!["-NoProfile",
+                                               "-ExecutionPolicy",
+                                               "bypass",
+                                               "-NoLogo",
+                                               "-File"].into_iter()
+                                                       .map(Into::into)
+                                                       .collect();
+        cmd_args.push(studio_command.into());
         cmd_args.extend_from_slice(args);
 
-        if let Some(cmd) = find_command(pwsh_command.to_string_lossy().as_ref()) {
+        if let Some(cmd) = find_command(&pwsh_command) {
             // we need to disable the default ctrlc handler for this process (hab)
             // otherwise when a ctrlc is emitted in the studio, this process will
             // also respond to ctrlc which results in odd stdin/out behavior and
