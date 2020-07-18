@@ -467,51 +467,25 @@ impl PackageArchiveInfo {
                                 checksum:       archive.checksum()?,
                                 target:         archive.target()?,
                                 is_a_service:   archive.is_a_service(),
-                                // All of the following unwraps are safe since the version
-                                // and release are guaranteed to be Some by this point.
                                 deps:           archive.deps()
                                                        .unwrap_or_default()
                                                        .iter()
-                                                       .map(|x| {
-                                                           format!("{}/{}/{}/{}",
-                                                                   x.origin,
-                                                                   x.name,
-                                                                   x.version.as_ref().unwrap(),
-                                                                   x.release.as_ref().unwrap())
-                                                       })
+                                                       .map(|x| format!("{}", x))
                                                        .collect(),
                                 build_deps:     archive.build_deps()
                                                        .unwrap_or_default()
                                                        .iter()
-                                                       .map(|x| {
-                                                           format!("{}/{}/{}/{}",
-                                                                   x.origin,
-                                                                   x.name,
-                                                                   x.version.as_ref().unwrap(),
-                                                                   x.release.as_ref().unwrap())
-                                                       })
+                                                       .map(|x| format!("{}", x))
                                                        .collect(),
                                 tdeps:          archive.tdeps()
                                                        .unwrap_or_default()
                                                        .iter()
-                                                       .map(|x| {
-                                                           format!("{}/{}/{}/{}",
-                                                                   x.origin,
-                                                                   x.name,
-                                                                   x.version.as_ref().unwrap(),
-                                                                   x.release.as_ref().unwrap())
-                                                       })
+                                                       .map(|x| format!("{}", x))
                                                        .collect(),
                                 build_tdeps:    archive.build_tdeps()
                                                        .unwrap_or_default()
                                                        .iter()
-                                                       .map(|x| {
-                                                           format!("{}/{}/{}/{}",
-                                                                   x.origin,
-                                                                   x.name,
-                                                                   x.version.as_ref().unwrap(),
-                                                                   x.release.as_ref().unwrap())
-                                                       })
+                                                       .map(|x| format!("{}", x))
                                                        .collect(),
                                 exposes:        archive.exposes().unwrap_or_default(),
                                 manifest:       archive.manifest()?.to_string(),
