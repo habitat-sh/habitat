@@ -6,11 +6,41 @@ use nix::unistd::{getgrouplist,
                   Gid,
                   Uid,
                   User};
-use std::{ffi::CString,
+use std::{ffi::{CString,
+                OsStr},
           io,
           os::unix::process::CommandExt,
-          process::Command,
+          process::{Command,
+                    Stdio},
           result};
+
+/// Prepare a `Command` to execute a lifecycle hook.
+// TODO (CM): Ideally, `ids` would not be an `Option`, but separate
+// `Uid` and `Gid` inputs. However, the `Option` interface provides
+// the least disruption to other existing code for the time being.
+pub fn hook_command<X, I, K, V>(executable: X, env: I, ids: Option<(Uid, Gid)>) -> Command
+    where X: AsRef<OsStr>,
+          I: IntoIterator<Item = (K, V)>,
+          K: AsRef<OsStr>,
+          V: AsRef<OsStr>
+{
+    let mut cmd = Command::new(executable);
+
+    // NOTE: CommandExt::uid and CommandExt::guid should *not* be
+    // called here! They are set in `with_user_and_group_information`;
+    // see there for further details.
+    cmd.stdin(Stdio::null())
+       .stdout(Stdio::piped())
+       .stderr(Stdio::piped())
+       .envs(env);
+
+    with_own_process_group(&mut cmd);
+    if let Some((uid, gid)) = ids {
+        with_user_and_group_information(&mut cmd, uid, gid);
+    }
+
+    cmd
+}
 
 /// Ensures that the `Command` is executed within its own process
 /// group, and not that of its parent process.

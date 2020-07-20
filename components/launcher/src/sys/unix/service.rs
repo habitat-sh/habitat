@@ -12,9 +12,7 @@ use nix::unistd::{Gid,
 use std::{io,
           ops::Neg,
           process::{Child,
-                    Command,
-                    ExitStatus,
-                    Stdio},
+                    ExitStatus},
           time::{Duration,
                  Instant}};
 
@@ -70,7 +68,6 @@ impl Process {
 
 pub fn run(msg: protocol::Spawn) -> Result<Service> {
     debug!("launcher is spawning {}", msg.binary);
-    let mut cmd = Command::new(&msg.binary);
 
     // Favor explicitly set UID/GID over names when present
     let user_id = if let Some(suid) = msg.svc_user_id {
@@ -91,18 +88,8 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
     };
     let gid = Gid::from_raw(group_id);
 
-    exec::unix::with_own_process_group(&mut cmd);
-    exec::unix::with_user_and_group_information(&mut cmd, uid, gid);
+    let mut cmd = exec::unix::hook_command(&msg.binary, &msg.env, Some((uid, gid)));
 
-    // NOTE: uid and gid of the spawned process are set in
-    // `with_user_and_group_information`! See documentation there for
-    // more details.
-    cmd.stdin(Stdio::null())
-       .stdout(Stdio::piped())
-       .stderr(Stdio::piped());
-    for (key, val) in msg.env.iter() {
-        cmd.env(key, val);
-    }
     let mut child = cmd.spawn().map_err(Error::Spawn)?;
     let stdout = child.stdout.take();
     let stderr = child.stderr.take();

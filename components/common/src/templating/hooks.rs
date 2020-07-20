@@ -21,9 +21,7 @@ use serde::{Serialize,
 use std::os::unix::process::ExitStatusExt;
 #[cfg(not(windows))]
 use std::process::{Child,
-                   Command,
-                   ExitStatus,
-                   Stdio};
+                   ExitStatus};
 use std::{ffi::OsStr,
           fmt,
           fs::File,
@@ -251,43 +249,27 @@ pub trait Hook: fmt::Debug + Sized + Send {
                                users};
         use nix::unistd::{Gid,
                           Uid};
+        use std::ops::Deref;
 
-        let mut cmd = Command::new(path.as_ref());
-        cmd.stdin(Stdio::null())
-           .stdout(Stdio::piped())
-           .stderr(Stdio::piped());
-        for (key, val) in pkg.env.iter() {
-            cmd.env(key, val);
-        }
-
-        process::exec::unix::with_own_process_group(&mut cmd);
-
-        if process::can_run_services_as_svc_user() {
+        let ids = if process::can_run_services_as_svc_user() {
             // If we can SETUID/SETGID, then run the script as the service
             // user; otherwise, we'll just run it as ourselves.
-
-            let uid = users::get_uid_by_name(&pkg.svc_user).map(Uid::from_raw)
-                                                           .ok_or_else(|| {
-                                                               Error::PermissionFailed(format!(
-                    "No uid for user '{}' could be found",
-                    &pkg.svc_user
-                ))
-                                                           })?;
-            let gid = users::get_gid_by_name(&pkg.svc_group).map(Gid::from_raw)
-                                                            .ok_or_else(|| {
-                                                                Error::PermissionFailed(format!(
-                    "No gid for group '{}' could be found",
-                    &pkg.svc_group
-                ))
-                                                            })?;
-            process::exec::unix::with_user_and_group_information(&mut cmd, uid, gid);
+            let uid = users::get_uid_by_name(&pkg.svc_user)
+                .map(Uid::from_raw)
+                .ok_or_else(|| {Error::PermissionFailed(format!("No uid for user '{}' could be found", &pkg.svc_user))})?;
+            let gid = users::get_gid_by_name(&pkg.svc_group)
+                .map(Gid::from_raw)
+                .ok_or_else(|| {Error::PermissionFailed(format!("No gid for group '{}' could be found", &pkg.svc_group))})?;
+            Some((uid, gid))
         } else {
             debug!("Current user lacks sufficient capabilites to run {:?} as \"{}\"; running as \
                     self!",
                    path.as_ref(),
                    &pkg.svc_user);
-        }
+            None
+        };
 
+        let mut cmd = process::exec::unix::hook_command(path, pkg.env.deref(), ids);
         Ok(cmd.spawn()?)
     }
 
