@@ -1,7 +1,11 @@
+use super::{svc::{Load,
+                  Svc},
+            Hab};
 use crate::cli;
 use clap::{App,
            AppSettings,
            ArgSettings};
+use configopt::ConfigOpt;
 use habitat_common::FeatureFlag;
 use std::str;
 
@@ -420,4 +424,34 @@ fn test_sup_run_help() {
     let mut sup1 = cli::sub_sup_run(feature_flags_for_cli_test()).after_help("");
     let mut sup2 = cli::sub_sup_run(feature_flags_for_cli_test_with_structopt()).after_help("");
     compare(&mut sup1, &mut sup2, "sup");
+}
+
+fn extract_hab_svc_load(hab: Hab) -> Load {
+    if let Hab::Svc(Svc::Load(load)) = hab {
+        return load;
+    } else {
+        panic!("expected to find `hab svc load`")
+    }
+}
+
+#[test]
+fn test_hab_svc_load_flag_ordering() {
+    let pkg_ident = "core/redis".parse().unwrap();
+
+    let hab = Hab::try_from_iter_with_configopt(&["hab", "svc", "load", "core/redis"]).unwrap();
+    let load = extract_hab_svc_load(hab);
+    assert!(!load.force);
+    assert_eq!(load.pkg_ident.pkg_ident(), pkg_ident);
+
+    let pkg_ident = "core/redis".parse().unwrap();
+    let hab = Hab::try_from_iter_with_configopt(&["hab", "svc", "load", "--force", "core/redis"]).unwrap();
+    let load = extract_hab_svc_load(hab);
+    assert!(load.force);
+    assert_eq!(load.pkg_ident.pkg_ident(), pkg_ident);
+
+    let pkg_ident = "core/redis".parse().unwrap();
+    let hab = Hab::try_from_iter_with_configopt(&["hab", "svc", "load", "core/redis", "--force"]).unwrap();
+    let load = extract_hab_svc_load(hab);
+    assert!(load.force);
+    assert_eq!(load.pkg_ident.pkg_ident(), pkg_ident);
 }
