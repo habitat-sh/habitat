@@ -419,7 +419,9 @@ pub trait FromArchive: Sized {
     fn from_archive(archive: &mut PackageArchive) -> result::Result<Self, Self::Error>;
 }
 
-// Exposes the extended archive and header metadata
+// Exposes the extended archive and header metadata. Types are stored as non habitat primitives
+// with the intent being ease of deserialization into content such as conveniently formatted json
+// at the client display layer.
 #[derive(Deserialize, Serialize)]
 pub struct PackageArchiveInfo {
     pub format_version: String,
@@ -431,7 +433,7 @@ pub struct PackageArchiveInfo {
     pub version:        String,
     pub release:        String,
     pub checksum:       String,
-    pub target:         PackageTarget,
+    pub target:         String,
     pub is_a_service:   bool,
     pub deps:           Vec<String>,
     pub tdeps:          Vec<String>,
@@ -465,7 +467,7 @@ impl PackageArchiveInfo {
                                 version:        ident.version.unwrap_or_default(),
                                 release:        ident.release.unwrap_or_default(),
                                 checksum:       archive.checksum()?,
-                                target:         archive.target()?,
+                                target:         format!("{}", archive.target()?),
                                 is_a_service:   archive.is_a_service(),
                                 deps:           archive.deps()
                                                        .unwrap_or_default()
@@ -525,7 +527,7 @@ mod test {
         assert_eq!(info.key_name, "happyhumans-20160424223347");
         assert_eq!(info.hash_type, "BLAKE2b");
         assert_eq!(info.signature_raw, "AgdmAKa9wr4ExnSWe5rg2VJh6cc2vOfyXCs3JOnsSm1XtmtQNhhON6fhgp0hW0xZkNcgXmC1lQ7w5WdZU0M4Bjg4MDVlNTU3NWFiOGMwMjllNmQyNTgyNjEzNzlmYmQwMmQ0YmIzZDkwZTIwNjg0N2Q0NTUzYTFiZjczOTVkNjU=");
-        assert_eq!(info.target, target::X86_64_LINUX);
+        assert_eq!(info.target, "x86_64-linux");
         assert_eq!(info.deps.len(), 0);
         assert_eq!(info.tdeps.len(), 1024);
         assert_eq!(info.tdeps[0], "core/glibc/2.22/20160612063629");
