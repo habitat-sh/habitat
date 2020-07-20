@@ -385,15 +385,9 @@ code {
 }
 
 .button.lcr {
-  @include tertiary-button;
+  @include primary-button;
   // padding-top: 4%;
 
-  background: {
-    image: url(../images/rally-logo.png);
-    position: center;
-    size: rem-calc(80);
-    repeat: no-repeat;
-  }
   // background-image: url(../images/rally-logo.png);
   // background-color: $hab-white;
   // background-repeat: no-repeat;

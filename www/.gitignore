@@ -13,6 +13,7 @@
 # Ignore cache
 /.sass-cache
 /.cache
+/cache
 
 # Ignore node_modules
 node_modules/

@@ -50,17 +50,6 @@ body.home {
     padding-top: 25px;
     height: 0px;
 
-    &:before {
-      content: '';
-      position: absolute;
-      background: url(/images/habicat-video.svg) center center no-repeat transparent;
-      top: -52px;
-      right: -29px;
-      width: 135px;
-      height: 80px;
-      z-index: 1;
-    }
-
     > iframe {
       position: absolute;
       top: 0;

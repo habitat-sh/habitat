@@ -64,7 +64,7 @@ $hab-green: #82c587;
 $hab-green-dark: #78b57d;
 $hab-blue-medium: #dce6ed;
 $hab-gray-dark-15: rgba(125, 134, 140, 0.15);
-$hab-cta: $hab-green;
+$hab-cta: #007FAB;
 
 $foundation-palette: (
   primary: $hab-orange-dark,
@@ -81,7 +81,7 @@ $white: #fefefe;
 
 $body-background: $hab-off-white;
 $body-font-color: $hab-blue-dark;
-$body-font-family: 'Titillium Web', 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
+$body-font-family: 'Muli', 'Helvetica Neue', Helvetica, sans-serif;
 $body-antialiased: true;
 $header-height: 80px;
 $global-margin: 1rem;
@@ -159,7 +159,7 @@ $code-font-weight: $global-weight-normal;
 $code-background: $light-gray;
 $code-border: 1px solid $medium-gray;
 $code-padding: rem-calc(2 5 1);
-$anchor-color: $primary-color;
+$anchor-color: $hab-cta;
 $anchor-color-hover: scale-color($anchor-color, $lightness: -14%);
 $anchor-text-decoration: none;
 $anchor-text-decoration-hover: none;
