@@ -18,8 +18,7 @@ use habitat_common::{cli::{file_into_idents,
                            BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
                            PACKAGE_TARGET_ENVVAR},
-                     FeatureFlag,
-                     FEATURE_FLAGS};
+                     FeatureFlag};
 use habitat_core::{crypto::{keys::PairType,
                             CACHE_KEY_PATH_ENV_VAR},
                    env::Config,
@@ -834,7 +833,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (aliases: &["sv", "ser", "serv", "service"])
             (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
-            (subcommand: maybe_subcommand::<SvcBulkLoad>(FEATURE_FLAGS.contains(FeatureFlag::SERVICE_CONFIG_FILES)))
+            (subcommand: SvcBulkLoad::clap())
             (@subcommand key =>
                 (about: "Commands relating to Habitat service keys")
                 (aliases: &["k", "ke"])
@@ -902,14 +901,6 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             \n"
         )
     )
-}
-
-fn maybe_subcommand<T: StructOpt>(condition: bool) -> App<'static, 'static> {
-    if condition {
-        T::clap()
-    } else {
-        App::new("")
-    }
 }
 
 fn alias_run() -> App<'static, 'static> {
