@@ -37,6 +37,7 @@ pub mod box_key_pair;
 pub mod sig_key_pair;
 pub mod sym_key;
 
+#[derive(Clone, Copy, Debug)]
 enum KeyType {
     Sig,
     Box,
@@ -223,7 +224,7 @@ fn check_filename(keyname: &str,
 fn get_key_revisions<P>(keyname: &str,
                         cache_key_path: P,
                         pair_type: Option<PairType>,
-                        key_type: &KeyType)
+                        key_type: KeyType)
                         -> Result<Vec<String>>
     where P: AsRef<Path>
 {
@@ -267,7 +268,7 @@ fn get_key_revisions<P>(keyname: &str,
 
         if !buf.starts_with(&key_type.to_string().to_uppercase()) {
             debug!("Invalid key content in {:?} for type {}",
-                   dir_entry, &key_type);
+                   dir_entry, key_type);
             continue;
         }
 
@@ -635,7 +636,7 @@ mod test {
         thread::sleep(Duration::from_millis(1000));
         SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
                                                    .unwrap();
-        let revs = super::get_key_revisions("foo", cache.path(), None, &KeyType::Sig).unwrap();
+        let revs = super::get_key_revisions("foo", cache.path(), None, KeyType::Sig).unwrap();
         assert_eq!(2, revs.len());
     }
 
@@ -644,13 +645,13 @@ mod test {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
                                                    .unwrap();
-        let revs = super::get_key_revisions("foo", cache.path(), None, &KeyType::Sig).unwrap();
+        let revs = super::get_key_revisions("foo", cache.path(), None, KeyType::Sig).unwrap();
         assert_eq!(1, revs.len());
         // we need to wait at least 1 second between generating keypairs to ensure uniqueness
         thread::sleep(Duration::from_millis(1000));
         let pair = BoxKeyPair::generate_pair_for_user("foo-user");
         pair.unwrap().to_pair_files(cache.path()).unwrap();
-        let revs = super::get_key_revisions("foo-user", cache.path(), None, &KeyType::Sig).unwrap();
+        let revs = super::get_key_revisions("foo-user", cache.path(), None, KeyType::Sig).unwrap();
         assert_eq!(0, revs.len());
     }
 
@@ -666,7 +667,7 @@ mod test {
         let revs = super::get_key_revisions("foo",
                                             cache.path(),
                                             Some(PairType::Secret),
-                                            &KeyType::Sig).unwrap();
+                                            KeyType::Sig).unwrap();
         assert_eq!(2, revs.len());
     }
 
@@ -682,7 +683,7 @@ mod test {
         let revs = super::get_key_revisions("foo",
                                             cache.path(),
                                             Some(PairType::Public),
-                                            &KeyType::Sig).unwrap();
+                                            KeyType::Sig).unwrap();
         assert_eq!(2, revs.len());
     }
 
@@ -702,11 +703,11 @@ mod test {
 
         // we shouldn't see wecoyote-foo as a 4th revision
         let revisions =
-            super::get_key_revisions("wecoyote", cache.path(), None, &KeyType::Box).unwrap();
+            super::get_key_revisions("wecoyote", cache.path(), None, KeyType::Box).unwrap();
         assert_eq!(3, revisions.len());
 
         let revisions =
-            super::get_key_revisions("wecoyote-foo", cache.path(), None, &KeyType::Box).unwrap();
+            super::get_key_revisions("wecoyote-foo", cache.path(), None, KeyType::Box).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -726,16 +727,14 @@ mod test {
                                                                      .to_pair_files(cache.path())
                                                                      .unwrap();
 
-        let revisions = super::get_key_revisions("tnt.default@acme",
-                                                 cache.path(),
-                                                 None,
-                                                 &KeyType::Box).unwrap();
+        let revisions =
+            super::get_key_revisions("tnt.default@acme", cache.path(), None, KeyType::Box).unwrap();
         assert_eq!(3, revisions.len());
 
         let revisions = super::get_key_revisions("tnt.default@acyou",
                                                  cache.path(),
                                                  None,
-                                                 &KeyType::Box).unwrap();
+                                                 KeyType::Box).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -754,12 +753,11 @@ mod test {
         SymKey::generate_pair_for_ring("acme-you").to_pair_files(cache.path())
                                                   .unwrap();
 
-        let revisions =
-            super::get_key_revisions("acme", cache.path(), None, &KeyType::Sym).unwrap();
+        let revisions = super::get_key_revisions("acme", cache.path(), None, KeyType::Sym).unwrap();
         assert_eq!(3, revisions.len());
 
         let revisions =
-            super::get_key_revisions("acme-you", cache.path(), None, &KeyType::Sym).unwrap();
+            super::get_key_revisions("acme-you", cache.path(), None, KeyType::Sym).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -779,11 +777,11 @@ mod test {
                                                          .unwrap();
 
         let revisions =
-            super::get_key_revisions("mutants", cache.path(), None, &KeyType::Sig).unwrap();
+            super::get_key_revisions("mutants", cache.path(), None, KeyType::Sig).unwrap();
         assert_eq!(3, revisions.len());
 
         let revisions =
-            super::get_key_revisions("mutants-x", cache.path(), None, &KeyType::Sig).unwrap();
+            super::get_key_revisions("mutants-x", cache.path(), None, KeyType::Sig).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -818,7 +816,7 @@ mod test {
             super::get_key_revisions("symlinks_are_ok",
                                      &cache_dir, // <-- THIS IS THE KEY PART OF THE TEST
                                      None,
-                                     &KeyType::Sym).expect("Could not fetch key revisions!");
+                                     KeyType::Sym).expect("Could not fetch key revisions!");
 
         assert_eq!(1, revisions.len());
         assert_eq!(revisions[0], key.name_with_rev());
