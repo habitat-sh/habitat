@@ -229,16 +229,13 @@ fn get_key_revisions<P>(keyname: &str,
 {
     // accumulator for files that match
     let mut candidates = HashSet::new();
-    let dir_entries = match fs::read_dir(cache_key_path.as_ref()) {
-        Ok(dir_entries) => dir_entries,
-        Err(e) => {
-            return Err(Error::CryptoError(format!("Error reading key directory \
-                                                   {}: {}",
-                                                  cache_key_path.as_ref()
-                                                                .display(),
-                                                  e)));
-        }
-    };
+
+    let dir_entries = fs::read_dir(cache_key_path.as_ref()).map_err(|e| {
+                          Error::CryptoError(format!("Error reading key directory {}: {}",
+                                                     cache_key_path.as_ref().display(),
+                                                     e))
+                      })?;
+
     for result in dir_entries {
         let dir_entry = match result {
             Ok(ref dir_entry) => dir_entry,
