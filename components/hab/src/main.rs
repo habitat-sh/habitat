@@ -1013,7 +1013,7 @@ fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     init()?;
     let pair = SigKeyPair::get_latest_pair_for(&origin_param_or_env(&m)?,
                                                &cache_key_path,
-                                               Some(&PairType::Secret))?;
+                                               Some(PairType::Secret))?;
 
     command::pkg::sign::start(ui, &pair, &src, &dst)
 }

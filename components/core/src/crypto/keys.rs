@@ -156,7 +156,7 @@ impl<P: PartialEq, S: PartialEq> KeyPair<P, S> {
 fn check_filename(keyname: &str,
                   filename: &str,
                   candidates: &mut HashSet<String>,
-                  pair_type: Option<&PairType>) {
+                  pair_type: Option<PairType>) {
     let caps = match KEYFILE_RE.captures(&filename) {
         Some(c) => c,
         None => {
@@ -203,12 +203,12 @@ fn check_filename(keyname: &str,
         let thiskey = format!("{}-{}", name, rev);
 
         let do_insert = match pair_type {
-            Some(&PairType::Secret) => {
+            Some(PairType::Secret) => {
                 suffix == SECRET_SIG_KEY_SUFFIX
                 || suffix == SECRET_BOX_KEY_SUFFIX
                 || suffix == SECRET_SYM_KEY_SUFFIX
             }
-            Some(&PairType::Public) => suffix == PUBLIC_KEY_SUFFIX,
+            Some(PairType::Public) => suffix == PUBLIC_KEY_SUFFIX,
             None => true,
         };
 
@@ -222,7 +222,7 @@ fn check_filename(keyname: &str,
 /// keyname in the `cache_key_path`.
 fn get_key_revisions<P>(keyname: &str,
                         cache_key_path: P,
-                        pair_type: Option<&PairType>,
+                        pair_type: Option<PairType>,
                         key_type: &KeyType)
                         -> Result<Vec<String>>
     where P: AsRef<Path>
@@ -665,7 +665,7 @@ mod test {
                                                    .unwrap();
         let revs = super::get_key_revisions("foo",
                                             cache.path(),
-                                            Some(&PairType::Secret),
+                                            Some(PairType::Secret),
                                             &KeyType::Sig).unwrap();
         assert_eq!(2, revs.len());
     }
@@ -681,7 +681,7 @@ mod test {
                                                    .unwrap();
         let revs = super::get_key_revisions("foo",
                                             cache.path(),
-                                            Some(&PairType::Public),
+                                            Some(PairType::Public),
                                             &KeyType::Sig).unwrap();
         assert_eq!(2, revs.len());
     }
@@ -849,15 +849,15 @@ mod test {
         super::check_filename("wecoyote",
                               "wecoyote-20160519203610.pub",
                               &mut candidates,
-                              Some(&PairType::Secret));
+                              Some(PairType::Secret));
         super::check_filename("wecoyote",
                               "wecoyote-foo-20160519203610.pub",
                               &mut candidates,
-                              Some(&PairType::Secret));
+                              Some(PairType::Secret));
         super::check_filename("wecoyote",
                               "wecoyote-20160519203610.sig.key",
                               &mut candidates,
-                              Some(&PairType::Secret));
+                              Some(PairType::Secret));
         assert_eq!(1, candidates.len());
     }
 
@@ -868,15 +868,15 @@ mod test {
         super::check_filename("wecoyote",
                               "wecoyote-20160519203610.pub",
                               &mut candidates,
-                              Some(&PairType::Public));
+                              Some(PairType::Public));
         super::check_filename("wecoyote",
                               "wecoyote-20160519203611.pub",
                               &mut candidates,
-                              Some(&PairType::Public));
+                              Some(PairType::Public));
         super::check_filename("wecoyote",
                               "wecoyote-20160519203610.sig.key",
                               &mut candidates,
-                              Some(&PairType::Public));
+                              Some(PairType::Public));
         assert_eq!(2, candidates.len());
     }
 
