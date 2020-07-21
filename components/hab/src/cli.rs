@@ -1770,5 +1770,22 @@ mod tests {
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::ValueValidation);
         }
+
+      #[test]
+      #[cfg(not(target_os = windows))]
+      fn bash_completer_is_correct() {
+        let outdir = std::env::var_os("OUT_DIR").expect("OUT_DIR not set").into_string().unwrap();
+        let completer = "hab.bash"; // Clap automatically uses {command_name}.{shell}
+        let feature_flags = habitat_common::FeatureFlag::empty();
+
+        super::get(feature_flags).gen_completions("hab",
+                                                clap::Shell::Bash,
+                                                &outdir);
+
+        // Assumption: "bash" is on the PATH and is of sufficiently high version
+        let cmd = std::process::Command::new("bash").arg("-c").arg(format!(". {}/{}", outdir, completer)).status().expect("Unable to run command");
+        assert!(cmd.success());
+      }
     }
 }
+
