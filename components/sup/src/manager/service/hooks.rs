@@ -119,7 +119,7 @@ impl Hook for HealthCheckHook {
         let out_path = hooks::stdout_log_path::<Self>(package_name);
         let err_path = hooks::stderr_log_path::<Self>(package_name);
         #[cfg(windows)]
-        let path = pair.path.to_path_buf();
+        let path = pair.path.clone();
         HealthCheckHook { render_pair:                 pair,
                           #[cfg(windows)]
                           pipe_client:                 Self::pipe_client(path,

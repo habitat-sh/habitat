@@ -269,7 +269,7 @@ fn prompt_origin(ui: &mut UI) -> Result<String> {
         }
         None => henv::var(ORIGIN_ENVVAR).or_else(|_| henv::var("USER")).ok(),
     };
-    Ok(ui.prompt_ask("Default origin name", default.as_ref().map(|x| &**x))?)
+    Ok(ui.prompt_ask("Default origin name", default.as_deref())?)
 }
 
 fn ask_default_auth_token(ui: &mut UI) -> Result<bool> {
@@ -292,7 +292,7 @@ fn prompt_url(ui: &mut UI) -> Result<String> {
         }
         None => henv::var(BLDR_URL_ENVVAR).ok(),
     };
-    Ok(ui.prompt_ask("Private builder url", default.as_ref().map(|x| &**x))?)
+    Ok(ui.prompt_ask("Private builder url", default.as_deref())?)
 }
 
 fn prompt_auth_token(ui: &mut UI) -> Result<String> {
@@ -305,8 +305,7 @@ fn prompt_auth_token(ui: &mut UI) -> Result<String> {
         }
         None => henv::var(AUTH_TOKEN_ENVVAR).ok(),
     };
-    Ok(ui.prompt_ask("Habitat personal access token",
-                     default.as_ref().map(|x| &**x))?)
+    Ok(ui.prompt_ask("Habitat personal access token", default.as_deref())?)
 }
 
 fn prompt_ctl_secret(ui: &mut UI) -> Result<String> {
@@ -323,7 +322,7 @@ fn prompt_ctl_secret(ui: &mut UI) -> Result<String> {
         None => henv::var(CTL_SECRET_ENVVAR).ok(),
     };
     Ok(ui.prompt_ask("Habitat Supervisor control gateway secret",
-                     default.as_ref().map(|x| &**x))?)
+                     default.as_deref())?)
 }
 
 fn valid_url(val: &str) -> result::Result<(), String> {

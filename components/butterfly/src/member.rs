@@ -901,8 +901,7 @@ mod tests {
             let membership = Membership { member,
                                           health: Health::Suspect };
 
-            let bytes = membership.clone()
-                                  .write_to_bytes()
+            let bytes = membership.write_to_bytes()
                                   .expect("Could not write membership to bytes!");
             let from_bytes =
                 Membership::from_bytes(&bytes).expect("Could not decode membership from bytes!");

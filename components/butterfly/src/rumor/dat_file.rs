@@ -550,7 +550,7 @@ mod tests {
 
         assert!(!file_path.exists());
 
-        let result = DatFileReader::read_or_create_rsr_mlr(file_path.to_path_buf(),
+        let result = DatFileReader::read_or_create_rsr_mlr(file_path.clone(),
                                                            &MemberList::new(),
                                                            &RumorStore::default(),
                                                            &RumorStore::default(),

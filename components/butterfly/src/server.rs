@@ -1741,7 +1741,7 @@ mod tests {
             let mut member = Member::default();
             member.swim_port = swim_port;
             member.gossip_port = gossip_port;
-            let rumor_name = format!("{}{}", member.id.to_string(), ".rst");
+            let rumor_name = format!("{}{}", member.id, ".rst");
             let file_path = tmpdir.path().to_owned().join(rumor_name);
             let mut rumor_file = File::create(file_path).unwrap();
             writeln!(rumor_file, "This is not a valid rumor file!").unwrap();
