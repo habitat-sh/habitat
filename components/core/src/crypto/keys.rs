@@ -284,14 +284,9 @@ fn get_key_revisions<P>(keyname: &str,
         check_filename(keyname, &filename, &mut candidates, pair_type);
     }
 
-    // traverse the candidates set and sort the entries
-    let mut candidate_vec = Vec::new();
-    for c in &candidates {
-        candidate_vec.push(c.clone());
-    }
+    let mut candidate_vec = candidates.into_iter().collect::<Vec<String>>();
     candidate_vec.sort();
-    // newest key first
-    candidate_vec.reverse();
+    candidate_vec.reverse(); // newest key first
     Ok(candidate_vec)
 }
 
