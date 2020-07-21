@@ -106,13 +106,13 @@ impl Drop for TmpKeyfile {
 #[derive(Clone, PartialEq)]
 pub struct KeyPair<P: PartialEq, S: PartialEq> {
     /// The name of the key, ex: "habitat"
-    pub name:   String,
+    name:   String,
     /// The revision of the key, which is a timestamp, ex: "201604051449"
-    pub rev:    String,
+    rev:    String,
     /// The public key component, if relevant
-    pub public: Option<P>,
+    public: Option<P>,
     /// The private key component, if relevant
-    pub secret: Option<S>,
+    secret: Option<S>,
 }
 
 impl<P: PartialEq, S: PartialEq> KeyPair<P, S> {
