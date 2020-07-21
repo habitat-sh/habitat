@@ -512,7 +512,6 @@ impl PackageArchiveInfo {
 mod test {
     use super::{super::target,
                 *};
-    use serde_json;
     use std::path::PathBuf;
 
     #[test]
