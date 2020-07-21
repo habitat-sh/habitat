@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.91 -->
-## [1.6.91](https://github.com/habitat-sh/habitat/tree/1.6.91) (2020-07-20)
+<!-- latest_release 1.6.92 -->
+## [1.6.92](https://github.com/habitat-sh/habitat/tree/1.6.92) (2020-07-21)
 
 #### Merged Pull Requests
-- A PR to preview what habitat.sh will look like with branding from community.chef.io [#7762](https://github.com/habitat-sh/habitat/pull/7762) ([chefjiajia](https://github.com/chefjiajia))
+- remove link to kubernetes operator and cloud foundary exporter [#7821](https://github.com/habitat-sh/habitat/pull/7821) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -20,6 +20,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- remove link to kubernetes operator and cloud foundary exporter [#7821](https://github.com/habitat-sh/habitat/pull/7821) ([mwrock](https://github.com/mwrock)) <!-- 1.6.92 -->
 - A PR to preview what habitat.sh will look like with branding from community.chef.io [#7762](https://github.com/habitat-sh/habitat/pull/7762) ([chefjiajia](https://github.com/chefjiajia)) <!-- 1.6.91 -->
 - fix ctrlc in local windows studio [#7808](https://github.com/habitat-sh/habitat/pull/7808) ([mwrock](https://github.com/mwrock)) <!-- 1.6.90 -->
 - [CI] Fix service update e2e test [#7813](https://github.com/habitat-sh/habitat/pull/7813) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.89 -->
