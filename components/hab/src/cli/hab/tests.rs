@@ -428,7 +428,7 @@ fn test_sup_run_help() {
 
 fn extract_hab_svc_load(hab: Hab) -> Load {
     if let Hab::Svc(Svc::Load(load)) = hab {
-        return load;
+        load
     } else {
         panic!("expected to find `hab svc load`")
     }
