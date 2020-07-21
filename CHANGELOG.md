@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.93 -->
-## [1.6.93](https://github.com/habitat-sh/habitat/tree/1.6.93) (2020-07-21)
+<!-- latest_release 1.6.94 -->
+## [1.6.94](https://github.com/habitat-sh/habitat/tree/1.6.94) (2020-07-21)
 
 #### Merged Pull Requests
-- [Chore] Update rust to 1.44.1 [#7825](https://github.com/habitat-sh/habitat/pull/7825) ([davidMcneil](https://github.com/davidMcneil))
+- fixes clippy [#7826](https://github.com/habitat-sh/habitat/pull/7826) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -20,6 +20,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- fixes clippy [#7826](https://github.com/habitat-sh/habitat/pull/7826) ([mwrock](https://github.com/mwrock)) <!-- 1.6.94 -->
 - [Chore] Update rust to 1.44.1 [#7825](https://github.com/habitat-sh/habitat/pull/7825) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.93 -->
 - remove link to kubernetes operator and cloud foundary exporter [#7821](https://github.com/habitat-sh/habitat/pull/7821) ([mwrock](https://github.com/mwrock)) <!-- 1.6.92 -->
 - A PR to preview what habitat.sh will look like with branding from community.chef.io [#7762](https://github.com/habitat-sh/habitat/pull/7762) ([chefjiajia](https://github.com/chefjiajia)) <!-- 1.6.91 -->
