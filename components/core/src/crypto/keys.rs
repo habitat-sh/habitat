@@ -237,13 +237,10 @@ fn get_key_revisions<P>(keyname: &str,
                       })?;
 
     for result in dir_entries {
-        let dir_entry = match result {
-            Ok(ref dir_entry) => dir_entry,
-            Err(e) => {
-                debug!("Error reading path {}", e);
-                return Err(Error::CryptoError(format!("Error reading key path {}", e)));
-            }
-        };
+        let dir_entry = result.map_err(|e| {
+                                  debug!("Error reading path {}", e);
+                                  Error::CryptoError(format!("Error reading key path {}", e))
+                              })?;
 
         // NB: this metadata() call traverses symlinks, which is
         // exactly what we want.
