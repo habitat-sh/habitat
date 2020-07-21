@@ -255,7 +255,6 @@ mod inner {
                         os::process,
                         package::PackageIdent},
                 VERSION};
-    use ctrlc;
     use std::{ffi::OsString,
               str::FromStr};
 
