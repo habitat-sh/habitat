@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.95 -->
-## [1.6.95](https://github.com/habitat-sh/habitat/tree/1.6.95) (2020-07-22)
+<!-- latest_release 1.6.96 -->
+## [1.6.96](https://github.com/habitat-sh/habitat/tree/1.6.96) (2020-07-22)
 
-#### Merged Pull Requests
-- Use the new downloads site where appropriate. [#7824](https://github.com/habitat-sh/habitat/pull/7824) ([kagarmoe](https://github.com/kagarmoe))
+#### Bug Fixes
+- [Fix] Cli completions by conditionally hiding bulkload subcommand [#7827](https://github.com/habitat-sh/habitat/pull/7827) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -15,11 +15,14 @@
 - Allow dynamic changes to updater-related config for services  [#7770](https://github.com/habitat-sh/habitat/pull/7770) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.65 -->
 
 #### Bug Fixes
+- [Fix] Cli completions by conditionally hiding bulkload subcommand [#7827](https://github.com/habitat-sh/habitat/pull/7827) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.96 -->
+- Fix hab svc load argument parsing [#7822](https://github.com/habitat-sh/habitat/pull/7822) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.96 -->
 -  Write all service files when a service is loaded  [#7799](https://github.com/habitat-sh/habitat/pull/7799) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.83 -->
 - Fix reading root certs [#7778](https://github.com/habitat-sh/habitat/pull/7778) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.66 -->
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- fix builds consuming runtime environment of build deps [#7828](https://github.com/habitat-sh/habitat/pull/7828) ([mwrock](https://github.com/mwrock)) <!-- 1.6.96 -->
 - Use the new downloads site where appropriate. [#7824](https://github.com/habitat-sh/habitat/pull/7824) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.95 -->
 - fixes clippy [#7826](https://github.com/habitat-sh/habitat/pull/7826) ([mwrock](https://github.com/mwrock)) <!-- 1.6.94 -->
 - [Chore] Update rust to 1.44.1 [#7825](https://github.com/habitat-sh/habitat/pull/7825) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.93 -->
