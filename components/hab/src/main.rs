@@ -153,10 +153,12 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
             match hab {
                 Hab::Svc(svc) => {
                     match svc {
-                        Svc::BulkLoad(svc_bulk_load)
-                            if feature_flags.contains(FeatureFlag::SERVICE_CONFIG_FILES) =>
-                        {
-                            return sub_svc_bulk_load(svc_bulk_load).await;
+                        Svc::BulkLoad(svc_bulk_load) => {
+                            if feature_flags.contains(FeatureFlag::SERVICE_CONFIG_FILES) {
+                                return sub_svc_bulk_load(svc_bulk_load).await;
+                            } else {
+                                return Err(Error::ArgumentError(String::from("`hab svc bulkload` is only available when `HAB_FEAT_SERVICE_CONFIG_FILES` is set")));
+                            }
                         }
                         Svc::Load(svc_load) => {
                             return sub_svc_load(svc_load).await;
