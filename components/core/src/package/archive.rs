@@ -6,11 +6,13 @@ use super::{metadata::{MetaFile,
 use crate::{crypto::{artifact,
                      hash},
             error::{Error,
-                    Result}};
+                    Result},
+            package::ident::FullyQualifiedPackageIdent};
 use regex::Regex;
 use serde::Serialize;
 use std::{collections::HashMap,
-          convert::TryFrom,
+          convert::{TryFrom,
+                    TryInto},
           error,
           io::Read,
           path::{Path,
@@ -114,6 +116,14 @@ lazy_static::lazy_static! {
             .unwrap(),
         );
         map.insert(
+            MetaFile::SvcGroup,
+            Regex::new(&format!(
+                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                MetaFile::SvcGroup
+            ))
+            .unwrap(),
+        );
+        map.insert(
             MetaFile::Services,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
@@ -204,9 +214,10 @@ impl PackageArchive {
     // See https://rust-lang.github.io/rust-clippy/master/index.html#wrong_self_convention
     #[allow(clippy::wrong_self_convention)]
     pub fn is_a_service(&mut self) -> bool {
-        match self.svc_user() {
-            Ok(_) => true,
-            _ => false,
+        if let Some(_user) = self.svc_user() {
+            true
+        } else {
+            false
         }
     }
 
@@ -272,13 +283,9 @@ impl PackageArchive {
 
     pub fn ldflags(&mut self) -> Option<&str> { self.read_metadata(MetaFile::LdFlags) }
 
-    pub fn svc_user(&mut self) -> Result<&str> {
-        if let Some(data) = self.read_metadata(MetaFile::SvcUser) {
-            Ok(data)
-        } else {
-            Err(Error::MetaFileNotFound(MetaFile::SvcUser))
-        }
-    }
+    pub fn svc_user(&mut self) -> Option<&str> { self.read_metadata(MetaFile::SvcUser) }
+
+    pub fn svc_group(&mut self) -> Option<&str> { self.read_metadata(MetaFile::SvcGroup) }
 
     pub fn manifest(&mut self) -> Result<&str> {
         if let Some(data) = self.read_metadata(MetaFile::Manifest) {
@@ -428,6 +435,7 @@ pub struct PackageArchiveInfo {
     pub key_name:       String,
     pub hash_type:      String,
     pub signature_raw:  String,
+    pub ident:          String,
     pub origin:         String,
     pub name:           String,
     pub version:        String,
@@ -443,6 +451,7 @@ pub struct PackageArchiveInfo {
     pub manifest:       String,
     pub config:         Option<String>,
     pub svc_user:       Option<String>,
+    pub svc_group:      Option<String>,
     pub ld_run_path:    Option<String>,
     pub ldflags:        Option<String>,
     pub cflags:         Option<String>,
@@ -453,51 +462,43 @@ impl TryFrom<PackageArchive> for PackageArchiveInfo {
 
     fn try_from(mut archive: PackageArchive) -> Result<Self> {
         let header = artifact::get_artifact_header(&archive.path)?;
-        let ident = archive.ident()?;
-        if ident.fully_qualified() {
-            Ok(PackageArchiveInfo { format_version: header.format_version,
-                                    key_name:       header.key_name,
-                                    hash_type:      header.hash_type,
-                                    signature_raw:  header.signature_raw,
-                                    origin:         ident.origin.clone(),
-                                    name:           ident.name.clone(),
-                                    version:        ident.version.unwrap_or_default(),
-                                    release:        ident.release.unwrap_or_default(),
-                                    checksum:       archive.checksum()?,
-                                    target:         format!("{}", archive.target()?),
-                                    is_a_service:   archive.is_a_service(),
-                                    deps:           archive.deps()
-                                                           .unwrap_or_default()
-                                                           .iter()
-                                                           .map(|x| format!("{}", x))
-                                                           .collect(),
-                                    build_deps:     archive.build_deps()
-                                                           .unwrap_or_default()
-                                                           .iter()
-                                                           .map(|x| format!("{}", x))
-                                                           .collect(),
-                                    tdeps:          archive.tdeps()
-                                                           .unwrap_or_default()
-                                                           .iter()
-                                                           .map(|x| format!("{}", x))
-                                                           .collect(),
-                                    build_tdeps:    archive.build_tdeps()
-                                                           .unwrap_or_default()
-                                                           .iter()
-                                                           .map(|x| format!("{}", x))
-                                                           .collect(),
-                                    exposes:        archive.exposes().unwrap_or_default(),
-                                    manifest:       archive.manifest()?.to_string(),
-                                    svc_user:       archive.svc_user()
-                                                           .ok()
-                                                           .map(ToString::to_string),
-                                    config:         archive.config().map(ToString::to_string),
-                                    ld_run_path:    archive.ld_run_path().map(ToString::to_string),
-                                    ldflags:        archive.ldflags().map(ToString::to_string),
-                                    cflags:         archive.cflags().map(ToString::to_string), })
-        } else {
-            Err(Error::FullyQualifiedPackageIdentRequired(ident.to_string()))
-        }
+        let ident: FullyQualifiedPackageIdent = archive.ident()?.try_into()?;
+        Ok(PackageArchiveInfo { format_version: header.format_version,
+                                key_name:       header.key_name,
+                                hash_type:      header.hash_type,
+                                signature_raw:  header.signature_raw,
+                                origin:         ident.origin().to_string(),
+                                name:           ident.name().to_string(),
+                                ident:          ident.to_string(),
+                                version:        ident.version().to_string(),
+                                release:        ident.release().to_string(),
+                                checksum:       archive.checksum()?,
+                                target:         archive.target()?.to_string(),
+                                is_a_service:   archive.is_a_service(),
+                                deps:           archive.deps()?
+                                                       .iter()
+                                                       .map(ToString::to_string)
+                                                       .collect(),
+                                build_deps:     archive.build_deps()?
+                                                       .iter()
+                                                       .map(ToString::to_string)
+                                                       .collect(),
+                                tdeps:          archive.tdeps()?
+                                                       .iter()
+                                                       .map(ToString::to_string)
+                                                       .collect(),
+                                build_tdeps:    archive.build_tdeps()?
+                                                       .iter()
+                                                       .map(ToString::to_string)
+                                                       .collect(),
+                                exposes:        archive.exposes()?,
+                                manifest:       archive.manifest()?.to_string(),
+                                svc_user:       archive.svc_user().map(ToString::to_string),
+                                svc_group:      archive.svc_group().map(ToString::to_string),
+                                config:         archive.config().map(ToString::to_string),
+                                ld_run_path:    archive.ld_run_path().map(ToString::to_string),
+                                ldflags:        archive.ldflags().map(ToString::to_string),
+                                cflags:         archive.cflags().map(ToString::to_string), })
     }
 }
 
@@ -553,6 +554,7 @@ mod test {
         "key_name": "happyhumans-20160424223347",
         "hash_type": "BLAKE2b",
         "signature_raw": "U0cp/+npru0ZxhK76zm+PDVSV/707siyrO1r7T6CZZ4ShSLrIxyx8jLSMr5wnLuGrVIV358smQPWOSTOmyfFCjBmMmM1ZjRkZTE0NWM3Zjc4NjAxY2FhZTljN2I4NzY3MDk4NDEzZDA1NzM5ZGU5MTNjMDEyOTIyYjdlZWQ3NjA=",
+        "ident": "happyhumans/possums/8.1.4/20160427165340",
         "origin": "happyhumans",
         "name": "possums",
         "version": "8.1.4",
@@ -568,6 +570,7 @@ mod test {
         "manifest": "happyhumans possums\n=========================\n\nMaintainer: The Habitat Maintainers <humans@habitat.sh>\nVersion: 8.1.4\nRelease: 20160427165340\nArchitecture: x86_64\nSystem: linux\nTarget: x86_64-linux\nLicense: apachev2 \nSource: [nosuchfile.tar.gz](nosuchfile.tar.gz)\nSHA: \nPath: /hab/pkgs/happyhumans/possums/8.1.4/20160427165340\nBuild Dependencies:  \nDependencies:  \nInterpreters:  \n\nPlan\n========\n\nBuild Flags\n-----------\n\nCFLAGS: \nLDFLAGS: \nLD_RUN_PATH: \n\n```bash\npkg_name=possums\npkg_origin=happyhumans\npkg_version=8.1.4\npkg_maintainer=\"The Habitat Maintainers <humans@habitat.sh>\"\npkg_license=('apachev2')\npkg_source=nosuchfile.tar.gz\npkg_deps=()\npkg_build_deps=()\n\ndo_build() {\n  cp -v $PLAN_CONTEXT/signme.dat signme.dat\n}\n\ndo_install() {\n  install -v -D signme.dat $pkg_prefix/share/signme.dat\n}\n\n# Turn the remaining default phases into no-ops\n\ndo_download() {\n  return 0\n}\n\ndo_verify() {\n  return 0\n}\n\ndo_unpack() {\n  return 0\n}\n\ndo_prepare() {\n  return 0\n}\n```\n\nFiles\n-----\n4cc8037f90192a8eecdb9b386a289d35be3c8cd7f92bd6b1d0e2d783dea592c6  /hab/pkgs/happyhumans/possums/8.1.4/20160427165340/IDENT\nd3b7abad38647ed804b5017c5b990acab7c85648b552a97043d4d86c70ce1f9d  /hab/pkgs/happyhumans/possums/8.1.4/20160427165340/TARGET\nb5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c  /hab/pkgs/happyhumans/possums/8.1.4/20160427165340/share/signme.dat",
         "config": null,
         "svc_user": null,
+        "svc_group": null,
         "ld_run_path": null,
         "ldflags": null,
         "cflags": null
