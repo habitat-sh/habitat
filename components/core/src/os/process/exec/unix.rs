@@ -1,13 +1,9 @@
 use crate::os::process::can_run_services_as_svc_user;
-use nix::unistd::{getgrouplist,
-                  setgid,
-                  setgroups,
+use nix::unistd::{setgid,
                   setuid,
                   Gid,
-                  Uid,
-                  User};
-use std::{ffi::{CString,
-                OsStr},
+                  Uid};
+use std::{ffi::OsStr,
           io,
           os::unix::process::CommandExt,
           process::{Command,
@@ -124,17 +120,34 @@ fn set_supplementary_groups(user_id: Uid,
         // that's OK; not an error. We just won't set supplementary
         // groups, and run all hooks as the user we currently are.
         if can_run_services_as_svc_user() {
-            if let Some(user) =
-                User::from_uid(user_id).map_err(io_error!("Error resolving user from ID: {:?}"))?
+            // These calls don't have a macOS counterpart (well, not a
+            // direct one in nix, at least) and we don't need to
+            // execute hooks on macOS, so it's not important to
+            // implement this. Our crates aren't really factored well
+            // enough to let us cut out larger chunks of code on macOS
+            // at the moment, so we just won't compile this particular
+            // bit for now.
+            #[cfg(not(target_os = "macos"))]
             {
-                let user = CString::new(user.name).map_err(io_error!("User name cannot convert \
-                                                                      to CString!: {:?}"))?;
-                let groups =
-                    getgrouplist(&user, group_id).map_err(io_error!("getgrouplist failed!: {:?}"))?;
-                setgroups(&groups).map_err(io_error!("setgroups failed! {:?}"))?; // CAP_SETGID
-            } else {
-                return Err(io::Error::new(io::ErrorKind::Other,
-                                          "Could not find user from user ID"));
+                use nix::unistd::{getgrouplist,
+                                  setgroups,
+                                  User};
+                use std::ffi::CString;
+
+                if let Some(user) = User::from_uid(user_id).map_err(io_error!("Error resolving \
+                                                                               user from ID: \
+                                                                               {:?}"))?
+                {
+                    let user = CString::new(user.name).map_err(io_error!("User name cannot \
+                                                                          convert to CString!: \
+                                                                          {:?}"))?;
+                    let groups = getgrouplist(&user, group_id).map_err(io_error!("getgrouplist \
+                                                                                  failed!: {:?}"))?;
+                    setgroups(&groups).map_err(io_error!("setgroups failed! {:?}"))?; // CAP_SETGID
+                } else {
+                    return Err(io::Error::new(io::ErrorKind::Other,
+                                              "Could not find user from user ID"));
+                }
             }
 
             // These calls replace `CommandExt::uid` and `CommandExt::gid`
