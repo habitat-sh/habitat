@@ -123,9 +123,8 @@ s3_channel_url_root() {
 }
 
 s3_sync() {
-	local src="${1}"
-	local dst="${2}"
-	aws s3 sync "${src}" "${dst}"
+    # ex. s3_sync "src" "dst" "option1" "option2 <value>" ...
+    aws s3 sync "$@"
 }
 
 purge_fastly_cache() {
