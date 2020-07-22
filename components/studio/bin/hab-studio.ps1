@@ -475,6 +475,9 @@ function Enter-Studio {
             Write-Host "--> Detected and loading studio_profile.ps1"
             . .\studio_profile.ps1
         }
+
+        # Add command line completion
+        Invoke-Expression $(hab cli completers --shell powershell | Out-String)
     }
 }
 
