@@ -257,19 +257,13 @@ fn get_key_revisions<P>(keyname: &str,
             }
         };
 
-        let file = File::open(dir_entry.path())?;
-        let mut reader = BufReader::new(file);
-        let mut buf = String::new();
-
-        if let Err(e) = reader.read_line(&mut buf) {
-            debug!("Invalid content: {}", e);
-            continue;
-        }
-
-        if !buf.starts_with(&key_type.to_string().to_uppercase()) {
-            debug!("Invalid key content in {:?} for type {}",
-                   dir_entry, key_type);
-            continue;
+        match file_is_valid_key_for_type(dir_entry.path(), key_type) {
+            Ok(true) => {} // we're good; keep processing
+            Ok(false) => continue,
+            Err(e) => {
+                debug!("Error reading key file: {:?}: {:?}", dir_entry.path(), e);
+                continue;
+            }
         }
 
         let filename = match dir_entry.file_name().into_string() {
@@ -288,6 +282,30 @@ fn get_key_revisions<P>(keyname: &str,
     candidate_vec.sort();
     candidate_vec.reverse(); // newest key first
     Ok(candidate_vec)
+}
+
+/// Attempt to read the file at `path` to see if it is a valid
+/// instance of the given `key_type`.
+///
+/// If the file cannot be read or processed an Error will be
+/// returned.
+// TODO (CM): It would be better to read the contents of the entire
+// file to make sure it's consistent overall, rather than just hitting
+// the first line (actually, just the first 3 characters of the first
+// line!)
+fn file_is_valid_key_for_type<P>(path: P, key_type: KeyType) -> Result<bool>
+    where P: AsRef<Path>
+{
+    let file = File::open(path.as_ref())?;
+    if let Some(first_line) = BufReader::new(file).lines().next() {
+        if first_line?.starts_with(&key_type.to_string().to_uppercase()) {
+            return Ok(true);
+        }
+    }
+    debug!("Invalid key content in {:?} for type {}",
+           path.as_ref(),
+           key_type);
+    Ok(false)
 }
 
 fn mk_key_filename<P, S1, S2>(path: P, keyname: S1, suffix: S2) -> PathBuf
@@ -917,5 +935,67 @@ mod test {
                               &mut candidates,
                               None);
         assert_eq!(1, candidates.len());
+    }
+
+    fn create_file_with_content(content: &[u8]) -> tempfile::NamedTempFile {
+        let mut file = tempfile::NamedTempFile::new().expect("couldn't generate tempfile");
+        file.write_all(content)
+            .expect("couldn't write content to file");
+        file
+    }
+
+    /// Creates a file with the content of the secret key of the given
+    /// type.
+    // TODO (CM): Doesn't currently generate public keys, or all the
+    // possible varieties of the various key types (e.g., service
+    // keys).
+    fn key_file(key_type: KeyType, name: &str) -> tempfile::NamedTempFile {
+        let content = match key_type {
+            KeyType::Sym => {
+                SymKey::generate_pair_for_ring(name).to_secret_string()
+                                                    .unwrap()
+            }
+            KeyType::Sig => {
+                SigKeyPair::generate_pair_for_origin(name).to_secret_string()
+                                                          .unwrap()
+            }
+            KeyType::Box => {
+                BoxKeyPair::generate_pair_for_user(name).unwrap()
+                                                        .to_secret_string()
+                                                        .unwrap()
+            }
+        };
+        create_file_with_content(content.as_bytes())
+    }
+
+    #[test]
+    fn test_file_is_valid_key_for_type() {
+        let file = key_file(KeyType::Sym, "foo");
+        assert!(super::file_is_valid_key_for_type(file.path(), KeyType::Sym).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sig).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Box).unwrap());
+
+        let file = key_file(KeyType::Sig, "foo");
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sym).unwrap());
+        assert!(super::file_is_valid_key_for_type(file.path(), KeyType::Sig).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Box).unwrap());
+
+        let file = key_file(KeyType::Box, "foo");
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sym).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sig).unwrap());
+        assert!(super::file_is_valid_key_for_type(file.path(), KeyType::Box).unwrap());
+    }
+
+    #[test]
+    fn test_file_is_valid_key_for_type_with_bogus_content() {
+        let file = create_file_with_content(b"LOLWUT-NOT-A-KEY\nNOPE\n\nGO AWAY");
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sym).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Box).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sig).unwrap());
+
+        let file = create_file_with_content(b"");
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sym).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Box).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sig).unwrap());
     }
 }
