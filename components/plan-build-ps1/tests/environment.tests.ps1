@@ -185,8 +185,8 @@ Describe "Invoke-SetupEnvironmentWrapper" {
         It "Should set rooted runtime env from dep and push setup value" {
             $envvars["run-dep_path"] | Should -Be "$pkg_prefix\run_dir;$HAB_PKG_PATH\core\run-dep\0.1.0\111\run"
         }
-        It "Should set rooted build time env from dep" {
-            $envvars["build-dep_build_path"] | Should -Be "$HAB_PKG_PATH\core\build-dep\0.1.0\111\build"
+        It "Should set rooted runtime env from build dep" {
+            $envvars["build-dep_path"] | Should -Be "$HAB_PKG_PATH\core\build-dep\0.1.0\111\run"
         }
     }
 
@@ -221,8 +221,8 @@ Describe "Invoke-SetupEnvironmentWrapper" {
         It "Should set unrooted runtime env from dep" {
             $envvars["run-dep_path"] | Should -Be "\hab\pkgs\core\run-dep\0.1.0\111\run"
         }
-        It "Should set unrooted build time env from dep" {
-            $envvars["build-dep_build_path"] | Should -Be "\hab\pkgs\core\build-dep\0.1.0\111\build"
+        It "Should set rooted runtime env from build dep" {
+            $envvars["build-dep_path"] | Should -Be "\hab\pkgs\core\build-dep\0.1.0\111\run"
         }
     }
 
@@ -260,7 +260,7 @@ Describe "Invoke-SetupEnvironmentWrapper" {
         Invoke-SetupEnvironmentWrapper
 
         It "Should layer all rooted assignments" {
-            $envvars["PSModulePath"] | Should -Be "$pkg_prefix\build_modules;$HAB_PKG_PATH\core\build-dep\0.1.0\111\build_modules;$pkg_prefix\modules;$HAB_PKG_PATH\core\run-dep\0.1.0\111\modules"
+            $envvars["PSModulePath"] | Should -Be "$pkg_prefix\build_modules;$HAB_PKG_PATH\core\build-dep\0.1.0\111\modules;$pkg_prefix\modules;$HAB_PKG_PATH\core\run-dep\0.1.0\111\modules"
         }
     }
 }

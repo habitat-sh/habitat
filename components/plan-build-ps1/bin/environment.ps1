@@ -141,8 +141,8 @@ function __populate_environment_from_deps {
 }
 
 function __populate_environment_from_metafile($environment, $path_to_dep, $dep_ident) {
-    $envTable = __parse_metafile "$path_to_dep/${environment}_ENVIRONMENT"
-    $envPathsTable = __parse_metafile "$path_to_dep/${environment}_ENVIRONMENT_PATHS"
+    $envTable = __parse_metafile "$path_to_dep/RUNTIME_ENVIRONMENT"
+    $envPathsTable = __parse_metafile "$path_to_dep/RUNTIME_ENVIRONMENT_PATHS"
 
     # vars in ENVIRONMENT_PATHS files are duplicated in ENVIRONMENT file
     # to support backward compat with older sup/cli
