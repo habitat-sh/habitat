@@ -48,7 +48,7 @@ section
    |
     $pkg_binds=@{ "database"="username password port" }
 
- p At this point the first 8 lines of your <code>plan.ps1</code> file (all lines above the build callbacks) should look like the following:
+ p At this point the first 16 lines of your <code>plan.ps1</code> file (all lines above the build callbacks) should look like the following:
  = code(:bash) do
    |
     $pkg_name="contosouniversity"
@@ -56,8 +56,16 @@ section
     $pkg_version="0.1.0"
     $pkg_maintainer="The Chef Habitat Maintainers <humans@habitat.sh>"
     $pkg_license=@("Apache-2.0")
-    $pkg_deps=@("core/dsc-core")
-    $pkg_build_deps=@("core/nuget")
+    $pkg_deps=@(
+      "core/dotnet-45-runtime",
+      "core/iis-aspnet4",
+      "core/dsc-core"
+    )
+    $pkg_build_deps=@(
+      "core/nuget",
+      "core/dotnet-45-dev-pack",
+      "core/visual-build-tools-2017"
+    )
     $pkg_binds=@{"database"="username password port"}
 
  p For more examples and information on binding, see #{link_to 'Runtime Binding','/docs/developing-packages#pkg-binds'}.
@@ -95,7 +103,6 @@ section
 
  = code(:bash) do
    |
-    Import-Module "{{pkgPathFor "core/dsc-core"}}/Modules/DscCore"
     Start-DscCore (Join-Path {{pkg.svc_config_path}} website.ps1) NewWebsite
 
     $pool = "{{cfg.app_pool}}"
@@ -123,7 +130,7 @@ section
    [HAB-STUDIO] Chef Habitat:\src> hab svc load myorigin/contosouniversity --bind database:sqlserver.default
 
  blockquote
-  p <b>Note</b> The first time that the <code>core/sqlserver</code> package is loaded and started, it may take several minutes to initialize because its <code>init</code> hook actually runs the SQL Server installer. This will cause the third command above that loads our application to hang until that initialization completes.
+  p <b>Note</b> The first time that the <code>core/sqlserver</code> package is loaded and started, it may take several minutes to initialize because its <code>install</code> hook actually runs the SQL Server installer. This will cause the third command above that loads our application to hang until that initialization completes.
 
  h2 <a name="connect-docker">Connecting to a database running inside a Docker container</a>
 
@@ -138,6 +145,8 @@ section
  blockquote
   p <b>Note</b> You can only export Docker images in an environment where a Docker engine is running. Therefore you cannot export inside of a container based studio. You must exit the studio and export inside your Docker host environment.
 
+ p As the Docker exporter builds these images, it will run all <code>install</code> hooks in the application dependency tree. This means that the Docker build operation could take a while as it runs the hook, but running containers from this built image may be significantly faster because all install operations are baked into the image.
+ 
  p Once you've created Docker images for both your web application and your database, you can start them up via <code>docker run</code>.
 
  = code(:shell) do

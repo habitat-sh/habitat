@@ -11,9 +11,9 @@ section
    li #{link_to 'Create Your Plan',"/demo/windows/steps/2"}: Learn how to create your plan.
    li #{link_to 'Define Dependencies and Callbacks',"/demo/windows/steps/3"}: Understand how to add runtime dependencies for your web application.
    li #{link_to 'Define Build Logic For Your App',"/demo/windows/steps/4"}: Define how source code for your web application is built and installed as part of the package creation process.
-   li #{link_to 'Add Configuration',"/demo/windows/steps/5"}: Specify which settings on your web application can be configured at runtime.
+   li #{link_to 'Add Configuration',"/demo/windows/steps/5"}: Specify which settings of your web application can be configured at runtime.
    li #{link_to 'Leveraging Powershell DSC in Chef Habitat Templates',"/demo/windows/steps/6"}: Use Powershell DSC to enable and configure IIS using Chef Habitat Templates and Handlebars syntax.
-   li #{link_to 'Define Hooks',"/demo/windows/steps/7"}: Define runtime behavior for your application.
+   li #{link_to 'Define Hooks',"/demo/windows/steps/7"}: Define installation and runtime behavior for your application.
    li #{link_to 'Build and Test',"/demo/windows/steps/8"}: Learn how to build, test, and run your web application package.
    li #{link_to 'Connect your web application',"/demo/windows/steps/9"}: Describes how to connect your web application to a SQL Server database inside of a Studio or a container.
    li #{link_to 'Next Steps',"/demo/windows/steps/10"}: Provides suggested topics for further reading within the reference documentation and blog posts.
@@ -30,7 +30,7 @@ section
  = code(:shell) do
   |
    PS C:\> Invoke-Webrequest `
-   >> -uri https://code.msdn.microsoft.com/ASPNET-MVC-Application-b01a9fe8/file/169473/2/ASP.NET%20MVC%20Application%20Using%20Entity%20Framework%20Code%20First.zip `
+   >> -uri https://webpifeed.blob.core.windows.net/webpifeed/Partners/ASP.NET%20MVC%20Application%20Using%20Entity%20Framework%20Code%20First.zip `
    >> -OutFile contosouniversity.zip
    PS C:\> Expand-Archive contosouniversity.zip
    PS C:\> cd contosouniversity
