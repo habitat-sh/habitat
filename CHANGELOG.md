@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.94 -->
-## [1.6.94](https://github.com/habitat-sh/habitat/tree/1.6.94) (2020-07-21)
+<!-- latest_release 1.6.95 -->
+## [1.6.95](https://github.com/habitat-sh/habitat/tree/1.6.95) (2020-07-22)
 
 #### Merged Pull Requests
-- fixes clippy [#7826](https://github.com/habitat-sh/habitat/pull/7826) ([mwrock](https://github.com/mwrock))
+- Use the new downloads site where appropriate. [#7824](https://github.com/habitat-sh/habitat/pull/7824) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -20,6 +20,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- Use the new downloads site where appropriate. [#7824](https://github.com/habitat-sh/habitat/pull/7824) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.95 -->
 - fixes clippy [#7826](https://github.com/habitat-sh/habitat/pull/7826) ([mwrock](https://github.com/mwrock)) <!-- 1.6.94 -->
 - [Chore] Update rust to 1.44.1 [#7825](https://github.com/habitat-sh/habitat/pull/7825) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.93 -->
 - remove link to kubernetes operator and cloud foundary exporter [#7821](https://github.com/habitat-sh/habitat/pull/7821) ([mwrock](https://github.com/mwrock)) <!-- 1.6.92 -->
