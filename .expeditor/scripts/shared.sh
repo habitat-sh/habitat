@@ -122,12 +122,6 @@ s3_channel_url_root() {
     echo "s3://${s3_bucket_name}/${channel}/latest/habitat"
 }
 
-s3_sync() {
-	local src="${1}"
-	local dst="${2}"
-	aws s3 sync "${src}" "${dst}"
-}
-
 purge_fastly_cache() {
 	local service_key="${1}"
 	local channel="${2:-}"

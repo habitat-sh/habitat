@@ -30,7 +30,7 @@ done
 cd www
 make build
 cd build
-s3_sync "." "s3://$AWS_BUCKET"
+aws s3 sync . "s3://$AWS_BUCKET" --delete
 # This is purging the cache for either www.habitat.sh or www.acceptance.habitat.sh,
 # depending on which service key was provided.
 purge_fastly_cache "$FASTLY_SERVICE_KEY"
