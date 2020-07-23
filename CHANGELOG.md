@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.97 -->
-## [1.6.97](https://github.com/habitat-sh/habitat/tree/1.6.97) (2020-07-23)
+<!-- latest_release 1.6.98 -->
+## [1.6.98](https://github.com/habitat-sh/habitat/tree/1.6.98) (2020-07-23)
 
 #### Merged Pull Requests
-- Update configopt version [#7830](https://github.com/habitat-sh/habitat/pull/7830) ([christophermaier](https://github.com/christophermaier))
+- Add command line completion to powershell studio [#7831](https://github.com/habitat-sh/habitat/pull/7831) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -22,6 +22,8 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- Add command line completion to powershell studio [#7831](https://github.com/habitat-sh/habitat/pull/7831) ([mwrock](https://github.com/mwrock)) <!-- 1.6.98 -->
+- delete old objects in S3 bucket that do not exist in local website build [#7829](https://github.com/habitat-sh/habitat/pull/7829) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.98 -->
 - Update configopt version [#7830](https://github.com/habitat-sh/habitat/pull/7830) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.97 -->
 - fix builds consuming runtime environment of build deps [#7828](https://github.com/habitat-sh/habitat/pull/7828) ([mwrock](https://github.com/mwrock)) <!-- 1.6.96 -->
 - Use the new downloads site where appropriate. [#7824](https://github.com/habitat-sh/habitat/pull/7824) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.95 -->
