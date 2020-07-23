@@ -37,6 +37,7 @@ pub mod box_key_pair;
 pub mod sig_key_pair;
 pub mod sym_key;
 
+#[derive(Clone, Copy, Debug)]
 enum KeyType {
     Sig,
     Box,
@@ -105,13 +106,13 @@ impl Drop for TmpKeyfile {
 #[derive(Clone, PartialEq)]
 pub struct KeyPair<P: PartialEq, S: PartialEq> {
     /// The name of the key, ex: "habitat"
-    pub name:   String,
+    name:   String,
     /// The revision of the key, which is a timestamp, ex: "201604051449"
-    pub rev:    String,
+    rev:    String,
     /// The public key component, if relevant
-    pub public: Option<P>,
+    public: Option<P>,
     /// The private key component, if relevant
-    pub secret: Option<S>,
+    secret: Option<S>,
 }
 
 impl<P: PartialEq, S: PartialEq> KeyPair<P, S> {
@@ -156,7 +157,7 @@ impl<P: PartialEq, S: PartialEq> KeyPair<P, S> {
 fn check_filename(keyname: &str,
                   filename: &str,
                   candidates: &mut HashSet<String>,
-                  pair_type: Option<&PairType>) {
+                  pair_type: Option<PairType>) {
     let caps = match KEYFILE_RE.captures(&filename) {
         Some(c) => c,
         None => {
@@ -203,12 +204,12 @@ fn check_filename(keyname: &str,
         let thiskey = format!("{}-{}", name, rev);
 
         let do_insert = match pair_type {
-            Some(&PairType::Secret) => {
+            Some(PairType::Secret) => {
                 suffix == SECRET_SIG_KEY_SUFFIX
                 || suffix == SECRET_BOX_KEY_SUFFIX
                 || suffix == SECRET_SYM_KEY_SUFFIX
             }
-            Some(&PairType::Public) => suffix == PUBLIC_KEY_SUFFIX,
+            Some(PairType::Public) => suffix == PUBLIC_KEY_SUFFIX,
             None => true,
         };
 
@@ -222,31 +223,25 @@ fn check_filename(keyname: &str,
 /// keyname in the `cache_key_path`.
 fn get_key_revisions<P>(keyname: &str,
                         cache_key_path: P,
-                        pair_type: Option<&PairType>,
-                        key_type: &KeyType)
+                        pair_type: Option<PairType>,
+                        key_type: KeyType)
                         -> Result<Vec<String>>
     where P: AsRef<Path>
 {
     // accumulator for files that match
     let mut candidates = HashSet::new();
-    let dir_entries = match fs::read_dir(cache_key_path.as_ref()) {
-        Ok(dir_entries) => dir_entries,
-        Err(e) => {
-            return Err(Error::CryptoError(format!("Error reading key directory \
-                                                   {}: {}",
-                                                  cache_key_path.as_ref()
-                                                                .display(),
-                                                  e)));
-        }
-    };
+
+    let dir_entries = fs::read_dir(cache_key_path.as_ref()).map_err(|e| {
+                          Error::CryptoError(format!("Error reading key directory {}: {}",
+                                                     cache_key_path.as_ref().display(),
+                                                     e))
+                      })?;
+
     for result in dir_entries {
-        let dir_entry = match result {
-            Ok(ref dir_entry) => dir_entry,
-            Err(e) => {
-                debug!("Error reading path {}", e);
-                return Err(Error::CryptoError(format!("Error reading key path {}", e)));
-            }
-        };
+        let dir_entry = result.map_err(|e| {
+                                  debug!("Error reading path {}", e);
+                                  Error::CryptoError(format!("Error reading key path {}", e))
+                              })?;
 
         // NB: this metadata() call traverses symlinks, which is
         // exactly what we want.
@@ -262,19 +257,13 @@ fn get_key_revisions<P>(keyname: &str,
             }
         };
 
-        let file = File::open(dir_entry.path())?;
-        let mut reader = BufReader::new(file);
-        let mut buf = String::new();
-
-        if let Err(e) = reader.read_line(&mut buf) {
-            debug!("Invalid content: {}", e);
-            continue;
-        }
-
-        if !buf.starts_with(&key_type.to_string().to_uppercase()) {
-            debug!("Invalid key content in {:?} for type {}",
-                   dir_entry, &key_type);
-            continue;
+        match file_is_valid_key_for_type(dir_entry.path(), key_type) {
+            Ok(true) => {} // we're good; keep processing
+            Ok(false) => continue,
+            Err(e) => {
+                debug!("Error reading key file: {:?}: {:?}", dir_entry.path(), e);
+                continue;
+            }
         }
 
         let filename = match dir_entry.file_name().into_string() {
@@ -289,15 +278,34 @@ fn get_key_revisions<P>(keyname: &str,
         check_filename(keyname, &filename, &mut candidates, pair_type);
     }
 
-    // traverse the candidates set and sort the entries
-    let mut candidate_vec = Vec::new();
-    for c in &candidates {
-        candidate_vec.push(c.clone());
-    }
+    let mut candidate_vec = candidates.into_iter().collect::<Vec<String>>();
     candidate_vec.sort();
-    // newest key first
-    candidate_vec.reverse();
+    candidate_vec.reverse(); // newest key first
     Ok(candidate_vec)
+}
+
+/// Attempt to read the file at `path` to see if it is a valid
+/// instance of the given `key_type`.
+///
+/// If the file cannot be read or processed an Error will be
+/// returned.
+// TODO (CM): It would be better to read the contents of the entire
+// file to make sure it's consistent overall, rather than just hitting
+// the first line (actually, just the first 3 characters of the first
+// line!)
+fn file_is_valid_key_for_type<P>(path: P, key_type: KeyType) -> Result<bool>
+    where P: AsRef<Path>
+{
+    let file = File::open(path.as_ref())?;
+    if let Some(first_line) = BufReader::new(file).lines().next() {
+        if first_line?.starts_with(&key_type.to_string().to_uppercase()) {
+            return Ok(true);
+        }
+    }
+    debug!("Invalid key content in {:?} for type {}",
+           path.as_ref(),
+           key_type);
+    Ok(false)
 }
 
 fn mk_key_filename<P, S1, S2>(path: P, keyname: S1, suffix: S2) -> PathBuf
@@ -641,7 +649,7 @@ mod test {
         thread::sleep(Duration::from_millis(1000));
         SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
                                                    .unwrap();
-        let revs = super::get_key_revisions("foo", cache.path(), None, &KeyType::Sig).unwrap();
+        let revs = super::get_key_revisions("foo", cache.path(), None, KeyType::Sig).unwrap();
         assert_eq!(2, revs.len());
     }
 
@@ -650,13 +658,13 @@ mod test {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
                                                    .unwrap();
-        let revs = super::get_key_revisions("foo", cache.path(), None, &KeyType::Sig).unwrap();
+        let revs = super::get_key_revisions("foo", cache.path(), None, KeyType::Sig).unwrap();
         assert_eq!(1, revs.len());
         // we need to wait at least 1 second between generating keypairs to ensure uniqueness
         thread::sleep(Duration::from_millis(1000));
         let pair = BoxKeyPair::generate_pair_for_user("foo-user");
         pair.unwrap().to_pair_files(cache.path()).unwrap();
-        let revs = super::get_key_revisions("foo-user", cache.path(), None, &KeyType::Sig).unwrap();
+        let revs = super::get_key_revisions("foo-user", cache.path(), None, KeyType::Sig).unwrap();
         assert_eq!(0, revs.len());
     }
 
@@ -671,8 +679,8 @@ mod test {
                                                    .unwrap();
         let revs = super::get_key_revisions("foo",
                                             cache.path(),
-                                            Some(&PairType::Secret),
-                                            &KeyType::Sig).unwrap();
+                                            Some(PairType::Secret),
+                                            KeyType::Sig).unwrap();
         assert_eq!(2, revs.len());
     }
 
@@ -687,8 +695,8 @@ mod test {
                                                    .unwrap();
         let revs = super::get_key_revisions("foo",
                                             cache.path(),
-                                            Some(&PairType::Public),
-                                            &KeyType::Sig).unwrap();
+                                            Some(PairType::Public),
+                                            KeyType::Sig).unwrap();
         assert_eq!(2, revs.len());
     }
 
@@ -708,11 +716,11 @@ mod test {
 
         // we shouldn't see wecoyote-foo as a 4th revision
         let revisions =
-            super::get_key_revisions("wecoyote", cache.path(), None, &KeyType::Box).unwrap();
+            super::get_key_revisions("wecoyote", cache.path(), None, KeyType::Box).unwrap();
         assert_eq!(3, revisions.len());
 
         let revisions =
-            super::get_key_revisions("wecoyote-foo", cache.path(), None, &KeyType::Box).unwrap();
+            super::get_key_revisions("wecoyote-foo", cache.path(), None, KeyType::Box).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -732,16 +740,14 @@ mod test {
                                                                      .to_pair_files(cache.path())
                                                                      .unwrap();
 
-        let revisions = super::get_key_revisions("tnt.default@acme",
-                                                 cache.path(),
-                                                 None,
-                                                 &KeyType::Box).unwrap();
+        let revisions =
+            super::get_key_revisions("tnt.default@acme", cache.path(), None, KeyType::Box).unwrap();
         assert_eq!(3, revisions.len());
 
         let revisions = super::get_key_revisions("tnt.default@acyou",
                                                  cache.path(),
                                                  None,
-                                                 &KeyType::Box).unwrap();
+                                                 KeyType::Box).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -760,12 +766,11 @@ mod test {
         SymKey::generate_pair_for_ring("acme-you").to_pair_files(cache.path())
                                                   .unwrap();
 
-        let revisions =
-            super::get_key_revisions("acme", cache.path(), None, &KeyType::Sym).unwrap();
+        let revisions = super::get_key_revisions("acme", cache.path(), None, KeyType::Sym).unwrap();
         assert_eq!(3, revisions.len());
 
         let revisions =
-            super::get_key_revisions("acme-you", cache.path(), None, &KeyType::Sym).unwrap();
+            super::get_key_revisions("acme-you", cache.path(), None, KeyType::Sym).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -785,11 +790,11 @@ mod test {
                                                          .unwrap();
 
         let revisions =
-            super::get_key_revisions("mutants", cache.path(), None, &KeyType::Sig).unwrap();
+            super::get_key_revisions("mutants", cache.path(), None, KeyType::Sig).unwrap();
         assert_eq!(3, revisions.len());
 
         let revisions =
-            super::get_key_revisions("mutants-x", cache.path(), None, &KeyType::Sig).unwrap();
+            super::get_key_revisions("mutants-x", cache.path(), None, KeyType::Sig).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -824,7 +829,7 @@ mod test {
             super::get_key_revisions("symlinks_are_ok",
                                      &cache_dir, // <-- THIS IS THE KEY PART OF THE TEST
                                      None,
-                                     &KeyType::Sym).expect("Could not fetch key revisions!");
+                                     KeyType::Sym).expect("Could not fetch key revisions!");
 
         assert_eq!(1, revisions.len());
         assert_eq!(revisions[0], key.name_with_rev());
@@ -855,15 +860,15 @@ mod test {
         super::check_filename("wecoyote",
                               "wecoyote-20160519203610.pub",
                               &mut candidates,
-                              Some(&PairType::Secret));
+                              Some(PairType::Secret));
         super::check_filename("wecoyote",
                               "wecoyote-foo-20160519203610.pub",
                               &mut candidates,
-                              Some(&PairType::Secret));
+                              Some(PairType::Secret));
         super::check_filename("wecoyote",
                               "wecoyote-20160519203610.sig.key",
                               &mut candidates,
-                              Some(&PairType::Secret));
+                              Some(PairType::Secret));
         assert_eq!(1, candidates.len());
     }
 
@@ -874,15 +879,15 @@ mod test {
         super::check_filename("wecoyote",
                               "wecoyote-20160519203610.pub",
                               &mut candidates,
-                              Some(&PairType::Public));
+                              Some(PairType::Public));
         super::check_filename("wecoyote",
                               "wecoyote-20160519203611.pub",
                               &mut candidates,
-                              Some(&PairType::Public));
+                              Some(PairType::Public));
         super::check_filename("wecoyote",
                               "wecoyote-20160519203610.sig.key",
                               &mut candidates,
-                              Some(&PairType::Public));
+                              Some(PairType::Public));
         assert_eq!(2, candidates.len());
     }
 
@@ -930,5 +935,67 @@ mod test {
                               &mut candidates,
                               None);
         assert_eq!(1, candidates.len());
+    }
+
+    fn create_file_with_content(content: &[u8]) -> tempfile::NamedTempFile {
+        let mut file = tempfile::NamedTempFile::new().expect("couldn't generate tempfile");
+        file.write_all(content)
+            .expect("couldn't write content to file");
+        file
+    }
+
+    /// Creates a file with the content of the secret key of the given
+    /// type.
+    // TODO (CM): Doesn't currently generate public keys, or all the
+    // possible varieties of the various key types (e.g., service
+    // keys).
+    fn key_file(key_type: KeyType, name: &str) -> tempfile::NamedTempFile {
+        let content = match key_type {
+            KeyType::Sym => {
+                SymKey::generate_pair_for_ring(name).to_secret_string()
+                                                    .unwrap()
+            }
+            KeyType::Sig => {
+                SigKeyPair::generate_pair_for_origin(name).to_secret_string()
+                                                          .unwrap()
+            }
+            KeyType::Box => {
+                BoxKeyPair::generate_pair_for_user(name).unwrap()
+                                                        .to_secret_string()
+                                                        .unwrap()
+            }
+        };
+        create_file_with_content(content.as_bytes())
+    }
+
+    #[test]
+    fn test_file_is_valid_key_for_type() {
+        let file = key_file(KeyType::Sym, "foo");
+        assert!(super::file_is_valid_key_for_type(file.path(), KeyType::Sym).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sig).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Box).unwrap());
+
+        let file = key_file(KeyType::Sig, "foo");
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sym).unwrap());
+        assert!(super::file_is_valid_key_for_type(file.path(), KeyType::Sig).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Box).unwrap());
+
+        let file = key_file(KeyType::Box, "foo");
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sym).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sig).unwrap());
+        assert!(super::file_is_valid_key_for_type(file.path(), KeyType::Box).unwrap());
+    }
+
+    #[test]
+    fn test_file_is_valid_key_for_type_with_bogus_content() {
+        let file = create_file_with_content(b"LOLWUT-NOT-A-KEY\nNOPE\n\nGO AWAY");
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sym).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Box).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sig).unwrap());
+
+        let file = create_file_with_content(b"");
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sym).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Box).unwrap());
+        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sig).unwrap());
     }
 }

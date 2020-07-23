@@ -37,7 +37,7 @@ impl SymKey {
     pub fn get_pairs_for<P: AsRef<Path> + ?Sized>(name: &str,
                                                   cache_key_path: &P)
                                                   -> Result<Vec<Self>> {
-        let revisions = get_key_revisions(name, cache_key_path.as_ref(), None, &KeyType::Sym)?;
+        let revisions = get_key_revisions(name, cache_key_path.as_ref(), None, KeyType::Sym)?;
         let mut key_pairs = Vec::new();
         for name_with_rev in &revisions {
             debug!("Attempting to read key name_with_rev {} for {}",

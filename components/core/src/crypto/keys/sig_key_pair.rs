@@ -36,9 +36,9 @@ impl SigKeyPair {
     /// The newest key is listed first in the Vec.
     pub fn get_pairs_for<P: AsRef<Path> + ?Sized>(name: &str,
                                                   cache_key_path: &P,
-                                                  pair_type: Option<&PairType>)
+                                                  pair_type: Option<PairType>)
                                                   -> Result<Vec<Self>> {
-        let revisions = get_key_revisions(name, cache_key_path.as_ref(), pair_type, &KeyType::Sig)?;
+        let revisions = get_key_revisions(name, cache_key_path.as_ref(), pair_type, KeyType::Sig)?;
         debug!("revisions = {:?}", &revisions);
         let mut key_pairs = Vec::new();
         for name_with_rev in &revisions {
@@ -82,7 +82,7 @@ impl SigKeyPair {
 
     pub fn get_latest_pair_for<P: AsRef<Path> + ?Sized>(name: &str,
                                                         cache_key_path: &P,
-                                                        pair_type: Option<&PairType>)
+                                                        pair_type: Option<PairType>)
                                                         -> Result<Self> {
         let mut all = Self::get_pairs_for(name, cache_key_path, pair_type)?;
         match all.len() {
@@ -390,11 +390,11 @@ mod test {
 
         // We should be able to count public and private keys separately
         let pairs =
-            SigKeyPair::get_pairs_for("unicorn", cache.path(), Some(&PairType::Secret)).unwrap();
+            SigKeyPair::get_pairs_for("unicorn", cache.path(), Some(PairType::Secret)).unwrap();
         assert_eq!(pairs.len(), 2);
 
         let pairs =
-            SigKeyPair::get_pairs_for("unicorn", cache.path(), Some(&PairType::Public)).unwrap();
+            SigKeyPair::get_pairs_for("unicorn", cache.path(), Some(PairType::Public)).unwrap();
         assert_eq!(pairs.len(), 2);
     }
 
@@ -464,7 +464,7 @@ mod test {
         p.to_pair_files(cache.path()).unwrap();
         let latest = SigKeyPair::get_latest_pair_for("unicorn",
                                                      cache.path(),
-                                                     Some(&PairType::Secret)).unwrap();
+                                                     Some(PairType::Secret)).unwrap();
         assert_eq!(latest.name, p.name);
         assert_eq!(latest.rev, p.rev);
     }
@@ -476,7 +476,7 @@ mod test {
         p.to_pair_files(cache.path()).unwrap();
         let latest = SigKeyPair::get_latest_pair_for("unicorn",
                                                      cache.path(),
-                                                     Some(&PairType::Public)).unwrap();
+                                                     Some(PairType::Public)).unwrap();
         assert_eq!(latest.name, p.name);
         assert_eq!(latest.rev, p.rev);
     }

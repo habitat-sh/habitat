@@ -93,7 +93,7 @@ impl BoxKeyPair {
               P: AsRef<Path>
     {
         let revisions =
-            get_key_revisions(name.as_ref(), cache_key_path.as_ref(), None, &KeyType::Box)?;
+            get_key_revisions(name.as_ref(), cache_key_path.as_ref(), None, KeyType::Box)?;
         let mut key_pairs = Vec::new();
         for name_with_rev in revisions {
             debug!("Attempting to read key name_with_rev {} for {}",
