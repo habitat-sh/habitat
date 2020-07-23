@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.99 -->
-## [1.6.99](https://github.com/habitat-sh/habitat/tree/1.6.99) (2020-07-23)
+<!-- latest_release 1.6.100 -->
+## [1.6.100](https://github.com/habitat-sh/habitat/tree/1.6.100) (2020-07-23)
 
 #### Bug Fixes
-- Ignore unreadable keys when exporting (among other uses) [#7832](https://github.com/habitat-sh/habitat/pull/7832) ([christophermaier](https://github.com/christophermaier))
+- Add supplemental groups to Linux hook processes [#7823](https://github.com/habitat-sh/habitat/pull/7823) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -16,6 +16,7 @@
 - Allow dynamic changes to updater-related config for services  [#7770](https://github.com/habitat-sh/habitat/pull/7770) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.65 -->
 
 #### Bug Fixes
+- Add supplemental groups to Linux hook processes [#7823](https://github.com/habitat-sh/habitat/pull/7823) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.100 -->
 - Ignore unreadable keys when exporting (among other uses) [#7832](https://github.com/habitat-sh/habitat/pull/7832) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.99 -->
 - [Fix] Cli completions by conditionally hiding bulkload subcommand [#7827](https://github.com/habitat-sh/habitat/pull/7827) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.96 -->
 - Fix hab svc load argument parsing [#7822](https://github.com/habitat-sh/habitat/pull/7822) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.96 -->
