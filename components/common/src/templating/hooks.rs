@@ -18,13 +18,10 @@ use habitat_core::{crypto,
 use serde::{Serialize,
             Serializer};
 #[cfg(unix)]
-use std::os::unix::process::{CommandExt,
-                             ExitStatusExt};
+use std::os::unix::process::ExitStatusExt;
 #[cfg(not(windows))]
 use std::process::{Child,
-                   Command,
-                   ExitStatus,
-                   Stdio};
+                   ExitStatus};
 use std::{ffi::OsStr,
           fmt,
           fs::File,
@@ -248,57 +245,31 @@ pub trait Hook: fmt::Debug + Sized + Send {
         where T: ToString,
               S: AsRef<OsStr>
     {
-        use habitat_core::os::users;
-        use std::io::Error as IoError;
+        use habitat_core::os::{process,
+                               users};
+        use nix::unistd::{Gid,
+                          Uid};
+        use std::ops::Deref;
 
-        let mut cmd = Command::new(path.as_ref());
-        cmd.stdin(Stdio::null())
-           .stdout(Stdio::piped())
-           .stderr(Stdio::piped());
-        for (key, val) in pkg.env.iter() {
-            cmd.env(key, val);
-        }
-
-        if users::can_run_services_as_svc_user() {
+        let ids = if process::can_run_services_as_svc_user() {
             // If we can SETUID/SETGID, then run the script as the service
             // user; otherwise, we'll just run it as ourselves.
-
-            let uid = users::get_uid_by_name(&pkg.svc_user).ok_or_else(|| {
-                                                               Error::PermissionFailed(format!(
-                    "No uid for user '{}' could be found",
-                    &pkg.svc_user
-                ))
-                                                           })?;
-            let gid = users::get_gid_by_name(&pkg.svc_group).ok_or_else(|| {
-                                                                Error::PermissionFailed(format!(
-                    "No gid for group '{}' could be found",
-                    &pkg.svc_group
-                ))
-                                                            })?;
-
-            cmd.uid(uid).gid(gid);
+            let uid = users::get_uid_by_name(&pkg.svc_user)
+                .map(Uid::from_raw)
+                .ok_or_else(|| {Error::PermissionFailed(format!("No uid for user '{}' could be found", &pkg.svc_user))})?;
+            let gid = users::get_gid_by_name(&pkg.svc_group)
+                .map(Gid::from_raw)
+                .ok_or_else(|| {Error::PermissionFailed(format!("No gid for group '{}' could be found", &pkg.svc_group))})?;
+            Some((uid, gid))
         } else {
             debug!("Current user lacks sufficient capabilites to run {:?} as \"{}\"; running as \
                     self!",
                    path.as_ref(),
                    &pkg.svc_user);
-        }
+            None
+        };
 
-        unsafe {
-            cmd.pre_exec(|| {
-                   // Run in your own process group! This prevents terminal
-                   // signals (e.g. ^C) sent to a Supervisor running in the
-                   // foreground from being passed down to any running hooks,
-                   // which could cause them to terminate prematurely, among
-                   // other things.
-                   if libc::setpgid(0, 0) == 0 {
-                       Ok(())
-                   } else {
-                       Err(IoError::last_os_error())
-                   }
-               });
-        }
-
+        let mut cmd = process::exec::unix::hook_command(path, pkg.env.deref(), ids);
         Ok(cmd.spawn()?)
     }
 

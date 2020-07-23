@@ -724,7 +724,7 @@ version = "3.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "54dedab740bc412d514cfbc4a1d9d5d16fed02c4b14a7be129003c07fdc33b9b"
 dependencies = [
- "nix 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nix",
  "winapi 0.3.9",
 ]
 
@@ -1249,6 +1249,7 @@ dependencies = [
  "ipc-channel",
  "libc",
  "log 0.4.11",
+ "nix",
  "prost",
  "semver 0.10.0",
  "winapi 0.3.9",
@@ -1400,6 +1401,7 @@ dependencies = [
  "libc",
  "log 0.4.11",
  "native-tls",
+ "nix",
  "owning_ref",
  "parking_lot 0.11.0",
  "pbr",
@@ -1439,7 +1441,7 @@ dependencies = [
  "libc",
  "libsodium-sys",
  "log 0.4.11",
- "nix 0.17.0 (git+https://github.com/nix-rust/nix.git?rev=3c2107bdc221a90b02d3f7118dd96f3496762cd0)",
+ "nix",
  "num_cpus",
  "os_info",
  "rand 0.7.3",
@@ -2289,19 +2291,6 @@ dependencies = [
 name = "nix"
 version = "0.17.0"
 source = "git+https://github.com/nix-rust/nix.git?rev=3c2107bdc221a90b02d3f7118dd96f3496762cd0#3c2107bdc221a90b02d3f7118dd96f3496762cd0"
-dependencies = [
- "bitflags",
- "cc",
- "cfg-if",
- "libc",
- "void",
-]
-
-[[package]]
-name = "nix"
-version = "0.17.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50e4785f2c3b7589a0d0c1dd60285e1188adac4006e8abd6dd578e1567027363"
 dependencies = [
  "bitflags",
  "cc",

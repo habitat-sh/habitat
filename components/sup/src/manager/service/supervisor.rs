@@ -129,7 +129,7 @@ impl Supervisor {
     // self.service_group, and even then only for Linux :/
     #[cfg(unix)]
     fn user_info(&self, pkg: &Pkg) -> Result<UserInfo> {
-        if users::can_run_services_as_svc_user() {
+        if process::can_run_services_as_svc_user() {
             // We have the ability to run services as a user / group other
             // than ourselves, so they better exist
             let uid = users::get_uid_by_name(&pkg.svc_user).ok_or_else(|| {

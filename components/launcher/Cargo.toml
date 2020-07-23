@@ -21,5 +21,8 @@ log = "*"
 prost = "*"
 semver = "*"
 
+[target.'cfg(not(windows))'.dependencies]
+nix = "*"
+
 [target.'cfg(windows)'.dependencies]
 winapi =  { version = "*", features = ["tlhelp32"] }

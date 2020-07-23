@@ -5,25 +5,6 @@ use nix::unistd::{Group,
                   User};
 use std::path::PathBuf;
 
-/// This is currently the "master check" for whether the Supervisor
-/// can behave "as root".
-///
-/// All capabilities must be present. If we can run processes as other
-/// users, but can't change ownership, then the processes won't be
-/// able to access their files. Similar logic holds for the reverse.
-#[cfg(target_os = "linux")]
-pub fn can_run_services_as_svc_user() -> bool {
-    use caps::{CapSet,
-               Capability};
-
-    fn has(cap: Capability) -> bool { caps::has_cap(None, CapSet::Effective, cap).unwrap_or(false) }
-
-    has(Capability::CAP_SETUID) && has(Capability::CAP_SETGID) && has(Capability::CAP_CHOWN)
-}
-
-#[cfg(target_os = "macos")]
-pub fn can_run_services_as_svc_user() -> bool { true }
-
 pub fn get_uid_by_name(owner: &str) -> Option<u32> {
     ok_warn!(User::from_name(owner)).flatten()
                                     .map(|u| u.uid.as_raw())

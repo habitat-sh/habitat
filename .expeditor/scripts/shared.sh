@@ -357,6 +357,7 @@ macos_use_cert_file_from_linux_cacerts_package() {
     # we can just grab a cert file from the Linux core/cacerts Habitat
     # package.
     cacerts_scratch_dir="cacerts_scratch"
+    rm -Rf "${cacerts_scratch_dir}"
     mkdir "${cacerts_scratch_dir}"
     hab pkg download core/cacerts \
         --target=x86_64-linux \

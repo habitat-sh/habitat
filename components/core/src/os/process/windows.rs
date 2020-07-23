@@ -109,3 +109,5 @@ fn exit_status(handle: HANDLE) -> Result<u32> {
 
     Ok(exit_status)
 }
+
+pub fn can_run_services_as_svc_user() -> bool { true }

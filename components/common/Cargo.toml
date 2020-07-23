@@ -48,6 +48,9 @@ toml = { version = "*", features = ["preserve_order"] }
 uuid = { version = "*", features = ["v4"] }
 valico = "*"
 
+[target.'cfg(not(windows))'.dependencies]
+nix = "*"
+
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "*", features = ["consoleapi", "processenv"] }
 

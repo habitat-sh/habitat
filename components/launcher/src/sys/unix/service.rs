@@ -1,19 +1,18 @@
-use crate::{core::os::{self,
-                       process::{signal,
-                                 Signal}},
-            error::{Error,
+use crate::{error::{Error,
                     Result},
             protocol::{self,
                        ShutdownMethod},
             service::Service};
+use habitat_core::os::{self,
+                       process::{exec,
+                                 signal,
+                                 Signal}};
+use nix::unistd::{Gid,
+                  Uid};
 use std::{io,
           ops::Neg,
-          os::unix::process::CommandExt,
           process::{Child,
-                    Command,
-                    ExitStatus,
-                    Stdio},
-          result,
+                    ExitStatus},
           time::{Duration,
                  Instant}};
 
@@ -69,50 +68,32 @@ impl Process {
 
 pub fn run(msg: protocol::Spawn) -> Result<Service> {
     debug!("launcher is spawning {}", msg.binary);
-    let mut cmd = Command::new(&msg.binary);
 
     // Favor explicitly set UID/GID over names when present
-    let uid = if let Some(suid) = msg.svc_user_id {
+    let user_id = if let Some(suid) = msg.svc_user_id {
         suid
     } else if let Some(suser) = &msg.svc_user {
         os::users::get_uid_by_name(&suser).ok_or_else(|| Error::UserNotFound(suser.to_string()))?
     } else {
         return Err(Error::UserNotFound(String::from("")));
     };
+    let uid = Uid::from_raw(user_id);
 
-    let gid = if let Some(sgid) = msg.svc_group_id {
+    let group_id = if let Some(sgid) = msg.svc_group_id {
         sgid
     } else if let Some(sgroup) = &msg.svc_group {
         os::users::get_gid_by_name(&sgroup).ok_or_else(|| Error::GroupNotFound(sgroup.to_string()))?
     } else {
         return Err(Error::GroupNotFound(String::from("")));
     };
+    let gid = Gid::from_raw(group_id);
 
-    unsafe {
-        cmd.pre_exec(owned_pgid);
-    }
-    cmd.stdin(Stdio::null())
-       .stdout(Stdio::piped())
-       .stderr(Stdio::piped())
-       .uid(uid)
-       .gid(gid);
-    for (key, val) in msg.env.iter() {
-        cmd.env(key, val);
-    }
+    let mut cmd = exec::unix::hook_command(&msg.binary, &msg.env, Some((uid, gid)));
+
     let mut child = cmd.spawn().map_err(Error::Spawn)?;
     let stdout = child.stdout.take();
     let stderr = child.stderr.take();
     let process = Process(child);
     debug!(target: "pidfile_tracing", "Launcher spawned {} with PID = {}", msg.binary, process.id());
     Ok(Service::new(msg, process, stdout, stderr))
-}
-
-// we want the command to spawn processes in their own process group
-// and not the same group as the Launcher. Otherwise if a child process
-// sends SIGTERM to the group, the Launcher could be terminated.
-fn owned_pgid() -> result::Result<(), io::Error> {
-    unsafe {
-        libc::setpgid(0, 0);
-    }
-    Ok(())
 }

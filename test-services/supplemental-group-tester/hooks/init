@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -e
+
+file="/tmp/supplemental-group-tester-file"
+
+echo "Supplemental Group Tester: INIT HOOK"
+echo "Verifying ${file} exists"
+file "${file}"
+echo "Should be able to read the file"
+cat "${file}"

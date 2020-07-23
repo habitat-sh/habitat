@@ -1,0 +1,20 @@
+#!/bin/sh
+
+set -e
+
+file="/tmp/supplemental-group-tester-file"
+
+echo "Supplemental Group Tester: RUN HOOK"
+echo "Verifying ${file} exists"
+file "${file}"
+echo "Should be able to read the file"
+cat "${file}"
+
+echo "Writing a sentinel file to show we got this far"
+echo "SUCCESS" /tmp/supplemental-group-tester-sentinel
+
+while true; do
+      echo "Working"
+      echo "Sleeping for a while..."
+      sleep 3
+done
