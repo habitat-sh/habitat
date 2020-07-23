@@ -1,6 +1,7 @@
 setup() {
   if [ -n "$CI" ]; then
     rm -f /bin/hab
+    rm -f /usr/bin/hab
     rm -rf /hab/pkgs/core/hab
   else
     echo "Not running in CI, skipping cleanup"
