@@ -7,7 +7,8 @@ pub mod plan;
 pub mod target;
 
 pub use self::{archive::{FromArchive,
-                         PackageArchive},
+                         PackageArchive,
+                         PackageArchiveInfo},
                ident::{FullyQualifiedPackageIdent,
                        Identifiable,
                        PackageIdent},

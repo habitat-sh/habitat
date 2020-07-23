@@ -1,32 +1,41 @@
 use crate::{common::ui::{UIWriter,
                          UI},
             error::Result,
-            hcore::package::PackageArchive};
+            hcore::package::PackageArchiveInfo};
 use serde::Serialize;
 use serde_json::{self,
                  Value as Json};
 use std::path::Path;
 
-fn convert_to_json<T>(src: &T) -> Json
+fn convert_to_json<T>(src: &T) -> Result<Json>
     where T: Serialize
 {
-    serde_json::to_value(src).unwrap_or(Json::Null)
+    serde_json::to_value(src).map_err(|e| habitat_core::Error::RenderContextSerialization(e).into())
 }
 
 pub fn start(ui: &mut UI, src: &Path, to_json: bool) -> Result<()> {
-    let ident = PackageArchive::new(src)?.ident()?;
+    let info = PackageArchiveInfo::from_path(src)?;
 
     if to_json {
-        println!("{}", convert_to_json(&ident));
+        match convert_to_json(&info) {
+            Ok(content) => {
+                println!("{}", content);
+                return Ok(());
+            }
+            Err(e) => {
+                ui.fatal(format!("Failed to deserialize into json! {:?}.", e))?;
+                return Err(e);
+            }
+        }
     } else {
         ui.begin(format!("Reading PackageIdent from {}", &src.display()))?;
         ui.para("")?;
 
         println!("Package Path   : {}", &src.display());
-        println!("Origin         : {}", &ident.origin);
-        println!("Name           : {}", &ident.name);
-        println!("Version        : {}", &ident.version.unwrap());
-        println!("Release        : {}", &ident.release.unwrap());
+        println!("Origin         : {}", info.origin);
+        println!("Name           : {}", info.name);
+        println!("Version        : {}", info.version);
+        println!("Release        : {}", info.release);
     }
     Ok(())
 }

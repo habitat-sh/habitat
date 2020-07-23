@@ -267,7 +267,7 @@ pub enum Pkg {
     },
     /// Returns the Habitat Artifact information
     Info {
-        /// Output will be rendered in json
+        /// Output will be rendered in json. (Includes extended metadata)
         #[structopt(name = "TO_JSON", short = "j", long = "json")]
         to_json: bool,
         /// A path to a Habitat Artifact (ex:
