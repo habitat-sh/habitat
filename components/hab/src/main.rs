@@ -117,10 +117,13 @@ async fn main() {
 
 #[allow(clippy::cognitive_complexity)]
 async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
-    if std::env::args().skip(1).collect::<Vec<_>>() == vec!["license", "accept"] {
+    let args = std::env::args().skip(1).collect::<Vec<_>>();
+    if args == vec!["license", "accept"] {
         license::accept_license(ui)?;
         return Ok(());
-    } else {
+    }
+    // If we are just checking the version do not require accepting the license
+    else if args != vec!["--version"] {
         license::check_for_license_acceptance_and_prompt(ui)?;
     }
 
