@@ -213,13 +213,7 @@ impl PackageArchive {
     //
     // See https://rust-lang.github.io/rust-clippy/master/index.html#wrong_self_convention
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_a_service(&mut self) -> bool {
-        if let Some(_user) = self.svc_user() {
-            true
-        } else {
-            false
-        }
-    }
+    pub fn is_a_service(&mut self) -> bool { self.svc_user().is_some() }
 
     /// Returns a list of package identifiers representing the runtime package dependencies for
     /// this archive.
