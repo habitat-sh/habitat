@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.96 -->
-## [1.6.96](https://github.com/habitat-sh/habitat/tree/1.6.96) (2020-07-22)
+<!-- latest_release 1.6.97 -->
+## [1.6.97](https://github.com/habitat-sh/habitat/tree/1.6.97) (2020-07-23)
 
-#### Bug Fixes
-- [Fix] Cli completions by conditionally hiding bulkload subcommand [#7827](https://github.com/habitat-sh/habitat/pull/7827) ([davidMcneil](https://github.com/davidMcneil))
+#### Merged Pull Requests
+- Update configopt version [#7830](https://github.com/habitat-sh/habitat/pull/7830) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -22,6 +22,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- Update configopt version [#7830](https://github.com/habitat-sh/habitat/pull/7830) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.97 -->
 - fix builds consuming runtime environment of build deps [#7828](https://github.com/habitat-sh/habitat/pull/7828) ([mwrock](https://github.com/mwrock)) <!-- 1.6.96 -->
 - Use the new downloads site where appropriate. [#7824](https://github.com/habitat-sh/habitat/pull/7824) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.95 -->
 - fixes clippy [#7826](https://github.com/habitat-sh/habitat/pull/7826) ([mwrock](https://github.com/mwrock)) <!-- 1.6.94 -->
