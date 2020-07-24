@@ -6,11 +6,11 @@ use super::{super::{ANONYMOUS_BOX_FORMAT_VERSION,
                     SECRET_BOX_KEY_VERSION},
             get_key_revisions,
             mk_key_filename,
-            mk_revision_string,
             parse_name_with_rev,
             write_keypair_files,
             HabitatKey,
             KeyPair,
+            KeyRevision,
             KeyType};
 use crate::error::{Error,
                    Result};
@@ -69,7 +69,7 @@ impl BoxKeyPair {
         where S1: AsRef<str>,
               S2: AsRef<str>
     {
-        let revision = mk_revision_string();
+        let revision = KeyRevision::new();
         let keyname =
             Self::mk_key_name_for_service(org.as_ref(), service_group.as_ref(), &revision);
         debug!("new service box key name = {}", &keyname);
@@ -215,7 +215,7 @@ impl BoxKeyPair {
     }
 
     fn generate_pair_for_string(string: &str) -> Result<Self> {
-        let revision = mk_revision_string();
+        let revision = KeyRevision::new();
         let keyname = Self::mk_key_name_for_string(string, &revision);
         debug!("new sig key name = {}", &keyname);
         let (pk, sk) = box_::gen_keypair();
@@ -456,14 +456,13 @@ impl BoxKeyPair {
 
 #[cfg(test)]
 mod test {
-    use std::{fs,
-              str};
-
-    use tempfile::Builder;
-
     use super::{super::super::test_support::*,
                 BoxKeyPair,
+                KeyRevision,
                 *};
+    use std::{fs,
+              str};
+    use tempfile::Builder;
 
     static VALID_KEY: &str = "service-key-valid.default@acme-20160509181736.box.key";
     static VALID_PUB: &str = "service-key-valid.default@acme-20160509181736.pub";
@@ -471,10 +470,13 @@ mod test {
 
     #[test]
     fn empty_struct() {
-        let pair = BoxKeyPair::new("grohl".to_string(), "201604051449".to_string(), None, None);
+        let pair = BoxKeyPair::new("grohl".to_string(),
+                                   KeyRevision::unchecked("201604051449"),
+                                   None,
+                                   None);
 
         assert_eq!(pair.name, "grohl");
-        assert_eq!(pair.rev, "201604051449");
+        assert_eq!(pair.rev, KeyRevision::unchecked("201604051449"));
         assert_eq!(pair.name_with_rev(), "grohl-201604051449");
 
         assert_eq!(pair.public, None);
