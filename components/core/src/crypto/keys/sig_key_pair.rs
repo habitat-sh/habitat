@@ -9,6 +9,7 @@ use super::{super::{hash,
             parse_name_with_rev,
             read_key_bytes,
             write_keypair_files,
+            HabitatKey,
             KeyPair,
             KeyType,
             PairType,
@@ -190,7 +191,7 @@ impl SigKeyPair {
     pub fn write_file_from_str<P: AsRef<Path> + ?Sized>(content: &str,
                                                         cache_key_path: &P)
                                                         -> Result<(Self, PairType)> {
-        let key = super::parse_key_str(content)?;
+        let key: HabitatKey = content.parse()?;
         let pair_type = key.pair_type();
         let name_with_rev = key.name_with_rev();
 
