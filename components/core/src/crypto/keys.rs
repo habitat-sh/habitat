@@ -215,10 +215,7 @@ impl TryFrom<&Path> for HabitatKey {
     type Error = Error;
 
     fn try_from(value: &Path) -> std::result::Result<Self, Self::Error> {
-        let mut f = File::open(value)?;
-        let mut s = String::new();
-        f.read_to_string(&mut s)?;
-        Ok(s.parse::<HabitatKey>()?)
+        Ok(fs::read_to_string(value)?.parse()?)
     }
 }
 
