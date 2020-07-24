@@ -7,7 +7,6 @@ use super::{super::{hash,
             mk_key_filename,
             mk_revision_string,
             parse_name_with_rev,
-            read_key_bytes,
             write_keypair_files,
             HabitatKey,
             KeyPair,
@@ -20,7 +19,8 @@ use sodiumoxide::{crypto::sign::{self,
                                  ed25519::{PublicKey as SigPublicKey,
                                            SecretKey as SigSecretKey}},
                   randombytes::randombytes};
-use std::{fs,
+use std::{convert::TryFrom,
+          fs,
           path::{Path,
                  PathBuf}};
 
@@ -288,7 +288,7 @@ impl SigKeyPair {
 
     fn get_public_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SigPublicKey> {
         let public_keyfile = mk_key_filename(cache_key_path, key_with_rev, PUBLIC_KEY_SUFFIX);
-        let bytes = read_key_bytes(&public_keyfile)?;
+        let bytes = HabitatKey::try_from(&public_keyfile)?.bytes();
         match SigPublicKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
@@ -301,7 +301,7 @@ impl SigKeyPair {
 
     fn get_secret_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SigSecretKey> {
         let secret_keyfile = mk_key_filename(cache_key_path, key_with_rev, SECRET_SIG_KEY_SUFFIX);
-        let bytes = read_key_bytes(&secret_keyfile)?;
+        let bytes = HabitatKey::try_from(&secret_keyfile)?.bytes();
         match SigSecretKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
