@@ -482,18 +482,7 @@ pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, String)>
     Ok((name, rev))
 }
 
-fn read_key_bytes_from_str(key: &str) -> Result<Vec<u8>> {
-    match key.lines().nth(3) {
-        Some(encoded) => {
-            let v = base64::decode(encoded).map_err(|e| {
-                                               Error::CryptoError(format!("Can't read raw key {}",
-                                                                          e))
-                                           })?;
-            Ok(v)
-        }
-        None => Err(Error::CryptoError("Malformed key contents".to_string())),
-    }
-}
+fn read_key_bytes_from_str(key: &str) -> Result<Vec<u8>> { Ok(key.parse::<HabitatKey>()?.bytes()) }
 
 fn write_keypair_files(public_keyfile: Option<&Path>,
                        public_content: Option<String>,
