@@ -3,11 +3,11 @@ use super::{super::{hash,
                     SECRET_SYM_KEY_VERSION},
             get_key_revisions,
             mk_key_filename,
-            mk_revision_string,
             parse_name_with_rev,
             write_keypair_files,
             HabitatKey,
             KeyPair,
+            KeyRevision,
             KeyType,
             PairType,
             TmpKeyfile};
@@ -30,7 +30,7 @@ impl fmt::Debug for SymKey {
 
 impl SymKey {
     pub fn generate_pair_for_ring(name: &str) -> Self {
-        let revision = mk_revision_string();
+        let revision = KeyRevision::new();
         let secret_key = secretbox::gen_key();
         SymKey::new(name.to_string(), revision, Some(()), Some(secret_key))
     }
@@ -346,25 +346,27 @@ impl SymKey {
 
 #[cfg(test)]
 mod test {
+    use super::{super::{super::test_support::*,
+                        PairType},
+                KeyRevision,
+                SymKey};
     use std::{fs::{self,
                    File},
               io::Read};
-
     use tempfile::Builder;
-
-    use super::{super::{super::test_support::*,
-                        PairType},
-                SymKey};
 
     static VALID_KEY: &str = "ring-key-valid-20160504220722.sym.key";
     static VALID_NAME_WITH_REV: &str = "ring-key-valid-20160504220722";
 
     #[test]
     fn empty_struct() {
-        let pair = SymKey::new("grohl".to_string(), "201604051449".to_string(), None, None);
+        let pair = SymKey::new("grohl".to_string(),
+                               KeyRevision::unchecked("201604051449"),
+                               None,
+                               None);
 
         assert_eq!(pair.name, "grohl");
-        assert_eq!(pair.rev, "201604051449");
+        assert_eq!(pair.rev, KeyRevision::unchecked("201604051449"));
         assert_eq!(pair.name_with_rev(), "grohl-201604051449");
 
         assert_eq!(pair.public, None);
@@ -524,7 +526,10 @@ mod test {
     #[test]
     #[should_panic(expected = "Secret key is required but not present for")]
     fn encrypt_missing_secret_key() {
-        let pair = SymKey::new("grohl".to_string(), "201604051449".to_string(), None, None);
+        let pair = SymKey::new("grohl".to_string(),
+                               KeyRevision::unchecked("201604051449"),
+                               None,
+                               None);
 
         pair.encrypt(b"Not going to go well").unwrap();
     }
@@ -537,7 +542,10 @@ mod test {
         pair.to_pair_files(cache.path()).unwrap();
         let (nonce, ciphertext) = pair.encrypt(b"Ringonit").unwrap();
 
-        let missing = SymKey::new("grohl".to_string(), "201604051449".to_string(), None, None);
+        let missing = SymKey::new("grohl".to_string(),
+                                  KeyRevision::unchecked("201604051449"),
+                                  None,
+                                  None);
         missing.decrypt(&nonce, &ciphertext).unwrap();
     }
 

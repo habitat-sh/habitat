@@ -5,11 +5,11 @@ use super::{super::{hash,
                     SECRET_SIG_KEY_VERSION},
             get_key_revisions,
             mk_key_filename,
-            mk_revision_string,
             parse_name_with_rev,
             write_keypair_files,
             HabitatKey,
             KeyPair,
+            KeyRevision,
             KeyType,
             PairType,
             TmpKeyfile};
@@ -28,7 +28,7 @@ pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
 
 impl SigKeyPair {
     pub fn generate_pair_for_origin(name: &str) -> Self {
-        let revision = mk_revision_string();
+        let revision = KeyRevision::new();
         let (pk, sk) = sign::gen_keypair();
         Self::new(name.to_string(), revision, Some(pk), Some(sk))
     }
@@ -313,15 +313,14 @@ impl SigKeyPair {
 
 #[cfg(test)]
 mod test {
+    use super::{super::{super::test_support::*,
+                        PairType},
+                KeyRevision,
+                SigKeyPair};
     use std::{fs::{self,
                    File},
               io::Read};
-
     use tempfile::Builder;
-
-    use super::{super::{super::test_support::*,
-                        PairType},
-                SigKeyPair};
 
     static VALID_KEY: &str = "origin-key-valid-20160509190508.sig.key";
     static VALID_PUB: &str = "origin-key-valid-20160509190508.pub";
@@ -329,10 +328,13 @@ mod test {
 
     #[test]
     fn empty_struct() {
-        let pair = SigKeyPair::new("grohl".to_string(), "201604051449".to_string(), None, None);
+        let pair = SigKeyPair::new("grohl".to_string(),
+                                   KeyRevision::unchecked("201604051449"),
+                                   None,
+                                   None);
 
         assert_eq!(pair.name, "grohl");
-        assert_eq!(pair.rev, "201604051449");
+        assert_eq!(pair.rev, KeyRevision::unchecked("201604051449"));
         assert_eq!(pair.name_with_rev(), "grohl-201604051449");
 
         assert_eq!(pair.public, None);

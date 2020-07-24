@@ -23,6 +23,7 @@ use std::{collections::HashSet,
           io::{prelude::*,
                BufReader,
                BufWriter},
+          ops::Deref,
           path::{Path,
                  PathBuf},
           result,
@@ -37,6 +38,8 @@ lazy_static::lazy_static! {
 pub mod box_key_pair;
 pub mod sig_key_pair;
 pub mod sym_key;
+
+////////////////////////////////////////////////////////////////////////
 
 #[derive(Clone, Copy, Debug)]
 enum KeyType {
@@ -54,6 +57,8 @@ impl fmt::Display for KeyType {
         }
     }
 }
+
+////////////////////////////////////////////////////////////////////////
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize)]
 pub enum PairType {
@@ -86,6 +91,8 @@ impl FromStr for PairType {
     }
 }
 
+////////////////////////////////////////////////////////////////////////
+
 struct TmpKeyfile {
     pub path: PathBuf,
 }
@@ -97,6 +104,8 @@ impl Drop for TmpKeyfile {
         }
     }
 }
+
+////////////////////////////////////////////////////////////////////////
 
 pub struct HabitatKey {
     pair_type:     PairType, // NOT A PAIR!!!!!!
@@ -227,6 +236,48 @@ impl TryFrom<&PathBuf> for HabitatKey {
     }
 }
 
+////////////////////////////////////////////////////////////////////////
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct KeyRevision(String);
+
+impl KeyRevision {
+    /// Generates a revision string in the form:
+    /// `{year}{month}{day}{hour24}{minute}{second}`
+    /// Timestamps are in UTC time.
+    pub fn new() -> KeyRevision { KeyRevision(Utc::now().format("%Y%m%d%H%M%S").to_string()) }
+}
+
+// TODO (CM): Need some tests that assert that this format string and
+// the regex for parsing revisions from filenames are mutually
+// consistent.
+
+impl fmt::Display for KeyRevision {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { self.0.fmt(f) }
+}
+
+// As a "newtype", KeyRevision can be thought of as a kind of "smart
+// container", and thus we can implement Deref for it with our heads
+// held high.
+impl Deref for KeyRevision {
+    type Target = str;
+
+    fn deref(&self) -> &str { self.0.as_str() }
+}
+
+#[cfg(test)]
+impl KeyRevision {
+    /// Unchecked constructor for testing purposes only; assumes the
+    /// string being passed in is valid.
+    pub(crate) fn unchecked<R>(rev: R) -> KeyRevision
+        where R: AsRef<str>
+    {
+        KeyRevision(rev.as_ref().to_string())
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+
 /// A pair of related keys (public and secret) which have a name and revision.
 ///
 /// Depending on the type of keypair, the public key may be empty or not apply, or one or both of
@@ -238,7 +289,7 @@ pub struct KeyPair<P: PartialEq, S: PartialEq> {
     /// The name of the key, ex: "habitat"
     name:   String,
     /// The revision of the key, which is a timestamp, ex: "201604051449"
-    rev:    String,
+    rev:    KeyRevision,
     /// The public key component, if relevant
     public: Option<P>,
     /// The private key component, if relevant
@@ -247,7 +298,7 @@ pub struct KeyPair<P: PartialEq, S: PartialEq> {
 
 impl<P: PartialEq, S: PartialEq> KeyPair<P, S> {
     /// Creates a new `KeyPair`.
-    pub fn new(name: String, rev: String, p: Option<P>, s: Option<S>) -> KeyPair<P, S> {
+    pub fn new(name: String, rev: KeyRevision, p: Option<P>, s: Option<S>) -> KeyPair<P, S> {
         KeyPair { name,
                   rev,
                   public: p,
@@ -279,6 +330,8 @@ impl<P: PartialEq, S: PartialEq> KeyPair<P, S> {
         }
     }
 }
+
+////////////////////////////////////////////////////////////////////////
 
 /// If a key "belongs" to a filename revision, then add the full stem of the
 /// file (without path, without .suffix) to the set. This function doesn't
@@ -447,12 +500,9 @@ fn mk_key_filename<P, S1, S2>(path: P, keyname: S1, suffix: S2) -> PathBuf
         .join(format!("{}.{}", keyname.as_ref(), suffix.as_ref()))
 }
 
-/// generates a revision string in the form:
-/// `{year}{month}{day}{hour24}{minute}{second}`
-/// Timestamps are in UTC time.
-fn mk_revision_string() -> String { Utc::now().format("%Y%m%d%H%M%S").to_string() }
-
-pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, String)>
+// NOTE: this function is currently the only other constructor for
+// KeyRevisions aside from KeyRevision::new().
+pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, KeyRevision)>
     where T: AsRef<str>
 {
     let caps = match NAME_WITH_REV_RE.captures(name_with_rev.as_ref()) {
@@ -472,7 +522,11 @@ pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, String)>
         }
     };
     let rev = match caps.name("rev") {
-        Some(r) => r.as_str().to_string(),
+        // TODO (CM): This is a bit of an awkward constructor at the
+        // moment, but we'll allow it as we've already validated this
+        // with the larger regex. Eventually we should harmonize all
+        // this a bit more.
+        Some(r) => KeyRevision(r.as_str().to_string()),
         None => {
             let msg = format!("parse_name_with_rev:3 Cannot parse rev from {}",
                               name_with_rev.as_ref());
@@ -549,6 +603,8 @@ fn set_permissions<T: AsRef<Path>>(path: T, _perms: &Permissions) -> Result<()> 
 
     win_perm::harden_path(path.as_ref())
 }
+
+////////////////////////////////////////////////////////////////////////
 
 #[cfg(test)]
 mod test {
@@ -651,19 +707,19 @@ mod test {
     fn parse_name_with_rev() {
         let (name, rev) = super::parse_name_with_rev("an-origin-19690114010203").unwrap();
         assert_eq!(name, "an-origin");
-        assert_eq!(rev, "19690114010203");
+        assert_eq!(rev, KeyRevision::unchecked("19690114010203"));
 
         let (name, rev) = super::parse_name_with_rev("user-19480531051223").unwrap();
         assert_eq!(name, "user");
-        assert_eq!(rev, "19480531051223");
+        assert_eq!(rev, KeyRevision::unchecked("19480531051223"));
 
         let (name, rev) = super::parse_name_with_rev("tnt.default@acme-19480531051223").unwrap();
         assert_eq!(name, "tnt.default@acme");
-        assert_eq!(rev, "19480531051223");
+        assert_eq!(rev, KeyRevision::unchecked("19480531051223"));
 
         let (name, rev) = super::parse_name_with_rev("--20160420042001").unwrap();
         assert_eq!(name, "-");
-        assert_eq!(rev, "20160420042001");
+        assert_eq!(rev, KeyRevision::unchecked("20160420042001"));
     }
 
     #[test]
