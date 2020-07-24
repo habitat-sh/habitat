@@ -16,9 +16,9 @@ Describe "version check without license" {
         $process | Stop-Process -Force
     }
 
-    hab license accept
-
     It "all commands work with license" {
+        hab license accept
+
         hab --version
         $LastExitCode | Should -Be 0
 
