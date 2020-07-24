@@ -568,18 +568,11 @@ fn set_permissions<T: AsRef<Path>>(path: T, _perms: &Permissions) -> Result<()> 
 #[cfg(test)]
 mod test {
     use super::{super::test_support::*,
-                box_key_pair::BoxKeyPair,
-                sig_key_pair::SigKeyPair,
-                sym_key::SymKey,
-                KeyType,
-                PairType,
-                TmpKeyfile};
-    use std::{collections::HashSet,
-              fs::{self,
-                   File},
-              io::Write,
-              path::Path,
-              thread,
+                *};
+    use crate::crypto::keys::{box_key_pair::BoxKeyPair,
+                              sig_key_pair::SigKeyPair,
+                              sym_key::SymKey};
+    use std::{thread,
               time::Duration};
     use tempfile::Builder;
 
