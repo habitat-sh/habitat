@@ -9,16 +9,27 @@ source .expeditor/scripts/shared.sh
 # e.g. `dev`, `acceptance` etc.
 channel=${1:?You must specify a channel value}
 
-declare -g hab_binary
-curlbash_hab "$BUILD_PKG_TARGET"
+# Note: We should always have a `hab` binary installed in our CI
+# builders / containers.
 
 echo "--- Installing latest core/hab from ${HAB_BLDR_URL}, ${channel} channel"
+# Binlink to '/usr/bin' to ensure we do not run the Chef Workstation
+# version of `hab`. (In fact, this will overwrite the link to
+# Workstation's `hab`; for our purposes, that's fine.) That is because
+# this occurs earlier in the PATH than '/bin' (the default) binlink
+# location).
+#
+# (On container workers, we could use `/usr/local/bin`, like we do with
+# Powershell below, but that falls apart on NON-container workloads,
+# because there, `/usr/local/bin` comes *later* on the path.  See
+# https://github.com/chef/release-engineering/issues/1241 for more.)
 sudo -E hab pkg install core/hab \
-    --binlink \
-    --force \
-    --channel="${channel}" \
-    --url="${HAB_BLDR_URL}"
-echo "--- Using core/hab version $(hab --version)"
+     --binlink \
+     --binlink-dir=/usr/bin \
+     --force \
+     --channel="${channel}" \
+     --url="${HAB_BLDR_URL}"
+echo "--- Using core/hab version $("${hab_binary}" --version)"
 
 echo "--- Installing latest core/hab-pkg-export-container from ${HAB_BLDR_URL}, ${channel} channel"
 sudo -E hab pkg install core/hab-pkg-export-container \
