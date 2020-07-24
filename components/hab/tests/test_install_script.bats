@@ -1,6 +1,11 @@
 setup() {
   if [ -n "$CI" ]; then
+    # This is where our curlbash installer puts the link
     rm -f /bin/hab
+    # This is where our CI systems link Chef Workstation's `hab`
+    # binary. It comes earlier in the path than `/bin`, so we need to
+    # remove it. We don't use Workstation in our tests, so this is
+    # fine.
     rm -f /usr/bin/hab
     rm -rf /hab/pkgs/core/hab
   else
