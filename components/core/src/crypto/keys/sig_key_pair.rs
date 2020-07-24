@@ -190,7 +190,10 @@ impl SigKeyPair {
     pub fn write_file_from_str<P: AsRef<Path> + ?Sized>(content: &str,
                                                         cache_key_path: &P)
                                                         -> Result<(Self, PairType)> {
-        let (pair_type, name_with_rev, _) = super::parse_key_str(content)?;
+        let key = super::parse_key_str(content)?;
+        let pair_type = key.pair_type();
+        let name_with_rev = key.name_with_rev();
+
         let suffix = match pair_type {
             PairType::Public => PUBLIC_KEY_SUFFIX,
             PairType::Secret => SECRET_SIG_KEY_SUFFIX,
