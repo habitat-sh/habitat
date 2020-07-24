@@ -5,8 +5,8 @@ use super::{super::{hash,
             mk_key_filename,
             mk_revision_string,
             parse_name_with_rev,
-            read_key_bytes,
             write_keypair_files,
+            HabitatKey,
             KeyPair,
             KeyType,
             PairType,
@@ -16,7 +16,8 @@ use crate::error::{Error,
 use sodiumoxide::{crypto::secretbox::{self,
                                       Key as SymSecretKey},
                   randombytes::randombytes};
-use std::{fmt,
+use std::{convert::TryFrom,
+          fmt,
           fs,
           path::{Path,
                  PathBuf}};
@@ -219,7 +220,7 @@ impl SymKey {
 
     fn get_secret_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SymSecretKey> {
         let secret_keyfile = mk_key_filename(cache_key_path, key_with_rev, SECRET_SYM_KEY_SUFFIX);
-        let bytes = read_key_bytes(&secret_keyfile)?;
+        let bytes = HabitatKey::try_from(&secret_keyfile)?.bytes();
         match SymSecretKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {

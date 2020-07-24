@@ -219,6 +219,14 @@ impl TryFrom<&Path> for HabitatKey {
     }
 }
 
+impl TryFrom<&PathBuf> for HabitatKey {
+    type Error = Error;
+
+    fn try_from(value: &PathBuf) -> std::result::Result<Self, Self::Error> {
+        HabitatKey::try_from(value.as_path())
+    }
+}
+
 /// A pair of related keys (public and secret) which have a name and revision.
 ///
 /// Depending on the type of keypair, the public key may be empty or not apply, or one or both of

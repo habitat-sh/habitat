@@ -8,9 +8,9 @@ use super::{super::{ANONYMOUS_BOX_FORMAT_VERSION,
             mk_key_filename,
             mk_revision_string,
             parse_name_with_rev,
-            read_key_bytes,
             read_key_bytes_from_str,
             write_keypair_files,
+            HabitatKey,
             KeyPair,
             KeyType};
 use crate::error::{Error,
@@ -24,6 +24,7 @@ use sodiumoxide::crypto::{box_::{self,
                                                               SecretKey as BoxSecretKey}},
                           sealedbox};
 use std::{borrow::Cow,
+          convert::TryFrom,
           path::{Path,
                  PathBuf},
           str};
@@ -416,7 +417,7 @@ impl BoxKeyPair {
     {
         let public_keyfile =
             mk_key_filename(cache_key_path, key_with_rev.as_ref(), PUBLIC_KEY_SUFFIX);
-        let bytes = read_key_bytes(&public_keyfile)?;
+        let bytes = HabitatKey::try_from(&public_keyfile)?.bytes();
         Self::public_key_from_bytes(&bytes)
     }
 
@@ -426,7 +427,7 @@ impl BoxKeyPair {
     {
         let secret_keyfile =
             mk_key_filename(cache_key_path, key_with_rev.as_ref(), SECRET_BOX_KEY_SUFFIX);
-        let bytes = read_key_bytes(&secret_keyfile)?;
+        let bytes = HabitatKey::try_from(&secret_keyfile)?.bytes();
         Self::secret_key_from_bytes(&bytes)
     }
 
