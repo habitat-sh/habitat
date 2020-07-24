@@ -288,8 +288,7 @@ impl SigKeyPair {
 
     fn get_public_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SigPublicKey> {
         let public_keyfile = mk_key_filename(cache_key_path, key_with_rev, PUBLIC_KEY_SUFFIX);
-        let bytes = HabitatKey::try_from(&public_keyfile)?.bytes();
-        match SigPublicKey::from_slice(&bytes) {
+        match SigPublicKey::from_slice(HabitatKey::try_from(&public_keyfile)?.as_ref()) {
             Some(sk) => Ok(sk),
             None => {
                 Err(Error::CryptoError(format!("Can't read sig public key \
@@ -301,8 +300,7 @@ impl SigKeyPair {
 
     fn get_secret_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SigSecretKey> {
         let secret_keyfile = mk_key_filename(cache_key_path, key_with_rev, SECRET_SIG_KEY_SUFFIX);
-        let bytes = HabitatKey::try_from(&secret_keyfile)?.bytes();
-        match SigSecretKey::from_slice(&bytes) {
+        match SigSecretKey::from_slice(HabitatKey::try_from(&secret_keyfile)?.as_ref()) {
             Some(sk) => Ok(sk),
             None => {
                 Err(Error::CryptoError(format!("Can't read sig secret key \

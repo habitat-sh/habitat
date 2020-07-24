@@ -220,8 +220,7 @@ impl SymKey {
 
     fn get_secret_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SymSecretKey> {
         let secret_keyfile = mk_key_filename(cache_key_path, key_with_rev, SECRET_SYM_KEY_SUFFIX);
-        let bytes = HabitatKey::try_from(&secret_keyfile)?.bytes();
-        match SymSecretKey::from_slice(&bytes) {
+        match SymSecretKey::from_slice(HabitatKey::try_from(&secret_keyfile)?.as_ref()) {
             Some(sk) => Ok(sk),
             None => {
                 Err(Error::CryptoError(format!("Can't read sym secret key \
