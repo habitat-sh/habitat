@@ -19,9 +19,9 @@ slack:
 
 changelog:
   categories:
-    - "X-change": "Behavioral Changes"
-    - "X-feature": "New Features & Enhancements"
-    - "X-fix": "Bug Fixes"
+    - "Changelog: Behavioral Change": "Behavioral Changes"
+    - "Changelog: New Feature": "New Features & Enhancements"
+    - "Changelog: Bug Fix": "Bug Fixes"
 
 pipelines:
   - verify:
