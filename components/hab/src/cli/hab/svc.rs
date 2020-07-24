@@ -182,6 +182,7 @@ pub struct SharedLoad {
     pub update_condition:      UpdateCondition,
     /// One or more service groups to bind to a configuration
     #[structopt(long = "bind")]
+    #[serde(default)]
     pub bind:                  Vec<ServiceBind>,
     /// Governs how the presence or absence of binds affects service startup
     ///
@@ -250,6 +251,7 @@ pub struct Load {
     /// Load or reload an already loaded service. If the service was previously loaded and
     /// running this operation will also restart the service
     #[structopt(short = "f", long = "force")]
+    #[serde(default)]
     pub force:       bool,
     #[structopt(flatten)]
     #[serde(flatten)]
