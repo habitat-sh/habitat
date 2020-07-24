@@ -97,6 +97,114 @@ impl Drop for TmpKeyfile {
     }
 }
 
+pub struct HabitatKey {
+    pair_type:     PairType, // NOT A PAIR!!!!!!
+    name_with_rev: String,
+    /* revision:      String,
+     * content:       String, */
+}
+
+impl HabitatKey {
+    pub fn pair_type(&self) -> PairType { self.pair_type }
+
+    pub fn name_with_rev(&self) -> String { self.name_with_rev.clone() }
+}
+
+impl FromStr for HabitatKey {
+    type Err = Error;
+
+    /// Parses a string slice of a public or secret signature key.
+    ///
+    /// The return valid is a tuple consisting of:
+    ///   `(PairType, name_with_rev::String, key_body::String)`
+    ///
+    /// # Examples
+    ///
+    /// With a public key:
+    ///
+    /// ```
+    /// extern crate habitat_core;
+    ///
+    /// use habitat_core::crypto::keys::{HabitatKey,
+    ///                                  PairType};
+    ///
+    /// let content = "SIG-PUB-1
+    /// unicorn-20160517220007
+    ///
+    /// J+FGYVKgragA+dzQHCGORd2oLwCc2EvAnT9roz9BJh0=";
+    /// let key: HabitatKey = content.parse().unwrap();
+    /// assert_eq!(key.pair_type(), PairType::Public);
+    /// assert_eq!(key.name_with_rev(), "unicorn-20160517220007");
+    /// ```
+    ///
+    /// With a secret key:
+    ///
+    /// ```
+    /// extern crate habitat_core;
+    ///
+    /// use habitat_core::crypto::keys::{HabitatKey,
+    ///                                  PairType};
+    ///
+    /// let content = "SIG-SEC-1
+    /// unicorn-20160517220007
+    ///
+    /// jjQaaphB5+CHw7QzDWqMMuwhWmrrHH+SzQAgRrHfQ8sn4UZhUqCtqAD53NAcIY5F3agvAJzYS8CdP2ujP0EmHQ==";
+    ///
+    /// let key: HabitatKey = content.parse().unwrap();
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * If there is a key version mismatch
+    /// * If the key version is missing
+    /// * If the key name with revision is missing
+    /// * If the key value (the Bas64 payload) is missing
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        let mut lines = s.lines();
+        let pair_type = match lines.next() {
+            Some(val) => {
+                match val {
+                    PUBLIC_SIG_KEY_VERSION | PUBLIC_BOX_KEY_VERSION => PairType::Public,
+                    SECRET_SIG_KEY_VERSION | SECRET_BOX_KEY_VERSION | SECRET_SYM_KEY_VERSION => {
+                        PairType::Secret
+                    }
+                    _ => {
+                        return Err(Error::CryptoError(format!("Unsupported key version: {}",
+                                                              val)));
+                    }
+                }
+            }
+            None => {
+                let msg = format!("write_key_from_str:1 Malformed key string:\n({})", s);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        let name_with_rev = match lines.next() {
+            Some(val) => val,
+            None => {
+                let msg = format!("write_key_from_str:2 Malformed key string:\n({})", s);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        match lines.nth(1) {
+            Some(val) => {
+                base64::decode(val.trim()).map_err(|_| {
+                                              Error::CryptoError(format!("write_key_from_str:3 \
+                                                                          Malformed key \
+                                                                          string:\n({})",
+                                                                         s))
+                                          })?;
+                Ok(HabitatKey { pair_type,
+                                name_with_rev: name_with_rev.to_string() })
+            }
+            None => {
+                let msg = format!("write_key_from_str:3 Malformed key string:\n({})", s);
+                Err(Error::CryptoError(msg))
+            }
+        }
+    }
+}
+
 /// A pair of related keys (public and secret) which have a name and revision.
 ///
 /// Depending on the type of keypair, the public key may be empty or not apply, or one or both of
@@ -350,114 +458,6 @@ pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, String)>
         }
     };
     Ok((name, rev))
-}
-
-pub struct HabitatKey {
-    pair_type:     PairType, // NOT A PAIR!!!!!!
-    name_with_rev: String,
-    /* revision:      String,
-     * content:       String, */
-}
-
-impl HabitatKey {
-    pub fn pair_type(&self) -> PairType { self.pair_type }
-
-    pub fn name_with_rev(&self) -> String { self.name_with_rev.clone() }
-}
-
-impl FromStr for HabitatKey {
-    type Err = Error;
-
-    /// Parses a string slice of a public or secret signature key.
-    ///
-    /// The return valid is a tuple consisting of:
-    ///   `(PairType, name_with_rev::String, key_body::String)`
-    ///
-    /// # Examples
-    ///
-    /// With a public key:
-    ///
-    /// ```
-    /// extern crate habitat_core;
-    ///
-    /// use habitat_core::crypto::keys::{HabitatKey,
-    ///                                  PairType};
-    ///
-    /// let content = "SIG-PUB-1
-    /// unicorn-20160517220007
-    ///
-    /// J+FGYVKgragA+dzQHCGORd2oLwCc2EvAnT9roz9BJh0=";
-    /// let key: HabitatKey = content.parse().unwrap();
-    /// assert_eq!(key.pair_type(), PairType::Public);
-    /// assert_eq!(key.name_with_rev(), "unicorn-20160517220007");
-    /// ```
-    ///
-    /// With a secret key:
-    ///
-    /// ```
-    /// extern crate habitat_core;
-    ///
-    /// use habitat_core::crypto::keys::{HabitatKey,
-    ///                                  PairType};
-    ///
-    /// let content = "SIG-SEC-1
-    /// unicorn-20160517220007
-    ///
-    /// jjQaaphB5+CHw7QzDWqMMuwhWmrrHH+SzQAgRrHfQ8sn4UZhUqCtqAD53NAcIY5F3agvAJzYS8CdP2ujP0EmHQ==";
-    ///
-    /// let key: HabitatKey = content.parse().unwrap();
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// * If there is a key version mismatch
-    /// * If the key version is missing
-    /// * If the key name with revision is missing
-    /// * If the key value (the Bas64 payload) is missing
-    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        let mut lines = s.lines();
-        let pair_type = match lines.next() {
-            Some(val) => {
-                match val {
-                    PUBLIC_SIG_KEY_VERSION | PUBLIC_BOX_KEY_VERSION => PairType::Public,
-                    SECRET_SIG_KEY_VERSION | SECRET_BOX_KEY_VERSION | SECRET_SYM_KEY_VERSION => {
-                        PairType::Secret
-                    }
-                    _ => {
-                        return Err(Error::CryptoError(format!("Unsupported key version: {}",
-                                                              val)));
-                    }
-                }
-            }
-            None => {
-                let msg = format!("write_key_from_str:1 Malformed key string:\n({})", s);
-                return Err(Error::CryptoError(msg));
-            }
-        };
-        let name_with_rev = match lines.next() {
-            Some(val) => val,
-            None => {
-                let msg = format!("write_key_from_str:2 Malformed key string:\n({})", s);
-                return Err(Error::CryptoError(msg));
-            }
-        };
-        match lines.nth(1) {
-            Some(val) => {
-                base64::decode(val.trim()).map_err(|_| {
-                                              Error::CryptoError(format!("write_key_from_str:3 \
-                                                                          Malformed key \
-                                                                          string:\n({})",
-                                                                         s))
-                                          })?;
-                Ok(HabitatKey { pair_type,
-                                name_with_rev: name_with_rev.to_string() })
-            }
-            None => {
-                let msg = format!("write_key_from_str:3 Malformed key string:\n({})", s);
-                Err(Error::CryptoError(msg))
-            }
-        }
-    }
 }
 
 fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
