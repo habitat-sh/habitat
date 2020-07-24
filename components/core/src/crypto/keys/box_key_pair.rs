@@ -8,7 +8,6 @@ use super::{super::{ANONYMOUS_BOX_FORMAT_VERSION,
             mk_key_filename,
             mk_revision_string,
             parse_name_with_rev,
-            read_key_bytes_from_str,
             write_keypair_files,
             HabitatKey,
             KeyPair,
@@ -397,7 +396,9 @@ impl BoxKeyPair {
     }
 
     pub fn public_key_from_str(key: &str) -> Result<BoxPublicKey> {
-        Self::public_key_from_bytes(&read_key_bytes_from_str(key)?)
+        let key: HabitatKey = key.parse()?;
+        Self::public_key_from_bytes(&key.bytes()) // TODO (CM): don't
+                                                  // like this extra allocation
     }
 
     pub fn public_key_from_bytes(bytes: &[u8]) -> Result<BoxPublicKey> {
@@ -432,7 +433,9 @@ impl BoxKeyPair {
     }
 
     pub fn secret_key_from_str(key: &str) -> Result<BoxSecretKey> {
-        Self::secret_key_from_bytes(&read_key_bytes_from_str(key)?)
+        let key: HabitatKey = key.parse()?;
+        Self::secret_key_from_bytes(&key.bytes()) // TODO (CM): don't
+                                                  // like this extra allocation
     }
 
     pub fn secret_key_from_bytes(bytes: &[u8]) -> Result<BoxSecretKey> {

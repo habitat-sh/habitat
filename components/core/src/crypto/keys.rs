@@ -482,8 +482,6 @@ pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, String)>
     Ok((name, rev))
 }
 
-fn read_key_bytes_from_str(key: &str) -> Result<Vec<u8>> { Ok(key.parse::<HabitatKey>()?.bytes()) }
-
 fn write_keypair_files(public_keyfile: Option<&Path>,
                        public_content: Option<String>,
                        secret_keyfile: Option<&Path>,
