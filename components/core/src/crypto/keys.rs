@@ -109,8 +109,11 @@ impl HabitatKey {
     pub fn pair_type(&self) -> PairType { self.pair_type }
 
     pub fn name_with_rev(&self) -> String { self.name_with_rev.clone() }
+}
 
-    pub fn bytes(&self) -> Vec<u8> { self.key_bytes.clone() }
+impl AsRef<[u8]> for HabitatKey {
+    /// Return a reference to the bytes of the underlying key material.
+    fn as_ref(&self) -> &[u8] { self.key_bytes.as_ref() }
 }
 
 impl FromStr for HabitatKey {
@@ -600,7 +603,7 @@ mod test {
         // TODO (CM): These tests need to be recast purely in terms of
         // HabitatKey; keeping this here for now, though.
         fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
-            Ok(HabitatKey::try_from(keyfile)?.bytes())
+            Ok(HabitatKey::try_from(keyfile)?.as_ref().into())
         }
 
         #[test]
@@ -609,8 +612,8 @@ mod test {
             let keyfile = cache.path().join(VALID_KEY);
             fs::copy(fixture(&format!("keys/{}", VALID_KEY)), &keyfile).unwrap();
             println!("keyfile {:?}", keyfile);
-            let result = HabitatKey::try_from(keyfile.as_path()).unwrap().bytes();
-            assert_eq!(hex::encode(result.as_slice()), VALID_KEY_AS_HEX);
+            let result = HabitatKey::try_from(keyfile.as_path()).unwrap();
+            assert_eq!(hex::encode(result.as_ref()), VALID_KEY_AS_HEX);
         }
 
         #[test]

@@ -397,8 +397,7 @@ impl BoxKeyPair {
 
     pub fn public_key_from_str(key: &str) -> Result<BoxPublicKey> {
         let key: HabitatKey = key.parse()?;
-        Self::public_key_from_bytes(&key.bytes()) // TODO (CM): don't
-                                                  // like this extra allocation
+        Self::public_key_from_bytes(key.as_ref())
     }
 
     pub fn public_key_from_bytes(bytes: &[u8]) -> Result<BoxPublicKey> {
@@ -418,8 +417,7 @@ impl BoxKeyPair {
     {
         let public_keyfile =
             mk_key_filename(cache_key_path, key_with_rev.as_ref(), PUBLIC_KEY_SUFFIX);
-        let bytes = HabitatKey::try_from(&public_keyfile)?.bytes();
-        Self::public_key_from_bytes(&bytes)
+        Self::public_key_from_bytes(HabitatKey::try_from(&public_keyfile)?.as_ref())
     }
 
     fn get_secret_key<T, P>(key_with_rev: T, cache_key_path: P) -> Result<BoxSecretKey>
@@ -428,14 +426,12 @@ impl BoxKeyPair {
     {
         let secret_keyfile =
             mk_key_filename(cache_key_path, key_with_rev.as_ref(), SECRET_BOX_KEY_SUFFIX);
-        let bytes = HabitatKey::try_from(&secret_keyfile)?.bytes();
-        Self::secret_key_from_bytes(&bytes)
+        Self::secret_key_from_bytes(HabitatKey::try_from(&secret_keyfile)?.as_ref())
     }
 
     pub fn secret_key_from_str(key: &str) -> Result<BoxSecretKey> {
         let key: HabitatKey = key.parse()?;
-        Self::secret_key_from_bytes(&key.bytes()) // TODO (CM): don't
-                                                  // like this extra allocation
+        Self::secret_key_from_bytes(key.as_ref())
     }
 
     pub fn secret_key_from_bytes(bytes: &[u8]) -> Result<BoxSecretKey> {
