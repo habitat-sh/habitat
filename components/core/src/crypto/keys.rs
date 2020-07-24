@@ -482,8 +482,6 @@ pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, String)>
     Ok((name, rev))
 }
 
-fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> { Ok(HabitatKey::try_from(keyfile)?.bytes()) }
-
 fn read_key_bytes_from_str(key: &str) -> Result<Vec<u8>> {
     match key.lines().nth(3) {
         Some(encoded) => {
@@ -609,6 +607,59 @@ mod test {
         }
     }
 
+    mod habitat_key {
+        use super::*;
+
+        // TODO (CM): These tests need to be recast purely in terms of
+        // HabitatKey; keeping this here for now, though.
+        fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
+            Ok(HabitatKey::try_from(keyfile)?.bytes())
+        }
+
+        #[test]
+        fn test_read_key_bytes() {
+            let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+            let keyfile = cache.path().join(VALID_KEY);
+            fs::copy(fixture(&format!("keys/{}", VALID_KEY)), &keyfile).unwrap();
+            println!("keyfile {:?}", keyfile);
+            let result = HabitatKey::try_from(keyfile.as_path()).unwrap().bytes();
+            assert_eq!(hex::encode(result.as_slice()), VALID_KEY_AS_HEX);
+        }
+
+        #[test]
+        #[should_panic(expected = "Malformed key string")]
+        fn read_key_bytes_empty_file() {
+            let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+            let keyfile = cache.path().join("not-much-here");
+            let _ = File::create(&keyfile).unwrap();
+
+            read_key_bytes(keyfile.as_path()).unwrap();
+        }
+
+        #[test]
+        #[should_panic(expected = "Unsupported key version: SOMETHING")]
+        fn read_key_bytes_missing_newlines() {
+            let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+            let keyfile = cache.path().join("missing-newlines");
+            let mut f = File::create(&keyfile).unwrap();
+            f.write_all(b"SOMETHING\nELSE\n").unwrap();
+
+            read_key_bytes(keyfile.as_path()).unwrap();
+        }
+
+        #[test]
+        #[should_panic(expected = "Unsupported key version: header")]
+        fn read_key_bytes_malformed_base64() {
+            let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+            let keyfile = cache.path().join("missing-newlines");
+            let mut f = File::create(&keyfile).unwrap();
+            f.write_all(b"header\nsomething\n\nI am not base64 content")
+             .unwrap();
+
+            read_key_bytes(keyfile.as_path()).unwrap();
+        }
+    }
+
     #[test]
     fn parse_name_with_rev() {
         let (name, rev) = super::parse_name_with_rev("an-origin-19690114010203").unwrap();
@@ -626,49 +677,6 @@ mod test {
         let (name, rev) = super::parse_name_with_rev("--20160420042001").unwrap();
         assert_eq!(name, "-");
         assert_eq!(rev, "20160420042001");
-    }
-
-    #[test]
-    fn read_key_bytes() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let keyfile = cache.path().join(VALID_KEY);
-        fs::copy(fixture(&format!("keys/{}", VALID_KEY)), &keyfile).unwrap();
-        println!("keyfile {:?}", keyfile);
-        let result = super::read_key_bytes(keyfile.as_path()).unwrap();
-        assert_eq!(hex::encode(result.as_slice()), VALID_KEY_AS_HEX);
-    }
-
-    #[test]
-    #[should_panic(expected = "Malformed key string")]
-    fn read_key_bytes_empty_file() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let keyfile = cache.path().join("not-much-here");
-        let _ = File::create(&keyfile).unwrap();
-
-        super::read_key_bytes(keyfile.as_path()).unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "Unsupported key version: SOMETHING")]
-    fn read_key_bytes_missing_newlines() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let keyfile = cache.path().join("missing-newlines");
-        let mut f = File::create(&keyfile).unwrap();
-        f.write_all(b"SOMETHING\nELSE\n").unwrap();
-
-        super::read_key_bytes(keyfile.as_path()).unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "Unsupported key version: header")]
-    fn read_key_bytes_malformed_base64() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let keyfile = cache.path().join("missing-newlines");
-        let mut f = File::create(&keyfile).unwrap();
-        f.write_all(b"header\nsomething\n\nI am not base64 content")
-         .unwrap();
-
-        super::read_key_bytes(keyfile.as_path()).unwrap();
     }
 
     #[test]
