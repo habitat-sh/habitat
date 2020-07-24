@@ -100,14 +100,16 @@ impl Drop for TmpKeyfile {
 pub struct HabitatKey {
     pair_type:     PairType, // NOT A PAIR!!!!!!
     name_with_rev: String,
-    /* revision:      String,
-     * content:       String, */
+    // revision:      String,
+    key_bytes:     Vec<u8>,
 }
 
 impl HabitatKey {
     pub fn pair_type(&self) -> PairType { self.pair_type }
 
     pub fn name_with_rev(&self) -> String { self.name_with_rev.clone() }
+
+    pub fn bytes(&self) -> Vec<u8> { self.key_bytes.clone() }
 }
 
 impl FromStr for HabitatKey {
@@ -188,14 +190,14 @@ impl FromStr for HabitatKey {
         };
         match lines.nth(1) {
             Some(val) => {
-                base64::decode(val.trim()).map_err(|_| {
-                                              Error::CryptoError(format!("write_key_from_str:3 \
-                                                                          Malformed key \
-                                                                          string:\n({})",
-                                                                         s))
-                                          })?;
+                let key_bytes = base64::decode(val.trim()).map_err(|_| {
+                                    Error::CryptoError(format!("write_key_from_str:3 Malformed \
+                                                                key string:\n({})",
+                                                               s))
+                                })?;
                 Ok(HabitatKey { pair_type,
-                                name_with_rev: name_with_rev.to_string() })
+                                name_with_rev: name_with_rev.to_string(),
+                                key_bytes })
             }
             None => {
                 let msg = format!("write_key_from_str:3 Malformed key string:\n({})", s);
@@ -463,10 +465,8 @@ pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, String)>
 fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
     let mut f = File::open(keyfile)?;
     let mut s = String::new();
-    if f.read_to_string(&mut s)? == 0 {
-        return Err(Error::CryptoError("Can't read key bytes".to_string()));
-    }
-    read_key_bytes_from_str(&s)
+    f.read_to_string(&mut s)?;
+    Ok(s.parse::<HabitatKey>()?.bytes())
 }
 
 fn read_key_bytes_from_str(key: &str) -> Result<Vec<u8>> {
@@ -627,7 +627,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "Can\\'t read key bytes")]
+    #[should_panic(expected = "Malformed key string")]
     fn read_key_bytes_empty_file() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let keyfile = cache.path().join("not-much-here");
@@ -637,7 +637,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "Malformed key contents")]
+    #[should_panic(expected = "Unsupported key version: SOMETHING")]
     fn read_key_bytes_missing_newlines() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let keyfile = cache.path().join("missing-newlines");
@@ -648,7 +648,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "Can\\'t read raw key")]
+    #[should_panic(expected = "Unsupported key version: header")]
     fn read_key_bytes_malformed_base64() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let keyfile = cache.path().join("missing-newlines");
