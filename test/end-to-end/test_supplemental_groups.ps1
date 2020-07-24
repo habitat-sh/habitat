@@ -18,7 +18,7 @@
 # file exists, everything is successful.
 
 $test_file="/tmp/supplemental-group-tester-file"
-$sentinel_file="/tmp/supplemental-group-tester-file-sentinel"
+$sentinel_file="/tmp/supplemental-group-tester-sentinel"
 $supplemental_group="extra_group"
 
 # Ensure the sentinel isn't there already, for some reason

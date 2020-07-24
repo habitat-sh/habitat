@@ -11,7 +11,7 @@ echo "Should be able to read the file"
 cat "${file}"
 
 echo "Writing a sentinel file to show we got this far"
-echo "SUCCESS" /tmp/supplemental-group-tester-sentinel
+echo "SUCCESS" > /tmp/supplemental-group-tester-sentinel
 
 while true; do
       echo "Working"
