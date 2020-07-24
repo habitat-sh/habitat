@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.101 -->
-## [1.6.101](https://github.com/habitat-sh/habitat/tree/1.6.101) (2020-07-24)
+<!-- latest_release 1.6.102 -->
+## [1.6.102](https://github.com/habitat-sh/habitat/tree/1.6.102) (2020-07-24)
 
 #### Merged Pull Requests
--  [CI] Binlink `hab` earlier in the path for e2e tests [#7835](https://github.com/habitat-sh/habitat/pull/7835) ([christophermaier](https://github.com/christophermaier))
+- [CI] Update changelog management labels in Expeditor config [#7837](https://github.com/habitat-sh/habitat/pull/7837) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -25,6 +25,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- [CI] Update changelog management labels in Expeditor config [#7837](https://github.com/habitat-sh/habitat/pull/7837) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.102 -->
 -  [CI] Binlink `hab` earlier in the path for e2e tests [#7835](https://github.com/habitat-sh/habitat/pull/7835) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.101 -->
 - Add command line completion to powershell studio [#7831](https://github.com/habitat-sh/habitat/pull/7831) ([mwrock](https://github.com/mwrock)) <!-- 1.6.98 -->
 - delete old objects in S3 bucket that do not exist in local website build [#7829](https://github.com/habitat-sh/habitat/pull/7829) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.98 -->
