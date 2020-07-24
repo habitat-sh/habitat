@@ -8,6 +8,7 @@ extern crate lazy_static;
 extern crate log;
 
 use clap::{ArgMatches,
+           ErrorKind as ClapErrorKind,
            Shell};
 use configopt::{ConfigOpt,
                 Error as ConfigOptError};
@@ -117,15 +118,26 @@ async fn main() {
 
 #[allow(clippy::cognitive_complexity)]
 async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
+    let hab = Hab::try_from_args_with_configopt();
+
     let args = std::env::args().skip(1).collect::<Vec<_>>();
     if args == vec!["license", "accept"] {
         license::accept_license(ui)?;
         return Ok(());
     }
-    // If we are just checking the version do not require accepting the license
-    else if args != vec!["--version"] {
-        license::check_for_license_acceptance_and_prompt(ui)?;
+    // Allow checking version information and displaying the help without needing to accept the
+    // license. We execute other binaries below in `exec_subcommand_if_called` so we only make the
+    // check if the license has not been accepted. `version` and `help` may behave differently when
+    // executed with alternate binaries. See the comment on `exec_subcommand_if_called` below.
+    if license::check_for_license_acceptance().unwrap_or_default() {
+        if let Err(ConfigOptError::Clap(e)) = &hab {
+            if e.kind == ClapErrorKind::VersionDisplayed || e.kind == ClapErrorKind::HelpDisplayed {
+                e.exit()
+            }
+        }
     }
+
+    license::check_for_license_acceptance_and_prompt(ui)?;
 
     // TODO JB: this feels like an anti-pattern to me. I get that in certain cases, we want to hand
     // off control from hab to a different binary to do the work, but this implementation feels
@@ -150,7 +162,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
 
     // Parse and handle commands which have been migrated to use `structopt` here. Once everything
     // is migrated to use `structopt` the parsing logic below this using clap directly will be gone.
-    match Hab::try_from_args_with_configopt() {
+    match hab {
         Ok(hab) => {
             #[allow(clippy::single_match)]
             match hab {
