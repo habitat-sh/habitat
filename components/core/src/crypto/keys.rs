@@ -580,29 +580,33 @@ mod test {
     static VALID_KEY_AS_HEX: &str = "\
          44215a3bce23e351a6af359d77131db17a46767de2b88cbb330df162b8cf2ec1";
 
-    #[test]
-    fn tmp_keyfile_delete_on_drop() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let path = cache.path().join("mykey");
+    mod tmpkeyfile {
+        use super::*;
 
-        {
-            let tmp_keyfile = TmpKeyfile { path: path.clone() };
-            File::create(&tmp_keyfile.path).unwrap();
-            assert!(tmp_keyfile.path.is_file());
+        #[test]
+        fn tmp_keyfile_delete_on_drop() {
+            let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+            let path = cache.path().join("mykey");
+
+            {
+                let tmp_keyfile = TmpKeyfile { path: path.clone() };
+                File::create(&tmp_keyfile.path).unwrap();
+                assert!(tmp_keyfile.path.is_file());
+            }
+            assert_eq!(path.is_file(), false);
         }
-        assert_eq!(path.is_file(), false);
-    }
 
-    #[test]
-    fn tmp_keyfile_no_file_on_drop() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let path = cache.path().join("mykey");
+        #[test]
+        fn tmp_keyfile_no_file_on_drop() {
+            let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+            let path = cache.path().join("mykey");
 
-        {
-            let tmp_keyfile = TmpKeyfile { path: path.clone() };
-            assert_eq!(tmp_keyfile.path.is_file(), false);
+            {
+                let tmp_keyfile = TmpKeyfile { path: path.clone() };
+                assert_eq!(tmp_keyfile.path.is_file(), false);
+            }
+            assert_eq!(path.is_file(), false);
         }
-        assert_eq!(path.is_file(), false);
     }
 
     #[test]
