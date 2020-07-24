@@ -16,6 +16,7 @@ use chrono::Utc;
 use regex::Regex;
 use serde::Deserialize;
 use std::{collections::HashSet,
+          convert::TryFrom,
           fmt,
           fs::{self,
                File},
@@ -204,6 +205,17 @@ impl FromStr for HabitatKey {
                 Err(Error::CryptoError(msg))
             }
         }
+    }
+}
+
+impl TryFrom<&Path> for HabitatKey {
+    type Error = Error;
+
+    fn try_from(value: &Path) -> std::result::Result<Self, Self::Error> {
+        let mut f = File::open(value)?;
+        let mut s = String::new();
+        f.read_to_string(&mut s)?;
+        Ok(s.parse::<HabitatKey>()?)
     }
 }
 
@@ -462,12 +474,7 @@ pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, String)>
     Ok((name, rev))
 }
 
-fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
-    let mut f = File::open(keyfile)?;
-    let mut s = String::new();
-    f.read_to_string(&mut s)?;
-    Ok(s.parse::<HabitatKey>()?.bytes())
-}
+fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> { Ok(HabitatKey::try_from(keyfile)?.bytes()) }
 
 fn read_key_bytes_from_str(key: &str) -> Result<Vec<u8>> {
     match key.lines().nth(3) {
