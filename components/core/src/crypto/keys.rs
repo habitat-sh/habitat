@@ -399,7 +399,7 @@ pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, String)>
 /// * If the key version is missing
 /// * If the key name with revision is missing
 /// * If the key value (the Bas64 payload) is missing
-pub fn parse_key_str(content: &str) -> Result<(PairType, String, String)> {
+pub fn parse_key_str(content: &str) -> Result<HabitatKey> {
     let mut lines = content.lines();
     let pair_type = match lines.next() {
         Some(val) => {
@@ -432,13 +432,27 @@ pub fn parse_key_str(content: &str) -> Result<(PairType, String, String)> {
                                                                       Malformed key string:\n({})",
                                                                      content))
                                       })?;
-            Ok((pair_type, name_with_rev.to_string(), val.trim().to_string()))
+            Ok(HabitatKey { pair_type,
+                            name_with_rev: name_with_rev.to_string() })
         }
         None => {
             let msg = format!("write_key_from_str:3 Malformed key string:\n({})", content);
             Err(Error::CryptoError(msg))
         }
     }
+}
+
+pub struct HabitatKey {
+    pair_type:     PairType, // NOT A PAIR!!!!!!
+    name_with_rev: String,
+    /* revision:      String,
+     * content:       String, */
+}
+
+impl HabitatKey {
+    pub fn pair_type(&self) -> PairType { self.pair_type }
+
+    pub fn name_with_rev(&self) -> String { self.name_with_rev.clone() }
 }
 
 fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
