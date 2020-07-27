@@ -174,10 +174,7 @@ impl RingKey {
                                              SECRET_SYM_KEY_SUFFIX);
         debug!("secret sym keyfile = {}", secret_keyfile.display());
 
-        write_keypair_files(None,
-                            None,
-                            Some(&secret_keyfile),
-                            Some(self.to_secret_string()?))
+        write_keypair_files(None, Some((secret_keyfile, self.to_secret_string()?)))
     }
 
     /// Writes a sym key to the key cache from the contents of a string slice.
@@ -260,7 +257,7 @@ impl RingKey {
         };
 
         debug!("Writing temp key file {}", tmpfile.path.display());
-        write_keypair_files(None, None, Some(&tmpfile.path), Some(content.to_string()))?;
+        write_keypair_files(None, Some((&tmpfile.path, content.to_string())))?;
 
         if Path::new(&secret_keyfile).is_file() {
             let existing_hash = hash::hash_file(&secret_keyfile)?;

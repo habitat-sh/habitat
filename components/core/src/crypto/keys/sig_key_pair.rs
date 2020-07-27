@@ -211,10 +211,10 @@ impl SigKeyPair {
         debug!("Writing temp key file {}", tmpfile.path.display());
         match pair_type {
             PairType::Public => {
-                write_keypair_files(Some(&tmpfile.path), Some(content.to_string()), None, None)?;
+                write_keypair_files(Some((&tmpfile.path, content.to_string())), None)?;
             }
             PairType::Secret => {
-                write_keypair_files(None, None, Some(&tmpfile.path), Some(content.to_string()))?;
+                write_keypair_files(None, Some((&tmpfile.path, content.to_string())))?;
             }
         }
 
@@ -282,10 +282,8 @@ impl SigKeyPair {
         debug!("public sig keyfile = {}", public_keyfile.display());
         debug!("secret sig keyfile = {}", secret_keyfile.display());
 
-        write_keypair_files(Some(&public_keyfile),
-                            Some(self.to_public_string()?),
-                            Some(&secret_keyfile),
-                            Some(self.to_secret_string()?))
+        write_keypair_files(Some((&public_keyfile, self.to_public_string()?)),
+                            Some((&secret_keyfile, self.to_secret_string()?)))
     }
 
     fn get_public_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SigPublicKey> {
