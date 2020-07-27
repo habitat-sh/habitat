@@ -298,11 +298,15 @@ pub struct KeyPair<P: PartialEq, S: PartialEq> {
 
 impl<P: PartialEq, S: PartialEq> KeyPair<P, S> {
     /// Creates a new `KeyPair`.
-    pub fn new(name: String, rev: KeyRevision, p: Option<P>, s: Option<S>) -> KeyPair<P, S> {
+    pub fn new(name: String,
+               rev: KeyRevision,
+               public: Option<P>,
+               secret: Option<S>)
+               -> KeyPair<P, S> {
         KeyPair { name,
                   rev,
-                  public: p,
-                  secret: s }
+                  public,
+                  secret }
     }
 
     /// Returns a `String` containing the combination of the `name` and `rev` fields.
