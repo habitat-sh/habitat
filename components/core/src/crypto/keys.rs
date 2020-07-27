@@ -220,6 +220,13 @@ impl FromStr for HabitatKey {
     }
 }
 
+// TODO (CM): This is only needed for Builder
+#[deprecated(note = "Please HabitatKey::from_str instead")]
+pub fn parse_key_str(content: &str) -> Result<(PairType, String, String)> {
+    let key: HabitatKey = content.parse()?;
+    Ok((key.pair_type, key.name_with_rev, base64::encode(key.key_bytes)))
+}
+
 impl TryFrom<&Path> for HabitatKey {
     type Error = Error;
 
