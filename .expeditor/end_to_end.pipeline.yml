@@ -846,9 +846,9 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  - label: "[:linux: test_version_check_without_license]"
+  - label: "[:linux: test_license]"
     command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_version_check_without_license
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_license
     env:
       BUILD_PKG_TARGET: x86_64-linux
     expeditor:

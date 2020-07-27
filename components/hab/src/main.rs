@@ -125,11 +125,14 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
         license::accept_license(ui)?;
         return Ok(());
     }
-    // Allow checking version information and displaying the help without needing to accept the
-    // license. We execute other binaries below in `exec_subcommand_if_called` so we only make the
-    // check if the license has not been accepted. `version` and `help` may behave differently when
-    // executed with alternate binaries. See the comment on `exec_subcommand_if_called` below.
-    if license::check_for_license_acceptance().unwrap_or_default() {
+
+    // Allow checking version information and displaying command help without accepting the license.
+    // We execute other binaries below in `exec_subcommand_if_called` so we only make the check if
+    // the license has not been accepted. `version` and `help` may behave differently when executed
+    // with alternate binaries. See the comment on `exec_subcommand_if_called` below.
+    if !license::check_for_license_acceptance().unwrap_or_default()
+                                               .accepted()
+    {
         if let Err(ConfigOptError::Clap(e)) = &hab {
             if e.kind == ClapErrorKind::VersionDisplayed || e.kind == ClapErrorKind::HelpDisplayed {
                 e.exit()
