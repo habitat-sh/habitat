@@ -562,16 +562,11 @@ pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, KeyRevision)>
     Ok((name, rev))
 }
 
-fn write_keypair_files(public_keyfile: Option<&Path>,
-                       public_content: Option<String>,
-                       secret_keyfile: Option<&Path>,
-                       secret_content: Option<String>)
-                       -> Result<()> {
-    if let Some(public_keyfile) = public_keyfile {
-        let public_content = match public_content {
-            Some(c) => c,
-            None => panic!("Invalid calling of this function"),
-        };
+fn write_keypair_files<P>(public: Option<(P, String)>, secret: Option<(P, String)>) -> Result<()>
+    where P: AsRef<Path>
+{
+    if let Some((public_keyfile, public_content)) = public {
+        let public_keyfile = public_keyfile.as_ref();
 
         if let Some(pk_dir) = public_keyfile.parent() {
             fs::create_dir_all(pk_dir)?;
@@ -589,11 +584,8 @@ fn write_keypair_files(public_keyfile: Option<&Path>,
         set_permissions(public_keyfile, &DEFAULT_PUBLIC_KEY_PERMISSIONS)?;
     }
 
-    if let Some(secret_keyfile) = secret_keyfile {
-        let secret_content = match secret_content {
-            Some(c) => c,
-            None => panic!("Invalid calling of this function"),
-        };
+    if let Some((secret_keyfile, secret_content)) = secret {
+        let secret_keyfile = secret_keyfile.as_ref();
 
         if let Some(sk_dir) = secret_keyfile.parent() {
             fs::create_dir_all(sk_dir)?;
