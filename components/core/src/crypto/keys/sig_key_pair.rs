@@ -619,7 +619,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_key_from_str:1 Malformed key string")]
+    #[should_panic(expected = "Empty key string")]
     fn write_file_from_str_missing_version() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
@@ -627,7 +627,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_key_from_str:2 Malformed key string")]
+    #[should_panic(expected = "Malformed key string (missing name+revision)")]
     fn write_file_from_str_missing_name_secret() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
@@ -635,7 +635,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_key_from_str:2 Malformed key string")]
+    #[should_panic(expected = "Malformed key string (missing name+revision)")]
     fn write_file_from_str_missing_name_public() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
@@ -643,7 +643,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_key_from_str:3 Malformed key string")]
+    #[should_panic(expected = "Malformed key string (missing key material)")]
     fn write_file_from_str_missing_key_secret() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
@@ -651,7 +651,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_key_from_str:3 Malformed key string")]
+    #[should_panic(expected = "Malformed key string (missing key material)")]
     fn write_file_from_str_missing_key_public() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
@@ -659,7 +659,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_key_from_str:3 Malformed key string")]
+    #[should_panic(expected = "Malformed key string (invalid base64 key material)")]
     fn write_file_from_str_invalid_key_secret() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
@@ -669,7 +669,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_key_from_str:3 Malformed key string")]
+    #[should_panic(expected = "Malformed key string (invalid base64 key material)")]
     fn write_file_from_str_invalid_key_public() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
