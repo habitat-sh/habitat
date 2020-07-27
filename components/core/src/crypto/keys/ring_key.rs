@@ -43,33 +43,6 @@ impl RingKey {
     // KeyPair struct. Not ultimately sure if this should be kept.
     pub fn name_with_rev(&self) -> String { self.0.name_with_rev() }
 
-    fn get_pairs_for<P: AsRef<Path> + ?Sized>(name: &str, cache_key_path: &P) -> Result<Vec<Self>> {
-        let revisions = get_key_revisions(name, cache_key_path.as_ref(), None, KeyType::Sym)?;
-        let mut key_pairs = Vec::new();
-        for name_with_rev in &revisions {
-            debug!("Attempting to read key name_with_rev {} for {}",
-                   name_with_rev, name);
-            let kp = Self::get_pair_for(name_with_rev, cache_key_path)?;
-            key_pairs.push(kp);
-        }
-        Ok(key_pairs)
-    }
-
-    fn get_pair_for<P: AsRef<Path> + ?Sized>(name_with_rev: &str,
-                                             cache_key_path: &P)
-                                             -> Result<Self> {
-        let (name, rev) = parse_name_with_rev(&name_with_rev)?;
-        let sk = match Self::get_secret_key(name_with_rev, cache_key_path.as_ref()) {
-            Ok(k) => Some(k),
-            Err(e) => {
-                let msg = format!("No secret keys found for name_with_rev {}: {}",
-                                  name_with_rev, e);
-                return Err(Error::CryptoError(msg));
-            }
-        };
-        Ok(RingKey(KeyPair::new(name, rev, None, sk)))
-    }
-
     pub fn get_latest_pair_for<P: AsRef<Path> + ?Sized>(name: &str,
                                                         cache_key_path: &P)
                                                         -> Result<Self> {
@@ -193,23 +166,6 @@ impl RingKey {
         }
     }
 
-    // TODO (CM): only public because it's also used in a test in
-    // keys.rs... look into better factoring
-    pub(crate) fn to_secret_string(&self) -> Result<String> {
-        match self.0.secret {
-            Some(ref sk) => {
-                Ok(format!("{}\n{}\n\n{}",
-                           SECRET_SYM_KEY_VERSION,
-                           self.name_with_rev(),
-                           &base64::encode(&sk[..])))
-            }
-            None => {
-                Err(Error::CryptoError(format!("No secret key present for {}",
-                                               self.name_with_rev())))
-            }
-        }
-    }
-
     pub fn to_pair_files<P: AsRef<Path> + ?Sized>(&self, path: &P) -> Result<()> {
         let secret_keyfile = mk_key_filename(path, self.name_with_rev(), SECRET_SYM_KEY_SUFFIX);
         debug!("secret sym keyfile = {}", secret_keyfile.display());
@@ -218,18 +174,6 @@ impl RingKey {
                             None,
                             Some(&secret_keyfile),
                             Some(self.to_secret_string()?))
-    }
-
-    fn get_secret_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SymSecretKey> {
-        let secret_keyfile = mk_key_filename(cache_key_path, key_with_rev, SECRET_SYM_KEY_SUFFIX);
-        match SymSecretKey::from_slice(HabitatKey::try_from(&secret_keyfile)?.as_ref()) {
-            Some(sk) => Ok(sk),
-            None => {
-                Err(Error::CryptoError(format!("Can't read sym secret key \
-                                                for {}",
-                                               key_with_rev)))
-            }
-        }
     }
 
     /// Writes a sym key to the key cache from the contents of a string slice.
@@ -343,6 +287,64 @@ impl RingKey {
 
         // Now load and return the pair to ensure everything wrote out
         Ok((Self::get_pair_for(&name_with_rev, cache_key_path)?, PairType::Secret))
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+
+    // TODO (CM): only public because it's also used in a test in
+    // keys.rs... look into better factoring
+    pub(crate) fn to_secret_string(&self) -> Result<String> {
+        match self.0.secret {
+            Some(ref sk) => {
+                Ok(format!("{}\n{}\n\n{}",
+                           SECRET_SYM_KEY_VERSION,
+                           self.name_with_rev(),
+                           &base64::encode(&sk[..])))
+            }
+            None => {
+                Err(Error::CryptoError(format!("No secret key present for {}",
+                                               self.name_with_rev())))
+            }
+        }
+    }
+
+    fn get_pairs_for<P: AsRef<Path> + ?Sized>(name: &str, cache_key_path: &P) -> Result<Vec<Self>> {
+        let revisions = get_key_revisions(name, cache_key_path.as_ref(), None, KeyType::Sym)?;
+        let mut key_pairs = Vec::new();
+        for name_with_rev in &revisions {
+            debug!("Attempting to read key name_with_rev {} for {}",
+                   name_with_rev, name);
+            let kp = Self::get_pair_for(name_with_rev, cache_key_path)?;
+            key_pairs.push(kp);
+        }
+        Ok(key_pairs)
+    }
+
+    fn get_pair_for<P: AsRef<Path> + ?Sized>(name_with_rev: &str,
+                                             cache_key_path: &P)
+                                             -> Result<Self> {
+        let (name, rev) = parse_name_with_rev(&name_with_rev)?;
+        let sk = match Self::get_secret_key(name_with_rev, cache_key_path.as_ref()) {
+            Ok(k) => Some(k),
+            Err(e) => {
+                let msg = format!("No secret keys found for name_with_rev {}: {}",
+                                  name_with_rev, e);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        Ok(RingKey(KeyPair::new(name, rev, None, sk)))
+    }
+
+    fn get_secret_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SymSecretKey> {
+        let secret_keyfile = mk_key_filename(cache_key_path, key_with_rev, SECRET_SYM_KEY_SUFFIX);
+        match SymSecretKey::from_slice(HabitatKey::try_from(&secret_keyfile)?.as_ref()) {
+            Some(sk) => Ok(sk),
+            None => {
+                Err(Error::CryptoError(format!("Can't read sym secret key \
+                                                for {}",
+                                               key_with_rev)))
+            }
+        }
     }
 }
 
