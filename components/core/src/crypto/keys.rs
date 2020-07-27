@@ -194,13 +194,13 @@ impl FromStr for HabitatKey {
                 return Err(Error::CryptoError(msg));
             }
         };
-        let name_with_rev = match lines.next() {
-            Some(val) => val,
-            None => {
-                let msg = format!("write_key_from_str:2 Malformed key string:\n({})", s);
-                return Err(Error::CryptoError(msg));
-            }
-        };
+        let name_with_rev = lines.next().ok_or_else(|| {
+                                             let msg = format!("write_key_from_str:2 Malformed \
+                                                                key string:\n({})",
+                                                               s);
+                                             Error::CryptoError(msg)
+                                         })?;
+
         match lines.nth(1) {
             Some(val) => {
                 let key_bytes = base64::decode(val.trim()).map_err(|_| {
@@ -309,25 +309,19 @@ impl<P: PartialEq, S: PartialEq> KeyPair<P, S> {
     pub fn name_with_rev(&self) -> String { format!("{}-{}", self.name, self.rev) }
 
     pub fn public(&self) -> Result<&P> {
-        match self.public.as_ref() {
-            Some(s) => Ok(s),
-            None => {
-                let msg = format!("Public key is required but not present for {}",
-                                  self.name_with_rev());
-                Err(Error::CryptoError(msg))
-            }
-        }
+        self.public.as_ref().ok_or_else(|| {
+                                let msg = format!("Public key is required but not present for {}",
+                                                  self.name_with_rev());
+                                Error::CryptoError(msg)
+                            })
     }
 
     pub fn secret(&self) -> Result<&S> {
-        match self.secret.as_ref() {
-            Some(s) => Ok(s),
-            None => {
-                let msg = format!("Secret key is required but not present for {}",
-                                  self.name_with_rev());
-                Err(Error::CryptoError(msg))
-            }
-        }
+        self.secret.as_ref().ok_or_else(|| {
+                                let msg = format!("Secret key is required but not present for {}",
+                                                  self.name_with_rev());
+                                Error::CryptoError(msg)
+                            })
     }
 }
 
