@@ -35,10 +35,10 @@ impl SigKeyPair {
 
     /// Return a Vec of origin keys with a given name.
     /// The newest key is listed first in the Vec.
-    pub fn get_pairs_for<P: AsRef<Path> + ?Sized>(name: &str,
-                                                  cache_key_path: &P,
-                                                  pair_type: Option<PairType>)
-                                                  -> Result<Vec<Self>> {
+    fn get_pairs_for<P: AsRef<Path> + ?Sized>(name: &str,
+                                              cache_key_path: &P,
+                                              pair_type: Option<PairType>)
+                                              -> Result<Vec<Self>> {
         let revisions = get_key_revisions(name, cache_key_path.as_ref(), pair_type, KeyType::Sig)?;
         debug!("revisions = {:?}", &revisions);
         let mut key_pairs = Vec::new();
@@ -244,6 +244,7 @@ impl SigKeyPair {
         Ok((Self::get_pair_for(&name_with_rev, cache_key_path)?, pair_type))
     }
 
+    // TODO (CM): appears to be public only for Builder
     pub fn to_public_string(&self) -> Result<String> {
         match self.public {
             Some(pk) => {
@@ -259,6 +260,7 @@ impl SigKeyPair {
         }
     }
 
+    // TODO (CM): appears to be public only for Builder
     pub fn to_secret_string(&self) -> Result<String> {
         match self.secret {
             Some(ref sk) => {
