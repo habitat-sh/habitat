@@ -24,8 +24,7 @@ use sodiumoxide::crypto::{box_::{self,
                           sealedbox};
 use std::{borrow::Cow,
           convert::TryFrom,
-          path::{Path,
-                 PathBuf},
+          path::Path,
           str};
 
 #[derive(Debug)]
@@ -83,12 +82,13 @@ impl BoxKeyPair {
         Self::generate_pair_for_string(user)
     }
 
+    // TODO (CM): appears to *only* be used in Builder
     pub fn generate_pair_for_origin(origin: &str) -> Result<Self> {
         debug!("new origin box key");
         Self::generate_pair_for_string(origin)
     }
 
-    pub fn get_pairs_for<T, P>(name: T, cache_key_path: P) -> Result<Vec<Self>>
+    fn get_pairs_for<T, P>(name: T, cache_key_path: P) -> Result<Vec<Self>>
         where T: AsRef<str>,
               P: AsRef<Path>
     {
@@ -105,6 +105,7 @@ impl BoxKeyPair {
         Ok(key_pairs)
     }
 
+    // TODO (CM): appears to *only* be used in Builder
     pub fn get_pair_for<T, P>(name_with_rev: T, cache_key_path: P) -> Result<Self>
         where T: AsRef<str>,
               P: AsRef<Path>
@@ -150,26 +151,6 @@ impl BoxKeyPair {
         }
     }
 
-    pub fn get_public_key_path<P: AsRef<Path> + ?Sized>(key_with_rev: &str,
-                                                        cache_key_path: &P)
-                                                        -> Result<PathBuf> {
-        let path = mk_key_filename(cache_key_path.as_ref(), key_with_rev, PUBLIC_KEY_SUFFIX);
-        if !path.is_file() {
-            return Err(Error::CryptoError(format!("No public key found at {}", path.display())));
-        }
-        Ok(path)
-    }
-
-    pub fn get_secret_key_path<P: AsRef<Path> + ?Sized>(key_with_rev: &str,
-                                                        cache_key_path: &P)
-                                                        -> Result<PathBuf> {
-        let path = mk_key_filename(cache_key_path.as_ref(), key_with_rev, SECRET_BOX_KEY_SUFFIX);
-        if !path.is_file() {
-            return Err(Error::CryptoError(format!("No secret key found at {}", path.display())));
-        }
-        Ok(path)
-    }
-
     /// A user can encrypt data with a service as the recipient.
     /// Key names and nonce (if needed) are embedded in the payload.
     /// If no recipient is specified, the encrypted payload is decryptable only
@@ -184,6 +165,7 @@ impl BoxKeyPair {
         }.map(WrappedSealedBox::from)
     }
 
+    // TODO (CM): appears to *only* be used in Builder
     pub fn to_public_string(&self) -> Result<String> {
         match self.public {
             Some(pk) => {
@@ -199,6 +181,7 @@ impl BoxKeyPair {
         }
     }
 
+    // TODO (CM): appears to *only* be used in Builder
     pub fn to_secret_string(&self) -> Result<String> {
         match self.secret {
             Some(ref sk) => {
@@ -244,7 +227,7 @@ impl BoxKeyPair {
                    base64::encode(&ciphertext)))
     }
 
-    pub fn box_key_format_version(version: Option<&str>) -> Result<&str> {
+    fn box_key_format_version(version: Option<&str>) -> Result<&str> {
         match version {
             Some(val) => {
                 if val != BOX_FORMAT_VERSION && val != ANONYMOUS_BOX_FORMAT_VERSION {
@@ -256,7 +239,7 @@ impl BoxKeyPair {
         }
     }
 
-    pub fn box_key_sender(sender: Option<&str>) -> Result<&str> {
+    fn box_key_sender(sender: Option<&str>) -> Result<&str> {
         match sender {
             Some(val) => Ok(val),
             None => {
@@ -267,7 +250,7 @@ impl BoxKeyPair {
         }
     }
 
-    pub fn box_key_receiver(receiver: Option<&str>) -> Result<&str> {
+    fn box_key_receiver(receiver: Option<&str>) -> Result<&str> {
         match receiver {
             Some(val) => Ok(val),
             None => {
@@ -278,7 +261,7 @@ impl BoxKeyPair {
         }
     }
 
-    pub fn box_key_nonce(nonce: Option<&str>) -> Result<Nonce> {
+    fn box_key_nonce(nonce: Option<&str>) -> Result<Nonce> {
         match nonce {
             Some(val) => {
                 let decoded =
@@ -294,7 +277,7 @@ impl BoxKeyPair {
         }
     }
 
-    pub fn box_key_ciphertext(ciphertext: Option<&str>) -> Result<Vec<u8>> {
+    fn box_key_ciphertext(ciphertext: Option<&str>) -> Result<Vec<u8>> {
         match ciphertext {
             Some(val) => {
                 Ok(base64::decode(val).map_err(|e| {
@@ -306,8 +289,9 @@ impl BoxKeyPair {
         }
     }
 
-    pub fn is_anonymous_box(version: &str) -> bool { version == ANONYMOUS_BOX_FORMAT_VERSION }
+    fn is_anonymous_box(version: &str) -> bool { version == ANONYMOUS_BOX_FORMAT_VERSION }
 
+    // TODO (CM): appears to be public only for Builder
     pub fn decrypt(&self,
                    ciphertext: &[u8],
                    receiver: Option<Self>,
@@ -321,9 +305,10 @@ impl BoxKeyPair {
         }
     }
 
-    // Return the metadata and encrypted text from a secret payload.
-    // This is useful for services consuming an encrypted payload and need to decrypt it without
-    // having keys on disk
+    /// Return the metadata and encrypted text from a secret payload.
+    /// This is useful for services consuming an encrypted payload and need to decrypt it without
+    /// having keys on disk
+    // TODO (CM): appears to be public only for Builder
     pub fn secret_metadata<'a, 'b>(payload: &'b WrappedSealedBox<'a>) -> Result<BoxSecret<'b>> {
         let mut lines = payload.0.lines();
         let version = Self::box_key_format_version(lines.next())?;
@@ -395,12 +380,13 @@ impl BoxKeyPair {
         })
     }
 
+    // TODO (CM): appears to *only* be used in Builder
     pub fn public_key_from_str(key: &str) -> Result<BoxPublicKey> {
         let key: HabitatKey = key.parse()?;
         Self::public_key_from_bytes(key.as_ref())
     }
 
-    pub fn public_key_from_bytes(bytes: &[u8]) -> Result<BoxPublicKey> {
+    fn public_key_from_bytes(bytes: &[u8]) -> Result<BoxPublicKey> {
         match BoxPublicKey::from_slice(bytes) {
             Some(sk) => Ok(sk),
             None => {
@@ -429,12 +415,13 @@ impl BoxKeyPair {
         Self::secret_key_from_bytes(HabitatKey::try_from(&secret_keyfile)?.as_ref())
     }
 
+    // TODO (CM): appears to *only* be used in Builder
     pub fn secret_key_from_str(key: &str) -> Result<BoxSecretKey> {
         let key: HabitatKey = key.parse()?;
         Self::secret_key_from_bytes(key.as_ref())
     }
 
-    pub fn secret_key_from_bytes(bytes: &[u8]) -> Result<BoxSecretKey> {
+    fn secret_key_from_bytes(bytes: &[u8]) -> Result<BoxSecretKey> {
         match BoxSecretKey::from_slice(bytes) {
             Some(sk) => Ok(sk),
             None => {
@@ -461,8 +448,37 @@ mod test {
                 KeyRevision,
                 *};
     use std::{fs,
+              path::PathBuf,
               str};
     use tempfile::Builder;
+
+    // TODO (CM): Tests here are implemented in terms of these, even
+    // though these were never used outside of tests. Consider
+    // eliminating them altogether.
+    impl BoxKeyPair {
+        fn get_public_key_path<P: AsRef<Path> + ?Sized>(key_with_rev: &str,
+                                                        cache_key_path: &P)
+                                                        -> Result<PathBuf> {
+            let path = mk_key_filename(cache_key_path.as_ref(), key_with_rev, PUBLIC_KEY_SUFFIX);
+            if !path.is_file() {
+                return Err(Error::CryptoError(format!("No public key found at {}",
+                                                      path.display())));
+            }
+            Ok(path)
+        }
+
+        fn get_secret_key_path<P: AsRef<Path> + ?Sized>(key_with_rev: &str,
+                                                        cache_key_path: &P)
+                                                        -> Result<PathBuf> {
+            let path =
+                mk_key_filename(cache_key_path.as_ref(), key_with_rev, SECRET_BOX_KEY_SUFFIX);
+            if !path.is_file() {
+                return Err(Error::CryptoError(format!("No secret key found at {}",
+                                                      path.display())));
+            }
+            Ok(path)
+        }
+    }
 
     static VALID_KEY: &str = "service-key-valid.default@acme-20160509181736.box.key";
     static VALID_PUB: &str = "service-key-valid.default@acme-20160509181736.pub";
