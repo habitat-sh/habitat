@@ -366,7 +366,7 @@ mod test {
                                None);
 
         assert_eq!(pair.name, "grohl");
-        assert_eq!(pair.rev, KeyRevision::unchecked("201604051449"));
+        assert_eq!(pair.revision, KeyRevision::unchecked("201604051449"));
         assert_eq!(pair.name_with_rev(), "grohl-201604051449");
 
         assert_eq!(pair.public, None);
