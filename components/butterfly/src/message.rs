@@ -1,12 +1,12 @@
 use bytes::BytesMut;
-use habitat_core::crypto::SymKey;
+use habitat_core::crypto::RingKey;
 use prost::Message;
 
 use crate::{error::{Error,
                     Result},
             protocol::Wire};
 
-pub fn generate_wire(payload: Vec<u8>, ring_key: Option<&SymKey>) -> Result<Vec<u8>> {
+pub fn generate_wire(payload: Vec<u8>, ring_key: Option<&RingKey>) -> Result<Vec<u8>> {
     let mut wire = Wire::default();
     if let Some(ring_key) = ring_key {
         wire.encrypted = Some(true);
@@ -21,7 +21,7 @@ pub fn generate_wire(payload: Vec<u8>, ring_key: Option<&SymKey>) -> Result<Vec<
     Ok(buf.to_vec())
 }
 
-pub fn unwrap_wire(payload: &[u8], ring_key: Option<&SymKey>) -> Result<Vec<u8>> {
+pub fn unwrap_wire(payload: &[u8], ring_key: Option<&RingKey>) -> Result<Vec<u8>> {
     let wire = Wire::decode(payload)?;
     let payload = wire.payload
                       .ok_or(Error::ProtocolMismatch("missing payload"))?;

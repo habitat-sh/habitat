@@ -12,7 +12,7 @@ use habitat_butterfly::{error::Error,
                         server::{timing::Timing,
                                  Server,
                                  Suitability}};
-use habitat_core::{crypto::keys::sym_key::SymKey,
+use habitat_core::{crypto::keys::ring_key::RingKey,
                    package::{Identifiable,
                              PackageIdent},
                    service::ServiceGroup};
@@ -41,7 +41,7 @@ impl Suitability for NSuitability {
 /// # Locking (see locking.md)
 /// * `Server::member` (write)
 /// * `RumorHeat::inner` (write)
-pub fn start_server_smw_rhw(name: &str, ring_key: Option<SymKey>, suitability: u64) -> Server {
+pub fn start_server_smw_rhw(name: &str, ring_key: Option<RingKey>, suitability: u64) -> Server {
     let swim_port;
     let gossip_port;
     {
@@ -121,7 +121,7 @@ impl SwimNet {
 
     /// # Locking (see locking.md)
     /// * `RumorHeat::inner` (write)
-    pub fn new_ring_encryption_rhw(count: usize, ring_key: &SymKey) -> SwimNet {
+    pub fn new_ring_encryption_rhw(count: usize, ring_key: &RingKey) -> SwimNet {
         let mut members = Vec::with_capacity(count);
         for x in 0..count {
             let rk = ring_key.clone();

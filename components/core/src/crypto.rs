@@ -211,8 +211,8 @@
 //! ```
 
 pub use self::keys::{box_key_pair::BoxKeyPair,
-                     sig_key_pair::SigKeyPair,
-                     sym_key::SymKey};
+                     ring_key::RingKey,
+                     sig_key_pair::SigKeyPair};
 use crate::error::{Error,
                    Result};
 

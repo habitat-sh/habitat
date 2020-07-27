@@ -22,18 +22,26 @@ use std::{convert::TryFrom,
           path::{Path,
                  PathBuf}};
 
-pub type SymKey = KeyPair<(), SymSecretKey>;
+#[derive(Clone, PartialEq)]
+pub struct RingKey(KeyPair<(), SymSecretKey>);
 
-impl fmt::Debug for SymKey {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "SymKey") }
+// TODO (CM): Incorporate the name/revision of the key?
+impl fmt::Debug for RingKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "RingKey") }
 }
 
-impl SymKey {
-    pub fn generate_pair_for_ring(name: &str) -> Self {
+impl RingKey {
+    /// Generate a new `RingKey` for the given name. Creates a new
+    /// key, but does not write anything to the filesystem.
+    pub fn new(name: &str) -> Self {
         let revision = KeyRevision::new();
         let secret_key = secretbox::gen_key();
-        SymKey::new(name.to_string(), revision, Some(()), Some(secret_key))
+        RingKey(KeyPair::new(name.to_string(), revision, Some(()), Some(secret_key)))
     }
+
+    // Simple helper to deal with the indirection to the inner
+    // KeyPair struct. Not ultimately sure if this should be kept.
+    pub fn name_with_rev(&self) -> String { self.0.name_with_rev() }
 
     fn get_pairs_for<P: AsRef<Path> + ?Sized>(name: &str, cache_key_path: &P) -> Result<Vec<Self>> {
         let revisions = get_key_revisions(name, cache_key_path.as_ref(), None, KeyType::Sym)?;
@@ -59,7 +67,7 @@ impl SymKey {
                 return Err(Error::CryptoError(msg));
             }
         };
-        Ok(Self::new(name, rev, None, sk))
+        Ok(RingKey(KeyPair::new(name, rev, None, sk)))
     }
 
     pub fn get_latest_pair_for<P: AsRef<Path> + ?Sized>(name: &str,
@@ -85,7 +93,7 @@ impl SymKey {
     /// extern crate habitat_core;
     /// extern crate tempfile;
     ///
-    /// use habitat_core::crypto::SymKey;
+    /// use habitat_core::crypto::RingKey;
     /// use std::fs::File;
     /// use tempfile::Builder;
     ///
@@ -93,7 +101,7 @@ impl SymKey {
     /// let secret_file = cache.path().join("beyonce-20160504220722.sym.key");
     /// let _ = File::create(&secret_file).unwrap();
     ///
-    /// let path = SymKey::get_secret_key_path("beyonce-20160504220722", cache.path()).unwrap();
+    /// let path = RingKey::get_secret_key_path("beyonce-20160504220722", cache.path()).unwrap();
     /// assert_eq!(path, secret_file);
     /// ```
     ///
@@ -110,7 +118,7 @@ impl SymKey {
         Ok(path)
     }
 
-    /// Encrypts a byte slice of data using a given `SymKey`.
+    /// Encrypts a byte slice of data using a given `RingKey`.
     ///
     /// The return is a `Result` of a tuple of `Vec<u8>` structs, the first being the random nonce
     /// value and the second being the ciphertext.
@@ -123,25 +131,25 @@ impl SymKey {
     /// extern crate habitat_core;
     /// extern crate tempfile;
     ///
-    /// use habitat_core::crypto::SymKey;
+    /// use habitat_core::crypto::RingKey;
     /// use tempfile::Builder;
     ///
     /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-    /// let sym_key = SymKey::generate_pair_for_ring("beyonce");
+    /// let ring_key = RingKey::new("beyonce");
     ///
-    /// let (nonce, ciphertext) = sym_key.encrypt("Guess who?".as_bytes()).unwrap();
+    /// let (nonce, ciphertext) = ring_key.encrypt("Guess who?".as_bytes()).unwrap();
     /// ```
     ///
     /// # Errors
     ///
-    /// * If the secret key component of the `SymKey` is not present
+    /// * If the secret key component of the `RingKey` is not present
     pub fn encrypt(&self, data: &[u8]) -> Result<(Vec<u8>, Vec<u8>)> {
-        let key = self.secret()?;
+        let key = self.0.secret()?;
         let nonce = secretbox::gen_nonce();
         Ok((nonce.as_ref().to_vec(), secretbox::seal(data, &nonce, &key)))
     }
 
-    /// Decrypts a byte slice of ciphertext using a given nonce value and a `SymKey`.
+    /// Decrypts a byte slice of ciphertext using a given nonce value and a `RingKey`.
     ///
     /// The return is a `Result` of a byte vector containing the original, unencrypted data.
     ///
@@ -153,24 +161,24 @@ impl SymKey {
     /// extern crate habitat_core;
     /// extern crate tempfile;
     ///
-    /// use habitat_core::crypto::SymKey;
+    /// use habitat_core::crypto::RingKey;
     /// use tempfile::Builder;
     ///
     /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-    /// let sym_key = SymKey::generate_pair_for_ring("beyonce");
-    /// let (nonce, ciphertext) = sym_key.encrypt("Guess who?".as_bytes()).unwrap();
+    /// let ring_key = RingKey::new("beyonce");
+    /// let (nonce, ciphertext) = ring_key.encrypt("Guess who?".as_bytes()).unwrap();
     ///
-    /// let message = sym_key.decrypt(&nonce, &ciphertext).unwrap();
+    /// let message = ring_key.decrypt(&nonce, &ciphertext).unwrap();
     /// assert_eq!(message, "Guess who?".to_string().into_bytes());
     /// ```
     ///
     /// # Errors
     ///
-    /// * If the secret key component of the `SymKey` is not present
+    /// * If the secret key component of the `RingKey` is not present
     /// * If the size of the provided nonce data is not the required size
     /// * If the ciphertext was not decryptable given the nonce and symmetric key
     pub fn decrypt(&self, nonce: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
-        let key = self.secret()?;
+        let key = self.0.secret()?;
         let nonce = match secretbox::Nonce::from_slice(&nonce) {
             Some(n) => n,
             None => return Err(Error::CryptoError("Invalid size of nonce".to_string())),
@@ -188,7 +196,7 @@ impl SymKey {
     // TODO (CM): only public because it's also used in a test in
     // keys.rs... look into better factoring
     pub(crate) fn to_secret_string(&self) -> Result<String> {
-        match self.secret {
+        match self.0.secret {
             Some(ref sk) => {
                 Ok(format!("{}\n{}\n\n{}",
                            SECRET_SYM_KEY_VERSION,
@@ -237,7 +245,7 @@ impl SymKey {
     /// extern crate tempfile;
     ///
     /// use habitat_core::crypto::{keys::PairType,
-    ///                            SymKey};
+    ///                            RingKey};
     /// use tempfile::Builder;
     ///
     /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
@@ -246,7 +254,7 @@ impl SymKey {
     ///
     /// RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
     ///
-    /// let (pair, pair_type) = SymKey::write_file_from_str(content, cache.path()).unwrap();
+    /// let (pair, pair_type) = RingKey::write_file_from_str(content, cache.path()).unwrap();
     /// assert_eq!(pair_type, PairType::Secret);
     /// assert_eq!(pair.name_with_rev(), "beyonce-20160504220722");
     /// assert!(cache.path()
@@ -340,10 +348,8 @@ impl SymKey {
 
 #[cfg(test)]
 mod test {
-    use super::{super::{super::test_support::*,
-                        PairType},
-                KeyRevision,
-                SymKey};
+    use super::{super::super::test_support::*,
+                *};
     use std::{fs::{self,
                    File},
               io::Read};
@@ -352,32 +358,51 @@ mod test {
     static VALID_KEY: &str = "ring-key-valid-20160504220722.sym.key";
     static VALID_NAME_WITH_REV: &str = "ring-key-valid-20160504220722";
 
-    #[test]
-    fn empty_struct() {
-        let pair = SymKey::new("grohl".to_string(),
-                               KeyRevision::unchecked("201604051449"),
-                               None,
-                               None);
+    impl RingKey {
+        /// Test-only way of creating a RingKey to e.g., simulate when
+        /// a requested key doesn't exist on disk.
+        pub fn from_raw(name: String, rev: KeyRevision, secret: Option<SymSecretKey>) -> RingKey {
+            RingKey(KeyPair::new(name, rev, Some(()), secret))
+        }
 
-        assert_eq!(pair.name, "grohl");
-        assert_eq!(pair.revision, KeyRevision::unchecked("201604051449"));
-        assert_eq!(pair.name_with_rev(), "grohl-201604051449");
+        pub fn revision(&self) -> &KeyRevision { &self.0.revision }
 
-        assert_eq!(pair.public, None);
-        assert!(pair.public().is_err(),
-                "Empty pair should not have a public key");
-        assert_eq!(pair.secret, None);
-        assert!(pair.secret().is_err(),
-                "Empty pair should not have a secret key");
+        pub fn name(&self) -> &String { &self.0.name }
+
+        // TODO (CM): This really shouldn't exist
+        pub fn public(&self) -> crate::error::Result<&()> { self.0.public() }
+
+        // TODO (CM): this should probably be renamed; there's no
+        // public key to distinguish it from.
+        pub fn secret(&self) -> crate::error::Result<&SymSecretKey> { self.0.secret() }
     }
+
+    // #[test]
+    // fn empty_struct() {
+    //     let pair = RingKey::new("grohl".to_string(),
+    //                             KeyRevision::unchecked("201604051449"),
+    //                             None,
+    //                             None);
+
+    //     assert_eq!(pair.name(), "grohl");
+    //     assert_eq!(pair.revision(), KeyRevision::unchecked("201604051449"));
+    //     assert_eq!(pair.name_with_rev(), "grohl-201604051449");
+
+    //     assert_eq!(pair.public, None);
+    //     assert!(pair.public().is_err(),
+    //             "Empty pair should not have a public key");
+    //     assert_eq!(pair.secret, None);
+    //     assert!(pair.secret().is_err(),
+    //             "Empty pair should not have a secret key");
+    // }
 
     #[test]
     fn generated_ring_pair() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SymKey::generate_pair_for_ring("beyonce");
+        let pair = RingKey::new("beyonce");
         pair.to_pair_files(cache.path()).unwrap();
 
-        assert_eq!(pair.name, "beyonce");
+        assert_eq!(pair.name(), "beyonce");
         assert!(pair.public().is_ok(),
                 "Generated pair should have an empty public key");
         assert!(pair.secret().is_ok(),
@@ -390,39 +415,37 @@ mod test {
     #[test]
     fn get_pairs_for() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pairs = SymKey::get_pairs_for("beyonce", cache.path()).unwrap();
+        let pairs = RingKey::get_pairs_for("beyonce", cache.path()).unwrap();
         assert_eq!(pairs.len(), 0);
 
-        SymKey::generate_pair_for_ring("beyonce").to_pair_files(cache.path())
-                                                 .unwrap();
-        let pairs = SymKey::get_pairs_for("beyonce", cache.path()).unwrap();
+        RingKey::new("beyonce").to_pair_files(cache.path()).unwrap();
+        let pairs = RingKey::get_pairs_for("beyonce", cache.path()).unwrap();
         assert_eq!(pairs.len(), 1);
 
         match wait_until_ok(|| {
-                  let rpair = SymKey::generate_pair_for_ring("beyonce");
+                  let rpair = RingKey::new("beyonce");
                   rpair.to_pair_files(cache.path())?;
                   Ok(())
               }) {
             Some(pair) => pair,
             None => panic!("Failed to generate another keypair after waiting"),
         };
-        let pairs = SymKey::get_pairs_for("beyonce", cache.path()).unwrap();
+        let pairs = RingKey::get_pairs_for("beyonce", cache.path()).unwrap();
         assert_eq!(pairs.len(), 2);
 
         // We should not include another named key in the count
-        SymKey::generate_pair_for_ring("jayz").to_pair_files(cache.path())
-                                              .unwrap();
-        let pairs = SymKey::get_pairs_for("beyonce", cache.path()).unwrap();
+        RingKey::new("jayz").to_pair_files(cache.path()).unwrap();
+        let pairs = RingKey::get_pairs_for("beyonce", cache.path()).unwrap();
         assert_eq!(pairs.len(), 2);
     }
 
     #[test]
     fn get_pair_for() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let p1 = SymKey::generate_pair_for_ring("beyonce");
+        let p1 = RingKey::new("beyonce");
         p1.to_pair_files(cache.path()).unwrap();
         let p2 = match wait_until_ok(|| {
-                  let rpath = SymKey::generate_pair_for_ring("beyonce");
+                  let rpath = RingKey::new("beyonce");
                   rpath.to_pair_files(cache.path())?;
                   Ok(rpath)
               }) {
@@ -430,39 +453,38 @@ mod test {
             None => panic!("Failed to generate another keypair after waiting"),
         };
 
-        let p1_fetched = SymKey::get_pair_for(&p1.name_with_rev(), cache.path()).unwrap();
-        assert_eq!(p1.name, p1_fetched.name);
-        assert_eq!(p1.rev, p1_fetched.rev);
-        let p2_fetched = SymKey::get_pair_for(&p2.name_with_rev(), cache.path()).unwrap();
-        assert_eq!(p2.name, p2_fetched.name);
-        assert_eq!(p2.rev, p2_fetched.rev);
+        let p1_fetched = RingKey::get_pair_for(&p1.name_with_rev(), cache.path()).unwrap();
+        assert_eq!(p1.name(), p1_fetched.name());
+        assert_eq!(p1.revision(), p1_fetched.revision());
+        let p2_fetched = RingKey::get_pair_for(&p2.name_with_rev(), cache.path()).unwrap();
+        assert_eq!(p2.name(), p2_fetched.name());
+        assert_eq!(p2.revision(), p2_fetched.revision());
     }
 
     #[test]
     #[should_panic(expected = "No secret keys found for name_with_rev")]
     fn get_pair_for_nonexistent() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SymKey::get_pair_for("nope-nope-20160405144901", cache.path()).unwrap();
+        RingKey::get_pair_for("nope-nope-20160405144901", cache.path()).unwrap();
     }
 
     #[test]
     fn get_latest_pair_for_single() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SymKey::generate_pair_for_ring("beyonce");
+        let pair = RingKey::new("beyonce");
         pair.to_pair_files(cache.path()).unwrap();
 
-        let latest = SymKey::get_latest_pair_for("beyonce", cache.path()).unwrap();
-        assert_eq!(latest.name, pair.name);
-        assert_eq!(latest.rev, pair.rev);
+        let latest = RingKey::get_latest_pair_for("beyonce", cache.path()).unwrap();
+        assert_eq!(latest.name(), pair.name());
+        assert_eq!(latest.revision(), pair.revision());
     }
 
     #[test]
     fn get_latest_pair_for_multiple() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SymKey::generate_pair_for_ring("beyonce").to_pair_files(cache.path())
-                                                 .unwrap();
+        RingKey::new("beyonce").to_pair_files(cache.path()).unwrap();
         let p2 = match wait_until_ok(|| {
-                  let rpath = SymKey::generate_pair_for_ring("beyonce");
+                  let rpath = RingKey::new("beyonce");
                   rpath.to_pair_files(cache.path())?;
                   Ok(rpath)
               }) {
@@ -470,16 +492,16 @@ mod test {
             None => panic!("Failed to generate another keypair after waiting"),
         };
 
-        let latest = SymKey::get_latest_pair_for("beyonce", cache.path()).unwrap();
-        assert_eq!(latest.name, p2.name);
-        assert_eq!(latest.rev, p2.rev);
+        let latest = RingKey::get_latest_pair_for("beyonce", cache.path()).unwrap();
+        assert_eq!(latest.name(), p2.name());
+        assert_eq!(latest.revision(), p2.revision());
     }
 
     #[test]
     #[should_panic(expected = "No revisions found for")]
     fn get_latest_pair_for_nonexistent() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SymKey::get_latest_pair_for("nope-nope", cache.path()).unwrap();
+        RingKey::get_latest_pair_for("nope-nope", cache.path()).unwrap();
     }
 
     #[test]
@@ -488,7 +510,7 @@ mod test {
         fs::copy(fixture(&format!("keys/{}", VALID_KEY)),
                  cache.path().join(VALID_KEY)).unwrap();
 
-        let result = SymKey::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
+        let result = RingKey::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
         assert_eq!(result, cache.path().join(VALID_KEY));
     }
 
@@ -496,13 +518,13 @@ mod test {
     #[should_panic(expected = "No secret key found at")]
     fn get_secret_key_path_nonexistent() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SymKey::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
+        RingKey::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
     }
 
     #[test]
     fn encrypt_and_decrypt() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SymKey::generate_pair_for_ring("beyonce");
+        let pair = RingKey::new("beyonce");
         pair.to_pair_files(cache.path()).unwrap();
 
         let (nonce, ciphertext) = pair.encrypt(b"Ringonit").unwrap();
@@ -513,10 +535,9 @@ mod test {
     #[test]
     #[should_panic(expected = "Secret key is required but not present for")]
     fn encrypt_missing_secret_key() {
-        let pair = SymKey::new("grohl".to_string(),
-                               KeyRevision::unchecked("201604051449"),
-                               None,
-                               None);
+        let pair = RingKey::from_raw("grohl".to_string(),
+                                     KeyRevision::unchecked("201604051449"),
+                                     None);
 
         pair.encrypt(b"Not going to go well").unwrap();
     }
@@ -525,14 +546,13 @@ mod test {
     #[should_panic(expected = "Secret key is required but not present for")]
     fn decrypt_missing_secret_key() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SymKey::generate_pair_for_ring("beyonce");
+        let pair = RingKey::new("beyonce");
         pair.to_pair_files(cache.path()).unwrap();
         let (nonce, ciphertext) = pair.encrypt(b"Ringonit").unwrap();
 
-        let missing = SymKey::new("grohl".to_string(),
-                                  KeyRevision::unchecked("201604051449"),
-                                  None,
-                                  None);
+        let missing = RingKey::from_raw("grohl".to_string(),
+                                        KeyRevision::unchecked("201604051449"),
+                                        None);
         missing.decrypt(&nonce, &ciphertext).unwrap();
     }
 
@@ -540,7 +560,7 @@ mod test {
     #[should_panic(expected = "Invalid size of nonce")]
     fn decrypt_invalid_nonce_length() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SymKey::generate_pair_for_ring("beyonce");
+        let pair = RingKey::new("beyonce");
         pair.to_pair_files(cache.path()).unwrap();
 
         let (_, ciphertext) = pair.encrypt(b"Ringonit").unwrap();
@@ -551,7 +571,7 @@ mod test {
     #[should_panic(expected = "Secret key and nonce could not decrypt ciphertext")]
     fn decrypt_invalid_ciphertext() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SymKey::generate_pair_for_ring("beyonce");
+        let pair = RingKey::new("beyonce");
         pair.to_pair_files(cache.path()).unwrap();
 
         let (nonce, _) = pair.encrypt(b"Ringonit").unwrap();
@@ -565,7 +585,7 @@ mod test {
         let new_key_file = cache.path().join(VALID_KEY);
 
         assert_eq!(new_key_file.is_file(), false);
-        let (pair, pair_type) = SymKey::write_file_from_str(&content, cache.path()).unwrap();
+        let (pair, pair_type) = RingKey::write_file_from_str(&content, cache.path()).unwrap();
         assert_eq!(pair_type, PairType::Secret);
         assert_eq!(pair.name_with_rev(), VALID_NAME_WITH_REV);
         assert!(new_key_file.is_file());
@@ -589,7 +609,7 @@ mod test {
         // install the key into the cache
         fs::copy(fixture(&format!("keys/{}", VALID_KEY)), &new_key_file).unwrap();
 
-        let (pair, pair_type) = SymKey::write_file_from_str(&content, cache.path()).unwrap();
+        let (pair, pair_type) = RingKey::write_file_from_str(&content, cache.path()).unwrap();
         assert_eq!(pair_type, PairType::Secret);
         assert_eq!(pair.name_with_rev(), VALID_NAME_WITH_REV);
         assert!(new_key_file.is_file());
@@ -601,7 +621,7 @@ mod test {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let content = fixture_as_string("keys/ring-key-invalid-version-20160504221247.sym.key");
 
-        SymKey::write_file_from_str(&content, cache.path()).unwrap();
+        RingKey::write_file_from_str(&content, cache.path()).unwrap();
     }
 
     #[test]
@@ -609,7 +629,7 @@ mod test {
     fn write_file_from_str_missing_version() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
-        SymKey::write_file_from_str("", cache.path()).unwrap();
+        RingKey::write_file_from_str("", cache.path()).unwrap();
     }
 
     #[test]
@@ -617,7 +637,7 @@ mod test {
     fn write_file_from_str_missing_name() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
-        SymKey::write_file_from_str("SYM-SEC-1\n", cache.path()).unwrap();
+        RingKey::write_file_from_str("SYM-SEC-1\n", cache.path()).unwrap();
     }
 
     #[test]
@@ -625,7 +645,7 @@ mod test {
     fn write_file_from_str_missing_key() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
-        SymKey::write_file_from_str("SYM-SEC-1\nim-in-trouble-123\n", cache.path()).unwrap();
+        RingKey::write_file_from_str("SYM-SEC-1\nim-in-trouble-123\n", cache.path()).unwrap();
     }
 
     #[test]
@@ -636,7 +656,7 @@ mod test {
         fs::copy(key,
                  cache.path().join("ring-key-valid-20160504220722.sym.key")).unwrap();
 
-        SymKey::write_file_from_str("SYM-SEC-1\nring-key-valid-20160504220722\n\nsomething",
-                                    cache.path()).unwrap();
+        RingKey::write_file_from_str("SYM-SEC-1\nring-key-valid-20160504220722\n\nsomething",
+                                     cache.path()).unwrap();
     }
 }

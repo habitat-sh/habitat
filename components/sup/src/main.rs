@@ -38,7 +38,7 @@ use habitat_common::{command::package::install::InstallSource,
                      FeatureFlag};
 use habitat_core::{self,
                    crypto::{self,
-                            SymKey},
+                            RingKey},
                    os::signals};
 use habitat_launcher_client::{LauncherCli,
                               ERR_NO_RETRY_EXCODE,
@@ -345,17 +345,17 @@ async fn split_apart_sup_run(sup_run: SupRun,
 // Various CLI Parsing Functions
 ////////////////////////////////////////////////////////////////////////
 
-fn get_ring_key(sup_run: &SupRun) -> Result<Option<SymKey>> {
+fn get_ring_key(sup_run: &SupRun) -> Result<Option<RingKey>> {
     let cache_key_path = &sup_run.cache_key_path.cache_key_path;
     match &sup_run.ring {
         Some(val) => {
-            let key = SymKey::get_latest_pair_for(val, cache_key_path)?;
+            let key = RingKey::get_latest_pair_for(val, cache_key_path)?;
             Ok(Some(key))
         }
         None => {
             match &sup_run.ring_key {
                 Some(val) => {
-                    let (key, _) = SymKey::write_file_from_str(val, cache_key_path)?;
+                    let (key, _) = RingKey::write_file_from_str(val, cache_key_path)?;
                     Ok(Some(key))
                 }
                 None => Ok(None),
@@ -638,7 +638,7 @@ mod test {
 
             let key_content =
                 "SYM-SEC-1\nfoobar-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
-            let (pair, _) = SymKey::write_file_from_str(key_content, key_cache.path())
+            let (pair, _) = RingKey::write_file_from_str(key_content, key_cache.path())
                 .expect("Could not write key pair");
             let config = config_from_cmd_str("hab-sup run --ring foobar");
 
@@ -740,7 +740,7 @@ gpoVMSncu2jMIDZX63IkQII=
             // Setup key file
             let key_content =
                 "SYM-SEC-1\ntester-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
-            let (sym_key, _) = SymKey::write_file_from_str(key_content, temp_dir.path())
+            let (ring_key, _) = RingKey::write_file_from_str(key_content, temp_dir.path())
                                        .expect("Could not write key pair");
 
             // Setup cert files
@@ -785,7 +785,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        http_disable: true,
                                        gossip_peers,
                                        gossip_permanent: true,
-                                       ring_key: Some(sym_key),
+                                       ring_key: Some(ring_key),
                                        organization: Some(String::from("MY_ORG")),
                                        watch_peer_file: None,
                                        tls_config: Some(TLSConfig { cert_path,
@@ -1032,7 +1032,7 @@ gpoVMSncu2jMIDZX63IkQII=
             // Setup key file
             let key_content =
                 "SYM-SEC-1\ntester-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
-            let (sym_key, _) = SymKey::write_file_from_str(key_content, temp_dir.path())
+            let (ring_key, _) = RingKey::write_file_from_str(key_content, temp_dir.path())
                                .expect("Could not write key pair");
 
             // Setup cert files
@@ -1102,7 +1102,7 @@ sys_ip_address = "7.8.9.0"
                                        http_disable: true,
                                        gossip_peers,
                                        gossip_permanent: true,
-                                       ring_key: Some(sym_key),
+                                       ring_key: Some(ring_key),
                                        organization: Some(String::from("MY_ORG")),
                                        watch_peer_file: None,
                                        tls_config: Some(TLSConfig { cert_path,

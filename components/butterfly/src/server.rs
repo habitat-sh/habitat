@@ -43,7 +43,7 @@ use crate::{error::{Error,
 use habitat_common::{liveliness_checker,
                      sync::Lock,
                      FeatureFlag};
-use habitat_core::crypto::SymKey;
+use habitat_core::crypto::RingKey;
 use prometheus::{HistogramTimer,
                  HistogramVec,
                  IntGauge};
@@ -276,7 +276,7 @@ pub struct Server {
     // depends on it being so. Refactor so it can be private.
     myself:                   Arc<Myself>,
     pub member_list:          Arc<MemberList>,
-    ring_key:                 Arc<Option<SymKey>>,
+    ring_key:                 Arc<Option<RingKey>>,
     rumor_heat:               Arc<RumorHeat>,
     pub service_store:        RumorStore<Service>,
     pub service_config_store: RumorStore<ServiceConfig>,
@@ -335,7 +335,7 @@ impl Server {
     pub fn new(swim_addr: SocketAddr,
                gossip_addr: SocketAddr,
                mut member: Member,
-               ring_key: Option<SymKey>,
+               ring_key: Option<RingKey>,
                name: Option<String>,
                // TODO (CM): having data_path as optional is only something
                // that's used in testing, but it cascades outward and

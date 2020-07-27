@@ -1,10 +1,10 @@
 use crate::btest;
 use habitat_butterfly::member::Health;
-use habitat_core::crypto::keys::sym_key::SymKey;
+use habitat_core::crypto::keys::ring_key::RingKey;
 
 #[test]
 fn symmetric_encryption_of_wire_payloads() {
-    let ring_key = SymKey::generate_pair_for_ring("wolverine");
+    let ring_key = RingKey::new("wolverine");
     let mut net = btest::SwimNet::new_ring_encryption_rhw(2, &ring_key);
     net.connect_smr(0, 1);
     assert_wait_for_health_of_mlr!(net, [0..2, 0..2], Health::Alive);
