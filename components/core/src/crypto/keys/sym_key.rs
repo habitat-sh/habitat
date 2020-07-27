@@ -35,9 +35,7 @@ impl SymKey {
         SymKey::new(name.to_string(), revision, Some(()), Some(secret_key))
     }
 
-    pub fn get_pairs_for<P: AsRef<Path> + ?Sized>(name: &str,
-                                                  cache_key_path: &P)
-                                                  -> Result<Vec<Self>> {
+    fn get_pairs_for<P: AsRef<Path> + ?Sized>(name: &str, cache_key_path: &P) -> Result<Vec<Self>> {
         let revisions = get_key_revisions(name, cache_key_path.as_ref(), None, KeyType::Sym)?;
         let mut key_pairs = Vec::new();
         for name_with_rev in &revisions {
@@ -49,9 +47,9 @@ impl SymKey {
         Ok(key_pairs)
     }
 
-    pub fn get_pair_for<P: AsRef<Path> + ?Sized>(name_with_rev: &str,
-                                                 cache_key_path: &P)
-                                                 -> Result<Self> {
+    fn get_pair_for<P: AsRef<Path> + ?Sized>(name_with_rev: &str,
+                                             cache_key_path: &P)
+                                             -> Result<Self> {
         let (name, rev) = parse_name_with_rev(&name_with_rev)?;
         let sk = match Self::get_secret_key(name_with_rev, cache_key_path.as_ref()) {
             Ok(k) => Some(k),
@@ -75,12 +73,6 @@ impl SymKey {
             }
             _ => Ok(all.remove(0)),
         }
-    }
-
-    pub fn get_public_key_path<P: AsRef<Path> + ?Sized>(_key_with_rev: &str,
-                                                        _cache_key_path: &P)
-                                                        -> Result<PathBuf> {
-        Err(Error::CryptoError("No public key exists for sym keys".to_string()))
     }
 
     /// Returns the full path to the secret sym key given a key name with revision.
@@ -193,7 +185,9 @@ impl SymKey {
         }
     }
 
-    pub fn to_secret_string(&self) -> Result<String> {
+    // TODO (CM): only public because it's also used in a test in
+    // keys.rs... look into better factoring
+    pub(crate) fn to_secret_string(&self) -> Result<String> {
         match self.secret {
             Some(ref sk) => {
                 Ok(format!("{}\n{}\n\n{}",
@@ -486,13 +480,6 @@ mod test {
     fn get_latest_pair_for_nonexistent() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SymKey::get_latest_pair_for("nope-nope", cache.path()).unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "No public key exists for sym keys")]
-    fn get_public_key_path() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SymKey::get_public_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
     }
 
     #[test]
