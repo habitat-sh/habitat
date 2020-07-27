@@ -263,6 +263,12 @@ impl fmt::Display for KeyRevision {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { self.0.fmt(f) }
 }
 
+// Only used for the polymorphic `KeyPair::rev` implementation so Builder can
+// use things before adopting the KeyRevison type itself.
+impl From<KeyRevision> for String {
+    fn from(rev: KeyRevision) -> String { rev.to_string() }
+}
+
 // As a "newtype", KeyRevision can be thought of as a kind of "smart
 // container", and thus we can implement Deref for it with our heads
 // held high.
@@ -294,13 +300,16 @@ impl KeyRevision {
 #[derive(Clone, PartialEq)]
 pub struct KeyPair<P: PartialEq, S: PartialEq> {
     /// The name of the key, ex: "habitat"
-    name:   String,
+    name:     String,
     /// The revision of the key, which is a timestamp, ex: "201604051449"
-    rev:    KeyRevision,
+    // TODO (CM): This needs to be public for Builder (for now)
+    #[deprecated(note = "Use KeyPair::rev() function instead")]
+    pub rev:  String,
+    revision: KeyRevision,
     /// The public key component, if relevant
-    public: Option<P>,
+    public:   Option<P>,
     /// The private key component, if relevant
-    secret: Option<S>,
+    secret:   Option<S>,
 }
 
 impl<P: PartialEq, S: PartialEq> KeyPair<P, S> {
@@ -310,14 +319,26 @@ impl<P: PartialEq, S: PartialEq> KeyPair<P, S> {
                public: Option<P>,
                secret: Option<S>)
                -> KeyPair<P, S> {
+        #[allow(deprecated)] // for our own internal use of the rev field
         KeyPair { name,
-                  rev,
+                  rev: rev.to_string(),
+                  revision: rev,
                   public,
                   secret }
     }
 
     /// Returns a `String` containing the combination of the `name` and `rev` fields.
-    pub fn name_with_rev(&self) -> String { format!("{}-{}", self.name, self.rev) }
+    pub fn name_with_rev(&self) -> String { format!("{}-{}", self.name, self.revision) }
+
+    // TODO (CM): Only polymorphic for Builder right now; eventually,
+    // return only KeyRevision from this (if even needed at all; once
+    // Builder gets some refactorings, I think we can get rid of this
+    // entirely).
+    pub fn rev<T>(&self) -> T
+        where T: From<KeyRevision>
+    {
+        self.revision.clone().into()
+    }
 
     pub fn public(&self) -> Result<&P> {
         self.public.as_ref().ok_or_else(|| {

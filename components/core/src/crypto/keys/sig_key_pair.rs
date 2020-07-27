@@ -334,7 +334,7 @@ mod test {
                                    None);
 
         assert_eq!(pair.name, "grohl");
-        assert_eq!(pair.rev, KeyRevision::unchecked("201604051449"));
+        assert_eq!(pair.revision, KeyRevision::unchecked("201604051449"));
         assert_eq!(pair.name_with_rev(), "grohl-201604051449");
 
         assert_eq!(pair.public, None);
@@ -418,10 +418,10 @@ mod test {
 
         let p1_fetched = SigKeyPair::get_pair_for(&p1.name_with_rev(), cache.path()).unwrap();
         assert_eq!(p1.name, p1_fetched.name);
-        assert_eq!(p1.rev, p1_fetched.rev);
+        assert_eq!(p1.revision, p1_fetched.revision);
         let p2_fetched = SigKeyPair::get_pair_for(&p2.name_with_rev(), cache.path()).unwrap();
         assert_eq!(p2.name, p2_fetched.name);
-        assert_eq!(p2.rev, p2_fetched.rev);
+        assert_eq!(p2.revision, p2_fetched.revision);
     }
 
     #[test]
@@ -439,7 +439,7 @@ mod test {
 
         let latest = SigKeyPair::get_latest_pair_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(latest.name, pair.name);
-        assert_eq!(latest.rev, pair.rev);
+        assert_eq!(latest.revision, pair.revision);
     }
 
     #[test]
@@ -458,7 +458,7 @@ mod test {
 
         let latest = SigKeyPair::get_latest_pair_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(latest.name, p2.name);
-        assert_eq!(latest.rev, p2.rev);
+        assert_eq!(latest.revision, p2.revision);
     }
 
     #[test]
@@ -470,7 +470,7 @@ mod test {
                                                      cache.path(),
                                                      Some(PairType::Secret)).unwrap();
         assert_eq!(latest.name, p.name);
-        assert_eq!(latest.rev, p.rev);
+        assert_eq!(latest.revision, p.revision);
     }
 
     #[test]
@@ -482,7 +482,7 @@ mod test {
                                                      cache.path(),
                                                      Some(PairType::Public)).unwrap();
         assert_eq!(latest.name, p.name);
-        assert_eq!(latest.rev, p.rev);
+        assert_eq!(latest.revision, p.revision);
     }
 
     #[test]
