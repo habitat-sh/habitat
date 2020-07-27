@@ -166,8 +166,12 @@ impl RingKey {
         }
     }
 
-    pub fn to_pair_files<P: AsRef<Path> + ?Sized>(&self, path: &P) -> Result<()> {
-        let secret_keyfile = mk_key_filename(path, self.name_with_rev(), SECRET_SYM_KEY_SUFFIX);
+    pub fn write_to_cache<P>(&self, cache_dir: P) -> Result<()>
+        where P: AsRef<Path>
+    {
+        let secret_keyfile = mk_key_filename(cache_dir.as_ref(),
+                                             self.name_with_rev(),
+                                             SECRET_SYM_KEY_SUFFIX);
         debug!("secret sym keyfile = {}", secret_keyfile.display());
 
         write_keypair_files(None,
@@ -401,16 +405,16 @@ mod test {
     #[test]
     fn generated_ring_pair() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = RingKey::new("beyonce");
-        pair.to_pair_files(cache.path()).unwrap();
+        let key = RingKey::new("beyonce");
+        key.write_to_cache(cache.path()).unwrap();
 
-        assert_eq!(pair.name(), "beyonce");
-        assert!(pair.public().is_ok(),
+        assert_eq!(key.name(), "beyonce");
+        assert!(key.public().is_ok(),
                 "Generated pair should have an empty public key");
-        assert!(pair.secret().is_ok(),
+        assert!(key.secret().is_ok(),
                 "Generated pair should have a secret key");
         assert!(cache.path()
-                     .join(format!("{}.sym.key", pair.name_with_rev()))
+                     .join(format!("{}.sym.key", key.name_with_rev()))
                      .exists());
     }
 
@@ -420,13 +424,14 @@ mod test {
         let pairs = RingKey::get_pairs_for("beyonce", cache.path()).unwrap();
         assert_eq!(pairs.len(), 0);
 
-        RingKey::new("beyonce").to_pair_files(cache.path()).unwrap();
+        RingKey::new("beyonce").write_to_cache(cache.path())
+                               .unwrap();
         let pairs = RingKey::get_pairs_for("beyonce", cache.path()).unwrap();
         assert_eq!(pairs.len(), 1);
 
         match wait_until_ok(|| {
                   let rpair = RingKey::new("beyonce");
-                  rpair.to_pair_files(cache.path())?;
+                  rpair.write_to_cache(cache.path())?;
                   Ok(())
               }) {
             Some(pair) => pair,
@@ -436,7 +441,7 @@ mod test {
         assert_eq!(pairs.len(), 2);
 
         // We should not include another named key in the count
-        RingKey::new("jayz").to_pair_files(cache.path()).unwrap();
+        RingKey::new("jayz").write_to_cache(cache.path()).unwrap();
         let pairs = RingKey::get_pairs_for("beyonce", cache.path()).unwrap();
         assert_eq!(pairs.len(), 2);
     }
@@ -444,23 +449,23 @@ mod test {
     #[test]
     fn get_pair_for() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let p1 = RingKey::new("beyonce");
-        p1.to_pair_files(cache.path()).unwrap();
-        let p2 = match wait_until_ok(|| {
+        let k1 = RingKey::new("beyonce");
+        k1.write_to_cache(cache.path()).unwrap();
+        let k2 = match wait_until_ok(|| {
                   let rpath = RingKey::new("beyonce");
-                  rpath.to_pair_files(cache.path())?;
+                  rpath.write_to_cache(cache.path())?;
                   Ok(rpath)
               }) {
-            Some(pair) => pair,
+            Some(key) => key,
             None => panic!("Failed to generate another keypair after waiting"),
         };
 
-        let p1_fetched = RingKey::get_pair_for(&p1.name_with_rev(), cache.path()).unwrap();
-        assert_eq!(p1.name(), p1_fetched.name());
-        assert_eq!(p1.revision(), p1_fetched.revision());
-        let p2_fetched = RingKey::get_pair_for(&p2.name_with_rev(), cache.path()).unwrap();
-        assert_eq!(p2.name(), p2_fetched.name());
-        assert_eq!(p2.revision(), p2_fetched.revision());
+        let p1_fetched = RingKey::get_pair_for(&k1.name_with_rev(), cache.path()).unwrap();
+        assert_eq!(k1.name(), p1_fetched.name());
+        assert_eq!(k1.revision(), p1_fetched.revision());
+        let p2_fetched = RingKey::get_pair_for(&k2.name_with_rev(), cache.path()).unwrap();
+        assert_eq!(k2.name(), p2_fetched.name());
+        assert_eq!(k2.revision(), p2_fetched.revision());
     }
 
     #[test]
@@ -473,30 +478,31 @@ mod test {
     #[test]
     fn get_latest_pair_for_single() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = RingKey::new("beyonce");
-        pair.to_pair_files(cache.path()).unwrap();
+        let key = RingKey::new("beyonce");
+        key.write_to_cache(cache.path()).unwrap();
 
         let latest = RingKey::get_latest_pair_for("beyonce", cache.path()).unwrap();
-        assert_eq!(latest.name(), pair.name());
-        assert_eq!(latest.revision(), pair.revision());
+        assert_eq!(latest.name(), key.name());
+        assert_eq!(latest.revision(), key.revision());
     }
 
     #[test]
     fn get_latest_pair_for_multiple() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        RingKey::new("beyonce").to_pair_files(cache.path()).unwrap();
-        let p2 = match wait_until_ok(|| {
+        RingKey::new("beyonce").write_to_cache(cache.path())
+                               .unwrap();
+        let k2 = match wait_until_ok(|| {
                   let rpath = RingKey::new("beyonce");
-                  rpath.to_pair_files(cache.path())?;
+                  rpath.write_to_cache(cache.path())?;
                   Ok(rpath)
               }) {
-            Some(pair) => pair,
+            Some(key) => key,
             None => panic!("Failed to generate another keypair after waiting"),
         };
 
         let latest = RingKey::get_latest_pair_for("beyonce", cache.path()).unwrap();
-        assert_eq!(latest.name(), p2.name());
-        assert_eq!(latest.revision(), p2.revision());
+        assert_eq!(latest.name(), k2.name());
+        assert_eq!(latest.revision(), k2.revision());
     }
 
     #[test]
@@ -526,31 +532,31 @@ mod test {
     #[test]
     fn encrypt_and_decrypt() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = RingKey::new("beyonce");
-        pair.to_pair_files(cache.path()).unwrap();
+        let key = RingKey::new("beyonce");
+        key.write_to_cache(cache.path()).unwrap();
 
-        let (nonce, ciphertext) = pair.encrypt(b"Ringonit").unwrap();
-        let message = pair.decrypt(&nonce, &ciphertext).unwrap();
+        let (nonce, ciphertext) = key.encrypt(b"Ringonit").unwrap();
+        let message = key.decrypt(&nonce, &ciphertext).unwrap();
         assert_eq!(message, "Ringonit".to_string().into_bytes());
     }
 
     #[test]
     #[should_panic(expected = "Secret key is required but not present for")]
     fn encrypt_missing_secret_key() {
-        let pair = RingKey::from_raw("grohl".to_string(),
-                                     KeyRevision::unchecked("201604051449"),
-                                     None);
+        let key = RingKey::from_raw("grohl".to_string(),
+                                    KeyRevision::unchecked("201604051449"),
+                                    None);
 
-        pair.encrypt(b"Not going to go well").unwrap();
+        key.encrypt(b"Not going to go well").unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Secret key is required but not present for")]
     fn decrypt_missing_secret_key() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = RingKey::new("beyonce");
-        pair.to_pair_files(cache.path()).unwrap();
-        let (nonce, ciphertext) = pair.encrypt(b"Ringonit").unwrap();
+        let key = RingKey::new("beyonce");
+        key.write_to_cache(cache.path()).unwrap();
+        let (nonce, ciphertext) = key.encrypt(b"Ringonit").unwrap();
 
         let missing = RingKey::from_raw("grohl".to_string(),
                                         KeyRevision::unchecked("201604051449"),
@@ -562,22 +568,22 @@ mod test {
     #[should_panic(expected = "Invalid size of nonce")]
     fn decrypt_invalid_nonce_length() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = RingKey::new("beyonce");
-        pair.to_pair_files(cache.path()).unwrap();
+        let key = RingKey::new("beyonce");
+        key.write_to_cache(cache.path()).unwrap();
 
-        let (_, ciphertext) = pair.encrypt(b"Ringonit").unwrap();
-        pair.decrypt(b"crazyinlove", &ciphertext).unwrap();
+        let (_, ciphertext) = key.encrypt(b"Ringonit").unwrap();
+        key.decrypt(b"crazyinlove", &ciphertext).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Secret key and nonce could not decrypt ciphertext")]
     fn decrypt_invalid_ciphertext() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = RingKey::new("beyonce");
-        pair.to_pair_files(cache.path()).unwrap();
+        let key = RingKey::new("beyonce");
+        key.write_to_cache(cache.path()).unwrap();
 
-        let (nonce, _) = pair.encrypt(b"Ringonit").unwrap();
-        pair.decrypt(&nonce, b"singleladies").unwrap();
+        let (nonce, _) = key.encrypt(b"Ringonit").unwrap();
+        key.decrypt(&nonce, b"singleladies").unwrap();
     }
 
     #[test]
@@ -587,9 +593,9 @@ mod test {
         let new_key_file = cache.path().join(VALID_KEY);
 
         assert_eq!(new_key_file.is_file(), false);
-        let (pair, pair_type) = RingKey::write_file_from_str(&content, cache.path()).unwrap();
+        let (key, pair_type) = RingKey::write_file_from_str(&content, cache.path()).unwrap();
         assert_eq!(pair_type, PairType::Secret);
-        assert_eq!(pair.name_with_rev(), VALID_NAME_WITH_REV);
+        assert_eq!(key.name_with_rev(), VALID_NAME_WITH_REV);
         assert!(new_key_file.is_file());
 
         let new_content = {
@@ -611,9 +617,9 @@ mod test {
         // install the key into the cache
         fs::copy(fixture(&format!("keys/{}", VALID_KEY)), &new_key_file).unwrap();
 
-        let (pair, pair_type) = RingKey::write_file_from_str(&content, cache.path()).unwrap();
+        let (key, pair_type) = RingKey::write_file_from_str(&content, cache.path()).unwrap();
         assert_eq!(pair_type, PairType::Secret);
-        assert_eq!(pair.name_with_rev(), VALID_NAME_WITH_REV);
+        assert_eq!(key.name_with_rev(), VALID_NAME_WITH_REV);
         assert!(new_key_file.is_file());
     }
 
