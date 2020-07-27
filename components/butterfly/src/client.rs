@@ -10,18 +10,18 @@ use crate::{error::{Error,
                     service_file::ServiceFile,
                     Rumor},
             ZMQ_CONTEXT};
-use habitat_core::{crypto::SymKey,
+use habitat_core::{crypto::RingKey,
                    service::ServiceGroup};
 
 /// Holds a ZMQ Push socket, and an optional ring encryption key.
 pub struct Client {
     socket:   zmq::Socket,
-    ring_key: Option<SymKey>,
+    ring_key: Option<RingKey>,
 }
 
 impl Client {
     /// Connect this client to the address, and optionally encrypt the traffic.
-    pub fn new(addr: &str, ring_key: Option<SymKey>) -> Result<Client> {
+    pub fn new(addr: &str, ring_key: Option<RingKey>) -> Result<Client> {
         let socket = (**ZMQ_CONTEXT).as_mut()
                                     .socket(zmq::PUSH)
                                     .expect("Failure to create the ZMQ push socket");

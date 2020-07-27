@@ -36,8 +36,8 @@ lazy_static::lazy_static! {
 }
 
 pub mod box_key_pair;
+pub mod ring_key;
 pub mod sig_key_pair;
-pub mod sym_key;
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -637,8 +637,8 @@ mod test {
     use super::{super::test_support::*,
                 *};
     use crate::crypto::keys::{box_key_pair::BoxKeyPair,
-                              sig_key_pair::SigKeyPair,
-                              sym_key::SymKey};
+                              ring_key::RingKey,
+                              sig_key_pair::SigKeyPair};
     use std::{thread,
               time::Duration};
     use tempfile::Builder;
@@ -865,14 +865,14 @@ mod test {
 
         for _ in 0..3 {
             wait_until_ok(|| {
-                let pair = SymKey::generate_pair_for_ring("acme");
+                let pair = RingKey::new("acme");
                 pair.to_pair_files(cache.path())?;
                 Ok(())
             });
         }
 
-        SymKey::generate_pair_for_ring("acme-you").to_pair_files(cache.path())
-                                                  .unwrap();
+        RingKey::new("acme-you").to_pair_files(cache.path())
+                                .unwrap();
 
         let revisions = super::get_key_revisions("acme", cache.path(), None, KeyType::Sym).unwrap();
         assert_eq!(3, revisions.len());
@@ -914,7 +914,7 @@ mod test {
     #[test]
     fn keys_that_are_symlinks_can_still_be_found() {
         let temp_dir = Builder::new().prefix("symlinks_are_ok").tempdir().unwrap();
-        let key = SymKey::generate_pair_for_ring("symlinks_are_ok");
+        let key = RingKey::new("symlinks_are_ok");
         key.to_pair_files(temp_dir.path()).unwrap();
 
         // Create a directory in our temp directory; this will serve
@@ -1059,10 +1059,7 @@ mod test {
     // keys).
     fn key_file(key_type: KeyType, name: &str) -> tempfile::NamedTempFile {
         let content = match key_type {
-            KeyType::Sym => {
-                SymKey::generate_pair_for_ring(name).to_secret_string()
-                                                    .unwrap()
-            }
+            KeyType::Sym => RingKey::new(name).to_secret_string().unwrap(),
             KeyType::Sig => {
                 SigKeyPair::generate_pair_for_origin(name).to_secret_string()
                                                           .unwrap()
