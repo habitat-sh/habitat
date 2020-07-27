@@ -190,13 +190,13 @@ impl FromStr for HabitatKey {
                 }
             }
             None => {
-                let msg = format!("write_key_from_str:1 Malformed key string:\n({})", s);
+                let msg = format!("Empty key string:\n({})", s);
                 return Err(Error::CryptoError(msg));
             }
         };
         let name_with_rev = lines.next().ok_or_else(|| {
-                                             let msg = format!("write_key_from_str:2 Malformed \
-                                                                key string:\n({})",
+                                             let msg = format!("Malformed key string (missing \
+                                                                name+revision):\n({})",
                                                                s);
                                              Error::CryptoError(msg)
                                          })?;
@@ -204,8 +204,8 @@ impl FromStr for HabitatKey {
         match lines.nth(1) {
             Some(val) => {
                 let key_bytes = base64::decode(val.trim()).map_err(|_| {
-                                    Error::CryptoError(format!("write_key_from_str:3 Malformed \
-                                                                key string:\n({})",
+                                    Error::CryptoError(format!("Malformed key string (invalid \
+                                                                base64 key material):\n({})",
                                                                s))
                                 })?;
                 Ok(HabitatKey { pair_type,
@@ -213,7 +213,7 @@ impl FromStr for HabitatKey {
                                 key_bytes })
             }
             None => {
-                let msg = format!("write_key_from_str:3 Malformed key string:\n({})", s);
+                let msg = format!("Malformed key string (missing key material):\n({})", s);
                 Err(Error::CryptoError(msg))
             }
         }
@@ -668,7 +668,7 @@ mod test {
         }
 
         #[test]
-        #[should_panic(expected = "Malformed key string")]
+        #[should_panic(expected = "Empty key string")]
         fn read_key_bytes_empty_file() {
             let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
             let keyfile = cache.path().join("not-much-here");
