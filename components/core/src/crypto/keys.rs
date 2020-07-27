@@ -865,13 +865,13 @@ mod test {
 
         for _ in 0..3 {
             wait_until_ok(|| {
-                let pair = RingKey::new("acme");
-                pair.to_pair_files(cache.path())?;
+                let key = RingKey::new("acme");
+                key.write_to_cache(cache.path())?;
                 Ok(())
             });
         }
 
-        RingKey::new("acme-you").to_pair_files(cache.path())
+        RingKey::new("acme-you").write_to_cache(cache.path())
                                 .unwrap();
 
         let revisions = super::get_key_revisions("acme", cache.path(), None, KeyType::Sym).unwrap();
@@ -915,7 +915,7 @@ mod test {
     fn keys_that_are_symlinks_can_still_be_found() {
         let temp_dir = Builder::new().prefix("symlinks_are_ok").tempdir().unwrap();
         let key = RingKey::new("symlinks_are_ok");
-        key.to_pair_files(temp_dir.path()).unwrap();
+        key.write_to_cache(temp_dir.path()).unwrap();
 
         // Create a directory in our temp directory; this will serve
         // as the cache directory in which we look for keys.
