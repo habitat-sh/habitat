@@ -20,7 +20,7 @@ pub async fn start(ui: &mut UI,
                    -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
-    ui.begin(format!("Preparing to update member {}'s role to '{}' in origin {}",
+    ui.begin(format!("Preparing to update member {}'s role to '{}' in {} origin.",
                      member_account, role, origin))?;
 
     if !no_prompt {
@@ -38,8 +38,16 @@ pub async fn start(ui: &mut UI,
         }
         Err(err @ api_client::Error::APIError(StatusCode::FORBIDDEN, _)) => {
             ui.fatal("Failed to update the role!")?;
-            ui.fatal("This situation could arise, if for example, you are not a member with \
-                      sufficient privileges in the  origin.")?;
+            ui.fatal(format!("This situation could arise, if for example, you are not a member \
+                              with sufficient privileges in the '{}' origin.",
+                             origin))?;
+            Err(Error::APIClient(err))
+        }
+        Err(err @ api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
+            ui.fatal("Failed to update the role!")?;
+            ui.fatal(format!("This situation could arise, if for example, role: '{}' was no \
+                              longer supported by the server API.",
+                             role))?;
             Err(Error::APIClient(err))
         }
         Err(err @ api_client::Error::APIError(StatusCode::NOT_FOUND, _)) => {

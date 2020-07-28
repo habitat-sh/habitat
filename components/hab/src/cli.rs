@@ -1,7 +1,8 @@
 pub mod gateway_util;
 pub mod hab;
 
-use crate::{cli::hab::{pkg::ExportCommand,
+use crate::{api_client::OriginMemberRole,
+            cli::hab::{pkg::ExportCommand,
                        sup::{Sup,
                              SupRun},
                        svc::{BulkLoad as SvcBulkLoad,
@@ -1216,14 +1217,6 @@ fn sub_svc_unload() -> App<'static, 'static> {
 
 // CLAP Validation Functions
 ////////////////////////////////////////////////////////////////////////
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_binding_mode(val: String) -> result::Result<(), String> {
-    match habitat_sup_protocol::types::BindingMode::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!("Binding mode: '{}' is not valid", &val)),
-    }
-}
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_role(val: String) -> result::Result<(), String> {
