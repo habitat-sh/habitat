@@ -1,14 +1,12 @@
 use super::{super::{hash,
                     SECRET_SYM_KEY_SUFFIX,
                     SECRET_SYM_KEY_VERSION},
-            get_key_revisions,
             mk_key_filename,
             parse_name_with_rev,
             write_keypair_files,
             HabitatKey,
             KeyPair,
             KeyRevision,
-            KeyType,
             PairType,
             TmpKeyfile};
 use crate::error::{Error,
@@ -235,19 +233,6 @@ impl RingKey {
 // An impl block for internal implementation details that need to be
 // moved over to KeyCache
 impl RingKey {
-    pub(crate) fn latest_cached_revision<P>(name: &str, cache_key_path: P) -> Result<Self>
-        where P: AsRef<Path>
-    {
-        let mut all = Self::get_pairs_for(name, cache_key_path)?;
-        match all.len() {
-            0 => {
-                let msg = format!("No revisions found for {} sym key", name);
-                Err(Error::CryptoError(msg))
-            }
-            _ => Ok(all.remove(0)),
-        }
-    }
-
     /// Returns the full path to the secret sym key given a key name with revision.
     ///
     /// # Examples
@@ -311,20 +296,7 @@ impl RingKey {
         }
     }
 
-    fn get_pairs_for<P>(name: &str, cache_key_path: P) -> Result<Vec<Self>>
-        where P: AsRef<Path>
-    {
-        let revisions = get_key_revisions(name, cache_key_path.as_ref(), None, KeyType::Sym)?;
-        let mut key_pairs = Vec::new();
-        for name_with_rev in &revisions {
-            debug!("Attempting to read key name_with_rev {} for {}",
-                   name_with_rev, name);
-            let kp = Self::get_pair_for(name_with_rev, cache_key_path.as_ref())?;
-            key_pairs.push(kp);
-        }
-        Ok(key_pairs)
-    }
-
+    // TODO (CM): DUPLICATED IN KEYCACHE
     fn get_pair_for<P>(name_with_rev: &str, cache_key_path: P) -> Result<Self>
         where P: AsRef<Path>
     {
@@ -340,7 +312,9 @@ impl RingKey {
         Ok(RingKey(KeyPair::new(name, rev, None, sk)))
     }
 
-    fn get_secret_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SymSecretKey> {
+    pub(crate) fn get_secret_key(key_with_rev: &str,
+                                 cache_key_path: &Path)
+                                 -> Result<SymSecretKey> {
         let secret_keyfile = mk_key_filename(cache_key_path, key_with_rev, SECRET_SYM_KEY_SUFFIX);
         match SymSecretKey::from_slice(HabitatKey::try_from(&secret_keyfile)?.as_ref()) {
             Some(sk) => Ok(sk),
@@ -350,6 +324,20 @@ impl RingKey {
                                                key_with_rev)))
             }
         }
+    }
+}
+
+impl RingKey {
+    /// Create a RingKey from raw components to e.g., simulate when
+    /// a requested key doesn't exist on disk.
+    ///
+    /// Also currently used in the KeyCache; may not be required for
+    /// much longer.
+    pub(crate) fn from_raw(name: String,
+                           rev: KeyRevision,
+                           secret: Option<SymSecretKey>)
+                           -> RingKey {
+        RingKey(KeyPair::new(name, rev, Some(()), secret))
     }
 }
 
@@ -366,12 +354,6 @@ mod test {
     static VALID_NAME_WITH_REV: &str = "ring-key-valid-20160504220722";
 
     impl RingKey {
-        /// Test-only way of creating a RingKey to e.g., simulate when
-        /// a requested key doesn't exist on disk.
-        pub fn from_raw(name: String, rev: KeyRevision, secret: Option<SymSecretKey>) -> RingKey {
-            RingKey(KeyPair::new(name, rev, Some(()), secret))
-        }
-
         pub fn revision(&self) -> &KeyRevision { &self.0.revision }
 
         pub fn name(&self) -> &String { &self.0.name }
@@ -420,34 +402,6 @@ mod test {
     }
 
     #[test]
-    fn get_pairs_for() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pairs = RingKey::get_pairs_for("beyonce", cache.path()).unwrap();
-        assert_eq!(pairs.len(), 0);
-
-        RingKey::new("beyonce").write_to_cache(cache.path())
-                               .unwrap();
-        let pairs = RingKey::get_pairs_for("beyonce", cache.path()).unwrap();
-        assert_eq!(pairs.len(), 1);
-
-        match wait_until_ok(|| {
-                  let rpair = RingKey::new("beyonce");
-                  rpair.write_to_cache(cache.path())?;
-                  Ok(())
-              }) {
-            Some(pair) => pair,
-            None => panic!("Failed to generate another keypair after waiting"),
-        };
-        let pairs = RingKey::get_pairs_for("beyonce", cache.path()).unwrap();
-        assert_eq!(pairs.len(), 2);
-
-        // We should not include another named key in the count
-        RingKey::new("jayz").write_to_cache(cache.path()).unwrap();
-        let pairs = RingKey::get_pairs_for("beyonce", cache.path()).unwrap();
-        assert_eq!(pairs.len(), 2);
-    }
-
-    #[test]
     fn get_pair_for() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let k1 = RingKey::new("beyonce");
@@ -474,43 +428,6 @@ mod test {
     fn get_pair_for_nonexistent() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         RingKey::get_pair_for("nope-nope-20160405144901", cache.path()).unwrap();
-    }
-
-    #[test]
-    fn latest_cached_revision_single() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let key = RingKey::new("beyonce");
-        key.write_to_cache(cache.path()).unwrap();
-
-        let latest = RingKey::latest_cached_revision("beyonce", cache.path()).unwrap();
-        assert_eq!(latest.name(), key.name());
-        assert_eq!(latest.revision(), key.revision());
-    }
-
-    #[test]
-    fn latest_cached_revision_multiple() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        RingKey::new("beyonce").write_to_cache(cache.path())
-                               .unwrap();
-        let k2 = match wait_until_ok(|| {
-                  let rpath = RingKey::new("beyonce");
-                  rpath.write_to_cache(cache.path())?;
-                  Ok(rpath)
-              }) {
-            Some(key) => key,
-            None => panic!("Failed to generate another keypair after waiting"),
-        };
-
-        let latest = RingKey::latest_cached_revision("beyonce", cache.path()).unwrap();
-        assert_eq!(latest.name(), k2.name());
-        assert_eq!(latest.revision(), k2.revision());
-    }
-
-    #[test]
-    #[should_panic(expected = "No revisions found for")]
-    fn latest_cached_revision_nonexistent() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        RingKey::latest_cached_revision("nope-nope", cache.path()).unwrap();
     }
 
     #[test]
