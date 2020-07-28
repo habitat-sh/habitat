@@ -7,6 +7,7 @@ use super::{super::{hash,
             HabitatKey,
             KeyPair,
             KeyRevision,
+            NamedRevision,
             PairType,
             TmpKeyfile};
 use crate::error::{Error,
@@ -17,8 +18,8 @@ use sodiumoxide::{crypto::secretbox::{self,
 use std::{convert::TryFrom,
           fmt,
           fs,
-          path::{Path,
-                 PathBuf}};
+          path::Path,
+          str::FromStr};
 
 #[derive(Clone, PartialEq)]
 pub struct RingKey(KeyPair<(), SymSecretKey>);
@@ -230,6 +231,60 @@ impl RingKey {
     }
 }
 
+impl FromStr for RingKey {
+    type Err = Error;
+
+    fn from_str(content: &str) -> std::result::Result<Self, Self::Err> {
+        let mut lines = content.lines();
+
+        match lines.next() {
+            Some(val) => {
+                if val != SECRET_SYM_KEY_VERSION {
+                    return Err(Error::CryptoError(format!("Unsupported key version: {}", val)));
+                }
+            }
+            None => {
+                let msg = format!("Malformed ring key string:\n({})", content);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+
+        let named_revision = match lines.next() {
+            Some(val) => val.parse::<NamedRevision>()?,
+            None => {
+                let msg = format!("Malformed ring key string:\n({})", content);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+
+        let key = match lines.nth(1) {
+            Some(line) => {
+                let key_bytes = base64::decode(line.trim()).map_err(|_| {
+                                    Error::CryptoError(format!("Malformed ring key string \
+                                                                (invalid base64 key \
+                                                                material):\n({})",
+                                                               content))
+                                })?;
+                match SymSecretKey::from_slice(&key_bytes) {
+                    Some(sk) => sk,
+                    None => {
+                        return Err(Error::CryptoError(format!("Can't read ring key material \
+                                                               for {}",
+                                                              named_revision)));
+                    }
+                }
+            }
+            None => {
+                let msg = format!("Malformed ring key string:\n({})", content);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+
+        let (name, revision) = named_revision.into();
+        Ok(RingKey::from_raw(name, revision, Some(key)))
+    }
+}
+
 // An impl block for internal implementation details that need to be
 // moved over to KeyCache
 impl RingKey {
@@ -329,6 +384,25 @@ mod test {
         // TODO (CM): this should probably be renamed; there's no
         // public key to distinguish it from.
         pub fn secret(&self) -> crate::error::Result<&SymSecretKey> { self.0.secret() }
+    }
+
+    mod from_str {
+        use super::*;
+
+        #[test]
+        fn can_parse() {
+            let content = fixture_as_string("keys/ring-key-valid-20160504220722.sym.key");
+            let key = content.parse::<RingKey>().unwrap();
+            assert_eq!(key.name(), "ring-key-valid");
+            assert_eq!(key.revision(), &KeyRevision::unchecked("20160504220722"));
+            // TODO (CM): assert secret bytes
+        }
+
+        #[test]
+        fn fails_to_parse_invalid_key() {
+            let content = fixture_as_string("keys/ring-key-invalid-version-20160504221247.sym.key");
+            assert!(content.parse::<RingKey>().is_err());
+        }
     }
 
     // #[test]
