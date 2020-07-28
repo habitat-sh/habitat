@@ -36,8 +36,11 @@ lazy_static::lazy_static! {
 }
 
 pub mod box_key_pair;
+mod cache;
 pub mod ring_key;
 pub mod sig_key_pair;
+
+pub use cache::KeyCache;
 
 ////////////////////////////////////////////////////////////////////////
 

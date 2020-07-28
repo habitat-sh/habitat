@@ -38,6 +38,7 @@ use habitat_common::{command::package::install::InstallSource,
                      FeatureFlag};
 use habitat_core::{self,
                    crypto::{self,
+                            keys::KeyCache,
                             RingKey},
                    os::signals};
 use habitat_launcher_client::{LauncherCli,
@@ -347,9 +348,12 @@ async fn split_apart_sup_run(sup_run: SupRun,
 
 fn get_ring_key(sup_run: &SupRun) -> Result<Option<RingKey>> {
     let cache_key_path = &sup_run.cache_key_path.cache_key_path;
+
+    let cache: KeyCache = cache_key_path.into();
+
     match &sup_run.ring {
         Some(val) => {
-            let key = RingKey::get_latest_pair_for(val, cache_key_path)?;
+            let key = cache.latest_ring_key_revision(val)?;
             Ok(Some(key))
         }
         None => {

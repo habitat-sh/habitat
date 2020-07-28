@@ -43,7 +43,8 @@ impl RingKey {
     // KeyPair struct. Not ultimately sure if this should be kept.
     pub fn name_with_rev(&self) -> String { self.0.name_with_rev() }
 
-    pub fn get_latest_pair_for<P>(name: &str, cache_key_path: P) -> Result<Self>
+    // TODO (CM): Move this to KeyCache, ultimately
+    pub(crate) fn latest_cached_revision<P>(name: &str, cache_key_path: P) -> Result<Self>
         where P: AsRef<Path>
     {
         let mut all = Self::get_pairs_for(name, cache_key_path)?;
@@ -54,41 +55,6 @@ impl RingKey {
             }
             _ => Ok(all.remove(0)),
         }
-    }
-
-    /// Returns the full path to the secret sym key given a key name with revision.
-    ///
-    /// # Examples
-    ///
-    /// Basic usage:
-    ///
-    /// ```
-    /// extern crate habitat_core;
-    /// extern crate tempfile;
-    ///
-    /// use habitat_core::crypto::RingKey;
-    /// use std::fs::File;
-    /// use tempfile::Builder;
-    ///
-    /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-    /// let secret_file = cache.path().join("beyonce-20160504220722.sym.key");
-    /// let _ = File::create(&secret_file).unwrap();
-    ///
-    /// let path = RingKey::cached_path("beyonce-20160504220722", cache.path()).unwrap();
-    /// assert_eq!(path, secret_file);
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// * If no file exists at the the computed file path
-    pub fn cached_path<P>(key_with_rev: &str, cache_key_path: P) -> Result<PathBuf>
-        where P: AsRef<Path>
-    {
-        let path = mk_key_filename(cache_key_path.as_ref(), key_with_rev, SECRET_SYM_KEY_SUFFIX);
-        if !path.is_file() {
-            return Err(Error::CryptoError(format!("No secret key found at {}", path.display())));
-        }
-        Ok(path)
     }
 
     /// Encrypts a byte slice of data using a given `RingKey`.
@@ -164,17 +130,6 @@ impl RingKey {
                                                            .to_string()))
             }
         }
-    }
-
-    pub fn write_to_cache<P>(&self, cache_dir: P) -> Result<()>
-        where P: AsRef<Path>
-    {
-        let secret_keyfile = mk_key_filename(cache_dir.as_ref(),
-                                             self.name_with_rev(),
-                                             SECRET_SYM_KEY_SUFFIX);
-        debug!("secret sym keyfile = {}", secret_keyfile.display());
-
-        write_keypair_files(None, Some((secret_keyfile, self.to_secret_string()?)))
     }
 
     /// Writes a sym key to the key cache from the contents of a string slice.
@@ -289,8 +244,32 @@ impl RingKey {
         // Now load and return the pair to ensure everything wrote out
         Ok((Self::get_pair_for(&name_with_rev, cache_key_path)?, PairType::Secret))
     }
+}
 
-    ////////////////////////////////////////////////////////////////////////
+// An impl block for internal implementation details that need to be
+// moved over to KeyCache
+impl RingKey {
+    /// Returns the full path to the secret sym key given a key name with revision.
+    pub(crate) fn cached_path<P>(key_with_rev: &str, cache_key_path: P) -> Result<PathBuf>
+        where P: AsRef<Path>
+    {
+        let path = mk_key_filename(cache_key_path.as_ref(), key_with_rev, SECRET_SYM_KEY_SUFFIX);
+        if !path.is_file() {
+            return Err(Error::CryptoError(format!("No secret key found at {}", path.display())));
+        }
+        Ok(path)
+    }
+
+    pub(crate) fn write_to_cache<P>(&self, cache_dir: P) -> Result<()>
+        where P: AsRef<Path>
+    {
+        let secret_keyfile = mk_key_filename(cache_dir.as_ref(),
+                                             self.name_with_rev(),
+                                             SECRET_SYM_KEY_SUFFIX);
+        debug!("secret sym keyfile = {}", secret_keyfile.display());
+
+        write_keypair_files(None, Some((secret_keyfile, self.to_secret_string()?)))
+    }
 
     // TODO (CM): only public because it's also used in a test in
     // keys.rs... look into better factoring
@@ -475,18 +454,18 @@ mod test {
     }
 
     #[test]
-    fn get_latest_pair_for_single() {
+    fn latest_cached_revision_single() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let key = RingKey::new("beyonce");
         key.write_to_cache(cache.path()).unwrap();
 
-        let latest = RingKey::get_latest_pair_for("beyonce", cache.path()).unwrap();
+        let latest = RingKey::latest_cached_revision("beyonce", cache.path()).unwrap();
         assert_eq!(latest.name(), key.name());
         assert_eq!(latest.revision(), key.revision());
     }
 
     #[test]
-    fn get_latest_pair_for_multiple() {
+    fn latest_cached_revision_multiple() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         RingKey::new("beyonce").write_to_cache(cache.path())
                                .unwrap();
@@ -499,16 +478,16 @@ mod test {
             None => panic!("Failed to generate another keypair after waiting"),
         };
 
-        let latest = RingKey::get_latest_pair_for("beyonce", cache.path()).unwrap();
+        let latest = RingKey::latest_cached_revision("beyonce", cache.path()).unwrap();
         assert_eq!(latest.name(), k2.name());
         assert_eq!(latest.revision(), k2.revision());
     }
 
     #[test]
     #[should_panic(expected = "No revisions found for")]
-    fn get_latest_pair_for_nonexistent() {
+    fn latest_cached_revision_nonexistent() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        RingKey::get_latest_pair_for("nope-nope", cache.path()).unwrap();
+        RingKey::latest_cached_revision("nope-nope", cache.path()).unwrap();
     }
 
     #[test]
