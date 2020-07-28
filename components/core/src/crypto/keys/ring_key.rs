@@ -43,9 +43,9 @@ impl RingKey {
     // KeyPair struct. Not ultimately sure if this should be kept.
     pub fn name_with_rev(&self) -> String { self.0.name_with_rev() }
 
-    pub fn get_latest_pair_for<P: AsRef<Path> + ?Sized>(name: &str,
-                                                        cache_key_path: &P)
-                                                        -> Result<Self> {
+    pub fn get_latest_pair_for<P>(name: &str, cache_key_path: P) -> Result<Self>
+        where P: AsRef<Path>
+    {
         let mut all = Self::get_pairs_for(name, cache_key_path)?;
         match all.len() {
             0 => {
@@ -74,16 +74,16 @@ impl RingKey {
     /// let secret_file = cache.path().join("beyonce-20160504220722.sym.key");
     /// let _ = File::create(&secret_file).unwrap();
     ///
-    /// let path = RingKey::get_secret_key_path("beyonce-20160504220722", cache.path()).unwrap();
+    /// let path = RingKey::cached_path("beyonce-20160504220722", cache.path()).unwrap();
     /// assert_eq!(path, secret_file);
     /// ```
     ///
     /// # Errors
     ///
     /// * If no file exists at the the computed file path
-    pub fn get_secret_key_path<P: AsRef<Path> + ?Sized>(key_with_rev: &str,
-                                                        cache_key_path: &P)
-                                                        -> Result<PathBuf> {
+    pub fn cached_path<P>(key_with_rev: &str, cache_key_path: P) -> Result<PathBuf>
+        where P: AsRef<Path>
+    {
         let path = mk_key_filename(cache_key_path.as_ref(), key_with_rev, SECRET_SYM_KEY_SUFFIX);
         if !path.is_file() {
             return Err(Error::CryptoError(format!("No secret key found at {}", path.display())));
@@ -309,21 +309,23 @@ impl RingKey {
         }
     }
 
-    fn get_pairs_for<P: AsRef<Path> + ?Sized>(name: &str, cache_key_path: &P) -> Result<Vec<Self>> {
+    fn get_pairs_for<P>(name: &str, cache_key_path: P) -> Result<Vec<Self>>
+        where P: AsRef<Path>
+    {
         let revisions = get_key_revisions(name, cache_key_path.as_ref(), None, KeyType::Sym)?;
         let mut key_pairs = Vec::new();
         for name_with_rev in &revisions {
             debug!("Attempting to read key name_with_rev {} for {}",
                    name_with_rev, name);
-            let kp = Self::get_pair_for(name_with_rev, cache_key_path)?;
+            let kp = Self::get_pair_for(name_with_rev, cache_key_path.as_ref())?;
             key_pairs.push(kp);
         }
         Ok(key_pairs)
     }
 
-    fn get_pair_for<P: AsRef<Path> + ?Sized>(name_with_rev: &str,
-                                             cache_key_path: &P)
-                                             -> Result<Self> {
+    fn get_pair_for<P>(name_with_rev: &str, cache_key_path: P) -> Result<Self>
+        where P: AsRef<Path>
+    {
         let (name, rev) = parse_name_with_rev(&name_with_rev)?;
         let sk = match Self::get_secret_key(name_with_rev, cache_key_path.as_ref()) {
             Ok(k) => Some(k),
@@ -510,12 +512,12 @@ mod test {
     }
 
     #[test]
-    fn get_secret_key_path() {
+    fn cached_path() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         fs::copy(fixture(&format!("keys/{}", VALID_KEY)),
                  cache.path().join(VALID_KEY)).unwrap();
 
-        let result = RingKey::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
+        let result = RingKey::cached_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
         assert_eq!(result, cache.path().join(VALID_KEY));
     }
 
@@ -523,7 +525,7 @@ mod test {
     #[should_panic(expected = "No secret key found at")]
     fn get_secret_key_path_nonexistent() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        RingKey::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
+        RingKey::cached_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
     }
 
     #[test]
