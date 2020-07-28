@@ -260,6 +260,7 @@ pub enum Rbac {
         #[structopt(name = "TO_JSON", short = "j", long = "json")]
         to_json:        bool,
     },
+    /// Change an origin member's role
     Set {
         /// The account name of the role to display
         #[structopt(name = "MEMBER_ACCOUNT")]
