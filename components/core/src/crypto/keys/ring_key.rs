@@ -233,41 +233,6 @@ impl RingKey {
 // An impl block for internal implementation details that need to be
 // moved over to KeyCache
 impl RingKey {
-    /// Returns the full path to the secret sym key given a key name with revision.
-    ///
-    /// # Examples
-    ///
-    /// Basic usage:
-    ///
-    /// ```
-    /// extern crate habitat_core;
-    /// extern crate tempfile;
-    ///
-    /// use habitat_core::crypto::RingKey;
-    /// use std::fs::File;
-    /// use tempfile::Builder;
-    ///
-    /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-    /// let secret_file = cache.path().join("beyonce-20160504220722.sym.key");
-    /// let _ = File::create(&secret_file).unwrap();
-    ///
-    /// let path = RingKey::cached_path("beyonce-20160504220722", cache.path()).unwrap();
-    /// assert_eq!(path, secret_file);
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// * If no file exists at the the computed file path
-    pub(crate) fn cached_path<P>(key_with_rev: &str, cache_key_path: P) -> Result<PathBuf>
-        where P: AsRef<Path>
-    {
-        let path = mk_key_filename(cache_key_path.as_ref(), key_with_rev, SECRET_SYM_KEY_SUFFIX);
-        if !path.is_file() {
-            return Err(Error::CryptoError(format!("No secret key found at {}", path.display())));
-        }
-        Ok(path)
-    }
-
     pub(crate) fn write_to_cache<P>(&self, cache_dir: P) -> Result<()>
         where P: AsRef<Path>
     {
@@ -428,23 +393,6 @@ mod test {
     fn get_pair_for_nonexistent() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         RingKey::get_pair_for("nope-nope-20160405144901", cache.path()).unwrap();
-    }
-
-    #[test]
-    fn cached_path() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        fs::copy(fixture(&format!("keys/{}", VALID_KEY)),
-                 cache.path().join(VALID_KEY)).unwrap();
-
-        let result = RingKey::cached_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
-        assert_eq!(result, cache.path().join(VALID_KEY));
-    }
-
-    #[test]
-    #[should_panic(expected = "No secret key found at")]
-    fn get_secret_key_path_nonexistent() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        RingKey::cached_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
     }
 
     #[test]
