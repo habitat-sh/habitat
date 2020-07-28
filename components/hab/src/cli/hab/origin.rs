@@ -289,7 +289,7 @@ pub enum Rbac {
     },
 }
 
-#[derive(StructOpt)]
+#[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 /// Commands related to secret management
 pub enum Secret {
