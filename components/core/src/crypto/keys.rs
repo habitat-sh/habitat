@@ -110,6 +110,61 @@ impl Drop for TmpKeyfile {
 
 ////////////////////////////////////////////////////////////////////////
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct NamedRevision {
+    name:     String,
+    revision: KeyRevision,
+}
+
+impl FromStr for NamedRevision {
+    type Err = Error;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        let caps = match NAME_WITH_REV_RE.captures(value) {
+            Some(c) => c,
+            None => {
+                let msg = format!("Cannot parse named revision '{}'", value);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        let name = match caps.name("name") {
+            Some(r) => r.as_str().to_string(),
+            None => {
+                let msg = format!("Cannot parse name from '{}'", value);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        let revision = match caps.name("rev") {
+            // TODO (CM): This is a bit of an awkward constructor at the
+            // moment, but we'll allow it as we've already validated this
+            // with the larger regex. Eventually we should harmonize all
+            // this a bit more.
+            Some(r) => KeyRevision(r.as_str().to_string()),
+            None => {
+                let msg = format!("Cannot parse revision from '{}'", value);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+
+        Ok(NamedRevision { name, revision })
+    }
+}
+
+impl fmt::Display for NamedRevision {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}-{}", self.name, self.revision)
+    }
+}
+
+// Think of this as a handy deconstructor. We could make the fields
+// public, but that would also allow unrestricted construction of the
+// struct, which I don't want right now.
+impl Into<(String, KeyRevision)> for NamedRevision {
+    fn into(self) -> (String, KeyRevision) { (self.name, self.revision) }
+}
+
+////////////////////////////////////////////////////////////////////////
+
 pub struct HabitatKey {
     pair_type:     PairType, // NOT A PAIR!!!!!!
     name_with_rev: String,
@@ -529,40 +584,11 @@ fn mk_key_filename<P, S1, S2>(path: P, keyname: S1, suffix: S2) -> PathBuf
         .join(format!("{}.{}", keyname.as_ref(), suffix.as_ref()))
 }
 
-// NOTE: this function is currently the only other constructor for
-// KeyRevisions aside from KeyRevision::new().
+// TODO (CM): replace with NamedRevision code directly
 pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, KeyRevision)>
     where T: AsRef<str>
 {
-    let caps = match NAME_WITH_REV_RE.captures(name_with_rev.as_ref()) {
-        Some(c) => c,
-        None => {
-            let msg = format!("parse_name_with_rev:1 Cannot parse {}",
-                              name_with_rev.as_ref());
-            return Err(Error::CryptoError(msg));
-        }
-    };
-    let name = match caps.name("name") {
-        Some(r) => r.as_str().to_string(),
-        None => {
-            let msg = format!("parse_name_with_rev:2 Cannot parse name from {}",
-                              name_with_rev.as_ref());
-            return Err(Error::CryptoError(msg));
-        }
-    };
-    let rev = match caps.name("rev") {
-        // TODO (CM): This is a bit of an awkward constructor at the
-        // moment, but we'll allow it as we've already validated this
-        // with the larger regex. Eventually we should harmonize all
-        // this a bit more.
-        Some(r) => KeyRevision(r.as_str().to_string()),
-        None => {
-            let msg = format!("parse_name_with_rev:3 Cannot parse rev from {}",
-                              name_with_rev.as_ref());
-            return Err(Error::CryptoError(msg));
-        }
-    };
-    Ok((name, rev))
+    Ok(name_with_rev.as_ref().parse::<NamedRevision>()?.into())
 }
 
 fn write_keypair_files<P>(public: Option<(P, String)>, secret: Option<(P, String)>) -> Result<()>
@@ -641,6 +667,46 @@ mod test {
     static VALID_KEY: &str = "ring-key-valid-20160504220722.sym.key";
     static VALID_KEY_AS_HEX: &str = "\
          44215a3bce23e351a6af359d77131db17a46767de2b88cbb330df162b8cf2ec1";
+
+    mod named_revision {
+        use super::*;
+
+        #[test]
+        fn parse_valid_named_revisions() {
+            let result: NamedRevision = "foo-20160504220722".parse().unwrap();
+            assert_eq!("foo", result.name);
+            assert_eq!(KeyRevision::unchecked("20160504220722"), result.revision);
+
+            let result: NamedRevision = "foo-stuff-20160504220722".parse().unwrap();
+            assert_eq!("foo-stuff", result.name);
+            assert_eq!(KeyRevision::unchecked("20160504220722"), result.revision);
+        }
+
+        #[test]
+        fn parse_invalid_named_revisions() {
+            let result = "barf".parse::<NamedRevision>();
+            assert!(result.is_err());
+
+            let result = "barf-20160504220722-wheeeeeeeee".parse::<NamedRevision>();
+            assert!(result.is_err());
+
+            let result = "barf-123".parse::<NamedRevision>();
+            assert!(result.is_err());
+        }
+
+        #[test]
+        fn to_string() {
+            let nr = NamedRevision { name:     "foo".to_string(),
+                                     revision: KeyRevision::unchecked("20160504220722"), };
+            assert_eq!(nr.to_string(), "foo-20160504220722");
+        }
+
+        #[test]
+        fn string_roundtrip() {
+            let input = "foo-20160504220722";
+            assert_eq!(input.parse::<NamedRevision>().unwrap().to_string(), input);
+        }
+    }
 
     mod tmpkeyfile {
         use super::*;

@@ -344,7 +344,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "parse_name_with_rev:1 Cannot parse")]
+    #[should_panic(expected = "Cannot parse named revision \\'\\'")]
     fn verify_empty_key_name() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let dst = cache.path().join("signed.dat");
@@ -355,7 +355,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "parse_name_with_rev:1 Cannot parse")]
+    #[should_panic(expected = "Cannot parse named revision \\'nope-nope\\'")]
     fn verify_invalid_key_name() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let dst = cache.path().join("signed.dat");
