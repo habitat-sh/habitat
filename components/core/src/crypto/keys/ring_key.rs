@@ -43,20 +43,6 @@ impl RingKey {
     // KeyPair struct. Not ultimately sure if this should be kept.
     pub fn name_with_rev(&self) -> String { self.0.name_with_rev() }
 
-    // TODO (CM): Move this to KeyCache, ultimately
-    pub(crate) fn latest_cached_revision<P>(name: &str, cache_key_path: P) -> Result<Self>
-        where P: AsRef<Path>
-    {
-        let mut all = Self::get_pairs_for(name, cache_key_path)?;
-        match all.len() {
-            0 => {
-                let msg = format!("No revisions found for {} sym key", name);
-                Err(Error::CryptoError(msg))
-            }
-            _ => Ok(all.remove(0)),
-        }
-    }
-
     /// Encrypts a byte slice of data using a given `RingKey`.
     ///
     /// The return is a `Result` of a tuple of `Vec<u8>` structs, the first being the random nonce
@@ -249,7 +235,44 @@ impl RingKey {
 // An impl block for internal implementation details that need to be
 // moved over to KeyCache
 impl RingKey {
+    pub(crate) fn latest_cached_revision<P>(name: &str, cache_key_path: P) -> Result<Self>
+        where P: AsRef<Path>
+    {
+        let mut all = Self::get_pairs_for(name, cache_key_path)?;
+        match all.len() {
+            0 => {
+                let msg = format!("No revisions found for {} sym key", name);
+                Err(Error::CryptoError(msg))
+            }
+            _ => Ok(all.remove(0)),
+        }
+    }
+
     /// Returns the full path to the secret sym key given a key name with revision.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// extern crate habitat_core;
+    /// extern crate tempfile;
+    ///
+    /// use habitat_core::crypto::RingKey;
+    /// use std::fs::File;
+    /// use tempfile::Builder;
+    ///
+    /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+    /// let secret_file = cache.path().join("beyonce-20160504220722.sym.key");
+    /// let _ = File::create(&secret_file).unwrap();
+    ///
+    /// let path = RingKey::cached_path("beyonce-20160504220722", cache.path()).unwrap();
+    /// assert_eq!(path, secret_file);
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * If no file exists at the the computed file path
     pub(crate) fn cached_path<P>(key_with_rev: &str, cache_key_path: P) -> Result<PathBuf>
         where P: AsRef<Path>
     {
