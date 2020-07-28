@@ -1401,6 +1401,8 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
+    /// * Unprocessable role
+    /// * Insufficient Privileges
     pub async fn update_member_role(&self,
                                     origin: &str,
                                     token: &str,

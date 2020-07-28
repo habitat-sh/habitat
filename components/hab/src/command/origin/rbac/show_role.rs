@@ -36,15 +36,16 @@ pub async fn start(ui: &mut UI,
                 }
             } else {
                 ui.status(Status::Discovering, "origin member role".to_string())?;
-                println!("Member {} has the '{}' role in origin {}",
+                println!("Member {} has the '{}' role in the {} origin.",
                          member_account, resp.role, origin);
                 Ok(())
             }
         }
         Err(err @ api_client::Error::APIError(StatusCode::FORBIDDEN, _)) => {
             ui.fatal("Failed to get origin member's role!")?;
-            ui.fatal("This situation could arise, if for example, you are not a member with \
-                      sufficient privileges in the origin.")?;
+            ui.fatal(format!("This situation could arise, if for example, you are not a member \
+                              with sufficient privileges in the '{}' origin.",
+                             origin))?;
             Err(Error::APIClient(err))
         }
         Err(err @ api_client::Error::APIError(StatusCode::NOT_FOUND, _)) => {

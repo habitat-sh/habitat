@@ -23,10 +23,8 @@ pub async fn start(ui: &mut UI,
     ui.begin(format!("Preparing to update member {}'s role to '{}' in {} origin.",
                      member_account, role, origin))?;
 
-    if !no_prompt {
-        if !confirm_update_role(ui)? {
-            return Ok(());
-        };
+    if !no_prompt && !confirm_update_role(ui)? {
+        return Ok(());
     }
 
     match api_client.update_member_role(origin, token, member_account, role)
