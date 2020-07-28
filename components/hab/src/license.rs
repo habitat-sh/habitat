@@ -70,6 +70,8 @@ impl LicenseData {
 #[derive(Clone, Copy, PartialEq)]
 pub enum LicenseAcceptance {
     Accepted,
+    /// Explicitly deny the license and do not prompt for license acceptance. This is useful for
+    /// testing.
     Denied,
     NotYetAccepted,
 }
