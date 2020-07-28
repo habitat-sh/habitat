@@ -1,7 +1,9 @@
 use super::{get_key_revisions,
+            mk_key_filename,
             parse_name_with_rev,
             ring_key::RingKey,
-            KeyType};
+            KeyType,
+            SECRET_SYM_KEY_SUFFIX};
 use crate::error::{Error,
                    Result};
 use std::path::PathBuf;
@@ -16,8 +18,16 @@ impl<P> From<P> for KeyCache where P: Into<PathBuf>
 impl KeyCache {
     pub fn write_ring_key(&self, key: &RingKey) -> Result<()> { key.write_to_cache(&self.0) }
 
+    /// Returns the full path to the file of the given `RingKey`.
     pub fn ring_key_cached_path(&self, key: &RingKey) -> Result<PathBuf> {
-        RingKey::cached_path(&key.name_with_rev(), &self.0)
+        // TODO (CM): better localize this logic... with the cache? with the key?
+        let path = mk_key_filename(&self.0, &key.name_with_rev(), SECRET_SYM_KEY_SUFFIX);
+        if !path.is_file() {
+            return Err(Error::CryptoError(format!("No cached ring key found at \
+                                                   {}",
+                                                  path.display())));
+        }
+        Ok(path)
     }
 
     /// Note: name is just the name, not the name + revision
@@ -148,4 +158,25 @@ mod test {
         let (cache, _dir) = new_cache();
         cache.latest_ring_key_revision("nope-nope").unwrap();
     }
+
+    // Old tests... not fully converting over to new implementation
+    // yet because I think the function won't be sticking around very
+    // long.
+
+    // #[test]
+    // fn cached_path() {
+    //     let (cache, dir) = new_cache();
+    //     fs::copy(fixture(&format!("keys/{}", VALID_KEY)),
+    //              dir.path().join(VALID_KEY)).unwrap();
+
+    //     let result = cache.ring_key_cached_path(VALID_NAME_WITH_REV).unwrap();
+    //     assert_eq!(result, cache.path().join(VALID_KEY));
+    // }
+
+    // #[test]
+    // #[should_panic(expected = "No secret key found at")]
+    // fn get_secret_key_path_nonexistent() {
+    //     let (cache, _dir) = new_cache();
+    //     cache.ring_key_cached_path(VALID_NAME_WITH_REV).unwrap();
+    // }
 }
