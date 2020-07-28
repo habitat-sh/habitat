@@ -1612,7 +1612,7 @@ fn sub_ring_key_export(m: &ArgMatches<'_>) -> Result<()> {
     let cache_key_path = cache_key_path_from_matches(&m);
     init()?;
 
-    command::ring::key::export::start(ring, &cache_key_path)
+    command::ring::key::export::start(ring, cache_key_path)
 }
 
 fn sub_ring_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
