@@ -406,7 +406,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 )
             )
             (@subcommand rbac=>
-                (about: "Manage origin member roles")
+                (about: "Role Based Access Control for origin members")
                 (@setting ArgRequiredElseHelp)
                 (@setting SubcommandRequiredElseHelp)
                 (@subcommand show =>
