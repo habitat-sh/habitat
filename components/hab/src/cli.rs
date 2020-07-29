@@ -411,7 +411,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@setting SubcommandRequiredElseHelp)
                 (@subcommand show =>
                      (about: "Display an origin member's current role")
-                     (@arg MEMBER_ACCOUNT: +required +takes_value {non_empty} "The account name whose role will be displayed")
+                     (@arg MEMBER_ACCOUNT: +required +takes_value {non_empty} "The account name of the role to display")
                      (@arg ORIGIN: -o --origin +takes_value +required {valid_origin} "The name of the origin for the origin member association")
                      (@arg BLDR_URL: -u --url +takes_value {valid_url}
                           "Specify an alternate Builder endpoint. If not specified, the value will \

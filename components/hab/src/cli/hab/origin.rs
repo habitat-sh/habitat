@@ -247,31 +247,35 @@ pub enum Rbac {
         /// The account name of the role to display
         #[structopt(name = "MEMBER_ACCOUNT")]
         member_account: String,
-        /// The origin name the member account belongs to
+        /// The name of the origin for the origin member association
         #[structopt(name = "ORIGIN",
                 short = "o",
                 long = "origin",
+                required = true,
                 validator = valid_origin)]
-        origin:         Option<String>,
+        origin:         String,
         #[structopt(flatten)]
         bldr_url:       BldrUrl,
         #[structopt(flatten)]
         auth_token:     AuthToken,
+        /// Output will be rendered in json
         #[structopt(name = "TO_JSON", short = "j", long = "json")]
         to_json:        bool,
     },
     /// Change an origin member's role
     Set {
-        /// The account name of the role to display
+        /// The account name whose role will be changed
         #[structopt(name = "MEMBER_ACCOUNT")]
         member_account: String,
-        /// The origin name the member account belongs to
+        /// The name of the origin for the origin member association
         #[structopt(name = "ORIGIN",
                 short = "o",
                 long = "origin",
+                required = true,
                 validator = valid_origin)]
-        origin:         Option<String>,
-        /// The role to set for the member account
+        origin:         String,
+        /// The role name to enforce for the member account [values: member, maintainer,
+        /// administrator]
         #[structopt(name = "ROLE",
                 short = "r",
                 long = "role",
@@ -282,8 +286,6 @@ pub enum Rbac {
         bldr_url:       BldrUrl,
         #[structopt(flatten)]
         auth_token:     AuthToken,
-        /// Output will be rendered in json
-        #[structopt(name = "TO_JSON", short = "j", long = "json")]
         /// Do not prompt for confirmation
         #[structopt(name = "NO_PROMPT", short = "n", long = "no-prompt")]
         no_prompt:      bool,
