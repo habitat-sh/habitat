@@ -307,7 +307,10 @@ pub mod test_support {
     /// getting `Drop`ped too early; feel free to ignore it.
     pub fn new_cache() -> (KeyCache, TempDir) {
         let dir = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let cache: KeyCache = dir.path().into();
+        let cache = KeyCache::new(dir.path());
+        // Not strictly required, of course, since we know we just
+        // created the directory.
+        cache.setup().unwrap();
         (cache, dir)
     }
 

@@ -7,7 +7,8 @@ use std::{fs::File,
 pub fn start<P>(ring: &str, cache: P) -> Result<()>
     where P: AsRef<Path>
 {
-    let cache: KeyCache = cache.as_ref().into();
+    let cache = KeyCache::new(cache.as_ref());
+    cache.setup()?;
     let latest = cache.latest_ring_key_revision(ring)?;
     let path = cache.ring_key_cached_path(&latest)?;
     let mut file = File::open(&path)?;

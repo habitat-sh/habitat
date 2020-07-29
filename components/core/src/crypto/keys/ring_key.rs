@@ -1,5 +1,4 @@
-use crate::{crypto::{keys::{KeyCache,
-                            KeyPair,
+use crate::{crypto::{keys::{KeyPair,
                             KeyRevision,
                             NamedRevision,
                             Permissioned,
@@ -129,53 +128,6 @@ impl RingKey {
             }
         }
     }
-
-    /// Writes a sym key to the key cache from the contents of a string slice.
-    ///
-    /// The return is a `Result` of a `String` containing the key's name with revision.
-    ///
-    /// # Examples
-    ///
-    /// Basic usage:
-    ///
-    /// ```
-    /// extern crate habitat_core;
-    /// extern crate tempfile;
-    ///
-    /// use habitat_core::crypto::{keys::PairType,
-    ///                            RingKey};
-    /// use tempfile::Builder;
-    ///
-    /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-    /// let content = "SYM-SEC-1
-    /// beyonce-20160504220722
-    ///
-    /// RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
-    ///
-    /// let pair = RingKey::write_file_from_str(content, cache.path()).unwrap();
-    /// assert_eq!(pair.name_with_rev(), "beyonce-20160504220722");
-    /// assert!(cache.path()
-    ///              .join("beyonce-20160504220722.sym.key")
-    ///              .is_file());
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// * If there is a key version mismatch
-    /// * If the key version is missing
-    /// * If the key name with revision is missing
-    /// * If the key value (the Bas64 payload) is missing
-    /// * If the key file cannot be written to disk
-    /// * If an existing key is already installed, but the new content is different from the
-    /// existing
-    pub fn write_file_from_str<P>(content: &str, cache_key_path: P) -> Result<Self>
-        where P: AsRef<Path>
-    {
-        let parsed_key = content.parse::<RingKey>()?;
-        let cache: KeyCache = cache_key_path.as_ref().into();
-        cache.maybe_write_key(&parsed_key)?;
-        Ok(parsed_key)
-    }
 }
 
 impl AsRef<Path> for RingKey {
@@ -262,13 +214,6 @@ impl Permissioned for RingKey {
 mod test {
     use super::{super::super::test_support::*,
                 *};
-    use std::{fs::{self,
-                   File},
-              io::Read};
-    use tempfile::Builder;
-
-    static VALID_KEY: &str = "ring-key-valid-20160504220722.sym.key";
-    static VALID_NAME_WITH_REV: &str = "ring-key-valid-20160504220722";
 
     impl RingKey {
         pub fn revision(&self) -> &KeyRevision { &self.inner.revision }
@@ -299,6 +244,20 @@ mod test {
         fn fails_to_parse_invalid_key() {
             let content = fixture_as_string("keys/ring-key-invalid-version-20160504221247.sym.key");
             assert!(content.parse::<RingKey>().is_err());
+        }
+
+        #[test]
+        #[should_panic(expected = "Malformed ring key string")]
+        fn fails_to_parse_empty_string() { "".parse::<RingKey>().unwrap(); }
+
+        #[test]
+        #[should_panic(expected = "Malformed ring key string")]
+        fn fails_to_parse_only_header() { "SYM-SEC-1\n".parse::<RingKey>().unwrap(); }
+
+        #[test]
+        #[should_panic(expected = "Cannot parse named revision")]
+        fn fails_to_parse_bogus_revision() {
+            "SYM-SEC-1\nim-in-trouble-123\n".parse::<RingKey>().unwrap();
         }
     }
 
@@ -414,91 +373,5 @@ mod test {
         let key = RingKey::new("beyonce");
         let (nonce, _) = key.encrypt(b"Ringonit").unwrap();
         key.decrypt(&nonce, b"singleladies").unwrap();
-    }
-
-    #[test]
-    fn write_file_from_str() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let content = fixture_as_string(&format!("keys/{}", VALID_KEY));
-        let new_key_file = cache.path().join(VALID_KEY);
-
-        assert_eq!(new_key_file.is_file(), false);
-        let key = RingKey::write_file_from_str(&content, cache.path()).unwrap();
-        assert_eq!(key.name_with_rev(), VALID_NAME_WITH_REV);
-        assert!(new_key_file.is_file());
-
-        let new_content = {
-            let mut new_content_file = File::open(new_key_file).unwrap();
-            let mut new_content = String::new();
-            new_content_file.read_to_string(&mut new_content).unwrap();
-            new_content
-        };
-
-        assert_eq!(new_content, content);
-    }
-
-    #[test]
-    fn write_file_from_str_with_existing_identical() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let content = fixture_as_string(&format!("keys/{}", VALID_KEY));
-        let new_key_file = cache.path().join(VALID_KEY);
-
-        // install the key into the cache
-        fs::copy(fixture(&format!("keys/{}", VALID_KEY)), &new_key_file).unwrap();
-
-        let key = RingKey::write_file_from_str(&content, cache.path()).unwrap();
-        assert_eq!(key.name_with_rev(), VALID_NAME_WITH_REV);
-        assert!(new_key_file.is_file());
-    }
-
-    #[test]
-    #[should_panic(expected = "Unsupported key version")]
-    fn write_file_from_str_unsupported_version() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let content = fixture_as_string("keys/ring-key-invalid-version-20160504221247.sym.key");
-
-        RingKey::write_file_from_str(&content, cache.path()).unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "Malformed ring key string")]
-    fn write_file_from_str_missing_version() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-
-        RingKey::write_file_from_str("", cache.path()).unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "Malformed ring key string")]
-    fn write_file_from_str_missing_name() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-
-        RingKey::write_file_from_str("SYM-SEC-1\n", cache.path()).unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "Cannot parse named revision")]
-    fn write_file_from_str_missing_key() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-
-        RingKey::write_file_from_str("SYM-SEC-1\nim-in-trouble-123\n", cache.path()).unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "Existing key file")]
-    fn write_file_from_str_key_exists_but_hashes_differ() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let key = fixture("keys/ring-key-valid-20160504220722.sym.key");
-        let old_content = fs::read_to_string(&key).unwrap();
-        fs::copy(key,
-                 cache.path().join("ring-key-valid-20160504220722.sym.key")).unwrap();
-
-        #[rustfmt::skip]
-        let new_content = "SYM-SEC-1\nring-key-valid-20160504220722\n\nkA+c03Ly5qEoOZIjJ5zCD2vHI05pAW59PfCOb8thmZw=";
-
-        assert_ne!(old_content, new_content);
-
-        // this should fail
-        RingKey::write_file_from_str(new_content, cache.path()).unwrap();
     }
 }
