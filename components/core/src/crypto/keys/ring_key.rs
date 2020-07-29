@@ -9,7 +9,8 @@ use super::{super::{hash,
             KeyRevision,
             NamedRevision,
             PairType,
-            TmpKeyfile};
+            TmpKeyfile,
+            ToKeyString};
 use crate::error::{Error,
                    Result};
 use sodiumoxide::{crypto::secretbox::{self,
@@ -263,23 +264,8 @@ impl FromStr for RingKey {
     }
 }
 
-// An impl block for internal implementation details that need to be
-// moved over to KeyCache
-impl RingKey {
-    pub(crate) fn write_to_cache<P>(&self, cache_dir: P) -> Result<()>
-        where P: AsRef<Path>
-    {
-        let secret_keyfile = mk_key_filename(cache_dir.as_ref(),
-                                             self.name_with_rev(),
-                                             SECRET_SYM_KEY_SUFFIX);
-        debug!("secret sym keyfile = {}", secret_keyfile.display());
-
-        write_keypair_files(None, Some((secret_keyfile, self.to_secret_string()?)))
-    }
-
-    // TODO (CM): only public because it's also used in a test in
-    // keys.rs... look into better factoring
-    pub(crate) fn to_secret_string(&self) -> Result<String> {
+impl ToKeyString for RingKey {
+    fn to_key_string(&self) -> Result<String> {
         match self.0.secret {
             Some(ref sk) => {
                 Ok(format!("{}\n{}\n\n{}",
@@ -292,6 +278,21 @@ impl RingKey {
                                                self.name_with_rev())))
             }
         }
+    }
+}
+
+// An impl block for internal implementation details that need to be
+// moved over to KeyCache
+impl RingKey {
+    pub(crate) fn write_to_cache<P>(&self, cache_dir: P) -> Result<()>
+        where P: AsRef<Path>
+    {
+        let secret_keyfile = mk_key_filename(cache_dir.as_ref(),
+                                             self.name_with_rev(),
+                                             SECRET_SYM_KEY_SUFFIX);
+        debug!("secret sym keyfile = {}", secret_keyfile.display());
+
+        write_keypair_files(None, Some((secret_keyfile, self.to_key_string()?)))
     }
 
     // TODO (CM): DUPLICATED IN KEYCACHE
@@ -380,6 +381,18 @@ mod test {
         fn fails_to_parse_invalid_key() {
             let content = fixture_as_string("keys/ring-key-invalid-version-20160504221247.sym.key");
             assert!(content.parse::<RingKey>().is_err());
+        }
+    }
+
+    mod to_key_string {
+        use super::*;
+
+        #[test]
+        fn can_write_valid_key_string() {
+            let content = fixture_as_string("keys/ring-key-valid-20160504220722.sym.key");
+            let key = content.parse::<RingKey>().unwrap();
+
+            assert_eq!(content, key.to_key_string().unwrap());
         }
     }
 
