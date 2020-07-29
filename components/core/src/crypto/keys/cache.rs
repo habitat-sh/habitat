@@ -23,15 +23,13 @@ impl<P> From<P> for KeyCache where P: Into<PathBuf>
 
 impl KeyCache {
     pub fn write_ring_key(&self, key: &RingKey) -> Result<()> {
-        let secret_keyfile = mk_key_filename(&self.0, key.name_with_rev(), SECRET_SYM_KEY_SUFFIX);
-        debug!("secret sym keyfile = {}", secret_keyfile.display());
+        let secret_keyfile = self.path_in_cache(&key);
         write_keypair_files(None, Some((secret_keyfile, key.to_key_string()?)))
     }
 
     /// Returns the full path to the file of the given `RingKey`.
     pub fn ring_key_cached_path(&self, key: &RingKey) -> Result<PathBuf> {
-        // TODO (CM): better localize this logic... with the cache? with the key?
-        let path = mk_key_filename(&self.0, &key.name_with_rev(), SECRET_SYM_KEY_SUFFIX);
+        let path = self.path_in_cache(&key);
         if !path.is_file() {
             return Err(Error::CryptoError(format!("No cached ring key found at \
                                                    {}",
@@ -50,6 +48,16 @@ impl KeyCache {
             }
             _ => Ok(all.remove(0)),
         }
+    }
+
+    /// Provides the path at which this file would be found in the
+    /// cache, if it exists.
+    ///
+    /// No existence claim is implied by this method!
+    fn path_in_cache<K>(&self, key: K) -> PathBuf
+        where K: AsRef<Path>
+    {
+        self.0.join(key.as_ref())
     }
 }
 
