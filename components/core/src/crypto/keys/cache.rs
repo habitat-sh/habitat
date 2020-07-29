@@ -6,7 +6,8 @@ use super::{get_key_revisions,
             HabitatKey,
             KeyType,
             SECRET_SYM_KEY_SUFFIX};
-use crate::{crypto::keys::ToKeyString,
+use crate::{crypto::{hash,
+                     keys::ToKeyString},
             error::{Error,
                     Result}};
 use sodiumoxide::crypto::secretbox::Key as SymSecretKey;
@@ -58,6 +59,35 @@ impl KeyCache {
         where K: AsRef<Path>
     {
         self.0.join(key.as_ref())
+    }
+
+    /// Write the given key into the cache. If the key already exists,
+    /// and the content has the same hash value, nothing will be
+    /// done. If the file exists and it has *different* content, an
+    /// Error is returned.
+    // TODO (CM): Temporarily crate-public, pending additional refactoring
+    pub(crate) fn maybe_write_key<K>(&self, key: &K) -> Result<()>
+        where K: AsRef<Path> + ToKeyString
+    {
+        let keyfile = self.path_in_cache(&key);
+        let content = key.to_key_string()?;
+
+        if keyfile.is_file() {
+            let existing_hash = hash::hash_file(&keyfile)?;
+            let new_hash = hash::hash_string(&content);
+            if existing_hash != new_hash {
+                let msg = format!("Existing key file {} found but new version hash is different, \
+                                   failing to write new file over existing. (existing = {}, \
+                                   incoming = {})",
+                                  keyfile.display(),
+                                  existing_hash,
+                                  new_hash);
+                return Err(Error::CryptoError(msg));
+            }
+        } else {
+            crate::fs::atomic_write(&keyfile, &content)?;
+        }
+        Ok(())
     }
 }
 
