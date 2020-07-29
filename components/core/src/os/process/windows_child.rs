@@ -931,7 +931,7 @@ fn create_process_as_user(credential: &ServiceCredential,
                                                         io::Error::last_os_error())));
         }
 
-        let sid = Sid::from_token(token)?;
+        let sid = Sid::logon_sid_from_token(token)?;
         sid.add_to_user_object(station as HANDLE,
                                sid::CONTAINER_INHERIT_ACE
                                | sid::INHERIT_ONLY_ACE
