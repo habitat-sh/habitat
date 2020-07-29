@@ -2,11 +2,13 @@ use crate::{crypto::{keys::{KeyCache,
                             KeyPair,
                             KeyRevision,
                             NamedRevision,
+                            Permissioned,
                             ToKeyString},
                      SECRET_SYM_KEY_SUFFIX,
                      SECRET_SYM_KEY_VERSION},
             error::{Error,
-                    Result}};
+                    Result},
+            fs::Permissions};
 use sodiumoxide::crypto::secretbox::{self,
                                      Key as SymSecretKey};
 use std::{fmt,
@@ -249,6 +251,11 @@ impl ToKeyString for RingKey {
             }
         }
     }
+}
+
+impl Permissioned for RingKey {
+    /// Ring keys are always private and deserved to be locked-down as such.
+    const PERMISSIONS: Permissions = crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS;
 }
 
 #[cfg(test)]
