@@ -352,14 +352,14 @@ fn get_ring_key(sup_run: &SupRun) -> Result<Option<RingKey>> {
     let cache: KeyCache = cache_key_path.into();
 
     match &sup_run.ring {
-        Some(val) => {
-            let key = cache.latest_ring_key_revision(val)?;
+        Some(key_name) => {
+            let key = cache.latest_ring_key_revision(key_name)?;
             Ok(Some(key))
         }
         None => {
             match &sup_run.ring_key {
-                Some(val) => {
-                    let (key, _) = RingKey::write_file_from_str(val, cache_key_path)?;
+                Some(key_content) => {
+                    let key = RingKey::write_file_from_str(key_content, cache_key_path)?;
                     Ok(Some(key))
                 }
                 None => Ok(None),

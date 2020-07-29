@@ -2,11 +2,15 @@ use super::{get_key_revisions,
             mk_key_filename,
             parse_name_with_rev,
             ring_key::RingKey,
+            HabitatKey,
             KeyType,
             SECRET_SYM_KEY_SUFFIX};
 use crate::error::{Error,
                    Result};
-use std::path::PathBuf;
+use sodiumoxide::crypto::secretbox::Key as SymSecretKey;
+use std::{convert::TryFrom,
+          path::{Path,
+                 PathBuf}};
 
 pub struct KeyCache(PathBuf);
 
@@ -66,7 +70,7 @@ impl KeyCache {
 
         // reading the secret key here is really about parsing the base64 bytes into an actual key.
         // That truly should be part of the "from string"
-        let sk = match RingKey::get_secret_key(name_with_rev, &self.0) {
+        let sk = match Self::get_secret_key(name_with_rev, &self.0) {
             Ok(k) => Some(k),
             Err(e) => {
                 let msg = format!("No secret keys found for name_with_rev {}: {}",
@@ -75,6 +79,18 @@ impl KeyCache {
             }
         };
         Ok(RingKey::from_raw(name, rev, sk))
+    }
+
+    fn get_secret_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SymSecretKey> {
+        let secret_keyfile = mk_key_filename(cache_key_path, key_with_rev, SECRET_SYM_KEY_SUFFIX);
+        match SymSecretKey::from_slice(HabitatKey::try_from(&secret_keyfile)?.as_ref()) {
+            Some(sk) => Ok(sk),
+            None => {
+                Err(Error::CryptoError(format!("Can't read sym secret key \
+                                                for {}",
+                                               key_with_rev)))
+            }
+        }
     }
 }
 
@@ -157,6 +173,33 @@ mod test {
     fn latest_cached_revision_nonexistent() {
         let (cache, _dir) = new_cache();
         cache.latest_ring_key_revision("nope-nope").unwrap();
+    }
+
+    #[test]
+    fn get_pair_for() {
+        let (cache, dir) = new_cache();
+        let k1 = RingKey::new("beyonce");
+        k1.write_to_cache(dir.path()).unwrap();
+
+        wait_1_sec();
+
+        let k2 = RingKey::new("beyonce");
+        k2.write_to_cache(dir.path()).unwrap();
+
+        let k1_fetched = cache.get_pair_for(&k1.name_with_rev()).unwrap();
+        assert_eq!(k1.name(), k1_fetched.name());
+        assert_eq!(k1.revision(), k1_fetched.revision());
+
+        let k2_fetched = cache.get_pair_for(&k2.name_with_rev()).unwrap();
+        assert_eq!(k2.name(), k2_fetched.name());
+        assert_eq!(k2.revision(), k2_fetched.revision());
+    }
+
+    #[test]
+    #[should_panic(expected = "No secret keys found for name_with_rev")]
+    fn get_pair_for_nonexistent() {
+        let (cache, _dir) = new_cache();
+        cache.get_pair_for("nope-nope-20160405144901").unwrap();
     }
 
     // Old tests... not fully converting over to new implementation

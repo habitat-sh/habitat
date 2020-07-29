@@ -2,23 +2,16 @@ use super::{super::{hash,
                     SECRET_SYM_KEY_SUFFIX,
                     SECRET_SYM_KEY_VERSION},
             mk_key_filename,
-            parse_name_with_rev,
             write_keypair_files,
-            HabitatKey,
             KeyPair,
             KeyRevision,
             NamedRevision,
-            PairType,
-            TmpKeyfile,
             ToKeyString};
 use crate::error::{Error,
                    Result};
-use sodiumoxide::{crypto::secretbox::{self,
-                                      Key as SymSecretKey},
-                  randombytes::randombytes};
-use std::{convert::TryFrom,
-          fmt,
-          fs,
+use sodiumoxide::crypto::secretbox::{self,
+                                     Key as SymSecretKey};
+use std::{fmt,
           path::Path,
           str::FromStr};
 
@@ -140,8 +133,7 @@ impl RingKey {
     ///
     /// RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
     ///
-    /// let (pair, pair_type) = RingKey::write_file_from_str(content, cache.path()).unwrap();
-    /// assert_eq!(pair_type, PairType::Secret);
+    /// let pair = RingKey::write_file_from_str(content, cache.path()).unwrap();
     /// assert_eq!(pair.name_with_rev(), "beyonce-20160504220722");
     /// assert!(cache.path()
     ///              .join("beyonce-20160504220722.sym.key")
@@ -157,56 +149,40 @@ impl RingKey {
     /// * If the key file cannot be written to disk
     /// * If an existing key is already installed, but the new content is different from the
     /// existing
-    pub fn write_file_from_str<P: AsRef<Path> + ?Sized>(content: &str,
-                                                        cache_key_path: &P)
-                                                        -> Result<(Self, PairType)> {
+    pub fn write_file_from_str<P>(content: &str, cache_key_path: P) -> Result<Self>
+        where P: AsRef<Path>
+    {
         let parsed_key = content.parse::<RingKey>()?;
         let name_with_rev = parsed_key.name_with_rev();
+
+        // Technically, we could just use the `content` passed in (at
+        // least, with current implementations), but this makes
+        // ABSOLUTELY CERTAIN we are in total control of what goes
+        // into the key file.
+        let content = parsed_key.to_key_string()
+                                .expect("We just parsed key material, so this can't fail");
 
         let secret_keyfile = mk_key_filename(cache_key_path.as_ref(),
                                              &name_with_rev,
                                              SECRET_SYM_KEY_SUFFIX);
 
-        let tmpfile = {
-            let mut t = secret_keyfile.clone();
-            t.set_file_name(format!("{}.{}",
-                                    &secret_keyfile.file_name().unwrap().to_str().unwrap(),
-                                    &hex::encode(randombytes(6).as_slice())));
-            TmpKeyfile { path: t }
-        };
-
-        debug!("Writing temp key file {}", tmpfile.path.display());
-        write_keypair_files(None, Some((&tmpfile.path, content.to_string())))?;
-
         if Path::new(&secret_keyfile).is_file() {
             let existing_hash = hash::hash_file(&secret_keyfile)?;
-            let new_hash = hash::hash_file(&tmpfile.path)?;
+            let new_hash = hash::hash_string(&content);
             if existing_hash != new_hash {
                 let msg = format!("Existing key file {} found but new version hash is different, \
-                                   failing to write new file over existing. ({} = {}, {} = {})",
-                                  secret_keyfile.display(),
+                                   failing to write new file over existing. (existing = {}, \
+                                   incoming = {})",
                                   secret_keyfile.display(),
                                   existing_hash,
-                                  tmpfile.path.display(),
                                   new_hash);
                 return Err(Error::CryptoError(msg));
-            } else {
-                // Otherwise, hashes match and we can skip writing over the existing file
-                debug!("New content hash matches existing file {} hash, removing temp key file \
-                        {}.",
-                       secret_keyfile.display(),
-                       tmpfile.path.display());
-                fs::remove_file(&tmpfile.path)?;
             }
         } else {
-            debug!("Moving {} to {}",
-                   tmpfile.path.display(),
-                   secret_keyfile.display());
-            fs::rename(&tmpfile.path, secret_keyfile)?;
+            crate::fs::atomic_write(&secret_keyfile, &content)?;
         }
 
-        // Now load and return the pair to ensure everything wrote out
-        Ok((Self::get_pair_for(&name_with_rev, cache_key_path)?, PairType::Secret))
+        Ok(parsed_key)
     }
 }
 
@@ -293,36 +269,6 @@ impl RingKey {
         debug!("secret sym keyfile = {}", secret_keyfile.display());
 
         write_keypair_files(None, Some((secret_keyfile, self.to_key_string()?)))
-    }
-
-    // TODO (CM): DUPLICATED IN KEYCACHE
-    fn get_pair_for<P>(name_with_rev: &str, cache_key_path: P) -> Result<Self>
-        where P: AsRef<Path>
-    {
-        let (name, rev) = parse_name_with_rev(&name_with_rev)?;
-        let sk = match Self::get_secret_key(name_with_rev, cache_key_path.as_ref()) {
-            Ok(k) => Some(k),
-            Err(e) => {
-                let msg = format!("No secret keys found for name_with_rev {}: {}",
-                                  name_with_rev, e);
-                return Err(Error::CryptoError(msg));
-            }
-        };
-        Ok(RingKey(KeyPair::new(name, rev, None, sk)))
-    }
-
-    pub(crate) fn get_secret_key(key_with_rev: &str,
-                                 cache_key_path: &Path)
-                                 -> Result<SymSecretKey> {
-        let secret_keyfile = mk_key_filename(cache_key_path, key_with_rev, SECRET_SYM_KEY_SUFFIX);
-        match SymSecretKey::from_slice(HabitatKey::try_from(&secret_keyfile)?.as_ref()) {
-            Some(sk) => Ok(sk),
-            None => {
-                Err(Error::CryptoError(format!("Can't read sym secret key \
-                                                for {}",
-                                               key_with_rev)))
-            }
-        }
     }
 }
 
@@ -432,35 +378,6 @@ mod test {
     }
 
     #[test]
-    fn get_pair_for() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let k1 = RingKey::new("beyonce");
-        k1.write_to_cache(cache.path()).unwrap();
-        let k2 = match wait_until_ok(|| {
-                  let rpath = RingKey::new("beyonce");
-                  rpath.write_to_cache(cache.path())?;
-                  Ok(rpath)
-              }) {
-            Some(key) => key,
-            None => panic!("Failed to generate another keypair after waiting"),
-        };
-
-        let p1_fetched = RingKey::get_pair_for(&k1.name_with_rev(), cache.path()).unwrap();
-        assert_eq!(k1.name(), p1_fetched.name());
-        assert_eq!(k1.revision(), p1_fetched.revision());
-        let p2_fetched = RingKey::get_pair_for(&k2.name_with_rev(), cache.path()).unwrap();
-        assert_eq!(k2.name(), p2_fetched.name());
-        assert_eq!(k2.revision(), p2_fetched.revision());
-    }
-
-    #[test]
-    #[should_panic(expected = "No secret keys found for name_with_rev")]
-    fn get_pair_for_nonexistent() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        RingKey::get_pair_for("nope-nope-20160405144901", cache.path()).unwrap();
-    }
-
-    #[test]
     fn encrypt_and_decrypt() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let key = RingKey::new("beyonce");
@@ -524,8 +441,7 @@ mod test {
         let new_key_file = cache.path().join(VALID_KEY);
 
         assert_eq!(new_key_file.is_file(), false);
-        let (key, pair_type) = RingKey::write_file_from_str(&content, cache.path()).unwrap();
-        assert_eq!(pair_type, PairType::Secret);
+        let key = RingKey::write_file_from_str(&content, cache.path()).unwrap();
         assert_eq!(key.name_with_rev(), VALID_NAME_WITH_REV);
         assert!(new_key_file.is_file());
 
@@ -548,8 +464,7 @@ mod test {
         // install the key into the cache
         fs::copy(fixture(&format!("keys/{}", VALID_KEY)), &new_key_file).unwrap();
 
-        let (key, pair_type) = RingKey::write_file_from_str(&content, cache.path()).unwrap();
-        assert_eq!(pair_type, PairType::Secret);
+        let key = RingKey::write_file_from_str(&content, cache.path()).unwrap();
         assert_eq!(key.name_with_rev(), VALID_NAME_WITH_REV);
         assert!(new_key_file.is_file());
     }
