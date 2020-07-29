@@ -159,35 +159,13 @@ impl RingKey {
     pub fn write_file_from_str<P: AsRef<Path> + ?Sized>(content: &str,
                                                         cache_key_path: &P)
                                                         -> Result<(Self, PairType)> {
-        let mut lines = content.lines();
-        match lines.next() {
-            Some(val) => {
-                if val != SECRET_SYM_KEY_VERSION {
-                    return Err(Error::CryptoError(format!("Unsupported key version: {}", val)));
-                }
-            }
-            None => {
-                let msg = format!("write_sym_key_from_str:1 Malformed sym key string:\n({})",
-                                  content);
-                return Err(Error::CryptoError(msg));
-            }
-        };
-        let name_with_rev = match lines.next() {
-            Some(val) => val,
-            None => {
-                let msg = format!("write_sym_key_from_str:2 Malformed sym key string:\n({})",
-                                  content);
-                return Err(Error::CryptoError(msg));
-            }
-        };
-        if lines.nth(1).is_none() {
-            let msg = format!("write_sym_key_from_str:3 Malformed sym key string:\n({})",
-                              content);
-            return Err(Error::CryptoError(msg));
-        };
+        let parsed_key = content.parse::<RingKey>()?;
+        let name_with_rev = parsed_key.name_with_rev();
+
         let secret_keyfile = mk_key_filename(cache_key_path.as_ref(),
                                              &name_with_rev,
                                              SECRET_SYM_KEY_SUFFIX);
+
         let tmpfile = {
             let mut t = secret_keyfile.clone();
             t.set_file_name(format!("{}.{}",
@@ -573,7 +551,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_sym_key_from_str:1 Malformed sym key string")]
+    #[should_panic(expected = "Malformed ring key string")]
     fn write_file_from_str_missing_version() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
@@ -581,7 +559,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_sym_key_from_str:2 Malformed sym key string")]
+    #[should_panic(expected = "Malformed ring key string")]
     fn write_file_from_str_missing_name() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
@@ -589,7 +567,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "write_sym_key_from_str:3 Malformed sym key string")]
+    #[should_panic(expected = "Cannot parse named revision")]
     fn write_file_from_str_missing_key() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
@@ -601,10 +579,16 @@ mod test {
     fn write_file_from_str_key_exists_but_hashes_differ() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let key = fixture("keys/ring-key-valid-20160504220722.sym.key");
+        let old_content = fs::read_to_string(&key).unwrap();
         fs::copy(key,
                  cache.path().join("ring-key-valid-20160504220722.sym.key")).unwrap();
 
-        RingKey::write_file_from_str("SYM-SEC-1\nring-key-valid-20160504220722\n\nsomething",
-                                     cache.path()).unwrap();
+        #[rustfmt::skip]
+        let new_content = "SYM-SEC-1\nring-key-valid-20160504220722\n\nkA+c03Ly5qEoOZIjJ5zCD2vHI05pAW59PfCOb8thmZw=";
+
+        assert_ne!(old_content, new_content);
+
+        // this should fail
+        RingKey::write_file_from_str(new_content, cache.path()).unwrap();
     }
 }
