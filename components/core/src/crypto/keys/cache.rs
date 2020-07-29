@@ -7,11 +7,14 @@ use super::{get_key_revisions,
             KeyType,
             SECRET_SYM_KEY_SUFFIX};
 use crate::{crypto::{hash,
-                     keys::ToKeyString},
+                     keys::{Permissioned,
+                            ToKeyString}},
             error::{Error,
-                    Result}};
+                    Result},
+            fs::AtomicWriter};
 use sodiumoxide::crypto::secretbox::Key as SymSecretKey;
 use std::{convert::TryFrom,
+          io::Write,
           path::{Path,
                  PathBuf}};
 
@@ -67,7 +70,7 @@ impl KeyCache {
     /// Error is returned.
     // TODO (CM): Temporarily crate-public, pending additional refactoring
     pub(crate) fn maybe_write_key<K>(&self, key: &K) -> Result<()>
-        where K: AsRef<Path> + ToKeyString
+        where K: AsRef<Path> + ToKeyString + Permissioned
     {
         let keyfile = self.path_in_cache(&key);
         let content = key.to_key_string()?;
@@ -85,7 +88,24 @@ impl KeyCache {
                 return Err(Error::CryptoError(msg));
             }
         } else {
-            crate::fs::atomic_write(&keyfile, &content)?;
+            // TODO (CM): Borrowed from keys::write_keypair_files;
+            // probably need to hoist this up to be a KeyCache
+            // initialization function. Since the cache itself is what
+            // creates the path, this amounts to "create the cache
+            // directory if it doesn't exist"
+            if let Some(parent) = keyfile.parent() {
+                std::fs::create_dir_all(parent)?;
+            } else {
+                return Err(Error::BadKeyPath(keyfile.to_string_lossy().into_owned()));
+            }
+
+            // Technically speaking, this probably doesn't really need
+            // to be an atomic write process, since we just tested
+            // that the file doesn't currently exist. It does,
+            // however, bundle up writing with platform-independent
+            // permission setting, which is *super* convenient.
+            let w = AtomicWriter::new_with_permissions(&keyfile, K::permissions())?;
+            w.with_writer(|f| f.write_all(content.as_ref()))?;
         }
         Ok(())
     }

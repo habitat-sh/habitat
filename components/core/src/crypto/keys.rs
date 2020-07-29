@@ -186,6 +186,16 @@ pub trait ToKeyString {
 
 ////////////////////////////////////////////////////////////////////////
 
+pub trait Permissioned {
+    const PERMISSIONS: Permissions;
+
+    /// Returns the permissions with which an item should be written
+    /// to the filesystem.
+    fn permissions() -> Permissions { Self::PERMISSIONS }
+}
+
+////////////////////////////////////////////////////////////////////////
+
 pub struct HabitatKey {
     pair_type:     PairType, // NOT A PAIR!!!!!!
     name_with_rev: String,
