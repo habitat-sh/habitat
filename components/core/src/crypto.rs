@@ -261,13 +261,17 @@ pub fn secure_eq<T, U>(t: T, u: U) -> bool
 
 #[cfg(test)]
 pub mod test_support {
+    use crate::{crypto::keys::KeyCache,
+                error as herror};
+
     use std::{fs::File,
               io::Read,
               path::PathBuf,
+              thread,
               time::{Duration,
                      Instant}};
-
-    use crate::error as herror;
+    use tempfile::{Builder,
+                   TempDir};
 
     pub fn fixture(name: &str) -> PathBuf {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
@@ -298,4 +302,14 @@ pub mod test_support {
         }
         None
     }
+
+    /// Returns the `TempDir` that backs the cache to prevent it from
+    /// getting `Drop`ped too early; feel free to ignore it.
+    pub fn new_cache() -> (KeyCache, TempDir) {
+        let dir = Builder::new().prefix("key_cache").tempdir().unwrap();
+        let cache: KeyCache = dir.path().into();
+        (cache, dir)
+    }
+
+    pub fn wait_1_sec() { thread::sleep(Duration::from_secs(1)); }
 }

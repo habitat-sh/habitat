@@ -676,11 +676,11 @@ fn set_permissions<T: AsRef<Path>>(path: T, _perms: &Permissions) -> Result<()> 
 
 #[cfg(test)]
 mod test {
-    use super::{super::test_support::*,
-                *};
-    use crate::crypto::keys::{box_key_pair::BoxKeyPair,
-                              ring_key::RingKey,
-                              sig_key_pair::SigKeyPair};
+    use super::*;
+    use crate::crypto::{keys::{box_key_pair::BoxKeyPair,
+                               ring_key::RingKey,
+                               sig_key_pair::SigKeyPair},
+                        test_support::*};
     use std::{thread,
               time::Duration};
     use tempfile::Builder;
@@ -943,24 +943,22 @@ mod test {
 
     #[test]
     fn get_ring_key_revisions() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+        let (cache, dir) = new_cache();
 
         for _ in 0..3 {
-            wait_until_ok(|| {
-                let key = RingKey::new("acme");
-                key.write_to_cache(cache.path())?;
-                Ok(())
-            });
+            let key = RingKey::new("acme");
+            cache.write_ring_key(&key).unwrap();
+            wait_1_sec();
         }
 
-        RingKey::new("acme-you").write_to_cache(cache.path())
-                                .unwrap();
+        let key = RingKey::new("acme-you");
+        cache.write_ring_key(&key).unwrap();
 
-        let revisions = super::get_key_revisions("acme", cache.path(), None, KeyType::Sym).unwrap();
+        let revisions = super::get_key_revisions("acme", dir.path(), None, KeyType::Sym).unwrap();
         assert_eq!(3, revisions.len());
 
         let revisions =
-            super::get_key_revisions("acme-you", cache.path(), None, KeyType::Sym).unwrap();
+            super::get_key_revisions("acme-you", dir.path(), None, KeyType::Sym).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -997,7 +995,10 @@ mod test {
     fn keys_that_are_symlinks_can_still_be_found() {
         let temp_dir = Builder::new().prefix("symlinks_are_ok").tempdir().unwrap();
         let key = RingKey::new("symlinks_are_ok");
-        key.write_to_cache(temp_dir.path()).unwrap();
+
+        let key_name = format!("{}.sym.key", key.name_with_rev());
+        let key_path = temp_dir.path().join(&key_name);
+        fs::write(&key_path, key.to_key_string().unwrap()).unwrap();
 
         // Create a directory in our temp directory; this will serve
         // as the cache directory in which we look for keys.
@@ -1005,10 +1006,8 @@ mod test {
         fs::create_dir(&cache_dir).expect("Could not create cache_dir");
 
         // Create a symlink to the key INTO that new dir
-        let name = format!("{}.sym.key", key.name_with_rev());
-        let src = temp_dir.path().join(&name);
-        let dest = cache_dir.join(&name);
-        symlink_file(&src, &dest).expect("Could not generate symlink");
+        let dest = cache_dir.join(&key_name);
+        symlink_file(&key_path, &dest).expect("Could not generate symlink");
 
         // For sanity, confirm that we are indeed dealing with a symlink
         let sym_meta = dest.symlink_metadata()
