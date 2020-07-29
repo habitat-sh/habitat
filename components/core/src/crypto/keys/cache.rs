@@ -2,7 +2,6 @@ use super::{get_key_revisions,
             mk_key_filename,
             parse_name_with_rev,
             ring_key::RingKey,
-            write_keypair_files,
             HabitatKey,
             KeyType,
             SECRET_SYM_KEY_SUFFIX};
@@ -20,16 +19,22 @@ use std::{convert::TryFrom,
 
 pub struct KeyCache(PathBuf);
 
-impl<P> From<P> for KeyCache where P: Into<PathBuf>
-{
-    fn from(path: P) -> KeyCache { KeyCache(path.into()) }
-}
-
 impl KeyCache {
-    pub fn write_ring_key(&self, key: &RingKey) -> Result<()> {
-        let secret_keyfile = self.path_in_cache(&key);
-        write_keypair_files(None, Some((secret_keyfile, key.to_key_string()?)))
+    pub fn new<P>(path: P) -> Self
+        where P: Into<PathBuf>
+    {
+        KeyCache(path.into())
     }
+
+    /// Ensure that the directory backing the cache exists on disk.
+    pub fn setup(&self) -> Result<()> {
+        if !self.0.is_dir() {
+            std::fs::create_dir_all(&self.0)?;
+        }
+        Ok(())
+    }
+
+    pub fn write_ring_key(&self, key: &RingKey) -> Result<()> { self.maybe_write_key(key) }
 
     /// Returns the full path to the file of the given `RingKey`.
     pub fn ring_key_cached_path(&self, key: &RingKey) -> Result<PathBuf> {
@@ -68,8 +73,7 @@ impl KeyCache {
     /// and the content has the same hash value, nothing will be
     /// done. If the file exists and it has *different* content, an
     /// Error is returned.
-    // TODO (CM): Temporarily crate-public, pending additional refactoring
-    pub(crate) fn maybe_write_key<K>(&self, key: &K) -> Result<()>
+    fn maybe_write_key<K>(&self, key: &K) -> Result<()>
         where K: AsRef<Path> + ToKeyString + Permissioned
     {
         let keyfile = self.path_in_cache(&key);
@@ -88,17 +92,6 @@ impl KeyCache {
                 return Err(Error::CryptoError(msg));
             }
         } else {
-            // TODO (CM): Borrowed from keys::write_keypair_files;
-            // probably need to hoist this up to be a KeyCache
-            // initialization function. Since the cache itself is what
-            // creates the path, this amounts to "create the cache
-            // directory if it doesn't exist"
-            if let Some(parent) = keyfile.parent() {
-                std::fs::create_dir_all(parent)?;
-            } else {
-                return Err(Error::BadKeyPath(keyfile.to_string_lossy().into_owned()));
-            }
-
             // Technically speaking, this probably doesn't really need
             // to be an atomic write process, since we just tested
             // that the file doesn't currently exist. It does,
@@ -162,6 +155,9 @@ impl KeyCache {
 mod test {
     use super::*;
     use crate::crypto::test_support::*;
+
+    static VALID_KEY: &str = "ring-key-valid-20160504220722.sym.key";
+    static VALID_NAME_WITH_REV: &str = "ring-key-valid-20160504220722";
 
     #[test]
     fn get_pairs_for() {
@@ -251,6 +247,57 @@ mod test {
     fn get_pair_for_nonexistent() {
         let (cache, _dir) = new_cache();
         cache.get_pair_for("nope-nope-20160405144901").unwrap();
+    }
+
+    #[test]
+    fn writing_ring_key() {
+        let (cache, dir) = new_cache();
+
+        let content = fixture_as_string(&format!("keys/{}", VALID_KEY));
+        let new_key_file = dir.path().join(VALID_KEY);
+        assert_eq!(new_key_file.is_file(), false);
+
+        let key: RingKey = content.parse().unwrap();
+        assert_eq!(key.name_with_rev(), VALID_NAME_WITH_REV);
+        cache.write_ring_key(&key).unwrap();
+        assert!(new_key_file.is_file());
+
+        let new_content = std::fs::read_to_string(new_key_file).unwrap();
+        assert_eq!(new_content, content);
+    }
+
+    #[test]
+    fn write_key_with_existing_identical() {
+        let (cache, dir) = new_cache();
+        let content = fixture_as_string(&format!("keys/{}", VALID_KEY));
+        let new_key_file = dir.path().join(VALID_KEY);
+
+        // install the key into the cache
+        std::fs::copy(fixture(&format!("keys/{}", VALID_KEY)), &new_key_file).unwrap();
+
+        let key: RingKey = content.parse().unwrap();
+        cache.write_ring_key(&key).unwrap();
+        assert_eq!(key.name_with_rev(), VALID_NAME_WITH_REV);
+        assert!(new_key_file.is_file());
+    }
+
+    #[test]
+    #[should_panic(expected = "Existing key file")]
+    fn write_key_exists_but_hashes_differ() {
+        let (cache, dir) = new_cache();
+        let old_content = fixture_as_string("keys/ring-key-valid-20160504220722.sym.key");
+
+        std::fs::write(dir.path().join("ring-key-valid-20160504220722.sym.key"),
+                       &old_content).unwrap();
+
+        #[rustfmt::skip]
+        let new_content = "SYM-SEC-1\nring-key-valid-20160504220722\n\nkA+c03Ly5qEoOZIjJ5zCD2vHI05pAW59PfCOb8thmZw=";
+
+        assert_ne!(old_content, new_content);
+
+        let new_key: RingKey = new_content.parse().unwrap();
+        // this should fail
+        cache.write_ring_key(&new_key).unwrap();
     }
 
     // Old tests... not fully converting over to new implementation

@@ -348,8 +348,8 @@ async fn split_apart_sup_run(sup_run: SupRun,
 
 fn get_ring_key(sup_run: &SupRun) -> Result<Option<RingKey>> {
     let cache_key_path = &sup_run.cache_key_path.cache_key_path;
-
-    let cache: KeyCache = cache_key_path.into();
+    let cache = KeyCache::new(cache_key_path);
+    cache.setup()?;
 
     match &sup_run.ring {
         Some(key_name) => {
@@ -359,7 +359,8 @@ fn get_ring_key(sup_run: &SupRun) -> Result<Option<RingKey>> {
         None => {
             match &sup_run.ring_key {
                 Some(key_content) => {
-                    let key = RingKey::write_file_from_str(key_content, cache_key_path)?;
+                    let key: RingKey = key_content.parse()?;
+                    cache.write_ring_key(&key)?;
                     Ok(Some(key))
                 }
                 None => Ok(None),
@@ -636,20 +637,23 @@ mod test {
 
         #[test]
         fn ring_key_is_set_properly_by_name() {
-            let key_cache = TempDir::new().expect("Could not create tempdir");
+            let temp_dir = TempDir::new().expect("Could not create tempdir");
+
+            let cache = KeyCache::new(temp_dir.path());
             let lock = lock_var();
-            lock.set(key_cache.path());
+            lock.set(temp_dir.path());
 
             let key_content =
                 "SYM-SEC-1\nfoobar-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
-            let (pair, _) = RingKey::write_file_from_str(key_content, key_cache.path())
-                .expect("Could not write key pair");
+            let key: RingKey = key_content.parse().unwrap();
+            cache.write_key(&key).unwrap();
+
             let config = config_from_cmd_str("hab-sup run --ring foobar");
 
             assert_eq!(config.ring_key
                              .expect("No ring key on manager config")
                              .name_with_rev(),
-                       pair.name_with_rev());
+                       key.name_with_rev());
         }
 
         #[test]
@@ -740,12 +744,13 @@ gpoVMSncu2jMIDZX63IkQII=
 
             let temp_dir = TempDir::new().expect("Could not create tempdir");
             let temp_dir_str = temp_dir.path().to_str().unwrap();
+            let cache = KeyCache::new(temp_dir.path());
 
             // Setup key file
             let key_content =
                 "SYM-SEC-1\ntester-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
-            let (ring_key, _) = RingKey::write_file_from_str(key_content, temp_dir.path())
-                                       .expect("Could not write key pair");
+            let ring_key: RingKey = key_content.parse().unwrap();
+            cache.write_key(&ring_key).unwrap();
 
             // Setup cert files
             let key_path = temp_dir.path().join("key");
@@ -1032,12 +1037,13 @@ gpoVMSncu2jMIDZX63IkQII=
 
             let temp_dir = TempDir::new().expect("Could not create tempdir");
             let temp_dir_str = temp_dir.path().to_str().unwrap();
+            let cache = KeyCache::new(temp_dir.path());
 
             // Setup key file
             let key_content =
                 "SYM-SEC-1\ntester-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
-            let (ring_key, _) = RingKey::write_file_from_str(key_content, temp_dir.path())
-                               .expect("Could not write key pair");
+            let ring_key: RingKey = key_content.parse().unwrap();
+            cache.write_key(&ring_key).unwrap();
 
             // Setup cert files
             let key_path = temp_dir.path().join("key");

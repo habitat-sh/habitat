@@ -1,14 +1,16 @@
-use std::path::Path;
-
 use crate::{common::ui::{UIWriter,
                          UI},
-            hcore::crypto::RingKey};
-
-use crate::error::Result;
+            error::Result};
+use habitat_core::crypto::{keys::KeyCache,
+                           RingKey};
+use std::path::Path;
 
 pub fn start(ui: &mut UI, content: &str, cache: &Path) -> Result<()> {
     ui.begin("Importing ring key from standard input")?;
-    let key = RingKey::write_file_from_str(content, cache)?;
+    let cache = KeyCache::new(cache);
+    cache.setup()?;
+    let key: RingKey = content.parse()?;
+    cache.write_ring_key(&key)?;
     ui.end(format!("Imported ring key {}.", &key.name_with_rev()))?;
     Ok(())
 }
