@@ -11,11 +11,15 @@ use crate::error::{Error,
 use sodiumoxide::crypto::secretbox::{self,
                                      Key as SymSecretKey};
 use std::{fmt,
-          path::Path,
+          path::{Path,
+                 PathBuf},
           str::FromStr};
 
 #[derive(Clone, PartialEq)]
-pub struct RingKey(KeyPair<(), SymSecretKey>);
+pub struct RingKey {
+    inner: KeyPair<(), SymSecretKey>,
+    path:  PathBuf,
+}
 
 // TODO (CM): Incorporate the name/revision of the key?
 impl fmt::Debug for RingKey {
@@ -28,12 +32,27 @@ impl RingKey {
     pub fn new(name: &str) -> Self {
         let revision = KeyRevision::new();
         let secret_key = secretbox::gen_key();
-        RingKey(KeyPair::new(name.to_string(), revision, Some(()), Some(secret_key)))
+        RingKey::from_raw(name.to_string(), revision, Some(secret_key))
+    }
+
+    /// Create a RingKey from raw components to e.g., simulate when
+    /// a requested key doesn't exist on disk.
+    ///
+    /// Also currently used in the KeyCache; may not be required for
+    /// much longer.
+    pub(crate) fn from_raw(name: String,
+                           revision: KeyRevision,
+                           secret: Option<SymSecretKey>)
+                           -> RingKey {
+        let inner = KeyPair::new(name.to_string(), revision, Some(()), secret);
+        let path = Path::new(&inner.name_with_rev()).with_extension(SECRET_SYM_KEY_SUFFIX);
+
+        RingKey { inner, path }
     }
 
     // Simple helper to deal with the indirection to the inner
     // KeyPair struct. Not ultimately sure if this should be kept.
-    pub fn name_with_rev(&self) -> String { self.0.name_with_rev() }
+    pub fn name_with_rev(&self) -> String { self.inner.name_with_rev() }
 
     /// Encrypts a byte slice of data using a given `RingKey`.
     ///
@@ -61,7 +80,7 @@ impl RingKey {
     ///
     /// * If the secret key component of the `RingKey` is not present
     pub fn encrypt(&self, data: &[u8]) -> Result<(Vec<u8>, Vec<u8>)> {
-        let key = self.0.secret()?;
+        let key = self.inner.secret()?;
         let nonce = secretbox::gen_nonce();
         Ok((nonce.as_ref().to_vec(), secretbox::seal(data, &nonce, &key)))
     }
@@ -95,7 +114,7 @@ impl RingKey {
     /// * If the size of the provided nonce data is not the required size
     /// * If the ciphertext was not decryptable given the nonce and symmetric key
     pub fn decrypt(&self, nonce: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
-        let key = self.0.secret()?;
+        let key = self.inner.secret()?;
         let nonce = match secretbox::Nonce::from_slice(&nonce) {
             Some(n) => n,
             None => return Err(Error::CryptoError("Invalid size of nonce".to_string())),
@@ -185,6 +204,10 @@ impl RingKey {
     }
 }
 
+impl AsRef<Path> for RingKey {
+    fn as_ref(&self) -> &Path { &self.path }
+}
+
 impl FromStr for RingKey {
     type Err = Error;
 
@@ -241,7 +264,7 @@ impl FromStr for RingKey {
 
 impl ToKeyString for RingKey {
     fn to_key_string(&self) -> Result<String> {
-        match self.0.secret {
+        match self.inner.secret {
             Some(ref sk) => {
                 Ok(format!("{}\n{}\n\n{}",
                            SECRET_SYM_KEY_VERSION,
@@ -253,20 +276,6 @@ impl ToKeyString for RingKey {
                                                self.name_with_rev())))
             }
         }
-    }
-}
-
-impl RingKey {
-    /// Create a RingKey from raw components to e.g., simulate when
-    /// a requested key doesn't exist on disk.
-    ///
-    /// Also currently used in the KeyCache; may not be required for
-    /// much longer.
-    pub(crate) fn from_raw(name: String,
-                           rev: KeyRevision,
-                           secret: Option<SymSecretKey>)
-                           -> RingKey {
-        RingKey(KeyPair::new(name, rev, Some(()), secret))
     }
 }
 
@@ -283,16 +292,16 @@ mod test {
     static VALID_NAME_WITH_REV: &str = "ring-key-valid-20160504220722";
 
     impl RingKey {
-        pub fn revision(&self) -> &KeyRevision { &self.0.revision }
+        pub fn revision(&self) -> &KeyRevision { &self.inner.revision }
 
-        pub fn name(&self) -> &String { &self.0.name }
+        pub fn name(&self) -> &String { &self.inner.name }
 
         // TODO (CM): This really shouldn't exist
-        pub fn public(&self) -> crate::error::Result<&()> { self.0.public() }
+        pub fn public(&self) -> crate::error::Result<&()> { self.inner.public() }
 
         // TODO (CM): this should probably be renamed; there's no
         // public key to distinguish it from.
-        pub fn secret(&self) -> crate::error::Result<&SymSecretKey> { self.0.secret() }
+        pub fn secret(&self) -> crate::error::Result<&SymSecretKey> { self.inner.secret() }
     }
 
     mod from_str {
@@ -323,6 +332,27 @@ mod test {
             let key = content.parse::<RingKey>().unwrap();
 
             assert_eq!(content, key.to_key_string().unwrap());
+        }
+    }
+
+    mod as_ref_path {
+        use super::*;
+
+        #[test]
+        fn produces_correct_filename() {
+            let content = fixture_as_string("keys/ring-key-valid-20160504220722.sym.key");
+            let key = content.parse::<RingKey>().unwrap();
+
+            assert_eq!(key.as_ref(),
+                       Path::new("ring-key-valid-20160504220722.sym.key"));
+        }
+
+        #[test]
+        fn works_without_secret_too() {
+            let key = RingKey::from_raw("foo".to_string(),
+                                        KeyRevision::unchecked("20200729160923"),
+                                        None);
+            assert_eq!(key.as_ref(), Path::new("foo-20200729160923.sym.key"));
         }
     }
 
