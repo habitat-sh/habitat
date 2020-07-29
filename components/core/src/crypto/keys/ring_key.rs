@@ -1,13 +1,12 @@
-use super::{super::{hash,
-                    SECRET_SYM_KEY_SUFFIX,
-                    SECRET_SYM_KEY_VERSION},
-            mk_key_filename,
-            KeyPair,
-            KeyRevision,
-            NamedRevision,
-            ToKeyString};
-use crate::error::{Error,
-                   Result};
+use crate::{crypto::{keys::{KeyCache,
+                            KeyPair,
+                            KeyRevision,
+                            NamedRevision,
+                            ToKeyString},
+                     SECRET_SYM_KEY_SUFFIX,
+                     SECRET_SYM_KEY_VERSION},
+            error::{Error,
+                    Result}};
 use sodiumoxide::crypto::secretbox::{self,
                                      Key as SymSecretKey};
 use std::{fmt,
@@ -171,35 +170,8 @@ impl RingKey {
         where P: AsRef<Path>
     {
         let parsed_key = content.parse::<RingKey>()?;
-        let name_with_rev = parsed_key.name_with_rev();
-
-        // Technically, we could just use the `content` passed in (at
-        // least, with current implementations), but this makes
-        // ABSOLUTELY CERTAIN we are in total control of what goes
-        // into the key file.
-        let content = parsed_key.to_key_string()
-                                .expect("We just parsed key material, so this can't fail");
-
-        let secret_keyfile = mk_key_filename(cache_key_path.as_ref(),
-                                             &name_with_rev,
-                                             SECRET_SYM_KEY_SUFFIX);
-
-        if Path::new(&secret_keyfile).is_file() {
-            let existing_hash = hash::hash_file(&secret_keyfile)?;
-            let new_hash = hash::hash_string(&content);
-            if existing_hash != new_hash {
-                let msg = format!("Existing key file {} found but new version hash is different, \
-                                   failing to write new file over existing. (existing = {}, \
-                                   incoming = {})",
-                                  secret_keyfile.display(),
-                                  existing_hash,
-                                  new_hash);
-                return Err(Error::CryptoError(msg));
-            }
-        } else {
-            crate::fs::atomic_write(&secret_keyfile, &content)?;
-        }
-
+        let cache: KeyCache = cache_key_path.as_ref().into();
+        cache.maybe_write_key(&parsed_key)?;
         Ok(parsed_key)
     }
 }
