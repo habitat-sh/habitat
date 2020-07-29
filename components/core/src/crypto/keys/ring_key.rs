@@ -2,7 +2,6 @@ use super::{super::{hash,
                     SECRET_SYM_KEY_SUFFIX,
                     SECRET_SYM_KEY_VERSION},
             mk_key_filename,
-            write_keypair_files,
             KeyPair,
             KeyRevision,
             NamedRevision,
@@ -257,21 +256,6 @@ impl ToKeyString for RingKey {
     }
 }
 
-// An impl block for internal implementation details that need to be
-// moved over to KeyCache
-impl RingKey {
-    pub(crate) fn write_to_cache<P>(&self, cache_dir: P) -> Result<()>
-        where P: AsRef<Path>
-    {
-        let secret_keyfile = mk_key_filename(cache_dir.as_ref(),
-                                             self.name_with_rev(),
-                                             SECRET_SYM_KEY_SUFFIX);
-        debug!("secret sym keyfile = {}", secret_keyfile.display());
-
-        write_keypair_files(None, Some((secret_keyfile, self.to_key_string()?)))
-    }
-}
-
 impl RingKey {
     /// Create a RingKey from raw components to e.g., simulate when
     /// a requested key doesn't exist on disk.
@@ -363,26 +347,23 @@ mod test {
 
     #[test]
     fn generated_ring_pair() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+        let (cache, dir) = new_cache();
         let key = RingKey::new("beyonce");
-        key.write_to_cache(cache.path()).unwrap();
+        cache.write_ring_key(&key).unwrap();
 
         assert_eq!(key.name(), "beyonce");
         assert!(key.public().is_ok(),
                 "Generated pair should have an empty public key");
         assert!(key.secret().is_ok(),
                 "Generated pair should have a secret key");
-        assert!(cache.path()
-                     .join(format!("{}.sym.key", key.name_with_rev()))
-                     .exists());
+        assert!(dir.path()
+                   .join(format!("{}.sym.key", key.name_with_rev()))
+                   .exists());
     }
 
     #[test]
     fn encrypt_and_decrypt() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let key = RingKey::new("beyonce");
-        key.write_to_cache(cache.path()).unwrap();
-
         let (nonce, ciphertext) = key.encrypt(b"Ringonit").unwrap();
         let message = key.decrypt(&nonce, &ciphertext).unwrap();
         assert_eq!(message, "Ringonit".to_string().into_bytes());
@@ -401,9 +382,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Secret key is required but not present for")]
     fn decrypt_missing_secret_key() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let key = RingKey::new("beyonce");
-        key.write_to_cache(cache.path()).unwrap();
         let (nonce, ciphertext) = key.encrypt(b"Ringonit").unwrap();
 
         let missing = RingKey::from_raw("grohl".to_string(),
@@ -415,10 +394,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Invalid size of nonce")]
     fn decrypt_invalid_nonce_length() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let key = RingKey::new("beyonce");
-        key.write_to_cache(cache.path()).unwrap();
-
         let (_, ciphertext) = key.encrypt(b"Ringonit").unwrap();
         key.decrypt(b"crazyinlove", &ciphertext).unwrap();
     }
@@ -426,10 +402,7 @@ mod test {
     #[test]
     #[should_panic(expected = "Secret key and nonce could not decrypt ciphertext")]
     fn decrypt_invalid_ciphertext() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let key = RingKey::new("beyonce");
-        key.write_to_cache(cache.path()).unwrap();
-
         let (nonce, _) = key.encrypt(b"Ringonit").unwrap();
         key.decrypt(&nonce, b"singleladies").unwrap();
     }

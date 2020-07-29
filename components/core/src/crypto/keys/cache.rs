@@ -2,11 +2,13 @@ use super::{get_key_revisions,
             mk_key_filename,
             parse_name_with_rev,
             ring_key::RingKey,
+            write_keypair_files,
             HabitatKey,
             KeyType,
             SECRET_SYM_KEY_SUFFIX};
-use crate::error::{Error,
-                   Result};
+use crate::{crypto::keys::ToKeyString,
+            error::{Error,
+                    Result}};
 use sodiumoxide::crypto::secretbox::Key as SymSecretKey;
 use std::{convert::TryFrom,
           path::{Path,
@@ -20,7 +22,11 @@ impl<P> From<P> for KeyCache where P: Into<PathBuf>
 }
 
 impl KeyCache {
-    pub fn write_ring_key(&self, key: &RingKey) -> Result<()> { key.write_to_cache(&self.0) }
+    pub fn write_ring_key(&self, key: &RingKey) -> Result<()> {
+        let secret_keyfile = mk_key_filename(&self.0, key.name_with_rev(), SECRET_SYM_KEY_SUFFIX);
+        debug!("secret sym keyfile = {}", secret_keyfile.display());
+        write_keypair_files(None, Some((secret_keyfile, key.to_key_string()?)))
+    }
 
     /// Returns the full path to the file of the given `RingKey`.
     pub fn ring_key_cached_path(&self, key: &RingKey) -> Result<PathBuf> {
@@ -97,20 +103,7 @@ impl KeyCache {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::{thread,
-              time::Duration};
-    use tempfile::{Builder,
-                   TempDir};
-
-    /// Returns the `TempDir` that backs the cache to prevent it from
-    /// getting `Drop`ped too early; feel free to ignore it.
-    fn new_cache() -> (KeyCache, TempDir) {
-        let dir = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let cache: KeyCache = dir.path().into();
-        (cache, dir)
-    }
-
-    fn wait_1_sec() { thread::sleep(Duration::from_secs(1)); }
+    use crate::crypto::test_support::*;
 
     #[test]
     fn get_pairs_for() {
@@ -177,14 +170,14 @@ mod test {
 
     #[test]
     fn get_pair_for() {
-        let (cache, dir) = new_cache();
+        let (cache, _dir) = new_cache();
         let k1 = RingKey::new("beyonce");
-        k1.write_to_cache(dir.path()).unwrap();
+        cache.write_ring_key(&k1).unwrap();
 
         wait_1_sec();
 
         let k2 = RingKey::new("beyonce");
-        k2.write_to_cache(dir.path()).unwrap();
+        cache.write_ring_key(&k2).unwrap();
 
         let k1_fetched = cache.get_pair_for(&k1.name_with_rev()).unwrap();
         assert_eq!(k1.name(), k1_fetched.name());
