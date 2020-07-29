@@ -165,6 +165,27 @@ impl Into<(String, KeyRevision)> for NamedRevision {
 
 ////////////////////////////////////////////////////////////////////////
 
+pub trait ToKeyString {
+    /// Returns what should be the contents of a file when rendering a
+    /// key out to a file on disk.
+    ///
+    /// While one *could* just use `ToString` / `Display`, that choice
+    /// could be a little dangerous, considering the fact that the
+    /// content of private keys should never potentially make it into
+    /// logging or other output.
+    ///
+    /// Currently returns a `Result` because our key types don't make
+    /// a clear distinction at the type level between the concept of a
+    /// key in general (i.e., the identifier of a key), and the
+    /// concrete presence of that key on a system (i.e., access to
+    /// public and/or private key material). Future refactoring may
+    /// clarify this distinction, at which point we may be able to
+    /// return a simple `String` from this method.
+    fn to_key_string(&self) -> Result<String>;
+}
+
+////////////////////////////////////////////////////////////////////////
+
 pub struct HabitatKey {
     pair_type:     PairType, // NOT A PAIR!!!!!!
     name_with_rev: String,
@@ -1120,7 +1141,7 @@ mod test {
     // keys).
     fn key_file(key_type: KeyType, name: &str) -> tempfile::NamedTempFile {
         let content = match key_type {
-            KeyType::Sym => RingKey::new(name).to_secret_string().unwrap(),
+            KeyType::Sym => RingKey::new(name).to_key_string().unwrap(),
             KeyType::Sig => {
                 SigKeyPair::generate_pair_for_origin(name).to_secret_string()
                                                           .unwrap()
