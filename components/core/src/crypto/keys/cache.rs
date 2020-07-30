@@ -36,17 +36,6 @@ impl KeyCache {
 
     pub fn write_ring_key(&self, key: &RingKey) -> Result<()> { self.maybe_write_key(key) }
 
-    /// Returns the full path to the file of the given `RingKey`.
-    pub fn ring_key_cached_path(&self, key: &RingKey) -> Result<PathBuf> {
-        let path = self.path_in_cache(&key);
-        if !path.is_file() {
-            return Err(Error::CryptoError(format!("No cached ring key found at \
-                                                   {}",
-                                                  path.display())));
-        }
-        Ok(path)
-    }
-
     /// Note: name is just the name, not the name + revision
     pub fn latest_ring_key_revision(&self, name: &str) -> Result<RingKey> {
         let mut all = self.get_pairs_for(name)?;
