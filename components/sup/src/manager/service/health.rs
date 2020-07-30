@@ -8,6 +8,7 @@ use habitat_common::{outputln,
                      templating::package::Pkg};
 use habitat_core::service::{HealthCheckInterval,
                             ServiceGroup};
+use rand::Rng;
 use std::{cmp,
           convert::TryFrom,
           fmt,
@@ -181,6 +182,7 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
     let (tx, rx) = mpsc::unbounded_channel();
 
     tokio::spawn(async move {
+        let mut first_successful_health_check = false;
         loop {
             let (status, result) = check(Arc::clone(&supervisor),
                                          hook.as_ref().map(Arc::clone),
@@ -189,8 +191,20 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
                                          password.clone()).await;
 
             let interval = if result == HealthCheckResult::Ok {
-                // routine health check
-                nominal_interval
+                if !first_successful_health_check {
+                    // If this was the first successful check, splay future health check runs across
+                    // the nominal interval
+                    let splay = rand::thread_rng().gen_range(0, u64::from(nominal_interval));
+                    let splay = Duration::from_secs(splay);
+                    debug!("Adding {}s of splay for {} health-checks",
+                           splay.as_secs(),
+                           service_group);
+                    first_successful_health_check = true;
+                    splay.into()
+                } else {
+                    // routine health check
+                    nominal_interval
+                }
             } else {
                 // TODO (DM): Implment exponential backoff
                 // https://github.com/habitat-sh/habitat/issues/7265
