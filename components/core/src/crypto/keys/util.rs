@@ -80,3 +80,19 @@ macro_rules! from_str_impl_for_key {
         }
     };
 }
+
+macro_rules! secret_permissions {
+    ($t:ty) => {
+        impl crate::crypto::keys::Permissioned for $t {
+            const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS;
+        }
+    };
+}
+
+macro_rules! public_permissions {
+    ($t:ty) => {
+        impl crate::crypto::keys::Permissioned for $t {
+            const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS;
+        }
+    };
+}
