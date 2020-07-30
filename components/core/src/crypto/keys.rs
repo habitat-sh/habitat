@@ -35,6 +35,8 @@ lazy_static::lazy_static! {
         Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\.(?P<suffix>[a-z]+(\.[a-z]+)?)\z").unwrap();
 }
 
+#[macro_use]
+mod util;
 pub mod box_key_pair;
 mod cache;
 pub mod ring_key;
