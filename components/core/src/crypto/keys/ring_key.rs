@@ -1,6 +1,5 @@
 use crate::{crypto::{keys::{KeyPair,
                             KeyRevision,
-                            NamedRevision,
                             Permissioned,
                             ToKeyString},
                      SECRET_SYM_KEY_SUFFIX,
@@ -135,59 +134,7 @@ impl AsRef<Path> for RingKey {
     fn as_ref(&self) -> &Path { &self.path }
 }
 
-impl FromStr for RingKey {
-    type Err = Error;
-
-    fn from_str(content: &str) -> std::result::Result<Self, Self::Err> {
-        let mut lines = content.lines();
-
-        match lines.next() {
-            Some(val) => {
-                if val != SECRET_SYM_KEY_VERSION {
-                    return Err(Error::CryptoError(format!("Unsupported key version: {}", val)));
-                }
-            }
-            None => {
-                let msg = format!("Malformed ring key string:\n({})", content);
-                return Err(Error::CryptoError(msg));
-            }
-        };
-
-        let named_revision = match lines.next() {
-            Some(val) => val.parse::<NamedRevision>()?,
-            None => {
-                let msg = format!("Malformed ring key string:\n({})", content);
-                return Err(Error::CryptoError(msg));
-            }
-        };
-
-        let key = match lines.nth(1) {
-            Some(line) => {
-                let key_bytes = base64::decode(line.trim()).map_err(|_| {
-                                    Error::CryptoError(format!("Malformed ring key string \
-                                                                (invalid base64 key \
-                                                                material):\n({})",
-                                                               content))
-                                })?;
-                match SymSecretKey::from_slice(&key_bytes) {
-                    Some(sk) => sk,
-                    None => {
-                        return Err(Error::CryptoError(format!("Can't read ring key material \
-                                                               for {}",
-                                                              named_revision)));
-                    }
-                }
-            }
-            None => {
-                let msg = format!("Malformed ring key string:\n({})", content);
-                return Err(Error::CryptoError(msg));
-            }
-        };
-
-        let (name, revision) = named_revision.into();
-        Ok(RingKey::from_raw(name, revision, Some(key)))
-    }
-}
+from_str_impl_for_key!(RingKey, SymSecretKey, SECRET_SYM_KEY_VERSION);
 
 impl ToKeyString for RingKey {
     fn to_key_string(&self) -> Result<String> {
@@ -254,11 +201,11 @@ mod test {
         }
 
         #[test]
-        #[should_panic(expected = "Malformed ring key string")]
+        #[should_panic(expected = "Missing key version")]
         fn fails_to_parse_empty_string() { "".parse::<RingKey>().unwrap(); }
 
         #[test]
-        #[should_panic(expected = "Malformed ring key string")]
+        #[should_panic(expected = "Missing name+revision")]
         fn fails_to_parse_only_header() { "SYM-SEC-1\n".parse::<RingKey>().unwrap(); }
 
         #[test]
