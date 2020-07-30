@@ -2,8 +2,7 @@
 
 use std::{io,
           mem,
-          ptr::{copy,
-                null_mut}};
+          ptr::null_mut};
 
 use widestring::WideCString;
 use winapi::{shared::{minwindef::{BOOL,
@@ -21,8 +20,10 @@ use winapi::{shared::{minwindef::{BOOL,
                       winerror},
              um::{handleapi,
                   processthreadsapi,
+                  securitybaseapi::GetTokenInformation,
                   winbase,
-                  winnt::{ACCESS_MASK,
+                  winnt::{TokenUser,
+                          ACCESS_MASK,
                           ACL,
                           DACL_SECURITY_INFORMATION,
                           LPCWSTR,
@@ -32,6 +33,7 @@ use winapi::{shared::{minwindef::{BOOL,
                           PSECURITY_DESCRIPTOR,
                           PSECURITY_INFORMATION,
                           PSID,
+                          PTOKEN_USER,
                           TOKEN_READ}}};
 
 #[repr(C)]
@@ -140,42 +142,83 @@ pub struct Sid {
 }
 
 impl Sid {
+    fn from_psid(psid: PSID) -> io::Result<Self> {
+        unsafe {
+            let sz = GetLengthSid(psid) as usize;
+            let mut raw = Vec::with_capacity(sz);
+            for p in 0..sz {
+                raw.push(*(psid as *mut u8).add(p));
+            }
+            Ok(Self { raw })
+        }
+    }
+
     pub fn from_current_user() -> io::Result<Self> {
         unsafe {
             let handle = processthreadsapi::GetCurrentProcess();
             let mut token = null_mut();
             cvt(OpenProcessToken(handle, TOKEN_READ, &mut token))?;
-            let sid = Self::from_token(token);
+
+            let mut dw_buffer_size: DWORD = 0;
+            let ret = GetTokenInformation(token, TokenUser, null_mut(), 0, &mut dw_buffer_size);
+            if ret == 0 {
+                match io::Error::last_os_error().raw_os_error().unwrap() as u32 {
+                    winerror::ERROR_INSUFFICIENT_BUFFER => {}
+                    _ => return Err(io::Error::last_os_error()),
+                }
+            }
+
+            let mut buffer = Vec::<u8>::with_capacity(dw_buffer_size as usize);
+            buffer.set_len(dw_buffer_size as usize);
+            let p_token_user: PTOKEN_USER = std::mem::transmute_copy(&buffer);
+
+            cvt(GetTokenInformation(token,
+                                    TokenUser,
+                                    p_token_user as LPVOID,
+                                    dw_buffer_size,
+                                    &mut dw_buffer_size))?;
+
             handleapi::CloseHandle(token);
             handleapi::CloseHandle(handle);
-            Ok(sid?)
+            Self::from_psid((*p_token_user).User.Sid)
         }
     }
 
-    pub fn from_token(token: HANDLE) -> io::Result<Self> {
+    // Returns a logon security identifier (SID) which identifies the logon session
+    // associated with an access token. A typical use of a logon SID is in an ACE that
+    // allows access for the duration of a client's logon session. For example, a
+    // Windows service can use the LogonUser function to start a new logon session.
+    // The LogonUser function returns an access token from which the service can extract
+    // the logon SID. The service can then use the SID in an ACE that allows the client's
+    // logon session to access the interactive window station and desktop.
+    pub fn logon_sid_from_token(token: HANDLE) -> io::Result<Self> {
         unsafe {
             let mut sid: PSID = null_mut();
             cvt(ObtainSid(token, &mut sid))?;
-
-            let sz = GetLengthSid(sid) as usize;
-            let mut buf: Vec<u8> = Vec::with_capacity(sz);
-            copy(sid, buf.as_mut_ptr() as PSID, sz);
-            Ok(Self { raw: buf })
+            Self::from_psid(sid)
         }
     }
 
     #[allow(clippy::should_implement_trait)]
     pub fn from_str(sid: &str) -> io::Result<Self> {
-        let sid = WideCString::from_str(sid).expect("valid SID widestring");
+        let sidstring = WideCString::from_str(sid).expect("valid SID widestring");
         let mut buffer = null_mut();
-        cvt(unsafe { ConvertStringSidToSidW(sid.as_ptr(), &mut buffer) })?;
-        let length = unsafe { GetLengthSid(buffer) } as usize;
-        let mut raw = Vec::with_capacity(length);
-        for p in 0..length {
-            raw.push(unsafe { *(buffer as *mut u8).add(p) });
-        }
+        cvt(unsafe { ConvertStringSidToSidW(sidstring.as_ptr(), &mut buffer) })?;
+        let sid = Self::from_psid(buffer);
         unsafe { winbase::LocalFree(buffer as HLOCAL) };
-        Ok(Self { raw })
+        sid
+    }
+
+    pub fn built_in_administrators() -> io::Result<Self> {
+        // Use the SID string constant for the built in administrators
+        // https://docs.microsoft.com/en-us/windows/win32/secauthz/sid-strings
+        Self::from_str("BA")
+    }
+
+    pub fn local_system() -> io::Result<Self> {
+        // Use the SID string constant for the local system
+        // https://docs.microsoft.com/en-us/windows/win32/secauthz/sid-strings
+        Self::from_str("SY")
     }
 
     pub fn to_string(&self) -> io::Result<String> {
@@ -329,15 +372,53 @@ fn cvt(i: i32) -> io::Result<i32> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{super::account::Account,
+                *};
+    use std::env;
 
     #[test]
-    fn current_user_sid() { assert!(Sid::from_current_user().is_ok()) }
+    fn current_user_sid() {
+        let current_sid = Sid::from_current_user();
+        assert!(current_sid.is_ok());
+        assert_eq!(env::var("USERNAME").unwrap(),
+                   Account::from_sid(&current_sid.expect("current_sid")
+                                                 .to_string()
+                                                 .expect("sid to_string")).expect("account from \
+                                                                                   sid")
+                                                                          .name);
+    }
+
+    #[test]
+    fn logon_sid_from_token() {
+        let logon_sid = unsafe {
+            let handle = processthreadsapi::GetCurrentProcess();
+            let mut token = null_mut();
+            cvt(OpenProcessToken(handle, TOKEN_READ, &mut token)).expect("OpenProcessToken");
+
+            Sid::logon_sid_from_token(token)
+        };
+        assert!(logon_sid.expect("logon_sid_from_token").to_string().is_ok());
+    }
 
     #[test]
     fn system_sid_identity() {
         let sid_str = "S-1-5-18";
         let s = Sid::from_str(sid_str).expect("valid sid");
         assert_eq!(s.to_string().expect("sid to string"), sid_str);
+    }
+
+    #[test]
+    fn test_built_in_accounts() {
+        // Check the built in administrators account
+        let admin_sid = Sid::built_in_administrators().expect("built_in_administrators");
+        let admin_acct = Account::from_name("Administrators").expect("Administrators account");
+        assert_eq!(admin_sid.to_string().expect("sid to string"),
+                   admin_acct.sid.to_string().expect("acct sid to string"));
+
+        // Check the system account
+        let system_sid = Sid::local_system().expect("local system sid");
+        let system_acct = Account::from_name("SYSTEM").expect("SYSTEM account");
+        assert_eq!(system_sid.to_string().expect("sid to string"),
+                   system_acct.sid.to_string().expect("system sid to string"));
     }
 }

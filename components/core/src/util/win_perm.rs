@@ -1,6 +1,6 @@
 use crate::error::{Error,
                    Result};
-use habitat_win_users::account::Account;
+use habitat_win_users::sid::Sid;
 use std::path::Path;
 use widestring::WideCString;
 use winapi::{shared::{minwindef::DWORD,
@@ -13,11 +13,10 @@ use winapi::{shared::{minwindef::DWORD,
                           PACL,
                           PROTECTED_DACL_SECURITY_INFORMATION,
                           PSID}}};
-use windows_acl::{acl::ACL,
-                  helper};
+use windows_acl::acl::ACL;
 
 pub struct PermissionEntry {
-    pub account:     Account,
+    pub sid:         Sid,
     pub access_mask: DWORD,
 }
 
@@ -55,13 +54,11 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, entries: &[PermissionEntry]) -> 
     };
 
     for entry in entries {
-        if let Err(e) = acl.allow(entry.account.sid.raw.as_ptr() as PSID,
-                                  true,
-                                  entry.access_mask)
-        {
+        if let Err(e) = acl.allow(entry.sid.raw.as_ptr() as PSID, true, entry.access_mask) {
             return Err(Error::PermissionFailed(format!("OS error {} setting \
                                                         permissions for {}",
-                                                       e, entry.account.name)));
+                                                       e,
+                                                       entry.sid.to_string()?)));
         }
     }
     Ok(())
@@ -73,23 +70,12 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, entries: &[PermissionEntry]) -> 
 /// user. In nearly all Supervisor scenarios where we need to adjust permissions,
 /// this is the desired ACL state.
 pub fn harden_path<T: AsRef<Path>>(path: T) -> Result<()> {
-    let current_user = match helper::current_user() {
-        Some(u) => u,
-        None => {
-            return Err(Error::CryptoError(format!("Unable to find current user \
-                                                   setting permissions for {}",
-                                                  path.as_ref().display())));
-        }
-    };
-
-    let entries = vec![PermissionEntry { account:
-                                   Account::from_name(&current_user).expect("current user account \
-                                                                             to exist"),
-                               access_mask: FILE_ALL_ACCESS, },
-             PermissionEntry { account:     Account::built_in_administrators(),
-                               access_mask: FILE_ALL_ACCESS, },
-             PermissionEntry { account:     Account::local_system(),
-                               access_mask: FILE_ALL_ACCESS, },];
+    let entries = vec![PermissionEntry { sid:         Sid::from_current_user()?,
+                                         access_mask: FILE_ALL_ACCESS, },
+                       PermissionEntry { sid:         Sid::built_in_administrators()?,
+                                         access_mask: FILE_ALL_ACCESS, },
+                       PermissionEntry { sid:         Sid::local_system()?,
+                                         access_mask: FILE_ALL_ACCESS, },];
     set_permissions(path.as_ref(), &entries)
 }
 
@@ -104,7 +90,7 @@ mod tests {
     use winapi::um::winnt::FILE_ALL_ACCESS;
     use windows_acl::helper;
 
-    use habitat_win_users::account;
+    use habitat_win_users::sid;
 
     use super::*;
     use crate::error::Error;
@@ -118,9 +104,7 @@ mod tests {
         let mut tmp_file = File::create(&file_path).expect("create temp file");
         writeln!(tmp_file, "foobar123").expect("write temp file");
 
-        let current_user = helper::current_user().expect("find current user");
-        let entries = vec![PermissionEntry { account:
-                                                 account::Account::from_name(&current_user).unwrap(),
+        let entries = vec![PermissionEntry { sid:         sid::Sid::from_current_user().unwrap(),
                                              access_mask: FILE_ALL_ACCESS, }];
 
         assert!(set_permissions(&file_path, &entries).is_ok());
@@ -133,7 +117,7 @@ mod tests {
         assert_eq!(entry.mask, entries[0].access_mask);
         assert_eq!(
             helper::sid_to_string(entry.sid.unwrap().as_ptr() as PSID).expect("name from sid"),
-            entries[0].account.sid.to_string().expect("sid to string")
+            entries[0].sid.to_string().expect("sid to string")
         );
 
         drop(tmp_file);
@@ -144,9 +128,7 @@ mod tests {
     fn set_permissions_fail_test() {
         let badpath = Path::new("this_file_should_never_exist_deadbeef");
 
-        let current_user = helper::current_user().expect("find current user");
-        let entries = vec![PermissionEntry { account:
-                                                 account::Account::from_name(&current_user).unwrap(),
+        let entries = vec![PermissionEntry { sid:         sid::Sid::from_current_user().unwrap(),
                                              access_mask: FILE_ALL_ACCESS, }];
 
         match set_permissions(badpath, &entries) {
