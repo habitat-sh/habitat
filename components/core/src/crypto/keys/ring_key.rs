@@ -1,12 +1,10 @@
 use crate::{crypto::{keys::{KeyPair,
                             KeyRevision,
-                            Permissioned,
                             ToKeyString},
                      SECRET_SYM_KEY_SUFFIX,
                      SECRET_SYM_KEY_VERSION},
             error::{Error,
-                    Result},
-            fs::Permissions};
+                    Result}};
 use sodiumoxide::crypto::secretbox::{self,
                                      Key as SymSecretKey};
 use std::{convert::TryFrom,
@@ -20,6 +18,9 @@ pub struct RingKey {
     inner: KeyPair<(), SymSecretKey>,
     path:  PathBuf,
 }
+
+// Ring keys are always private and deserved to be locked-down as such.
+secret_permissions!(RingKey);
 
 // TODO (CM): Incorporate the name/revision of the key?
 impl fmt::Debug for RingKey {
@@ -157,11 +158,6 @@ impl TryFrom<PathBuf> for RingKey {
     type Error = Error;
 
     fn try_from(path: PathBuf) -> Result<RingKey> { std::fs::read_to_string(path)?.parse() }
-}
-
-impl Permissioned for RingKey {
-    /// Ring keys are always private and deserved to be locked-down as such.
-    const PERMISSIONS: Permissions = crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS;
 }
 
 #[cfg(test)]
