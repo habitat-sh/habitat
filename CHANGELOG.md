@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.103 -->
-## [1.6.103](https://github.com/habitat-sh/habitat/tree/1.6.103) (2020-07-24)
+<!-- latest_release 1.6.104 -->
+## [1.6.104](https://github.com/habitat-sh/habitat/tree/1.6.104) (2020-07-30)
 
 #### Merged Pull Requests
-- [CI] Fixed some stupid bugs in the supplemental groups test [#7839](https://github.com/habitat-sh/habitat/pull/7839) ([christophermaier](https://github.com/christophermaier))
+- refactor account/sid/win_perms to not need to contact a domian controller [#7844](https://github.com/habitat-sh/habitat/pull/7844) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -25,6 +25,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- refactor account/sid/win_perms to not need to contact a domian controller [#7844](https://github.com/habitat-sh/habitat/pull/7844) ([mwrock](https://github.com/mwrock)) <!-- 1.6.104 -->
 - [CI] Fixed some stupid bugs in the supplemental groups test [#7839](https://github.com/habitat-sh/habitat/pull/7839) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.103 -->
 - [CI] Update changelog management labels in Expeditor config [#7837](https://github.com/habitat-sh/habitat/pull/7837) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.102 -->
 -  [CI] Binlink `hab` earlier in the path for e2e tests [#7835](https://github.com/habitat-sh/habitat/pull/7835) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.101 -->
