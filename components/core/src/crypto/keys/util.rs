@@ -96,3 +96,17 @@ macro_rules! public_permissions {
         }
     };
 }
+
+/// Helper macro to implement conversion logic to generate an instance
+/// of a key from a file.
+macro_rules! try_from_path_buf_impl_for_key {
+    ($t:ty) => {
+        impl std::convert::TryFrom<std::path::PathBuf> for $t {
+            type Error = Error;
+
+            fn try_from(path: std::path::PathBuf) -> Result<$t> {
+                std::fs::read_to_string(path)?.parse()
+            }
+        }
+    };
+}

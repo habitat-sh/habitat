@@ -7,8 +7,7 @@ use crate::{crypto::{keys::{KeyPair,
                     Result}};
 use sodiumoxide::crypto::secretbox::{self,
                                      Key as SymSecretKey};
-use std::{convert::TryFrom,
-          fmt,
+use std::{fmt,
           path::{Path,
                  PathBuf},
           str::FromStr};
@@ -154,11 +153,7 @@ impl ToKeyString for RingKey {
     }
 }
 
-impl TryFrom<PathBuf> for RingKey {
-    type Error = Error;
-
-    fn try_from(path: PathBuf) -> Result<RingKey> { std::fs::read_to_string(path)?.parse() }
-}
+try_from_path_buf_impl_for_key!(RingKey);
 
 #[cfg(test)]
 mod test {
