@@ -1,18 +1,12 @@
-use super::{get_key_revisions,
-            mk_key_filename,
-            parse_name_with_rev,
-            ring_key::RingKey,
-            HabitatKey,
-            KeyType,
-            SECRET_SYM_KEY_SUFFIX};
+use super::ring_key::RingKey;
 use crate::{crypto::{hash,
                      keys::{Permissioned,
-                            ToKeyString}},
+                            ToKeyString},
+                     SECRET_SYM_KEY_SUFFIX},
             error::{Error,
                     Result},
             fs::AtomicWriter};
-use sodiumoxide::crypto::secretbox::Key as SymSecretKey;
-use std::{convert::TryFrom,
+use std::{convert::TryInto,
           io::Write,
           path::{Path,
                  PathBuf}};
@@ -38,20 +32,18 @@ impl KeyCache {
 
     /// Note: name is just the name, not the name + revision
     pub fn latest_ring_key_revision(&self, name: &str) -> Result<RingKey> {
-        let mut all = self.get_pairs_for(name)?;
-        match all.len() {
-            0 => {
-                let msg = format!("No revisions found for {} sym key", name);
+        match self.get_latest_path_for(name, SECRET_SYM_KEY_SUFFIX)? {
+            Some(path) => path.try_into(),
+            None => {
+                let msg = format!("No revisions found for {} ring key", name);
                 Err(Error::CryptoError(msg))
             }
-            _ => Ok(all.remove(0)),
         }
     }
 
     /// Provides the path at which this file would be found in the
-    /// cache, if it exists.
-    ///
-    /// No existence claim is implied by this method!
+    /// cache, if it exists (or, alternatively, where it would be
+    /// written to).
     fn path_in_cache<K>(&self, key: K) -> PathBuf
         where K: AsRef<Path>
     {
@@ -91,52 +83,31 @@ impl KeyCache {
         }
         Ok(())
     }
-}
 
-// for RingKey implementations
-impl KeyCache {
-    // TODO (CM): Really, we just need to find all the files that
-    // pertain to this named key, sort them by revision, and then read
-    // the last one into a RingKey.
+    /// Search the key cache for all files that are revisions of the
+    /// given key. Returns the full paths to those files within the
+    /// cache.
+    fn get_all_paths_for(&self,
+                         name: &str,
+                         key_extension: &str)
+                         -> Result<impl Iterator<Item = PathBuf>> {
+        // Ideally, we'd want that `*` to be `\d{14}` to match the
+        // structure of our revisions... perhaps that can be an
+        // additional filter later on with an actual regex?
+        let pattern = self.0.join(format!("{}-*.{}", name, key_extension));
+        let pattern = pattern.to_string_lossy();
 
-    fn get_pairs_for(&self, name: &str) -> Result<Vec<RingKey>> {
-        let revisions = get_key_revisions(name, &self.0, None, KeyType::Sym)?;
-        let mut key_pairs = Vec::new();
-        for name_with_rev in &revisions {
-            debug!("Attempting to read key name_with_rev {} for {}",
-                   name_with_rev, name);
-            let kp = self.get_pair_for(name_with_rev)?;
-            key_pairs.push(kp);
-        }
-        Ok(key_pairs)
+        // TODO (CM): this is a bogus error
+        Ok(glob::glob(&pattern).map_err(|_e| Error::CryptoError("Couldn't glob!".to_string()))?
+                               .filter_map(std::result::Result::ok)
+                               .filter(|p| p.metadata().map(|m| m.is_file()).unwrap_or(false)))
     }
 
-    fn get_pair_for(&self, name_with_rev: &str) -> Result<RingKey> {
-        let (name, rev) = parse_name_with_rev(&name_with_rev)?;
-
-        // reading the secret key here is really about parsing the base64 bytes into an actual key.
-        // That truly should be part of the "from string"
-        let sk = match Self::get_secret_key(name_with_rev, &self.0) {
-            Ok(k) => Some(k),
-            Err(e) => {
-                let msg = format!("No secret keys found for name_with_rev {}: {}",
-                                  name_with_rev, e);
-                return Err(Error::CryptoError(msg));
-            }
-        };
-        Ok(RingKey::from_raw(name, rev, sk))
-    }
-
-    fn get_secret_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SymSecretKey> {
-        let secret_keyfile = mk_key_filename(cache_key_path, key_with_rev, SECRET_SYM_KEY_SUFFIX);
-        match SymSecretKey::from_slice(HabitatKey::try_from(&secret_keyfile)?.as_ref()) {
-            Some(sk) => Ok(sk),
-            None => {
-                Err(Error::CryptoError(format!("Can't read sym secret key \
-                                                for {}",
-                                               key_with_rev)))
-            }
-        }
+    /// Given a key name and extension, find the path that corresponds
+    /// to the most recent revision of that key in the cache, if it
+    /// exists.
+    fn get_latest_path_for(&self, name: &str, key_extension: &str) -> Result<Option<PathBuf>> {
+        Ok(self.get_all_paths_for(name, key_extension)?.max())
     }
 }
 
@@ -149,27 +120,31 @@ mod test {
     static VALID_NAME_WITH_REV: &str = "ring-key-valid-20160504220722";
 
     #[test]
-    fn get_pairs_for() {
+    fn get_all_paths_for() {
         let (cache, _dir) = new_cache();
 
-        let pairs = cache.get_pairs_for("beyonce").unwrap();
-        assert_eq!(pairs.len(), 0);
+        let paths = cache.get_all_paths_for("beyonce", SECRET_SYM_KEY_SUFFIX)
+                         .unwrap();
+        assert_eq!(paths.count(), 0);
 
         cache.write_ring_key(&RingKey::new("beyonce")).unwrap();
-        let pairs = cache.get_pairs_for("beyonce").unwrap();
-        assert_eq!(pairs.len(), 1);
+        let paths = cache.get_all_paths_for("beyonce", SECRET_SYM_KEY_SUFFIX)
+                         .unwrap();
+        assert_eq!(paths.count(), 1);
 
         wait_1_sec(); // ensure new revision
                       // will be different.
         cache.write_ring_key(&RingKey::new("beyonce")).unwrap();
 
-        let pairs = cache.get_pairs_for("beyonce").unwrap();
-        assert_eq!(pairs.len(), 2);
+        let paths = cache.get_all_paths_for("beyonce", SECRET_SYM_KEY_SUFFIX)
+                         .unwrap();
+        assert_eq!(paths.count(), 2);
 
         // We should not include another named key in the count
         cache.write_ring_key(&RingKey::new("jayz")).unwrap();
-        let pairs = cache.get_pairs_for("beyonce").unwrap();
-        assert_eq!(pairs.len(), 2);
+        let paths = cache.get_all_paths_for("beyonce", SECRET_SYM_KEY_SUFFIX)
+                         .unwrap();
+        assert_eq!(paths.count(), 2);
     }
 
     #[test]
@@ -209,33 +184,6 @@ mod test {
     fn latest_cached_revision_nonexistent() {
         let (cache, _dir) = new_cache();
         cache.latest_ring_key_revision("nope-nope").unwrap();
-    }
-
-    #[test]
-    fn get_pair_for() {
-        let (cache, _dir) = new_cache();
-        let k1 = RingKey::new("beyonce");
-        cache.write_ring_key(&k1).unwrap();
-
-        wait_1_sec();
-
-        let k2 = RingKey::new("beyonce");
-        cache.write_ring_key(&k2).unwrap();
-
-        let k1_fetched = cache.get_pair_for(&k1.name_with_rev()).unwrap();
-        assert_eq!(k1.name(), k1_fetched.name());
-        assert_eq!(k1.revision(), k1_fetched.revision());
-
-        let k2_fetched = cache.get_pair_for(&k2.name_with_rev()).unwrap();
-        assert_eq!(k2.name(), k2_fetched.name());
-        assert_eq!(k2.revision(), k2_fetched.revision());
-    }
-
-    #[test]
-    #[should_panic(expected = "No secret keys found for name_with_rev")]
-    fn get_pair_for_nonexistent() {
-        let (cache, _dir) = new_cache();
-        cache.get_pair_for("nope-nope-20160405144901").unwrap();
     }
 
     #[test]
