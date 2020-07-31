@@ -196,9 +196,10 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
                     // the nominal interval
                     let splay = rand::thread_rng().gen_range(0, u64::from(nominal_interval));
                     let splay = Duration::from_secs(splay);
-                    debug!("Adding {}s of splay for {} health-checks",
-                           splay.as_secs(),
-                           service_group);
+                    debug!("Following `{}`'s first `ok` health-check, delaying a randomly chosen \
+                            {}s to introduce health-check splay",
+                           service_group,
+                           splay.as_secs());
                     first_successful_health_check = true;
                     splay.into()
                 } else {
