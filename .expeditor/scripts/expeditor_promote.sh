@@ -25,6 +25,7 @@ export HAB_BLDR_URL="${expeditor_hab_bldr_url}"
 
 ########################################################################
 # CORE LOGIC
+import_gpg_keys
 get_manifest_for_environment "${source_environment}"
 promote_packages_to_builder_channel manifest.json "${destination_channel}"
 
