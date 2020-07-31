@@ -59,10 +59,10 @@ readonly chef_gpg_key="2940ABA983EF826A"
 # Imports Chef's packages@chef.io GPG keys. This must be called before
 # running either `gpg_sign` or `gpg_verify`.
 import_gpg_keys() {
-    aws s3 cp \
-        s3://chef-cd-citadel/packages_at_chef.io.pgp \
-        packages_at_chef.io.pgp \
-        --profile=chef-cd
+    vault kv get \
+          -field packages_at_chef_io \
+          account/static/packages/signing_certs \
+          > packages_at_chef.io.pgp
     gpg --import packages_at_chef.io.pgp
 }
 
