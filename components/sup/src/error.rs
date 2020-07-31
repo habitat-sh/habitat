@@ -40,6 +40,7 @@ pub enum Error {
     CtlSecretIo(PathBuf, io::Error),
     APIClient(habitat_api_client::Error),
     EnvJoinPathsError(env::JoinPathsError),
+    EnvVarError(env::VarError),
     ExecCommandNotFound(String),
     EventError(event::Error),
     FileNotFound(String),
@@ -163,6 +164,7 @@ impl fmt::Display for Error {
             Error::HabitatCommon(ref err) => err.to_string(),
             Error::HabitatCore(ref err) => err.to_string(),
             Error::EnvJoinPathsError(ref err) => err.to_string(),
+            Error::EnvVarError(ref err) => err.to_string(),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::FileWatcherFileIsRoot => "Watched file is root".to_string(),
             Error::GroupNotFound(ref e) => format!("No GID for group '{}' could be found", e),
@@ -382,4 +384,8 @@ impl From<oneshot::Canceled> for Error {
 
 impl From<event::Error> for Error {
     fn from(err: event::Error) -> Error { Error::EventError(err) }
+}
+
+impl From<env::VarError> for Error {
+    fn from(err: env::VarError) -> Error { Error::EnvVarError(err) }
 }

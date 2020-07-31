@@ -2,11 +2,13 @@ mod pid;
 mod restart;
 mod spawn;
 mod terminate;
+mod version;
 
 pub use self::{pid::*,
                restart::*,
                spawn::*,
-               terminate::*};
+               terminate::*,
+               version::*};
 
 use crate::protocol;
 

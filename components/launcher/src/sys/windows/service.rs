@@ -3,12 +3,14 @@ use crate::{error::{Error,
             protocol::{self,
                        ShutdownMethod},
             service::Service};
-use core::{os::process::{handle_from_pid,
-                         windows_child::{Child,
-                                         ExitStatus,
-                                         Handle}},
+use core::{os::{process::{handle_from_pid,
+                          windows_child::{Child,
+                                          ExitStatus,
+                                          Handle}},
+                users::get_current_username},
            util};
 use std::{collections::HashMap,
+          env,
           io,
           iter::FromIterator,
           mem,
@@ -140,7 +142,27 @@ fn spawn_pwsh(ps_binary_name: &str, msg: protocol::Spawn) -> Result<Service> {
     let password = msg.svc_password.clone();
 
     let user = match msg.svc_user.as_ref() {
-        Some(u) => u.to_string(),
+        Some(u) => {
+            // In the case where we are spawning on behalf of an older Supervisor
+            // we will need to revert to older 'get_current_username' behavior. When
+            // running as the Local System account, the former behavior would return
+            // the host name followed by a dollar sign. The new behavior returns
+            // 'system'. Both the supervisor and the launcher behavior must match.
+            // Otherwise if we are running under system, we will interpret the user
+            // to spawn as different from ourselves and thus attempt to logon as ourselves
+            // which will fail since you cannot simply logon as system. One day we can
+            // remove this when we are confident everyone is on a recent supervisor
+            // and launcher.
+            let mut username = u.to_string();
+            if get_current_username() == Some("system".to_string()) {
+                if let Ok(cn) = env::var("COMPUTERNAME") {
+                    if u == &(cn.to_lowercase() + "$") {
+                        username = "system".to_string();
+                    }
+                }
+            }
+            username
+        }
         None => {
             return Err(Error::UserNotFound(String::from("")));
         }

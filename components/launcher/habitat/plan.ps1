@@ -50,3 +50,7 @@ function Invoke-Install {
     Copy-Item "$env:CARGO_TARGET_DIR/release/hab-launch.exe" "$pkg_prefix/bin/hab-launch.exe"
     Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2015")/bin/*" "$pkg_prefix/bin"
 }
+
+function Invoke-Clean {
+    if(!$env:HAB_SKIP_CLEAN) { Invoke-DefaultClean }
+}

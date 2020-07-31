@@ -237,6 +237,18 @@ impl LauncherCli {
         }
     }
 
+    /// Query the launcher for its version. If the
+    /// Launcher is aware of it, you'll get `Ok(u32)`
+    pub fn version(&self) -> Result<u32> {
+        let msg = protocol::Version {};
+        Self::send(&self.tx, &msg)?;
+
+        // We only expect to not receive a response when dealing with
+        // older Launchers that didn't know how to return its version.
+        let reply = Self::recv_timeout::<protocol::VersionNumber>(&self.rx, self.timeout)?;
+        Ok(reply.version)
+    }
+
     pub fn terminate(&self, pid: Pid) -> Result<i32> {
         let msg = protocol::Terminate { pid: pid.into() };
         Self::send(&self.tx, &msg)?;

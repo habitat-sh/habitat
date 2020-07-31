@@ -48,8 +48,6 @@ pub fn get_home_for_user(username: &str) -> Option<PathBuf> {
     ok_warn!(User::from_name(username)).flatten().map(|u| u.dir)
 }
 
-pub fn root_level_account() -> String { "root".to_string() }
-
 /// This function checks to see if a user and group and if:
 ///     a) we are root
 ///     b) we are the specified user:group
@@ -82,7 +80,7 @@ pub fn assert_pkg_user_and_group(user: &str, group: &str) -> Result<()> {
     let current_user = current_user.unwrap();
     let current_group = current_group.unwrap();
 
-    if current_user == root_level_account() || (current_user == user && current_group == group) {
+    if current_user == "root" || (current_user == user && current_group == group) {
         Ok(())
     } else {
         let msg = format!("Package must run as {}:{} or root", user, &group);

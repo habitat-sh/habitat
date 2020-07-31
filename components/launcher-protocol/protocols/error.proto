@@ -13,6 +13,7 @@ enum ErrCode {
   // Supervisor was trying to communicate with an older Launcher that
   // didn't understand a newer message, for instance.
   UnknownMessage = 5;
+  InvalidVersionNumber = 6;
 }
 
 message NetErr {
