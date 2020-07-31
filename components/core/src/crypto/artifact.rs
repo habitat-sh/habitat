@@ -1,10 +1,10 @@
 use super::{hash,
-            keys::parse_name_with_rev,
             SigKeyPair,
             HART_FORMAT_VERSION,
             SIG_HASH_TYPE};
-use crate::error::{Error,
-                   Result};
+use crate::{crypto::keys::NamedRevision,
+            error::{Error,
+                    Result}};
 use sodiumoxide::crypto::sign;
 use std::{fs::File,
           io::{self,
@@ -36,30 +36,10 @@ pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, pair: &SigKeyPair) -> Re
 }
 
 /// return a BufReader to the .tar bytestream, skipping the signed header
-pub fn get_archive_reader<P: AsRef<Path>>(src: P) -> Result<BufReader<File>> {
-    let f = File::open(src)?;
-    let mut your_format_version = String::new();
-    let mut your_key_name = String::new();
-    let mut your_hash_type = String::new();
-    let mut your_signature_raw = String::new();
-    let mut empty_line = String::new();
-
-    let mut reader = BufReader::new(f);
-    if reader.read_line(&mut your_format_version)? == 0 {
-        return Err(Error::CryptoError("Can't read format version".to_string()));
-    }
-    if reader.read_line(&mut your_key_name)? == 0 {
-        return Err(Error::CryptoError("Can't read keyname".to_string()));
-    }
-    if reader.read_line(&mut your_hash_type)? == 0 {
-        return Err(Error::CryptoError("Can't read hash type".to_string()));
-    }
-    if reader.read_line(&mut your_signature_raw)? == 0 {
-        return Err(Error::CryptoError("Can't read signature".to_string()));
-    }
-    if reader.read_line(&mut empty_line)? == 0 {
-        return Err(Error::CryptoError("Can't end of header".to_string()));
-    }
+pub fn get_archive_reader<P>(src: P) -> Result<BufReader<File>>
+    where P: AsRef<Path>
+{
+    let (_header, reader) = artifact_header_and_archive(src)?;
     Ok(reader)
 }
 
@@ -86,122 +66,131 @@ impl ArtifactHeader {
 /// Read only the header of the artifact, fails if any of the components
 /// are invalid/missing. Each component of the header has it's whitespace
 /// stripped before returning in an `ArtifactHeader` struct
-pub fn get_artifact_header<P: ?Sized>(src: &P) -> Result<ArtifactHeader>
+pub fn get_artifact_header<P>(src: P) -> Result<ArtifactHeader>
     where P: AsRef<Path>
 {
-    let f = File::open(src)?;
-    let mut your_format_version = String::new();
-    let mut your_key_name = String::new();
-    let mut your_hash_type = String::new();
-    let mut your_signature_raw = String::new();
-    let mut empty_line = String::new();
-
-    let mut reader = BufReader::new(f);
-    if reader.read_line(&mut your_format_version)? == 0 {
-        return Err(Error::CryptoError("Can't read format version".to_string()));
-    }
-    if reader.read_line(&mut your_key_name)? == 0 {
-        return Err(Error::CryptoError("Can't read keyname".to_string()));
-    }
-    if reader.read_line(&mut your_hash_type)? == 0 {
-        return Err(Error::CryptoError("Can't read hash type".to_string()));
-    }
-    if reader.read_line(&mut your_signature_raw)? == 0 {
-        return Err(Error::CryptoError("Can't read signature".to_string()));
-    }
-    if reader.read_line(&mut empty_line)? == 0 {
-        return Err(Error::CryptoError("Can't end of header".to_string()));
-    }
-    let your_format_version = your_format_version.trim().to_string();
-    let your_key_name = your_key_name.trim().to_string();
-    let your_hash_type = your_hash_type.trim().to_string();
-    let your_signature_raw = your_signature_raw.trim().to_string();
-
-    Ok(ArtifactHeader::new(your_format_version,
-                           your_key_name,
-                           your_hash_type,
-                           your_signature_raw))
+    let (artifact, _reader) = artifact_header_and_archive(src)?;
+    Ok(artifact.into())
 }
 
-/// verify the crypto signature of a .hart file
+struct ArtifactHeaderBetter {
+    format:    String,
+    signer:    NamedRevision,
+    hash_type: String,
+    signature: Vec<u8>,
+}
+
+// TODO (CM): Ideally, ArtifactHeaderBetter would *be*
+// ArtifactHeader, but for now, this helps bridge the gap.
+impl Into<ArtifactHeader> for ArtifactHeaderBetter {
+    fn into(self) -> ArtifactHeader {
+        ArtifactHeader::new(self.format,
+                            self.signer.to_string(),
+                            self.hash_type,
+                            base64::encode(self.signature))
+    }
+}
+
+fn artifact_header_and_archive<P>(path: P) -> Result<(ArtifactHeaderBetter, BufReader<File>)>
+    where P: AsRef<Path>
+{
+    let f = File::open(path)?;
+    let mut reader = BufReader::new(f);
+
+    // First line is HART format line.
+    let mut line = String::new();
+    let format = if reader.read_line(&mut line)? == 0 {
+        Err(Error::CryptoError("Corrupt payload, can't read format \
+                                version"
+                                        .to_string()))
+    } else {
+        let line = line.trim();
+        if line != HART_FORMAT_VERSION {
+            Err(Error::CryptoError(format!("Unsupported format version: \
+                                            {}",
+                                           line)))
+        } else {
+            Ok(line.to_string())
+        }
+    }?;
+
+    // Second line is the revision of the signing key used.
+    let mut line = String::new();
+    let named_revision = if reader.read_line(&mut line)? == 0 {
+        Err(Error::CryptoError("Corrupt payload, can't read origin \
+                                key name"
+                                         .to_string()))
+    } else {
+        let line = line.trim();
+        line.parse::<NamedRevision>()
+    }?;
+
+    // Third line is the hash type of the signature.
+    let mut line = String::new();
+    let hash_type = if reader.read_line(&mut line)? == 0 {
+        Err(Error::CryptoError("Corrupt payload, can't read hash type".to_string()))
+    } else {
+        let line = line.trim();
+        if line != SIG_HASH_TYPE {
+            Err(Error::CryptoError(format!("Unsupported signature type: \
+                                            {}",
+                                           line)))
+        } else {
+            Ok(line.to_string())
+        }
+    }?;
+
+    // Fourth line is the base64-encoded signature.
+    let mut line = String::new();
+    let signature = if reader.read_line(&mut line)? == 0 {
+        Err(Error::CryptoError("Corrupt payload, can't read signature".to_string()))
+    } else {
+        let line = line.trim();
+        base64::decode(line).map_err(|e| {
+                                Error::CryptoError(format!("Can't decode signature: {}", e))
+                            })
+    }?;
+
+    // Fifth line should be an empty delimiter line.
+    let mut line = String::new();
+    if reader.read_line(&mut line)? == 0 {
+        Err(Error::CryptoError("Corrupt payload, can't find end of \
+                                header"
+                                       .to_string()))
+    } else {
+        let line = line.trim();
+        if !line.is_empty() {
+            Err(Error::CryptoError(format!("Expected empty delimiter \
+                                            line in header; got '{}'",
+                                           line)))
+        } else {
+            Ok(())
+        }
+    }?;
+
+    // The rest of the file will be the compressed tarball of the
+    // archive. We'll return the reader as a pointer to that segment
+    // of the file for further processing (either signature
+    // verification or decompression).
+    let header = ArtifactHeaderBetter { format,
+                                        signer: named_revision,
+                                        hash_type,
+                                        signature };
+
+    Ok((header, reader))
+}
+
 pub fn verify<P1: ?Sized, P2: ?Sized>(src: &P1, cache_key_path: &P2) -> Result<(String, String)>
     where P1: AsRef<Path>,
           P2: AsRef<Path>
 {
-    let f = File::open(src)?;
-    let mut reader = BufReader::new(f);
+    let (header, mut reader) = artifact_header_and_archive(src)?;
 
-    let _ = {
-        let mut buffer = String::new();
-        match reader.read_line(&mut buffer) {
-            Ok(0) => {
-                return Err(Error::CryptoError("Corrupt payload, can't read format \
-                                               version"
-                                                       .to_string()));
-            }
-            Ok(_) => {
-                if buffer.trim() != HART_FORMAT_VERSION {
-                    let msg = format!("Unsupported format version: {}", &buffer.trim());
-                    return Err(Error::CryptoError(msg));
-                }
-            }
-            Err(e) => return Err(Error::from(e)),
-        };
-        buffer.trim().to_string()
-    };
-    let pair = {
-        let mut buffer = String::new();
-        if reader.read_line(&mut buffer)? == 0 {
-            return Err(Error::CryptoError("Corrupt payload, can't read origin \
-                                           key name"
-                                                    .to_string()));
-        }
-        SigKeyPair::get_pair_for(buffer.trim(), cache_key_path)?
-    };
-    {
-        let mut buffer = String::new();
-        match reader.read_line(&mut buffer) {
-            Ok(0) => {
-                return Err(Error::CryptoError(
-                    "Corrupt payload, can't read hash type".to_string(),
-                ));
-            }
-            Ok(_) => {
-                if buffer.trim() != SIG_HASH_TYPE {
-                    let msg = format!("Unsupported signature type: {}", &buffer.trim());
-                    return Err(Error::CryptoError(msg));
-                }
-            }
-            Err(e) => return Err(Error::from(e)),
-        };
-    };
-    let signature = {
-        let mut buffer = String::new();
-        match reader.read_line(&mut buffer) {
-            Ok(0) => {
-                return Err(Error::CryptoError(
-                    "Corrupt payload, can't read signature".to_string(),
-                ));
-            }
-            Ok(_) => {
-                base64::decode(buffer.trim()).map_err(|e| {
-                                                 Error::CryptoError(format!("Can't decode \
-                                                                             signature: {}",
-                                                                            e))
-                                             })?
-            }
-            Err(e) => return Err(Error::from(e)),
-        }
-    };
-    {
-        let mut buffer = String::new();
-        if reader.read_line(&mut buffer)? == 0 {
-            return Err(Error::CryptoError("Corrupt payload, can't find end of \
-                                           header"
-                                                  .to_string()));
-        }
-    };
-    let expected_hash = match sign::verify(signature.as_slice(), pair.public()?) {
+    // TODO (CM): We need to be passing the public key into this
+    // function, not the cache path.
+    let pair = SigKeyPair::get_pair_for(&header.signer.to_string(), cache_key_path.as_ref())?;
+
+    let expected_hash = match sign::verify(header.signature.as_slice(), pair.public()?) {
         Ok(signed_data) => String::from_utf8(signed_data).map_err(|_| {
                                Error::CryptoError("Error parsing artifact signature".to_string())
                            })?,
@@ -218,39 +207,14 @@ pub fn verify<P1: ?Sized, P2: ?Sized>(src: &P1, cache_key_path: &P2) -> Result<(
     }
 }
 
-pub fn artifact_signer<P: AsRef<Path>>(src: &P) -> Result<String> {
-    let f = File::open(src)?;
-    let mut reader = BufReader::new(f);
-
-    let _ = {
-        let mut buffer = String::new();
-        match reader.read_line(&mut buffer) {
-            Ok(0) => {
-                return Err(Error::CryptoError("Corrupt payload, can't read format \
-                                               version"
-                                                       .to_string()));
-            }
-            Ok(_) => {
-                if buffer.trim() != HART_FORMAT_VERSION {
-                    let msg = format!("Unsupported format version: {}", &buffer.trim());
-                    return Err(Error::CryptoError(msg));
-                }
-            }
-            Err(e) => return Err(Error::from(e)),
-        };
-        buffer.trim().to_string()
-    };
-    let name_with_rev = {
-        let mut buffer = String::new();
-        if reader.read_line(&mut buffer)? == 0 {
-            return Err(Error::CryptoError("Corrupt payload, can't read origin \
-                                           key name"
-                                                    .to_string()));
-        }
-        parse_name_with_rev(buffer.trim())?;
-        buffer.trim().to_string()
-    };
-    Ok(name_with_rev)
+/// Parse a HART file (referred to by filesystem path) to discover the
+/// signing key revision that was used to sign it.
+pub fn artifact_signer<P>(hart_file_path: P) -> Result<String>
+    where P: AsRef<Path>
+{
+    let (header, _reader) = artifact_header_and_archive(hart_file_path)?;
+    // TODO (CM): Eventually, return NamedRevision
+    Ok(header.signer.to_string())
 }
 
 #[cfg(test)]
@@ -504,5 +468,43 @@ mod test {
         assert_eq!("unicorn", key_name);
         assert_eq!(SIG_HASH_TYPE, hart_header.hash_type);
         assert!(!hart_header.signature_raw.is_empty());
+    }
+
+    mod artifact_header {
+        use super::*;
+
+        #[test]
+        fn get_artifact_header_works() {
+            let hart_path = fixture("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart");
+            let header = get_artifact_header(&hart_path).unwrap();
+
+            assert_eq!(header.format_version, "HART-1");
+            assert_eq!(header.key_name, "happyhumans-20160424223347");
+            assert_eq!(header.hash_type, "BLAKE2b");
+            assert_eq!(header.signature_raw,
+                       "U0cp/+npru0ZxhK76zm+PDVSV/707siyrO1r7T6CZZ4ShSLrIxyx8jLSMr5wnLuGrVIV358smQPWOSTOmyfFCjBmMmM1ZjRkZTE0NWM3Zjc4NjAxY2FhZTljN2I4NzY3MDk4NDEzZDA1NzM5ZGU5MTNjMDEyOTIyYjdlZWQ3NjA=");
+        }
+    }
+
+    mod artifact_signer {
+        use super::*;
+
+        #[test]
+        fn get_named_revision_from_artifact() {
+            let hart_path = fixture("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart");
+            let signer = artifact_signer(&hart_path).unwrap();
+            let expected: NamedRevision = "happyhumans-20160424223347".parse().unwrap();
+            assert_eq!(signer, expected.to_string());
+        }
+
+        #[test]
+        #[should_panic(expected = "Cannot parse named revision")]
+        fn fails_on_invalid_hart() {
+            // Not really a HART file, but has enough of a header to
+            // be parsed by `artifact_signer`. It has an invalid
+            // signing key identifier.
+            let hart_path = fixture("bogus_and_corrupt.hart");
+            artifact_signer(&hart_path).unwrap();
+        }
     }
 }
