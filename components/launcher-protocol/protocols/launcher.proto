@@ -59,3 +59,12 @@ message PidIs {
   // way to evolve that?
   optional uint32 pid = 1;
 }
+
+// Query the Launcher to determine the launcher's version
+message Version {}
+
+// The response that corresponds to `Version` and contains the
+// version number.
+message VersionNumber {
+  optional uint32 version = 1;
+}

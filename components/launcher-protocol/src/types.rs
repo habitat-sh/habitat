@@ -320,3 +320,39 @@ impl From<PidIs> for generated::PidIs {
     // Perhaps we truly do need a NonZero Pid type here
     fn from(value: PidIs) -> Self { generated::PidIs { pid: value.pid } }
 }
+
+#[derive(Clone, Debug)]
+pub struct VersionNumber {
+    pub version: u32,
+}
+
+impl LauncherMessage for VersionNumber {
+    type Generated = generated::VersionNumber;
+
+    const MESSAGE_ID: &'static str = "VersionNumber";
+
+    fn from_proto(proto: generated::VersionNumber) -> Result<Self> {
+        Ok(VersionNumber { version: proto.version.ok_or(Error::ProtocolMismatch("version"))?, })
+    }
+}
+
+impl From<VersionNumber> for generated::VersionNumber {
+    fn from(value: VersionNumber) -> Self {
+        generated::VersionNumber { version: Some(value.version), }
+    }
+}
+
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Version {}
+
+impl LauncherMessage for Version {
+    type Generated = generated::Version;
+
+    const MESSAGE_ID: &'static str = "Version";
+
+    fn from_proto(_proto: generated::Version) -> Result<Self> { Ok(Version {}) }
+}
+
+impl From<Version> for generated::Version {
+    fn from(_value: Version) -> Self { generated::Version {} }
+}

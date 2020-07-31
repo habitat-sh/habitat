@@ -500,6 +500,7 @@ fn dispatch(tx: &Sender, bytes: &[u8], services: &mut ServiceTable) {
         "Spawn" => handlers::SpawnHandler::run,
         "Terminate" => handlers::TerminateHandler::run,
         "PidOf" => handlers::PidHandler::run,
+        "Version" => handlers::VersionHandler::run,
         unknown => {
             // This sucks a bit because it replicates some code from the
             // Handler trait, but manipulating an unknown message

@@ -16,8 +16,7 @@ pub use implementation::{assert_pkg_user_and_group,
                          get_effective_uid,
                          get_gid_by_name,
                          get_home_for_user,
-                         get_uid_by_name,
-                         root_level_account};
+                         get_uid_by_name};
 
 // Unix-specific functions
 #[cfg(unix)]
