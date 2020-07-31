@@ -241,7 +241,12 @@ promote_packages_to_builder_channel() {
         done
     done
 
-    send_channel_promotion_datadog_event "${version}" "${destination_channel}"
+    echo "--- Sending datadog event for Supervisor promotion"
+    local EXIT_CODE=0
+    send_channel_promotion_datadog_event "${version}" "${destination_channel}" || EXIT_CODE=$?
+    if [ $EXIT_CODE -ne 0 ]; then
+      echo "Failed to send datadog event for Supervisor promotion, but continuing anyway."
+    fi
 }
 
 # Create a datadog event for the promotion of a Supervisor version to a builder channel. 
