@@ -224,6 +224,8 @@ promote_packages_to_builder_channel() {
 
     local manifest_json
     manifest_json=$(cat "${manifest}")
+    local version
+    version="$(echo "${manifest_json}" | jq -r '.version')"
 
     mapfile -t targets < <(echo "${manifest_json}" | jq -r ".packages | keys | .[]")
 
@@ -239,7 +241,45 @@ promote_packages_to_builder_channel() {
         done
     done
 
+    echo "--- Sending datadog event for Supervisor promotion"
+    local EXIT_CODE=0
+    send_channel_promotion_datadog_event "${version}" "${destination_channel}" || EXIT_CODE=$?
+    if [ $EXIT_CODE -ne 0 ]; then
+      echo "Failed to send datadog event for Supervisor promotion, but continuing anyway."
+    fi
+}
 
+# Create a datadog event for the promotion of a Supervisor version to a builder channel. 
+# 
+# e.g. send_channel_promotion_datadog_event 0.88.0 dev
+send_channel_promotion_datadog_event() {
+    local version="${1}"
+    local channel="${2}"
+    local DD_CLIENT_API_KEY
+    DD_CLIENT_API_KEY=$(vault kv get -field api_key_supervisor account/static/datadog/habitat)
+
+    curl --connect-timeout 5 \
+      --max-time 10 \
+      --retry 5 \
+      --retry-delay 0 \
+      --retry-max-time 40 \
+      --request POST https://api.datadoghq.com/api/v1/events \
+      --header "Expect:" \
+      --header "DD-API-KEY: ${DD_CLIENT_API_KEY}" \
+      --header 'Content-Type: application/json charset=utf-8' \
+      --data-binary @- << EOF
+{   
+  "aggregation_key":"supervisor_promotion",
+  "alert_type":"info",
+  "date_happened":$(date "+%s"),
+  "priority":"normal",
+  "tags":[
+    "channel:${channel}"
+  ],
+  "text":"",
+  "title":"Promoted Supervisor '${version}' to '${channel}'"
+}
+EOF
 }
 
 # Retrieves a suitable HAB_AUTH_TOKEN value from Vault.
