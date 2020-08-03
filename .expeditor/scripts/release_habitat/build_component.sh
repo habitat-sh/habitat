@@ -27,18 +27,23 @@ import_keys
 echo "--- :zap: Cleaning up old studio, if present"
 ${hab_binary} studio rm
 
-echo "--- :habicat: Building components/${component}"
+echo "--- :habicat: Building components/${component} using ${hab_binary}"
 
 HAB_BLDR_CHANNEL="${channel}" ${hab_binary} pkg build "components/${component}"
 source results/last_build.env
 
-echo "--- :habicat: Uploading ${pkg_ident:?} to ${HAB_BLDR_URL} in the '${channel}' channel"
+if [ "${pkg_target}" != "${BUILD_PKG_TARGET}" ]; then
+    echo "--- :face_with_symbols_on_mouth: Expected to build for target ${BUILD_PKG_TARGET}, but built ${pkg_target} instead!"
+    exit 1
+fi
+
+echo "--- :habicat: Uploading ${pkg_ident:?} (${pkg_target}) to ${HAB_BLDR_URL} in the '${channel}' channel"
 ${hab_binary} pkg upload \
               --channel="${channel}" \
               --auth="${HAB_AUTH_TOKEN}" \
               --no-build \
               "results/${pkg_artifact:?}"
 
-echo "<br>* ${pkg_ident:?} (${BUILD_PKG_TARGET:?})" | buildkite-agent annotate --append --context "release-manifest"
+echo "<br>* ${pkg_ident} (${pkg_target})" | buildkite-agent annotate --append --context "release-manifest"
 
 set_target_metadata "${pkg_ident}" "${pkg_target}"

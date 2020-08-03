@@ -33,7 +33,7 @@ curlbash_hab() {
             exit 1
             ;;
     esac
-    echo "--- :habicat: Hab binary set to $hab_binary"
+    echo "--- :habicat: Hab binary set to $hab_binary (version: $(${hab_binary} --version))"
 }
 
 install_rustup() {
