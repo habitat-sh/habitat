@@ -44,7 +44,7 @@ pub fn hash_bytes(data: &[u8]) -> String {
     hex::encode(out)
 }
 
-pub fn hash_reader(reader: &mut BufReader<File>) -> Result<String> {
+pub fn hash_reader(reader: &mut dyn Read) -> Result<String> {
     let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES as usize];
     let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
     #[allow(clippy::cast_ptr_alignment)]
