@@ -1,4 +1,5 @@
-use crate::{crypto::{keys::{KeyPair,
+use crate::{crypto::{keys::{KeyMaterial,
+                            KeyPair,
                             KeyRevision,
                             ToKeyString},
                      SECRET_SYM_KEY_SUFFIX,
@@ -136,23 +137,11 @@ impl AsRef<Path> for RingKey {
 
 from_str_impl_for_key!(RingKey, SymSecretKey, SECRET_SYM_KEY_VERSION);
 
-impl ToKeyString for RingKey {
-    fn to_key_string(&self) -> Result<String> {
-        match self.inner.secret {
-            Some(ref sk) => {
-                Ok(format!("{}\n{}\n\n{}",
-                           SECRET_SYM_KEY_VERSION,
-                           self.name_with_rev(),
-                           &base64::encode(&sk[..])))
-            }
-            None => {
-                Err(Error::CryptoError(format!("No secret key present for {}",
-                                               self.name_with_rev())))
-            }
-        }
-    }
+impl KeyMaterial<SymSecretKey> for RingKey {
+    fn key_material(&self) -> Option<&SymSecretKey> { self.inner.secret.as_ref() }
 }
 
+to_key_string_impl_for_key!(RingKey, SECRET_SYM_KEY_VERSION);
 try_from_path_buf_impl_for_key!(RingKey);
 
 #[cfg(test)]

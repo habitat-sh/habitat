@@ -188,6 +188,19 @@ pub trait ToKeyString {
 
 ////////////////////////////////////////////////////////////////////////
 
+/// Provide a unified way to get at the actual cryptographic key
+/// material of a specific key.
+///
+/// This should only be needed to help bridge the gap while we're
+/// still relying on the old `KeyPair` abstraction. In the new
+/// formulation, each key struct will only deal with a single kind of
+/// key (public or secret), and not potentially both.
+pub(crate) trait KeyMaterial<T> {
+    fn key_material(&self) -> Option<&T>;
+}
+
+////////////////////////////////////////////////////////////////////////
+
 pub trait Permissioned {
     const PERMISSIONS: Permissions;
 

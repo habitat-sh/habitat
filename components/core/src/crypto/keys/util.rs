@@ -110,3 +110,29 @@ macro_rules! try_from_path_buf_impl_for_key {
         }
     };
 }
+
+// TODO (CM): Once all the types are laid out, each one might be able
+// to "own" the version string that corresponds to it... we could then
+// have different versioned types maybe.
+macro_rules! to_key_string_impl_for_key {
+    ($t:ty, $version_string:expr) => {
+        impl ToKeyString for $t {
+            fn to_key_string(&self) -> Result<String> {
+                match self.key_material() {
+                    Some(k) => {
+                        Ok(format!("{}\n{}\n\n{}",
+                                   $version_string,
+                                   self.name_with_rev(),
+                                   &base64::encode(&k[..])))
+                    }
+                    None => {
+                        // TODO incorporate what kind of key material
+                        // it is
+                        Err(Error::CryptoError(format!("No key material found for {}",
+                                                       self.name_with_rev())))
+                    }
+                }
+            }
+        }
+    };
+}
