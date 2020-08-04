@@ -36,7 +36,7 @@ do_prepare() {
   export CARGO_TARGET_DIR="$HAB_CACHE_SRC_PATH/$pkg_dirname"
   build_line "Setting CARGO_TARGET_DIR=$CARGO_TARGET_DIR"
   
-  export PLAN_VERSION="${pkg_version}/${pkg_release}"
+  export PLAN_VERSION="${pkg_version}"
   build_line "Setting PLAN_VERSION=$PLAN_VERSION"
 
   # Prost (our Rust protobuf library) embeds a `protoc` binary, but

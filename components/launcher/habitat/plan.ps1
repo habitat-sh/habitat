@@ -20,7 +20,8 @@ function Invoke-Prepare {
     }
 
     $env:SSL_CERT_FILE              = "$(Get-HabPackagePath "cacerts")/ssl/certs/cacert.pem"
-    $env:PLAN_VERSION               = "$pkg_version/$pkg_release"
+    $env:PLAN_VERSION               = "$pkg_version"
+    Write-BuildLine "Setting env:PLAN_VERSION=$env:PLAN_VERSION"
     $env:LIB                        += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
     $env:INCLUDE                    += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
 }
