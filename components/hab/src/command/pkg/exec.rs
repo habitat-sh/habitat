@@ -1,16 +1,14 @@
+use crate::{error::{Error,
+                    Result},
+            hcore::{fs::{find_command,
+                         FS_ROOT_PATH},
+                    os::process,
+                    package::{PackageIdent,
+                              PackageInstall}}};
 use std::{env,
           ffi::OsString,
           io,
           path::PathBuf};
-
-use crate::hcore::{fs::{find_command,
-                        FS_ROOT_PATH},
-                   os::process,
-                   package::{PackageIdent,
-                             PackageInstall}};
-
-use crate::error::{Error,
-                   Result};
 
 const PATH_KEY: &str = "PATH";
 
