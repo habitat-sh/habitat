@@ -1,4 +1,5 @@
 use super::{hash,
+            keys::KeyCache,
             SigKeyPair,
             HART_FORMAT_VERSION,
             SIG_HASH_TYPE};
@@ -180,41 +181,24 @@ fn artifact_header_and_archive<P>(path: P) -> Result<(ArtifactHeaderBetter, BufR
     Ok((header, reader))
 }
 
-pub fn verify<P1: ?Sized, P2: ?Sized>(src: &P1, cache_key_path: &P2) -> Result<(String, String)>
-    where P1: AsRef<Path>,
-          P2: AsRef<Path>
+pub fn verify<P>(hart_file_path: P, cache: &KeyCache) -> Result<(String, String)>
+    where P: AsRef<Path>
 {
-    let (header, mut reader) = artifact_header_and_archive(src)?;
+    let (header, mut reader) = artifact_header_and_archive(hart_file_path)?;
 
-    // TODO (CM): We need to be passing the public key into this
-    // function, not the cache path.
-    let pair = SigKeyPair::get_pair_for(&header.signer.to_string(), cache_key_path.as_ref())?;
+    let key = cache.public_signing_key(&header.signer)
+                   .ok_or_else(|| Error::CryptoError("Missing public signing key".to_string()))??;
 
-    let expected_hash = match sign::verify(header.signature.as_slice(), pair.public()?) {
-        Ok(signed_data) => String::from_utf8(signed_data).map_err(|_| {
-                               Error::CryptoError("Error parsing artifact signature".to_string())
-                           })?,
-        Err(_) => return Err(Error::CryptoError("Verification failed".to_string())),
-    };
-    let computed_hash = hash::hash_reader(&mut reader)?;
-    if computed_hash == expected_hash {
-        Ok((pair.name_with_rev(), expected_hash))
-    } else {
-        let msg = format!("Habitat artifact is invalid, hashes don't match (expected: {}, \
-                           computed: {})",
-                          expected_hash, computed_hash);
-        Err(Error::CryptoError(msg))
-    }
+    key.verify(header.signature.as_slice(), &mut reader)
 }
 
 /// Parse a HART file (referred to by filesystem path) to discover the
 /// signing key revision that was used to sign it.
-pub fn artifact_signer<P>(hart_file_path: P) -> Result<String>
+pub fn artifact_signer<P>(hart_file_path: P) -> Result<NamedRevision>
     where P: AsRef<Path>
 {
     let (header, _reader) = artifact_header_and_archive(hart_file_path)?;
-    // TODO (CM): Eventually, return NamedRevision
-    Ok(header.signer.to_string())
+    Ok(header.signer)
 }
 
 #[cfg(test)]
@@ -226,8 +210,6 @@ mod test {
                    Read,
                    Write}};
 
-    use tempfile::Builder;
-
     use super::{super::{keys::parse_name_with_rev,
                         test_support::*,
                         SigKeyPair,
@@ -237,179 +219,192 @@ mod test {
 
     #[test]
     fn sign_and_verify() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+        let (cache, dir) = new_cache();
+
         let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
+        pair.to_pair_files(dir.path()).unwrap();
+        let dst = dir.path().join("signed.dat");
 
         sign(&fixture("signme.dat"), &dst, &pair).unwrap();
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Secret key is required but not present for")]
     fn sign_missing_private_key() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+        let (_cache, dir) = new_cache();
+
         let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
+        pair.to_pair_files(dir.path()).unwrap();
+        let dst = dir.path().join("signed.dat");
 
         // Delete the secret key
         fs::remove_file(
-            SigKeyPair::get_secret_key_path(&pair.name_with_rev(), cache.path()).unwrap(),
+            SigKeyPair::get_secret_key_path(&pair.name_with_rev(), dir.path()).unwrap(),
         )
         .unwrap();
         // Now reload the key pair which will be missing the secret key
-        let pair = SigKeyPair::get_latest_pair_for("unicorn", cache.path(), None).unwrap();
+        let pair = SigKeyPair::get_latest_pair_for("unicorn", dir.path(), None).unwrap();
 
         sign(&fixture("signme.dat"), &dst, &pair).unwrap();
     }
 
     #[test]
-    #[should_panic(expected = "Public key is required but not present for")]
+    #[should_panic(expected = "Missing public signing key")]
     fn verify_missing_public_key() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+        let (cache, dir) = new_cache();
+
         let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
+        pair.to_pair_files(dir.path()).unwrap();
+        let dst = dir.path().join("signed.dat");
         sign(&fixture("signme.dat"), &dst, &pair).unwrap();
 
         // Delete the public key
         fs::remove_file(
-            SigKeyPair::get_public_key_path(&pair.name_with_rev(), cache.path()).unwrap(),
+            SigKeyPair::get_public_key_path(&pair.name_with_rev(), dir.path()).unwrap(),
         )
         .unwrap();
         // Now reload the key pair which will be missing the public key
-        let _ = SigKeyPair::get_latest_pair_for("unicorn", cache.path(), None).unwrap();
+        let _ = SigKeyPair::get_latest_pair_for("unicorn", dir.path(), None).unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Corrupt payload, can\\'t read format version")]
     fn verify_empty_format_version() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let dst = cache.path().join("signed.dat");
+        let (cache, dir) = new_cache();
+
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(b"").unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Unsupported format version: SOME-VERSION")]
     fn verify_invalid_format_version() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let dst = cache.path().join("signed.dat");
+        let (cache, dir) = new_cache();
+
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(b"SOME-VERSION\nuhoh").unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Cannot parse named revision \\'\\'")]
     fn verify_empty_key_name() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let dst = cache.path().join("signed.dat");
+        let (cache, dir) = new_cache();
+
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(b"HART-1\n\nuhoh").unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Cannot parse named revision \\'nope-nope\\'")]
     fn verify_invalid_key_name() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let dst = cache.path().join("signed.dat");
+        let (cache, dir) = new_cache();
+
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(b"HART-1\nnope-nope\nuhoh").unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Corrupt payload, can\\'t read hash type")]
     fn verify_empty_hash_type() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+        let (cache, dir) = new_cache();
+
         let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
+        pair.to_pair_files(dir.path()).unwrap();
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(format!("HART-1\n{}\n", pair.name_with_rev()).as_bytes())
          .unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Unsupported signature type: BESTEST")]
     fn verify_invalid_hash_type() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+        let (cache, dir) = new_cache();
+
         let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
+        pair.to_pair_files(dir.path()).unwrap();
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(format!("HART-1\n{}\nBESTEST\nuhoh", pair.name_with_rev()).as_bytes())
          .unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Corrupt payload, can\\'t read signature")]
     fn verify_empty_signature() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+        let (cache, dir) = new_cache();
+
         let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
+        pair.to_pair_files(dir.path()).unwrap();
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(format!("HART-1\n{}\nBLAKE2b\n", pair.name_with_rev()).as_bytes())
          .unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Can\\'t decode signature")]
     fn verify_invalid_signature_decode() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+        let (cache, dir) = new_cache();
+
         let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
+        pair.to_pair_files(dir.path()).unwrap();
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(format!("HART-1\n{}\nBLAKE2b\nnot:base64:signature",
                             pair.name_with_rev()).as_bytes())
          .unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Corrupt payload, can\\'t find end of header")]
     fn verify_missing_end_of_header() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+        let (cache, dir) = new_cache();
+
         let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
+        pair.to_pair_files(dir.path()).unwrap();
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(
             format!("HART-1\n{}\nBLAKE2b\nU3VycHJpc2Uh\n", pair.name_with_rev()).as_bytes(),
         )
         .unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Habitat artifact is invalid")]
     fn verify_corrupted_archive() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+        let (cache, dir) = new_cache();
+
         let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
-        let dst_corrupted = cache.path().join("corrupted.dat");
+        pair.to_pair_files(dir.path()).unwrap();
+        let dst = dir.path().join("signed.dat");
+        let dst_corrupted = dir.path().join("corrupted.dat");
 
         sign(&fixture("signme.dat"), &dst, &pair).unwrap();
         let mut corrupted = File::create(&dst_corrupted).unwrap();
@@ -431,16 +426,17 @@ mod test {
         corrupted.write_all(b"payload-wont-match-signature")
                  .unwrap(); // archive
 
-        verify(&dst_corrupted, cache.path()).unwrap();
+        verify(&dst_corrupted, &cache).unwrap();
     }
 
     #[test]
     fn get_archive_reader_working() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+        let (_cache, dir) = new_cache();
+
         let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let src = cache.path().join("src.in");
-        let dst = cache.path().join("src.signed");
+        pair.to_pair_files(dir.path()).unwrap();
+        let src = dir.path().join("src.in");
+        let dst = dir.path().join("src.signed");
         let mut f = File::create(&src).unwrap();
         f.write_all(b"hearty goodness").unwrap();
         sign(&src, &dst, &pair).unwrap();
@@ -453,11 +449,12 @@ mod test {
 
     #[test]
     fn verify_get_artifact_header() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
+        let (_cache, dir) = new_cache();
+
         let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let src = cache.path().join("src.in");
-        let dst = cache.path().join("src.signed");
+        pair.to_pair_files(dir.path()).unwrap();
+        let src = dir.path().join("src.in");
+        let dst = dir.path().join("src.signed");
         let mut f = File::create(&src).unwrap();
         f.write_all(b"hearty goodness").unwrap();
         sign(&src, &dst, &pair).unwrap();
@@ -494,7 +491,7 @@ mod test {
             let hart_path = fixture("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart");
             let signer = artifact_signer(&hart_path).unwrap();
             let expected: NamedRevision = "happyhumans-20160424223347".parse().unwrap();
-            assert_eq!(signer, expected.to_string());
+            assert_eq!(signer, expected);
         }
 
         #[test]

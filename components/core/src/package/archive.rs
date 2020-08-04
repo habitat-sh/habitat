@@ -324,16 +324,6 @@ impl PackageArchive {
             .into_owned()
     }
 
-    /// Given a package name and a path to a file as an `&str`, verify
-    /// the files signature.
-    ///
-    /// # Failures
-    ///
-    /// * Fails if it cannot verify the signature for any reason
-    pub fn verify<P: AsRef<Path>>(&self, cache_key_path: &P) -> Result<(String, String)> {
-        artifact::verify(&self.path, cache_key_path)
-    }
-
     /// Given a package name and a path to a file as an `&str`, unpack
     /// the package.
     ///
