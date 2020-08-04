@@ -1,12 +1,12 @@
 use super::ring_key::RingKey;
 use crate::{crypto::{hash,
-                     keys::{Permissioned,
-                            ToKeyString},
-                     SECRET_SYM_KEY_SUFFIX},
+                     keys::{KeyExtension,
+                            Permissioned,
+                            ToKeyString}},
             error::{Error,
                     Result},
             fs::AtomicWriter};
-use std::{convert::TryInto,
+use std::{convert::TryFrom,
           io::Write,
           path::{Path,
                  PathBuf}};
@@ -32,10 +32,19 @@ impl KeyCache {
 
     /// Note: name is just the name, not the name + revision
     pub fn latest_ring_key_revision(&self, name: &str) -> Result<RingKey> {
-        match self.get_latest_path_for(name, SECRET_SYM_KEY_SUFFIX)? {
-            Some(path) => path.try_into(),
+        self.fetch_latest_revision::<RingKey>(name)
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+
+    // TODO (CM): Turn this into Option<Result<K>>
+    fn fetch_latest_revision<K>(&self, name: &str) -> Result<K>
+        where K: KeyExtension + TryFrom<PathBuf, Error = Error>
+    {
+        match self.get_latest_path_for(name, K::extension())? {
+            Some(path) => <K as TryFrom<PathBuf>>::try_from(path),
             None => {
-                let msg = format!("No revisions found for {} ring key", name);
+                let msg = format!("No revisions found for {}", name);
                 Err(Error::CryptoError(msg))
             }
         }
@@ -123,12 +132,12 @@ mod test {
     fn get_all_paths_for() {
         let (cache, _dir) = new_cache();
 
-        let paths = cache.get_all_paths_for("beyonce", SECRET_SYM_KEY_SUFFIX)
+        let paths = cache.get_all_paths_for("beyonce", RingKey::extension())
                          .unwrap();
         assert_eq!(paths.count(), 0);
 
         cache.write_ring_key(&RingKey::new("beyonce")).unwrap();
-        let paths = cache.get_all_paths_for("beyonce", SECRET_SYM_KEY_SUFFIX)
+        let paths = cache.get_all_paths_for("beyonce", RingKey::extension())
                          .unwrap();
         assert_eq!(paths.count(), 1);
 
@@ -136,13 +145,13 @@ mod test {
                       // will be different.
         cache.write_ring_key(&RingKey::new("beyonce")).unwrap();
 
-        let paths = cache.get_all_paths_for("beyonce", SECRET_SYM_KEY_SUFFIX)
+        let paths = cache.get_all_paths_for("beyonce", RingKey::extension())
                          .unwrap();
         assert_eq!(paths.count(), 2);
 
         // We should not include another named key in the count
         cache.write_ring_key(&RingKey::new("jayz")).unwrap();
-        let paths = cache.get_all_paths_for("beyonce", SECRET_SYM_KEY_SUFFIX)
+        let paths = cache.get_all_paths_for("beyonce", RingKey::extension())
                          .unwrap();
         assert_eq!(paths.count(), 2);
     }
