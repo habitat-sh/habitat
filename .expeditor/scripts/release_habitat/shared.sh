@@ -36,16 +36,18 @@ import_keys() {
 
 # Returns the full "release" version in the form of X.Y.Z/DATESTAMP
 get_latest_pkg_release_version_in_release_channel() {
-    local pkg_name="${1:?}"
-    curl -s "${HAB_BLDR_URL}/v1/depot/channels/core/$(get_release_channel)/pkgs/${pkg_name}/latest?target=${BUILD_PKG_TARGET}" \
+    local pkg_name="${1}"
+    local pkg_target="${2}"
+    curl -s "${HAB_BLDR_URL}/v1/depot/channels/core/$(get_release_channel)/pkgs/${pkg_name}/latest?target=${pkg_target}" \
         | jq -r '.ident | .version + "/" + .release'
 }
 
 # Returns the semver version in the form of X.Y.Z
 get_latest_pkg_version_in_release_channel() {
-    local pkg_name="${1:?}"
+    local pkg_name="${1}"
+    local pkg_target="${2}"
     local release
-    release=$(get_latest_pkg_release_version_in_release_channel "$pkg_name")
+    release=$(get_latest_pkg_release_version_in_release_channel "${pkg_name}" "${pkg_target}")
     echo "$release" | cut -f1 -d"/"
 }
 
@@ -53,26 +55,31 @@ get_latest_pkg_version_in_release_channel() {
 #
 # Requires the `hab_binary` global variable is already set!
 #
-# Accepts a pkg target argument if you need to override it, otherwise
-# will default to the value of `BUILD_PKG_TARGET`
+# *Requires* a pkg target argument.
 install_release_channel_hab_binary() {
-    local pkg_target="${1:-$BUILD_PKG_TARGET}"
+    local pkg_target="${1}"
     curlbash_hab "${pkg_target}"
 
     echo "--- :habicat: Installed latest stable hab: $(${hab_binary} --version)"
     # now install the latest hab available in our channel, if it and the studio exist yet
-    hab_version=$(get_latest_pkg_version_in_release_channel "hab")
-    studio_version=$(get_latest_pkg_version_in_release_channel "hab-studio")
+    hab_version=$(get_latest_pkg_version_in_release_channel "hab" "${pkg_target}")
+    studio_version=$(get_latest_pkg_version_in_release_channel "hab-studio" "${pkg_target}")
 
     if [[ -n $hab_version && -n $studio_version && $hab_version == "$studio_version" ]]; then
-        echo "-- Hab and studio versions match! Found hab: ${hab_version:-null} - studio: ${studio_version:-null}. Upgrading :awesome:"
+        echo "--- :habicat: Hab and studio versions match! Found hab: ${hab_version} - studio: ${studio_version}. Upgrading! :metal:"
         channel=$(get_release_channel)
-        ${hab_binary:?} pkg install --binlink --force --channel "${channel}" core/hab
-        ${hab_binary:?} pkg install --binlink --force --channel "${channel}" core/hab-studio
-        hab_binary="$(hab pkg path core/hab)/bin/hab"
-        echo "--- :habicat: Installed latest build hab: $(${hab_binary} --version) at $hab_binary"
+        "${hab_binary:?}" pkg install --binlink --force --channel "${channel}" core/hab
+
+        # TODO (CM): Not exactly sure why, but if we call this using
+        # `hab` rather than `${hab_binary}`, then we get the wrong
+        # version back... related to Workstation's `hab` binary being
+        # earlier on the path?
+        hab_binary="$(${hab_binary} pkg path core/hab)/bin/hab"
+
+        "${hab_binary:?}" pkg install --binlink --force --channel "${channel}" core/hab-studio
+        echo "Installed latest build hab: $(${hab_binary} --version) at $hab_binary"
     else
-        echo "--- Hab and studio versions did not match. hab: ${hab_version:-null} - studio: ${studio_version:-null}"
+        echo "--- :habicat: Hab and studio versions did not match. hab: ${hab_version:-null} - studio: ${studio_version:-null}"
     fi
 }
 
