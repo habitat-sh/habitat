@@ -312,7 +312,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 ("download", Some(m)) => sub_pkg_download(ui, m, feature_flags).await?,
                 ("env", Some(m)) => sub_pkg_env(m)?,
                 ("exec", Some(m)) => sub_pkg_exec(m, &remaining_args)?,
-                ("export", Some(m)) => sub_pkg_export(ui, m).await?,
                 ("hash", Some(m)) => sub_pkg_hash(m)?,
                 ("install", Some(m)) => sub_pkg_install(ui, m, feature_flags).await?,
                 ("list", Some(m)) => sub_pkg_list(m)?,
@@ -732,15 +731,6 @@ fn sub_pkg_exec(m: &ArgMatches<'_>, cmd_args: &[OsString]) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;
     let cmd = m.value_of("CMD").unwrap(); // Required via clap
     command::pkg::exec::start(&ident, cmd, cmd_args)
-}
-
-async fn sub_pkg_export(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let ident = required_pkg_ident_from_input(m)?;
-    let format = &m.value_of("FORMAT").unwrap();
-    let url = bldr_url_from_matches(&m)?;
-    let channel = channel_from_matches_or_default(&m);
-    let export_fmt = command::pkg::export::format_for(ui, &format)?;
-    command::pkg::export::start(ui, &url, &channel, &ident, &export_fmt).await
 }
 
 fn sub_pkg_hash(m: &ArgMatches<'_>) -> Result<()> {
@@ -1524,6 +1514,9 @@ async fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         ("pkg", "export", "cf") => command::pkg::export::cf::start(ui, &args_after_first(4)).await,
         ("pkg", "export", "tar") => {
             command::pkg::export::tar::start(ui, &args_after_first(4)).await
+        }
+        ("pkg", "export", "mesos") => {
+            command::pkg::export::mesos::start(ui, &args_after_first(4)).await
         }
         ("run", ..) => command::launcher::start(ui, &args_after_first(1)).await,
         ("stu", ..) | ("stud", ..) | ("studi", ..) | ("studio", ..) => {
