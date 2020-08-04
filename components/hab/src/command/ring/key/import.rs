@@ -10,7 +10,7 @@ pub fn start(ui: &mut UI, content: &str, cache: &Path) -> Result<()> {
     let cache = KeyCache::new(cache);
     cache.setup()?;
     let key: RingKey = content.parse()?;
-    cache.write_ring_key(&key)?;
+    cache.write_key(&key)?;
     ui.end(format!("Imported ring key {}.", &key.name_with_rev()))?;
     Ok(())
 }

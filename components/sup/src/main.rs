@@ -360,7 +360,7 @@ fn get_ring_key(sup_run: &SupRun) -> Result<Option<RingKey>> {
             match &sup_run.ring_key {
                 Some(key_content) => {
                     let key: RingKey = key_content.parse()?;
-                    cache.write_ring_key(&key)?;
+                    cache.write_key(&key)?;
                     Ok(Some(key))
                 }
                 None => Ok(None),

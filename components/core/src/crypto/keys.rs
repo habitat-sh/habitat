@@ -999,12 +999,12 @@ mod test {
 
         for _ in 0..3 {
             let key = RingKey::new("acme");
-            cache.write_ring_key(&key).unwrap();
+            cache.write_key(&key).unwrap();
             wait_1_sec();
         }
 
         let key = RingKey::new("acme-you");
-        cache.write_ring_key(&key).unwrap();
+        cache.write_key(&key).unwrap();
 
         let revisions = super::get_key_revisions("acme", dir.path(), None, KeyType::Sym).unwrap();
         assert_eq!(3, revisions.len());

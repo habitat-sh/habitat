@@ -12,7 +12,7 @@ pub fn start<P>(ui: &mut UI, ring: &str, cache: P) -> Result<()>
     let key = RingKey::new(ring);
     let cache = KeyCache::new(cache.as_ref());
     cache.setup()?;
-    cache.write_ring_key(&key)?;
+    cache.write_key(&key)?;
     ui.end(format!("Generated ring key {}.", key.name_with_rev()))?;
     Ok(())
 }

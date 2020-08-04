@@ -256,7 +256,7 @@ mod test {
     fn generated_ring_pair() {
         let (cache, dir) = new_cache();
         let key = RingKey::new("beyonce");
-        cache.write_ring_key(&key).unwrap();
+        cache.write_key(&key).unwrap();
 
         assert_eq!(key.name(), "beyonce");
         assert!(key.public().is_ok(),
