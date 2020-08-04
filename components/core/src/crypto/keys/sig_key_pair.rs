@@ -13,19 +13,89 @@ use super::{super::{hash,
             KeyType,
             PairType,
             TmpKeyfile};
-use crate::error::{Error,
-                   Result};
-use sodiumoxide::{crypto::sign::{self,
-                                 ed25519::{PublicKey as SigPublicKey,
+use crate::{crypto::keys::KeyExtension,
+            error::{Error,
+                    Result}};
+use sodiumoxide::{crypto::{sign,
+                           sign::ed25519::{PublicKey as SigPublicKey,
                                            SecretKey as SigSecretKey}},
                   randombytes::randombytes};
 use std::{convert::TryFrom,
           fs,
+          io::Read,
           path::{Path,
-                 PathBuf}};
+                 PathBuf},
+          str::FromStr};
 
 pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
 
+////////////////////////////////////////////////////////////////////////
+
+pub struct PublicOriginSigningKey {
+    inner: KeyPair<SigPublicKey, ()>,
+    path:  PathBuf,
+}
+
+impl KeyExtension for PublicOriginSigningKey {
+    const EXTENSION: &'static str = "pub"; // PUBLIC_KEY_SUFFIX;
+}
+
+impl PublicOriginSigningKey {
+    pub(crate) fn from_raw(name: String,
+                           revision: KeyRevision,
+                           public: Option<SigPublicKey>)
+                           -> Self {
+        let inner = KeyPair::new(name, revision, public, None);
+        let path = Path::new(&inner.name_with_rev()).with_extension(PUBLIC_KEY_SUFFIX);
+        Self { inner, path }
+    }
+
+    pub fn public(&self) -> Result<&SigPublicKey> { self.inner.public() }
+
+    // Simple helper to deal with the indirection to the inner
+    // KeyPair struct. Not ultimately sure if this should be kept.
+    pub fn name_with_rev(&self) -> String { self.inner.name_with_rev() }
+
+    /// Accept a signature and the bytes for the signed content to be
+    /// verified. Returns the named revision of the key as well as the
+    /// computed hash.
+    // TODO (CM): Result should be NamedRevision, String
+    pub fn verify(&self, signature: &[u8], content: &mut dyn Read) -> Result<(String, String)> {
+        // TODO (CM): we should always have a public key here, by definition.
+        let expected_hash = match sign::verify(signature, self.public()?) {
+            Ok(signed_data) => {
+                String::from_utf8(signed_data).map_err(|_| {
+                                                  Error::CryptoError("Error parsing artifact \
+                                                                      signature"
+                                                                                .to_string())
+                                              })?
+            }
+            Err(_) => return Err(Error::CryptoError("Verification failed".to_string())),
+        };
+
+        let computed_hash = hash::hash_reader(content)?;
+        if computed_hash == expected_hash {
+            Ok((self.name_with_rev(), expected_hash))
+        } else {
+            let msg = format!("Habitat artifact is invalid, hashes don't match (expected: {}, \
+                               computed: {})",
+                              expected_hash, computed_hash);
+            Err(Error::CryptoError(msg))
+        }
+    }
+}
+
+impl AsRef<Path> for PublicOriginSigningKey {
+    fn as_ref(&self) -> &Path { &self.path }
+}
+
+from_str_impl_for_key!(PublicOriginSigningKey, SigPublicKey, PUBLIC_SIG_KEY_VERSION);
+
+try_from_path_buf_impl_for_key!(PublicOriginSigningKey);
+
+public_permissions!(PublicOriginSigningKey);
+
+////////////////////////////////////////////////////////////////////////
 impl SigKeyPair {
     pub fn generate_pair_for_origin(name: &str) -> Self {
         let revision = KeyRevision::new();
