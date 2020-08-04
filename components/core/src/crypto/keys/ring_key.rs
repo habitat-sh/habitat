@@ -1,4 +1,5 @@
-use crate::{crypto::{keys::{KeyMaterial,
+use crate::{crypto::{keys::{KeyExtension,
+                            KeyMaterial,
                             KeyPair,
                             KeyRevision,
                             ToKeyString},
@@ -139,6 +140,10 @@ from_str_impl_for_key!(RingKey, SymSecretKey, SECRET_SYM_KEY_VERSION);
 
 impl KeyMaterial<SymSecretKey> for RingKey {
     fn key_material(&self) -> Option<&SymSecretKey> { self.inner.secret.as_ref() }
+}
+
+impl KeyExtension for RingKey {
+    const EXTENSION: &'static str = "sym.key"; // SECRET_SYM_KEY_SUFFIX;
 }
 
 to_key_string_impl_for_key!(RingKey, SECRET_SYM_KEY_VERSION);

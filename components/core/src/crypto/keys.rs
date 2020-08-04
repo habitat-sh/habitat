@@ -112,6 +112,16 @@ impl Drop for TmpKeyfile {
 
 ////////////////////////////////////////////////////////////////////////
 
+pub trait KeyExtension {
+    const EXTENSION: &'static str;
+
+    /// Returns the permissions with which an item should be written
+    /// to the filesystem.
+    fn extension() -> &'static str { Self::EXTENSION }
+}
+
+////////////////////////////////////////////////////////////////////////
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NamedRevision {
     name:     String,
