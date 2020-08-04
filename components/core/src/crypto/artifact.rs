@@ -1,12 +1,10 @@
-use super::{hash,
-            keys::KeyCache,
-            SigKeyPair,
+use super::{keys::{sig_key_pair::SecretOriginSigningKey,
+                   KeyCache},
             HART_FORMAT_VERSION,
             SIG_HASH_TYPE};
 use crate::{crypto::keys::NamedRevision,
             error::{Error,
                     Result}};
-use sodiumoxide::crypto::sign;
 use std::{fs::File,
           io::{self,
                prelude::*,
@@ -15,20 +13,17 @@ use std::{fs::File,
           path::Path};
 
 /// Generate and sign a package
-pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, pair: &SigKeyPair) -> Result<()>
+pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, key: &SecretOriginSigningKey) -> Result<()>
     where P1: AsRef<Path>,
           P2: AsRef<Path>
 {
-    let hash = hash::hash_file(&src)?;
-    debug!("File hash for {} = {}", src.as_ref().display(), &hash);
-
-    let signature = sign::sign(&hash.as_bytes(), pair.secret()?);
+    let signature = key.sign(src)?;
     let output_file = File::create(dst)?;
     let mut writer = BufWriter::new(&output_file);
     write!(writer,
            "{}\n{}\n{}\n{}\n\n",
            HART_FORMAT_VERSION,
-           pair.name_with_rev(),
+           key.name_with_rev(),
            SIG_HASH_TYPE,
            base64::encode(&signature))?;
     let mut file = File::open(src)?;
@@ -203,8 +198,7 @@ pub fn artifact_signer<P>(hart_file_path: P) -> Result<NamedRevision>
 
 #[cfg(test)]
 mod test {
-    use std::{fs::{self,
-                   File},
+    use std::{fs::File,
               io::{BufRead,
                    BufReader,
                    Read,
@@ -223,50 +217,11 @@ mod test {
 
         let pair = SigKeyPair::generate_pair_for_origin("unicorn");
         pair.to_pair_files(dir.path()).unwrap();
+
+        let key = cache.latest_secret_origin_signing_key("unicorn").unwrap();
         let dst = dir.path().join("signed.dat");
 
-        sign(&fixture("signme.dat"), &dst, &pair).unwrap();
-        verify(&dst, &cache).unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "Secret key is required but not present for")]
-    fn sign_missing_private_key() {
-        let (_cache, dir) = new_cache();
-
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(dir.path()).unwrap();
-        let dst = dir.path().join("signed.dat");
-
-        // Delete the secret key
-        fs::remove_file(
-            SigKeyPair::get_secret_key_path(&pair.name_with_rev(), dir.path()).unwrap(),
-        )
-        .unwrap();
-        // Now reload the key pair which will be missing the secret key
-        let pair = SigKeyPair::get_latest_pair_for("unicorn", dir.path(), None).unwrap();
-
-        sign(&fixture("signme.dat"), &dst, &pair).unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "Missing public signing key")]
-    fn verify_missing_public_key() {
-        let (cache, dir) = new_cache();
-
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(dir.path()).unwrap();
-        let dst = dir.path().join("signed.dat");
-        sign(&fixture("signme.dat"), &dst, &pair).unwrap();
-
-        // Delete the public key
-        fs::remove_file(
-            SigKeyPair::get_public_key_path(&pair.name_with_rev(), dir.path()).unwrap(),
-        )
-        .unwrap();
-        // Now reload the key pair which will be missing the public key
-        let _ = SigKeyPair::get_latest_pair_for("unicorn", dir.path(), None).unwrap();
-
+        sign(&fixture("signme.dat"), &dst, &key).unwrap();
         verify(&dst, &cache).unwrap();
     }
 
@@ -403,10 +358,13 @@ mod test {
 
         let pair = SigKeyPair::generate_pair_for_origin("unicorn");
         pair.to_pair_files(dir.path()).unwrap();
+
+        let key = cache.latest_secret_origin_signing_key("unicorn").unwrap();
+
         let dst = dir.path().join("signed.dat");
         let dst_corrupted = dir.path().join("corrupted.dat");
 
-        sign(&fixture("signme.dat"), &dst, &pair).unwrap();
+        sign(&fixture("signme.dat"), &dst, &key).unwrap();
         let mut corrupted = File::create(&dst_corrupted).unwrap();
         let f = File::open(&dst).unwrap();
         let f = BufReader::new(f);
@@ -431,15 +389,18 @@ mod test {
 
     #[test]
     fn get_archive_reader_working() {
-        let (_cache, dir) = new_cache();
+        let (cache, dir) = new_cache();
 
         let pair = SigKeyPair::generate_pair_for_origin("unicorn");
         pair.to_pair_files(dir.path()).unwrap();
+
+        let key = cache.latest_secret_origin_signing_key("unicorn").unwrap();
+
         let src = dir.path().join("src.in");
         let dst = dir.path().join("src.signed");
         let mut f = File::create(&src).unwrap();
         f.write_all(b"hearty goodness").unwrap();
-        sign(&src, &dst, &pair).unwrap();
+        sign(&src, &dst, &key).unwrap();
 
         let mut buffer = String::new();
         let mut reader = get_archive_reader(&dst).unwrap();
@@ -449,15 +410,17 @@ mod test {
 
     #[test]
     fn verify_get_artifact_header() {
-        let (_cache, dir) = new_cache();
+        let (cache, dir) = new_cache();
 
         let pair = SigKeyPair::generate_pair_for_origin("unicorn");
         pair.to_pair_files(dir.path()).unwrap();
+        let key = cache.latest_secret_origin_signing_key("unicorn").unwrap();
+
         let src = dir.path().join("src.in");
         let dst = dir.path().join("src.signed");
         let mut f = File::create(&src).unwrap();
         f.write_all(b"hearty goodness").unwrap();
-        sign(&src, &dst, &pair).unwrap();
+        sign(&src, &dst, &key).unwrap();
 
         let hart_header = get_artifact_header(&dst).unwrap();
         assert_eq!(HART_FORMAT_VERSION, hart_header.format_version);

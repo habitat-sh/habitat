@@ -63,7 +63,8 @@ use habitat_common::{self as common,
                           UI},
                      FeatureFlag};
 use habitat_core::{crypto::{init,
-                            keys::PairType,
+                            keys::{KeyCache,
+                                   PairType},
                             BoxKeyPair,
                             SigKeyPair},
                    env::{self as henv,
@@ -1154,15 +1155,18 @@ async fn sub_pkg_search(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let origin = origin_param_or_env(&m)?;
+
     let src = Path::new(m.value_of("SOURCE").unwrap()); // Required via clap
     let dst = Path::new(m.value_of("DEST").unwrap()); // Required via clap
-    let cache_key_path = cache_key_path_from_matches(&m);
-    init()?;
-    let pair = SigKeyPair::get_latest_pair_for(&origin_param_or_env(&m)?,
-                                               &cache_key_path,
-                                               Some(PairType::Secret))?;
 
-    command::pkg::sign::start(ui, &pair, &src, &dst)
+    let cache_key_path = cache_key_path_from_matches(&m);
+    let cache = KeyCache::new(cache_key_path);
+
+    init()?;
+
+    let key = cache.latest_secret_origin_signing_key(&origin)?;
+    command::pkg::sign::start(ui, &key, &src, &dst)
 }
 
 async fn sub_pkg_bulkupload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
