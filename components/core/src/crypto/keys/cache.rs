@@ -31,6 +31,16 @@ impl KeyCache {
         Ok(())
     }
 
+    /// Write a key into the cache. If the key already exists,
+    /// and the content has the same hash value, nothing will be
+    /// done. If the file exists and it has *different* content, an
+    /// Error is returned.
+    pub fn write_key<K>(&self, key: &K) -> Result<()>
+        where K: AsRef<Path> + ToKeyString + Permissioned
+    {
+        self.maybe_write_key(key)
+    }
+
     pub fn write_ring_key(&self, key: &RingKey) -> Result<()> { self.maybe_write_key(key) }
 
     /// Note: name is just the name, not the name + revision
@@ -90,10 +100,6 @@ impl KeyCache {
         self.0.join(key.as_ref())
     }
 
-    /// Write the given key into the cache. If the key already exists,
-    /// and the content has the same hash value, nothing will be
-    /// done. If the file exists and it has *different* content, an
-    /// Error is returned.
     fn maybe_write_key<K>(&self, key: &K) -> Result<()>
         where K: AsRef<Path> + ToKeyString + Permissioned
     {
