@@ -41,8 +41,6 @@ impl KeyCache {
         self.maybe_write_key(key)
     }
 
-    pub fn write_ring_key(&self, key: &RingKey) -> Result<()> { self.maybe_write_key(key) }
-
     /// Note: name is just the name, not the name + revision
     pub fn latest_ring_key_revision(&self, name: &str) -> Result<RingKey> {
         self.fetch_latest_revision::<RingKey>(name)
@@ -173,21 +171,21 @@ mod test {
                          .unwrap();
         assert_eq!(paths.count(), 0);
 
-        cache.write_ring_key(&RingKey::new("beyonce")).unwrap();
+        cache.write_key(&RingKey::new("beyonce")).unwrap();
         let paths = cache.get_all_paths_for("beyonce", RingKey::extension())
                          .unwrap();
         assert_eq!(paths.count(), 1);
 
         wait_1_sec(); // ensure new revision
                       // will be different.
-        cache.write_ring_key(&RingKey::new("beyonce")).unwrap();
+        cache.write_key(&RingKey::new("beyonce")).unwrap();
 
         let paths = cache.get_all_paths_for("beyonce", RingKey::extension())
                          .unwrap();
         assert_eq!(paths.count(), 2);
 
         // We should not include another named key in the count
-        cache.write_ring_key(&RingKey::new("jayz")).unwrap();
+        cache.write_key(&RingKey::new("jayz")).unwrap();
         let paths = cache.get_all_paths_for("beyonce", RingKey::extension())
                          .unwrap();
         assert_eq!(paths.count(), 2);
@@ -198,7 +196,7 @@ mod test {
         let (cache, _dir) = new_cache();
 
         let key = RingKey::new("beyonce");
-        cache.write_ring_key(&key).unwrap();
+        cache.write_key(&key).unwrap();
 
         let latest = cache.latest_ring_key_revision("beyonce").unwrap();
         assert_eq!(latest.name(), key.name());
@@ -210,12 +208,12 @@ mod test {
         let (cache, _dir) = new_cache();
 
         let k1 = RingKey::new("beyonce");
-        cache.write_ring_key(&k1).unwrap();
+        cache.write_key(&k1).unwrap();
 
         wait_1_sec();
 
         let k2 = RingKey::new("beyonce");
-        cache.write_ring_key(&k2).unwrap();
+        cache.write_key(&k2).unwrap();
 
         assert_eq!(k1.name(), k2.name());
         assert_ne!(k1.revision(), k2.revision());
@@ -242,7 +240,7 @@ mod test {
 
         let key: RingKey = content.parse().unwrap();
         assert_eq!(key.name_with_rev(), VALID_NAME_WITH_REV);
-        cache.write_ring_key(&key).unwrap();
+        cache.write_key(&key).unwrap();
         assert!(new_key_file.is_file());
 
         let new_content = std::fs::read_to_string(new_key_file).unwrap();
@@ -259,7 +257,7 @@ mod test {
         std::fs::copy(fixture(&format!("keys/{}", VALID_KEY)), &new_key_file).unwrap();
 
         let key: RingKey = content.parse().unwrap();
-        cache.write_ring_key(&key).unwrap();
+        cache.write_key(&key).unwrap();
         assert_eq!(key.name_with_rev(), VALID_NAME_WITH_REV);
         assert!(new_key_file.is_file());
     }
@@ -280,7 +278,7 @@ mod test {
 
         let new_key: RingKey = new_content.parse().unwrap();
         // this should fail
-        cache.write_ring_key(&new_key).unwrap();
+        cache.write_key(&new_key).unwrap();
     }
 
     // Old tests... not fully converting over to new implementation
