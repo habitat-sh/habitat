@@ -15,7 +15,9 @@ use configopt::{ConfigOpt,
 use futures::stream::StreamExt;
 use hab::{cli::{self,
                 gateway_util,
-                hab::{svc::{self,
+                hab::{pkg::{ExportFormat as PkgExportFormat,
+                            Pkg},
+                      svc::{self,
                             BulkLoad as SvcBulkLoad,
                             Load as SvcLoad,
                             Svc},
@@ -182,6 +184,38 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                             return sub_svc_load(svc_load).await;
                         }
                         Svc::Update(svc_update) => return sub_svc_update(svc_update).await,
+                        _ => {
+                            // All other commands will be caught by the CLI parsing logic below.
+                        }
+                    }
+                }
+                Hab::Pkg(pkg) => {
+                    match pkg {
+                        Pkg::Export(export) => {
+                            // We must manually parse the export format and args. See the comment on
+                            // `impl ExportCommand` for more details.
+                            match export.format().unwrap_or_else(|e| e.exit()) {
+                                PkgExportFormat::Cf => {
+                                    return command::pkg::export::cf::start(ui, export.args()).await;
+                                }
+                                PkgExportFormat::Container => {
+                                    return command::pkg::export::container::start(ui, export.args()).await;
+                                }
+                                PkgExportFormat::Docker => {
+                                    ui.warn("'hab pkg export docker' is now aexport.args()d alias \
+                                             for 'hab pkg export container'. Please update your \
+                                             automation and processes accordingly."
+                                                                                   .to_string())?;
+                                    return command::pkg::export::container::start(ui, export.args()).await;
+                                }
+                                PkgExportFormat::Mesos => {
+                                    return command::pkg::export::mesos::start(ui, export.args()).await;
+                                }
+                                PkgExportFormat::Tar => {
+                                    return command::pkg::export::tar::start(ui, export.args()).await;
+                                }
+                            }
+                        }
                         _ => {
                             // All other commands will be caught by the CLI parsing logic below.
                         }
@@ -1502,22 +1536,6 @@ async fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
     let third = args.next().unwrap_or_default();
 
     match (first.as_str(), second.as_str(), third.as_str()) {
-        ("pkg", "export", "container") => {
-            command::pkg::export::container::start(ui, &args_after_first(4)).await
-        }
-        ("pkg", "export", "docker") => {
-            ui.warn("'hab pkg export docker' is now a deprecated alias for 'hab pkg \
-                             export container'. Please update your automation and processes \
-                             accordingly.".to_string())?;
-            command::pkg::export::container::start(ui, &args_after_first(4)).await
-        }
-        ("pkg", "export", "cf") => command::pkg::export::cf::start(ui, &args_after_first(4)).await,
-        ("pkg", "export", "tar") => {
-            command::pkg::export::tar::start(ui, &args_after_first(4)).await
-        }
-        ("pkg", "export", "mesos") => {
-            command::pkg::export::mesos::start(ui, &args_after_first(4)).await
-        }
         ("run", ..) => command::launcher::start(ui, &args_after_first(1)).await,
         ("stu", ..) | ("stud", ..) | ("studi", ..) | ("studio", ..) => {
             command::studio::enter::start(ui, &args_after_first(2)).await

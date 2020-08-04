@@ -1,7 +1,8 @@
 pub mod gateway_util;
 pub mod hab;
 
-use crate::{cli::hab::{sup::{Sup,
+use crate::{cli::hab::{pkg::ExportCommand,
+                       sup::{Sup,
                              SupRun},
                        svc::{BulkLoad as SvcBulkLoad,
                              Load as SvcLoad,
@@ -558,22 +559,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg ARGS: +takes_value +multiple
                     "Arguments to the command (ex: -l /tmp)")
             )
-            (@subcommand export =>
-                (about: "Exports the package to the specified format")
-                (aliases: &["exp"])
-                (@arg FORMAT: +required +takes_value
-                    "The export format (ex: cf, container, mesos, or tar)")
-                (@arg PKG_IDENT: +required +takes_value {valid_ident}
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2) or \
-                    filepath to a Habitat Artifact \
-                    (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-                (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                    "Specify an alternate Builder endpoint. If not specified, the value will \
-                     be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                     https://bldr.habitat.sh)")
-                (@arg CHANNEL: --channel -c +takes_value default_value[stable] env(ChannelIdent::ENVVAR)
-                    "Retrieve the package-to-export from the specified release channel")
-            )
+            (subcommand: ExportCommand::clap())
             (@subcommand hash =>
                 (about: "Generates a blake2b hashsum from a target at any given filepath")
                 (aliases: &["ha", "has"])

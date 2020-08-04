@@ -27,6 +27,7 @@ pub struct AuthToken {
 }
 
 #[derive(ConfigOpt, StructOpt, Deserialize)]
+#[configopt(derive(Serialize))]
 #[structopt(no_version)]
 #[allow(dead_code)]
 pub struct BldrUrl {

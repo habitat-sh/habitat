@@ -4,7 +4,7 @@ mod config;
 mod file;
 mod license;
 mod origin;
-mod pkg;
+pub mod pkg;
 mod plan;
 mod ring;
 mod studio;
