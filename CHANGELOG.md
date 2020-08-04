@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.109 -->
-## [1.6.109](https://github.com/habitat-sh/habitat/tree/1.6.109) (2020-08-04)
+<!-- latest_release 1.6.110 -->
+## [1.6.110](https://github.com/habitat-sh/habitat/tree/1.6.110) (2020-08-04)
 
 #### Merged Pull Requests
-- [CI] Ensure that kernel2 packages get build appropriately [#7854](https://github.com/habitat-sh/habitat/pull/7854) ([christophermaier](https://github.com/christophermaier))
+- fallback to superuser root if home path cannot be found during license search [#7853](https://github.com/habitat-sh/habitat/pull/7853) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -25,6 +25,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- fallback to superuser root if home path cannot be found during license search [#7853](https://github.com/habitat-sh/habitat/pull/7853) ([mwrock](https://github.com/mwrock)) <!-- 1.6.110 -->
 - [CI] Ensure that kernel2 packages get build appropriately [#7854](https://github.com/habitat-sh/habitat/pull/7854) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.109 -->
 - Add channel promotion datadog event [#7848](https://github.com/habitat-sh/habitat/pull/7848) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.108 -->
 - use win32 api and not env var for determining current user name [#7840](https://github.com/habitat-sh/habitat/pull/7840) ([mwrock](https://github.com/mwrock)) <!-- 1.6.107 -->
