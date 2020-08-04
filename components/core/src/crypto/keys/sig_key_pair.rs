@@ -96,6 +96,58 @@ try_from_path_buf_impl_for_key!(PublicOriginSigningKey);
 public_permissions!(PublicOriginSigningKey);
 
 ////////////////////////////////////////////////////////////////////////
+
+pub struct SecretOriginSigningKey {
+    inner: KeyPair<(), SigSecretKey>,
+    path:  PathBuf,
+}
+
+type Signature = Vec<u8>;
+
+impl SecretOriginSigningKey {
+    pub(crate) fn from_raw(name: String,
+                           revision: KeyRevision,
+                           secret: Option<SigSecretKey>)
+                           -> Self {
+        let inner = KeyPair::new(name, revision, None, secret);
+        let path = Path::new(&inner.name_with_rev()).with_extension(SECRET_SIG_KEY_SUFFIX);
+        Self { inner, path }
+    }
+
+    // Simple helper to deal with the indirection to the inner
+    // KeyPair struct. Not ultimately sure if this should be kept.
+    pub fn name_with_rev(&self) -> String { self.inner.name_with_rev() }
+
+    // TODO (CM): we should always have a secret
+    fn secret(&self) -> &SigSecretKey { self.inner.secret().unwrap() }
+
+    /// Takes the contents of the given file and returns a signature
+    /// based on this key.
+    pub fn sign<P>(&self, path: P) -> Result<Signature>
+        where P: AsRef<Path>
+    {
+        let hash = hash::hash_file(&path)?;
+        debug!("File hash for {} = {}", path.as_ref().display(), &hash);
+        Ok(sign::sign(&hash.as_bytes(), self.secret()))
+    }
+}
+
+impl AsRef<Path> for SecretOriginSigningKey {
+    fn as_ref(&self) -> &Path { &self.path }
+}
+
+impl KeyExtension for SecretOriginSigningKey {
+    const EXTENSION: &'static str = "sig.key"; // SECRET_SIG_KEY_SUFFIX;
+}
+
+from_str_impl_for_key!(SecretOriginSigningKey, SigSecretKey, SECRET_SIG_KEY_VERSION);
+
+try_from_path_buf_impl_for_key!(SecretOriginSigningKey);
+
+secret_permissions!(SecretOriginSigningKey);
+
+////////////////////////////////////////////////////////////////////////
+
 impl SigKeyPair {
     pub fn generate_pair_for_origin(name: &str) -> Self {
         let revision = KeyRevision::new();

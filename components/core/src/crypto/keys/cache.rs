@@ -1,6 +1,7 @@
 use super::ring_key::RingKey;
 use crate::{crypto::{hash,
-                     keys::{sig_key_pair::PublicOriginSigningKey,
+                     keys::{sig_key_pair::{PublicOriginSigningKey,
+                                           SecretOriginSigningKey},
                             KeyExtension,
                             NamedRevision,
                             Permissioned,
@@ -37,6 +38,10 @@ impl KeyCache {
         self.fetch_latest_revision::<RingKey>(name)
     }
 
+    pub fn latest_secret_origin_signing_key(&self, name: &str) -> Result<SecretOriginSigningKey> {
+        self.fetch_latest_revision::<SecretOriginSigningKey>(name)
+    }
+
     /// Attemt to retrieve the specified signing key from the cache,
     /// if it exists and is valid.
     pub fn public_signing_key(&self,
@@ -47,7 +52,8 @@ impl KeyCache {
 
     ////////////////////////////////////////////////////////////////////////
 
-    // TODO (CM): Turn this into Option<Result<K>>
+    // TODO (CM): Turn this into Option<Result<K>>; otherwise it
+    // assumes that there must be at least one version of the key present
     fn fetch_latest_revision<K>(&self, name: &str) -> Result<K>
         where K: KeyExtension + TryFrom<PathBuf, Error = Error>
     {
