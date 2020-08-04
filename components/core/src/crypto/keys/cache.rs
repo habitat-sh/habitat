@@ -1,6 +1,8 @@
 use super::ring_key::RingKey;
 use crate::{crypto::{hash,
-                     keys::{KeyExtension,
+                     keys::{sig_key_pair::PublicOriginSigningKey,
+                            KeyExtension,
+                            NamedRevision,
                             Permissioned,
                             ToKeyString}},
             error::{Error,
@@ -35,6 +37,14 @@ impl KeyCache {
         self.fetch_latest_revision::<RingKey>(name)
     }
 
+    /// Attemt to retrieve the specified signing key from the cache,
+    /// if it exists and is valid.
+    pub fn public_signing_key(&self,
+                              named_revision: &NamedRevision)
+                              -> Option<Result<PublicOriginSigningKey>> {
+        self.fetch_specific_revision::<PublicOriginSigningKey>(named_revision)
+    }
+
     ////////////////////////////////////////////////////////////////////////
 
     // TODO (CM): Turn this into Option<Result<K>>
@@ -49,6 +59,21 @@ impl KeyCache {
             }
         }
     }
+
+    /// Generic retrieval function to grab the key of the specified
+    /// type `K` identified by `named_revision`
+    fn fetch_specific_revision<K>(&self, named_revision: &NamedRevision) -> Option<Result<K>>
+        where K: KeyExtension + TryFrom<PathBuf, Error = Error>
+    {
+        let path_in_cache = self.0.join(named_revision.filename::<K>());
+        if path_in_cache.exists() {
+            Some(<K as TryFrom<PathBuf>>::try_from(path_in_cache))
+        } else {
+            None
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////
 
     /// Provides the path at which this file would be found in the
     /// cache, if it exists (or, alternatively, where it would be

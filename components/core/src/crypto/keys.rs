@@ -128,6 +128,19 @@ pub struct NamedRevision {
     revision: KeyRevision,
 }
 
+impl NamedRevision {
+    /// Returns the name of the file that would store the key of type `K`
+    /// identified by this name and revision.
+    ///
+    /// Note: this is only the filename, not the path to that file in
+    /// the key cache.
+    pub fn filename<K>(&self) -> PathBuf
+        where K: KeyExtension
+    {
+        PathBuf::from(self.to_string()).with_extension(K::extension())
+    }
+}
+
 impl FromStr for NamedRevision {
     type Err = Error;
 
