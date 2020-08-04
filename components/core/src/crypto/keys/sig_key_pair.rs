@@ -13,7 +13,9 @@ use super::{super::{hash,
             KeyType,
             PairType,
             TmpKeyfile};
-use crate::{crypto::keys::KeyExtension,
+use crate::{crypto::keys::{KeyExtension,
+                           KeyMaterial,
+                           ToKeyString},
             error::{Error,
                     Result}};
 use sodiumoxide::{crypto::{sign,
@@ -28,6 +30,22 @@ use std::{convert::TryFrom,
           str::FromStr};
 
 pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
+
+/// Given the name of an origin, generate a new signing key pair.
+///
+/// The resulting keys will need to be saved to a cache in order to
+/// persist.
+pub fn generate_signing_key_pair(origin_name: &str)
+                                 -> (PublicOriginSigningKey, SecretOriginSigningKey) {
+    let revision = KeyRevision::new();
+    let (pk, sk) = sign::gen_keypair();
+
+    let public =
+        PublicOriginSigningKey::from_raw(origin_name.to_string(), revision.clone(), Some(pk));
+    let secret =
+        SecretOriginSigningKey::from_raw(origin_name.to_string(), revision.clone(), Some(sk));
+    (public, secret)
+}
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -89,11 +107,17 @@ impl AsRef<Path> for PublicOriginSigningKey {
     fn as_ref(&self) -> &Path { &self.path }
 }
 
+impl KeyMaterial<SigPublicKey> for PublicOriginSigningKey {
+    fn key_material(&self) -> Option<&SigPublicKey> { self.inner.public.as_ref() }
+}
+
 from_str_impl_for_key!(PublicOriginSigningKey, SigPublicKey, PUBLIC_SIG_KEY_VERSION);
 
 try_from_path_buf_impl_for_key!(PublicOriginSigningKey);
 
 public_permissions!(PublicOriginSigningKey);
+
+to_key_string_impl_for_key!(PublicOriginSigningKey, PUBLIC_SIG_KEY_VERSION);
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -136,6 +160,10 @@ impl AsRef<Path> for SecretOriginSigningKey {
     fn as_ref(&self) -> &Path { &self.path }
 }
 
+impl KeyMaterial<SigSecretKey> for SecretOriginSigningKey {
+    fn key_material(&self) -> Option<&SigSecretKey> { self.inner.secret.as_ref() }
+}
+
 impl KeyExtension for SecretOriginSigningKey {
     const EXTENSION: &'static str = "sig.key"; // SECRET_SIG_KEY_SUFFIX;
 }
@@ -145,6 +173,8 @@ from_str_impl_for_key!(SecretOriginSigningKey, SigSecretKey, SECRET_SIG_KEY_VERS
 try_from_path_buf_impl_for_key!(SecretOriginSigningKey);
 
 secret_permissions!(SecretOriginSigningKey);
+
+to_key_string_impl_for_key!(SecretOriginSigningKey, SECRET_SIG_KEY_VERSION);
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -438,7 +468,8 @@ mod test {
     use super::{super::{super::test_support::*,
                         PairType},
                 KeyRevision,
-                SigKeyPair};
+                SigKeyPair,
+                *};
     use std::{fs::{self,
                    File},
               io::Read};
@@ -468,22 +499,10 @@ mod test {
     }
 
     #[test]
-    fn generated_origin_pair() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-
-        assert_eq!(pair.name, "unicorn");
-        assert!(pair.public().is_ok(),
-                "Generated pair should have a public key");
-        assert!(pair.secret().is_ok(),
-                "Generated pair should have a public key");
-        assert!(cache.path()
-                     .join(format!("{}.pub", pair.name_with_rev()))
-                     .exists());
-        assert!(cache.path()
-                     .join(format!("{}.sig.key", pair.name_with_rev()))
-                     .exists());
+    fn generated_signing_key_pair_has_consistent_naming() {
+        let (public, secret) = generate_signing_key_pair("unicorn");
+        assert_eq!(public.name_with_rev(), secret.name_with_rev());
+        assert!(public.name_with_rev().starts_with("unicorn-"));
     }
 
     #[test]

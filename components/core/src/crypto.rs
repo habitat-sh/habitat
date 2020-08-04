@@ -261,7 +261,10 @@ pub fn secure_eq<T, U>(t: T, u: U) -> bool
 
 #[cfg(test)]
 pub mod test_support {
-    use crate::{crypto::keys::KeyCache,
+    use crate::{crypto::keys::{sig_key_pair::{generate_signing_key_pair,
+                                              PublicOriginSigningKey,
+                                              SecretOriginSigningKey},
+                               KeyCache},
                 error as herror};
 
     use std::{fs::File,
@@ -315,4 +318,15 @@ pub mod test_support {
     }
 
     pub fn wait_1_sec() { thread::sleep(Duration::from_secs(1)); }
+
+    /// Create a new origin signing key pair and save both keys to the
+    /// cache. Returns the keys.
+    pub fn generate_origin_pair(name: &str,
+                                cache: &KeyCache)
+                                -> (PublicOriginSigningKey, SecretOriginSigningKey) {
+        let (public, secret) = generate_signing_key_pair(name);
+        cache.write_key(&public).unwrap();
+        cache.write_key(&secret).unwrap();
+        (public, secret)
+    }
 }
