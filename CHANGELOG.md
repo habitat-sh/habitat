@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.108 -->
-## [1.6.108](https://github.com/habitat-sh/habitat/tree/1.6.108) (2020-08-01)
+<!-- latest_release 1.6.109 -->
+## [1.6.109](https://github.com/habitat-sh/habitat/tree/1.6.109) (2020-08-04)
 
 #### Merged Pull Requests
-- Add channel promotion datadog event [#7848](https://github.com/habitat-sh/habitat/pull/7848) ([davidMcneil](https://github.com/davidMcneil))
+- [CI] Ensure that kernel2 packages get build appropriately [#7854](https://github.com/habitat-sh/habitat/pull/7854) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -25,6 +25,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- [CI] Ensure that kernel2 packages get build appropriately [#7854](https://github.com/habitat-sh/habitat/pull/7854) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.109 -->
 - Add channel promotion datadog event [#7848](https://github.com/habitat-sh/habitat/pull/7848) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.108 -->
 - use win32 api and not env var for determining current user name [#7840](https://github.com/habitat-sh/habitat/pull/7840) ([mwrock](https://github.com/mwrock)) <!-- 1.6.107 -->
 -  [CI] Pull Chef GPG key from Vault instead of S3 [#7852](https://github.com/habitat-sh/habitat/pull/7852) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.106 -->
