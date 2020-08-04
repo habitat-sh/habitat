@@ -32,8 +32,9 @@ use crate::{api_client::{self,
                  UIWriter}};
 use habitat_core::{self,
                    crypto::{artifact,
-                            keys::parse_name_with_rev,
-                            SigKeyPair},
+                            keys::{sig_key_pair::PublicOriginSigningKey,
+                                   KeyCache,
+                                   NamedRevision}},
                    fs::{cache_key_path,
                         pkg_install_path,
                         AtomicWriter,
@@ -863,23 +864,32 @@ impl<'a> InstallTask<'a> {
 
     async fn fetch_origin_key<T>(&self,
                                  ui: &mut T,
-                                 name_with_rev: &str,
+                                 named_revision: &NamedRevision,
                                  token: Option<&str>)
-                                 -> Result<()>
+                                 -> Result<PublicOriginSigningKey>
         where T: UIWriter
     {
         if self.is_offline() {
-            Err(Error::OfflineOriginKeyNotFound(name_with_rev.to_string()))
+            Err(Error::OfflineOriginKeyNotFound(named_revision.to_string()))
         } else {
             ui.status(Status::Downloading,
-                      format!("{} public origin key", &name_with_rev))?;
-            let (name, rev) = parse_name_with_rev(&name_with_rev)?;
+                      format!("{} public origin key", named_revision))?;
             self.api_client
-                .fetch_origin_key(&name, &rev, token, self.key_cache_path, ui.progress())
+                .fetch_origin_key(named_revision.name_as_str(),
+                                  named_revision.revision_as_str(),
+                                  token,
+                                  self.key_cache_path,
+                                  ui.progress())
                 .await?;
             ui.status(Status::Cached,
-                      format!("{} public origin key", &name_with_rev))?;
-            Ok(())
+                      format!("{} public origin key", &named_revision))?;
+
+            let cache = KeyCache::new(&self.key_cache_path);
+
+            match cache.public_signing_key(&named_revision) {
+                Some(Ok(key)) => Ok(key),
+                _ => unreachable!("we just fetched the key, so it should be good"),
+            }
         }
     }
 
@@ -951,13 +961,21 @@ impl<'a> InstallTask<'a> {
             )));
         }
 
-        let nwr = artifact::artifact_signer(&artifact.path)?;
-        if SigKeyPair::get_public_key_path(&nwr, self.key_cache_path).is_err() {
-            self.fetch_origin_key(ui, &nwr, token).await?;
-        }
+        let named_revision = artifact::artifact_signer(&artifact.path)?;
+        let cache = KeyCache::new(&self.key_cache_path);
+        // not calling setup because this cache is read-only
 
-        artifact.verify(&self.key_cache_path)?;
-        debug!("Verified {} signed by {}", ident, &nwr);
+        let _ = match cache.public_signing_key(&named_revision) {
+            Some(Ok(key)) => {
+                // OK, we have the key
+                key
+            }
+            _ => self.fetch_origin_key(ui, &named_revision, token).await?,
+        };
+
+        artifact::verify(&artifact.path, &cache)?;
+
+        debug!("Verified {} signed by {}", ident, named_revision);
         Ok(())
     }
 
