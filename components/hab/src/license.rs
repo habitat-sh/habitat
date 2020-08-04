@@ -133,8 +133,7 @@ fn user_license_root() -> PathBuf {
     if let Some(home) = dirs::home_dir() {
         home.join(".hab")
     } else {
-        panic!("No home directory available. Unable to find a suitable place to write a license \
-                file.");
+        superuser_license_root()
     }
 }
 
