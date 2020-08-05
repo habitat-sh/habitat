@@ -47,3 +47,13 @@ macro_rules! try_from_path_buf_impl_for_key {
         }
     };
 }
+
+/// Helper macro to create `AsRef<Path>` implementations for all our
+/// Keys. They should all have a `PathBuf`-typed `path` field.
+macro_rules! as_ref_path_impl_for_key {
+    ($t:ty) => {
+        impl std::convert::AsRef<std::path::Path> for $t {
+            fn as_ref(&self) -> &std::path::Path { &self.path }
+        }
+    };
+}

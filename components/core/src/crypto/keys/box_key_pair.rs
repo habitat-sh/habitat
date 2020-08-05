@@ -124,6 +124,8 @@ from_str_impl_for_key!(ServicePublicEncryptionKey);
 
 try_from_path_buf_impl_for_key!(ServicePublicEncryptionKey);
 
+as_ref_path_impl_for_key!(ServicePublicEncryptionKey);
+
 impl ServicePublicEncryptionKey {
     pub(crate) fn from_raw(name: String, revision: KeyRevision, key: BoxPublicKey) -> Self {
         let named_revision = NamedRevision::new(name, revision);
@@ -157,6 +159,8 @@ impl Key for ServiceSecretEncryptionKey {
 from_str_impl_for_key!(ServiceSecretEncryptionKey);
 
 try_from_path_buf_impl_for_key!(ServiceSecretEncryptionKey);
+
+as_ref_path_impl_for_key!(ServiceSecretEncryptionKey);
 
 impl ServiceSecretEncryptionKey {
     pub(crate) fn from_raw(name: String, revision: KeyRevision, key: BoxSecretKey) -> Self {
@@ -210,6 +214,8 @@ from_str_impl_for_key!(UserPublicEncryptionKey);
 
 try_from_path_buf_impl_for_key!(UserPublicEncryptionKey);
 
+as_ref_path_impl_for_key!(UserPublicEncryptionKey);
+
 impl UserPublicEncryptionKey {
     pub(crate) fn from_raw(name: String, revision: KeyRevision, key: BoxPublicKey) -> Self {
         let named_revision = NamedRevision::new(name, revision);
@@ -243,6 +249,8 @@ impl Key for UserSecretEncryptionKey {
 from_str_impl_for_key!(UserSecretEncryptionKey);
 
 try_from_path_buf_impl_for_key!(UserSecretEncryptionKey);
+
+as_ref_path_impl_for_key!(UserSecretEncryptionKey);
 
 impl UserSecretEncryptionKey {
     pub(crate) fn from_raw(name: String, revision: KeyRevision, key: BoxSecretKey) -> Self {
@@ -315,6 +323,8 @@ from_str_impl_for_key!(OriginPublicEncryptionKey);
 
 try_from_path_buf_impl_for_key!(OriginPublicEncryptionKey);
 
+as_ref_path_impl_for_key!(OriginPublicEncryptionKey);
+
 impl OriginPublicEncryptionKey {
     pub(crate) fn from_raw(name: String, revision: KeyRevision, key: BoxPublicKey) -> Self {
         let named_revision = NamedRevision::new(name, revision);
@@ -358,6 +368,8 @@ impl Key for OriginSecretEncryptionKey {
 from_str_impl_for_key!(OriginSecretEncryptionKey);
 
 try_from_path_buf_impl_for_key!(OriginSecretEncryptionKey);
+
+as_ref_path_impl_for_key!(OriginSecretEncryptionKey);
 
 impl OriginSecretEncryptionKey {
     pub(crate) fn from_raw(name: String, revision: KeyRevision, key: BoxSecretKey) -> Self {
