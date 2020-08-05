@@ -85,7 +85,7 @@ impl Default for LicenseAcceptance {
 }
 
 pub fn check_for_license_acceptance() -> Result<LicenseAcceptance> {
-    match (env_var_present()?, license_exists()) {
+    match (acceptance_from_env_var()?, license_exists()) {
         // The environment variable takes precedence regardless of the existence of the license
         // file
         (l @ LicenseAcceptance::Accepted, _) | (l @ LicenseAcceptance::Denied, _) => Ok(l),
@@ -174,7 +174,7 @@ fn writeable_license_path() -> PathBuf {
     license_path(&root_dir)
 }
 
-fn env_var_present() -> Result<LicenseAcceptance> {
+fn acceptance_from_env_var() -> Result<LicenseAcceptance> {
     match env::var(LICENSE_ACCEPT_ENVVAR) {
         Ok(val) => {
             if &val == "accept" {
