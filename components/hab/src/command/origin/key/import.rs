@@ -1,16 +1,30 @@
-use std::path::Path;
-
 use crate::{common::ui::{UIWriter,
                          UI},
-            hcore::crypto::SigKeyPair};
-
-use crate::error::Result;
+            error::Result};
+use habitat_core::{crypto::keys::{sig_key_pair::{PublicOriginSigningKey,
+                                                 SecretOriginSigningKey},
+                                  KeyCache},
+                   error::Error as CoreError};
+use std::path::Path;
 
 pub fn start(ui: &mut UI, content: &str, cache: &Path) -> Result<()> {
     ui.begin("Importing origin key from standard input")?;
-    let (pair, pair_type) = SigKeyPair::write_file_from_str(content, cache)?;
-    ui.end(format!("Imported {} origin key {}.",
-                   &pair_type,
-                   &pair.name_with_rev()))?;
-    Ok(())
+    let cache = KeyCache::new(cache);
+
+    // Yeah, this is a little gross
+    if let Ok(key) = content.parse::<PublicOriginSigningKey>() {
+        cache.write_key(&key)?;
+        ui.end(format!("Imported public origin key {}", &key.name_with_rev()))?;
+        Ok(())
+    } else if let Ok(key) = content.parse::<SecretOriginSigningKey>() {
+        cache.write_key(&key)?;
+        ui.end(format!("Imported secret origin key {}", &key.name_with_rev()))?;
+        Ok(())
+    } else {
+        // This is a LOT gross
+        Err(CoreError::CryptoError("Could not parse content as an \
+                                    public or secret origin signing \
+                                    key!"
+                                         .to_string()))?
+    }
 }

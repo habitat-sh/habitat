@@ -2,10 +2,8 @@ use super::ring_key::RingKey;
 use crate::{crypto::{hash,
                      keys::{sig_key_pair::{PublicOriginSigningKey,
                                            SecretOriginSigningKey},
-                            KeyExtension,
-                            NamedRevision,
-                            Permissioned,
-                            ToKeyString}},
+                            Key,
+                            NamedRevision}},
             error::{Error,
                     Result},
             fs::AtomicWriter};
@@ -36,7 +34,7 @@ impl KeyCache {
     /// done. If the file exists and it has *different* content, an
     /// Error is returned.
     pub fn write_key<K>(&self, key: &K) -> Result<()>
-        where K: AsRef<Path> + ToKeyString + Permissioned
+        where K: AsRef<Path> + Key
     {
         self.maybe_write_key(key)
     }
@@ -47,6 +45,10 @@ impl KeyCache {
     }
 
     pub fn latest_secret_origin_signing_key(&self, name: &str) -> Result<SecretOriginSigningKey> {
+        self.fetch_latest_revision::<SecretOriginSigningKey>(name)
+    }
+
+    pub fn latest_public_origin_signing_key(&self, name: &str) -> Result<SecretOriginSigningKey> {
         self.fetch_latest_revision::<SecretOriginSigningKey>(name)
     }
 
@@ -63,7 +65,7 @@ impl KeyCache {
     // TODO (CM): Turn this into Option<Result<K>>; otherwise it
     // assumes that there must be at least one version of the key present
     fn fetch_latest_revision<K>(&self, name: &str) -> Result<K>
-        where K: KeyExtension + TryFrom<PathBuf, Error = Error>
+        where K: Key + TryFrom<PathBuf, Error = Error>
     {
         match self.get_latest_path_for(name, K::extension())? {
             Some(path) => <K as TryFrom<PathBuf>>::try_from(path),
@@ -77,7 +79,7 @@ impl KeyCache {
     /// Generic retrieval function to grab the key of the specified
     /// type `K` identified by `named_revision`
     fn fetch_specific_revision<K>(&self, named_revision: &NamedRevision) -> Option<Result<K>>
-        where K: KeyExtension + TryFrom<PathBuf, Error = Error>
+        where K: Key + TryFrom<PathBuf, Error = Error>
     {
         let path_in_cache = self.0.join(named_revision.filename::<K>());
         if path_in_cache.exists() {
@@ -99,10 +101,10 @@ impl KeyCache {
     }
 
     fn maybe_write_key<K>(&self, key: &K) -> Result<()>
-        where K: AsRef<Path> + ToKeyString + Permissioned
+        where K: AsRef<Path> + Key
     {
         let keyfile = self.path_in_cache(&key);
-        let content = key.to_key_string()?;
+        let content = key.to_key_string();
 
         if keyfile.is_file() {
             let existing_hash = hash::hash_file(&keyfile)?;
