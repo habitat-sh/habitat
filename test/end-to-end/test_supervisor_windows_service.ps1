@@ -35,6 +35,7 @@ Describe "Habitat Windows Service" {
 
         AfterAll {
             hab svc unload core/nginx
+            Start-Sleep -Seconds 3 # tears
             Stop-Service Habitat
         }
     }
