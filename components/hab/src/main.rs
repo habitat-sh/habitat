@@ -1313,16 +1313,19 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     }
     validate.cfg = Some(buf.clone());
     let cache = cache_key_path_from_matches(&m);
+    let cache = KeyCache::new(cache);
+
     let mut set = sup_proto::ctl::SvcSetCfg::default();
     match (service_group.org(), user_param_or_env(&m)) {
         (Some(_org), Some(username)) => {
-            let user_pair = BoxKeyPair::get_latest_pair_for(username, &cache)?;
-            let service_pair = BoxKeyPair::get_latest_pair_for(&service_group, &cache)?;
+            let user_key = cache.latest_user_secret_key(&username)?;
+            let service_key = cache.latest_service_public_key(&service_group)?;
             ui.status(Status::Encrypting,
                       format!("TOML as {} for {}",
-                              user_pair.name_with_rev(),
-                              service_pair.name_with_rev()))?;
-            set.cfg = Some(user_pair.encrypt(&buf, Some(&service_pair))?.into_bytes());
+                              user_key.named_revision(),
+                              service_key.named_revision()))?;
+            set.cfg = Some(user_key.encrypt_for_service(&buf, &service_key)
+                                   .into_bytes());
             set.is_encrypted = Some(true);
         }
         _ => set.cfg = Some(buf.to_vec()),
