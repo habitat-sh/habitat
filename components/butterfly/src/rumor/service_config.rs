@@ -12,8 +12,8 @@ use crate::{error::{Error,
                     Rumor,
                     RumorPayload,
                     RumorType}};
-use habitat_core::{crypto::{keys::box_key_pair::WrappedSealedBox,
-                            BoxKeyPair},
+use habitat_core::{crypto::keys::box_key_pair::{BoxKeyPair,
+                                                WrappedSealedBox},
                    service::ServiceGroup};
 use std::{cmp::Ordering,
           fmt,
@@ -68,13 +68,6 @@ impl ServiceConfig {
                         incarnation: 0,
                         encrypted: false,
                         config }
-    }
-
-    pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
-        self.config = user_pair.encrypt(&self.config, Some(service_pair))?
-                               .into_bytes();
-        self.encrypted = true;
-        Ok(())
     }
 
     pub fn config(&self, cache_key_path: &Path) -> Result<toml::value::Table> {

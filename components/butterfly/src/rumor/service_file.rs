@@ -11,8 +11,8 @@ use crate::{error::{Error,
             rumor::{Rumor,
                     RumorPayload,
                     RumorType}};
-use habitat_core::{crypto::{keys::box_key_pair::WrappedSealedBox,
-                            BoxKeyPair},
+use habitat_core::{crypto::keys::box_key_pair::{BoxKeyPair,
+                                                WrappedSealedBox},
                    service::ServiceGroup};
 use std::{cmp::Ordering,
           fmt,
@@ -74,14 +74,6 @@ impl ServiceFile {
                       encrypted: false,
                       filename: filename.into(),
                       body }
-    }
-
-    /// Encrypt the contents of the service file
-    pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
-        self.body = user_pair.encrypt(&self.body, Some(service_pair))?
-                             .into_bytes();
-        self.encrypted = true;
-        Ok(())
     }
 
     /// Return the body of the service file as a stream of bytes. Always returns a new copy, due to
