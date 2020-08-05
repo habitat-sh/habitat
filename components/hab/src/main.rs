@@ -195,23 +195,23 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                             // We must manually parse the export format and args. See the comment on
                             // `impl ExportCommand` for more details.
                             match export.format().unwrap_or_else(|e| e.exit()) {
-                                PkgExportFormat::Cf => {
+                                PkgExportFormat::Cf(_) => {
                                     return command::pkg::export::cf::start(ui, export.args()).await;
                                 }
-                                PkgExportFormat::Container => {
+                                PkgExportFormat::Container(_) => {
                                     return command::pkg::export::container::start(ui, export.args()).await;
                                 }
-                                PkgExportFormat::Docker => {
-                                    ui.warn("'hab pkg export docker' is now aexport.args()d alias \
+                                PkgExportFormat::Docker(_) => {
+                                    ui.warn("'hab pkg export docker' is now a deprecated alias \
                                              for 'hab pkg export container'. Please update your \
                                              automation and processes accordingly."
                                                                                    .to_string())?;
                                     return command::pkg::export::container::start(ui, export.args()).await;
                                 }
-                                PkgExportFormat::Mesos => {
+                                PkgExportFormat::Mesos(_) => {
                                     return command::pkg::export::mesos::start(ui, export.args()).await;
                                 }
-                                PkgExportFormat::Tar => {
+                                PkgExportFormat::Tar(_) => {
                                     return command::pkg::export::tar::start(ui, export.args()).await;
                                 }
                             }

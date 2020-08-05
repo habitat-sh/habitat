@@ -25,7 +25,10 @@ use habitat_core::{env::Config,
                              PackageTarget},
                    ChannelIdent};
 use std::{ffi::OsString,
-          path::PathBuf};
+          fmt::{self,
+                Display},
+          path::PathBuf,
+          str::FromStr};
 use structopt::{clap::{AppSettings,
                        ArgGroup},
                 StructOpt};
@@ -479,16 +482,73 @@ impl ExportCommand {
     }
 }
 
-arg_enum! {
-    pub enum ExportFormat {
-        Cf,
-        Container,
-        Docker,
-        Mesos,
-        Tar,
-    }
+/// This struct can only be constructed within this module because it has a private field. All
+/// `ExportFormat` variants contain an instance of this types. This effectively "seals" construction
+/// of `ExportFormat` to this module. Construction should only happen in `FromStr` which uses
+/// conditional compilation to only allow constructing platform supported `ExportFormat`s. By
+/// "sealing" construction of this enum we avoid the need to litter conditional compilation wherever
+/// `ExportFormat` is used.
+pub struct SealedExportFormat(());
+
+pub enum ExportFormat {
+    Cf(SealedExportFormat),
+    Container(SealedExportFormat),
+    Docker(SealedExportFormat),
+    Mesos(SealedExportFormat),
+    Tar(SealedExportFormat),
 }
 
 impl ExportFormat {
-    fn possible_values() -> String { ExportFormat::variants().join(", ") }
+    const ALL_FORMATS: &'static [&'static str] = &[Self::CF,
+                                                   Self::CONTAINER,
+                                                   Self::DOCKER,
+                                                   Self::MESOS,
+                                                   Self::TAR];
+    const CF: &'static str = "cf";
+    const CONTAINER: &'static str = "container";
+    const DOCKER: &'static str = "docker";
+    const MESOS: &'static str = "mesos";
+    const TAR: &'static str = "tar";
+
+    fn possible_values() -> String {
+        // Filter formats that are not supported by the current platform
+        let platform_supported_formats =
+            Self::ALL_FORMATS.iter()
+                             .filter(|format| ExportFormat::from_str(format).is_ok())
+                             .copied()
+                             .collect::<Vec<_>>();
+        platform_supported_formats.join(", ")
+    }
+}
+
+impl Display for ExportFormat {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Cf(_) => write!(f, "{}", Self::CF),
+            Self::Container(_) => write!(f, "{}", Self::CONTAINER),
+            Self::Docker(_) => write!(f, "{}", Self::DOCKER),
+            Self::Mesos(_) => write!(f, "{}", Self::MESOS),
+            Self::Tar(_) => write!(f, "{}", Self::TAR),
+        }
+    }
+}
+
+impl FromStr for ExportFormat {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            #[cfg(any(target_os = "linux", target_os = "windows"))]
+            Self::CF => Ok(Self::Cf(SealedExportFormat(()))),
+            #[cfg(any(target_os = "linux", target_os = "windows"))]
+            Self::CONTAINER => Ok(Self::Container(SealedExportFormat(()))),
+            #[cfg(any(target_os = "linux", target_os = "windows"))]
+            Self::DOCKER => Ok(Self::Docker(SealedExportFormat(()))),
+            #[cfg(target_os = "linux")]
+            Self::MESOS => Ok(Self::Mesos(SealedExportFormat(()))),
+            #[cfg(any(target_os = "linux", target_os = "windows"))]
+            Self::TAR => Ok(Self::Tar(SealedExportFormat(()))),
+            _ => Err(String::from(s)),
+        }
+    }
 }
