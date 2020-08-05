@@ -8,14 +8,13 @@ use super::{super::{hash,
             parse_name_with_rev,
             write_keypair_files,
             HabitatKey,
+            Key,
             KeyPair,
             KeyRevision,
             KeyType,
             PairType,
             TmpKeyfile};
-use crate::{crypto::keys::{KeyExtension,
-                           KeyMaterial,
-                           ToKeyString},
+use crate::{crypto::keys::NamedRevision,
             error::{Error,
                     Result}};
 use sodiumoxide::{crypto::{sign,
@@ -40,39 +39,44 @@ pub fn generate_signing_key_pair(origin_name: &str)
     let revision = KeyRevision::new();
     let (pk, sk) = sign::gen_keypair();
 
-    let public =
-        PublicOriginSigningKey::from_raw(origin_name.to_string(), revision.clone(), Some(pk));
-    let secret =
-        SecretOriginSigningKey::from_raw(origin_name.to_string(), revision.clone(), Some(sk));
+    let public = PublicOriginSigningKey::from_raw(origin_name.to_string(), revision.clone(), pk);
+    let secret = SecretOriginSigningKey::from_raw(origin_name.to_string(), revision.clone(), sk);
     (public, secret)
 }
 
 ////////////////////////////////////////////////////////////////////////
 
 pub struct PublicOriginSigningKey {
-    inner: KeyPair<SigPublicKey, ()>,
-    path:  PathBuf,
+    named_revision: NamedRevision,
+    key:            SigPublicKey,
+    path:           PathBuf,
 }
 
-impl KeyExtension for PublicOriginSigningKey {
-    const EXTENSION: &'static str = "pub"; // PUBLIC_KEY_SUFFIX;
+impl Key for PublicOriginSigningKey {
+    type Crypto = SigPublicKey;
+
+    // PUBLIC_KEY_SUFFIX;
+    const EXTENSION: &'static str = "pub";
+    const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS;
+    const VERSION_STRING: &'static str = PUBLIC_SIG_KEY_VERSION;
+
+    fn key(&self) -> &SigPublicKey { &self.key }
+
+    fn named_revision(&self) -> &NamedRevision { &self.named_revision }
 }
 
 impl PublicOriginSigningKey {
-    pub(crate) fn from_raw(name: String,
-                           revision: KeyRevision,
-                           public: Option<SigPublicKey>)
-                           -> Self {
-        let inner = KeyPair::new(name, revision, public, None);
-        let path = Path::new(&inner.name_with_rev()).with_extension(PUBLIC_KEY_SUFFIX);
-        Self { inner, path }
+    pub(crate) fn from_raw(name: String, revision: KeyRevision, key: SigPublicKey) -> Self {
+        let named_revision = NamedRevision::new(name, revision);
+        let path = named_revision.filename::<Self>();
+        Self { named_revision,
+               key,
+               path }
     }
-
-    pub fn public(&self) -> Result<&SigPublicKey> { self.inner.public() }
 
     // Simple helper to deal with the indirection to the inner
     // KeyPair struct. Not ultimately sure if this should be kept.
-    pub fn name_with_rev(&self) -> String { self.inner.name_with_rev() }
+    pub fn name_with_rev(&self) -> String { self.named_revision.to_string() }
 
     /// Accept a signature and the bytes for the signed content to be
     /// verified. Returns the named revision of the key as well as the
@@ -80,7 +84,7 @@ impl PublicOriginSigningKey {
     // TODO (CM): Result should be NamedRevision, String
     pub fn verify(&self, signature: &[u8], content: &mut dyn Read) -> Result<(String, String)> {
         // TODO (CM): we should always have a public key here, by definition.
-        let expected_hash = match sign::verify(signature, self.public()?) {
+        let expected_hash = match sign::verify(signature, &self.key) {
             Ok(signed_data) => {
                 String::from_utf8(signed_data).map_err(|_| {
                                                   Error::CryptoError("Error parsing artifact \
@@ -107,43 +111,45 @@ impl AsRef<Path> for PublicOriginSigningKey {
     fn as_ref(&self) -> &Path { &self.path }
 }
 
-impl KeyMaterial<SigPublicKey> for PublicOriginSigningKey {
-    fn key_material(&self) -> Option<&SigPublicKey> { self.inner.public.as_ref() }
-}
-
-from_str_impl_for_key!(PublicOriginSigningKey, SigPublicKey, PUBLIC_SIG_KEY_VERSION);
+from_str_impl_for_key!(PublicOriginSigningKey);
 
 try_from_path_buf_impl_for_key!(PublicOriginSigningKey);
-
-public_permissions!(PublicOriginSigningKey);
-
-to_key_string_impl_for_key!(PublicOriginSigningKey, PUBLIC_SIG_KEY_VERSION);
 
 ////////////////////////////////////////////////////////////////////////
 
 pub struct SecretOriginSigningKey {
-    inner: KeyPair<(), SigSecretKey>,
-    path:  PathBuf,
+    named_revision: NamedRevision,
+    key:            SigSecretKey,
+    path:           PathBuf,
+}
+
+impl Key for SecretOriginSigningKey {
+    type Crypto = SigSecretKey;
+
+    // SECRET_SIG_KEY_SUFFIX;
+    const EXTENSION: &'static str = "sig.key";
+    const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS;
+    const VERSION_STRING: &'static str = SECRET_SIG_KEY_VERSION;
+
+    fn key(&self) -> &SigSecretKey { &self.key }
+
+    fn named_revision(&self) -> &NamedRevision { &self.named_revision }
 }
 
 type Signature = Vec<u8>;
 
 impl SecretOriginSigningKey {
-    pub(crate) fn from_raw(name: String,
-                           revision: KeyRevision,
-                           secret: Option<SigSecretKey>)
-                           -> Self {
-        let inner = KeyPair::new(name, revision, None, secret);
-        let path = Path::new(&inner.name_with_rev()).with_extension(SECRET_SIG_KEY_SUFFIX);
-        Self { inner, path }
+    pub(crate) fn from_raw(name: String, revision: KeyRevision, key: SigSecretKey) -> Self {
+        let named_revision = NamedRevision::new(name, revision);
+        let path = named_revision.filename::<Self>();
+        Self { named_revision,
+               key,
+               path }
     }
 
     // Simple helper to deal with the indirection to the inner
     // KeyPair struct. Not ultimately sure if this should be kept.
-    pub fn name_with_rev(&self) -> String { self.inner.name_with_rev() }
-
-    // TODO (CM): we should always have a secret
-    fn secret(&self) -> &SigSecretKey { self.inner.secret().unwrap() }
+    pub fn name_with_rev(&self) -> String { self.named_revision.to_string() }
 
     /// Takes the contents of the given file and returns a signature
     /// based on this key.
@@ -152,7 +158,7 @@ impl SecretOriginSigningKey {
     {
         let hash = hash::hash_file(&path)?;
         debug!("File hash for {} = {}", path.as_ref().display(), &hash);
-        Ok(sign::sign(&hash.as_bytes(), self.secret()))
+        Ok(sign::sign(&hash.as_bytes(), &self.key))
     }
 }
 
@@ -160,25 +166,16 @@ impl AsRef<Path> for SecretOriginSigningKey {
     fn as_ref(&self) -> &Path { &self.path }
 }
 
-impl KeyMaterial<SigSecretKey> for SecretOriginSigningKey {
-    fn key_material(&self) -> Option<&SigSecretKey> { self.inner.secret.as_ref() }
-}
-
-impl KeyExtension for SecretOriginSigningKey {
-    const EXTENSION: &'static str = "sig.key"; // SECRET_SIG_KEY_SUFFIX;
-}
-
-from_str_impl_for_key!(SecretOriginSigningKey, SigSecretKey, SECRET_SIG_KEY_VERSION);
+from_str_impl_for_key!(SecretOriginSigningKey);
 
 try_from_path_buf_impl_for_key!(SecretOriginSigningKey);
 
-secret_permissions!(SecretOriginSigningKey);
-
-to_key_string_impl_for_key!(SecretOriginSigningKey, SECRET_SIG_KEY_VERSION);
-
+////////////////////////////////////////////////////////////////////////
+// OLD STUFF BELOW!
 ////////////////////////////////////////////////////////////////////////
 
 impl SigKeyPair {
+    //    #[cfg(test)]
     pub fn generate_pair_for_origin(name: &str) -> Self {
         let revision = KeyRevision::new();
         let (pk, sk) = sign::gen_keypair();

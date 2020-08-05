@@ -7,7 +7,8 @@ use super::{PUBLIC_BOX_KEY_VERSION,
             SECRET_SIG_KEY_VERSION,
             SECRET_SYM_KEY_SUFFIX,
             SECRET_SYM_KEY_VERSION};
-use crate::{error::{Error,
+use crate::{crypto::keys::util::FromSlice,
+            error::{Error,
                     Result},
             fs::{Permissions,
                  DEFAULT_PUBLIC_KEY_PERMISSIONS,
@@ -112,12 +113,79 @@ impl Drop for TmpKeyfile {
 
 ////////////////////////////////////////////////////////////////////////
 
-pub trait KeyExtension {
+pub trait Key {
     const EXTENSION: &'static str;
+    const VERSION_STRING: &'static str;
+    const PERMISSIONS: Permissions;
+
+    type Crypto: FromSlice<Self::Crypto> + AsRef<[u8]>;
 
     /// Returns the permissions with which an item should be written
     /// to the filesystem.
     fn extension() -> &'static str { Self::EXTENSION }
+
+    /// Get a reference to the underlying bytes of actual
+    /// cryptographic material.
+    fn key(&self) -> &Self::Crypto;
+
+    fn named_revision(&self) -> &NamedRevision;
+
+    /// Returns what should be the contents of a file when rendering a
+    /// key out to a file on disk.
+    ///
+    /// While one *could* just use `ToString` / `Display`, that choice
+    /// could be a little dangerous, considering the fact that the
+    /// content of private keys should never potentially make it into
+    /// logging or other output.
+    fn to_key_string(&self) -> String {
+        let k = self.key();
+        format!("{}\n{}\n\n{}",
+                Self::VERSION_STRING,
+                self.named_revision(),
+                &base64::encode(k))
+    }
+
+    /// Returns the permissions with which an item should be written
+    /// to the filesystem.
+    fn permissions() -> Permissions { Self::PERMISSIONS }
+
+    /// This is the core logic that underpins the FromStr
+    /// implementation for all the keys. See the
+    /// `from_str_impl_for_key!` macro for how it gets put into
+    /// practice.
+    fn parse_from_str(content: &str) -> Result<(String, KeyRevision, Self::Crypto)> {
+        let mut lines = content.lines();
+
+        lines.next()
+             .ok_or_else(|| Error::CryptoError("Missing key version".to_string()))
+             .map(|line| {
+                 if line == Self::VERSION_STRING {
+                     Ok(())
+                 } else {
+                     Err(Error::CryptoError(format!("Unsupported key version: {}", line)))
+                 }
+             })??;
+
+        let named_revision: NamedRevision =
+            lines.next()
+                 .ok_or_else(|| Error::CryptoError("Missing name+revision".to_string()))
+                 .map(str::parse)??;
+
+        let key: Self::Crypto =
+            lines.nth(1) // skip a blank line!
+                      .ok_or_else(|| Error::CryptoError("Missing key material".to_string()))
+                      .map(str::trim)
+                      .map(base64::decode)?
+                      .map_err(|_| Error::CryptoError("Invalid base64 key material".to_string()))
+                      .map(|b| Self::Crypto::from_slice(&b))?
+                      .ok_or_else(|| {
+                          Error::CryptoError(format!("Could not parse bytes as key for {}",
+                                                     named_revision))
+                      })?;
+
+        let (name, revision) = named_revision.into();
+        Ok((name, revision, key))
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -129,6 +197,8 @@ pub struct NamedRevision {
 }
 
 impl NamedRevision {
+    pub fn new(name: String, revision: KeyRevision) -> Self { NamedRevision { name, revision } }
+
     pub fn name_as_str(&self) -> &str { &self.name }
 
     pub fn revision_as_str(&self) -> &str { &self.revision }
@@ -139,7 +209,7 @@ impl NamedRevision {
     /// Note: this is only the filename, not the path to that file in
     /// the key cache.
     pub fn filename<K>(&self) -> PathBuf
-        where K: KeyExtension
+        where K: Key
     {
         PathBuf::from(self.to_string()).with_extension(K::extension())
     }
@@ -190,50 +260,6 @@ impl fmt::Display for NamedRevision {
 // struct, which I don't want right now.
 impl Into<(String, KeyRevision)> for NamedRevision {
     fn into(self) -> (String, KeyRevision) { (self.name, self.revision) }
-}
-
-////////////////////////////////////////////////////////////////////////
-
-pub trait ToKeyString {
-    /// Returns what should be the contents of a file when rendering a
-    /// key out to a file on disk.
-    ///
-    /// While one *could* just use `ToString` / `Display`, that choice
-    /// could be a little dangerous, considering the fact that the
-    /// content of private keys should never potentially make it into
-    /// logging or other output.
-    ///
-    /// Currently returns a `Result` because our key types don't make
-    /// a clear distinction at the type level between the concept of a
-    /// key in general (i.e., the identifier of a key), and the
-    /// concrete presence of that key on a system (i.e., access to
-    /// public and/or private key material). Future refactoring may
-    /// clarify this distinction, at which point we may be able to
-    /// return a simple `String` from this method.
-    fn to_key_string(&self) -> Result<String>;
-}
-
-////////////////////////////////////////////////////////////////////////
-
-/// Provide a unified way to get at the actual cryptographic key
-/// material of a specific key.
-///
-/// This should only be needed to help bridge the gap while we're
-/// still relying on the old `KeyPair` abstraction. In the new
-/// formulation, each key struct will only deal with a single kind of
-/// key (public or secret), and not potentially both.
-pub(crate) trait KeyMaterial<T> {
-    fn key_material(&self) -> Option<&T>;
-}
-
-////////////////////////////////////////////////////////////////////////
-
-pub trait Permissioned {
-    const PERMISSIONS: Permissions;
-
-    /// Returns the permissions with which an item should be written
-    /// to the filesystem.
-    fn permissions() -> Permissions { Self::PERMISSIONS }
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -1050,7 +1076,7 @@ mod test {
 
         let key_name = format!("{}.sym.key", key.name_with_rev());
         let key_path = temp_dir.path().join(&key_name);
-        fs::write(&key_path, key.to_key_string().unwrap()).unwrap();
+        fs::write(&key_path, key.to_key_string()).unwrap();
 
         // Create a directory in our temp directory; this will serve
         // as the cache directory in which we look for keys.
@@ -1192,7 +1218,7 @@ mod test {
     // keys).
     fn key_file(key_type: KeyType, name: &str) -> tempfile::NamedTempFile {
         let content = match key_type {
-            KeyType::Sym => RingKey::new(name).to_key_string().unwrap(),
+            KeyType::Sym => RingKey::new(name).to_key_string(),
             KeyType::Sig => {
                 SigKeyPair::generate_pair_for_origin(name).to_secret_string()
                                                           .unwrap()

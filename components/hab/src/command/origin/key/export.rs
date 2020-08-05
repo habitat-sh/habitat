@@ -1,22 +1,25 @@
-use std::{fs::File,
-          io,
+use crate::error::Result;
+use habitat_core::crypto::keys::{Key,
+                                 KeyCache,
+                                 PairType};
+use std::{io,
+          io::Write,
           path::Path};
 
-use crate::hcore::crypto::{keys::PairType,
-                           SigKeyPair};
-
-use crate::error::Result;
-
 pub fn start(origin: &str, pair_type: PairType, cache: &Path) -> Result<()> {
-    let latest = SigKeyPair::get_latest_pair_for(origin, cache, Some(pair_type))?;
-    let path = match pair_type {
-        PairType::Public => SigKeyPair::get_public_key_path(&latest.name_with_rev(), cache)?,
-        PairType::Secret => SigKeyPair::get_secret_key_path(&latest.name_with_rev(), cache)?,
+    let cache = KeyCache::new(cache);
+
+    let key = match pair_type {
+        PairType::Public => cache.latest_public_origin_signing_key(origin)?,
+        PairType::Secret => cache.latest_secret_origin_signing_key(origin)?,
     };
-    let mut file = File::open(&path)?;
-    debug!("Streaming file contents of {} {} to standard out",
-           pair_type,
-           path.display());
-    io::copy(&mut file, &mut io::stdout())?;
+
+    // debug!("Streaming file contents of {} {} to standard out",
+    //        pair_type,
+    //        path.display());
+
+    let contents = key.to_key_string();
+    io::stdout().write_all(contents.as_bytes())?;
+
     Ok(())
 }

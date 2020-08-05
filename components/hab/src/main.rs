@@ -65,8 +65,7 @@ use habitat_common::{self as common,
 use habitat_core::{crypto::{init,
                             keys::{KeyCache,
                                    PairType},
-                            BoxKeyPair,
-                            SigKeyPair},
+                            BoxKeyPair},
                    env::{self as henv,
                          Config as _},
                    fs::{cache_artifact_path,
@@ -782,10 +781,11 @@ async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
         Some(keys) => {
             init()?;
             let cache_key_path = cache_key_path_from_matches(&m);
-            for key in keys.clone() {
+            let cache = KeyCache::new(cache_key_path);
+
+            for key_name in keys.clone() {
                 // Validate that all secret keys are present
-                let pair = SigKeyPair::get_latest_pair_for(key, &cache_key_path, None)?;
-                let _ = pair.secret();
+                cache.latest_secret_origin_signing_key(key_name)?;
             }
             Some(keys.collect::<Vec<_>>().join(","))
         }

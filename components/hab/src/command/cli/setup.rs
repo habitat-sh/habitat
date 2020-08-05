@@ -10,7 +10,7 @@ use crate::{common::cli::DEFAULT_BINLINK_DIR,
 use crate::{common::ui::{UIReader,
                          UIWriter,
                          UI},
-            hcore::{crypto::SigKeyPair,
+            hcore::{crypto::keys::KeyCache,
                     env as henv,
                     package::ident,
                     Error::InvalidOrigin}};
@@ -241,15 +241,8 @@ fn write_cli_config_ctl_secret(value: &str) -> Result<()> {
 }
 
 fn is_origin_in_cache(origin: &str, cache_path: &Path) -> bool {
-    match SigKeyPair::get_latest_pair_for(origin, cache_path, None) {
-        Ok(pair) => {
-            match pair.secret() {
-                Ok(_) => true,
-                _ => false,
-            }
-        }
-        _ => false,
-    }
+    let cache = KeyCache::new(cache_path);
+    cache.latest_secret_origin_signing_key(origin).is_ok()
 }
 
 fn create_origin(ui: &mut UI, origin: &str, cache_path: &Path) -> Result<()> {
