@@ -8,8 +8,9 @@ use sodiumoxide::crypto::secretbox::{self,
                                      Key as SymSecretKey};
 use std::{fmt,
           path::{Path,
-                 PathBuf},
-          str::FromStr};
+                 PathBuf}};
+
+from_slice_impl_for_sodiumoxide_key!(SymSecretKey);
 
 #[derive(Clone, PartialEq)]
 pub struct RingKey {

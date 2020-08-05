@@ -8,30 +8,22 @@
 pub trait FromSlice<T> {
     fn from_slice(bytes: &[u8]) -> Option<T>;
 }
+/// Helper macro to generates `FromSlice` implementations for our
+/// sodiumoxide key types, which are needed as an implementation
+/// detail for our `FromStr` implementation.
+macro_rules! from_slice_impl_for_sodiumoxide_key {
+    ($t:ty) => {
+        impl crate::crypto::keys::util::FromSlice<$t> for $t {
+            fn from_slice(bytes: &[u8]) -> Option<$t> { <$t>::from_slice(bytes) }
+        }
+    };
+}
 
 /// Helper macro to generate FromStr implementations for our key
 /// types.
-///
-/// This also generates `FromSlice` implementations as well, since
-/// that can be thought of as a `FromStr` implementation detail for
-/// us.
-///
-/// `t` is our Habitat key type.
-///
-/// `sodiumoxide_key` is the key type from the sodiumoxide library
-/// that `t` wraps.
-///
-/// `version_string` is the content of the first line of a valid file
-/// for `t`.
 macro_rules! from_str_impl_for_key {
     ($t:ty) => {
-        impl crate::crypto::keys::util::FromSlice<<$t as Key>::Crypto> for <$t as Key>::Crypto {
-            fn from_slice(bytes: &[u8]) -> Option<<$t as Key>::Crypto> {
-                <$t as Key>::Crypto::from_slice(bytes)
-            }
-        }
-
-        impl FromStr for $t {
+        impl std::str::FromStr for $t {
             type Err = Error;
 
             fn from_str(content: &str) -> std::result::Result<Self, Self::Err> {

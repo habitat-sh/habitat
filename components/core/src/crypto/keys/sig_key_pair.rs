@@ -25,8 +25,10 @@ use std::{convert::TryFrom,
           fs,
           io::Read,
           path::{Path,
-                 PathBuf},
-          str::FromStr};
+                 PathBuf}};
+
+from_slice_impl_for_sodiumoxide_key!(SigPublicKey);
+from_slice_impl_for_sodiumoxide_key!(SigSecretKey);
 
 pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
 
