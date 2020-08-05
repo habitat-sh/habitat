@@ -109,13 +109,11 @@ impl PublicOriginSigningKey {
     }
 }
 
-impl AsRef<Path> for PublicOriginSigningKey {
-    fn as_ref(&self) -> &Path { &self.path }
-}
-
 from_str_impl_for_key!(PublicOriginSigningKey);
 
 try_from_path_buf_impl_for_key!(PublicOriginSigningKey);
+
+as_ref_path_impl_for_key!(PublicOriginSigningKey);
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -164,13 +162,11 @@ impl SecretOriginSigningKey {
     }
 }
 
-impl AsRef<Path> for SecretOriginSigningKey {
-    fn as_ref(&self) -> &Path { &self.path }
-}
-
 from_str_impl_for_key!(SecretOriginSigningKey);
 
 try_from_path_buf_impl_for_key!(SecretOriginSigningKey);
+
+as_ref_path_impl_for_key!(SecretOriginSigningKey);
 
 ////////////////////////////////////////////////////////////////////////
 // OLD STUFF BELOW!

@@ -7,8 +7,7 @@ use crate::{crypto::{keys::{Key,
 use sodiumoxide::crypto::secretbox::{self,
                                      Key as SymSecretKey};
 use std::{fmt,
-          path::{Path,
-                 PathBuf}};
+          path::PathBuf};
 
 from_slice_impl_for_sodiumoxide_key!(SymSecretKey);
 
@@ -37,6 +36,7 @@ from_str_impl_for_key!(RingKey);
 
 try_from_path_buf_impl_for_key!(RingKey);
 
+as_ref_path_impl_for_key!(RingKey);
 impl fmt::Debug for RingKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "RingKey") }
 }
@@ -141,10 +141,6 @@ impl RingKey {
     }
 }
 
-impl AsRef<Path> for RingKey {
-    fn as_ref(&self) -> &Path { &self.path }
-}
-
 #[cfg(test)]
 mod test {
     use super::{super::super::test_support::*,
@@ -207,6 +203,7 @@ mod test {
 
     mod as_ref_path {
         use super::*;
+        use std::path::Path;
 
         #[test]
         fn produces_correct_filename() {
