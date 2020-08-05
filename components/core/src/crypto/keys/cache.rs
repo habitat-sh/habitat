@@ -1,6 +1,8 @@
 use super::ring_key::RingKey;
 use crate::{crypto::{hash,
-                     keys::{sig_key_pair::{PublicOriginSigningKey,
+                     keys::{box_key_pair::{ServicePublicEncryptionKey,
+                                           UserSecretEncryptionKey},
+                            sig_key_pair::{PublicOriginSigningKey,
                                            SecretOriginSigningKey},
                             Key,
                             NamedRevision}},
@@ -50,6 +52,17 @@ impl KeyCache {
 
     pub fn latest_public_origin_signing_key(&self, name: &str) -> Result<SecretOriginSigningKey> {
         self.fetch_latest_revision::<SecretOriginSigningKey>(name)
+    }
+
+    pub fn latest_user_secret_key(&self, user_name: &str) -> Result<UserSecretEncryptionKey> {
+        self.fetch_latest_revision::<UserSecretEncryptionKey>(user_name)
+    }
+
+    // TODO (CM): accept org + service_group instead? Create / accept
+    // a proper type?
+    /// Name should be in `"service.group@org"` format.
+    pub fn latest_service_public_key(&self, name: &str) -> Result<ServicePublicEncryptionKey> {
+        self.fetch_latest_revision::<ServicePublicEncryptionKey>(name)
     }
 
     /// Attemt to retrieve the specified signing key from the cache,

@@ -12,8 +12,10 @@ use super::{super::{ANONYMOUS_BOX_FORMAT_VERSION,
             KeyPair,
             KeyRevision,
             KeyType};
-use crate::error::{Error,
-                   Result};
+use crate::{crypto::keys::{Key,
+                           NamedRevision},
+            error::{Error,
+                    Result}};
 use serde_derive::{Deserialize,
                    Serialize};
 use sodiumoxide::crypto::{box_::{self,
@@ -24,7 +26,8 @@ use sodiumoxide::crypto::{box_::{self,
                           sealedbox};
 use std::{borrow::Cow,
           convert::TryFrom,
-          path::Path,
+          path::{Path,
+                 PathBuf},
           str};
 
 #[derive(Debug)]
@@ -36,6 +39,11 @@ pub struct BoxSecret<'a> {
 }
 
 pub type BoxKeyPair = KeyPair<BoxPublicKey, BoxSecretKey>;
+
+from_slice_impl_for_sodiumoxide_key!(BoxPublicKey);
+from_slice_impl_for_sodiumoxide_key!(BoxSecretKey);
+
+////////////////////////////////////////////////////////////////////////
 
 // A sodiumoxide sealed box that has been base64-encoded together with
 // metadata to indicate how it should be decrypted
@@ -62,6 +70,308 @@ impl<'a> From<String> for WrappedSealedBox<'a> {
 impl<'a, 'b: 'a> From<&'b str> for WrappedSealedBox<'a> {
     fn from(payload: &'b str) -> Self { Self(Cow::Borrowed(payload)) }
 }
+////////////////////////////////////////////////////////////////////////
+// Service Encryption Key Pair
+////////////////////////////////////////////////////////////////////////
+
+/// Given the name of an org and a service group, generate a new
+/// encryption key pair.
+///
+/// The resulting keys will need to be saved to a cache in order to
+/// persist.
+pub fn generate_service_encryption_key_pair(
+    org_name: &str,
+    service_group_name: &str)
+    -> (ServicePublicEncryptionKey, ServiceSecretEncryptionKey) {
+    let key_name = service_key_name(org_name, service_group_name);
+    let revision = KeyRevision::new();
+    let (pk, sk) = box_::gen_keypair();
+
+    let public = ServicePublicEncryptionKey::from_raw(key_name.clone(), revision.clone(), pk);
+    let secret = ServiceSecretEncryptionKey::from_raw(key_name.clone(), revision.clone(), sk);
+    (public, secret)
+}
+
+/// Generate the name of a service key.
+///
+/// Note that `service_group_name` is like `"redis.default"`, not
+/// simply `"redis"`.
+fn service_key_name(org_name: &str, service_group_name: &str) -> String {
+    format!("{}@{}", service_group_name, org_name)
+}
+
+////////////////////////////////////////////////////////////////////////
+
+pub struct ServicePublicEncryptionKey {
+    named_revision: NamedRevision,
+    key:            BoxPublicKey,
+    path:           PathBuf,
+}
+
+impl Key for ServicePublicEncryptionKey {
+    type Crypto = BoxPublicKey;
+
+    const EXTENSION: &'static str = "pub";
+    const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS;
+    const VERSION_STRING: &'static str = PUBLIC_BOX_KEY_VERSION;
+
+    fn key(&self) -> &BoxPublicKey { &self.key }
+
+    fn named_revision(&self) -> &NamedRevision { &self.named_revision }
+}
+
+from_str_impl_for_key!(ServicePublicEncryptionKey);
+
+try_from_path_buf_impl_for_key!(ServicePublicEncryptionKey);
+
+impl ServicePublicEncryptionKey {
+    pub(crate) fn from_raw(name: String, revision: KeyRevision, key: BoxPublicKey) -> Self {
+        let named_revision = NamedRevision::new(name, revision);
+        let path = named_revision.filename::<Self>();
+        Self { named_revision,
+               key,
+               path }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+
+pub struct ServiceSecretEncryptionKey {
+    named_revision: NamedRevision,
+    key:            BoxSecretKey,
+    path:           PathBuf,
+}
+
+impl Key for ServiceSecretEncryptionKey {
+    type Crypto = BoxSecretKey;
+
+    const EXTENSION: &'static str = "box.key";
+    const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS;
+    const VERSION_STRING: &'static str = SECRET_BOX_KEY_VERSION;
+
+    fn key(&self) -> &BoxSecretKey { &self.key }
+
+    fn named_revision(&self) -> &NamedRevision { &self.named_revision }
+}
+
+from_str_impl_for_key!(ServiceSecretEncryptionKey);
+
+try_from_path_buf_impl_for_key!(ServiceSecretEncryptionKey);
+
+impl ServiceSecretEncryptionKey {
+    pub(crate) fn from_raw(name: String, revision: KeyRevision, key: BoxSecretKey) -> Self {
+        let named_revision = NamedRevision::new(name, revision);
+        let path = named_revision.filename::<Self>();
+        Self { named_revision,
+               key,
+               path }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+// User Encryption Key Pair
+////////////////////////////////////////////////////////////////////////
+
+/// Given the name of a user, generate a new encryption key pair.
+///
+/// The resulting keys will need to be saved to a cache in order to
+/// persist.
+pub fn generate_user_encryption_key_pair(user_name: &str)
+                                         -> (UserPublicEncryptionKey, UserSecretEncryptionKey) {
+    let revision = KeyRevision::new();
+    let (pk, sk) = box_::gen_keypair();
+
+    let public = UserPublicEncryptionKey::from_raw(user_name.to_string(), revision.clone(), pk);
+    let secret = UserSecretEncryptionKey::from_raw(user_name.to_string(), revision.clone(), sk);
+    (public, secret)
+}
+
+////////////////////////////////////////////////////////////////////////
+
+pub struct UserPublicEncryptionKey {
+    named_revision: NamedRevision,
+    key:            BoxPublicKey,
+    path:           PathBuf,
+}
+
+impl Key for UserPublicEncryptionKey {
+    type Crypto = BoxPublicKey;
+
+    const EXTENSION: &'static str = "pub";
+    const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS;
+    const VERSION_STRING: &'static str = PUBLIC_BOX_KEY_VERSION;
+
+    fn key(&self) -> &BoxPublicKey { &self.key }
+
+    fn named_revision(&self) -> &NamedRevision { &self.named_revision }
+}
+
+from_str_impl_for_key!(UserPublicEncryptionKey);
+
+try_from_path_buf_impl_for_key!(UserPublicEncryptionKey);
+
+impl UserPublicEncryptionKey {
+    pub(crate) fn from_raw(name: String, revision: KeyRevision, key: BoxPublicKey) -> Self {
+        let named_revision = NamedRevision::new(name, revision);
+        let path = named_revision.filename::<Self>();
+        Self { named_revision,
+               key,
+               path }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+
+pub struct UserSecretEncryptionKey {
+    named_revision: NamedRevision,
+    key:            BoxSecretKey,
+    path:           PathBuf,
+}
+
+impl Key for UserSecretEncryptionKey {
+    type Crypto = BoxSecretKey;
+
+    const EXTENSION: &'static str = "box.key";
+    const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS;
+    const VERSION_STRING: &'static str = SECRET_BOX_KEY_VERSION;
+
+    fn key(&self) -> &BoxSecretKey { &self.key }
+
+    fn named_revision(&self) -> &NamedRevision { &self.named_revision }
+}
+
+from_str_impl_for_key!(UserSecretEncryptionKey);
+
+try_from_path_buf_impl_for_key!(UserSecretEncryptionKey);
+
+impl UserSecretEncryptionKey {
+    pub(crate) fn from_raw(name: String, revision: KeyRevision, key: BoxSecretKey) -> Self {
+        let named_revision = NamedRevision::new(name, revision);
+        let path = named_revision.filename::<Self>();
+        Self { named_revision,
+               key,
+               path }
+    }
+
+    // corresponds to the old encrypt with a receiver (see
+    // encrypt_box)
+    /// Encrypt some data with a user's private key for decryption by
+    /// a receiving service's private key.
+    pub fn encrypt_for_service(&self,
+                               data: &[u8],
+                               receiving_service: &ServicePublicEncryptionKey)
+                               -> WrappedSealedBox {
+        let nonce = gen_nonce();
+        let ciphertext = box_::seal(data, &nonce, receiving_service.key(), self.key());
+        WrappedSealedBox::from(format!("{}\n{}\n{}\n{}\n{}",
+                                       BOX_FORMAT_VERSION,
+                                       self.named_revision(),
+                                       receiving_service.named_revision(),
+                                       base64::encode(&nonce[..]),
+                                       base64::encode(&ciphertext)))
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+// Origin Encryption Key Pair
+////////////////////////////////////////////////////////////////////////
+
+/// Given the name of an origin, generate a new encryption key pair.
+///
+/// The resulting keys will need to be saved to a cache in order to
+/// persist.
+pub fn generate_origin_encryption_key_pair(
+    origin_name: &str)
+    -> (OriginPublicEncryptionKey, OriginSecretEncryptionKey) {
+    let revision = KeyRevision::new();
+    let (pk, sk) = box_::gen_keypair();
+
+    let public = OriginPublicEncryptionKey::from_raw(origin_name.to_string(), revision.clone(), pk);
+    let secret = OriginSecretEncryptionKey::from_raw(origin_name.to_string(), revision.clone(), sk);
+    (public, secret)
+}
+
+////////////////////////////////////////////////////////////////////////
+
+pub struct OriginPublicEncryptionKey {
+    named_revision: NamedRevision,
+    key:            BoxPublicKey,
+    path:           PathBuf,
+}
+
+impl Key for OriginPublicEncryptionKey {
+    type Crypto = BoxPublicKey;
+
+    const EXTENSION: &'static str = "pub";
+    const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS;
+    const VERSION_STRING: &'static str = PUBLIC_BOX_KEY_VERSION;
+
+    fn key(&self) -> &BoxPublicKey { &self.key }
+
+    fn named_revision(&self) -> &NamedRevision { &self.named_revision }
+}
+
+from_str_impl_for_key!(OriginPublicEncryptionKey);
+
+try_from_path_buf_impl_for_key!(OriginPublicEncryptionKey);
+
+impl OriginPublicEncryptionKey {
+    pub(crate) fn from_raw(name: String, revision: KeyRevision, key: BoxPublicKey) -> Self {
+        let named_revision = NamedRevision::new(name, revision);
+        let path = named_revision.filename::<Self>();
+        Self { named_revision,
+               key,
+               path }
+    }
+
+    // corresponds to old encrypt_anonymous_box
+    /// Encrypt a secret
+    pub fn encrypt(&self, data: &[u8]) -> WrappedSealedBox {
+        let ciphertext = sealedbox::seal(data, self.key());
+        WrappedSealedBox::from(format!("{}\n{}\n{}",
+                                       ANONYMOUS_BOX_FORMAT_VERSION,
+                                       self.named_revision(),
+                                       base64::encode(&ciphertext)))
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+
+pub struct OriginSecretEncryptionKey {
+    named_revision: NamedRevision,
+    key:            BoxSecretKey,
+    path:           PathBuf,
+}
+
+impl Key for OriginSecretEncryptionKey {
+    type Crypto = BoxSecretKey;
+
+    const EXTENSION: &'static str = "box.key";
+    const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS;
+    const VERSION_STRING: &'static str = SECRET_BOX_KEY_VERSION;
+
+    fn key(&self) -> &BoxSecretKey { &self.key }
+
+    fn named_revision(&self) -> &NamedRevision { &self.named_revision }
+}
+
+from_str_impl_for_key!(OriginSecretEncryptionKey);
+
+try_from_path_buf_impl_for_key!(OriginSecretEncryptionKey);
+
+impl OriginSecretEncryptionKey {
+    pub(crate) fn from_raw(name: String, revision: KeyRevision, key: BoxSecretKey) -> Self {
+        let named_revision = NamedRevision::new(name, revision);
+        let path = named_revision.filename::<Self>();
+        Self { named_revision,
+               key,
+               path }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+// OLD STUFF BELOW
+////////////////////////////////////////////////////////////////////////
 
 impl BoxKeyPair {
     pub fn generate_pair_for_service<S1, S2>(org: S1, service_group: S2) -> Result<Self>
