@@ -217,22 +217,22 @@ use crate::error::{Error,
                    Result};
 
 /// The suffix on the end of a public sig/box file
-pub static PUBLIC_KEY_SUFFIX: &str = "pub";
+pub const PUBLIC_KEY_SUFFIX: &str = "pub";
 /// The suffix on the end of a public sig file
-pub static SECRET_SIG_KEY_SUFFIX: &str = "sig.key";
+pub const SECRET_SIG_KEY_SUFFIX: &str = "sig.key";
 /// The suffix on the end of a secret box file
-pub static SECRET_BOX_KEY_SUFFIX: &str = "box.key";
+pub const SECRET_BOX_KEY_SUFFIX: &str = "box.key";
 /// The suffix on the end of a secret symmetric key file
-pub static SECRET_SYM_KEY_SUFFIX: &str = "sym.key";
+pub const SECRET_SYM_KEY_SUFFIX: &str = "sym.key";
 /// The hashing function we're using during sign/verify
 /// See also: https://download.libsodium.org/doc/hashing/generic_hashing.html
-pub static SIG_HASH_TYPE: &str = "BLAKE2b";
+pub const SIG_HASH_TYPE: &str = "BLAKE2b";
 /// This environment variable allows you to override the fs::CACHE_KEY_PATH
 /// at runtime. This is useful for testing.
-pub static CACHE_KEY_PATH_ENV_VAR: &str = "HAB_CACHE_KEY_PATH";
-pub static HART_FORMAT_VERSION: &str = "HART-1";
-pub static BOX_FORMAT_VERSION: &str = "BOX-1";
-pub static ANONYMOUS_BOX_FORMAT_VERSION: &str = "ANONYMOUS-BOX-1";
+pub const CACHE_KEY_PATH_ENV_VAR: &str = "HAB_CACHE_KEY_PATH";
+pub const HART_FORMAT_VERSION: &str = "HART-1";
+pub const BOX_FORMAT_VERSION: &str = "BOX-1";
+pub const ANONYMOUS_BOX_FORMAT_VERSION: &str = "ANONYMOUS-BOX-1";
 
 pub const PUBLIC_SIG_KEY_VERSION: &str = "SIG-PUB-1";
 pub const SECRET_SIG_KEY_VERSION: &str = "SIG-SEC-1";
