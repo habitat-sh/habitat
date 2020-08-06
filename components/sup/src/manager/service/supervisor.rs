@@ -21,8 +21,11 @@ use habitat_core::{fs,
                                  Pid},
                    service::ServiceGroup};
 #[cfg(windows)]
-use habitat_launcher_client::Error::Timeout;
+use habitat_launcher_client::Error as launcher_error;
 use habitat_launcher_client::LauncherCli;
+#[cfg(windows)]
+use habitat_launcher_protocol::{self as protocol,
+                                Error as launcher_protocol_error};
 use serde::{ser::SerializeStruct,
             Serialize,
             Serializer};
@@ -198,9 +201,18 @@ impl Supervisor {
                     // of this comment.
                     Ok(v) if v > 14227 => pkg.svc_user.clone(),
                     Ok(_) => legacy_user,
-                    Err(err @ Timeout) => {
-                        error!("Error getting version from launcher: {:?}", err);
+                    Err(err @ launcher_error::Timeout) => {
+                        error!("Timeout getting version from launcher: {:?}", err);
                         legacy_user
+                    }
+                    Err(launcher_error::Protocol(launcher_protocol_error::NetErr(err))) => {
+                        match err.code {
+                            protocol::ErrCode::UnknownMessage => {
+                                error!("Unable to retrieve version from launcher: {:?}", err);
+                                legacy_user
+                            }
+                            _ => return Err(Error::Launcher(launcher_error::Protocol(launcher_protocol_error::NetErr(err)))),
+                        }
                     }
                     Err(err) => {
                         return Err(Error::Launcher(err));
