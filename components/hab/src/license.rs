@@ -67,7 +67,7 @@ impl LicenseData {
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum LicenseAcceptance {
     Accepted,
     /// Explicitly deny the license and do not prompt for license acceptance. This is useful for

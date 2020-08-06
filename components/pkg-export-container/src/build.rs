@@ -502,8 +502,8 @@ impl BuildRootContext {
                  })
                  .collect();
 
-        if !license::check_for_license_acceptance().unwrap_or_default()
-                                                   .accepted()
+        if license::check_for_license_acceptance().unwrap_or_default()
+                                                  .accepted()
         {
             environment.insert(String::from("HAB_LICENSE"),
                                String::from("accept-no-persist"));
