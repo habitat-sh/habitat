@@ -1,5 +1,6 @@
 Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "$HOME/.hab/accepted-licenses"
 Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "/hab/accepted-licenses"
+$env:HAB_LICENSE = $null
 
 Describe "license" {
     It "version check without license works" {
@@ -33,8 +34,8 @@ Describe "license" {
     It "non-version and non-help commands timeout on license check" {
         $process = Start-Process "hab" -ArgumentList "svc status" -PassThru
         {
-            $process | Wait-Process -Timeout 1 -ErrorAction Stop
-        } | Should -Throw "time-out"
+            Wait-ProcessExit $process -Timeout 1 -ErrorAction Stop
+        } | Should -Throw "Timed out"
 
         $process | Stop-Process -Force
     }

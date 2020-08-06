@@ -211,6 +211,12 @@ function Wait-Process($ProcessName, $Timeout = 1) {
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
 }
 
+function Wait-ProcessExit($Process, $Timeout = 1) {
+    $testScript =  { $Process.HasExited }
+    $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for $Process.Name to exit" }
+    Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
+}
+
 function Wait-Release($Ident, $Remote, $Timeout = ($DefaultServiceTimeout)) {
     $serviceName = ($Ident.Split("/"))[1]
     $testScript =  {
