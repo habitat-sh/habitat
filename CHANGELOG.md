@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.112 -->
-## [1.6.112](https://github.com/habitat-sh/habitat/tree/1.6.112) (2020-08-05)
+<!-- latest_release 1.6.113 -->
+## [1.6.113](https://github.com/habitat-sh/habitat/tree/1.6.113) (2020-08-06)
 
 #### Merged Pull Requests
-- Allow version check without license [#7834](https://github.com/habitat-sh/habitat/pull/7834) ([davidMcneil](https://github.com/davidMcneil))
+- fix e2e test with older launcher [#7856](https://github.com/habitat-sh/habitat/pull/7856) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -25,6 +25,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- fix e2e test with older launcher [#7856](https://github.com/habitat-sh/habitat/pull/7856) ([mwrock](https://github.com/mwrock)) <!-- 1.6.113 -->
 - Allow version check without license [#7834](https://github.com/habitat-sh/habitat/pull/7834) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.112 -->
 - fix launcher version parsing [#7855](https://github.com/habitat-sh/habitat/pull/7855) ([mwrock](https://github.com/mwrock)) <!-- 1.6.111 -->
 - fallback to superuser root if home path cannot be found during license search [#7853](https://github.com/habitat-sh/habitat/pull/7853) ([mwrock](https://github.com/mwrock)) <!-- 1.6.110 -->
