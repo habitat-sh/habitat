@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.114 -->
-## [1.6.114](https://github.com/habitat-sh/habitat/tree/1.6.114) (2020-08-06)
+<!-- latest_release 1.6.115 -->
+## [1.6.115](https://github.com/habitat-sh/habitat/tree/1.6.115) (2020-08-06)
 
 #### Merged Pull Requests
-- fix e2e test_license test [#7859](https://github.com/habitat-sh/habitat/pull/7859) ([mwrock](https://github.com/mwrock))
+- fix license environment injection in container exporter [#7860](https://github.com/habitat-sh/habitat/pull/7860) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -25,6 +25,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- fix license environment injection in container exporter [#7860](https://github.com/habitat-sh/habitat/pull/7860) ([mwrock](https://github.com/mwrock)) <!-- 1.6.115 -->
 - fix e2e test_license test [#7859](https://github.com/habitat-sh/habitat/pull/7859) ([mwrock](https://github.com/mwrock)) <!-- 1.6.114 -->
 - fix e2e test with older launcher [#7856](https://github.com/habitat-sh/habitat/pull/7856) ([mwrock](https://github.com/mwrock)) <!-- 1.6.113 -->
 - Allow version check without license [#7834](https://github.com/habitat-sh/habitat/pull/7834) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.112 -->
