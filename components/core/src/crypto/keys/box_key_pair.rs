@@ -61,6 +61,70 @@ impl<'a> WrappedSealedBox<'a> {
         str::from_utf8(bytes).map(Cow::Borrowed)
                              .map(WrappedSealedBox)
     }
+
+    // Return the metadata and encrypted text from a secret payload.
+    // This is useful for services consuming an encrypted payload and need to decrypt it without
+    // having keys on disk
+    pub fn secret_metadata<'b>(&'b self) -> Result<BoxSecret<'b>> {
+        let mut lines = self.0.lines();
+
+        let version = Self::parse_version(lines.next())?;
+        let sender = Self::parse_sender(lines.next())?;
+        let receiver = if Self::is_anonymous_box(version) {
+            None
+        } else {
+            Some(Self::parse_receiver(lines.next())?)
+        };
+        let nonce = if Self::is_anonymous_box(version) {
+            None
+        } else {
+            Some(Self::parse_nonce(lines.next())?)
+        };
+        let ciphertext = Self::parse_ciphertext(lines.next())?;
+
+        Ok(BoxSecret { sender,
+                       receiver,
+                       nonce,
+                       ciphertext })
+    }
+
+    fn parse_version(line: Option<&str>) -> Result<&str> {
+        line.ok_or_else(|| Error::CryptoError("Corrupt payload, can't read version".to_string()))
+            .map(|line| {
+                match line {
+                    BOX_FORMAT_VERSION | ANONYMOUS_BOX_FORMAT_VERSION => Ok(line),
+                    _ => Err(Error::CryptoError(format!("Unsupported version: {}", line))),
+                }
+            })?
+    }
+
+    fn parse_sender(line: Option<&str>) -> Result<&str> {
+        line.ok_or_else(|| {
+                Error::CryptoError("Corrupt payload, can't read sender key name".to_string())
+            })
+    }
+
+    fn is_anonymous_box(version: &str) -> bool { version == ANONYMOUS_BOX_FORMAT_VERSION }
+
+    fn parse_receiver(line: Option<&str>) -> Result<&str> {
+        line.ok_or_else(|| {
+                Error::CryptoError("Corrupt payload, can't read receiver key name".to_string())
+            })
+    }
+
+    fn parse_nonce(line: Option<&str>) -> Result<Nonce> {
+        line.ok_or_else(|| Error::CryptoError("Corrupt payload, can't read nonce".to_string()))
+            .map(base64::decode)?
+            .map_err(|e| Error::CryptoError(format!("Can't decode nonce: {}", e)))
+            .map(|bytes| Nonce::from_slice(bytes.as_ref()))?
+            .ok_or_else(|| Error::CryptoError("Invalid size of nonce".to_string()))
+    }
+
+    fn parse_ciphertext(line: Option<&str>) -> Result<Vec<u8>> {
+        line.ok_or_else(|| Error::CryptoError("Corrupt payload, can't read ciphertext".to_string()))
+            .map(base64::decode)?
+            .map_err(|e| Error::CryptoError(format!("Can't decode ciphertext: {}", e)))
+    }
 }
 
 impl<'a> From<String> for WrappedSealedBox<'a> {
@@ -549,69 +613,6 @@ impl BoxKeyPair {
                    base64::encode(&ciphertext)))
     }
 
-    fn box_key_format_version(version: Option<&str>) -> Result<&str> {
-        match version {
-            Some(val) => {
-                if val != BOX_FORMAT_VERSION && val != ANONYMOUS_BOX_FORMAT_VERSION {
-                    return Err(Error::CryptoError(format!("Unsupported version: {}", val)));
-                };
-                Ok(val)
-            }
-            None => Err(Error::CryptoError("Corrupt payload, can't read version".to_string())),
-        }
-    }
-
-    fn box_key_sender(sender: Option<&str>) -> Result<&str> {
-        match sender {
-            Some(val) => Ok(val),
-            None => {
-                Err(Error::CryptoError("Corrupt payload, can't read sender \
-                                        key name"
-                                                 .to_string()))
-            }
-        }
-    }
-
-    fn box_key_receiver(receiver: Option<&str>) -> Result<&str> {
-        match receiver {
-            Some(val) => Ok(val),
-            None => {
-                Err(Error::CryptoError("Corrupt payload, can't read receiver \
-                                        key name"
-                                                 .to_string()))
-            }
-        }
-    }
-
-    fn box_key_nonce(nonce: Option<&str>) -> Result<Nonce> {
-        match nonce {
-            Some(val) => {
-                let decoded =
-                    base64::decode(val).map_err(|e| {
-                                           Error::CryptoError(format!("Can't decode nonce: {}", e))
-                                       })?;
-                match Nonce::from_slice(&decoded) {
-                    Some(nonce) => Ok(nonce),
-                    None => Err(Error::CryptoError("Invalid size of nonce".to_string())),
-                }
-            }
-            None => Err(Error::CryptoError("Corrupt payload, can't read nonce".to_string())),
-        }
-    }
-
-    fn box_key_ciphertext(ciphertext: Option<&str>) -> Result<Vec<u8>> {
-        match ciphertext {
-            Some(val) => {
-                Ok(base64::decode(val).map_err(|e| {
-                                          Error::CryptoError(format!("Can't decode ciphertext: {}",
-                                                                     e))
-                                      })?)
-            }
-            None => Err(Error::CryptoError("Corrupt payload, can't read ciphertext".to_string())),
-        }
-    }
-
-    fn is_anonymous_box(version: &str) -> bool { version == ANONYMOUS_BOX_FORMAT_VERSION }
 
     // TODO (CM): appears to be public only for Builder
     pub fn decrypt(&self,
@@ -630,25 +631,9 @@ impl BoxKeyPair {
     /// Return the metadata and encrypted text from a secret payload.
     /// This is useful for services consuming an encrypted payload and need to decrypt it without
     /// having keys on disk
+    #[deprecated(note = "Please use WrappedSealedBox::secret_metadata()")]
     pub fn secret_metadata<'a, 'b>(payload: &'b WrappedSealedBox<'a>) -> Result<BoxSecret<'b>> {
-        let mut lines = payload.0.lines();
-        let version = Self::box_key_format_version(lines.next())?;
-        let sender = Self::box_key_sender(lines.next())?;
-        let receiver = if Self::is_anonymous_box(version) {
-            None
-        } else {
-            Some(Self::box_key_receiver(lines.next())?)
-        };
-        let nonce = if Self::is_anonymous_box(version) {
-            None
-        } else {
-            Some(Self::box_key_nonce(lines.next())?)
-        };
-        let ciphertext = Self::box_key_ciphertext(lines.next())?;
-        Ok(BoxSecret { sender,
-                       receiver,
-                       nonce,
-                       ciphertext })
+        payload.secret_metadata()
     }
 
     /// Decrypt data from a user that was received at a service
@@ -658,7 +643,7 @@ impl BoxKeyPair {
         where P: AsRef<Path>
     {
         debug!("Decrypt key path = {}", cache_key_path.as_ref().display());
-        let box_secret = Self::secret_metadata(payload)?;
+        let box_secret = payload.secret_metadata()?;
         let sender = Self::get_pair_for(box_secret.sender, cache_key_path.as_ref())?;
         let receiver = match box_secret.receiver {
             Some(recv) => Some(Self::get_pair_for(recv, cache_key_path.as_ref())?),
