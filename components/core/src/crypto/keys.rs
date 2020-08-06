@@ -211,7 +211,11 @@ impl NamedRevision {
     pub fn filename<K>(&self) -> PathBuf
         where K: Key
     {
-        PathBuf::from(self.to_string()).with_extension(K::extension())
+        // **DO NOT** use PathBuf::with_extension here, because it fails
+        // with service keys (whose name is like "core.redis@chef");
+        // `with_extension` will chop off the <group>@<org> portion of
+        // that string!
+        PathBuf::from(format!("{}.{}", self.to_string(), K::extension()))
     }
 }
 
@@ -769,7 +773,14 @@ mod test {
 
     mod named_revision {
         use super::*;
-
+        use crate::crypto::keys::{box_key_pair::{OriginPublicEncryptionKey,
+                                                 OriginSecretEncryptionKey,
+                                                 ServicePublicEncryptionKey,
+                                                 ServiceSecretEncryptionKey,
+                                                 UserPublicEncryptionKey,
+                                                 UserSecretEncryptionKey},
+                                  sig_key_pair::{PublicOriginSigningKey,
+                                                 SecretOriginSigningKey}};
         #[test]
         fn parse_valid_named_revisions() {
             let result: NamedRevision = "foo-20160504220722".parse().unwrap();
@@ -800,10 +811,56 @@ mod test {
             assert_eq!(nr.to_string(), "foo-20160504220722");
         }
 
+        /// These key names have a different structure!
+        #[test]
+        fn to_string_for_service_key_names() {
+            let nr = NamedRevision { name:     "core.redis@chef".to_string(),
+                                     revision: KeyRevision::unchecked("20160504220722"), };
+            assert_eq!(nr.to_string(), "core.redis@chef-20160504220722");
+        }
+
         #[test]
         fn string_roundtrip() {
             let input = "foo-20160504220722";
             assert_eq!(input.parse::<NamedRevision>().unwrap().to_string(), input);
+        }
+
+        #[test]
+        fn as_path_testing() {
+            let source = "foo-20160504220722".parse::<NamedRevision>().unwrap();
+            let service_source = "redis.default@chef-20160504220722".parse::<NamedRevision>()
+                                                                    .unwrap();
+
+            assert_eq!(source.filename::<RingKey>(),
+                       PathBuf::from("foo-20160504220722.sym.key"));
+
+            assert_eq!(source.filename::<PublicOriginSigningKey>(),
+                       PathBuf::from("foo-20160504220722.pub"));
+            assert_eq!(source.filename::<SecretOriginSigningKey>(),
+                       PathBuf::from("foo-20160504220722.sig.key"));
+
+            assert_eq!(source.filename::<UserPublicEncryptionKey>(),
+                       PathBuf::from("foo-20160504220722.pub"));
+            assert_eq!(source.filename::<UserSecretEncryptionKey>(),
+                       PathBuf::from("foo-20160504220722.box.key"));
+
+            assert_eq!(source.filename::<OriginPublicEncryptionKey>(),
+                       PathBuf::from("foo-20160504220722.pub"));
+            assert_eq!(source.filename::<OriginSecretEncryptionKey>(),
+                       PathBuf::from("foo-20160504220722.box.key"));
+
+            assert_eq!(service_source.filename::<ServicePublicEncryptionKey>(),
+                       PathBuf::from("redis.default@chef-20160504220722.pub"));
+            assert_eq!(service_source.filename::<ServiceSecretEncryptionKey>(),
+                       PathBuf::from("redis.default@chef-20160504220722.box.key"));
+
+            // NOTE: Nothing yet explicitly prevents a named revision
+            // that does not really belong to a service key from being
+            // pathed as though it were.
+            assert_eq!(source.filename::<ServicePublicEncryptionKey>(),
+                       PathBuf::from("foo-20160504220722.pub"));
+            assert_eq!(source.filename::<ServiceSecretEncryptionKey>(),
+                       PathBuf::from("foo-20160504220722.box.key"));
         }
     }
 
