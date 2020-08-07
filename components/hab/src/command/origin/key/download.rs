@@ -8,9 +8,10 @@ use crate::{api_client::{BuilderAPIClient,
                           UI}},
             error::{Error,
                     Result},
-            hcore::crypto::SigKeyPair,
             PRODUCT,
             VERSION};
+use habitat_core::crypto::keys::{KeyCache,
+                                 NamedRevision};
 use retry::delay;
 use std::path::Path;
 
@@ -44,11 +45,12 @@ async fn handle_public(ui: &mut UI,
                        -> Result<()> {
     match revision {
         Some(revision) => {
-            let nwr = format!("{}-{}", origin, revision);
-            ui.begin(format!("Downloading public origin key {}", &nwr))?;
-            match download_key(ui, api_client, &nwr, origin, revision, token, cache).await {
+            let named_revision = format!("{}-{}", origin, revision).parse()?;
+            ui.begin(format!("Downloading public origin key {}", named_revision))?;
+            match download_key(ui, api_client, &named_revision, token, cache).await {
                 Ok(()) => {
-                    let msg = format!("Download of {} public origin key completed.", nwr);
+                    let msg = format!("Download of {} public origin key completed.",
+                                      named_revision);
                     ui.end(msg)?;
                     Ok(())
                 }
@@ -64,14 +66,8 @@ async fn handle_public(ui: &mut UI,
                 }
                 Ok(keys) => {
                     for key in keys {
-                        let nwr = format!("{}-{}", key.origin, key.revision);
-                        download_key(ui,
-                                     api_client,
-                                     &nwr,
-                                     &key.origin,
-                                     &key.revision,
-                                     token,
-                                     cache).await?;
+                        let named_revision = format!("{}-{}", key.origin, key.revision).parse()?;
+                        download_key(ui, api_client, &named_revision, token, cache).await?;
                     }
                     ui.end(format!("Download of {} public origin keys completed.", &origin))?;
                     Ok(())
@@ -165,29 +161,34 @@ async fn download_secret_key(ui: &mut UI,
 
 async fn download_key(ui: &mut UI,
                       api_client: &BuilderAPIClient,
-                      nwr: &str,
-                      name: &str,
-                      rev: &str,
+                      named_revision: &NamedRevision,
                       token: Option<&str>,
                       cache: &Path)
                       -> Result<()> {
-    if SigKeyPair::get_public_key_path(&nwr, &cache).is_ok() {
-        ui.status(Status::Using, &format!("{} in {}", nwr, cache.display()))?;
+    let cache = KeyCache::new(cache);
+
+    if cache.public_signing_key(named_revision).is_ok() {
+        ui.status(Status::Using,
+                  &format!("{} in {}", named_revision, cache.as_ref().display()))?;
         Ok(())
     } else {
         retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
-            ui.status(Status::Downloading, &nwr)?;
-            api_client.fetch_origin_key(name, rev, token, cache, ui.progress())
+            ui.status(Status::Downloading, named_revision)?;
+            api_client.fetch_origin_key(named_revision.name(),
+                                        named_revision.revision(),
+                                        token,
+                                        cache.as_ref(),
+                                        ui.progress())
                       .await?;
-            ui.status(Status::Cached, &format!("{} to {}", nwr, cache.display()))?;
+            ui.status(Status::Cached,
+                      &format!("{} to {}", named_revision, cache.as_ref().display()))?;
             Ok::<_, Error>(())
         }).await
           .map_err(|_| {
               Error::from(common::error::Error::DownloadFailed(format!("We tried {} times but \
-                                                                        could not download \
-                                                                        {}/{} origin key. \
-                                                                        Giving up.",
-                                                                       RETRIES, &name, &rev)))
+                                                                        could not download {} \
+                                                                        origin key. Giving up.",
+                                                                       RETRIES, named_revision)))
           })
     }
 }
