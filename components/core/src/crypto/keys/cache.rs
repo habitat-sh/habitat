@@ -19,6 +19,10 @@ use std::{convert::TryFrom,
 
 pub struct KeyCache(PathBuf);
 
+impl AsRef<Path> for KeyCache {
+    fn as_ref(&self) -> &Path { self.0.as_ref() }
+}
+
 impl KeyCache {
     pub fn new<P>(path: P) -> Self
         where P: Into<PathBuf>
