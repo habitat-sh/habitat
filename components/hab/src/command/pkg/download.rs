@@ -413,16 +413,11 @@ impl<'a> DownloadTask<'a> {
 
         let cache = KeyCache::new(&self.path_for_keys());
 
-        match cache.public_signing_key(&signer) {
-            Some(Ok(_key)) => {
-                // OK, we have the key
-            }
-            _ => {
-                ui.status(Status::Downloading,
-                          format!("public key for signer {}", signer))?;
-                self.fetch_origin_key(ui, signer.clone(), self.token)
-                    .await?;
-            }
+        if !cache.public_signing_key(&signer).is_ok() {
+            ui.status(Status::Downloading,
+                      format!("public key for signer {}", signer))?;
+            self.fetch_origin_key(ui, signer.clone(), self.token)
+                .await?;
         };
 
         if self.verify {

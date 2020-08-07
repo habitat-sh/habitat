@@ -160,10 +160,7 @@ pub fn verify<P>(hart_file_path: P, cache: &KeyCache) -> Result<(String, String)
     where P: AsRef<Path>
 {
     let (header, mut reader) = artifact_header_and_archive(hart_file_path)?;
-
-    let key = cache.public_signing_key(&header.signer)
-                   .ok_or_else(|| Error::CryptoError("Missing public signing key".to_string()))??;
-
+    let key = cache.public_signing_key(&header.signer)?;
     key.verify(header.signature.as_slice(), &mut reader)
 }
 

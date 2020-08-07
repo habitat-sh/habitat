@@ -886,10 +886,7 @@ impl<'a> InstallTask<'a> {
 
             let cache = KeyCache::new(&self.key_cache_path);
 
-            match cache.public_signing_key(&named_revision) {
-                Some(Ok(key)) => Ok(key),
-                _ => unreachable!("we just fetched the key, so it should be good"),
-            }
+            Ok(cache.public_signing_key(&named_revision)?)
         }
     }
 
@@ -965,12 +962,9 @@ impl<'a> InstallTask<'a> {
         let cache = KeyCache::new(&self.key_cache_path);
         // not calling setup because this cache is read-only
 
-        let _ = match cache.public_signing_key(&named_revision) {
-            Some(Ok(key)) => {
-                // OK, we have the key
-                key
-            }
-            _ => self.fetch_origin_key(ui, &named_revision, token).await?,
+        // If we've got it, great; otherwise fetch it
+        if !cache.public_signing_key(&named_revision).is_ok() {
+            self.fetch_origin_key(ui, &named_revision, token).await?;
         };
 
         artifact::verify(&artifact.path, &cache)?;
