@@ -12,7 +12,7 @@ use crate::{error::{Error,
                     Rumor,
                     RumorPayload,
                     RumorType}};
-use habitat_core::{crypto::keys::{box_key_pair::EncryptedSecret,
+use habitat_core::{crypto::keys::{EncryptedSecret,
                                   KeyCache},
                    service::ServiceGroup};
 use std::{borrow::Cow,

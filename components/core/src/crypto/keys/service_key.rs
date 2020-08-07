@@ -1,4 +1,4 @@
-use crate::{crypto::{keys::{box_key_pair::SignedBox,
+use crate::{crypto::{keys::{encryption::SignedBox,
                             Key,
                             KeyRevision,
                             NamedRevision,
