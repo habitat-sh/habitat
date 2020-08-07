@@ -78,26 +78,20 @@ impl KeyCache {
     /// if it exists and is valid.
     pub fn public_signing_key(&self,
                               named_revision: &NamedRevision)
-                              -> Option<Result<PublicOriginSigningKey>> {
+                              -> Result<PublicOriginSigningKey> {
         self.fetch_specific_revision::<PublicOriginSigningKey>(named_revision)
     }
 
     pub fn user_public_encryption_key(&self,
                                       named_revision: &NamedRevision)
                                       -> Result<UserPublicEncryptionKey> {
-        match self.fetch_specific_revision::<UserPublicEncryptionKey>(named_revision) {
-            Some(key_result) => key_result,
-            None => Err(Error::CryptoError("Key not found in cache".to_string())),
-        }
+        self.fetch_specific_revision::<UserPublicEncryptionKey>(named_revision)
     }
 
     pub fn service_secret_encryption_key(&self,
                                          named_revision: &NamedRevision)
                                          -> Result<ServiceSecretEncryptionKey> {
-        match self.fetch_specific_revision::<ServiceSecretEncryptionKey>(named_revision) {
-            Some(key_result) => key_result,
-            None => Err(Error::CryptoError("Key not found in cache".to_string())),
-        }
+        self.fetch_specific_revision::<ServiceSecretEncryptionKey>(named_revision)
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -118,14 +112,15 @@ impl KeyCache {
 
     /// Generic retrieval function to grab the key of the specified
     /// type `K` identified by `named_revision`
-    fn fetch_specific_revision<K>(&self, named_revision: &NamedRevision) -> Option<Result<K>>
+    fn fetch_specific_revision<K>(&self, named_revision: &NamedRevision) -> Result<K>
         where K: Key + TryFrom<PathBuf, Error = Error>
     {
         let path_in_cache = self.0.join(named_revision.filename::<K>());
         if path_in_cache.exists() {
-            Some(<K as TryFrom<PathBuf>>::try_from(path_in_cache))
+            <K as TryFrom<PathBuf>>::try_from(path_in_cache)
         } else {
-            None
+            Err(Error::CryptoError(format!("Key not found in cache: {}",
+                                           path_in_cache.display()).to_string()))
         }
     }
 
