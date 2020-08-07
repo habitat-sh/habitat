@@ -262,8 +262,8 @@ async fn upload_public_key(ui: &mut UI,
     let public_keyfile_name = header.signer().filename::<PublicOriginSigningKey>();
     let public_keyfile = key_path.join(&public_keyfile_name);
 
-    let name = header.signer().name_as_str();
-    let rev = header.signer().revision_as_str();
+    let name = header.signer().name();
+    let rev = header.signer().revision();
 
     match api_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress())
                     .await

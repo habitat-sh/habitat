@@ -376,7 +376,7 @@ mod test {
 
         let hart_header = get_artifact_header(&dst).unwrap();
         assert_eq!(HART_FORMAT_VERSION, hart_header.format());
-        assert_eq!("unicorn", hart_header.signer().name_as_str());
+        assert_eq!("unicorn", hart_header.signer().name());
         assert_eq!(SIG_HASH_TYPE, hart_header.hash_type());
         assert!(!hart_header.signature_raw().is_empty());
     }

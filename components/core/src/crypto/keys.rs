@@ -206,9 +206,9 @@ pub struct NamedRevision {
 impl NamedRevision {
     pub fn new(name: String, revision: KeyRevision) -> Self { NamedRevision { name, revision } }
 
-    pub fn name_as_str(&self) -> &str { &self.name }
+    pub fn name(&self) -> &String { &self.name }
 
-    pub fn revision_as_str(&self) -> &str { &self.revision }
+    pub fn revision(&self) -> &KeyRevision { &self.revision }
 
     /// Returns the name of the file that would store the key of type `K`
     /// identified by this name and revision.
