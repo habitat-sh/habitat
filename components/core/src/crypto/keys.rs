@@ -41,10 +41,14 @@ mod util;
 pub mod box_key_pair;
 mod cache;
 pub mod ring_key;
+mod service_key;
 pub mod sig_key_pair;
 mod user_key;
 
 pub use cache::KeyCache;
+pub use service_key::{generate_service_encryption_key_pair,
+                      ServicePublicEncryptionKey,
+                      ServiceSecretEncryptionKey};
 pub use user_key::{generate_user_encryption_key_pair,
                    UserPublicEncryptionKey,
                    UserSecretEncryptionKey};
@@ -778,11 +782,11 @@ mod test {
     mod named_revision {
         use super::*;
         use crate::crypto::keys::{box_key_pair::{OriginPublicEncryptionKey,
-                                                 OriginSecretEncryptionKey,
-                                                 ServicePublicEncryptionKey,
-                                                 ServiceSecretEncryptionKey},
+                                                 OriginSecretEncryptionKey},
                                   sig_key_pair::{PublicOriginSigningKey,
                                                  SecretOriginSigningKey},
+                                  ServicePublicEncryptionKey,
+                                  ServiceSecretEncryptionKey,
                                   UserPublicEncryptionKey,
                                   UserSecretEncryptionKey};
         #[test]

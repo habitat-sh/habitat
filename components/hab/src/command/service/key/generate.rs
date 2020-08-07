@@ -1,7 +1,7 @@
 use crate::{common::ui::{UIWriter,
                          UI},
             error::Result};
-use habitat_core::{crypto::keys::{box_key_pair::generate_service_encryption_key_pair,
+use habitat_core::{crypto::keys::{generate_service_encryption_key_pair,
                                   Key,
                                   KeyCache},
                    service::ServiceGroup};
