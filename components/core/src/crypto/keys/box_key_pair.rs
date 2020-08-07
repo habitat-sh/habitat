@@ -38,6 +38,195 @@ pub struct BoxSecret<'a> {
     pub nonce:      Option<Nonce>,
 }
 
+/// An encrypted message sent anonymously to a recipient. The message
+/// was encrypted with the recipient's public key, and can only be
+/// decoded by the recipient's private key. The identity of the sender
+/// cannot be known.
+pub struct AnonymousBox {
+    // TODO (CM): if it's really anonymous, then sender is really the recipient!!!!
+    /// The identity of the keypair that was used to encrypt (and
+    /// thus, must be used to decrypt) this message.
+    sender:     NamedRevision,
+    /// The encoded ciphertext of the message.
+    ciphertext: Vec<u8>,
+}
+
+impl fmt::Display for AnonymousBox {
+    /// Implements Habitat's String formatting for sending signed
+    /// anonymous encrypted messages. The version and sender are in
+    /// plaintext, while the ciphertext is base64 encoded.
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,
+               "{}\n{}\n{}",
+               ANONYMOUS_BOX_FORMAT_VERSION,
+               self.sender,
+               base64::encode(&self.ciphertext))
+    }
+}
+
+/// An encrypted message signed by the sender (and thus traceable to
+/// that sender) intended for a receiver. It was encrypted using the
+/// sender's secret key and the recipient's private key, and can only
+/// be decrypted with the sender's public key and the recipient's
+/// secret key.
+///
+/// See `sodiumoxide::crypto::box_` for further details.
+pub struct SignedBox {
+    /// The identity of the keypair of the sender of this
+    /// message. Only the owner of this pair's secret key could have
+    /// sent this message, and its public key must be used to decrypt
+    /// it.
+    sender:     NamedRevision,
+    /// The identity of the keypair of the recipient of this
+    /// message. The pair's public key was used to encrypt this
+    /// message (thus "addressing" it to the receiver), and only the
+    /// owner of this pair's secret key man decrypt it.
+    receiver:   NamedRevision,
+    /// The encrypted ciphertext of the message
+    ciphertext: Vec<u8>,
+    /// The cryptographic nonce used to encrypt the message.
+    nonce:      Nonce,
+}
+
+impl SignedBox {
+    pub fn sender(&self) -> &NamedRevision { &self.sender }
+
+    pub fn receiver(&self) -> &NamedRevision { &self.receiver }
+}
+
+impl fmt::Display for SignedBox {
+    /// Implements Habitat's String formatting for sending signed
+    /// encrypted messages. The version, sender, and receiver are in
+    /// plaintext, while the nonce and ciphertext are base64 encoded.
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,
+               "{}\n{}\n{}\n{}\n{}",
+               BOX_FORMAT_VERSION,
+               self.sender,
+               self.receiver,
+               base64::encode(self.nonce),
+               base64::encode(&self.ciphertext))
+    }
+}
+
+pub enum EncryptedSecret {
+    Anonymous(AnonymousBox),
+    Signed(SignedBox),
+}
+
+impl EncryptedSecret {
+    /// Unwraps this to an anonymous secret, if it is actually anonymous.
+    pub fn anonymous(self) -> Result<AnonymousBox> {
+        match self {
+            Self::Anonymous(anonymous) => Ok(anonymous),
+            _ => Err(Error::CryptoError("Not an anonymous secret!".to_string())),
+        }
+    }
+
+    /// Unwraps this to a signed secret, if it is actually signed.
+    pub fn signed(self) -> Result<SignedBox> {
+        match self {
+            Self::Signed(signed_box) => Ok(signed_box),
+            _ => Err(Error::CryptoError("Not an signed secret!".to_string())),
+        }
+    }
+
+    /// Helper function to parse an `EncryptedSecret` from raw bytes.
+    pub fn from_bytes<B>(bytes: B) -> Result<EncryptedSecret>
+        where B: AsRef<[u8]>
+    {
+        str::from_utf8(bytes.as_ref())?.parse()
+    }
+}
+
+/// Encapsulates parsing logic for all variants of `EncryptedSecret`,
+/// since they overlap a great deal.
+impl FromStr for EncryptedSecret {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        let mut lines = s.lines();
+
+        let version =
+            lines.next()
+                 .ok_or_else(|| {
+                     Error::CryptoError("Corrupt payload, can't read version".to_string())
+                 })
+                 .map(|line| {
+                     match line {
+                         BOX_FORMAT_VERSION | ANONYMOUS_BOX_FORMAT_VERSION => Ok(line),
+                         _ => Err(Error::CryptoError(format!("Unsupported version: {}", line))),
+                     }
+                 })??;
+
+        let is_anonymous = version == ANONYMOUS_BOX_FORMAT_VERSION;
+
+        let sender =
+            lines.next()
+                 .ok_or_else(|| {
+                     Error::CryptoError("Corrupt payload, can't read sender key name".to_string())
+                 })?
+                 .parse()?;
+
+        let receiver = if is_anonymous {
+            None
+        } else {
+            let r = lines.next()
+                         .ok_or_else(|| {
+                             Error::CryptoError("Corrupt payload, can't read receiver key \
+                                                         name"
+                                                              .to_string())
+                         })?
+                         .parse()?;
+            Some(r)
+        };
+        let nonce = if is_anonymous {
+            None
+        } else {
+            let n =
+                lines.next()
+                     .ok_or_else(|| {
+                         Error::CryptoError("Corrupt payload, can't read nonce".to_string())
+                     })
+                     .map(base64::decode)?
+                     .map_err(|e| Error::CryptoError(format!("Can't decode nonce: {}", e)))
+                     .map(|bytes| Nonce::from_slice(bytes.as_ref()))?
+                     .ok_or_else(|| Error::CryptoError("Invalid size of nonce".to_string()))?;
+            Some(n)
+        };
+
+        let ciphertext =
+            lines.next()
+                 .ok_or_else(|| {
+                     Error::CryptoError("Corrupt payload, can't read ciphertext".to_string())
+                 })
+                 .map(base64::decode)?
+                 .map_err(|e| Error::CryptoError(format!("Can't decode ciphertext: {}", e)))?;
+
+        if is_anonymous {
+            Ok(EncryptedSecret::Anonymous(AnonymousBox { sender, ciphertext }))
+        } else {
+            Ok(EncryptedSecret::Signed(SignedBox { sender,
+                                                   receiver:
+                                                       receiver.unwrap(),
+                                                   ciphertext,
+                                                   nonce:
+                                                       nonce.unwrap() }))
+        }
+    }
+}
+
+impl<'a> From<EncryptedSecret> for WrappedSealedBox<'a> {
+    fn from(payload: EncryptedSecret) -> Self {
+        match payload {
+            EncryptedSecret::Anonymous(anon) => Self(Cow::Owned(anon.to_string())),
+            EncryptedSecret::Signed(signed) => Self(Cow::Owned(signed.to_string())),
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+
 pub type BoxKeyPair = KeyPair<BoxPublicKey, BoxSecretKey>;
 
 from_slice_impl_for_sodiumoxide_key!(BoxPublicKey);
@@ -234,6 +423,29 @@ impl ServiceSecretEncryptionKey {
                key,
                path }
     }
+
+    /// Decrypt a boxed message sent from a user to a service.
+    ///
+    /// The message will have been encrypted using a
+    /// `UserSecretEncryptionKey` and a `ServicePublicEncryptionKey`,
+    /// and requires the corresponding `UserPublicEncryptionKey` and
+    /// `ServiceSecretEncryptionKey`.
+    ///
+    /// As the service is the recipient, we attach this functionality
+    /// to this struct.
+    pub fn decrypt_user_message(&self,
+                                signed_box: &SignedBox,
+                                sender_key: &UserPublicEncryptionKey)
+                                -> Result<Vec<u8>> {
+        box_::open(&signed_box.ciphertext,
+                   &signed_box.nonce,
+                   sender_key.key(),
+                   self.key()).map_err(|_| {
+                                  Error::CryptoError("Secret key, public key, and nonce could not \
+                                                      decrypt ciphertext"
+                                                                         .to_string())
+                              })
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -335,12 +547,13 @@ impl UserSecretEncryptionKey {
                                -> WrappedSealedBox {
         let nonce = gen_nonce();
         let ciphertext = box_::seal(data, &nonce, receiving_service.key(), self.key());
-        WrappedSealedBox::from(format!("{}\n{}\n{}\n{}\n{}",
-                                       BOX_FORMAT_VERSION,
-                                       self.named_revision(),
-                                       receiving_service.named_revision(),
-                                       base64::encode(&nonce[..]),
-                                       base64::encode(&ciphertext)))
+        let signed = SignedBox { sender: self.named_revision.clone(),
+                                 receiver: receiving_service.named_revision.clone(),
+                                 nonce,
+                                 ciphertext };
+        // TODO (CM): Eventually do away with WrappedSealedBox; this
+        // is just for compatibility now
+        WrappedSealedBox::from(EncryptedSecret::Signed(signed))
     }
 }
 
@@ -402,10 +615,11 @@ impl OriginPublicEncryptionKey {
     /// Encrypt a secret
     pub fn encrypt(&self, data: &[u8]) -> WrappedSealedBox {
         let ciphertext = sealedbox::seal(data, self.key());
-        WrappedSealedBox::from(format!("{}\n{}\n{}",
-                                       ANONYMOUS_BOX_FORMAT_VERSION,
-                                       self.named_revision(),
-                                       base64::encode(&ciphertext)))
+        let anon = AnonymousBox { sender: self.named_revision.clone(),
+                                  ciphertext };
+        // TODO (CM): Eventually do away with WrappedSealedBox; this
+        // is just for compatibility now
+        WrappedSealedBox::from(EncryptedSecret::Anonymous(anon))
     }
 }
 

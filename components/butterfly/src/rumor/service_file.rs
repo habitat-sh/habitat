@@ -11,10 +11,11 @@ use crate::{error::{Error,
             rumor::{Rumor,
                     RumorPayload,
                     RumorType}};
-use habitat_core::{crypto::keys::box_key_pair::{BoxKeyPair,
-                                                WrappedSealedBox},
+use habitat_core::{crypto::keys::{box_key_pair::EncryptedSecret,
+                                  KeyCache},
                    service::ServiceGroup};
-use std::{cmp::Ordering,
+use std::{borrow::Cow,
+          cmp::Ordering,
           fmt,
           mem,
           path::Path,
@@ -79,16 +80,18 @@ impl ServiceFile {
     /// Return the body of the service file as a stream of bytes. Always returns a new copy, due to
     /// the fact that we might be encrypted.
     pub fn body(&self, cache_key_path: &Path) -> Result<Vec<u8>> {
-        if self.encrypted {
-            let bytes = BoxKeyPair::decrypt_with_path(
-                &WrappedSealedBox::from_bytes(&self.body)
-                    .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?,
-                cache_key_path,
-            )?;
-            Ok(bytes)
+        let bytes = if self.encrypted {
+            let cache = KeyCache::new(cache_key_path);
+            let secret = EncryptedSecret::from_bytes(&self.body)?.signed()?;
+            let user_public_key = cache.user_public_encryption_key(secret.sender())?;
+            let service_secret_key = cache.service_secret_encryption_key(secret.receiver())?;
+            service_secret_key.decrypt_user_message(&secret, &user_public_key)
+                              .map(Cow::Owned)?
         } else {
-            Ok(self.body.to_vec())
-        }
+            Cow::Borrowed(&self.body)
+        };
+
+        Ok(bytes.to_vec())
     }
 }
 
