@@ -1,15 +1,15 @@
-use crate::{crypto::{keys::{encryption::SignedBox,
-                            Key,
-                            KeyRevision,
-                            NamedRevision,
-                            UserPublicEncryptionKey},
-                     PUBLIC_BOX_KEY_VERSION,
-                     SECRET_BOX_KEY_VERSION},
+use crate::{crypto::keys::{encryption::{primitives,
+                                        SignedBox,
+                                        PUBLIC_BOX_KEY_VERSION,
+                                        PUBLIC_KEY_SUFFIX,
+                                        SECRET_BOX_KEY_SUFFIX,
+                                        SECRET_BOX_KEY_VERSION},
+                           Key,
+                           KeyRevision,
+                           NamedRevision,
+                           UserPublicEncryptionKey},
             error::{Error,
                     Result}};
-use sodiumoxide::crypto::box_::{self,
-                                curve25519xsalsa20poly1305::{PublicKey as BoxPublicKey,
-                                                             SecretKey as BoxSecretKey}};
 use std::{path::PathBuf,
           str};
 
@@ -24,7 +24,7 @@ pub fn generate_service_encryption_key_pair(
     -> (ServicePublicEncryptionKey, ServiceSecretEncryptionKey) {
     let key_name = service_key_name(org_name, service_group_name);
     let revision = KeyRevision::new();
-    let (pk, sk) = box_::gen_keypair();
+    let (pk, sk) = primitives::gen_keypair();
 
     let public = ServicePublicEncryptionKey::from_raw(key_name.clone(), revision.clone(), pk);
     let secret = ServiceSecretEncryptionKey::from_raw(key_name.clone(), revision.clone(), sk);
@@ -43,18 +43,18 @@ fn service_key_name(org_name: &str, service_group_name: &str) -> String {
 
 pub struct ServicePublicEncryptionKey {
     named_revision: NamedRevision,
-    key:            BoxPublicKey,
+    key:            primitives::PublicKey,
     path:           PathBuf,
 }
 
 impl Key for ServicePublicEncryptionKey {
-    type Crypto = BoxPublicKey;
+    type Crypto = primitives::PublicKey;
 
-    const EXTENSION: &'static str = "pub";
+    const EXTENSION: &'static str = PUBLIC_KEY_SUFFIX;
     const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS;
     const VERSION_STRING: &'static str = PUBLIC_BOX_KEY_VERSION;
 
-    fn key(&self) -> &BoxPublicKey { &self.key }
+    fn key(&self) -> &primitives::PublicKey { &self.key }
 
     fn named_revision(&self) -> &NamedRevision { &self.named_revision }
 }
@@ -66,7 +66,10 @@ try_from_path_buf_impl_for_key!(ServicePublicEncryptionKey);
 as_ref_path_impl_for_key!(ServicePublicEncryptionKey);
 
 impl ServicePublicEncryptionKey {
-    pub(crate) fn from_raw(name: String, revision: KeyRevision, key: BoxPublicKey) -> Self {
+    pub(crate) fn from_raw(name: String,
+                           revision: KeyRevision,
+                           key: primitives::PublicKey)
+                           -> Self {
         let named_revision = NamedRevision::new(name, revision);
         let path = named_revision.filename::<Self>();
         Self { named_revision,
@@ -79,18 +82,18 @@ impl ServicePublicEncryptionKey {
 
 pub struct ServiceSecretEncryptionKey {
     named_revision: NamedRevision,
-    key:            BoxSecretKey,
+    key:            primitives::SecretKey,
     path:           PathBuf,
 }
 
 impl Key for ServiceSecretEncryptionKey {
-    type Crypto = BoxSecretKey;
+    type Crypto = primitives::SecretKey;
 
-    const EXTENSION: &'static str = "box.key";
+    const EXTENSION: &'static str = SECRET_BOX_KEY_SUFFIX;
     const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS;
     const VERSION_STRING: &'static str = SECRET_BOX_KEY_VERSION;
 
-    fn key(&self) -> &BoxSecretKey { &self.key }
+    fn key(&self) -> &primitives::SecretKey { &self.key }
 
     fn named_revision(&self) -> &NamedRevision { &self.named_revision }
 }
@@ -102,7 +105,10 @@ try_from_path_buf_impl_for_key!(ServiceSecretEncryptionKey);
 as_ref_path_impl_for_key!(ServiceSecretEncryptionKey);
 
 impl ServiceSecretEncryptionKey {
-    pub(crate) fn from_raw(name: String, revision: KeyRevision, key: BoxSecretKey) -> Self {
+    pub(crate) fn from_raw(name: String,
+                           revision: KeyRevision,
+                           key: primitives::SecretKey)
+                           -> Self {
         let named_revision = NamedRevision::new(name, revision);
         let path = named_revision.filename::<Self>();
         Self { named_revision,
@@ -123,13 +129,13 @@ impl ServiceSecretEncryptionKey {
                                 signed_box: &SignedBox,
                                 sender_key: &UserPublicEncryptionKey)
                                 -> Result<Vec<u8>> {
-        box_::open(signed_box.ciphertext(),
-                   signed_box.nonce(),
-                   sender_key.key(),
-                   self.key()).map_err(|_| {
-                                  Error::CryptoError("Secret key, public key, and nonce could not \
-                                                      decrypt ciphertext"
-                                                                         .to_string())
-                              })
+        primitives::open(signed_box.ciphertext(),
+                         signed_box.nonce(),
+                         sender_key.key(),
+                         self.key()).map_err(|_| {
+            Error::CryptoError("Secret key, public key, and nonce could not \
+                                                decrypt ciphertext"
+                                                                   .to_string())
+        })
     }
 }

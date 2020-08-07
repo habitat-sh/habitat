@@ -41,9 +41,6 @@ pub struct BoxSecret<'a> {
 
 pub type BoxKeyPair = KeyPair<BoxPublicKey, BoxSecretKey>;
 
-from_slice_impl_for_sodiumoxide_key!(BoxPublicKey);
-from_slice_impl_for_sodiumoxide_key!(BoxSecretKey);
-
 ////////////////////////////////////////////////////////////////////////
 
 // A sodiumoxide sealed box that has been base64-encoded together with

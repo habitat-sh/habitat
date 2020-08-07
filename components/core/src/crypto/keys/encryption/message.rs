@@ -1,12 +1,16 @@
-use crate::{crypto::{keys::NamedRevision,
-                     ANONYMOUS_BOX_FORMAT_VERSION,
-                     BOX_FORMAT_VERSION},
+use crate::{crypto::keys::{encryption::primitives,
+                           NamedRevision},
             error::{Error,
                     Result}};
-use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::Nonce;
 use std::{fmt,
           str,
           str::FromStr};
+
+/// Version identifier for signed encrypted messages.
+const BOX_FORMAT_VERSION: &str = "BOX-1";
+
+/// Version identifier for anonymous encrypted messages.
+const ANONYMOUS_BOX_FORMAT_VERSION: &str = "ANONYMOUS-BOX-1";
 
 /// An encrypted message sent anonymously to a recipient. The message
 /// was encrypted with the recipient's public key, and can only be
@@ -65,14 +69,14 @@ pub struct SignedBox {
     /// The encrypted ciphertext of the message
     ciphertext: Vec<u8>,
     /// The cryptographic nonce used to encrypt the message.
-    nonce:      Nonce,
+    nonce:      primitives::Nonce,
 }
 
 impl SignedBox {
     pub fn new(sender: NamedRevision,
                receiver: NamedRevision,
                ciphertext: Vec<u8>,
-               nonce: Nonce)
+               nonce: primitives::Nonce)
                -> Self {
         Self { sender,
                receiver,
@@ -86,7 +90,7 @@ impl SignedBox {
 
     pub fn ciphertext(&self) -> &[u8] { &self.ciphertext }
 
-    pub fn nonce(&self) -> &Nonce { &self.nonce }
+    pub fn nonce(&self) -> &primitives::Nonce { &self.nonce }
 }
 
 impl fmt::Display for SignedBox {
@@ -186,7 +190,7 @@ impl FromStr for EncryptedSecret {
                      })
                      .map(base64::decode)?
                      .map_err(|e| Error::CryptoError(format!("Can't decode nonce: {}", e)))
-                     .map(|bytes| Nonce::from_slice(bytes.as_ref()))?
+                     .map(|bytes| primitives::Nonce::from_slice(bytes.as_ref()))?
                      .ok_or_else(|| Error::CryptoError("Invalid size of nonce".to_string()))?;
             Some(n)
         };
