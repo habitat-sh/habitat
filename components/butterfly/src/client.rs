@@ -10,7 +10,7 @@ use crate::{error::{Error,
                     service_file::ServiceFile,
                     Rumor},
             ZMQ_CONTEXT};
-use habitat_core::{crypto::RingKey,
+use habitat_core::{crypto::keys::RingKey,
                    service::ServiceGroup};
 
 /// Holds a ZMQ Push socket, and an optional ring encryption key.

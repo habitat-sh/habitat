@@ -1,5 +1,5 @@
 use bytes::BytesMut;
-use habitat_core::crypto::RingKey;
+use habitat_core::crypto::keys::RingKey;
 use prost::Message;
 
 use crate::{error::{Error,

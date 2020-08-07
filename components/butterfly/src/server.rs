@@ -43,7 +43,7 @@ use crate::{error::{Error,
 use habitat_common::{liveliness_checker,
                      sync::Lock,
                      FeatureFlag};
-use habitat_core::crypto::RingKey;
+use habitat_core::crypto::keys::RingKey;
 use prometheus::{HistogramTimer,
                  HistogramVec,
                  IntGauge};
