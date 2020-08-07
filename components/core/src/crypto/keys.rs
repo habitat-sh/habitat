@@ -40,6 +40,7 @@ lazy_static::lazy_static! {
 mod util;
 pub mod box_key_pair;
 mod cache;
+mod encryption;
 mod origin_key;
 pub mod ring_key;
 mod service_key;
@@ -47,6 +48,7 @@ pub mod sig_key_pair;
 mod user_key;
 
 pub use cache::KeyCache;
+pub use encryption::EncryptedSecret;
 pub use origin_key::{generate_origin_encryption_key_pair,
                      OriginPublicEncryptionKey,
                      OriginSecretEncryptionKey};
