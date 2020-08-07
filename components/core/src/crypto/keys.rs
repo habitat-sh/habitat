@@ -41,23 +41,11 @@ mod util;
 pub mod box_key_pair;
 mod cache;
 mod encryption;
-mod origin_key;
 pub mod ring_key;
-mod service_key;
 pub mod sig_key_pair;
-mod user_key;
 
 pub use cache::KeyCache;
-pub use encryption::EncryptedSecret;
-pub use origin_key::{generate_origin_encryption_key_pair,
-                     OriginPublicEncryptionKey,
-                     OriginSecretEncryptionKey};
-pub use service_key::{generate_service_encryption_key_pair,
-                      ServicePublicEncryptionKey,
-                      ServiceSecretEncryptionKey};
-pub use user_key::{generate_user_encryption_key_pair,
-                   UserPublicEncryptionKey,
-                   UserSecretEncryptionKey};
+pub use encryption::*;
 
 ////////////////////////////////////////////////////////////////////////
 
