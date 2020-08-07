@@ -261,10 +261,10 @@ pub fn secure_eq<T, U>(t: T, u: U) -> bool
 
 #[cfg(test)]
 pub mod test_support {
-    use crate::{crypto::keys::{sig_key_pair::{generate_signing_key_pair,
-                                              PublicOriginSigningKey,
-                                              SecretOriginSigningKey},
-                               KeyCache},
+    use crate::{crypto::keys::{generate_signing_key_pair,
+                               KeyCache,
+                               PublicOriginSigningKey,
+                               SecretOriginSigningKey},
                 error as herror};
 
     use std::{fs::File,

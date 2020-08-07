@@ -43,9 +43,13 @@ mod cache;
 mod encryption;
 pub mod ring_key;
 pub mod sig_key_pair;
+mod signing;
 
 pub use cache::KeyCache;
 pub use encryption::*;
+pub use signing::{generate_signing_key_pair,
+                  PublicOriginSigningKey,
+                  SecretOriginSigningKey};
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -775,10 +779,10 @@ mod test {
 
     mod named_revision {
         use super::*;
-        use crate::crypto::keys::{sig_key_pair::{PublicOriginSigningKey,
-                                                 SecretOriginSigningKey},
-                                  OriginPublicEncryptionKey,
+        use crate::crypto::keys::{OriginPublicEncryptionKey,
                                   OriginSecretEncryptionKey,
+                                  PublicOriginSigningKey,
+                                  SecretOriginSigningKey,
                                   ServicePublicEncryptionKey,
                                   ServiceSecretEncryptionKey,
                                   UserPublicEncryptionKey,

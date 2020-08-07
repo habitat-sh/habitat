@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::{common::ui::{UIWriter,
                          UI},
-            hcore::{crypto::keys::{sig_key_pair::generate_signing_key_pair,
+            hcore::{crypto::keys::{generate_signing_key_pair,
                                    KeyCache},
                     package::ident,
                     Error::InvalidOrigin}};

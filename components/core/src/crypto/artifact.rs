@@ -1,8 +1,8 @@
-use super::{keys::{sig_key_pair::SecretOriginSigningKey,
-                   KeyCache},
-            HART_FORMAT_VERSION,
-            SIG_HASH_TYPE};
-use crate::{crypto::keys::NamedRevision,
+use crate::{crypto::{keys::{KeyCache,
+                            NamedRevision,
+                            SecretOriginSigningKey},
+                     HART_FORMAT_VERSION,
+                     SIG_HASH_TYPE},
             error::{Error,
                     Result}};
 use std::{fs::File,
