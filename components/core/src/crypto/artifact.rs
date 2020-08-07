@@ -8,9 +8,27 @@ use crate::{crypto::{keys::{KeyCache,
 use std::{fs::File,
           io::{self,
                prelude::*,
+               BufRead,
                BufReader,
                BufWriter},
           path::Path};
+
+pub struct ArtifactHeader {
+    format:    String,
+    signer:    NamedRevision,
+    hash_type: String,
+    signature: Vec<u8>,
+}
+
+impl ArtifactHeader {
+    pub fn format(&self) -> &String { &self.format }
+
+    pub fn signer(&self) -> &NamedRevision { &self.signer }
+
+    pub fn hash_type(&self) -> &String { &self.hash_type }
+
+    pub fn signature_raw(&self) -> String { base64::encode(&self.signature) }
+}
 
 /// Generate and sign a package
 pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, key: &SecretOriginSigningKey) -> Result<()>
@@ -32,31 +50,11 @@ pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, key: &SecretOriginSignin
 }
 
 /// return a BufReader to the .tar bytestream, skipping the signed header
-pub fn get_archive_reader<P>(src: P) -> Result<BufReader<File>>
+pub fn get_archive_reader<P>(src: P) -> Result<impl BufRead>
     where P: AsRef<Path>
 {
     let (_header, reader) = artifact_header_and_archive(src)?;
     Ok(reader)
-}
-
-pub struct ArtifactHeader {
-    pub format_version: String,
-    pub key_name:       String,
-    pub hash_type:      String,
-    pub signature_raw:  String,
-}
-
-impl ArtifactHeader {
-    pub fn new(format_version: String,
-               key_name: String,
-               hash_type: String,
-               signature_raw: String)
-               -> ArtifactHeader {
-        ArtifactHeader { format_version,
-                         key_name,
-                         hash_type,
-                         signature_raw }
-    }
 }
 
 /// Read only the header of the artifact, fails if any of the components
@@ -65,29 +63,11 @@ impl ArtifactHeader {
 pub fn get_artifact_header<P>(src: P) -> Result<ArtifactHeader>
     where P: AsRef<Path>
 {
-    let (artifact, _reader) = artifact_header_and_archive(src)?;
-    Ok(artifact.into())
+    let (header, _reader) = artifact_header_and_archive(src)?;
+    Ok(header)
 }
 
-struct ArtifactHeaderBetter {
-    format:    String,
-    signer:    NamedRevision,
-    hash_type: String,
-    signature: Vec<u8>,
-}
-
-// TODO (CM): Ideally, ArtifactHeaderBetter would *be*
-// ArtifactHeader, but for now, this helps bridge the gap.
-impl Into<ArtifactHeader> for ArtifactHeaderBetter {
-    fn into(self) -> ArtifactHeader {
-        ArtifactHeader::new(self.format,
-                            self.signer.to_string(),
-                            self.hash_type,
-                            base64::encode(self.signature))
-    }
-}
-
-fn artifact_header_and_archive<P>(path: P) -> Result<(ArtifactHeaderBetter, BufReader<File>)>
+fn artifact_header_and_archive<P>(path: P) -> Result<(ArtifactHeader, impl BufRead)>
     where P: AsRef<Path>
 {
     let f = File::open(path)?;
@@ -168,10 +148,10 @@ fn artifact_header_and_archive<P>(path: P) -> Result<(ArtifactHeaderBetter, BufR
     // archive. We'll return the reader as a pointer to that segment
     // of the file for further processing (either signature
     // verification or decompression).
-    let header = ArtifactHeaderBetter { format,
-                                        signer: named_revision,
-                                        hash_type,
-                                        signature };
+    let header = ArtifactHeader { format,
+                                  signer: named_revision,
+                                  hash_type,
+                                  signature };
 
     Ok((header, reader))
 }
@@ -198,15 +178,7 @@ pub fn artifact_signer<P>(hart_file_path: P) -> Result<NamedRevision>
 
 #[cfg(test)]
 mod test {
-    use std::{fs::File,
-              io::{BufRead,
-                   BufReader,
-                   Read,
-                   Write}};
-
-    use super::{super::{keys::parse_name_with_rev,
-                        test_support::*,
-                        SigKeyPair,
+    use super::{super::{test_support::*,
                         HART_FORMAT_VERSION,
                         SIG_HASH_TYPE},
                 *};
@@ -214,14 +186,11 @@ mod test {
     #[test]
     fn sign_and_verify() {
         let (cache, dir) = new_cache();
+        let (_public, secret) = generate_origin_pair("unicorn", &cache);
 
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(dir.path()).unwrap();
-
-        let key = cache.latest_secret_origin_signing_key("unicorn").unwrap();
         let dst = dir.path().join("signed.dat");
 
-        sign(&fixture("signme.dat"), &dst, &key).unwrap();
+        sign(&fixture("signme.dat"), &dst, &secret).unwrap();
         verify(&dst, &cache).unwrap();
     }
 
@@ -277,12 +246,11 @@ mod test {
     #[should_panic(expected = "Corrupt payload, can\\'t read hash type")]
     fn verify_empty_hash_type() {
         let (cache, dir) = new_cache();
+        let (public, _secret) = generate_origin_pair("unicorn", &cache);
 
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(dir.path()).unwrap();
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\n", pair.name_with_rev()).as_bytes())
+        f.write_all(format!("HART-1\n{}\n", public.name_with_rev()).as_bytes())
          .unwrap();
 
         verify(&dst, &cache).unwrap();
@@ -292,12 +260,11 @@ mod test {
     #[should_panic(expected = "Unsupported signature type: BESTEST")]
     fn verify_invalid_hash_type() {
         let (cache, dir) = new_cache();
+        let (public, _secret) = generate_origin_pair("unicorn", &cache);
 
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(dir.path()).unwrap();
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\nBESTEST\nuhoh", pair.name_with_rev()).as_bytes())
+        f.write_all(format!("HART-1\n{}\nBESTEST\nuhoh", public.name_with_rev()).as_bytes())
          .unwrap();
 
         verify(&dst, &cache).unwrap();
@@ -307,12 +274,11 @@ mod test {
     #[should_panic(expected = "Corrupt payload, can\\'t read signature")]
     fn verify_empty_signature() {
         let (cache, dir) = new_cache();
+        let (public, _secret) = generate_origin_pair("unicorn", &cache);
 
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(dir.path()).unwrap();
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\nBLAKE2b\n", pair.name_with_rev()).as_bytes())
+        f.write_all(format!("HART-1\n{}\nBLAKE2b\n", public.name_with_rev()).as_bytes())
          .unwrap();
 
         verify(&dst, &cache).unwrap();
@@ -322,13 +288,12 @@ mod test {
     #[should_panic(expected = "Can\\'t decode signature")]
     fn verify_invalid_signature_decode() {
         let (cache, dir) = new_cache();
+        let (public, _secret) = generate_origin_pair("unicorn", &cache);
 
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(dir.path()).unwrap();
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(format!("HART-1\n{}\nBLAKE2b\nnot:base64:signature",
-                            pair.name_with_rev()).as_bytes())
+                            public.name_with_rev()).as_bytes())
          .unwrap();
 
         verify(&dst, &cache).unwrap();
@@ -338,15 +303,13 @@ mod test {
     #[should_panic(expected = "Corrupt payload, can\\'t find end of header")]
     fn verify_missing_end_of_header() {
         let (cache, dir) = new_cache();
+        let (public, _secret) = generate_origin_pair("unicorn", &cache);
 
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(dir.path()).unwrap();
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(
-            format!("HART-1\n{}\nBLAKE2b\nU3VycHJpc2Uh\n", pair.name_with_rev()).as_bytes(),
-        )
-        .unwrap();
+        f.write_all(format!("HART-1\n{}\nBLAKE2b\nU3VycHJpc2Uh\n",
+                            public.name_with_rev()).as_bytes())
+         .unwrap();
 
         verify(&dst, &cache).unwrap();
     }
@@ -355,16 +318,12 @@ mod test {
     #[should_panic(expected = "Habitat artifact is invalid")]
     fn verify_corrupted_archive() {
         let (cache, dir) = new_cache();
-
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(dir.path()).unwrap();
-
-        let key = cache.latest_secret_origin_signing_key("unicorn").unwrap();
+        let (_public, secret) = generate_origin_pair("unicorn", &cache);
 
         let dst = dir.path().join("signed.dat");
         let dst_corrupted = dir.path().join("corrupted.dat");
 
-        sign(&fixture("signme.dat"), &dst, &key).unwrap();
+        sign(&fixture("signme.dat"), &dst, &secret).unwrap();
         let mut corrupted = File::create(&dst_corrupted).unwrap();
         let f = File::open(&dst).unwrap();
         let f = BufReader::new(f);
@@ -390,17 +349,13 @@ mod test {
     #[test]
     fn get_archive_reader_working() {
         let (cache, dir) = new_cache();
-
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(dir.path()).unwrap();
-
-        let key = cache.latest_secret_origin_signing_key("unicorn").unwrap();
+        let (_public, secret) = generate_origin_pair("unicorn", &cache);
 
         let src = dir.path().join("src.in");
         let dst = dir.path().join("src.signed");
         let mut f = File::create(&src).unwrap();
         f.write_all(b"hearty goodness").unwrap();
-        sign(&src, &dst, &key).unwrap();
+        sign(&src, &dst, &secret).unwrap();
 
         let mut buffer = String::new();
         let mut reader = get_archive_reader(&dst).unwrap();
@@ -411,23 +366,19 @@ mod test {
     #[test]
     fn verify_get_artifact_header() {
         let (cache, dir) = new_cache();
-
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(dir.path()).unwrap();
-        let key = cache.latest_secret_origin_signing_key("unicorn").unwrap();
+        let (_public, secret) = generate_origin_pair("unicorn", &cache);
 
         let src = dir.path().join("src.in");
         let dst = dir.path().join("src.signed");
         let mut f = File::create(&src).unwrap();
         f.write_all(b"hearty goodness").unwrap();
-        sign(&src, &dst, &key).unwrap();
+        sign(&src, &dst, &secret).unwrap();
 
         let hart_header = get_artifact_header(&dst).unwrap();
-        assert_eq!(HART_FORMAT_VERSION, hart_header.format_version);
-        let (key_name, _rev) = parse_name_with_rev(&hart_header.key_name).unwrap();
-        assert_eq!("unicorn", key_name);
-        assert_eq!(SIG_HASH_TYPE, hart_header.hash_type);
-        assert!(!hart_header.signature_raw.is_empty());
+        assert_eq!(HART_FORMAT_VERSION, hart_header.format());
+        assert_eq!("unicorn", hart_header.signer().name_as_str());
+        assert_eq!(SIG_HASH_TYPE, hart_header.hash_type());
+        assert!(!hart_header.signature_raw().is_empty());
     }
 
     mod artifact_header {
@@ -438,10 +389,10 @@ mod test {
             let hart_path = fixture("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart");
             let header = get_artifact_header(&hart_path).unwrap();
 
-            assert_eq!(header.format_version, "HART-1");
-            assert_eq!(header.key_name, "happyhumans-20160424223347");
-            assert_eq!(header.hash_type, "BLAKE2b");
-            assert_eq!(header.signature_raw,
+            assert_eq!(header.format(), "HART-1");
+            assert_eq!(header.signer().to_string(), "happyhumans-20160424223347");
+            assert_eq!(header.hash_type(), "BLAKE2b");
+            assert_eq!(header.signature_raw(),
                        "U0cp/+npru0ZxhK76zm+PDVSV/707siyrO1r7T6CZZ4ShSLrIxyx8jLSMr5wnLuGrVIV358smQPWOSTOmyfFCjBmMmM1ZjRkZTE0NWM3Zjc4NjAxY2FhZTljN2I4NzY3MDk4NDEzZDA1NzM5ZGU5MTNjMDEyOTIyYjdlZWQ3NjA=");
         }
     }

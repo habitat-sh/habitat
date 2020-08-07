@@ -26,7 +26,7 @@ use crate::{api_client::{self,
             error::{Error,
                     Result},
             hcore::{crypto::{artifact::get_artifact_header,
-                             keys::parse_name_with_rev},
+                             keys::PublicOriginSigningKey},
                     package::{PackageArchive,
                               PackageIdent,
                               PackageTarget},
@@ -256,26 +256,30 @@ async fn upload_public_key(ui: &mut UI,
                            archive: &mut PackageArchive,
                            key_path: &Path)
                            -> Result<()> {
-    let hart_header = get_artifact_header(&archive.path)?;
-    let public_keyfile_name = format!("{}.pub", &hart_header.key_name);
+    let header = get_artifact_header(&archive.path)?;
+
+    // TODO (CM): Have put_origin_key take a PublicOriginSigningKey instead
+    let public_keyfile_name = header.signer().filename::<PublicOriginSigningKey>();
     let public_keyfile = key_path.join(&public_keyfile_name);
 
-    let (name, rev) = parse_name_with_rev(&hart_header.key_name)?;
+    let name = header.signer().name_as_str();
+    let rev = header.signer().revision_as_str();
 
     match api_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress())
                     .await
     {
         Ok(()) => {
-            ui.begin(format!("Uploading public origin key {}", &public_keyfile_name))?;
+            ui.begin(format!("Uploading public origin key {}",
+                             public_keyfile_name.display()))?;
 
             ui.status(Status::Uploaded,
-                      format!("public origin key {}", &public_keyfile_name))?;
+                      format!("public origin key {}", public_keyfile_name.display()))?;
             Ok(())
         }
         Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
             ui.status(Status::Using,
                       format!("existing public origin key {} already on target",
-                              &public_keyfile_name))?;
+                              public_keyfile_name.display()))?;
             Ok(())
         }
         Err(err) => Err(Error::from(err)),
