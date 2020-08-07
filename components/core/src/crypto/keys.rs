@@ -190,8 +190,7 @@ pub trait Key {
                                                      named_revision))
                       })?;
 
-        let (name, revision) = named_revision.into();
-        Ok((name, revision, key))
+        Ok((named_revision.name, named_revision.revision, key))
     }
 }
 
@@ -264,13 +263,6 @@ impl fmt::Display for NamedRevision {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}-{}", self.name, self.revision)
     }
-}
-
-// Think of this as a handy deconstructor. We could make the fields
-// public, but that would also allow unrestricted construction of the
-// struct, which I don't want right now.
-impl Into<(String, KeyRevision)> for NamedRevision {
-    fn into(self) -> (String, KeyRevision) { (self.name, self.revision) }
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -698,7 +690,8 @@ fn mk_key_filename<P, S1, S2>(path: P, keyname: S1, suffix: S2) -> PathBuf
 pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, KeyRevision)>
     where T: AsRef<str>
 {
-    Ok(name_with_rev.as_ref().parse::<NamedRevision>()?.into())
+    let named_revision = name_with_rev.as_ref().parse::<NamedRevision>()?;
+    Ok((named_revision.name, named_revision.revision))
 }
 
 fn write_keypair_files<P>(public: Option<(P, String)>, secret: Option<(P, String)>) -> Result<()>

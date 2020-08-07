@@ -388,9 +388,12 @@ impl<'a> DownloadTask<'a> {
                                  -> Result<()>
         where T: UIWriter
     {
-        let (name, rev) = named_revision.into();
         self.api_client
-            .fetch_origin_key(&name, &rev, token, &self.path_for_keys(), ui.progress())
+            .fetch_origin_key(named_revision.name(),
+                              named_revision.revision(),
+                              token,
+                              &self.path_for_keys(),
+                              ui.progress())
             .await?;
         Ok(())
     }
