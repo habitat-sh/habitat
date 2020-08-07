@@ -875,8 +875,8 @@ impl<'a> InstallTask<'a> {
             ui.status(Status::Downloading,
                       format!("{} public origin key", named_revision))?;
             self.api_client
-                .fetch_origin_key(named_revision.name_as_str(),
-                                  named_revision.revision_as_str(),
+                .fetch_origin_key(named_revision.name(),
+                                  named_revision.revision(),
                                   token,
                                   self.key_cache_path,
                                   ui.progress())
