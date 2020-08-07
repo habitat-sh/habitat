@@ -4,30 +4,40 @@ use crate::{crypto::{keys::{Key,
                      SECRET_SYM_KEY_VERSION},
             error::{Error,
                     Result}};
-use sodiumoxide::crypto::secretbox::{self,
-                                     Key as SymSecretKey};
 use std::{fmt,
           path::PathBuf};
 
-from_slice_impl_for_sodiumoxide_key!(SymSecretKey);
+/// Private module to re-export the various sodiumoxide concepts we
+/// use, to keep them all consolidated and abstracted.
+mod primitives {
+    pub use sodiumoxide::crypto::secretbox::{self,
+                                             gen_key,
+                                             gen_nonce,
+                                             open,
+                                             seal,
+                                             Key,
+                                             Nonce};
+
+    from_slice_impl_for_sodiumoxide_key!(Key);
+}
 
 #[derive(Clone, PartialEq)]
 pub struct RingKey {
     named_revision: NamedRevision,
-    key:            SymSecretKey,
+    key:            primitives::Key,
     path:           PathBuf, /* might not need this much longer; we
                               * can get it from the named revision */
 }
 
 impl Key for RingKey {
-    type Crypto = SymSecretKey;
+    type Crypto = primitives::Key;
 
     // SECRET_SYM_KEY_SUFFIX;
     const EXTENSION: &'static str = "sym.key";
     const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS;
     const VERSION_STRING: &'static str = SECRET_SYM_KEY_VERSION;
 
-    fn key(&self) -> &SymSecretKey { &self.key }
+    fn key(&self) -> &primitives::Key { &self.key }
 
     fn named_revision(&self) -> &NamedRevision { &self.named_revision }
 }
@@ -46,7 +56,7 @@ impl RingKey {
     /// key, but does not write anything to the filesystem.
     pub fn new(name: &str) -> Self {
         let revision = KeyRevision::new();
-        let secret_key = secretbox::gen_key();
+        let secret_key = primitives::gen_key();
         RingKey::from_raw(name.to_string(), revision, secret_key)
     }
 
@@ -55,7 +65,7 @@ impl RingKey {
     ///
     /// Also currently used in the KeyCache; may not be required for
     /// much longer.
-    pub(crate) fn from_raw(name: String, revision: KeyRevision, key: SymSecretKey) -> RingKey {
+    pub(crate) fn from_raw(name: String, revision: KeyRevision, key: primitives::Key) -> RingKey {
         let named_revision = NamedRevision::new(name, revision);
         let path = named_revision.filename::<Self>();
         Self { named_revision,
@@ -80,7 +90,7 @@ impl RingKey {
     /// extern crate habitat_core;
     /// extern crate tempfile;
     ///
-    /// use habitat_core::crypto::RingKey;
+    /// use habitat_core::crypto::keys::RingKey;
     /// use tempfile::Builder;
     ///
     /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
@@ -93,8 +103,8 @@ impl RingKey {
     ///
     /// * If the secret key component of the `RingKey` is not present
     pub fn encrypt(&self, data: &[u8]) -> Result<(Vec<u8>, Vec<u8>)> {
-        let nonce = secretbox::gen_nonce();
-        Ok((nonce.as_ref().to_vec(), secretbox::seal(data, &nonce, &self.key)))
+        let nonce = primitives::gen_nonce();
+        Ok((nonce.as_ref().to_vec(), primitives::seal(data, &nonce, &self.key)))
     }
 
     /// Decrypts a byte slice of ciphertext using a given nonce value and a `RingKey`.
@@ -109,7 +119,7 @@ impl RingKey {
     /// extern crate habitat_core;
     /// extern crate tempfile;
     ///
-    /// use habitat_core::crypto::RingKey;
+    /// use habitat_core::crypto::keys::RingKey;
     /// use tempfile::Builder;
     ///
     /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
@@ -126,11 +136,11 @@ impl RingKey {
     /// * If the size of the provided nonce data is not the required size
     /// * If the ciphertext was not decryptable given the nonce and symmetric key
     pub fn decrypt(&self, nonce: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
-        let nonce = match secretbox::Nonce::from_slice(&nonce) {
+        let nonce = match primitives::Nonce::from_slice(&nonce) {
             Some(n) => n,
             None => return Err(Error::CryptoError("Invalid size of nonce".to_string())),
         };
-        match secretbox::open(ciphertext, &nonce, &self.key) {
+        match primitives::open(ciphertext, &nonce, &self.key) {
             Ok(msg) => Ok(msg),
             Err(_) => {
                 Err(Error::CryptoError("Secret key and nonce could not \
@@ -153,7 +163,7 @@ mod test {
 
         // TODO (CM): this should probably be renamed; there's no
         // public key to distinguish it from.
-        pub fn secret(&self) -> crate::error::Result<&SymSecretKey> { Ok(&self.key) }
+        pub fn secret(&self) -> crate::error::Result<&primitives::Key> { Ok(&self.key) }
     }
 
     mod from_str {

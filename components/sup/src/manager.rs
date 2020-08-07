@@ -63,7 +63,7 @@ use habitat_common::{liveliness_checker,
 use habitat_core::os::{process::{ShutdownSignal,
                                  Signal},
                        signals};
-use habitat_core::{crypto::RingKey,
+use habitat_core::{crypto::keys::RingKey,
                    env,
                    env::Config,
                    fs::FS_ROOT_PATH,

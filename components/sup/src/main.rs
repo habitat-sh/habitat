@@ -38,8 +38,8 @@ use habitat_common::{command::package::install::InstallSource,
                      FeatureFlag};
 use habitat_core::{self,
                    crypto::{self,
-                            keys::KeyCache,
-                            RingKey},
+                            keys::{KeyCache,
+                                   RingKey}},
                    os::signals};
 use habitat_launcher_client::{LauncherCli,
                               ERR_NO_RETRY_EXCODE,

@@ -1,8 +1,8 @@
 use crate::{common::ui::{UIWriter,
                          UI},
             error::Result};
-use habitat_core::crypto::{keys::KeyCache,
-                           RingKey};
+use habitat_core::crypto::keys::{KeyCache,
+                                 RingKey};
 use std::path::Path;
 
 pub fn start<P>(ui: &mut UI, ring: &str, cache: P) -> Result<()>
