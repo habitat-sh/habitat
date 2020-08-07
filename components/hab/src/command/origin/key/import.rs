@@ -1,9 +1,9 @@
 use crate::{common::ui::{UIWriter,
                          UI},
             error::Result};
-use habitat_core::{crypto::keys::{sig_key_pair::{PublicOriginSigningKey,
-                                                 SecretOriginSigningKey},
-                                  KeyCache},
+use habitat_core::{crypto::keys::{KeyCache,
+                                  PublicOriginSigningKey,
+                                  SecretOriginSigningKey},
                    error::Error as CoreError};
 use std::path::Path;
 
