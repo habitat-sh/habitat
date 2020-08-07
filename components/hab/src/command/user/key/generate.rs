@@ -1,6 +1,6 @@
 use crate::common::ui::{UIWriter,
                         UI};
-use habitat_core::crypto::keys::{box_key_pair::generate_user_encryption_key_pair,
+use habitat_core::crypto::keys::{generate_user_encryption_key_pair,
                                  Key,
                                  KeyCache};
 use std::path::Path;
