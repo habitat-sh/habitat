@@ -2,6 +2,8 @@ use super::ring_key::RingKey;
 use crate::{crypto::{hash,
                      keys::{box_key_pair::{OriginPublicEncryptionKey,
                                            ServicePublicEncryptionKey,
+                                           ServiceSecretEncryptionKey,
+                                           UserPublicEncryptionKey,
                                            UserSecretEncryptionKey},
                             sig_key_pair::{PublicOriginSigningKey,
                                            SecretOriginSigningKey},
@@ -78,6 +80,24 @@ impl KeyCache {
                               named_revision: &NamedRevision)
                               -> Option<Result<PublicOriginSigningKey>> {
         self.fetch_specific_revision::<PublicOriginSigningKey>(named_revision)
+    }
+
+    pub fn user_public_encryption_key(&self,
+                                      named_revision: &NamedRevision)
+                                      -> Result<UserPublicEncryptionKey> {
+        match self.fetch_specific_revision::<UserPublicEncryptionKey>(named_revision) {
+            Some(key_result) => key_result,
+            None => Err(Error::CryptoError("Key not found in cache".to_string())),
+        }
+    }
+
+    pub fn service_secret_encryption_key(&self,
+                                         named_revision: &NamedRevision)
+                                         -> Result<ServiceSecretEncryptionKey> {
+        match self.fetch_specific_revision::<ServiceSecretEncryptionKey>(named_revision) {
+            Some(key_result) => key_result,
+            None => Err(Error::CryptoError("Key not found in cache".to_string())),
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////

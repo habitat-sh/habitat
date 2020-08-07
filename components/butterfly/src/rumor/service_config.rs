@@ -12,10 +12,11 @@ use crate::{error::{Error,
                     Rumor,
                     RumorPayload,
                     RumorType}};
-use habitat_core::{crypto::keys::box_key_pair::{BoxKeyPair,
-                                                WrappedSealedBox},
+use habitat_core::{crypto::keys::{box_key_pair::EncryptedSecret,
+                                  KeyCache},
                    service::ServiceGroup};
-use std::{cmp::Ordering,
+use std::{borrow::Cow,
+          cmp::Ordering,
           fmt,
           mem,
           path::Path,
@@ -71,31 +72,30 @@ impl ServiceConfig {
     }
 
     pub fn config(&self, cache_key_path: &Path) -> Result<toml::value::Table> {
-        let config = if self.encrypted {
-            let bytes = BoxKeyPair::decrypt_with_path(
-                    &WrappedSealedBox::from_bytes(&self.config)
-                        .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?,
-                    cache_key_path,
-                    )?;
-            let encoded = str::from_utf8(&bytes).map_err(|e| {
-                                                    Error::ServiceConfigNotUtf8(self.service_group
-                                                                                    .to_string(),
-                                                                                e)
-                                                })?;
-            self.parse_config(&encoded)?
-        } else {
-            let encoded = str::from_utf8(&self.config).map_err(|e| {
-                              Error::ServiceConfigNotUtf8(self.service_group.to_string(), e)
-                          })?;
-            self.parse_config(&encoded)?
-        };
-        Ok(config)
-    }
+        let bytes = if self.encrypted {
+            let cache = KeyCache::new(cache_key_path);
 
-    fn parse_config(&self, encoded: &str) -> Result<toml::value::Table> {
-        toml::from_str(encoded).map_err(|e| {
-                                   Error::ServiceConfigDecode(self.service_group.to_string(), e)
-                               })
+            let secret = EncryptedSecret::from_bytes(&self.config)?.signed()?;
+
+            let user_public_key = cache.user_public_encryption_key(secret.sender())?;
+            let service_secret_key = cache.service_secret_encryption_key(secret.receiver())?;
+
+            service_secret_key.decrypt_user_message(&secret, &user_public_key)
+                              .map(Cow::Owned)?
+        } else {
+            Cow::Borrowed(&self.config)
+        };
+
+        let config =
+            str::from_utf8(&bytes).map_err(|e| {
+                                      Error::ServiceConfigNotUtf8(self.service_group.to_string(), e)
+                                  })
+                                  .map(toml::from_str)?
+                                  .map_err(|e| {
+                                      Error::ServiceConfigDecode(self.service_group.to_string(), e)
+                                  })?;
+
+        Ok(config)
     }
 }
 
