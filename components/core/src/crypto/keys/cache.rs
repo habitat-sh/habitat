@@ -86,6 +86,12 @@ impl KeyCache {
         self.fetch_specific_revision::<PublicOriginSigningKey>(named_revision)
     }
 
+    pub fn secret_signing_key(&self,
+                              named_revision: &NamedRevision)
+                              -> Result<SecretOriginSigningKey> {
+        self.fetch_specific_revision::<SecretOriginSigningKey>(named_revision)
+    }
+
     pub fn user_public_encryption_key(&self,
                                       named_revision: &NamedRevision)
                                       -> Result<UserPublicEncryptionKey> {
@@ -133,7 +139,8 @@ impl KeyCache {
     /// Provides the path at which this file would be found in the
     /// cache, if it exists (or, alternatively, where it would be
     /// written to).
-    fn path_in_cache<K>(&self, key: K) -> PathBuf
+    // TODO (CM): Only making this public temporarily
+    pub fn path_in_cache<K>(&self, key: K) -> PathBuf
         where K: AsRef<Path>
     {
         self.0.join(key.as_ref())

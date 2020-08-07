@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use crate::{api_client::{self,
                          Client},
             common::ui::{Status,
@@ -7,15 +5,14 @@ use crate::{api_client::{self,
                          UI},
             error::{Error,
                     Result},
-            hcore::crypto::{keys::parse_name_with_rev,
-                            SigKeyPair,
-                            PUBLIC_SIG_KEY_VERSION,
-                            SECRET_SIG_KEY_VERSION}};
-use reqwest::StatusCode;
-
-use super::get_name_with_rev;
-use crate::{PRODUCT,
+            hcore::crypto::keys::{Key,
+                                  KeyCache,
+                                  PublicOriginSigningKey,
+                                  SecretOriginSigningKey},
+            PRODUCT,
             VERSION};
+use reqwest::StatusCode;
+use std::path::Path;
 
 pub async fn start(ui: &mut UI,
                    bldr_url: &str,
@@ -26,38 +23,55 @@ pub async fn start(ui: &mut UI,
                    -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
     ui.begin(format!("Uploading latest public origin key {}", &origin))?;
-    let latest = SigKeyPair::get_latest_pair_for(origin, cache, None)?;
-    let public_keyfile = SigKeyPair::get_public_key_path(&latest.name_with_rev(), cache)?;
-    let name_with_rev = get_name_with_rev(&public_keyfile, PUBLIC_SIG_KEY_VERSION)?;
-    let (name, rev) = parse_name_with_rev(&name_with_rev)?;
+
+    let cache = KeyCache::new(cache);
+
+    // Figure out the latest public key
+    let public_key: PublicOriginSigningKey = cache.latest_public_origin_signing_key(origin)?;
+
+    // The path to the key in the cache
+    let public_keyfile = cache.path_in_cache(&public_key);
+
     ui.status(Status::Uploading, public_keyfile.display())?;
 
-    match api_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress())
+    // TODO (CM): Really, we just need to pass the key itself; it's
+    // got all the information
+    match api_client.put_origin_key(public_key.named_revision().name(),
+                                    public_key.named_revision().revision(),
+                                    &public_keyfile,
+                                    token,
+                                    ui.progress())
                     .await
     {
-        Ok(()) => ui.status(Status::Uploaded, &name_with_rev)?,
+        Ok(()) => ui.status(Status::Uploaded, public_key.named_revision())?,
         Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
             ui.status(Status::Using,
                       format!("public key revision {} which already exists in the depot",
-                              &name_with_rev))?;
+                              public_key.named_revision()))?;
         }
         Err(err) => return Err(Error::from(err)),
     }
-    ui.end(format!("Upload of public origin key {} complete.", &name_with_rev))?;
+    ui.end(format!("Upload of public origin key {} complete.",
+                   public_key.named_revision()))?;
 
     if with_secret {
-        let secret_keyfile = SigKeyPair::get_secret_key_path(&latest.name_with_rev(), cache)?;
+        // get matching secret key
+        let secret_key: SecretOriginSigningKey =
+            cache.secret_signing_key(public_key.named_revision())?;
+        let secret_keyfile = cache.path_in_cache(&secret_key);
 
-        // we already have this value, but get_name_with_rev will also
-        // check the SECRET_SIG_KEY_VERSION
-        let name_with_rev = get_name_with_rev(&secret_keyfile, SECRET_SIG_KEY_VERSION)?;
         ui.status(Status::Uploading, secret_keyfile.display())?;
-        match api_client.put_origin_secret_key(&name, &rev, &secret_keyfile, token, ui.progress())
+        match api_client.put_origin_secret_key(&secret_key.named_revision().name(),
+                                               &secret_key.named_revision().revision(),
+                                               &secret_keyfile,
+                                               token,
+                                               ui.progress())
                         .await
         {
             Ok(()) => {
-                ui.status(Status::Uploaded, &name_with_rev)?;
-                ui.end(format!("Upload of secret origin key {} complete.", &name_with_rev))?;
+                ui.status(Status::Uploaded, secret_key.named_revision())?;
+                ui.end(format!("Upload of secret origin key {} complete.",
+                               secret_key.named_revision()))?;
             }
             Err(e) => {
                 return Err(Error::APIClient(e));
