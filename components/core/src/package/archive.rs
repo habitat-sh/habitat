@@ -447,42 +447,44 @@ impl TryFrom<PackageArchive> for PackageArchiveInfo {
     fn try_from(mut archive: PackageArchive) -> Result<Self> {
         let header = artifact::get_artifact_header(&archive.path)?;
         let ident: FullyQualifiedPackageIdent = archive.ident()?.try_into()?;
-        Ok(PackageArchiveInfo { format_version: header.format_version,
-                                key_name:       header.key_name,
-                                hash_type:      header.hash_type,
-                                signature_raw:  header.signature_raw,
-                                origin:         ident.origin().to_string(),
-                                name:           ident.name().to_string(),
-                                ident:          ident.to_string(),
-                                version:        ident.version().to_string(),
-                                release:        ident.release().to_string(),
-                                checksum:       archive.checksum()?,
-                                target:         archive.target()?.to_string(),
-                                is_a_service:   archive.is_a_service(),
-                                deps:           archive.deps()?
-                                                       .iter()
-                                                       .map(ToString::to_string)
-                                                       .collect(),
-                                build_deps:     archive.build_deps()?
-                                                       .iter()
-                                                       .map(ToString::to_string)
-                                                       .collect(),
-                                tdeps:          archive.tdeps()?
-                                                       .iter()
-                                                       .map(ToString::to_string)
-                                                       .collect(),
-                                build_tdeps:    archive.build_tdeps()?
-                                                       .iter()
-                                                       .map(ToString::to_string)
-                                                       .collect(),
-                                exposes:        archive.exposes()?,
-                                manifest:       archive.manifest()?.to_string(),
-                                svc_user:       archive.svc_user().map(ToString::to_string),
-                                svc_group:      archive.svc_group().map(ToString::to_string),
-                                config:         archive.config().map(ToString::to_string),
-                                ld_run_path:    archive.ld_run_path().map(ToString::to_string),
-                                ldflags:        archive.ldflags().map(ToString::to_string),
-                                cflags:         archive.cflags().map(ToString::to_string), })
+        Ok(PackageArchiveInfo { format_version: header.format().clone(),
+
+                                // TODO (CM): NamedRevision!
+                                key_name:      header.signer().to_string(),
+                                hash_type:     header.hash_type().clone(),
+                                signature_raw: header.signature_raw(),
+                                origin:        ident.origin().to_string(),
+                                name:          ident.name().to_string(),
+                                ident:         ident.to_string(),
+                                version:       ident.version().to_string(),
+                                release:       ident.release().to_string(),
+                                checksum:      archive.checksum()?,
+                                target:        archive.target()?.to_string(),
+                                is_a_service:  archive.is_a_service(),
+                                deps:          archive.deps()?
+                                                      .iter()
+                                                      .map(ToString::to_string)
+                                                      .collect(),
+                                build_deps:    archive.build_deps()?
+                                                      .iter()
+                                                      .map(ToString::to_string)
+                                                      .collect(),
+                                tdeps:         archive.tdeps()?
+                                                      .iter()
+                                                      .map(ToString::to_string)
+                                                      .collect(),
+                                build_tdeps:   archive.build_tdeps()?
+                                                      .iter()
+                                                      .map(ToString::to_string)
+                                                      .collect(),
+                                exposes:       archive.exposes()?,
+                                manifest:      archive.manifest()?.to_string(),
+                                svc_user:      archive.svc_user().map(ToString::to_string),
+                                svc_group:     archive.svc_group().map(ToString::to_string),
+                                config:        archive.config().map(ToString::to_string),
+                                ld_run_path:   archive.ld_run_path().map(ToString::to_string),
+                                ldflags:       archive.ldflags().map(ToString::to_string),
+                                cflags:        archive.cflags().map(ToString::to_string), })
     }
 }
 
