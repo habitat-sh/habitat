@@ -42,8 +42,12 @@ pub mod box_key_pair;
 mod cache;
 pub mod ring_key;
 pub mod sig_key_pair;
+mod user_key;
 
 pub use cache::KeyCache;
+pub use user_key::{generate_user_encryption_key_pair,
+                   UserPublicEncryptionKey,
+                   UserSecretEncryptionKey};
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -776,11 +780,11 @@ mod test {
         use crate::crypto::keys::{box_key_pair::{OriginPublicEncryptionKey,
                                                  OriginSecretEncryptionKey,
                                                  ServicePublicEncryptionKey,
-                                                 ServiceSecretEncryptionKey,
-                                                 UserPublicEncryptionKey,
-                                                 UserSecretEncryptionKey},
+                                                 ServiceSecretEncryptionKey},
                                   sig_key_pair::{PublicOriginSigningKey,
-                                                 SecretOriginSigningKey}};
+                                                 SecretOriginSigningKey},
+                                  UserPublicEncryptionKey,
+                                  UserSecretEncryptionKey};
         #[test]
         fn parse_valid_named_revisions() {
             let result: NamedRevision = "foo-20160504220722".parse().unwrap();
