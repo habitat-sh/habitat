@@ -1,10 +1,10 @@
 use super::ring_key::RingKey;
 use crate::{crypto::{hash,
-                     keys::{box_key_pair::OriginPublicEncryptionKey,
-                            sig_key_pair::{PublicOriginSigningKey,
+                     keys::{sig_key_pair::{PublicOriginSigningKey,
                                            SecretOriginSigningKey},
                             Key,
                             NamedRevision,
+                            OriginPublicEncryptionKey,
                             ServicePublicEncryptionKey,
                             ServiceSecretEncryptionKey,
                             UserPublicEncryptionKey,

@@ -40,12 +40,16 @@ lazy_static::lazy_static! {
 mod util;
 pub mod box_key_pair;
 mod cache;
+mod origin_key;
 pub mod ring_key;
 mod service_key;
 pub mod sig_key_pair;
 mod user_key;
 
 pub use cache::KeyCache;
+pub use origin_key::{generate_origin_encryption_key_pair,
+                     OriginPublicEncryptionKey,
+                     OriginSecretEncryptionKey};
 pub use service_key::{generate_service_encryption_key_pair,
                       ServicePublicEncryptionKey,
                       ServiceSecretEncryptionKey};
@@ -781,10 +785,10 @@ mod test {
 
     mod named_revision {
         use super::*;
-        use crate::crypto::keys::{box_key_pair::{OriginPublicEncryptionKey,
-                                                 OriginSecretEncryptionKey},
-                                  sig_key_pair::{PublicOriginSigningKey,
+        use crate::crypto::keys::{sig_key_pair::{PublicOriginSigningKey,
                                                  SecretOriginSigningKey},
+                                  OriginPublicEncryptionKey,
+                                  OriginSecretEncryptionKey,
                                   ServicePublicEncryptionKey,
                                   ServiceSecretEncryptionKey,
                                   UserPublicEncryptionKey,
