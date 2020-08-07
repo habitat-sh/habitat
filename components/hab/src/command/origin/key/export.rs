@@ -9,17 +9,22 @@ use std::{io,
 pub fn start(origin: &str, pair_type: PairType, cache: &Path) -> Result<()> {
     let cache = KeyCache::new(cache);
 
-    let key = match pair_type {
-        PairType::Public => cache.latest_public_origin_signing_key(origin)?,
-        PairType::Secret => cache.latest_secret_origin_signing_key(origin)?,
-    };
+    match pair_type {
+        PairType::Public => {
+            let key = cache.latest_public_origin_signing_key(origin)?;
+            let contents = key.to_key_string();
+            io::stdout().write_all(contents.as_bytes())?;
+        }
+        PairType::Secret => {
+            let key = cache.latest_secret_origin_signing_key(origin)?;
+            let contents = key.to_key_string();
+            io::stdout().write_all(contents.as_bytes())?;
+        }
+    }
 
     // debug!("Streaming file contents of {} {} to standard out",
     //        pair_type,
     //        path.display());
-
-    let contents = key.to_key_string();
-    io::stdout().write_all(contents.as_bytes())?;
 
     Ok(())
 }

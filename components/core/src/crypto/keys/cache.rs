@@ -57,8 +57,8 @@ impl KeyCache {
         self.fetch_latest_revision::<SecretOriginSigningKey>(name)
     }
 
-    pub fn latest_public_origin_signing_key(&self, name: &str) -> Result<SecretOriginSigningKey> {
-        self.fetch_latest_revision::<SecretOriginSigningKey>(name)
+    pub fn latest_public_origin_signing_key(&self, name: &str) -> Result<PublicOriginSigningKey> {
+        self.fetch_latest_revision::<PublicOriginSigningKey>(name)
     }
 
     pub fn latest_user_secret_key(&self, user_name: &str) -> Result<UserSecretEncryptionKey> {
