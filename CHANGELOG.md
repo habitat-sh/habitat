@@ -7,8 +7,17 @@
 - make bind timeout configurable and add debug output around startup [#7858](https://github.com/habitat-sh/habitat/pull/7858) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.56 -->
-### Changes since 1.6.56 release
+<!-- release_rollup since=1.6.115 -->
+### Changes since 1.6.115 release
+
+#### Merged Pull Requests
+- make bind timeout configurable and add debug output around startup [#7858](https://github.com/habitat-sh/habitat/pull/7858) ([mwrock](https://github.com/mwrock)) <!-- 1.6.117 -->
+- Cleanup `hab pkg export` subcommand [#7857](https://github.com/habitat-sh/habitat/pull/7857) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.116 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release -->
+## [1.6.115](https://github.com/habitat-sh/habitat/tree/1.6.115) (2020-08-10)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.56..1.6.115)
 
 #### New Features & Enhancements
 - hab pkg info extended metadata [#7814](https://github.com/habitat-sh/habitat/pull/7814) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.99 -->
@@ -85,9 +94,7 @@
 - Automated update of Habitat Documentation [#7758](https://github.com/habitat-sh/habitat/pull/7758) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.59 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-06-22 [#7759](https://github.com/habitat-sh/habitat/pull/7759) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.58 -->
 - Update changelog for 1.6.56 release [#7760](https://github.com/habitat-sh/habitat/pull/7760) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.57 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release -->
 ## [1.6.56](https://github.com/habitat-sh/habitat/tree/1.6.56) (2020-06-18)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.39..1.6.56)
 
