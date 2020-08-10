@@ -29,10 +29,10 @@ Optionally you may add an extension to the hook file. For example, you might cre
 File location: `<plan>/hooks/file-updated`. This hook is run whenever a configuration file that is not related to a user or about the state of the service instances is updated.
 
 ### health-check
-File location: `<plan>/hooks/health-check`. This hook is run periodically on a configurable interval. There are two exceptions to the interval used between `health-check` runs:
+File location: `<plan>/hooks/health-check`. (Default: 30 seconds) This hook repeats at a configured interval. There are two exceptions to the interval used between `health-check` runs:
 
   - If the `health-check` hook exits with a non-`ok` status the next `health-check` will run after the default `health-check` interval (thirty seconds). This is only done when the configured interval is greater than the default interval.
-  - Following the first `ok` `health-check` the next `health-check` will run after a randomly chosen delay between zero and the configured interval. This is done to introduce splay between `health-check` runs.
+  - If the `health-check` hook returns an `ok` status for the first time, then the next `health-check` will run after a randomly chosen delay between 0 and the configured `health-check` interval. This introduces a splay - a degree of difference - in the timing between the first and second `health-check` runs. All following health-check hooks run at the configured interval. The splay prevents more than one health-check hook from starting at the same time by giving each of them a unique starting point.
 
 The `health-check` script must return a valid exit code from the list below.
 
