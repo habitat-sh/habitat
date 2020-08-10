@@ -966,66 +966,6 @@ mod test {
     }
 
     #[test]
-    fn get_key_revisions_can_return_everything() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
-                                                   .unwrap();
-        // we need to wait at least 1 second between generating keypairs to ensure uniqueness
-        thread::sleep(Duration::from_millis(1000));
-        SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
-                                                   .unwrap();
-        let revs = super::get_key_revisions("foo", cache.path(), None, KeyType::Sig).unwrap();
-        assert_eq!(2, revs.len());
-    }
-
-    #[test]
-    fn get_key_revisions_can_only_return_keys_of_specified_type() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
-                                                   .unwrap();
-        let revs = super::get_key_revisions("foo", cache.path(), None, KeyType::Sig).unwrap();
-        assert_eq!(1, revs.len());
-        // we need to wait at least 1 second between generating keypairs to ensure uniqueness
-        thread::sleep(Duration::from_millis(1000));
-        let pair = BoxKeyPair::generate_pair_for_user("foo-user");
-        pair.unwrap().to_pair_files(cache.path()).unwrap();
-        let revs = super::get_key_revisions("foo-user", cache.path(), None, KeyType::Sig).unwrap();
-        assert_eq!(0, revs.len());
-    }
-
-    #[test]
-    fn get_key_revisions_can_return_secret_keys() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
-                                                   .unwrap();
-        // we need to wait at least 1 second between generating keypairs to ensure uniqueness
-        thread::sleep(Duration::from_millis(1000));
-        SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
-                                                   .unwrap();
-        let revs = super::get_key_revisions("foo",
-                                            cache.path(),
-                                            Some(PairType::Secret),
-                                            KeyType::Sig).unwrap();
-        assert_eq!(2, revs.len());
-    }
-
-    #[test]
-    fn get_key_revisions_can_return_public_keys() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
-                                                   .unwrap();
-        // we need to wait at least 1 second between generating keypairs to ensure uniqueness
-        thread::sleep(Duration::from_millis(1000));
-        SigKeyPair::generate_pair_for_origin("foo").to_pair_files(cache.path())
-                                                   .unwrap();
-        let revs = super::get_key_revisions("foo",
-                                            cache.path(),
-                                            Some(PairType::Public),
-                                            KeyType::Sig).unwrap();
-        assert_eq!(2, revs.len());
-    }
-
-    #[test]
     fn get_user_key_revisions() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         for _ in 0..3 {
@@ -1094,30 +1034,6 @@ mod test {
 
         let revisions =
             super::get_key_revisions("acme-you", dir.path(), None, KeyType::Sym).unwrap();
-        assert_eq!(1, revisions.len());
-    }
-
-    #[test]
-    fn get_origin_key_revisions() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-
-        for _ in 0..3 {
-            wait_until_ok(|| {
-                let pair = SigKeyPair::generate_pair_for_origin("mutants");
-                pair.to_pair_files(cache.path())?;
-                Ok(())
-            });
-        }
-
-        SigKeyPair::generate_pair_for_origin("mutants-x").to_pair_files(cache.path())
-                                                         .unwrap();
-
-        let revisions =
-            super::get_key_revisions("mutants", cache.path(), None, KeyType::Sig).unwrap();
-        assert_eq!(3, revisions.len());
-
-        let revisions =
-            super::get_key_revisions("mutants-x", cache.path(), None, KeyType::Sig).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -1277,8 +1193,8 @@ mod test {
         let content = match key_type {
             KeyType::Sym => RingKey::new(name).to_key_string(),
             KeyType::Sig => {
-                SigKeyPair::generate_pair_for_origin(name).to_secret_string()
-                                                          .unwrap()
+                let (_public, secret) = generate_signing_key_pair(name);
+                secret.to_key_string()
             }
             KeyType::Box => {
                 BoxKeyPair::generate_pair_for_user(name).unwrap()
