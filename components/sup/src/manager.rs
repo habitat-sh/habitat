@@ -154,6 +154,10 @@ lazy_static! {
         PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
 }
 
+habitat_core::env_config_duration!( HttpStartupTimeout,
+                                    HAB_HTTP_STARTUP_TIMEOUT_SECS => from_secs,
+                                    Duration::from_secs(10));
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 /// Determines whether the new pidfile-less behavior is enabled, or
 /// the old behavior is used.
@@ -994,19 +998,22 @@ impl Manager {
             loop {
                 match *started {
                     http_gateway::ServerStartup::NotStarted => {
-                        started = match cvar.wait_timeout(started, Duration::from_secs(10)) {
-                            Ok((mutex, timeout_result)) => {
-                                if timeout_result.timed_out() {
-                                    return Err(Error::BindTimeout(http_listen_addr.to_string()));
-                                } else {
-                                    mutex
+                        started =
+                            match cvar.wait_timeout(started,
+                                                    HttpStartupTimeout::configured_value().into())
+                            {
+                                Ok((mutex, timeout_result)) => {
+                                    if timeout_result.timed_out() {
+                                        return Err(Error::BindTimeout(http_listen_addr.to_string()));
+                                    } else {
+                                        mutex
+                                    }
                                 }
-                            }
-                            Err(e) => {
-                                error!("Mutex for the HTTP gateway was poisoned. e = {:?}", e);
-                                return Err(Error::LockPoisoned);
-                            }
-                        };
+                                Err(e) => {
+                                    error!("Mutex for the HTTP gateway was poisoned. e = {:?}", e);
+                                    return Err(Error::LockPoisoned);
+                                }
+                            };
                     }
                     http_gateway::ServerStartup::BindFailed => {
                         return Err(Error::BadAddress(http_listen_addr.to_string()));
