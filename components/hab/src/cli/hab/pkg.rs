@@ -18,6 +18,8 @@ use configopt::ConfigOpt;
 use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
                            PACKAGE_TARGET_ENVVAR},
+                     ui::{UIWriter,
+                          UI},
                      FeatureFlag,
                      FEATURE_FLAGS};
 use habitat_core::{env::Config,
@@ -454,9 +456,13 @@ pub struct ExportCommand {
 /// would work. However, #3 would not work because `--multi-layer` does not look like a positional
 /// argument. To fix this we capture the export format as a positional argument.
 impl ExportCommand {
-    pub fn format(&self) -> Result<ExportFormat, ClapError> {
+    pub fn format(&self, ui: &mut UI) -> Result<ExportFormat, ClapError> {
         if let Some(format) = self.format_and_args.get(0) {
             let format = format.to_string_lossy();
+            if format == ExportFormat::DOCKER {
+                ui.warn("'hab pkg export docker' is now a deprecated alias for 'hab pkg export \
+                         container'. Please update your automation and processes accordingly.")?;
+            }
             format.parse().map_err(|_| {
                               ClapError::with_description(&format!("Failed to parse `{}` as an \
                                                                     export format. [possible \
@@ -493,19 +499,16 @@ pub struct SealedExportFormat(());
 pub enum ExportFormat {
     Cf(SealedExportFormat),
     Container(SealedExportFormat),
-    Docker(SealedExportFormat),
     Mesos(SealedExportFormat),
     Tar(SealedExportFormat),
 }
 
 impl ExportFormat {
-    const ALL_FORMATS: &'static [&'static str] = &[Self::CF,
-                                                   Self::CONTAINER,
-                                                   Self::DOCKER,
-                                                   Self::MESOS,
-                                                   Self::TAR];
+    const ALL_FORMATS: &'static [&'static str] =
+        &[Self::CF, Self::CONTAINER, Self::MESOS, Self::TAR];
     const CF: &'static str = "cf";
     const CONTAINER: &'static str = "container";
+    // TODO (DM): Using `docker` as the command is deprecated and should eventually be removed.
     const DOCKER: &'static str = "docker";
     const MESOS: &'static str = "mesos";
     const TAR: &'static str = "tar";
@@ -526,7 +529,6 @@ impl Display for ExportFormat {
         match self {
             Self::Cf(_) => write!(f, "{}", Self::CF),
             Self::Container(_) => write!(f, "{}", Self::CONTAINER),
-            Self::Docker(_) => write!(f, "{}", Self::DOCKER),
             Self::Mesos(_) => write!(f, "{}", Self::MESOS),
             Self::Tar(_) => write!(f, "{}", Self::TAR),
         }
@@ -541,9 +543,7 @@ impl FromStr for ExportFormat {
             #[cfg(any(target_os = "linux", target_os = "windows"))]
             Self::CF => Ok(Self::Cf(SealedExportFormat(()))),
             #[cfg(any(target_os = "linux", target_os = "windows"))]
-            Self::CONTAINER => Ok(Self::Container(SealedExportFormat(()))),
-            #[cfg(any(target_os = "linux", target_os = "windows"))]
-            Self::DOCKER => Ok(Self::Docker(SealedExportFormat(()))),
+            Self::CONTAINER | Self::DOCKER => Ok(Self::Container(SealedExportFormat(()))),
             #[cfg(target_os = "linux")]
             Self::MESOS => Ok(Self::Mesos(SealedExportFormat(()))),
             #[cfg(any(target_os = "linux", target_os = "windows"))]
