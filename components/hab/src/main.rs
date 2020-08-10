@@ -19,7 +19,7 @@ use hab::{cli::{self,
                                Rbac,
                                RbacSet,
                                RbacShow},
-                      pkg::{ExportFormat as PkgExportFormat,
+                      pkg::{ExportCommand as PkgExportCommand,
                             Pkg},
                       svc::{self,
                             BulkLoad as SvcBulkLoad,
@@ -218,18 +218,29 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         Pkg::Export(export) => {
                             // We must manually parse the export format and args. See the comment on
                             // `impl ExportCommand` for more details.
-                            match export.format(ui).unwrap_or_else(|e| e.exit()) {
-                                PkgExportFormat::Cf(_) => {
-                                    return command::pkg::export::cf::start(ui, export.args()).await;
+                            match export {
+                                #[cfg(any(target_os = "linux", target_os = "windows"))]
+                                PkgExportCommand::Cf(args) => {
+                                    return command::pkg::export::cf::start(ui, &args.args).await;
                                 }
-                                PkgExportFormat::Container(_) => {
-                                    return command::pkg::export::container::start(ui, export.args()).await;
+                                #[cfg(any(target_os = "linux", target_os = "windows"))]
+                                PkgExportCommand::Container(args) => {
+                                    return command::pkg::export::container::start(ui, &args.args).await;
                                 }
-                                PkgExportFormat::Mesos(_) => {
-                                    return command::pkg::export::mesos::start(ui, export.args()).await;
+                                #[cfg(any(target_os = "linux", target_os = "windows"))]
+                                PkgExportCommand::Docker(args) => {
+                                    ui.warn("'hab pkg export docker' is now a deprecated alias \
+                                             for 'hab pkg export container'. Please update your \
+                                             automation and processes accordingly.")?;
+                                    return command::pkg::export::container::start(ui, &args.args).await;
                                 }
-                                PkgExportFormat::Tar(_) => {
-                                    return command::pkg::export::tar::start(ui, export.args()).await;
+                                #[cfg(target_os = "linux")]
+                                PkgExportCommand::Mesos(args) => {
+                                    return command::pkg::export::mesos::start(ui, &args.args).await;
+                                }
+                                #[cfg(any(target_os = "linux", target_os = "windows"))]
+                                PkgExportCommand::Tar(args) => {
+                                    return command::pkg::export::tar::start(ui, &args.args).await;
                                 }
                             }
                         }
