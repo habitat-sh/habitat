@@ -618,7 +618,7 @@ checksum = "370c83b49aedf022ee27942e8ae1d9de1cf40dc9653ee6550e4455d08f6406f9"
 [[package]]
 name = "configopt"
 version = "0.1.0"
-source = "git+https://github.com/davidMcneil/configopt.git#152ed46d71d38a2a592c8f412ebacadeed1fc19d"
+source = "git+https://github.com/davidMcneil/configopt.git#8f08f3ec6a6a5c12fbd1e3cdbcaf8db7139bba48"
 dependencies = [
  "colosseum",
  "configopt-derive",
@@ -631,7 +631,7 @@ dependencies = [
 [[package]]
 name = "configopt-derive"
 version = "0.1.0"
-source = "git+https://github.com/davidMcneil/configopt.git#152ed46d71d38a2a592c8f412ebacadeed1fc19d"
+source = "git+https://github.com/davidMcneil/configopt.git#8f08f3ec6a6a5c12fbd1e3cdbcaf8db7139bba48"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -1548,6 +1548,7 @@ dependencies = [
  "glob",
  "hab",
  "habitat-launcher-client",
+ "habitat-launcher-protocol",
  "habitat-sup-protocol",
  "habitat_api_client",
  "habitat_butterfly",

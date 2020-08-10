@@ -12,17 +12,25 @@ use crate::cli::{dir_exists,
                  file_exists,
                  valid_ident_or_toml_file,
                  valid_origin};
+use clap::{Error as ClapError,
+           ErrorKind as ClapErrorKind};
 use configopt::ConfigOpt;
 use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
                            PACKAGE_TARGET_ENVVAR},
+                     ui::{UIWriter,
+                          UI},
                      FeatureFlag,
                      FEATURE_FLAGS};
 use habitat_core::{env::Config,
                    package::{PackageIdent,
                              PackageTarget},
                    ChannelIdent};
-use std::path::PathBuf;
+use std::{ffi::OsString,
+          fmt::{self,
+                Display},
+          path::PathBuf,
+          str::FromStr};
 use structopt::{clap::{AppSettings,
                        ArgGroup},
                 StructOpt};
@@ -232,25 +240,7 @@ pub enum Pkg {
         #[structopt(name = "ARGS")]
         args:      Vec<String>,
     },
-    /// Exports the package to the specified format
-    Export {
-        /// The export format (ex: cf, container, mesos, or tar)
-        #[structopt(name = "FORMAT")]
-        format:    String,
-        /// A package identifier (ex: core/redis, core/busybox-static/1.42.2) or filepath to a
-        /// Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-        #[structopt(name = "PKG_IDENT")]
-        pkg_ident: PackageIdent,
-        #[structopt(flatten)]
-        bldr_url:  BldrUrl,
-        /// Retrieve the package-to-export from the specified release channel
-        #[structopt(name = "CHANNEL",
-            short = "c",
-            long = "channel",
-            default_value = "stable",
-            env = ChannelIdent::ENVVAR)]
-        channel:   String,
-    },
+    Export(ExportCommand),
     /// Generates a blake2b hashsum from a target at any given filepath
     Hash {
         /// A filepath of the target
@@ -436,4 +426,129 @@ pub enum Pkg {
         #[structopt(flatten)]
         cache_key_path: CacheKeyPath,
     },
+}
+
+/// Exports the package to the specified format
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "export", no_version, rename_all = "screamingsnake",
+            settings = &[AppSettings::TrailingVarArg])]
+pub struct ExportCommand {
+    /// The format to export followed by arguments to pass to the exporter [possible values: cf,
+    /// container, mesos, tar]
+    ///
+    /// Run `hab pkg export <exporter> --help` to see exporter specific help. Example commands:
+    /// `hab pkg export tar --help`, `hab pkg export container core/redis --engine=buildah`
+    ///
+    /// Note: Not all exporters are available on all platforms.
+    #[structopt(parse(from_os_str))]
+    format_and_args: Vec<OsString>,
+}
+
+/// We must rely on manually parsing the export format and exporter arguments. The clap option
+/// `TrailingVarArg` allows capturing all arguments following a **positional** argument (ie the
+/// argument cannot be preceded by -- or -). Consider the following example commands:
+///
+/// 1. `hab pkg export container core/redis`
+/// 2. `hab pkg export container core/redis --multi-layer`
+/// 3. `hab pkg export container --multi-layer core/redis`
+///
+/// If we had a separate positional argument or subcommand for the export format examples #1 and #2
+/// would work. However, #3 would not work because `--multi-layer` does not look like a positional
+/// argument. To fix this we capture the export format as a positional argument.
+impl ExportCommand {
+    pub fn format(&self, ui: &mut UI) -> Result<ExportFormat, ClapError> {
+        if let Some(format) = self.format_and_args.get(0) {
+            let format = format.to_string_lossy();
+            if format == ExportFormat::DOCKER {
+                ui.warn("'hab pkg export docker' is now a deprecated alias for 'hab pkg export \
+                         container'. Please update your automation and processes accordingly.")?;
+            }
+            format.parse().map_err(|_| {
+                              ClapError::with_description(&format!("Failed to parse `{}` as an \
+                                                                    export format. [possible \
+                                                                    values: {}] ",
+                                                                   format,
+                                                                   ExportFormat::possible_values()),
+                                                          ClapErrorKind::InvalidValue)
+                          })
+        } else {
+            Err(ClapError::with_description(&format!("No export format was specified. [possible \
+                                                      values: {}] ",
+                                                     ExportFormat::possible_values()),
+                                            ClapErrorKind::MissingRequiredArgument))
+        }
+    }
+
+    pub fn args(&self) -> &[OsString] {
+        if self.format_and_args.is_empty() {
+            &[]
+        } else {
+            &self.format_and_args[1..]
+        }
+    }
+}
+
+/// This struct can only be constructed within this module because it has a private field. All
+/// `ExportFormat` variants contain an instance of this types. This effectively "seals" construction
+/// of `ExportFormat` to this module. Construction should only happen in `FromStr` which uses
+/// conditional compilation to only allow constructing platform supported `ExportFormat`s. By
+/// "sealing" construction of this enum we avoid the need to litter conditional compilation wherever
+/// `ExportFormat` is used.
+pub struct SealedExportFormat(());
+
+pub enum ExportFormat {
+    Cf(SealedExportFormat),
+    Container(SealedExportFormat),
+    Mesos(SealedExportFormat),
+    Tar(SealedExportFormat),
+}
+
+impl ExportFormat {
+    const ALL_FORMATS: &'static [&'static str] =
+        &[Self::CF, Self::CONTAINER, Self::MESOS, Self::TAR];
+    const CF: &'static str = "cf";
+    const CONTAINER: &'static str = "container";
+    // TODO (DM): Using `docker` as the command is deprecated and should eventually be removed.
+    const DOCKER: &'static str = "docker";
+    const MESOS: &'static str = "mesos";
+    const TAR: &'static str = "tar";
+
+    fn possible_values() -> String {
+        // Filter formats that are not supported by the current platform
+        let platform_supported_formats =
+            Self::ALL_FORMATS.iter()
+                             .filter(|format| ExportFormat::from_str(format).is_ok())
+                             .copied()
+                             .collect::<Vec<_>>();
+        platform_supported_formats.join(", ")
+    }
+}
+
+impl Display for ExportFormat {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Cf(_) => write!(f, "{}", Self::CF),
+            Self::Container(_) => write!(f, "{}", Self::CONTAINER),
+            Self::Mesos(_) => write!(f, "{}", Self::MESOS),
+            Self::Tar(_) => write!(f, "{}", Self::TAR),
+        }
+    }
+}
+
+impl FromStr for ExportFormat {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            #[cfg(any(target_os = "linux", target_os = "windows"))]
+            Self::CF => Ok(Self::Cf(SealedExportFormat(()))),
+            #[cfg(any(target_os = "linux", target_os = "windows"))]
+            Self::CONTAINER | Self::DOCKER => Ok(Self::Container(SealedExportFormat(()))),
+            #[cfg(target_os = "linux")]
+            Self::MESOS => Ok(Self::Mesos(SealedExportFormat(()))),
+            #[cfg(any(target_os = "linux", target_os = "windows"))]
+            Self::TAR => Ok(Self::Tar(SealedExportFormat(()))),
+            _ => Err(String::from(s)),
+        }
+    }
 }

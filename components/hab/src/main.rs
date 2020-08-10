@@ -15,7 +15,9 @@ use configopt::{ConfigOpt,
 use futures::stream::StreamExt;
 use hab::{cli::{self,
                 gateway_util,
-                hab::{svc::{self,
+                hab::{pkg::{ExportFormat as PkgExportFormat,
+                            Pkg},
+                      svc::{self,
                             BulkLoad as SvcBulkLoad,
                             Load as SvcLoad,
                             Svc},
@@ -187,6 +189,31 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         }
                     }
                 }
+                Hab::Pkg(pkg) => {
+                    match pkg {
+                        Pkg::Export(export) => {
+                            // We must manually parse the export format and args. See the comment on
+                            // `impl ExportCommand` for more details.
+                            match export.format(ui).unwrap_or_else(|e| e.exit()) {
+                                PkgExportFormat::Cf(_) => {
+                                    return command::pkg::export::cf::start(ui, export.args()).await;
+                                }
+                                PkgExportFormat::Container(_) => {
+                                    return command::pkg::export::container::start(ui, export.args()).await;
+                                }
+                                PkgExportFormat::Mesos(_) => {
+                                    return command::pkg::export::mesos::start(ui, export.args()).await;
+                                }
+                                PkgExportFormat::Tar(_) => {
+                                    return command::pkg::export::tar::start(ui, export.args()).await;
+                                }
+                            }
+                        }
+                        _ => {
+                            // All other commands will be caught by the CLI parsing logic below.
+                        }
+                    }
+                }
                 _ => {
                     // All other commands will be caught by the CLI parsing logic below.
                 }
@@ -312,7 +339,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 ("download", Some(m)) => sub_pkg_download(ui, m, feature_flags).await?,
                 ("env", Some(m)) => sub_pkg_env(m)?,
                 ("exec", Some(m)) => sub_pkg_exec(m, &remaining_args)?,
-                ("export", Some(m)) => sub_pkg_export(ui, m).await?,
                 ("hash", Some(m)) => sub_pkg_hash(m)?,
                 ("install", Some(m)) => sub_pkg_install(ui, m, feature_flags).await?,
                 ("list", Some(m)) => sub_pkg_list(m)?,
@@ -732,15 +758,6 @@ fn sub_pkg_exec(m: &ArgMatches<'_>, cmd_args: &[OsString]) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;
     let cmd = m.value_of("CMD").unwrap(); // Required via clap
     command::pkg::exec::start(&ident, cmd, cmd_args)
-}
-
-async fn sub_pkg_export(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let ident = required_pkg_ident_from_input(m)?;
-    let format = &m.value_of("FORMAT").unwrap();
-    let url = bldr_url_from_matches(&m)?;
-    let channel = channel_from_matches_or_default(&m);
-    let export_fmt = command::pkg::export::format_for(ui, &format)?;
-    command::pkg::export::start(ui, &url, &channel, &ident, &export_fmt).await
 }
 
 fn sub_pkg_hash(m: &ArgMatches<'_>) -> Result<()> {
@@ -1512,19 +1529,6 @@ async fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
     let third = args.next().unwrap_or_default();
 
     match (first.as_str(), second.as_str(), third.as_str()) {
-        ("pkg", "export", "container") => {
-            command::pkg::export::container::start(ui, &args_after_first(4)).await
-        }
-        ("pkg", "export", "docker") => {
-            ui.warn("'hab pkg export docker' is now a deprecated alias for 'hab pkg \
-                             export container'. Please update your automation and processes \
-                             accordingly.".to_string())?;
-            command::pkg::export::container::start(ui, &args_after_first(4)).await
-        }
-        ("pkg", "export", "cf") => command::pkg::export::cf::start(ui, &args_after_first(4)).await,
-        ("pkg", "export", "tar") => {
-            command::pkg::export::tar::start(ui, &args_after_first(4)).await
-        }
         ("run", ..) => command::launcher::start(ui, &args_after_first(1)).await,
         ("stu", ..) | ("stud", ..) | ("studi", ..) | ("studio", ..) => {
             command::studio::enter::start(ui, &args_after_first(2)).await
