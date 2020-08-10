@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.116 -->
-## [1.6.116](https://github.com/habitat-sh/habitat/tree/1.6.116) (2020-08-10)
+<!-- latest_release 1.6.117 -->
+## [1.6.117](https://github.com/habitat-sh/habitat/tree/1.6.117) (2020-08-10)
 
 #### Merged Pull Requests
-- Cleanup `hab pkg export` subcommand [#7857](https://github.com/habitat-sh/habitat/pull/7857) ([davidMcneil](https://github.com/davidMcneil))
+- make bind timeout configurable and add debug output around startup [#7858](https://github.com/habitat-sh/habitat/pull/7858) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -25,6 +25,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- make bind timeout configurable and add debug output around startup [#7858](https://github.com/habitat-sh/habitat/pull/7858) ([mwrock](https://github.com/mwrock)) <!-- 1.6.117 -->
 - Cleanup `hab pkg export` subcommand [#7857](https://github.com/habitat-sh/habitat/pull/7857) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.116 -->
 - fix license environment injection in container exporter [#7860](https://github.com/habitat-sh/habitat/pull/7860) ([mwrock](https://github.com/mwrock)) <!-- 1.6.115 -->
 - fix e2e test_license test [#7859](https://github.com/habitat-sh/habitat/pull/7859) ([mwrock](https://github.com/mwrock)) <!-- 1.6.114 -->
