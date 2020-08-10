@@ -226,6 +226,7 @@ impl Server {
                feature_flags: FeatureFlag,
                control: Arc<(Mutex<ServerStartup>, Condvar)>) {
         thread::spawn(move || {
+            debug!("Entering http_gateway run thread");
             let &(ref lock, ref cvar) = &*control;
             let thread_count = match henv::var(HTTP_THREADS_ENVVAR) {
                 Ok(val) => {
@@ -249,11 +250,13 @@ impl Server {
                              }).workers(thread_count);
 
             server = server.disable_signals();
+            debug!("http_gateway server configured");
 
             let bind = match tls_config {
                 Some(c) => server.bind_rustls(listen_addr.to_string(), c),
                 None => server.bind(listen_addr.to_string()),
             };
+            debug!("http_gateway server port bound");
 
             *lock.lock().expect("Control mutex is poisoned") = match bind {
                 Ok(_) => ServerStartup::Started,
