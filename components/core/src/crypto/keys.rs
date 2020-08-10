@@ -120,7 +120,7 @@ impl Drop for TmpKeyfile {
 
 ////////////////////////////////////////////////////////////////////////
 
-pub trait Key {
+pub trait Key: AsRef<Path> + TryFrom<PathBuf, Error = Error> {
     const EXTENSION: &'static str;
     const VERSION_STRING: &'static str;
     const PERMISSIONS: Permissions;
