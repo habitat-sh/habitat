@@ -45,7 +45,31 @@ impl KeyCache {
     pub fn write_key<K>(&self, key: &K) -> Result<()>
         where K: AsRef<Path> + Key
     {
-        self.maybe_write_key(key)
+        let keyfile = self.path_in_cache(&key);
+        let content = key.to_key_string();
+
+        if keyfile.is_file() {
+            let existing_hash = hash::hash_file(&keyfile)?;
+            let new_hash = hash::hash_string(&content);
+            if existing_hash != new_hash {
+                let msg = format!("Existing key file {} found but new version hash is different, \
+                                   failing to write new file over existing. (existing = {}, \
+                                   incoming = {})",
+                                  keyfile.display(),
+                                  existing_hash,
+                                  new_hash);
+                return Err(Error::CryptoError(msg));
+            }
+        } else {
+            // Technically speaking, this probably doesn't really need
+            // to be an atomic write process, since we just tested
+            // that the file doesn't currently exist. It does,
+            // however, bundle up writing with platform-independent
+            // permission setting, which is *super* convenient.
+            let w = AtomicWriter::new_with_permissions(&keyfile, K::permissions())?;
+            w.with_writer(|f| f.write_all(content.as_ref()))?;
+        }
+        Ok(())
     }
 
     /// Note: name is just the name, not the name + revision
@@ -144,36 +168,6 @@ impl KeyCache {
         where K: AsRef<Path>
     {
         self.0.join(key.as_ref())
-    }
-
-    fn maybe_write_key<K>(&self, key: &K) -> Result<()>
-        where K: AsRef<Path> + Key
-    {
-        let keyfile = self.path_in_cache(&key);
-        let content = key.to_key_string();
-
-        if keyfile.is_file() {
-            let existing_hash = hash::hash_file(&keyfile)?;
-            let new_hash = hash::hash_string(&content);
-            if existing_hash != new_hash {
-                let msg = format!("Existing key file {} found but new version hash is different, \
-                                   failing to write new file over existing. (existing = {}, \
-                                   incoming = {})",
-                                  keyfile.display(),
-                                  existing_hash,
-                                  new_hash);
-                return Err(Error::CryptoError(msg));
-            }
-        } else {
-            // Technically speaking, this probably doesn't really need
-            // to be an atomic write process, since we just tested
-            // that the file doesn't currently exist. It does,
-            // however, bundle up writing with platform-independent
-            // permission setting, which is *super* convenient.
-            let w = AtomicWriter::new_with_permissions(&keyfile, K::permissions())?;
-            w.with_writer(|f| f.write_all(content.as_ref()))?;
-        }
-        Ok(())
     }
 
     /// Search the key cache for all files that are revisions of the
