@@ -27,7 +27,6 @@ pub enum Error {
     PackageReadError(PathBuf, io::Error),
     ParseIntError(num::ParseIntError),
     IdentNotFullyQualified,
-    RenderContextSerialization(serde_json::Error),
     UploadFailed(String),
     UrlParseError(url::ParseError),
     WriteSyncFailed,
@@ -63,9 +62,6 @@ impl fmt::Display for Error {
                 format!("Failed to read package artifact, {}, {}", p.display(), e)
             }
             Error::ParseIntError(ref err) => format!("{}", err),
-            Error::RenderContextSerialization(ref e) => {
-                format!("Unable to serialize rendering context, {}", e)
-            }
             Error::IdentNotFullyQualified => {
                 "Cannot perform the specified operation. Specify a fully qualifed package \
                  identifier (ex: core/busybox-static/1.42.2/20170513215502)"
