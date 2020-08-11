@@ -15,7 +15,8 @@ use configopt::{ConfigOpt,
 use futures::stream::StreamExt;
 use hab::{cli::{self,
                 gateway_util,
-                hab::{origin::{Origin,
+                hab::{license::License,
+                      origin::{Origin,
                                Rbac,
                                RbacSet,
                                RbacShow},
@@ -128,8 +129,7 @@ async fn main() {
 async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     let hab = Hab::try_from_args_with_configopt();
 
-    let args = std::env::args().skip(1).collect::<Vec<_>>();
-    if args == vec!["license", "accept"] {
+    if let Ok(Hab::License(License::Accept)) = hab {
         license::accept_license(ui)?;
         return Ok(());
     }
