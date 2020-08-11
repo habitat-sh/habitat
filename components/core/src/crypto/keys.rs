@@ -1047,7 +1047,7 @@ mod test {
         let temp_dir = Builder::new().prefix("symlinks_are_ok").tempdir().unwrap();
         let key = RingKey::new("symlinks_are_ok");
 
-        let key_name = format!("{}.sym.key", key.name_with_rev());
+        let key_name = format!("{}.sym.key", key.named_revision());
         let key_path = temp_dir.path().join(&key_name);
         fs::write(&key_path, key.to_key_string()).unwrap();
 
@@ -1072,7 +1072,7 @@ mod test {
                                      KeyType::Sym).expect("Could not fetch key revisions!");
 
         assert_eq!(1, revisions.len());
-        assert_eq!(revisions[0], key.name_with_rev());
+        assert_eq!(revisions[0], key.named_revision().to_string());
     }
 
     // Windows and Linux platforms handle symlinking differently; this
