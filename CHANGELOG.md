@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.117 -->
-## [1.6.117](https://github.com/habitat-sh/habitat/tree/1.6.117) (2020-08-10)
+<!-- latest_release 1.6.118 -->
+## [1.6.118](https://github.com/habitat-sh/habitat/tree/1.6.118) (2020-08-11)
 
 #### Merged Pull Requests
-- make bind timeout configurable and add debug output around startup [#7858](https://github.com/habitat-sh/habitat/pull/7858) ([mwrock](https://github.com/mwrock))
+- Rustfmt and Nightly Rust Bump to nightly-2020-07-27 [#7862](https://github.com/habitat-sh/habitat/pull/7862) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.56 -->
@@ -25,6 +25,7 @@
 - [FIX] Ensure `toToml` helper works properly for tables [#7772](https://github.com/habitat-sh/habitat/pull/7772) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.63 -->
 
 #### Merged Pull Requests
+- Rustfmt and Nightly Rust Bump to nightly-2020-07-27 [#7862](https://github.com/habitat-sh/habitat/pull/7862) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.118 -->
 - make bind timeout configurable and add debug output around startup [#7858](https://github.com/habitat-sh/habitat/pull/7858) ([mwrock](https://github.com/mwrock)) <!-- 1.6.117 -->
 - Cleanup `hab pkg export` subcommand [#7857](https://github.com/habitat-sh/habitat/pull/7857) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.116 -->
 - fix license environment injection in container exporter [#7860](https://github.com/habitat-sh/habitat/pull/7860) ([mwrock](https://github.com/mwrock)) <!-- 1.6.115 -->
