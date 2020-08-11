@@ -1,0 +1,77 @@
+version: '2.4'
+services:
+
+  # The repetition of the additional volume mounts as well as the
+  # extra --org option pains my soul, but it doesn't appear that the
+  # docker-compose `extends` feature allows you to reach back to
+  # previous "layers" to modify them and let those changes naturally
+  # bubble up.
+
+  # Even though we'll be loading the files to the bastion, it doesn't
+  # actually need to be running with the same `org` as the others. It
+  # also doesn't need access to the keys, because it doesn't decrypt
+  # anything. As such, we don't need to override anything for it.
+
+  alpha:
+    # Overriding to add `--org` option
+    command:
+      - run
+      - --listen-ctl=0.0.0.0:9632
+      - --org=e2e
+      - --peer=bastion.habitat.dev
+    volumes:
+      - source: ${TESTCASE_DIR}/cache_keys
+        target: /hab/cache/keys
+        type: bind
+
+  beta:
+    # Overriding to add `--org` option
+    command:
+      - run
+      - --listen-ctl=0.0.0.0:9632
+      - --org=e2e
+      - --peer=bastion.habitat.dev
+    volumes:
+      - source: ${TESTCASE_DIR}/cache_keys
+        target: /hab/cache/keys
+        type: bind
+
+  # This Supervisor will be like the others, except that it won't have
+  # access to any user keys. As such, it shouldn't be able to decrypt
+  # any encrypted messages.
+  gamma:
+    extends:
+      service: sup_base
+    hostname: gamma
+    networks:
+      default:
+        aliases:
+        - gamma.habitat.dev
+    command:
+      - run
+      - --listen-ctl=0.0.0.0:9632
+      - --org=e2e
+      - --peer=bastion.habitat.dev
+    volumes:
+      - source: ${TESTCASE_DIR}/cache_keys_no_user
+        target: /hab/cache/keys
+        type: bind
+    depends_on:
+      - bastion
+
+  tester:
+    extends:
+      service: test_base
+    volumes:
+      # Strictly speaking, this container would only need access to
+      # private user keys and public service keys (well, by the same
+      # token, the others would strictly only need access to public
+      # user keys and private service keys).
+      - source: ${TESTCASE_DIR}/cache_keys
+        target: /hab/cache/keys
+        type: bind
+    depends_on:
+      - bastion
+      - alpha
+      - beta
+      - gamma

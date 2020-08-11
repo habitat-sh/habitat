@@ -104,13 +104,17 @@ function Start-Supervisor($Timeout = 1, $LogFile = (New-TemporaryFile), $SupArgs
     }
 }
 
-function Wait-SupervisorService($ServiceName, $Timeout = ($DefaultServiceTimeout), $Remote) {
+function Wait-SupervisorService($ServiceName, $Timeout = ($DefaultServiceTimeout), $Remote, $Org) {
     Write-Host "Waiting up to $Timeout seconds for Supervisor to start $ServiceName ..."
     if(!$Remote) { $Remote = "localhost" }
     $testScript = {
         try {
-            $status = (Invoke-WebRequest "http://${Remote}:9631/services/$ServiceName/default" |
-                    ConvertFrom-Json).process.state
+            if ($Org) {
+                $url = "http://${Remote}:9631/services/$ServiceName/default/$Org"
+            } else {
+                $url = "http://${Remote}:9631/services/$ServiceName/default"
+            }
+            $status = (Invoke-WebRequest "$url" | ConvertFrom-Json).process.state
             $status -eq "up"
         } catch { $false } # We ignore 404s and other unsuccesful codes
     }
@@ -119,7 +123,7 @@ function Wait-SupervisorService($ServiceName, $Timeout = ($DefaultServiceTimeout
     Write-Host "$ServiceName is now up."
 }
 
-function Load-SupervisorService($PackageName, $Timeout = ($DefaultServiceTimeout), [switch]$Force, $Remote, $Bind, $Channel, $Topology, $Strategy, $UpdateCondition, $HealthCheckInterval) {
+function Load-SupervisorService($PackageName, $Timeout = ($DefaultServiceTimeout), [switch]$Force, $Remote, $Bind, $Channel, $Topology, $Strategy, $UpdateCondition, $HealthCheckInterval, $Org) {
     $svcName = ($PackageName -split "/")[1]
     $commandArgs = @("hab", "svc", "load", $PackageName)
     if($Force) {
@@ -150,7 +154,7 @@ function Load-SupervisorService($PackageName, $Timeout = ($DefaultServiceTimeout
         $commandArgs += @("--health-check-interval", $HealthCheckInterval)
     }
     $_ = Invoke-NativeCommand @commandArgs
-    Wait-SupervisorService $svcName -Timeout $Timeout -Remote $Remote
+    Wait-SupervisorService $svcName -Timeout $Timeout -Remote $Remote $Org
     $svcName
 }
 
