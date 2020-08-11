@@ -1,4 +1,5 @@
-use crate::{crypto::{keys::{KeyCache,
+use crate::{crypto::{keys::{Key,
+                            KeyCache,
                             NamedRevision,
                             SecretOriginSigningKey},
                      HART_FORMAT_VERSION,
@@ -41,7 +42,7 @@ pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, key: &SecretOriginSignin
     write!(writer,
            "{}\n{}\n{}\n{}\n\n",
            HART_FORMAT_VERSION,
-           key.name_with_rev(),
+           key.named_revision(),
            SIG_HASH_TYPE,
            base64::encode(&signature))?;
     let mut file = File::open(src)?;
@@ -156,7 +157,7 @@ fn artifact_header_and_archive<P>(path: P) -> Result<(ArtifactHeader, impl BufRe
     Ok((header, reader))
 }
 
-pub fn verify<P>(hart_file_path: P, cache: &KeyCache) -> Result<(String, String)>
+pub fn verify<P>(hart_file_path: P, cache: &KeyCache) -> Result<(NamedRevision, String)>
     where P: AsRef<Path>
 {
     let (header, mut reader) = artifact_header_and_archive(hart_file_path)?;
@@ -247,7 +248,7 @@ mod test {
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\n", public.name_with_rev()).as_bytes())
+        f.write_all(format!("HART-1\n{}\n", public.named_revision()).as_bytes())
          .unwrap();
 
         verify(&dst, &cache).unwrap();
@@ -261,7 +262,7 @@ mod test {
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\nBESTEST\nuhoh", public.name_with_rev()).as_bytes())
+        f.write_all(format!("HART-1\n{}\nBESTEST\nuhoh", public.named_revision()).as_bytes())
          .unwrap();
 
         verify(&dst, &cache).unwrap();
@@ -275,7 +276,7 @@ mod test {
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\nBLAKE2b\n", public.name_with_rev()).as_bytes())
+        f.write_all(format!("HART-1\n{}\nBLAKE2b\n", public.named_revision()).as_bytes())
          .unwrap();
 
         verify(&dst, &cache).unwrap();
@@ -290,7 +291,7 @@ mod test {
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(format!("HART-1\n{}\nBLAKE2b\nnot:base64:signature",
-                            public.name_with_rev()).as_bytes())
+                            public.named_revision()).as_bytes())
          .unwrap();
 
         verify(&dst, &cache).unwrap();
@@ -305,7 +306,7 @@ mod test {
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(format!("HART-1\n{}\nBLAKE2b\nU3VycHJpc2Uh\n",
-                            public.name_with_rev()).as_bytes())
+                            public.named_revision()).as_bytes())
          .unwrap();
 
         verify(&dst, &cache).unwrap();

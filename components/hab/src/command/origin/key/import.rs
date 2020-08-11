@@ -1,7 +1,8 @@
 use crate::{common::ui::{UIWriter,
                          UI},
             error::Result};
-use habitat_core::{crypto::keys::{KeyCache,
+use habitat_core::{crypto::keys::{Key,
+                                  KeyCache,
                                   PublicOriginSigningKey,
                                   SecretOriginSigningKey},
                    error::Error as CoreError};
@@ -14,11 +15,11 @@ pub fn start(ui: &mut UI, content: &str, cache: &Path) -> Result<()> {
     // Yeah, this is a little gross
     if let Ok(key) = content.parse::<PublicOriginSigningKey>() {
         cache.write_key(&key)?;
-        ui.end(format!("Imported public origin key {}", &key.name_with_rev()))?;
+        ui.end(format!("Imported public origin key {}", &key.named_revision()))?;
         Ok(())
     } else if let Ok(key) = content.parse::<SecretOriginSigningKey>() {
         cache.write_key(&key)?;
-        ui.end(format!("Imported secret origin key {}", &key.name_with_rev()))?;
+        ui.end(format!("Imported secret origin key {}", &key.named_revision()))?;
         Ok(())
     } else {
         // This is a LOT gross

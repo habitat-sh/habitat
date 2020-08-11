@@ -69,15 +69,13 @@ impl PublicOriginSigningKey {
                path }
     }
 
-    // Simple helper to deal with the indirection to the inner
-    // KeyPair struct. Not ultimately sure if this should be kept.
-    pub fn name_with_rev(&self) -> String { self.named_revision.to_string() }
-
     /// Accept a signature and the bytes for the signed content to be
     /// verified. Returns the named revision of the key as well as the
     /// computed hash.
-    // TODO (CM): Result should be NamedRevision, String
-    pub fn verify(&self, signature: &[u8], content: &mut dyn Read) -> Result<(String, String)> {
+    pub fn verify(&self,
+                  signature: &[u8],
+                  content: &mut dyn Read)
+                  -> Result<(NamedRevision, String)> {
         // TODO (CM): we should always have a public key here, by definition.
         let expected_hash = match primitives::verify(signature, &self.key) {
             Ok(signed_data) => {
@@ -92,7 +90,7 @@ impl PublicOriginSigningKey {
 
         let computed_hash = hash::hash_reader(content)?;
         if computed_hash == expected_hash {
-            Ok((self.name_with_rev(), expected_hash))
+            Ok((self.named_revision().clone(), expected_hash))
         } else {
             let msg = format!("Habitat artifact is invalid, hashes don't match (expected: {}, \
                                computed: {})",
@@ -139,10 +137,6 @@ impl SecretOriginSigningKey {
                key,
                path }
     }
-
-    // Simple helper to deal with the indirection to the inner
-    // KeyPair struct. Not ultimately sure if this should be kept.
-    pub fn name_with_rev(&self) -> String { self.named_revision.to_string() }
 
     /// Takes the contents of the given file and returns a signature
     /// based on this key.

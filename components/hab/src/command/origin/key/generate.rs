@@ -3,6 +3,7 @@ use std::path::Path;
 use crate::{common::ui::{UIWriter,
                          UI},
             hcore::{crypto::keys::{generate_signing_key_pair,
+                                   Key,
                                    KeyCache},
                     package::ident,
                     Error::InvalidOrigin}};
@@ -19,7 +20,7 @@ pub fn start(ui: &mut UI, origin: &str, cache: &Path) -> Result<()> {
         cache.write_key(&public)?;
         cache.write_key(&secret)?;
 
-        ui.end(format!("Generated origin key pair {}.", public.name_with_rev()))?;
+        ui.end(format!("Generated origin key pair {}.", public.named_revision()))?;
         Ok(())
     } else {
         Err(Error::from(InvalidOrigin(origin.to_string())))

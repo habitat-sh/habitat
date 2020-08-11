@@ -3,7 +3,8 @@ use crate::{common::ui::{Status,
                          UI},
             error::Result};
 use habitat_core::crypto::{artifact,
-                           keys::SecretOriginSigningKey};
+                           keys::{Key,
+                                  SecretOriginSigningKey}};
 use std::path::Path;
 
 pub fn start(ui: &mut UI, key: &SecretOriginSigningKey, src: &Path, dst: &Path) -> Result<()> {
@@ -11,7 +12,7 @@ pub fn start(ui: &mut UI, key: &SecretOriginSigningKey, src: &Path, dst: &Path) 
     ui.status(Status::Signing,
               format!("{} with {} to create {}",
                       src.display(),
-                      key.name_with_rev(),
+                      key.named_revision(),
                       dst.display()))?;
     artifact::sign(src, dst, key)?;
     ui.end(format!("Signed artifact {}.", dst.display()))?;
