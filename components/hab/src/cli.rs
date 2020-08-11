@@ -1,8 +1,7 @@
 pub mod gateway_util;
 pub mod hab;
 
-use crate::{api_client::OriginMemberRole,
-            cli::hab::{origin::Rbac,
+use crate::{cli::hab::{origin::Rbac,
                        pkg::ExportCommand,
                        sup::{Sup,
                              SupRun},
