@@ -1,0 +1,43 @@
+version: '2.4'
+services:
+
+  # The repetition of the additional volume mounts as well as the
+  # extra --ring option pains my soul, but it doesn't appear that the
+  # docker-compose `extends` feature allows you to reach back to
+  # previous "layers" to modify them and let those changes naturally
+  # bubble up.
+
+  # For this test, we are intentionally *NOT* overriding `alpha` at
+  # all; it will start up *without* a `--ring` argument.
+
+  beta:
+    # Overriding to add `--ring` option
+    command:
+      - run
+      - --listen-ctl=0.0.0.0:9632
+      - --ring=e2e_test_ring_1
+      - --peer=bastion.habitat.dev
+    volumes:
+      - source: ${TESTCASE_DIR}/cache_keys
+        target: /hab/cache/keys
+        type: bind
+
+  bastion:
+    # Overriding to add `--ring` option
+    command:
+      - run
+      - --listen-ctl=0.0.0.0:9632
+      - --ring=e2e_test_ring_1
+      - --permanent-peer
+    volumes:
+      - source: ${TESTCASE_DIR}/cache_keys
+        target: /hab/cache/keys
+        type: bind
+
+  tester:
+    extends:
+      service: test_base
+    depends_on:
+      - bastion
+      - alpha
+      - beta
