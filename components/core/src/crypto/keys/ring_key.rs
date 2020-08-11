@@ -73,10 +73,6 @@ impl RingKey {
                path }
     }
 
-    // Simple helper to deal with the indirection to the inner
-    // KeyPair struct. Not ultimately sure if this should be kept.
-    pub fn name_with_rev(&self) -> String { self.named_revision.to_string() }
-
     /// Encrypts a byte slice of data using a given `RingKey`.
     ///
     /// The return is a `Result` of a tuple of `Vec<u8>` structs, the first being the random nonce
@@ -233,7 +229,7 @@ mod test {
 
         assert_eq!(key.name(), "beyonce");
         assert!(dir.path()
-                   .join(format!("{}.sym.key", key.name_with_rev()))
+                   .join(format!("{}.sym.key", key.named_revision()))
                    .exists());
     }
 

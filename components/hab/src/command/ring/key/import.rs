@@ -1,7 +1,8 @@
 use crate::{common::ui::{UIWriter,
                          UI},
             error::Result};
-use habitat_core::crypto::keys::{KeyCache,
+use habitat_core::crypto::keys::{Key,
+                                 KeyCache,
                                  RingKey};
 use std::path::Path;
 
@@ -11,6 +12,6 @@ pub fn start(ui: &mut UI, content: &str, cache: &Path) -> Result<()> {
     cache.setup()?;
     let key: RingKey = content.parse()?;
     cache.write_key(&key)?;
-    ui.end(format!("Imported ring key {}.", &key.name_with_rev()))?;
+    ui.end(format!("Imported ring key {}.", &key.named_revision()))?;
     Ok(())
 }

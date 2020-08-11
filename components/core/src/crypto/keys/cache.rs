@@ -281,7 +281,7 @@ mod test {
         assert_eq!(new_key_file.is_file(), false);
 
         let key: RingKey = content.parse().unwrap();
-        assert_eq!(key.name_with_rev(), VALID_NAME_WITH_REV);
+        assert_eq!(key.named_revision().to_string(), VALID_NAME_WITH_REV);
         cache.write_key(&key).unwrap();
         assert!(new_key_file.is_file());
 
@@ -300,7 +300,7 @@ mod test {
 
         let key: RingKey = content.parse().unwrap();
         cache.write_key(&key).unwrap();
-        assert_eq!(key.name_with_rev(), VALID_NAME_WITH_REV);
+        assert_eq!(key.named_revision().to_string(), VALID_NAME_WITH_REV);
         assert!(new_key_file.is_file());
     }
 
