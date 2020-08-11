@@ -3,6 +3,7 @@ pub mod hab;
 
 use crate::{cli::hab::{origin::Rbac,
                        pkg::ExportCommand,
+                       studio::Studio,
                        sup::{Sup,
                              SupRun},
                        svc::{BulkLoad as SvcBulkLoad,
@@ -843,12 +844,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (subcommand: sub_svc_stop().aliases(&["sto"]))
             (subcommand: sub_svc_unload().aliases(&["u", "un", "unl", "unlo", "unloa"]))
         )
-        (@subcommand studio =>
-            (about: "Commands relating to Habitat Studios")
-            (aliases: &["stu", "stud", "studi"])
-            (@setting ArgRequiredElseHelp)
-            (@setting SubcommandRequiredElseHelp)
-        )
+        (subcommand: Studio::clap().aliases(&["stu", "stud", "studi"]))
         (@subcommand supportbundle =>
             (about: "Create a tarball of Habitat Supervisor data to send to support")
             (aliases: &["supp", "suppo", "suppor", "support-bundle"])

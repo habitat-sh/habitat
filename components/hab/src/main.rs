@@ -195,6 +195,9 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         }
                     }
                 }
+                Hab::Studio(studio) => {
+                    return command::studio::enter::start(ui, studio.args()).await;
+                }
                 Hab::Svc(svc) => {
                     match svc {
                         Svc::BulkLoad(svc_bulk_load) => {
@@ -1586,9 +1589,6 @@ async fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
 
     match (first.as_str(), second.as_str(), third.as_str()) {
         ("run", ..) => command::launcher::start(ui, &args_after_first(1)).await,
-        ("stu", ..) | ("stud", ..) | ("studi", ..) | ("studio", ..) => {
-            command::studio::enter::start(ui, &args_after_first(2)).await
-        }
         // Skip invoking the `hab-sup` binary for sup cli help messages;
         // handle these from within `hab`
         ("help", "sup", _)

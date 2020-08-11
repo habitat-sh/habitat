@@ -235,6 +235,7 @@ impl fmt::Display for DurationProxy {
 }
 
 #[derive(ConfigOpt, StructOpt)]
+#[configopt(derive(Serialize))]
 #[structopt(no_version, rename_all = "screamingsnake",
             settings = &[AppSettings::TrailingVarArg,
                         AppSettings::AllowLeadingHyphen,

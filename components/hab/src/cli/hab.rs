@@ -2,12 +2,12 @@ mod bldr;
 mod cli;
 mod config;
 mod file;
-mod license;
+pub mod license;
 pub mod origin;
 pub mod pkg;
 mod plan;
 mod ring;
-mod studio;
+pub mod studio;
 pub mod sup;
 pub mod svc;
 #[cfg(test)]
