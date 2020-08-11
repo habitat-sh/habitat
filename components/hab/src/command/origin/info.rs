@@ -7,8 +7,8 @@ use crate::{api_client::Client,
             PRODUCT,
             VERSION};
 
-use habitat_core::{PortableText,
-                   TabularText};
+use habitat_core::util::text_render::{PortableText,
+                                      TabularText};
 
 pub async fn start(ui: &mut UI,
                    bldr_url: &str,

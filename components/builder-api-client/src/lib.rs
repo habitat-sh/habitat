@@ -1,9 +1,9 @@
 use habitat_core::{self as hab_core,
-                   tabify,
-                   tabw,
                    util,
-                   PortableText,
-                   TabularText};
+                   util::text_render::{tabify,
+                                       tabw,
+                                       PortableText,
+                                       TabularText}};
 use habitat_http_client as hab_http;
 
 #[macro_use]

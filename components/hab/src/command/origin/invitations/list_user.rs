@@ -7,7 +7,7 @@ use crate::{api_client::Client,
             PRODUCT,
             VERSION};
 
-use habitat_core::TabularText;
+use habitat_core::util::text_render::TabularText;
 
 pub async fn start(ui: &mut UI, bldr_url: &str, token: &str) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;

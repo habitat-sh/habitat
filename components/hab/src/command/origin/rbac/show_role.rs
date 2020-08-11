@@ -7,7 +7,7 @@ use crate::{api_client::{self,
                     Result},
             PRODUCT,
             VERSION};
-use habitat_core::PortableText;
+use habitat_core::util::text_render::PortableText;
 use reqwest::StatusCode;
 
 pub async fn start(ui: &mut UI,

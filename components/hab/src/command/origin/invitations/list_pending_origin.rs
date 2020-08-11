@@ -7,7 +7,7 @@ use crate::{api_client::{self,
                     Result},
             PRODUCT,
             VERSION};
-use habitat_core::TabularText;
+use habitat_core::util::text_render::TabularText;
 use reqwest::StatusCode;
 
 pub async fn start(ui: &mut UI, bldr_url: &str, origin: &str, token: &str) -> Result<()> {
