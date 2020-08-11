@@ -64,26 +64,23 @@ pub fn bldr_url_from_env_load_or_default() -> String {
     bldr_url_from_env().unwrap_or_else(|| {
                            match config::load() {
                                Ok(config) => {
-                                   match config.bldr_url {
-                                       Some(v) => v,
-                                       None => DEFAULT_BLDR_URL.to_string(),
-                                   }
+                                   config.bldr_url.unwrap_or(DEFAULT_BLDR_URL.to_string())
                                }
                                Err(e) => {
-                                   println!("Found a cli.toml but unable to load it. Resorting \
-                                             to default BLDR_URL: {}",
-                                            e);
+                                   error!("Found a cli.toml but unable to load it. Resorting to \
+                                           default BLDR_URL: {}",
+                                          e);
                                    DEFAULT_BLDR_URL.to_string()
                                }
                            }
                        })
 }
 
-pub fn bldr_url_from_args_env_load_or_default(opt: Option<Url>) -> String {
+pub fn bldr_url_from_args_env_load_or_default(opt: Option<Url>) -> Url {
     if let Some(url) = opt {
-        url.to_string()
+        url
     } else {
-        bldr_url_from_env_load_or_default()
+        Url::parse(&bldr_url_from_env_load_or_default()).expect("Infallible parse DEFAULT_BLDR_URL")
     }
 }
 
@@ -94,26 +91,19 @@ pub fn bldr_auth_token_from_args_env_or_load(opt: Option<String>) -> Result<Stri
         match henv::var(AUTH_TOKEN_ENVVAR) {
             Ok(v) => Ok(v),
             Err(_) => {
-                match config::load()?.auth_token {
-                    Some(v) => Ok(v),
-                    None => {
-                        Err(Error::ArgumentError("No auth token specified. Please \
-                                                  check that you have specified a \
-                                                  valid Personal Access Token with:  \
-                                                  -z, --auth <AUTH_TOKEN>"
-                                                                          .into()))
-                    }
-                }
+                config::load()?.auth_token
+                               .ok_or(Error::ArgumentError("No auth token specified. Please \
+                                                            check that you have specified a \
+                                                            valid Personal Access Token with:  \
+                                                            -z, --auth <AUTH_TOKEN>"
+                                                                                    .into()))
             }
         }
     }
 }
 
 pub fn maybe_bldr_auth_token_from_args_or_load(opt: Option<String>) -> Option<String> {
-    match bldr_auth_token_from_args_env_or_load(opt) {
-        Ok(v) => Some(v),
-        Err(_) => None,
-    }
+    bldr_auth_token_from_args_env_or_load(opt).ok()
 }
 
 lazy_static! {

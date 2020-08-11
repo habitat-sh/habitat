@@ -2,7 +2,6 @@ use habitat_core::{self as hab_core,
                    util,
                    util::text_render::{tabify,
                                        tabw,
-                                       PortableText,
                                        TabularText}};
 use habitat_http_client as hab_http;
 
@@ -285,10 +284,6 @@ impl TabularText for OriginInfoResponse {
         tabify(tw, &body.join("\n"))
     }
 }
-
-impl PortableText for OriginMemberRoleResponse {}
-
-impl PortableText for OriginInfoResponse {}
 
 #[derive(Clone, Deserialize)]
 pub struct OriginSecret {

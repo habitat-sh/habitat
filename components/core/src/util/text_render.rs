@@ -26,3 +26,5 @@ pub trait PortableText: Serialize {
         serde_json::to_value(self).map_err(Error::RenderContextSerialization)
     }
 }
+
+impl<T: Serialize> PortableText for T {}
