@@ -3,7 +3,7 @@ mod cli;
 mod config;
 mod file;
 mod license;
-mod origin;
+pub mod origin;
 pub mod pkg;
 mod plan;
 mod ring;

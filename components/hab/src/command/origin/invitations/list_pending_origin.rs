@@ -1,6 +1,5 @@
 use crate::{api_client::{self,
-                         Client,
-                         TabularText},
+                         Client},
             common::ui::{Status,
                          UIWriter,
                          UI},
@@ -8,6 +7,7 @@ use crate::{api_client::{self,
                     Result},
             PRODUCT,
             VERSION};
+use habitat_core::TabularText;
 use reqwest::StatusCode;
 
 pub async fn start(ui: &mut UI, bldr_url: &str, origin: &str, token: &str) -> Result<()> {

@@ -2,7 +2,8 @@ pub mod gateway_util;
 pub mod hab;
 
 use crate::{api_client::OriginMemberRole,
-            cli::hab::{pkg::ExportCommand,
+            cli::hab::{origin::Rbac,
+                       pkg::ExportCommand,
                        sup::{Sup,
                              SupRun},
                        svc::{BulkLoad as SvcBulkLoad,
@@ -24,9 +25,10 @@ use habitat_common::{cli::{file_into_idents,
 use habitat_core::{crypto::{keys::PairType,
                             CACHE_KEY_PATH_ENV_VAR},
                    env::Config,
+                   origin::{Origin,
+                            OriginMemberRole},
                    os::process::ShutdownTimeout,
-                   package::{ident,
-                             Identifiable,
+                   package::{Identifiable,
                              PackageIdent,
                              PackageTarget},
                    service::ServiceGroup,
@@ -405,35 +407,6 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                      (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
             )
-            (@subcommand rbac=>
-                (about: "Role Based Access Control for origin members")
-                (@setting ArgRequiredElseHelp)
-                (@setting SubcommandRequiredElseHelp)
-                (@subcommand show =>
-                     (about: "Display an origin member's current role")
-                     (@arg MEMBER_ACCOUNT: +required +takes_value {non_empty} "The account name of the role to display")
-                     (@arg ORIGIN: -o --origin +takes_value +required {valid_origin} "The name of the origin for the origin member association")
-                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                          "Specify an alternate Builder endpoint. If not specified, the value will \
-                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                          https://bldr.habitat.sh)")
-                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                     (@arg TO_JSON: -j --json "Output will be rendered in json")
-                )
-                (@subcommand set =>
-                     (about: "Change an origin member's role")
-                     (@arg MEMBER_ACCOUNT: +required +takes_value {non_empty} "The account name whose role will be changed")
-                     (@arg ORIGIN: -o --origin +takes_value +required {valid_origin} "The name of the origin for the origin member association")
-                     (@arg ROLE: --role -r +takes_value +required {valid_role} "The role name to enforce for the member account \
-                          [values: member, maintainer, administrator]")
-                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                          "Specify an alternate Builder endpoint. If not specified, the value will \
-                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                          https://bldr.habitat.sh)")
-                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                     (@arg NO_PROMPT: -n --("no-prompt") "Do not prompt for confirmation")
-                )
-            )
             (@subcommand key =>
                 (about: "Commands relating to Habitat origin key maintenance")
                 (aliases: &["k", "ke"])
@@ -498,6 +471,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
             )
+            (subcommand: Rbac::clap())
             (@subcommand secret =>
                 (about: "Commands related to secret management")
                 (@setting ArgRequiredElseHelp)
@@ -1222,7 +1196,12 @@ fn sub_svc_unload() -> App<'static, 'static> {
 fn valid_role(val: String) -> result::Result<(), String> {
     match OriginMemberRole::from_str(&val) {
         Ok(_) => Ok(()),
-        Err(_) => Err(format!("Role name: '{}' is not valid", &val)),
+        Err(_) => {
+            Err(format!("Role name: '{}' is not valid. Must be one of: \
+                         [\"administrator\", \"maintainer\", \"member\", \
+                         \"owner\", \"readonly_member\"].",
+                        &val))
+        }
     }
 }
 
@@ -1344,15 +1323,7 @@ fn valid_fully_qualified_ident(val: String) -> result::Result<(), String> {
 }
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_origin(val: String) -> result::Result<(), String> {
-    if ident::is_valid_origin_name(&val) {
-        Ok(())
-    } else {
-        Err(format!("'{}' is not valid. A valid origin contains a-z, \
-                     0-9, and _ or - after the first character",
-                    &val))
-    }
-}
+fn valid_origin(val: String) -> result::Result<(), String> { Origin::validate(val) }
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_shutdown_timeout(val: String) -> result::Result<(), String> {

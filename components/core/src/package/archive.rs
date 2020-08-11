@@ -7,7 +7,8 @@ use crate::{crypto::{artifact,
                      hash},
             error::{Error,
                     Result},
-            package::ident::FullyQualifiedPackageIdent};
+            package::ident::FullyQualifiedPackageIdent,
+            util::text_render::PortableText};
 use regex::Regex;
 use serde::Serialize;
 use std::{collections::HashMap,
@@ -502,6 +503,8 @@ impl PackageArchiveInfo {
         PackageArchiveInfo::try_from(archive)
     }
 }
+
+impl PortableText for PackageArchiveInfo {}
 
 #[cfg(test)]
 mod test {

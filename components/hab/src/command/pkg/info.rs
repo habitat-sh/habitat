@@ -1,30 +1,23 @@
 use crate::{common::ui::{UIWriter,
                          UI},
-            error::Result,
+            error::{Error,
+                    Result},
             hcore::package::PackageArchiveInfo};
-use serde::Serialize;
-use serde_json::{self,
-                 Value as Json};
+use habitat_core::util::text_render::PortableText;
 use std::path::Path;
-
-fn convert_to_json<T>(src: &T) -> Result<Json>
-    where T: Serialize
-{
-    serde_json::to_value(src).map_err(|e| habitat_core::Error::RenderContextSerialization(e).into())
-}
 
 pub fn start(ui: &mut UI, src: &Path, to_json: bool) -> Result<()> {
     let info = PackageArchiveInfo::from_path(src)?;
 
     if to_json {
-        match convert_to_json(&info) {
+        match info.as_json() {
             Ok(content) => {
                 println!("{}", content);
                 return Ok(());
             }
             Err(e) => {
                 ui.fatal(format!("Failed to deserialize into json! {:?}.", e))?;
-                return Err(e);
+                return Err(Error::from(e));
             }
         }
     } else {

@@ -14,19 +14,23 @@ pub mod env;
 pub mod error;
 pub mod fs;
 pub mod locked_env_var;
+pub mod origin;
 pub mod os;
 pub mod package;
 pub mod service;
 pub mod url;
 pub mod util;
 
-use std::fmt;
-
-use serde_derive::{Deserialize,
-                   Serialize};
+use std::{fmt,
+          io::Write};
 
 pub use crate::os::{filesystem,
                     users};
+use serde::Serialize as SerializeTrait;
+use serde_derive::{Deserialize,
+                   Serialize};
+use serde_json::Value as Json;
+use tabwriter::TabWriter;
 
 pub const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
 
@@ -49,4 +53,25 @@ impl ChannelIdent {
 
 impl fmt::Display for ChannelIdent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.0) }
+}
+
+// Returns a library object that implements elastic tabstops
+pub fn tabw() -> TabWriter<Vec<u8>> { TabWriter::new(Vec::new()) }
+
+// Format strings with elastic tab stops
+pub fn tabify(mut tw: TabWriter<Vec<u8>>, s: &str) -> Result<String> {
+    write!(&mut tw, "{}", s)?;
+    tw.flush()?;
+    String::from_utf8(tw.into_inner().expect("TABWRITER into_inner")).map_err(
+        Error::StringFromUtf8Error)
+}
+
+pub trait TabularText {
+    fn as_tabbed(&self) -> Result<String>;
+}
+
+pub trait PortableText: SerializeTrait {
+    fn as_json(&self) -> Result<Json> {
+        serde_json::to_value(self).map_err(Error::RenderContextSerialization)
+    }
 }

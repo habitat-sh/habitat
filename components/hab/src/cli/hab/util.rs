@@ -1,10 +1,19 @@
-use crate::cli::valid_fully_qualified_ident;
+use crate::{cli::{valid_fully_qualified_ident,
+                  valid_origin,
+                  valid_url},
+            config,
+            error::Error};
 use configopt::{self,
                 ConfigOpt};
 use habitat_common::types::ListenCtlAddr;
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
+                   env as henv,
                    fs as hab_core_fs,
-                   package::PackageIdent};
+                   origin::Origin,
+                   package::PackageIdent,
+                   url::{bldr_url_from_env,
+                         DEFAULT_BLDR_URL},
+                   AUTH_TOKEN_ENVVAR};
 use lazy_static::lazy_static;
 use std::{fmt,
           io,
@@ -18,12 +27,13 @@ use structopt::StructOpt;
 use url::Url;
 
 #[derive(ConfigOpt, StructOpt)]
+#[configopt(derive(Serialize))]
 #[structopt(no_version)]
 #[allow(dead_code)]
 pub struct AuthToken {
-    /// Authentication token for Builder
+    /// Authentication token for Builder.
     #[structopt(name = "AUTH_TOKEN", short = "z", long = "auth")]
-    auth_token: Option<String>,
+    pub value: Option<String>,
 }
 
 #[derive(ConfigOpt, StructOpt, Deserialize)]
@@ -31,16 +41,85 @@ pub struct AuthToken {
 #[structopt(no_version)]
 #[allow(dead_code)]
 pub struct BldrUrl {
-    /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
-    /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-    // TODO (DM): This should probably use `env` and `default_value`
-    #[structopt(name = "BLDR_URL", short = "u", long = "url")]
-    bldr_url: Option<Url>,
+    /// Specify an alternate Builder endpoint. If not specified, the value will be
+    /// taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    #[structopt(name = "BLDR_URL",
+                short = "u",
+                long = "url",
+                validator = valid_url)]
+    pub value: Option<Url>,
+}
+
+#[derive(ConfigOpt, StructOpt, Deserialize, Serialize)]
+#[structopt(no_version)]
+#[configopt(derive(Serialize))]
+#[allow(dead_code)]
+pub struct BldrOrigin {
+    /// The Builder origin name to target
+    #[structopt(name = "ORIGIN", short = "o", long = "origin", validator = valid_origin)]
+    pub name: Origin,
+}
+
+pub fn bldr_url_from_env_load_or_default() -> String {
+    bldr_url_from_env().unwrap_or_else(|| {
+                           match config::load() {
+                               Ok(config) => {
+                                   match config.bldr_url {
+                                       Some(v) => v,
+                                       None => DEFAULT_BLDR_URL.to_string(),
+                                   }
+                               }
+                               Err(e) => {
+                                   println!("Found a cli.toml but unable to load it. Resorting \
+                                             to default BLDR_URL: {}",
+                                            e);
+                                   DEFAULT_BLDR_URL.to_string()
+                               }
+                           }
+                       })
+}
+
+pub fn bldr_url_from_args_env_load_or_default(opt: Option<Url>) -> String {
+    if let Some(url) = opt {
+        url.to_string()
+    } else {
+        bldr_url_from_env_load_or_default()
+    }
+}
+
+pub fn bldr_auth_token_from_args_env_or_load(opt: Option<String>) -> Result<String, Error> {
+    if let Some(token) = opt {
+        Ok(token)
+    } else {
+        match henv::var(AUTH_TOKEN_ENVVAR) {
+            Ok(v) => Ok(v),
+            Err(_) => {
+                match config::load()?.auth_token {
+                    Some(v) => Ok(v),
+                    None => {
+                        Err(Error::ArgumentError("No auth token specified. Please \
+                                                  check that you have specified a \
+                                                  valid Personal Access Token with:  \
+                                                  -z, --auth <AUTH_TOKEN>"
+                                                                          .into()))
+                    }
+                }
+            }
+        }
+    }
+}
+
+pub fn maybe_bldr_auth_token_from_args_or_load(opt: Option<String>) -> Option<String> {
+    match bldr_auth_token_from_args_env_or_load(opt) {
+        Ok(v) => Some(v),
+        Err(_) => None,
+    }
 }
 
 lazy_static! {
     pub static ref CACHE_KEY_PATH_DEFAULT: String =
         hab_core_fs::CACHE_KEY_PATH.to_string_lossy().to_string();
+    pub static ref HAB_BLDR_URL_DEFAULT: String = bldr_url_from_env_load_or_default();
 }
 
 #[derive(ConfigOpt, StructOpt, Debug, Deserialize)]

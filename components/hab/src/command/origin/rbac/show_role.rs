@@ -1,6 +1,5 @@
 use crate::{api_client::{self,
-                         Client,
-                         PortableText},
+                         Client},
             common::ui::{Status,
                          UIWriter,
                          UI},
@@ -8,6 +7,7 @@ use crate::{api_client::{self,
                     Result},
             PRODUCT,
             VERSION};
+use habitat_core::PortableText;
 use reqwest::StatusCode;
 
 pub async fn start(ui: &mut UI,

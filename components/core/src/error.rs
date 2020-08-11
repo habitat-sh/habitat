@@ -20,6 +20,8 @@ pub enum Error {
     BadBindingMode(String),
     /// An invalid path to a keyfile was given.
     BadKeyPath(String),
+    /// An invalid Builder origin member role
+    BadOriginMemberRole(String),
     /// An operation expected a composite package
     CompositePackageExpected(String),
     /// Error reading raw contents of configuration file.
@@ -168,6 +170,9 @@ impl fmt::Display for Error {
             Error::BadKeyPath(ref e) => {
                 format!("Invalid keypath: {}. Specify an absolute path to a file on disk.",
                         e)
+            }
+            Error::BadOriginMemberRole(ref value) => {
+                format!("Unknown origin member role '{}'", value)
             }
             Error::CompositePackageExpected(ref ident) => {
                 format!("The package is not a composite: {}", ident)

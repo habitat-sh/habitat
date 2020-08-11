@@ -1,6 +1,4 @@
-use crate::{api_client::{Client,
-                         PortableText,
-                         TabularText},
+use crate::{api_client::Client,
             common::ui::{Status,
                          UIWriter,
                          UI},
@@ -8,6 +6,9 @@ use crate::{api_client::{Client,
                     Result},
             PRODUCT,
             VERSION};
+
+use habitat_core::{PortableText,
+                   TabularText};
 
 pub async fn start(ui: &mut UI,
                    bldr_url: &str,

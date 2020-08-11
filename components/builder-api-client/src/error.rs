@@ -14,7 +14,6 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum Error {
     APIError(reqwest::StatusCode, String),
     BadResponseBody(reqwest::Error),
-    BadOriginMemberRole(String),
     DownloadWrite(PathBuf, io::Error),
     HabitatCore(hab_core::Error),
     HabitatHttpClient(hab_http::Error),
@@ -28,6 +27,7 @@ pub enum Error {
     PackageReadError(PathBuf, io::Error),
     ParseIntError(num::ParseIntError),
     IdentNotFullyQualified,
+    RenderContextSerialization(serde_json::Error),
     UploadFailed(String),
     UrlParseError(url::ParseError),
     WriteSyncFailed,
@@ -41,9 +41,6 @@ impl fmt::Display for Error {
             Error::APIError(ref c, ref m) if !m.is_empty() => format!("[{}] {}", c, m),
             Error::APIError(ref c, _) => format!("[{}]", c),
             Error::BadResponseBody(ref e) => format!("Failed to read response body, {}", e),
-            Error::BadOriginMemberRole(ref value) => {
-                format!("Unknown origin member role '{}'", value)
-            }
             Error::DownloadWrite(ref p, ref e) => {
                 format!("Failed to write contents of builder response, {}, {}",
                         p.display(),
@@ -66,6 +63,9 @@ impl fmt::Display for Error {
                 format!("Failed to read package artifact, {}, {}", p.display(), e)
             }
             Error::ParseIntError(ref err) => format!("{}", err),
+            Error::RenderContextSerialization(ref e) => {
+                format!("Unable to serialize rendering context, {}", e)
+            }
             Error::IdentNotFullyQualified => {
                 "Cannot perform the specified operation. Specify a fully qualifed package \
                  identifier (ex: core/busybox-static/1.42.2/20170513215502)"

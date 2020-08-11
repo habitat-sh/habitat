@@ -13,6 +13,7 @@ cc = "*"
 [dependencies]
 base64 = "*"
 chrono = "*"
+configopt = { git = "https://github.com/davidMcneil/configopt.git" }
 dirs = "*"
 dns-lookup = "*"
 errno = "*"
@@ -29,6 +30,8 @@ serde = "*"
 serde_derive = "*"
 serde_json = { version = "*", features = [ "preserve_order" ] }
 sodiumoxide = "*"
+structopt = { git = "https://github.com/habitat-sh/structopt.git" }
+tabwriter = "*"
 tar = "*"
 tempfile = "*"
 toml = { version = "*", features = [ "preserve_order" ] }

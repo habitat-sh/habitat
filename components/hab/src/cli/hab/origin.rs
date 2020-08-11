@@ -1,7 +1,9 @@
 use super::util::{AuthToken,
+                  BldrOrigin,
                   BldrUrl,
                   CacheKeyPath,
                   ConfigOptAuthToken,
+                  ConfigOptBldrOrigin,
                   ConfigOptBldrUrl,
                   ConfigOptCacheKeyPath};
 use crate::cli::{valid_origin,
@@ -239,57 +241,51 @@ pub struct UploadGroup {
 }
 
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(no_version)]
-/// Commands related to origin rbac
+#[structopt(no_version, rename_all = "screamingsnake")]
+pub struct RbacShow {
+    #[structopt(flatten)]
+    pub origin:         BldrOrigin,
+    /// The account name of the role to display
+    pub member_account: String,
+    #[structopt(flatten)]
+    pub bldr_url:       BldrUrl,
+    #[structopt(flatten)]
+    pub auth_token:     AuthToken,
+    /// Output will be rendered in json
+    #[structopt(name = "TO_JSON", short = "j", long = "json")]
+    pub to_json:        bool,
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, rename_all = "screamingsnake")]
+pub struct RbacSet {
+    #[structopt(flatten)]
+    pub origin:         BldrOrigin,
+    /// The account name whose role will be changed
+    pub member_account: String,
+    /// The role name to enforce for the member account [values: member, maintainer,
+    /// administrator]
+    #[structopt(name = "ROLE", validator = valid_role)]
+    pub role:           String,
+    #[structopt(flatten)]
+    pub bldr_url:       BldrUrl,
+    #[structopt(flatten)]
+    pub auth_token:     AuthToken,
+    /// Do not prompt for confirmation
+    #[structopt(name = "NO_PROMPT", short = "n", long = "no-prompt")]
+    pub no_prompt:      bool,
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "rbac", no_version)]
+/// Role Based Access Control for origin members
 pub enum Rbac {
     /// Display an origin member's current role
-    Show {
-        /// The account name of the role to display
-        #[structopt(name = "MEMBER_ACCOUNT")]
-        member_account: String,
-        /// The name of the origin for the origin member association
-        #[structopt(name = "ORIGIN",
-                short = "o",
-                long = "origin",
-                required = true,
-                validator = valid_origin)]
-        origin:         String,
-        #[structopt(flatten)]
-        bldr_url:       BldrUrl,
-        #[structopt(flatten)]
-        auth_token:     AuthToken,
-        /// Output will be rendered in json
-        #[structopt(name = "TO_JSON", short = "j", long = "json")]
-        to_json:        bool,
-    },
+    #[structopt(name = "show")]
+    Show(RbacShow),
     /// Change an origin member's role
-    Set {
-        /// The account name whose role will be changed
-        #[structopt(name = "MEMBER_ACCOUNT")]
-        member_account: String,
-        /// The name of the origin for the origin member association
-        #[structopt(name = "ORIGIN",
-                short = "o",
-                long = "origin",
-                required = true,
-                validator = valid_origin)]
-        origin:         String,
-        /// The role name to enforce for the member account [values: member, maintainer,
-        /// administrator]
-        #[structopt(name = "ROLE",
-                short = "r",
-                long = "role",
-                required = true,
-                validator = valid_role)]
-        role:           String,
-        #[structopt(flatten)]
-        bldr_url:       BldrUrl,
-        #[structopt(flatten)]
-        auth_token:     AuthToken,
-        /// Do not prompt for confirmation
-        #[structopt(name = "NO_PROMPT", short = "n", long = "no-prompt")]
-        no_prompt:      bool,
-    },
+    #[structopt(name = "set")]
+    Set(RbacSet),
 }
 
 #[derive(ConfigOpt, StructOpt)]

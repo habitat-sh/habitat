@@ -1,5 +1,9 @@
 use habitat_core::{self as hab_core,
-                   util};
+                   tabify,
+                   tabw,
+                   util,
+                   PortableText,
+                   TabularText};
 use habitat_http_client as hab_http;
 
 #[macro_use]
@@ -23,15 +27,12 @@ use regex::Regex;
 
 use std::{fmt,
           io::Write,
-          path::Path,
-          result};
+          path::Path};
 
 use chrono::{DateTime,
              Utc};
 use reqwest::IntoUrl;
 use serde::Serialize;
-use serde_json::Value as Json;
-use tabwriter::TabWriter;
 
 use crate::hab_core::package::PackageIdent;
 pub use crate::{builder::BuilderAPIClient,
@@ -229,35 +230,8 @@ mod json_date_format {
     }
 }
 
-fn convert_to_json<T>(src: &T) -> Result<Json>
-    where T: Serialize
-{
-    serde_json::to_value(src).map_err(|e| habitat_core::Error::RenderContextSerialization(e).into())
-}
-
-// Returns a library object that implements elastic tabstops
-fn tabw() -> TabWriter<Vec<u8>> { TabWriter::new(Vec::new()) }
-
-// Given a TabWriter object and a str slice, return a Result
-// where the Ok() variant comprises a String with nicely tab aligned columns
-fn tabify(mut tw: TabWriter<Vec<u8>>, s: &str) -> Result<String> {
-    write!(&mut tw, "{}", s)?;
-    tw.flush()?;
-    String::from_utf8(tw.into_inner().expect("TABWRITER into_inner")).map_err(|e| {
-        habitat_core::Error::StringFromUtf8Error(e).into()
-    })
-}
-
-pub trait PortableText {
-    fn as_json(&self) -> Result<Json>;
-}
-
-pub trait TabularText {
-    fn as_tabbed(&self) -> Result<String>;
-}
-
 impl TabularText for UserOriginInvitationsResponse {
-    fn as_tabbed(&self) -> Result<String> {
+    fn as_tabbed(&self) -> std::result::Result<String, habitat_core::error::Error> {
         let tw = tabw().padding(2).minwidth(5);
         if !self.0.is_empty() {
             let mut body = Vec::new();
@@ -279,7 +253,7 @@ impl TabularText for UserOriginInvitationsResponse {
 }
 
 impl TabularText for PendingOriginInvitationsResponse {
-    fn as_tabbed(&self) -> Result<String> {
+    fn as_tabbed(&self) -> std::result::Result<String, habitat_core::error::Error> {
         let tw = tabw().padding(2).minwidth(5);
         if !self.invitations.is_empty() {
             let mut body = Vec::new();
@@ -299,7 +273,7 @@ impl TabularText for PendingOriginInvitationsResponse {
 }
 
 impl TabularText for OriginInfoResponse {
-    fn as_tabbed(&self) -> Result<String> {
+    fn as_tabbed(&self) -> std::result::Result<String, habitat_core::error::Error> {
         let tw = tabw().padding(2).minwidth(5);
         let mut body = Vec::new();
         body.push(String::from("Owner Id\tOwner Account\tPrivate Key\tPackage Visibility"));
@@ -312,9 +286,9 @@ impl TabularText for OriginInfoResponse {
     }
 }
 
-impl PortableText for OriginInfoResponse {
-    fn as_json(&self) -> Result<Json> { convert_to_json(&self) }
-}
+impl PortableText for OriginMemberRoleResponse {}
+
+impl PortableText for OriginInfoResponse {}
 
 #[derive(Clone, Deserialize)]
 pub struct OriginSecret {
@@ -382,50 +356,8 @@ impl Client {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub enum OriginMemberRole {
-    Member,
-    Maintainer,
-    Administrator,
-    Owner,
-}
-
-impl Default for OriginMemberRole {
-    fn default() -> OriginMemberRole { OriginMemberRole::Member }
-}
-
-impl fmt::Display for OriginMemberRole {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = match *self {
-            OriginMemberRole::Member => "member",
-            OriginMemberRole::Maintainer => "maintainer",
-            OriginMemberRole::Administrator => "administrator",
-            OriginMemberRole::Owner => "owner",
-        };
-        write!(f, "{}", value)
-    }
-}
-
-impl FromStr for OriginMemberRole {
-    type Err = Error;
-
-    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
-        match value.to_lowercase().as_ref() {
-            "member" => Ok(OriginMemberRole::Member),
-            "maintainer" => Ok(OriginMemberRole::Maintainer),
-            "administrator" => Ok(OriginMemberRole::Administrator),
-            "owner" => Ok(OriginMemberRole::Owner),
-            _ => Err(Error::BadOriginMemberRole(value.to_string())),
-        }
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct OriginMemberRoleResponse {
     pub role: String,
-}
-
-impl PortableText for OriginMemberRoleResponse {
-    fn as_json(&self) -> Result<Json> { convert_to_json(&self) }
 }
 
 #[cfg(test)]
