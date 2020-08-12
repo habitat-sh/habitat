@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.122 -->
-## [1.6.122](https://github.com/habitat-sh/habitat/tree/1.6.122) (2020-08-12)
+<!-- latest_release 1.6.123 -->
+## [1.6.123](https://github.com/habitat-sh/habitat/tree/1.6.123) (2020-08-12)
 
-#### Merged Pull Requests
-- Automated update of Habitat Documentation [#7861](https://github.com/habitat-sh/habitat/pull/7861) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
+#### New Features & Enhancements
+- builder origin rbac subcommand [#7841](https://github.com/habitat-sh/habitat/pull/7841) ([jeremymv2](https://github.com/jeremymv2))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
 ### Changes since 1.6.115 release
+
+#### New Features & Enhancements
+- builder origin rbac subcommand [#7841](https://github.com/habitat-sh/habitat/pull/7841) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.123 -->
 
 #### Behavioral Changes
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
