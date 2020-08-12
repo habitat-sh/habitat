@@ -180,10 +180,10 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                     }
                 }
                 #[cfg(not(target_os = "macos"))]
-                Hab::Run(_) => {
+                Hab::Run(sup_run) => {
                     ui.warn("'hab run' as an alias for 'hab sup run' is deprecated. Please \
                              update your automation and processes accordingly.")?;
-                    return command::launcher::start(ui, &args_after_first(1)).await;
+                    return command::launcher::start(ui, sup_run, &args_after_first(1)).await;
                 }
                 Hab::Studio(studio) => {
                     return command::studio::enter::start(ui, studio.args()).await;
@@ -201,8 +201,8 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                                 Sup::Bash | Sup::Sh | Sup::Term => {
                                     return command::sup::start(ui, &args).await;
                                 }
-                                Sup::Run(_) => {
-                                    return command::launcher::start(ui, &args).await;
+                                Sup::Run(sup_run) => {
+                                    return command::launcher::start(ui, sup_run, &args).await;
                                 }
                             }
                         }
