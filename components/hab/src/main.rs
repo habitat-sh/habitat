@@ -179,6 +179,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         }
                     }
                 }
+                #[cfg(not(target_os = "macos"))]
                 Hab::Run(_) => {
                     ui.warn("'hab run' as an alias for 'hab sup run' is deprecated. Please \
                              update your automation and processes accordingly.")?;
@@ -189,6 +190,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 }
                 Hab::Sup(sup) => {
                     match sup {
+                        #[cfg(not(target_os = "macos"))]
                         HabSup::Sup(sup) => {
                             // These commands are handled by the `hab-sup` or `hab-launch` binaries.
                             // We need to pass the subcommand that was issued to the underlying
@@ -239,6 +241,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         }
                     }
                 }
+                #[cfg(not(target_os = "macos"))]
                 Hab::Term => {
                     ui.warn("'hab term' as an alias for 'hab sup term' is deprecated. Please \
                              update your automation and processes accordingly.")?;
