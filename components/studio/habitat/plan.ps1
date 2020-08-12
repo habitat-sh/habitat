@@ -12,7 +12,7 @@ $pkg_bin_dirs=@(
     "bin/powershell")
 
 function pkg_version {
-    Get-Content "$SRC_PATH/VERSION"
+    Get-Content "$SRC_PATH/../../VERSION"
 }
 
 function Invoke-Before {
