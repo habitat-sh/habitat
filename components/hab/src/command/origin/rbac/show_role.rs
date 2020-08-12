@@ -7,19 +7,21 @@ use crate::{api_client::{self,
                     Result},
             PRODUCT,
             VERSION};
-use habitat_core::util::text_render::PortableText;
+use habitat_core::{origin::Origin,
+                   util::text_render::PortableText};
 use reqwest::StatusCode;
+use url::Url;
 
 pub async fn start(ui: &mut UI,
-                   bldr_url: &str,
-                   origin: &str,
+                   bldr_url: Url,
+                   origin: Origin,
                    token: &str,
                    member_account: &str,
                    to_json: bool)
                    -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
-    match api_client.get_member_role(origin, token, member_account)
+    match api_client.get_member_role(origin.clone(), token, member_account)
                     .await
     {
         Ok(resp) => {

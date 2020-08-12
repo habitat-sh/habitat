@@ -23,6 +23,8 @@ use habitat_core::{crypto::keys::box_key_pair::WrappedSealedBox,
                         DEFAULT_CACHED_ARTIFACT_PERMISSIONS,
                         DEFAULT_PUBLIC_KEY_PERMISSIONS,
                         DEFAULT_SECRET_KEY_PERMISSIONS},
+                   origin::{Origin,
+                            OriginMemberRole},
                    package::{Identifiable,
                              PackageArchive,
                              PackageIdent,
@@ -1382,7 +1384,7 @@ impl BuilderAPIClient {
     ///
     /// * Remote Builder is not available
     pub async fn get_member_role(&self,
-                                 origin: &str,
+                                 origin: Origin,
                                  token: &str,
                                  member_account: &str)
                                  -> Result<OriginMemberRoleResponse> {
@@ -1404,10 +1406,10 @@ impl BuilderAPIClient {
     /// * Unprocessable role
     /// * Insufficient Privileges
     pub async fn update_member_role(&self,
-                                    origin: &str,
+                                    origin: Origin,
                                     token: &str,
                                     member_account: &str,
-                                    role: &str)
+                                    role: OriginMemberRole)
                                     -> Result<()> {
         debug!("Updating member {} role to '{}' in origin {}",
                member_account, role, origin);
@@ -1415,7 +1417,7 @@ impl BuilderAPIClient {
         let path = format!("depot/origins/{}/users/{}/role", origin, member_account);
         response::ok_if_unit(self.0
                                  .put_with_custom_url(&path, |url| {
-                                     url.query_pairs_mut().append_pair("role", role);
+                                     url.query_pairs_mut().append_pair("role", &role.to_string());
                                  })
                                  .bearer_auth(token)
                                  .send()

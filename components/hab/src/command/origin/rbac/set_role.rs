@@ -8,14 +8,17 @@ use crate::{api_client::{self,
                     Result},
             PRODUCT,
             VERSION};
+use habitat_core::origin::{Origin,
+                           OriginMemberRole};
 use reqwest::StatusCode;
+use url::Url;
 
 pub async fn start(ui: &mut UI,
-                   bldr_url: &str,
-                   origin: &str,
+                   bldr_url: Url,
+                   origin: Origin,
                    token: &str,
                    member_account: &str,
-                   role: &str,
+                   role: OriginMemberRole,
                    no_prompt: bool)
                    -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
@@ -27,7 +30,7 @@ pub async fn start(ui: &mut UI,
         return Ok(());
     }
 
-    match api_client.update_member_role(origin, token, member_account, role)
+    match api_client.update_member_role(origin.clone(), token, member_account, role)
                     .await
     {
         Ok(_) => {

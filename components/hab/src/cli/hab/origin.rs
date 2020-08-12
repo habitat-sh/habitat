@@ -6,10 +6,10 @@ use super::util::{AuthToken,
                   ConfigOptBldrOrigin,
                   ConfigOptBldrUrl,
                   ConfigOptCacheKeyPath};
-use crate::cli::{valid_origin,
-                 valid_role};
+use crate::cli::valid_origin;
 use configopt::ConfigOpt;
-use habitat_core::crypto::keys::PairType;
+use habitat_core::{crypto::keys::PairType,
+                   origin::OriginMemberRole};
 use std::path::PathBuf;
 use structopt::{clap::ArgGroup,
                 StructOpt};
@@ -252,7 +252,7 @@ pub struct RbacShow {
     #[structopt(flatten)]
     pub auth_token:     AuthToken,
     /// Output will be rendered in json
-    #[structopt(name = "TO_JSON", short = "j", long = "json")]
+    #[structopt(short = "j", long = "json")]
     pub to_json:        bool,
 }
 
@@ -265,14 +265,13 @@ pub struct RbacSet {
     pub member_account: String,
     /// The role name to enforce for the member account [values: member, maintainer,
     /// administrator]
-    #[structopt(name = "ROLE", validator = valid_role)]
-    pub role:           String,
+    pub role:           OriginMemberRole,
     #[structopt(flatten)]
     pub bldr_url:       BldrUrl,
     #[structopt(flatten)]
     pub auth_token:     AuthToken,
     /// Do not prompt for confirmation
-    #[structopt(name = "NO_PROMPT", short = "n", long = "no-prompt")]
+    #[structopt(short = "n", long = "no-prompt")]
     pub no_prompt:      bool,
 }
 
@@ -281,10 +280,8 @@ pub struct RbacSet {
 /// Role Based Access Control for origin members
 pub enum Rbac {
     /// Display an origin member's current role
-    #[structopt(name = "show")]
     Show(RbacShow),
     /// Change an origin member's role
-    #[structopt(name = "set")]
     Set(RbacSet),
 }
 

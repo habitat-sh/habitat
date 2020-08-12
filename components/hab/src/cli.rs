@@ -24,8 +24,7 @@ use habitat_common::{cli::{file_into_idents,
 use habitat_core::{crypto::{keys::PairType,
                             CACHE_KEY_PATH_ENV_VAR},
                    env::Config,
-                   origin::{Origin,
-                            OriginMemberRole},
+                   origin::Origin,
                    os::process::ShutdownTimeout,
                    package::{Identifiable,
                              PackageIdent,
@@ -1190,19 +1189,6 @@ fn sub_svc_unload() -> App<'static, 'static> {
 
 // CLAP Validation Functions
 ////////////////////////////////////////////////////////////////////////
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_role(val: String) -> result::Result<(), String> {
-    match OriginMemberRole::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => {
-            Err(format!("Role name: '{}' is not valid. Must be one of: \
-                         [\"administrator\", \"maintainer\", \"member\", \
-                         \"owner\", \"readonly_member\"].",
-                        &val))
-        }
-    }
-}
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_pair_type(val: String) -> result::Result<(), String> {

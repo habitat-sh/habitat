@@ -47,7 +47,7 @@ impl std::convert::TryFrom<&str> for Origin {
     fn try_from(s: &str) -> Result<Self, Self::Error> { Self::from_str(s) }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub enum OriginMemberRole {
     ReadonlyMember,
     Member,

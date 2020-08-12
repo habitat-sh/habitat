@@ -29,7 +29,6 @@ serde = "*"
 serde_derive = "*"
 serde_json = { version = "*", features = [ "preserve_order" ] }
 sodiumoxide = "*"
-structopt = { git = "https://github.com/habitat-sh/structopt.git" }
 tabwriter = "*"
 tar = "*"
 tempfile = "*"

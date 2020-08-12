@@ -1,6 +1,4 @@
-use crate::{cli::{valid_fully_qualified_ident,
-                  valid_origin,
-                  valid_url},
+use crate::{cli::valid_fully_qualified_ident,
             config,
             error::Error};
 use configopt::{self,
@@ -29,9 +27,9 @@ use url::Url;
 #[derive(ConfigOpt, StructOpt)]
 #[configopt(derive(Serialize))]
 #[structopt(no_version)]
-#[allow(dead_code)]
 pub struct AuthToken {
     /// Authentication token for Builder.
+    // TODO (JM): This should probably use `env`
     #[structopt(name = "AUTH_TOKEN", short = "z", long = "auth")]
     pub value: Option<String>,
 }
@@ -39,25 +37,21 @@ pub struct AuthToken {
 #[derive(ConfigOpt, StructOpt, Deserialize)]
 #[configopt(derive(Serialize))]
 #[structopt(no_version)]
-#[allow(dead_code)]
 pub struct BldrUrl {
     /// Specify an alternate Builder endpoint. If not specified, the value will be
     /// taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-    #[structopt(name = "BLDR_URL",
-                short = "u",
-                long = "url",
-                validator = valid_url)]
+    // TODO (DM): This should probably use `env` and `default_value`
+    #[structopt(name = "BLDR_URL", short = "u", long = "url")]
     pub value: Option<Url>,
 }
 
 #[derive(ConfigOpt, StructOpt, Deserialize, Serialize)]
 #[structopt(no_version)]
 #[configopt(derive(Serialize))]
-#[allow(dead_code)]
 pub struct BldrOrigin {
     /// The Builder origin name to target
-    #[structopt(name = "ORIGIN", short = "o", long = "origin", validator = valid_origin)]
-    pub name: Origin,
+    #[structopt(name = "ORIGIN", short = "o", long = "origin")]
+    pub inner: Origin,
 }
 
 pub fn bldr_url_from_env_load_or_default() -> String {
@@ -114,7 +108,6 @@ pub fn maybe_bldr_auth_token_from_args_or_load(opt: Option<String>) -> Option<St
 lazy_static! {
     pub static ref CACHE_KEY_PATH_DEFAULT: String =
         hab_core_fs::CACHE_KEY_PATH.to_string_lossy().to_string();
-    pub static ref HAB_BLDR_URL_DEFAULT: String = bldr_url_from_env_load_or_default();
 }
 
 #[derive(ConfigOpt, StructOpt, Debug, Deserialize)]
