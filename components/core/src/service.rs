@@ -275,8 +275,8 @@ impl From<u64> for HealthCheckInterval {
     fn from(seconds: u64) -> Self { Self(Duration::from_secs(seconds)) }
 }
 
-impl Into<u64> for HealthCheckInterval {
-    fn into(self) -> u64 { self.0.as_secs() }
+impl From<HealthCheckInterval> for u64 {
+    fn from(h: HealthCheckInterval) -> Self { h.0.as_secs() }
 }
 
 impl fmt::Display for HealthCheckInterval {
@@ -297,6 +297,10 @@ impl FromStr for HealthCheckInterval {
 
 impl From<HealthCheckInterval> for Duration {
     fn from(h: HealthCheckInterval) -> Self { h.0 }
+}
+
+impl From<Duration> for HealthCheckInterval {
+    fn from(d: Duration) -> Self { Self(d) }
 }
 
 #[cfg(test)]

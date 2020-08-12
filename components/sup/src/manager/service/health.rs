@@ -8,6 +8,7 @@ use habitat_common::{outputln,
                      templating::package::Pkg};
 use habitat_core::service::{HealthCheckInterval,
                             ServiceGroup};
+use rand::Rng;
 use std::{cmp,
           convert::TryFrom,
           fmt,
@@ -181,6 +182,7 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
     let (tx, rx) = mpsc::unbounded_channel();
 
     tokio::spawn(async move {
+        let mut first_ok_health_check_recorded = false;
         loop {
             let (status, result) = check(Arc::clone(&supervisor),
                                          hook.as_ref().map(Arc::clone),
@@ -189,8 +191,21 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
                                          password.clone()).await;
 
             let interval = if result == HealthCheckResult::Ok {
-                // routine health check
-                nominal_interval
+                if !first_ok_health_check_recorded {
+                    // If this was the first successful check, splay future health check runs across
+                    // the nominal interval
+                    let splay = rand::thread_rng().gen_range(0, u64::from(nominal_interval));
+                    let splay = Duration::from_secs(splay);
+                    debug!("Following `{}`'s first `ok` health-check, delaying a randomly chosen \
+                            {}s to introduce health-check splay",
+                           service_group,
+                           splay.as_secs());
+                    first_ok_health_check_recorded = true;
+                    splay.into()
+                } else {
+                    // routine health check
+                    nominal_interval
+                }
             } else {
                 // TODO (DM): Implment exponential backoff
                 // https://github.com/habitat-sh/habitat/issues/7265
@@ -210,7 +225,10 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
                 break;
             }
 
-            trace!("Next health check for {} in {}", service_group, interval);
+            trace!("`{}` health-check was `{}` next check in {}",
+                   service_group,
+                   result,
+                   interval);
             time::delay_for(interval.into()).await;
         }
         outputln!(preamble service_group_clone, "Health checking has been stopped");
