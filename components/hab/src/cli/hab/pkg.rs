@@ -5,9 +5,11 @@ use super::util::{AuthToken,
                   ConfigOptBldrUrl,
                   ConfigOptCacheKeyPath,
                   ConfigOptExternalCommandArgs,
+                  ConfigOptExternalCommandArgsWithHelpAndVersion,
                   ConfigOptFullyQualifiedPkgIdent,
                   ConfigOptPkgIdent,
                   ExternalCommandArgs,
+                  ExternalCommandArgsWithHelpAndVersion,
                   FullyQualifiedPkgIdent,
                   PkgIdent};
 use crate::cli::{dir_exists,
@@ -223,17 +225,7 @@ pub enum Pkg {
         #[structopt(flatten)]
         pkg_ident: PkgIdent,
     },
-    /// Executes a command using the 'PATH' context of an installed package
-    Exec {
-        #[structopt(flatten)]
-        pkg_ident: PkgIdent,
-        /// The command to execute (ex: ls)
-        #[structopt(name = "CMD")]
-        cmd:       String,
-        /// Arguments to the command (ex: -l /tmp)
-        #[structopt(name = "ARGS")]
-        args:      Vec<String>,
-    },
+    Exec(PkgExec),
     Export(ExportCommand),
     /// Generates a blake2b hashsum from a target at any given filepath
     Hash {
@@ -379,6 +371,19 @@ pub enum Pkg {
         #[structopt(flatten)]
         cache_key_path: CacheKeyPath,
     },
+}
+
+/// Executes a command using the 'PATH' context of an installed package
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "exec", no_version, rename_all = "screamingsnake")]
+pub struct PkgExec {
+    #[structopt(flatten)]
+    pub pkg_ident: PkgIdent,
+    /// The command to execute (ex: ls)
+    #[structopt()]
+    pub cmd:       PathBuf,
+    #[structopt(flatten)]
+    pub args:      ExternalCommandArgsWithHelpAndVersion,
 }
 
 /// Installs a Habitat package from Builder or locally from a Habitat Artifact

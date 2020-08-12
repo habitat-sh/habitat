@@ -21,7 +21,8 @@ use hab::{cli::{self,
                                RbacSet,
                                RbacShow},
                       pkg::{ExportCommand as PkgExportCommand,
-                            Pkg},
+                            Pkg,
+                            PkgExec},
                       sup::{HabSup,
                             Secret,
                             Sup},
@@ -139,7 +140,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
 
     // Allow checking version information and displaying command help without accepting the license.
     // TODO (DM): To prevent errors in discrepancy between the structopt and cli versions only do
-    // this when the license has not yet been accepted. When we switchly fully to structopt this can
+    // this when the license has not yet been accepted. When we switch fully to structopt this can
     // be completely removed and we should just call `Hab::from_args_with_configopt` which will
     // automatically result in this functionality.
     if !license::check_for_license_acceptance().unwrap_or_default()
@@ -153,10 +154,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     }
 
     license::check_for_license_acceptance_and_prompt(ui)?;
-
-    let (args, remaining_args) = raw_parse_args();
-    debug!("clap cli args: {:?}", &args);
-    debug!("remaining cli args: {:?}", &remaining_args);
 
     // Parse and handle commands which have been migrated to use `structopt` here. Once everything
     // is migrated to use `structopt` the parsing logic below this using clap directly will be gone.
@@ -272,6 +269,13 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                                 }
                             }
                         }
+                        Pkg::Exec(PkgExec { pkg_ident,
+                                            cmd,
+                                            args, }) => {
+                            return command::pkg::exec::start(&pkg_ident.pkg_ident(),
+                                                             cmd,
+                                                             &args.args);
+                        }
                         _ => {
                             // All other commands will be caught by the CLI parsing logic below.
                         }
@@ -295,11 +299,10 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     // https://github.com/kbknapp/clap-rs/issues/86
     let child = thread::Builder::new().stack_size(8 * 1024 * 1024)
                                       .spawn(move || {
-                                          cli::get(feature_flags)
-                .get_matches_from_safe_borrow(&mut args.iter())
-                .unwrap_or_else(|e| {
-                    e.exit();
-                })
+                                          cli::get(feature_flags).get_matches_safe()
+                                                                 .unwrap_or_else(|e| {
+                                                                     e.exit();
+                                                                 })
                                       })
                                       .unwrap();
     let app_matches = child.join().unwrap();
@@ -401,7 +404,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 ("dependencies", Some(m)) => sub_pkg_dependencies(m)?,
                 ("download", Some(m)) => sub_pkg_download(ui, m, feature_flags).await?,
                 ("env", Some(m)) => sub_pkg_env(m)?,
-                ("exec", Some(m)) => sub_pkg_exec(m, &remaining_args)?,
                 ("hash", Some(m)) => sub_pkg_hash(m)?,
                 ("install", Some(m)) => sub_pkg_install(ui, m, feature_flags).await?,
                 ("list", Some(m)) => sub_pkg_list(m)?,
@@ -823,12 +825,6 @@ async fn sub_pkg_download(ui: &mut UI,
 fn sub_pkg_env(m: &ArgMatches<'_>) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;
     command::pkg::env::start(&ident, &*FS_ROOT_PATH)
-}
-
-fn sub_pkg_exec(m: &ArgMatches<'_>, cmd_args: &[OsString]) -> Result<()> {
-    let ident = required_pkg_ident_from_input(m)?;
-    let cmd = m.value_of("CMD").unwrap(); // Required via clap
-    command::pkg::exec::start(&ident, cmd, cmd_args)
 }
 
 fn sub_pkg_hash(m: &ArgMatches<'_>) -> Result<()> {
@@ -1587,24 +1583,6 @@ fn sub_user_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn args_after_first(args_to_skip: usize) -> Vec<OsString> {
     env::args_os().skip(args_to_skip).collect()
-}
-
-/// Parse the raw program arguments and split off any arguments that will skip clap's parsing.
-///
-/// **Note** with the current version of clap there is no clean way to ignore arguments after a
-/// certain point, especially if those arguments look like further options and flags.
-fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
-    let mut args = env::args();
-    match (args.nth(1).unwrap_or_default().as_str(), args.next().unwrap_or_default().as_str()) {
-        ("pkg", "exec") => {
-            if args.by_ref().count() > 2 {
-                (env::args_os().take(5).collect(), env::args_os().skip(5).collect())
-            } else {
-                (env::args_os().collect(), Vec::new())
-            }
-        }
-        _ => (env::args_os().collect(), Vec::new()),
-    }
 }
 
 /// Check to see if the user has passed in an AUTH_TOKEN param. If not, check the

@@ -2,7 +2,8 @@ pub mod gateway_util;
 pub mod hab;
 
 use crate::{cli::hab::{origin::Rbac,
-                       pkg::ExportCommand,
+                       pkg::{ExportCommand,
+                             PkgExec},
                        studio::Studio,
                        sup::{Sup,
                              SupRun},
@@ -559,16 +560,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             )
-            (@subcommand exec =>
-                (about: "Executes a command using the 'PATH' context of an installed package")
-                (aliases: &["exe"])
-                (@arg PKG_IDENT: +required +takes_value {valid_ident}
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-                (@arg CMD: +required +takes_value
-                    "The command to execute (ex: ls)")
-                (@arg ARGS: +takes_value +multiple
-                    "Arguments to the command (ex: -l /tmp)")
-            )
+            (subcommand: PkgExec::clap())
             (subcommand: ExportCommand::clap())
             (@subcommand hash =>
                 (about: "Generates a blake2b hashsum from a target at any given filepath")
