@@ -375,7 +375,7 @@ pub enum Pkg {
 
 /// Executes a command using the 'PATH' context of an installed package
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(name = "exec", no_version, rename_all = "screamingsnake")]
+#[structopt(name = "exec", aliases = &["exe"], no_version, rename_all = "screamingsnake")]
 pub struct PkgExec {
     #[structopt(flatten)]
     pub pkg_ident: PkgIdent,
@@ -431,7 +431,7 @@ pub struct PkgInstall {
 
 /// Exports the package to the specified format
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(name = "export", no_version)]
+#[structopt(name = "export", aliases = &["e", "ex", "exp", "expo", "expor"], no_version)]
 pub enum ExportCommand {
     #[cfg(any(target_os = "linux", target_os = "windows"))]
     /// Cloud Foundry exporter

@@ -87,7 +87,7 @@ pub enum Hab {
     Plan(Plan),
     #[structopt(no_version)]
     Ring(Ring),
-    #[structopt(no_version)]
+    #[structopt(no_version, aliases = &["stu", "stud", "studi"])]
     Studio(Studio),
     #[structopt(no_version)]
     Sup(HabSup),

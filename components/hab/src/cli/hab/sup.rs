@@ -45,7 +45,7 @@ use structopt::{clap::AppSettings,
 pub enum HabSup {
     /// Depart a Supervisor from the gossip ring; kicking and banning the target from joining again
     /// with the same member-id
-    #[structopt(no_version)]
+    #[structopt(no_version, aliases = &["d", "de", "dep", "depa", "depart"])]
     Depart {
         /// The member-id of the Supervisor to depart
         #[structopt(name = "MEMBER_ID")]
@@ -53,10 +53,10 @@ pub enum HabSup {
         #[structopt(flatten)]
         remote_sup: RemoteSup,
     },
-    #[structopt(no_version)]
+    #[structopt(no_version, aliases = &["sec", "secr"])]
     Secret(Secret),
     /// Query the status of Habitat services
-    #[structopt(no_version)]
+    #[structopt(no_version, aliases = &["stat", "statu"])]
     Status {
         /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
         #[structopt(name = "PKG_IDENT")]
@@ -79,15 +79,15 @@ pub enum HabSup {
 #[allow(clippy::large_enum_variant)]
 pub enum Sup {
     /// Start an interactive Bash-like shell
-    #[structopt(no_version)]
+    #[structopt(no_version, aliases = &["b", "ba", "bas"])]
     Bash,
-    #[structopt(no_version)]
+    #[structopt(no_version, aliases = &["r", "ru"])]
     Run(SupRun),
     /// Start an interactive Bourne-like shell
     #[structopt(no_version)]
     Sh,
     /// Gracefully terminate the Habitat Supervisor and all of its running services
-    #[structopt(no_version)]
+    #[structopt(no_version, aliases = &["ter"])]
     Term,
 }
 

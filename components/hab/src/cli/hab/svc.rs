@@ -45,6 +45,7 @@ pub enum Svc {
     Update(Update),
     Start(SvcStart),
     /// Query the status of Habitat services
+    #[structopt(aliases = &["stat", "statu"])]
     Status {
         /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
         #[structopt(name = "PKG_IDENT")]
@@ -249,7 +250,7 @@ fn load_default_config_files() -> Vec<PathBuf> {
             derive(Clone, Debug),
             default_config_file(load_default_config_files))]
 #[serde(deny_unknown_fields)]
-#[structopt(name = "load", no_version, rename_all = "screamingsnake")]
+#[structopt(name = "load", aliases = &["l", "lo", "loa"], no_version, rename_all = "screamingsnake")]
 /// Load a service to be started and supervised by Habitat from a package identifier. If an
 /// installed package doesn't satisfy the given package identifier, a suitable package will be
 /// installed from Builder.

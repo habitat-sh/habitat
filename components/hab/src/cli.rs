@@ -836,7 +836,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (arg: arg_cache_key_path())
                 )
             )
-            (subcommand: SvcLoad::clap().aliases(&["l", "lo", "loa"]))
+            (subcommand: SvcLoad::clap())
             (subcommand: SvcUpdate::clap())
             (subcommand: sub_svc_start().aliases(&["star"]))
             (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
