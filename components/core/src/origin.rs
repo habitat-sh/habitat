@@ -6,12 +6,6 @@ use std::{fmt,
           result,
           str::FromStr};
 
-const READONLY_MEMBER: &str = "readonly_member";
-const MEMBER: &str = "member";
-const MAINTAINER: &str = "maintainer";
-const ADMINISTRATOR: &str = "administrator";
-const OWNER: &str = "owner";
-
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Origin(String);
 
@@ -56,6 +50,14 @@ pub enum OriginMemberRole {
     Owner,
 }
 
+impl OriginMemberRole {
+    pub const ADMINISTRATOR: &'static str = "administrator";
+    pub const MAINTAINER: &'static str = "maintainer";
+    pub const MEMBER: &'static str = "member";
+    pub const OWNER: &'static str = "owner";
+    pub const READONLY_MEMBER: &'static str = "readonly_member";
+}
+
 impl Default for OriginMemberRole {
     fn default() -> OriginMemberRole { OriginMemberRole::ReadonlyMember }
 }
@@ -63,11 +65,11 @@ impl Default for OriginMemberRole {
 impl fmt::Display for OriginMemberRole {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = match *self {
-            OriginMemberRole::ReadonlyMember => READONLY_MEMBER,
-            OriginMemberRole::Member => MEMBER,
-            OriginMemberRole::Maintainer => MAINTAINER,
-            OriginMemberRole::Administrator => ADMINISTRATOR,
-            OriginMemberRole::Owner => OWNER,
+            OriginMemberRole::ReadonlyMember => OriginMemberRole::READONLY_MEMBER,
+            OriginMemberRole::Member => OriginMemberRole::MEMBER,
+            OriginMemberRole::Maintainer => OriginMemberRole::MAINTAINER,
+            OriginMemberRole::Administrator => OriginMemberRole::ADMINISTRATOR,
+            OriginMemberRole::Owner => OriginMemberRole::OWNER,
         };
         write!(f, "{}", value)
     }
@@ -78,11 +80,11 @@ impl FromStr for OriginMemberRole {
 
     fn from_str(value: &str) -> result::Result<Self, Self::Err> {
         match value.to_lowercase().as_ref() {
-            READONLY_MEMBER => Ok(OriginMemberRole::ReadonlyMember),
-            MEMBER => Ok(OriginMemberRole::Member),
-            MAINTAINER => Ok(OriginMemberRole::Maintainer),
-            ADMINISTRATOR => Ok(OriginMemberRole::Administrator),
-            OWNER => Ok(OriginMemberRole::Owner),
+            OriginMemberRole::READONLY_MEMBER => Ok(OriginMemberRole::ReadonlyMember),
+            OriginMemberRole::MEMBER => Ok(OriginMemberRole::Member),
+            OriginMemberRole::MAINTAINER => Ok(OriginMemberRole::Maintainer),
+            OriginMemberRole::ADMINISTRATOR => Ok(OriginMemberRole::Administrator),
+            OriginMemberRole::OWNER => Ok(OriginMemberRole::Owner),
             _ => Err(Error::BadOriginMemberRole(value.to_string())),
         }
     }

@@ -48,7 +48,6 @@ pub enum Error {
     HabitatCore(hcore::Error),
     // Boxed due to clippy::large_enum_variant
     HandlebarsRenderError(Box<handlebars::TemplateRenderError>),
-    InvalidUrl(String),
     IO(io::Error),
     JobGroupPromoteOrDemote(api_client::Error, bool /* promote */),
     JobGroupCancel(api_client::Error),
@@ -60,6 +59,7 @@ pub enum Error {
     PackageArchiveMalformed(String),
     PackageSetParseError(String),
     ParseIntError(num::ParseIntError),
+    ParseUrlError(url::ParseError),
     PathPrefixError(path::StripPrefixError),
     ProvidesError(String),
     RootRequired,
@@ -149,7 +149,6 @@ impl fmt::Display for Error {
             Error::HabitatCore(ref e) => e.to_string(),
             Error::HandlebarsRenderError(ref e) => e.to_string(),
             Error::IO(ref err) => format!("{}", err),
-            Error::InvalidUrl(ref url) => format!("Invalid url: {}", url),
             Error::JobGroupPromoteOrDemoteUnprocessable(true) => {
                 "Failed to promote job group, the build job is still in progress".to_string()
             }
@@ -174,6 +173,7 @@ impl fmt::Display for Error {
                 format!("Package set file could not be parsed: {:?}", e)
             }
             Error::ParseIntError(ref err) => format!("{}", err),
+            Error::ParseUrlError(ref err) => format!("{}", err),
             Error::PathPrefixError(ref err) => format!("{}", err),
             Error::ProvidesError(ref err) => format!("Can't find {}", err),
             Error::RootRequired => {
@@ -276,4 +276,8 @@ impl From<walkdir::Error> for Error {
 
 impl From<ctrlc::Error> for Error {
     fn from(err: ctrlc::Error) -> Self { Error::CtrlcError(err) }
+}
+
+impl From<url::ParseError> for Error {
+    fn from(err: url::ParseError) -> Self { Error::ParseUrlError(err) }
 }

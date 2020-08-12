@@ -1,6 +1,7 @@
 use crate::error::{Error,
                    Result};
-use std::io::Write;
+use std::io::{Error as IoError,
+              Write};
 
 use serde::Serialize;
 use serde_json::Value as Json;
@@ -13,14 +14,10 @@ pub fn tabw() -> TabWriter<Vec<u8>> { TabWriter::new(Vec::new()) }
 pub fn tabify(mut tw: TabWriter<Vec<u8>>, s: &str) -> Result<String> {
     write!(&mut tw, "{}", s)?;
     tw.flush()?;
-    let res = tw.into_inner();
-    if res.is_err() {
-        return Err(Error::TabWriterIntoInnerFailed("Unable to flush \
-                                                    tabwriter buffer to \
-                                                    inner."
-                                                           .to_string()));
-    }
-    let inner = res.unwrap();
+    let inner = tw.into_inner().map_err(|e| {
+                                    IoError::new(e.error().kind(),
+                                                 "Unable to flush tabwriter buffer to inner.")
+                                })?;
     String::from_utf8(inner).map_err(Error::StringFromUtf8Error)
 }
 

@@ -22,7 +22,8 @@ use std::{fmt,
           str::FromStr,
           time::Duration};
 use structopt::StructOpt;
-use url::Url;
+use url::{ParseError,
+          Url};
 
 #[derive(ConfigOpt, StructOpt)]
 #[configopt(derive(Serialize))]
@@ -54,7 +55,7 @@ pub struct BldrOrigin {
     pub inner: Origin,
 }
 
-pub fn bldr_url_from_env_load_or_default() -> String {
+fn bldr_url_from_env_load_or_default() -> String {
     bldr_url_from_env().unwrap_or_else(|| {
                            match config::load() {
                                Ok(config) => {
@@ -71,13 +72,11 @@ pub fn bldr_url_from_env_load_or_default() -> String {
                        })
 }
 
-pub fn bldr_url_from_args_env_load_or_default(opt: Option<Url>) -> Result<Url, Error> {
+pub fn bldr_url_from_args_env_load_or_default(opt: Option<Url>) -> Result<Url, ParseError> {
     if let Some(url) = opt {
         Ok(url)
     } else {
-        Url::parse(&bldr_url_from_env_load_or_default()).map_err(|e| {
-                                                            Error::InvalidUrl(e.to_string())
-                                                        })
+        Url::parse(&bldr_url_from_env_load_or_default())
     }
 }
 

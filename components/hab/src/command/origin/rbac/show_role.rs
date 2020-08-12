@@ -38,8 +38,9 @@ pub async fn start(ui: &mut UI,
                 }
             } else {
                 ui.status(Status::Discovering, "origin member role".to_string())?;
-                println!("Member {} has the '{}' role in the {} origin.",
-                         member_account, resp.role, origin);
+                ui.status(Status::Found,
+                          format!("Member {} has the '{}' role in the {} origin.",
+                                  member_account, resp.role, origin))?;
                 Ok(())
             }
         }
