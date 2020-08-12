@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.120 -->
-## [1.6.120](https://github.com/habitat-sh/habitat/tree/1.6.120) (2020-08-11)
+<!-- latest_release 1.6.121 -->
+## [1.6.121](https://github.com/habitat-sh/habitat/tree/1.6.121) (2020-08-12)
 
-#### Merged Pull Requests
-- modernize windows tutorial [#7820](https://github.com/habitat-sh/habitat/pull/7820) ([mwrock](https://github.com/mwrock))
+#### Behavioral Changes
+- Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
 ### Changes since 1.6.115 release
+
+#### Behavioral Changes
+- Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
 - modernize windows tutorial [#7820](https://github.com/habitat-sh/habitat/pull/7820) ([mwrock](https://github.com/mwrock)) <!-- 1.6.120 -->
