@@ -263,8 +263,8 @@ pub struct RbacSet {
     pub origin:         BldrOrigin,
     /// The account name whose role will be changed
     pub member_account: String,
-    /// The role name to enforce for the member account [values: member, maintainer,
-    /// administrator]
+    /// The role name to enforce for the member account [values: readonly_member, member,
+    /// maintainer, administrator, owner]
     pub role:           OriginMemberRole,
     #[structopt(flatten)]
     pub bldr_url:       BldrUrl,
