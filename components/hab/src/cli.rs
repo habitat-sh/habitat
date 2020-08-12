@@ -5,7 +5,7 @@ use crate::{cli::hab::{origin::Rbac,
                        pkg::{ExportCommand,
                              PkgExec},
                        studio::Studio,
-                       sup::{Sup,
+                       sup::{HabSup,
                              SupRun},
                        svc::{BulkLoad as SvcBulkLoad,
                              Load as SvcLoad,
@@ -815,7 +815,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 )
             )
         )
-        (subcommand: Sup::clap())
+        (subcommand: HabSup::clap())
         (@subcommand svc =>
             (about: "Commands relating to Habitat services")
             (aliases: &["sv", "ser", "serv", "service"])

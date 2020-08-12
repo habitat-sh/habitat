@@ -40,7 +40,7 @@ use structopt::{clap::AppSettings,
 // All commands relating to the Supervisor (ie commands handled by both the `hab` and `hab-sup`
 // binary)
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(no_version)]
+#[structopt(no_version, name = "sup")]
 #[allow(clippy::large_enum_variant)]
 pub enum HabSup {
     /// Depart a Supervisor from the gossip ring; kicking and banning the target from joining again
