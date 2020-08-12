@@ -29,6 +29,7 @@ serde = "*"
 serde_derive = "*"
 serde_json = { version = "*", features = [ "preserve_order" ] }
 sodiumoxide = "*"
+tabwriter = "*"
 tar = "*"
 tempfile = "*"
 toml = { version = "*", features = [ "preserve_order" ] }

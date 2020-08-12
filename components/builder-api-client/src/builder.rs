@@ -7,6 +7,7 @@ use crate::{allow_std_io::AllowStdIo,
             DisplayProgress,
             OriginInfoResponse,
             OriginKeyIdent,
+            OriginMemberRoleResponse,
             OriginSecret,
             Package,
             PendingOriginInvitationsResponse,
@@ -22,6 +23,8 @@ use habitat_core::{crypto::keys::box_key_pair::WrappedSealedBox,
                         DEFAULT_CACHED_ARTIFACT_PERMISSIONS,
                         DEFAULT_PUBLIC_KEY_PERMISSIONS,
                         DEFAULT_SECRET_KEY_PERMISSIONS},
+                   origin::{Origin,
+                            OriginMemberRole},
                    package::{Identifiable,
                              PackageArchive,
                              PackageIdent,
@@ -1373,6 +1376,53 @@ impl BuilderAPIClient {
             }
             _ => Err(response::err_from_response(resp).await),
         }
+    }
+
+    /// Get an origin member's role
+    ///
+    /// # Failures
+    ///
+    /// * Remote Builder is not available
+    pub async fn get_member_role(&self,
+                                 origin: Origin,
+                                 token: &str,
+                                 member_account: &str)
+                                 -> Result<OriginMemberRoleResponse> {
+        debug!("Getting member {} role from origin {}",
+               member_account, origin);
+
+        let path = format!("depot/origins/{}/users/{}/role", origin, member_account);
+        let resp = self.0.get(&path).bearer_auth(token).send().await?;
+        let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
+
+        Ok(resp.json().await?)
+    }
+
+    /// Update an origin member's role
+    ///
+    /// # Failures
+    ///
+    /// * Remote Builder is not available
+    /// * Unprocessable role
+    /// * Insufficient Privileges
+    pub async fn update_member_role(&self,
+                                    origin: Origin,
+                                    token: &str,
+                                    member_account: &str,
+                                    role: OriginMemberRole)
+                                    -> Result<()> {
+        debug!("Updating member {} role to '{}' in origin {}",
+               member_account, role, origin);
+
+        let path = format!("depot/origins/{}/users/{}/role", origin, member_account);
+        response::ok_if_unit(self.0
+                                 .put_with_custom_url(&path, |url| {
+                                     url.query_pairs_mut().append_pair("role", &role.to_string());
+                                 })
+                                 .bearer_auth(token)
+                                 .send()
+                                 .await?,
+                             &[StatusCode::NO_CONTENT]).await
     }
 }
 

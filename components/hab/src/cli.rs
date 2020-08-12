@@ -1,7 +1,8 @@
 pub mod gateway_util;
 pub mod hab;
 
-use crate::{cli::hab::{pkg::ExportCommand,
+use crate::{cli::hab::{origin::Rbac,
+                       pkg::ExportCommand,
                        sup::{Sup,
                              SupRun},
                        svc::{BulkLoad as SvcBulkLoad,
@@ -23,9 +24,9 @@ use habitat_common::{cli::{file_into_idents,
 use habitat_core::{crypto::{keys::PairType,
                             CACHE_KEY_PATH_ENV_VAR},
                    env::Config,
+                   origin::Origin,
                    os::process::ShutdownTimeout,
-                   package::{ident,
-                             Identifiable,
+                   package::{Identifiable,
                              PackageIdent,
                              PackageTarget},
                    service::ServiceGroup,
@@ -468,6 +469,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
             )
+            (subcommand: Rbac::clap())
             (@subcommand secret =>
                 (about: "Commands related to secret management")
                 (@setting ArgRequiredElseHelp)
@@ -1306,15 +1308,7 @@ fn valid_fully_qualified_ident(val: String) -> result::Result<(), String> {
 }
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_origin(val: String) -> result::Result<(), String> {
-    if ident::is_valid_origin_name(&val) {
-        Ok(())
-    } else {
-        Err(format!("'{}' is not valid. A valid origin contains a-z, \
-                     0-9, and _ or - after the first character",
-                    &val))
-    }
-}
+fn valid_origin(val: String) -> result::Result<(), String> { Origin::validate(val) }
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_shutdown_timeout(val: String) -> result::Result<(), String> {

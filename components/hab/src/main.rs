@@ -15,12 +15,18 @@ use configopt::{ConfigOpt,
 use futures::stream::StreamExt;
 use hab::{cli::{self,
                 gateway_util,
-                hab::{pkg::{ExportFormat as PkgExportFormat,
+                hab::{origin::{Origin,
+                               Rbac,
+                               RbacSet,
+                               RbacShow},
+                      pkg::{ExportFormat as PkgExportFormat,
                             Pkg},
                       svc::{self,
                             BulkLoad as SvcBulkLoad,
                             Load as SvcLoad,
                             Svc},
+                      util::{bldr_auth_token_from_args_env_or_load,
+                             bldr_url_from_args_env_load_or_default},
                       Hab},
                 parse_optional_arg},
           command::{self,
@@ -171,6 +177,24 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
         Ok(hab) => {
             #[allow(clippy::single_match)]
             match hab {
+                Hab::Origin(origin) => {
+                    match origin {
+                        // hab origin rbac set|show
+                        Origin::Rbac(action) => {
+                            match action {
+                                Rbac::Set(rbac_set) => {
+                                    return sub_origin_member_role_set(ui, rbac_set).await;
+                                }
+                                Rbac::Show(rbac_show) => {
+                                    return sub_origin_member_role_show(ui, rbac_show).await;
+                                }
+                            }
+                        }
+                        _ => {
+                            // All other commands will be caught by the CLI parsing logic below.
+                        }
+                    }
+                }
                 Hab::Svc(svc) => {
                     match svc {
                         Svc::BulkLoad(svc_bulk_load) => {
@@ -639,6 +663,29 @@ async fn sub_send_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<(
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
     command::origin::invitations::send::start(ui, &url, &origin, &token, &invitee_account).await
+}
+
+async fn sub_origin_member_role_show(ui: &mut UI, r: RbacShow) -> Result<()> {
+    let bldr_url = bldr_url_from_args_env_load_or_default(r.bldr_url.value)?;
+    let auth_token = bldr_auth_token_from_args_env_or_load(r.auth_token.value)?;
+    command::origin::rbac::show_role::start(ui,
+                                            bldr_url,
+                                            r.origin.inner,
+                                            &auth_token,
+                                            &r.member_account,
+                                            r.to_json).await
+}
+
+async fn sub_origin_member_role_set(ui: &mut UI, r: RbacSet) -> Result<()> {
+    let bldr_url = bldr_url_from_args_env_load_or_default(r.bldr_url.value)?;
+    let auth_token = bldr_auth_token_from_args_env_or_load(r.auth_token.value)?;
+    command::origin::rbac::set_role::start(ui,
+                                           bldr_url,
+                                           r.origin.inner,
+                                           &auth_token,
+                                           &r.member_account,
+                                           r.role,
+                                           r.no_prompt).await
 }
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {

@@ -20,6 +20,8 @@ pub enum Error {
     BadBindingMode(String),
     /// An invalid path to a keyfile was given.
     BadKeyPath(String),
+    /// An invalid Builder origin member role
+    BadOriginMemberRole(String),
     /// An operation expected a composite package
     CompositePackageExpected(String),
     /// Error reading raw contents of configuration file.
@@ -79,6 +81,8 @@ pub enum Error {
     FullyQualifiedPackageIdentRequired(String),
     /// Occurs when a service binding cannot be successfully parsed.
     InvalidBinding(String),
+    /// Occurs when an origin is in an invalid format
+    InvalidOrigin(String),
     /// Occurs when a package identifier string cannot be successfully parsed.
     InvalidPackageIdent(String),
     /// Occurs when a package target string cannot be successfully parsed.
@@ -87,12 +91,12 @@ pub enum Error {
     InvalidPackageType(String),
     /// Occurs when a port is not parsable.
     InvalidPort(ParseIntError),
-    /// Occurs when a service group string cannot be successfully parsed.
-    InvalidServiceGroup(String),
-    /// Occurs when an origin is in an invalid format
-    InvalidOrigin(String),
     /// Occurs when an OsString path cannot be converted to a String
     InvalidPathString(ffi::OsString),
+    /// Occurs when a service group string cannot be successfully parsed.
+    InvalidServiceGroup(String),
+    /// Occurs when a Url is in an invalid format.
+    InvalidUrl(String),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
     /// Errors when joining paths :)
@@ -168,6 +172,9 @@ impl fmt::Display for Error {
             Error::BadKeyPath(ref e) => {
                 format!("Invalid keypath: {}. Specify an absolute path to a file on disk.",
                         e)
+            }
+            Error::BadOriginMemberRole(ref value) => {
+                format!("Unknown origin member role '{}'", value)
             }
             Error::CompositePackageExpected(ref ident) => {
                 format!("The package is not a composite: {}", ident)
@@ -263,6 +270,12 @@ impl fmt::Display for Error {
                          <NAME> is a service name, and <SERVICE_GROUP> is a valid service group",
                         binding)
             }
+            Error::InvalidOrigin(ref origin) => {
+                format!("Invalid origin: {}. Origins must begin with a lowercase letter or \
+                         number. Allowed characters include lowercase letters, numbers, -, and _. \
+                         No more than 255 characters.",
+                        origin)
+            }
             Error::InvalidPackageIdent(ref e) => {
                 format!("Invalid package identifier: {:?}. A valid identifier is in the form \
                          origin/name (example: acme/redis)",
@@ -274,21 +287,16 @@ impl fmt::Display for Error {
                         e)
             }
             Error::InvalidPackageType(ref e) => format!("Invalid package type: {}.", e),
+            Error::InvalidPathString(ref s) => {
+                format!("Could not generate String from path: {:?}", s)
+            }
             Error::InvalidPort(ref e) => format!("Invalid port: {}.", e),
             Error::InvalidServiceGroup(ref e) => {
                 format!("Invalid service group: {}. A valid service group string is in the form \
                          service.group (example: redis.production)",
                         e)
             }
-            Error::InvalidOrigin(ref origin) => {
-                format!("Invalid origin: {}. Origins must begin with a lowercase letter or \
-                         number. Allowed characters include lowercase letters, numbers, -, and _. \
-                         No more than 255 characters.",
-                        origin)
-            }
-            Error::InvalidPathString(ref s) => {
-                format!("Could not generate String from path: {:?}", s)
-            }
+            Error::InvalidUrl(ref url) => format!("Invalid url: {}", url),
             Error::IO(ref err) => format!("{}", err),
             Error::JoinPathsError(ref err) => format!("{}", err),
             Error::LogonTypeNotGranted => {

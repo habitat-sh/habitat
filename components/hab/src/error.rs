@@ -59,6 +59,7 @@ pub enum Error {
     PackageArchiveMalformed(String),
     PackageSetParseError(String),
     ParseIntError(num::ParseIntError),
+    ParseUrlError(url::ParseError),
     PathPrefixError(path::StripPrefixError),
     ProvidesError(String),
     RootRequired,
@@ -172,6 +173,7 @@ impl fmt::Display for Error {
                 format!("Package set file could not be parsed: {:?}", e)
             }
             Error::ParseIntError(ref err) => format!("{}", err),
+            Error::ParseUrlError(ref err) => format!("{}", err),
             Error::PathPrefixError(ref err) => format!("{}", err),
             Error::ProvidesError(ref err) => format!("Can't find {}", err),
             Error::RootRequired => {
@@ -274,4 +276,8 @@ impl From<walkdir::Error> for Error {
 
 impl From<ctrlc::Error> for Error {
     fn from(err: ctrlc::Error) -> Self { Error::CtrlcError(err) }
+}
+
+impl From<url::ParseError> for Error {
+    fn from(err: url::ParseError) -> Self { Error::ParseUrlError(err) }
 }

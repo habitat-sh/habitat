@@ -1,12 +1,15 @@
 use super::util::{AuthToken,
+                  BldrOrigin,
                   BldrUrl,
                   CacheKeyPath,
                   ConfigOptAuthToken,
+                  ConfigOptBldrOrigin,
                   ConfigOptBldrUrl,
                   ConfigOptCacheKeyPath};
 use crate::cli::valid_origin;
 use configopt::ConfigOpt;
-use habitat_core::crypto::keys::PairType;
+use habitat_core::{crypto::keys::PairType,
+                   origin::OriginMemberRole};
 use std::path::PathBuf;
 use structopt::{clap::ArgGroup,
                 StructOpt};
@@ -60,6 +63,8 @@ pub enum Origin {
     },
     Invitations(Invitations),
     Key(Key),
+    /// Role Based Access Control for origin members
+    Rbac(Rbac),
     Secret(Secret),
     /// Transfers ownership of an origin to another member of that origin
     Transfer {
@@ -233,6 +238,51 @@ pub struct UploadGroup {
     /// Path to a local public origin key file on disk
     #[structopt(name = "PUBLIC_FILE", long = "pubfile", group = "upload")]
     public_file: Option<PathBuf>,
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, rename_all = "screamingsnake")]
+pub struct RbacShow {
+    #[structopt(flatten)]
+    pub origin:         BldrOrigin,
+    /// The account name of the role to display
+    pub member_account: String,
+    #[structopt(flatten)]
+    pub bldr_url:       BldrUrl,
+    #[structopt(flatten)]
+    pub auth_token:     AuthToken,
+    /// Output will be rendered in json
+    #[structopt(short = "j", long = "json")]
+    pub to_json:        bool,
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, rename_all = "screamingsnake")]
+pub struct RbacSet {
+    #[structopt(flatten)]
+    pub origin:         BldrOrigin,
+    /// The account name whose role will be changed
+    pub member_account: String,
+    /// The role name to enforce for the member account
+    #[structopt(possible_values = &[OriginMemberRole::READONLY_MEMBER, OriginMemberRole::MEMBER, OriginMemberRole::MAINTAINER, OriginMemberRole::ADMINISTRATOR, OriginMemberRole::OWNER])]
+    pub role:           OriginMemberRole,
+    #[structopt(flatten)]
+    pub bldr_url:       BldrUrl,
+    #[structopt(flatten)]
+    pub auth_token:     AuthToken,
+    /// Do not prompt for confirmation
+    #[structopt(short = "n", long = "no-prompt")]
+    pub no_prompt:      bool,
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "rbac", no_version)]
+/// Role Based Access Control for origin members
+pub enum Rbac {
+    /// Display an origin member's current role
+    Show(RbacShow),
+    /// Change an origin member's role
+    Set(RbacSet),
 }
 
 #[derive(ConfigOpt, StructOpt)]
