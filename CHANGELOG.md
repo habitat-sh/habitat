@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.121 -->
-## [1.6.121](https://github.com/habitat-sh/habitat/tree/1.6.121) (2020-08-12)
+<!-- latest_release 1.6.122 -->
+## [1.6.122](https://github.com/habitat-sh/habitat/tree/1.6.122) (2020-08-12)
 
-#### Behavioral Changes
-- Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil))
+#### Merged Pull Requests
+- Automated update of Habitat Documentation [#7861](https://github.com/habitat-sh/habitat/pull/7861) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
@@ -14,6 +14,7 @@
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
+- Automated update of Habitat Documentation [#7861](https://github.com/habitat-sh/habitat/pull/7861) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.122 -->
 - modernize windows tutorial [#7820](https://github.com/habitat-sh/habitat/pull/7820) ([mwrock](https://github.com/mwrock)) <!-- 1.6.120 -->
 - Update Changelog for 1.6.115 [#7864](https://github.com/habitat-sh/habitat/pull/7864) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.119 -->
 - make bind timeout configurable and add debug output around startup [#7858](https://github.com/habitat-sh/habitat/pull/7858) ([mwrock](https://github.com/mwrock)) <!-- 1.6.117 -->
