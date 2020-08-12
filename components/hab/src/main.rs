@@ -666,7 +666,7 @@ async fn sub_send_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<(
 }
 
 async fn sub_origin_member_role_show(ui: &mut UI, r: RbacShow) -> Result<()> {
-    let bldr_url = bldr_url_from_args_env_load_or_default(r.bldr_url.value);
+    let bldr_url = bldr_url_from_args_env_load_or_default(r.bldr_url.value)?;
     let auth_token = bldr_auth_token_from_args_env_or_load(r.auth_token.value)?;
     command::origin::rbac::show_role::start(ui,
                                             &bldr_url.to_string(),
@@ -677,7 +677,7 @@ async fn sub_origin_member_role_show(ui: &mut UI, r: RbacShow) -> Result<()> {
 }
 
 async fn sub_origin_member_role_set(ui: &mut UI, r: RbacSet) -> Result<()> {
-    let bldr_url = bldr_url_from_args_env_load_or_default(r.bldr_url.value);
+    let bldr_url = bldr_url_from_args_env_load_or_default(r.bldr_url.value)?;
     let auth_token = bldr_auth_token_from_args_env_or_load(r.auth_token.value)?;
     command::origin::rbac::set_role::start(ui,
                                            &bldr_url.to_string(),

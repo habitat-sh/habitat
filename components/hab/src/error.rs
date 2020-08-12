@@ -48,6 +48,7 @@ pub enum Error {
     HabitatCore(hcore::Error),
     // Boxed due to clippy::large_enum_variant
     HandlebarsRenderError(Box<handlebars::TemplateRenderError>),
+    InvalidUrl(String),
     IO(io::Error),
     JobGroupPromoteOrDemote(api_client::Error, bool /* promote */),
     JobGroupCancel(api_client::Error),
@@ -148,6 +149,7 @@ impl fmt::Display for Error {
             Error::HabitatCore(ref e) => e.to_string(),
             Error::HandlebarsRenderError(ref e) => e.to_string(),
             Error::IO(ref err) => format!("{}", err),
+            Error::InvalidUrl(ref url) => format!("Invalid url: {}", url),
             Error::JobGroupPromoteOrDemoteUnprocessable(true) => {
                 "Failed to promote job group, the build job is still in progress".to_string()
             }

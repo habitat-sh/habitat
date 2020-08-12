@@ -77,11 +77,13 @@ pub fn bldr_url_from_env_load_or_default() -> String {
                        })
 }
 
-pub fn bldr_url_from_args_env_load_or_default(opt: Option<Url>) -> Url {
+pub fn bldr_url_from_args_env_load_or_default(opt: Option<Url>) -> Result<Url, Error> {
     if let Some(url) = opt {
-        url
+        Ok(url)
     } else {
-        Url::parse(&bldr_url_from_env_load_or_default()).expect("Infallible parse DEFAULT_BLDR_URL")
+        Url::parse(&bldr_url_from_env_load_or_default()).map_err(|e| {
+                                                            Error::InvalidUrl(e.to_string())
+                                                        })
     }
 }
 
