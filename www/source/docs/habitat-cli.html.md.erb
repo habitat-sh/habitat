@@ -11,7 +11,7 @@ The commands for the Chef Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 1.6.56/20200618202635 (linux) | 22 Jun 2020 |
+| hab 1.6.115/20200806220545 (linux) | 10 Aug 2020 |
 
 ## hab
 
@@ -2107,7 +2107,7 @@ hab pkg info [FLAGS] <SOURCE>
 **FLAGS**
 
 ```
--j, --json       Output will be rendered in json
+-j, --json       Output will be rendered in json. (Includes extended metadata)
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
@@ -2373,10 +2373,11 @@ hab pkg uninstall [FLAGS] [OPTIONS] <PKG_IDENT>
 **FLAGS**
 
 ```
--d, --dryrun     Just show what would be uninstalled, don't actually do it
-    --no-deps    Don't uninstall dependencies
--h, --help       Prints help information
--V, --version    Prints version information
+-d, --dryrun                   Just show what would be uninstalled, don't actually do it
+    --ignore-uninstall-hook    Do not run any uninstall hooks
+    --no-deps                  Don't uninstall dependencies
+-h, --help                     Prints help information
+-V, --version                  Prints version information
 ```
 
 **OPTIONS**
@@ -3216,6 +3217,7 @@ hab svc <SUBCOMMAND>
 | [hab svc status](#hab-svc-status) | Query the status of Habitat services |
 | [hab svc stop](#hab-svc-stop) | Stop a running Habitat service |
 | [hab svc unload](#hab-svc-unload) | Unload a service loaded by the Habitat Supervisor. If the service is running it will additionally be stopped |
+| [hab svc update](#hab-svc-update) | Update how the Supervisor manages an already-running service. Depending on the given changes, they may be able to be applied without restarting the service |
 ---
 
 ### hab svc key
@@ -3304,6 +3306,8 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
     --binding-mode <BINDING_MODE> Governs how the presence or absence of binds affects service startup [default: strict]  [possible values: strict, relaxed]
 -u, --url <BLDR_URL> Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
     --channel <CHANNEL> Receive updates from the specified release channel [default: stable]
+
+    --config-from <CONFIG_FROM> Use the package config from this path rather than the package itself
 
     --group <GROUP> The service group with shared config and topology [default: default]
 
@@ -3453,6 +3457,52 @@ hab svc unload [OPTIONS] <PKG_IDENT>
 -r, --remote-sup <REMOTE_SUP> Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
 
     --shutdown-timeout <SHUTDOWN_TIMEOUT> The delay in seconds after sending the shutdown signal to wait before killing the service process
+```
+
+**ARGS**
+
+```
+<PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+```
+
+
+
+---
+
+### hab svc update
+
+Update how the Supervisor manages an already-running service. Depending on the given changes, they may be able to be
+
+**USAGE**
+
+```
+hab svc update [OPTIONS] <PKG_IDENT>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+--bind <BIND>...                                   One or more service groups to bind to a configuration
+    --binding-mode <BINDING_MODE> Governs how the presence or absence of binds affects service startup [possible values: strict, relaxed]
+
+-u, --url <BLDR_URL>                                   Specify an alternate Builder endpoint
+    --channel <CHANNEL>                                Receive updates from the specified release channel
+    --group <GROUP>                                    The service group with shared config and topology
+-i, --health-check-interval <HEALTH_CHECK_INTERVAL>    The interval in seconds on which to run health checks
+-r, --remote-sup <REMOTE_SUP> Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+
+    --shutdown-timeout <SHUTDOWN_TIMEOUT> The delay in seconds after sending the shutdown signal to wait before killing the service process
+
+-s, --strategy <STRATEGY>                              The update strategy [possible values: none, at-once, rolling]
+-t, --topology <TOPOLOGY>                              Service topology [possible values: standalone, leader]
+    --update-condition <UPDATE_CONDITION> The condition dictating when this service should update [possible values: latest, track-channel]
 ```
 
 **ARGS**
