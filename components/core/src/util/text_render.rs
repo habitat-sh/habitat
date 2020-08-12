@@ -13,8 +13,15 @@ pub fn tabw() -> TabWriter<Vec<u8>> { TabWriter::new(Vec::new()) }
 pub fn tabify(mut tw: TabWriter<Vec<u8>>, s: &str) -> Result<String> {
     write!(&mut tw, "{}", s)?;
     tw.flush()?;
-    String::from_utf8(tw.into_inner().expect("TABWRITER into_inner")).map_err(
-        Error::StringFromUtf8Error)
+    let res = tw.into_inner();
+    if res.is_err() {
+        return Err(Error::TabWriterIntoInnerFailed("Unable to flush \
+                                                    tabwriter buffer to \
+                                                    inner."
+                                                           .to_string()));
+    }
+    let inner = res.unwrap();
+    String::from_utf8(inner).map_err(Error::StringFromUtf8Error)
 }
 
 pub trait TabularText {
