@@ -112,7 +112,7 @@ lazy_static! {
 }
 
 #[derive(ConfigOpt, StructOpt, Debug, Deserialize)]
-#[configopt(derive(Debug), attrs(serde))]
+#[configopt(derive(Serialize, Debug), attrs(serde))]
 #[serde(deny_unknown_fields)]
 #[structopt(no_version, rename_all = "screamingsnake")]
 pub struct CacheKeyPath {
@@ -171,7 +171,7 @@ pub struct FullyQualifiedPkgIdent {
 }
 
 #[derive(ConfigOpt, StructOpt, Deserialize, Debug)]
-#[configopt(derive(Clone, Debug))]
+#[configopt(derive(Serialize, Clone, Debug))]
 #[structopt(no_version)]
 pub struct RemoteSup {
     /// Address to a remote Supervisor's Control Gateway

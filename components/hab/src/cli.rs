@@ -42,6 +42,11 @@ use url::Url;
 /// ran to completion with a successful result. The Launcher should not attempt to restart
 /// the Supervisor and should exit immediately with a successful exit code.
 pub const OK_NO_RETRY_EXCODE: i32 = 84;
+pub const AFTER_HELP: &str =
+    "\nALIASES:\n    apply      Alias for: 'config apply'\n    install    Alias for: 'pkg \
+     install'\n    run        Alias for: 'sup run'\n    setup      Alias for: 'cli setup'\n    \
+     start      Alias for: 'svc start'\n    stop       Alias for: 'svc stop'\n    term       \
+     Alias for: 'sup term'\n";
 
 pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
     if feature_flags.contains(FeatureFlag::STRUCTOPT_CLI) {
@@ -55,6 +60,8 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         sub_pkg_install(feature_flags).about("Alias for 'pkg install'")
                                       .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
                                       .setting(AppSettings::Hidden);
+    let alias_run = SupRun::clap().about("Alias for 'sup run'")
+                                  .setting(AppSettings::Hidden);
     let alias_setup = sub_cli_setup().about("Alias for 'cli setup'")
                                      .aliases(&["set", "setu"])
                                      .setting(AppSettings::Hidden);
@@ -816,7 +823,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 )
             )
         )
-        (subcommand: sup_commands(feature_flags))
+        (subcommand: Sup::clap())
         (@subcommand svc =>
             (about: "Commands relating to Habitat services")
             (aliases: &["sv", "ser", "serv", "service"])
@@ -869,34 +876,18 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         )
         (subcommand: alias_apply)
         (subcommand: alias_install)
-        (subcommand: alias_run())
+        (subcommand: alias_run)
         (subcommand: alias_setup)
         (subcommand: alias_start)
         (subcommand: alias_stop)
         (subcommand: alias_term())
-        (after_help: "\nALIASES:\
-            \n    apply      Alias for: 'config apply'\
-            \n    install    Alias for: 'pkg install'\
-            \n    run        Alias for: 'sup run'\
-            \n    setup      Alias for: 'cli setup'\
-            \n    start      Alias for: 'svc start'\
-            \n    stop       Alias for: 'svc stop'\
-            \n    term       Alias for: 'sup term'\
-            \n"
-        )
-    )
-}
-
-fn alias_run() -> App<'static, 'static> {
-    clap_app!(@subcommand run =>
-        (about: "Run the Habitat Supervisor")
-        (@setting Hidden)
+        (after_help: AFTER_HELP)
     )
 }
 
 fn alias_term() -> App<'static, 'static> {
     clap_app!(@subcommand term =>
-        (about: "Gracefully terminate the Habitat Supervisor and all of its running services")
+        (about: "Alias for 'sup term'")
         (@setting Hidden)
     )
 }
@@ -905,38 +896,6 @@ fn sub_cli_setup() -> App<'static, 'static> {
     clap_app!(@subcommand setup =>
     (about: "Sets up the CLI with reasonable defaults")
     (arg: arg_cache_key_path())
-    )
-}
-
-pub fn sup_commands(feature_flags: FeatureFlag) -> App<'static, 'static> {
-    if feature_flags.contains(FeatureFlag::STRUCTOPT_CLI) {
-        return Sup::clap();
-    }
-
-    // Define all of the `hab sup *` subcommands in one place.
-    // This removes the need to duplicate this in `hab-sup`.
-    // The 'sup' App name here is significant for the `hab` binary as it
-    // is inserted as a named subcommand. For the `hab-sup` binary, it is
-    // the top-level App name (not a named subcommand) and therefore is not
-    // significant since we override `usage` below.
-    clap_app!(("sup") =>
-    (about: "The Habitat Supervisor")
-    (version: super::VERSION)
-    (author: "\nThe Habitat Maintainers <humans@habitat.sh>\n")
-    // set custom usage string, otherwise the binary
-    // is displayed as the clap_app name, which may or may not be different.
-    // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
-    (usage: "hab sup <SUBCOMMAND>")
-    (@setting VersionlessSubcommands)
-    (@setting ArgRequiredElseHelp)
-    (@setting SubcommandRequiredElseHelp)
-    (subcommand: sub_sup_bash().aliases(&["b", "ba", "bas"]))
-    (subcommand: sub_sup_depart().aliases(&["d", "de", "dep", "depa", "depart"]))
-    (subcommand: sub_sup_run(feature_flags).aliases(&["r", "ru"]))
-    (subcommand: sub_sup_secret().aliases(&["sec", "secr"]))
-    (subcommand: sub_sup_sh().aliases(&[]))
-    (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
-    (subcommand: sub_sup_term().aliases(&["ter"]))
     )
 }
 
@@ -1074,62 +1033,6 @@ fn sub_config_apply() -> App<'static, 'static> {
     (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
         "Address to a remote Supervisor's Control Gateway")
     (arg: arg_cache_key_path())
-    )
-}
-
-// the following sup related functions are
-// public due to their utilization in `hab-sup`
-// for consistency, all supervisor related clap subcommands are defined in this module
-fn sub_sup_depart() -> App<'static, 'static> {
-    clap_app!(@subcommand depart =>
-        (about: "Depart a Supervisor from the gossip ring; kicking and banning the target \
-            from joining again with the same member-id")
-        (@arg MEMBER_ID: +required +takes_value "The member-id of the Supervisor to depart")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
-            "Address to a remote Supervisor's Control Gateway")
-    )
-}
-
-fn sub_sup_secret() -> App<'static, 'static> {
-    clap_app!(@subcommand secret =>
-        (about: "Commands relating to a Habitat Supervisor's Control Gateway secret")
-        (@setting ArgRequiredElseHelp)
-        (@setting SubcommandRequiredElseHelp)
-        (@subcommand generate =>
-            (about: "Generate a secret key to use as a Supervisor's Control Gateway secret")
-        )
-    )
-}
-
-fn sub_sup_bash() -> App<'static, 'static> {
-    clap_app!(@subcommand bash =>
-        (about: "Start an interactive Bash-like shell")
-        // set custom usage string, otherwise the binary
-        // is displayed confusingly as `hab-sup`
-        // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
-        (usage: "hab sup bash")
-    )
-}
-
-fn sub_sup_run(_feature_flags: FeatureFlag) -> App<'static, 'static> { SupRun::clap() }
-
-fn sub_sup_sh() -> App<'static, 'static> {
-    clap_app!(@subcommand sh =>
-        (about: "Start an interactive Bourne-like shell")
-        // set custom usage string, otherwise the binary
-        // is displayed confusingly as `hab-sup`
-        // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
-        (usage: "hab sup sh")
-    )
-}
-
-fn sub_sup_term() -> App<'static, 'static> {
-    clap_app!(@subcommand term =>
-        (about: "Gracefully terminate the Habitat Supervisor and all of its running services")
-        // set custom usage string, otherwise the binary
-        // is displayed confusingly as `hab-sup`
-        // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
-        (usage: "hab sup term [OPTIONS]")
     )
 }
 
@@ -1406,61 +1309,52 @@ mod tests {
 
         #[test]
         fn app_and_env_and_token_options_required_if_url_option() {
-            let matches =
-                sub_sup_run(no_feature_flags()).get_matches_from_safe(vec!["run",
-                                                                           "--event-stream-url",
-                                                                           "127.0.0.1:4222",]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::MissingRequiredArgument);
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::MissingRequiredArgument);
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-environment",
+                                                                    "MY_ENV",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::MissingRequiredArgument);
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-environment",
+                                                                    "MY_ENV",
+                                                                    "--event-stream-token",
+                                                                    "MY_TOKEN",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",]);
             assert!(matches.is_ok());
         }
 
         #[test]
         fn app_option_must_take_a_value() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-stream-application",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-stream-application",
+                                                                    "--event-stream-environment",
+                                                                    "MY_ENV",
+                                                                    "--event-stream-token",
+                                                                    "MY_TOKEN",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
@@ -1470,17 +1364,15 @@ mod tests {
 
         #[test]
         fn app_option_cannot_be_empty() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-stream-application",
-                "",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-stream-application",
+                                                                    "",
+                                                                    "--event-stream-environment",
+                                                                    "MY_ENV",
+                                                                    "--event-stream-token",
+                                                                    "MY_TOKEN",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
@@ -1488,16 +1380,14 @@ mod tests {
 
         #[test]
         fn env_option_must_take_a_value() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-environment",
+                                                                    "--event-stream-token",
+                                                                    "MY_TOKEN",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
@@ -1507,17 +1397,15 @@ mod tests {
 
         #[test]
         fn env_option_cannot_be_empty() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-environment",
+                                                                    "",
+                                                                    "--event-stream-token",
+                                                                    "MY_TOKEN",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
@@ -1525,23 +1413,21 @@ mod tests {
 
         #[test]
         fn event_meta_can_be_repeated() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-meta",
-                "foo=bar",
-                "--event-meta",
-                "blah=boo",
-                "--event-meta",
-                "monkey=pants",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-meta",
+                                                                    "foo=bar",
+                                                                    "--event-meta",
+                                                                    "blah=boo",
+                                                                    "--event-meta",
+                                                                    "monkey=pants",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-environment",
+                                                                    "MY_ENV",
+                                                                    "--event-stream-token",
+                                                                    "MY_TOKEN",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",]);
             assert!(matches.is_ok());
             let matches = matches.unwrap();
             let meta = matches.values_of(EventStreamMetadata::ARG_NAME)
@@ -1552,91 +1438,81 @@ mod tests {
 
         #[test]
         fn event_meta_cannot_be_empty() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-meta",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-meta",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-environment",
+                                                                    "MY_ENV",
+                                                                    "--event-stream-token",
+                                                                    "MY_TOKEN",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",]);
             assert!(matches.is_err());
             assert_eq!(matches.unwrap_err().kind, clap::ErrorKind::EmptyValue);
         }
 
         #[test]
         fn event_meta_must_have_an_equal_sign() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-meta",
-                "foobar",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-meta",
+                                                                    "foobar",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-environment",
+                                                                    "MY_ENV",
+                                                                    "--event-stream-token",
+                                                                    "MY_TOKEN",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",]);
             assert!(matches.is_err());
             assert_eq!(matches.unwrap_err().kind, clap::ErrorKind::ValueValidation);
         }
 
         #[test]
         fn event_meta_key_cannot_be_empty() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-meta",
-                "=bar",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-meta",
+                                                                    "=bar",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-environment",
+                                                                    "MY_ENV",
+                                                                    "--event-stream-token",
+                                                                    "MY_TOKEN",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",]);
             assert!(matches.is_err());
             assert_eq!(matches.unwrap_err().kind, clap::ErrorKind::ValueValidation);
         }
 
         #[test]
         fn event_meta_value_cannot_be_empty() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-meta",
-                "foo=",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-meta",
+                                                                    "foo=",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-environment",
+                                                                    "MY_ENV",
+                                                                    "--event-stream-token",
+                                                                    "MY_TOKEN",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",]);
             assert!(matches.is_err());
             assert_eq!(matches.unwrap_err().kind, clap::ErrorKind::ValueValidation);
         }
 
         #[test]
         fn token_option_must_take_a_value() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-                "--event-stream-token",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-environment",
+                                                                    "MY_ENV",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",
+                                                                    "--event-stream-token",]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
@@ -1646,17 +1522,15 @@ mod tests {
 
         #[test]
         fn token_option_cannot_be_empty() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-token",
-                "",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-environment",
+                                                                    "MY_ENV",
+                                                                    "--event-stream-token",
+                                                                    "",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::ValueValidation);
@@ -1664,18 +1538,16 @@ mod tests {
 
         #[test]
         fn site_option_must_take_a_value() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-                "--event-stream-site",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-environment",
+                                                                    "MY_ENV",
+                                                                    "--event-stream-token",
+                                                                    "MY_TOKEN",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",
+                                                                    "--event-stream-site",]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
@@ -1684,19 +1556,17 @@ mod tests {
 
         #[test]
         fn site_option_cannot_be_empty() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-url",
-                "127.0.0.1:4222",
-                "--event-stream-site",
-                "",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-environment",
+                                                                    "MY_ENV",
+                                                                    "--event-stream-token",
+                                                                    "MY_TOKEN",
+                                                                    "--event-stream-url",
+                                                                    "127.0.0.1:4222",
+                                                                    "--event-stream-site",
+                                                                    "",]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
@@ -1704,16 +1574,14 @@ mod tests {
 
         #[test]
         fn url_option_must_take_a_value() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-url",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-environment",
+                                                                    "MY_ENV",
+                                                                    "--event-stream-token",
+                                                                    "MY_TOKEN",
+                                                                    "--event-stream-url",]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
@@ -1722,17 +1590,15 @@ mod tests {
 
         #[test]
         fn url_option_cannot_be_empty() {
-            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
-                "run",
-                "--event-stream-application",
-                "MY_APP",
-                "--event-stream-environment",
-                "MY_ENV",
-                "--event-stream-token",
-                "MY_TOKEN",
-                "--event-stream-url",
-                "",
-            ]);
+            let matches = SupRun::clap().get_matches_from_safe(vec!["run",
+                                                                    "--event-stream-application",
+                                                                    "MY_APP",
+                                                                    "--event-stream-environment",
+                                                                    "MY_ENV",
+                                                                    "--event-stream-token",
+                                                                    "MY_TOKEN",
+                                                                    "--event-stream-url",
+                                                                    "",]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::ValueValidation);

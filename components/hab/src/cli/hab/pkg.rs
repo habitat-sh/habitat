@@ -259,48 +259,7 @@ pub enum Pkg {
         #[structopt(name = "SOURCE", validator = file_exists)]
         source:  PathBuf,
     },
-    /// Installs a Habitat package from Builder or locally from a Habitat Artifact
-    Install {
-        #[structopt(flatten)]
-        bldr_url:              BldrUrl,
-        /// Install from the specified release channel
-        #[structopt(name = "CHANNEL",
-                    short = "c",
-                    long = "channel",
-                    default_value = "stable",
-                    env = ChannelIdent::ENVVAR)]
-        channel:               String,
-        /// One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a Habitat
-        /// Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-        #[structopt(name = "PKG_IDENT_OR_ARTIFACT", required = true)]
-        pkg_ident_or_artifact: Vec<String>,
-        /// Binlink all binaries from installed package(s) into BINLINK_DIR
-        #[structopt(name = "BINLINK", short = "b", long = "binlink")]
-        binlink:               bool,
-        /// Binlink all binaries from installed package(s) into BINLINK_DIR
-        #[structopt(name = "BINLINK_DIR",
-                    long = "binlink-dir",
-                    default_value = DEFAULT_BINLINK_DIR,
-                    env = BINLINK_DIR_ENVVAR)]
-        binlink_dir:           PathBuf,
-        /// Overwrite existing binlinks
-        #[structopt(name = "FORCE", short = "f", long = "force")]
-        force:                 bool,
-        #[structopt(flatten)]
-        auth_token:            AuthToken,
-        /// Do not run any install hooks
-        #[structopt(name = "IGNORE_INSTALL_HOOK", long = "ignore-install-hook")]
-        ignore_install_hook:   bool,
-        /// Install packages in offline mode
-        #[structopt(name = "OFFLINE", long = "offline",
-                    hidden = !FEATURE_FLAGS.contains(FeatureFlag::OFFLINE_INSTALL))]
-        offline:               bool,
-        /// Do not use locally-installed packages when a corresponding package cannot be installed
-        /// from Builder
-        #[structopt(name = "IGNORE_LOCAL", long = "ignore-local",
-                    hidden = !FEATURE_FLAGS.contains(FeatureFlag::IGNORE_LOCAL))]
-        ignore_local:          bool,
-    },
+    Install(PkgInstall),
     /// List all versions of installed packages
     List(List),
     /// Prints the path to a specific installed release of a package
@@ -420,6 +379,49 @@ pub enum Pkg {
         #[structopt(flatten)]
         cache_key_path: CacheKeyPath,
     },
+}
+
+/// Installs a Habitat package from Builder or locally from a Habitat Artifact
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, rename_all = "screamingsnake")]
+pub struct PkgInstall {
+    #[structopt(flatten)]
+    bldr_url:              BldrUrl,
+    /// Install from the specified release channel
+    #[structopt(short = "c",
+                long = "channel",
+                default_value = "stable",
+                env = ChannelIdent::ENVVAR)]
+    channel:               String,
+    /// One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a Habitat
+    /// Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    #[structopt(required = true)]
+    pkg_ident_or_artifact: Vec<String>,
+    /// Binlink all binaries from installed package(s) into BINLINK_DIR
+    #[structopt(short = "b", long = "binlink")]
+    binlink:               bool,
+    /// Binlink all binaries from installed package(s) into BINLINK_DIR
+    #[structopt(long = "binlink-dir",
+                default_value = DEFAULT_BINLINK_DIR,
+                env = BINLINK_DIR_ENVVAR)]
+    binlink_dir:           PathBuf,
+    /// Overwrite existing binlinks
+    #[structopt(short = "f", long = "force")]
+    force:                 bool,
+    #[structopt(flatten)]
+    auth_token:            AuthToken,
+    /// Do not run any install hooks
+    #[structopt(long = "ignore-install-hook")]
+    ignore_install_hook:   bool,
+    /// Install packages in offline mode
+    #[structopt(long = "offline",
+                hidden = !FEATURE_FLAGS.contains(FeatureFlag::OFFLINE_INSTALL))]
+    offline:               bool,
+    /// Do not use locally-installed packages when a corresponding package cannot be installed
+    /// from Builder
+    #[structopt(long = "ignore-local",
+                hidden = !FEATURE_FLAGS.contains(FeatureFlag::IGNORE_LOCAL))]
+    ignore_local:          bool,
 }
 
 /// Exports the package to the specified format

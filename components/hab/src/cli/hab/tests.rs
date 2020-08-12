@@ -409,22 +409,9 @@ fn test_hab_help() {
     let env = lock_service_config_files();
     env.set("1");
 
-    let mut hab1 = cli::get(feature_flags_for_cli_test()).after_help("");
-    // Remove the subcommand aliases
-    hab1.p.subcommands.truncate(hab1.p.subcommands.len() - 7);
-    let mut hab2 = cli::get(feature_flags_for_cli_test_with_structopt()).after_help("");
+    let mut hab1 = cli::get(feature_flags_for_cli_test());
+    let mut hab2 = cli::get(feature_flags_for_cli_test_with_structopt());
     compare(&mut hab1, &mut hab2, "hab");
-}
-
-#[test]
-fn test_sup_run_help() {
-    habitat_core::locked_env_var!(HAB_FEAT_SERVICE_CONFIG_FILES, lock_service_config_files);
-    let env = lock_service_config_files();
-    env.set("1");
-
-    let mut sup1 = cli::sub_sup_run(feature_flags_for_cli_test()).after_help("");
-    let mut sup2 = cli::sub_sup_run(feature_flags_for_cli_test_with_structopt()).after_help("");
-    compare(&mut sup1, &mut sup2, "sup");
 }
 
 fn extract_hab_svc_load(hab: Hab) -> Load {

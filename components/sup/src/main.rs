@@ -134,7 +134,7 @@ async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFlag) -> Resul
     liveliness_checker::spawn_thread_alive_checker();
     let launcher = boot();
 
-    let app_matches = match cli(feature_flags).get_matches_safe() {
+    let app_matches = match cli().get_matches_safe() {
         Ok(matches) => matches,
         Err(err) => {
             let out = io::stdout();
