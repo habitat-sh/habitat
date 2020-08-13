@@ -13,7 +13,8 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                          DEFAULT_BLDR_URL},
                    AUTH_TOKEN_ENVVAR};
 use lazy_static::lazy_static;
-use std::{fmt,
+use std::{ffi::OsString,
+          fmt,
           io,
           net::{SocketAddr,
                 ToSocketAddrs},
@@ -21,7 +22,8 @@ use std::{fmt,
           path::PathBuf,
           str::FromStr,
           time::Duration};
-use structopt::StructOpt;
+use structopt::{clap::AppSettings,
+                StructOpt};
 use url::{ParseError,
           Url};
 
@@ -230,6 +232,18 @@ impl FromStr for DurationProxy {
 
 impl fmt::Display for DurationProxy {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", u64::from(*self)) }
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, rename_all = "screamingsnake",
+            settings = &[AppSettings::TrailingVarArg,
+                        AppSettings::AllowLeadingHyphen,
+                        AppSettings::DisableHelpFlags,
+                        AppSettings::DisableHelpSubcommand,
+                        AppSettings::DisableVersion])]
+pub struct ExternalCommandArgs {
+    #[structopt(parse(from_os_str), takes_value = true, multiple = true)]
+    pub args: Vec<OsString>,
 }
 
 #[cfg(test)]

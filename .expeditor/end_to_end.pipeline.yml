@@ -833,7 +833,6 @@ steps:
       automatic:
         limit: 1
 
-
   - label: "[:linux: test_supplemental_groups]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_supplemental_groups
@@ -857,6 +856,36 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: test_pkg_exporters_help]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_pkg_exporters_help
+    env:
+      BUILD_PKG_TARGET: x86_64-linux
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+            - PIPELINE_HAB_AUTH_TOKEN
+
+  - label: "[:windows: test_pkg_exporters_help]"
+    command:
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_pkg_exporters_help
+    env:
+      BUILD_PKG_TARGET: x86_64-windows
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+            - PIPELINE_HAB_AUTH_TOKEN
+    retry:
+      automatic:
+        limit: 1
 
   - wait
 
