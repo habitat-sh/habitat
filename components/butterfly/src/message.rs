@@ -10,7 +10,7 @@ pub fn generate_wire(payload: Vec<u8>, ring_key: Option<&RingKey>) -> Result<Vec
     let mut wire = Wire::default();
     if let Some(ring_key) = ring_key {
         wire.encrypted = Some(true);
-        let (nonce, encrypted_payload) = ring_key.encrypt(&payload)?;
+        let (nonce, encrypted_payload) = ring_key.encrypt(&payload);
         wire.nonce = Some(nonce);
         wire.payload = Some(encrypted_payload);
     } else {

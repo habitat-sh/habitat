@@ -1,6 +1,7 @@
 use crate::error::Result;
 use habitat_core::crypto::keys::{Key,
                                  KeyCache,
+                                 KeyFile,
                                  PairType};
 use std::{io,
           io::Write,

@@ -5,10 +5,10 @@ use crate::{crypto::{hash,
                      PUBLIC_SIG_KEY_VERSION,
                      SECRET_SIG_KEY_VERSION},
             error::{Error,
-                    Result}};
+                    Result},
+            fs::Permissions};
 use std::{io::Read,
-          path::{Path,
-                 PathBuf}};
+          path::Path};
 
 /// Private module to re-export the various sodiumoxide concepts we
 /// use, to keep them all consolidated and abstracted.
@@ -18,9 +18,6 @@ mod primitives {
                                         gen_keypair,
                                         sign,
                                         verify};
-
-    from_slice_impl_for_sodiumoxide_key!(PublicKey);
-    from_slice_impl_for_sodiumoxide_key!(SecretKey);
 }
 
 /// Given the name of an origin, generate a new signing key pair.
@@ -30,45 +27,25 @@ mod primitives {
 pub fn generate_signing_key_pair(origin_name: &str)
                                  -> (PublicOriginSigningKey, SecretOriginSigningKey) {
     let revision = KeyRevision::new();
+    let named_revision = NamedRevision::new(origin_name.to_string(), revision);
     let (pk, sk) = primitives::gen_keypair();
 
-    let public = PublicOriginSigningKey::from_raw(origin_name.to_string(), revision.clone(), pk);
-    let secret = SecretOriginSigningKey::from_raw(origin_name.to_string(), revision.clone(), sk);
+    let public = PublicOriginSigningKey { named_revision: named_revision.clone(),
+                                          key:            pk, };
+    let secret = SecretOriginSigningKey { named_revision,
+                                          key: sk };
     (public, secret)
 }
 
 ////////////////////////////////////////////////////////////////////////
 
-pub struct PublicOriginSigningKey {
-    named_revision: NamedRevision,
-    key:            primitives::PublicKey,
-    path:           PathBuf,
-}
-
-impl Key for PublicOriginSigningKey {
-    type Crypto = primitives::PublicKey;
-
-    const EXTENSION: &'static str = "pub";
-    const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS;
-    const VERSION_STRING: &'static str = PUBLIC_SIG_KEY_VERSION;
-
-    fn key(&self) -> &primitives::PublicKey { &self.key }
-
-    fn named_revision(&self) -> &NamedRevision { &self.named_revision }
-}
+gen_key!(PublicOriginSigningKey,
+         key_material: primitives::PublicKey,
+         file_format_version: PUBLIC_SIG_KEY_VERSION,
+         file_extension: "pub",
+         file_permissions: crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS);
 
 impl PublicOriginSigningKey {
-    pub(crate) fn from_raw(name: String,
-                           revision: KeyRevision,
-                           key: primitives::PublicKey)
-                           -> Self {
-        let named_revision = NamedRevision::new(name, revision);
-        let path = named_revision.filename::<Self>();
-        Self { named_revision,
-               key,
-               path }
-    }
-
     /// Accept a signature and the bytes for the signed content to be
     /// verified. Returns the named revision of the key as well as the
     /// computed hash.
@@ -100,46 +77,15 @@ impl PublicOriginSigningKey {
     }
 }
 
-from_str_impl_for_key!(PublicOriginSigningKey);
-
-try_from_path_buf_impl_for_key!(PublicOriginSigningKey);
-
-as_ref_path_impl_for_key!(PublicOriginSigningKey);
-
-debug_impl_for_key!(PublicOriginSigningKey);
-
 ////////////////////////////////////////////////////////////////////////
 
-pub struct SecretOriginSigningKey {
-    named_revision: NamedRevision,
-    key:            primitives::SecretKey,
-    path:           PathBuf,
-}
-
-impl Key for SecretOriginSigningKey {
-    type Crypto = primitives::SecretKey;
-
-    const EXTENSION: &'static str = "sig.key";
-    const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS;
-    const VERSION_STRING: &'static str = SECRET_SIG_KEY_VERSION;
-
-    fn key(&self) -> &primitives::SecretKey { &self.key }
-
-    fn named_revision(&self) -> &NamedRevision { &self.named_revision }
-}
+gen_key!(SecretOriginSigningKey,
+         key_material: primitives::SecretKey,
+         file_format_version: SECRET_SIG_KEY_VERSION,
+         file_extension: "sig.key",
+         file_permissions: crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS);
 
 impl SecretOriginSigningKey {
-    pub(crate) fn from_raw(name: String,
-                           revision: KeyRevision,
-                           key: primitives::SecretKey)
-                           -> Self {
-        let named_revision = NamedRevision::new(name, revision);
-        let path = named_revision.filename::<Self>();
-        Self { named_revision,
-               key,
-               path }
-    }
-
     /// Takes the contents of the given file and returns a signature
     /// based on this key.
     pub fn sign<P>(&self, path: P) -> Result<Vec<u8>>
@@ -150,11 +96,3 @@ impl SecretOriginSigningKey {
         Ok(primitives::sign(&hash.as_bytes(), &self.key))
     }
 }
-
-from_str_impl_for_key!(SecretOriginSigningKey);
-
-try_from_path_buf_impl_for_key!(SecretOriginSigningKey);
-
-as_ref_path_impl_for_key!(SecretOriginSigningKey);
-
-debug_impl_for_key!(SecretOriginSigningKey);
