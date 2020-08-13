@@ -18,6 +18,7 @@ use crate::{common::{self,
                     ChannelIdent},
             PRODUCT,
             VERSION};
+use habitat_common::error::Error as CommonError;
 use retry::delay;
 use std::path::PathBuf;
 
@@ -89,7 +90,7 @@ pub async fn command_from_min_pkg(ui: &mut UI,
                                                          &LocalPackageUsage::default(),
                                                          InstallHookMode::default()).await
             }).await
-              .map_err(|_| Error::ExecCommandNotFound(command.clone()))?
+              .map_err(|e| CommonError::PackageFailedToInstall(ident.clone(), Box::new(e.error)))?
         }
         Err(e) => return Err(Error::from(e)),
     };

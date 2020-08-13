@@ -78,7 +78,6 @@ pub enum Error {
         hook:          &'static str,
         error:         CommandExecutionError,
     },
-    InterpreterNotFound(PackageIdent, Box<Self>),
     InvalidEventStreamToken(String),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
@@ -91,6 +90,7 @@ pub enum Error {
     OfflineArtifactNotFound(PackageIdent),
     OfflineOriginKeyNotFound(String),
     OfflinePackageNotFound(PackageIdent),
+    PackageFailedToInstall(PackageIdent, Box<Self>),
     PackageNotFound(String),
     /// Occurs upon errors related to file or directory permissions.
     PermissionFailed(String),
@@ -175,9 +175,6 @@ impl fmt::Display for Error {
                                 ref error, } => {
                 format!("{} {} hook failed: {}", package_ident, hook, error)
             }
-            Error::InterpreterNotFound(ref ident, ref e) => {
-                format!("Unable to install interpreter ident: {} - {}", ident, e)
-            }
             Error::InvalidEventStreamToken(ref s) => {
                 format!("Invalid event stream token provided: '{}'", s)
             }
@@ -200,6 +197,9 @@ impl fmt::Display for Error {
                 format!("No installed package or cached artifact could be found locally in \
                          offline mode: {}",
                         ident)
+            }
+            Error::PackageFailedToInstall(ref ident, ref e) => {
+                format!("Failed to install package {} - {}", ident, e)
             }
             Error::PackageNotFound(ref e) => format!("Package not found. {}", e),
             Error::PermissionFailed(ref e) => e.to_string(),
