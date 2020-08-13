@@ -216,8 +216,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 Hab::Pkg(pkg) => {
                     match pkg {
                         Pkg::Export(export) => {
-                            // We must manually parse the export format and args. See the comment on
-                            // `impl ExportCommand` for more details.
                             match export {
                                 #[cfg(any(target_os = "linux", target_os = "windows"))]
                                 PkgExportCommand::Cf(args) => {
