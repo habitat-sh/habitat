@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.126 -->
-## [1.6.126](https://github.com/habitat-sh/habitat/tree/1.6.126) (2020-08-13)
+<!-- latest_release 1.6.127 -->
+## [1.6.127](https://github.com/habitat-sh/habitat/tree/1.6.127) (2020-08-13)
 
 #### Merged Pull Requests
-- Improve error message when installing internal packages [#7869](https://github.com/habitat-sh/habitat/pull/7869) ([davidMcneil](https://github.com/davidMcneil))
+- Remove custom cli parsing [#7870](https://github.com/habitat-sh/habitat/pull/7870) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
@@ -17,6 +17,7 @@
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
+- Remove custom cli parsing [#7870](https://github.com/habitat-sh/habitat/pull/7870) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.127 -->
 - Improve error message when installing internal packages [#7869](https://github.com/habitat-sh/habitat/pull/7869) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.126 -->
 - Improve parsing of `hab pkg export` [#7865](https://github.com/habitat-sh/habitat/pull/7865) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.125 -->
 - Add some e2e tests around crypto functionality [#7867](https://github.com/habitat-sh/habitat/pull/7867) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.124 -->
