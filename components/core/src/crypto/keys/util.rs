@@ -57,3 +57,90 @@ macro_rules! as_ref_path_impl_for_key {
         }
     };
 }
+
+/// Helper macro to implement `Debug` for all our keys in a consistent
+/// manner.
+macro_rules! debug_impl_for_key {
+    ($t:ty) => {
+        impl std::fmt::Debug for $t {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{} {}", stringify!($t), self.named_revision())
+            }
+        }
+    };
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::crypto::keys::{generate_origin_encryption_key_pair,
+                              generate_service_encryption_key_pair,
+                              generate_signing_key_pair,
+                              generate_user_encryption_key_pair,
+                              Key,
+                              OriginPublicEncryptionKey,
+                              OriginSecretEncryptionKey,
+                              PublicOriginSigningKey,
+                              RingKey,
+                              SecretOriginSigningKey,
+                              ServicePublicEncryptionKey,
+                              ServiceSecretEncryptionKey,
+                              UserPublicEncryptionKey,
+                              UserSecretEncryptionKey};
+
+    mod debug_impl_for_key {
+        use super::*;
+
+        #[test]
+        fn ring_key() {
+            let key = RingKey::new("beyonce");
+            assert_eq!(format!("RingKey beyonce-{}", key.named_revision().revision()),
+                       format!("{:?}", key));
+        }
+
+        #[test]
+        fn user_keys() {
+            let (public, secret) = generate_user_encryption_key_pair("my-user");
+            assert_eq!(format!("UserPublicEncryptionKey my-user-{}",
+                               public.named_revision().revision()),
+                       format!("{:?}", public));
+            assert_eq!(format!("UserSecretEncryptionKey my-user-{}",
+                               secret.named_revision().revision()),
+                       format!("{:?}", secret));
+        }
+
+        #[test]
+        fn origin_keys() {
+            let (public, secret) = generate_origin_encryption_key_pair("my-origin");
+
+            assert_eq!(format!("OriginPublicEncryptionKey my-origin-{}",
+                               public.named_revision().revision()),
+                       format!("{:?}", public));
+            assert_eq!(format!("OriginSecretEncryptionKey my-origin-{}",
+                               secret.named_revision().revision()),
+                       format!("{:?}", secret));
+        }
+
+        #[test]
+        fn service_keys() {
+            let (public, secret) = generate_service_encryption_key_pair("my-org", "foo.default");
+
+            assert_eq!(format!("ServicePublicEncryptionKey foo.default@my-org-{}",
+                               public.named_revision().revision()),
+                       format!("{:?}", public));
+            assert_eq!(format!("ServiceSecretEncryptionKey foo.default@my-org-{}",
+                               secret.named_revision().revision()),
+                       format!("{:?}", secret));
+        }
+
+        #[test]
+        fn signing_keys() {
+            let (public, secret) = generate_signing_key_pair("my-origin");
+            assert_eq!(format!("PublicOriginSigningKey my-origin-{}",
+                               public.named_revision().revision()),
+                       format!("{:?}", public));
+            assert_eq!(format!("SecretOriginSigningKey my-origin-{}",
+                               secret.named_revision().revision()),
+                       format!("{:?}", secret));
+        }
+    }
+}

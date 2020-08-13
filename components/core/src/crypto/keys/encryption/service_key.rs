@@ -65,6 +65,8 @@ try_from_path_buf_impl_for_key!(ServicePublicEncryptionKey);
 
 as_ref_path_impl_for_key!(ServicePublicEncryptionKey);
 
+debug_impl_for_key!(ServicePublicEncryptionKey);
+
 impl ServicePublicEncryptionKey {
     pub(crate) fn from_raw(name: String,
                            revision: KeyRevision,
@@ -103,6 +105,8 @@ from_str_impl_for_key!(ServiceSecretEncryptionKey);
 try_from_path_buf_impl_for_key!(ServiceSecretEncryptionKey);
 
 as_ref_path_impl_for_key!(ServiceSecretEncryptionKey);
+
+debug_impl_for_key!(ServiceSecretEncryptionKey);
 
 impl ServiceSecretEncryptionKey {
     pub(crate) fn from_raw(name: String,

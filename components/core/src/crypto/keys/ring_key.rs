@@ -47,9 +47,8 @@ from_str_impl_for_key!(RingKey);
 try_from_path_buf_impl_for_key!(RingKey);
 
 as_ref_path_impl_for_key!(RingKey);
-impl fmt::Debug for RingKey {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "RingKey") }
-}
+
+debug_impl_for_key!(RingKey);
 
 impl RingKey {
     /// Generate a new `RingKey` for the given name. Creates a new
