@@ -1,9 +1,9 @@
-use super::ring_key::RingKey;
 use crate::{crypto::{hash,
-                     keys::{Key,
+                     keys::{KeyFile,
                             NamedRevision,
                             OriginPublicEncryptionKey,
                             PublicOriginSigningKey,
+                            RingKey,
                             SecretOriginSigningKey,
                             ServicePublicEncryptionKey,
                             ServiceSecretEncryptionKey,
@@ -43,9 +43,9 @@ impl KeyCache {
     /// done. If the file exists and it has *different* content, an
     /// Error is returned.
     pub fn write_key<K>(&self, key: &K) -> Result<()>
-        where K: Key
+        where K: KeyFile
     {
-        let keyfile = self.path_in_cache(&key);
+        let keyfile = self.path_in_cache(key);
         let content = key.to_key_string();
 
         if keyfile.is_file() {
@@ -130,12 +130,16 @@ impl KeyCache {
 
     ////////////////////////////////////////////////////////////////////////
 
-    // TODO (CM): Turn this into Option<Result<K>>; otherwise it
-    // assumes that there must be at least one version of the key present
+    /// Given the name and type of a key, fetch the latest revision of
+    /// that key from the cache.
+    ///
+    /// As it happens, we currently have no real need to distinguish
+    /// between "key not present" and "key present, but invalid", so
+    /// we can just collapse them into an Error case.
     fn fetch_latest_revision<K>(&self, name: &str) -> Result<K>
-        where K: Key
+        where K: KeyFile + TryFrom<PathBuf, Error = Error>
     {
-        match self.get_latest_path_for(name, K::extension())? {
+        match self.get_latest_path_for(name, <K as KeyFile>::extension())? {
             Some(path) => <K as TryFrom<PathBuf>>::try_from(path),
             None => {
                 let msg = format!("No revisions found for {}", name);
@@ -147,9 +151,9 @@ impl KeyCache {
     /// Generic retrieval function to grab the key of the specified
     /// type `K` identified by `named_revision`
     fn fetch_specific_revision<K>(&self, named_revision: &NamedRevision) -> Result<K>
-        where K: Key
+        where K: KeyFile + TryFrom<PathBuf, Error = Error>
     {
-        let path_in_cache = self.0.join(named_revision.filename::<K>());
+        let path_in_cache = self.0.join(<K as KeyFile>::filename(named_revision));
         if path_in_cache.exists() {
             <K as TryFrom<PathBuf>>::try_from(path_in_cache)
         } else {
@@ -164,10 +168,10 @@ impl KeyCache {
     /// cache, if it exists (or, alternatively, where it would be
     /// written to).
     // TODO (CM): Only making this public temporarily
-    pub fn path_in_cache<K>(&self, key: K) -> PathBuf
-        where K: AsRef<Path>
+    pub fn path_in_cache<K>(&self, key: &K) -> PathBuf
+        where K: KeyFile
     {
-        self.0.join(key.as_ref())
+        self.0.join(key.own_filename())
     }
 
     /// Search the key cache for all files that are revisions of the
@@ -200,7 +204,14 @@ impl KeyCache {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::crypto::test_support::*;
+    use crate::crypto::{keys::{generate_origin_encryption_key_pair,
+                               generate_service_encryption_key_pair,
+                               generate_signing_key_pair,
+                               generate_user_encryption_key_pair,
+                               Key,
+                               KeyFile,
+                               OriginSecretEncryptionKey},
+                        test_support::*};
 
     static VALID_KEY: &str = "ring-key-valid-20160504220722.sym.key";
     static VALID_NAME_WITH_REV: &str = "ring-key-valid-20160504220722";

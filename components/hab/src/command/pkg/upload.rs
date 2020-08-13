@@ -13,7 +13,6 @@
 //!
 //! This should be extended to cover uploading specific packages, and finding them by ways more
 //! complex than just latest version.
-
 use crate::{api_client::{self,
                          BuildOnUpload,
                          BuilderAPIClient,
@@ -33,6 +32,7 @@ use crate::{api_client::{self,
                     ChannelIdent},
             PRODUCT,
             VERSION};
+use habitat_core::crypto::keys::KeyFile;
 use reqwest::StatusCode;
 use retry::delay;
 use std::path::{Path,
@@ -259,7 +259,7 @@ async fn upload_public_key(ui: &mut UI,
     let header = get_artifact_header(&archive.path)?;
 
     // TODO (CM): Have put_origin_key take a PublicOriginSigningKey instead
-    let public_keyfile_name = header.signer().filename::<PublicOriginSigningKey>();
+    let public_keyfile_name = PublicOriginSigningKey::filename(header.signer());
     let public_keyfile = key_path.join(&public_keyfile_name);
 
     let name = header.signer().name();

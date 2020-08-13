@@ -7,8 +7,7 @@ use super::{PUBLIC_BOX_KEY_VERSION,
             SECRET_SIG_KEY_VERSION,
             SECRET_SYM_KEY_SUFFIX,
             SECRET_SYM_KEY_VERSION};
-use crate::{crypto::keys::util::FromSlice,
-            error::{Error,
+use crate::{error::{Error,
                     Result},
             fs::{Permissions,
                  DEFAULT_PUBLIC_KEY_PERMISSIONS,
@@ -52,6 +51,181 @@ pub use signing::{generate_signing_key_pair,
                   PublicOriginSigningKey,
                   SecretOriginSigningKey};
 
+////////////////////////////////////////////////////////////////////////
+
+/// Defines the basic interface that all Habitat keys use.
+///
+/// All Habitat keys will have a `NamedRevision`, which identifies a
+/// key of this type uniquely. Additionally, each Habitat key wraps a
+/// type that implements the actual cryptographic primitives need to
+/// fulfill the responsibilities of the key.
+pub trait Key {
+    /// The actual cryptographic material used by this kind of Habitat
+    /// key. Different Habitat keys will use different kinds of underlying
+    /// cryptographic methods, depending on what what their purpose is.
+    type Crypto: AsRef<[u8]>;
+
+    /// Reference to the underlying bytes of actual cryptographic
+    /// material.
+    fn key(&self) -> &Self::Crypto;
+
+    /// Reference to the identifier of this particular key.
+    fn named_revision(&self) -> &NamedRevision;
+}
+
+/// Encapsulates properties and logic for writing Habitat keys out to
+/// files on disk.
+pub trait KeyFile: Key {
+    /// Returns the permissions with which an item should be written
+    /// to the filesystem.
+    fn permissions() -> Permissions;
+
+    /// The file format version string. This will be incorporated into
+    /// files that have been exported to disk to indicate what format
+    /// they are saved in.
+    fn version() -> &'static str;
+
+    /// The file extension to use when exporting this key to disk.
+    fn extension() -> &'static str;
+
+    /// Given a `NamedRevision`, return the name of the file a key of
+    /// this type with that identifier would be saved as in the key
+    /// cache.
+    ///
+    /// Only returns the name of the file itself, not its path within
+    /// a particular cache directory.
+    fn filename(named_revision: &NamedRevision) -> PathBuf {
+        // **DO NOT** use PathBuf::with_extension here, because it fails
+        // with service keys (whose name is like "core.redis@chef");
+        // `with_extension` will chop off the <group>@<org> portion of
+        // that string!
+        PathBuf::from(format!("{}.{}", named_revision, Self::extension()))
+    }
+
+    /// Same as `filename`, but for a specific key.
+    fn own_filename(&self) -> PathBuf { Self::filename(self.named_revision()) }
+
+    /// Returns what should be the contents of a file when rendering a
+    /// key out to a file on disk.
+    ///
+    /// While one *could* just use `ToString` / `Display`, that choice
+    /// could be a little dangerous, considering the fact that the
+    /// content of private keys should never potentially make it into
+    /// logging or other output.
+    fn to_key_string(&self) -> String {
+        let k = self.key();
+        format!("{}\n{}\n\n{}",
+                Self::version(),
+                self.named_revision(),
+                &base64::encode(k))
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct NamedRevision {
+    name:     String,
+    revision: KeyRevision,
+}
+
+impl NamedRevision {
+    pub fn new(name: String, revision: KeyRevision) -> Self { NamedRevision { name, revision } }
+
+    pub fn name(&self) -> &String { &self.name }
+
+    pub fn revision(&self) -> &KeyRevision { &self.revision }
+}
+
+impl FromStr for NamedRevision {
+    type Err = Error;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        let caps = match NAME_WITH_REV_RE.captures(value) {
+            Some(c) => c,
+            None => {
+                let msg = format!("Cannot parse named revision '{}'", value);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        let name = match caps.name("name") {
+            Some(r) => r.as_str().to_string(),
+            None => {
+                let msg = format!("Cannot parse name from '{}'", value);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        let revision = match caps.name("rev") {
+            // TODO (CM): This is a bit of an awkward constructor at the
+            // moment, but we'll allow it as we've already validated this
+            // with the larger regex. Eventually we should harmonize all
+            // this a bit more.
+            Some(r) => KeyRevision(r.as_str().to_string()),
+            None => {
+                let msg = format!("Cannot parse revision from '{}'", value);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+
+        Ok(NamedRevision { name, revision })
+    }
+}
+
+impl fmt::Display for NamedRevision {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}-{}", self.name, self.revision)
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct KeyRevision(String);
+
+impl KeyRevision {
+    /// Generates a revision string in the form:
+    /// `{year}{month}{day}{hour24}{minute}{second}`
+    /// Timestamps are in UTC time.
+    pub fn new() -> KeyRevision { KeyRevision(Utc::now().format("%Y%m%d%H%M%S").to_string()) }
+}
+
+// TODO (CM): Need some tests that assert that this format string and
+// the regex for parsing revisions from filenames are mutually
+// consistent.
+
+impl fmt::Display for KeyRevision {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { self.0.fmt(f) }
+}
+
+// Only used for the polymorphic `KeyPair::rev` implementation so Builder can
+// use things before adopting the KeyRevison type itself.
+impl From<KeyRevision> for String {
+    fn from(rev: KeyRevision) -> String { rev.to_string() }
+}
+
+// As a "newtype", KeyRevision can be thought of as a kind of "smart
+// container", and thus we can implement Deref for it with our heads
+// held high.
+impl Deref for KeyRevision {
+    type Target = str;
+
+    fn deref(&self) -> &str { self.0.as_str() }
+}
+
+#[cfg(test)]
+impl KeyRevision {
+    /// Unchecked constructor for testing purposes only; assumes the
+    /// string being passed in is valid.
+    pub(crate) fn unchecked<R>(rev: R) -> KeyRevision
+        where R: AsRef<str>
+    {
+        KeyRevision(rev.as_ref().to_string())
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+// OLD SUPPORTING CODE BELOW
+// All this can be removed once we've migrated Builder away from it.
 ////////////////////////////////////////////////////////////////////////
 
 #[derive(Clone, Copy, Debug)]
@@ -115,153 +289,6 @@ impl Drop for TmpKeyfile {
         if self.path.is_file() {
             let _ = fs::remove_file(&self.path);
         }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////
-
-pub trait Key: AsRef<Path> + TryFrom<PathBuf, Error = Error> {
-    const EXTENSION: &'static str;
-    const VERSION_STRING: &'static str;
-    const PERMISSIONS: Permissions;
-
-    type Crypto: FromSlice<Self::Crypto> + AsRef<[u8]>;
-
-    /// Returns the permissions with which an item should be written
-    /// to the filesystem.
-    fn extension() -> &'static str { Self::EXTENSION }
-
-    /// Get a reference to the underlying bytes of actual
-    /// cryptographic material.
-    fn key(&self) -> &Self::Crypto;
-
-    fn named_revision(&self) -> &NamedRevision;
-
-    /// Returns what should be the contents of a file when rendering a
-    /// key out to a file on disk.
-    ///
-    /// While one *could* just use `ToString` / `Display`, that choice
-    /// could be a little dangerous, considering the fact that the
-    /// content of private keys should never potentially make it into
-    /// logging or other output.
-    fn to_key_string(&self) -> String {
-        let k = self.key();
-        format!("{}\n{}\n\n{}",
-                Self::VERSION_STRING,
-                self.named_revision(),
-                &base64::encode(k))
-    }
-
-    /// Returns the permissions with which an item should be written
-    /// to the filesystem.
-    fn permissions() -> Permissions { Self::PERMISSIONS }
-
-    /// This is the core logic that underpins the FromStr
-    /// implementation for all the keys. See the
-    /// `from_str_impl_for_key!` macro for how it gets put into
-    /// practice.
-    fn parse_from_str(content: &str) -> Result<(String, KeyRevision, Self::Crypto)> {
-        let mut lines = content.lines();
-
-        lines.next()
-             .ok_or_else(|| Error::CryptoError("Missing key version".to_string()))
-             .map(|line| {
-                 if line == Self::VERSION_STRING {
-                     Ok(())
-                 } else {
-                     Err(Error::CryptoError(format!("Unsupported key version: {}", line)))
-                 }
-             })??;
-
-        let named_revision: NamedRevision =
-            lines.next()
-                 .ok_or_else(|| Error::CryptoError("Missing name+revision".to_string()))
-                 .map(str::parse)??;
-
-        let key: Self::Crypto =
-            lines.nth(1) // skip a blank line!
-                      .ok_or_else(|| Error::CryptoError("Missing key material".to_string()))
-                      .map(str::trim)
-                      .map(base64::decode)?
-                      .map_err(|_| Error::CryptoError("Invalid base64 key material".to_string()))
-                      .map(|b| Self::Crypto::from_slice(&b))?
-                      .ok_or_else(|| {
-                          Error::CryptoError(format!("Could not parse bytes as key for {}",
-                                                     named_revision))
-                      })?;
-
-        Ok((named_revision.name, named_revision.revision, key))
-    }
-}
-
-////////////////////////////////////////////////////////////////////////
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct NamedRevision {
-    name:     String,
-    revision: KeyRevision,
-}
-
-impl NamedRevision {
-    pub fn new(name: String, revision: KeyRevision) -> Self { NamedRevision { name, revision } }
-
-    pub fn name(&self) -> &String { &self.name }
-
-    pub fn revision(&self) -> &KeyRevision { &self.revision }
-
-    /// Returns the name of the file that would store the key of type `K`
-    /// identified by this name and revision.
-    ///
-    /// Note: this is only the filename, not the path to that file in
-    /// the key cache.
-    pub fn filename<K>(&self) -> PathBuf
-        where K: Key
-    {
-        // **DO NOT** use PathBuf::with_extension here, because it fails
-        // with service keys (whose name is like "core.redis@chef");
-        // `with_extension` will chop off the <group>@<org> portion of
-        // that string!
-        PathBuf::from(format!("{}.{}", self.to_string(), K::extension()))
-    }
-}
-
-impl FromStr for NamedRevision {
-    type Err = Error;
-
-    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
-        let caps = match NAME_WITH_REV_RE.captures(value) {
-            Some(c) => c,
-            None => {
-                let msg = format!("Cannot parse named revision '{}'", value);
-                return Err(Error::CryptoError(msg));
-            }
-        };
-        let name = match caps.name("name") {
-            Some(r) => r.as_str().to_string(),
-            None => {
-                let msg = format!("Cannot parse name from '{}'", value);
-                return Err(Error::CryptoError(msg));
-            }
-        };
-        let revision = match caps.name("rev") {
-            // TODO (CM): This is a bit of an awkward constructor at the
-            // moment, but we'll allow it as we've already validated this
-            // with the larger regex. Eventually we should harmonize all
-            // this a bit more.
-            Some(r) => KeyRevision(r.as_str().to_string()),
-            None => {
-                let msg = format!("Cannot parse revision from '{}'", value);
-                return Err(Error::CryptoError(msg));
-            }
-        };
-
-        Ok(NamedRevision { name, revision })
-    }
-}
-
-impl fmt::Display for NamedRevision {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}-{}", self.name, self.revision)
     }
 }
 
@@ -400,52 +427,6 @@ impl TryFrom<&PathBuf> for HabitatKey {
 
     fn try_from(value: &PathBuf) -> std::result::Result<Self, Self::Error> {
         HabitatKey::try_from(value.as_path())
-    }
-}
-
-////////////////////////////////////////////////////////////////////////
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct KeyRevision(String);
-
-impl KeyRevision {
-    /// Generates a revision string in the form:
-    /// `{year}{month}{day}{hour24}{minute}{second}`
-    /// Timestamps are in UTC time.
-    pub fn new() -> KeyRevision { KeyRevision(Utc::now().format("%Y%m%d%H%M%S").to_string()) }
-}
-
-// TODO (CM): Need some tests that assert that this format string and
-// the regex for parsing revisions from filenames are mutually
-// consistent.
-
-impl fmt::Display for KeyRevision {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { self.0.fmt(f) }
-}
-
-// Only used for the polymorphic `KeyPair::rev` implementation so Builder can
-// use things before adopting the KeyRevison type itself.
-impl From<KeyRevision> for String {
-    fn from(rev: KeyRevision) -> String { rev.to_string() }
-}
-
-// As a "newtype", KeyRevision can be thought of as a kind of "smart
-// container", and thus we can implement Deref for it with our heads
-// held high.
-impl Deref for KeyRevision {
-    type Target = str;
-
-    fn deref(&self) -> &str { self.0.as_str() }
-}
-
-#[cfg(test)]
-impl KeyRevision {
-    /// Unchecked constructor for testing purposes only; assumes the
-    /// string being passed in is valid.
-    pub(crate) fn unchecked<R>(rev: R) -> KeyRevision
-        where R: AsRef<str>
-    {
-        KeyRevision(rev.as_ref().to_string())
     }
 }
 
@@ -831,35 +812,35 @@ mod test {
             let service_source = "redis.default@chef-20160504220722".parse::<NamedRevision>()
                                                                     .unwrap();
 
-            assert_eq!(source.filename::<RingKey>(),
+            assert_eq!(RingKey::filename(&source),
                        PathBuf::from("foo-20160504220722.sym.key"));
 
-            assert_eq!(source.filename::<PublicOriginSigningKey>(),
+            assert_eq!(PublicOriginSigningKey::filename(&source),
                        PathBuf::from("foo-20160504220722.pub"));
-            assert_eq!(source.filename::<SecretOriginSigningKey>(),
+            assert_eq!(SecretOriginSigningKey::filename(&source),
                        PathBuf::from("foo-20160504220722.sig.key"));
 
-            assert_eq!(source.filename::<UserPublicEncryptionKey>(),
+            assert_eq!(UserPublicEncryptionKey::filename(&source),
                        PathBuf::from("foo-20160504220722.pub"));
-            assert_eq!(source.filename::<UserSecretEncryptionKey>(),
+            assert_eq!(UserSecretEncryptionKey::filename(&source),
                        PathBuf::from("foo-20160504220722.box.key"));
 
-            assert_eq!(source.filename::<OriginPublicEncryptionKey>(),
+            assert_eq!(OriginPublicEncryptionKey::filename(&source),
                        PathBuf::from("foo-20160504220722.pub"));
-            assert_eq!(source.filename::<OriginSecretEncryptionKey>(),
+            assert_eq!(OriginSecretEncryptionKey::filename(&source),
                        PathBuf::from("foo-20160504220722.box.key"));
 
-            assert_eq!(service_source.filename::<ServicePublicEncryptionKey>(),
+            assert_eq!(ServicePublicEncryptionKey::filename(&service_source),
                        PathBuf::from("redis.default@chef-20160504220722.pub"));
-            assert_eq!(service_source.filename::<ServiceSecretEncryptionKey>(),
+            assert_eq!(ServiceSecretEncryptionKey::filename(&service_source),
                        PathBuf::from("redis.default@chef-20160504220722.box.key"));
 
             // NOTE: Nothing yet explicitly prevents a named revision
             // that does not really belong to a service key from being
             // pathed as though it were.
-            assert_eq!(source.filename::<ServicePublicEncryptionKey>(),
+            assert_eq!(ServicePublicEncryptionKey::filename(&source),
                        PathBuf::from("foo-20160504220722.pub"));
-            assert_eq!(source.filename::<ServiceSecretEncryptionKey>(),
+            assert_eq!(ServiceSecretEncryptionKey::filename(&source),
                        PathBuf::from("foo-20160504220722.box.key"));
         }
     }

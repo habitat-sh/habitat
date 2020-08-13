@@ -36,7 +36,4 @@ mod primitives {
                                          open,
                                          seal},
                                   sealedbox};
-
-    from_slice_impl_for_sodiumoxide_key!(PublicKey);
-    from_slice_impl_for_sodiumoxide_key!(SecretKey);
 }

@@ -1,21 +1,45 @@
-/// Helper trait for use in FromStr implementations because the
-/// sodiumoxide types we're parsing don't implement their `from_slice`
-/// methods as traits.
+/// Create an instance of a key, along with several trait
+/// implementations to handle reading from and writing to the
+/// filesystem.
+macro_rules! gen_key {
+    (
+        $(#[$attr:meta])*
+        $t:ident,key_material:
+        $key:ty,file_format_version:
+        $version:expr,file_extension:
+        $extension:expr,file_permissions:
+        $permissions:expr
+    ) => {
 
-// TODO (CM): This unfortunately has to be public at the moment. I
-// *might* be able to get rid of it if I pull the entire parsing logic
-// into the macro, though.
-pub trait FromSlice<T> {
-    fn from_slice(bytes: &[u8]) -> Option<T>;
-}
-/// Helper macro to generates `FromSlice` implementations for our
-/// sodiumoxide key types, which are needed as an implementation
-/// detail for our `FromStr` implementation.
-macro_rules! from_slice_impl_for_sodiumoxide_key {
-    ($t:ty) => {
-        impl crate::crypto::keys::util::FromSlice<$t> for $t {
-            fn from_slice(bytes: &[u8]) -> Option<$t> { <$t>::from_slice(bytes) }
+
+        $(#[$attr])*
+        #[derive(Clone, PartialEq)]
+        pub struct $t {
+            named_revision: NamedRevision,
+            key:            $key,
         }
+
+        impl Key for $t {
+            type Crypto = $key;
+
+            fn key(&self) -> &$key { &self.key }
+
+            fn named_revision(&self) -> &NamedRevision { &self.named_revision }
+        }
+
+        debug_impl_for_key!($t);
+
+        impl crate::crypto::keys::KeyFile for $t {
+            fn permissions() -> Permissions { $permissions }
+
+            fn version() -> &'static str { $version }
+
+            fn extension() -> &'static str { $extension }
+        }
+
+        from_str_impl_for_key!($t);
+
+        try_from_path_buf_impl_for_key!($t);
     };
 }
 
@@ -27,8 +51,38 @@ macro_rules! from_str_impl_for_key {
             type Err = Error;
 
             fn from_str(content: &str) -> std::result::Result<Self, Self::Err> {
-                let (name, revision, key) = <$t>::parse_from_str(content)?;
-                Ok(<$t>::from_raw(name, revision, key))
+
+                let mut lines = content.lines();
+
+                lines.next()
+                    .ok_or_else(|| Error::CryptoError("Missing key version".to_string()))
+                    .map(|line| {
+                        if line == <Self as crate::crypto::keys::KeyFile>::version() {
+                            Ok(())
+                        } else {
+                            Err(Error::CryptoError(format!("Unsupported key version: {}", line)))
+                        }
+                    })??;
+
+                let named_revision: NamedRevision =
+                    lines.next()
+                    .ok_or_else(|| Error::CryptoError("Missing name+revision".to_string()))
+                    .map(str::parse)??;
+
+                let key: <Self as crate::crypto::keys::Key>::Crypto =
+                    lines.nth(1) // skip a blank line!
+                    .ok_or_else(|| Error::CryptoError("Missing key material".to_string()))
+                    .map(str::trim)
+                    .map(base64::decode)?
+                    .map_err(|_| Error::CryptoError("Invalid base64 key material".to_string()))
+                    .map(|b| <Self as Key>::Crypto::from_slice(&b))?
+                    .ok_or_else(|| {
+                        Error::CryptoError(format!("Could not parse bytes as key for {}",
+                                                   named_revision))
+                    })?;
+
+
+                Ok(Self {named_revision, key})
             }
         }
     };
@@ -44,16 +98,6 @@ macro_rules! try_from_path_buf_impl_for_key {
             fn try_from(path: std::path::PathBuf) -> Result<$t> {
                 std::fs::read_to_string(path)?.parse()
             }
-        }
-    };
-}
-
-/// Helper macro to create `AsRef<Path>` implementations for all our
-/// Keys. They should all have a `PathBuf`-typed `path` field.
-macro_rules! as_ref_path_impl_for_key {
-    ($t:ty) => {
-        impl std::convert::AsRef<std::path::Path> for $t {
-            fn as_ref(&self) -> &std::path::Path { &self.path }
         }
     };
 }

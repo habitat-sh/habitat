@@ -3,9 +3,8 @@ use crate::{crypto::{keys::{Key,
                             NamedRevision},
                      SECRET_SYM_KEY_VERSION},
             error::{Error,
-                    Result}};
-use std::{fmt,
-          path::PathBuf};
+                    Result},
+            fs::Permissions};
 
 /// Private module to re-export the various sodiumoxide concepts we
 /// use, to keep them all consolidated and abstracted.
@@ -17,119 +16,37 @@ mod primitives {
                                              seal,
                                              Key,
                                              Nonce};
-
-    from_slice_impl_for_sodiumoxide_key!(Key);
 }
 
-#[derive(Clone, PartialEq)]
-pub struct RingKey {
-    named_revision: NamedRevision,
-    key:            primitives::Key,
-    path:           PathBuf, /* might not need this much longer; we
-                              * can get it from the named revision */
-}
-
-impl Key for RingKey {
-    type Crypto = primitives::Key;
-
-    // SECRET_SYM_KEY_SUFFIX;
-    const EXTENSION: &'static str = "sym.key";
-    const PERMISSIONS: crate::fs::Permissions = crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS;
-    const VERSION_STRING: &'static str = SECRET_SYM_KEY_VERSION;
-
-    fn key(&self) -> &primitives::Key { &self.key }
-
-    fn named_revision(&self) -> &NamedRevision { &self.named_revision }
-}
-
-from_str_impl_for_key!(RingKey);
-
-try_from_path_buf_impl_for_key!(RingKey);
-
-as_ref_path_impl_for_key!(RingKey);
-
-debug_impl_for_key!(RingKey);
+gen_key!(RingKey,
+         key_material: primitives::Key,
+         file_format_version: SECRET_SYM_KEY_VERSION,
+         file_extension: "sym.key",
+         file_permissions: crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS);
 
 impl RingKey {
     /// Generate a new `RingKey` for the given name. Creates a new
     /// key, but does not write anything to the filesystem.
     pub fn new(name: &str) -> Self {
         let revision = KeyRevision::new();
-        let secret_key = primitives::gen_key();
-        RingKey::from_raw(name.to_string(), revision, secret_key)
-    }
-
-    /// Create a RingKey from raw components to e.g., simulate when
-    /// a requested key doesn't exist on disk.
-    ///
-    /// Also currently used in the KeyCache; may not be required for
-    /// much longer.
-    pub(crate) fn from_raw(name: String, revision: KeyRevision, key: primitives::Key) -> RingKey {
-        let named_revision = NamedRevision::new(name, revision);
-        let path = named_revision.filename::<Self>();
-        Self { named_revision,
-               key,
-               path }
+        let named_revision = NamedRevision::new(name.to_string(), revision);
+        let key = primitives::gen_key();
+        RingKey { named_revision,
+                  key }
     }
 
     /// Encrypts a byte slice of data using a given `RingKey`.
     ///
-    /// The return is a `Result` of a tuple of `Vec<u8>` structs, the first being the random nonce
+    /// The return is a tuple of `Vec<u8>` structs, the first being the random nonce
     /// value and the second being the ciphertext.
-    ///
-    /// # Examples
-    ///
-    /// Basic usage:
-    ///
-    /// ```
-    /// extern crate habitat_core;
-    /// extern crate tempfile;
-    ///
-    /// use habitat_core::crypto::keys::RingKey;
-    /// use tempfile::Builder;
-    ///
-    /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-    /// let ring_key = RingKey::new("beyonce");
-    ///
-    /// let (nonce, ciphertext) = ring_key.encrypt("Guess who?".as_bytes()).unwrap();
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// * If the secret key component of the `RingKey` is not present
-    pub fn encrypt(&self, data: &[u8]) -> Result<(Vec<u8>, Vec<u8>)> {
+    pub fn encrypt(&self, data: &[u8]) -> (Vec<u8>, Vec<u8>) {
         let nonce = primitives::gen_nonce();
-        Ok((nonce.as_ref().to_vec(), primitives::seal(data, &nonce, &self.key)))
+        (nonce.as_ref().to_vec(), primitives::seal(data, &nonce, &self.key))
     }
 
     /// Decrypts a byte slice of ciphertext using a given nonce value and a `RingKey`.
     ///
     /// The return is a `Result` of a byte vector containing the original, unencrypted data.
-    ///
-    /// # Examples
-    ///
-    /// Basic usage
-    ///
-    /// ```
-    /// extern crate habitat_core;
-    /// extern crate tempfile;
-    ///
-    /// use habitat_core::crypto::keys::RingKey;
-    /// use tempfile::Builder;
-    ///
-    /// let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-    /// let ring_key = RingKey::new("beyonce");
-    /// let (nonce, ciphertext) = ring_key.encrypt("Guess who?".as_bytes()).unwrap();
-    ///
-    /// let message = ring_key.decrypt(&nonce, &ciphertext).unwrap();
-    /// assert_eq!(message, "Guess who?".to_string().into_bytes());
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// * If the secret key component of the `RingKey` is not present
-    /// * If the size of the provided nonce data is not the required size
-    /// * If the ciphertext was not decryptable given the nonce and symmetric key
     pub fn decrypt(&self, nonce: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
         let nonce = match primitives::Nonce::from_slice(&nonce) {
             Some(n) => n,
@@ -196,6 +113,7 @@ mod test {
 
     mod to_key_string {
         use super::*;
+        use crate::crypto::keys::KeyFile;
 
         #[test]
         fn can_write_valid_key_string() {
@@ -208,6 +126,7 @@ mod test {
 
     mod as_ref_path {
         use super::*;
+        use crate::crypto::keys::KeyFile;
         use std::path::Path;
 
         #[test]
@@ -215,7 +134,7 @@ mod test {
             let content = fixture_as_string("keys/ring-key-valid-20160504220722.sym.key");
             let key = content.parse::<RingKey>().unwrap();
 
-            assert_eq!(key.as_ref(),
+            assert_eq!(key.own_filename(),
                        Path::new("ring-key-valid-20160504220722.sym.key"));
         }
     }
@@ -235,7 +154,7 @@ mod test {
     #[test]
     fn encrypt_and_decrypt() {
         let key = RingKey::new("beyonce");
-        let (nonce, ciphertext) = key.encrypt(b"Ringonit").unwrap();
+        let (nonce, ciphertext) = key.encrypt(b"Ringonit");
         let message = key.decrypt(&nonce, &ciphertext).unwrap();
         assert_eq!(message, "Ringonit".to_string().into_bytes());
     }
@@ -244,7 +163,7 @@ mod test {
     #[should_panic(expected = "Invalid size of nonce")]
     fn decrypt_invalid_nonce_length() {
         let key = RingKey::new("beyonce");
-        let (_, ciphertext) = key.encrypt(b"Ringonit").unwrap();
+        let (_, ciphertext) = key.encrypt(b"Ringonit");
         key.decrypt(b"crazyinlove", &ciphertext).unwrap();
     }
 
@@ -252,7 +171,7 @@ mod test {
     #[should_panic(expected = "Secret key and nonce could not decrypt ciphertext")]
     fn decrypt_invalid_ciphertext() {
         let key = RingKey::new("beyonce");
-        let (nonce, _) = key.encrypt(b"Ringonit").unwrap();
+        let (nonce, _) = key.encrypt(b"Ringonit");
         key.decrypt(&nonce, b"singleladies").unwrap();
     }
 }
