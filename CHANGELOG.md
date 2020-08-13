@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.123 -->
-## [1.6.123](https://github.com/habitat-sh/habitat/tree/1.6.123) (2020-08-12)
+<!-- latest_release 1.6.124 -->
+## [1.6.124](https://github.com/habitat-sh/habitat/tree/1.6.124) (2020-08-13)
 
-#### New Features & Enhancements
-- builder origin rbac subcommand [#7841](https://github.com/habitat-sh/habitat/pull/7841) ([jeremymv2](https://github.com/jeremymv2))
+#### Merged Pull Requests
+- Add some e2e tests around crypto functionality [#7867](https://github.com/habitat-sh/habitat/pull/7867) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
@@ -17,6 +17,7 @@
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
+- Add some e2e tests around crypto functionality [#7867](https://github.com/habitat-sh/habitat/pull/7867) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.124 -->
 - Automated update of Habitat Documentation [#7861](https://github.com/habitat-sh/habitat/pull/7861) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.122 -->
 - modernize windows tutorial [#7820](https://github.com/habitat-sh/habitat/pull/7820) ([mwrock](https://github.com/mwrock)) <!-- 1.6.120 -->
 - Update Changelog for 1.6.115 [#7864](https://github.com/habitat-sh/habitat/pull/7864) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.119 -->
