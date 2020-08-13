@@ -43,14 +43,9 @@ pub enum Svc {
     Load(Load),
     #[structopt(no_version)]
     Update(Update),
-    /// Start a loaded, but stopped, Habitat service.
-    Start {
-        #[structopt(flatten)]
-        pkg_ident:  PkgIdent,
-        #[structopt(flatten)]
-        remote_sup: RemoteSup,
-    },
+    Start(SvcStart),
     /// Query the status of Habitat services
+    #[structopt(aliases = &["stat", "statu"])]
     Status {
         /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
         #[structopt(name = "PKG_IDENT")]
@@ -58,19 +53,7 @@ pub enum Svc {
         #[structopt(flatten)]
         remote_sup: RemoteSup,
     },
-    /// Stop a running Habitat service.
-    Stop {
-        #[structopt(flatten)]
-        pkg_ident:        PkgIdent,
-        #[structopt(flatten)]
-        remote_sup:       RemoteSup,
-        /// The delay in seconds after sending the shutdown signal to wait before killing the
-        /// service process
-        ///
-        /// The default value is set in the packages plan file.
-        #[structopt(name = "SHUTDOWN_TIMEOUT", long = "shutdown-timeout")]
-        shutdown_timeout: Option<ShutdownTimeout>,
-    },
+    Stop(SvcStop),
     /// Unload a service loaded by the Habitat Supervisor. If the service is running it will
     /// additionally be stopped.
     Unload {
@@ -103,6 +86,32 @@ pub struct BulkLoad {
     #[structopt(long = "svc-config-paths",
                 default_value = "/hab/sup/default/config/svc")]
     pub svc_config_paths: Vec<PathBuf>,
+}
+
+/// Start a loaded, but stopped, Habitat service.
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, rename_all = "screamingsnake")]
+pub struct SvcStart {
+    #[structopt(flatten)]
+    pkg_ident:  PkgIdent,
+    #[structopt(flatten)]
+    remote_sup: RemoteSup,
+}
+
+/// Stop a running Habitat service.
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, rename_all = "screamingsnake")]
+pub struct SvcStop {
+    #[structopt(flatten)]
+    pkg_ident:        PkgIdent,
+    #[structopt(flatten)]
+    remote_sup:       RemoteSup,
+    /// The delay in seconds after sending the shutdown signal to wait before killing the
+    /// service process
+    ///
+    /// The default value is set in the packages plan file.
+    #[structopt(name = "SHUTDOWN_TIMEOUT", long = "shutdown-timeout")]
+    shutdown_timeout: Option<ShutdownTimeout>,
 }
 
 #[derive(ConfigOpt, StructOpt)]
@@ -241,7 +250,7 @@ fn load_default_config_files() -> Vec<PathBuf> {
             derive(Clone, Debug),
             default_config_file(load_default_config_files))]
 #[serde(deny_unknown_fields)]
-#[structopt(name = "load", no_version, rename_all = "screamingsnake")]
+#[structopt(name = "load", aliases = &["l", "lo", "loa"], no_version, rename_all = "screamingsnake")]
 /// Load a service to be started and supervised by Habitat from a package identifier. If an
 /// installed package doesn't satisfy the given package identifier, a suitable package will be
 /// installed from Builder.

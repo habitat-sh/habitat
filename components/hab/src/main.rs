@@ -15,12 +15,17 @@ use configopt::{ConfigOpt,
 use futures::stream::StreamExt;
 use hab::{cli::{self,
                 gateway_util,
-                hab::{origin::{Origin,
+                hab::{license::License,
+                      origin::{Origin,
                                Rbac,
                                RbacSet,
                                RbacShow},
                       pkg::{ExportCommand as PkgExportCommand,
-                            Pkg},
+                            Pkg,
+                            PkgExec},
+                      sup::{HabSup,
+                            Secret,
+                            Sup},
                       svc::{self,
                             BulkLoad as SvcBulkLoad,
                             Load as SvcLoad,
@@ -128,16 +133,16 @@ async fn main() {
 async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     let hab = Hab::try_from_args_with_configopt();
 
-    let args = std::env::args().skip(1).collect::<Vec<_>>();
-    if args == vec!["license", "accept"] {
+    if let Ok(Hab::License(License::Accept)) = hab {
         license::accept_license(ui)?;
         return Ok(());
     }
 
     // Allow checking version information and displaying command help without accepting the license.
-    // We execute other binaries below in `exec_subcommand_if_called` so we only make the check if
-    // the license has not been accepted. `version` and `help` may behave differently when executed
-    // with alternate binaries. See the comment on `exec_subcommand_if_called` below.
+    // TODO (DM): To prevent errors in discrepancy between the structopt and cli versions only do
+    // this when the license has not yet been accepted. When we switch fully to structopt this can
+    // be completely removed and we should just call `Hab::from_args_with_configopt` which will
+    // automatically result in this functionality.
     if !license::check_for_license_acceptance().unwrap_or_default()
                                                .accepted()
     {
@@ -149,27 +154,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     }
 
     license::check_for_license_acceptance_and_prompt(ui)?;
-
-    // TODO JB: this feels like an anti-pattern to me. I get that in certain cases, we want to hand
-    // off control from hab to a different binary to do the work, but this implementation feels
-    // like it's duplicating a lot of what clap does for us. I think we should let clap do the work
-    // it was designed to do, and hand off control a little bit later. Maybe there's a tiny
-    // performance penalty, but the code would be much clearer.
-    //
-    // In addition, it creates a confusing UX because we advertise certain options via clap, e.g.
-    // --url and --channel and since we're handing off control before clap has even had a chance to
-    // parse the args, clap doesn't have a chance to do any validation that it needs to. We just
-    // grab everything that was submitted and shove it all to the exporter or whatever other binary
-    // is doing the job, and trust that it implements those flags. In some cases, e.g. the cf
-    // exporter, it doesn't, so we're effectively lying to users.
-    //
-    // In my opinion, this function should go away and we should follow 1 standard flow for arg
-    // parsing and delegation.
-    exec_subcommand_if_called(ui).await?;
-
-    let (args, remaining_args) = raw_parse_args();
-    debug!("clap cli args: {:?}", &args);
-    debug!("remaining cli args: {:?}", &remaining_args);
 
     // Parse and handle commands which have been migrated to use `structopt` here. Once everything
     // is migrated to use `structopt` the parsing logic below this using clap directly will be gone.
@@ -195,6 +179,42 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         }
                     }
                 }
+                Hab::Run(_) => {
+                    return command::launcher::start(ui, &args_after_first(1)).await;
+                }
+                Hab::Studio(studio) => {
+                    return command::studio::enter::start(ui, studio.args()).await;
+                }
+                Hab::Sup(sup) => {
+                    match sup {
+                        HabSup::Sup(sup) => {
+                            // These commands are handled by the `hab-sup` or `hab-launch` binaries.
+                            // We need to pass the subcommand that was issued to the underlying
+                            // binary. It is a bit hacky, but to do that we strip off the `hab sup`
+                            // command prefix and pass the rest of the args to underlying binary.
+                            let args = args_after_first(2);
+                            match sup {
+                                Sup::Bash | Sup::Sh | Sup::Term => {
+                                    return command::sup::start(ui, &args).await;
+                                }
+                                Sup::Run(_) => {
+                                    return command::launcher::start(ui, &args).await;
+                                }
+                            }
+                        }
+                        HabSup::Depart { member_id,
+                                         remote_sup, } => {
+                            return sub_sup_depart(member_id, &remote_sup.to_listen_ctl_addr()).await;
+                        }
+                        HabSup::Secret(Secret::Generate) => {
+                            return sub_sup_secret_generate();
+                        }
+                        HabSup::Status { pkg_ident,
+                                         remote_sup, } => {
+                            return sub_svc_status(pkg_ident, &remote_sup.to_listen_ctl_addr()).await;
+                        }
+                    }
+                }
                 Hab::Svc(svc) => {
                     match svc {
                         Svc::BulkLoad(svc_bulk_load) => {
@@ -208,10 +228,17 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                             return sub_svc_load(svc_load).await;
                         }
                         Svc::Update(svc_update) => return sub_svc_update(svc_update).await,
+                        Svc::Status { pkg_ident,
+                                      remote_sup, } => {
+                            return sub_svc_status(pkg_ident, &remote_sup.to_listen_ctl_addr()).await;
+                        }
                         _ => {
                             // All other commands will be caught by the CLI parsing logic below.
                         }
                     }
+                }
+                Hab::Term => {
+                    return command::sup::start(ui, &args_after_first(1)).await;
                 }
                 Hab::Pkg(pkg) => {
                     match pkg {
@@ -242,6 +269,13 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                                 }
                             }
                         }
+                        Pkg::Exec(PkgExec { pkg_ident,
+                                            cmd,
+                                            args, }) => {
+                            return command::pkg::exec::start(&pkg_ident.pkg_ident(),
+                                                             cmd,
+                                                             &args.args);
+                        }
                         _ => {
                             // All other commands will be caught by the CLI parsing logic below.
                         }
@@ -265,11 +299,10 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     // https://github.com/kbknapp/clap-rs/issues/86
     let child = thread::Builder::new().stack_size(8 * 1024 * 1024)
                                       .spawn(move || {
-                                          cli::get(feature_flags)
-                .get_matches_from_safe_borrow(&mut args.iter())
-                .unwrap_or_else(|e| {
-                    e.exit();
-                })
+                                          cli::get(feature_flags).get_matches_safe()
+                                                                 .unwrap_or_else(|e| {
+                                                                     e.exit();
+                                                                 })
                                       })
                                       .unwrap();
     let app_matches = child.join().unwrap();
@@ -371,7 +404,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 ("dependencies", Some(m)) => sub_pkg_dependencies(m)?,
                 ("download", Some(m)) => sub_pkg_download(ui, m, feature_flags).await?,
                 ("env", Some(m)) => sub_pkg_env(m)?,
-                ("exec", Some(m)) => sub_pkg_exec(m, &remaining_args)?,
                 ("hash", Some(m)) => sub_pkg_hash(m)?,
                 ("install", Some(m)) => sub_pkg_install(ui, m, feature_flags).await?,
                 ("list", Some(m)) => sub_pkg_list(m)?,
@@ -422,21 +454,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 ("unload", Some(m)) => sub_svc_unload(m).await?,
                 ("start", Some(m)) => sub_svc_start(m).await?,
                 ("stop", Some(m)) => sub_svc_stop(m).await?,
-                ("status", Some(m)) => sub_svc_status(m).await?,
-                _ => unreachable!(),
-            }
-        }
-        ("sup", Some(m)) => {
-            match m.subcommand() {
-                ("depart", Some(m)) => sub_sup_depart(m).await?,
-                ("secret", Some(m)) => {
-                    match m.subcommand() {
-                        ("generate", _) => sub_sup_secret_generate()?,
-                        _ => unreachable!(),
-                    }
-                }
-                // this is effectively an alias of `hab svc status`
-                ("status", Some(m)) => sub_svc_status(m).await?,
                 _ => unreachable!(),
             }
         }
@@ -808,12 +825,6 @@ async fn sub_pkg_download(ui: &mut UI,
 fn sub_pkg_env(m: &ArgMatches<'_>) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;
     command::pkg::env::start(&ident, &*FS_ROOT_PATH)
-}
-
-fn sub_pkg_exec(m: &ArgMatches<'_>, cmd_args: &[OsString]) -> Result<()> {
-    let ident = required_pkg_ident_from_input(m)?;
-    let cmd = m.value_of("CMD").unwrap(); // Required via clap
-    command::pkg::exec::start(&ident, cmd, cmd_args)
 }
 
 fn sub_pkg_hash(m: &ArgMatches<'_>) -> Result<()> {
@@ -1384,17 +1395,14 @@ async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
     gateway_util::send(&remote_sup_addr, msg).await
 }
 
-async fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_svc_status(pkg_ident: Option<PackageIdent>, remote_sup: &ListenCtlAddr) -> Result<()> {
     let cfg = config::load()?;
-    let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcStatus::default();
-    if let Some(pkg) = m.value_of("PKG_IDENT") {
-        msg.ident = Some(PackageIdent::from_str(pkg)?.into());
-    }
+    msg.ident = pkg_ident.map(Into::into);
 
     let mut out = TabWriter::new(io::stdout());
-    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, msg).await?;
+    let mut response = SrvClient::request(remote_sup, &secret_key, msg).await?;
     // Ensure there is at least one result from the server otherwise produce an error
     if let Some(message_result) = response.next().await {
         let reply = message_result?;
@@ -1487,20 +1495,19 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     Ok(())
 }
 
-async fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_sup_depart(member_id: String, remote_sup: &ListenCtlAddr) -> Result<()> {
     let cfg = config::load()?;
-    let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SupDepart::default();
-    msg.member_id = Some(m.value_of("MEMBER_ID").unwrap().to_string());
+    msg.member_id = Some(member_id);
 
     ui.begin(format!("Permanently marking {} as departed",
                      msg.member_id.as_deref().unwrap_or("UNKNOWN")))
       .unwrap();
-    ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))
+    ui.status(Status::Applying, format!("via peer {}", remote_sup))
       .unwrap();
-    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, msg).await?;
+    let mut response = SrvClient::request(&remote_sup, &secret_key, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1576,58 +1583,6 @@ fn sub_user_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn args_after_first(args_to_skip: usize) -> Vec<OsString> {
     env::args_os().skip(args_to_skip).collect()
-}
-
-async fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
-    let mut args = env::args();
-    let first = args.nth(1).unwrap_or_default();
-    let second = args.next().unwrap_or_default();
-    let third = args.next().unwrap_or_default();
-
-    match (first.as_str(), second.as_str(), third.as_str()) {
-        ("run", ..) => command::launcher::start(ui, &args_after_first(1)).await,
-        ("stu", ..) | ("stud", ..) | ("studi", ..) | ("studio", ..) => {
-            command::studio::enter::start(ui, &args_after_first(2)).await
-        }
-        // Skip invoking the `hab-sup` binary for sup cli help messages;
-        // handle these from within `hab`
-        ("help", "sup", _)
-        | ("sup", _, "help")
-        | ("sup", "help", _)
-        | ("sup", _, "-h")
-        | ("sup", "-h", _)
-        | ("sup", _, "--help")
-        | ("sup", "--help", _) => Ok(()),
-        // Delegate remaining Supervisor subcommands to `hab-sup`
-        ("sup", "", "")
-        | ("sup", "term", _)
-        | ("sup", "bash", _)
-        | ("sup", "sh", _)
-        | ("sup", "-V", _)
-        | ("sup", "--version", _) => command::sup::start(ui, &args_after_first(2)).await,
-        ("term", ..) => command::sup::start(ui, &args_after_first(1)).await,
-        // Delegate `hab sup run *` to the Launcher
-        ("sup", "run", _) => command::launcher::start(ui, &args_after_first(2)).await,
-        _ => Ok(()),
-    }
-}
-
-/// Parse the raw program arguments and split off any arguments that will skip clap's parsing.
-///
-/// **Note** with the current version of clap there is no clean way to ignore arguments after a
-/// certain point, especially if those arguments look like further options and flags.
-fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
-    let mut args = env::args();
-    match (args.nth(1).unwrap_or_default().as_str(), args.next().unwrap_or_default().as_str()) {
-        ("pkg", "exec") => {
-            if args.by_ref().count() > 2 {
-                (env::args_os().take(5).collect(), env::args_os().skip(5).collect())
-            } else {
-                (env::args_os().collect(), Vec::new())
-            }
-        }
-        _ => (env::args_os().collect(), Vec::new()),
-    }
 }
 
 /// Check to see if the user has passed in an AUTH_TOKEN param. If not, check the

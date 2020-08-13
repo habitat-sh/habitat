@@ -112,7 +112,7 @@ lazy_static! {
 }
 
 #[derive(ConfigOpt, StructOpt, Debug, Deserialize)]
-#[configopt(derive(Debug), attrs(serde))]
+#[configopt(derive(Serialize, Debug), attrs(serde))]
 #[serde(deny_unknown_fields)]
 #[structopt(no_version, rename_all = "screamingsnake")]
 pub struct CacheKeyPath {
@@ -171,7 +171,7 @@ pub struct FullyQualifiedPkgIdent {
 }
 
 #[derive(ConfigOpt, StructOpt, Deserialize, Debug)]
-#[configopt(derive(Clone, Debug))]
+#[configopt(derive(Serialize, Clone, Debug))]
 #[structopt(no_version)]
 pub struct RemoteSup {
     /// Address to a remote Supervisor's Control Gateway
@@ -234,14 +234,46 @@ impl fmt::Display for DurationProxy {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", u64::from(*self)) }
 }
 
+// Collect trailing arguments to pass to an external command
+//
+// This disables help and version flags for the subcommand. Making it easy to check the help or
+// version of the external command. See `ExternalCommandArgsWithHelpAndVersion` for more details.
 #[derive(ConfigOpt, StructOpt)]
+#[configopt(derive(Serialize))]
 #[structopt(no_version, rename_all = "screamingsnake",
             settings = &[AppSettings::TrailingVarArg,
-                        AppSettings::AllowLeadingHyphen,
-                        AppSettings::DisableHelpFlags,
-                        AppSettings::DisableHelpSubcommand,
-                        AppSettings::DisableVersion])]
+                         AppSettings::AllowLeadingHyphen,
+                         AppSettings::DisableHelpFlags,
+                         AppSettings::DisableHelpSubcommand,
+                         AppSettings::DisableVersion
+                        ])]
 pub struct ExternalCommandArgs {
+    /// Arguments to the command
+    #[structopt(parse(from_os_str), takes_value = true, multiple = true)]
+    pub args: Vec<OsString>,
+}
+
+// Collect trailing arguments to pass to an external command
+//
+// This is useful when you have a subcommand that has more arguments than just "external command
+// args" because it allows showing the help of the subcommand. Consider:
+//
+// 1. hab pkg exec --help
+// 2. hab pkg exec core/redis ls --help
+// 3. hab pkg exec core/redis ls -- --help
+//
+// If we were to use `ExternalCommandArgs` #1 would produce an error due to missing args instead of
+// displaying the help because the help is disabled. #2 is ambiguous. Should it show the help of the
+// subcommand or of `ls`? In this case it will show the help of the subcommand. If we want to see
+// the help of `ls` we can use #3.
+#[derive(ConfigOpt, StructOpt)]
+#[configopt(derive(Serialize))]
+#[structopt(no_version, rename_all = "screamingsnake",
+            settings = &[AppSettings::TrailingVarArg,
+                         AppSettings::AllowLeadingHyphen,
+                        ])]
+pub struct ExternalCommandArgsWithHelpAndVersion {
+    /// Arguments to the command
     #[structopt(parse(from_os_str), takes_value = true, multiple = true)]
     pub args: Vec<OsString>,
 }

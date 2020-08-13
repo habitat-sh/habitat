@@ -2,12 +2,12 @@ mod bldr;
 mod cli;
 mod config;
 mod file;
-mod license;
+pub mod license;
 pub mod origin;
 pub mod pkg;
 mod plan;
 mod ring;
-mod studio;
+pub mod studio;
 pub mod sup;
 pub mod svc;
 #[cfg(test)]
@@ -20,7 +20,9 @@ use self::{bldr::{Bldr,
            cli::{Cli,
                  ConfigOptCli},
            config::{ConfigOptServiceConfig,
-                    ServiceConfig},
+                    ConfigOptServiceConfigApply,
+                    ServiceConfig,
+                    ServiceConfigApply},
            file::{ConfigOptFile,
                   File},
            license::{ConfigOptLicense,
@@ -28,20 +30,31 @@ use self::{bldr::{Bldr,
            origin::{ConfigOptOrigin,
                     Origin},
            pkg::{ConfigOptPkg,
-                 Pkg},
+                 ConfigOptPkgInstall,
+                 Pkg,
+                 PkgInstall},
            plan::{ConfigOptPlan,
                   Plan},
            ring::{ConfigOptRing,
                   Ring},
            studio::{ConfigOptStudio,
                     Studio},
-           sup::{ConfigOptSup,
-                 Sup},
+           sup::{ConfigOptHabSup,
+                 ConfigOptSupRun,
+                 HabSup,
+                 SupRun},
            svc::{ConfigOptSvc,
-                 Svc},
+                 ConfigOptSvcStart,
+                 ConfigOptSvcStop,
+                 Svc,
+                 SvcStart,
+                 SvcStop},
            user::{ConfigOptUser,
-                  User}};
-use crate::VERSION;
+                  User},
+           util::{CacheKeyPath,
+                  ConfigOptCacheKeyPath}};
+use crate::{cli::AFTER_HELP,
+            VERSION};
 use configopt::ConfigOpt;
 use structopt::{clap::AppSettings,
                 StructOpt};
@@ -52,6 +65,7 @@ use structopt::{clap::AppSettings,
             about = "\"A Habitat is the natural environment for your services\" - Alan Turing",
             author = "\nThe Habitat Maintainers <humans@habitat.sh>\n",
             settings = &[AppSettings::GlobalVersion],
+            after_help = AFTER_HELP
         )]
 #[allow(clippy::large_enum_variant)]
 pub enum Hab {
@@ -73,10 +87,10 @@ pub enum Hab {
     Plan(Plan),
     #[structopt(no_version)]
     Ring(Ring),
-    #[structopt(no_version)]
+    #[structopt(no_version, aliases = &["stu", "stud", "studi"])]
     Studio(Studio),
     #[structopt(no_version)]
-    Sup(Sup),
+    Sup(HabSup),
     /// Create a tarball of Habitat Supervisor data to send to support
     #[structopt(no_version)]
     Supportbundle,
@@ -84,4 +98,26 @@ pub enum Hab {
     Svc(Svc),
     #[structopt(no_version)]
     User(User),
+
+    /// Alias for 'config apply'
+    #[structopt(no_version, settings = &[AppSettings::Hidden])]
+    Apply(ServiceConfigApply),
+    /// Alias for 'pkg install'
+    #[structopt(no_version, settings = &[AppSettings::Hidden])]
+    Install(PkgInstall),
+    /// Alias for 'sup run'
+    #[structopt(no_version, settings = &[AppSettings::Hidden])]
+    Run(SupRun),
+    /// Alias for 'cli setup'
+    #[structopt(no_version, settings = &[AppSettings::Hidden])]
+    Setup(CacheKeyPath),
+    /// Alias for 'svc start'
+    #[structopt(no_version, settings = &[AppSettings::Hidden])]
+    Start(SvcStart),
+    /// Alias for 'svc stop'
+    #[structopt(no_version, settings = &[AppSettings::Hidden])]
+    Stop(SvcStop),
+    /// Alias for 'sup term'
+    #[structopt(no_version, settings = &[AppSettings::Hidden])]
+    Term,
 }

@@ -37,22 +37,15 @@ use std::{fmt,
 use structopt::{clap::AppSettings,
                 StructOpt};
 
+// All commands relating to the Supervisor (ie commands handled by both the `hab` and `hab-sup`
+// binary)
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(name = "hab",
-            version = VERSION,
-            about = "The Habitat Supervisor",
-            author = "\nThe Habitat Maintainers <humans@habitat.sh>\n",
-            usage = "hab sup <SUBCOMMAND>",
-            settings = &[AppSettings::VersionlessSubcommands],
-        )]
+#[structopt(no_version, name = "sup")]
 #[allow(clippy::large_enum_variant)]
-pub enum Sup {
-    /// Start an interactive Bash-like shell
-    #[structopt(usage = "hab sup bash", no_version)]
-    Bash,
+pub enum HabSup {
     /// Depart a Supervisor from the gossip ring; kicking and banning the target from joining again
     /// with the same member-id
-    #[structopt(no_version)]
+    #[structopt(no_version, aliases = &["d", "de", "dep", "depa", "depart"])]
     Depart {
         /// The member-id of the Supervisor to depart
         #[structopt(name = "MEMBER_ID")]
@@ -60,16 +53,10 @@ pub enum Sup {
         #[structopt(flatten)]
         remote_sup: RemoteSup,
     },
-    /// Run the Habitat Supervisor
-    #[structopt(no_version)]
-    Run(SupRun),
-    #[structopt(no_version)]
+    #[structopt(no_version, aliases = &["sec", "secr"])]
     Secret(Secret),
-    /// Start an interactive Bourne-like shell
-    #[structopt(usage = "hab sup sh", no_version)]
-    Sh,
     /// Query the status of Habitat services
-    #[structopt(no_version)]
+    #[structopt(no_version, aliases = &["stat", "statu"])]
     Status {
         /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
         #[structopt(name = "PKG_IDENT")]
@@ -77,8 +64,30 @@ pub enum Sup {
         #[structopt(flatten)]
         remote_sup: RemoteSup,
     },
+    #[structopt(flatten)]
+    Sup(Sup),
+}
+
+// Supervisor commands handled by the `hab-sup` binary
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "sup",
+            version = VERSION,
+            about = "The Habitat Supervisor",
+            author = "\nThe Habitat Maintainers <humans@habitat.sh>\n",
+            settings = &[AppSettings::VersionlessSubcommands],
+        )]
+#[allow(clippy::large_enum_variant)]
+pub enum Sup {
+    /// Start an interactive Bash-like shell
+    #[structopt(no_version, aliases = &["b", "ba", "bas"])]
+    Bash,
+    #[structopt(no_version, aliases = &["r", "ru"])]
+    Run(SupRun),
+    /// Start an interactive Bourne-like shell
+    #[structopt(no_version)]
+    Sh,
     /// Gracefully terminate the Habitat Supervisor and all of its running services
-    #[structopt(usage = "hab sup term [OPTIONS]", no_version)]
+    #[structopt(no_version, aliases = &["ter"])]
     Term,
 }
 
@@ -106,6 +115,7 @@ fn parse_peer(s: &str) -> io::Result<SocketAddr> {
     util::socket_addr_with_default_port(s, GossipListenAddr::DEFAULT_PORT)
 }
 
+/// Run the Habitat Supervisor
 #[configopt_fields]
 #[derive(ConfigOpt, StructOpt, Deserialize)]
 #[configopt(attrs(serde), default_config_file("/hab/sup/default/config/sup.toml"))]
