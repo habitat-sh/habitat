@@ -111,7 +111,9 @@ async fn interpreter_paths() -> Result<Vec<PathBuf>> {
                                                      InstallHookMode::default()).await
                     {
                         Ok(pkg_install) => pkg_install.paths()?,
-                        Err(err) => return Err(Error::InterpreterNotFound(ident, Box::new(err))),
+                        Err(err) => {
+                            return Err(Error::PackageFailedToInstall(ident, Box::new(err)))
+                        }
                     }
                 }
             }
