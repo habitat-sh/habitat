@@ -106,6 +106,8 @@ try_from_path_buf_impl_for_key!(PublicOriginSigningKey);
 
 as_ref_path_impl_for_key!(PublicOriginSigningKey);
 
+debug_impl_for_key!(PublicOriginSigningKey);
+
 ////////////////////////////////////////////////////////////////////////
 
 pub struct SecretOriginSigningKey {
@@ -154,3 +156,5 @@ from_str_impl_for_key!(SecretOriginSigningKey);
 try_from_path_buf_impl_for_key!(SecretOriginSigningKey);
 
 as_ref_path_impl_for_key!(SecretOriginSigningKey);
+
+debug_impl_for_key!(SecretOriginSigningKey);
