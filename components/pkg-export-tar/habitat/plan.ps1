@@ -14,7 +14,7 @@ $pkg_build_deps = @(
 )
 
 function pkg_version {
-    Get-Content "$SRC_PATH/VERSION"
+    Get-Content "$SRC_PATH/../../VERSION"
 }
 
 function Invoke-Before {

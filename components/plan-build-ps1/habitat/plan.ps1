@@ -11,7 +11,7 @@ $pkg_build_deps = @()
 $bin = "hab-plan-build.ps1"
 
 function pkg_version {
-    Get-Content "$SRC_PATH/VERSION"
+    Get-Content "$SRC_PATH/../../VERSION"
 }
 
 function Invoke-Before {
@@ -30,11 +30,11 @@ function Invoke-Build {
             "`$script:pkg_target = `"@@pkg_target@@`"",
             "`$script:pkg_target = `"$pkg_target`""
         )
-    } | Out-File "$bin" -Encoding ascii
+    } | Out-File "$HAB_CACHE_SRC_PATH\$pkg_dirname\$bin" -Encoding ascii
 }
 
 function Invoke-Install {
     New-Item "$pkg_prefix\bin" -ItemType Directory -Force | Out-Null
     Copy-Item "$PLAN_CONTEXT\..\bin\*" "$pkg_prefix\bin" -Force
-    Copy-Item "$bin" "$pkg_prefix\bin\$bin" -Force
+    Copy-Item "$HAB_CACHE_SRC_PATH\$pkg_dirname\$bin" "$pkg_prefix\bin\$bin" -Force
 }
