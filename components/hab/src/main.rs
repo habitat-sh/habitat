@@ -180,6 +180,8 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                     }
                 }
                 Hab::Run(_) => {
+                    ui.warn("'hab run' as an alias for 'hab sup run' is deprecated. Please \
+                             update your automation and processes accordingly.")?;
                     return command::launcher::start(ui, &args_after_first(1)).await;
                 }
                 Hab::Studio(studio) => {
@@ -238,6 +240,8 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                     }
                 }
                 Hab::Term => {
+                    ui.warn("'hab term' as an alias for 'hab sup term' is deprecated. Please \
+                             update your automation and processes accordingly.")?;
                     return command::sup::start(ui, &args_after_first(1)).await;
                 }
                 Hab::Pkg(pkg) => {
@@ -308,7 +312,11 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     let app_matches = child.join().unwrap();
 
     match app_matches.subcommand() {
-        ("apply", Some(m)) => sub_svc_set(m).await?,
+        ("apply", Some(m)) => {
+            ui.warn("'hab apply' as an alias for 'hab config apply' is deprecated. Please \
+                     update your automation and processes accordingly.")?;
+            sub_svc_set(m).await?
+        }
         ("cli", Some(matches)) => {
             match matches.subcommand() {
                 ("setup", Some(m)) => sub_cli_setup(ui, m)?,
@@ -329,7 +337,11 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 _ => unreachable!(),
             }
         }
-        ("install", Some(m)) => sub_pkg_install(ui, m, feature_flags).await?,
+        ("install", Some(m)) => {
+            ui.warn("'hab install' as an alias for 'hab pkg install' is deprecated. Please \
+                     update your automation and processes accordingly.")?;
+            sub_pkg_install(ui, m, feature_flags).await?
+        }
         ("origin", Some(matches)) => {
             match matches.subcommand() {
                 ("invitations", Some(m)) => {
@@ -458,9 +470,21 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
             }
         }
         ("supportbundle", _) => sub_supportbundle(ui)?,
-        ("setup", Some(m)) => sub_cli_setup(ui, m)?,
-        ("start", Some(m)) => sub_svc_start(m).await?,
-        ("stop", Some(m)) => sub_svc_stop(m).await?,
+        ("setup", Some(m)) => {
+            ui.warn("'hab setup' as an alias for 'hab cli setup' is deprecated. Please update \
+                     your automation and processes accordingly.")?;
+            sub_cli_setup(ui, m)?
+        }
+        ("start", Some(m)) => {
+            ui.warn("'hab start' as an alias for 'hab svc start' is deprecated. Please update \
+                     your automation and processes accordingly.")?;
+            sub_svc_start(m).await?
+        }
+        ("stop", Some(m)) => {
+            ui.warn("'hab stop' as an alias for 'hab svc stop' is deprecated. Please update \
+                     your automation and processes accordingly.")?;
+            sub_svc_stop(m).await?
+        }
         ("user", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
