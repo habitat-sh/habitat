@@ -153,6 +153,21 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
         }
     }
 
+    // We must manually detect a supervisor version check and call the `hab-sup` binary to get the
+    // true Supervisor version.
+    // TODO (DM): This is an ugly consequence of having `hab sup` subcommands handled by both the
+    // `hab` binary and the `hab-sup` binary. Potential fixes:
+    // 1. Handle all `hab sup` subcommands with the `hab-sup` binary
+    // 2. Have a dedicated subcommand for commands handled by the `hab-sup` binary
+    let mut args = env::args();
+    if matches!((args.next().unwrap_or_default().as_str(),
+                 args.next().unwrap_or_default().as_str(),
+                 args.next().unwrap_or_default().as_str()),
+                 (_, "sup", "--version") | (_, "sup", "-V"))
+    {
+        return command::sup::start(ui, &args_after_first(2)).await;
+    }
+
     license::check_for_license_acceptance_and_prompt(ui)?;
 
     // Parse and handle commands which have been migrated to use `structopt` here. Once everything
