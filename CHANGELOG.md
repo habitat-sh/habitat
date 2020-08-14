@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.131 -->
-## [1.6.131](https://github.com/habitat-sh/habitat/tree/1.6.131) (2020-08-14)
+<!-- latest_release 1.6.132 -->
+## [1.6.132](https://github.com/habitat-sh/habitat/tree/1.6.132) (2020-08-14)
 
-#### Behavioral Changes
-- Pull packages from the `--channel` argument on `hab sup run` [#7871](https://github.com/habitat-sh/habitat/pull/7871) ([davidMcneil](https://github.com/davidMcneil))
+#### Merged Pull Requests
+- do not add c:/hab/bin to persistent path in ci [#7876](https://github.com/habitat-sh/habitat/pull/7876) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
@@ -19,6 +19,7 @@
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
+- do not add c:/hab/bin to persistent path in ci [#7876](https://github.com/habitat-sh/habitat/pull/7876) ([mwrock](https://github.com/mwrock)) <!-- 1.6.132 -->
 - Fix `hab sup --version` after `structopt` refactoring [#7873](https://github.com/habitat-sh/habitat/pull/7873) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.130 -->
 - fix path to VERSION file in windows plans [#7868](https://github.com/habitat-sh/habitat/pull/7868) ([mwrock](https://github.com/mwrock)) <!-- 1.6.128 -->
 - Remove custom cli parsing [#7870](https://github.com/habitat-sh/habitat/pull/7870) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.127 -->
