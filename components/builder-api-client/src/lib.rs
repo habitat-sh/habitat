@@ -34,7 +34,9 @@ use reqwest::IntoUrl;
 use serde::Serialize;
 
 use crate::hab_core::package::PackageIdent;
-pub use crate::{builder::BuilderAPIClient,
+pub use crate::{builder::{BuilderAPIClient,
+                          API_RETRIES,
+                          API_RETRY_WAIT},
                 error::{Error,
                         Result}};
 

@@ -46,7 +46,8 @@ use std::{fs::{self,
                Cursor},
           path::{Path,
                  PathBuf},
-          string::ToString};
+          string::ToString,
+          time::Duration};
 use tee::TeeReader;
 use tokio::task;
 use tokio_util::codec::{BytesCodec,
@@ -56,6 +57,9 @@ use url::Url;
 const X_FILENAME: &str = "x-filename";
 
 const DEFAULT_API_PATH: &str = "/v1";
+
+pub const API_RETRIES: usize = 5;
+pub const API_RETRY_WAIT: Duration = Duration::from_millis(5000);
 
 // The characters in this set are copied from
 // https://docs.rs/percent-encoding/1.0.1/percent_encoding/struct.PATH_SEGMENT_ENCODE_SET.html
@@ -1424,6 +1428,45 @@ impl BuilderAPIClient {
                                  .await?,
                              &[StatusCode::NO_CONTENT]).await
     }
+}
+
+/// Retry API operations within reasonable bounds.
+/// Provide an Option with a custom back-off algorithm from the `retry` crate
+/// or a default Fibonacci algorithm will be used. Unrecoverable HTTP errors
+/// will not be retried.
+#[macro_export]
+macro_rules! retry_builder_api {
+    ($iter_opt:expr, $api_future:expr) => {
+        async {
+            let mut iterator = if let Some(i) = $iter_opt {
+                i
+            } else {
+                retry::delay::Fibonacci::from(API_RETRY_WAIT).take(API_RETRIES)
+            };
+            retry::retry_future!(iterator, async {
+                match $api_future.await.into() {
+                    Ok(_) => retry::OperationResult::Ok(()),
+                    Err(e @ api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
+                        println!("Unsupported package platform or architecture. Skipping!");
+                        retry::OperationResult::Ok(())
+                    }
+                    Err(e @ api_client::Error::APIError(StatusCode::NOT_FOUND, _)) => {
+                        retry::OperationResult::Err(e)
+                    }
+                    Err(e @ api_client::Error::APIError(StatusCode::UNAUTHORIZED, _)) => {
+                        retry::OperationResult::Err(e)
+                    }
+                    Err(e @ api_client::Error::APIError(StatusCode::FORBIDDEN, _)) => {
+                        retry::OperationResult::Err(e)
+                    }
+                    Err(e @ api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
+                        retry::OperationResult::Err(e)
+                    }
+                    Err(e) => retry::OperationResult::Retry(e),
+                }
+            }).await
+        }
+    };
 }
 
 fn origin_keys_path(origin: &str) -> String { format!("depot/origins/{}/keys", origin) }
