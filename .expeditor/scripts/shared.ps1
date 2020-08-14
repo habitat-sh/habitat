@@ -39,10 +39,6 @@ function Get-RustfmtToolchain {
 }
 
 function Install-Habitat {
-    # Make sure c:\hab\bin is on both the current path and the permanent machine path
-    $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
-    $machinePath = New-PathString -StartingPath $machinePath -Path "c:\hab\bin"
-    [System.Environment]::SetEnvironmentVariable("PATH", $machinePath, "Machine")
     $env:path = New-PathString -StartingPath $env:path -Path "c:\hab\bin"
 
     if (Get-Command -Name hab -ErrorAction SilentlyContinue) {
