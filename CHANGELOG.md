@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.128 -->
-## [1.6.128](https://github.com/habitat-sh/habitat/tree/1.6.128) (2020-08-13)
+<!-- latest_release 1.6.129 -->
+## [1.6.129](https://github.com/habitat-sh/habitat/tree/1.6.129) (2020-08-14)
 
-#### Merged Pull Requests
-- fix path to VERSION file in windows plans [#7868](https://github.com/habitat-sh/habitat/pull/7868) ([mwrock](https://github.com/mwrock))
+#### Behavioral Changes
+- Deprecate CLI aliases [#7872](https://github.com/habitat-sh/habitat/pull/7872) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
@@ -14,6 +14,7 @@
 - builder origin rbac subcommand [#7841](https://github.com/habitat-sh/habitat/pull/7841) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.123 -->
 
 #### Behavioral Changes
+- Deprecate CLI aliases [#7872](https://github.com/habitat-sh/habitat/pull/7872) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.129 -->
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
