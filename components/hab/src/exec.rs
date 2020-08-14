@@ -25,6 +25,21 @@ use std::path::PathBuf;
 const RETRY_LIMIT: usize = 5;
 const INTERNAL_TOOLING_CHANNEL_ENVVAR: &str = "HAB_INTERNAL_BLDR_CHANNEL";
 
+pub async fn command_from_min_pkg(ui: &mut UI,
+                                  command: impl Into<PathBuf>,
+                                  ident: &PackageIdent)
+                                  -> Result<PathBuf> {
+    command_from_min_pkg_with_optional_channel(ui, command, ident, None).await
+}
+
+pub async fn command_from_min_pkg_with_channel(ui: &mut UI,
+                                               command: impl Into<PathBuf>,
+                                               ident: &PackageIdent,
+                                               channel: ChannelIdent)
+                                               -> Result<PathBuf> {
+    command_from_min_pkg_with_optional_channel(ui, command, ident, Some(channel)).await
+}
+
 /// Returns the absolute path to the given command from a package no
 /// older than the given package identifier.
 ///
@@ -35,8 +50,10 @@ const INTERNAL_TOOLING_CHANNEL_ENVVAR: &str = "HAB_INTERNAL_BLDR_CHANNEL";
 /// # Notes on Package Installation
 ///
 /// By default, Habitat will install packages from the `stable`
-/// channel. However, if you'd rather use unstable (particularly if
-/// you're developing Habitat), you'll need to set the
+/// channel or will use a channel specific to a particular context (eg
+/// `hab sup run --channel`) passed with the `channel` parameter of
+/// this function. However, if you'd rather use a different channel
+/// (particularly if you're developing Habitat), you'll need to set the
 /// `INTERNAL_TOOLING_CHANNEL_ENVVAR` appropriately.
 ///
 /// Note that this environment variable *only* applies to packages
@@ -57,10 +74,11 @@ const INTERNAL_TOOLING_CHANNEL_ENVVAR: &str = "HAB_INTERNAL_BLDR_CHANNEL";
 /// * If the package is installed but the command cannot be found in the package
 /// * If an error occurs when loading the local package from disk
 /// * If the maximum number of installation retries has been exceeded
-pub async fn command_from_min_pkg(ui: &mut UI,
-                                  command: impl Into<PathBuf>,
-                                  ident: &PackageIdent)
-                                  -> Result<PathBuf> {
+async fn command_from_min_pkg_with_optional_channel(ui: &mut UI,
+                                                    command: impl Into<PathBuf>,
+                                                    ident: &PackageIdent,
+                                                    channel: Option<ChannelIdent>)
+                                                    -> Result<PathBuf> {
     let command = command.into();
     let fs_root_path = FS_ROOT_PATH.as_path();
     let pi = match PackageInstall::load_at_least(ident, Some(fs_root_path)) {
@@ -68,11 +86,13 @@ pub async fn command_from_min_pkg(ui: &mut UI,
         Err(hcore::Error::PackageNotFound(_)) => {
             ui.status(Status::Missing, format!("package for {}", &ident))?;
 
+            let channel = internal_tooling_channel(channel);
+
             // JB TODO - Does an auth token need to be plumbed into here?  Not 100% sure.
             retry::retry_future!(delay::NoDelay.take(RETRY_LIMIT), async {
                 common::command::package::install::start(ui,
                                                          &default_bldr_url(),
-                                                         &internal_tooling_channel(),
+                                                         &channel,
                                                          &(ident.clone(),
                                                            PackageTarget::active_target())
                                                                                           .into(),
@@ -100,9 +120,10 @@ pub async fn command_from_min_pkg(ui: &mut UI,
                                                          })
 }
 
-/// Determine the channel from which to install Habitat-specific
-/// packages.
-fn internal_tooling_channel() -> ChannelIdent {
-    hcore::env::var(INTERNAL_TOOLING_CHANNEL_ENVVAR).map(ChannelIdent::from)
+/// Determine the channel from which to install Habitat-specific packages.
+fn internal_tooling_channel(channel: Option<ChannelIdent>) -> ChannelIdent {
+    hcore::env::var(INTERNAL_TOOLING_CHANNEL_ENVVAR).ok()
+                                                    .map(ChannelIdent::from)
+                                                    .or(channel)
                                                     .unwrap_or_default()
 }
