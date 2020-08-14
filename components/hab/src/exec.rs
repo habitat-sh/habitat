@@ -51,11 +51,10 @@ pub async fn command_from_min_pkg_with_channel(ui: &mut UI,
 ///
 /// By default, Habitat will install packages from the `stable`
 /// channel or will use a channel specific to a particular context (eg
-/// `hab sup run --internal-channel`) passed with the `channel`
-/// parameter of this function. However, if you'd rather use a
-/// different channel (particularly if you're developing Habitat),
-/// you'll need to set the `INTERNAL_TOOLING_CHANNEL_ENVVAR`
-/// appropriately.
+/// `hab sup run --channel`) passed with the `channel` parameter of
+/// this function. However, if you'd rather use a different channel
+/// (particularly if you're developing Habitat), you'll need to set the
+/// `INTERNAL_TOOLING_CHANNEL_ENVVAR` appropriately.
 ///
 /// Note that this environment variable *only* applies to packages
 /// installed through this function. As a result, this function should
