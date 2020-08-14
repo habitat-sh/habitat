@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.130 -->
-## [1.6.130](https://github.com/habitat-sh/habitat/tree/1.6.130) (2020-08-14)
+<!-- latest_release 1.6.131 -->
+## [1.6.131](https://github.com/habitat-sh/habitat/tree/1.6.131) (2020-08-14)
 
-#### Merged Pull Requests
-- Fix `hab sup --version` after `structopt` refactoring [#7873](https://github.com/habitat-sh/habitat/pull/7873) ([davidMcneil](https://github.com/davidMcneil))
+#### Behavioral Changes
+- Pull packages from the `--channel` argument on `hab sup run` [#7871](https://github.com/habitat-sh/habitat/pull/7871) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
@@ -14,6 +14,7 @@
 - builder origin rbac subcommand [#7841](https://github.com/habitat-sh/habitat/pull/7841) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.123 -->
 
 #### Behavioral Changes
+- Pull packages from the `--channel` argument on `hab sup run` [#7871](https://github.com/habitat-sh/habitat/pull/7871) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.131 -->
 - Deprecate CLI aliases [#7872](https://github.com/habitat-sh/habitat/pull/7872) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.129 -->
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
