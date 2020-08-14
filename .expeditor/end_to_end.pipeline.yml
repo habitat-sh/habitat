@@ -857,9 +857,9 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  - label: "[:linux: test_pkg_exporters_help]"
+  - label: "[:linux: test_external_binaries]"
     command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_pkg_exporters_help
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_external_binaries
     env:
       BUILD_PKG_TARGET: x86_64-linux
     expeditor:
@@ -870,9 +870,9 @@ steps:
             - BUILD_PKG_TARGET=x86_64-linux
             - PIPELINE_HAB_AUTH_TOKEN
 
-  - label: "[:windows: test_pkg_exporters_help]"
+  - label: "[:windows: test_external_binaries]"
     command:
-      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_pkg_exporters_help
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_external_binaries
     env:
       BUILD_PKG_TARGET: x86_64-windows
     expeditor:

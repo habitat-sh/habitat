@@ -1,5 +1,4 @@
-
-Describe "`hab pkg export` executes the correct external command" {
+Describe "`hab` correctly executes external binaries" {
     It "container exporter help" {
         $out = hab pkg export container --help
         $LastExitCode | Should -Be 0
@@ -37,6 +36,15 @@ Describe "`hab pkg export` executes the correct external command" {
     It "`hab pkg export` with bad exporter" {
         hab pkg export a_bad_exporter --help
         $LastExitCode | Should -Be 1
+    }
+
+    It "`hab sup --version` correctly reports version" {
+        # Install an use an old supervisor to ensure version match
+        Invoke-NativeCommand hab pkg install "core/hab-sup/1.6.56"
+        $env:HAB_SUP_BINARY = "$(hab pkg path core/hab-sup/1.6.56)/bin/hab-sup"
+        $out = hab sup --version | Join-String
+        $out | Should -BeLike "*1.6.56*"
+        $env:HAB_SUP_BINARY = ""
     }
 }
 

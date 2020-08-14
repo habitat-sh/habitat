@@ -70,7 +70,7 @@ pub enum HabSup {
 
 // Supervisor commands handled by the `hab-sup` binary
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(name = "sup",
+#[structopt(name = "hab-sup",
             version = VERSION,
             about = "The Habitat Supervisor",
             author = "\nThe Habitat Maintainers <humans@habitat.sh>\n",
