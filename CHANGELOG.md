@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.129 -->
-## [1.6.129](https://github.com/habitat-sh/habitat/tree/1.6.129) (2020-08-14)
+<!-- latest_release 1.6.130 -->
+## [1.6.130](https://github.com/habitat-sh/habitat/tree/1.6.130) (2020-08-14)
 
-#### Behavioral Changes
-- Deprecate CLI aliases [#7872](https://github.com/habitat-sh/habitat/pull/7872) ([davidMcneil](https://github.com/davidMcneil))
+#### Merged Pull Requests
+- Fix `hab sup --version` after `structopt` refactoring [#7873](https://github.com/habitat-sh/habitat/pull/7873) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
@@ -18,6 +18,7 @@
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
+- Fix `hab sup --version` after `structopt` refactoring [#7873](https://github.com/habitat-sh/habitat/pull/7873) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.130 -->
 - fix path to VERSION file in windows plans [#7868](https://github.com/habitat-sh/habitat/pull/7868) ([mwrock](https://github.com/mwrock)) <!-- 1.6.128 -->
 - Remove custom cli parsing [#7870](https://github.com/habitat-sh/habitat/pull/7870) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.127 -->
 - Improve error message when installing internal packages [#7869](https://github.com/habitat-sh/habitat/pull/7869) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.126 -->
