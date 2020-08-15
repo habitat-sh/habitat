@@ -266,7 +266,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                     match pkg {
                         Pkg::Export(export) => {
                             match export {
-                                #[cfg(any(target_os = "linux", target_os = "windows"))]
+                                #[cfg(target_os = "linux")]
                                 PkgExportCommand::Cf(args) => {
                                     return command::pkg::export::cf::start(ui, &args.args).await;
                                 }

@@ -10,9 +10,15 @@ Describe "`hab` correctly executes external binaries" {
     }
 
     It "cf exporter help" {
-        $out = hab pkg export cf --help
-        $LastExitCode | Should -Be 0
-        "Habitat Package CFize - Create a Cloud Foundry ready Docker image from a given package." | Should -BeIn $out
+        # The cf exporter is only available on linux
+        if ($IsLinux) {
+            $out = hab pkg export cf --help
+            $LastExitCode | Should -Be 0
+            "Habitat Package CFize - Create a Cloud Foundry ready Docker image from a given package." | Should -BeIn $out
+        } else {
+            hab pkg export cf --help
+            $LastExitCode | Should -Be 1
+        }
     }
 
     It "mesos exporter help" {
