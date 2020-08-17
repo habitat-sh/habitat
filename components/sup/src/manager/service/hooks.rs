@@ -691,7 +691,8 @@ mod tests {
                          types::{GossipListenAddr,
                                  HttpListenAddr,
                                  ListenCtlAddr}};
-    use habitat_core::{fs::CACHE_KEY_PATH,
+    use habitat_core::{crypto::keys::KeyCache,
+                       fs::CACHE_KEY_PATH,
                        locked_env_var,
                        package::{PackageIdent,
                                  PackageInstall},
@@ -791,7 +792,7 @@ mod tests {
         let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
 
-        ring.update_from_rumors_rsr_mlr(&*CACHE_KEY_PATH,
+        ring.update_from_rumors_rsr_mlr(&KeyCache::default(),
                                         &service_store,
                                         &election_store,
                                         &election_update_store,

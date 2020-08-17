@@ -4,16 +4,12 @@ use crate::{common::ui::{UIWriter,
 use habitat_core::crypto::keys::{Key,
                                  KeyCache,
                                  RingKey};
-use std::path::Path;
 
-pub fn start<P>(ui: &mut UI, ring: &str, cache: P) -> Result<()>
-    where P: AsRef<Path>
-{
+pub fn start(ui: &mut UI, ring: &str, key_cache: &KeyCache) -> Result<()> {
     ui.begin(format!("Generating ring key for {}", ring))?;
     let key = RingKey::new(ring);
-    let cache = KeyCache::new(cache.as_ref());
-    cache.setup()?;
-    cache.write_key(&key)?;
+    key_cache.setup()?;
+    key_cache.write_key(&key)?;
     ui.end(format!("Generated ring key {}.", key.named_revision()))?;
     Ok(())
 }

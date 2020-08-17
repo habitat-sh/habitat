@@ -4,14 +4,12 @@ use crate::{common::ui::{UIWriter,
 use habitat_core::crypto::keys::{Key,
                                  KeyCache,
                                  RingKey};
-use std::path::Path;
 
-pub fn start(ui: &mut UI, content: &str, cache: &Path) -> Result<()> {
+pub fn start(ui: &mut UI, content: &str, key_cache: &KeyCache) -> Result<()> {
     ui.begin("Importing ring key from standard input")?;
-    let cache = KeyCache::new(cache);
-    cache.setup()?;
+    key_cache.setup()?;
     let key: RingKey = content.parse()?;
-    cache.write_key(&key)?;
+    key_cache.write_key(&key)?;
     ui.end(format!("Imported ring key {}.", &key.named_revision()))?;
     Ok(())
 }

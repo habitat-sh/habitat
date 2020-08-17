@@ -1,5 +1,5 @@
-use super::super::key::download::download_public_encryption_key;
 use crate::{api_client::Client,
+            command::origin::key::download::download_public_encryption_key,
             common::ui::{Status,
                          UIWriter,
                          UI},
@@ -16,17 +16,16 @@ pub async fn start(ui: &mut UI,
                    origin: &str,
                    key: &str,
                    secret: &str,
-                   cache_dir: &Path)
+                   key_cache: &KeyCache)
                    -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
-    let cache = KeyCache::new(cache_dir);
-    let encryption_key = match cache.latest_origin_public_encryption_key(origin) {
+    let encryption_key = match key_cache.latest_origin_public_encryption_key(origin) {
         Ok(key) => key,
         Err(_) => {
             debug!("Didn't find public encryption key in cache path");
-            download_public_encryption_key(ui, &api_client, origin, token, cache_dir).await?;
-            cache.latest_origin_public_encryption_key(origin)?
+            download_public_encryption_key(ui, &api_client, origin, token, key_cache).await?;
+            key_cache.latest_origin_public_encryption_key(origin)?
         }
     };
 

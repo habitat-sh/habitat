@@ -32,7 +32,8 @@ use crate::{api_client::{self,
                  UIWriter}};
 use habitat_core::{self,
                    crypto::{artifact,
-                            keys::{KeyCache,
+                            keys::{Key,
+                                   KeyCache,
                                    NamedRevision,
                                    PublicOriginSigningKey}},
                    fs::{cache_key_path,
@@ -307,8 +308,8 @@ pub async fn start<U>(ui: &mut U,
                       -> Result<PackageInstall>
     where U: UIWriter
 {
-    let key_cache_path = &cache_key_path(fs_root_path);
-    debug!("install key_cache_path: {}", key_cache_path.display());
+    let key_cache = KeyCache::new(cache_key_path(fs_root_path));
+    debug!("install key cache: {}", key_cache.as_ref().display());
 
     let api_client = Client::new(url, product, version, Some(fs_root_path))?;
     let task = InstallTask { install_mode,
@@ -317,7 +318,7 @@ pub async fn start<U>(ui: &mut U,
                              channel,
                              fs_root_path,
                              artifact_cache_path,
-                             key_cache_path,
+                             key_cache,
                              install_hook_mode };
 
     match *install_source {
@@ -420,7 +421,7 @@ struct InstallTask<'a> {
     fs_root_path:        &'a Path,
     /// The path to the local artifact cache (e.g., /hab/cache/artifacts)
     artifact_cache_path: &'a Path,
-    key_cache_path:      &'a Path,
+    key_cache:           KeyCache,
     install_hook_mode:   InstallHookMode,
 }
 
@@ -878,15 +879,15 @@ impl<'a> InstallTask<'a> {
                 .fetch_origin_key(named_revision.name(),
                                   named_revision.revision(),
                                   token,
-                                  self.key_cache_path,
+                                  self.key_cache.as_ref(),
                                   ui.progress())
                 .await?;
+
+
+            let key = self.key_cache.public_signing_key(&named_revision)?;
             ui.status(Status::Cached,
-                      format!("{} public origin key", &named_revision))?;
-
-            let cache = KeyCache::new(&self.key_cache_path);
-
-            Ok(cache.public_signing_key(&named_revision)?)
+                      format!("{} public origin key", key.named_revision()))?;
+            Ok(key)
         }
     }
 
@@ -959,15 +960,13 @@ impl<'a> InstallTask<'a> {
         }
 
         let named_revision = artifact::artifact_signer(&artifact.path)?;
-        let cache = KeyCache::new(&self.key_cache_path);
-        // not calling setup because this cache is read-only
 
         // If we've got it, great; otherwise fetch it
-        if !cache.public_signing_key(&named_revision).is_ok() {
+        if !self.key_cache.public_signing_key(&named_revision).is_ok() {
             self.fetch_origin_key(ui, &named_revision, token).await?;
         };
 
-        artifact::verify(&artifact.path, &cache)?;
+        artifact::verify(&artifact.path, &self.key_cache)?;
 
         debug!("Verified {} signed by {}", ident, named_revision);
         Ok(())

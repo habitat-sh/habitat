@@ -6,19 +6,17 @@ use habitat_core::{crypto::keys::{Key,
                                   PublicOriginSigningKey,
                                   SecretOriginSigningKey},
                    error::Error as CoreError};
-use std::path::Path;
 
-pub fn start(ui: &mut UI, content: &str, cache: &Path) -> Result<()> {
+pub fn start(ui: &mut UI, content: &str, key_cache: &KeyCache) -> Result<()> {
     ui.begin("Importing origin key from standard input")?;
-    let cache = KeyCache::new(cache);
 
     // Yeah, this is a little gross
     if let Ok(key) = content.parse::<PublicOriginSigningKey>() {
-        cache.write_key(&key)?;
+        key_cache.write_key(&key)?;
         ui.end(format!("Imported public origin key {}", &key.named_revision()))?;
         Ok(())
     } else if let Ok(key) = content.parse::<SecretOriginSigningKey>() {
-        cache.write_key(&key)?;
+        key_cache.write_key(&key)?;
         ui.end(format!("Imported secret origin key {}", &key.named_revision()))?;
         Ok(())
     } else {

@@ -20,13 +20,14 @@ use crate::{api_client::{self,
                          UI},
             error::{Error,
                     Result},
-            hcore::{crypto::{keys::parse_name_with_rev,
-                             PUBLIC_KEY_SUFFIX,
-                             PUBLIC_SIG_KEY_VERSION},
-                    ChannelIdent},
             PRODUCT,
             VERSION};
 use glob::glob_with;
+use habitat_core::{crypto::{keys::{parse_name_with_rev,
+                                   KeyCache},
+                            PUBLIC_KEY_SUFFIX,
+                            PUBLIC_SIG_KEY_VERSION},
+                   ChannelIdent};
 use reqwest::StatusCode;
 use std::{collections::BTreeSet,
           path::{Path,
@@ -47,10 +48,10 @@ pub async fn start(ui: &mut UI,
                    force_upload: bool,
                    auto_build: BuildOnUpload,
                    auto_create_origins: bool,
-                   key_path: &Path)
+                   key_cache: &KeyCache)
                    -> Result<()> {
     let artifact_paths = paths_with_extension(artifact_path, "hart");
-    let pub_keys_paths = paths_with_extension(key_path, PUBLIC_KEY_SUFFIX);
+    let pub_keys_paths = paths_with_extension(key_cache.as_ref(), PUBLIC_KEY_SUFFIX);
 
     ui.begin(format!("Preparing to upload artifacts to the '{}' channel on {}",
                      additional_release_channel.clone()
@@ -59,7 +60,7 @@ pub async fn start(ui: &mut UI,
     ui.status(Status::Using,
               format!("{} for artifacts and {} for signing keys",
                       &artifact_path.display(),
-                      key_path.display()))?;
+                      key_cache.as_ref().display()))?;
     ui.status(Status::Found,
               format!("{} artifact(s) for upload.", artifact_paths.len()))?;
     ui.status(Status::Discovering,
@@ -116,7 +117,7 @@ pub async fn start(ui: &mut UI,
                                     &artifact_path,
                                     force_upload,
                                     auto_build,
-                                    &key_path).await?
+                                    key_cache).await?
     }
 
     Ok(())

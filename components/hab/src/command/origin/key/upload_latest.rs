@@ -5,12 +5,12 @@ use crate::{api_client::{self,
                          UI},
             error::{Error,
                     Result},
-            hcore::crypto::keys::{Key,
-                                  KeyCache,
-                                  PublicOriginSigningKey,
-                                  SecretOriginSigningKey},
             PRODUCT,
             VERSION};
+use habitat_core::crypto::keys::{Key,
+                                 KeyCache,
+                                 PublicOriginSigningKey,
+                                 SecretOriginSigningKey};
 use reqwest::StatusCode;
 use std::path::Path;
 
@@ -19,18 +19,16 @@ pub async fn start(ui: &mut UI,
                    token: &str,
                    origin: &str,
                    with_secret: bool,
-                   cache: &Path)
+                   key_cache: &KeyCache)
                    -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
     ui.begin(format!("Uploading latest public origin key {}", &origin))?;
 
-    let cache = KeyCache::new(cache);
-
     // Figure out the latest public key
-    let public_key: PublicOriginSigningKey = cache.latest_public_origin_signing_key(origin)?;
+    let public_key: PublicOriginSigningKey = key_cache.latest_public_origin_signing_key(origin)?;
 
     // The path to the key in the cache
-    let public_keyfile = cache.path_in_cache(&public_key);
+    let public_keyfile = key_cache.path_in_cache(&public_key);
 
     ui.status(Status::Uploading, public_keyfile.display())?;
 
@@ -57,8 +55,8 @@ pub async fn start(ui: &mut UI,
     if with_secret {
         // get matching secret key
         let secret_key: SecretOriginSigningKey =
-            cache.secret_signing_key(public_key.named_revision())?;
-        let secret_keyfile = cache.path_in_cache(&secret_key);
+            key_cache.secret_signing_key(public_key.named_revision())?;
+        let secret_keyfile = key_cache.path_in_cache(&secret_key);
 
         ui.status(Status::Uploading, secret_keyfile.display())?;
         match api_client.put_origin_secret_key(&secret_key.named_revision().name(),

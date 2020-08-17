@@ -285,7 +285,7 @@ async fn split_apart_sup_run(sup_run: SupRun,
                               auto_update_period: sup_run.auto_update_period.into(),
                               service_update_period: sup_run.service_update_period.into(),
                               custom_state_path: None, // remove entirely?
-                              cache_key_path: sup_run.cache_key_path.cache_key_path,
+                              key_cache: KeyCache::new(sup_run.cache_key_path.cache_key_path),
                               update_url: bldr_url.clone(),
                               update_channel: shared_load.channel.clone(),
                               http_disable: sup_run.http_disable,
@@ -434,7 +434,8 @@ mod test {
         use habitat_common::types::EventStreamConnectMethod;
         #[cfg(windows)]
         use habitat_core::crypto::dpapi::decrypt;
-        use habitat_core::{fs::CACHE_KEY_PATH,
+        use habitat_core::{crypto::keys::{Key,
+                                          NamedRevision},
                            package::PackageIdent,
                            ChannelIdent};
         use std::{collections::HashMap,
@@ -652,8 +653,8 @@ mod test {
 
             assert_eq!(config.ring_key
                              .expect("No ring key on manager config")
-                             .name_with_rev(),
-                       key.name_with_rev());
+                             .named_revision(),
+                       key.named_revision());
         }
 
         #[test]
@@ -676,8 +677,8 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
 
             assert_eq!(config.ring_key
                              .expect("No ring key on manager config")
-                             .name_with_rev(),
-                       "foobar-20160504220722");
+                             .named_revision(),
+                       &"foobar-20160504220722".parse::<NamedRevision>().unwrap());
         }
 
         const CERT_FILE_CONTENTS: &str = r#"-----BEGIN CERTIFICATE-----
@@ -712,7 +713,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       cache_key_path:        (&*CACHE_KEY_PATH).to_path_buf(),
+                                       key_cache:             KeyCache::default(),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),
@@ -782,7 +783,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        auto_update_period: Duration::from_secs(90),
                                        service_update_period: Duration::from_secs(30),
                                        custom_state_path: None,
-                                       cache_key_path: PathBuf::from(temp_dir_str),
+                                       key_cache: KeyCache::new(temp_dir_str),
                                        update_url: String::from("https://bldr.habitat.sh"),
                                        update_channel: ChannelIdent::default(),
                                        gossip_listen:
@@ -820,7 +821,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       cache_key_path:        PathBuf::from("/cache/key/path"),
+                                       key_cache:             KeyCache::new("/cache/key/path"),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),
@@ -855,7 +856,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       cache_key_path:        (&*CACHE_KEY_PATH).to_path_buf(),
+                                       key_cache:             KeyCache::default(),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),
@@ -919,10 +920,10 @@ gpoVMSncu2jMIDZX63IkQII=
             meta.insert(String::from("key2"), String::from("val2"));
             meta.insert(String::from("keyA"), String::from("valA"));
             assert_eq!(ManagerConfig { auto_update:          false,
-                auto_update_period:   Duration::from_secs(60),
-                service_update_period:   Duration::from_secs(60),
+                                       auto_update_period:   Duration::from_secs(60),
+                                       service_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
-                                       cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
+                                       key_cache:       KeyCache::default(),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:       ChannelIdent::default(),
@@ -1100,7 +1101,7 @@ sys_ip_address = "7.8.9.0"
                                        auto_update_period: Duration::from_secs(3600),
                                        service_update_period: Duration::from_secs(1_000),
                                        custom_state_path: None,
-                                       cache_key_path: PathBuf::from(temp_dir_str),
+                                       key_cache: KeyCache::new(temp_dir_str),
                                        update_url: String::from("https://bldr.habitat.sh"),
                                        update_channel: ChannelIdent::default(),
                                        gossip_listen:
@@ -1147,7 +1148,7 @@ sys_ip_address = "7.8.9.0"
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       cache_key_path:        PathBuf::from("/cache/key/path"),
+                                       key_cache:             KeyCache::new("/cache/key/path"),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),
@@ -1191,7 +1192,7 @@ sys_ip_address = "7.8.9.0"
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       cache_key_path:        (&*CACHE_KEY_PATH).to_path_buf(),
+                                       key_cache:             KeyCache::default(),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),
@@ -1295,7 +1296,7 @@ event_stream_server_certificate = "{}"
                 auto_update_period:   Duration::from_secs(60),
                 service_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
-                                       cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
+                                       key_cache:       KeyCache::default(),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:       ChannelIdent::default(),
@@ -1479,7 +1480,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       cache_key_path:        (&*CACHE_KEY_PATH).to_path_buf(),
+                                       key_cache:             KeyCache::default(),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),
