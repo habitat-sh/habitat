@@ -58,12 +58,12 @@ pub struct LicenseData {
 }
 
 impl LicenseData {
-    pub fn new() -> Self {
-        LicenseData { date_accepted: Utc::now(),
-                      accepting_product: String::from("hab"),
-                      accepting_product_version: super::VERSION.to_string(),
-                      user: get_current_username(),
-                      file_format: String::from(LICENSE_FILE_FORMAT_VERSION), }
+    pub fn new() -> Result<Self> {
+        Ok(LicenseData { date_accepted: Utc::now(),
+                         accepting_product: String::from("hab"),
+                         accepting_product_version: super::VERSION.to_string(),
+                         user: get_current_username()?,
+                         file_format: String::from(LICENSE_FILE_FORMAT_VERSION), })
     }
 }
 
@@ -192,7 +192,7 @@ fn acceptance_from_env_var() -> Result<LicenseAcceptance> {
 }
 
 fn write_license_file() -> Result<()> {
-    let license = LicenseData::new();
+    let license = LicenseData::new()?;
     let content = serde_yaml::to_string(&license)?;
     fs::create_dir_all(writeable_license_path())?;
     let mut file = File::create(license_file(&writeable_license_path()))?;

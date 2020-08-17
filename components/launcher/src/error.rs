@@ -1,11 +1,10 @@
-use crate::protocol;
+use crate::{protocol,
+            SUP_CMD,
+            SUP_PACKAGE_IDENT};
 use std::{error,
           fmt,
           io,
           result};
-
-use crate::{SUP_CMD,
-            SUP_PACKAGE_IDENT};
 
 #[derive(Debug)]
 pub enum Error {
@@ -13,6 +12,7 @@ pub enum Error {
     Connect(io::Error),
     ExecWait(io::Error),
     GroupNotFound(String),
+    HabitatCore(habitat_core::Error),
     OpenPipe(io::Error),
     Protocol(protocol::Error),
     Send(ipc_channel::Error),
@@ -36,6 +36,7 @@ impl fmt::Display for Error {
             }
             Error::ExecWait(ref e) => format!("Error waiting on PID, {}", e),
             Error::GroupNotFound(ref e) => format!("No GID for group '{}' could be found", e),
+            Error::HabitatCore(ref err) => err.to_string(),
             Error::OpenPipe(ref e) => format!("Unable to open Launcher's comm channel, {}", e),
             Error::Protocol(ref e) => format!("{}", e),
             Error::Send(ref e) => format!("Unable to send to Launcher's comm channel, {}", e),
@@ -74,4 +75,8 @@ impl From<protocol::Error> for Error {
 
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error { Error::Spawn(err) }
+}
+
+impl From<habitat_core::Error> for Error {
+    fn from(err: habitat_core::Error) -> Error { Error::HabitatCore(err) }
 }

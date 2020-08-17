@@ -114,6 +114,8 @@ pub enum Error {
     MetaFileNotFound(package::metadata::MetaFile),
     /// When an IO error while accessing a MetaFile.
     MetaFileIO(io::Error),
+    #[cfg(not(windows))]
+    Nix(nix::Error),
     /// Occurs when we can't find an outbound IP address
     NoOutboundIpAddr(io::Error),
     /// Occurs when a call to OpenDesktopW fails
@@ -313,6 +315,8 @@ impl fmt::Display for Error {
             }
             Error::MetaFileNotFound(ref e) => format!("Couldn't read MetaFile: {}, not found", e),
             Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
+            #[cfg(not(windows))]
+            Error::Nix(ref e) => format!("{}", e),
             Error::NoOutboundIpAddr(ref e) => {
                 format!("Failed to discover this host's outbound IP address: {}", e)
             }
@@ -381,6 +385,11 @@ impl From<str::Utf8Error> for Error {
 
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Self { Error::IO(err) }
+}
+
+#[cfg(not(windows))]
+impl From<nix::Error> for Error {
+    fn from(err: nix::Error) -> Self { Error::Nix(err) }
 }
 
 impl From<num::ParseIntError> for Error {

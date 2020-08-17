@@ -123,12 +123,15 @@ fn write_default_svc_user_and_group_metafiles<S, T>(hab_root: &HabRoot, pkg_orig
         write_metafile(svc_user_metafile,
                        users::get_current_username().expect("Could not determine current \
                                                              username")
+                                                    .expect("Could not determine current username")
                                                     .as_str());
     }
 
     if !svc_group_metafile.is_file() {
         write_metafile(svc_group_metafile,
                        users::get_current_groupname().expect("Could not determine current \
+                                                              groupname")
+                                                     .expect("Could not determine current \
                                                               groupname")
                                                      .as_str());
     }

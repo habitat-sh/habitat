@@ -613,10 +613,12 @@ mod test {
 
     fn curr_username() -> String {
         users::get_current_username().expect("Can get current username")
+                                     .expect("Can get current username")
     }
 
     fn curr_groupname() -> String {
         users::get_current_groupname().expect("Can get current groupname")
+                                      .expect("Can get current groupname")
     }
 
     fn toml_from_str(content: &str) -> toml::value::Table {

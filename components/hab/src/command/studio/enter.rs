@@ -207,16 +207,16 @@ mod inner {
         false
     }
 
-    fn has_docker_group() -> bool {
-        let current_user = users::get_current_username().unwrap();
-        let docker_members = users::get_members_by_groupname("docker");
-        docker_members.map_or(false, |d| d.contains(&current_user))
+    fn has_docker_group() -> Result<bool> {
+        let current_user = users::get_current_username()?.unwrap();
+        let docker_members = users::get_members_by_groupname("docker")?;
+        Ok(docker_members.map_or(false, |d| d.contains(&current_user)))
     }
 
     fn rerun_with_sudo_if_needed(ui: &mut UI, args: &[OsString]) -> Result<()> {
         // If I have root permissions or if I am executing a docker studio
         // and have the appropriate group - early return, we are done.
-        if am_i_root() || (is_docker_studio(args) && has_docker_group()) {
+        if am_i_root() || (is_docker_studio(args) && has_docker_group()?) {
             return Ok(());
         }
 

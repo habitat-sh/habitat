@@ -226,8 +226,8 @@ fn get_pkg_user_and_group(pkg_install: &PackageInstall) -> Result<Option<(String
 /// checks to see if hab/hab exists, if not, fall back to
 /// current user/group. If that fails, then return an error.
 fn default_user_and_group() -> Result<(String, String)> {
-    let uid = users::get_uid_by_name(DEFAULT_USER);
-    let gid = users::get_gid_by_name(DEFAULT_GROUP);
+    let uid = users::get_uid_by_name(DEFAULT_USER)?;
+    let gid = users::get_gid_by_name(DEFAULT_GROUP)?;
     match (uid, gid) {
         (Some(_), Some(_)) => Ok((DEFAULT_USER.to_string(), DEFAULT_GROUP.to_string())),
         _ => {
@@ -238,8 +238,8 @@ fn default_user_and_group() -> Result<(String, String)> {
 }
 
 fn current_user_and_group() -> Result<(String, String)> {
-    let user = users::get_current_username();
-    let group = users::get_current_groupname();
+    let user = users::get_current_username()?;
+    let group = users::get_current_groupname()?;
     match (user, group) {
         (Some(user), Some(group)) => {
             debug!("Running as {}/{}", user, group);

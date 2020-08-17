@@ -254,10 +254,10 @@ pub trait Hook: fmt::Debug + Sized + Send {
         let ids = if process::can_run_services_as_svc_user() {
             // If we can SETUID/SETGID, then run the script as the service
             // user; otherwise, we'll just run it as ourselves.
-            let uid = users::get_uid_by_name(&pkg.svc_user)
+            let uid = users::get_uid_by_name(&pkg.svc_user)?
                 .map(Uid::from_raw)
                 .ok_or_else(|| {Error::PermissionFailed(format!("No uid for user '{}' could be found", &pkg.svc_user))})?;
-            let gid = users::get_gid_by_name(&pkg.svc_group)
+            let gid = users::get_gid_by_name(&pkg.svc_group)?
                 .map(Gid::from_raw)
                 .ok_or_else(|| {Error::PermissionFailed(format!("No gid for group '{}' could be found", &pkg.svc_group))})?;
             Some((uid, gid))
