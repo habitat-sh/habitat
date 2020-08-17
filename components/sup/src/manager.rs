@@ -1078,11 +1078,7 @@ impl Manager {
                 break ShutdownMode::Departed;
             }
 
-            #[cfg(unix)]
-            let should_restart = signals::pending_sighup() || self.check_for_restart();
-            #[cfg(not(unix))]
-            let should_restart = self.check_for_restart();
-            if should_restart {
+            if self.check_for_restart() {
                 outputln!("Supervisor shutting down for restart");
                 break ShutdownMode::Restarting;
             }
@@ -1314,7 +1310,17 @@ impl Manager {
 
     fn check_for_departure(&self) -> bool { self.butterfly.is_departed() }
 
-    fn check_for_restart(&self) -> bool { self.state.should_restart.load(Ordering::Relaxed) }
+    fn check_for_restart(&self) -> bool {
+        let should_restart = self.state.should_restart.load(Ordering::Relaxed);
+        #[cfg(unix)]
+        {
+            should_restart || signals::pending_sighup()
+        }
+        #[cfg(not(unix))]
+        {
+            should_restart
+        }
+    }
 
     /// # Locking (see locking.md)
     /// * `ManagerServices::inner` (read)
