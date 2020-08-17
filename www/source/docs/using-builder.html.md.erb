@@ -148,9 +148,9 @@ source ~/.bashrc
 ---
 ## <a name="builder-origin" id="builder-origin" data-magellan-target="builder-origin">Create an Origin</a>
 
-An origin is a unique namespace in Builder for storing and sharing packages. You'll use the origin as the conceptual location of a package. For example, the "core" origin in Chef Habitat Builder is the namespace for the set of foundational packages maintained by the Chef Habitat team.
+An origin is the space within Builder that you'll use for storing and sharing packages. It is a unique namespace within Builder, and while you can delete or transfer an origin, you rename an origin after you created it. One example of an origin is the `core` origin in Chef Habitat Builder, which is the namespace for the foundational packages maintained by the Chef Habitat team.
 
-From the _My Origins_ page in the Chef Habitat Builder web app, select the **Create origin** button, which opens the _Create New Origin_ form.
+To create an origin, select the **Create origin** button on the _My Origins_ page in the Chef Habitat Builder web app, which opens the _Create New Origin_ form. (Builder > My Origins > Create Origin)
 
 ![Builder without origins](/images/screenshots/create-origin.png)
 
@@ -161,17 +161,17 @@ Next, choose a privacy setting. This is the default privacy setting for new pack
   - Anyone can find and use public packages
   - Only origin members can find and use private packages
 
-![Creating an origin](/images/screenshots/create-origin-form.png)
-
 When you select **Save and Continue**, Chef Habitat Builder:
 
 1. Creates your origin
 1. Creates an origin key pair
 1. Redirects Chef Habitat Builder to the origin page
 
+![Creating an origin](/images/screenshots/create-origin-form.png)
+
 ### Create an Origin with the Chef Habitat CLI
 
-Use the [hab origin] commands to manage your origins from the command line.
+Use the [hab origin](../habitat-cli/#hab-origin) commands to manage your origins from the command line.
 
 Dreate an origin from the command line with the [hab origin create](/docs/habitat-cli/#hab-origin-create/) command
 
