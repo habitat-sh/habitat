@@ -51,14 +51,11 @@ impl PublicOriginSigningKey {
     /// content that was supposedly hashed-and-signed, in order to
     /// verify that is true.
     ///
-    /// Returns the named revision of the key as well as the verified,
-    /// hex-encoded Blake2b hash of the contents.
+    /// Returns the verified, hex-encoded Blake2b hash of the
+    /// contents.
     // TODO (CM): Create a Blake2B Hash type and return that rather
     // than String
-    pub fn verify(&self,
-                  signed_hash: &[u8],
-                  content: &mut dyn Read)
-                  -> Result<(NamedRevision, String)> {
+    pub fn verify(&self, signed_hash: &[u8], content: &mut dyn Read) -> Result<String> {
         let expected_hex_encoded_hash = match primitives::verify(signed_hash, &self.key) {
             Ok(hash_bytes) => String::from_utf8(hash_bytes).map_err(|_| {
                                   Error::CryptoError("Error parsing artifact hash".to_string())
@@ -69,7 +66,7 @@ impl PublicOriginSigningKey {
         let computed_hex_encoded_hash = hash::hash_reader(content)?;
 
         if computed_hex_encoded_hash == expected_hex_encoded_hash {
-            Ok((self.named_revision().clone(), expected_hex_encoded_hash))
+            Ok(expected_hex_encoded_hash)
         } else {
             let msg = format!("Habitat artifact is invalid, hashes don't match (expected: {}, \
                                computed: {})",
@@ -156,13 +153,8 @@ mod tests {
         let f = File::open(fixture("signme.dat")).unwrap();
         let mut reader = BufReader::new(f);
 
-        let (named_revision, file_blake2b_hash) = key.verify(&SIGNED_SIGNME_DAT_BLAKE2B_HASH,
-                                                             &mut reader)
-                                                     .unwrap();
-
-        assert_eq!(named_revision.name(), "origin-key-valid");
-        assert_eq!(named_revision.revision(),
-                   &KeyRevision::unchecked("20160509190508"));
+        let file_blake2b_hash = key.verify(&SIGNED_SIGNME_DAT_BLAKE2B_HASH, &mut reader)
+                                   .unwrap();
 
         assert_eq!(file_blake2b_hash, SIGNME_DAT_BLAKE2B_HASH);
     }
@@ -179,11 +171,9 @@ mod tests {
         let f = File::open(&file_to_sign).unwrap();
         let mut reader = BufReader::new(f);
 
-        let expected_hash = hash::hash_file(&file_to_sign).unwrap();
+        let expected_hash = "20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233";
+        let verified_hash = pk.verify(&signed_message, &mut reader).unwrap();
 
-        let (named_revision, verified_hash) = pk.verify(&signed_message, &mut reader).unwrap();
-
-        assert_eq!(&named_revision, sk.named_revision());
-        assert_eq!(expected_hash, verified_hash);
+        assert_eq!(verified_hash, expected_hash);
     }
 }
