@@ -224,9 +224,9 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  - label: "[:linux: test_launcher_restarts_supervisor]"
+  - label: "[:linux: test_supervisor_restarts]"
     command:
-      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_launcher_restarts_supervisor
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_supervisor_restarts
     artifact_paths:
       - sup.log
     expeditor:
