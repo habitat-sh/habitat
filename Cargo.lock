@@ -1418,6 +1418,7 @@ dependencies = [
  "nix 0.18.0",
  "num_cpus",
  "os_info",
+ "paste 1.0.0",
  "rand 0.7.3",
  "regex 1.3.9",
  "rust-crypto",
@@ -1846,7 +1847,7 @@ checksum = "c502a5ff9dd2924f1ed32ba96e3b65735d837b4bfd978d3161b1702e66aca4b7"
 dependencies = [
  "jemalloc-sys",
  "libc",
- "paste",
+ "paste 0.1.18",
 ]
 
 [[package]]
@@ -2444,6 +2445,12 @@ dependencies = [
  "paste-impl",
  "proc-macro-hack",
 ]
+
+[[package]]
+name = "paste"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f6ddc8e145de01d9180ac7b78b9676f95a9c2447f6a88b2c2a04702211bc5d71"
 
 [[package]]
 name = "paste-impl"

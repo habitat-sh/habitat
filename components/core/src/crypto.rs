@@ -261,6 +261,7 @@ pub fn secure_eq<T, U>(t: T, u: U) -> bool
 #[cfg(test)]
 pub mod test_support {
     use crate::{crypto::keys::{generate_signing_key_pair,
+                               Key,
                                KeyCache,
                                PublicOriginSigningKey,
                                SecretOriginSigningKey},
@@ -327,5 +328,14 @@ pub mod test_support {
         cache.write_key(&public).unwrap();
         cache.write_key(&secret).unwrap();
         (public, secret)
+    }
+
+    /// Helper function to return a specific kind of key read from a
+    /// file in our fixtures directory.
+    pub fn fixture_key<K, E>(path_in_fixtures: &str) -> K
+        where K: Key + std::str::FromStr<Err = E>,
+              E: std::fmt::Debug
+    {
+        fixture_as_string(path_in_fixtures).parse::<K>().unwrap()
     }
 }

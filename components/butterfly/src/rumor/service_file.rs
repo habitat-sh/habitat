@@ -28,7 +28,7 @@ pub struct ServiceFile {
     pub incarnation:   u64,
     pub encrypted:     bool,
     pub filename:      String,
-    pub body:          Vec<u8>, // TODO: make this a String
+    pub body:          Vec<u8>,
 }
 
 impl fmt::Display for ServiceFile {
