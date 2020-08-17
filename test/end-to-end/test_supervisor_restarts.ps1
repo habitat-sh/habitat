@@ -10,15 +10,15 @@ Describe "Supervisor restarts on abrupt exit" {
     $launcher_proc = Start-Supervisor -Timeout 45 -LogFile "sup.log"
     $supervisor_proc = Get-Process hab-sup
     Set-Content $exit_file -Value 1
-    
+
     $testScript = { $supervisor_proc.HasExited }
     $timeoutScript = { Write-Error "Timed out waiting for Supervisor to exit" }
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout 45
-    
+
     $testScript = { Get-Process hab-sup -ErrorAction SilentlyContinue }
     $timeoutScript = { Write-Error "Timed out waiting for Supervisor to be restarted" }
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout 45
-    
+
     $new_supervisor_proc = Get-Process hab-sup
     $new_launcher_proc = Get-Process hab-launch
 
@@ -45,7 +45,7 @@ Describe "Supervisor restarts on 'hab sup restart'" {
     $testScript = { $supervisor_proc.HasExited }
     $timeoutScript = { Write-Error "Timed out waiting for Supervisor to exit" }
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout 45
-    
+
     $testScript = { Get-Process hab-sup -ErrorAction SilentlyContinue }
     $timeoutScript = { Write-Error "Timed out waiting for Supervisor to be restarted" }
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout 45
