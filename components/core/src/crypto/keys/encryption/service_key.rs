@@ -1,3 +1,15 @@
+//! Service encryption keys are used alongside user encryption keys to
+//! allow for authorized uploading of configuration and files to a
+//! Habitat Supervisor network.
+//!
+//! Service secret keys are used on Supervisors to decrypt any
+//! encrypted configuration and file rumors they receive. All relevant
+//! user public encryption keys must also be present.
+//!
+//! As encryption keys, this allows services to know who sent a given
+//! encrypted rumor. It also allows operators to control who can send
+//! such rumors by controlling which user public keys are present on a
+//! Supervisor.
 use crate::{crypto::keys::{encryption::{primitives,
                                         SignedBox,
                                         PUBLIC_BOX_KEY_VERSION,
@@ -5,7 +17,6 @@ use crate::{crypto::keys::{encryption::{primitives,
                                         SECRET_BOX_KEY_SUFFIX,
                                         SECRET_BOX_KEY_VERSION},
                            Key,
-                           KeyRevision,
                            NamedRevision,
                            UserPublicEncryptionKey},
             error::{Error,
@@ -22,8 +33,7 @@ pub fn generate_service_encryption_key_pair(
     service_group_name: &str)
     -> (ServicePublicEncryptionKey, ServiceSecretEncryptionKey) {
     let key_name = service_key_name(org_name, service_group_name);
-    let revision = KeyRevision::new();
-    let named_revision = NamedRevision::new(key_name, revision);
+    let named_revision = NamedRevision::new(key_name);
     let (pk, sk) = primitives::gen_keypair();
 
     let public = ServicePublicEncryptionKey { named_revision: named_revision.clone(),
@@ -69,15 +79,66 @@ impl ServiceSecretEncryptionKey {
     /// to this struct.
     pub fn decrypt_user_message(&self,
                                 signed_box: &SignedBox,
-                                sender_key: &UserPublicEncryptionKey)
+                                sending_user: &UserPublicEncryptionKey)
                                 -> Result<Vec<u8>> {
         primitives::open(signed_box.ciphertext(),
                          signed_box.nonce(),
-                         sender_key.key(),
+                         sending_user.key(),
                          self.key()).map_err(|_| {
             Error::CryptoError("Secret key, public key, and nonce could not \
                                                 decrypt ciphertext"
                                                                    .to_string())
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::crypto::{keys::{EncryptedSecret,
+                               UserSecretEncryptionKey},
+                        test_support::fixture_key};
+
+    #[test]
+    fn decryption() {
+        let key: ServiceSecretEncryptionKey =
+            fixture_key("keys/service-key-valid.default@acme-20160509181736.box.key");
+
+        let user: UserPublicEncryptionKey = fixture_key("keys/ruby-rhod-20200813204159.pub");
+
+        let encrypted = "BOX-1\nruby-rhod-20200813204159\nservice-key-valid.default@acme-20160509181736\nE6kRUTjQayKDykfgTM9WvJLFmOk2M/CR\nFivenLwuZnrKaOxNHro+StLXRKmK+acDSXE+qgGKqPHpDH6H".parse::<EncryptedSecret>().unwrap();
+
+        let signed = encrypted.signed().unwrap();
+
+        let decrypted_message = key.decrypt_user_message(&signed, &user).unwrap();
+        let decrypted_message = std::str::from_utf8(&decrypted_message).unwrap();
+
+        assert_eq!(decrypted_message, "HOT, HOT, HAAAAAWWT!");
+    }
+
+    #[test]
+    fn encryption_decrytpion_roundtrip() {
+        let user_public: UserPublicEncryptionKey = fixture_key("keys/ruby-rhod-20200813204159.pub");
+        let user_secret: UserSecretEncryptionKey =
+            fixture_key("keys/ruby-rhod-20200813204159.box.key");
+        let service_public: ServicePublicEncryptionKey =
+            fixture_key("keys/service-key-valid.default@acme-20160509181736.pub");
+        let service_secret: ServiceSecretEncryptionKey =
+            fixture_key("keys/service-key-valid.default@acme-20160509181736.box.key");
+
+        let message = "Korben, sweetheart, what was that? IT WAS BAD! It had nothing! No fire, no \
+                       energy, no nothin'!"
+                                           .to_string();
+        let encrypted_secret = user_secret.encrypt_for_service(message.as_bytes(), &service_public);
+
+        // Horrible workaround while we still use WrappedSealedBox
+        let encrypted_secret = EncryptedSecret::from_bytes(encrypted_secret.as_bytes()).unwrap();
+
+        let signed = encrypted_secret.signed().unwrap();
+        let decrypted_message = service_secret.decrypt_user_message(&signed, &user_public)
+                                              .unwrap();
+        let decrypted_message = std::str::from_utf8(&decrypted_message).unwrap();
+
+        assert_eq!(decrypted_message, message);
     }
 }

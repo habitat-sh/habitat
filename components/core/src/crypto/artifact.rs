@@ -182,17 +182,6 @@ mod test {
                 *};
 
     #[test]
-    fn sign_and_verify() {
-        let (cache, dir) = new_cache();
-        let (_public, secret) = generate_origin_pair("unicorn", &cache);
-
-        let dst = dir.path().join("signed.dat");
-
-        sign(&fixture("signme.dat"), &dst, &secret).unwrap();
-        verify(&dst, &cache).unwrap();
-    }
-
-    #[test]
     #[should_panic(expected = "Corrupt payload, can\\'t read format version")]
     fn verify_empty_format_version() {
         let (cache, dir) = new_cache();

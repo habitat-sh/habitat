@@ -17,9 +17,13 @@ use std::{convert::TryFrom,
           path::{Path,
                  PathBuf}};
 
+/// Represents the location of all Habitat keys (user, service,
+/// origin, signing, and ring) locally on disk, as well as the APIs
+/// for retrieving and storing keys.
 pub struct KeyCache(PathBuf);
 
 impl AsRef<Path> for KeyCache {
+    /// Expose the path to this key cache.
     fn as_ref(&self) -> &Path { self.0.as_ref() }
 }
 
@@ -95,8 +99,6 @@ impl KeyCache {
         self.fetch_latest_revision::<OriginPublicEncryptionKey>(name)
     }
 
-    // TODO (CM): accept org + service_group instead? Create / accept
-    // a proper type?
     /// Name should be in `"service.group@org"` format.
     pub fn latest_service_public_key(&self, name: &str) -> Result<ServicePublicEncryptionKey> {
         self.fetch_latest_revision::<ServicePublicEncryptionKey>(name)
@@ -252,8 +254,9 @@ mod test {
         cache.write_key(&key).unwrap();
 
         let latest = cache.latest_ring_key_revision("beyonce").unwrap();
-        assert_eq!(latest.name(), key.name());
-        assert_eq!(latest.revision(), key.revision());
+        assert_eq!(latest.named_revision().name(), key.named_revision().name());
+        assert_eq!(latest.named_revision().revision(),
+                   key.named_revision().revision());
     }
 
     #[test]
@@ -268,12 +271,13 @@ mod test {
         let k2 = RingKey::new("beyonce");
         cache.write_key(&k2).unwrap();
 
-        assert_eq!(k1.name(), k2.name());
-        assert_ne!(k1.revision(), k2.revision());
+        assert_eq!(k1.named_revision().name(), k2.named_revision().name());
+        assert_ne!(k1.named_revision().revision(),
+                   k2.named_revision().revision());
 
         let latest = cache.latest_ring_key_revision("beyonce").unwrap();
-        assert_eq!(latest.name(), k2.name());
-        assert_eq!(latest.revision(), k2.revision());
+        assert_eq!(latest.named_revision(), k2.named_revision());
+        assert_eq!(latest.named_revision(), k2.named_revision());
     }
 
     #[test]
@@ -334,24 +338,57 @@ mod test {
         cache.write_key(&new_key).unwrap();
     }
 
-    // Old tests... not fully converting over to new implementation
-    // yet because I think the function won't be sticking around very
-    // long.
+    macro_rules! assert_cache_round_trip {
+        ($t:ty, $key:expr, $cache:expr) => {
+            $cache.write_key::<$t>(&$key).unwrap();
+            let fetched_latest: $t = $cache.fetch_latest_revision($key.named_revision().name())
+                                           .unwrap();
+            assert_eq!(fetched_latest, $key,
+                       "Expected to retrieve the latest key by name");
 
-    // #[test]
-    // fn cached_path() {
-    //     let (cache, dir) = new_cache();
-    //     fs::copy(fixture(&format!("keys/{}", VALID_KEY)),
-    //              dir.path().join(VALID_KEY)).unwrap();
+            let fetched_specific: $t = $cache.fetch_specific_revision($key.named_revision())
+                                             .unwrap();
+            assert_eq!(fetched_specific, $key,
+                       "Expected to retrieve the key by specific revision");
+        };
+    }
 
-    //     let result = cache.ring_key_cached_path(VALID_NAME_WITH_REV).unwrap();
-    //     assert_eq!(result, cache.path().join(VALID_KEY));
-    // }
+    #[test]
+    fn ring_key_round_trip() {
+        let (cache, _dir) = new_cache();
+        let key = RingKey::new("beyonce");
+        assert_cache_round_trip!(RingKey, key, cache);
+    }
 
-    // #[test]
-    // #[should_panic(expected = "No secret key found at")]
-    // fn get_secret_key_path_nonexistent() {
-    //     let (cache, _dir) = new_cache();
-    //     cache.ring_key_cached_path(VALID_NAME_WITH_REV).unwrap();
-    // }
+    #[test]
+    fn user_keys_round_trip() {
+        let (cache, _dir) = new_cache();
+        let (public, secret) = generate_user_encryption_key_pair("my-user");
+        assert_cache_round_trip!(UserPublicEncryptionKey, public, cache);
+        assert_cache_round_trip!(UserSecretEncryptionKey, secret, cache);
+    }
+
+    #[test]
+    fn origin_keys_round_trip() {
+        let (cache, _dir) = new_cache();
+        let (public, secret) = generate_origin_encryption_key_pair("my-origin");
+        assert_cache_round_trip!(OriginPublicEncryptionKey, public, cache);
+        assert_cache_round_trip!(OriginSecretEncryptionKey, secret, cache);
+    }
+
+    #[test]
+    fn service_keys_round_trip() {
+        let (cache, _dir) = new_cache();
+        let (public, secret) = generate_service_encryption_key_pair("my-org", "foo.default");
+        assert_cache_round_trip!(ServicePublicEncryptionKey, public, cache);
+        assert_cache_round_trip!(ServiceSecretEncryptionKey, secret, cache);
+    }
+
+    #[test]
+    fn signing_keys_round_trip() {
+        let (cache, _dir) = new_cache();
+        let (public, secret) = generate_signing_key_pair("my-org");
+        assert_cache_round_trip!(PublicOriginSigningKey, public, cache);
+        assert_cache_round_trip!(SecretOriginSigningKey, secret, cache);
+    }
 }

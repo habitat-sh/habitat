@@ -1,6 +1,4 @@
-use crate::{crypto::{keys::{Key,
-                            KeyRevision,
-                            NamedRevision},
+use crate::{crypto::{keys::NamedRevision,
                      SECRET_SYM_KEY_VERSION},
             error::{Error,
                     Result},
@@ -18,7 +16,12 @@ mod primitives {
                                              Nonce};
 }
 
-gen_key!(RingKey,
+gen_key!(
+    /// Symmetric secret used to optionally encrypt
+    /// Supervisor-to-Supervisor traffic. All such Supervisors must
+    /// have a copy of the same key (at the same revision) in order to
+    /// send and receive messages from each other.
+    RingKey,
          key_material: primitives::Key,
          file_format_version: SECRET_SYM_KEY_VERSION,
          file_extension: "sym.key",
@@ -28,67 +31,46 @@ impl RingKey {
     /// Generate a new `RingKey` for the given name. Creates a new
     /// key, but does not write anything to the filesystem.
     pub fn new(name: &str) -> Self {
-        let revision = KeyRevision::new();
-        let named_revision = NamedRevision::new(name.to_string(), revision);
+        let named_revision = NamedRevision::new(name.to_string());
         let key = primitives::gen_key();
         RingKey { named_revision,
                   key }
     }
 
-    /// Encrypts a byte slice of data using a given `RingKey`.
+    /// Encrypts a sequence of bytes.
     ///
-    /// The return is a tuple of `Vec<u8>` structs, the first being the random nonce
-    /// value and the second being the ciphertext.
+    /// The return is a tuple of `Vec<u8>`s, the first being a random
+    /// nonce value and the second being the ciphertext. Both are
+    /// needed to decrypt the message.
     pub fn encrypt(&self, data: &[u8]) -> (Vec<u8>, Vec<u8>) {
         let nonce = primitives::gen_nonce();
         (nonce.as_ref().to_vec(), primitives::seal(data, &nonce, &self.key))
     }
 
-    /// Decrypts a byte slice of ciphertext using a given nonce value and a `RingKey`.
+    /// Decrypts a ciphertext using a given nonce value.
     ///
-    /// The return is a `Result` of a byte vector containing the original, unencrypted data.
+    /// The returns the original unencrypted bytes.
     pub fn decrypt(&self, nonce: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
-        let nonce = match primitives::Nonce::from_slice(&nonce) {
-            Some(n) => n,
-            None => return Err(Error::CryptoError("Invalid size of nonce".to_string())),
-        };
-        match primitives::open(ciphertext, &nonce, &self.key) {
-            Ok(msg) => Ok(msg),
-            Err(_) => {
-                Err(Error::CryptoError("Secret key and nonce could not \
-                                        decrypt ciphertext"
-                                                           .to_string()))
-            }
-        }
+        let nonce = primitives::Nonce::from_slice(&nonce).ok_or_else(|| {
+                                                             Error::CryptoError("Invalid size of \
+                                                                                 nonce"
+                                                                                       .to_string())
+                                                         })?;
+
+        primitives::open(ciphertext, &nonce, &self.key).map_err(|_| {
+            Error::CryptoError("Secret key and nonce could not decrypt ciphertext".to_string())
+        })
     }
 }
 
 #[cfg(test)]
-mod test {
-    use super::{super::super::test_support::*,
-                *};
-
-    impl RingKey {
-        pub fn revision(&self) -> &KeyRevision { &self.named_revision.revision }
-
-        pub fn name(&self) -> &String { &self.named_revision.name }
-
-        // TODO (CM): this should probably be renamed; there's no
-        // public key to distinguish it from.
-        pub fn secret(&self) -> crate::error::Result<&primitives::Key> { Ok(&self.key) }
-    }
+mod tests {
+    use super::*;
+    use crate::crypto::test_support::{fixture_as_string,
+                                      fixture_key};
 
     mod from_str {
         use super::*;
-
-        #[test]
-        fn can_parse() {
-            let content = fixture_as_string("keys/ring-key-valid-20160504220722.sym.key");
-            let key = content.parse::<RingKey>().unwrap();
-            assert_eq!(key.name(), "ring-key-valid");
-            assert_eq!(key.revision(), &KeyRevision::unchecked("20160504220722"));
-            // TODO (CM): assert secret bytes
-        }
 
         #[test]
         fn fails_to_parse_invalid_key() {
@@ -111,52 +93,31 @@ mod test {
         }
     }
 
-    mod to_key_string {
-        use super::*;
-        use crate::crypto::keys::KeyFile;
+    #[test]
+    fn decryption() {
+        let key: RingKey = fixture_key("keys/ring-key-valid-20160504220722.sym.key");
 
-        #[test]
-        fn can_write_valid_key_string() {
-            let content = fixture_as_string("keys/ring-key-valid-20160504220722.sym.key");
-            let key = content.parse::<RingKey>().unwrap();
+        let nonce = [175u8, 221u8, 237u8, 184u8, 68u8, 112u8, 40u8, 80u8, 11u8, 173u8, 215u8,
+                     154u8, 129u8, 39u8, 146u8, 10u8, 51u8, 143u8, 150u8, 71u8, 146u8, 97u8, 70u8,
+                     76u8];
+        let ciphertext = [161u8, 106u8, 124u8, 7u8, 144u8, 46u8, 9u8, 29u8, 90u8, 176u8, 207u8,
+                          52u8, 61u8, 3u8, 209u8, 41u8, 144u8, 32u8, 72u8, 245u8, 159u8, 143u8,
+                          192u8, 36u8, 5u8, 235u8, 241u8, 98u8, 231u8, 21u8];
 
-            assert_eq!(content, key.to_key_string());
-        }
-    }
-
-    mod as_ref_path {
-        use super::*;
-        use crate::crypto::keys::KeyFile;
-        use std::path::Path;
-
-        #[test]
-        fn produces_correct_filename() {
-            let content = fixture_as_string("keys/ring-key-valid-20160504220722.sym.key");
-            let key = content.parse::<RingKey>().unwrap();
-
-            assert_eq!(key.own_filename(),
-                       Path::new("ring-key-valid-20160504220722.sym.key"));
-        }
+        let decrypted_message = key.decrypt(&nonce, &ciphertext).unwrap();
+        let decrypted_message = std::str::from_utf8(&decrypted_message).unwrap();
+        assert_eq!(decrypted_message, "This is a test");
     }
 
     #[test]
-    fn generated_ring_pair() {
-        let (cache, dir) = new_cache();
+    fn encryption_roundtrip() {
         let key = RingKey::new("beyonce");
-        cache.write_key(&key).unwrap();
+        let original_message = "Ringonit".to_string().into_bytes();
+        let (nonce, ciphertext) = key.encrypt(&original_message);
+        let decrypted_message = key.decrypt(&nonce, &ciphertext).unwrap();
+        let decrypted_message = std::str::from_utf8(&decrypted_message).unwrap();
 
-        assert_eq!(key.name(), "beyonce");
-        assert!(dir.path()
-                   .join(format!("{}.sym.key", key.named_revision()))
-                   .exists());
-    }
-
-    #[test]
-    fn encrypt_and_decrypt() {
-        let key = RingKey::new("beyonce");
-        let (nonce, ciphertext) = key.encrypt(b"Ringonit");
-        let message = key.decrypt(&nonce, &ciphertext).unwrap();
-        assert_eq!(message, "Ringonit".to_string().into_bytes());
+        assert_eq!(decrypted_message, "Ringonit");
     }
 
     #[test]

@@ -123,6 +123,10 @@ pub trait KeyFile: Key {
 
 ////////////////////////////////////////////////////////////////////////
 
+/// The combination of a key name and a revision timestamp. For any
+/// given type of Habitat key, this will uniquely identify that key,
+/// allowing it to be retrieved from a local key cache or from the
+/// Builder API.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NamedRevision {
     name:     String,
@@ -130,7 +134,15 @@ pub struct NamedRevision {
 }
 
 impl NamedRevision {
-    pub fn new(name: String, revision: KeyRevision) -> Self { NamedRevision { name, revision } }
+    /// Create a new `NamedRevision` for a given name, generating a
+    /// new revision based on the current time.
+    ///
+    /// Only crate-public because nothing outside this crate should be
+    /// creating these.
+    pub(crate) fn new(name: String) -> Self {
+        NamedRevision { name,
+                        revision: KeyRevision::new() }
+    }
 
     pub fn name(&self) -> &String { &self.name }
 
@@ -158,8 +170,8 @@ impl FromStr for NamedRevision {
         let revision = match caps.name("rev") {
             // TODO (CM): This is a bit of an awkward constructor at the
             // moment, but we'll allow it as we've already validated this
-            // with the larger regex. Eventually we should harmonize all
-            // this a bit more.
+            // with the larger regex. It would be nice to harmonize
+            // this a bit more, but it's not the worst situation.
             Some(r) => KeyRevision(r.as_str().to_string()),
             None => {
                 let msg = format!("Cannot parse revision from '{}'", value);
@@ -179,6 +191,7 @@ impl fmt::Display for NamedRevision {
 
 ////////////////////////////////////////////////////////////////////////
 
+/// A timestamp string used to identify Habitat keys.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct KeyRevision(String);
 
@@ -186,7 +199,12 @@ impl KeyRevision {
     /// Generates a revision string in the form:
     /// `{year}{month}{day}{hour24}{minute}{second}`
     /// Timestamps are in UTC time.
-    pub fn new() -> KeyRevision { KeyRevision(Utc::now().format("%Y%m%d%H%M%S").to_string()) }
+    ///
+    /// Only visible in this crate because nothing outside should be
+    /// directly generating these.
+    pub(crate) fn new() -> KeyRevision {
+        KeyRevision(Utc::now().format("%Y%m%d%H%M%S").to_string())
+    }
 }
 
 // TODO (CM): Need some tests that assert that this format string and
@@ -738,14 +756,12 @@ fn set_permissions<T: AsRef<Path>>(path: T, _perms: &Permissions) -> Result<()> 
 ////////////////////////////////////////////////////////////////////////
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use crate::crypto::{keys::{box_key_pair::BoxKeyPair,
-                               ring_key::RingKey,
-                               sig_key_pair::SigKeyPair},
+                               sig_key_pair::SigKeyPair,
+                               RingKey},
                         test_support::*};
-    use std::{thread,
-              time::Duration};
     use tempfile::Builder;
 
     static VALID_KEY: &str = "ring-key-valid-20160504220722.sym.key";
@@ -754,14 +770,7 @@ mod test {
 
     mod named_revision {
         use super::*;
-        use crate::crypto::keys::{OriginPublicEncryptionKey,
-                                  OriginSecretEncryptionKey,
-                                  PublicOriginSigningKey,
-                                  SecretOriginSigningKey,
-                                  ServicePublicEncryptionKey,
-                                  ServiceSecretEncryptionKey,
-                                  UserPublicEncryptionKey,
-                                  UserSecretEncryptionKey};
+
         #[test]
         fn parse_valid_named_revisions() {
             let result: NamedRevision = "foo-20160504220722".parse().unwrap();
@@ -804,44 +813,6 @@ mod test {
         fn string_roundtrip() {
             let input = "foo-20160504220722";
             assert_eq!(input.parse::<NamedRevision>().unwrap().to_string(), input);
-        }
-
-        #[test]
-        fn as_path_testing() {
-            let source = "foo-20160504220722".parse::<NamedRevision>().unwrap();
-            let service_source = "redis.default@chef-20160504220722".parse::<NamedRevision>()
-                                                                    .unwrap();
-
-            assert_eq!(RingKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.sym.key"));
-
-            assert_eq!(PublicOriginSigningKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.pub"));
-            assert_eq!(SecretOriginSigningKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.sig.key"));
-
-            assert_eq!(UserPublicEncryptionKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.pub"));
-            assert_eq!(UserSecretEncryptionKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.box.key"));
-
-            assert_eq!(OriginPublicEncryptionKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.pub"));
-            assert_eq!(OriginSecretEncryptionKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.box.key"));
-
-            assert_eq!(ServicePublicEncryptionKey::filename(&service_source),
-                       PathBuf::from("redis.default@chef-20160504220722.pub"));
-            assert_eq!(ServiceSecretEncryptionKey::filename(&service_source),
-                       PathBuf::from("redis.default@chef-20160504220722.box.key"));
-
-            // NOTE: Nothing yet explicitly prevents a named revision
-            // that does not really belong to a service key from being
-            // pathed as though it were.
-            assert_eq!(ServicePublicEncryptionKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.pub"));
-            assert_eq!(ServiceSecretEncryptionKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.box.key"));
         }
     }
 
