@@ -329,7 +329,7 @@ pub trait PackageMaintenanceHookExt: Hook<ExitValue = ExitStatus> + Sync {
                 let mut pkg = Pkg::from_install(package).await?;
                 // Hooks do not have access to svc_passwords so we execute them under the current
                 // user account.
-                if let Some(user) = habitat_core::os::users::get_current_username() {
+                if let Some(user) = habitat_core::os::users::get_current_username()? {
                     pkg.svc_user = user;
                 }
                 pkg
