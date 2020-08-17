@@ -93,6 +93,10 @@ Create your personal access token at the bottom of the profile page (below the s
 
 ![Create your personal access token](/images/screenshots/generate-token.png)
 
+Your generated access token will appear in the field. Make a copy of your access token by selecting the icon on the right side of the field. You can only see an access token immediately after it is generated. Copy and save your access token in a safe location or set it as an environment variable before your navigate away from your builder profile.
+
+![Copy your personal access token](/images/screenshots/copy-token.png)
+
 Copy your token from this page.
 
 You can use your personal access token as a [Windows environment variable](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-7) for a single session by passing it in the command line or save it in your user settings for use across sessions.
@@ -129,9 +133,9 @@ Set the HAB_AUTH_TOKEN in the CLI with:
 export HAB_AUTH_TOKEN=<token>
 ```
 
-Replacing `<token>` with the contents of your generated token.
+Replacing `<token>` with the contents of your generated personal access token.
 
-To use your token across sessions, set it as an environment variable in your interactive shell configuration file, such as your `.bashrc`.
+To use your personal access token across sessions, set it as an environment variable in your interactive shell configuration file, such as your `.bashrc`.
 
 ```bash
 export HAB_AUTH_TOKEN=<token>
