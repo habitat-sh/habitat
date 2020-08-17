@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.133 -->
-## [1.6.133](https://github.com/habitat-sh/habitat/tree/1.6.133) (2020-08-15)
+<!-- latest_release 1.6.134 -->
+## [1.6.134](https://github.com/habitat-sh/habitat/tree/1.6.134) (2020-08-17)
 
-#### Merged Pull Requests
-- Remove the `hab pkg export cf` command from windows [#7877](https://github.com/habitat-sh/habitat/pull/7877) ([davidMcneil](https://github.com/davidMcneil))
+#### New Features & Enhancements
+- Add `hab sup restart` command [#7878](https://github.com/habitat-sh/habitat/pull/7878) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
 ### Changes since 1.6.115 release
 
 #### New Features & Enhancements
+- Add `hab sup restart` command [#7878](https://github.com/habitat-sh/habitat/pull/7878) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.134 -->
 - builder origin rbac subcommand [#7841](https://github.com/habitat-sh/habitat/pull/7841) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.123 -->
 
 #### Behavioral Changes
