@@ -18,7 +18,6 @@ use std::{borrow::Cow,
           cmp::Ordering,
           fmt,
           mem,
-          path::Path,
           str::FromStr};
 
 #[derive(Debug, Clone, Serialize)]
@@ -79,12 +78,11 @@ impl ServiceFile {
 
     /// Return the body of the service file as a stream of bytes. Always returns a new copy, due to
     /// the fact that we might be encrypted.
-    pub fn body(&self, cache_key_path: &Path) -> Result<Vec<u8>> {
+    pub fn body(&self, key_cache: &KeyCache) -> Result<Vec<u8>> {
         let bytes = if self.encrypted {
-            let cache = KeyCache::new(cache_key_path);
             let secret = EncryptedSecret::from_bytes(&self.body)?.signed()?;
-            let user_public_key = cache.user_public_encryption_key(secret.sender())?;
-            let service_secret_key = cache.service_secret_encryption_key(secret.receiver())?;
+            let user_public_key = key_cache.user_public_encryption_key(secret.sender())?;
+            let service_secret_key = key_cache.service_secret_encryption_key(secret.receiver())?;
             service_secret_key.decrypt_user_message(&secret, &user_public_key)
                               .map(Cow::Owned)?
         } else {
@@ -149,13 +147,11 @@ impl Rumor for ServiceFile {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use crate::rumor::Rumor;
+    use habitat_core::service::ServiceGroup;
     use std::{cmp::Ordering,
               str::FromStr};
-
-    use habitat_core::service::ServiceGroup;
-
-    use super::ServiceFile;
-    use crate::rumor::Rumor;
 
     fn create_service_file(member_id: &str, filename: &str, body: &str) -> ServiceFile {
         let body_bytes: Vec<u8> = Vec::from(body);
@@ -230,7 +226,7 @@ mod tests {
     #[test]
     fn config_comes_back_as_a_string() {
         let s1 = create_service_file("adam", "yep", "tcp-backlog = 128");
-        let mock_cache_key_path = std::path::PathBuf::new();
+        let mock_cache_key_path = KeyCache::new(std::path::PathBuf::new());
         assert_eq!(String::from_utf8(s1.body(&mock_cache_key_path).unwrap()).expect("cannot get a utf-8 string for \
                                                                  the body"),
                    String::from("tcp-backlog = 128"));

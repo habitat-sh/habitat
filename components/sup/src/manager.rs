@@ -63,7 +63,8 @@ use habitat_common::{liveliness_checker,
 use habitat_core::os::{process::{ShutdownSignal,
                                  Signal},
                        signals};
-use habitat_core::{crypto::keys::RingKey,
+use habitat_core::{crypto::keys::{KeyCache,
+                                  RingKey},
                    env,
                    env::Config,
                    fs::FS_ROOT_PATH,
@@ -260,7 +261,7 @@ pub struct ManagerConfig {
     pub auto_update_period:    Duration,
     pub service_update_period: Duration,
     pub custom_state_path:     Option<PathBuf>,
-    pub cache_key_path:        PathBuf,
+    pub key_cache:             KeyCache,
     pub update_url:            String,
     pub update_channel:        ChannelIdent,
     pub gossip_listen:         GossipListenAddr,
@@ -1151,7 +1152,7 @@ impl Manager {
             self.restart_elections_rsw_mlr_rhw_msr(self.feature_flags);
             self.census_ring
                 .write()
-                .update_from_rumors_rsr_mlr(&self.state.cfg.cache_key_path,
+                .update_from_rumors_rsr_mlr(&self.state.cfg.key_cache,
                                             &self.butterfly.service_store,
                                             &self.butterfly.election_store,
                                             &self.butterfly.update_store,
@@ -1982,7 +1983,7 @@ mod test {
                             auto_update_period:    Duration::from_secs(60),
                             service_update_period: Duration::from_secs(60),
                             custom_state_path:     None,
-                            cache_key_path:        (&*CACHE_KEY_PATH).to_path_buf(),
+                            key_cache:             KeyCache::default(),
                             update_url:            "".to_string(),
                             update_channel:        ChannelIdent::default(),
                             gossip_listen:         GossipListenAddr::default(),

@@ -14,6 +14,7 @@ use habitat_butterfly::{member::{Health,
                                 RumorStore}};
 use habitat_common::outputln;
 use habitat_core::{self,
+                   crypto::keys::KeyCache,
                    package::PackageIdent,
                    service::ServiceGroup};
 use serde::{ser::SerializeStruct,
@@ -25,7 +26,6 @@ use std::{borrow::Cow,
                         HashSet},
           fmt,
           iter::IntoIterator,
-          path::Path,
           result,
           str::FromStr};
 
@@ -70,7 +70,7 @@ impl CensusRing {
     /// * `MemberList::entries` (read)
     #[allow(clippy::too_many_arguments)]
     pub fn update_from_rumors_rsr_mlr(&mut self,
-                                      cache_key_path: &Path,
+                                      key_cache: &KeyCache,
                                       service_rumors: &RumorStore<ServiceRumor>,
                                       election_rumors: &RumorStore<ElectionRumor>,
                                       election_update_rumors: &RumorStore<ElectionUpdateRumor>,
@@ -91,8 +91,8 @@ impl CensusRing {
             self.populate_census_rsr_mlr(service_rumors, member_list);
             self.update_from_election_store_rsr(election_rumors);
             self.update_from_election_update_store_rsr(election_update_rumors);
-            self.update_from_service_config_rsr(cache_key_path, service_config_rumors);
-            self.update_from_service_files_rsr(cache_key_path, service_file_rumors);
+            self.update_from_service_config_rsr(key_cache, service_config_rumors);
+            self.update_from_service_files_rsr(key_cache, service_file_rumors);
 
             // Update our counters to reflect current state.
             self.last_membership_counter = member_list.get_update_counter();
@@ -187,14 +187,13 @@ impl CensusRing {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (read)
     fn update_from_service_config_rsr(&mut self,
-                                      cache_key_path: &Path,
+                                      key_cache: &KeyCache,
                                       service_config_rumors: &RumorStore<ServiceConfigRumor>) {
         for (service_group, rumors) in service_config_rumors.lock_rsr().iter() {
             if let Ok(sg) = service_group_from_str(service_group) {
                 if let Some(service_config) = rumors.get(ServiceConfigRumor::const_id()) {
                     if let Some(census_group) = self.census_groups.get_mut(&sg) {
-                        census_group.update_from_service_config_rumor(cache_key_path,
-                                                                      service_config);
+                        census_group.update_from_service_config_rumor(key_cache, service_config);
                     }
                 }
             }
@@ -204,7 +203,7 @@ impl CensusRing {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (read)
     fn update_from_service_files_rsr(&mut self,
-                                     cache_key_path: &Path,
+                                     key_cache: &KeyCache,
                                      service_file_rumors: &RumorStore<ServiceFileRumor>) {
         for (service_group, rumors) in service_file_rumors.lock_rsr().iter() {
             if let Ok(sg) = service_group_from_str(service_group) {
@@ -212,7 +211,7 @@ impl CensusRing {
                 let census_group = self.census_groups
                                        .entry(sg.clone())
                                        .or_insert_with(|| CensusGroup::new(sg, &local_member_id));
-                census_group.update_from_service_file_rumors(cache_key_path, rumors);
+                census_group.update_from_service_file_rumors(key_cache, rumors);
             }
         }
     }
@@ -467,9 +466,9 @@ impl CensusGroup {
     }
 
     fn update_from_service_config_rumor(&mut self,
-                                        cache_key_path: &Path,
+                                        key_cache: &KeyCache,
                                         service_config: &ServiceConfigRumor) {
-        match service_config.config(cache_key_path) {
+        match service_config.config(key_cache) {
             Ok(config) => {
                 if self.service_config.is_none()
                    || service_config.incarnation > self.service_config.as_ref().unwrap().incarnation
@@ -484,7 +483,7 @@ impl CensusGroup {
     }
 
     fn update_from_service_file_rumors(&mut self,
-                                       cache_key_path: &Path,
+                                       key_cache: &KeyCache,
                                        service_file_rumors: &HashMap<String, ServiceFileRumor>)
     {
         self.changed_service_files.clear();
@@ -495,7 +494,7 @@ impl CensusGroup {
                            .or_insert_with(ServiceFile::default);
 
             if service_file_rumor.incarnation > file.incarnation {
-                match service_file_rumor.body(cache_key_path) {
+                match service_file_rumor.body(key_cache) {
                     Ok(body) => {
                         self.changed_service_files.insert(filename.clone());
                         file.filename = filename.clone();
@@ -841,7 +840,7 @@ mod tests {
         let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
         let mut ring = CensusRing::new("member-b".to_string());
-        ring.update_from_rumors_rsr_mlr(&*CACHE_KEY_PATH,
+        ring.update_from_rumors_rsr_mlr(&KeyCache::default(),
                                         &service_store,
                                         &election_store,
                                         &election_update_store,

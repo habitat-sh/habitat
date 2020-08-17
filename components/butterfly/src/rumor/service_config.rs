@@ -19,7 +19,6 @@ use std::{borrow::Cow,
           cmp::Ordering,
           fmt,
           mem,
-          path::Path,
           str::{self,
                 FromStr}};
 
@@ -71,14 +70,11 @@ impl ServiceConfig {
                         config }
     }
 
-    pub fn config(&self, cache_key_path: &Path) -> Result<toml::value::Table> {
+    pub fn config(&self, key_cache: &KeyCache) -> Result<toml::value::Table> {
         let bytes = if self.encrypted {
-            let cache = KeyCache::new(cache_key_path);
-
             let secret = EncryptedSecret::from_bytes(&self.config)?.signed()?;
-
-            let user_public_key = cache.user_public_encryption_key(secret.sender())?;
-            let service_secret_key = cache.service_secret_encryption_key(secret.receiver())?;
+            let user_public_key = key_cache.user_public_encryption_key(secret.sender())?;
+            let service_secret_key = key_cache.service_secret_encryption_key(secret.receiver())?;
 
             service_secret_key.decrypt_user_message(&secret, &user_public_key)
                               .map(Cow::Owned)?
@@ -157,7 +153,7 @@ impl ConstIdRumor for ServiceConfig {
 
 #[cfg(test)]
 mod tests {
-    use super::ServiceConfig;
+    use super::*;
     use crate::rumor::{ConstIdRumor as _,
                        Rumor,
                        RumorStore};
@@ -258,7 +254,7 @@ mod tests {
     #[test]
     fn config_comes_back_as_a_toml_value() {
         let s1 = create_service_config("adam", "yep=1");
-        let mock_cache_key_path = std::path::PathBuf::new();
+        let mock_cache_key_path = KeyCache::new(std::path::PathBuf::new());
         assert_eq!(s1.config(&mock_cache_key_path).unwrap(),
                    toml::from_str::<toml::value::Table>("yep=1").unwrap());
     }

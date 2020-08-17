@@ -1,21 +1,21 @@
 #[cfg(windows)]
-use std::env;
-use std::{path::Path,
-          result};
-
+use crate::common::cli::DEFAULT_BINLINK_DIR;
+use crate::common::ui::{UIReader,
+                        UIWriter,
+                        UI};
 #[cfg(windows)]
-use crate::{common::cli::DEFAULT_BINLINK_DIR,
-            hcore::fs::{self,
-                        FS_ROOT_PATH}};
-use crate::{common::ui::{UIReader,
-                         UIWriter,
-                         UI},
-            hcore::{crypto::keys::KeyCache,
-                    env as henv,
-                    package::ident,
-                    Error::InvalidOrigin}};
+use habitat_core::fs::{self,
+                       FS_ROOT_PATH};
+use habitat_core::{crypto::keys::KeyCache,
+                   env as henv,
+                   package::ident,
+                   Error::InvalidOrigin};
+#[cfg(windows)]
+use std::env;
 #[cfg(windows)]
 use std::ptr;
+use std::{path::Path,
+          result};
 use url::Url;
 #[cfg(windows)]
 use widestring::WideCString;
@@ -41,7 +41,7 @@ use crate::{command,
             CTL_SECRET_ENVVAR,
             ORIGIN_ENVVAR};
 
-pub fn start(ui: &mut UI, cache_path: &Path) -> Result<()> {
+pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
     ui.br()?;
     ui.title("Habitat CLI Setup")?;
     ui.para("Welcome to hab setup. Let's get started.")?;
@@ -103,7 +103,7 @@ pub fn start(ui: &mut UI, cache_path: &Path) -> Result<()> {
         }
         write_cli_config_origin(&origin)?;
         ui.br()?;
-        if is_origin_in_cache(&origin, cache_path) {
+        if is_origin_in_cache(&origin, key_cache) {
             ui.para(&format!("You already have an origin key for {} created and installed. \
                               Great work!",
                              &origin))?;
@@ -118,7 +118,7 @@ pub fn start(ui: &mut UI, cache_path: &Path) -> Result<()> {
             ui.para("For more information on the use of origin keys, please consult the \
                      documentation at https://www.habitat.sh/docs/concepts-keys/#origin-keys")?;
             if ask_create_origin(ui, &origin)? {
-                create_origin(ui, &origin, cache_path)?;
+                create_origin(ui, &origin, key_cache)?;
             } else {
                 ui.para(&format!("You might want to create an origin key later with: `hab \
                                   origin key generate {}'",
@@ -240,13 +240,12 @@ fn write_cli_config_ctl_secret(value: &str) -> Result<()> {
     config::save(&config)
 }
 
-fn is_origin_in_cache(origin: &str, cache_path: &Path) -> bool {
-    let cache = KeyCache::new(cache_path);
-    cache.latest_secret_origin_signing_key(origin).is_ok()
+fn is_origin_in_cache(origin: &str, key_cache: &KeyCache) -> bool {
+    key_cache.latest_secret_origin_signing_key(origin).is_ok()
 }
 
-fn create_origin(ui: &mut UI, origin: &str, cache_path: &Path) -> Result<()> {
-    let result = command::origin::key::generate::start(ui, &origin, cache_path);
+fn create_origin(ui: &mut UI, origin: &str, key_cache: &KeyCache) -> Result<()> {
+    let result = command::origin::key::generate::start(ui, &origin, key_cache);
     ui.br()?;
     result
 }
