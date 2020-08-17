@@ -40,6 +40,8 @@ macro_rules! gen_key {
         from_str_impl_for_key!($t);
 
         try_from_path_buf_impl_for_key!($t);
+
+        try_from_bytes_for_key!($t);
     };
 }
 
@@ -110,6 +112,19 @@ macro_rules! debug_impl_for_key {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(f, "{} {}", stringify!($t), self.named_revision())
             }
+        }
+    };
+}
+
+/// Helper macro to convert bytes into a key. Intended for use in
+/// Builder; we don't really have need for this in the Supervisor or
+/// CLI at the moment.
+macro_rules! try_from_bytes_for_key {
+    ($t:ty) => {
+        impl std::convert::TryFrom<&[u8]> for $t {
+            type Error = Error;
+
+            fn try_from(bytes: &[u8]) -> Result<$t> { std::str::from_utf8(bytes)?.parse() }
         }
     };
 }
