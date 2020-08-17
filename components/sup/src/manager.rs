@@ -380,9 +380,10 @@ impl ReconciliationFlag {
 /// state gets shared with all the CtlGateway handlers.
 pub struct ManagerState {
     /// The configuration used to instantiate this Manager instance
-    cfg:           ManagerConfig,
-    services:      Arc<sync::ManagerServices>,
-    gateway_state: Arc<sync::GatewayState>,
+    cfg:            ManagerConfig,
+    services:       Arc<sync::ManagerServices>,
+    gateway_state:  Arc<sync::GatewayState>,
+    should_restart: AtomicBool,
 }
 
 pub(crate) mod sync {
@@ -685,7 +686,8 @@ impl Manager {
         let census_ring = Arc::new(RwLock::new(CensusRing::new(sys.member_id.clone())));
         Ok(Manager { state: Arc::new(ManagerState { cfg: cfg_static,
                                                     services,
-                                                    gateway_state: Arc::default() }),
+                                                    gateway_state: Arc::default(),
+                                                    should_restart: AtomicBool::default() }),
                      self_updater,
                      service_updater:
                          Arc::new(Mutex::new(ServiceUpdater::new(server.clone(),
@@ -1077,11 +1079,12 @@ impl Manager {
             }
 
             #[cfg(unix)]
-            {
-                if signals::pending_sighup() {
-                    outputln!("Supervisor shutting down for signal");
-                    break ShutdownMode::Restarting;
-                }
+            let should_restart = signals::pending_sighup() || self.check_for_restart();
+            #[cfg(not(unix))]
+            let should_restart = self.check_for_restart();
+            if should_restart {
+                outputln!("Supervisor shutting down for restart");
+                break ShutdownMode::Restarting;
             }
 
             if let Some(package) = self.check_for_updated_supervisor().await {
@@ -1310,6 +1313,8 @@ impl Manager {
     }
 
     fn check_for_departure(&self) -> bool { self.butterfly.is_departed() }
+
+    fn check_for_restart(&self) -> bool { self.state.should_restart.load(Ordering::Relaxed) }
 
     /// # Locking (see locking.md)
     /// * `ManagerServices::inner` (read)

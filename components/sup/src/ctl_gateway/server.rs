@@ -324,6 +324,7 @@ impl SrvHandler {
             "SvcStop" => util::to_supervisor_command(msg, ctl_sender, commands::service_stop),
             "SvcStatus" => util::to_command(msg, ctl_sender, commands::service_status_gsr),
             "SupDepart" => util::to_command(msg, ctl_sender, commands::supervisor_depart),
+            "SupRestart" => util::to_command(msg, ctl_sender, commands::supervisor_restart),
             _ => {
                 warn!("Unhandled message, {}", msg.message_id());
                 Err(HandlerError::from(io::Error::from(io::ErrorKind::InvalidData)))

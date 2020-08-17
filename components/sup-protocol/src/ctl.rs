@@ -24,6 +24,10 @@ impl message::MessageStatic for SupDepart {
     const MESSAGE_ID: &'static str = "SupDepart";
 }
 
+impl message::MessageStatic for SupRestart {
+    const MESSAGE_ID: &'static str = "SupRestart";
+}
+
 impl message::MessageStatic for SvcFilePut {
     const MESSAGE_ID: &'static str = "SvcFilePut";
 }

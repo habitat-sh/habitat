@@ -64,6 +64,12 @@ pub enum HabSup {
         #[structopt(flatten)]
         remote_sup: RemoteSup,
     },
+    /// Restart a Supervisor without restarting its services
+    #[structopt(no_version)]
+    Restart {
+        #[structopt(flatten)]
+        remote_sup: RemoteSup,
+    },
     #[cfg(not(target_os = "macos"))]
     #[structopt(flatten)]
     Sup(Sup),

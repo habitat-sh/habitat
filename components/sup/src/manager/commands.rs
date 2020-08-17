@@ -25,6 +25,7 @@ use habitat_sup_protocol::{self as protocol,
 use std::{convert::TryFrom,
           fmt,
           result,
+          sync::atomic::Ordering,
           time::{Duration,
                  SystemTime}};
 
@@ -325,6 +326,15 @@ pub fn supervisor_depart(mgr: &ManagerState,
         }
         Err(e) => Err(net::err(ErrCode::Internal, e.to_string())),
     }
+}
+
+#[allow(clippy::needless_pass_by_value)]
+pub fn supervisor_restart(mgr: &ManagerState,
+                          _req: &mut CtlRequest,
+                          _opts: protocol::ctl::SupRestart)
+                          -> NetResult<()> {
+    mgr.should_restart.store(true, Ordering::Relaxed);
+    Ok(())
 }
 
 /// # Locking (see locking.md)

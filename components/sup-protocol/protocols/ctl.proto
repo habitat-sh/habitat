@@ -30,6 +30,8 @@ message SupDepart {
   optional string member_id = 1;
 }
 
+message SupRestart {}
+
 message SvcFilePut {
   optional sup.types.ServiceGroup service_group = 1;
   optional bytes content = 2; // TODO: Make this a string

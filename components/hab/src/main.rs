@@ -232,6 +232,9 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                                          remote_sup, } => {
                             return sub_svc_status(pkg_ident, &remote_sup.to_listen_ctl_addr()).await;
                         }
+                        HabSup::Restart { remote_sup } => {
+                            return sub_sup_restart(&remote_sup.to_listen_ctl_addr()).await;
+                        }
                     }
                 }
                 Hab::Svc(svc) => {
@@ -1563,6 +1566,30 @@ async fn sub_sup_depart(member_id: String, remote_sup: &ListenCtlAddr) -> Result
         }
     }
     ui.end("Departure recorded.")?;
+    Ok(())
+}
+
+async fn sub_sup_restart(remote_sup: &ListenCtlAddr) -> Result<()> {
+    let cfg = config::load()?;
+    let secret_key = config::ctl_secret_key(&cfg)?;
+    let mut ui = ui::ui();
+    let msg = sup_proto::ctl::SupRestart::default();
+
+    ui.begin(format!("Restarting supervisor {}", remote_sup))?;
+    let mut response = SrvClient::request(&remote_sup, &secret_key, msg).await?;
+    while let Some(message_result) = response.next().await {
+        let reply = message_result?;
+        match reply.message_id() {
+            "NetOk" => (),
+            "NetErr" => {
+                let m = reply.parse::<sup_proto::net::NetErr>()
+                             .map_err(SrvClientError::Decode)?;
+                return Err(SrvClientError::from(m).into());
+            }
+            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
+        }
+    }
+    ui.end("Restart recorded.")?;
     Ok(())
 }
 
