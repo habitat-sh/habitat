@@ -397,13 +397,27 @@ Prerequisites:
 * [Create an origin](/#create-origin)
 * [Get origin keys](/#origin-keys)
 
-List all of the secrets in an origin:
+##### List Secrets
+
+To list all of the secrets in an origin, use:
 
 ```hab
 hab origin secret list --origin <ORIGIN>
 ```
 
-To save an origin secret, give the secret a name and string value:
+##### Set Origin Secrets as Environment Variables
+
+Add your origin secrets as environment variables in your local environment:
+
+```bash
+export HAB_ORIGIN=<ORIGIN>
+export HAB_AUTH_TOKEN=<TOKEN>
+hab origin secret list
+```
+
+##### Save an Origin Secret
+
+To save an origin secret give the secret a name and the key value:
 
 ```hab
 hab origin secret upload AWS_ACCESS_KEY_ID <your-key-id>
@@ -423,15 +437,9 @@ $ hab origin secret upload AWS_ACCESS_KEY_ID 1234567890EXAMPLE
 ✓ Uploaded secret for AWS_ACCESS_KEY_ID.
 ```
 
-Set your origin, token, and secrets as environment variables in your local environment:
+##### Delete an Origin Secret
 
-```bash
-export HAB_ORIGIN=<ORIGIN>
-export HAB_AUTH_TOKEN=<TOKEN>
-hab origin secret list
-```
-
-Delete a secret (You can also do this from Chef Habitat Builder, Builder > Origins > Settings > Origin Secrets):
+To delete an origin secret from an origin with the CLI
 
 ```hab
 hab origin secret delete AWS_ACCESS_KEY_ID
