@@ -31,20 +31,24 @@ use std::{collections::{HashMap,
                         HashSet},
           fs::DirBuilder,
           path::{Path,
-                 PathBuf},
-          time::Duration};
+                 PathBuf}};
 
 use crate::{api_client::{self,
+                         retry_builder_api,
                          BuilderAPIClient,
                          Client,
                          Error::APIError,
-                         Package},
-            common::Error as CommonError,
+                         Package,
+                         API_RETRIES,
+                         API_RETRY_WAIT},
+            common::error::{APIFailure,
+                            Error as CommonError},
             hcore::{crypto::{artifact,
                              keys::{KeyCache,
                                     NamedRevision}},
                     fs::cache_root_path,
-                    package::{Identifiable,
+                    package::{FullyQualifiedPackageIdent,
+                              Identifiable,
                               PackageArchive,
                               PackageIdent,
                               PackageTarget},
@@ -56,13 +60,10 @@ use habitat_common::ui::{Glyph,
                          UIWriter};
 
 use reqwest::StatusCode;
-use retry::delay;
+use std::convert::TryFrom;
 
 use crate::error::{Error,
                    Result};
-
-pub const RETRIES: usize = 5;
-pub const RETRY_WAIT: Duration = Duration::from_millis(3000);
 
 #[derive(Debug, Deserialize)]
 pub struct PackageSetFile {
@@ -337,13 +338,7 @@ impl<'a> DownloadTask<'a> {
                    ident);
             ui.status(Status::Custom(Glyph::Elipses, String::from("Using cached")),
                       format!("{}", ident))?;
-        } else if let Err(err) = retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES),
-                                                      self.fetch_artifact(ui, ident, target)).await
-        {
-            return Err(CommonError::DownloadFailed(format!("We tried {} times but could not \
-                                                            download {} for {}. Last error \
-                                                            was: {}",
-                                                           RETRIES, ident, target, err)).into());
+            self.fetch_artifact(ui, ident, target).await?;
         }
 
         // At this point the artifact is in the download directory...
@@ -364,21 +359,19 @@ impl<'a> DownloadTask<'a> {
         where T: UIWriter
     {
         ui.status(Status::Downloading, format!("{}", ident))?;
-        match self.api_client
-                  .fetch_package((ident, target),
-                                 self.token,
-                                 &self.path_for_artifact(),
-                                 ui.progress())
-                  .await
+        if let Err(e) = retry_builder_api!(None, async {
+                            self.api_client
+                                .fetch_package((ident, target),
+                                               self.token,
+                                               &self.path_for_artifact(),
+                                               ui.progress())
+                                .await
+                        }).await
         {
-            Ok(_) => Ok(()),
-            Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
-                println!("Host platform or architecture not supported by the targeted depot; \
-                          skipping.");
-                Ok(())
-            }
-            Err(e) => Err(e.into()),
+            let pkg_ident = FullyQualifiedPackageIdent::try_from(ident)?;
+            return Err(CommonError::BuilderAPITransferError(APIFailure::package_download_failed(API_RETRIES, &pkg_ident, target, e.into())).into());
         }
+        Ok(())
     }
 
     async fn fetch_origin_key<T>(&self,

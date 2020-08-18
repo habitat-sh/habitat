@@ -27,7 +27,8 @@ use crate::{api_client::{self,
                          Error::APIError,
                          API_RETRIES,
                          API_RETRY_WAIT},
-            error::{Error,
+            error::{APIFailure,
+                    Error,
                     Result},
             templating::hooks::{InstallHook,
                                 PackageMaintenanceHookExt},
@@ -668,9 +669,8 @@ impl<'a> InstallTask<'a> {
                    ident);
         } else if self.is_offline() {
             return Err(Error::OfflineArtifactNotFound(ident.as_ref().clone()));
-        } else if let Err(err) = self.fetch_artifact(ui, (ident, target), token).await {
-            return Err(err);
         }
+        self.fetch_artifact(ui, (ident, target), token).await?;
 
         let mut artifact = PackageArchive::new(self.cached_artifact_path(ident))?;
         ui.status(Status::Verifying, artifact.ident()?)?;
@@ -843,6 +843,7 @@ impl<'a> InstallTask<'a> {
         where T: UIWriter
     {
         if let Err(e) = retry_builder_api!(None, async {
+                            ui.status(Status::Downloading, format!("{} for {}", ident, target))?;
                             self.api_client
                                 .fetch_package((ident.as_ref(), target),
                                                token,
@@ -851,21 +852,7 @@ impl<'a> InstallTask<'a> {
                                 .await
                         }).await
         {
-            return Err(Error::DownloadFailed(format!("When suitable, we try \
-                                                      once then re-attempt {} \
-                                                      times with a back-off \
-                                                      algorithm. Unfortunately, \
-                                                      it seems we still could \
-                                                      not download {} for {}. \
-                                                      (Some HTTP error \
-                                                      conditions are not \
-                                                      practically worth \
-                                                      retrying) - last error: \
-                                                      {}.",
-                                                     API_RETRIES,
-                                                     ident,
-                                                     target,
-                                                     e)));
+            return Err(Error::BuilderAPITransferError(APIFailure::package_download_failed(API_RETRIES, ident, target, e.into())));
         }
 
         Ok(())
