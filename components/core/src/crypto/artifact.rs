@@ -2,6 +2,7 @@ use crate::{crypto::{keys::{Key,
                             KeyCache,
                             NamedRevision,
                             SecretOriginSigningKey},
+                     Blake2bHash,
                      HART_FORMAT_VERSION,
                      SIG_HASH_TYPE},
             error::{Error,
@@ -158,9 +159,8 @@ fn artifact_header_and_archive<P>(path: P) -> Result<(ArtifactHeader, impl BufRe
 }
 
 /// Returns a tuple of the `NamedRevision` of the key that verified
-/// the `.hart` file, along with the hex-encoded Blake2b hash of its
-/// contents.
-pub fn verify<P>(hart_file_path: P, cache: &KeyCache) -> Result<(NamedRevision, String)>
+/// the `.hart` file, along with the Blake2b hash of its contents.
+pub fn verify<P>(hart_file_path: P, cache: &KeyCache) -> Result<(NamedRevision, Blake2bHash)>
     where P: AsRef<Path>
 {
     let (header, mut reader) = artifact_header_and_archive(hart_file_path)?;
