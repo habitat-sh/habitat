@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.134 -->
-## [1.6.134](https://github.com/habitat-sh/habitat/tree/1.6.134) (2020-08-17)
+<!-- latest_release 1.6.135 -->
+## [1.6.135](https://github.com/habitat-sh/habitat/tree/1.6.135) (2020-08-18)
 
-#### New Features & Enhancements
-- Add `hab sup restart` command [#7878](https://github.com/habitat-sh/habitat/pull/7878) ([davidMcneil](https://github.com/davidMcneil))
+#### Merged Pull Requests
+- Update dependencies [#7875](https://github.com/habitat-sh/habitat/pull/7875) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
@@ -20,6 +20,7 @@
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
+- Update dependencies [#7875](https://github.com/habitat-sh/habitat/pull/7875) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.135 -->
 - Remove the `hab pkg export cf` command from windows [#7877](https://github.com/habitat-sh/habitat/pull/7877) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.133 -->
 - do not add c:/hab/bin to persistent path in ci [#7876](https://github.com/habitat-sh/habitat/pull/7876) ([mwrock](https://github.com/mwrock)) <!-- 1.6.132 -->
 - Fix `hab sup --version` after `structopt` refactoring [#7873](https://github.com/habitat-sh/habitat/pull/7873) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.130 -->
