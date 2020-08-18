@@ -210,8 +210,9 @@
 //! <symkey_base64>
 //! ```
 
-pub use self::keys::{box_key_pair::BoxKeyPair,
-                     sig_key_pair::SigKeyPair};
+pub use self::{hash::Blake2bHash,
+               keys::{box_key_pair::BoxKeyPair,
+                      sig_key_pair::SigKeyPair}};
 use crate::error::{Error,
                    Result};
 
