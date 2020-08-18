@@ -17,7 +17,7 @@ $pkg_binds_optional = @{
 }
 
 function Invoke-Prepare {
-    $env:CARGO_TARGET_DIR = "$HAB_CACHE_SRC_PATH/$pkg_dirname"
+    $env:CARGO_TARGET_DIR = Join-Path -Path "$HAB_CACHE_SRC_PATH" -ChildPath "$pkg_dirname"
     Write-BuildLine "Setting env:CARGO_TARGET_DIR=$env:CARGO_TARGET_DIR"
 }
 

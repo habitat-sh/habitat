@@ -28,7 +28,7 @@ function Invoke-Prepare {
     if($env:HAB_CARGO_TARGET_DIR) {
         $env:CARGO_TARGET_DIR           = "$env:HAB_CARGO_TARGET_DIR"
     } else {
-        $env:CARGO_TARGET_DIR           = "$HAB_CACHE_SRC_PATH/$pkg_dirname"
+        $env:CARGO_TARGET_DIR           = Join-Path -Path "$HAB_CACHE_SRC_PATH" -ChildPath "$pkg_dirname"
     }
 
     $env:SSL_CERT_FILE              = "$(Get-HabPackagePath "cacerts")/ssl/certs/cacert.pem"
