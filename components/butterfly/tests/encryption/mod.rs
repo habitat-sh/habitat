@@ -1,6 +1,6 @@
 use crate::btest;
 use habitat_butterfly::member::Health;
-use habitat_core::crypto::keys::ring_key::RingKey;
+use habitat_core::crypto::keys::RingKey;
 
 #[test]
 fn symmetric_encryption_of_wire_payloads() {
