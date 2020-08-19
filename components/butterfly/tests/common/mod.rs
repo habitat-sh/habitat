@@ -12,7 +12,7 @@ use habitat_butterfly::{error::Error,
                         server::{timing::Timing,
                                  Server,
                                  Suitability}};
-use habitat_core::{crypto::keys::ring_key::RingKey,
+use habitat_core::{crypto::keys::RingKey,
                    package::{Identifiable,
                              PackageIdent},
                    service::ServiceGroup};
