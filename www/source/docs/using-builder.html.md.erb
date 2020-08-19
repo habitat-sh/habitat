@@ -293,10 +293,7 @@ or in the Builder web interface, under the Settings tab for your origin:
 ---
 ## <a name="origin-members" id="origin-members" data-magellan-target="origin-members">Origin Membership</a>
 
-When you create an origin, you are automatically its owner. As the origin owner, you can manage membership, and transfer ownership of the origin to another person (CLI only).
-Origin Members can upload content to the origin and use any of the private and public packages in the origin and invite new members.
-
-### Prerequisites:
+Prerequisites:
 
 * [Download the Chef Habitat CLI](/docs/install-habitat)
 * [Create a Chef Habitat Builder account](/#builder-account)
@@ -304,26 +301,66 @@ Origin Members can upload content to the origin and use any of the private and p
 * [Create an origin](/#create-origin)
 * [Get origin keys](/#origin-keys)
 
-To invite and manage members through Chef Habitat Builder, navigate to the _Members_ tab in your origin. (Builder > Origin > Members)
+### Role-Based Access Control (RBAC) for Chef Habitat Builder (SaaS and on-prem)
+
+TODO:New in: SEMVER
+
+RBAC provides your organization with better operational safety by letting you assign specific levels of access to each origin member. Standard origin members from earlier versions of Builder have been converted to the `Maintainer` role. This role has similar permissions of the previous generic member role and the areas of difference are are detailed below. The origin owner role remains unchanged.
+
+RBAC Origin Member Roles:
+
+* Read-Only: This user can read an origin's packages, channels, members, jobs, keys, integrations, invitations, roles, settings but cannot add to, change, or delete anything else in the origin, including uploading packages and inviting members. Read-Only is the default membership role for all new origin members.
+* Member: In addition to Read-Only access, an origin Member can upload and build packages in the 'unstable' channel, but they cannot promote packages to other channels.
+* Maintainer: Current origin members are now 'Maintainers'. This role has full read and write access to packages, channels, members, jobs, integrations, invitations, settings. However, the Maintainer role is more limited than the past role, in that Maintainers only have read access to packages, channels, members, jobs, keys, integrations, and settings. Origin Maintainers can read origin member roles and see and send invitations to new members, but they cannot otherwise change origin membership--their own or anybody else's. Finally, Maintainers can neither read nor write origin secrets.
+* Administrator: In addition to Maintainer access, the Administrator role adds the missing privileges for writing origin keys and member roles, as well as for reading and writing origin secrets. Administrators have full read and write access to packages, channels, members, jobs, keys, integrations, invitations, roles, secrets, settings.
+* Owner: As in the past, the origin Owner has full read and write access to the origin. Only Owners can delete the origin or transfer ownership to another member.
+
+### Comparison of RBAC Member Roles and Actions
+
+| Action | Read-Only | Member | Maintainer | Administrator | Owner |
+|---------|-------|-------|-------|-------|-------|
+| **Packages** |
+| View packages | Y | Y | Y | Y | Y |
+| Upload packages to `unstable` | N | Y | Y | Y | Y |
+| Promote packages from `unstable` | N | N | N | Y | Y |
+| **Build Jobs** |
+| View build jobs | Y | Y | Y | Y | Y |
+| Trigger `unstable` build job | N | N | N | Y | Y |
+| **Channels** |
+| View channels | Y | Y | Y | Y | Y |
+| Add/Update/Delete channels | N | N | N | Y | Y |
+| **Origin Keys** |
+| View keys | Y | Y | Y | Y | Y |
+| Add/Update/Delete keys | N | N | N | Y | Y |
+| **Origin Membership** |
+| View members | Y | Y | Y | Y | Y |
+| View invitations | N | Y | Y | Y | Y |
+| Send Invitations | N | N | Y | Y | Y |
+| Revoke Invitations | N | N | Y | Y | Y |
+| **Member Roles** |
+| View member roles | Y | Y | Y | Y | Y |
+| Update member roles | N | N | Y | Y | Y |
+| **Origin Settings** |
+| View settings | Y | Y | Y | Y | Y |
+| Add/Update/Delete settings | N | N | N | Y | Y |
+| **Origin Secrets** |
+| View secrets | N | N | Y | Y | Y |
+| Add/Update/Delete secrets | N | N | N | Y | Y |
+| **Cloud Integrations** |
+| View integrations | Y | Y | Y | Y | Y |
+| Add/Update/Delete integrations | Y | Y | Y | Y | Y |
+| **Ownership** |
+| Transfer Origin | N | N | N | N | Y |
+| Delete Origin | N | N | N | N | Y |
+
+### Manage Origin Members in Builder
+
+TODO: Update images of Builder & description of actions that I can take in the UI
+In tandem with the changes to the Builder membership roles, we've also updated the `hab` CLI to support RBAC. We're working on adding role management to the Chef Habitat Builder site, but in the meantime, you'll need to use the CLI for now.
 
 ![Manage origin members](../images/screenshots/origin_members.png)
 
-### Comparison of Origin Owner and Member Actions
-
-| Action | Owner | Member |
-|---------|-------| -------|
-| Use public packages | Yes | Yes |
-| Use private packages | Yes | Yes |
-| See invitations as user| Yes | Yes |
-| Accept invitations as user| Yes | Yes |
-| Ignore invitations as user| Yes | Yes |
-| Invite members to origin | Yes | Yes |
-| Rescind pending origin invitation | Yes | Yes |
-| See pending origin invitations | Yes | No |
-| Transfer origin ownership | Yes | No |
-
-
-### Manage Origin Membership with the Chef Habitat CLI
+### Manage Origin Membership with `hab origin invitations`
 
 Manage Chef Habitat Builder origin membership with the Chef Habitat CLI, using the [hab origin invitations](/docs/habitat-cli/#hab-origin-invitations) command.
 
@@ -372,6 +409,16 @@ Origin owners can transfer origin ownership to another member:
 hab origin transfer [OPTIONS] <ORIGIN> <NEW_OWNER_ACCOUNT>
 ```
 
+### Manage Member Roles with `hab rbac`
+
+TODO: Read the code in 
+ hab origin rbac <SUBCOMMAND>
+
+ hab origin rbac show <MEMBER_ACCOUNT> --origin <ORIGIN>
+
+ hab origin rbac show <ROLE> --origin <ORIGIN>
+
+ hab origin rbac set [FLAGS] [OPTIONS] <MEMBER_ACCOUNT> <ROLE> --origin <ORIGIN>
 ---
 ## <a name="sharing-pkgs" id="sharing-pkgs" data-magellan-target="sharing-pkgs">Upload and Promote Packages</a>
 
