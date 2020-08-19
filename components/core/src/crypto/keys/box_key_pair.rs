@@ -450,19 +450,8 @@ impl BoxKeyPair {
 
 #[cfg(test)]
 mod test {
-    use super::{super::super::test_support::*,
-                BoxKeyPair,
-                *};
-    use crate::crypto::keys::{generate_origin_encryption_key_pair,
-                              generate_service_encryption_key_pair,
-                              generate_user_encryption_key_pair,
-                              Key,
-                              OriginPublicEncryptionKey,
-                              OriginSecretEncryptionKey,
-                              ServicePublicEncryptionKey,
-                              ServiceSecretEncryptionKey,
-                              UserPublicEncryptionKey,
-                              UserSecretEncryptionKey};
+    use super::*;
+    use crate::crypto::test_support::*;
     use std::{fs,
               path::PathBuf,
               str};
@@ -499,69 +488,6 @@ mod test {
     static VALID_KEY: &str = "service-key-valid.default@acme-20160509181736.box.key";
     static VALID_PUB: &str = "service-key-valid.default@acme-20160509181736.pub";
     static VALID_NAME_WITH_REV: &str = "service-key-valid.default@acme-20160509181736";
-
-    #[test]
-    fn can_generate_a_service_encryption_pair() {
-        let (cache, dir) = new_cache();
-
-        let (public, secret): (ServicePublicEncryptionKey, ServiceSecretEncryptionKey) =
-            generate_service_encryption_key_pair("acme", "tnt.default");
-        cache.write_key(&public).unwrap();
-        cache.write_key(&secret).unwrap();
-
-        assert_eq!(public.named_revision(),
-                   secret.named_revision(),
-                   "public and secret service encryption keys should have the same name and \
-                    revision");
-        assert_eq!(public.named_revision().name, "tnt.default@acme");
-        assert!(dir.path()
-                   .join(format!("{}.pub", public.named_revision()))
-                   .exists());
-        assert!(dir.path()
-                   .join(format!("{}.box.key", secret.named_revision()))
-                   .exists());
-    }
-
-    #[test]
-    fn can_generate_a_user_encryption_pair() {
-        let (cache, dir) = new_cache();
-        let (public, secret): (UserPublicEncryptionKey, UserSecretEncryptionKey) =
-            generate_user_encryption_key_pair("wecoyote");
-        cache.write_key(&public).unwrap();
-        cache.write_key(&secret).unwrap();
-
-        assert_eq!(public.named_revision(),
-                   secret.named_revision(),
-                   "public and secret user encryption keys should have the same name and revision");
-        assert_eq!(public.named_revision().name, "wecoyote");
-        assert!(dir.path()
-                   .join(format!("{}.pub", public.named_revision()))
-                   .exists());
-        assert!(dir.path()
-                   .join(format!("{}.box.key", secret.named_revision()))
-                   .exists());
-    }
-
-    #[test]
-    fn can_generate_an_origin_encryption_pair() {
-        let (cache, dir) = new_cache();
-        let (public, secret): (OriginPublicEncryptionKey, OriginSecretEncryptionKey) =
-            generate_origin_encryption_key_pair("my-origin");
-        cache.write_key(&public).unwrap();
-        cache.write_key(&secret).unwrap();
-
-        assert_eq!(public.named_revision(),
-                   secret.named_revision(),
-                   "public and secret origin encryption keys should have the same name and \
-                    revision");
-        assert_eq!(public.named_revision().name, "my-origin");
-        assert!(dir.path()
-                   .join(format!("{}.pub", public.named_revision()))
-                   .exists());
-        assert!(dir.path()
-                   .join(format!("{}.box.key", secret.named_revision()))
-                   .exists());
-    }
 
     #[test]
     fn get_pairs_for() {
@@ -693,81 +619,6 @@ mod test {
     fn get_secret_key_path_nonexistent() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         BoxKeyPair::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
-    }
-
-    #[test]
-    fn encrypt_and_decrypt_from_user_to_service_works() {
-        let (cache, dir) = new_cache();
-
-        let (user_public, user_secret) = generate_user_encryption_key_pair("wecoyote");
-        cache.write_key(&user_public).unwrap();
-        // Don't write the user secret key, to prove it doesn't have to be
-        // in the cache for decryption (while we still require the
-        // cache for decryption).
-
-        let (service_public, service_secret) =
-            generate_service_encryption_key_pair("acme", "tnt.default");
-        cache.write_key(&service_secret).unwrap();
-        // Don't write the service public key, to prove it doesn't have to be
-        // in the cache for decryption (while we still require the
-        // cache for decryption).
-
-        let payload =
-            user_secret.encrypt_for_service(b"I wish to buy more rockets", &service_public);
-
-        // TODO (CM): Haven't reimplemented the remainder yet!
-        let message = BoxKeyPair::decrypt_with_path(&payload, dir.path()).unwrap();
-        assert_eq!(message, b"I wish to buy more rockets");
-    }
-
-    #[test]
-    fn encrypt_and_decrypt_from_service_to_user() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let service = BoxKeyPair::generate_pair_for_service("acme", "tnt.default").unwrap();
-        service.to_pair_files(cache.path()).unwrap();
-        let user = BoxKeyPair::generate_pair_for_user("wecoyote").unwrap();
-        user.to_pair_files(cache.path()).unwrap();
-
-        let ciphertext = service.encrypt(b"Out of rockets", Some(&user)).unwrap();
-        let message = BoxKeyPair::decrypt_with_path(&ciphertext, cache.path()).unwrap();
-        assert_eq!(message, b"Out of rockets");
-    }
-
-    #[test]
-    fn encrypt_and_decrypt_for_origin_message_to_itself() {
-        let (cache, dir) = new_cache();
-        let (public, secret) = generate_origin_encryption_key_pair("acme");
-
-        // Anonymous boxes (as we have here) require *both* secret and
-        // public keys to be present for decryption (when the
-        // decryption part gets refactored, this will be obvious from
-        // function signatures).
-        cache.write_key(&public).unwrap();
-        cache.write_key(&secret).unwrap();
-
-        let ciphertext = public.encrypt(b"Buy more rockets");
-
-        // TODO (CM): Haven't reimplemented the remainder yet!
-        let message = BoxKeyPair::decrypt_with_path(&ciphertext, dir.path()).unwrap();
-        assert_eq!(message, b"Buy more rockets");
-    }
-
-    #[test]
-    fn encrypt_to_self_with_only_public_key() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let sender = BoxKeyPair::generate_pair_for_user("wecoyote").unwrap();
-        sender.to_pair_files(cache.path()).unwrap();
-
-        // Delete the sender's secret key
-        fs::remove_file(
-            BoxKeyPair::get_secret_key_path(&sender.name_with_rev(), cache.path()).unwrap(),
-        )
-        .unwrap();
-        // Now reload the sender's pair which will be missing the secret key
-        let sender = BoxKeyPair::get_latest_pair_for("wecoyote", cache.path()).unwrap();
-
-        let ciphertext = sender.encrypt(b"Nothing to see here", None);
-        assert!(ciphertext.is_ok());
     }
 
     #[test]
