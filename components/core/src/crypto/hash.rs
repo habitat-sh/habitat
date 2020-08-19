@@ -13,7 +13,8 @@ use std::{convert::{TryFrom,
 
 const BUF_SIZE: usize = 1024;
 
-const HASH_DIGEST_SIZE: usize = 32;
+/// The size of a Blake2b hash digest (32 bytes)
+const HASH_DIGEST_SIZE: usize = libsodium_sys::crypto_generichash_BYTES as usize;
 
 /// Convenience wrapper type for a 32-byte Blake2b hash digest.
 ///
@@ -106,7 +107,7 @@ pub fn hash_file<P>(filename: P) -> Result<String>
 }
 
 pub fn hash_string(data: &str) -> String {
-    let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES as usize];
+    let mut out = [0u8; HASH_DIGEST_SIZE];
     let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
     #[allow(clippy::cast_ptr_alignment)]
     let pst = st.as_mut_ptr() as *mut libsodium_sys::crypto_generichash_state;
@@ -119,7 +120,7 @@ pub fn hash_string(data: &str) -> String {
 }
 
 pub fn hash_bytes(data: &[u8]) -> String {
-    let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES as usize];
+    let mut out = [0u8; HASH_DIGEST_SIZE];
     let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
     #[allow(clippy::cast_ptr_alignment)]
     let pst = st.as_mut_ptr() as *mut libsodium_sys::crypto_generichash_state;
@@ -132,7 +133,7 @@ pub fn hash_bytes(data: &[u8]) -> String {
 }
 
 pub fn hash_reader(reader: &mut dyn Read) -> Result<String> {
-    let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES as usize];
+    let mut out = [0u8; HASH_DIGEST_SIZE];
     let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
     #[allow(clippy::cast_ptr_alignment)]
     let pst = st.as_mut_ptr() as *mut libsodium_sys::crypto_generichash_state;
