@@ -326,8 +326,7 @@ pub mod test_support {
                                 cache: &KeyCache)
                                 -> (PublicOriginSigningKey, SecretOriginSigningKey) {
         let (public, secret) = generate_signing_key_pair(name);
-        cache.write_key(&public).unwrap();
-        cache.write_key(&secret).unwrap();
+        cache.write_origin_signing_pair(&public, &secret).unwrap();
         (public, secret)
     }
 
