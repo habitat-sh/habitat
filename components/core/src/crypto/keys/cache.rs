@@ -2,6 +2,7 @@ use crate::{crypto::{hash,
                      keys::{KeyFile,
                             NamedRevision,
                             OriginPublicEncryptionKey,
+                            OriginSecretEncryptionKey,
                             PublicOriginSigningKey,
                             RingKey,
                             SecretOriginSigningKey,
@@ -44,6 +45,64 @@ impl KeyCache {
         if !self.0.is_dir() {
             std::fs::create_dir_all(&self.0)?;
         }
+        Ok(())
+    }
+
+    /// Save a pair of user encryption keys to the cache. Either both are
+    /// saved or neither are.
+    pub fn write_user_encryption_pair(&self,
+                                      public: &UserPublicEncryptionKey,
+                                      secret: &UserSecretEncryptionKey)
+                                      -> Result<()> {
+        self.write_pair(public, secret)
+    }
+
+    /// Save a pair of service encryption keys to the cache.
+    pub fn write_service_encryption_pair(&self,
+                                         public: &ServicePublicEncryptionKey,
+                                         secret: &ServiceSecretEncryptionKey)
+                                         -> Result<()> {
+        self.write_pair(public, secret)
+    }
+
+    /// Save a pair of origin encryption keys to the cache.
+    pub fn write_origin_encryption_pair(&self,
+                                        public: &OriginPublicEncryptionKey,
+                                        secret: &OriginSecretEncryptionKey)
+                                        -> Result<()> {
+        self.write_pair(public, secret)
+    }
+
+    /// Save a pair of signing keys to the cache.
+    pub fn write_origin_signing_pair(&self,
+                                     public: &PublicOriginSigningKey,
+                                     secret: &SecretOriginSigningKey)
+                                     -> Result<()> {
+        self.write_pair(public, secret)
+    }
+
+    /// Write a pair of keys to the cache.
+    fn write_pair<P, S>(&self, public: &P, secret: &S) -> Result<()>
+        where P: KeyFile,
+              S: KeyFile
+    {
+        if public.named_revision() != secret.named_revision() {
+            return Err(Error::CryptoError(format!("Not saving key pair because \
+                                                   they are not actually a \
+                                                   pair! public: {}, secret: {}",
+                                                  public.named_revision(),
+                                                  secret.named_revision())));
+        }
+
+        // TODO (CM): It would be interesting to make this an
+        // all-or-nothing operation, such that both keys were written
+        // or neither were. Once the errors in this part of the crate
+        // are cleaned up, we can better distinguish between different
+        // kinds of error conditions so we don't, say, delete a
+        // previously existing public key if writing a secret key
+        // fails.
+        self.write_key(public)?;
+        self.write_key(secret)?;
         Ok(())
     }
 
@@ -395,5 +454,20 @@ mod test {
         let (public, secret) = generate_signing_key_pair("my-org");
         assert_cache_round_trip!(PublicOriginSigningKey, public, cache);
         assert_cache_round_trip!(SecretOriginSigningKey, secret, cache);
+    }
+
+    mod write_pair {
+        use super::*;
+
+        #[test]
+        fn pair_must_actually_be_a_pair_in_order_to_save() {
+            let (cache, _dir) = new_cache();
+
+            let (me_public, _me_secret) = generate_user_encryption_key_pair("me");
+            let (_you_public, you_secret) = generate_user_encryption_key_pair("you");
+
+            let result = cache.write_user_encryption_pair(&me_public, &you_secret);
+            assert!(result.is_err(), "Threw an error: {:?}", result);
+        }
     }
 }

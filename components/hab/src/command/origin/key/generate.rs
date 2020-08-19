@@ -13,8 +13,7 @@ pub fn start(ui: &mut UI, origin: &str, key_cache: &KeyCache) -> Result<()> {
         ui.begin(format!("Generating origin key for {}", &origin))?;
 
         let (public, secret) = generate_signing_key_pair(origin);
-        key_cache.write_key(&public)?;
-        key_cache.write_key(&secret)?;
+        key_cache.write_origin_signing_pair(&public, &secret)?;
 
         ui.end(format!("Generated origin key pair {}.", public.named_revision()))?;
         Ok(())
