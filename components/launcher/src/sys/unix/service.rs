@@ -73,7 +73,7 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
     let user_id = if let Some(suid) = msg.svc_user_id {
         suid
     } else if let Some(suser) = &msg.svc_user {
-        os::users::get_uid_by_name(&suser).ok_or_else(|| Error::UserNotFound(suser.to_string()))?
+        os::users::get_uid_by_name(&suser)?.ok_or_else(|| Error::UserNotFound(suser.to_string()))?
     } else {
         return Err(Error::UserNotFound(String::from("")));
     };
@@ -82,7 +82,9 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
     let group_id = if let Some(sgid) = msg.svc_group_id {
         sgid
     } else if let Some(sgroup) = &msg.svc_group {
-        os::users::get_gid_by_name(&sgroup).ok_or_else(|| Error::GroupNotFound(sgroup.to_string()))?
+        os::users::get_gid_by_name(&sgroup)?.ok_or_else(|| {
+                                                Error::GroupNotFound(sgroup.to_string())
+                                            })?
     } else {
         return Err(Error::GroupNotFound(String::from("")));
     };

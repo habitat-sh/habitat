@@ -16,7 +16,7 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
            &owner.as_ref(),
            &group.as_ref());
 
-    let uid = match users::get_uid_by_name(&owner.as_ref()) {
+    let uid = match users::get_uid_by_name(&owner.as_ref())? {
         Some(user) => user,
         None => {
             let msg = format!("Can't change owner of {:?} to {:?}:{:?}, error getting user.",
@@ -27,7 +27,7 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
         }
     };
 
-    let gid = match users::get_gid_by_name(&group.as_ref()) {
+    let gid = match users::get_gid_by_name(&group.as_ref())? {
         Some(group) => group,
         None => {
             let msg = format!("Can't change owner of {:?} to {:?}:{:?}, error getting group.",

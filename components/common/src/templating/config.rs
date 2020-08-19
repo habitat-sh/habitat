@@ -612,11 +612,13 @@ mod test {
     use tempfile::TempDir;
 
     fn curr_username() -> String {
-        users::get_current_username().expect("Can get current username")
+        users::get_current_username().expect("Failed to get username")
+                                     .expect("No username found")
     }
 
     fn curr_groupname() -> String {
-        users::get_current_groupname().expect("Can get current groupname")
+        users::get_current_groupname().expect("Failed to get groupname")
+                                      .expect("No groupname found")
     }
 
     fn toml_from_str(content: &str) -> toml::value::Table {
