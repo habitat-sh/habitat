@@ -13,7 +13,11 @@ use std::{cmp::{Ordering,
 
 lazy_static::lazy_static! {
     static ref ORIGIN_NAME_RE: Regex =
-        Regex::new(r"\A[a-z0-9][a-z0-9_-]*\z").expect("Unable to compile regex");
+        Regex::new(r"\A[a-z0-9][a-z0-9_-]*\z").expect("Unable to compile ORIGIN_NAME_RE");
+    static ref IDENT_NAME_RE: Regex =
+        Regex::new(r"^[A-Za-z0-9_-]+$").expect("Unable to compile IDENT_NAME_RE");
+    static ref INOPERABLE_SEQUENCE_RE: Regex =
+        Regex::new(r"^\.{2,}|^\.$").expect("Unable to compile INOPERABLE_SEQUENCE_RE");
 }
 
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
@@ -33,8 +37,13 @@ pub trait Identifiable: fmt::Display {
     fn fully_qualified(&self) -> bool { self.version().is_some() && self.release().is_some() }
 
     fn valid(&self) -> bool {
-        let re = Regex::new(r"^[A-Za-z0-9_-]+$").unwrap();
-        re.is_match(self.name())
+        if self.fully_qualified() {
+            IDENT_NAME_RE.is_match(self.name())
+            && !INOPERABLE_SEQUENCE_RE.is_match(self.version().unwrap())
+            && !INOPERABLE_SEQUENCE_RE.is_match(self.release().unwrap())
+        } else {
+            IDENT_NAME_RE.is_match(self.name())
+        }
     }
 
     fn satisfies<I: Identifiable>(&self, other: &I) -> bool {
@@ -638,6 +647,62 @@ mod tests {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
             None => panic!("We failed to return an order"),
         }
+    }
+
+    #[test]
+    fn package_ident_version_release_operable_check() {
+        let valid1 = PackageIdent::new("origin".to_string(), "widget".to_string(), None, None);
+        let valid2 = PackageIdent::new("origin".to_string(),
+                                       "widget".to_string(),
+                                       Some("1.0.0".to_string()),
+                                       Some("20150521131556".to_string()));
+        let valid3 = PackageIdent::new("origin".to_string(),
+                                       "widget".to_string(),
+                                       Some(".1.00.0..".to_string()),
+                                       Some("2.".to_string()));
+        let valid4 = PackageIdent::new("origin".to_string(),
+                                       "widget-thing".to_string(),
+                                       Some("1.".to_string()),
+                                       Some("2..".to_string()));
+        let invalid1 = PackageIdent::new("origin".to_string(),
+                                         "widget.1".to_string(),
+                                         Some("1.0.0".to_string()),
+                                         Some("20150521131556".to_string()));
+        let invalid2 = PackageIdent::new("origin".to_string(),
+                                         "widget".to_string(),
+                                         Some(".".to_string()),
+                                         Some("20150521131556".to_string()));
+        let invalid3 = PackageIdent::new("origin".to_string(),
+                                         "widget".to_string(),
+                                         Some("1.0.0".to_string()),
+                                         Some(".".to_string()));
+        let invalid4 = PackageIdent::new("origin".to_string(),
+                                         "widget".to_string(),
+                                         Some("..".to_string()),
+                                         Some("20150521131556".to_string()));
+        let invalid5 = PackageIdent::new("origin".to_string(),
+                                         "widget".to_string(),
+                                         Some("1.0.0".to_string()),
+                                         Some("..".to_string()));
+        let invalid6 = PackageIdent::new("origin".to_string(),
+                                         "widget".to_string(),
+                                         Some("..1".to_string()),
+                                         Some("20150521131556".to_string()));
+        let invalid7 = PackageIdent::new("origin".to_string(),
+                                         "widget".to_string(),
+                                         Some("1.0.0".to_string()),
+                                         Some("..20150521131556".to_string()));
+        assert_eq!(true, valid1.valid());
+        assert_eq!(true, valid2.valid());
+        assert_eq!(true, valid3.valid());
+        assert_eq!(true, valid4.valid());
+        assert_eq!(false, invalid1.valid());
+        assert_eq!(false, invalid2.valid());
+        assert_eq!(false, invalid3.valid());
+        assert_eq!(false, invalid4.valid());
+        assert_eq!(false, invalid5.valid());
+        assert_eq!(false, invalid6.valid());
+        assert_eq!(false, invalid7.valid());
     }
 
     #[test]
