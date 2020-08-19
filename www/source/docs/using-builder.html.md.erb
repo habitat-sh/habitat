@@ -411,12 +411,52 @@ hab origin transfer [OPTIONS] <ORIGIN> <NEW_OWNER_ACCOUNT>
 
 ### Manage Member Roles with `hab rbac`
 
-TODO: Read the code in 
+TODO: Read the code in
+TODO: Confirm on command line
+
+// pub struct RbacShow {
+//     #[structopt(flatten)]
+//     pub origin:         BldrOrigin,
+//     /// The account name of the role to display
+//     pub member_account: String,
+//     #[structopt(flatten)]
+//     pub bldr_url:       BldrUrl,
+//     #[structopt(flatten)]
+//     pub auth_token:     AuthToken,
+//     /// Output will be rendered in json
+//     #[structopt(short = "j", long = "json")]
+//     pub to_json:        bool,
+// }
+
+// #[derive(ConfigOpt, StructOpt)]
+// #[structopt(no_version, rename_all = "screamingsnake")]
+// pub struct RbacSet {
+//     #[structopt(flatten)]
+//     pub origin:         BldrOrigin,
+//     /// The account name whose role will be changed
+//     pub member_account: String,
+//     /// The role name to enforce for the member account
+//     #[structopt(possible_values = &[OriginMemberRole::READONLY_MEMBER, OriginMemberRole::MEMBER, OriginMemberRole::MAINTAINER, OriginMemberRole::ADMINISTRATOR, OriginMemberRole::OWNER])]
+//     pub role:           OriginMemberRole,
+//     #[structopt(flatten)]
+//     pub bldr_url:       BldrUrl,
+//     #[structopt(flatten)]
+//     pub auth_token:     AuthToken,
+//     /// Do not prompt for confirmation
+//     #[structopt(short = "n", long = "no-prompt")]
+//     pub no_prompt:      bool,
+}
+
+
  hab origin rbac <SUBCOMMAND>
 
  hab origin rbac show <MEMBER_ACCOUNT> --origin <ORIGIN>
 
- hab origin rbac show <ROLE> --origin <ORIGIN>
+ hab origin rbac show <MEMBER_ACCOUNT> --origin <ORIGIN>
+
+ hab origin rbac show <MEMBER_ACCOUNT> --origin <ORIGIN>
+
+ hab origin rbac show <ROLE> --origin <ORIGIN> --BldrUrl <URL>
 
  hab origin rbac set [FLAGS] [OPTIONS] <MEMBER_ACCOUNT> <ROLE> --origin <ORIGIN>
 ---
