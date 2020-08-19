@@ -53,6 +53,7 @@ windows-acl = "*"
 
 [dev-dependencies]
 num_cpus = "*" # For doc tests
+serde_test = "*"
 
 [features]
 default = ["supported_targets"]

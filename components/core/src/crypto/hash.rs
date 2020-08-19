@@ -1,6 +1,7 @@
 use crate::error::{Error,
                    Result};
 use hex::FromHex;
+use serde::Serialize;
 use std::{convert::{TryFrom,
                     TryInto},
           fmt,
@@ -93,12 +94,21 @@ impl FromStr for Blake2bHash {
     }
 }
 
+impl Serialize for Blake2bHash {
+    /// Serializes a `Blake2bHash` according to its `Display`
+    /// implementation (i.e., a lowercase hex-encoded string).
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+        where S: serde::Serializer
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////
 
-/// Calculate the BLAKE2b hash of a file, return as a hex string
-/// digest size = 32 BYTES
+/// Calculate the BLAKE2b hash of a file.
 /// NOTE: the hashing is keyless
-pub fn hash_file<P>(filename: P) -> Result<String>
+pub fn hash_file<P>(filename: P) -> Result<Blake2bHash>
     where P: AsRef<Path>
 {
     let file = File::open(filename.as_ref())?;
@@ -106,7 +116,7 @@ pub fn hash_file<P>(filename: P) -> Result<String>
     hash_reader(&mut reader)
 }
 
-pub fn hash_string(data: &str) -> String {
+pub fn hash_string(data: &str) -> Blake2bHash {
     let mut out = [0u8; HASH_DIGEST_SIZE];
     let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
     #[allow(clippy::cast_ptr_alignment)]
@@ -116,10 +126,10 @@ pub fn hash_string(data: &str) -> String {
         libsodium_sys::crypto_generichash_update(pst, data[..].as_ptr(), data.len() as u64);
         libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
     }
-    hex::encode(out)
+    Blake2bHash(out)
 }
 
-pub fn hash_bytes(data: &[u8]) -> String {
+pub fn hash_bytes(data: &[u8]) -> Blake2bHash {
     let mut out = [0u8; HASH_DIGEST_SIZE];
     let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
     #[allow(clippy::cast_ptr_alignment)]
@@ -129,10 +139,10 @@ pub fn hash_bytes(data: &[u8]) -> String {
         libsodium_sys::crypto_generichash_update(pst, data[..].as_ptr(), data.len() as u64);
         libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
     }
-    hex::encode(out)
+    Blake2bHash(out)
 }
 
-pub fn hash_reader(reader: &mut dyn Read) -> Result<String> {
+pub fn hash_reader(reader: &mut dyn Read) -> Result<Blake2bHash> {
     let mut out = [0u8; HASH_DIGEST_SIZE];
     let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
     #[allow(clippy::cast_ptr_alignment)]
@@ -154,7 +164,7 @@ pub fn hash_reader(reader: &mut dyn Read) -> Result<String> {
     unsafe {
         libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
     }
-    Ok(hex::encode(out))
+    Ok(Blake2bHash(out))
 }
 
 #[cfg(test)]
@@ -199,15 +209,18 @@ mod test {
         //      b2sum -s=32 signme.dat
 
         let computed = hash_file(&fixture("signme.dat")).unwrap();
-        let expected = "20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233";
+        let expected = "20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233".parse()
+                                                                                         .unwrap();
         assert_eq!(computed, expected);
 
         let computed = hash_file(&fixture("happyhumans-20160424223347.sig.key")).unwrap();
-        let expected = "e966844bbc50b7a3a6d81e94dd38e27b92814b944095a8e55f1780921bfcfbe1";
+        let expected = "e966844bbc50b7a3a6d81e94dd38e27b92814b944095a8e55f1780921bfcfbe1".parse()
+                                                                                         .unwrap();
         assert_eq!(computed, expected);
 
         let computed = hash_file(&fixture("happyhumans-20160424223347.pub")).unwrap();
-        let expected = "b80c4f412f9a0a7727b6e6f115e1b5fa3bae79ad2fcf47f769ed4e42cfb12265";
+        let expected = "b80c4f412f9a0a7727b6e6f115e1b5fa3bae79ad2fcf47f769ed4e42cfb12265".parse()
+                                                                                         .unwrap();
         assert_eq!(computed, expected);
     }
 
@@ -236,7 +249,8 @@ mod test {
             file
         };
         let computed = hash_file(&dst);
-        let expected = "ba640dc063f0ed27e60b38dbb7cf19778cf7805d9fc91eb129fb68b409d46414";
+        let expected = "ba640dc063f0ed27e60b38dbb7cf19778cf7805d9fc91eb129fb68b409d46414".parse()
+                                                                                         .unwrap();
         assert_eq!(computed, expected);
     }
 
@@ -303,6 +317,13 @@ mod test {
             let input = "20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233";
             let output = input.parse::<Blake2bHash>().unwrap().to_string();
             assert_eq!(output, input);
+        }
+
+        #[test]
+        fn serialize_as_hex_encoding() {
+            let input = "20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233";
+            let hash: Blake2bHash = input.parse().unwrap();
+            serde_test::assert_ser_tokens(&hash, &[serde_test::Token::Str(input)]);
         }
     }
 }

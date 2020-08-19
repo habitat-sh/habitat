@@ -10,7 +10,8 @@ use crate::{error::{Error,
 #[cfg(windows)]
 use habitat_core::os::process::windows_child::{Child,
                                                ExitStatus};
-use habitat_core::{crypto,
+use habitat_core::{crypto::{self,
+                            Blake2bHash},
                    fs,
                    fs::svc_hooks_path,
                    package::PackageInstall,
@@ -479,13 +480,14 @@ impl Hook for UninstallHook {
 /// file.
 ///
 /// If the file does not exist, an empty string is returned.
-fn hash_content<T>(path: T) -> Result<String>
+fn hash_content<T>(path: T) -> Result<Option<Blake2bHash>>
     where T: AsRef<Path>
 {
     if path.as_ref().exists() {
-        crypto::hash::hash_file(path).map_err(Error::from)
+        let hash = crypto::hash::hash_file(path).map_err(Error::from)?;
+        Ok(Some(hash))
     } else {
-        Ok(String::new())
+        Ok(None)
     }
 }
 
@@ -494,14 +496,15 @@ fn write_hook<T>(content: &str, path: T) -> Result<bool>
 {
     let content_hash = crypto::hash::hash_string(&content);
     let existing_hash = hash_content(path.as_ref())?;
-
-    if existing_hash == content_hash {
-        Ok(false)
-    } else {
-        let mut file = File::create(path.as_ref())?;
-        file.write_all(&content.as_bytes())?;
-        Ok(true)
+    if let Some(existing_hash) = existing_hash {
+        if existing_hash == content_hash {
+            return Ok(false);
+        }
     }
+
+    let mut file = File::create(path.as_ref())?;
+    file.write_all(&content.as_bytes())?;
+    Ok(true)
 }
 
 pub struct RenderPair {
@@ -696,12 +699,12 @@ echo "The message is Hello World"
 "#;
         create_with_content(&hook, content);
 
-        assert_eq!(hash_content(hook.path()).unwrap(),
-                   "1cece41b2f4d5fddc643fc809d80c17d6658634b28ec1c5ceb80e512e20d2e72");
+        assert_eq!(hash_content(hook.path()).unwrap().unwrap(),
+                   "1cece41b2f4d5fddc643fc809d80c17d6658634b28ec1c5ceb80e512e20d2e72".parse::<Blake2bHash>().unwrap());
     }
 
     #[test]
-    fn hashing_a_hook_that_does_not_already_exist_returns_an_empty_string() {
+    fn hashing_a_hook_that_does_not_already_exist_returns_none() {
         let service_group = service_group();
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
@@ -711,7 +714,7 @@ echo "The message is Hello World"
                                      FeatureFlag::empty()).expect("Could not create testing \
                                                                    install hook");
 
-        assert_eq!(hash_content(hook.path()).unwrap(), "");
+        assert_eq!(hash_content(hook.path()).unwrap(), None);
     }
 
     #[test]

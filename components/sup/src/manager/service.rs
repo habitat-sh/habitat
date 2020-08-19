@@ -1151,18 +1151,22 @@ impl Service {
         where T: AsRef<Path>
     {
         let current_checksum = match hash::hash_file(&file) {
-            Ok(current_checksum) => current_checksum,
+            Ok(current_checksum) => Some(current_checksum),
             Err(err) => {
                 outputln!(preamble self.service_group, "Failed to get current checksum for {}, {}",
                        file.as_ref().display(),
                        err);
-                String::new()
+                None
             }
         };
         let new_checksum = hash::hash_bytes(&contents);
-        if new_checksum == current_checksum {
-            return false;
+
+        if let Some(current_checksum) = current_checksum {
+            if new_checksum == current_checksum {
+                return false;
+            }
         }
+
         if let Err(e) = atomic_write(file.as_ref(), contents) {
             outputln!(preamble self.service_group,
                       "Failed to write to cache file {}, {}",
