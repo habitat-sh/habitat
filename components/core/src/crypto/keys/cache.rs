@@ -110,6 +110,34 @@ impl KeyCache {
     /// and the content has the same hash value, nothing will be
     /// done. If the file exists and it has *different* content, an
     /// Error is returned.
+    // Note that this is potentially problematic for public origin
+    // encryption keys and public origin signing keys. Even though
+    // they have different header values within a file, they could
+    // have the same name and revision (and thus the same filename)
+    // if new encryption and signing pairs were made within the same
+    // second.
+    //
+    // That is, if you made encryption and signing key pairs for
+    // "my-origin" in the same second, the public keys of both would
+    // both try to be saved in the same file, which is not great.
+    //
+    // This is probably _highly_ unlikely to manifest outside of
+    // tests, particularly since only Builder will be generating
+    // origin encryption pairs, but it's worth mentioning.
+    //
+    // This could also cause problems trying to retrieve one of these
+    // keys from the cache, either by name or named revision. If
+    // you're trying to fetch a public origin signing key, but happen
+    // to have a public origin *encryption* key in your cache, we'll
+    // find the file, but won't be able to give you a key, because it
+    // won't parse to the correct type.
+    //
+    // TODO (CM): Consider new filename extensions that capture what
+    // kind of key we're dealing with. For example "service.pub" and
+    // "service.box.key" for service encryption keys, "sig.pub"
+    // and "sig.key" for signing keys, etc. This would, of course,
+    // have to be done in a backwards-compatible way for all the keys
+    // currently in existence.
     pub fn write_key<K>(&self, key: &K) -> Result<()>
         where K: KeyFile
     {
@@ -278,70 +306,54 @@ mod test {
                                KeyFile,
                                OriginSecretEncryptionKey},
                         test_support::*};
-
     static VALID_KEY: &str = "ring-key-valid-20160504220722.sym.key";
     static VALID_NAME_WITH_REV: &str = "ring-key-valid-20160504220722";
+
+    /// Helper to call `cache.get_all_paths_for`, but return a list of
+    /// the plain file names, rather than full paths in the
+    /// cache. This makes testing a bit more straightforward, and less
+    /// verbose.
+    fn ring_key_paths(cache: &KeyCache, name: &str) -> Vec<PathBuf> {
+        cache.get_all_paths_for(name, RingKey::extension())
+             .unwrap()
+             .map(|pb| Path::new(pb.file_name().unwrap()).to_path_buf())
+             .collect()
+    }
 
     #[test]
     fn get_all_paths_for() {
         let (cache, _dir) = new_cache();
 
-        let paths = cache.get_all_paths_for("beyonce", RingKey::extension())
-                         .unwrap();
-        assert_eq!(paths.count(), 0);
+        let ring_name = "beyonce";
 
-        cache.write_key(&RingKey::new("beyonce")).unwrap();
-        let paths = cache.get_all_paths_for("beyonce", RingKey::extension())
-                         .unwrap();
-        assert_eq!(paths.count(), 1);
+        let paths = ring_key_paths(&cache, ring_name);
+        assert!(paths.is_empty());
+
+        let k1 = RingKey::new(ring_name);
+        cache.write_key(&k1).unwrap();
+        let paths = ring_key_paths(&cache, ring_name);
+        assert_eq!(paths.len(), 1);
+        assert!(paths.contains(&k1.own_filename()));
 
         wait_1_sec(); // ensure new revision
                       // will be different.
-        cache.write_key(&RingKey::new("beyonce")).unwrap();
 
-        let paths = cache.get_all_paths_for("beyonce", RingKey::extension())
-                         .unwrap();
-        assert_eq!(paths.count(), 2);
-
-        // We should not include another named key in the count
-        cache.write_key(&RingKey::new("jayz")).unwrap();
-        let paths = cache.get_all_paths_for("beyonce", RingKey::extension())
-                         .unwrap();
-        assert_eq!(paths.count(), 2);
-    }
-
-    #[test]
-    fn latest_cached_revision_single() {
-        let (cache, _dir) = new_cache();
-
-        let key = RingKey::new("beyonce");
-        cache.write_key(&key).unwrap();
-
-        let latest = cache.latest_ring_key_revision("beyonce").unwrap();
-        assert_eq!(latest.named_revision().name(), key.named_revision().name());
-        assert_eq!(latest.named_revision().revision(),
-                   key.named_revision().revision());
-    }
-
-    #[test]
-    fn latest_cached_revision_multiple() {
-        let (cache, _dir) = new_cache();
-
-        let k1 = RingKey::new("beyonce");
-        cache.write_key(&k1).unwrap();
-
-        wait_1_sec();
-
-        let k2 = RingKey::new("beyonce");
+        let k2 = RingKey::new(ring_name);
         cache.write_key(&k2).unwrap();
 
-        assert_eq!(k1.named_revision().name(), k2.named_revision().name());
-        assert_ne!(k1.named_revision().revision(),
-                   k2.named_revision().revision());
+        let paths = ring_key_paths(&cache, ring_name);
+        assert_eq!(paths.len(), 2);
+        assert!(paths.contains(&k1.own_filename()));
+        assert!(paths.contains(&k2.own_filename()));
 
-        let latest = cache.latest_ring_key_revision("beyonce").unwrap();
-        assert_eq!(latest.named_revision(), k2.named_revision());
-        assert_eq!(latest.named_revision(), k2.named_revision());
+        // We should not include another named key in the count
+        let other = RingKey::new("jayz");
+        cache.write_key(&other).unwrap();
+        let paths = ring_key_paths(&cache, ring_name);
+        assert_eq!(paths.len(), 2);
+        assert!(!paths.contains(&other.own_filename()));
+        assert!(paths.contains(&k1.own_filename()));
+        assert!(paths.contains(&k2.own_filename()));
     }
 
     #[test]
@@ -349,23 +361,6 @@ mod test {
     fn latest_cached_revision_nonexistent() {
         let (cache, _dir) = new_cache();
         cache.latest_ring_key_revision("nope-nope").unwrap();
-    }
-
-    #[test]
-    fn writing_ring_key() {
-        let (cache, dir) = new_cache();
-
-        let content = fixture_as_string(&format!("keys/{}", VALID_KEY));
-        let new_key_file = dir.path().join(VALID_KEY);
-        assert_eq!(new_key_file.is_file(), false);
-
-        let key: RingKey = content.parse().unwrap();
-        assert_eq!(key.named_revision().to_string(), VALID_NAME_WITH_REV);
-        cache.write_key(&key).unwrap();
-        assert!(new_key_file.is_file());
-
-        let new_content = std::fs::read_to_string(new_key_file).unwrap();
-        assert_eq!(new_content, content);
     }
 
     #[test]
@@ -402,6 +397,8 @@ mod test {
         cache.write_key(&new_key).unwrap();
     }
 
+    /// Helper macro to assert that a given key can be saved and
+    /// retrieved from the cache in different ways.
     macro_rules! assert_cache_round_trip {
         ($t:ty, $key:expr, $cache:expr) => {
             $cache.write_key::<$t>(&$key).unwrap();
@@ -417,9 +414,42 @@ mod test {
         };
     }
 
+    /// Populate a cache with multiple revisions of all kinds of our
+    /// keys. This can be useful background data against which to
+    /// evaluate `KeyCache::fetch_latest_revision`
+    fn populate_cache(cache: &KeyCache) {
+        for _ in 0..=2 {
+            let (public, secret) = generate_user_encryption_key_pair("my-user");
+            cache.write_user_encryption_pair(&public, &secret).unwrap();
+
+            let (public, secret) = generate_origin_encryption_key_pair("my-origin");
+            cache.write_origin_encryption_pair(&public, &secret)
+                 .unwrap();
+
+            let (public, secret) = generate_service_encryption_key_pair("my-org", "foo.default");
+            cache.write_service_encryption_pair(&public, &secret)
+                 .unwrap();
+
+            // If we're going to be using the same origin name for the
+            // encryption key and the signing key, we have to wait a
+            // second, because the public keys will both have the same
+            // filename :/
+            wait_1_sec();
+            let (public, secret) = generate_signing_key_pair("my-origin");
+            cache.write_origin_signing_pair(&public, &secret).unwrap();
+
+            let key = RingKey::new("beyonce");
+            cache.write_key(&key).unwrap();
+        }
+        // Ensure we're clear for any keys that may be made after this
+        // function has been called; don't want any conflicts!
+        wait_1_sec();
+    }
+
     #[test]
     fn ring_key_round_trip() {
         let (cache, _dir) = new_cache();
+        populate_cache(&cache);
         let key = RingKey::new("beyonce");
         assert_cache_round_trip!(RingKey, key, cache);
     }
@@ -427,6 +457,7 @@ mod test {
     #[test]
     fn user_keys_round_trip() {
         let (cache, _dir) = new_cache();
+        populate_cache(&cache);
         let (public, secret) = generate_user_encryption_key_pair("my-user");
         assert_cache_round_trip!(UserPublicEncryptionKey, public, cache);
         assert_cache_round_trip!(UserSecretEncryptionKey, secret, cache);
@@ -435,6 +466,7 @@ mod test {
     #[test]
     fn origin_keys_round_trip() {
         let (cache, _dir) = new_cache();
+        populate_cache(&cache);
         let (public, secret) = generate_origin_encryption_key_pair("my-origin");
         assert_cache_round_trip!(OriginPublicEncryptionKey, public, cache);
         assert_cache_round_trip!(OriginSecretEncryptionKey, secret, cache);
@@ -443,6 +475,7 @@ mod test {
     #[test]
     fn service_keys_round_trip() {
         let (cache, _dir) = new_cache();
+        populate_cache(&cache);
         let (public, secret) = generate_service_encryption_key_pair("my-org", "foo.default");
         assert_cache_round_trip!(ServicePublicEncryptionKey, public, cache);
         assert_cache_round_trip!(ServiceSecretEncryptionKey, secret, cache);
@@ -451,6 +484,7 @@ mod test {
     #[test]
     fn signing_keys_round_trip() {
         let (cache, _dir) = new_cache();
+        populate_cache(&cache);
         let (public, secret) = generate_signing_key_pair("my-org");
         assert_cache_round_trip!(PublicOriginSigningKey, public, cache);
         assert_cache_round_trip!(SecretOriginSigningKey, secret, cache);
