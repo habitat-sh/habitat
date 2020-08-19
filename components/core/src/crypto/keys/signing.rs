@@ -59,9 +59,7 @@ impl PublicOriginSigningKey {
             .map_err(|_| Error::CryptoError("Error parsing artifact hash".to_string()))?
             .parse()?; // convert to Blake2bHash
 
-        // TODO (CM): the reader/parse bit is just temporary; the
-        // hash functions should really just output a hash directly.
-        let computed_blake2b_hash: Blake2bHash = hash::hash_reader(content)?.parse()?;
+        let computed_blake2b_hash = hash::hash_reader(content)?;
 
         if computed_blake2b_hash == expected_blake2b_hash {
             Ok(expected_blake2b_hash)
@@ -99,7 +97,7 @@ impl SecretOriginSigningKey {
         // have implications if we ever want to change in the future
         // :(
         let hex_encoded_hash = hash::hash_file(&path)?;
-        Ok(self.sign_inner(hex_encoded_hash.as_bytes()))
+        Ok(self.sign_inner(hex_encoded_hash.to_string().as_bytes()))
     }
 
     /// Does the actual heavy lifting of signing a string of bytes.

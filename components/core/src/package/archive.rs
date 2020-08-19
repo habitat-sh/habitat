@@ -4,7 +4,8 @@ use super::{metadata::{MetaFile,
             PackageIdent,
             PackageTarget};
 use crate::{crypto::{artifact,
-                     hash},
+                     hash,
+                     Blake2bHash},
             error::{Error,
                     Result},
             package::ident::FullyQualifiedPackageIdent};
@@ -190,12 +191,8 @@ impl PackageArchive {
         Ok(PackageArchive { path, metadata })
     }
 
-    /// Calculate and return the checksum of the package archive in base64 format.
-    ///
-    /// # Failures
-    ///
-    /// * If the archive cannot be read
-    pub fn checksum(&self) -> Result<String> { hash::hash_file(&self.path) }
+    /// Calculate and return the Blake2b hash of the package archive.
+    pub fn checksum(&self) -> Result<Blake2bHash> { hash::hash_file(&self.path) }
 
     pub fn cflags(&mut self) -> Option<&str> { self.read_metadata(MetaFile::CFlags) }
 
@@ -424,7 +421,7 @@ pub struct PackageArchiveInfo {
     pub name:           String,
     pub version:        String,
     pub release:        String,
-    pub checksum:       String,
+    pub checksum:       Blake2bHash,
     pub target:         String,
     pub is_a_service:   bool,
     pub deps:           Vec<String>,

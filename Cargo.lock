@@ -1425,6 +1425,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
+ "serde_test",
  "sodiumoxide",
  "tabwriter",
  "tar",
@@ -3372,6 +3373,15 @@ dependencies = [
  "indexmap",
  "itoa",
  "ryu",
+ "serde",
+]
+
+[[package]]
+name = "serde_test"
+version = "1.0.115"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4e0e080ac819b025bfc865eb656ccfff1276757bd3b2497368c1dcdeb48ba847"
+dependencies = [
  "serde",
 ]
 
