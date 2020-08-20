@@ -73,8 +73,8 @@ impl ServiceConfig {
     pub fn config(&self, key_cache: &KeyCache) -> Result<toml::value::Table> {
         let bytes = if self.encrypted {
             let secret = EncryptedSecret::from_bytes(&self.config)?.signed()?;
-            let user_public_key = key_cache.user_public_encryption_key(secret.sender())?;
-            let service_secret_key = key_cache.service_secret_encryption_key(secret.receiver())?;
+            let user_public_key = key_cache.user_public_encryption_key(secret.encryptor())?;
+            let service_secret_key = key_cache.service_secret_encryption_key(secret.decryptor())?;
 
             service_secret_key.decrypt_user_message(&secret, &user_public_key)
                               .map(Cow::Owned)?

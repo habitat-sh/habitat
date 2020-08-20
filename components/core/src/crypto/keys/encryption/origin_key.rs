@@ -124,7 +124,7 @@ mod tests {
         // ciphertext will be different each time. If we've got the
         // right key identity, and haven't raised a panic before now,
         // assume we're good.
-        assert_eq!(anonymous.sender(), key.named_revision());
+        assert_eq!(anonymous.key_pair(), key.named_revision());
     }
 
     #[test]
