@@ -412,6 +412,7 @@ impl<'a> DownloadTask<'a> {
         let signer = artifact::artifact_signer(&artifact.path)?;
 
         let cache = KeyCache::new(&self.path_for_keys());
+        cache.setup()?;
 
         if !cache.public_signing_key(&signer).is_ok() {
             ui.status(Status::Downloading,
