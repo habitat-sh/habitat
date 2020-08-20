@@ -1,20 +1,45 @@
 ---
-title: Builder
+title: Chef Habitat Builder
 description: Uploading, building, and deploying application packages with Chef Habitat Builder
 ---
-# <a name="using-builder" id="using-builder" data-magellan-target="using-builder">Chef Habitat Builder</a>
+# <a name="using-builder" id="using-builder" data-magellan-target="using-builder"> Chef Habitat Builder</a>
 
-<a target="_blank" href="https://bldr.habitat.sh/#/sign-in">Chef Habitat Builder</a> is the publicly available site for storing, discovering, building, and deploying your Chef Habitat packages. Chef Habitat Builder supports public and private origins, packages, and Github repositories. Use the Chef Habitat Builder site to:
+Chef Habitat Builder acts as the core of Chef’s Application Delivery Enterprise hub. Chef Habitat Builder was first launched as a cloud service and as the repository of all available plan templates built by Chef and the supporting community. Due to the fact that the application source code is stored alongside the build package many users expressed a preference for storing packages and running the Builder on-premises. As a result, Chef Habitat Builder can be consumed either as a cloud based or on-premises solution. Plan files are stored in the SaaS version where they can be viewed and accessed by the Chef Habitat community and then shared to the on-premises version of the builder where they can then be copied and maintained locally.
 
-* Create an account
-* Make and manage origins
-* Set up automated builds
-* Export packages to container registries
-* Discover packages and origins
+## Chef Habitat Builder Enterprise Components Include:
 
-With some exceptions, most of the actions that you can take on the site have corresponding `hab` CLI commands. We'll try to be clear about actions that are exclusive to either the website or the command line. When both are possible, we provide the Builder site actions first.
+* **Application Manifest** - The Application Manifest provides a single application directory which includes at a minimum the compiled app artifact, dynamic links to all direct & transitive runtime dependencies and instructions to install and run the app.
+* **Deployment Channel Management** -  Pre-canned deployment channels that can be used as-is or a user can custom design their own channels. Apps that are deployed through Chef Habitat can subscribe to a channel and be auto-upgraded whenever the app is promoted.
+* **Origin Management** - origin stuff
+* **Content Library** - Hundreds of pre-built [application delivery packages](https://bldr.habitat.sh/#/pkgs/core) and core dependencies, which makes it easy to get started with Chef Habitat.
+* **Custom Data and Reporting APIs** - Rich APIs enable the capability to export to CSV or JSON.
+* **DevOps Integration APIs** - it provides an API so that clients can find and download the necessary packages to run their applications. Additional APIs also enable easy integration with other popular DevOps tools including Jenkins, Terraform, Artifactory, Hashi Vault and many others.
+* **Role Based User Access** -
+* **Container Registry Support** -
 
-We'll primarily use the `hab origin` command in this documentation. You'll also need `hab pkg` to upload packages from---and download to--your local environment, and `hab bldr` for actions related to build jobs and channels. For more information on CLI commands covered in this section, see the full [hab CLI documentation](/docs/habitat-cli/).
+The Chef Habitat SaaS builder offers additional functionality including Automated Builds,
+
+For more information on how the SaaS and On-Prem versions of Chef Habitat Builder work together read the blog - [Builder On-Prem Enhancements that Extend Support to Airgap Environments and Simplify Set-Up](https://blog.chef.io/chef-habitat-product-announcement-builder-on-prem-enhancements-that-extend-support-to-airgap-environments-and-simplify-set-up/)
+
+## Compare Chef Habitat Builder and Builder on-prem
+
+| Feature | Builder on-prem | Builder SaaS |
+|---------|-----------------|------------- |
+|Application Manifest| Yes | Yes |
+|Deployment Channel Management| Yes | Yes |
+|Origin Management| Yes | Yes |
+|Content Library| Yes | Yes |
+|Custom Data and Reporting APIs| Yes | Yes |
+|DevOps Integration APIs| Yes | Yes |
+|Role Based User Access| Yes | Yes |
+|Container Registry Support| No | Yes |
+
+## <a name="builder-start" id="builder-start" data-magellan-target="builder-start">Get Started</a>
+
+Whether you are looking to leverage the SaaS or on-prem version of Chef Habitat Builder you will need to create an account on the SaaS version of Builder of Chef Habitat. After you have then downloaded the version you will then sync the two accounts.
+
+This documentation covers everything from creating an account to setting up automated builds and exporting packages to a variety of container registries.
+
 
 ---
 ## <a name="builder-account" id="builder-account" data-magellan-target="builder-account">Create a Builder Account</a>
@@ -514,7 +539,7 @@ Attempting to perform an operation using the Habitat client to communicate with 
 
 One option to remediate this error is to define a `SSL_CERT_FILE` environment variable pointing to the custom certificate path before performing the client operation.
 
-The Habitat 0.85.0 release in September 2019 improved the handling of custom certificates.  Now Habitat knows to look for custom certificates in the `~/.hab/cache/ssl` directory, which is `/hab/cache/ssl` when you are running as root. Copying multiple certificates--for example, a self-signed certificate and a custom certificate authority certificate--to the Chef Habitat cache directory makes them automatically available to the Habitat client.
+The Habitat 0.85.0 release in September 2019 improved the handling of custom certificates. Now Habitat knows to look for custom certificates in the `~/.hab/cache/ssl` directory, which is `/hab/cache/ssl` when you are running as root. Copying multiple certificates--for example, a self-signed certificate and a custom certificate authority certificate--to the Chef Habitat cache directory makes them automatically available to the Habitat client.
 
 The `/hab/cache/ssl` directory is also available inside a Habitat Studio. As long as the certificates are inside the cache directory before you enter the Studio, you'll also find them inside the Studio. In addition, if you've set the `SSL_CERT_FILE` environment variable, you'll also find both it and the file that it points to inside the Studio`/hab/cache/ssl` directory.
 

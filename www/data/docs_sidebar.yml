@@ -7,7 +7,7 @@ sidebar_links:
   - title: Install Chef Habitat
     link: "/docs/install-habitat"
     sub_links:
-    - title: Download the Habitat CLI
+    - title: Download the Chef Habitat CLI
       link: "/docs/install-habitat/#install-habitat"
     - title: Accept the License
       link: "/docs/install-habitat/#accept-the-license"
@@ -18,6 +18,8 @@ sidebar_links:
   - title: Chef Habitat Builder
     link: "/docs/using-builder"
     sub_links:
+    - title: Get Started
+      link: "/docs/using-builder/#builder-start"
     - title: Create an Account
       link: "/docs/using-builder/#builder-account"
     - title: Create an Origin
