@@ -24,10 +24,6 @@ use std::{convert::TryFrom,
 #[derive(Clone, Debug, PartialEq)]
 pub struct KeyCache(PathBuf);
 
-impl Default for KeyCache {
-    fn default() -> Self { KeyCache::new(&*crate::fs::CACHE_KEY_PATH) }
-}
-
 impl AsRef<Path> for KeyCache {
     /// Expose the path to this key cache.
     fn as_ref(&self) -> &Path { self.0.as_ref() }

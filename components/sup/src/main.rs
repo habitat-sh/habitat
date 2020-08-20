@@ -394,7 +394,8 @@ mod test {
     use habitat_common::types::{GossipListenAddr,
                                 HttpListenAddr,
                                 ListenCtlAddr};
-    use habitat_core::locked_env_var;
+    use habitat_core::{fs::CACHE_KEY_PATH,
+                       locked_env_var};
     use habitat_sup_protocol::{ctl::ServiceBindList,
                                types::{BindingMode,
                                        ServiceBind,
@@ -716,7 +717,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       key_cache:             KeyCache::default(),
+                                       key_cache:             KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),
@@ -859,7 +860,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       key_cache:             KeyCache::default(),
+                                       key_cache:             KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),
@@ -926,7 +927,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        auto_update_period:   Duration::from_secs(60),
                                        service_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
-                                       key_cache:       KeyCache::default(),
+                                       key_cache:       KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:       ChannelIdent::default(),
@@ -1195,7 +1196,7 @@ sys_ip_address = "7.8.9.0"
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       key_cache:             KeyCache::default(),
+                                       key_cache:             KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),
@@ -1299,7 +1300,7 @@ event_stream_server_certificate = "{}"
                 auto_update_period:   Duration::from_secs(60),
                 service_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
-                                       key_cache:       KeyCache::default(),
+                                       key_cache:       KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:       ChannelIdent::default(),
@@ -1483,7 +1484,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       key_cache:             KeyCache::default(),
+                                       key_cache:             KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),

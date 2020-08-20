@@ -1983,7 +1983,7 @@ mod test {
                             auto_update_period:    Duration::from_secs(60),
                             service_update_period: Duration::from_secs(60),
                             custom_state_path:     None,
-                            key_cache:             KeyCache::default(),
+                            key_cache:             KeyCache::new(&*CACHE_KEY_PATH),
                             update_url:            "".to_string(),
                             update_channel:        ChannelIdent::default(),
                             gossip_listen:         GossipListenAddr::default(),
