@@ -7,7 +7,6 @@ use habitat_core::crypto::keys::{Key,
 
 pub fn start(ui: &mut UI, content: &str, key_cache: &KeyCache) -> Result<()> {
     ui.begin("Importing ring key from standard input")?;
-    key_cache.setup()?;
     let key: RingKey = content.parse()?;
     key_cache.write_key(&key)?;
     ui.end(format!("Imported ring key {}.", &key.named_revision()))?;

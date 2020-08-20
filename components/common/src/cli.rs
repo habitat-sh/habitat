@@ -5,7 +5,6 @@
 
 use clap::{value_t,
            ArgMatches};
-
 use habitat_core::{self,
                    crypto::keys::KeyCache,
                    os::process::{ShutdownSignal,
@@ -48,9 +47,11 @@ pub const DEFAULT_BINLINK_DIR: &str = "/bin";
 #[cfg(target_os = "macos")]
 pub const DEFAULT_BINLINK_DIR: &str = "/usr/local/bin";
 
-pub fn key_cache_from_matches(matches: &ArgMatches<'_>) -> KeyCache {
+pub fn key_cache_from_matches(matches: &ArgMatches<'_>) -> crate::error::Result<KeyCache> {
     let path = clap::value_t!(matches, "CACHE_KEY_PATH", PathBuf).expect("CACHE_KEY_PATH required");
-    KeyCache::new(path)
+    let key_cache = KeyCache::new(path);
+    key_cache.setup()?;
+    Ok(key_cache)
 }
 
 pub fn is_toml_file(val: &str) -> bool {

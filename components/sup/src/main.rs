@@ -281,11 +281,14 @@ async fn split_apart_sup_run(sup_run: SupRun,
 
     let bldr_url = habitat_core::url::bldr_url(shared_load.bldr_url.as_ref());
 
+    let key_cache = KeyCache::new(sup_run.cache_key_path.cache_key_path);
+    key_cache.setup()?;
+
     let cfg = ManagerConfig { auto_update: sup_run.auto_update,
                               auto_update_period: sup_run.auto_update_period.into(),
                               service_update_period: sup_run.service_update_period.into(),
                               custom_state_path: None, // remove entirely?
-                              key_cache: KeyCache::new(sup_run.cache_key_path.cache_key_path),
+                              key_cache,
                               update_url: bldr_url.clone(),
                               update_channel: shared_load.channel.clone(),
                               http_disable: sup_run.http_disable,

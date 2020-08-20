@@ -309,6 +309,7 @@ pub async fn start<U>(ui: &mut U,
     where U: UIWriter
 {
     let key_cache = KeyCache::new(cache_key_path(fs_root_path));
+    key_cache.setup()?;
     debug!("install key cache: {}", key_cache.as_ref().display());
 
     let api_client = Client::new(url, product, version, Some(fs_root_path))?;
