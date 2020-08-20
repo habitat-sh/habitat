@@ -792,7 +792,7 @@ mod tests {
         let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
 
-        ring.update_from_rumors_rsr_mlr(&KeyCache::default(),
+        ring.update_from_rumors_rsr_mlr(&KeyCache::new(&*CACHE_KEY_PATH),
                                         &service_store,
                                         &election_store,
                                         &election_update_store,
