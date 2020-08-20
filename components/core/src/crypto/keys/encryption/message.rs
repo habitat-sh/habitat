@@ -12,41 +12,42 @@ const BOX_FORMAT_VERSION: &str = "BOX-1";
 /// Version identifier for anonymous encrypted messages.
 const ANONYMOUS_BOX_FORMAT_VERSION: &str = "ANONYMOUS-BOX-1";
 
-/// An encrypted message sent anonymously to a recipient. The message
-/// was encrypted with the recipient's public key, and can only be
-/// decoded by the recipient's private key. The identity of the sender
-/// cannot be known.
+/// An anonymously encrypted message. The message was encrypted with
+/// the recipient's public key, and can only be decoded by the
+/// recipient's private key. The identity of the sender cannot be
+/// known.
 #[derive(Debug)]
 pub struct AnonymousBox {
-    // TODO (CM): if it's really anonymous, then sender is really the recipient!!!!
-    /// The identity of the keypair that was used to encrypt (and
-    /// thus, must be used to decrypt) this message.
-    sender:     NamedRevision,
+    /// The encryption key pair that was used to encrypt, and thus
+    /// must also be used to decrypt, this message.
+    key_pair:   NamedRevision,
     /// The encoded ciphertext of the message.
     ciphertext: Vec<u8>,
 }
 
 impl AnonymousBox {
     /// Create a new AnonymousBox. Intentionally private to the encryption module.
-    pub(super) fn new(sender: NamedRevision, ciphertext: Vec<u8>) -> Self {
-        Self { sender, ciphertext }
+    pub(super) fn new(key_pair: NamedRevision, ciphertext: Vec<u8>) -> Self {
+        Self { key_pair,
+               ciphertext }
     }
 
-    pub fn sender(&self) -> &NamedRevision { &self.sender }
+    pub fn key_pair(&self) -> &NamedRevision { &self.key_pair }
 
     pub fn ciphertext(&self) -> &[u8] { &self.ciphertext }
 }
 
 impl fmt::Display for AnonymousBox {
     /// Implements Habitat's String formatting for sending signed
-    /// anonymous encrypted messages. The version and sender are in
-    /// plaintext, while the ciphertext is base64 encoded.
+    /// anonymous encrypted messages. The version and key pair
+    /// identifier are in plaintext, while the ciphertext is base64
+    /// encoded.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
                "{}\n{}\n{}",
                ANONYMOUS_BOX_FORMAT_VERSION,
-               self.sender,
-               base64::encode(&self.ciphertext))
+               self.key_pair(),
+               base64::encode(self.ciphertext()))
     }
 }
 
@@ -56,6 +57,9 @@ impl fmt::Display for AnonymousBox {
 /// be decrypted with the sender's public key and the recipient's
 /// secret key.
 ///
+/// `encryptor` identifies the sender's key pair, while `decryptor`
+/// identifies the recipient's key pair.
+///
 /// See `sodiumoxide::crypto::box_` for further details.
 #[derive(Debug)]
 pub struct SignedBox {
@@ -63,12 +67,12 @@ pub struct SignedBox {
     /// message. Only the owner of this pair's secret key could have
     /// sent this message, and its public key must be used to decrypt
     /// it.
-    sender:     NamedRevision,
+    encryptor:  NamedRevision,
     /// The identity of the keypair of the recipient of this
     /// message. The pair's public key was used to encrypt this
     /// message (thus "addressing" it to the receiver), and only the
     /// owner of this pair's secret key may decrypt it.
-    receiver:   NamedRevision,
+    decryptor:  NamedRevision,
     /// The encrypted ciphertext of the message
     ciphertext: Vec<u8>,
     /// The cryptographic nonce used to encrypt the message.
@@ -77,20 +81,20 @@ pub struct SignedBox {
 
 impl SignedBox {
     /// Create a new SignedBox. Intentionally private to the encryption module.
-    pub(super) fn new(sender: NamedRevision,
-                      receiver: NamedRevision,
+    pub(super) fn new(encryptor: NamedRevision,
+                      decryptor: NamedRevision,
                       ciphertext: Vec<u8>,
                       nonce: primitives::Nonce)
                       -> Self {
-        Self { sender,
-               receiver,
+        Self { encryptor,
+               decryptor,
                ciphertext,
                nonce }
     }
 
-    pub fn sender(&self) -> &NamedRevision { &self.sender }
+    pub fn encryptor(&self) -> &NamedRevision { &self.encryptor }
 
-    pub fn receiver(&self) -> &NamedRevision { &self.receiver }
+    pub fn decryptor(&self) -> &NamedRevision { &self.decryptor }
 
     pub fn ciphertext(&self) -> &[u8] { &self.ciphertext }
 
@@ -99,20 +103,20 @@ impl SignedBox {
 
 impl fmt::Display for SignedBox {
     /// Implements Habitat's String formatting for sending signed
-    /// encrypted messages. The version, sender, and receiver are in
-    /// plaintext, while the nonce and ciphertext are base64 encoded.
+    /// encrypted messages. The version, encryptor identifier, and
+    /// decryptor identifier are in plaintext, while the nonce and
+    /// ciphertext are base64 encoded.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
                "{}\n{}\n{}\n{}\n{}",
                BOX_FORMAT_VERSION,
-               self.sender,
-               self.receiver,
+               self.encryptor,
+               self.decryptor,
                base64::encode(self.nonce),
                base64::encode(&self.ciphertext))
     }
 }
 
-// TODO (CM): THIS should be the main way to access this stuff
 #[derive(Debug)]
 pub enum EncryptedSecret {
     Anonymous(AnonymousBox),
@@ -166,19 +170,27 @@ impl FromStr for EncryptedSecret {
 
         let is_anonymous = version == ANONYMOUS_BOX_FORMAT_VERSION;
 
-        let sender =
+        // Yeah, this variable name is weird, but this line plays a
+        // different role depending on whether it's an anonymous or
+        // signed message. :/
+        let encryptor_or_key_pair =
             lines.next()
                  .ok_or_else(|| {
-                     Error::CryptoError("Corrupt payload, can't read sender key name".to_string())
+                     let kind = if is_anonymous {
+                         "key_pair"
+                     } else {
+                         "encryptor"
+                     };
+                     Error::CryptoError(format!("Corrupt payload, can't read {} identifier", kind))
                  })?
                  .parse()?;
 
-        let receiver = if is_anonymous {
+        let decryptor = if is_anonymous {
             None
         } else {
             let r = lines.next()
                          .ok_or_else(|| {
-                             Error::CryptoError("Corrupt payload, can't read receiver key \
+                             Error::CryptoError("Corrupt payload, can't read decryptor key \
                                                          name"
                                                               .to_string())
                          })?
@@ -209,11 +221,14 @@ impl FromStr for EncryptedSecret {
                  .map_err(|e| Error::CryptoError(format!("Can't decode ciphertext: {}", e)))?;
 
         if is_anonymous {
-            Ok(EncryptedSecret::Anonymous(AnonymousBox { sender, ciphertext }))
+            Ok(EncryptedSecret::Anonymous(AnonymousBox { key_pair:
+                                                             encryptor_or_key_pair,
+                                                         ciphertext }))
         } else {
-            Ok(EncryptedSecret::Signed(SignedBox { sender,
-                                                   receiver:
-                                                       receiver.unwrap(),
+            Ok(EncryptedSecret::Signed(SignedBox { encryptor:
+                                                       encryptor_or_key_pair,
+                                                   decryptor:
+                                                       decryptor.unwrap(),
                                                    ciphertext,
                                                    nonce:
                                                        nonce.unwrap() }))
@@ -246,16 +261,16 @@ mod tests {
             let encrypted = ANONYMOUS_TEXT.parse::<EncryptedSecret>().unwrap();
             let anonymous = encrypted.anonymous().unwrap();
 
-            let expected_sender: NamedRevision =
+            let expected_key_pair: NamedRevision =
                 "fhloston-paradise-20200813211603".parse().unwrap();
 
-            assert_eq!(anonymous.sender(), &expected_sender);
+            assert_eq!(anonymous.key_pair(), &expected_key_pair);
             assert_eq!(anonymous.ciphertext().to_vec(), CIPHERTEXT.to_vec());
         }
 
         #[test]
         fn to_string() {
-            let anonymous = AnonymousBox { sender:     "fhloston-paradise-20200813211603".parse()
+            let anonymous = AnonymousBox { key_pair:   "fhloston-paradise-20200813211603".parse()
                                                                                          .unwrap(),
                                            ciphertext: CIPHERTEXT.to_vec(), };
 
@@ -286,13 +301,13 @@ mod tests {
             let encrypted = SIGNED_TEXT.parse::<EncryptedSecret>().unwrap();
             let signed = encrypted.signed().unwrap();
 
-            let expected_sender: NamedRevision = "ruby-rhod-20200813204159".parse().unwrap();
+            let expected_encryptor: NamedRevision = "ruby-rhod-20200813204159".parse().unwrap();
             let expected_receiver: NamedRevision =
                 "service-key-valid.default@acme-20160509181736".parse()
                                                                .unwrap();
 
-            assert_eq!(signed.sender(), &expected_sender);
-            assert_eq!(signed.receiver(), &expected_receiver);
+            assert_eq!(signed.encryptor(), &expected_encryptor);
+            assert_eq!(signed.decryptor(), &expected_receiver);
             assert_eq!(signed.nonce(),
                        &primitives::Nonce::from_slice(&NONCE).unwrap());
             assert_eq!(signed.ciphertext().to_vec(), CIPHERTEXT.to_vec());
@@ -300,14 +315,14 @@ mod tests {
 
         #[test]
         fn to_string() {
-            let sender = "ruby-rhod-20200813204159".parse().unwrap();
-            let receiver = "service-key-valid.default@acme-20160509181736".parse()
-                                                                          .unwrap();
+            let encryptor = "ruby-rhod-20200813204159".parse().unwrap();
+            let decryptor = "service-key-valid.default@acme-20160509181736".parse()
+                                                                           .unwrap();
             let nonce = primitives::Nonce::from_slice(&NONCE).unwrap();
             let ciphertext = CIPHERTEXT.to_vec();
 
-            let signed = SignedBox { sender,
-                                     receiver,
+            let signed = SignedBox { encryptor,
+                                     decryptor,
                                      nonce,
                                      ciphertext };
 

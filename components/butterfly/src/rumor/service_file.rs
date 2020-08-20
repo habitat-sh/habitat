@@ -81,8 +81,8 @@ impl ServiceFile {
     pub fn body(&self, key_cache: &KeyCache) -> Result<Vec<u8>> {
         let bytes = if self.encrypted {
             let secret = EncryptedSecret::from_bytes(&self.body)?.signed()?;
-            let user_public_key = key_cache.user_public_encryption_key(secret.sender())?;
-            let service_secret_key = key_cache.service_secret_encryption_key(secret.receiver())?;
+            let user_public_key = key_cache.user_public_encryption_key(secret.encryptor())?;
+            let service_secret_key = key_cache.service_secret_encryption_key(secret.decryptor())?;
             service_secret_key.decrypt_user_message(&secret, &user_public_key)
                               .map(Cow::Owned)?
         } else {

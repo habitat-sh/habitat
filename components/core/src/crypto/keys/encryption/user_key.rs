@@ -100,8 +100,8 @@ mod tests {
         // ciphertext will be different each time. If we've got the
         // right sender and recipient, and haven't raised a panic
         // before now, assume we're good.
-        assert_eq!(signed.sender(), user.named_revision());
-        assert_eq!(signed.receiver(), service.named_revision());
+        assert_eq!(signed.encryptor(), user.named_revision());
+        assert_eq!(signed.decryptor(), service.named_revision());
     }
 
     // Choosing to put the "round trip" encryption test over in
