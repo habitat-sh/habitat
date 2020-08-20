@@ -17,7 +17,7 @@ lazy_static::lazy_static! {
     static ref IDENT_NAME_RE: Regex =
         Regex::new(r"^[A-Za-z0-9_-]+$").expect("Unable to compile IDENT_NAME_RE");
     static ref INOPERABLE_SEQUENCE_RE: Regex =
-        Regex::new(r"^\.{2,}|^\.$").expect("Unable to compile INOPERABLE_SEQUENCE_RE");
+        Regex::new(r"^\.+|\.$|\.{2,}").expect("Unable to compile INOPERABLE_SEQUENCE_RE");
 }
 
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
@@ -44,6 +44,24 @@ pub trait Identifiable: fmt::Display {
         } else {
             IDENT_NAME_RE.is_match(self.name())
         }
+    }
+
+    fn validate_fields(&self) -> Result<()> {
+        if !ORIGIN_NAME_RE.is_match(self.origin()) {
+            return Err(Error::ConfigInvalidIdent("origin"));
+        }
+        if !IDENT_NAME_RE.is_match(self.name()) {
+            return Err(Error::ConfigInvalidIdent("name"));
+        }
+        if self.fully_qualified() {
+            if INOPERABLE_SEQUENCE_RE.is_match(self.version().unwrap()) {
+                return Err(Error::ConfigInvalidIdent("version"));
+            }
+            if INOPERABLE_SEQUENCE_RE.is_match(self.release().unwrap()) {
+                return Err(Error::ConfigInvalidIdent("release"));
+            }
+        }
+        Ok(())
     }
 
     fn satisfies<I: Identifiable>(&self, other: &I) -> bool {
@@ -658,12 +676,12 @@ mod tests {
                                        Some("20150521131556".to_string()));
         let valid3 = PackageIdent::new("origin".to_string(),
                                        "widget".to_string(),
-                                       Some(".1.00.0..".to_string()),
-                                       Some("2.".to_string()));
+                                       Some("0.1.00".to_string()),
+                                       Some("2.20150521131556".to_string()));
         let valid4 = PackageIdent::new("origin".to_string(),
                                        "widget-thing".to_string(),
-                                       Some("1.".to_string()),
-                                       Some("2..".to_string()));
+                                       Some("1.1-100".to_string()),
+                                       Some("20150521131556".to_string()));
         let invalid1 = PackageIdent::new("origin".to_string(),
                                          "widget.1".to_string(),
                                          Some("1.0.0".to_string()),
@@ -674,24 +692,24 @@ mod tests {
                                          Some("20150521131556".to_string()));
         let invalid3 = PackageIdent::new("origin".to_string(),
                                          "widget".to_string(),
-                                         Some("1.0.0".to_string()),
-                                         Some(".".to_string()));
+                                         Some("..".to_string()),
+                                         Some("20150521131556".to_string()));
         let invalid4 = PackageIdent::new("origin".to_string(),
                                          "widget".to_string(),
-                                         Some("..".to_string()),
+                                         Some(".2".to_string()),
                                          Some("20150521131556".to_string()));
         let invalid5 = PackageIdent::new("origin".to_string(),
                                          "widget".to_string(),
-                                         Some("1.0.0".to_string()),
-                                         Some("..".to_string()));
+                                         Some("..2".to_string()),
+                                         Some("20150521131556".to_string()));
         let invalid6 = PackageIdent::new("origin".to_string(),
                                          "widget".to_string(),
-                                         Some("..1".to_string()),
+                                         Some("..2.0.0".to_string()),
                                          Some("20150521131556".to_string()));
         let invalid7 = PackageIdent::new("origin".to_string(),
                                          "widget".to_string(),
-                                         Some("1.0.0".to_string()),
-                                         Some("..20150521131556".to_string()));
+                                         Some("1.0.0.".to_string()),
+                                         Some("20150521131556".to_string()));
         assert_eq!(true, valid1.valid());
         assert_eq!(true, valid2.valid());
         assert_eq!(true, valid3.valid());
