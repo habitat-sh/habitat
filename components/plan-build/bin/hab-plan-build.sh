@@ -726,10 +726,10 @@ _install_dependency() {
               "${HAB_FEAT_IGNORE_LOCAL:-}" = "TRUE" ]]; then
         IGNORE_LOCAL="--ignore-local"
     fi
-    $HAB_BIN install -u $HAB_BLDR_URL --channel $HAB_BLDR_CHANNEL ${IGNORE_LOCAL:-} "$@" || {
+    $HAB_BIN pkg install -u $HAB_BLDR_URL --channel $HAB_BLDR_CHANNEL ${IGNORE_LOCAL:-} "$@" || {
       if [[ "$HAB_BLDR_CHANNEL" != "$FALLBACK_CHANNEL" ]]; then
         build_line "Trying to install '$dep' from '$FALLBACK_CHANNEL'"
-        $HAB_BIN install -u $HAB_BLDR_URL --channel "$FALLBACK_CHANNEL" ${IGNORE_LOCAL:-} "$@" || true
+        $HAB_BIN pkg install -u $HAB_BLDR_URL --channel "$FALLBACK_CHANNEL" ${IGNORE_LOCAL:-} "$@" || true
       fi
     }
   fi
