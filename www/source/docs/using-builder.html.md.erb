@@ -305,7 +305,7 @@ Prerequisites:
 
 TODO:New in: SEMVER
 
-RBAC provides your organization with better operational safety by letting you assign specific levels of access to each origin member. Standard origin members from earlier versions of Builder have been converted to the `Maintainer` role. This role has similar permissions of the previous generic member role and the areas of difference are are detailed below. The origin owner role remains unchanged.
+RBAC provides your organization with better operational safety by letting you assign specific levels of access to each origin member. With RBAC in place, existing standard origin members from earlier versions are assigned the `Maintainer` role. This role has similar permissions of the previous generic member role and the areas of difference are are detailed below. The origin owner role remains unchanged.
 
 RBAC Origin Member Roles:
 
@@ -322,33 +322,33 @@ RBAC Origin Member Roles:
 | **Packages** |
 | View packages | Y | Y | Y | Y | Y |
 | Upload packages to `unstable` | N | Y | Y | Y | Y |
-| Promote packages from `unstable` | N | N | N | Y | Y |
+| Promote packages from `unstable` | N | N | Y | Y | Y |
 | **Build Jobs** |
 | View build jobs | Y | Y | Y | Y | Y |
-| Trigger `unstable` build job | N | N | N | Y | Y |
+| Trigger `unstable` build job | N | Y | Y | Y | Y |
 | **Channels** |
 | View channels | Y | Y | Y | Y | Y |
-| Add/Update/Delete channels | N | N | N | Y | Y |
+| Add/Update/Delete channels | N | N | Y | Y | Y |
 | **Origin Keys** |
 | View keys | Y | Y | Y | Y | Y |
 | Add/Update/Delete keys | N | N | N | Y | Y |
 | **Origin Membership** |
 | View members | Y | Y | Y | Y | Y |
-| View invitations | N | Y | Y | Y | Y |
+| View invitations | Y | Y | Y | Y | Y |
 | Send Invitations | N | N | Y | Y | Y |
 | Revoke Invitations | N | N | Y | Y | Y |
 | **Member Roles** |
 | View member roles | Y | Y | Y | Y | Y |
-| Update member roles | N | N | Y | Y | Y |
+| Update member roles | N | N | N | Y | Y |
 | **Origin Settings** |
 | View settings | Y | Y | Y | Y | Y |
 | Add/Update/Delete settings | N | N | N | Y | Y |
 | **Origin Secrets** |
-| View secrets | N | N | Y | Y | Y |
+| View secrets | N | N | N | Y | Y |
 | Add/Update/Delete secrets | N | N | N | Y | Y |
 | **Cloud Integrations** |
 | View integrations | Y | Y | Y | Y | Y |
-| Add/Update/Delete integrations | Y | Y | Y | Y | Y |
+| Add/Update/Delete integrations | N | N | Y | Y | Y |
 | **Ownership** |
 | Transfer Origin | N | N | N | N | Y |
 | Delete Origin | N | N | N | N | Y |
@@ -356,6 +356,8 @@ RBAC Origin Member Roles:
 ### Manage Origin Members in Builder
 
 TODO: Update images of Builder & description of actions that I can take in the UI
+
+
 In tandem with the changes to the Builder membership roles, we've also updated the `hab` CLI to support RBAC. We're working on adding role management to the Chef Habitat Builder site, but in the meantime, you'll need to use the CLI for now.
 
 ![Manage origin members](../images/screenshots/origin_members.png)
@@ -411,54 +413,39 @@ hab origin transfer [OPTIONS] <ORIGIN> <NEW_OWNER_ACCOUNT>
 
 ### Manage Member Roles with `hab rbac`
 
-TODO: Read the code in
-TODO: Confirm on command line
+You can use role based access control (RBAC) from the command line.
+An origin `MEMBER_ACCOUNT` is the name used to signin to Chef Habitat builder. You can find the list of user names on an origin's _Members Tab_. (Builder > Origin > Members)
 
-// pub struct RbacShow {
-//     #[structopt(flatten)]
-//     pub origin:         BldrOrigin,
-//     /// The account name of the role to display
-//     pub member_account: String,
-//     #[structopt(flatten)]
-//     pub bldr_url:       BldrUrl,
-//     #[structopt(flatten)]
-//     pub auth_token:     AuthToken,
-//     /// Output will be rendered in json
-//     #[structopt(short = "j", long = "json")]
-//     pub to_json:        bool,
-// }
+The RBAC command syntax is:
 
-// #[derive(ConfigOpt, StructOpt)]
-// #[structopt(no_version, rename_all = "screamingsnake")]
-// pub struct RbacSet {
-//     #[structopt(flatten)]
-//     pub origin:         BldrOrigin,
-//     /// The account name whose role will be changed
-//     pub member_account: String,
-//     /// The role name to enforce for the member account
-//     #[structopt(possible_values = &[OriginMemberRole::READONLY_MEMBER, OriginMemberRole::MEMBER, OriginMemberRole::MAINTAINER, OriginMemberRole::ADMINISTRATOR, OriginMemberRole::OWNER])]
-//     pub role:           OriginMemberRole,
-//     #[structopt(flatten)]
-//     pub bldr_url:       BldrUrl,
-//     #[structopt(flatten)]
-//     pub auth_token:     AuthToken,
-//     /// Do not prompt for confirmation
-//     #[structopt(short = "n", long = "no-prompt")]
-//     pub no_prompt:      bool,
-}
+```bash
+hab origin rbac <SUBCOMMAND>
+```
 
+The syntax for the `show` subcommand is:
 
- hab origin rbac <SUBCOMMAND>
+```bash
+hab origin rbac show <MEMBER_ACCOUNT> --origin <ORIGIN>
+```
 
- hab origin rbac show <MEMBER_ACCOUNT> --origin <ORIGIN>
+See an origin member's RBAC role:
 
- hab origin rbac show <MEMBER_ACCOUNT> --origin <ORIGIN>
+```
+hab origin rbac show bluewhale --origin two-tier-app
+```
 
- hab origin rbac show <MEMBER_ACCOUNT> --origin <ORIGIN>
+The syntax for the `set` subcommand is:
 
- hab origin rbac show <ROLE> --origin <ORIGIN> --BldrUrl <URL>
+```bash
+hab origin rbac set [FLAGS] [OPTIONS] <MEMBER_ACCOUNT> <ROLE> --origin <ORIGIN>
+```
 
- hab origin rbac set [FLAGS] [OPTIONS] <MEMBER_ACCOUNT> <ROLE> --origin <ORIGIN>
+Set a member's RBAC role with:
+
+```bash
+hab origin rbac set bluewhale admin --origin two-tier-app
+```
+
 ---
 ## <a name="sharing-pkgs" id="sharing-pkgs" data-magellan-target="sharing-pkgs">Upload and Promote Packages</a>
 
