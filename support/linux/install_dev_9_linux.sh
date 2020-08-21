@@ -46,4 +46,4 @@ else
 fi
 
 curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
-sudo HAB_LICENSE="accept-no-persist" hab install core/busybox-static core/hab-studio
+sudo HAB_LICENSE="accept-no-persist" hab pkg install core/busybox-static core/hab-studio

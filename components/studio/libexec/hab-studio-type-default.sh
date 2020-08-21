@@ -86,7 +86,7 @@ finish_setup() {
   # (This is also why we're not using HAB_BLDR_CHANNEL for this and
   # replicating the fallback logic from hab-plan-build; it'd be too
   # easy to create an unstable studio.)
-  _hab install "$HAB_STUDIO_BACKLINE_PKG"
+  _hab pkg install "$HAB_STUDIO_BACKLINE_PKG"
 
   bash_path=$(_pkgpath_for core/bash)
   coreutils_path=$(_pkgpath_for core/coreutils)
