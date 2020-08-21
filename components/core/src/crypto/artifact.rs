@@ -237,7 +237,7 @@ mod test {
     #[should_panic(expected = "Corrupt payload, can\\'t read hash type")]
     fn verify_empty_hash_type() {
         let (cache, dir) = new_cache();
-        let (public, _secret) = generate_origin_pair("unicorn", &cache);
+        let (public, _secret) = cache.new_signing_pair("unicorn").unwrap();
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
@@ -251,7 +251,7 @@ mod test {
     #[should_panic(expected = "Unsupported signature type: BESTEST")]
     fn verify_invalid_hash_type() {
         let (cache, dir) = new_cache();
-        let (public, _secret) = generate_origin_pair("unicorn", &cache);
+        let (public, _secret) = cache.new_signing_pair("unicorn").unwrap();
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
@@ -265,7 +265,7 @@ mod test {
     #[should_panic(expected = "Corrupt payload, can\\'t read signature")]
     fn verify_empty_signature() {
         let (cache, dir) = new_cache();
-        let (public, _secret) = generate_origin_pair("unicorn", &cache);
+        let (public, _secret) = cache.new_signing_pair("unicorn").unwrap();
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
@@ -279,7 +279,7 @@ mod test {
     #[should_panic(expected = "Can\\'t decode signature")]
     fn verify_invalid_signature_decode() {
         let (cache, dir) = new_cache();
-        let (public, _secret) = generate_origin_pair("unicorn", &cache);
+        let (public, _secret) = cache.new_signing_pair("unicorn").unwrap();
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
@@ -294,7 +294,7 @@ mod test {
     #[should_panic(expected = "Corrupt payload, can\\'t find end of header")]
     fn verify_missing_end_of_header() {
         let (cache, dir) = new_cache();
-        let (public, _secret) = generate_origin_pair("unicorn", &cache);
+        let (public, _secret) = cache.new_signing_pair("unicorn").unwrap();
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
@@ -309,7 +309,7 @@ mod test {
     #[should_panic(expected = "Habitat artifact is invalid")]
     fn verify_corrupted_archive() {
         let (cache, dir) = new_cache();
-        let (_public, secret) = generate_origin_pair("unicorn", &cache);
+        let (_public, secret) = cache.new_signing_pair("unicorn").unwrap();
 
         let dst = dir.path().join("signed.dat");
         let dst_corrupted = dir.path().join("corrupted.dat");
@@ -340,7 +340,7 @@ mod test {
     #[test]
     fn get_archive_reader_working() {
         let (cache, dir) = new_cache();
-        let (_public, secret) = generate_origin_pair("unicorn", &cache);
+        let (_public, secret) = cache.new_signing_pair("unicorn").unwrap();
 
         let src = dir.path().join("src.in");
         let dst = dir.path().join("src.signed");
@@ -357,7 +357,7 @@ mod test {
     #[test]
     fn verify_get_artifact_header() {
         let (cache, dir) = new_cache();
-        let (_public, secret) = generate_origin_pair("unicorn", &cache);
+        let (_public, secret) = cache.new_signing_pair("unicorn").unwrap();
 
         let src = dir.path().join("src.in");
         let dst = dir.path().join("src.signed");
