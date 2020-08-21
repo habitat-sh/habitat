@@ -16,6 +16,10 @@ lazy_static::lazy_static! {
         Regex::new(r"\A[a-z0-9][a-z0-9_-]*\z").expect("Unable to compile ORIGIN_NAME_RE");
     static ref IDENT_NAME_RE: Regex =
         Regex::new(r"^[A-Za-z0-9_-]+$").expect("Unable to compile IDENT_NAME_RE");
+    static ref VERSION_RE: Regex =
+        Regex::new(r"^([\d\.]*\d+)(.+)?").expect("Unable to compile VERSION_RE");
+    static ref RELEASE_RE: Regex =
+        Regex::new(r"^\d+$").expect("Unable to compile RELEASE_RE");
     static ref INOPERABLE_SEQUENCE_RE: Regex =
         Regex::new(r"^\.+|\.$|\.{2,}").expect("Unable to compile INOPERABLE_SEQUENCE_RE");
 }
@@ -38,11 +42,13 @@ pub trait Identifiable: fmt::Display {
 
     fn valid(&self) -> bool {
         if self.fully_qualified() {
-            IDENT_NAME_RE.is_match(self.name())
+            ORIGIN_NAME_RE.is_match(self.origin())
+            && IDENT_NAME_RE.is_match(self.name())
+            && VERSION_RE.is_match(self.version().unwrap())
+            && RELEASE_RE.is_match(self.release().unwrap())
             && !INOPERABLE_SEQUENCE_RE.is_match(self.version().unwrap())
-            && !INOPERABLE_SEQUENCE_RE.is_match(self.release().unwrap())
         } else {
-            IDENT_NAME_RE.is_match(self.name())
+            ORIGIN_NAME_RE.is_match(self.origin()) && IDENT_NAME_RE.is_match(self.name())
         }
     }
 
@@ -54,10 +60,13 @@ pub trait Identifiable: fmt::Display {
             return Err(Error::ConfigInvalidIdent("name"));
         }
         if self.fully_qualified() {
+            if !VERSION_RE.is_match(self.version().unwrap()) {
+                return Err(Error::ConfigInvalidIdent("version"));
+            }
             if INOPERABLE_SEQUENCE_RE.is_match(self.version().unwrap()) {
                 return Err(Error::ConfigInvalidIdent("version"));
             }
-            if INOPERABLE_SEQUENCE_RE.is_match(self.release().unwrap()) {
+            if !RELEASE_RE.is_match(self.release().unwrap()) {
                 return Err(Error::ConfigInvalidIdent("release"));
             }
         }
@@ -668,52 +677,45 @@ mod tests {
     }
 
     #[test]
-    fn package_ident_version_release_operable_check() {
+    fn package_ident_field_validation() {
         let valid1 = PackageIdent::new("origin".to_string(), "widget".to_string(), None, None);
         let valid2 = PackageIdent::new("origin".to_string(),
                                        "widget".to_string(),
-                                       Some("1.0.0".to_string()),
+                                       Some("1.2.3".to_string()),
                                        Some("20150521131556".to_string()));
         let valid3 = PackageIdent::new("origin".to_string(),
                                        "widget".to_string(),
-                                       Some("0.1.00".to_string()),
-                                       Some("2.20150521131556".to_string()));
-        let valid4 = PackageIdent::new("origin".to_string(),
-                                       "widget-thing".to_string(),
-                                       Some("1.1-100".to_string()),
+                                       Some("1.2.3-git.e505bcdc7f10566427175df5c2b1b0243be55675".to_string()),
                                        Some("20150521131556".to_string()));
-        let invalid1 = PackageIdent::new("origin".to_string(),
-                                         "widget.1".to_string(),
-                                         Some("1.0.0".to_string()),
-                                         Some("20150521131556".to_string()));
-        let invalid2 = PackageIdent::new("origin".to_string(),
-                                         "widget".to_string(),
-                                         Some(".".to_string()),
-                                         Some("20150521131556".to_string()));
+        let invalid1 = PackageIdent::new("_origin".to_string(), "widget".to_string(), None, None);
+        let invalid2 = PackageIdent::new("origin".to_string(), "widget.1".to_string(), None, None);
         let invalid3 = PackageIdent::new("origin".to_string(),
                                          "widget".to_string(),
-                                         Some("..".to_string()),
+                                         Some("v1.2.3".to_string()),
                                          Some("20150521131556".to_string()));
         let invalid4 = PackageIdent::new("origin".to_string(),
                                          "widget".to_string(),
-                                         Some(".2".to_string()),
-                                         Some("20150521131556".to_string()));
+                                         Some("1.2.3".to_string()),
+                                         Some("v20150521131556".to_string()));
         let invalid5 = PackageIdent::new("origin".to_string(),
                                          "widget".to_string(),
-                                         Some("..2".to_string()),
+                                         Some(".2.3".to_string()),
                                          Some("20150521131556".to_string()));
         let invalid6 = PackageIdent::new("origin".to_string(),
                                          "widget".to_string(),
-                                         Some("..2.0.0".to_string()),
+                                         Some("..3.4".to_string()),
                                          Some("20150521131556".to_string()));
         let invalid7 = PackageIdent::new("origin".to_string(),
                                          "widget".to_string(),
-                                         Some("1.0.0.".to_string()),
+                                         Some("1.2..4".to_string()),
+                                         Some("20150521131556".to_string()));
+        let invalid8 = PackageIdent::new("origin".to_string(),
+                                         "widget".to_string(),
+                                         Some("1.2.3.".to_string()),
                                          Some("20150521131556".to_string()));
         assert_eq!(true, valid1.valid());
         assert_eq!(true, valid2.valid());
         assert_eq!(true, valid3.valid());
-        assert_eq!(true, valid4.valid());
         assert_eq!(false, invalid1.valid());
         assert_eq!(false, invalid2.valid());
         assert_eq!(false, invalid3.valid());
@@ -721,6 +723,7 @@ mod tests {
         assert_eq!(false, invalid5.valid());
         assert_eq!(false, invalid6.valid());
         assert_eq!(false, invalid7.valid());
+        assert_eq!(false, invalid8.valid());
     }
 
     #[test]

@@ -219,7 +219,7 @@ impl fmt::Display for Error {
             }
             Error::ConfigInvalidIdent(ref f) => {
                 format!("Invalid package identifier string value in config, field={}. (example: \
-                         \"core/redis\")",
+                         \"core/redis/1.2.3/20200820140808\")",
                         f)
             }
             Error::ConfigInvalidIpAddr(ref f) => {
