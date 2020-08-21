@@ -211,7 +211,7 @@ $ TARFILE=~ubuntu/habitat-studio-stage1-$(date -u +%Y%m%d%H%M%S).tar
 $ tar cf $TARFILE -C /mnt/lfs tools
 
 # Install some Chef Habitat package which provide the extra, static software
-$ hab install core/cacerts core/wget-static core/busybox-static core/rq core/hab
+$ hab pkg install core/cacerts core/wget-static core/busybox-static core/rq core/hab
 
 $ mkdir -p tools/{bin,etc}
 
@@ -340,7 +340,7 @@ $ exit
 # Save the stage1 artifacts
 $ mv ./results ./results-stage1
 # Install the just-built Studio
-$ sudo hab install ./results-stage1/core-hab-studio-*.hart
+$ sudo hab pkg install ./results-stage1/core-hab-studio-*.hart
 ```
 
 Now we're ready to use the stage1 packages to make a set of packages that are completely decoupled from the stage1 `tools/` infrastructure, which we'll call a "stage2" build.
