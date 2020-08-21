@@ -819,14 +819,12 @@ mod tests {
         let valid1 = PackageIdent::new("acme", "rocket", Some("1.2.3"), Some("1234"));
         let valid2 = PackageIdent::new("acme", "rocket-one", Some("1.2.3"), Some("1234"));
         let valid3 = PackageIdent::new("acme", "rocket_one", Some("1.2.3"), Some("1234"));
-        let valid4 = PackageIdent::new("acme", "rocket_one", Some("foo-bar"), Some("1234"));
         let invalid1 = PackageIdent::new("acme", "rocket.one", Some("1.2.3"), Some("1234"));
         let invalid2 = PackageIdent::new("acme", "rocket%one", Some("1.2.3"), Some("1234"));
 
         assert!(valid1.valid());
         assert!(valid2.valid());
         assert!(valid3.valid());
-        assert!(valid4.valid());
         assert!(!invalid1.valid());
         assert!(!invalid2.valid());
     }
