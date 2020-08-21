@@ -1,5 +1,9 @@
 use crate::{crypto::{hash,
-                     keys::{KeyFile,
+                     keys::{encryption::{generate_origin_encryption_key_pair,
+                                         generate_service_encryption_key_pair,
+                                         generate_user_encryption_key_pair},
+                            generate_signing_key_pair,
+                            KeyFile,
                             NamedRevision,
                             OriginPublicEncryptionKey,
                             OriginSecretEncryptionKey,
@@ -44,63 +48,56 @@ impl KeyCache {
         Ok(())
     }
 
-    /// Save a pair of user encryption keys to the cache. Either both are
-    /// saved or neither are.
-    pub fn write_user_encryption_pair(&self,
-                                      public: &UserPublicEncryptionKey,
-                                      secret: &UserSecretEncryptionKey)
-                                      -> Result<()> {
-        self.write_pair(public, secret)
+    ////////////////////////////////////////////////////////////////////////
+
+    /// Generate a new ring key and save it to disk.
+    pub fn new_ring_key(&self, name: &str) -> Result<RingKey> {
+        let key = RingKey::new(name);
+        self.write_key(&key)?;
+        Ok(key)
     }
 
-    /// Save a pair of service encryption keys to the cache.
-    pub fn write_service_encryption_pair(&self,
-                                         public: &ServicePublicEncryptionKey,
-                                         secret: &ServiceSecretEncryptionKey)
-                                         -> Result<()> {
-        self.write_pair(public, secret)
+    /// Generate a new origin signing key pair and save both keys to disk.
+    pub fn new_signing_pair(&self,
+                            origin: &str)
+                            -> Result<(PublicOriginSigningKey, SecretOriginSigningKey)> {
+        let (public, secret) = generate_signing_key_pair(origin);
+        self.write_pair(&public, &secret)?;
+        Ok((public, secret))
     }
 
-    /// Save a pair of origin encryption keys to the cache.
-    pub fn write_origin_encryption_pair(&self,
-                                        public: &OriginPublicEncryptionKey,
-                                        secret: &OriginSecretEncryptionKey)
-                                        -> Result<()> {
-        self.write_pair(public, secret)
+    /// Generate a new origin encryption key pair and save both keys to disk.
+    pub fn new_origin_encryption_pair(
+        &self,
+        origin: &str)
+        -> Result<(OriginPublicEncryptionKey, OriginSecretEncryptionKey)> {
+        let (public, secret) = generate_origin_encryption_key_pair(origin);
+        self.write_pair(&public, &secret)?;
+        Ok((public, secret))
     }
 
-    /// Save a pair of signing keys to the cache.
-    pub fn write_origin_signing_pair(&self,
-                                     public: &PublicOriginSigningKey,
-                                     secret: &SecretOriginSigningKey)
-                                     -> Result<()> {
-        self.write_pair(public, secret)
+    /// Generate a new user encryption key pair and save both keys to disk.
+    pub fn new_user_encryption_pair(
+        &self,
+        user: &str)
+        -> Result<(UserPublicEncryptionKey, UserSecretEncryptionKey)> {
+        let (public, secret) = generate_user_encryption_key_pair(user);
+        self.write_pair(&public, &secret)?;
+        Ok((public, secret))
     }
 
-    /// Write a pair of keys to the cache.
-    fn write_pair<P, S>(&self, public: &P, secret: &S) -> Result<()>
-        where P: KeyFile,
-              S: KeyFile
-    {
-        if public.named_revision() != secret.named_revision() {
-            return Err(Error::CryptoError(format!("Not saving key pair because \
-                                                   they are not actually a \
-                                                   pair! public: {}, secret: {}",
-                                                  public.named_revision(),
-                                                  secret.named_revision())));
-        }
-
-        // TODO (CM): It would be interesting to make this an
-        // all-or-nothing operation, such that both keys were written
-        // or neither were. Once the errors in this part of the crate
-        // are cleaned up, we can better distinguish between different
-        // kinds of error conditions so we don't, say, delete a
-        // previously existing public key if writing a secret key
-        // fails.
-        self.write_key(public)?;
-        self.write_key(secret)?;
-        Ok(())
+    /// Generate a new service encryption key pair and save both keys to disk.
+    pub fn new_service_encryption_pair(
+        &self,
+        org: &str,
+        service_group: &str)
+        -> Result<(ServicePublicEncryptionKey, ServiceSecretEncryptionKey)> {
+        let (public, secret) = generate_service_encryption_key_pair(org, service_group);
+        self.write_pair(&public, &secret)?;
+        Ok((public, secret))
     }
+
+    ////////////////////////////////////////////////////////////////////////
 
     /// Write a key into the cache. If the key already exists,
     /// and the content has the same hash value, nothing will be
@@ -219,6 +216,31 @@ impl KeyCache {
     }
 
     ////////////////////////////////////////////////////////////////////////
+
+    /// Write a pair of keys to the cache.
+    fn write_pair<P, S>(&self, public: &P, secret: &S) -> Result<()>
+        where P: KeyFile,
+              S: KeyFile
+    {
+        if public.named_revision() != secret.named_revision() {
+            return Err(Error::CryptoError(format!("Not saving key pair because \
+                                                   they are not actually a \
+                                                   pair! public: {}, secret: {}",
+                                                  public.named_revision(),
+                                                  secret.named_revision())));
+        }
+
+        // TODO (CM): It would be interesting to make this an
+        // all-or-nothing operation, such that both keys were written
+        // or neither were. Once the errors in this part of the crate
+        // are cleaned up, we can better distinguish between different
+        // kinds of error conditions so we don't, say, delete a
+        // previously existing public key if writing a secret key
+        // fails.
+        self.write_key(public)?;
+        self.write_key(secret)?;
+        Ok(())
+    }
 
     /// Given the name and type of a key, fetch the latest revision of
     /// that key from the cache.
@@ -415,15 +437,9 @@ mod test {
     /// evaluate `KeyCache::fetch_latest_revision`
     fn populate_cache(cache: &KeyCache) {
         for _ in 0..=2 {
-            let (public, secret) = generate_user_encryption_key_pair("my-user");
-            cache.write_user_encryption_pair(&public, &secret).unwrap();
-
-            let (public, secret) = generate_origin_encryption_key_pair("my-origin");
-            cache.write_origin_encryption_pair(&public, &secret)
-                 .unwrap();
-
-            let (public, secret) = generate_service_encryption_key_pair("my-org", "foo.default");
-            cache.write_service_encryption_pair(&public, &secret)
+            cache.new_user_encryption_pair("my-user").unwrap();
+            cache.new_origin_encryption_pair("my-origin").unwrap();
+            cache.new_service_encryption_pair("my-org", "foo.default")
                  .unwrap();
 
             // If we're going to be using the same origin name for the
@@ -431,15 +447,11 @@ mod test {
             // second, because the public keys will both have the same
             // filename :/
             wait_1_sec();
-            let (public, secret) = generate_signing_key_pair("my-origin");
-            cache.write_origin_signing_pair(&public, &secret).unwrap();
 
-            let key = RingKey::new("beyonce");
-            cache.write_key(&key).unwrap();
+            cache.new_signing_pair("my-origin").unwrap();
+            cache.new_ring_key("beyonce").unwrap();
+            wait_1_sec();
         }
-        // Ensure we're clear for any keys that may be made after this
-        // function has been called; don't want any conflicts!
-        wait_1_sec();
     }
 
     #[test]
@@ -496,7 +508,7 @@ mod test {
             let (me_public, _me_secret) = generate_user_encryption_key_pair("me");
             let (_you_public, you_secret) = generate_user_encryption_key_pair("you");
 
-            let result = cache.write_user_encryption_pair(&me_public, &you_secret);
+            let result = cache.write_pair(&me_public, &you_secret);
             assert!(result.is_err(), "Threw an error: {:?}", result);
         }
     }

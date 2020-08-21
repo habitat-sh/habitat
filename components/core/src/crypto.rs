@@ -320,16 +320,6 @@ pub mod test_support {
 
     pub fn wait_1_sec() { thread::sleep(Duration::from_secs(1)); }
 
-    /// Create a new origin signing key pair and save both keys to the
-    /// cache. Returns the keys.
-    pub fn generate_origin_pair(name: &str,
-                                cache: &KeyCache)
-                                -> (PublicOriginSigningKey, SecretOriginSigningKey) {
-        let (public, secret) = generate_signing_key_pair(name);
-        cache.write_origin_signing_pair(&public, &secret).unwrap();
-        (public, secret)
-    }
-
     /// Helper function to return a specific kind of key read from a
     /// file in our fixtures directory.
     pub fn fixture_key<K, E>(path_in_fixtures: &str) -> K

@@ -2,8 +2,7 @@ use crate::{common::ui::{UIWriter,
                          UI},
             error::{Error,
                     Result}};
-use habitat_core::{crypto::keys::{generate_signing_key_pair,
-                                  Key,
+use habitat_core::{crypto::keys::{Key,
                                   KeyCache},
                    package::ident,
                    Error::InvalidOrigin};
@@ -11,10 +10,7 @@ use habitat_core::{crypto::keys::{generate_signing_key_pair,
 pub fn start(ui: &mut UI, origin: &str, key_cache: &KeyCache) -> Result<()> {
     if ident::is_valid_origin_name(origin) {
         ui.begin(format!("Generating origin key for {}", &origin))?;
-
-        let (public, secret) = generate_signing_key_pair(origin);
-        key_cache.write_origin_signing_pair(&public, &secret)?;
-
+        let (public, _secret) = key_cache.new_signing_pair(origin)?;
         ui.end(format!("Generated origin key pair {}.", public.named_revision()))?;
         Ok(())
     } else {
