@@ -15,22 +15,7 @@ sidebar_links:
       link: "/docs/install-habitat/#configure-workstation"
     - title: Download and Install FAQ
       link: "/docs/install-habitat/#install-faq"
-  - title: Developing Packages
-    link: "/docs/developing-packages"
-    sub_links:
-    - title: Writing a Plan
-      link: "/docs/developing-packages/#write-plans"
-    - title: Config Templates
-      link: "/docs/developing-packages/#add-configuration"
-    - title: Binds and Exports
-      link: "/docs/developing-packages/#pkg-binds"
-    - title: Plan Builds
-      link: "/docs/developing-packages/#plan-builds"
-    - title: Troubleshooting Builds
-      link: "/docs/developing-packages/#debug-builds"
-    - title: Package Export Formats
-      link: "/docs/developing-packages/#pkg-exports"
-  - title: Working with Builder
+  - title: Chef Habitat Builder
     link: "/docs/using-builder"
     sub_links:
     - title: Create an Account
@@ -51,6 +36,21 @@ sidebar_links:
       link: "/docs/using-builder/#automated-builds"
     - title: Using Custom Certificates
       link: "/docs/using-builder/#using-custom-certs"
+  - title: Developing Packages
+    link: "/docs/developing-packages"
+    sub_links:
+    - title: Writing a Plan
+      link: "/docs/developing-packages/#write-plans"
+    - title: Config Templates
+      link: "/docs/developing-packages/#add-configuration"
+    - title: Binds and Exports
+      link: "/docs/developing-packages/#pkg-binds"
+    - title: Plan Builds
+      link: "/docs/developing-packages/#plan-builds"
+    - title: Troubleshooting Builds
+      link: "/docs/developing-packages/#debug-builds"
+    - title: Package Export Formats
+      link: "/docs/developing-packages/#pkg-exports"
   - title: Managing Services
     link: "/docs/using-habitat"
     sub_links:
