@@ -86,8 +86,8 @@ $script:pkg_origin = ""
 $script:pkg_name = ""
 # The package's version (i.e. 1.2.3)
 $script:pkg_version = ""
-# Each release is a timestamp - `YYYYMMDDhhmmss`
-$script:pkg_release = "$(Get-Date -UFormat "%Y%m%d%H%M%S")"
+# Each release is a timestamp - `YYYYMMDDhhmmss`. Once set, we do not support mutating the pkg_release.
+New-Variable pkg_release -Scope Script -Option AllScope,ReadOnly -Value "$(Get-Date -UFormat "%Y%m%d%H%M%S")"
 
 # pkg_deps and pkg_build_deps are given the AllScope option so that
 # they can be set in scaffolding plans without the need to specify
@@ -614,6 +614,20 @@ function Assert-PkgVersion {
     }
 
     $script:_verify_pkg_version=$true
+}
+
+# **Internal** Ensures that the plan pkg_version adheres to the semver specification.
+# Additionally, it checks to ensure that the pkg_version does not contain any dots at
+# the beginning of the string, at the end, nor multiple sequential dots anywhere within.
+# The checks for dots as just described, prevent inoperable or unexpected results when operating
+# the hab CLI or interacting with Builder HTTP APIs as the dots have special meaning in a URI.
+function Assert-PkgVersionValid {
+    $inoperable_re = "^\.+|\.$|\.{2,}"
+    $wellformed_re = "^([\d\.]*\d+)(.+)?"
+    if (-Not ($pkg_version -match $wellformed_re) -Or ($pkg_version -match $inoperable_re)) {
+        throw "Found pkg_version with an invalid format, aborting! See: https://semver.org/"
+    }
+    Write-Debug "pkg_version validated successfully"
 }
 
 # **Internal** Create initial package-related arrays.
@@ -1734,7 +1748,7 @@ try {
     # Determine if we have all the commands we need to work
     Set-SystemCommands
 
-    # Enure that the origin key is available for package signing
+    # Ensure that the origin key is available for package signing
     Assert-OriginKeyPresent
 
     Set-HabBin
@@ -1806,6 +1820,9 @@ try {
     Set-Environment
 
     Assert-PkgVersion
+
+    # Ensure the pkg_version adheres to the semver specification
+    Assert-PkgVersionValid
 
     # Prepare the source
     Invoke-PrepareWrapper

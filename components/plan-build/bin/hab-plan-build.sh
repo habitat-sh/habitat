@@ -367,8 +367,8 @@ INITIAL_PWD="$(pwd)"
 pkg_target='@@pkg_target@@'
 # The package's origin (i.e. acme)
 pkg_origin=""
-# Each release is a timestamp - `YYYYMMDDhhmmss`
-pkg_release=$(date -u +%Y%m%d%H%M%S)
+# Each release is a timestamp - `YYYYMMDDhhmmss`. Once set, we do not support mutating the pkg_release.
+readonly pkg_release=$(date -u +%Y%m%d%H%M%S)
 # The default build deps setting - an empty array
 pkg_build_deps=()
 # The default runtime deps setting - an empty array
@@ -567,6 +567,21 @@ _ensure_origin_key_present() {
     exit_with "Signing origin key '$pkg_origin' not found in $cache, aborting" 35
   fi
   debug "At least one signing key for $pkg_origin found in $cache"
+}
+
+# **Internal** Ensures that the plan pkg_version adheres to the semver specification.
+# Additionally, it checks to ensure that the pkg_version does not contain any dots at
+# the beginning of the string, at the end, nor multiple sequential dots anywhere within.
+# The checks for dots as just described, prevent inoperable or unexpected results when operating
+# the hab CLI or interacting with Builder HTTP APIs as the dots have special meaning in a URI.
+_validate_pkg_version() {
+  local wellformed_re="^([[[:digit:]]\.]*[[:digit:]]+)(.+)?"
+  local inoperable_re="^\.+|\.$|\.{2,}"
+
+  if [[ ! $pkg_version =~ $wellformed_re ]] || [[ $pkg_version =~ $inoperable_re ]]; then
+     exit_with "Found pkg_version with an invalid format, aborting! See: https://semver.org/"
+  fi
+  debug "pkg_version validated successfully"
 }
 
 # **Internal** Ensures that the correct versions of key system commands are
@@ -2677,6 +2692,9 @@ _fix_libtool
 
 # Make sure all required variables are set
 _verify_vars
+
+# Validate pkg_version adheres to the semver specification
+_validate_pkg_version
 
 # Check for invalid (CR+LF) line endings in hooks
 _verify_hook_line_endings
