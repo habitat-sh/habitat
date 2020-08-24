@@ -575,8 +575,8 @@ _ensure_origin_key_present() {
 # The checks for dots as just described, prevent inoperable or unexpected results when operating
 # the hab CLI or interacting with Builder HTTP APIs as the dots have special meaning in a URI.
 _validate_pkg_version() {
-  local wellformed_re="^([[[:digit:]]\.]*[[:digit:]]+)(.+)?"
   local inoperable_re="^\.+|\.$|\.{2,}"
+  local wellformed_re="^([[[:digit:]]\.]*[[:digit:]]+)(.+)?"
 
   if [[ ! $pkg_version =~ $wellformed_re ]] || [[ $pkg_version =~ $inoperable_re ]]; then
      exit_with "Found pkg_version with an invalid format, aborting! See: https://semver.org/"
