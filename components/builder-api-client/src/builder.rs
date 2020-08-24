@@ -1119,7 +1119,7 @@ impl BuilderAPIClient {
 
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
-               .append_pair("checksum", &checksum.to_string())
+               .append_pair("checksum", &checksum)
                .append_pair("target", &target.to_string())
                .append_pair("forced", &force_upload.to_string());
 

@@ -26,7 +26,21 @@ const HASH_DIGEST_SIZE: usize = libsodium_sys::crypto_generichash_BYTES as usize
 /// instance, you'll need to either convert it directly from a `&[u8]`
 /// or parse it from a hex string.
 #[derive(Clone, Debug)]
-pub struct Blake2bHash([u8; HASH_DIGEST_SIZE]);
+pub struct Blake2bHash {
+    digest:     [u8; HASH_DIGEST_SIZE],
+    /// Temporary field to support Deref<str> for backwards
+    /// compatibility with Builder until it can use the new types.
+    hex_string: String,
+}
+
+impl Blake2bHash {
+    /// Temporary constructor while we store the hex encoding in the
+    /// type directly.
+    fn new(digest: [u8; HASH_DIGEST_SIZE]) -> Self {
+        let hex_string = hex::encode(&digest).to_lowercase();
+        Blake2bHash { digest, hex_string }
+    }
+}
 
 impl TryFrom<Vec<u8>> for Blake2bHash {
     type Error = Error;
@@ -40,12 +54,12 @@ impl TryFrom<Vec<u8>> for Blake2bHash {
                                  Error::CryptoError(format!("Did not get {} bytes for digest",
                                                             HASH_DIGEST_SIZE))
                              })?;
-        Ok(Blake2bHash(*boxed))
+        Ok(Blake2bHash::new(*boxed))
     }
 }
 
 impl AsRef<[u8]> for Blake2bHash {
-    fn as_ref(&self) -> &[u8] { &self.0 }
+    fn as_ref(&self) -> &[u8] { &self.digest }
 }
 
 impl PartialEq for Blake2bHash {
@@ -86,11 +100,12 @@ impl FromStr for Blake2bHash {
         // FromHex has an implementation for [u8; 32], so this ensures
         // the proper length of bytes... well, that and the compiler,
         // of course :)
-        FromHex::from_hex(s).map(Self).map_err(|e| {
-                                          Error::CryptoError(format!("Could not parse \
-                                                                      Blake2bHash from string: {}",
-                                                                     e))
-                                      })
+        FromHex::from_hex(s).map(Self::new).map_err(|e| {
+                                               Error::CryptoError(format!("Could not parse \
+                                                                           Blake2bHash from \
+                                                                           string: {}",
+                                                                          e))
+                                           })
     }
 }
 
@@ -102,6 +117,14 @@ impl Serialize for Blake2bHash {
     {
         serializer.serialize_str(&self.to_string())
     }
+}
+
+/// Temporary implementation to ease adoption in Builder. Once that's
+/// been updated, remove this (and the `hex_string` field).
+impl std::ops::Deref for Blake2bHash {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target { self.hex_string.as_str() }
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -126,7 +149,7 @@ pub fn hash_string(data: &str) -> Blake2bHash {
         libsodium_sys::crypto_generichash_update(pst, data[..].as_ptr(), data.len() as u64);
         libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
     }
-    Blake2bHash(out)
+    Blake2bHash::new(out)
 }
 
 pub fn hash_bytes(data: &[u8]) -> Blake2bHash {
@@ -139,7 +162,7 @@ pub fn hash_bytes(data: &[u8]) -> Blake2bHash {
         libsodium_sys::crypto_generichash_update(pst, data[..].as_ptr(), data.len() as u64);
         libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
     }
-    Blake2bHash(out)
+    Blake2bHash::new(out)
 }
 
 pub fn hash_reader(reader: &mut dyn Read) -> Result<Blake2bHash> {
@@ -164,7 +187,7 @@ pub fn hash_reader(reader: &mut dyn Read) -> Result<Blake2bHash> {
     unsafe {
         libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
     }
-    Ok(Blake2bHash(out))
+    Ok(Blake2bHash::new(out))
 }
 
 #[cfg(test)]
@@ -259,13 +282,13 @@ mod test {
 
         #[test]
         fn eq() {
-            let zeroes = Blake2bHash([0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
-                                      0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
-                                      0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8]);
+            let zeroes = Blake2bHash::new([0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
+                                           0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
+                                           0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8]);
 
-            let ones = Blake2bHash([1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
-                                    1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
-                                    1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8]);
+            let ones = Blake2bHash::new([1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                                         1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                                         1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8]);
 
             assert_ne!(zeroes, ones);
             assert_eq!(zeroes, zeroes);
@@ -274,9 +297,9 @@ mod test {
 
         #[test]
         fn display() {
-            let ones = Blake2bHash([1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
-                                    1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
-                                    1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8]);
+            let ones = Blake2bHash::new([1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                                         1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                                         1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8]);
             assert_eq!(ones.to_string(),
                        "0101010101010101010101010101010101010101010101010101010101010101");
         }
