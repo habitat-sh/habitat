@@ -39,12 +39,14 @@ pub struct BoxSecret<'a> {
 
 ////////////////////////////////////////////////////////////////////////
 
+#[deprecated(note = "Please use new key types")]
 pub type BoxKeyPair = KeyPair<BoxPublicKey, BoxSecretKey>;
 
 ////////////////////////////////////////////////////////////////////////
 
 // A sodiumoxide sealed box that has been base64-encoded together with
 // metadata to indicate how it should be decrypted
+#[deprecated(note = "Please new encrypted message types")]
 #[derive(Serialize, Deserialize)]
 pub struct WrappedSealedBox<'a>(Cow<'a, str>);
 
@@ -152,7 +154,8 @@ impl<'a, 'b: 'a> From<&'b str> for WrappedSealedBox<'a> {
 
 impl BoxKeyPair {
     #[deprecated(note = "Please use \
-                         habitat_core::crypto::keys::generate_service_encryption_key_pair instead")]
+                         habitat_core::crypto::keys::KeyCache::new_service_encryption_pair instead")]
+
     pub fn generate_pair_for_service<S1, S2>(org: S1, service_group: S2) -> Result<Self>
         where S1: AsRef<str>,
               S2: AsRef<str>
@@ -166,12 +169,15 @@ impl BoxKeyPair {
         Ok(Self::new(name, revision, Some(pk), Some(sk)))
     }
 
+    #[deprecated(note = "Please use \
+                         habitat_core::crypto::keys::KeyCache::new_user_encryption_pair instead")]
     pub fn generate_pair_for_user(user: &str) -> Result<Self> {
         debug!("new user box key");
         Self::generate_pair_for_string(user)
     }
 
-    // TODO (CM): appears to *only* be used in Builder
+    #[deprecated(note = "Please use \
+                         habitat_core::crypto::keys::KeyCache::new_origin_encryption_pair instead")]
     pub fn generate_pair_for_origin(origin: &str) -> Result<Self> {
         debug!("new origin box key");
         Self::generate_pair_for_string(origin)
@@ -194,7 +200,7 @@ impl BoxKeyPair {
         Ok(key_pairs)
     }
 
-    // TODO (CM): appears to *only* be used in Builder
+    #[deprecated(note="Use KeyCache methods instead")]
     pub fn get_pair_for<T, P>(name_with_rev: T, cache_key_path: P) -> Result<Self>
         where T: AsRef<str>,
               P: AsRef<Path>
@@ -226,6 +232,7 @@ impl BoxKeyPair {
         Ok(Self::new(name, rev, pk, sk))
     }
 
+    #[deprecated(note="Use KeyCache methods instead")]
     pub fn get_latest_pair_for<T, P>(name: T, cache_key_path: P) -> Result<Self>
         where T: AsRef<str>,
               P: AsRef<Path>
@@ -247,6 +254,7 @@ impl BoxKeyPair {
     ///
     /// Since the returned string contains both plaintext metadata and ciphertext
     /// The ciphertext (and nonce, when present) is already base64-encoded.
+    #[deprecated(note="Use new key type methods instead")]
     pub fn encrypt(&self, data: &[u8], receiver: Option<&Self>) -> Result<WrappedSealedBox> {
         match receiver {
             Some(r) => self.encrypt_box(data, r),
@@ -254,7 +262,7 @@ impl BoxKeyPair {
         }.map(WrappedSealedBox::from)
     }
 
-    // TODO (CM): appears to *only* be used in Builder
+    #[deprecated(note="Use new key type methods instead")]
     pub fn to_public_string(&self) -> Result<String> {
         match self.public {
             Some(pk) => {
@@ -270,7 +278,7 @@ impl BoxKeyPair {
         }
     }
 
-    // TODO (CM): appears to *only* be used in Builder
+    #[deprecated(note="Use new key type methods instead")]
     pub fn to_secret_string(&self) -> Result<String> {
         match self.secret {
             Some(ref sk) => {
@@ -317,7 +325,7 @@ impl BoxKeyPair {
     }
 
 
-    // TODO (CM): appears to be public only for Builder
+    #[deprecated(note="Use new key type methods instead")]
     pub fn decrypt(&self,
                    ciphertext: &[u8],
                    receiver: Option<Self>,
@@ -334,7 +342,7 @@ impl BoxKeyPair {
     /// Return the metadata and encrypted text from a secret payload.
     /// This is useful for services consuming an encrypted payload and need to decrypt it without
     /// having keys on disk
-    #[deprecated(note = "Please use WrappedSealedBox::secret_metadata()")]
+    #[deprecated(note = "Use new encrypted message types instead")]
     pub fn secret_metadata<'a, 'b>(payload: &'b WrappedSealedBox<'a>) -> Result<BoxSecret<'b>> {
         payload.secret_metadata()
     }
@@ -342,6 +350,7 @@ impl BoxKeyPair {
     /// Decrypt data from a user that was received at a service
     /// Key names are embedded in the message payload which must
     /// be present while decrypting.
+    #[deprecated]
     pub fn decrypt_with_path<P>(payload: &WrappedSealedBox, cache_key_path: P) -> Result<Vec<u8>>
         where P: AsRef<Path>
     {
@@ -355,6 +364,7 @@ impl BoxKeyPair {
         sender.decrypt(&box_secret.ciphertext, receiver, box_secret.nonce)
     }
 
+    #[deprecated(note="Use KeyCache methods instead")]
     pub fn to_pair_files<P: AsRef<Path> + ?Sized>(&self, path: &P) -> Result<()> {
         let public_keyfile = mk_key_filename(path, self.name_with_rev(), PUBLIC_KEY_SUFFIX);
         let secret_keyfile = mk_key_filename(path, self.name_with_rev(), SECRET_BOX_KEY_SUFFIX);
@@ -387,7 +397,7 @@ impl BoxKeyPair {
         })
     }
 
-    // TODO (CM): appears to *only* be used in Builder
+    #[deprecated(note="Use new key type methods instead")]
     pub fn public_key_from_str(key: &str) -> Result<BoxPublicKey> {
         let key: HabitatKey = key.parse()?;
         Self::public_key_from_bytes(key.as_ref())
@@ -422,7 +432,7 @@ impl BoxKeyPair {
         Self::secret_key_from_bytes(HabitatKey::try_from(&secret_keyfile)?.as_ref())
     }
 
-    // TODO (CM): appears to *only* be used in Builder
+    #[deprecated(note="Use new key type methods instead")]
     pub fn secret_key_from_str(key: &str) -> Result<BoxSecretKey> {
         let key: HabitatKey = key.parse()?;
         Self::secret_key_from_bytes(key.as_ref())
