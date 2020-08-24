@@ -192,7 +192,8 @@ impl PackageArchive {
     }
 
     /// Calculate and return the Blake2b hash of the package archive.
-    pub fn checksum(&self) -> Result<Blake2bHash> { hash::hash_file(&self.path) }
+    // TODO (CM): Convert this to Blake2bHash once Builder can use it
+    pub fn checksum(&self) -> Result<String> { Ok(hash::hash_file(&self.path)?.to_string()) }
 
     pub fn cflags(&mut self) -> Option<&str> { self.read_metadata(MetaFile::CFlags) }
 
@@ -421,7 +422,7 @@ pub struct PackageArchiveInfo {
     pub name:           String,
     pub version:        String,
     pub release:        String,
-    pub checksum:       Blake2bHash,
+    pub checksum:       String,
     pub target:         String,
     pub is_a_service:   bool,
     pub deps:           Vec<String>,
