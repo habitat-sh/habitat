@@ -154,7 +154,8 @@ impl<'a, 'b: 'a> From<&'b str> for WrappedSealedBox<'a> {
 
 impl BoxKeyPair {
     #[deprecated(note = "Please use \
-                         habitat_core::crypto::keys::KeyCache::new_service_encryption_pair instead")]
+                         habitat_core::crypto::keys::KeyCache::new_service_encryption_pair \
+                         instead")]
 
     pub fn generate_pair_for_service<S1, S2>(org: S1, service_group: S2) -> Result<Self>
         where S1: AsRef<str>,
@@ -200,7 +201,7 @@ impl BoxKeyPair {
         Ok(key_pairs)
     }
 
-    #[deprecated(note="Use KeyCache methods instead")]
+    #[deprecated(note = "Use KeyCache methods instead")]
     pub fn get_pair_for<T, P>(name_with_rev: T, cache_key_path: P) -> Result<Self>
         where T: AsRef<str>,
               P: AsRef<Path>
@@ -232,7 +233,7 @@ impl BoxKeyPair {
         Ok(Self::new(name, rev, pk, sk))
     }
 
-    #[deprecated(note="Use KeyCache methods instead")]
+    #[deprecated(note = "Use KeyCache methods instead")]
     pub fn get_latest_pair_for<T, P>(name: T, cache_key_path: P) -> Result<Self>
         where T: AsRef<str>,
               P: AsRef<Path>
@@ -254,7 +255,7 @@ impl BoxKeyPair {
     ///
     /// Since the returned string contains both plaintext metadata and ciphertext
     /// The ciphertext (and nonce, when present) is already base64-encoded.
-    #[deprecated(note="Use new key type methods instead")]
+    #[deprecated(note = "Use new key type methods instead")]
     pub fn encrypt(&self, data: &[u8], receiver: Option<&Self>) -> Result<WrappedSealedBox> {
         match receiver {
             Some(r) => self.encrypt_box(data, r),
@@ -262,7 +263,7 @@ impl BoxKeyPair {
         }.map(WrappedSealedBox::from)
     }
 
-    #[deprecated(note="Use new key type methods instead")]
+    #[deprecated(note = "Use new key type methods instead")]
     pub fn to_public_string(&self) -> Result<String> {
         match self.public {
             Some(pk) => {
@@ -278,7 +279,7 @@ impl BoxKeyPair {
         }
     }
 
-    #[deprecated(note="Use new key type methods instead")]
+    #[deprecated(note = "Use new key type methods instead")]
     pub fn to_secret_string(&self) -> Result<String> {
         match self.secret {
             Some(ref sk) => {
@@ -324,8 +325,7 @@ impl BoxKeyPair {
                    base64::encode(&ciphertext)))
     }
 
-
-    #[deprecated(note="Use new key type methods instead")]
+    #[deprecated(note = "Use new key type methods instead")]
     pub fn decrypt(&self,
                    ciphertext: &[u8],
                    receiver: Option<Self>,
@@ -364,7 +364,7 @@ impl BoxKeyPair {
         sender.decrypt(&box_secret.ciphertext, receiver, box_secret.nonce)
     }
 
-    #[deprecated(note="Use KeyCache methods instead")]
+    #[deprecated(note = "Use KeyCache methods instead")]
     pub fn to_pair_files<P: AsRef<Path> + ?Sized>(&self, path: &P) -> Result<()> {
         let public_keyfile = mk_key_filename(path, self.name_with_rev(), PUBLIC_KEY_SUFFIX);
         let secret_keyfile = mk_key_filename(path, self.name_with_rev(), SECRET_BOX_KEY_SUFFIX);
@@ -397,7 +397,7 @@ impl BoxKeyPair {
         })
     }
 
-    #[deprecated(note="Use new key type methods instead")]
+    #[deprecated(note = "Use new key type methods instead")]
     pub fn public_key_from_str(key: &str) -> Result<BoxPublicKey> {
         let key: HabitatKey = key.parse()?;
         Self::public_key_from_bytes(key.as_ref())
@@ -432,7 +432,7 @@ impl BoxKeyPair {
         Self::secret_key_from_bytes(HabitatKey::try_from(&secret_keyfile)?.as_ref())
     }
 
-    #[deprecated(note="Use new key type methods instead")]
+    #[deprecated(note = "Use new key type methods instead")]
     pub fn secret_key_from_str(key: &str) -> Result<BoxSecretKey> {
         let key: HabitatKey = key.parse()?;
         Self::secret_key_from_bytes(key.as_ref())

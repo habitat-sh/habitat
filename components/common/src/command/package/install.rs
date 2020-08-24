@@ -884,7 +884,6 @@ impl<'a> InstallTask<'a> {
                                   ui.progress())
                 .await?;
 
-
             let key = self.key_cache.public_signing_key(&named_revision)?;
             ui.status(Status::Cached,
                       format!("{} public origin key", key.named_revision()))?;
