@@ -246,6 +246,7 @@ impl KeyRevision {
 // All this can be removed once we've migrated Builder away from it.
 ////////////////////////////////////////////////////////////////////////
 
+#[deprecated]
 #[derive(Clone, Copy, Debug)]
 enum KeyType {
     Sig,
@@ -265,6 +266,7 @@ impl fmt::Display for KeyType {
 
 ////////////////////////////////////////////////////////////////////////
 
+#[deprecated]
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize)]
 pub enum PairType {
     Public,
@@ -298,6 +300,7 @@ impl FromStr for PairType {
 
 ////////////////////////////////////////////////////////////////////////
 
+#[deprecated]
 struct TmpKeyfile {
     pub path: PathBuf,
 }
@@ -312,6 +315,7 @@ impl Drop for TmpKeyfile {
 
 ////////////////////////////////////////////////////////////////////////
 
+#[deprecated]
 pub struct HabitatKey {
     pair_type:     PairType, // NOT A PAIR!!!!!!
     name_with_rev: String,
@@ -425,8 +429,7 @@ impl FromStr for HabitatKey {
     }
 }
 
-// TODO (CM): This is only needed for Builder
-#[deprecated(note = "Please HabitatKey::from_str instead")]
+#[deprecated(note = "Please use new key types")]
 pub fn parse_key_str(content: &str) -> Result<(PairType, String, String)> {
     let key: HabitatKey = content.parse()?;
     Ok((key.pair_type, key.name_with_rev, base64::encode(key.key_bytes)))
@@ -456,6 +459,7 @@ impl TryFrom<&PathBuf> for HabitatKey {
 /// the keys may not be present due to the loading context. For example, the act of verifying a
 /// signed message or artifact only requires the public key to be present, whereas the act of
 /// signing will require the secret key to be present.
+#[deprecated(note = "Please use new key types")]
 #[derive(Clone, PartialEq)]
 pub struct KeyPair<P: PartialEq, S: PartialEq> {
     /// The name of the key, ex: "habitat"
@@ -657,10 +661,6 @@ fn get_key_revisions<P>(keyname: &str,
 ///
 /// If the file cannot be read or processed an Error will be
 /// returned.
-// TODO (CM): It would be better to read the contents of the entire
-// file to make sure it's consistent overall, rather than just hitting
-// the first line (actually, just the first 3 characters of the first
-// line!)
 fn file_is_valid_key_for_type<P>(path: P, key_type: KeyType) -> Result<bool>
     where P: AsRef<Path>
 {
@@ -685,7 +685,7 @@ fn mk_key_filename<P, S1, S2>(path: P, keyname: S1, suffix: S2) -> PathBuf
         .join(format!("{}.{}", keyname.as_ref(), suffix.as_ref()))
 }
 
-// TODO (CM): replace with NamedRevision code directly
+#[deprecated(note = "Please use new key types")]
 pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, KeyRevision)>
     where T: AsRef<str>
 {

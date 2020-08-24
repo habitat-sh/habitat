@@ -24,7 +24,7 @@ use std::{convert::TryFrom,
           path::{Path,
                  PathBuf}};
 
-#[deprecated(note = "don't use this")]
+#[deprecated(note = "Use new key types instead")]
 pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
 
 impl SigKeyPair {
@@ -52,6 +52,7 @@ impl SigKeyPair {
         Ok(key_pairs)
     }
 
+    #[deprecated(note="Use KeyCache methods instead")]
     pub fn get_pair_for<P: AsRef<Path> + ?Sized>(name_with_rev: &str,
                                                  cache_key_path: &P)
                                                  -> Result<Self> {
@@ -82,6 +83,7 @@ impl SigKeyPair {
         Ok(SigKeyPair::new(name, rev, pk, sk))
     }
 
+    #[deprecated(note="Use KeyCache methods instead")]
     pub fn get_latest_pair_for<P: AsRef<Path> + ?Sized>(name: &str,
                                                         cache_key_path: &P,
                                                         pair_type: Option<PairType>)
@@ -96,6 +98,7 @@ impl SigKeyPair {
         }
     }
 
+    #[deprecated]
     pub fn get_public_key_path<P: AsRef<Path> + ?Sized>(key_with_rev: &str,
                                                         cache_key_path: &P)
                                                         -> Result<PathBuf> {
@@ -106,6 +109,7 @@ impl SigKeyPair {
         Ok(path)
     }
 
+    #[deprecated]
     pub fn get_secret_key_path<P: AsRef<Path> + ?Sized>(key_with_rev: &str,
                                                         cache_key_path: &P)
                                                         -> Result<PathBuf> {
@@ -116,6 +120,7 @@ impl SigKeyPair {
         Ok(path)
     }
 
+    #[deprecated(note = "Use new key types instead")]
     pub fn write_file_from_str<P: AsRef<Path> + ?Sized>(content: &str,
                                                         cache_key_path: &P)
                                                         -> Result<(Self, PairType)> {
@@ -172,6 +177,7 @@ impl SigKeyPair {
         Ok((Self::get_pair_for(&name_with_rev, cache_key_path)?, pair_type))
     }
 
+    #[deprecated(note="Use new key types instead")]
     pub fn to_public_string(&self) -> Result<String> {
         match self.public {
             Some(pk) => {
@@ -187,6 +193,7 @@ impl SigKeyPair {
         }
     }
 
+    #[deprecated(note="Use new key types instead")]
     pub fn to_secret_string(&self) -> Result<String> {
         match self.secret {
             Some(ref sk) => {
@@ -202,6 +209,7 @@ impl SigKeyPair {
         }
     }
 
+    #[deprecated(note="Use KeyCache methods instead")]
     pub fn to_pair_files<P: AsRef<Path> + ?Sized>(&self, path: &P) -> Result<()> {
         let public_keyfile = mk_key_filename(path, self.name_with_rev(), PUBLIC_KEY_SUFFIX);
         let secret_keyfile = mk_key_filename(path, self.name_with_rev(), SECRET_SIG_KEY_SUFFIX);
