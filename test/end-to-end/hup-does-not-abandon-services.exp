@@ -112,7 +112,7 @@ assert { $redis_parent == $launcher_pid } "Didn't do that right!"
 # we shut down.
 exec kill -HUP $launcher_pid
 expect {
-    "Supervisor shutting down for signal" {
+    "Supervisor shutting down for restart" {
         log "Supervisor got HUPped"
     }
     timeout {
