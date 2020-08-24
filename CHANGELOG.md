@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.138 -->
-## [1.6.138](https://github.com/habitat-sh/habitat/tree/1.6.138) (2020-08-21)
+<!-- latest_release 1.6.139 -->
+## [1.6.139](https://github.com/habitat-sh/habitat/tree/1.6.139) (2020-08-24)
 
 #### Merged Pull Requests
-- Replace `hab install` with `hab pkg install` in plan-build [#7882](https://github.com/habitat-sh/habitat/pull/7882) ([christophermaier](https://github.com/christophermaier))
+- Fix text in e2e test [#7883](https://github.com/habitat-sh/habitat/pull/7883) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
@@ -20,6 +20,7 @@
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
+- Fix text in e2e test [#7883](https://github.com/habitat-sh/habitat/pull/7883) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.139 -->
 - Replace `hab install` with `hab pkg install` in plan-build [#7882](https://github.com/habitat-sh/habitat/pull/7882) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.138 -->
 - Fix CLI deprecation when generating completions [#7881](https://github.com/habitat-sh/habitat/pull/7881) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.137 -->
 - Report errors when getting user and group [#7879](https://github.com/habitat-sh/habitat/pull/7879) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.136 -->
