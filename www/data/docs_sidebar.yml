@@ -7,7 +7,7 @@ sidebar_links:
   - title: Install Chef Habitat
     link: "/docs/install-habitat"
     sub_links:
-    - title: Download the Habitat CLI
+    - title: Download the Chef Habitat CLI
       link: "/docs/install-habitat/#install-habitat"
     - title: Accept the License
       link: "/docs/install-habitat/#accept-the-license"
@@ -15,24 +15,11 @@ sidebar_links:
       link: "/docs/install-habitat/#configure-workstation"
     - title: Download and Install FAQ
       link: "/docs/install-habitat/#install-faq"
-  - title: Developing Packages
-    link: "/docs/developing-packages"
-    sub_links:
-    - title: Writing a Plan
-      link: "/docs/developing-packages/#write-plans"
-    - title: Config Templates
-      link: "/docs/developing-packages/#add-configuration"
-    - title: Binds and Exports
-      link: "/docs/developing-packages/#pkg-binds"
-    - title: Plan Builds
-      link: "/docs/developing-packages/#plan-builds"
-    - title: Troubleshooting Builds
-      link: "/docs/developing-packages/#debug-builds"
-    - title: Package Export Formats
-      link: "/docs/developing-packages/#pkg-exports"
-  - title: Working with Builder
+  - title: Chef Habitat Builder
     link: "/docs/using-builder"
     sub_links:
+    - title: Get Started
+      link: "/docs/using-builder/#builder-start"
     - title: Create an Account
       link: "/docs/using-builder/#builder-account"
     - title: Create an Origin
@@ -51,6 +38,21 @@ sidebar_links:
       link: "/docs/using-builder/#automated-builds"
     - title: Using Custom Certificates
       link: "/docs/using-builder/#using-custom-certs"
+  - title: Developing Packages
+    link: "/docs/developing-packages"
+    sub_links:
+    - title: Writing a Plan
+      link: "/docs/developing-packages/#write-plans"
+    - title: Config Templates
+      link: "/docs/developing-packages/#add-configuration"
+    - title: Binds and Exports
+      link: "/docs/developing-packages/#pkg-binds"
+    - title: Plan Builds
+      link: "/docs/developing-packages/#plan-builds"
+    - title: Troubleshooting Builds
+      link: "/docs/developing-packages/#debug-builds"
+    - title: Package Export Formats
+      link: "/docs/developing-packages/#pkg-exports"
   - title: Managing Services
     link: "/docs/using-habitat"
     sub_links:
