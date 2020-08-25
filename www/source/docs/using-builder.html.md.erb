@@ -451,6 +451,162 @@ See [Using Origin Secrets in Plans](/docs/developing-packages/#buildtime-workflo
 See the [`hab origin secret`](/docs/habitat-cli/#hab-origin-secret) CLI documentation for more information on these commands.
 
 ---
+## <a name="origin-members" id="origin-members" data-magellan-target="origin-members">Origin Membership</a>
+
+Prerequisites:
+
+* [Download the Chef Habitat CLI](/docs/install-habitat)
+* [Create a Chef Habitat Builder account](/#builder-account)
+* [Generate a personal access token](/#builder-token)
+* [Create an origin](/#create-origin)
+* [Get origin keys](/#origin-keys)
+
+### Role-Based Access Control (RBAC) for Chef Habitat Builder (SaaS and on-prem)
+
+TODO:New in: SEMVER
+
+RBAC provides your organization with better operational safety by letting you assign specific levels of access to each origin member. With RBAC in place, existing standard origin members from earlier versions are assigned the `Maintainer` role. This role has similar permissions of the previous generic member role and the areas of difference are are detailed below. The origin owner role remains unchanged.
+
+RBAC Origin Member Roles:
+
+* Read-Only: This user can read an origin's packages, channels, members, jobs, keys, integrations, invitations, roles, settings but cannot add to, change, or delete anything else in the origin, including uploading packages and inviting members. Read-Only is the default membership role for all new origin members.
+* Member: In addition to Read-Only access, an origin Member can upload and build packages in the 'unstable' channel, but they cannot promote packages to other channels.
+* Maintainer: Current origin members are now 'Maintainers'. This role has full read and write access to packages, channels, members, jobs, integrations, invitations, settings. However, the Maintainer role is more limited than the past role, in that Maintainers only have read access to packages, channels, members, jobs, keys, integrations, and settings. Origin Maintainers can read origin member roles and see and send invitations to new members, but they cannot otherwise change origin membership--their own or anybody else's. Finally, Maintainers can neither read nor write origin secrets.
+* Administrator: In addition to Maintainer access, the Administrator role adds the missing privileges for writing origin keys and member roles, as well as for reading and writing origin secrets. Administrators have full read and write access to packages, channels, members, jobs, keys, integrations, invitations, roles, secrets, settings.
+* Owner: As in the past, the origin Owner has full read and write access to the origin. Only Owners can delete the origin or transfer ownership to another member.
+
+### Comparison of RBAC Member Roles and Actions
+
+| Action | Read-Only | Member | Maintainer | Administrator | Owner |
+|---------|-------|-------|-------|-------|-------|
+| **Packages** |
+| View packages | Y | Y | Y | Y | Y |
+| Upload packages to `unstable` | N | Y | Y | Y | Y |
+| Promote packages from `unstable` | N | N | Y | Y | Y |
+| **Build Jobs** |
+| View build jobs | Y | Y | Y | Y | Y |
+| Trigger `unstable` build job | N | Y | Y | Y | Y |
+| **Channels** |
+| View channels | Y | Y | Y | Y | Y |
+| Add/Update/Delete channels | N | N | Y | Y | Y |
+| **Origin Keys** |
+| View keys | Y | Y | Y | Y | Y |
+| Add/Update/Delete keys | N | N | N | Y | Y |
+| **Origin Membership** |
+| View members | Y | Y | Y | Y | Y |
+| View invitations | Y | Y | Y | Y | Y |
+| Send Invitations | N | N | Y | Y | Y |
+| Revoke Invitations | N | N | Y | Y | Y |
+| **Member Roles** |
+| View member roles | Y | Y | Y | Y | Y |
+| Update member roles | N | N | N | Y | Y |
+| **Origin Settings** |
+| View settings | Y | Y | Y | Y | Y |
+| Add/Update/Delete settings | N | N | N | Y | Y |
+| **Origin Secrets** |
+| View secrets | N | N | N | Y | Y |
+| Add/Update/Delete secrets | N | N | N | Y | Y |
+| **Cloud Integrations** |
+| View integrations | Y | Y | Y | Y | Y |
+| Add/Update/Delete integrations | N | N | Y | Y | Y |
+| **Ownership** |
+| Transfer Origin | N | N | N | N | Y |
+| Delete Origin | N | N | N | N | Y |
+
+### Manage Origin Members in Builder
+
+TODO: Update images of Builder & description of actions that I can take in the UI
+
+
+In tandem with the changes to the Builder membership roles, we've also updated the `hab` CLI to support RBAC. We're working on adding role management to the Chef Habitat Builder site, but in the meantime, you'll need to use the CLI for now.
+
+![Manage origin members](../images/screenshots/origin_members.png)
+
+### Manage Origin Membership with `hab origin invitations`
+
+Manage Chef Habitat Builder origin membership with the Chef Habitat CLI, using the [hab origin invitations](/docs/habitat-cli/#hab-origin-invitations) command.
+
+All Chef Habitat Builder users can accept, ignore, and see invitations for their accounts.
+
+View origin invitations:
+
+```bash
+hab origin invitations list
+```
+
+Accept origin invitations:
+
+```bash
+hab origin invitations accept <ORIGIN> <INVITATION_ID>
+```
+
+Ignore origin invitations:
+
+```bash
+hab origin invitations ignore <ORIGIN> <INVITATION_ID>
+```
+
+All origin members can send origin membership invitations:
+
+```bash
+hab origin invitations send <ORIGIN> <INVITEE_ACCOUNT>
+```
+
+Origin owners can see all pending origin membership invitations:
+
+```bash
+hab origin invitations pending <ORIGIN>
+```
+
+Origin owners can rescind an origin membership invitation:
+
+
+```bash
+hab origin invitations rescind <ORIGIN> <INVITATION_ID>
+```
+
+Origin owners can transfer origin ownership to another member:
+
+```bash
+hab origin transfer [OPTIONS] <ORIGIN> <NEW_OWNER_ACCOUNT>
+```
+
+### Manage Member Roles with `hab rbac`
+
+You can use role based access control (RBAC) from the command line.
+An origin `MEMBER_ACCOUNT` is the name used to signin to Chef Habitat builder. You can find the list of user names on an origin's _Members Tab_. (Builder > Origin > Members)
+
+The RBAC command syntax is:
+
+```bash
+hab origin rbac <SUBCOMMAND>
+```
+
+The syntax for the `show` subcommand is:
+
+```bash
+hab origin rbac show <MEMBER_ACCOUNT> --origin <ORIGIN>
+```
+
+See an origin member's RBAC role:
+
+```
+hab origin rbac show bluewhale --origin two-tier-app
+```
+
+The syntax for the `set` subcommand is:
+
+```bash
+hab origin rbac set [FLAGS] [OPTIONS] <MEMBER_ACCOUNT> <ROLE> --origin <ORIGIN>
+```
+
+Set a member's RBAC role with:
+
+```bash
+hab origin rbac set bluewhale admin --origin two-tier-app
+```
+
+---
 ## <a name="sharing-pkgs" id="sharing-pkgs" data-magellan-target="sharing-pkgs">Upload and Promote Packages</a>
 
 While you can build and run Chef Habitat packages without sharing them on [Chef Habitat Builder](https://bldr.habitat.sh), uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated.
