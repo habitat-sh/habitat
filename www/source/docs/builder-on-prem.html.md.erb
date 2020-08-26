@@ -1,0 +1,1373 @@
+---
+title: Chef Habitat Builder On-Prem
+---
+
+# <a name="on-prem" id="on-prem" data-magellan-target="on-prem">Chef Habitat Builder On-Prem</a>
+
+In addition to our Chef Habitat Builder cloud service, we also support installing and running a Chef Habitat Builder on-prem on your own network and infrastructure. Chef Habitat Builder on-prem allows you to choose from a wider selection of authentication providers and to manage how Chef Habitat Builder fits into your existing CI/CD processes.
+
+Currently, our on-prem Chef Habitat Builder backend only stores packages for download and upload by Supervisors and Studios.
+
+---
+## <a name="on-prem-overview" id="on-prem-overview" data-magellan-target="on-prem-overview">Overview</a>
+
+This documentation contains scripts to install Chef Habitat Builder on-prem services. These services (referred to as the Chef Habitat Builder on-prem) allow privately hosting Chef Habitat packages (and associated artifacts such as keys) on-prem. Chef Habitat clients (such as the `hab` cli, Supervisors and Studios) can be pointed to the Chef Habitat Builder on-prem and allow for development, execution and management without depending on the public Chef Habitat services.
+
+Chef Habitat Builder on-prem [GitHub repository](https://github.com/habitat-sh/on-prem-builder/) helps customers with a substantial number of Chef Habitat packages host them in their own infrastructure.
+
+Chef Habitat Builder (SaaS) stores application source code alongside the build package, which means that it is visible to everyone with access to the package. Chef Habitat Builder on-prem provides a private alternative to the cloud-based service. You can download plan files from the Chef Habitat Builder SaaS to an on-prem installation.
+
+For more information on how the SaaS and On-Prem versions of Chef Habitat Builder work together read the blog - [Chef Habitat Builder On-Prem Enhancements that Extend Support to Airgap Environments and Simplify Set-Up](https://blog.chef.io/chef-habitat-product-announcement-builder-on-prem-enhancements-that-extend-support-to-airgap-environments-and-simplify-set-up/)
+
+#### Compare Chef Habitat Builder SaaS and Builder on-prem
+
+| Feature | Builder on-prem | Builder SaaS |
+|---------|-----------------|------------- |
+|Application Manifest| Yes | Yes |
+|Deployment Channel Management| Yes | Yes |
+|Origin Management| Yes | Yes |
+|Content Library| Yes | Yes |
+|Custom Data and Reporting APIs| Yes | Yes |
+|DevOps Integration APIs| Yes | Yes |
+|Role Based User Access| Yes | Yes |
+|Container Registry Support| No | Yes |
+
+---
+##<a name="on-prem-requirements" id="on-prem-requirements" data-magellan-target="on-prem-requirements">Requirements</a>
+
+The following are minimum requirements for installation/deployment of the Chef Habitat Builder on-prem:
+
+* Services should be deployed on a Chef Habitat supported Linux operating system](docs/install-habitat)
+* OS should support `systemd` process manager
+* Deployment to bare-metal, VM or container image
+* CPU / RAM should be appropriate for the deployment purpose:
+  * 2 CPU/4 GB RAM for trial deployments
+  * 16 CPU/32 GB RAM for production deployments
+* Significant free disk space
+  * 2GB for the baseline Chef Habitat Builder on-prem services
+  * 15GB+ for the latest Chef Habitat Builder core packages
+  * 30GB+ for downloading and expanding the core package bootstrap in the volume containing the `/tmp` directory
+* We recommend:
+  * 50 GB disk space for trial deployments
+  * 100 GB disk space for production deployments
+* Deploy services single-node - scale out is not yet supported
+* Outbound network (HTTPS) connectivity to WAN is required for the _initial_ install
+* Inbound network connectivity from LAN (HTTP/HTTPS) is required for internal clients to access the Chef Habitat Builder on-prem
+* OAuth2 authentication provider (Chef Automate v2, Azure AD, GitHub, GitHub Enterprise, GitLab, Okta and Bitbucket (cloud) have been verified - additional providers may be added on request)
+
+#### Chef Habitat Builder SaaS Account
+
+To leverage the SaaS or on-prem version of Chef Habitat Builder you will need an account on the SaaS version of Chef Habitat Builder, which you will use to bootstrap the core Chef Habitat packages and--if necessary--to synchronize your on-prem installation with the contents of your Chef Habitat Builder SaaS account.
+
+### Functionality
+
+Once installed, the following functionality will be available to users:
+
+* Logging into the Chef Habitat Builder on-prem web site
+* Creation of origins, keys, access tokens, etc
+* Invitation of users to origins
+* Upload and download of Chef Habitat packages
+* Promotion and demotion of Chef Habitat packages to channels
+* Normal interactions of the `hab` client with the Chef Habitat Builder API
+* Package builds using the `hab` client and Chef Habitat Studio
+* Ability to import core packages from the upstream Chef Habitat Builder
+
+The following Chef Habitat Builder on-prem functionalities are *NOT* currently available:
+
+* Automated package builds using Chef Habitat Builder on-prem
+* Automated package exports using Chef Habitat Builder on-prem
+
+#### Memory Filesystem Storage
+
+Preparing your filesystem (Optional)
+Since substantial storage may be required for holding packages, please ensure you have an appropriate amount of free space on your filesystem.
+The package artifacts will be stored in your Minio instance by default, typically at the following location: `/hab/svc/builder-minio/data`
+If you need to add additional storage, it is recommended that you create a mount at `/hab` and point it to your external storage. This is not required if you already have sufficient free space.
+
+---
+## <a name="on-prem-standalone" id="on-prem-standalone" data-magellan-target="on-prem-standalone"> Standalone Installation and Upgrade</a>
+
+Chef Habitat Builder on-prem services are not set to auto-upgrade. To upgrade Chef Habitat Builder on-prem, first stop and unistall the services, with our uninstall script.
+
+The Chef Habitat Builder on-prem GitHub repository is located at [https://github.com/habitat-sh/on-prem-builder/](https://github.com/habitat-sh/on-prem-builder/)
+
+To uninstall Chef Habitat Builder on-prem:
+
+1. `cd ${SRC_ROOT}`
+1. `sudo ./uninstall.sh`
+
+To update Chef Habitat Builder on-prem:
+1. `cd ${SRC_ROOT}`
+2. `git checkout master && git pull`
+3. `./install.sh`
+
+*IMPORTANT*: Running the uninstall script will *NOT* remove any user data, so you can freely uninstall and re-install the services.
+
+---
+## <a name="on-prem-automate" id="on-prem-automate" data-magellan-target="on-prem-automate"> Install with Chef Automate</a>
+
+<div class="callout info">
+Chef Automate has the `./chef-automate deploy --product builder --product automate` command, which offers the fastest and easiest Chef Habitat Builder on-prem installation and authentication path. See the [Install Chef Habitat on-prem with Chef Automate Guide](https://docs.chef.io/automate/on_prem_builder/) for more information.
+</div>
+
+#### Authenticate with Cached Custom Certificates
+
+The Chef Habitat 0.85.0 release simplifies custom certificate management, making authentication with Chef Automate easier. Install Chef Habitat Builder on-prem and authenticate with Chef Automate in five steps. This is possible because Chef Habitat now looks for custom certificates in its `~/.hab/cache/ssl` directory (or `/hab/cache/ssl` when running as root). Copying self-signed and custom certificates to the cache directory automatically makes them available to the Chef Habitat client.
+
+Configuring Chef Habitat on-prem to use Chef Automate's Authentication takes five steps:
+
+1. Patch the Chef Automate `automate-credentials.toml` to recognize Chef Habitat
+1. Set up the Chef Habitat Builder on-prem `bldr.env` to use Chef Automate's authentication
+1. Copy the any custom certificate `.crt` and `.key` files to the same location as the `./install.sh` script.
+1. Install Chef Habitat Builder on-prem
+1. Copy Chef Automate's certificate to the `/hab/cache/ssl` directory
+
+For existing Chef Automate installations, copy the TLS certificate from the Chef Automate `config.toml` under the `load_balancer.v1.sys.frontend_tls` entry and save it as `automate-cert.pem` in the `/hab/cache/ssl` directory on Chef Habitat Builder on-prem.
+
+#### Step One: Patch Chef Automate's Configuration
+
+To authenticate with Chef Automate, create a patch with the Chef Automate command line:
+
+1. From the command line, access Chef Automate, for example:
+
+    ```bash
+    ssh <automate hostname>
+    #or
+    ssh <ipaddress>
+    ```
+
+1. Create the file `patch-automate.toml`:
+
+    ```bash
+    touch patch-automate.toml
+    ```
+
+1. Edit the `patch-automate.toml`:
+
+    ```toml
+    [session.v1.sys.service]
+    bldr_signin_url = "https://chef-builder.test/"
+    # OAUTH_CLIENT_ID
+    bldr_client_id = "0123456789abcdef0123"
+    # OAUTH_CLIENT_SECRET
+    bldr_client_secret = "0123456789abcdef0123456789abcdef01234567"
+    ```
+
+1. Apply the `patch-automate.toml` to the Chef Automate configuration from the command line:
+
+    ```bash
+    sudo chef-automate config patch patch-automate.toml
+    ```
+
+    A successful patch displays the output:
+
+    ```output
+    Updating deployment configuration
+    Applying deployment configuration
+      Started session-service
+    Success: Configuration patched
+    ```
+
+1. For existing Chef Automate installations, copy the TLS certificate from the Chef Automate `config.toml` under the `load_balancer.v1.sys.frontend_tls` entry and save it to your workstation as `automate-cert.pem`
+
+1. Exit Chef Automate
+
+#### Step Two: Set up `bldr.env`
+
+1. From the command line, access the location where you will install Chef Habitat Builder on-prem:
+
+    ```bash
+    ssh <builder hostname>
+    #or
+    ssh <ipaddress>
+    ```
+
+1. From the host Chef Habitat Builder command line, install on-prem package:
+
+    ```bash
+    git clone https://github.com/habitat-sh/on-prem-builder.git
+    ```
+
+1. Change to the `on-prem-builder` directory:
+
+    ```bash
+    cd on-prem-builder
+    ```
+
+1. Create a `bldr.env` file:
+
+    ```bash
+    touch bldr.env
+    ```
+
+    Or, if you need more explanations about the contents of the `bldr.env` file, copy the existing sample file:
+
+    ```bash
+    cp bldr.env.sample bldr.env
+    ```
+
+1. Edit `bldr.env`:
+      * Match the `SSL` with the `URL`. The `APP_SSL_ENABLED` configuration coordinates  with the type of hypertext transfer protocol named in `APP_URL`.
+        * To disable SSL, use `APP_SSL_ENABLED=false` and a `APP_URL` beginning with `http`.
+        * To enable SSL, use `APP_SSL_ENABLED=true` and a `APP_URL` beginning with `https`.
+      * Always be closing. Close the Chef Habitat Builder addresses provided in `APP_URL` and `OAUTH_REDIRECT_URL` with a forward slash, `/`.
+        * `https://chef-builder.test` will NOT work.
+        * `https://chef-builder.test/` will work.
+  This `bldr.env` example shows an on-prem SSL-enabled Chef Habitat Builder authenticating using Chef Automate's OAuth.
+  `APP_SSL_ENABLED=true` and the `APP_URL` starts with `https`.
+
+#### Step Three: Put the Certs with the Install Script
+
+If necessary, rename the custom certificates cert file as `ssl-certificate.crt` and the key file as `ssl-certificate.key`. Chef Habitat recognizes only these names and will not recognize any other names. Copy the `ssl-certificate.crt` and `ssl-certificate.key` files to the same directory as the `./install.sh` script.
+
+1. Locate the SSL certificate and key pair.
+1. Copy the key pair to the same directory as the install script, which is `/on-prem-builder`, if the repository was not renamed.
+1. Make the keys accessible to Chef Habitat during the installation.
+1. If you're testing this workflow, make your own key pair and copy them to `/on-prem-builder`.
+
+  ```bash
+  sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/ssl-certificate.key -out /etc/ssl/certs/ssl-certificate.crt %>
+  sudo cp /etc/ssl/private/ssl-certificate.key .
+  sudo cp /etc/ssl/certs/ssl-certificate.crt .
+  sudo chown vagrant:vagrant ssl-certificate.*
+  ```
+
+1. You can confirm that the keys were copied:
+
+    ```bash
+    cat ./ssl-certificate.key
+    cat ./ssl-certificate.crt
+    ```
+
+1. For existing Chef Automate installations, move the `cert.pem` that you saved /hab/cache/ssl
+
+#### Step Four: Install Chef Habitat Builder
+
+1. Run the install script. This installs both Chef Habitat Builder on-prem and the Chef Habitat datastore:
+
+    ```bash
+    bash ./install.sh
+    ```
+
+1. Accept both licenses.
+1. All services should report back as `up`. It make take a few minutes to come up.
+
+    ```bash
+    sudo hab svc status
+    ```
+
+    Should return something similar to:
+
+    ```output
+    package                                        type        desired  state  elapsed (s)  pid    group
+    habitat/builder-api/8473/20190830141422        standalone  up       up     595          28302  builder-api.default
+    habitat/builder-api-proxy/8467/20190829194024  standalone  up       up     597          28233  builder-api-proxy.default
+    habitat/builder-memcached/7728/20180929144821  standalone  up       up     597          28244  builder-memcached.default
+    habitat/builder-datastore/7809/20181019215440  standalone  up       up     597          28262  builder-datastore.default
+    habitat/builder-minio/7764/20181006010221      standalone  up       up     597          28277  builder-minio.default
+    ```
+
+#### Step Five: Copy Chef Automate's Certificate to Chef Habitat Builder
+
+1. View and copy the Chef Automate certificate. Change the server name to your Chef Automate installation FQDN:
+
+    ```bash
+    openssl s_client -showcerts -servername chef-automate.test -connect chef-automate.test:443 < /dev/null | openssl x509
+    ```
+
+    Copy the output to an accessible file.
+
+    ```output
+    # Copy the contents including the begin and end certificate
+    # -----BEGIN CERTIFICATE-----
+    # Certificate content here
+    #-----END CERTIFICATE-----
+    ```
+
+1. Make a file for you cert at `/hab/cache/ssl/`, such as `automate-cert.crt`. For a `.pem` file, `automate-cert.pem`. Overwriting `cert.pem` will cause your Chef Habitat Builder installation to fail.
+1. Paste the Chef Automate certificate into your file, `/hab/cache/ssl/automate-cert.crt`
+1. For existing Chef Automate installations, copy the `automate-cert.pem` file that you saved on your workstation in step one to the `/hab/cache/ssl/` directory.
+1. Restart builder
+
+    ```bash
+    sudo systemctl restart hab-sup
+    ```
+
+#### You're Done
+
+1. Login at
+
+    ```bash
+    https://chef-builder.test
+    ```
+
+### <a name="on-prem-a2oauth" id="on-prem-a2oauth" data-magellan-target="on-prem-a2oauth"> Install with Chef Automate OAuth</a>
+
+<div class="callout info">
+Chef Automate has the `./chef-automate deploy --product builder --product automate` command, which offers the fastest and easiest Chef Habitat Builder on-prem installation and authentication path. See the [Install Chef Habitat on-prem with Chef Automate Guide](https://docs.chef.io/automate/on_prem_builder/) for more information.
+</div>
+
+<div class="callout warning">
+This documentation is under construction.
+</div>
+
+To configure Chef Automate as an OAuth Provider for Chef Habitat Builder, create a TOML file with the partial configuration below.
+
+Run `chef-automate config patch </path/to/your-file.toml>` to deploy your change.
+
+`bldr_client_id` and `bldr_client_secret` must match the vales configured in Chef Habitat Builder (see below). However, we strongly recommend those values follow
+[best practices](https://www.oauth.com/oauth2-servers/client-registration/client-id-secret/)
+for `client_id` and `client_secret` in the Oauth2 standard.
+
+```toml
+[session.v1.sys.service]
+bldr_signin_url = "<your Chef Habitat Builder fqdn>" # for example, "http://builder.test/"
+# This needs to match what you configured OAUTH_CLIENT_ID as when you configured Chef Habitat Builder.
+bldr_client_id = "<your Chef Habitat Builder Oauth2 Client ID>"
+# This needs to match what you configured OAUTH_CLIENT_SECRET as when you configured Chef Habitat Builder.
+bldr_client_secret = "<your Chef Habitat Builder Oauth2 Client Secret>"
+```
+
+In addition, add Chef Automate's TLS certificate to Chef Habitat Builder's list of accepted certificates.
+Locate Chef Automate's default self-signed certificate by running `cat /hab/svc/automate-load-balancer/data/automate-test.cert`, copy this default certificate, and then add it to your Chef Habitat Builder instance's list of accepted certificates.
+
+```text
+-----BEGIN CERTIFICATE-----
+MIIDfDCCAmSgAcaSldKaf...
+-----END CERTIFICATE-----
+```
+
+If you are using a certificate signed by a trusted certificate authority instead of the default certificate, you can provide Chef Habitat Builder with the root certificate authority for the signed certificate.
+
+### Related Resources
+
+* [Chef Habitat Builder on-prem in Chef Automate](https://docs.chef.io/automate/on_prem_builder/)
+
+---
+## <a name="on-prem-oauth" id="on-prem-oauth" data-magellan-target="on-prem-oauth">Install with Outside OAuth</a>
+
+<div class="callout info">
+Chef Automate has the `./chef-automate deploy --product builder --product automate` command, which offers the fastest and easiest Chef Habitat Builder on-prem installation and authentication path. See the [Install Chef Habitat on-prem with Chef Automate Guide](https://docs.chef.io/automate/on_prem_builder/) for more information.
+</div>
+
+<div class="callout warning">
+This documentation is under construction.
+</div>
+
+### Pre-Requisites
+
+Prior to starting the installation, please ensure you have reviewed all the items
+in the Requirements section, and have a location for the installation that
+meets all the requirements.
+
+Note that the initial install will require _outgoing_ network connectivity.
+
+Your Chef Habitat Builder on-prem instance will need to have the following _inbound_ port open:
+
+* Port 80 (or 443 if you plan to enable SSL)
+
+You may need to work with your enterprise network admin to enable the appropriate firewall rules.
+
+### OAuth Application
+
+We currently support Chef Automate v2, Azure AD (OpenId Connect), GitHub, GitLab (OpenId Connect), Okta (OpenId Connect) and Atlassian Bitbucket (cloud) OAuth providers for authentication. You will need to set up an OAuth application for the instance of the Chef Habitat Builder on-prem you are setting up.
+
+Refer to the steps that are specific to your OAuth provider to create and configure your OAuth application. The below steps illustrate setting up the OAuth application using Github as the identity provider:
+
+1. Create a new OAuth Application in your OAuth Provider - for example, [GitHub](https://github.com/settings/applications/new)
+1. Set the homepage url value of `APP_URL` to `http://${BUILDER_HOSTNAME_OR_IP}/`, or `https://${BUILDER_HOSTNAME_OR_IP}/` if you plan to enable SSL.
+1. Set the callback url value of `OAUTH_REDIRECT_URL` to `http://${BUILDER_HOSTNAME_OR_IP}/` (The trailing `/` is *important*). Specify `https` instead of `http` if you plan to enable SSL.
+1. Record the the Client Id and Client Secret. These will be used for the `OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET` environment variables in the section below.
+
+For the configuration below, you will also need to know following *fully qualified* end-points:
+
+* Authorization Endpoint (example: `https://github.com/login/oauth/authorize`)
+* Token Endpoint (example: `https://github.com/login/oauth/access_token`)
+* API Endpoint (example: `https://api.github.com/user`)
+
+For more information, please refer to the developer documentation of these services:
+
+* [Azure Active Directory](https://docs.microsoft.com/azure/active-directory/develop/active-directory-protocols-oauth-code)
+* [GitHub](https://developer.github.com/apps/building-oauth-apps/authorization-options-for-oauth-apps/)
+* [GitLab](https://docs.gitlab.com/ee/integration/oauth_provider.html)
+* [Okta](https://developer.okta.com/authentication-guide/implementing-authentication/auth-code)
+* [BitBucket](https://confluence.atlassian.com/bitbucket/oauth-on-bitbucket-cloud-238027431.html)
+
+For further information on OAuth endpoints, see the Internet Engineering Task Force (IETF) RFC 6749, [The OAuth 2.0 Authorization Framework](https://tools.ietf.org/html/rfc6749), page 21.
+
+### Preparing your filesystem (Optional)
+
+Since substantial storage may be required for holding packages, please ensure you have an appropriate amount of free space on your filesystem.
+
+The package artifacts will be stored in your Minio instance by default, typically at the following location: `/hab/svc/builder-minio/data`
+
+If you need to add additional storage, it is recommended that you create a mount at `/hab` and point it to your external storage. This is not required if you already have sufficient free space.
+
+If you would prefer to use Artifactory instead of Minio for the object storage, please see the [Artifactory](#on-prem-artifactory) section.
+
+### Procuring SSL certificate (Recommended)
+
+By default, the Chef Habitat Builder on-prem will expose the web UI and API via http. Though it allows for easier setup and is fine for evaluation purposes, for a secure and more permanent installation it is recommended that you enable SSL on the Chef Habitat Builder endpoints.
+
+In order to prepare for this, you should procure a SSL certificate. If needed, you may use a self-signed certificate - however if you do so, you will need to install the certificate in the trusted chain on client machines (ones that will use the Chef Habitat Builder UI or APIs). You may use the `SSL_CERT_FILE` environment variable to also point to the certificate on client machines when invoking the `hab` client, for example:
+
+```bash
+SSL_CERT_FILE=ssl-certificate.crt hab pkg search -u https://localhost <search term>
+```
+
+Below is a sample command to generate a self-signed certificate with OpenSSL:
+
+```bash
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/ssl-certificate.key -out /etc/ssl/certs/ssl-certificate.crt
+```
+
+*Important*: Make sure that the certificate files are named exactly `ssl-certificate.key` and `ssl-certificate.crt`. If you have procured the certificate from a different source, rename them to the prescribed filenames, and ensure that they are located in the same folder as the `install.sh` script. They will get uploaded to the Chef Habitat supervisor during the install.
+
+### Prerequisite Tasks for an Airgapped Installation (Required if applicable)
+
+In order to install the on-prem Chef Habitat Builder in an airgapped (no direct internet access) environment, the following preparatory steps are required.
+
+<div class="callout info">
+Unless otherwise noted, the tasks are intended to be completed on a non-airgapped environment with internet connectivity
+</div>
+
+1. Download the [Zip archive](https://github.com/habitat-sh/on-prem-builder/archive/master.zip) of the on-prem-builder repo
+
+    ```bash
+    curl -LO https://github.com/habitat-sh/on-prem-builder/archive/master.zip
+    ```
+
+1. Download the Chef Habitat [cli tool](https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux)
+
+    ```bash
+    curl -Lo hab.tar.gz https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux
+    ```
+
+1. Create the Chef Habitat Builder package bundle from the [Core Seed List](https://github.com/habitat-sh/on-prem-builder/blob/master/package_seed_lists/builder_x86_64-linux_stable) package seed list and download it
+
+     ```bash
+     git clone https://github.com/habitat-sh/on-prem-builder.git
+     export DOWNLOAD_DIR=/some/base/download/directory
+     cd on-prem-builder
+     hab pkg download --target x86_64-linux --channel stable --file package_seed_lists/builder_x86_64-linux_stable --download-directory ${DOWNLOAD_DIR}/builder_packages
+     ```
+
+1. Create any additional package bundles to upload to Chef Habitat Builder from package seed lists as documented in the "Bootstrap" section of this document. You can specify `--download-directory ${DOWNLOAD_DIR}/builder_bootstrap` argument to the download command in order to consolidate all bootstrap packages in a single directory
+1. Zip up all the above content, transfer and unzip on the Linux system where Chef Habitat Builder will be deployed in the airgapped environment
+
+<div class="callout info">
+The following tasks are intended to be completed on the airgapped system where Chef Habitat Builder will be deployed, in advance of the installation.
+</div>
+
+1. From the zip archive, install the `hab` binary somewhere in $PATH and ensure it has execute permissions:
+
+     ```bash
+     sudo chmod 755 /usr/bin/hab
+     sudo hab # read the license and accept if in agreement, as the root user
+     ```
+
+1. Import the public package signing keys from the downloaded Chef Habitat Builder package bundle:
+
+     ```bash
+     export UNZIP_DIR=/some/base/unzip/directory
+     for file in $(ls ${UNZIP_DIR}/builder_packages/keys/*pub); do cat $file | sudo hab origin key import; done
+     ```
+
+1. Create a Chef Habitat artifact cache directory, place the Chef Habitat `*.hart` packages into that directory and then pre-install the Chef Habitat Builder Services:
+
+     ```bash
+     sudo mkdir -p /hab/cache/artifacts
+     sudo mv ${UNZIP_DIR}/builder_packages/artifacts/*hart /hab/cache/artifacts
+     sudo hab pkg install /hab/cache/artifacts/habitat-builder*hart
+     ```
+
+1. Pre-install the Chef Habitat Supervisor and its dependencies:
+
+     ```bash
+     sudo hab pkg install --binlink --force /hab/cache/artifacts/core-hab-*hart
+     ```
+
+### Setup
+
+1. Clone this repo (or unzip the zip archive you previously downloaded from the Github release page) at the desired machine where you will stand up the Chef Habitat Builder on-prem
+1. `cd ${SRC_ROOT}`
+1. `cp bldr.env.sample bldr.env`
+1. Edit `bldr.env` with a text editor and replace the values appropriately. Consider helping us to improve Chef Habitat as well by changing the `ANALYTICS_ENABLED` setting to `true` and providing an optional company name.
+
+### Installation
+
+<div class="callout info">
+If the on-prem Chef Habitat Builder system is in an airgapped (non-internet connected) environment, you must first complete the prerequisite steps listed above.
+</div>
+
+1. `./install.sh`
+1. `sudo systemctl restart hab-sup`
+
+If everything goes well, you should see output similar to the following showing that the Chef Habitat Builder on-prem services are loaded:
+
+```output
+hab-sup(AG): The habitat/builder-datastore service was successfully loaded
+hab-sup(AG): The habitat/builder-minio service was successfully loaded
+hab-sup(AG): The habitat/builder-memcached service was successfully loaded
+hab-sup(AG): The habitat/builder-api service was successfully loaded
+hab-sup(AG): The habitat/builder-api-proxy service was successfully loaded
+```
+
+Do a `hab svc status` to check the status of all the services. They may take a few seconds to all come up.
+
+If things don't work as expected (eg, if all the services are not in the `up` state), please see the Troubleshooting section below.
+
+### Minio Web UI
+
+The Chef Habitat Builder on-prem stores package artifacts in [Minio](https://github.com/minio/minio). By default, the Minio instance will be available on port 9000 (or whatever port you specified in your `bldr.env`). Please confirm that the Minio UI is available, and that you can log in with the credentials that were specified in your `bldr.env` file. There should already be a bucket created in which to host the artifacts.
+
+### Chef Habitat Builder on-prem Web UI
+
+Once the services are running successfully, the Chef Habitat Builder on-prem UI will become available at the configured hostname or IP address.
+
+Navigate to `http://${BUILDER_HOSTNAME_OR_IP}/#/sign-in` to access the Chef Habitat Builder on-prem UI.
+
+At that point you should be able to log in using your configured OAuth provider.
+
+---
+## <a name="on-prem-bootstrap" id="on-prem-bootstrap" data-magellan-target="on-prem-bootstrap">Bootstrap Core Packages</a>
+
+Create a `core` origin for an initial set of base packages. Uploads will fail unless you first populate your Chef Habitat Builder on-prem with the upstream `core` upstream origin.
+
+Once you are logged in to the Chef Habitat Builder on-prem UI, select the `New Origin` button and enter in `core` as the origin name.
+
+### Generate a Personal Access Token
+
+Next, generate a Personal Access Token for bootstrapping the `core` packages, as well as for performing authenticated operations using the `hab` client.
+
+Select your Gravatar icon on the top right corner of the Chef Habitat Builder on-prem web page, and then select **Profile**. This will take you to a page where you can generate your access token. Make sure to save it securely.
+
+### Bootstrap Chef Habitat Builder with Chef Habitat Packages
+
+Chef Habitat Builder on-prem has no pre-installed package sets. You must populate your Chef Habitat Builder instance by uploading packages.
+With Chef Habitat has two to assist in bootstrapping an on-prem Chef Habitat Builder instance with a set of stable packages:
+
+1. `hab pkg download`
+1. `hab pkg bulkupload`
+
+As you can see from the commands above, the package Bootstrap flow is comprised of two main phases: a download from the [Chef Habitat Builder SaaS](https://bldr.habitat.sh) followed by a bulkupload to your on-prem Chef Habitat Builder instance(s). Historically, we bootstrapped on-prem-builders by downloading all the packages in 'core' for all targets. That amounted to ~15GB and was both too much and too little, in that many of the packages weren't needed, and for many patterns (effortless) other origins were needed.
+
+The [new bootstrap process flow](https://forums.habitat.sh/t/populating-chef-habitat-builder-on-prem/1228) allows you to easily customize your Bootstrap package set or use pre-populated [Package Seed Lists](https://github.com/habitat-sh/on-prem-builder/blob/master/package_seed_lists/README.md) files.
+
+The following section illustrates the steps required to bootstrap the on-prem Chef Habitat Builder with the [Effortless Linux](https://github.com/habitat-sh/on-prem-builder/blob/master/package_seed_lists/effortless_x86_64-linux_stable) package seed list. Simply repeat the following download/bulkupload flow for any other package seed lists you think you will need to have in your Chef Habitat Builder on-prem or even create your own custom package seed list file:
+
+1. Phase 1: download
+    <div class="callout info">
+    If the on-prem Chef Habitat Builder is airgapped, this phase must be completed on a system with internet connectivity. The downloaded content will need to be zipped and then transferred to the Chef Habitat Builder system for phase 2.
+    </div>
+
+    ```bash
+    export HAB_AUTH_TOKEN=<your_public_Builder_instance_token>
+    cd on-prem-builder
+    hab pkg download --target x86_64-linux --channel stable --file package_seed_lists/effortless_x86_64-linux_stable --download-directory builder_bootstrap
+    ```
+
+1. Phase 2: bulkupload
+
+    <div class="callout info">
+    If your on-prem builder's SSL certificate was issued from an internal Public Key Infrastructure and not from a Publicly Trusted Certificate Authority, then you will need to copy the SSL public key cert chain into `/hab/cache/ssl` locally on the system that is uploading packages to the on-prem Chef Habitat Builder. This is described in more detail in the blogpost <a href="https://blog.chef.io/chef-habitat-product-announcement-improved-tls-certificate-management">Improved TLS Certificate Management</a>
+    </div>
+
+     **Important**: Inspect the contents of the `builder_bootstrap/artifacts` directory created from the download command above. For each of the origins (`core`, `effortless`, etc),  create the origin name if one doesn't exist already in the on-prem Chef Habitat Builder UI before starting the bulkupload.
+
+    ```bash
+    export HAB_AUTH_TOKEN=<your_on-prem_Builder_instance_token>
+    hab pkg bulkupload --url https://your-builder.tld --channel stable builder_bootstrap/
+    ```
+
+### Bootstrap `core` packages (**Deprecated**)
+
+*Important*: This methodology is now deprecated in favor of the download/bulkupload flow described above.
+
+*Important*: Create a `core` origin before starting this process. The process will fail without first having a `core` origin.
+
+Chef Habitat Builder on-prem has no pre-installed packages. To bootstrap a set of stable `core` origin packages (refer to the [core-plans repo](https://github.com/habitat-sh/core-plans)), you can do the following:
+
+1. Export your Personal Access Token as `HAB_AUTH_TOKEN` to your environment
+
+    ```bash
+    export HAB_AUTH_TOKEN=<your token>
+    ```
+
+1. Run the population script, passing the root URL of your new Chef Habitat Builder on-prem as the last argument (Replace `http` with `https` in the URL if SSL is enabled)
+
+    ```bash
+    sudo -E ./scripts/on-prem-archive.sh populate-depot http://${BUILDER_HOSTNAME_OR_IP}`
+    ```
+
+This is quite a lengthy process, so be patient. It will download a *large* (~ 14GB currently) archive of the latest stable core plans, and then install them to your Chef Habitat Builder on-prem.
+
+Please ensure that you have plenty of free disk space available for hosting the `core` packages as well as for managing your own packages. Updated packages install without deleting any existing packages, so plan disk space accordingly.
+
+### Synchronizing 'core' packages from an upstream (**Deprecated**)
+
+*Important*: This methodology is now deprecated in favor of the download/bulkupload flow described above.
+
+*Important*: Create a `core` origin before starting this process. The process will fail without first having a `core` origin.
+
+It is possible to also use the 'on-prem-archive.sh' script to synchronize the Chef Habitat Builder on-prem using the public Chef Habitat Builder site as an 'upstream'.
+
+This allows new stable core packages from the upstream to get created in the Chef Habitat Builder on-prem instance automatically.
+
+If your Chef Habitat Builder on-prem instance will have continued outgoing internet connectivity, you may wish to periodically run the script to check for updates.
+
+1. Export your Personal Access Token as `HAB_AUTH_TOKEN` to your environment (e.g, `export HAB_AUTH_TOKEN=<your token>`)
+1. `sudo -E ./scripts/on-prem-archive.sh sync-packages http://${BUILDER_HOSTNAME_OR_IP} base-plans`, passing the root URL of your new Chef Habitat Builder on-prem as the last argument. Replace `http` with `https` in the URL if SSL is enabled.
+
+The 'base-plans' parameter restricts the sync to a smaller subset of the core packages. If you wish to synchronize all core packages, omit the 'base-plans' parameter from the script. Note that it will take much longer for the synchronization of all packages. Generally, it will only take a few minutes for base packages to synchronize.
+
+You can also run the sync-packages functionality to initially populate the local Chef Habitat Builder on-prem.
+
+### Configuring a user workstation
+
+Configuring a user's workstation to point to the Chef Habitat Builder on-prem should be fairly straightforward.
+
+The following environment variables should be configured as needed:
+
+1. `HAB_BLDR_URL` - this is the main (and most important) configuration. It should point to the instance of Chef Habitat Builder on-prem that you have set up.
+2. `HAB_AUTH_TOKEN` - this is the user's auth token that will be needed for private packages (if any), or for operations requiring privileges, for example, package uploads. The user will need to create their auth token and set/use it appropriately.
+3. `SSL_CERT_FILE` - if the Chef Habitat Builder on-prem is configured with SSL and uses a self-signed or other certificate that is not in the trusted chain, then this environment variable can be used on the user's workstation to point the `hab` client to the correct certificate to use when connecting to Chef Habitat Builder on-prem.
+
+---
+## <a name="on-prem-artifactory" id="on-prem-artifactory" data-magellan-target="on-prem-artifactory"> Artifactory</a>
+
+If you are interested in using an existing instance of Artifactory as your object store instead of Minio,
+we are providing this capability as an early preview/alpha for testing.
+
+To set this up, you will need to have the following:
+
+* Know the URL to the Artifactory instance
+* Know (or generate) an API key to authenticate to the instance
+* Create a repo for the Chef Habitat artifacts
+
+Once you have the above, modify the your `bldr.env` based on the same config in `bldr.env.sample` in order to enable Artifactory.
+
+Once you have `bldr.env` updated, you can do an install normally using the `install.sh` script.
+
+After logging into the artifact backend web UI and creating your origins, you can try uploading some packages and check your Artifactory instance to ensure that they are present in the repo you specified.
+
+If you run into any issues, please see the Support section below.
+
+### Running a local Artifactory
+
+If you just want to do a quick test, you can also run a local Artifactory instance. In order to do that, you can do the following:
+
+```bash
+sudo hab svc load core/artifactory
+```
+
+This spins up a local Artifactory instance, which you can view at: `http://localhost:8081/artifactory/webapp/#/home`
+
+### Managing Chef Habitat Builder Artifacts on Artifactory
+
+If you use Artifactory for your Chef Habitat Builder on-prem artifact backend, we recommend reading about [Artifactory's Best Practices for Disaster Recovery](https://jfrog.com/whitepaper/best-practices-for-artifactory-backups-and-disaster-recovery/).
+
+---
+## <a name="on-prem-minio" id="on-prem-minio" data-magellan-target="on-prem-minio"> Minio</a>
+
+[MinIO](https://min.io/) is an open source object storage server. Chef Habitat Builder on-prem uses Minio to store habitat artifacts (.harts).
+
+### Managing Chef Habitat Builder On-Prem Artifacts
+
+The data that Chef Habitat Builder stores is luckily fairly lightweight and thus the backup and DR or Warm Spare strategy is pretty straightforward. On-Prem Chef Habitat Builder has two types of data that should be backed up case of a disaster:
+
+1. [PostgreSQL package and user metadata](#postgresql-data-backups)
+1. Minio habitat artifacts (.harts)
+
+Chef Habitat Builder on-prem supports only Minio artifact repositories.
+
+Ideally, you should coordinate the backup of the entire Chef Habitat Builder on-prem cluster to happen together. However, the type of data that Chef Habitat Builder stores (metadata and artifacts) permits some flexibility in the timing of your backup operations.
+
+#### Minio Artifact Backups
+
+The process of artifact backups is quite a bit more environmentally subjective than Postgres if only because we support more than one artifact storage backend. For the sake of these docs we will focus on Minio backups.
+
+Backing up Minio is also a bit subjective but more or less amounts to a filesystem backup. Because Minio stores its files on the filesystem (unless you're using a non-standard configuration) any filesystem backup strategy you want to use should be fine whether taking disk snapshots of some kind or data  mirroring, and rsync. Minio however also has the [minio client](https://docs.min.io/docs/minio-client-quickstart-guide.html) which provides a whole boatload of useful features and specifically allows the user to mirror a bucket to an alternative location on the filesystem or even a remote S3 bucket! Ideally you should _never_ directly/manually manipulate the files within Minio's buckets while it could be performing IO. Which means you should _always_ use the Minio client mentioned above to manipulate Minio data.
+
+A simple backup strategy might look like this:
+
+1. Shut down the API to ensure no active transactions are occurring. (Optional but preferred)
+        `hab svc stop habitat/builder-api`
+1. Mirror Minio data to an AWS S3 bucket. **
+        `mc mirror <local/minio/object/dir> <AWS_/S3_bucket>`
+** Another option here is to mirror to a different part of the filesystem, perhaps one that's NFS mounted or the like and then taking snapshots of it:
+        `mc mirror <local/minio/object/dir> <new/local/path>
+
+As mentioned before since this operation could be dramatically different for different environments Minio backup cannot be 100% prescriptive. But This should give you some ideas to explore.
+
+### Migrating off of local filesystem into S3/Minio
+
+This section is for installations of Chef Habitat on-prem artifact backend that were done *prior* to June 15, 2018. If you re-install or upgrade to a newer version of the artifact backend, you will be required to also migrate your package artifacts to a local instance of Minio (the new object store we are using). Please follow the steps below.
+
+### Pre-requisites
+
+1. Install the following Chef Habitat packages:
+
+```bash
+hab pkg install -b core/aws-cli
+hab pkg install -b core/jq-static
+hab pkg install -b habitat/s3-bulk-uploader
+```
+
+If you are running in an "air-gapped" environment, you may need to download the hart files and do a `hab pkg install -b <HART FILE>` instead.  Don't forget the `-b` parameter to binlink the binaries into your path.
+
+1. Please make sure that you have appropriate values for Minio in your `bldr.env`.  Check the 'bldr.env.sample' for the new required values.
+
+### Migration
+
+1. Run the `install.sh` script so that Minio is appropriately configured
+1. Check that you can log into your Minio instance at the URL specified in the `bldr.env`
+1. If all looks good, run the artifact migration script: `sudo ./scripts/s3migrate.sh minio`
+
+Once the migration script starts, you will be presented with some questions to specify the Minio instance, the credentials, and the Minio bucket name to migrate your package artifacts to. The script will attempt to automatically detect all of these from the running service, so you can usually just accept the defaults. Please refer to your `bldr.env` file if you need to explicitly type in any values.
+
+The migration script may take a while to move over the artifacts into Minio. During the script migration, the artifact backend services will continue to run as normal, however packages will not be downloadable until the artifacts are migrated over to Minio.
+
+Once the migration is complete, you will be presented with an option to remove the files in your `hab/svc/builder-api/data/pkgs` directory. You may want to preserve the files until you have verified that all operations are completing successfully.
+
+---
+## <a name="on-prem-postgresql" id="on-prem-postgresql" data-magellan-target="on-prem-postgresql">PostgreSQL</a>
+
+The data that Chef Habitat Builder stores is luckily fairly lightweight and thus the backup and DR strategy is pretty straightforward. On-Prem Chef Habitat Builder has two types of data that should be backed up case of a disaster:
+
+1. PostgreSQL package and user metadata
+1. [Minio habitat artifacts](#minio-artifact-backups)
+
+Ideally, you should coordinate the backup of the entire Chef Habitat Builder on-prem cluster to happen together. However, the type of data that Chef Habitat Builder stores (metadata and artifacts) permits some flexibility in the timing of your backup operations. In the worst case, if a package's metadata is missing from PostgreSQL, you can repopulate it by re-uploading the package with the `--force` flag, for example: `hab pkg upload <path to hartfile> -u <on-prem_url> --force`.
+
+### PostgreSQL Data Backups
+
+Backing up Chef Habitat Builder's PostgreSQL database is the same as for any PostgreSQL database. The process is a [pg_dump](https://www.postgresql.org/docs/11/app-pgdump.html). If you have a backup strategy for other production instances of PostgreSQL, then apply your backup pattern to the `builder` database. To backup your `builder` database manually, follow these steps:
+
+1. Shut down the API to ensure no active transactions are occurring. (Optional but preferred)
+        `hab svc stop habitat/builder-api`
+1. Switch to user `hab`
+        `sudo su - hab`
+1. Find your Postgres password
+        `sudo cat /hab/svc/builder-api/config/config.toml`
+1. Export as envvar
+        `export PGPASSWORD=<pw>`
+1. Run pgdump
+        `/hab/pkgs/core/postgresql/<version>/<release>/bin/pg_dump --file=builder.dump --format=custom --host=<ip_of_pg_host> --dbname=builder`
+1. Start the api and verify
+        `sudo hab svc start habitat/builder-api`
+
+Once the backup finishes,  your will find it as the `builder.dump` file on your filesystem. Move and store this file according to your local policies. We recommend storing it remotely--either physically or virtually--so it will be useable in a worst-case scenario. For most, storing the dump file in an AWS bucket or Azure storage is enough, but you should follow the same strategy for all database backups.
+
+### Restoring PostgreSQL Data
+
+Restoring a `builder` database is exactly like restoring any other database--which is to say, there is no magical solution. If you already have a restoration strategy in place at your organization, follow that to restore your `builder` database.  To restore your  data `builder` database manually, follow these steps:
+
+1. Switch to user `hab`
+        `sudo su - hab`
+1. Find your Postgres password
+        `sudo cat /hab/svc/builder-api/config/config.toml`
+1. Export as envvar
+        `export PGPASSWORD=<pw>`
+1. Create the new builder database *
+        `/hab/pkgs/core/postgresql/<version>/<release>/bin/createdb -w -h <url_of_pg_host> -p <configured_pg_port> -U hab builder`
+1. Verify connectivity to the new database instance
+        `/hab/pkgs/core/postgresql/<version>/<release>/bin/psql --host=<url_of_pg_host> --dbname=builder`
+1. Restore the dump into the new DB
+        `/hab/pkgs/core/postgresql/<version>/<release>/bin/pg_restore --host=<url_of_pg_host> --dbname=builder builder.dump`
+1. Start the on-prem Chef Habitat Builder services
+
+    <div class="callout info">
+    In some cases your version of Postgres might not have a `createdb` binary in which case you'll want to connect to database to run the <code>create db</code> command.
+    </div>
+
+Your database data should be restored and ready for use!
+
+### Merging PostgreSQL Database Shards
+
+This following sections on "Merging Database Shards" and "Merging Databases" is for installations of Chef Habitat Builder on-prem artifact backend that were done *prior* to
+August 17th 2018. If you re-install or upgrade to a newer version of the
+Chef Habitat Builder on-prem artifact backend, you will be required to also merge your database shards into
+the `public` Postgres database schema. Please follow the steps below.
+
+#### Shard Migration Pre-requisites
+
+1. The password to your Postgres database. By default, this is located at
+   `/hab/svc/builder-datastore/config/pwfile`
+1. A fresh backup of the two databases present in the Chef Habitat Builder on-prem artifact backend,
+   `builder_sessionsrv` and `builder_originsrv`. You can create such a backup
+   with `pg_dump`:
+
+   ```shell
+   PGPASSWORD=$(sudo cat /hab/svc/builder-datastore/config/pwfile) hab pkg exec core/postgresql pg_dump -h 127.0.0.1 -p 5432 -U hab builder_originsrv > builder-originsrv.sql
+   ```
+
+#### Shard Migration
+
+1. Uninstall existing services by running `sudo -E ./uninstall.sh`
+1. Install new services by running `./install.sh`
+1. If you check your logs at this point, you will likely see lines like this:
+   `Shard migration hasn't been completed successfully` repeated over and over
+   again, as the supervisor tries to start the new service, but the service
+   dies because the migration hasn't been run.
+1. Optionally, if you want to be extra sure that you're in a good spot to perform the
+   migration, log into the Postgres console and verify that you have empty
+   tables in the `public` schema. A command to do this might look like:
+
+   ```shell
+   PGPASSWORD=$(sudo cat /hab/svc/builder-datastore/config/pwfile) hab pkg exec core/postgresql psql -h 127.0.0.1 -p 5432 -U hab builder_originsrv
+   ```
+
+   That should drop you into a prompt where you can type `\d` and hopefully see
+   a list of tables where the schema says `public`. If you try to select data
+   from any of those tables, they should be empty. Note that this step is
+   definitely not required, but can be done if it provides you extra peace of
+   mind.
+1. Now you are ready to migrate the data itself. The following command will do
+   that for `builder-originsrv`:
+
+   ```shell
+   PGPASSWORD=$(sudo cat /hab/svc/builder-datastore/config/pwfile) ./scripts/merge-shards.sh originsrv migrate
+   ```
+
+   After confirming that you have fresh database backups, the script
+   should run and at the end, you should see several notices that everything is
+   great, row counts check out, and your database has been marked as migrated.
+1. Do the same migration for `builder-sessionsrv`.
+
+   ```shell
+   PGPASSWORD=$(sudo cat /hab/svc/builder-datastore/config/pwfile) ./scripts/merge-shards.sh sessionsrv migrate
+   ```
+
+1. Double check the logs for `builder-originsrv` and `builder-sessionsrv` to
+   make sure things look normal again. If there are still errors, restart the
+   services.
+1. At this point, all data is stored in the `public` schema. All of the other
+   schemas, from `shard_0` up to `shard_127` will still be present in your
+   database, and the data in them will remain intact, but the services will no
+   longer reference those shards.
+
+### Merging PostgreSQL Databases
+
+This section is for installations of Chef Habitat Builder on-prem artifact backend that were done *after*
+the database shard migration listed above. If upgrade to a newer version of the
+Chef Habitat Builder on-prem artifact backend, you will be required to also merge databases into
+the `builder` Postgres database. Please follow the steps below.
+
+#### Database Merge Pre-requisites
+
+1. The password to your Postgres database. By default, this is located at
+   `/hab/svc/builder-datastore/config/pwfile`
+1. A fresh backup of the two databases present in the Chef Habitat Builder on-prem artifact backend,
+   `builder_sessionsrv` and `builder_originsrv`. You can create such a backup
+   with `pg_dump`:
+
+   ```shell
+   PGPASSWORD=$(sudo cat /hab/svc/builder-datastore/config/pwfile) hab pkg exec core/postgresql pg_dump -h 127.0.0.1 -p 5432 -U hab builder_originsrv > builder-originsrv.sql
+   ```
+
+#### Database Merge Migration
+
+1. With all services running your *current* versions, execute the following command from the root of the repo directory:
+
+   ```shell
+   PGPASSWORD=$(sudo cat /hab/svc/builder-datastore/config/pwfile) ./scripts/merge-databases.sh
+   ```
+
+   After confirming that you have fresh database backups, the script
+   should run and create a new 'builder' database, and then migrate the data.
+1. At this point, all data is stored in the `builder` database. Both of the other
+   databases (`builder_originsrv` and `builder_sessionsrv`) will still be present,
+   and the data in them will remain intact, but new services will no
+   longer reference those databases.
+1. Now, stop and uninstall the existing services by running `sudo -E ./uninstall.sh`
+1. Install new services by running `./install.sh`
+1. Once the new services come up, you should be able to log back into the artifact backend UI and confirm that everything is as expected.
+
+---
+## <a name="on-prem-scaling" id="on-prem-scaling" data-magellan-target="on-prem-scaling"> Scaling</a>
+
+With any tiered or HA deployment of the builder services you'll likely want to horizontally scale your front-end nodes. The most common deployment pattern for this case is a pool of front-end nodes fronted by a load-balancer.
+
+### Deploying New Front-ends
+
+The on-prem-builder install.sh script now supports scaling front-end nodes as a deployment pattern. It is require that new front-ends be deployed on a separate compute from your initial on-prem deployment. Similarly to Chef Automate's bootstrap pattern the on-prem builder install script can generate a bootstrap bundle which is used to simplify the deployment of new front-ends.
+
+#### Create and update bldr-frontend.env
+
+The bldr.env file for your single on-prem builder node contains most of the information required to bootstrap a new front-end and will be used during the installation process. However, some configuration will  need to change.
+
+First, you'll need to copy your `bldr.env` file to `bldr-frontend.env`.
+
+In the case that your on-prem-builder cluster is backed by cloud services, you will only need to update the value of `OAUTH_REDIRECT_URL`. When running multiple front-end instances this value should be pointed to your load-balancer.
+
+In the case that you are _not_ backing your cluster with cloud services you will need to update the values of `OAUTH_REDIRECT_URL`, `POSTGRES_HOST`, and `MINIO_ENDPOINT`.
+
+1. Copy your `on-prem-builder/bldr.env` to `bldr-frontend.env`
+1. Update the contents `bldr-frontend.env` to match your deployment pattern
+
+#### Generate & send bootstrap_bundle.tar
+
+Once the bldr-frontend.env file's contents have been updated with appropriate information we should be ready to generate the bootstrap bundle. After creation, we'll send it to the target node we intend to run the front-end service on.
+
+1. Generate a bootstrap bundle `./install.sh --generate-bootstrap`
+1. Copy the generated `/hab/bootstrap_bundle.tar` to the same path on the new frontend node
+
+#### Install frontend
+
+1. Run the front-end install script from the new front-end node `./install.sh --install-frontend`
+
+---
+## <a name="on-prem-ha" id="on-prem-ha" data-magellan-target="on-prem-ha">High Availability</a>
+
+The only supported HA solution for Chef Habitat Builder on-prem is through the consumption of SaaS backend services (AWS RDS, AWS S3).
+There is no other fully on-prem supported solution for providing highly available Chef Habitat Builder services.
+
+### Disaster Recovery/Warm Spare
+
+In the event that you need to quickly recover from an outage or that you have some planned upgrades
+or maintenance work, you can leverage a "Warm Spare/Disaster Recovery" installation methodology.
+
+The following architecture diagram depicts the data synchronization process that can be used to increase the availability of the Chef Habitat Builder API and backend for "Warm Spare/Disaster Recovery"
+scenarios.
+
+![onprem architecture](/images/builder_architecture.png)
+
+### Synchronization Components
+
+To enable the DR / Warm Spare deployment methodology, you will need to provision an equal number of
+frontend/backend systems as there are in your primary location. These will serve as your DR / Warm
+Spare environment and, if to be used for DR, should exist in a separate Availability Zone with
+separate storage.
+
+The data that Chef Habitat Builder stores is luckily fairly lightweight and thus the backup and DR or Warm Spare
+strategy is pretty straightforward. On-Prem Chef Habitat Builder has two types of data that should be backed up
+case of a disaster or workload transfer to the Warm Spare:
+
+1. PostgreSQL package and user metadata
+1. Chef Habitat Artifacts (.harts)
+
+All data should be backed by highly available storage subsystems and either replicated or backed up
+as indicated in the following sections.
+
+Ideally, you should coordinate the backup of the entire Chef Habitat Builder on-prem cluster to happen together.
+However, the type of data that Chef Habitat Builder stores (metadata and artifacts) permits some flexibility in
+the timing of your backup operations. In the worst case, if a package's metadata is missing from
+PostgreSQL, you can repopulate it by re-uploading the package with the --force flag, for example:
+`hab pkg upload <path to hartfile> -u <on-prem_url> --force`.
+
+#### PostgreSQL
+
+If using AWS RDS, you should be taking periodic snapshots of the RDS instance. For disaster recovery, you can choose to use a Multi-AZ RDS Deployment.
+
+For non-RDS deployments, backing up the Postgres data is detailed in the [Postgresql data backup](#postgresql-data-backups) section.
+
+The backups should be periodically restored into the DR / Warm Spare via a scheduled automated process such as a crontab script.
+The restore can be run remotely from the same host that was used to create the backup. The Chef Habitat Builder database is relatively small, likely only tens of megabytes.
+
+#### Chef Habitat Artifacts
+
+Chef Habitat Artifacts can exist in one of two locations:
+
+1. Minio
+1. S3 bucket
+
+In the event that your backend is using Minio for Artifact storage/retrieval, it should be backed by
+highly available storage. Backing up Minio data is detailed in the [Managing Chef Habitat Artifacts](#managing-builder-on-prem-artifacts) section.
+If choosing a Warm Spare deployment in the same availability zone/datacenter and the filesystem is a network attached filesystem, it can also be attached to the Warm Spare. However, make sure that only one Chef Habitat Builder cluster is ever accepting live traffic when sharing the same filesystem.
+For disaster recovery, the filesystem should be replicated to the alternate availability zone/datacenter.
+
+If Artifacts are stored directly in an S3 bucket, the same bucket can be used for a Warm Spare in the
+same availability zone/datacenter. In the case of disaster recovery, the S3 bucket should be replicated
+to the alternate availability zone/datacenter. In the case of AWS S3, this replication is already
+built into the service.
+
+In the case that you are not re-attaching the Minio filesytem to the Warm Spare, the backups should
+be periodically restored into the DR / Warm Spare via a scheduled automated process such as a crontab
+script.
+
+---
+## <a name="on-prem-license" id="on-prem-licesne" data-magellan-target="on-prem-license"> Chef Habitat Builder on-prem License </a>
+
+Copyright (c) 2018 Chef Software Inc. and/or applicable contributors
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0) at `http://www.apache.org/licenses/LICENSE-2.0)`
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+---
+## <a name="on-prem-logs" id="on-prem-logs" data-magellan-target="on-prem-logs">Logs and Logging </a>
+
+The recognized values for logging are: `error`, `warn`, `info`, `debug`, and `trace`.
+For a more detailed explanation of logging in Chef Habitat, see the Chef Habitat [Supervisor Log Configuration Reference](https://www.habitat.sh/docs/reference/#supervisor-log-configuration-reference) and the Chef Habitat[Supervisor Log Key](https://www.habitat.sh/docs/reference/#supervisor-log-key) documentation.
+
+### Basic Logging
+
+To turn on and examine the services debug logging in your Chef Habitat installation:
+
+1. Edit the `sudo /hab/svc/builder-api/user.toml` file
+1. On the first line, change the log_level from **error** to **debug**
+
+    ```toml
+    log_level="debug,tokio_core=error,tokio_reactor=error,zmq=error,hyper=error"
+    ```
+
+1. Save and close the file
+1. Restart Chef Habitat with `sudo systemctl restart hab-sup`.
+1. Use `journalctl -fu hab-sup` to view the logs.
+1. Reset `/hab/svc/builder-api/user.toml` file to the default `log_level=error` and restart the services with `sudo systemctl restart hab-sup` to restore error-level logging.
+
+### RUST_LOG
+
+1. Use `RUST_LOG=debug RUST_BACKTRACE=1` to see an individual command's debug and backtrace.
+
+    ```bash
+    # Linux/MacOS
+    # replace "hab sup run" with your command
+    env RUST_LOG=debug RUST_BACKTRACE=1 hab sup run
+    ```
+
+1. Edit the `sudo /hab/svc/builder-api/user.toml` file
+1. On the second line, change:
+
+    ```toml
+    RUST_LOG=debug RUST_BACKTRACE=1
+    ```
+
+### Log Rotation
+
+The `builder-api-proxy` service will log (via Nginx) all access and errors to log files in your service directory.
+Since these files may get large, you may want to add a log rotation script.
+Below is a sample logrotate file that you can use as an example for your needs:
+
+```bash
+/hab/svc/builder-api-proxy/logs/host.access.log
+/hab/svc/builder-api-proxy/logs/host.error.log
+{
+        rotate 7
+        daily
+        missingok
+        notifempty
+        delaycompress
+        compress
+        postrotate
+            /bin/kill -USR1 `cat /hab/svc/builder-api-proxy/var/pid 2>/dev/null`2>/dev/null || true
+        endscript
+}
+```
+
+---
+## <a name="on-prem-troubleshoot" id="on-prem-troubleshoot" data-magellan-target="on-prem-troubleshoot">Troubleshooting</a>
+
+This section covers several common problems that you might encounter and how to solve them.
+
+#### Finding origin keys
+
+On Linux OS:
+
+```bash
+# Linux/MacOS
+ls -la /hab/cache/keys
+ls -la $HOME/.hab/cache.keys
+```
+On Windows:
+
+```PS
+# Windows (Powershell 5+)
+ls C:\hab\cache\keys
+```
+
+#### Network access / proxy configuration
+
+If the initial install fails, please check that you have outgoing connectivity, and that you can successfully ping the following:
+
+* `raw.githubusercontent.com`
+* `bldr.habitat.sh`
+
+If you have outgoing access via a proxy, please ensure that HTTPS_PROXY is set correctly in your environment.
+
+You also will need to have the following _inbound_ port open for your instance:
+
+* Port 80
+
+In the case that you have configured your proxy for the local session while installing but are still receiving connection refusal errors like the one below, you may want to configure your proxy with the `/etc/environment` file or similar.
+
+```output
+-- Logs begin at Mon 2019-06-10 09:02:13 PDT. --
+Jun 10 09:35:15 <TargetMachine> hab[13161]: ∵ Missing package for core/hab-launcher
+Jun 10 09:35:15 <TargetMachine> hab[13161]: » Installing core/hab-launcher
+Jun 10 09:35:15 <TargetMachine> hab[13161]: ☁ Determining latest version of corehab-launcher in the 'stable' channel
+Jun 10 09:35:15 <TargetMachine> hab[13161]: ✗✗✗
+Jun 10 09:35:15 <TargetMachine> hab[13161]: ✗✗✗ Connection refused (os error 111)
+Jun 10 09:35:15 <TargetMachine> hab[13161]: ✗✗✗
+Jun 10 09:35:15 <TargetMachine> systemd[1]: hab-sup.service: Main process exited,code=exited, status=1/FAILURE
+Jun 10 09:35:15 <TargetMachine> hab[13171]: Supervisor not started.
+Jun 10 09:35:15 <TargetMachine> systemd[1]: hab-sup.service: Unit entered failedstate.
+Jun 10 09:35:15 <TargetMachine> systemd[1]: hab-sup.service: Failed with result'exit-code'
+```
+
+Please work with your enterprise network admin to ensure the appropriate firewall rules are configured for network access.
+
+#### Authentication failure when logging in
+
+If you are not able to log in, please double check the settings that you have configured your OAuth application with, as well as the URLs that you have specified in your `bldr.env` file.
+
+#### Unable to retrieve OAuth token
+
+You were able to sign in to the authentication provider, but unable to authenticate with Chef Habitat's OAuth token.
+
+Open the `bldr.env` and verify that:
+
+* **APP_URL** ends with "/\"
+* **OAUTH_REDIRECT_URL** ends with "/\"
+* **OAUTH_CLIENT_ID** is complete and correct
+* **OAUTH_CLIENT_SECRET** is complete and correct
+
+Apply changes to the `bldr.env` by running the install script:
+
+```bash
+bash ./install.sh
+```
+
+Restart the Chef Habitat services:
+
+```bash
+sudo systemctl restart hab-sup
+```
+
+#### Self-signed cert files do not exist
+
+The file name `cert.pem` has a specific use within Chef Habitat system. Do not save your custom certificate with this file name, because it will overwrite Chef Habitat Builder's `cert.pem` and cause your installation to fail.
+
+Chef Habitat Builder on-prem services looks certificates in the `/hab/cache/ssl` directory. Copy your self-signed certificates directory if they are missing. Follow the naming pattern `appname-cert.cert` or `appname-cert.pem`, for example `automate-cert.cert` or `automate-cert.pem`.
+
+Restart the Chef Habitat services:
+
+```bash
+sudo systemctl restart hab-sup
+```
+
+#### Connection refused (os error 111)
+
+If the proxy was configured for the local session during installation, but you are still seeing connection refusal errors, you may want to configure your proxy with the `/etc/environment` file or something similar. Work with your enterprise network admin to ensure the appropriate firewall rules are configured for network access.
+
+```output
+-- Logs begin at Mon 2019-06-10 09:02:13 PDT. --
+Jun 10 09:35:15 <TargetMachine> hab[13161]: ∵ Missing package for core/hab-launcher
+Jun 10 09:35:15 <TargetMachine> hab[13161]: » Installing core/hab-launcher
+Jun 10 09:35:15 <TargetMachine> hab[13161]: ☁ Determining latest version ofcorehab-launcher in the 'stable' channel
+Jun 10 09:35:15 <TargetMachine> hab[13161]: ✗✗✗
+Jun 10 09:35:15 <TargetMachine> hab[13161]: ✗✗✗ Connection refused (os error 111)
+Jun 10 09:35:15 <TargetMachine> hab[13161]: ✗✗✗
+Jun 10 09:35:15 <TargetMachine> systemd[1]: hab-sup.service: Main process exitedcode=exited, status=1/FAILURE
+Jun 10 09:35:15 <TargetMachine> hab[13171]: Supervisor not started.
+Jun 10 09:35:15 <TargetMachine> systemd[1]: hab-sup.service: Unit entered failedstate.
+Jun 10 09:35:15 <TargetMachine> systemd[1]: hab-sup.service: Failed with result'exit-code'
+```
+
+#### Error "sorry, too many clients already"
+
+If the hab services don't come up as expected, use `journalctl -fu hab-sup` to check the service logs (also see below for turning on Debug Logging).
+
+If you see a Postgresql error "sorry, too many clients already", you may need to increase the number of configured connections to the database.
+
+In order to do that, run the following:
+
+`echo 'max_connections=200' | hab config apply "datastore.default" $(date +%s)`
+
+Wait for a bit for the datastore service to restart. If the service does not restart on it's own, you can do a 'sudo systemctl restart hab-sup' to restart things.
+
+#### Error "Too many open files"
+
+If you see this error message in the supervisor logs, that may indicate that you need to increase the file ulimit on your system. The Chef Habitat Builder on-prem systemd configuration includes an expanded file limit, however some distributions (eg, on CentOS 7) may require additional system configuration.
+
+For example, add the following to the end of your `/etc/security/limits.conf` file, and restart your system.
+
+```text
+* soft nofile 65535
+* hard nofile 65535
+```
+
+#### Error "Text file busy"
+
+Occasionally you may get an error saying "Text file too busy" during install.
+If you get this, please re-try the install step again.
+
+#### Error when bootstrapping core packages
+
+You may see the following error when bootstrapping the core packages using the script above. If this happens, the bootstrap process will continue re-trying, and the upload will eventually succeed. Be patient and let the process continue until successful completion.
+
+```output
+✗✗✗
+✗✗✗ Pooled stream disconnected
+✗✗✗
+```
+
+If some packages do not upload, you may try re-uploading them manually via the `hab pkg upload` command.
+
+This may also be an indication that your installation may not have sufficient CPU, RAM or other resources, and you may want to either allocate additional resources (eg, if on a VM) or move to a more scaled-up instance.
+
+#### Error uploading large packages
+
+By default, the installed services configuration will set a 2GB limit for packages that can be uploaded to the Chef Habitat Builder on-prem. If you need to change the limit, you can do so by injecting an updated config to the Chef Habitat Builder on-prem services.
+
+For example, to change the limit to 3GB, you could do the following:
+
+Create a file called `config.toml` with the following content:
+
+```toml
+[nginx]
+max_body_size = "3072m"
+proxy_send_timeout = 360
+proxy_read_timeout = 360
+
+[http]
+keepalive_timeout = "360s"
+```
+
+Then, issue the following command:
+
+```bash
+hab config apply builder-api-proxy.default $(date +%s) config.toml
+```
+
+After the config is successfully applied, re-try the upload.
+
+If you have any issues, you may also need to adjust the timeout configuration on the Chef Habitat client.
+You can do that via an environment variable: `HAB_CLIENT_SOCKET_TIMEOUT`. The value of this environment variable is a timeout in seconds. So for example, you could do something like this when uploading a file:
+
+```bash
+HAB_CLIENT_SOCKET_TIMEOUT=360 hab pkg upload -u http://localhost -z <your auth token><file>
+```
+
+#### Package shows up in the UI and `hab pkg search`, but `hab pkg install` fails
+
+If you run into a situation where you have a package populated in the Chef Habitat Builder on-prem, but it is failing to install with a `Not Found` status, it is possible that there was a prior problem with populating the Minio backend with the package artifact.
+
+If you have the package artifact on-disk (for example, in the `hab/cache/artifacts` directory), you can try to upload the missing package again with the following command (update the parameters as appropriate):
+
+```bash
+hab pkg upload -u http://localhost -z <your auth token> --force <package hart file>
+```
+
+<div class="callout info">
+The --force option above is only available in versions of the `hab` client greater than 0.59.
+</div>
+
+#### on-prem-archive.sh Fails during `populate-depot` with `403` error during core package uploads
+
+When populating your Chef Habitat Builder on-prem with upstream core packages, you may run into an error that looks like this:
+
+```output
+Uploading hart files.
+[1/958] Uploading ./core-img-0.5.4-20190201011741-x86_64-linux.hart to the depot athttps://your.awesome.depot
+  75 B / 75 B | [=========================================] 100.00 % 384 B/s
+✗✗✗
+✗✗✗ [403 Forbidden]
+✗✗✗
+```
+
+And repeats for every package. Check to make sure you've created the `core` origin and then try again, if you haven't, then the upload will fail.
+
+### Support
+
+You can post questions or issues on the Chef [Habitat Forum](https://forums.habitat.sh/), on our [Slack channel](https://habitat-sh.slack.com), or file issues directly at the [Github repo](https://github.com/habitat-sh/on-prem-builder/issues).
+
+---
+## <a name="on-prem-env" id="on-prem-env" data-magellan-target="on-prem-env"> Bldr.env </a>
+
+An example Chef Habitat Builder configuration file.
+
+```
+#!/bin/bash
+
+# The endpoint and port for your Postgresql instance
+# Change only if needed
+export POSTGRES_HOST=localhost
+export POSTGRES_PORT=5432
+
+# The endpoint, key and secret for your Minio instance (see README)
+# Change these before the first install if needed
+export MINIO_ENDPOINT=http://localhost:9000
+export MINIO_BUCKET=habitat-builder-artifact-store.local
+export MINIO_ACCESS_KEY=depot
+export MINIO_SECRET_KEY=password
+
+# If you'd like to use Artifactory instead of Minio, uncomment
+# and set the following variables appropriately.
+# IMPORTANT: See the README for more info
+# export ARTIFACTORY_ENABLED=true
+# export ARTIFACTORY_API_URL=http://localhost:8081
+# export ARTIFACTORY_API_KEY=foo
+# export ARTIFACTORY_REPO=habitat-builder-artifact-store
+
+# Modify these as needed for the on-premise OAuth2 provider.
+# The variables below are configured for GitHub by default,
+# but appropriate values for Bitbucket, GitLab, Azure AD and Okta
+# are also included as comments.
+
+# Whether SSL is enabled for the on-prem depot
+export APP_SSL_ENABLED=false
+
+# The URL for this instance of the on-prem depot
+# IMPORTANT: If SSL is enabled, APP_URL should start be https
+export APP_URL=http://localhost
+
+# The OAUTH_PROVIDER value can be "github", "gitlab", "bitbucket", "azure-ad",
+# "okta" or "chef-automate"
+export OAUTH_PROVIDER=github
+# export OAUTH_PROVIDER=bitbucket
+# export OAUTH_PROVIDER=gitlab
+# export OAUTH_PROVIDER=azure-ad
+# export OAUTH_PROVIDER=okta
+# export OAUTH_PROVIDER=chef-automate
+
+# The OAUTH_USERINFO_URL is the API endpoint that will be used for user info
+export OAUTH_USERINFO_URL=https://api.github.com/user
+# export OAUTH_USERINFO_URL=https://api.bitbucket.org/1.0/user
+# export OAUTH_USERINFO_URL=https://gitlab.com/oauth/userinfo
+# export OAUTH_USERINFO_URL=https://login.microsoftonline.com/<tenant-id>/openid/userinfo
+# export OAUTH_USERINFO_URL=https://<your.okta.domain>.com/oauth2/v1/userinfo
+# export OAUTH_USERINFO_URL=https://<your.automate.domain>/session/userinfo
+
+# The OAUTH_AUTHORIZE_URL is the *fully qualified* OAuth2 authorization endpoint
+export OAUTH_AUTHORIZE_URL=https://github.com/login/oauth/authorize
+# export OAUTH_AUTHORIZE_URL=https://bitbucket.org/site/oauth2/authorize
+# export OAUTH_AUTHORIZE_URL=https://gitlab.com/oauth/authorize
+# export OAUTH_AUTHORIZE_URL=https://login.microsoftonline.com/<tenant-id>/oauth2/authorize
+# export OAUTH_AUTHORIZE_URL=https://<your.okta.domain>.com/oauth2/v1/authorize
+# export OAUTH_AUTHORIZE_URL=https://<your.automate.domain>/session/new
+
+# The OAUTH_SIGNUP_URL is the link used to register users with the OAUTH provider
+export OAUTH_SIGNUP_URL=https://github.com/join
+# export OAUTH_SIGNUP_URL=https://bitbucket.org/account/signup/
+# export OAUTH_SIGNUP_URL=https://gitlab.com/users/sign_in#register-pane
+
+# The OAUTH_TOKEN_URL is the *fully qualified* OAuth2 token endpoint
+export OAUTH_TOKEN_URL=https://github.com/login/oauth/access_token
+# export OAUTH_TOKEN_URL=https://bitbucket.org/site/oauth2/access_token
+# export OAUTH_TOKEN_URL=https://gitlab.com/oauth/token
+# export OAUTH_TOKEN_URL=https://login.microsoftonline.com/tenant-id/oauth2/token
+# export OAUTH_TOKEN_URL=https://your.okta.domain.com/oauth2/v1/token
+# export OAUTH_TOKEN_URL=https://<your.automate.domain>/session/token
+
+# The OAUTH_REDIRECT_URL is the registered OAuth2 redirect
+# IMPORTANT: If SSL is enabled, the redirect URL should be https
+export OAUTH_REDIRECT_URL=http://localhost/
+
+# The OAUTH_CLIENT_ID is the registered OAuth2 client id
+export OAUTH_CLIENT_ID=0123456789abcdef0123
+
+# The OAUTH_CLIENT_SECRET is the registered OAuth2 client secret
+export OAUTH_CLIENT_SECRET=0123456789abcdef0123456789abcdef01234567
+
+# Modify these only if there is a specific need, otherwise leave as is
+export BLDR_CHANNEL=on-prem-stable
+export BLDR_ORIGIN=habitat
+export HAB_BLDR_URL=https://bldr.habitat.sh
+
+# Help us make Habitat better! Opt into analytics by changing the ANALYTICS_ENABLED
+# setting below to true, then optionally provide your company name. (Analytics is
+# disabled by default. See our privacy policy at https://www.habitat.sh/legal/privacy-policy/.)
+export ANALYTICS_ENABLED=false
+export ANALYTICS_COMPANY_NAME=""
+````
