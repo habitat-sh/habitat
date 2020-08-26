@@ -1,8 +1,10 @@
 use crate::{crypto::{hash,
                      keys::{encryption::{generate_origin_encryption_key_pair,
                                          generate_service_encryption_key_pair,
-                                         generate_user_encryption_key_pair},
+                                         generate_user_encryption_key_pair,
+                                         BUILDER_KEY_NAME},
                             generate_signing_key_pair,
+                            BuilderSecretEncryptionKey,
                             KeyFile,
                             NamedRevision,
                             OriginPublicEncryptionKey,
@@ -189,6 +191,14 @@ impl KeyCache {
         self.fetch_latest_revision::<ServicePublicEncryptionKey>(name)
     }
 
+    /// Returns the latest Builder secret encryption key. All Builder
+    /// encryption keys have the same name, by definition, so we don't
+    /// need to provide one to this method (in contrast with all the
+    /// other key retrieval methods).
+    pub fn latest_builder_key(&self) -> Result<BuilderSecretEncryptionKey> {
+        self.fetch_latest_revision::<BuilderSecretEncryptionKey>(BUILDER_KEY_NAME)
+    }
+
     /// Attemt to retrieve the specified signing key from the cache,
     /// if it exists and is valid.
     pub fn public_signing_key(&self,
@@ -213,6 +223,14 @@ impl KeyCache {
                                          named_revision: &NamedRevision)
                                          -> Result<ServiceSecretEncryptionKey> {
         self.fetch_specific_revision::<ServiceSecretEncryptionKey>(named_revision)
+    }
+
+    /// Retrieve the Builder secret encryption key with the specified
+    /// revision.
+    pub fn builder_secret_encryption_key(&self,
+                                         named_revision: &NamedRevision)
+                                         -> Result<BuilderSecretEncryptionKey> {
+        self.fetch_specific_revision::<BuilderSecretEncryptionKey>(named_revision)
     }
 
     ////////////////////////////////////////////////////////////////////////
