@@ -1134,17 +1134,38 @@ Restart the Chef Habitat services:
 sudo systemctl restart hab-sup
 ```
 
-#### Self-signed cert files do not exist
+#### Error: `unable to get local issuer certificate`
 
+Chef Habitat returns the error `unable to get local issuer certificate` if it does not find a CA certificate in the `/hab/cache/ssl` directory.
+
+<div class="callout warning">
 The file name `cert.pem` has a specific use within Chef Habitat system. Do not save your custom certificate with this file name, because it will overwrite Chef Habitat Builder's `cert.pem` and cause your installation to fail.
+</div>
 
-Chef Habitat Builder on-prem services looks certificates in the `/hab/cache/ssl` directory. Copy your self-signed certificates directory if they are missing. Follow the naming pattern `appname-cert.cert` or `appname-cert.pem`, for example `automate-cert.cert` or `automate-cert.pem`.
+1. Name your self-signed CA certificate `appname-cert.cert` or `appname-cert.pem`, for example `ssl-cert.cert` or `ssl-cert.pem`
+1. Copy your self-signed certificates to the `/hab/cache/ssl` directory
 
 Restart the Chef Habitat services:
 
 ```bash
 sudo systemctl restart hab-sup
 ```
+
+If your correctly named CA certificate exists in `/hab/cache/ssl`, then your CA certificate might be invalid.
+
+1. To check a certificate in a .pem format, use the name of your file and run:
+
+    ```bash
+    openssl verify cert.pem
+    ```
+
+1. To check your CA bundle including intermediate certificates in ``.pem` format, use the name of your bundle and run:
+
+    ```bash
+    openssl verify -CAfile ca-bundle.pem cert.pem
+    ```
+
+For more information on validating CA certs, see the [OpenSSl Documentation](https://www.openssl.org/docs/)
 
 #### Connection refused (os error 111)
 
