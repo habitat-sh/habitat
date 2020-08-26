@@ -139,9 +139,10 @@ impl NamedRevision {
     ///
     /// Only crate-public because nothing outside this crate should be
     /// creating these.
-    pub(crate) fn new(name: String) -> Self {
-        NamedRevision { name,
-                        revision: KeyRevision::new() }
+    pub(crate) fn new(name: String) -> Self { Self::from_parts(name, KeyRevision::new()) }
+
+    pub(crate) fn from_parts(name: String, revision: KeyRevision) -> Self {
+        NamedRevision { name, revision }
     }
 
     pub fn name(&self) -> &String { &self.name }

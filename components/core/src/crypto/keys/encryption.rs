@@ -1,8 +1,12 @@
+mod builder_key;
 mod message;
 mod origin_key;
 mod service_key;
 mod user_key;
 
+pub use builder_key::{generate_builder_encryption_key,
+                      BuilderSecretEncryptionKey,
+                      BUILDER_KEY_NAME};
 pub use message::{AnonymousBox,
                   EncryptedSecret,
                   SignedBox};
