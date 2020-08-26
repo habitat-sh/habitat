@@ -41,9 +41,10 @@ merges to master, the web site will automatically be deployed to
 production.
 
 If you would like to deploy your changes to the acceptance
-environment, you can manually invoke the [website-acceptance
-pipeline][]. Hit the "New Build" button and specify your PR
-branch. This pipeline does _not_ run automatically, and is provided as
+environment, you can manually invoke the website-acceptance
+pipeline from (Buildkite > Pipelines > website-acceptance).
+Hit the "New Build" button and specify your PR branch.
+This pipeline does _not_ run automatically, and is provided as
 a way to encapsulate all that is necessary to deploy a build to
 acceptance. Alternatively, you may run `make deploy_acceptance`
 locally, provided you know the appropriate Fastly service ID and have
