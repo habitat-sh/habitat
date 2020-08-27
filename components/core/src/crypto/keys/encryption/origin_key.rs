@@ -22,7 +22,6 @@ use crate::{crypto::keys::{box_key_pair::WrappedSealedBox,
                                         SECRET_BOX_KEY_SUFFIX,
                                         SECRET_BOX_KEY_VERSION},
                            AnonymousBox,
-                           EncryptedSecret,
                            Key,
                            NamedRevision},
             error::{Error,
@@ -61,12 +60,9 @@ gen_key!(/// Public key used to anonymously encrypt secrets for
          file_permissions: crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS);
 
 impl OriginPublicEncryptionKey {
-    pub fn encrypt(&self, data: &[u8]) -> WrappedSealedBox {
+    pub fn encrypt(&self, data: &[u8]) -> AnonymousBox {
         let ciphertext = primitives::sealedbox::seal(data, self.key());
-        let anon = AnonymousBox::new(self.named_revision().clone(), ciphertext);
-        // TODO (CM): Eventually do away with WrappedSealedBox; this
-        // is just for compatibility now
-        WrappedSealedBox::from(EncryptedSecret::Anonymous(anon))
+        AnonymousBox::new(self.named_revision().clone(), ciphertext)
     }
 }
 
@@ -113,12 +109,7 @@ mod tests {
             fixture_key("keys/fhloston-paradise-20200813211603.pub");
 
         let secret_message = "Leeloo Dallas Multipass".to_string();
-        let encrypted = key.encrypt(secret_message.as_bytes());
-
-        // Horrible workaround while we still use WrappedSealedBox
-        let encrypted = EncryptedSecret::from_bytes(encrypted.as_bytes()).unwrap();
-
-        let anonymous = encrypted.anonymous().expect("Should be an anonymous box!");
+        let anonymous = key.encrypt(secret_message.as_bytes());
 
         // Not a whole lot we can specifically test here, since the
         // ciphertext will be different each time. If we've got the
@@ -133,9 +124,7 @@ mod tests {
             fixture_key("keys/fhloston-paradise-20200813211603.box.key");
 
         #[rustfmt::skip]
-        let encrypted = "ANONYMOUS-BOX-1\nfhloston-paradise-20200813211603\nyCye2Rg/LtNwrNzVapYj8rrkbZpTnI3ld7oFTwGzGnsEhsxtebyW2CQDwB1IeZ2eDkNxqAQnD8AaQjK6M42fFCmadBNSMsp+AMFqnH2c".parse::<EncryptedSecret>()
-            .unwrap()
-            .anonymous()
+        let encrypted = "ANONYMOUS-BOX-1\nfhloston-paradise-20200813211603\nyCye2Rg/LtNwrNzVapYj8rrkbZpTnI3ld7oFTwGzGnsEhsxtebyW2CQDwB1IeZ2eDkNxqAQnD8AaQjK6M42fFCmadBNSMsp+AMFqnH2c".parse::<AnonymousBox>()
             .unwrap();
 
         let decrypted_message = key.decrypt(&encrypted).unwrap();
@@ -153,11 +142,6 @@ mod tests {
 
         let secret_message = "Super-green".to_string();
         let encrypted = pk.encrypt(secret_message.as_bytes());
-
-        // Horrible workaround while we still use WrappedSealedBox
-        let encrypted = EncryptedSecret::from_bytes(encrypted.as_bytes()).unwrap()
-                                                                         .anonymous()
-                                                                         .unwrap();
 
         let decrypted_message = sk.decrypt(&encrypted).unwrap();
         let decrypted_message = std::str::from_utf8(&decrypted_message).unwrap();

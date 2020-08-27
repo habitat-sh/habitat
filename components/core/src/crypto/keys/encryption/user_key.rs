@@ -13,7 +13,6 @@
 //! Supervisor.
 use crate::{crypto::keys::{box_key_pair::WrappedSealedBox,
                            encryption::{primitives,
-                                        EncryptedSecret,
                                         SignedBox,
                                         PUBLIC_BOX_KEY_VERSION,
                                         PUBLIC_KEY_SUFFIX,
@@ -63,16 +62,13 @@ impl UserSecretEncryptionKey {
     pub fn encrypt_for_service(&self,
                                data: &[u8],
                                receiving_service: &ServicePublicEncryptionKey)
-                               -> WrappedSealedBox {
+                               -> SignedBox {
         let nonce = primitives::gen_nonce();
         let ciphertext = primitives::seal(data, &nonce, receiving_service.key(), self.key());
-        let signed = SignedBox::new(self.named_revision.clone(),
-                                    receiving_service.named_revision().clone(),
-                                    ciphertext,
-                                    nonce);
-        // TODO (CM): Eventually do away with WrappedSealedBox; this
-        // is just for compatibility now
-        WrappedSealedBox::from(EncryptedSecret::Signed(signed))
+        SignedBox::new(self.named_revision.clone(),
+                       receiving_service.named_revision().clone(),
+                       ciphertext,
+                       nonce)
     }
 }
 
@@ -89,12 +85,7 @@ mod tests {
 
         let message = "HOT, HOT, HAAAAAWWT!".to_string();
 
-        let encrypted_secret = user.encrypt_for_service(message.as_bytes(), &service);
-
-        // Horrible workaround while we still use WrappedSealedBox
-        let encrypted_secret = EncryptedSecret::from_bytes(encrypted_secret.as_bytes()).unwrap();
-
-        let signed = encrypted_secret.signed().unwrap();
+        let signed = user.encrypt_for_service(message.as_bytes(), &service);
 
         // Not a whole lot we can specifically test here, since the
         // ciphertext will be different each time. If we've got the

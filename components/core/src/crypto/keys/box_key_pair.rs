@@ -13,7 +13,8 @@ use super::{super::{ANONYMOUS_BOX_FORMAT_VERSION,
             KeyRevision,
             KeyType};
 
-use crate::{crypto::keys::encryption::EncryptedSecret,
+use crate::{crypto::keys::encryption::{AnonymousBox,
+                                       SignedBox},
             error::{Error,
                     Result}};
 use serde_derive::{Deserialize,
@@ -128,13 +129,12 @@ impl<'a> WrappedSealedBox<'a> {
 }
 
 // Temporary !!
-impl<'a> From<EncryptedSecret> for WrappedSealedBox<'a> {
-    fn from(payload: EncryptedSecret) -> Self {
-        match payload {
-            EncryptedSecret::Anonymous(anon) => Self(Cow::Owned(anon.to_string())),
-            EncryptedSecret::Signed(signed) => Self(Cow::Owned(signed.to_string())),
-        }
-    }
+impl<'a> From<AnonymousBox> for WrappedSealedBox<'a> {
+    fn from(anon: AnonymousBox) -> Self { Self(Cow::Owned(anon.to_string())) }
+}
+
+impl<'a> From<SignedBox> for WrappedSealedBox<'a> {
+    fn from(signed: SignedBox) -> Self { Self(Cow::Owned(signed.to_string())) }
 }
 
 impl<'a> From<String> for WrappedSealedBox<'a> {

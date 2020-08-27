@@ -1324,6 +1324,7 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                               user_key.named_revision(),
                               service_key.named_revision()))?;
             set.cfg = Some(user_key.encrypt_for_service(&buf, &service_key)
+                                   .to_string()
                                    .into_bytes());
             set.is_encrypted = Some(true);
         }
@@ -1522,6 +1523,7 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
                               user_key.named_revision(),
                               service_key.named_revision()))?;
             msg.content = Some(user_key.encrypt_for_service(&buf, &service_key)
+                                       .to_string()
                                        .into_bytes());
             msg.is_encrypted = Some(true);
         }

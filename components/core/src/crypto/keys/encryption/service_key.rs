@@ -95,7 +95,7 @@ impl ServiceSecretEncryptionKey {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::{keys::{EncryptedSecret,
+    use crate::crypto::{keys::{SignedBox,
                                UserSecretEncryptionKey},
                         test_support::fixture_key};
 
@@ -106,9 +106,10 @@ mod tests {
 
         let user: UserPublicEncryptionKey = fixture_key("keys/ruby-rhod-20200813204159.pub");
 
-        let encrypted = "BOX-1\nruby-rhod-20200813204159\nservice-key-valid.default@acme-20160509181736\nE6kRUTjQayKDykfgTM9WvJLFmOk2M/CR\nFivenLwuZnrKaOxNHro+StLXRKmK+acDSXE+qgGKqPHpDH6H".parse::<EncryptedSecret>().unwrap();
-
-        let signed = encrypted.signed().unwrap();
+        #[rustfmt::skip]
+        let signed = "BOX-1\nruby-rhod-20200813204159\nservice-key-valid.default@acme-20160509181736\nE6kRUTjQayKDykfgTM9WvJLFmOk2M/CR\nFivenLwuZnrKaOxNHro+StLXRKmK+acDSXE+qgGKqPHpDH6H"
+            .parse::<SignedBox>()
+            .unwrap();
 
         let decrypted_message = key.decrypt_user_message(&signed, &user).unwrap();
         let decrypted_message = std::str::from_utf8(&decrypted_message).unwrap();
@@ -129,12 +130,8 @@ mod tests {
         let message = "Korben, sweetheart, what was that? IT WAS BAD! It had nothing! No fire, no \
                        energy, no nothin'!"
                                            .to_string();
-        let encrypted_secret = user_secret.encrypt_for_service(message.as_bytes(), &service_public);
+        let signed = user_secret.encrypt_for_service(message.as_bytes(), &service_public);
 
-        // Horrible workaround while we still use WrappedSealedBox
-        let encrypted_secret = EncryptedSecret::from_bytes(encrypted_secret.as_bytes()).unwrap();
-
-        let signed = encrypted_secret.signed().unwrap();
         let decrypted_message = service_secret.decrypt_user_message(&signed, &user_public)
                                               .unwrap();
         let decrypted_message = std::str::from_utf8(&decrypted_message).unwrap();

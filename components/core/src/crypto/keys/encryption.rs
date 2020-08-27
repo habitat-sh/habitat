@@ -8,7 +8,6 @@ pub use builder_key::{generate_builder_encryption_key,
                       BuilderSecretEncryptionKey,
                       BUILDER_KEY_NAME};
 pub use message::{AnonymousBox,
-                  EncryptedSecret,
                   SignedBox};
 pub use origin_key::{generate_origin_encryption_key_pair,
                      OriginPublicEncryptionKey,

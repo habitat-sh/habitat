@@ -11,8 +11,8 @@ use crate::{error::{Error,
             rumor::{Rumor,
                     RumorPayload,
                     RumorType}};
-use habitat_core::{crypto::keys::{EncryptedSecret,
-                                  KeyCache},
+use habitat_core::{crypto::keys::{KeyCache,
+                                  SignedBox},
                    service::ServiceGroup};
 use std::{borrow::Cow,
           cmp::Ordering,
@@ -80,7 +80,7 @@ impl ServiceFile {
     /// the fact that we might be encrypted.
     pub fn body(&self, key_cache: &KeyCache) -> Result<Vec<u8>> {
         let bytes = if self.encrypted {
-            let secret = EncryptedSecret::from_bytes(&self.body)?.signed()?;
+            let secret = SignedBox::from_bytes(&self.body)?;
             let user_public_key = key_cache.user_public_encryption_key(secret.encryptor())?;
             let service_secret_key = key_cache.service_secret_encryption_key(secret.decryptor())?;
             service_secret_key.decrypt_user_message(&secret, &user_public_key)

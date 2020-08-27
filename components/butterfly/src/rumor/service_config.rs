@@ -12,8 +12,8 @@ use crate::{error::{Error,
                     Rumor,
                     RumorPayload,
                     RumorType}};
-use habitat_core::{crypto::keys::{EncryptedSecret,
-                                  KeyCache},
+use habitat_core::{crypto::keys::{KeyCache,
+                                  SignedBox},
                    service::ServiceGroup};
 use std::{borrow::Cow,
           cmp::Ordering,
@@ -72,7 +72,7 @@ impl ServiceConfig {
 
     pub fn config(&self, key_cache: &KeyCache) -> Result<toml::value::Table> {
         let bytes = if self.encrypted {
-            let secret = EncryptedSecret::from_bytes(&self.config)?.signed()?;
+            let secret = SignedBox::from_bytes(&self.config)?;
             let user_public_key = key_cache.user_public_encryption_key(secret.encryptor())?;
             let service_secret_key = key_cache.service_secret_encryption_key(secret.decryptor())?;
 
