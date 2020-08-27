@@ -51,6 +51,45 @@ impl fmt::Display for AnonymousBox {
     }
 }
 
+impl FromStr for AnonymousBox {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        let mut lines = s.lines();
+
+        lines.next()
+             .ok_or_else(|| Error::CryptoError("Corrupt payload, can't read version".to_string()))
+             .map(|line| {
+                 if line == ANONYMOUS_BOX_FORMAT_VERSION {
+                     Ok(line)
+                 } else {
+                     Err(Error::CryptoError(format!("Unsupported version: {}", line)))
+                 }
+             })??;
+
+        let key_pair = lines.next()
+                            .ok_or_else(|| {
+                                Error::CryptoError("Corrupt payload, can't read key_pair \
+                                                    identifier"
+                                                               .to_string())
+                            })?
+                            .parse()?;
+
+        let ciphertext =
+            lines.next()
+                 .ok_or_else(|| {
+                     Error::CryptoError("Corrupt payload, can't read ciphertext".to_string())
+                 })
+                 .map(base64::decode)?
+                 .map_err(|e| Error::CryptoError(format!("Can't decode ciphertext: {}", e)))?;
+
+        Ok(AnonymousBox { key_pair,
+                          ciphertext })
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+
 /// An encrypted message signed by the sender (and thus traceable to
 /// that sender) intended for a receiver. It was encrypted using the
 /// sender's secret key and the recipient's private key, and can only
@@ -99,6 +138,13 @@ impl SignedBox {
     pub fn ciphertext(&self) -> &[u8] { &self.ciphertext }
 
     pub fn nonce(&self) -> &primitives::Nonce { &self.nonce }
+
+    /// Helper function to parse a `SignedBox` from raw bytes.
+    pub fn from_bytes<B>(bytes: B) -> Result<Self>
+        where B: AsRef<[u8]>
+    {
+        str::from_utf8(bytes.as_ref())?.parse()
+    }
 }
 
 impl fmt::Display for SignedBox {
@@ -117,100 +163,45 @@ impl fmt::Display for SignedBox {
     }
 }
 
-#[derive(Debug)]
-pub enum EncryptedSecret {
-    Anonymous(AnonymousBox),
-    Signed(SignedBox),
-}
-
-impl EncryptedSecret {
-    /// Unwraps this to an anonymous secret, if it is actually anonymous.
-    pub fn anonymous(self) -> Result<AnonymousBox> {
-        match self {
-            Self::Anonymous(anonymous) => Ok(anonymous),
-            _ => Err(Error::CryptoError("Not an anonymous secret!".to_string())),
-        }
-    }
-
-    /// Unwraps this to a signed secret, if it is actually signed.
-    pub fn signed(self) -> Result<SignedBox> {
-        match self {
-            Self::Signed(signed_box) => Ok(signed_box),
-            _ => Err(Error::CryptoError("Not an signed secret!".to_string())),
-        }
-    }
-
-    /// Helper function to parse an `EncryptedSecret` from raw bytes.
-    pub fn from_bytes<B>(bytes: B) -> Result<EncryptedSecret>
-        where B: AsRef<[u8]>
-    {
-        str::from_utf8(bytes.as_ref())?.parse()
-    }
-}
-
-/// Encapsulates parsing logic for all variants of `EncryptedSecret`,
-/// since they overlap a great deal.
-impl FromStr for EncryptedSecret {
+impl FromStr for SignedBox {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self> {
         let mut lines = s.lines();
 
-        let version =
+        lines.next()
+             .ok_or_else(|| Error::CryptoError("Corrupt payload, can't read version".to_string()))
+             .map(|line| {
+                 if line == BOX_FORMAT_VERSION {
+                     Ok(line)
+                 } else {
+                     Err(Error::CryptoError(format!("Unsupported version: {}", line)))
+                 }
+             })??;
+
+        let encryptor = lines.next()
+                             .ok_or_else(|| {
+                                 Error::CryptoError("Corrupt payload, can't read encryptor \
+                                                     identifier"
+                                                                .to_string())
+                             })?
+                             .parse()?;
+
+        let decryptor = lines.next()
+                             .ok_or_else(|| {
+                                 Error::CryptoError("Corrupt payload, can't read decryptor key \
+                                                     name"
+                                                          .to_string())
+                             })?
+                             .parse()?;
+
+        let nonce =
             lines.next()
-                 .ok_or_else(|| {
-                     Error::CryptoError("Corrupt payload, can't read version".to_string())
-                 })
-                 .map(|line| {
-                     match line {
-                         BOX_FORMAT_VERSION | ANONYMOUS_BOX_FORMAT_VERSION => Ok(line),
-                         _ => Err(Error::CryptoError(format!("Unsupported version: {}", line))),
-                     }
-                 })??;
-
-        let is_anonymous = version == ANONYMOUS_BOX_FORMAT_VERSION;
-
-        // Yeah, this variable name is weird, but this line plays a
-        // different role depending on whether it's an anonymous or
-        // signed message. :/
-        let encryptor_or_key_pair =
-            lines.next()
-                 .ok_or_else(|| {
-                     let kind = if is_anonymous {
-                         "key_pair"
-                     } else {
-                         "encryptor"
-                     };
-                     Error::CryptoError(format!("Corrupt payload, can't read {} identifier", kind))
-                 })?
-                 .parse()?;
-
-        let decryptor = if is_anonymous {
-            None
-        } else {
-            let r = lines.next()
-                         .ok_or_else(|| {
-                             Error::CryptoError("Corrupt payload, can't read decryptor key \
-                                                         name"
-                                                              .to_string())
-                         })?
-                         .parse()?;
-            Some(r)
-        };
-        let nonce = if is_anonymous {
-            None
-        } else {
-            let n =
-                lines.next()
-                     .ok_or_else(|| {
-                         Error::CryptoError("Corrupt payload, can't read nonce".to_string())
-                     })
-                     .map(base64::decode)?
-                     .map_err(|e| Error::CryptoError(format!("Can't decode nonce: {}", e)))
-                     .map(|bytes| primitives::Nonce::from_slice(bytes.as_ref()))?
-                     .ok_or_else(|| Error::CryptoError("Invalid size of nonce".to_string()))?;
-            Some(n)
-        };
+                 .ok_or_else(|| Error::CryptoError("Corrupt payload, can't read nonce".to_string()))
+                 .map(base64::decode)?
+                 .map_err(|e| Error::CryptoError(format!("Can't decode nonce: {}", e)))
+                 .map(|bytes| primitives::Nonce::from_slice(bytes.as_ref()))?
+                 .ok_or_else(|| Error::CryptoError("Invalid size of nonce".to_string()))?;
 
         let ciphertext =
             lines.next()
@@ -220,19 +211,10 @@ impl FromStr for EncryptedSecret {
                  .map(base64::decode)?
                  .map_err(|e| Error::CryptoError(format!("Can't decode ciphertext: {}", e)))?;
 
-        if is_anonymous {
-            Ok(EncryptedSecret::Anonymous(AnonymousBox { key_pair:
-                                                             encryptor_or_key_pair,
-                                                         ciphertext }))
-        } else {
-            Ok(EncryptedSecret::Signed(SignedBox { encryptor:
-                                                       encryptor_or_key_pair,
-                                                   decryptor:
-                                                       decryptor.unwrap(),
-                                                   ciphertext,
-                                                   nonce:
-                                                       nonce.unwrap() }))
-        }
+        Ok(SignedBox { encryptor,
+                       decryptor,
+                       ciphertext,
+                       nonce })
     }
 }
 
@@ -258,9 +240,7 @@ mod tests {
 
         #[test]
         fn parse() {
-            let encrypted = ANONYMOUS_TEXT.parse::<EncryptedSecret>().unwrap();
-            let anonymous = encrypted.anonymous().unwrap();
-
+            let anonymous = ANONYMOUS_TEXT.parse::<AnonymousBox>().unwrap();
             let expected_key_pair: NamedRevision =
                 "fhloston-paradise-20200813211603".parse().unwrap();
 
@@ -298,8 +278,7 @@ mod tests {
 
         #[test]
         fn parse() {
-            let encrypted = SIGNED_TEXT.parse::<EncryptedSecret>().unwrap();
-            let signed = encrypted.signed().unwrap();
+            let signed = SIGNED_TEXT.parse::<SignedBox>().unwrap();
 
             let expected_encryptor: NamedRevision = "ruby-rhod-20200813204159".parse().unwrap();
             let expected_receiver: NamedRevision =

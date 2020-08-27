@@ -35,7 +35,7 @@ pub async fn start(ui: &mut UI,
 
     ui.status(Status::Uploading, format!("secret for key {}.", key))?;
 
-    api_client.create_origin_secret(origin, token, key, &encrypted_box)
+    api_client.create_origin_secret(origin, token, key, &encrypted_box.into())
               .await
               .map_err(Error::APIClient)?;
 
