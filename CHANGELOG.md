@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.140 -->
-## [1.6.140](https://github.com/habitat-sh/habitat/tree/1.6.140) (2020-08-25)
+<!-- latest_release 1.6.141 -->
+## [1.6.141](https://github.com/habitat-sh/habitat/tree/1.6.141) (2020-08-27)
 
 #### Merged Pull Requests
-- Rustfmt and Nightly Rust Bump to nightly-2020-08-24 [#7889](https://github.com/habitat-sh/habitat/pull/7889) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
+- Fix update documentation pipeline [#7895](https://github.com/habitat-sh/habitat/pull/7895) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
@@ -20,6 +20,7 @@
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
+- Fix update documentation pipeline [#7895](https://github.com/habitat-sh/habitat/pull/7895) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.141 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-08-24 [#7889](https://github.com/habitat-sh/habitat/pull/7889) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.140 -->
 - Fix text in e2e test [#7883](https://github.com/habitat-sh/habitat/pull/7883) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.139 -->
 - Replace `hab install` with `hab pkg install` in plan-build [#7882](https://github.com/habitat-sh/habitat/pull/7882) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.138 -->
