@@ -11,10 +11,13 @@ install_hub
 # We want latest stable, since that's what the documentation script assumes
 curlbash_hab "x86_64-linux"
 
-hab pkg install core/hab-studio
-hab pkg install core/hab-sup
-hab pkg install core/hab-launcher
-hab pkg install core/node --binlink
+# Explicitly set what hab binary we want to use, to avoid any potential conflicts with $PATH
+hab_binary="/bin/hab"
+
+${hab_binary} pkg install core/hab-studio
+${hab_binary} pkg install core/hab-sup
+${hab_binary} pkg install core/hab-launcher
+${hab_binary} pkg install core/node --binlink
 
 branch="expeditor/documentation-update-$(date +"%Y%m%d%H%M%S")"
 git checkout -b "$branch"

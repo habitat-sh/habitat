@@ -136,5 +136,8 @@ if (platform() !== 'linux') {
   process.exit(1);
 }
 
+// Ensure that we are using the binlinked version of `hab`, to avoid any potential conflicts with $PATH
+process.env.PATH = "/bin:" + process.env.PATH;
+
 console.log(markdownForHeader());
 getHelp('hab');
