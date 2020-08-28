@@ -11,8 +11,7 @@
 //! encrypted rumor. It also allows operators to control who can send
 //! such rumors by controlling which user public keys are present on a
 //! Supervisor.
-use crate::{crypto::keys::{box_key_pair::WrappedSealedBox,
-                           encryption::{primitives,
+use crate::{crypto::keys::{encryption::{primitives,
                                         SignedBox,
                                         PUBLIC_BOX_KEY_VERSION,
                                         PUBLIC_KEY_SUFFIX,
