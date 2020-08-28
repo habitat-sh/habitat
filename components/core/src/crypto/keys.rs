@@ -759,8 +759,7 @@ fn set_permissions<T: AsRef<Path>>(path: T, _perms: &Permissions) -> Result<()> 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::{keys::{box_key_pair::BoxKeyPair,
-                               sig_key_pair::SigKeyPair,
+    use crate::crypto::{keys::{sig_key_pair::SigKeyPair,
                                RingKey},
                         test_support::*};
     use tempfile::Builder;
@@ -916,57 +915,6 @@ mod tests {
         let (name, rev) = super::parse_name_with_rev("--20160420042001").unwrap();
         assert_eq!(name, "-");
         assert_eq!(rev, KeyRevision::unchecked("20160420042001"));
-    }
-
-    #[test]
-    fn get_user_key_revisions() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        for _ in 0..3 {
-            wait_until_ok(|| {
-                let pair = BoxKeyPair::generate_pair_for_user("wecoyote")?;
-                pair.to_pair_files(cache.path())?;
-                Ok(())
-            });
-        }
-        BoxKeyPair::generate_pair_for_user("wecoyote-foo").unwrap()
-                                                          .to_pair_files(cache.path())
-                                                          .unwrap();
-
-        // we shouldn't see wecoyote-foo as a 4th revision
-        let revisions =
-            super::get_key_revisions("wecoyote", cache.path(), None, KeyType::Box).unwrap();
-        assert_eq!(3, revisions.len());
-
-        let revisions =
-            super::get_key_revisions("wecoyote-foo", cache.path(), None, KeyType::Box).unwrap();
-        assert_eq!(1, revisions.len());
-    }
-
-    #[test]
-    fn get_service_key_revisions() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-
-        for _ in 0..3 {
-            wait_until_ok(|| {
-                let pair = BoxKeyPair::generate_pair_for_service("acme", "tnt.default")?;
-                pair.to_pair_files(cache.path())?;
-                Ok(())
-            });
-        }
-
-        BoxKeyPair::generate_pair_for_service("acyou", "tnt.default").unwrap()
-                                                                     .to_pair_files(cache.path())
-                                                                     .unwrap();
-
-        let revisions =
-            super::get_key_revisions("tnt.default@acme", cache.path(), None, KeyType::Box).unwrap();
-        assert_eq!(3, revisions.len());
-
-        let revisions = super::get_key_revisions("tnt.default@acyou",
-                                                 cache.path(),
-                                                 None,
-                                                 KeyType::Box).unwrap();
-        assert_eq!(1, revisions.len());
     }
 
     #[test]
@@ -1128,64 +1076,5 @@ mod tests {
                               &mut candidates,
                               None);
         assert_eq!(1, candidates.len());
-    }
-
-    fn create_file_with_content(content: &[u8]) -> tempfile::NamedTempFile {
-        let mut file = tempfile::NamedTempFile::new().expect("couldn't generate tempfile");
-        file.write_all(content)
-            .expect("couldn't write content to file");
-        file
-    }
-
-    /// Creates a file with the content of the secret key of the given
-    /// type.
-    // TODO (CM): Doesn't currently generate public keys, or all the
-    // possible varieties of the various key types (e.g., service
-    // keys).
-    fn key_file(key_type: KeyType, name: &str) -> tempfile::NamedTempFile {
-        let content = match key_type {
-            KeyType::Sym => RingKey::new(name).to_key_string(),
-            KeyType::Sig => {
-                let (_public, secret) = generate_signing_key_pair(name);
-                secret.to_key_string()
-            }
-            KeyType::Box => {
-                BoxKeyPair::generate_pair_for_user(name).unwrap()
-                                                        .to_secret_string()
-                                                        .unwrap()
-            }
-        };
-        create_file_with_content(content.as_bytes())
-    }
-
-    #[test]
-    fn test_file_is_valid_key_for_type() {
-        let file = key_file(KeyType::Sym, "foo");
-        assert!(super::file_is_valid_key_for_type(file.path(), KeyType::Sym).unwrap());
-        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sig).unwrap());
-        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Box).unwrap());
-
-        let file = key_file(KeyType::Sig, "foo");
-        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sym).unwrap());
-        assert!(super::file_is_valid_key_for_type(file.path(), KeyType::Sig).unwrap());
-        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Box).unwrap());
-
-        let file = key_file(KeyType::Box, "foo");
-        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sym).unwrap());
-        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sig).unwrap());
-        assert!(super::file_is_valid_key_for_type(file.path(), KeyType::Box).unwrap());
-    }
-
-    #[test]
-    fn test_file_is_valid_key_for_type_with_bogus_content() {
-        let file = create_file_with_content(b"LOLWUT-NOT-A-KEY\nNOPE\n\nGO AWAY");
-        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sym).unwrap());
-        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Box).unwrap());
-        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sig).unwrap());
-
-        let file = create_file_with_content(b"");
-        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sym).unwrap());
-        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Box).unwrap());
-        assert!(!super::file_is_valid_key_for_type(file.path(), KeyType::Sig).unwrap());
     }
 }
