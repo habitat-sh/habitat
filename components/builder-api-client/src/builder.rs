@@ -17,7 +17,7 @@ use crate::{allow_std_io::AllowStdIo,
 use broadcast::BroadcastWriter;
 use bytes::BytesMut;
 use futures::stream::TryStreamExt;
-use habitat_core::{crypto::keys::box_key_pair::WrappedSealedBox,
+use habitat_core::{crypto::keys::AnonymousBox,
                    fs::{AtomicWriter,
                         Permissions,
                         DEFAULT_CACHED_ARTIFACT_PERMISSIONS,
@@ -477,14 +477,14 @@ impl BuilderAPIClient {
                                       origin: &str,
                                       token: &str,
                                       key_name: &str,
-                                      secret: &WrappedSealedBox<'_>)
+                                      secret: &AnonymousBox)
                                       -> Result<()> {
         debug!("Creating origin secret: {}, {}", origin, key_name);
 
         let path = format!("depot/origins/{}/secret", origin);
         let body = json!({
             "name": key_name,
-            "value": secret
+            "value": secret.to_string()
         });
 
         response::ok_if_unit(self.0

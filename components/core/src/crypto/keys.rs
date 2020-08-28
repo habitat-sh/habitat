@@ -1,5 +1,4 @@
-use crate::{error::{Error,
-                    Result},
+use crate::{error::Error,
             fs::Permissions};
 use chrono::Utc;
 use regex::Regex;
@@ -19,7 +18,6 @@ lazy_static::lazy_static! {
 
 #[macro_use]
 mod util;
-pub mod box_key_pair;
 mod cache;
 mod encryption;
 mod ring_key;
