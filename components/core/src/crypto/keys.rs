@@ -281,21 +281,6 @@ impl FromStr for PairType {
 ////////////////////////////////////////////////////////////////////////
 
 #[deprecated]
-struct TmpKeyfile {
-    pub path: PathBuf,
-}
-
-impl Drop for TmpKeyfile {
-    fn drop(&mut self) {
-        if self.path.is_file() {
-            let _ = fs::remove_file(&self.path);
-        }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////
-
-#[deprecated]
 pub struct HabitatKey {
     pair_type:     PairType, // NOT A PAIR!!!!!!
     name_with_rev: String,
@@ -706,35 +691,6 @@ mod tests {
         fn string_roundtrip() {
             let input = "foo-20160504220722";
             assert_eq!(input.parse::<NamedRevision>().unwrap().to_string(), input);
-        }
-    }
-
-    mod tmpkeyfile {
-        use super::*;
-
-        #[test]
-        fn tmp_keyfile_delete_on_drop() {
-            let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-            let path = cache.path().join("mykey");
-
-            {
-                let tmp_keyfile = TmpKeyfile { path: path.clone() };
-                File::create(&tmp_keyfile.path).unwrap();
-                assert!(tmp_keyfile.path.is_file());
-            }
-            assert_eq!(path.is_file(), false);
-        }
-
-        #[test]
-        fn tmp_keyfile_no_file_on_drop() {
-            let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-            let path = cache.path().join("mykey");
-
-            {
-                let tmp_keyfile = TmpKeyfile { path: path.clone() };
-                assert_eq!(tmp_keyfile.path.is_file(), false);
-            }
-            assert_eq!(path.is_file(), false);
         }
     }
 
