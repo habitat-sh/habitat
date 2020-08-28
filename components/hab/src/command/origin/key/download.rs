@@ -13,7 +13,6 @@ use crate::{api_client::{BuilderAPIClient,
 use habitat_core::crypto::keys::{KeyCache,
                                  NamedRevision};
 use retry::delay;
-use std::path::Path;
 
 #[allow(clippy::too_many_arguments)]
 pub async fn start(ui: &mut UI,

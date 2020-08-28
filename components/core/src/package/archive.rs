@@ -4,8 +4,7 @@ use super::{metadata::{MetaFile,
             PackageIdent,
             PackageTarget};
 use crate::{crypto::{artifact,
-                     hash,
-                     Blake2bHash},
+                     hash},
             error::{Error,
                     Result},
             package::ident::FullyQualifiedPackageIdent};

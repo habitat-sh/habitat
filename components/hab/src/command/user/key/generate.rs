@@ -3,7 +3,6 @@ use crate::{common::ui::{UIWriter,
             error::Result};
 use habitat_core::crypto::keys::{Key,
                                  KeyCache};
-use std::path::Path;
 
 pub fn start(ui: &mut UI, user: &str, key_cache: &KeyCache) -> Result<()> {
     ui.begin(format!("Generating user key for {}", user))?;

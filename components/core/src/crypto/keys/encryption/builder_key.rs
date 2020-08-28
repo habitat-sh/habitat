@@ -1,8 +1,6 @@
 //! Encryption logic used by Builder to encrypt secrets at rest.
 
 use crate::{crypto::keys::{encryption::{primitives,
-                                        PUBLIC_BOX_KEY_VERSION,
-                                        PUBLIC_KEY_SUFFIX,
                                         SECRET_BOX_KEY_SUFFIX,
                                         SECRET_BOX_KEY_VERSION},
                            Key,

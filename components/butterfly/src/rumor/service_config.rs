@@ -154,8 +154,7 @@ impl ConstIdRumor for ServiceConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::rumor::{ConstIdRumor as _,
-                       Rumor,
+    use crate::rumor::{Rumor,
                        RumorStore};
     use habitat_core::service::ServiceGroup;
     use std::{cmp::Ordering,
