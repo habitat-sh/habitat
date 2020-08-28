@@ -211,8 +211,7 @@
 //! ```
 
 pub use self::{hash::Blake2bHash,
-               keys::{box_key_pair::BoxKeyPair,
-                      sig_key_pair::SigKeyPair}};
+               keys::sig_key_pair::SigKeyPair};
 use crate::error::{Error,
                    Result};
 
