@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use super::get_name_with_rev;
 use crate::{api_client::{self,
                          Client},
@@ -10,13 +8,14 @@ use crate::{api_client::{self,
                           UI}},
             error::{Error,
                     Result},
-            hcore::crypto::{keys::parse_name_with_rev,
-                            PUBLIC_SIG_KEY_VERSION,
-                            SECRET_SIG_KEY_VERSION},
             PRODUCT,
             VERSION};
+use habitat_core::crypto::{keys::NamedRevision,
+                           PUBLIC_SIG_KEY_VERSION,
+                           SECRET_SIG_KEY_VERSION};
 use reqwest::StatusCode;
 use retry::delay;
+use std::path::Path;
 
 pub async fn start(ui: &mut UI,
                    bldr_url: &str,
@@ -28,7 +27,9 @@ pub async fn start(ui: &mut UI,
     ui.begin(format!("Uploading public origin key {}", public_keyfile.display()))?;
 
     let name_with_rev = get_name_with_rev(&public_keyfile, PUBLIC_SIG_KEY_VERSION)?;
-    let (name, rev) = parse_name_with_rev(&name_with_rev)?;
+    let named_revision = name_with_rev.parse::<NamedRevision>()?;
+    let name = named_revision.name();
+    let rev = named_revision.revision();
 
     {
         retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
@@ -58,7 +59,9 @@ pub async fn start(ui: &mut UI,
 
     if let Some(secret_keyfile) = secret_keyfile {
         let name_with_rev = get_name_with_rev(&secret_keyfile, SECRET_SIG_KEY_VERSION)?;
-        let (name, rev) = parse_name_with_rev(&name_with_rev)?;
+        let named_revision = name_with_rev.parse::<NamedRevision>()?;
+        let name = named_revision.name();
+        let rev = named_revision.revision();
 
         retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
             ui.status(Status::Uploading, secret_keyfile.display())?;
