@@ -8,7 +8,6 @@ use crate::{api_client::Client,
             PRODUCT,
             VERSION};
 use habitat_core::crypto::keys::KeyCache;
-use std::path::Path;
 
 pub async fn start(ui: &mut UI,
                    bldr_url: &str,

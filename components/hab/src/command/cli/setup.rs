@@ -13,9 +13,10 @@ use habitat_core::{crypto::keys::KeyCache,
 #[cfg(windows)]
 use std::env;
 #[cfg(windows)]
+use std::path::Path;
+#[cfg(windows)]
 use std::ptr;
-use std::{path::Path,
-          result};
+use std::result;
 use url::Url;
 #[cfg(windows)]
 use widestring::WideCString;

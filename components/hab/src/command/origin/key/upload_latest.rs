@@ -12,7 +12,6 @@ use habitat_core::crypto::keys::{Key,
                                  PublicOriginSigningKey,
                                  SecretOriginSigningKey};
 use reqwest::StatusCode;
-use std::path::Path;
 
 pub async fn start(ui: &mut UI,
                    bldr_url: &str,
