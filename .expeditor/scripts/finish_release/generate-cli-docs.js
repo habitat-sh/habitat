@@ -8,6 +8,12 @@ function getHelp(command, sub) {
     parsed = parseOutput(command, data.replace(/`/g, ''));
     console.log(markdownForCommand(parsed, sub));
 
+    // `hab pkg export` subcommands shell out to external packages which must be downloaded
+    // separately and have inconsistent CLI arguments
+    if (parsed.command === "hab pkg export") {
+      return;
+    }
+
     parsed.subcommands.forEach(item => {
       getHelp(`${item.parent} ${item.command}`, item.parent !== 'hab');
     });

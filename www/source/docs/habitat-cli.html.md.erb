@@ -11,7 +11,7 @@ The commands for the Chef Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 1.6.115/20200806220545 (linux) | 10 Aug 2020 |
+| hab 1.6.139/20200824142405 (linux) | 28 Aug 2020 |
 
 ## hab
 
@@ -834,6 +834,7 @@ hab origin <SUBCOMMAND>
 | [hab origin info](#hab-origin-info) | Displays general information about an origin |
 | [hab origin invitations](#hab-origin-invitations) | Manage origin member invitations |
 | [hab origin key](#hab-origin-key) | Commands relating to Habitat origin key maintenance |
+| [hab origin rbac](#hab-origin-rbac) | Role Based Access Control for origin members |
 | [hab origin secret](#hab-origin-secret) | Commands related to secret management |
 | [hab origin transfer](#hab-origin-transfer) | Transfers ownership of an origin to another member of that origin |
 ---
@@ -1406,6 +1407,107 @@ hab origin key upload [FLAGS] [OPTIONS] <ORIGIN|--pubfile <PUBLIC_FILE>>
 
 ```
 <ORIGIN>    The origin name
+```
+
+
+
+---
+
+### hab origin rbac
+
+Role Based Access Control for origin members
+
+**USAGE**
+
+```
+hab origin rbac <SUBCOMMAND>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+
+
+
+**SUBCOMMANDS**
+
+| Command | Description |
+| ------- | ----------- |
+| [hab origin rbac set](#hab-origin-rbac-set) | Change an origin member's role |
+| [hab origin rbac show](#hab-origin-rbac-show) | Display an origin member's current role |
+---
+
+### hab origin rbac set
+
+Change an origin member's role
+
+**USAGE**
+
+```
+hab origin rbac set [FLAGS] [OPTIONS] <MEMBER_ACCOUNT> <ROLE> --origin <ORIGIN>
+```
+
+**FLAGS**
+
+```
+-n, --no-prompt    Do not prompt for confirmation
+-h, --help         Prints help information
+-V, --version      Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin <ORIGIN>      The Builder origin name to target
+```
+
+**ARGS**
+
+```
+<MEMBER_ACCOUNT>    The account name whose role will be changed
+<ROLE>              The role name to enforce for the member account [possible values: readonly_member, member, maintainer, administrator, owner]
+```
+
+
+
+---
+
+### hab origin rbac show
+
+Display an origin member's current role
+
+**USAGE**
+
+```
+hab origin rbac show [FLAGS] [OPTIONS] <MEMBER_ACCOUNT> --origin <ORIGIN>
+```
+
+**FLAGS**
+
+```
+-j, --json       Output will be rendered in json
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin <ORIGIN>      The Builder origin name to target
+```
+
+**ARGS**
+
+```
+<MEMBER_ACCOUNT>    The account name of the role to display
 ```
 
 
@@ -2024,7 +2126,7 @@ hab pkg exec <PKG_IDENT> <CMD> [ARGS]...
 ```
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 <CMD>          The command to execute (ex: ls)
-<ARGS>...      Arguments to the command (ex: -l /tmp)
+<ARGS>...      Arguments to the command
 ```
 
 
@@ -2038,7 +2140,7 @@ Exports the package to the specified format
 **USAGE**
 
 ```
-hab pkg export [OPTIONS] <FORMAT> <PKG_IDENT>
+hab pkg export <SUBCOMMAND>
 ```
 
 **FLAGS**
@@ -2048,22 +2150,17 @@ hab pkg export [OPTIONS] <FORMAT> <PKG_IDENT>
 -V, --version    Prints version information
 ```
 
-**OPTIONS**
-
-```
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
--c, --channel <CHANNEL>    Retrieve the package-to-export from the specified release channel [env: HAB_BLDR_CHANNEL=]  [default: stable]
-```
-
-**ARGS**
-
-```
-<FORMAT>       The export format (ex: cf, container, mesos, or tar)
-<PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2) or filepath to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-```
 
 
 
+**SUBCOMMANDS**
+
+| Command | Description |
+| ------- | ----------- |
+| [hab pkg export cf](#hab-pkg-export-cf) | Cloud Foundry exporter |
+| [hab pkg export container](#hab-pkg-export-container) | Container exporter |
+| [hab pkg export mesos](#hab-pkg-export-mesos) | Mesos exporter |
+| [hab pkg export tar](#hab-pkg-export-tar) | Tar exporter |
 ---
 
 ### hab pkg hash
@@ -2874,6 +2971,7 @@ hab sup <SUBCOMMAND>
 | ------- | ----------- |
 | [hab sup bash](#hab-sup-bash) | Start an interactive Bash-like shell |
 | [hab sup depart](#hab-sup-depart) | Depart a Supervisor from the gossip ring; kicking and banning the target from joining again with the same member-id |
+| [hab sup restart](#hab-sup-restart) | Restart a Supervisor without restarting its services |
 | [hab sup run](#hab-sup-run) | Run the Habitat Supervisor |
 | [hab sup secret](#hab-sup-secret) | Commands relating to a Habitat Supervisor's Control Gateway secret |
 | [hab sup sh](#hab-sup-sh) | Start an interactive Bourne-like shell |
@@ -2930,6 +3028,33 @@ hab sup depart [OPTIONS] <MEMBER_ID>
 ```
 <MEMBER_ID>    The member-id of the Supervisor to depart
 ```
+
+
+
+---
+
+### hab sup restart
+
+Restart a Supervisor without restarting its services
+
+**USAGE**
+
+```
+hab sup restart [OPTIONS]
+```
+
+**FLAGS**
+
+```
+-h, --help    Prints help information
+```
+
+**OPTIONS**
+
+```
+-r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+```
+
 
 
 
@@ -3149,7 +3274,7 @@ Gracefully terminate the Habitat Supervisor and all of its running services
 **USAGE**
 
 ```
-hab sup term [OPTIONS]
+hab sup term
 ```
 
 **FLAGS**
