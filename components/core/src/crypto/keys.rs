@@ -41,7 +41,6 @@ pub mod box_key_pair;
 mod cache;
 mod encryption;
 mod ring_key;
-pub mod sig_key_pair;
 mod signing;
 
 pub use cache::KeyCache;
@@ -759,8 +758,7 @@ fn set_permissions<T: AsRef<Path>>(path: T, _perms: &Permissions) -> Result<()> 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::{keys::{sig_key_pair::SigKeyPair,
-                               RingKey},
+    use crate::crypto::{keys::RingKey,
                         test_support::*};
     use tempfile::Builder;
 
