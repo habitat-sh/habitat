@@ -1,31 +1,13 @@
-use super::{PUBLIC_BOX_KEY_VERSION,
-            PUBLIC_KEY_SUFFIX,
-            PUBLIC_SIG_KEY_VERSION,
-            SECRET_BOX_KEY_SUFFIX,
-            SECRET_BOX_KEY_VERSION,
-            SECRET_SIG_KEY_SUFFIX,
-            SECRET_SIG_KEY_VERSION,
-            SECRET_SYM_KEY_SUFFIX,
-            SECRET_SYM_KEY_VERSION};
 use crate::{error::{Error,
                     Result},
-            fs::{Permissions,
-                 DEFAULT_PUBLIC_KEY_PERMISSIONS,
-                 DEFAULT_SECRET_KEY_PERMISSIONS}};
+            fs::Permissions};
 use chrono::Utc;
 use regex::Regex;
 use serde::Deserialize;
-use std::{collections::HashSet,
-          convert::TryFrom,
+use std::{self,
           fmt,
-          fs::{self,
-               File},
-          io::{prelude::*,
-               BufReader,
-               BufWriter},
           ops::Deref,
-          path::{Path,
-                 PathBuf},
+          path::PathBuf,
           result,
           str::FromStr};
 
@@ -215,12 +197,6 @@ impl fmt::Display for KeyRevision {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { self.0.fmt(f) }
 }
 
-// Only used for the polymorphic `KeyPair::rev` implementation so Builder can
-// use things before adopting the KeyRevison type itself.
-impl From<KeyRevision> for String {
-    fn from(rev: KeyRevision) -> String { rev.to_string() }
-}
-
 // As a "newtype", KeyRevision can be thought of as a kind of "smart
 // container", and thus we can implement Deref for it with our heads
 // held high.
@@ -280,152 +256,12 @@ impl FromStr for PairType {
 
 ////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////
-
-/// If a key "belongs" to a filename revision, then add the full stem of the
-/// file (without path, without .suffix) to the set. This function doesn't
-/// return an error on a "bad" file, the bad file key name just doesn't get
-/// added to the set.
-fn check_filename(keyname: &str,
-                  filename: &str,
-                  candidates: &mut HashSet<String>,
-                  pair_type: Option<PairType>) {
-    let caps = match KEYFILE_RE.captures(&filename) {
-        Some(c) => c,
-        None => {
-            debug!("check_filename: Cannot parse {}", &filename);
-            return;
-        }
-    };
-    let name = match caps.name("name") {
-        Some(r) => r.as_str(),
-        None => {
-            debug!("check_filename: Cannot parse name from {}", &filename);
-            return;
-        }
-    };
-
-    let rev = match caps.name("rev") {
-        Some(r) => r.as_str(),
-        None => {
-            debug!("check_filename: Cannot parse rev from {}", &filename);
-            return;
-        }
-    };
-
-    let suffix = match caps.name("suffix") {
-        Some(r) => r.as_str(),
-        None => {
-            debug!("check_filename: Cannot parse suffix from {}", &filename);
-            return;
-        }
-    };
-
-    if suffix == PUBLIC_KEY_SUFFIX
-       || suffix == SECRET_SIG_KEY_SUFFIX
-       || suffix == SECRET_BOX_KEY_SUFFIX
-       || suffix == SECRET_SYM_KEY_SUFFIX
-    {
-        debug!("valid key suffix");
-    } else {
-        debug!("check_filename: Invalid key suffix from {}", &filename);
-        return;
-    };
-
-    if name == keyname {
-        let thiskey = format!("{}-{}", name, rev);
-
-        let do_insert = match pair_type {
-            Some(PairType::Secret) => {
-                suffix == SECRET_SIG_KEY_SUFFIX
-                || suffix == SECRET_BOX_KEY_SUFFIX
-                || suffix == SECRET_SYM_KEY_SUFFIX
-            }
-            Some(PairType::Public) => suffix == PUBLIC_KEY_SUFFIX,
-            None => true,
-        };
-
-        if do_insert {
-            candidates.insert(thiskey);
-        }
-    }
-}
-
-fn mk_key_filename<P, S1, S2>(path: P, keyname: S1, suffix: S2) -> PathBuf
-    where P: AsRef<Path>,
-          S1: AsRef<str>,
-          S2: AsRef<str>
-{
-    path.as_ref()
-        .join(format!("{}.{}", keyname.as_ref(), suffix.as_ref()))
-}
-
 #[deprecated(note = "Please use new key types")]
 pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, KeyRevision)>
     where T: AsRef<str>
 {
     let named_revision = name_with_rev.as_ref().parse::<NamedRevision>()?;
     Ok((named_revision.name, named_revision.revision))
-}
-
-fn write_keypair_files<P>(public: Option<(P, String)>, secret: Option<(P, String)>) -> Result<()>
-    where P: AsRef<Path>
-{
-    if let Some((public_keyfile, public_content)) = public {
-        let public_keyfile = public_keyfile.as_ref();
-
-        if let Some(pk_dir) = public_keyfile.parent() {
-            fs::create_dir_all(pk_dir)?;
-        } else {
-            return Err(Error::BadKeyPath(public_keyfile.to_string_lossy().into_owned()));
-        }
-        if public_keyfile.exists() {
-            return Err(Error::CryptoError(format!("Public keyfile or a \
-                                                   directory already exists {}",
-                                                  public_keyfile.display())));
-        }
-        let public_file = File::create(public_keyfile)?;
-        let mut public_writer = BufWriter::new(&public_file);
-        public_writer.write_all(public_content.as_bytes())?;
-        set_permissions(public_keyfile, &DEFAULT_PUBLIC_KEY_PERMISSIONS)?;
-    }
-
-    if let Some((secret_keyfile, secret_content)) = secret {
-        let secret_keyfile = secret_keyfile.as_ref();
-
-        if let Some(sk_dir) = secret_keyfile.parent() {
-            fs::create_dir_all(sk_dir)?;
-        } else {
-            return Err(Error::BadKeyPath(secret_keyfile.to_string_lossy().into_owned()));
-        }
-        if secret_keyfile.exists() {
-            return Err(Error::CryptoError(format!("Secret keyfile or a \
-                                                   directory already exists {}",
-                                                  secret_keyfile.display())));
-        }
-        let secret_file = File::create(secret_keyfile)?;
-        let mut secret_writer = BufWriter::new(&secret_file);
-        secret_writer.write_all(secret_content.as_bytes())?;
-        set_permissions(secret_keyfile, &DEFAULT_SECRET_KEY_PERMISSIONS)?;
-    }
-    Ok(())
-}
-
-#[cfg(not(windows))]
-fn set_permissions<T: AsRef<Path>>(path: T, perms: &Permissions) -> Result<()> {
-    use crate::util::posix_perm;
-
-    if let Permissions::Explicit(permissions) = perms {
-        posix_perm::set_permissions(path.as_ref(), *permissions)?;
-    }
-    Ok(())
-}
-
-#[cfg(windows)]
-fn set_permissions<T: AsRef<Path>>(path: T, _perms: &Permissions) -> Result<()> {
-    use crate::util::win_perm;
-
-    win_perm::harden_path(path.as_ref())
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -506,89 +342,5 @@ mod tests {
         let (name, rev) = super::parse_name_with_rev("--20160420042001").unwrap();
         assert_eq!(name, "-");
         assert_eq!(rev, KeyRevision::unchecked("20160420042001"));
-    }
-
-    #[test]
-    fn check_filename_for_secret_keys() {
-        // only look for secret keys
-        let mut candidates = HashSet::new();
-        super::check_filename("wecoyote",
-                              "wecoyote-20160519203610.pub",
-                              &mut candidates,
-                              Some(PairType::Secret));
-        super::check_filename("wecoyote",
-                              "wecoyote-foo-20160519203610.pub",
-                              &mut candidates,
-                              Some(PairType::Secret));
-        super::check_filename("wecoyote",
-                              "wecoyote-20160519203610.sig.key",
-                              &mut candidates,
-                              Some(PairType::Secret));
-        assert_eq!(1, candidates.len());
-    }
-
-    #[test]
-    fn check_filename_for_public_keys() {
-        // only look for public keys
-        let mut candidates = HashSet::new();
-        super::check_filename("wecoyote",
-                              "wecoyote-20160519203610.pub",
-                              &mut candidates,
-                              Some(PairType::Public));
-        super::check_filename("wecoyote",
-                              "wecoyote-20160519203611.pub",
-                              &mut candidates,
-                              Some(PairType::Public));
-        super::check_filename("wecoyote",
-                              "wecoyote-20160519203610.sig.key",
-                              &mut candidates,
-                              Some(PairType::Public));
-        assert_eq!(2, candidates.len());
-    }
-
-    #[test]
-    fn check_filename_key_without_dash() {
-        // look for a keyname that doesn't include a dash
-        let mut candidates = HashSet::new();
-        super::check_filename("wecoyote",
-                              "wecoyote-20160519203610.pub",
-                              &mut candidates,
-                              None);
-        super::check_filename("wecoyote",
-                              "wecoyote-foo-20160519203610.pub",
-                              &mut candidates,
-                              None);
-        super::check_filename("wecoyote",
-                              "wecoyote-20160519203610.box.key",
-                              &mut candidates,
-                              None);
-        super::check_filename("wecoyote",
-                              "wecoyote-foo-20160519203610.box.key",
-                              &mut candidates,
-                              None);
-        assert_eq!(1, candidates.len());
-    }
-
-    #[test]
-    fn check_filename_key_with_dash() {
-        // look for a keyname that includes a dash
-        let mut candidates = HashSet::new();
-        super::check_filename("wecoyote-foo",
-                              "wecoyote-20160519203610.pub",
-                              &mut candidates,
-                              None);
-        super::check_filename("wecoyote-foo",
-                              "wecoyote-foo-20160519203610.pub",
-                              &mut candidates,
-                              None);
-        super::check_filename("wecoyote-foo",
-                              "wecoyote-20160519203610.box.key",
-                              &mut candidates,
-                              None);
-        super::check_filename("wecoyote-foo",
-                              "wecoyote-foo-20160519203610.box.key",
-                              &mut candidates,
-                              None);
-        assert_eq!(1, candidates.len());
     }
 }
