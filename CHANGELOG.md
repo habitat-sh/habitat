@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.142 -->
-## [1.6.142](https://github.com/habitat-sh/habitat/tree/1.6.142) (2020-08-28)
+<!-- latest_release 1.6.143 -->
+## [1.6.143](https://github.com/habitat-sh/habitat/tree/1.6.143) (2020-08-28)
 
 #### Merged Pull Requests
-- Rustfmt and Nightly Rust Bump to nightly-2020-08-28 [#7897](https://github.com/habitat-sh/habitat/pull/7897) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
+- Automated update of Habitat Documentation [#7898](https://github.com/habitat-sh/habitat/pull/7898) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
@@ -20,6 +20,8 @@
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
+- Automated update of Habitat Documentation [#7898](https://github.com/habitat-sh/habitat/pull/7898) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.143 -->
+- Cargo Update [#7899](https://github.com/habitat-sh/habitat/pull/7899) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.143 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-08-28 [#7897](https://github.com/habitat-sh/habitat/pull/7897) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.142 -->
 - Fix update documentation pipeline [#7895](https://github.com/habitat-sh/habitat/pull/7895) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.141 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-08-24 [#7889](https://github.com/habitat-sh/habitat/pull/7889) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.140 -->
