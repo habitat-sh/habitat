@@ -1,4 +1,3 @@
-use super::get_name_with_rev;
 use crate::{api_client::{self,
                          Client},
             common::{command::package::install::{RETRIES,
@@ -10,12 +9,13 @@ use crate::{api_client::{self,
                     Result},
             PRODUCT,
             VERSION};
-use habitat_core::crypto::{keys::NamedRevision,
-                           PUBLIC_SIG_KEY_VERSION,
-                           SECRET_SIG_KEY_VERSION};
+use habitat_core::crypto::keys::{Key,
+                                 PublicOriginSigningKey,
+                                 SecretOriginSigningKey};
 use reqwest::StatusCode;
 use retry::delay;
-use std::path::Path;
+use std::{convert::TryFrom,
+          path::Path};
 
 pub async fn start(ui: &mut UI,
                    bldr_url: &str,
@@ -26,10 +26,9 @@ pub async fn start(ui: &mut UI,
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
     ui.begin(format!("Uploading public origin key {}", public_keyfile.display()))?;
 
-    let name_with_rev = get_name_with_rev(&public_keyfile, PUBLIC_SIG_KEY_VERSION)?;
-    let named_revision = name_with_rev.parse::<NamedRevision>()?;
-    let name = named_revision.name();
-    let rev = named_revision.revision();
+    let public_key: PublicOriginSigningKey = TryFrom::try_from(public_keyfile)?;
+    let name = public_key.named_revision().name();
+    let rev = public_key.named_revision().revision();
 
     {
         retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
@@ -37,11 +36,11 @@ pub async fn start(ui: &mut UI,
             match api_client.put_origin_key(&name, &rev, public_keyfile, token, ui.progress())
                             .await
             {
-                Ok(()) => ui.status(Status::Uploaded, &name_with_rev)?,
+                Ok(()) => ui.status(Status::Uploaded, public_key.named_revision())?,
                 Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
                     ui.status(Status::Using,
                               format!("public key revision {} which already exists in the depot",
-                                      &name_with_rev))?;
+                                      public_key.named_revision()))?;
                 }
                 Err(err) => return Err(Error::from(err)),
             }
@@ -55,13 +54,13 @@ pub async fn start(ui: &mut UI,
           })?;
     }
 
-    ui.end(format!("Upload of public origin key {} complete.", &name_with_rev))?;
+    ui.end(format!("Upload of public origin key {} complete.",
+                   public_key.named_revision()))?;
 
     if let Some(secret_keyfile) = secret_keyfile {
-        let name_with_rev = get_name_with_rev(&secret_keyfile, SECRET_SIG_KEY_VERSION)?;
-        let named_revision = name_with_rev.parse::<NamedRevision>()?;
-        let name = named_revision.name();
-        let rev = named_revision.revision();
+        let secret_key: SecretOriginSigningKey = TryFrom::try_from(secret_keyfile)?;
+        let name = secret_key.named_revision().name();
+        let rev = secret_key.named_revision().name();
 
         retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
             ui.status(Status::Uploading, secret_keyfile.display())?;
@@ -73,8 +72,9 @@ pub async fn start(ui: &mut UI,
                             .await
             {
                 Ok(()) => {
-                    ui.status(Status::Uploaded, &name_with_rev)?;
-                    ui.end(format!("Upload of secret origin key {} complete.", &name_with_rev))?;
+                    ui.status(Status::Uploaded, secret_key.named_revision())?;
+                    ui.end(format!("Upload of secret origin key {} complete.",
+                                   secret_key.named_revision()))?;
                     Ok(())
                 }
                 Err(e) => Err(Error::APIClient(e)),
