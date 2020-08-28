@@ -23,8 +23,8 @@ use crate::{api_client::{self,
             PRODUCT,
             VERSION};
 use glob::glob_with;
-use habitat_core::{crypto::{keys::{parse_name_with_rev,
-                                   KeyCache},
+use habitat_core::{crypto::{keys::{KeyCache,
+                                   NamedRevision},
                             PUBLIC_KEY_SUFFIX,
                             PUBLIC_SIG_KEY_VERSION},
                    ChannelIdent};
@@ -75,8 +75,8 @@ pub async fn start(ui: &mut UI,
         debug!("Parsing public signing key {}", pub_key_path.display());
         let name_with_rev =
             command::origin::key::get_name_with_rev(&pub_key_path, PUBLIC_SIG_KEY_VERSION)?;
-        let (name, _rev) = parse_name_with_rev(name_with_rev)?;
-        origins.insert(name);
+        let named_revision = name_with_rev.parse::<NamedRevision>()?;
+        origins.insert(named_revision.name().to_string());
     }
     let mut origins_to_create: Vec<String> = Vec::new();
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;

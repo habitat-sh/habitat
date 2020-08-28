@@ -256,26 +256,9 @@ impl FromStr for PairType {
 
 ////////////////////////////////////////////////////////////////////////
 
-#[deprecated(note = "Please use new key types")]
-pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, KeyRevision)>
-    where T: AsRef<str>
-{
-    let named_revision = name_with_rev.as_ref().parse::<NamedRevision>()?;
-    Ok((named_revision.name, named_revision.revision))
-}
-
-////////////////////////////////////////////////////////////////////////
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::{keys::RingKey,
-                        test_support::*};
-    use tempfile::Builder;
-
-    static VALID_KEY: &str = "ring-key-valid-20160504220722.sym.key";
-    static VALID_KEY_AS_HEX: &str = "\
-         44215a3bce23e351a6af359d77131db17a46767de2b88cbb330df162b8cf2ec1";
 
     mod named_revision {
         use super::*;
@@ -323,24 +306,5 @@ mod tests {
             let input = "foo-20160504220722";
             assert_eq!(input.parse::<NamedRevision>().unwrap().to_string(), input);
         }
-    }
-
-    #[test]
-    fn parse_name_with_rev() {
-        let (name, rev) = super::parse_name_with_rev("an-origin-19690114010203").unwrap();
-        assert_eq!(name, "an-origin");
-        assert_eq!(rev, KeyRevision::unchecked("19690114010203"));
-
-        let (name, rev) = super::parse_name_with_rev("user-19480531051223").unwrap();
-        assert_eq!(name, "user");
-        assert_eq!(rev, KeyRevision::unchecked("19480531051223"));
-
-        let (name, rev) = super::parse_name_with_rev("tnt.default@acme-19480531051223").unwrap();
-        assert_eq!(name, "tnt.default@acme");
-        assert_eq!(rev, KeyRevision::unchecked("19480531051223"));
-
-        let (name, rev) = super::parse_name_with_rev("--20160420042001").unwrap();
-        assert_eq!(name, "-");
-        assert_eq!(rev, KeyRevision::unchecked("20160420042001"));
     }
 }
