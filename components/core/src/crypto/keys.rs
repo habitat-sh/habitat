@@ -247,26 +247,6 @@ impl KeyRevision {
 ////////////////////////////////////////////////////////////////////////
 
 #[deprecated]
-#[derive(Clone, Copy, Debug)]
-enum KeyType {
-    Sig,
-    Box,
-    Sym,
-}
-
-impl fmt::Display for KeyType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
-            KeyType::Box => write!(f, "box"),
-            KeyType::Sig => write!(f, "sig"),
-            KeyType::Sym => write!(f, "sym"),
-        }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////
-
-#[deprecated]
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize)]
 pub enum PairType {
     Public,
@@ -591,91 +571,6 @@ fn check_filename(keyname: &str,
     }
 }
 
-/// Take a key name (ex "habitat"), and find all revisions of that
-/// keyname in the `cache_key_path`.
-fn get_key_revisions<P>(keyname: &str,
-                        cache_key_path: P,
-                        pair_type: Option<PairType>,
-                        key_type: KeyType)
-                        -> Result<Vec<String>>
-    where P: AsRef<Path>
-{
-    // accumulator for files that match
-    let mut candidates = HashSet::new();
-
-    let dir_entries = fs::read_dir(cache_key_path.as_ref()).map_err(|e| {
-                          Error::CryptoError(format!("Error reading key directory {}: {}",
-                                                     cache_key_path.as_ref().display(),
-                                                     e))
-                      })?;
-
-    for result in dir_entries {
-        let dir_entry = result.map_err(|e| {
-                                  debug!("Error reading path {}", e);
-                                  Error::CryptoError(format!("Error reading key path {}", e))
-                              })?;
-
-        // NB: this metadata() call traverses symlinks, which is
-        // exactly what we want.
-        match dir_entry.path().metadata() {
-            Ok(md) => {
-                if !md.is_file() {
-                    continue;
-                }
-            }
-            Err(e) => {
-                debug!("Error checking file metadata {}", e);
-                continue;
-            }
-        };
-
-        match file_is_valid_key_for_type(dir_entry.path(), key_type) {
-            Ok(true) => {} // we're good; keep processing
-            Ok(false) => continue,
-            Err(e) => {
-                debug!("Error reading key file: {:?}: {:?}", dir_entry.path(), e);
-                continue;
-            }
-        }
-
-        let filename = match dir_entry.file_name().into_string() {
-            Ok(f) => f,
-            Err(e) => {
-                // filename is still an OsString, so print it as debug output
-                debug!("Invalid filename {:?}", e);
-                return Err(Error::CryptoError("Invalid filename in key path".to_string()));
-            }
-        };
-        debug!("checking file: {}", &filename);
-        check_filename(keyname, &filename, &mut candidates, pair_type);
-    }
-
-    let mut candidate_vec = candidates.into_iter().collect::<Vec<String>>();
-    candidate_vec.sort();
-    candidate_vec.reverse(); // newest key first
-    Ok(candidate_vec)
-}
-
-/// Attempt to read the file at `path` to see if it is a valid
-/// instance of the given `key_type`.
-///
-/// If the file cannot be read or processed an Error will be
-/// returned.
-fn file_is_valid_key_for_type<P>(path: P, key_type: KeyType) -> Result<bool>
-    where P: AsRef<Path>
-{
-    let file = File::open(path.as_ref())?;
-    if let Some(first_line) = BufReader::new(file).lines().next() {
-        if first_line?.starts_with(&key_type.to_string().to_uppercase()) {
-            return Ok(true);
-        }
-    }
-    debug!("Invalid key content in {:?} for type {}",
-           path.as_ref(),
-           key_type);
-    Ok(false)
-}
-
 fn mk_key_filename<P, S1, S2>(path: P, keyname: S1, suffix: S2) -> PathBuf
     where P: AsRef<Path>,
           S1: AsRef<str>,
@@ -913,83 +808,6 @@ mod tests {
         let (name, rev) = super::parse_name_with_rev("--20160420042001").unwrap();
         assert_eq!(name, "-");
         assert_eq!(rev, KeyRevision::unchecked("20160420042001"));
-    }
-
-    #[test]
-    fn get_ring_key_revisions() {
-        let (cache, dir) = new_cache();
-
-        for _ in 0..3 {
-            let key = RingKey::new("acme");
-            cache.write_key(&key).unwrap();
-            wait_1_sec();
-        }
-
-        let key = RingKey::new("acme-you");
-        cache.write_key(&key).unwrap();
-
-        let revisions = super::get_key_revisions("acme", dir.path(), None, KeyType::Sym).unwrap();
-        assert_eq!(3, revisions.len());
-
-        let revisions =
-            super::get_key_revisions("acme-you", dir.path(), None, KeyType::Sym).unwrap();
-        assert_eq!(1, revisions.len());
-    }
-
-    /// Keys should be able to be symlinks, not just normal
-    /// files. This is particularly important in environments like
-    /// Kubernetes that rely heavily on symlinks.
-    ///
-    /// See https://github.com/habitat-sh/habitat/issues/2939
-    #[test]
-    fn keys_that_are_symlinks_can_still_be_found() {
-        let temp_dir = Builder::new().prefix("symlinks_are_ok").tempdir().unwrap();
-        let key = RingKey::new("symlinks_are_ok");
-
-        let key_name = format!("{}.sym.key", key.named_revision());
-        let key_path = temp_dir.path().join(&key_name);
-        fs::write(&key_path, key.to_key_string()).unwrap();
-
-        // Create a directory in our temp directory; this will serve
-        // as the cache directory in which we look for keys.
-        let cache_dir = temp_dir.path().join("cache");
-        fs::create_dir(&cache_dir).expect("Could not create cache_dir");
-
-        // Create a symlink to the key INTO that new dir
-        let dest = cache_dir.join(&key_name);
-        symlink_file(&key_path, &dest).expect("Could not generate symlink");
-
-        // For sanity, confirm that we are indeed dealing with a symlink
-        let sym_meta = dest.symlink_metadata()
-                           .expect("Could not get file metadata");
-        assert!(sym_meta.file_type().is_symlink());
-
-        let revisions =
-            super::get_key_revisions("symlinks_are_ok",
-                                     &cache_dir, // <-- THIS IS THE KEY PART OF THE TEST
-                                     None,
-                                     KeyType::Sym).expect("Could not fetch key revisions!");
-
-        assert_eq!(1, revisions.len());
-        assert_eq!(revisions[0], key.named_revision().to_string());
-    }
-
-    // Windows and Linux platforms handle symlinking differently; this
-    // abstracts that for the purposes of our tests here.
-    #[cfg(target_os = "windows")]
-    fn symlink_file<P, Q>(src: P, dest: Q) -> ::std::io::Result<()>
-        where P: AsRef<Path>,
-              Q: AsRef<Path>
-    {
-        ::std::os::windows::fs::symlink_file(src.as_ref(), dest.as_ref())
-    }
-
-    #[cfg(not(target_os = "windows"))]
-    fn symlink_file<P, Q>(src: P, dest: Q) -> ::std::io::Result<()>
-        where P: AsRef<Path>,
-              Q: AsRef<Path>
-    {
-        ::std::os::unix::fs::symlink(src.as_ref(), dest.as_ref())
     }
 
     #[test]

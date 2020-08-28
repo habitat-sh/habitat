@@ -530,4 +530,71 @@ mod test {
             assert!(result.is_err(), "Threw an error: {:?}", result);
         }
     }
+
+    mod symlinks {
+        // Keys should be able to be symlinks, not just normal
+        // files. This is particularly important in environments like
+        // Kubernetes that rely heavily on symlinks.
+        //
+        // See https://github.com/habitat-sh/habitat/issues/2939
+
+        use super::*;
+        use tempfile::Builder;
+
+        #[test]
+        fn symlinks_are_ok() {
+            let (cache, _dir) = new_cache();
+            let real_dir = Builder::new().prefix("symlinks_are_ok").tempdir().unwrap();
+            assert_ne!(cache.as_ref(),
+                       real_dir.path(),
+                       "Cache directory and 'real' directory should be different");
+
+            let key = RingKey::new("symlinks_are_ok");
+
+            // Write the key into the "real directory"
+            let path_in_real_dir = real_dir.path().join(key.own_filename());
+            std::fs::write(&path_in_real_dir, key.to_key_string()).unwrap();
+
+            // Create a symlink to the key in the actual KeyCache directory
+            let path_in_cache_dir = cache.as_ref().join(key.own_filename());
+            symlink_file(&path_in_real_dir, &path_in_cache_dir).expect("Could not generate \
+                                                                        symlink");
+
+            // For sanity, assert that our paths are how we expect.
+            assert_ne!(path_in_real_dir, path_in_cache_dir);
+            assert_eq!(path_in_real_dir.file_name(), path_in_cache_dir.file_name());
+
+            let real_metadata = path_in_real_dir.symlink_metadata().unwrap();
+            let link_metadata = path_in_cache_dir.symlink_metadata().unwrap();
+
+            assert!(real_metadata.file_type().is_file());
+            assert!(!real_metadata.file_type().is_symlink());
+
+            assert!(!link_metadata.file_type().is_file());
+            assert!(link_metadata.file_type().is_symlink());
+
+            // When retrieving the key, we can follow symlinks!
+            let retrieved_key = cache.latest_ring_key_revision(key.named_revision().name())
+                                     .unwrap();
+            assert_eq!(retrieved_key, key);
+        }
+
+        // Windows and Linux platforms handle symlinking differently; this
+        // abstracts that for the purposes of our tests here.
+        #[cfg(target_os = "windows")]
+        fn symlink_file<P, Q>(src: P, dest: Q) -> ::std::io::Result<()>
+            where P: AsRef<Path>,
+                  Q: AsRef<Path>
+        {
+            ::std::os::windows::fs::symlink_file(src.as_ref(), dest.as_ref())
+        }
+
+        #[cfg(not(target_os = "windows"))]
+        fn symlink_file<P, Q>(src: P, dest: Q) -> ::std::io::Result<()>
+            where P: AsRef<Path>,
+                  Q: AsRef<Path>
+        {
+            ::std::os::unix::fs::symlink(src.as_ref(), dest.as_ref())
+        }
+    }
 }
