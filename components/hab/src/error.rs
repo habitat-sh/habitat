@@ -53,6 +53,7 @@ pub enum Error {
     JobGroupCancel(api_client::Error),
     JobGroupPromoteOrDemoteUnprocessable(bool /* promote */),
     JsonErr(serde_json::Error),
+    KeyTypeParseError(String),
     LicenseNotAccepted,
     NameLookup,
     NetErr(net::NetErr),
@@ -162,6 +163,7 @@ impl fmt::Display for Error {
             }
             Error::JsonErr(ref e) => e.to_string(),
             Error::JobGroupCancel(ref e) => format!("Failed to cancel job group: {:?}", e),
+            Error::KeyTypeParseError(ref s) => format!("Failed to parse key type: {}", s),
             Error::LicenseNotAccepted => "License agreement not accepted".to_string(),
             Error::NameLookup => "Error resolving a name or IP address".to_string(),
             Error::NetErr(ref e) => e.to_string(),

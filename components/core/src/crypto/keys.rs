@@ -2,7 +2,6 @@ use crate::{error::Error,
             fs::Permissions};
 use chrono::Utc;
 use regex::Regex;
-use serde::Deserialize;
 use std::{self,
           fmt,
           ops::Deref,
@@ -212,43 +211,6 @@ impl KeyRevision {
         where R: AsRef<str>
     {
         KeyRevision(rev.as_ref().to_string())
-    }
-}
-
-////////////////////////////////////////////////////////////////////////
-// OLD SUPPORTING CODE BELOW
-// All this can be removed once we've migrated Builder away from it.
-////////////////////////////////////////////////////////////////////////
-
-#[deprecated]
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize)]
-pub enum PairType {
-    Public,
-    Secret,
-}
-
-impl fmt::Display for PairType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
-            PairType::Public => write!(f, "public"),
-            PairType::Secret => write!(f, "secret"),
-        }
-    }
-}
-
-impl FromStr for PairType {
-    type Err = Error;
-
-    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
-        match value {
-            "public" => Ok(PairType::Public),
-            "secret" => Ok(PairType::Secret),
-            _ => {
-                Err(Error::CryptoError(format!("Invalid PairType conversion \
-                                                from {}",
-                                               value)))
-            }
-        }
     }
 }
 

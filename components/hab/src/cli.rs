@@ -23,8 +23,7 @@ use habitat_common::{cli::{file_into_idents,
                            DEFAULT_BINLINK_DIR,
                            PACKAGE_TARGET_ENVVAR},
                      FeatureFlag};
-use habitat_core::{crypto::{keys::PairType,
-                            CACHE_KEY_PATH_ENV_VAR},
+use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    env::Config,
                    origin::Origin,
                    os::process::ShutdownTimeout,
@@ -440,7 +439,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (about: "Outputs the latest origin key contents to stdout")
                     (aliases: &["e", "ex", "exp", "expo", "expor"])
                     (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name")
-                    (@arg PAIR_TYPE: -t --type +takes_value {valid_pair_type}
+                    (@arg KEY_TYPE: -t --type +takes_value {valid_key_type}
                         "Export either the 'public' or 'secret' key. The 'secret' key is the origin private key")
                     (arg: arg_cache_key_path())
                 )
@@ -877,6 +876,28 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
     )
 }
 
+////////////////////////////////////////////////////////////////////////
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize)]
+pub enum KeyType {
+    Public,
+    Secret,
+}
+
+impl FromStr for KeyType {
+    type Err = crate::error::Error;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        match value {
+            "public" => Ok(Self::Public),
+            "secret" => Ok(Self::Secret),
+            _ => Err(Self::Err::KeyTypeParseError(value.to_string())),
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+
 fn alias_term() -> App<'static, 'static> {
     clap_app!(@subcommand term =>
         (about: "Alias for 'sup term'")
@@ -1082,15 +1103,12 @@ fn sub_svc_unload() -> App<'static, 'static> {
 ////////////////////////////////////////////////////////////////////////
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_pair_type(val: String) -> result::Result<(), String> {
-    match PairType::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => {
-            Err(format!("PAIR_TYPE: {} is invalid, must be one of \
-                         (public, secret)",
-                        &val))
-        }
-    }
+fn valid_key_type(val: String) -> result::Result<(), String> {
+    KeyType::from_str(&val).map(|_| ()).map_err(|_| {
+                                           format!("KEY_TYPE: {} is invalid, must be one of \
+                                                    (public, secret)",
+                                                   &val)
+                                       })
 }
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
