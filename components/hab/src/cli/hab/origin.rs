@@ -6,10 +6,10 @@ use super::util::{AuthToken,
                   ConfigOptBldrOrigin,
                   ConfigOptBldrUrl,
                   ConfigOptCacheKeyPath};
-use crate::cli::valid_origin;
+use crate::cli::{valid_origin,
+                 KeyType};
 use configopt::ConfigOpt;
-use habitat_core::{crypto::keys::PairType,
-                   origin::OriginMemberRole};
+use habitat_core::origin::OriginMemberRole;
 use std::path::PathBuf;
 use structopt::{clap::ArgGroup,
                 StructOpt};
@@ -188,8 +188,8 @@ pub enum Key {
         #[structopt(name = "ORIGIN", validator = valid_origin)]
         origin:         String,
         /// Export either the 'public' or 'secret' key. The 'secret' key is the origin private key
-        #[structopt(name = "PAIR_TYPE", short = "t", long = "type")]
-        pair_type:      Option<PairType>,
+        #[structopt(name = "KEY_TYPE", short = "t", long = "type")]
+        key_type:       Option<KeyType>,
         #[structopt(flatten)]
         cache_key_path: CacheKeyPath,
     },

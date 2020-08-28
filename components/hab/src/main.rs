@@ -33,7 +33,8 @@ use hab::{cli::{self,
                       util::{bldr_auth_token_from_args_env_or_load,
                              bldr_url_from_args_env_load_or_default},
                       Hab},
-                parse_optional_arg},
+                parse_optional_arg,
+                KeyType},
           command::{self,
                     pkg::{download::{PackageSet,
                                      PackageSetFile},
@@ -64,8 +65,7 @@ use habitat_common::{self as common,
                      FeatureFlag};
 use habitat_core::{crypto::{init,
                             keys::{Key,
-                                   KeyCache,
-                                   PairType}},
+                                   KeyCache}},
                    env::{self as henv,
                          Config as _},
                    fs::{cache_artifact_path,
@@ -563,11 +563,11 @@ async fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> 
 
 fn sub_origin_key_export(m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").unwrap(); // Required via clap
-    let pair_type = PairType::from_str(m.value_of("PAIR_TYPE").unwrap_or("public"))?;
+    let key_type = KeyType::from_str(m.value_of("KEY_TYPE").unwrap_or("public"))?;
     let key_cache = key_cache_from_matches(&m)?;
     init()?;
 
-    command::origin::key::export::start(origin, pair_type, &key_cache)
+    command::origin::key::export::start(origin, key_type, &key_cache)
 }
 
 fn sub_origin_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
