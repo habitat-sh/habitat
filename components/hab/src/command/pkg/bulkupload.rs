@@ -23,13 +23,14 @@ use crate::{api_client::{self,
             PRODUCT,
             VERSION};
 use glob::glob_with;
-use habitat_core::{crypto::{keys::{KeyCache,
-                                   NamedRevision},
-                            PUBLIC_KEY_SUFFIX,
-                            PUBLIC_SIG_KEY_VERSION},
+use habitat_core::{crypto::{keys::{Key,
+                                   KeyCache,
+                                   PublicOriginSigningKey},
+                            PUBLIC_KEY_SUFFIX},
                    ChannelIdent};
 use reqwest::StatusCode;
 use std::{collections::BTreeSet,
+          convert::TryFrom,
           path::{Path,
                  PathBuf}};
 
@@ -73,10 +74,8 @@ pub async fn start(ui: &mut UI,
         // using PackageArchive::new() but that proves too expensive an operation at any sort of
         // scale. Relevant: https://github.com/habitat-sh/habitat/issues/5153
         debug!("Parsing public signing key {}", pub_key_path.display());
-        let name_with_rev =
-            command::origin::key::get_name_with_rev(&pub_key_path, PUBLIC_SIG_KEY_VERSION)?;
-        let named_revision = name_with_rev.parse::<NamedRevision>()?;
-        origins.insert(named_revision.name().to_string());
+        let public_key: PublicOriginSigningKey = TryFrom::try_from(pub_key_path)?;
+        origins.insert(public_key.named_revision().name().to_string());
     }
     let mut origins_to_create: Vec<String> = Vec::new();
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;

@@ -40,6 +40,7 @@ macro_rules! gen_key {
         from_str_impl_for_key!($t);
 
         try_from_path_buf_impl_for_key!($t);
+        try_from_path_impl_for_key!($t);
 
         try_from_bytes_for_key!($t);
     };
@@ -98,6 +99,20 @@ macro_rules! try_from_path_buf_impl_for_key {
             type Error = Error;
 
             fn try_from(path: std::path::PathBuf) -> Result<$t> {
+                std::fs::read_to_string(path)?.parse()
+            }
+        }
+    };
+}
+
+/// Helper macro to implement conversion logic to generate an instance
+/// of a key from a file.
+macro_rules! try_from_path_impl_for_key {
+    ($t:ty) => {
+        impl std::convert::TryFrom<&std::path::Path> for $t {
+            type Error = Error;
+
+            fn try_from(path: &std::path::Path) -> Result<$t> {
                 std::fs::read_to_string(path)?.parse()
             }
         }
