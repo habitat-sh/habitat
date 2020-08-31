@@ -1,4 +1,4 @@
-//! User encryption keys are used alongside user encryption keys to
+//! User encryption keys are used alongside service encryption keys to
 //! allow for authorized uploading of configuration and files to a
 //! Habitat Supervisor network.
 //!
