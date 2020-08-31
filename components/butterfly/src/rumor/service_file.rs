@@ -14,8 +14,7 @@ use crate::{error::{Error,
 use habitat_core::{crypto::keys::{KeyCache,
                                   SignedBox},
                    service::ServiceGroup};
-use std::{borrow::Cow,
-          cmp::Ordering,
+use std::{cmp::Ordering,
           fmt,
           mem,
           str::FromStr};
@@ -78,18 +77,21 @@ impl ServiceFile {
 
     /// Return the body of the service file as a stream of bytes. Always returns a new copy, due to
     /// the fact that we might be encrypted.
+    // TODO (CM): Technically, we could return a Cow here to achieve
+    // the same effect a bit more efficiently, but the lifetime
+    // parameter looks like it would complicate a lot of other
+    // code. It's not clear that the gain in efficiency is worth the
+    // conceptual overhead at this time... perhaps with future
+    // refactoring, though.
     pub fn body(&self, key_cache: &KeyCache) -> Result<Vec<u8>> {
-        let bytes = if self.encrypted {
+        if self.encrypted {
             let secret = SignedBox::from_bytes(&self.body)?;
             let user_public_key = key_cache.user_public_encryption_key(secret.encryptor())?;
             let service_secret_key = key_cache.service_secret_encryption_key(secret.decryptor())?;
-            service_secret_key.decrypt_user_message(&secret, &user_public_key)
-                              .map(Cow::Owned)?
+            Ok(service_secret_key.decrypt_user_message(&secret, &user_public_key)?)
         } else {
-            Cow::Borrowed(&self.body)
-        };
-
-        Ok(bytes.to_vec())
+            Ok(self.body.clone())
+        }
     }
 }
 
