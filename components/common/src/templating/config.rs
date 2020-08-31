@@ -436,7 +436,7 @@ impl CfgRenderer {
             };
             changed |= match file_hash {
                 None => {
-                    debug!("Configuration {} does not exist; restarting",
+                    debug!("Configuration {} does not exist; templating new file",
                            cfg_dest.display());
 
                     ensure_directory_structure(render_path.as_ref(),
@@ -454,12 +454,12 @@ impl CfgRenderer {
                 }
                 Some(file_hash) => {
                     if file_hash == compiled_hash {
-                        debug!("Configuration {} {} has not changed; not restarting.",
+                        debug!("Configuration {} {} has not changed; not re-templating.",
                                cfg_dest.display(),
                                file_hash);
                         false
                     } else {
-                        debug!("Configuration {} has changed; restarting",
+                        debug!("Configuration {} has changed; templating new data",
                                cfg_dest.display());
                         write_templated_file(&cfg_dest, &compiled, &pkg.svc_user, &pkg.svc_group)?;
                         outputln!(
