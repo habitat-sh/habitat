@@ -1,6 +1,6 @@
 mod bldr;
 mod cli;
-mod config;
+pub mod config;
 mod file;
 pub mod license;
 pub mod origin;
@@ -19,10 +19,10 @@ use self::{bldr::{Bldr,
                   ConfigOptBldr},
            cli::{Cli,
                  ConfigOptCli},
-           config::{ConfigOptServiceConfig,
-                    ConfigOptServiceConfigApply,
-                    ServiceConfig,
-                    ServiceConfigApply},
+           config::{ConfigOptSvcConfig,
+                    ConfigOptSvcConfigApply,
+                    SvcConfig,
+                    SvcConfigApply},
            file::{ConfigOptFile,
                   File},
            license::{ConfigOptLicense,
@@ -74,7 +74,7 @@ pub enum Hab {
     #[structopt(no_version)]
     Cli(Cli),
     #[structopt(no_version)]
-    Config(ServiceConfig),
+    Config(SvcConfig),
     #[structopt(no_version)]
     File(File),
     #[structopt(no_version)]
@@ -101,7 +101,7 @@ pub enum Hab {
 
     /// Alias for 'config apply'
     #[structopt(no_version, settings = &[AppSettings::Hidden])]
-    Apply(ServiceConfigApply),
+    Apply(SvcConfigApply),
     /// Alias for 'pkg install'
     #[structopt(no_version, settings = &[AppSettings::Hidden])]
     Install(PkgInstall),

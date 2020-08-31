@@ -13,19 +13,29 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                          DEFAULT_BLDR_URL},
                    AUTH_TOKEN_ENVVAR};
 use lazy_static::lazy_static;
-use std::{ffi::OsString,
+use std::{convert::{Infallible,
+                    TryFrom},
+          ffi::OsString,
           fmt,
+          fs::File,
           io,
+          io::Read,
           net::{SocketAddr,
                 ToSocketAddrs},
           num::ParseIntError,
-          path::PathBuf,
+          path::{Path,
+                 PathBuf},
           str::FromStr,
           time::Duration};
 use structopt::{clap::AppSettings,
                 StructOpt};
 use url::{ParseError,
           Url};
+
+/// Makes the --org CLI param optional when this env var is set
+pub const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
+/// Makes the --user CLI param optional when this env var is set
+pub const HABITAT_USER_ENVVAR: &str = "HAB_USER";
 
 #[derive(ConfigOpt, StructOpt)]
 #[configopt(derive(Serialize))]
@@ -157,8 +167,8 @@ pub struct PkgIdent {
     pkg_ident: PkgIdentStringySerde,
 }
 
-impl PkgIdent {
-    pub fn pkg_ident(self) -> PackageIdent { self.pkg_ident.0 }
+impl From<PkgIdent> for PackageIdent {
+    fn from(pkg_ident: PkgIdent) -> PackageIdent { pkg_ident.pkg_ident.0 }
 }
 
 #[derive(ConfigOpt, StructOpt)]
@@ -170,7 +180,7 @@ pub struct FullyQualifiedPkgIdent {
     pkg_ident: PackageIdent,
 }
 
-#[derive(ConfigOpt, StructOpt, Deserialize, Debug)]
+#[derive(ConfigOpt, Clone, Copy, StructOpt, Deserialize, Debug)]
 #[configopt(derive(Serialize, Clone, Debug))]
 #[structopt(no_version)]
 pub struct RemoteSup {
@@ -184,8 +194,8 @@ pub struct RemoteSup {
     remote_sup: ListenCtlAddr,
 }
 
-impl RemoteSup {
-    pub fn to_listen_ctl_addr(&self) -> ListenCtlAddr { self.remote_sup }
+impl From<RemoteSup> for ListenCtlAddr {
+    fn from(remote_sup: RemoteSup) -> Self { remote_sup.remote_sup }
 }
 
 pub fn socket_addr_with_default_port<S: AsRef<str>>(addr: S,
@@ -276,6 +286,46 @@ pub struct ExternalCommandArgsWithHelpAndVersion {
     /// Arguments to the command
     #[structopt(parse(from_os_str), takes_value = true, multiple = true)]
     pub args: Vec<OsString>,
+}
+
+/// Read from a file or from stdin if the "path" used is "-"
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(try_from = "&str", into = "String")]
+pub struct FileOrStdin(PathBuf);
+
+impl FromStr for FileOrStdin {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(Self(s.parse()?)) }
+}
+
+impl TryFrom<&str> for FileOrStdin {
+    type Error = Infallible;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> { s.parse() }
+}
+
+impl TryFrom<FileOrStdin> for Vec<u8> {
+    type Error = io::Error;
+
+    fn try_from(file_or_stdin: FileOrStdin) -> Result<Self, Self::Error> {
+        let mut contents = Vec::new();
+        if file_or_stdin.0 == Path::new("-") {
+            io::stdin().read_to_end(&mut contents)?;
+        } else {
+            let mut file = File::open(file_or_stdin.0)?;
+            file.read_to_end(&mut contents)?;
+        }
+        Ok(contents)
+    }
+}
+
+impl ToString for FileOrStdin {
+    fn to_string(&self) -> String { self.0.clone().to_string_lossy().to_string() }
+}
+
+impl From<FileOrStdin> for String {
+    fn from(file: FileOrStdin) -> Self { file.to_string() }
 }
 
 #[cfg(test)]

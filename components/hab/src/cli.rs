@@ -1,7 +1,9 @@
 pub mod gateway_util;
 pub mod hab;
 
-use crate::{cli::hab::{origin::Rbac,
+use crate::{cli::hab::{config::{SvcConfig,
+                                SvcConfigApply},
+                       origin::Rbac,
                        pkg::{ExportCommand,
                              PkgExec},
                        studio::Studio,
@@ -54,9 +56,9 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         return Hab::clap();
     }
 
-    let alias_apply = sub_config_apply().about("Alias for 'config apply'")
-                                        .aliases(&["ap", "app", "appl"])
-                                        .setting(AppSettings::Hidden);
+    let alias_apply = SvcConfigApply::clap().about("Alias for 'config apply'")
+                                            .aliases(&["ap", "app", "appl"])
+                                            .setting(AppSettings::Hidden);
     let alias_install =
         sub_pkg_install(feature_flags).about("Alias for 'pkg install'")
                                       .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
@@ -95,21 +97,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (subcommand: sub_cli_setup().aliases(&["s", "se", "set", "setu"]))
             (subcommand: sub_cli_completers().aliases(&["c", "co", "com", "comp"]))
         )
-        (@subcommand config =>
-            (about: "Commands relating to a Service's runtime config")
-            (aliases: &["co", "con", "conf", "confi"])
-            (@setting ArgRequiredElseHelp)
-            (@setting SubcommandRequiredElseHelp)
-            (subcommand: sub_config_apply().aliases(&["ap", "app", "appl"]))
-            (@subcommand show =>
-                (about: "Displays the default configuration options for a service")
-                (aliases: &["sh", "sho"])
-                (@arg PKG_IDENT: +required +takes_value {valid_ident}
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
-                    "Address to a remote Supervisor's Control Gateway")
-            )
-        )
+        (subcommand: SvcConfig::clap())
         (@subcommand file =>
             (about: "Commands relating to Habitat files")
             (aliases: &["f", "fi", "fil"])
@@ -1012,22 +1000,6 @@ fn sub_pkg_install(feature_flags: FeatureFlag) -> App<'static, 'static> {
     sub
 }
 
-fn sub_config_apply() -> App<'static, 'static> {
-    clap_app!(@subcommand apply =>
-    (about: "Sets a configuration to be shared by members of a Service Group")
-    (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
-        "Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)")
-    (@arg VERSION_NUMBER: +required +takes_value
-        "A version number (positive integer) for this configuration (ex: 42)")
-    (@arg FILE: +takes_value {file_exists_or_stdin}
-        "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
-    (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
-    (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
-        "Address to a remote Supervisor's Control Gateway")
-    (arg: arg_cache_key_path())
-    )
-}
-
 fn sub_svc_start() -> App<'static, 'static> {
     clap_app!(@subcommand start =>
         (about: "Start a loaded, but stopped, Habitat service")
@@ -1113,14 +1085,6 @@ fn file_exists(val: String) -> result::Result<(), String> {
         Ok(())
     } else {
         Err(format!("File: '{}' cannot be found", &val))
-    }
-}
-
-fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
-    if val == "-" {
-        Ok(())
-    } else {
-        file_exists(val)
     }
 }
 

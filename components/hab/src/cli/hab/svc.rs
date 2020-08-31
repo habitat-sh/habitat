@@ -375,7 +375,7 @@ impl TryFrom<Load> for habitat_sup_protocol::ctl::SvcLoad {
     type Error = crate::error::Error;
 
     fn try_from(svc_load: Load) -> Result<Self> {
-        shared_load_cli_to_ctl(svc_load.pkg_ident.pkg_ident(),
+        shared_load_cli_to_ctl(svc_load.pkg_ident.into(),
                                svc_load.shared_load,
                                svc_load.force)
     }
@@ -475,7 +475,7 @@ impl TryFrom<Update> for ctl::SvcUpdate {
     type Error = Error;
 
     fn try_from(u: Update) -> Result<Self> {
-        let msg = ctl::SvcUpdate { ident: Some(From::from(u.pkg_ident.pkg_ident())),
+        let msg = ctl::SvcUpdate { ident: Some(From::from(PackageIdent::from(u.pkg_ident))),
                                    // We are explicitly *not* using the environment variable as a
                                    // fallback.
                                    bldr_url: u.bldr_url.map(|u| u.to_string()),

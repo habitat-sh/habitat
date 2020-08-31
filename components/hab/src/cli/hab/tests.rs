@@ -8,6 +8,7 @@ use clap::{App,
            ArgSettings};
 use configopt::ConfigOpt;
 use habitat_common::FeatureFlag;
+use habitat_core::package::PackageIdent;
 use std::str;
 
 fn feature_flags_for_cli_test() -> FeatureFlag {
@@ -437,17 +438,17 @@ fn test_hab_svc_load_flag_ordering() {
     let hab = Hab::try_from_iter_with_configopt(&["hab", "svc", "load", "core/redis"]).unwrap();
     let load = extract_hab_svc_load(hab);
     assert!(!load.force);
-    assert_eq!(load.pkg_ident.pkg_ident(), pkg_ident);
+    assert_eq!(PackageIdent::from(load.pkg_ident), pkg_ident);
 
     let hab = Hab::try_from_iter_with_configopt(&["hab", "svc", "load", "--force", "core/redis"]).unwrap();
     let load = extract_hab_svc_load(hab);
     assert!(load.force);
-    assert_eq!(load.pkg_ident.pkg_ident(), pkg_ident);
+    assert_eq!(PackageIdent::from(load.pkg_ident), pkg_ident);
 
     let hab = Hab::try_from_iter_with_configopt(&["hab", "svc", "load", "core/redis", "--force"]).unwrap();
     let load = extract_hab_svc_load(hab);
     assert!(load.force);
-    assert_eq!(load.pkg_ident.pkg_ident(), pkg_ident);
+    assert_eq!(PackageIdent::from(load.pkg_ident), pkg_ident);
 }
 
 #[test]

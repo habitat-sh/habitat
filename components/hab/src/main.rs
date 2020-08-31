@@ -15,7 +15,9 @@ use configopt::{ConfigOpt,
 use futures::stream::StreamExt;
 use hab::{cli::{self,
                 gateway_util,
-                hab::{license::License,
+                hab::{config::{SvcConfig,
+                               SvcConfigApply},
+                      license::License,
                       origin::{Origin,
                                Rbac,
                                RbacSet,
@@ -31,7 +33,9 @@ use hab::{cli::{self,
                             Load as SvcLoad,
                             Svc},
                       util::{bldr_auth_token_from_args_env_or_load,
-                             bldr_url_from_args_env_load_or_default},
+                             bldr_url_from_args_env_load_or_default,
+                             HABITAT_ORG_ENVVAR,
+                             HABITAT_USER_ENVVAR},
                       Hab},
                 parse_optional_arg},
           command::{self,
@@ -99,11 +103,6 @@ use std::{collections::HashMap,
           string::ToString,
           thread};
 use tabwriter::TabWriter;
-
-/// Makes the --org CLI param optional when this env var is set
-const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
-/// Makes the --user CLI param optional when this env var is set
-const HABITAT_USER_ENVVAR: &str = "HAB_USER";
 
 lazy_static! {
     static ref STATUS_HEADER: Vec<&'static str> = {
@@ -176,6 +175,22 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
         Ok(hab) => {
             #[allow(clippy::single_match)]
             match hab {
+                Hab::Apply(config_apply) => {
+                    ui.warn("'hab apply' as an alias for 'hab config apply' is deprecated. \
+                             Please update your automation and processes accordingly.")?;
+                    return sub_config_apply(config_apply).await;
+                }
+                Hab::Config(config) => {
+                    match config {
+                        SvcConfig::Apply(config_apply) => {
+                            return sub_config_apply(config_apply).await;
+                        }
+                        SvcConfig::Show { pkg_ident,
+                                          remote_sup, } => {
+                            return sub_config_show(pkg_ident.into(), &remote_sup.into()).await;
+                        }
+                    }
+                }
                 Hab::Origin(origin) => {
                     match origin {
                         // hab origin rbac set|show
@@ -223,17 +238,17 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         }
                         HabSup::Depart { member_id,
                                          remote_sup, } => {
-                            return sub_sup_depart(member_id, &remote_sup.to_listen_ctl_addr()).await;
+                            return sub_sup_depart(member_id, &remote_sup.into()).await;
                         }
                         HabSup::Secret(Secret::Generate) => {
                             return sub_sup_secret_generate();
                         }
                         HabSup::Status { pkg_ident,
                                          remote_sup, } => {
-                            return sub_svc_status(pkg_ident, &remote_sup.to_listen_ctl_addr()).await;
+                            return sub_svc_status(pkg_ident, &remote_sup.into()).await;
                         }
                         HabSup::Restart { remote_sup } => {
-                            return sub_sup_restart(&remote_sup.to_listen_ctl_addr()).await;
+                            return sub_sup_restart(&remote_sup.into()).await;
                         }
                     }
                 }
@@ -252,7 +267,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         Svc::Update(svc_update) => return sub_svc_update(svc_update).await,
                         Svc::Status { pkg_ident,
                                       remote_sup, } => {
-                            return sub_svc_status(pkg_ident, &remote_sup.to_listen_ctl_addr()).await;
+                            return sub_svc_status(pkg_ident, &remote_sup.into()).await;
                         }
                         _ => {
                             // All other commands will be caught by the CLI parsing logic below.
@@ -297,9 +312,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         Pkg::Exec(PkgExec { pkg_ident,
                                             cmd,
                                             args, }) => {
-                            return command::pkg::exec::start(&pkg_ident.pkg_ident(),
-                                                             cmd,
-                                                             &args.args);
+                            return command::pkg::exec::start(&pkg_ident.into(), cmd, &args.args);
                         }
                         _ => {
                             // All other commands will be caught by the CLI parsing logic below.
@@ -333,22 +346,10 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     let app_matches = child.join().unwrap();
 
     match app_matches.subcommand() {
-        ("apply", Some(m)) => {
-            ui.warn("'hab apply' as an alias for 'hab config apply' is deprecated. Please \
-                     update your automation and processes accordingly.")?;
-            sub_svc_set(m).await?
-        }
         ("cli", Some(matches)) => {
             match matches.subcommand() {
                 ("setup", Some(m)) => sub_cli_setup(ui, m)?,
                 ("completers", Some(m)) => sub_cli_completers(m, feature_flags)?,
-                _ => unreachable!(),
-            }
-        }
-        ("config", Some(m)) => {
-            match m.subcommand() {
-                ("apply", Some(m)) => sub_svc_set(m).await?,
-                ("show", Some(m)) => sub_svc_config(m).await?,
                 _ => unreachable!(),
             }
         }
@@ -1285,56 +1286,51 @@ async fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     command::pkg::channels::start(ui, &url, (&ident, target), token.as_deref()).await
 }
 
-async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_config_apply(config_apply: SvcConfigApply) -> Result<()> {
     let cfg = config::load()?;
-    let remote_sup_addr = remote_sup_from_input(m)?;
+    let remote_sup_addr = config_apply.remote_sup.into();
     let secret_key = config::ctl_secret_key(&cfg)?;
-    let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
+    let service_group = config_apply.service_group;
+    let config_contents = Vec::try_from(config_apply.file)?;
     let mut ui = ui::ui();
-    let mut validate = sup_proto::ctl::SvcValidateCfg::default();
-    validate.service_group = Some(service_group.clone().into());
-    let mut buf = Vec::with_capacity(sup_proto::butterfly::MAX_SVC_CFG_SIZE);
-    let cfg_len = match m.value_of("FILE") {
-        Some("-") | None => io::stdin().read_to_end(&mut buf)?,
-        Some(f) => {
-            let mut file = File::open(f)?;
-            file.read_to_end(&mut buf)?
-        }
-    };
-    if cfg_len > sup_proto::butterfly::MAX_SVC_CFG_SIZE {
+
+    if config_contents.len() > sup_proto::butterfly::MAX_SVC_CFG_SIZE {
         ui.fatal(format!("Configuration too large. Maximum size allowed is {} bytes.",
                          sup_proto::butterfly::MAX_SVC_CFG_SIZE))?;
         process::exit(1);
     }
-    validate.cfg = Some(buf.clone());
-    let cache = cache_key_path_from_matches(&m);
-    let mut set = sup_proto::ctl::SvcSetCfg::default();
-    match (service_group.org(), user_param_or_env(&m)) {
-        (Some(_org), Some(username)) => {
-            let user_pair = BoxKeyPair::get_latest_pair_for(username, &cache)?;
-            let service_pair = BoxKeyPair::get_latest_pair_for(&service_group, &cache)?;
-            ui.status(Status::Encrypting,
-                      format!("TOML as {} for {}",
-                              user_pair.name_with_rev(),
-                              service_pair.name_with_rev()))?;
-            set.cfg = Some(user_pair.encrypt(&buf, Some(&service_pair))?.into_bytes());
-            set.is_encrypted = Some(true);
-        }
-        _ => set.cfg = Some(buf.to_vec()),
-    }
-    set.service_group = Some(service_group.into());
-    set.version = Some(value_t!(m, "VERSION_NUMBER", u64).unwrap());
+
+    let validate_cfg =
+        sup_proto::ctl::SvcValidateCfg { service_group: Some(service_group.clone().into()),
+                                         format:        Default::default(),
+                                         cfg:           Some(config_contents.clone()), };
+
+    let cache = config_apply.cache_key_path.cache_key_path;
+    let (maybe_encrypted_config_contents, is_encrypted) =
+        match (service_group.org(), config_apply.user) {
+            (Some(_org), Some(username)) => {
+                let user_pair = BoxKeyPair::get_latest_pair_for(username, &cache)?;
+                let service_pair = BoxKeyPair::get_latest_pair_for(&service_group, &cache)?;
+                ui.status(Status::Encrypting,
+                          format!("TOML as {} for {}",
+                                  user_pair.name_with_rev(),
+                                  service_pair.name_with_rev()))?;
+                (user_pair.encrypt(&config_contents, Some(&service_pair))?
+                          .into_bytes(),
+                 true)
+            }
+            _ => (config_contents.to_vec(), false),
+        };
+
+    let set_cfg = sup_proto::ctl::SvcSetCfg { service_group: Some(service_group.clone().into()),
+                                              cfg:           Some(maybe_encrypted_config_contents),
+                                              version:       Some(config_apply.version_number),
+                                              is_encrypted:  Some(is_encrypted), };
+
     ui.begin(format!("Setting new configuration version {} for {}",
-                     set.version
-                        .as_ref()
-                        .map(ToString::to_string)
-                        .unwrap_or_else(|| "UNKNOWN".to_string()),
-                     set.service_group
-                        .as_ref()
-                        .map(ToString::to_string)
-                        .unwrap_or_else(|| "UNKNOWN".to_string()),))?;
+                     config_apply.version_number, service_group))?;
     ui.status(Status::Creating, "service configuration")?;
-    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, validate).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, validate_cfg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1349,11 +1345,14 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                     _ => return Err(SrvClientError::from(m).into()),
                 }
             }
-            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
+            _ => {
+                return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into());
+            }
         }
     }
+
     ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))?;
-    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, set).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, set_cfg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1363,21 +1362,23 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                              .map_err(SrvClientError::Decode)?;
                 return Err(SrvClientError::from(m).into());
             }
-            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
+            _ => {
+                return {
+                    Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into())
+                }
+            }
         }
     }
+
     ui.end("Applied configuration")?;
     Ok(())
 }
 
-async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = required_pkg_ident_from_input(m)?;
+async fn sub_config_show(pkg_ident: PackageIdent, remote_sup: &ListenCtlAddr) -> Result<()> {
     let cfg = config::load()?;
-    let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
-    let mut msg = sup_proto::ctl::SvcGetDefaultCfg::default();
-    msg.ident = Some(ident.into());
-    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, msg).await?;
+    let msg = sup_proto::ctl::SvcGetDefaultCfg { ident: Some(pkg_ident.into()), };
+    let mut response = SrvClient::request(remote_sup, &secret_key, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1397,7 +1398,7 @@ async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
-    let remote_sup_addr = svc_load.remote_sup.to_listen_ctl_addr();
+    let remote_sup_addr = svc_load.remote_sup.into();
     let msg = habitat_sup_protocol::ctl::SvcLoad::try_from(svc_load)?;
     gateway_util::send(&remote_sup_addr, msg).await
 }
@@ -1405,7 +1406,7 @@ async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
 async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
     let mut errors = HashMap::new();
     for svc_load in svc::svc_loads_from_paths(&svc_bulk_load.svc_config_paths)? {
-        let ident = svc_load.pkg_ident.clone().pkg_ident();
+        let ident = svc_load.pkg_ident.clone().into();
         if let Err(e) = sub_svc_load(svc_load).await {
             errors.insert(ident, e);
         }
@@ -1428,7 +1429,7 @@ async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_update(u: hab::cli::hab::svc::Update) -> Result<()> {
-    let ctl_addr = u.remote_sup.to_listen_ctl_addr();
+    let ctl_addr = u.remote_sup.into();
     let msg: sup_proto::ctl::SvcUpdate = TryFrom::try_from(u)?;
     gateway_util::send(&ctl_addr, msg).await
 }
