@@ -961,8 +961,8 @@ impl<'a> InstallTask<'a> {
 
         let named_revision = artifact::artifact_signer(&artifact.path)?;
 
-        // If we've got it, great; otherwise fetch it
-        if !self.key_cache.public_signing_key(&named_revision).is_ok() {
+        // If we don't have the key locally, fetch it from Builder
+        if self.key_cache.public_signing_key(&named_revision).is_err() {
             self.fetch_origin_key(ui, &named_revision, token).await?;
         };
 
