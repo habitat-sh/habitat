@@ -4,7 +4,7 @@ description: Uploading, building, and deploying application packages with Chef H
 ---
 # <a name="using-builder" id="using-builder" data-magellan-target="using-builder"> Chef Habitat Builder</a>
 
-Chef Habitat Builder acts as the core of Chef’s Application Delivery Enterprise hub. Chef Habitat Builder was first launched as a cloud service and as the repository of all available plan templates built by Chef and the supporting community. Due to the fact that the application source code is stored alongside the build package, many users expressed a preference for storing packages and running the Builder on-premises. As a result, Chef Habitat Builder can be consumed either as a cloud based or on-premises solution. Plan files are stored in the Chef Habitat Builder SaaS, where they can be viewed and accessed by the Chef Habitat community and then shared with the on-premises version of the builder where they can then be copied and maintained locally.
+Chef Habitat Builder acts as the core of Chef’s Application Delivery Enterprise hub. Chef Habitat Builder was first launched as a cloud service and as the repository of all available plan templates built by Chef and the supporting community. Due to the fact that the application source code is stored alongside the build package, many users expressed a preference for storing packages and running Chef Habitat Builder on-prem. As a result, Chef Habitat Builder can be consumed either as a cloud based or on-premises solution. Plan files are stored in the Chef Habitat Builder SaaS, where they can be viewed and accessed by the Chef Habitat community and then shared with the on-premises version of the builder where they can then be copied and maintained locally.
 
 ## Chef Habitat Builder Enterprise Components Include:
 
@@ -19,7 +19,7 @@ Chef Habitat Builder acts as the core of Chef’s Application Delivery Enterpris
 
 The Chef Habitat SaaS builder offers additional functionality including Automated Builds,
 
-For more information on how the SaaS and On-Prem versions of Chef Habitat Builder work together, read the blog - [Builder On-Prem Enhancements that Extend Support to Airgap Environments and Simplify Set-Up](https://blog.chef.io/chef-habitat-product-announcement-builder-on-prem-enhancements-that-extend-support-to-airgap-environments-and-simplify-set-up/)
+For more information on how the SaaS and On-Prem versions of Chef Habitat Builder work together, read the blog - [Chef Habitat Builder On-Prem Enhancements that Extend Support to Airgap Environments and Simplify Set-Up](https://blog.chef.io/chef-habitat-product-announcement-builder-on-prem-enhancements-that-extend-support-to-airgap-environments-and-simplify-set-up/)
 
 ## Compare Chef Habitat Builder and Builder on-prem
 
@@ -36,13 +36,13 @@ For more information on how the SaaS and On-Prem versions of Chef Habitat Builde
 
 ## <a name="builder-start" id="builder-start" data-magellan-target="builder-start">Get Started</a>
 
-Whether you are looking to leverage the SaaS or on-prem version of Chef Habitat Builder, you will need to create an account on the SaaS version of Builder of Chef Habitat. After you have then downloaded the version, you will then sync the two accounts.
+Whether you are looking to leverage the SaaS or on-prem version of Chef Habitat Builder, you will need to create an account on the SaaS version of Chef Habitat Builder. After you have then downloaded the version, you will then sync the two accounts.
 
 This documentation covers everything from creating an account to setting up automated builds and exporting packages to a variety of container registries.
 
 
 ---
-## <a name="builder-account" id="builder-account" data-magellan-target="builder-account">Get a Builder Account</a>
+## <a name="builder-account" id="builder-account" data-magellan-target="builder-account">Get an Account</a>
 
 ### Prerequisites
 
@@ -68,19 +68,19 @@ Signing in with your GitHub account and authorizing the Chef Habitat Builder app
 ---
 ## <a name="builder-profile" id="builder-profile" data-magellan-target="builder-profile">Set up a Profile</a>
 
-Use the Builder Profile to:
+Use the _Profile_ tab to:
 
-* See the GitHub account used to sign-in to Builder
+* See the GitHub account used to sign in
 * Add an email to your profile
 * Create your personal access token
 
-Access your Builder profile by selecting the **round icon at the top right corner** of the Builder page. Select the **profiles** option from the drop-down menu to  customize your profile and create your personal access token.
+Access your profile by selecting the **round icon at the top right corner** of any page. Select the **profiles** option from the drop-down menu to  customize your profile and create your personal access token.
 
 ![Access your Chef Habitat Builder profile](/images/screenshots/builder_profile.png)
 
 ### Register an Email Address
 
-Adding an email address to your profile gives the Chef Habitat team permission to contact you directly about important information. If you use an email address associated with a GitHub account, it will also use your GitHub avatar on Builder. Save your changes by selecting **save**.
+Adding an email address to your profile gives the Chef Habitat team permission to contact you directly about important information. If you use an email address associated with a GitHub account, it will also use your GitHub avatar. Save your changes by selecting **save**.
 
 ![Register your email address](/images/screenshots/builder_profile_user.png)
 
@@ -92,7 +92,7 @@ Create your personal access token at the bottom of the profile page (below the s
 
 ![Create your personal access token](/images/screenshots/generate-token.png)
 
-Your generated access token will appear in the field. The access token is visible on Builder once, and navigating away from or reloading the page will cause it to vanish from the display. Copy your access token by selecting the icon on the right side of the field and set it as an environment variable before continuing.
+Your generated access token will appear in the field. The access token is visible in the tab once, and navigating away from or reloading the page will cause it to vanish from the display. Copy your access token by selecting the icon on the right side of the field and set it as an environment variable before continuing.
 
 ![Copy your personal access token](/images/screenshots/copy-token.png)
 
@@ -100,7 +100,7 @@ Your generated access token will appear in the field. The access token is visibl
 
 You can use your personal access token as a [Windows environment variable](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-7) for a single session by passing it in the command line or save it in your user settings for use across sessions.
 
-Save your Habitat authorization token as a permanent environment variable in Windows using:
+Save your personal authorization token as a permanent environment variable in Windows using:
 
 ```PS
 SETX HAB_AUTH_TOKEN <token> /m
@@ -118,7 +118,7 @@ In the next window, select the `New` button in the top part. This opens a dialog
 
 ![Make new user variable](/images/screenshots/environment_variable_new.png)
 
-Create a permanent environment variable by entering `HAB_AUTH_TOKEN` as the variable name. Next, paste the authorization token that you copied after you generated a new token on your Habitat profile page as the variable value. After you select the `OK`, you will see the new token in the user variables field.
+Create a permanent environment variable by entering `HAB_AUTH_TOKEN` as the variable name. Next, paste the authorization token that you copied after you generated a new token on your profile page as the variable value. After you select the `OK`, you will see the new token in the user variables field.
 
 ![Save your HAB_AUTH_TOKEN](/images/screenshots/environment_variable_new_var.png)
 
@@ -149,7 +149,7 @@ source ~/.bashrc
 ---
 ## <a name="builder-origin" id="builder-origin" data-magellan-target="builder-origin">Origins</a>
 
-An origin is a place on Chef Habitat Builder where you can store, share, and build packages. It is a unique namespace within Builder, and while you can delete or transfer an origin, you can't rename an origin after it is created. One example of an origin is the "core" origin, which is the set of foundational packages managed and versioned by the core Chef Habitat maintainers.
+An origin is a place on Chef Habitat Builder where you can store, share, and build packages. It is a unique namespace within Chef Habitat Builder, and while you can delete or transfer an origin, you can't rename an origin after it is created. One example of an origin is the "core" origin, which is the set of foundational packages managed and versioned by the core Chef Habitat maintainers.
 
 You can join existing origins by invitation and you can create your own origins.
 For more on invitations, see [origin membership and RBAC](/#origin-members).
@@ -260,7 +260,7 @@ RBAC Origin Member Roles:
 | Transfer Origin | N | N | N | N | Y |
 | Delete Origin | N | N | N | N | Y |
 
-### Manage Origin Membership in Builder
+### Manage Origin Membership
 
 In tandem with the changes to the Builder membership roles, we've also updated the `hab` CLI to support RBAC. We're working on adding role management to the Chef Habitat Builder site, but in the meantime, you'll need to use the CLI for now.
 
@@ -372,7 +372,7 @@ Chef Habitat uses origin keys:
 
 * When you build an artifact in your local environment, Chef Habitat signs the artifact with a public key
 * When you upload an artifact to Chef Habitat Builder or Builder on-prem, Chef Habitat verifies that the artifact was signed with its public key
-* When you install an artifact on a Supervisor, Chef Habitat uses the public origin key to authorize the artifact's installation; Chef Habitat only installs artifacts for which it has the public origin key
+* When you install an artifact on a Chef Habitat Supervisor, Chef Habitat uses the public origin key to authorize the artifact's installation; Chef Habitat only installs artifacts for which it has the public origin key
 * When you download an artifact to your local environment, Chef Habitat uses the public origin key to verify the artifact's integrity before it starts the installation
 
 Chef Habitat Builder origin key names follow the format:
@@ -400,13 +400,13 @@ When you create an origin, Chef Habitat Builder automatically generates an origi
 
 ![Viewing your origin keys](/images/screenshots/origin-keys.png)
 
-#### Download Origin Keys from Builder
+#### Download Origin Keys
 
 Download your private or public origin key by selecting the **download** icon from the right end of the key details, under the _Actions_ heading.
 
 ![Detail of the download icon](/images/screenshots/origin-key-download.png)
 
-#### Upload Origin Keys to Builder
+#### Upload Origin Keys
 
 You can upload origin keys that you generate on the command line to Chef Habitat Builder by selecting either the **Upload a private key** or **Upload a public key** icon, and copy your key into the form that appears.
 
@@ -467,7 +467,7 @@ hab origin key generate <ORIGIN>
 
 #### Download Origin Keys with the CLI
 
-To get your public origin key from Builder from the command line, use the command:
+To get your public origin key using the command line, use:
 
 ```hab
 hab origin key download <ORIGIN>
