@@ -249,12 +249,6 @@ A “Bastion Ring” is a pattern for preventing rumor loss and a split brain in
 
 Please note, if you are using a container scheduler such as Kubernetes, Swarm, or Mesos DC/OS, or a PaaS such as CloudFoundry, you should not follow the bastion ring pattern, as the scheduler handles that level of persistence and orchestration on your behalf.
 
-More resources on schedulers:
-
-- <https://www.habitat.sh/get-started/kubernetes/>
-- <https://www.habitat.sh/docs/best-practices/#container-orchestration>
-- <https://www.habitat.sh/get-started/cloudfoundry/>
-
 ### Initial Peer(s)
 
 The initial peer(s) is a requirement of any distributed system. In Chef Habitat, a new Supervisor that is starting up looks for an initial peer(s) to join to begin sharing information about the health and status of peers and other services, to increase the health of the overall Ring.
@@ -757,7 +751,7 @@ This generates a new secret, printing it to standard output. Using the provision
 
 If you have a pre-existing fleet of Supervisors which have already been started up with their own individually-generated secrets, you will likely want to overwrite their existing `CTL_SECRET` files with one that has a key of your own creation.
 
-If you are using a raw container-based deployment (i.e., not a managed platform like Kubernetes), you will want to mount an appropriate `CTL_SECRET` file into the container.
+If you are using a raw container-based deployment, you will want to mount an appropriate `CTL_SECRET` file into the container.
 
 #### Configure the Hab Cli with Your Secret
 

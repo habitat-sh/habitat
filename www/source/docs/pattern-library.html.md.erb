@@ -16,6 +16,8 @@ For help with Chef Habitat and these patterns, ask:
 ---
 ## <a name="kub-bastion" id="kub-bastion" data-magellan-target="kub-bastion" type="anchor">Kubernetes Bastion Ring Pattern</a>
 
+**Note:** If you are using a container scheduler such as Kubernetes, Swarm, or Mesos DC/OS, or a PaaS such as CloudFoundry, you should not follow the bastion ring pattern, because the scheduler handles persistence and orchestration on your behalf.
+
 A _bastion ring_ is a robust type of Supervisor network in which a small number of Supervisors are set up as permanent peers and that are dedicated to anchoring Supervisor network communication. These Supervisors are designated solely for communication between Supervisor and _do not run services_. These solely to anchor the entire Supervisor network. See [Robust Supervisor Networks](/docs/best-practices/#robust-supervisor-networks/) for more information. The following examples demonstrate running a bastion ring in Kubernetes.
 
 ### <a name="hab-plan-sh" id="hab-plan-sh" data-magellan-target="hab-plan-sh" type="anchor">Kubernetes Bastion Ring Plan</a>
