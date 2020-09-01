@@ -16,7 +16,7 @@ export LIBZMQ_PREFIX
 LIBZMQ_PREFIX=$(hab pkg path core/zeromq)
 # now include zeromq so it exists in the runtime library path when cargo test is run
 export LD_LIBRARY_PATH
-LD_LIBRARY_PATH="$(hab pkg path core/zeromq)/lib"
+LD_LIBRARY_PATH="$(hab pkg path core/zeromq)/lib:${LD_LIBRARY_PATH:-}"
 
 # Install clippy
 echo "--- :rust: Installing clippy"
