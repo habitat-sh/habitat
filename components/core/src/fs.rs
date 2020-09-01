@@ -123,7 +123,7 @@ impl fmt::Debug for Permissions {
         match self {
             Self::Standard => write!(f, "Standard"),
             #[cfg(windows)]
-            Explicit(permissions) => write!(f, "Explicit({:?})", permissions),
+            Self::Explicit(permissions) => write!(f, "Explicit({:?})", permissions),
             #[cfg(not(windows))]
             Self::Explicit(permissions) => write!(f, "Explicit({:#o})", permissions),
         }
