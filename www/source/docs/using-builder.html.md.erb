@@ -370,7 +370,7 @@ All Chef Habitat Builder users with access to the origin can view the origin pub
 | View keys | Y | Y | Y | Y | Y |
 | Add/Update/Delete keys | N | N | N | Y | Y |
 
-Each time you interact with an artifact, Chef Habitat uses origin keys:
+Chef Habitat uses origin keys:
 
 * When you build an artifact in your local environment, Chef Habitat signs the artifact with a public key
 * When you upload an artifact to Chef Habitat Builder or Builder on-prem, Chef Habitat verifies that the artifact was signed with its public key
@@ -674,10 +674,6 @@ If you created a new Habitat origin from your host machine or from the Studio, B
 You can upload keys for the origin through the web interface for Builder, or by using the `hab origin key upload` command. You must have the access token for authentication, as described earlier, before you can upload keys.
 
 ### Upload Packages to Builder
-
-The purpose of Chef Habitat Builder is
-
-
 
 As long as you are already a member of the Habitat origin, once Builder possesses at least the public origin key, then you may upload one or more artifacts to that origin with the `hab pkg upload` command. After Habitat validates the cryptographic integrity of the artifact, it is then uploaded and stored on Builder. Uploading artifacts is a privileged operation for which you must have the access token.
 
