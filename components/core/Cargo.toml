@@ -19,7 +19,7 @@ errno = "*"
 glob = "*"
 hex = "*"
 lazy_static = "*"
-libc = "*"
+libc = "0.2.76"
 libsodium-sys = "*"
 log = "*"
 os_info = "*"
@@ -34,13 +34,13 @@ sodiumoxide = "*"
 tabwriter = "*"
 tar = "*"
 tempfile = "*"
-toml = { version = "*", features = [ "preserve_order" ] }
+toml = { version = "0.5.6", features = [ "preserve_order" ] }
 typemap = "*"
 url = "*"
 xz2 = "*"
 
 [target.'cfg(not(windows))'.dependencies]
-nix = "*"
+nix = "0.18.0"
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
 
@@ -48,7 +48,7 @@ caps = "*"
 ctrlc = "*"
 habitat_win_users = { path = "../win-users" }
 widestring = "*"
-winapi = { version = "*", features = ["dpapi", "ioapiset", "namedpipeapi", "userenv", "winbase", "wincrypt", "winerror"] }
+winapi = { version = "0.3.9", features = ["dpapi", "ioapiset", "namedpipeapi", "userenv", "winbase", "wincrypt", "winerror"] }
 windows-acl = "*"
 
 [dev-dependencies]
