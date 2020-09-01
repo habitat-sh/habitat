@@ -199,7 +199,7 @@ impl KeyCache {
         self.fetch_latest_revision::<BuilderSecretEncryptionKey>(BUILDER_KEY_NAME)
     }
 
-    /// Attemt to retrieve the specified signing key from the cache,
+    /// Attempt to retrieve the specified signing key from the cache,
     /// if it exists and is valid.
     pub fn public_signing_key(&self,
                               named_revision: &NamedRevision)
