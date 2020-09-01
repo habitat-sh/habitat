@@ -1448,21 +1448,12 @@ macro_rules! retry_builder_api {
             retry::retry_future!($iterator, async {
                 match $api_future.await.into() {
                     Ok(_) => retry::OperationResult::Ok(()),
-                    Err(e @ api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
+                    Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
                         info!("Unsupported package platform or architecture. Skipping!");
                         retry::OperationResult::Ok(())
                     }
-                    Err(e @ api_client::Error::APIError(StatusCode::NOT_FOUND, _)) => {
-                        retry::OperationResult::Err(e)
-                    }
-                    Err(e @ api_client::Error::APIError(StatusCode::UNAUTHORIZED, _)) => {
-                        retry::OperationResult::Err(e)
-                    }
-                    Err(e @ api_client::Error::APIError(StatusCode::FORBIDDEN, _)) => {
-                        retry::OperationResult::Err(e)
-                    }
-                    Err(e @ api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
-                        retry::OperationResult::Err(e)
+                    Err(api_client::Error::APIError(code, error)) if code.is_client_error() => {
+                        retry::OperationResult::Err(api_client::Error::APIError(code, error))
                     }
                     Err(e) => retry::OperationResult::Retry(e),
                 }
