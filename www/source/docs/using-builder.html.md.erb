@@ -195,7 +195,7 @@ The results of this command differ slightly from creating an origin on the Chef 
 For more information, see the [`hab origin create`](/docs/habitat-cli/#hab-origin-create) CLI documentation.
 
 ---
-## <a name="origin-members" id="origin-members" data-magellan-target="origin-members">Origin Membership</a>
+## <a name="origin-membership" id="origin-membership" data-magellan-target="origin-membership">Origin Membership & RBAC</a>
 
 Prerequisites:
 
@@ -266,7 +266,7 @@ In tandem with the changes to the Builder membership roles, we've also updated t
 
 ![Manage origin membership](../images/screenshots/origin_members.png)
 
-### Manage Origin Membership with `hab origin invitations`
+#### Manage origin membership with `hab origin invitations`
 
 Manage Chef Habitat Builder origin membership with the Chef Habitat CLI, using the [hab origin invitations](/docs/habitat-cli/#hab-origin-invitations) command.
 
@@ -290,20 +290,19 @@ Ignore origin invitations:
 hab origin invitations ignore <ORIGIN> <INVITATION_ID>
 ```
 
- Send origin membership invitations:
+Send origin membership invitations:
 
 ```bash
 hab origin invitations send <ORIGIN> <INVITEE_ACCOUNT>
 ```
 
-Origin owners can see all pending origin membership invitations:
+Origin administrators and owners can see all pending origin membership invitations:
 
 ```bash
 hab origin invitations pending <ORIGIN>
 ```
 
-Origin owners can rescind an origin membership invitation:
-
+Origin administrators and owners can rescind an origin membership invitation:
 
 ```bash
 hab origin invitations rescind <ORIGIN> <INVITATION_ID>
@@ -315,7 +314,7 @@ Origin owners can transfer origin ownership to another member:
 hab origin transfer [OPTIONS] <ORIGIN> <NEW_OWNER_ACCOUNT>
 ```
 
-### Manage Member Roles with `hab rbac`
+#### Manage membership roles with `hab rbac`
 
 You can use role based access control (RBAC) from the command line.
 An origin `MEMBER_ACCOUNT` is the name used to sign in to Chef Habitat builder. You can find the list of user names on an origin's _Members Tab_. (Builder > Origin > Members)
@@ -364,9 +363,8 @@ When you create an origin, Chef Habitat Builder automatically generates _origin 
 Origin key cryptography is asymmetric: it has a public origin key that you can distribute freely, and a private origin key that you should distribute only to users belonging to the origin.
 All Chef Habitat Builder users with access to the origin can view the origin public key revisions in the origin key tab (Builder > Origin > Keys) and download the origin public key, but only users with the origin 'administrator' or 'owner' roles can view or download the origin private key, or change the origin key pair.
 
-| Action | Read-Only | Member | Maintainer | Administrator | Owner |
+| Keys Actions | Read-Only | Member | Maintainer | Administrator | Owner |
 |---------|-------|-------|-------|-------|-------|
-| **Origin Keys** |
 | View keys | Y | Y | Y | Y | Y |
 | Add/Update/Delete keys | N | N | N | Y | Y |
 
@@ -540,12 +538,11 @@ The _Origin Settings_ tab contains:
 
 Everyone with origin membership can see the _Settings_ tab, but only origin administrators and owners can add, update, or delete settings content.
 
-| Action | Read-Only | Member | Maintainer | Administrator | Owner |
+| Settings Actions | Read-Only | Member | Maintainer | Administrator | Owner |
 |---------|-------|-------|-------|-------|-------|
-| **Origin Settings** |
 | View settings | Y | Y | Y | Y | Y |
 | Add/Update/Delete settings | N | N | N | Y | Y |
-| **Origin Secrets** |
+| **Origin Secrets Actions** |
 | View secrets | N | N | Y | Y | Y |
 | Add/Update/Delete secrets | N | N | N | Y | Y |
 
