@@ -58,8 +58,14 @@ const X_FILENAME: &str = "x-filename";
 
 const DEFAULT_API_PATH: &str = "/v1";
 
-pub const API_RETRIES: usize = 5;
-pub const API_RETRY_WAIT: Duration = Duration::from_secs(10);
+/// This constant is used by the retry_builder_api! macro and governs the number of maximum
+/// retries of an API function after a failure of the initial attempt.
+pub const API_RETRY_COUNT: usize = 5;
+/// The retry_builder_api! macro supports different types of retry strategies. This constant
+/// establishes the initial delay used in the respective retry algorithm. This delay and the
+/// retry algorithm chosen are combined to create an iterator of Duration representing the timing
+/// of the retry attempts.
+pub const API_RETRY_DELAY: Duration = Duration::from_secs(10);
 
 // The characters in this set are copied from
 // https://docs.rs/percent-encoding/1.0.1/percent_encoding/struct.PATH_SEGMENT_ENCODE_SET.html
@@ -1430,24 +1436,20 @@ impl BuilderAPIClient {
     }
 }
 
-/// Retry API operations within reasonable bounds.
-/// Provide an Option with a custom back-off algorithm from the `retry` crate
-/// or a default Fibonacci algorithm will be used. Unrecoverable HTTP errors
-/// will not be retried.
+/// Retry API operations unless error is a client-side HTTP error (400-499).
 #[macro_export]
 macro_rules! retry_builder_api {
-    ($iter_opt:expr, $api_future:expr) => {
+    ($api_future:expr) => {
+        retry_builder_api!($api_future,
+                           with_custom_iterator: retry::delay::Fibonacci::from(API_RETRY_DELAY).take(API_RETRY_COUNT))
+    };
+    ($api_future:expr,with_custom_iterator: $iterator:expr) => {
         async {
-            let mut iterator = if let Some(i) = $iter_opt {
-                i
-            } else {
-                retry::delay::Fibonacci::from(API_RETRY_WAIT).take(API_RETRIES)
-            };
-            retry::retry_future!(iterator, async {
+            retry::retry_future!($iterator, async {
                 match $api_future.await.into() {
                     Ok(_) => retry::OperationResult::Ok(()),
                     Err(e @ api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
-                        println!("Unsupported package platform or architecture. Skipping!");
+                        info!("Unsupported package platform or architecture. Skipping!");
                         retry::OperationResult::Ok(())
                     }
                     Err(e @ api_client::Error::APIError(StatusCode::NOT_FOUND, _)) => {

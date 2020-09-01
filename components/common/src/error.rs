@@ -1,8 +1,7 @@
 use crate::{api_client,
             hcore::{self,
                     package::{FullyQualifiedPackageIdent,
-                              PackageIdent,
-                              PackageTarget}}};
+                              PackageIdent}}};
 #[cfg(windows)]
 use habitat_core::os::process::windows_child::ExitStatus;
 #[cfg(not(windows))]
@@ -57,72 +56,12 @@ impl fmt::Display for CommandExecutionError {
 }
 
 #[derive(Debug)]
-pub enum APIFailure {
-    DownloadFailed(String),
-    UploadFailed(String),
-    Package(FullyQualifiedPackageIdent, PackageTarget),
-    OriginKeyRev(String, String),
-    LatestOriginKey(String),
-}
-
-impl APIFailure {
-    #[allow(clippy::needless_pass_by_value)]
-    pub fn package_download_failed(retries: usize,
-                                   ident: &FullyQualifiedPackageIdent,
-                                   target: PackageTarget,
-                                   e: Error)
-                                   -> Self {
-        Self::DownloadFailed(format!("When applicable, we try once, then re-attempt {} times to \
-                                      download a package. Unfortunately, we failed to download \
-                                      {} for {}. Last error: {}",
-                                     retries, ident, target, e))
-    }
-
-    #[allow(clippy::needless_pass_by_value)]
-    pub fn latest_key_download_failed(retries: usize, name: &str, e: Error) -> Self {
-        Self::DownloadFailed(format!("When applicable, we try once, then re-attempt {} times to \
-                                      download an origin key. Unfortunately, we failed to \
-                                      download the latest {} key. Last error: {}",
-                                     retries, name, e))
-    }
-
-    #[allow(clippy::needless_pass_by_value)]
-    pub fn key_download_failed(retries: usize, name: &str, rev: &str, e: Error) -> Self {
-        Self::UploadFailed(format!("When applicable, we try once, then re-attempt {} times to \
-                                    download an origin key. Unfortunately, we failed to upload \
-                                    the {}/{} key. Last error: {}",
-                                   retries, name, rev, e))
-    }
-
-    #[allow(clippy::needless_pass_by_value)]
-    pub fn key_upload_failed(retries: usize, name: &str, rev: &str, e: Error) -> Self {
-        Self::UploadFailed(format!("When applicable, we try once, then re-attempt {} times to \
-                                    upload an origin key. Unfortunately, we failed to upload the \
-                                    {}/{} key. Last error: {}",
-                                   retries, name, rev, e))
-    }
-}
-
-impl fmt::Display for APIFailure {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::DownloadFailed(e) => write!(f, "{}", e),
-            Self::UploadFailed(e) => write!(f, "{}", e),
-            Self::Package(ident, target) => write!(f, "package {} for {}", ident, target),
-            Self::OriginKeyRev(name, rev) => write!(f, "{}/{}", name, rev),
-            Self::LatestOriginKey(name) => write!(f, "{}", name),
-        }
-    }
-}
-
-#[derive(Debug)]
 pub enum Error {
     APIClient(api_client::Error),
     ArtifactIdentMismatch((String, String, String)),
     /// Occurs when there is no valid toml of json in the environment variable
     BadEnvConfig(String),
     BadGlyphStyle(String),
-    BuilderAPITransferError(APIFailure),
     CantUploadGossipToml,
     ChannelNotFound,
     CryptoKeyError(String),
@@ -212,7 +151,6 @@ impl fmt::Display for Error {
                 format!("Unable to find valid TOML or JSON in {} ENVVAR", varname)
             }
             Error::BadGlyphStyle(ref style) => format!("Unknown symbol style '{}'", style),
-            Error::BuilderAPITransferError(ref msg) => msg.to_string(),
             Error::CantUploadGossipToml => {
                 "Can't upload gossip.toml, it's a reserved file name".to_string()
             }

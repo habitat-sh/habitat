@@ -35,20 +35,20 @@ use std::{collections::{HashMap,
 
 use crate::{api_client::{self,
                          retry_builder_api,
+                         APIFailure,
                          BuilderAPIClient,
                          Client,
-                         Error::APIError,
+                         Error::{APIClientError,
+                                 APIError},
                          Package,
-                         API_RETRIES,
-                         API_RETRY_WAIT},
-            common::error::{APIFailure,
-                            Error as CommonError},
+                         API_RETRY_COUNT,
+                         API_RETRY_DELAY},
+            common::error::Error as CommonError,
             hcore::{crypto::{artifact,
                              keys::{KeyCache,
                                     NamedRevision}},
                     fs::cache_root_path,
-                    package::{FullyQualifiedPackageIdent,
-                              Identifiable,
+                    package::{Identifiable,
                               PackageArchive,
                               PackageIdent,
                               PackageTarget},
@@ -60,7 +60,6 @@ use habitat_common::ui::{Glyph,
                          UIWriter};
 
 use reqwest::StatusCode;
-use std::convert::TryFrom;
 
 use crate::error::{Error,
                    Result};
@@ -359,18 +358,20 @@ impl<'a> DownloadTask<'a> {
         where T: UIWriter
     {
         ui.status(Status::Downloading, format!("{}", ident))?;
-        if let Err(e) = retry_builder_api!(None, async {
-                            self.api_client
-                                .fetch_package((ident, target),
-                                               self.token,
-                                               &self.path_for_artifact(),
-                                               ui.progress())
-                                .await
-                        }).await
-        {
-            let pkg_ident = FullyQualifiedPackageIdent::try_from(ident)?;
-            return Err(CommonError::BuilderAPITransferError(APIFailure::package_download_failed(API_RETRIES, &pkg_ident, target, e.into())).into());
-        }
+        retry_builder_api!(async {
+            self.api_client
+                .fetch_package((ident, target),
+                               self.token,
+                               &self.path_for_artifact(),
+                               ui.progress())
+                .await
+        }).await
+          .map_err(|e| {
+              Error::APIClient(APIClientError(APIFailure::DownloadPackageFailed(API_RETRY_COUNT,
+                                                                                ident.clone(),
+                                                                                target,
+                                                                                Box::new(e))))
+          })?;
         Ok(())
     }
 

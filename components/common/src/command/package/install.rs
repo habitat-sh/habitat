@@ -22,13 +22,14 @@
 
 use crate::{api_client::{self,
                          retry_builder_api,
+                         APIFailure,
                          BuilderAPIClient,
                          Client,
-                         Error::APIError,
-                         API_RETRIES,
-                         API_RETRY_WAIT},
-            error::{APIFailure,
-                    Error,
+                         Error::{APIClientError,
+                                 APIError},
+                         API_RETRY_COUNT,
+                         API_RETRY_DELAY},
+            error::{Error,
                     Result},
             templating::hooks::{InstallHook,
                                 PackageMaintenanceHookExt},
@@ -842,18 +843,21 @@ impl<'a> InstallTask<'a> {
                                -> Result<()>
         where T: UIWriter
     {
-        if let Err(e) = retry_builder_api!(None, async {
-                            ui.status(Status::Downloading, format!("{} for {}", ident, target))?;
-                            self.api_client
-                                .fetch_package((ident.as_ref(), target),
-                                               token,
-                                               self.artifact_cache_path,
-                                               ui.progress())
-                                .await
-                        }).await
-        {
-            return Err(Error::BuilderAPITransferError(APIFailure::package_download_failed(API_RETRIES, ident, target, e.into())));
-        }
+        retry_builder_api!(async {
+            ui.status(Status::Downloading, format!("{} for {}", ident, target))?;
+            self.api_client
+                .fetch_package((ident.as_ref(), target),
+                               token,
+                               self.artifact_cache_path,
+                               ui.progress())
+                .await
+        }).await
+          .map_err(|e| {
+              Error::APIClient(APIClientError(APIFailure::DownloadPackageFailed(API_RETRY_COUNT,
+                                                                                PackageIdent::from(ident.clone()),
+                                                                                target,
+                                                                                Box::new(e))))
+          })?;
 
         Ok(())
     }
