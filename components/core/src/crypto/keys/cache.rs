@@ -288,8 +288,7 @@ impl KeyCache {
         if path_in_cache.exists() {
             <K as TryFrom<PathBuf>>::try_from(path_in_cache)
         } else {
-            Err(Error::CryptoError(format!("Key not found in cache: {}",
-                                           path_in_cache.display()).to_string()))
+            Err(Error::CryptoError(format!("Key not found in cache: {}", path_in_cache.display())))
         }
     }
 

@@ -55,7 +55,7 @@ impl PublicOriginSigningKey {
     pub fn verify(&self, signed_hash: &[u8], content: &mut dyn Read) -> Result<Blake2bHash> {
         let expected_blake2b_hash = primitives::verify(signed_hash, &self.key)
             .map_err(|_| Error::CryptoError("Verification failed".to_string()))
-            .map(|bytes| String::from_utf8(bytes))? // get the hex-encoded hash
+            .map(String::from_utf8)? // get the hex-encoded hash
             .map_err(|_| Error::CryptoError("Error parsing artifact hash".to_string()))?
             .parse()?; // convert to Blake2bHash
 
