@@ -210,17 +210,17 @@ Prerequisites:
 
 New in: 1.6.140
 
-RBAC provides your organization with better operational safety by letting you assign specific levels of access to each origin member.  With RBAC in place, existing standard origin members from earlier versions are assigned the `Maintainer` role. This role has similar permissions of the previous generic member role, and the areas of difference are detailed below. The origin owner role remains unchanged.
+RBAC provides your organization with better operational safety by letting you assign specific levels of access to each user that belongs to an origin. With RBAC in place, existing standard origin 'members' from earlier versions are assigned the 'Maintainer' role. This role has similar permissions of the previous generic 'member' role, and the areas of difference are detailed below. The origin owner role remains unchanged.
 
-When you join or create an origin, Chef Habitat Builder identifies your personal access token and assigns it a membership role for that origin. Your membership role defines the level of access that you have to the resources in an origin. By default, you're assigned the "read-only" role when you join an origin, and you're assigned the "owner" role when you create an origin.
+When you join or create an origin, Chef Habitat Builder identifies your personal access token and assigns it a membership role for that origin. Your membership role defines the level of access that you have to the resources in an origin. By default, you're assigned the "read-only" role when you join an origin, and you're assigned the 'owner' role when you create an origin.
 
 RBAC Origin Member Roles:
 
-* Read-Only: This user can read an origin's packages, channels, members, jobs, keys, integrations, invitations, roles, settings but cannot add to, change, or delete anything else in the origin, including uploading packages and inviting members. Read-Only is the default membership role for all new origin members.
-* Member: In addition to Read-Only access, an origin Member can upload and build packages in the 'unstable' channel, but they cannot promote packages to other channels.
-* Maintainer: Existing origin members are now 'Maintainers'. This role has full read and write access to packages, channels, members, jobs, integrations, invitations, settings. However, the Maintainer role is more limited than the past role, in that Maintainers only have read access to packages, channels, members, jobs, keys, integrations, and settings. Origin Maintainers can read origin member roles and see and send invitations to new members, but they cannot otherwise change origin membership--their own or anybody else's. Finally, Maintainers can neither read nor write origin secrets.
-* Administrator: In addition to Maintainer access, the Administrator role adds the missing privileges for writing origin keys and member roles, as well as for reading and writing origin secrets. Administrators have full read and write access to packages, channels, members, jobs, keys, integrations, invitations, roles, secrets, settings.
-* Owner: As in the past, the origin Owner has full read and write access to the origin. Only Owners can delete the origin or transfer ownership to another member.
+* Read-Only: This user can read an origin's packages, channels, origin membership, jobs, keys, integrations, invitations, roles, settings but cannot add to, change, or delete anything else in the origin, including uploading packages and inviting users to the origin. Read-Only is the default membership role for users joining the origin.
+* Member: In addition to read-only access, an origin 'Member' can upload and build packages in the 'unstable' channel, but they cannot promote packages to other channels.
+* Maintainer: Existing origin 'members' are now 'Maintainers'. This role has full read and write access to packages, channels, origin membership, jobs, integrations, invitations, settings. However, the 'Maintainer' role is more limited than the past role, in that 'Maintainers' only have read access to packages, channels, origin membership, jobs, keys, integrations, and settings. Origin 'Maintainers' can read origin membership roles and see and send invitations, but they cannot otherwise change origin membership--their own or anybody else's. Finally, 'Maintainers' can neither read nor write origin secrets.
+* Administrator: In addition to 'Maintainer' access, the 'Administrator' role adds the missing privileges for writing origin keys and membership roles, as well as for reading and writing origin secrets. Administrators have full read and write access to packages, channels, origin membership, jobs, keys, integrations, invitations, roles, secrets, settings.
+* Owner: As in the past, the origin 'Owner' has full read and write access to the origin. Only Owners can delete the origin or transfer ownership to another member.
 
 ### Comparison of RBAC Member Roles and Actions
 
@@ -240,7 +240,7 @@ RBAC Origin Member Roles:
 | View keys | Y | Y | Y | Y | Y |
 | Add/Update/Delete keys | N | N | N | Y | Y |
 | **Origin Membership** |
-| View members | Y | Y | Y | Y | Y |
+| View origin membership | Y | Y | Y | Y | Y |
 | View invitations | Y | Y | Y | Y | Y |
 | Send Invitations | N | N | Y | Y | Y |
 | Revoke Invitations | N | N | Y | Y | Y |
@@ -290,7 +290,7 @@ Ignore origin invitations:
 hab origin invitations ignore <ORIGIN> <INVITATION_ID>
 ```
 
-All origin members can send origin membership invitations:
+ Send origin membership invitations:
 
 ```bash
 hab origin invitations send <ORIGIN> <INVITEE_ACCOUNT>
@@ -361,8 +361,8 @@ Prerequisites:
 * [Create an origin with `hab origin create` or join an origin by invitation](/#create-origin)
 
 When you create an origin, Chef Habitat Builder automatically generates _origin keys_.
-Origin key cryptography is asymmetric: it has a public origin key that you can distribute freely, and a private origin key that you should distribute only to members of the origin.
-Each origin has a public key and a private key. Everyone with access to the origin can view the origin public key revisions in the origin key tab (Builder > Origin > Keys) and download the origin public key, but only origin members with the "Administrator" or "Owner" role can view or download the origin private key, or change the origin key pair.
+Origin key cryptography is asymmetric: it has a public origin key that you can distribute freely, and a private origin key that you should distribute only to users belonging to the origin.
+All Chef Habitat Builder users with access to the origin can view the origin public key revisions in the origin key tab (Builder > Origin > Keys) and download the origin public key, but only users with the origin 'administrator' or 'owner' roles can view or download the origin private key, or change the origin key pair.
 
 | Action | Read-Only | Member | Maintainer | Administrator | Owner |
 |---------|-------|-------|-------|-------|-------|
