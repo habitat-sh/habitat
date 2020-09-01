@@ -374,7 +374,7 @@ $pkg_exports=@{
 }
 ```
 
-This will export the runtime values of its `network.port` and `network.ssl.port` configuration entries publicly as `port` and `ssl-port`, respectively. All configuration entries in `pkg_exports` must have a default value in `default.toml`, but the actual exported values will change at runtime to reflect the producer's current configuration. When values change (such as when an operator uses `hab config apply`), the consumer service will be notified that its producer service configuration has changed. We'll see how to use this on the consumer in the sections below.
+This will export the runtime values of its `network.port` and `network.ssl.port` configuration entries publicly as `port` and `ssl-port`, respectively. All configuration entries in `pkg_exports` must have a default value in `default.toml`, but the actual exported values will change at runtime to reflect the producer's current configuration. When values change (for examply, by `hab config apply`), the consumer service will be notified that its producer service configuration has changed. We'll see how to use this on the consumer in the sections below.
 
 Producer services export only the *subset* of their configuration that is defined through `pkg_exports` and not the entire thing. Consumer services see only what the producer service exports, and nothing more. This is important, because it means that configuration that must remain secret--such as passwords--are not shared _unless_ they are explicitly defined in `pkg_exports`.
 
@@ -755,7 +755,7 @@ You can create a Docker container image for any package by performing the follow
     ```
 ### Exporting to Kubernetes
 
-The Kubernetes exporter is an additional command line subcommand to the standard Chef Habitat CLI interface. It leverages the existing Docker image export functionality and, additionally, generates a Kubernetes manifest that can be deployed to a Kubernetes cluster running the Chef Habitat operator.
+The Kubernetes exporter is an Chef Habitat CLI command subcommand that leverages the existing Docker image export functionality to  generates a Kubernetes manifest, which you deploy to a Kubernetes cluster.
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
 
@@ -844,8 +844,6 @@ The Kubernetes exporter is an additional command line subcommand to the standard
 ### Export to a Helm Chart
 
 The Helm exporter is an additional command line subcommand to the standard Chef Habitat CLI interface. It is very similar to the Kubernetes exporter but it takes you even further. It also leverages the existing Docker image export functionality but unlike the Kubernetes exporter, instead of generating a Kubernetes manifest, it creates a distributable Helm chart directory. This chart directory can not only be deployed in your local Kubernetes cluster, but also easily packaged and distributed.
-
-Additionally, the Kubernetes Chef Habitat operator is automatically added to the Helm chart as a dependency and hence installed automatically as part of the Chef Habitat Helm chart.
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
 

@@ -473,14 +473,6 @@ Assuming you're using the Docker image pulled from `myorigin/mytutorial`, port 8
 $ kubectl get pods -l run=mytutorial
 ```
 
-### Environment Variables and Networking
-
-Kubernetes supports passing [environment variables](http://kubernetes.io/docs/user-guide/environment-guide/) into containers, which can be done [via the Chef Habitat Operator](https://github.com/habitat-sh/habitat-operator/tree/master/examples/env-vars).
-
-### Multi-container Pods
-
-Multi-container pod support through Chef Habitat is still under active development as part of the Chef Habitat Operator.
-
 ### Related Reading
 
 * [Export a Chef Habitat package](/docs/developing-packages/#pkg-exports)
@@ -525,11 +517,9 @@ echo "  Password : $BLDR_PRINCIPAL_PASSWORD"
 Note: The unique Service Principal Name (the UUID) should be provided in the Chef Habitat Builder
 configuration.
 
-### Connecting ACR and AKS for Chef Habitat Operator
+### Connecting ACR and AKS
 
-Since ACR is a private Docker registry, AKS must be authorized to pull images from it. The best way is to
-create a role assignment on the Service Principal that is automatically created for AKS, granting it
-`Reader` access on your ACR instance.
+Since ACR is a private Docker registry, AKS must be authorized to pull images from it. The best way is to create a role assignment on the Service Principal that is automatically created for AKS, granting it `Reader` access on your ACR instance.
 
 To do this you can use the following script, changing the environment variable values to match your configuration.
 

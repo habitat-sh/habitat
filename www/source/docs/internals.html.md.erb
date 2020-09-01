@@ -54,7 +54,7 @@ Butterfly servers keep track of what members are present in a ring, and are cons
 * Alive: this member is responding to health checks.
 * Suspect: this member has stopped responding to our health check, and will be marked confirmed if we do not receive proof it is still alive soon.
 * Confirmed: this member has been un-responsive long enough that we can cease attempting to check its health.
-* Departed: this member has been intentionally kicked out of the ring for behavior unbecoming of a Supervisor, and is prevented from rejoining. This is done via a human operator using the `hab` CLI commands.
+* Departed: this member has been intentionally kicked out of the ring for behavior unbecoming of a Supervisor, and is prevented from rejoining. This is accomplished with `hab` CLI commands.
 
 The essential flow is:
 
