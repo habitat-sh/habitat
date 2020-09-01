@@ -19,6 +19,7 @@ use crate::{crypto::{hash,
             error::{Error,
                     Result},
             fs::AtomicWriter};
+use serde::Deserialize;
 use std::{convert::TryFrom,
           io::Write,
           path::{Path,
@@ -27,7 +28,7 @@ use std::{convert::TryFrom,
 /// Represents the location of all Habitat keys (user, service,
 /// origin, signing, and ring) locally on disk, as well as the APIs
 /// for retrieving and storing keys.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct KeyCache(PathBuf);
 
 impl AsRef<Path> for KeyCache {
