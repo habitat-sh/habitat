@@ -1334,7 +1334,8 @@ async fn sub_config_apply(config_apply: SvcConfigApply) -> Result<()> {
 
 async fn sub_config_show(pkg_ident: PackageIdent, remote_sup: &ListenCtlAddr) -> Result<()> {
     let msg = sup_proto::ctl::SvcGetDefaultCfg { ident: Some(pkg_ident.into()), };
-    gateway_util::send_expect_response::<_, sup_proto::types::ServiceCfg>(remote_sup, msg).await?;
+    let m = gateway_util::send_expect_response::<_, ServiceCfg>(remote_sup, msg).await?;
+    println!("{}", m.default.unwrap_or_default());
     Ok(())
 }
 
