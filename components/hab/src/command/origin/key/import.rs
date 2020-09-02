@@ -21,9 +21,8 @@ pub fn start(ui: &mut UI, content: &str, key_cache: &KeyCache) -> Result<()> {
         Ok(())
     } else {
         // This is a LOT gross
-        Err(CoreError::CryptoError("Could not parse content as an \
-                                    public or secret origin signing \
-                                    key!"
-                                         .to_string()))?
+        Err(CoreError::CryptoError("Could not parse content as an public or secret origin \
+                                    signing key!"
+                                                 .to_string()).into())
     }
 }

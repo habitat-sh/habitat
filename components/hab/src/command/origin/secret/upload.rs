@@ -29,12 +29,12 @@ pub async fn start(ui: &mut UI,
     };
 
     ui.status(Status::Encrypting, format!("value for key {}.", key))?;
-    let encrypted_box = encryption_key.encrypt(secret.as_bytes());
+    let anonymous_box = encryption_key.encrypt(secret.as_bytes());
     ui.status(Status::Encrypted, format!("{}=[REDACTED].", key))?;
 
     ui.status(Status::Uploading, format!("secret for key {}.", key))?;
 
-    api_client.create_origin_secret(origin, token, key, &encrypted_box.into())
+    api_client.create_origin_secret(origin, token, key, &anonymous_box)
               .await
               .map_err(Error::APIClient)?;
 

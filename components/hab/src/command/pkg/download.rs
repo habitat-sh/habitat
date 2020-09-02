@@ -414,7 +414,7 @@ impl<'a> DownloadTask<'a> {
         let cache = KeyCache::new(&self.path_for_keys());
         cache.setup()?;
 
-        if !cache.public_signing_key(&signer).is_ok() {
+        if cache.public_signing_key(&signer).is_err() {
             ui.status(Status::Downloading,
                       format!("public key for signer {}", signer))?;
             self.fetch_origin_key(ui, signer.clone(), self.token)
