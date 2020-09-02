@@ -65,6 +65,8 @@ message SvcSetCfg {
   optional uint64 version = 3;
   // If the payload in `cfg` is encrypted with the remote Supervisor's Ring Key.
   optional bool is_encrypted = 4 [default = false];
+  // Structured and self-describing string format contained in the configuration string.
+  optional sup.types.ServiceCfg.Format format = 5 [default = Toml];
 }
 
 // Request to load a new service.

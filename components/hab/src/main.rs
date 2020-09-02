@@ -1292,6 +1292,7 @@ async fn sub_config_apply(config_apply: SvcConfigApply) -> Result<()> {
     let secret_key = config::ctl_secret_key(&cfg)?;
     let service_group = config_apply.service_group;
     let config_contents = Vec::try_from(config_apply.file)?;
+    let cache = config_apply.cache_key_path.cache_key_path;
     let mut ui = ui::ui();
 
     if config_contents.len() > sup_proto::butterfly::MAX_SVC_CFG_SIZE {
@@ -1300,12 +1301,6 @@ async fn sub_config_apply(config_apply: SvcConfigApply) -> Result<()> {
         process::exit(1);
     }
 
-    let validate_cfg =
-        sup_proto::ctl::SvcValidateCfg { service_group: Some(service_group.clone().into()),
-                                         format:        Default::default(),
-                                         cfg:           Some(config_contents.clone()), };
-
-    let cache = config_apply.cache_key_path.cache_key_path;
     let (maybe_encrypted_config_contents, is_encrypted) =
         match (service_group.org(), config_apply.user) {
             (Some(_org), Some(username)) => {
@@ -1323,35 +1318,16 @@ async fn sub_config_apply(config_apply: SvcConfigApply) -> Result<()> {
         };
 
     let set_cfg = sup_proto::ctl::SvcSetCfg { service_group: Some(service_group.clone().into()),
-                                              cfg:           Some(maybe_encrypted_config_contents),
                                               version:       Some(config_apply.version_number),
+                                              format:        Default::default(),
+                                              cfg:           Some(maybe_encrypted_config_contents),
                                               is_encrypted:  Some(is_encrypted), };
 
     ui.begin(format!("Setting new configuration version {} for {}",
                      config_apply.version_number, service_group))?;
     ui.status(Status::Creating, "service configuration")?;
-    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, validate_cfg).await?;
-    while let Some(message_result) = response.next().await {
-        let reply = message_result?;
-        match reply.message_id() {
-            "NetOk" => (),
-            "NetErr" => {
-                let m = reply.parse::<sup_proto::net::NetErr>()
-                             .map_err(SrvClientError::Decode)?;
-                match ErrCode::from_i32(m.code) {
-                    Some(ErrCode::InvalidPayload) => {
-                        ui.warn(m)?;
-                    }
-                    _ => return Err(SrvClientError::from(m).into()),
-                }
-            }
-            _ => {
-                return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into());
-            }
-        }
-    }
-
     ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))?;
+
     let mut response = SrvClient::request(&remote_sup_addr, &secret_key, set_cfg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;

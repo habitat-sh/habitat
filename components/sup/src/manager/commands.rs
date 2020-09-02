@@ -55,60 +55,13 @@ pub fn service_cfg_msr(mgr: &ManagerState,
     Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", ident)))
 }
 
+// TODO (DM): This is only kept for backwards compatibility with old clients.
 pub fn service_cfg_validate(_mgr: &ManagerState,
                             req: &mut CtlRequest,
-                            opts: protocol::ctl::SvcValidateCfg)
+                            _opts: protocol::ctl::SvcValidateCfg)
                             -> NetResult<()> {
-    let cfg = opts.cfg.ok_or_else(err_update_client)?;
-    let format = opts.format
-                     .and_then(protocol::types::service_cfg::Format::from_i32)
-                     .unwrap_or_default();
-    if cfg.len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
-        return Err(net::err(ErrCode::EntityTooLarge, "Configuration too large."));
-    }
-    if format != protocol::types::service_cfg::Format::Toml {
-        return Err(net::err(ErrCode::NotSupported,
-                            format!("Configuration format {} not available.",
-                                    format)));
-    }
-    let _new_cfg: toml::value::Table = toml::from_slice(&cfg).map_err(|e| {
-                                                                 net::err(
-            ErrCode::BadPayload,
-            format!("Unable to decode configuration as {}, {}", format, e),
-        )
-                                                             })?;
     req.reply_complete(net::ok());
     Ok(())
-    // JW TODO: Hold off on validation until we can validate services which aren't currently
-    // loaded in the Supervisor but are known through rumor propagation.
-    // let service_group: ServiceGroup = opts.service_group.into();
-    // for service in mgr.services.read().unwrap().iter() {
-    //     if service.service_group != service_group {
-    //         continue;
-    //     }
-    //     if let Some(interface) = service.cfg.interface() {
-    //         match Cfg::validate(interface, &new_cfg) {
-    //             None => req.reply_complete(net::ok()),
-    //             Some(errors) => {
-    //                 for error in errors {
-    //                     req.reply_partial(net::err(ErrCode::InvalidPayload, error));
-    //                 }
-    //                 req.reply_complete(net::ok());
-    //             }
-    //         }
-    //         return Ok(());
-    //     } else {
-    //         // No interface, this service can't be configured.
-    //         return Err(net::err(
-    //             ErrCode::NotFound,
-    //             "Service has no configurable attributes.",
-    //         ));
-    //     }
-    // }
-    // Err(net::err(
-    //     ErrCode::NotFound,
-    //     format!("Service not loaded, {}", service_group),
-    // ))
 }
 
 pub fn service_cfg_set(mgr: &ManagerState,
@@ -118,13 +71,31 @@ pub fn service_cfg_set(mgr: &ManagerState,
     let cfg = opts.cfg.ok_or_else(err_update_client)?;
     let is_encrypted = opts.is_encrypted.unwrap_or(false);
     let version = opts.version.ok_or_else(err_update_client)?;
+    let format = opts.format
+                     .and_then(protocol::types::service_cfg::Format::from_i32)
+                     .unwrap_or_default();
     let service_group: ServiceGroup = opts.service_group.ok_or_else(err_update_client)?.into();
+
+    // Validate the size and format of the config. TOML is the only supported format.
     if cfg.len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
         return Err(net::err(ErrCode::EntityTooLarge, "Configuration too large."));
     }
+    if format != protocol::types::service_cfg::Format::Toml {
+        return Err(net::err(ErrCode::NotSupported,
+                            format!("Configuration format {} not available.",
+                                    format)));
+    }
+    toml::from_slice::<toml::value::Table>(&cfg).map_err(|e| {
+                                                    net::err(ErrCode::BadPayload,
+                                                             format!("Unable to decode \
+                                                                      configuration as {}, {}",
+                                                                     format, e))
+                                                })?;
+
     outputln!("Setting new configuration version {} for {}",
               version,
               service_group,);
+
     let mut client =
         match butterfly::client::Client::new(&mgr.cfg.gossip_listen.local_addr().to_string(),
                                              mgr.cfg.ring_key.clone())
