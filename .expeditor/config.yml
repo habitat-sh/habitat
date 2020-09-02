@@ -123,8 +123,6 @@ subscriptions:
           post_commit: true
       - trigger_pipeline:finish_release:
           post_commit: true
-      - trigger_pipeline:website:
-          post_commit: true
 
   # Post release notification workloads
   #
