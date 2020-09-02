@@ -76,8 +76,7 @@ impl BuilderSecretEncryptionKey {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::{keys::SignedBox,
-                        test_support::fixture_key};
+    use crate::crypto::keys::SignedBox;
 
     #[test]
     fn encryption() {
@@ -93,7 +92,10 @@ mod tests {
 
     #[test]
     fn decryption() {
-        let key: BuilderSecretEncryptionKey = fixture_key("keys/bldr-20200825205529.box.key");
+        let key: BuilderSecretEncryptionKey =
+            "BOX-SEC-1\nbldr-20200825205529\n\nM9u8wuJmZMsmVG4tNgngYJDapjIJE1RnxJAFVN97Bxs="
+            .parse()
+            .unwrap();
 
         #[rustfmt::skip]
         let encrypted = "BOX-1\nbldr-20200825205529\nbldr-20200825205529\nilnFU7aVNfkq6PrNXzXh3l1FTQftMzoM\nr6B4EAUIRO2tf169nPMeDPxVzZ7tslS/Oiv2ZQCcFBRyotwv5rh0NjN6KR5pCFOPWAmp62tSQQz6FIiKqHC2bBlk3A4MLugX"
