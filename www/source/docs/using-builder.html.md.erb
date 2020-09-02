@@ -10,36 +10,19 @@ Chef Habitat Builder acts as the core of Chef’s Application Delivery Enterpris
 
 * **Application Manifest** - The Application Manifest provides a single application directory, which includes---at a minimum---the compiled app artifact, dynamic links to all direct and transitive runtime dependencies ,and instructions to install and run the app.
 * **Deployment Channel Management** -  Pre-canned deployment channels that can be used as-is or a user can custom design their own channels. Apps that are deployed through Chef Habitat can subscribe to a channel and be auto-upgraded whenever the app is promoted.
-* **Origin Management** - origin stuff
+* **Origin Management** - Save your application delivery content in uniquely named spaces that you can control.
 * **Content Library** - Hundreds of pre-built [application delivery packages](https://bldr.habitat.sh/#/pkgs/core) and core dependencies, which makes it easy to get started with Chef Habitat.
 * **Custom Data and Reporting APIs** - Rich APIs enable the capability to export to CSV or JSON.
 * **DevOps Integration APIs** - Provides an API so that clients can find and download the necessary packages to run their applications. Additional APIs also enable easy integration with other popular DevOps tools, including Jenkins, Terraform, Artifactory, Hashi Vault, and many others.
 * **Role Based User Access** - Improves your organizations operational safety by letting you assign specific levels of access to each origin member.
-* **Container Registry Support** - Build and deploy your application to container registries
-
-The Chef Habitat SaaS builder offers additional functionality including Automated Builds,
 
 For more information on how the SaaS and On-Prem versions of Chef Habitat Builder work together, read the blog - [Chef Habitat Builder On-Prem Enhancements that Extend Support to Airgap Environments and Simplify Set-Up](https://blog.chef.io/chef-habitat-product-announcement-builder-on-prem-enhancements-that-extend-support-to-airgap-environments-and-simplify-set-up/)
-
-## Compare Chef Habitat Builder and Builder on-prem
-
-| Feature | Builder on-prem | Builder SaaS |
-|---------|-----------------|------------- |
-|Application Manifest| Yes | Yes |
-|Deployment Channel Management| Yes | Yes |
-|Origin Management| Yes | Yes |
-|Content Library| Yes | Yes |
-|Custom Data and Reporting APIs| Yes | Yes |
-|DevOps Integration APIs| Yes | Yes |
-|Role Based User Access| Yes | Yes |
-|Container Registry Support| No | Yes |
 
 ## <a name="builder-start" id="builder-start" data-magellan-target="builder-start">Get Started</a>
 
 Whether you are looking to leverage the SaaS or on-prem version of Chef Habitat Builder, you will need to create an account on the SaaS version of Chef Habitat Builder. After you have then downloaded the version, you will then sync the two accounts.
 
 This documentation covers everything from creating an account to setting up automated builds and exporting packages to a variety of container registries.
-
 
 ---
 ## <a name="builder-account" id="builder-account" data-magellan-target="builder-account">Get an Account</a>
@@ -152,7 +135,7 @@ source ~/.bashrc
 An origin is a place on Chef Habitat Builder where you can store, share, and build packages. It is a unique namespace within Chef Habitat Builder, and while you can delete or transfer an origin, you can't rename an origin after it is created. One example of an origin is the "core" origin, which is the set of foundational packages managed and versioned by the core Chef Habitat maintainers.
 
 You can join existing origins by invitation and you can create your own origins.
-For more on invitations, see [origin membership and RBAC](/#origin-members).
+For more on invitations, see [origin membership and RBAC](#origin-membership).
 
 ### Create an Origin
 
@@ -200,10 +183,10 @@ For more information, see the [`hab origin create`](/docs/habitat-cli/#hab-origi
 Prerequisites:
 
 * [Download the Chef Habitat CLI](/docs/install-habitat)
-* [Create a Chef Habitat Builder account](/#builder-account)
-* [Generate a personal access token](/#builder-token)
-* [Create an origin](/#create-origin) or accept an invitation to an existing origin
-* [Get origin keys](/#origin-keys)
+* [Create a Chef Habitat Builder account](#builder-account)
+* [Generate a personal access token](#builder-token)
+* [Create an origin](#create-origin) or accept an invitation to an existing origin
+* [Get origin keys](#origin-keys)
 
 
 ### Role-Based Access Control (RBAC) for Chef Habitat Builder (SaaS and on-prem)
@@ -355,9 +338,9 @@ hab origin rbac set bluewhale admin --origin two-tier-app
 Prerequisites:
 
 * [Download the Chef Habitat CLI](/docs/install-habitat)
-* [Create a Chef Habitat Builder account](/#builder-account)
-* [Generate a personal access token](/#builder-token)
-* [Create an origin with `hab origin create` or join an origin by invitation](/#create-origin)
+* [Create a Chef Habitat Builder account](#builder-account)
+* [Generate a personal access token](#builder-token)
+* [Create an origin with `hab origin create` or join an origin by invitation](#create-origin)
 
 When you create an origin, Chef Habitat Builder automatically generates _origin keys_.
 Origin key cryptography is asymmetric: it has a public origin key that you can distribute freely, and a private origin key that you should distribute only to users belonging to the origin.
