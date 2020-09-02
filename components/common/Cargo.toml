@@ -11,6 +11,7 @@ async-trait = "*"
 bimap = "*"
 bitflags = "*"
 clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
+dirs = "*"
 glob = "*"
 habitat_api_client = { path = "../builder-api-client" }
 habitat_core = { path = "../core" }

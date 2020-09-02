@@ -3,17 +3,24 @@ use std::env;
 use std::{path::Path,
           result};
 
+use crate::{command,
+            common::ui::{UIReader,
+                         UIWriter,
+                         UI},
+            error::Result,
+            hcore::{crypto::SigKeyPair,
+                    env as henv,
+                    package::ident,
+                    Error::InvalidOrigin},
+            AUTH_TOKEN_ENVVAR,
+            BLDR_URL_ENVVAR,
+            ORIGIN_ENVVAR};
 #[cfg(windows)]
 use crate::{common::cli::DEFAULT_BINLINK_DIR,
             hcore::fs::{self,
                         FS_ROOT_PATH}};
-use crate::{common::ui::{UIReader,
-                         UIWriter,
-                         UI},
-            hcore::{crypto::SigKeyPair,
-                    env as henv,
-                    package::ident,
-                    Error::InvalidOrigin}};
+use habitat_common::{config,
+                     util::CTL_SECRET_ENVVAR};
 #[cfg(windows)]
 use std::ptr;
 use url::Url;
@@ -32,14 +39,6 @@ use winreg::enums::{HKEY_LOCAL_MACHINE,
                     KEY_READ};
 #[cfg(windows)]
 use winreg::RegKey;
-
-use crate::{command,
-            config,
-            error::Result,
-            AUTH_TOKEN_ENVVAR,
-            BLDR_URL_ENVVAR,
-            CTL_SECRET_ENVVAR,
-            ORIGIN_ENVVAR};
 
 pub fn start(ui: &mut UI, cache_path: &Path) -> Result<()> {
     ui.br()?;
@@ -219,25 +218,25 @@ fn ask_create_origin(ui: &mut UI, origin: &str) -> Result<bool> {
 fn write_cli_config_origin(origin: &str) -> Result<()> {
     let mut config = config::load()?;
     config.origin = Some(origin.to_string());
-    config::save(&config)
+    Ok(config::save(&config)?)
 }
 
 fn write_cli_config_bldr_url(url: &str) -> Result<()> {
     let mut config = config::load()?;
     config.bldr_url = Some(url.to_string());
-    config::save(&config)
+    Ok(config::save(&config)?)
 }
 
 fn write_cli_config_auth_token(auth_token: &str) -> Result<()> {
     let mut config = config::load()?;
     config.auth_token = Some(auth_token.to_string());
-    config::save(&config)
+    Ok(config::save(&config)?)
 }
 
 fn write_cli_config_ctl_secret(value: &str) -> Result<()> {
     let mut config = config::load()?;
     config.ctl_secret = Some(value.to_string());
-    config::save(&config)
+    Ok(config::save(&config)?)
 }
 
 fn is_origin_in_cache(origin: &str, cache_path: &Path) -> bool {

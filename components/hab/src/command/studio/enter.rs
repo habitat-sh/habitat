@@ -6,16 +6,14 @@ use std::{env,
 
 use crate::{common::ui::{UIWriter,
                          UI},
-            hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
-                    env as henv,
-                    fs}};
-
-use crate::{config,
             error::{Error,
                     Result},
+            hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
+                    env as henv,
+                    fs},
             BLDR_URL_ENVVAR,
             ORIGIN_ENVVAR};
-
+use habitat_common::config;
 use habitat_core::AUTH_TOKEN_ENVVAR;
 use same_file::is_same_file;
 

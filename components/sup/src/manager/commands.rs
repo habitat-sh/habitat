@@ -56,6 +56,7 @@ pub fn service_cfg_msr(mgr: &ManagerState,
 }
 
 // TODO (DM): This is only kept for backwards compatibility with old clients.
+#[allow(clippy::needless_pass_by_value)]
 pub fn service_cfg_validate(_mgr: &ManagerState,
                             req: &mut CtlRequest,
                             _opts: protocol::ctl::SvcValidateCfg)
