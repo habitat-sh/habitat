@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.145 -->
-## [1.6.145](https://github.com/habitat-sh/habitat/tree/1.6.145) (2020-09-01)
+<!-- latest_release 1.6.146 -->
+## [1.6.146](https://github.com/habitat-sh/habitat/tree/1.6.146) (2020-09-02)
 
 #### Merged Pull Requests
-- Keep the code inside of the window [#7894](https://github.com/habitat-sh/habitat/pull/7894) ([kagarmoe](https://github.com/kagarmoe))
+- Check if license exists for current user during license acceptance [#7906](https://github.com/habitat-sh/habitat/pull/7906) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
@@ -20,6 +20,7 @@
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
+- Check if license exists for current user during license acceptance [#7906](https://github.com/habitat-sh/habitat/pull/7906) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.146 -->
 - Keep the code inside of the window [#7894](https://github.com/habitat-sh/habitat/pull/7894) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.145 -->
 - Update Builder Documentation [#7581](https://github.com/habitat-sh/habitat/pull/7581) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.144 -->
 - Automated update of Habitat Documentation [#7898](https://github.com/habitat-sh/habitat/pull/7898) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.143 -->
