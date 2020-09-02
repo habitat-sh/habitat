@@ -1189,6 +1189,7 @@ dependencies = [
  "libc",
  "log 0.4.11",
  "pbr",
+ "prost",
  "rants",
  "reqwest",
  "retry",

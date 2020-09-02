@@ -1287,9 +1287,7 @@ async fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_config_apply(config_apply: SvcConfigApply) -> Result<()> {
-    let cfg = config::load()?;
-    let remote_sup_addr = config_apply.remote_sup.into();
-    let secret_key = config::ctl_secret_key(&cfg)?;
+    let remote_sup = config_apply.remote_sup.into();
     let service_group = config_apply.service_group;
     let config_contents = Vec::try_from(config_apply.file)?;
     let cache = config_apply.cache_key_path.cache_key_path;
@@ -1317,66 +1315,33 @@ async fn sub_config_apply(config_apply: SvcConfigApply) -> Result<()> {
             _ => (config_contents.to_vec(), false),
         };
 
-    let set_cfg = sup_proto::ctl::SvcSetCfg { service_group: Some(service_group.clone().into()),
-                                              version:       Some(config_apply.version_number),
-                                              format:        Default::default(),
-                                              cfg:           Some(maybe_encrypted_config_contents),
-                                              is_encrypted:  Some(is_encrypted), };
+    let msg = sup_proto::ctl::SvcSetCfg { service_group: Some(service_group.clone().into()),
+                                          version:       Some(config_apply.version_number),
+                                          format:        Default::default(),
+                                          cfg:           Some(maybe_encrypted_config_contents),
+                                          is_encrypted:  Some(is_encrypted), };
 
     ui.begin(format!("Setting new configuration version {} for {}",
                      config_apply.version_number, service_group))?;
     ui.status(Status::Creating, "service configuration")?;
-    ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))?;
+    ui.status(Status::Applying, format!("via peer {}", remote_sup))?;
 
-    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, set_cfg).await?;
-    while let Some(message_result) = response.next().await {
-        let reply = message_result?;
-        match reply.message_id() {
-            "NetOk" => (),
-            "NetErr" => {
-                let m = reply.parse::<sup_proto::net::NetErr>()
-                             .map_err(SrvClientError::Decode)?;
-                return Err(SrvClientError::from(m).into());
-            }
-            _ => {
-                return {
-                    Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into())
-                }
-            }
-        }
-    }
+    gateway_util::send_expect_response::<_, sup_proto::net::NetOk>(&remote_sup, msg).await?;
 
     ui.end("Applied configuration")?;
     Ok(())
 }
 
 async fn sub_config_show(pkg_ident: PackageIdent, remote_sup: &ListenCtlAddr) -> Result<()> {
-    let cfg = config::load()?;
-    let secret_key = config::ctl_secret_key(&cfg)?;
     let msg = sup_proto::ctl::SvcGetDefaultCfg { ident: Some(pkg_ident.into()), };
-    let mut response = SrvClient::request(remote_sup, &secret_key, msg).await?;
-    while let Some(message_result) = response.next().await {
-        let reply = message_result?;
-        match reply.message_id() {
-            "ServiceCfg" => {
-                reply.parse::<sup_proto::types::ServiceCfg>()
-                     .map_err(SrvClientError::Decode)?;
-            }
-            "NetErr" => {
-                let m = reply.parse::<sup_proto::net::NetErr>()
-                             .map_err(SrvClientError::Decode)?;
-                return Err(SrvClientError::from(m).into());
-            }
-            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
-        }
-    }
+    gateway_util::send_expect_response::<_, sup_proto::types::ServiceCfg>(remote_sup, msg).await?;
     Ok(())
 }
 
 async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
     let remote_sup_addr = svc_load.remote_sup.into();
     let msg = habitat_sup_protocol::ctl::SvcLoad::try_from(svc_load)?;
-    gateway_util::send(&remote_sup_addr, msg).await
+    gateway_util::send_with_progress(&remote_sup_addr, msg).await
 }
 
 async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
@@ -1401,20 +1366,20 @@ async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
     let msg = sup_proto::ctl::SvcUnload { ident: Some(ident.into()),
                                           timeout_in_seconds };
     let remote_sup_addr = remote_sup_from_input(m)?;
-    gateway_util::send(&remote_sup_addr, msg).await
+    gateway_util::send_with_progress(&remote_sup_addr, msg).await
 }
 
 async fn sub_svc_update(u: hab::cli::hab::svc::Update) -> Result<()> {
     let ctl_addr = u.remote_sup.into();
     let msg: sup_proto::ctl::SvcUpdate = TryFrom::try_from(u)?;
-    gateway_util::send(&ctl_addr, msg).await
+    gateway_util::send_with_progress(&ctl_addr, msg).await
 }
 
 async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;
     let msg = sup_proto::ctl::SvcStart { ident: Some(ident.into()), };
     let remote_sup_addr = remote_sup_from_input(m)?;
-    gateway_util::send(&remote_sup_addr, msg).await
+    gateway_util::send_with_progress(&remote_sup_addr, msg).await
 }
 
 async fn sub_svc_status(pkg_ident: Option<PackageIdent>, remote_sup: &ListenCtlAddr) -> Result<()> {
@@ -1447,7 +1412,7 @@ async fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
     let msg = sup_proto::ctl::SvcStop { ident: Some(ident.into()),
                                         timeout_in_seconds };
     let remote_sup_addr = remote_sup_from_input(m)?;
-    gateway_util::send(&remote_sup_addr, msg).await
+    gateway_util::send_with_progress(&remote_sup_addr, msg).await
 }
 
 async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
