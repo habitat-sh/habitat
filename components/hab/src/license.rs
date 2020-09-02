@@ -131,7 +131,7 @@ pub fn check_for_license_acceptance_and_prompt(ui: &mut UI) -> Result<()> {
 }
 
 pub fn accept_license(ui: &mut UI) -> Result<()> {
-    if license_exists() {
+    if license_exists_for_current_user() {
         ui.info("You have already accepted the license.")?;
         return Ok(());
     }
@@ -203,4 +203,12 @@ fn write_license_file() -> Result<()> {
 pub fn license_exists() -> bool {
     license_file(&license_path(&user_license_root())).is_file()
     || license_file(&license_path(&superuser_license_root())).is_file()
+}
+
+pub fn license_exists_for_current_user() -> bool {
+    if am_i_root() {
+        license_file(&license_path(&superuser_license_root())).is_file()
+    } else {
+        license_file(&license_path(&user_license_root())).is_file()
+    }
 }
