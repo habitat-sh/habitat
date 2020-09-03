@@ -853,10 +853,10 @@ impl<'a> InstallTask<'a> {
                 .await
         }).await
           .map_err(|e| {
-              Error::APIClient(APIClientError(APIFailure::DownloadPackageFailed(API_RETRY_COUNT,
-                                                                                PackageIdent::from(ident.clone()),
-                                                                                target,
-                                                                                Box::new(e))))
+              APIClientError(APIFailure::DownloadPackageFailed(API_RETRY_COUNT,
+                                                               PackageIdent::from(ident.clone()),
+                                                               target,
+                                                               Box::new(e)))
           })?;
 
         Ok(())

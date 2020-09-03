@@ -367,10 +367,10 @@ impl<'a> DownloadTask<'a> {
                 .await
         }).await
           .map_err(|e| {
-              Error::APIClient(APIClientError(APIFailure::DownloadPackageFailed(API_RETRY_COUNT,
-                                                                                ident.clone(),
-                                                                                target,
-                                                                                Box::new(e))))
+              APIClientError(APIFailure::DownloadPackageFailed(API_RETRY_COUNT,
+                                                               ident.clone(),
+                                                               target,
+                                                               Box::new(e)))
           })?;
         Ok(())
     }
