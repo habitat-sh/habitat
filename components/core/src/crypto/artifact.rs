@@ -29,7 +29,10 @@ impl ArtifactHeader {
 
     pub fn hash_type(&self) -> &String { &self.hash_type }
 
-    pub fn signature_raw(&self) -> String { base64::encode(&self.signature) }
+    /// Provide the signature as a base64-encoded string. This is how
+    /// the signature appears in a HART file header, and is the most
+    /// convenient form for passing around to external software.
+    pub fn encoded_signature(&self) -> String { base64::encode(&self.signature) }
 }
 
 /// Generate and sign a package
@@ -369,7 +372,7 @@ mod test {
         assert_eq!(HART_FORMAT_VERSION, hart_header.format());
         assert_eq!("unicorn", hart_header.signer().name());
         assert_eq!(SIG_HASH_TYPE, hart_header.hash_type());
-        assert!(!hart_header.signature_raw().is_empty());
+        assert!(!hart_header.encoded_signature().is_empty());
     }
 
     mod artifact_header {
@@ -383,7 +386,7 @@ mod test {
             assert_eq!(header.format(), "HART-1");
             assert_eq!(header.signer().to_string(), "happyhumans-20160424223347");
             assert_eq!(header.hash_type(), "BLAKE2b");
-            assert_eq!(header.signature_raw(),
+            assert_eq!(header.encoded_signature(),
                        "U0cp/+npru0ZxhK76zm+PDVSV/707siyrO1r7T6CZZ4ShSLrIxyx8jLSMr5wnLuGrVIV358smQPWOSTOmyfFCjBmMmM1ZjRkZTE0NWM3Zjc4NjAxY2FhZTljN2I4NzY3MDk4NDEzZDA1NzM5ZGU5MTNjMDEyOTIyYjdlZWQ3NjA=");
         }
     }

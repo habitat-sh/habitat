@@ -12,7 +12,9 @@ pub fn start(ui: &mut UI, src: &Path) -> Result<()> {
         println!("Format Version : {}", header.format());
         println!("Key Name       : {}", header.signer());
         println!("Hash Type      : {}", header.hash_type());
-        println!("Raw Signature  : {}", header.signature_raw());
+        // This should just be "Signature", but this is a public
+        // interface right now.
+        println!("Raw Signature  : {}", header.encoded_signature());
     } else {
         ui.warn("Failed to read package header.")?;
     }

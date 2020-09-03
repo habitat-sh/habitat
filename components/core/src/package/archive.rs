@@ -415,6 +415,8 @@ pub struct PackageArchiveInfo {
     pub format_version: String,
     pub key_name:       String,
     pub hash_type:      String,
+    // This should probably be called `encoded_signature`, or perhaps
+    // just `signature`, but this is a public interface at the moment.
     pub signature_raw:  String,
     pub ident:          String,
     pub origin:         String,
@@ -449,7 +451,7 @@ impl TryFrom<PackageArchive> for PackageArchiveInfo {
                                 // TODO (CM): NamedRevision!
                                 key_name:      header.signer().to_string(),
                                 hash_type:     header.hash_type().clone(),
-                                signature_raw: header.signature_raw(),
+                                signature_raw: header.encoded_signature(),
                                 origin:        ident.origin().to_string(),
                                 name:          ident.name().to_string(),
                                 ident:         ident.to_string(),
