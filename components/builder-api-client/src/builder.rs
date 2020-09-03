@@ -1458,6 +1458,7 @@ macro_rules! retry_builder_api {
                     Err(e) => retry::OperationResult::Retry(e),
                 }
             }).await
+              // pull out the wrapped error from retry::OperationResult
               .map_err(|e| e.error)
         }
     };
