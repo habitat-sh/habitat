@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.147 -->
-## [1.6.147](https://github.com/habitat-sh/habitat/tree/1.6.147) (2020-09-02)
+<!-- latest_release 1.6.148 -->
+## [1.6.148](https://github.com/habitat-sh/habitat/tree/1.6.148) (2020-09-03)
 
 #### Merged Pull Requests
-- Quick fixes for the Builder page [#7907](https://github.com/habitat-sh/habitat/pull/7907) ([kagarmoe](https://github.com/kagarmoe))
+- Rename dev docs directory &quot;dev-docs&quot; [#7909](https://github.com/habitat-sh/habitat/pull/7909) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
@@ -20,6 +20,7 @@
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
+- Rename dev docs directory &quot;dev-docs&quot; [#7909](https://github.com/habitat-sh/habitat/pull/7909) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.148 -->
 - Quick fixes for the Builder page [#7907](https://github.com/habitat-sh/habitat/pull/7907) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.147 -->
 - Check if license exists for current user during license acceptance [#7906](https://github.com/habitat-sh/habitat/pull/7906) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.146 -->
 - Keep the code inside of the window [#7894](https://github.com/habitat-sh/habitat/pull/7894) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.145 -->
