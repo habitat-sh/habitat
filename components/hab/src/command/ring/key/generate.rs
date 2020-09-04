@@ -1,15 +1,12 @@
-use std::path::Path;
-
 use crate::{common::ui::{UIWriter,
                          UI},
-            hcore::crypto::SymKey};
+            error::Result};
+use habitat_core::crypto::keys::{Key,
+                                 KeyCache};
 
-use crate::error::Result;
-
-pub fn start(ui: &mut UI, ring: &str, cache: &Path) -> Result<()> {
-    ui.begin(format!("Generating ring key for {}", &ring))?;
-    let pair = SymKey::generate_pair_for_ring(ring);
-    pair.to_pair_files(cache)?;
-    ui.end(format!("Generated ring key pair {}.", &pair.name_with_rev()))?;
+pub fn start(ui: &mut UI, ring: &str, key_cache: &KeyCache) -> Result<()> {
+    ui.begin(format!("Generating ring key for {}", ring))?;
+    let key = key_cache.new_ring_key(ring)?;
+    ui.end(format!("Generated ring key {}.", key.named_revision()))?;
     Ok(())
 }

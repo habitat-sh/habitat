@@ -15,6 +15,7 @@ use winapi::{shared::{minwindef::DWORD,
                           PSID}}};
 use windows_acl::acl::ACL;
 
+#[derive(PartialEq, Debug)]
 pub struct PermissionEntry {
     pub sid:         Sid,
     pub access_mask: DWORD,

@@ -190,12 +190,9 @@ impl PackageArchive {
         Ok(PackageArchive { path, metadata })
     }
 
-    /// Calculate and return the checksum of the package archive in base64 format.
-    ///
-    /// # Failures
-    ///
-    /// * If the archive cannot be read
-    pub fn checksum(&self) -> Result<String> { hash::hash_file(&self.path) }
+    /// Calculate and return the Blake2b hash of the package archive.
+    // TODO (CM): Convert this to Blake2bHash once Builder can use it
+    pub fn checksum(&self) -> Result<String> { Ok(hash::hash_file(&self.path)?.to_string()) }
 
     pub fn cflags(&mut self) -> Option<&str> { self.read_metadata(MetaFile::CFlags) }
 
@@ -324,16 +321,6 @@ impl PackageArchive {
             .into_owned()
     }
 
-    /// Given a package name and a path to a file as an `&str`, verify
-    /// the files signature.
-    ///
-    /// # Failures
-    ///
-    /// * Fails if it cannot verify the signature for any reason
-    pub fn verify<P: AsRef<Path>>(&self, cache_key_path: &P) -> Result<(String, String)> {
-        artifact::verify(&self.path, cache_key_path)
-    }
-
     /// Given a package name and a path to a file as an `&str`, unpack
     /// the package.
     ///
@@ -428,6 +415,8 @@ pub struct PackageArchiveInfo {
     pub format_version: String,
     pub key_name:       String,
     pub hash_type:      String,
+    // This should probably be called `encoded_signature`, or perhaps
+    // just `signature`, but this is a public interface at the moment.
     pub signature_raw:  String,
     pub ident:          String,
     pub origin:         String,
@@ -457,42 +446,44 @@ impl TryFrom<PackageArchive> for PackageArchiveInfo {
     fn try_from(mut archive: PackageArchive) -> Result<Self> {
         let header = artifact::get_artifact_header(&archive.path)?;
         let ident: FullyQualifiedPackageIdent = archive.ident()?.try_into()?;
-        Ok(PackageArchiveInfo { format_version: header.format_version,
-                                key_name:       header.key_name,
-                                hash_type:      header.hash_type,
-                                signature_raw:  header.signature_raw,
-                                origin:         ident.origin().to_string(),
-                                name:           ident.name().to_string(),
-                                ident:          ident.to_string(),
-                                version:        ident.version().to_string(),
-                                release:        ident.release().to_string(),
-                                checksum:       archive.checksum()?,
-                                target:         archive.target()?.to_string(),
-                                is_a_service:   archive.is_a_service(),
-                                deps:           archive.deps()?
-                                                       .iter()
-                                                       .map(ToString::to_string)
-                                                       .collect(),
-                                build_deps:     archive.build_deps()?
-                                                       .iter()
-                                                       .map(ToString::to_string)
-                                                       .collect(),
-                                tdeps:          archive.tdeps()?
-                                                       .iter()
-                                                       .map(ToString::to_string)
-                                                       .collect(),
-                                build_tdeps:    archive.build_tdeps()?
-                                                       .iter()
-                                                       .map(ToString::to_string)
-                                                       .collect(),
-                                exposes:        archive.exposes()?,
-                                manifest:       archive.manifest()?.to_string(),
-                                svc_user:       archive.svc_user().map(ToString::to_string),
-                                svc_group:      archive.svc_group().map(ToString::to_string),
-                                config:         archive.config().map(ToString::to_string),
-                                ld_run_path:    archive.ld_run_path().map(ToString::to_string),
-                                ldflags:        archive.ldflags().map(ToString::to_string),
-                                cflags:         archive.cflags().map(ToString::to_string), })
+        Ok(PackageArchiveInfo { format_version: header.format().clone(),
+
+                                // TODO (CM): NamedRevision!
+                                key_name:      header.signer().to_string(),
+                                hash_type:     header.hash_type().clone(),
+                                signature_raw: header.encoded_signature(),
+                                origin:        ident.origin().to_string(),
+                                name:          ident.name().to_string(),
+                                ident:         ident.to_string(),
+                                version:       ident.version().to_string(),
+                                release:       ident.release().to_string(),
+                                checksum:      archive.checksum()?,
+                                target:        archive.target()?.to_string(),
+                                is_a_service:  archive.is_a_service(),
+                                deps:          archive.deps()?
+                                                      .iter()
+                                                      .map(ToString::to_string)
+                                                      .collect(),
+                                build_deps:    archive.build_deps()?
+                                                      .iter()
+                                                      .map(ToString::to_string)
+                                                      .collect(),
+                                tdeps:         archive.tdeps()?
+                                                      .iter()
+                                                      .map(ToString::to_string)
+                                                      .collect(),
+                                build_tdeps:   archive.build_tdeps()?
+                                                      .iter()
+                                                      .map(ToString::to_string)
+                                                      .collect(),
+                                exposes:       archive.exposes()?,
+                                manifest:      archive.manifest()?.to_string(),
+                                svc_user:      archive.svc_user().map(ToString::to_string),
+                                svc_group:     archive.svc_group().map(ToString::to_string),
+                                config:        archive.config().map(ToString::to_string),
+                                ld_run_path:   archive.ld_run_path().map(ToString::to_string),
+                                ldflags:       archive.ldflags().map(ToString::to_string),
+                                cflags:        archive.cflags().map(ToString::to_string), })
     }
 }
 

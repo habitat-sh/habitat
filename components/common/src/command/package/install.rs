@@ -32,8 +32,10 @@ use crate::{api_client::{self,
                  UIWriter}};
 use habitat_core::{self,
                    crypto::{artifact,
-                            keys::parse_name_with_rev,
-                            SigKeyPair},
+                            keys::{Key,
+                                   KeyCache,
+                                   NamedRevision,
+                                   PublicOriginSigningKey}},
                    fs::{cache_key_path,
                         pkg_install_path,
                         AtomicWriter,
@@ -306,8 +308,9 @@ pub async fn start<U>(ui: &mut U,
                       -> Result<PackageInstall>
     where U: UIWriter
 {
-    let key_cache_path = &cache_key_path(fs_root_path);
-    debug!("install key_cache_path: {}", key_cache_path.display());
+    let key_cache = KeyCache::new(cache_key_path(fs_root_path));
+    key_cache.setup()?;
+    debug!("install key cache: {}", key_cache.as_ref().display());
 
     let api_client = Client::new(url, product, version, Some(fs_root_path))?;
     let task = InstallTask { install_mode,
@@ -316,7 +319,7 @@ pub async fn start<U>(ui: &mut U,
                              channel,
                              fs_root_path,
                              artifact_cache_path,
-                             key_cache_path,
+                             key_cache,
                              install_hook_mode };
 
     match *install_source {
@@ -419,7 +422,7 @@ struct InstallTask<'a> {
     fs_root_path:        &'a Path,
     /// The path to the local artifact cache (e.g., /hab/cache/artifacts)
     artifact_cache_path: &'a Path,
-    key_cache_path:      &'a Path,
+    key_cache:           KeyCache,
     install_hook_mode:   InstallHookMode,
 }
 
@@ -863,23 +866,28 @@ impl<'a> InstallTask<'a> {
 
     async fn fetch_origin_key<T>(&self,
                                  ui: &mut T,
-                                 name_with_rev: &str,
+                                 named_revision: &NamedRevision,
                                  token: Option<&str>)
-                                 -> Result<()>
+                                 -> Result<PublicOriginSigningKey>
         where T: UIWriter
     {
         if self.is_offline() {
-            Err(Error::OfflineOriginKeyNotFound(name_with_rev.to_string()))
+            Err(Error::OfflineOriginKeyNotFound(named_revision.to_string()))
         } else {
             ui.status(Status::Downloading,
-                      format!("{} public origin key", &name_with_rev))?;
-            let (name, rev) = parse_name_with_rev(&name_with_rev)?;
+                      format!("{} public origin key", named_revision))?;
             self.api_client
-                .fetch_origin_key(&name, &rev, token, self.key_cache_path, ui.progress())
+                .fetch_origin_key(named_revision.name(),
+                                  named_revision.revision(),
+                                  token,
+                                  self.key_cache.as_ref(),
+                                  ui.progress())
                 .await?;
+
+            let key = self.key_cache.public_signing_key(&named_revision)?;
             ui.status(Status::Cached,
-                      format!("{} public origin key", &name_with_rev))?;
-            Ok(())
+                      format!("{} public origin key", key.named_revision()))?;
+            Ok(key)
         }
     }
 
@@ -951,13 +959,16 @@ impl<'a> InstallTask<'a> {
             )));
         }
 
-        let nwr = artifact::artifact_signer(&artifact.path)?;
-        if SigKeyPair::get_public_key_path(&nwr, self.key_cache_path).is_err() {
-            self.fetch_origin_key(ui, &nwr, token).await?;
-        }
+        let named_revision = artifact::artifact_signer(&artifact.path)?;
 
-        artifact.verify(&self.key_cache_path)?;
-        debug!("Verified {} signed by {}", ident, &nwr);
+        // If we don't have the key locally, fetch it from Builder
+        if self.key_cache.public_signing_key(&named_revision).is_err() {
+            self.fetch_origin_key(ui, &named_revision, token).await?;
+        };
+
+        artifact::verify(&artifact.path, &self.key_cache)?;
+
+        debug!("Verified {} signed by {}", ident, named_revision);
         Ok(())
     }
 

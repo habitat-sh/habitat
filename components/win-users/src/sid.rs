@@ -137,6 +137,7 @@ pub const CONTAINER_INHERIT_ACE: DWORD = 0x2;
 pub const NO_PROPAGATE_INHERIT_ACE: DWORD = 0x4;
 pub const INHERIT_ONLY_ACE: DWORD = 0x8;
 
+#[derive(PartialEq, Debug)]
 pub struct Sid {
     pub raw: Vec<u8>,
 }

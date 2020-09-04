@@ -1,33 +1,52 @@
-use super::{hash,
-            keys::parse_name_with_rev,
-            SigKeyPair,
-            HART_FORMAT_VERSION,
-            SIG_HASH_TYPE};
-use crate::error::{Error,
-                   Result};
-use sodiumoxide::crypto::sign;
+use crate::{crypto::{keys::{Key,
+                            KeyCache,
+                            NamedRevision,
+                            SecretOriginSigningKey},
+                     Blake2bHash,
+                     HART_FORMAT_VERSION,
+                     SIG_HASH_TYPE},
+            error::{Error,
+                    Result}};
 use std::{fs::File,
           io::{self,
                prelude::*,
+               BufRead,
                BufReader,
                BufWriter},
           path::Path};
 
+pub struct ArtifactHeader {
+    format:    String,
+    signer:    NamedRevision,
+    hash_type: String,
+    signature: Vec<u8>,
+}
+
+impl ArtifactHeader {
+    pub fn format(&self) -> &String { &self.format }
+
+    pub fn signer(&self) -> &NamedRevision { &self.signer }
+
+    pub fn hash_type(&self) -> &String { &self.hash_type }
+
+    /// Provide the signature as a base64-encoded string. This is how
+    /// the signature appears in a HART file header, and is the most
+    /// convenient form for passing around to external software.
+    pub fn encoded_signature(&self) -> String { base64::encode(&self.signature) }
+}
+
 /// Generate and sign a package
-pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, pair: &SigKeyPair) -> Result<()>
+pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, key: &SecretOriginSigningKey) -> Result<()>
     where P1: AsRef<Path>,
           P2: AsRef<Path>
 {
-    let hash = hash::hash_file(&src)?;
-    debug!("File hash for {} = {}", src.as_ref().display(), &hash);
-
-    let signature = sign::sign(&hash.as_bytes(), pair.secret()?);
+    let signature = key.sign(src)?;
     let output_file = File::create(dst)?;
     let mut writer = BufWriter::new(&output_file);
     write!(writer,
            "{}\n{}\n{}\n{}\n\n",
            HART_FORMAT_VERSION,
-           pair.name_with_rev(),
+           key.named_revision(),
            SIG_HASH_TYPE,
            base64::encode(&signature))?;
     let mut file = File::open(src)?;
@@ -36,418 +55,269 @@ pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, pair: &SigKeyPair) -> Re
 }
 
 /// return a BufReader to the .tar bytestream, skipping the signed header
-pub fn get_archive_reader<P: AsRef<Path>>(src: P) -> Result<BufReader<File>> {
-    let f = File::open(src)?;
-    let mut your_format_version = String::new();
-    let mut your_key_name = String::new();
-    let mut your_hash_type = String::new();
-    let mut your_signature_raw = String::new();
-    let mut empty_line = String::new();
-
-    let mut reader = BufReader::new(f);
-    if reader.read_line(&mut your_format_version)? == 0 {
-        return Err(Error::CryptoError("Can't read format version".to_string()));
-    }
-    if reader.read_line(&mut your_key_name)? == 0 {
-        return Err(Error::CryptoError("Can't read keyname".to_string()));
-    }
-    if reader.read_line(&mut your_hash_type)? == 0 {
-        return Err(Error::CryptoError("Can't read hash type".to_string()));
-    }
-    if reader.read_line(&mut your_signature_raw)? == 0 {
-        return Err(Error::CryptoError("Can't read signature".to_string()));
-    }
-    if reader.read_line(&mut empty_line)? == 0 {
-        return Err(Error::CryptoError("Can't end of header".to_string()));
-    }
+pub fn get_archive_reader<P>(src: P) -> Result<impl BufRead>
+    where P: AsRef<Path>
+{
+    let (_header, reader) = artifact_header_and_archive(src)?;
     Ok(reader)
-}
-
-pub struct ArtifactHeader {
-    pub format_version: String,
-    pub key_name:       String,
-    pub hash_type:      String,
-    pub signature_raw:  String,
-}
-
-impl ArtifactHeader {
-    pub fn new(format_version: String,
-               key_name: String,
-               hash_type: String,
-               signature_raw: String)
-               -> ArtifactHeader {
-        ArtifactHeader { format_version,
-                         key_name,
-                         hash_type,
-                         signature_raw }
-    }
 }
 
 /// Read only the header of the artifact, fails if any of the components
 /// are invalid/missing. Each component of the header has it's whitespace
 /// stripped before returning in an `ArtifactHeader` struct
-pub fn get_artifact_header<P: ?Sized>(src: &P) -> Result<ArtifactHeader>
+pub fn get_artifact_header<P>(src: P) -> Result<ArtifactHeader>
     where P: AsRef<Path>
 {
-    let f = File::open(src)?;
-    let mut your_format_version = String::new();
-    let mut your_key_name = String::new();
-    let mut your_hash_type = String::new();
-    let mut your_signature_raw = String::new();
-    let mut empty_line = String::new();
-
-    let mut reader = BufReader::new(f);
-    if reader.read_line(&mut your_format_version)? == 0 {
-        return Err(Error::CryptoError("Can't read format version".to_string()));
-    }
-    if reader.read_line(&mut your_key_name)? == 0 {
-        return Err(Error::CryptoError("Can't read keyname".to_string()));
-    }
-    if reader.read_line(&mut your_hash_type)? == 0 {
-        return Err(Error::CryptoError("Can't read hash type".to_string()));
-    }
-    if reader.read_line(&mut your_signature_raw)? == 0 {
-        return Err(Error::CryptoError("Can't read signature".to_string()));
-    }
-    if reader.read_line(&mut empty_line)? == 0 {
-        return Err(Error::CryptoError("Can't end of header".to_string()));
-    }
-    let your_format_version = your_format_version.trim().to_string();
-    let your_key_name = your_key_name.trim().to_string();
-    let your_hash_type = your_hash_type.trim().to_string();
-    let your_signature_raw = your_signature_raw.trim().to_string();
-
-    Ok(ArtifactHeader::new(your_format_version,
-                           your_key_name,
-                           your_hash_type,
-                           your_signature_raw))
+    let (header, _reader) = artifact_header_and_archive(src)?;
+    Ok(header)
 }
 
-/// verify the crypto signature of a .hart file
-pub fn verify<P1: ?Sized, P2: ?Sized>(src: &P1, cache_key_path: &P2) -> Result<(String, String)>
-    where P1: AsRef<Path>,
-          P2: AsRef<Path>
+fn artifact_header_and_archive<P>(path: P) -> Result<(ArtifactHeader, impl BufRead)>
+    where P: AsRef<Path>
 {
-    let f = File::open(src)?;
+    let f = File::open(path)?;
     let mut reader = BufReader::new(f);
 
-    let _ = {
-        let mut buffer = String::new();
-        match reader.read_line(&mut buffer) {
-            Ok(0) => {
-                return Err(Error::CryptoError("Corrupt payload, can't read format \
-                                               version"
-                                                       .to_string()));
-            }
-            Ok(_) => {
-                if buffer.trim() != HART_FORMAT_VERSION {
-                    let msg = format!("Unsupported format version: {}", &buffer.trim());
-                    return Err(Error::CryptoError(msg));
-                }
-            }
-            Err(e) => return Err(Error::from(e)),
-        };
-        buffer.trim().to_string()
-    };
-    let pair = {
-        let mut buffer = String::new();
-        if reader.read_line(&mut buffer)? == 0 {
-            return Err(Error::CryptoError("Corrupt payload, can't read origin \
-                                           key name"
-                                                    .to_string()));
-        }
-        SigKeyPair::get_pair_for(buffer.trim(), cache_key_path)?
-    };
-    {
-        let mut buffer = String::new();
-        match reader.read_line(&mut buffer) {
-            Ok(0) => {
-                return Err(Error::CryptoError(
-                    "Corrupt payload, can't read hash type".to_string(),
-                ));
-            }
-            Ok(_) => {
-                if buffer.trim() != SIG_HASH_TYPE {
-                    let msg = format!("Unsupported signature type: {}", &buffer.trim());
-                    return Err(Error::CryptoError(msg));
-                }
-            }
-            Err(e) => return Err(Error::from(e)),
-        };
-    };
-    let signature = {
-        let mut buffer = String::new();
-        match reader.read_line(&mut buffer) {
-            Ok(0) => {
-                return Err(Error::CryptoError(
-                    "Corrupt payload, can't read signature".to_string(),
-                ));
-            }
-            Ok(_) => {
-                base64::decode(buffer.trim()).map_err(|e| {
-                                                 Error::CryptoError(format!("Can't decode \
-                                                                             signature: {}",
-                                                                            e))
-                                             })?
-            }
-            Err(e) => return Err(Error::from(e)),
-        }
-    };
-    {
-        let mut buffer = String::new();
-        if reader.read_line(&mut buffer)? == 0 {
-            return Err(Error::CryptoError("Corrupt payload, can't find end of \
-                                           header"
-                                                  .to_string()));
-        }
-    };
-    let expected_hash = match sign::verify(signature.as_slice(), pair.public()?) {
-        Ok(signed_data) => String::from_utf8(signed_data).map_err(|_| {
-                               Error::CryptoError("Error parsing artifact signature".to_string())
-                           })?,
-        Err(_) => return Err(Error::CryptoError("Verification failed".to_string())),
-    };
-    let computed_hash = hash::hash_reader(&mut reader)?;
-    if computed_hash == expected_hash {
-        Ok((pair.name_with_rev(), expected_hash))
+    // First line is HART format line.
+    let mut line = String::new();
+    let format = if reader.read_line(&mut line)? == 0 {
+        Err(Error::CryptoError("Corrupt payload, can't read format \
+                                version"
+                                        .to_string()))
     } else {
-        let msg = format!("Habitat artifact is invalid, hashes don't match (expected: {}, \
-                           computed: {})",
-                          expected_hash, computed_hash);
-        Err(Error::CryptoError(msg))
-    }
+        let line = line.trim();
+        if line != HART_FORMAT_VERSION {
+            Err(Error::CryptoError(format!("Unsupported format version: \
+                                            {}",
+                                           line)))
+        } else {
+            Ok(line.to_string())
+        }
+    }?;
+
+    // Second line is the revision of the signing key used.
+    let mut line = String::new();
+    let named_revision = if reader.read_line(&mut line)? == 0 {
+        Err(Error::CryptoError("Corrupt payload, can't read origin \
+                                key name"
+                                         .to_string()))
+    } else {
+        let line = line.trim();
+        line.parse::<NamedRevision>()
+    }?;
+
+    // Third line is the hash type of the signature.
+    let mut line = String::new();
+    let hash_type = if reader.read_line(&mut line)? == 0 {
+        Err(Error::CryptoError("Corrupt payload, can't read hash type".to_string()))
+    } else {
+        let line = line.trim();
+        if line != SIG_HASH_TYPE {
+            Err(Error::CryptoError(format!("Unsupported signature type: \
+                                            {}",
+                                           line)))
+        } else {
+            Ok(line.to_string())
+        }
+    }?;
+
+    // Fourth line is the base64-encoded signature.
+    let mut line = String::new();
+    let signature = if reader.read_line(&mut line)? == 0 {
+        Err(Error::CryptoError("Corrupt payload, can't read signature".to_string()))
+    } else {
+        let line = line.trim();
+        base64::decode(line).map_err(|e| {
+                                Error::CryptoError(format!("Can't decode signature: {}", e))
+                            })
+    }?;
+
+    // Fifth line should be an empty delimiter line.
+    let mut line = String::new();
+    if reader.read_line(&mut line)? == 0 {
+        Err(Error::CryptoError("Corrupt payload, can't find end of \
+                                header"
+                                       .to_string()))
+    } else {
+        let line = line.trim();
+        if !line.is_empty() {
+            Err(Error::CryptoError(format!("Expected empty delimiter \
+                                            line in header; got '{}'",
+                                           line)))
+        } else {
+            Ok(())
+        }
+    }?;
+
+    // The rest of the file will be the compressed tarball of the
+    // archive. We'll return the reader as a pointer to that segment
+    // of the file for further processing (either signature
+    // verification or decompression).
+    let header = ArtifactHeader { format,
+                                  signer: named_revision,
+                                  hash_type,
+                                  signature };
+
+    Ok((header, reader))
 }
 
-pub fn artifact_signer<P: AsRef<Path>>(src: &P) -> Result<String> {
-    let f = File::open(src)?;
-    let mut reader = BufReader::new(f);
+/// Returns a tuple of the `NamedRevision` of the key that verified
+/// the `.hart` file, along with the Blake2b hash of its contents.
+pub fn verify<P>(hart_file_path: P, cache: &KeyCache) -> Result<(NamedRevision, Blake2bHash)>
+    where P: AsRef<Path>
+{
+    let (header, mut reader) = artifact_header_and_archive(hart_file_path)?;
+    let key = cache.public_signing_key(&header.signer)?;
+    let hash = key.verify(header.signature.as_slice(), &mut reader)?;
+    Ok((key.named_revision().clone(), hash))
+}
 
-    let _ = {
-        let mut buffer = String::new();
-        match reader.read_line(&mut buffer) {
-            Ok(0) => {
-                return Err(Error::CryptoError("Corrupt payload, can't read format \
-                                               version"
-                                                       .to_string()));
-            }
-            Ok(_) => {
-                if buffer.trim() != HART_FORMAT_VERSION {
-                    let msg = format!("Unsupported format version: {}", &buffer.trim());
-                    return Err(Error::CryptoError(msg));
-                }
-            }
-            Err(e) => return Err(Error::from(e)),
-        };
-        buffer.trim().to_string()
-    };
-    let name_with_rev = {
-        let mut buffer = String::new();
-        if reader.read_line(&mut buffer)? == 0 {
-            return Err(Error::CryptoError("Corrupt payload, can't read origin \
-                                           key name"
-                                                    .to_string()));
-        }
-        parse_name_with_rev(buffer.trim())?;
-        buffer.trim().to_string()
-    };
-    Ok(name_with_rev)
+/// Parse a HART file (referred to by filesystem path) to discover the
+/// signing key revision that was used to sign it.
+pub fn artifact_signer<P>(hart_file_path: P) -> Result<NamedRevision>
+    where P: AsRef<Path>
+{
+    let (header, _reader) = artifact_header_and_archive(hart_file_path)?;
+    Ok(header.signer)
 }
 
 #[cfg(test)]
 mod test {
-    use std::{fs::{self,
-                   File},
-              io::{BufRead,
-                   BufReader,
-                   Read,
-                   Write}};
-
-    use tempfile::Builder;
-
-    use super::{super::{keys::parse_name_with_rev,
-                        test_support::*,
-                        SigKeyPair,
+    use super::{super::{test_support::*,
                         HART_FORMAT_VERSION,
                         SIG_HASH_TYPE},
                 *};
 
     #[test]
-    fn sign_and_verify() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
-
-        sign(&fixture("signme.dat"), &dst, &pair).unwrap();
-        verify(&dst, cache.path()).unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "Secret key is required but not present for")]
-    fn sign_missing_private_key() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
-
-        // Delete the secret key
-        fs::remove_file(
-            SigKeyPair::get_secret_key_path(&pair.name_with_rev(), cache.path()).unwrap(),
-        )
-        .unwrap();
-        // Now reload the key pair which will be missing the secret key
-        let pair = SigKeyPair::get_latest_pair_for("unicorn", cache.path(), None).unwrap();
-
-        sign(&fixture("signme.dat"), &dst, &pair).unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "Public key is required but not present for")]
-    fn verify_missing_public_key() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
-        sign(&fixture("signme.dat"), &dst, &pair).unwrap();
-
-        // Delete the public key
-        fs::remove_file(
-            SigKeyPair::get_public_key_path(&pair.name_with_rev(), cache.path()).unwrap(),
-        )
-        .unwrap();
-        // Now reload the key pair which will be missing the public key
-        let _ = SigKeyPair::get_latest_pair_for("unicorn", cache.path(), None).unwrap();
-
-        verify(&dst, cache.path()).unwrap();
-    }
-
-    #[test]
     #[should_panic(expected = "Corrupt payload, can\\'t read format version")]
     fn verify_empty_format_version() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let dst = cache.path().join("signed.dat");
+        let (cache, dir) = new_cache();
+
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(b"").unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Unsupported format version: SOME-VERSION")]
     fn verify_invalid_format_version() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let dst = cache.path().join("signed.dat");
+        let (cache, dir) = new_cache();
+
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(b"SOME-VERSION\nuhoh").unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
-    #[should_panic(expected = "parse_name_with_rev:1 Cannot parse")]
+    #[should_panic(expected = "Cannot parse named revision \\'\\'")]
     fn verify_empty_key_name() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let dst = cache.path().join("signed.dat");
+        let (cache, dir) = new_cache();
+
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(b"HART-1\n\nuhoh").unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
-    #[should_panic(expected = "parse_name_with_rev:1 Cannot parse")]
+    #[should_panic(expected = "Cannot parse named revision \\'nope-nope\\'")]
     fn verify_invalid_key_name() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let dst = cache.path().join("signed.dat");
+        let (cache, dir) = new_cache();
+
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(b"HART-1\nnope-nope\nuhoh").unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Corrupt payload, can\\'t read hash type")]
     fn verify_empty_hash_type() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
+        let (cache, dir) = new_cache();
+        let (public, _secret) = cache.new_signing_pair("unicorn").unwrap();
+
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\n", pair.name_with_rev()).as_bytes())
+        f.write_all(format!("HART-1\n{}\n", public.named_revision()).as_bytes())
          .unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Unsupported signature type: BESTEST")]
     fn verify_invalid_hash_type() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
+        let (cache, dir) = new_cache();
+        let (public, _secret) = cache.new_signing_pair("unicorn").unwrap();
+
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\nBESTEST\nuhoh", pair.name_with_rev()).as_bytes())
+        f.write_all(format!("HART-1\n{}\nBESTEST\nuhoh", public.named_revision()).as_bytes())
          .unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Corrupt payload, can\\'t read signature")]
     fn verify_empty_signature() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
+        let (cache, dir) = new_cache();
+        let (public, _secret) = cache.new_signing_pair("unicorn").unwrap();
+
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\nBLAKE2b\n", pair.name_with_rev()).as_bytes())
+        f.write_all(format!("HART-1\n{}\nBLAKE2b\n", public.named_revision()).as_bytes())
          .unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Can\\'t decode signature")]
     fn verify_invalid_signature_decode() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
+        let (cache, dir) = new_cache();
+        let (public, _secret) = cache.new_signing_pair("unicorn").unwrap();
+
+        let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
         f.write_all(format!("HART-1\n{}\nBLAKE2b\nnot:base64:signature",
-                            pair.name_with_rev()).as_bytes())
+                            public.named_revision()).as_bytes())
          .unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Corrupt payload, can\\'t find end of header")]
     fn verify_missing_end_of_header() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
-        let mut f = File::create(&dst).unwrap();
-        f.write_all(
-            format!("HART-1\n{}\nBLAKE2b\nU3VycHJpc2Uh\n", pair.name_with_rev()).as_bytes(),
-        )
-        .unwrap();
+        let (cache, dir) = new_cache();
+        let (public, _secret) = cache.new_signing_pair("unicorn").unwrap();
 
-        verify(&dst, cache.path()).unwrap();
+        let dst = dir.path().join("signed.dat");
+        let mut f = File::create(&dst).unwrap();
+        f.write_all(format!("HART-1\n{}\nBLAKE2b\nU3VycHJpc2Uh\n",
+                            public.named_revision()).as_bytes())
+         .unwrap();
+
+        verify(&dst, &cache).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Habitat artifact is invalid")]
     fn verify_corrupted_archive() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let dst = cache.path().join("signed.dat");
-        let dst_corrupted = cache.path().join("corrupted.dat");
+        let (cache, dir) = new_cache();
+        let (_public, secret) = cache.new_signing_pair("unicorn").unwrap();
 
-        sign(&fixture("signme.dat"), &dst, &pair).unwrap();
+        let dst = dir.path().join("signed.dat");
+        let dst_corrupted = dir.path().join("corrupted.dat");
+
+        sign(&fixture("signme.dat"), &dst, &secret).unwrap();
         let mut corrupted = File::create(&dst_corrupted).unwrap();
         let f = File::open(&dst).unwrap();
         let f = BufReader::new(f);
@@ -467,19 +337,19 @@ mod test {
         corrupted.write_all(b"payload-wont-match-signature")
                  .unwrap(); // archive
 
-        verify(&dst_corrupted, cache.path()).unwrap();
+        verify(&dst_corrupted, &cache).unwrap();
     }
 
     #[test]
     fn get_archive_reader_working() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let src = cache.path().join("src.in");
-        let dst = cache.path().join("src.signed");
+        let (cache, dir) = new_cache();
+        let (_public, secret) = cache.new_signing_pair("unicorn").unwrap();
+
+        let src = dir.path().join("src.in");
+        let dst = dir.path().join("src.signed");
         let mut f = File::create(&src).unwrap();
         f.write_all(b"hearty goodness").unwrap();
-        sign(&src, &dst, &pair).unwrap();
+        sign(&src, &dst, &secret).unwrap();
 
         let mut buffer = String::new();
         let mut reader = get_archive_reader(&dst).unwrap();
@@ -489,20 +359,57 @@ mod test {
 
     #[test]
     fn verify_get_artifact_header() {
-        let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn");
-        pair.to_pair_files(cache.path()).unwrap();
-        let src = cache.path().join("src.in");
-        let dst = cache.path().join("src.signed");
+        let (cache, dir) = new_cache();
+        let (_public, secret) = cache.new_signing_pair("unicorn").unwrap();
+
+        let src = dir.path().join("src.in");
+        let dst = dir.path().join("src.signed");
         let mut f = File::create(&src).unwrap();
         f.write_all(b"hearty goodness").unwrap();
-        sign(&src, &dst, &pair).unwrap();
+        sign(&src, &dst, &secret).unwrap();
 
         let hart_header = get_artifact_header(&dst).unwrap();
-        assert_eq!(HART_FORMAT_VERSION, hart_header.format_version);
-        let (key_name, _rev) = parse_name_with_rev(&hart_header.key_name).unwrap();
-        assert_eq!("unicorn", key_name);
-        assert_eq!(SIG_HASH_TYPE, hart_header.hash_type);
-        assert!(!hart_header.signature_raw.is_empty());
+        assert_eq!(HART_FORMAT_VERSION, hart_header.format());
+        assert_eq!("unicorn", hart_header.signer().name());
+        assert_eq!(SIG_HASH_TYPE, hart_header.hash_type());
+        assert!(!hart_header.encoded_signature().is_empty());
+    }
+
+    mod artifact_header {
+        use super::*;
+
+        #[test]
+        fn get_artifact_header_works() {
+            let hart_path = fixture("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart");
+            let header = get_artifact_header(&hart_path).unwrap();
+
+            assert_eq!(header.format(), "HART-1");
+            assert_eq!(header.signer().to_string(), "happyhumans-20160424223347");
+            assert_eq!(header.hash_type(), "BLAKE2b");
+            assert_eq!(header.encoded_signature(),
+                       "U0cp/+npru0ZxhK76zm+PDVSV/707siyrO1r7T6CZZ4ShSLrIxyx8jLSMr5wnLuGrVIV358smQPWOSTOmyfFCjBmMmM1ZjRkZTE0NWM3Zjc4NjAxY2FhZTljN2I4NzY3MDk4NDEzZDA1NzM5ZGU5MTNjMDEyOTIyYjdlZWQ3NjA=");
+        }
+    }
+
+    mod artifact_signer {
+        use super::*;
+
+        #[test]
+        fn get_named_revision_from_artifact() {
+            let hart_path = fixture("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart");
+            let signer = artifact_signer(&hart_path).unwrap();
+            let expected: NamedRevision = "happyhumans-20160424223347".parse().unwrap();
+            assert_eq!(signer, expected);
+        }
+
+        #[test]
+        #[should_panic(expected = "Cannot parse named revision")]
+        fn fails_on_invalid_hart() {
+            // Not really a HART file, but has enough of a header to
+            // be parsed by `artifact_signer`. It has an invalid
+            // signing key identifier.
+            let hart_path = fixture("bogus_and_corrupt.hart");
+            artifact_signer(&hart_path).unwrap();
+        }
     }
 }

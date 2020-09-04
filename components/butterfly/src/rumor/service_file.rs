@@ -11,13 +11,12 @@ use crate::{error::{Error,
             rumor::{Rumor,
                     RumorPayload,
                     RumorType}};
-use habitat_core::{crypto::{keys::box_key_pair::WrappedSealedBox,
-                            BoxKeyPair},
+use habitat_core::{crypto::keys::{KeyCache,
+                                  SignedBox},
                    service::ServiceGroup};
 use std::{cmp::Ordering,
           fmt,
           mem,
-          path::Path,
           str::FromStr};
 
 #[derive(Debug, Clone, Serialize)]
@@ -27,7 +26,7 @@ pub struct ServiceFile {
     pub incarnation:   u64,
     pub encrypted:     bool,
     pub filename:      String,
-    pub body:          Vec<u8>, // TODO: make this a String
+    pub body:          Vec<u8>,
 }
 
 impl fmt::Display for ServiceFile {
@@ -76,26 +75,22 @@ impl ServiceFile {
                       body }
     }
 
-    /// Encrypt the contents of the service file
-    pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
-        self.body = user_pair.encrypt(&self.body, Some(service_pair))?
-                             .into_bytes();
-        self.encrypted = true;
-        Ok(())
-    }
-
     /// Return the body of the service file as a stream of bytes. Always returns a new copy, due to
     /// the fact that we might be encrypted.
-    pub fn body(&self, cache_key_path: &Path) -> Result<Vec<u8>> {
+    // TODO (CM): Technically, we could return a Cow here to achieve
+    // the same effect a bit more efficiently, but the lifetime
+    // parameter looks like it would complicate a lot of other
+    // code. It's not clear that the gain in efficiency is worth the
+    // conceptual overhead at this time... perhaps with future
+    // refactoring, though.
+    pub fn body(&self, key_cache: &KeyCache) -> Result<Vec<u8>> {
         if self.encrypted {
-            let bytes = BoxKeyPair::decrypt_with_path(
-                &WrappedSealedBox::from_bytes(&self.body)
-                    .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?,
-                cache_key_path,
-            )?;
-            Ok(bytes)
+            let secret = SignedBox::from_bytes(&self.body)?;
+            let user_public_key = key_cache.user_public_encryption_key(secret.encryptor())?;
+            let service_secret_key = key_cache.service_secret_encryption_key(secret.decryptor())?;
+            Ok(service_secret_key.decrypt_user_message(&secret, &user_public_key)?)
         } else {
-            Ok(self.body.to_vec())
+            Ok(self.body.clone())
         }
     }
 }
@@ -154,13 +149,11 @@ impl Rumor for ServiceFile {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use crate::rumor::Rumor;
+    use habitat_core::service::ServiceGroup;
     use std::{cmp::Ordering,
               str::FromStr};
-
-    use habitat_core::service::ServiceGroup;
-
-    use super::ServiceFile;
-    use crate::rumor::Rumor;
 
     fn create_service_file(member_id: &str, filename: &str, body: &str) -> ServiceFile {
         let body_bytes: Vec<u8> = Vec::from(body);
@@ -235,7 +228,7 @@ mod tests {
     #[test]
     fn config_comes_back_as_a_string() {
         let s1 = create_service_file("adam", "yep", "tcp-backlog = 128");
-        let mock_cache_key_path = std::path::PathBuf::new();
+        let mock_cache_key_path = KeyCache::new(std::path::PathBuf::new());
         assert_eq!(String::from_utf8(s1.body(&mock_cache_key_path).unwrap()).expect("cannot get a utf-8 string for \
                                                                  the body"),
                    String::from("tcp-backlog = 128"));

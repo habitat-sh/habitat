@@ -1,21 +1,20 @@
-use std::path::Path;
-
 use crate::{common::ui::{Status,
                          UIWriter,
                          UI},
-            hcore::crypto::{artifact,
-                            SigKeyPair}};
+            error::Result};
+use habitat_core::crypto::{artifact,
+                           keys::{Key,
+                                  SecretOriginSigningKey}};
+use std::path::Path;
 
-use crate::error::Result;
-
-pub fn start(ui: &mut UI, origin: &SigKeyPair, src: &Path, dst: &Path) -> Result<()> {
+pub fn start(ui: &mut UI, key: &SecretOriginSigningKey, src: &Path, dst: &Path) -> Result<()> {
     ui.begin(format!("Signing {}", src.display()))?;
     ui.status(Status::Signing,
               format!("{} with {} to create {}",
                       src.display(),
-                      &origin.name_with_rev(),
+                      key.named_revision(),
                       dst.display()))?;
-    artifact::sign(src, dst, origin)?;
+    artifact::sign(src, dst, key)?;
     ui.end(format!("Signed artifact {}.", dst.display()))?;
     Ok(())
 }

@@ -1,17 +1,16 @@
-use std::{fs::File,
-          io,
-          path::Path};
-
-use crate::hcore::crypto::SymKey;
-
 use crate::error::Result;
+use habitat_core::crypto::keys::{Key,
+                                 KeyCache,
+                                 KeyFile};
+use std::io::{self,
+              Write};
 
-pub fn start(ring: &str, cache: &Path) -> Result<()> {
-    let latest = SymKey::get_latest_pair_for(ring, cache)?;
-    let path = SymKey::get_secret_key_path(&latest.name_with_rev(), cache)?;
-    let mut file = File::open(&path)?;
-    debug!("Streaming file contents of {} to standard out",
-           &path.display());
-    io::copy(&mut file, &mut io::stdout())?;
+pub fn start(ring: &str, key_cache: &KeyCache) -> Result<()> {
+    key_cache.setup()?;
+    let key = key_cache.latest_ring_key_revision(ring)?;
+    debug!("Streaming key contents of {} to standard output",
+           key.named_revision());
+    let contents = key.to_key_string();
+    io::stdout().write_all(contents.as_bytes())?;
     Ok(())
 }

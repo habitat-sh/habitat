@@ -20,15 +20,17 @@ use crate::{api_client::{self,
                          UI},
             error::{Error,
                     Result},
-            hcore::{crypto::{keys::parse_name_with_rev,
-                             PUBLIC_KEY_SUFFIX,
-                             PUBLIC_SIG_KEY_VERSION},
-                    ChannelIdent},
             PRODUCT,
             VERSION};
 use glob::glob_with;
+use habitat_core::{crypto::{keys::{Key,
+                                   KeyCache,
+                                   PublicOriginSigningKey},
+                            PUBLIC_KEY_SUFFIX},
+                   ChannelIdent};
 use reqwest::StatusCode;
 use std::{collections::BTreeSet,
+          convert::TryFrom,
           path::{Path,
                  PathBuf}};
 
@@ -47,10 +49,10 @@ pub async fn start(ui: &mut UI,
                    force_upload: bool,
                    auto_build: BuildOnUpload,
                    auto_create_origins: bool,
-                   key_path: &Path)
+                   key_cache: &KeyCache)
                    -> Result<()> {
     let artifact_paths = paths_with_extension(artifact_path, "hart");
-    let pub_keys_paths = paths_with_extension(key_path, PUBLIC_KEY_SUFFIX);
+    let pub_keys_paths = paths_with_extension(key_cache.as_ref(), PUBLIC_KEY_SUFFIX);
 
     ui.begin(format!("Preparing to upload artifacts to the '{}' channel on {}",
                      additional_release_channel.clone()
@@ -59,7 +61,7 @@ pub async fn start(ui: &mut UI,
     ui.status(Status::Using,
               format!("{} for artifacts and {} for signing keys",
                       &artifact_path.display(),
-                      key_path.display()))?;
+                      key_cache.as_ref().display()))?;
     ui.status(Status::Found,
               format!("{} artifact(s) for upload.", artifact_paths.len()))?;
     ui.status(Status::Discovering,
@@ -72,10 +74,8 @@ pub async fn start(ui: &mut UI,
         // using PackageArchive::new() but that proves too expensive an operation at any sort of
         // scale. Relevant: https://github.com/habitat-sh/habitat/issues/5153
         debug!("Parsing public signing key {}", pub_key_path.display());
-        let name_with_rev =
-            command::origin::key::get_name_with_rev(&pub_key_path, PUBLIC_SIG_KEY_VERSION)?;
-        let (name, _rev) = parse_name_with_rev(name_with_rev)?;
-        origins.insert(name);
+        let public_key: PublicOriginSigningKey = TryFrom::try_from(pub_key_path)?;
+        origins.insert(public_key.named_revision().name().to_string());
     }
     let mut origins_to_create: Vec<String> = Vec::new();
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
@@ -116,7 +116,7 @@ pub async fn start(ui: &mut UI,
                                     &artifact_path,
                                     force_upload,
                                     auto_build,
-                                    &key_path).await?
+                                    key_cache).await?
     }
 
     Ok(())

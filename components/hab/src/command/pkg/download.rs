@@ -41,8 +41,8 @@ use crate::{api_client::{self,
                          Package},
             common::Error as CommonError,
             hcore::{crypto::{artifact,
-                             keys::parse_name_with_rev,
-                             SigKeyPair},
+                             keys::{KeyCache,
+                                    NamedRevision}},
                     fs::cache_root_path,
                     package::{Identifiable,
                               PackageArchive,
@@ -120,7 +120,7 @@ pub async fn start<U>(ui: &mut U,
     where U: UIWriter
 {
     debug!(
-           "Starting download with url: {}, product: {}, version: {}, 
+           "Starting download with url: {}, product: {}, version: {},
          download_path: {:?}, token: {:?}, verify: {}, ignore_missing_seeds: {}, set_count: {}",
            url,
            product,
@@ -383,14 +383,17 @@ impl<'a> DownloadTask<'a> {
 
     async fn fetch_origin_key<T>(&self,
                                  ui: &mut T,
-                                 name_with_rev: &str,
+                                 named_revision: NamedRevision,
                                  token: Option<&str>)
                                  -> Result<()>
         where T: UIWriter
     {
-        let (name, rev) = parse_name_with_rev(&name_with_rev)?;
         self.api_client
-            .fetch_origin_key(&name, &rev, token, &self.path_for_keys(), ui.progress())
+            .fetch_origin_key(named_revision.name(),
+                              named_revision.revision(),
+                              token,
+                              &self.path_for_keys(),
+                              ui.progress())
             .await?;
         Ok(())
     }
@@ -407,15 +410,20 @@ impl<'a> DownloadTask<'a> {
         // Once we have them, it's the natural time to verify.
         // Otherwise, it might make sense to take this fetch out of the verification code.
         let signer = artifact::artifact_signer(&artifact.path)?;
-        if SigKeyPair::get_public_key_path(&signer, &self.path_for_keys()).is_err() {
+
+        let cache = KeyCache::new(&self.path_for_keys());
+        cache.setup()?;
+
+        if cache.public_signing_key(&signer).is_err() {
             ui.status(Status::Downloading,
-                      format!("public key for signer {:?}", signer))?;
-            self.fetch_origin_key(ui, &signer, self.token).await?;
-        }
+                      format!("public key for signer {}", signer))?;
+            self.fetch_origin_key(ui, signer.clone(), self.token)
+                .await?;
+        };
 
         if self.verify {
             ui.status(Status::Verifying, artifact.ident()?)?;
-            artifact.verify(&self.path_for_keys())?;
+            artifact::verify(&artifact.path, &cache)?;
             debug!("Verified {} for {} signed by {}", ident, target, &signer);
         }
         Ok(())

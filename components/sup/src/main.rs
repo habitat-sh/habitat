@@ -38,7 +38,8 @@ use habitat_common::{command::package::install::InstallSource,
                      FeatureFlag};
 use habitat_core::{self,
                    crypto::{self,
-                            SymKey},
+                            keys::{KeyCache,
+                                   RingKey}},
                    os::signals};
 use habitat_launcher_client::{LauncherCli,
                               ERR_NO_RETRY_EXCODE,
@@ -280,11 +281,14 @@ async fn split_apart_sup_run(sup_run: SupRun,
 
     let bldr_url = habitat_core::url::bldr_url(shared_load.bldr_url.as_ref());
 
+    let key_cache = KeyCache::new(sup_run.cache_key_path.cache_key_path);
+    key_cache.setup()?;
+
     let cfg = ManagerConfig { auto_update: sup_run.auto_update,
                               auto_update_period: sup_run.auto_update_period.into(),
                               service_update_period: sup_run.service_update_period.into(),
                               custom_state_path: None, // remove entirely?
-                              cache_key_path: sup_run.cache_key_path.cache_key_path,
+                              key_cache,
                               update_url: bldr_url.clone(),
                               update_channel: shared_load.channel.clone(),
                               http_disable: sup_run.http_disable,
@@ -345,17 +349,21 @@ async fn split_apart_sup_run(sup_run: SupRun,
 // Various CLI Parsing Functions
 ////////////////////////////////////////////////////////////////////////
 
-fn get_ring_key(sup_run: &SupRun) -> Result<Option<SymKey>> {
+fn get_ring_key(sup_run: &SupRun) -> Result<Option<RingKey>> {
     let cache_key_path = &sup_run.cache_key_path.cache_key_path;
+    let cache = KeyCache::new(cache_key_path);
+    cache.setup()?;
+
     match &sup_run.ring {
-        Some(val) => {
-            let key = SymKey::get_latest_pair_for(val, cache_key_path)?;
+        Some(key_name) => {
+            let key = cache.latest_ring_key_revision(key_name)?;
             Ok(Some(key))
         }
         None => {
             match &sup_run.ring_key {
-                Some(val) => {
-                    let (key, _) = SymKey::write_file_from_str(val, cache_key_path)?;
+                Some(key_content) => {
+                    let key: RingKey = key_content.parse()?;
+                    cache.write_key(&key)?;
                     Ok(Some(key))
                 }
                 None => Ok(None),
@@ -386,7 +394,8 @@ mod test {
     use habitat_common::types::{GossipListenAddr,
                                 HttpListenAddr,
                                 ListenCtlAddr};
-    use habitat_core::locked_env_var;
+    use habitat_core::{fs::CACHE_KEY_PATH,
+                       locked_env_var};
     use habitat_sup_protocol::{ctl::ServiceBindList,
                                types::{BindingMode,
                                        ServiceBind,
@@ -429,7 +438,8 @@ mod test {
         use habitat_common::types::EventStreamConnectMethod;
         #[cfg(windows)]
         use habitat_core::crypto::dpapi::decrypt;
-        use habitat_core::{fs::CACHE_KEY_PATH,
+        use habitat_core::{crypto::keys::{Key,
+                                          NamedRevision},
                            package::PackageIdent,
                            ChannelIdent};
         use std::{collections::HashMap,
@@ -632,20 +642,23 @@ mod test {
 
         #[test]
         fn ring_key_is_set_properly_by_name() {
-            let key_cache = TempDir::new().expect("Could not create tempdir");
+            let temp_dir = TempDir::new().expect("Could not create tempdir");
+
+            let cache = KeyCache::new(temp_dir.path());
             let lock = lock_var();
-            lock.set(key_cache.path());
+            lock.set(temp_dir.path());
 
             let key_content =
                 "SYM-SEC-1\nfoobar-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
-            let (pair, _) = SymKey::write_file_from_str(key_content, key_cache.path())
-                .expect("Could not write key pair");
+            let key: RingKey = key_content.parse().unwrap();
+            cache.write_key(&key).unwrap();
+
             let config = config_from_cmd_str("hab-sup run --ring foobar");
 
             assert_eq!(config.ring_key
                              .expect("No ring key on manager config")
-                             .name_with_rev(),
-                       pair.name_with_rev());
+                             .named_revision(),
+                       key.named_revision());
         }
 
         #[test]
@@ -668,8 +681,8 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
 
             assert_eq!(config.ring_key
                              .expect("No ring key on manager config")
-                             .name_with_rev(),
-                       "foobar-20160504220722");
+                             .named_revision(),
+                       &"foobar-20160504220722".parse::<NamedRevision>().unwrap());
         }
 
         const CERT_FILE_CONTENTS: &str = r#"-----BEGIN CERTIFICATE-----
@@ -704,7 +717,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       cache_key_path:        (&*CACHE_KEY_PATH).to_path_buf(),
+                                       key_cache:             KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),
@@ -736,12 +749,13 @@ gpoVMSncu2jMIDZX63IkQII=
 
             let temp_dir = TempDir::new().expect("Could not create tempdir");
             let temp_dir_str = temp_dir.path().to_str().unwrap();
+            let cache = KeyCache::new(temp_dir.path());
 
             // Setup key file
             let key_content =
                 "SYM-SEC-1\ntester-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
-            let (sym_key, _) = SymKey::write_file_from_str(key_content, temp_dir.path())
-                                       .expect("Could not write key pair");
+            let ring_key: RingKey = key_content.parse().unwrap();
+            cache.write_key(&ring_key).unwrap();
 
             // Setup cert files
             let key_path = temp_dir.path().join("key");
@@ -773,7 +787,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        auto_update_period: Duration::from_secs(90),
                                        service_update_period: Duration::from_secs(30),
                                        custom_state_path: None,
-                                       cache_key_path: PathBuf::from(temp_dir_str),
+                                       key_cache: KeyCache::new(temp_dir_str),
                                        update_url: String::from("https://bldr.habitat.sh"),
                                        update_channel: ChannelIdent::default(),
                                        gossip_listen:
@@ -785,7 +799,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        http_disable: true,
                                        gossip_peers,
                                        gossip_permanent: true,
-                                       ring_key: Some(sym_key),
+                                       ring_key: Some(ring_key),
                                        organization: Some(String::from("MY_ORG")),
                                        watch_peer_file: None,
                                        tls_config: Some(TLSConfig { cert_path,
@@ -811,7 +825,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       cache_key_path:        PathBuf::from("/cache/key/path"),
+                                       key_cache:             KeyCache::new("/cache/key/path"),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),
@@ -846,7 +860,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       cache_key_path:        (&*CACHE_KEY_PATH).to_path_buf(),
+                                       key_cache:             KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),
@@ -910,10 +924,10 @@ gpoVMSncu2jMIDZX63IkQII=
             meta.insert(String::from("key2"), String::from("val2"));
             meta.insert(String::from("keyA"), String::from("valA"));
             assert_eq!(ManagerConfig { auto_update:          false,
-                auto_update_period:   Duration::from_secs(60),
-                service_update_period:   Duration::from_secs(60),
+                                       auto_update_period:   Duration::from_secs(60),
+                                       service_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
-                                       cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
+                                       key_cache:       KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:       ChannelIdent::default(),
@@ -1028,12 +1042,13 @@ gpoVMSncu2jMIDZX63IkQII=
 
             let temp_dir = TempDir::new().expect("Could not create tempdir");
             let temp_dir_str = temp_dir.path().to_str().unwrap();
+            let cache = KeyCache::new(temp_dir.path());
 
             // Setup key file
             let key_content =
                 "SYM-SEC-1\ntester-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
-            let (sym_key, _) = SymKey::write_file_from_str(key_content, temp_dir.path())
-                               .expect("Could not write key pair");
+            let ring_key: RingKey = key_content.parse().unwrap();
+            cache.write_key(&ring_key).unwrap();
 
             // Setup cert files
             let key_path = temp_dir.path().join("key");
@@ -1090,7 +1105,7 @@ sys_ip_address = "7.8.9.0"
                                        auto_update_period: Duration::from_secs(3600),
                                        service_update_period: Duration::from_secs(1_000),
                                        custom_state_path: None,
-                                       cache_key_path: PathBuf::from(temp_dir_str),
+                                       key_cache: KeyCache::new(temp_dir_str),
                                        update_url: String::from("https://bldr.habitat.sh"),
                                        update_channel: ChannelIdent::default(),
                                        gossip_listen:
@@ -1102,7 +1117,7 @@ sys_ip_address = "7.8.9.0"
                                        http_disable: true,
                                        gossip_peers,
                                        gossip_permanent: true,
-                                       ring_key: Some(sym_key),
+                                       ring_key: Some(ring_key),
                                        organization: Some(String::from("MY_ORG")),
                                        watch_peer_file: None,
                                        tls_config: Some(TLSConfig { cert_path,
@@ -1137,7 +1152,7 @@ sys_ip_address = "7.8.9.0"
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       cache_key_path:        PathBuf::from("/cache/key/path"),
+                                       key_cache:             KeyCache::new("/cache/key/path"),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),
@@ -1181,7 +1196,7 @@ sys_ip_address = "7.8.9.0"
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       cache_key_path:        (&*CACHE_KEY_PATH).to_path_buf(),
+                                       key_cache:             KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),
@@ -1285,7 +1300,7 @@ event_stream_server_certificate = "{}"
                 auto_update_period:   Duration::from_secs(60),
                 service_update_period:   Duration::from_secs(60),
                                        custom_state_path:    None,
-                                       cache_key_path:       (&*CACHE_KEY_PATH).to_path_buf(),
+                                       key_cache:       KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:       ChannelIdent::default(),
@@ -1469,7 +1484,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
                                        auto_update_period:    Duration::from_secs(60),
                                        service_update_period: Duration::from_secs(60),
                                        custom_state_path:     None,
-                                       cache_key_path:        (&*CACHE_KEY_PATH).to_path_buf(),
+                                       key_cache:             KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:        ChannelIdent::default(),

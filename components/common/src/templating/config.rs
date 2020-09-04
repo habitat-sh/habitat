@@ -428,43 +428,48 @@ impl CfgRenderer {
             let compiled_hash = crypto::hash::hash_string(&compiled);
             let cfg_dest = render_path.as_ref().join(&template);
             let file_hash = match crypto::hash::hash_file(&cfg_dest) {
-                Ok(file_hash) => file_hash,
+                Ok(file_hash) => Some(file_hash),
                 Err(e) => {
                     debug!("Cannot read the file in order to hash it: {}", e);
-                    String::new()
+                    None
                 }
             };
-            changed |= if file_hash.is_empty() {
-                debug!("Configuration {} does not exist; restarting",
-                       cfg_dest.display());
+            changed |= match file_hash {
+                None => {
+                    debug!("Configuration {} does not exist; templating new file",
+                           cfg_dest.display());
 
-                ensure_directory_structure(render_path.as_ref(),
-                                           &cfg_dest,
-                                           &pkg.svc_user,
-                                           &pkg.svc_group)?;
-                write_templated_file(&cfg_dest, &compiled, &pkg.svc_user, &pkg.svc_group)?;
-                outputln!(
-                    preamble service_group_name,
-                    "Created configuration file {}",
-                    cfg_dest.display()
-                );
+                    ensure_directory_structure(render_path.as_ref(),
+                                               &cfg_dest,
+                                               &pkg.svc_user,
+                                               &pkg.svc_group)?;
+                    write_templated_file(&cfg_dest, &compiled, &pkg.svc_user, &pkg.svc_group)?;
+                    outputln!(
+                        preamble service_group_name,
+                        "Created configuration file {}",
+                        cfg_dest.display()
+                    );
 
-                true
-            } else if file_hash == compiled_hash {
-                debug!("Configuration {} {} has not changed; not restarting.",
-                       cfg_dest.display(),
-                       file_hash);
-                false
-            } else {
-                debug!("Configuration {} has changed; restarting",
-                       cfg_dest.display());
-                write_templated_file(&cfg_dest, &compiled, &pkg.svc_user, &pkg.svc_group)?;
-                outputln!(
-                    preamble service_group_name,
-                    "Modified configuration file {}",
-                    cfg_dest.display()
-                );
-                true
+                    true
+                }
+                Some(file_hash) => {
+                    if file_hash == compiled_hash {
+                        debug!("Configuration {} {} has not changed; not re-templating.",
+                               cfg_dest.display(),
+                               file_hash);
+                        false
+                    } else {
+                        debug!("Configuration {} has changed; templating new data",
+                               cfg_dest.display());
+                        write_templated_file(&cfg_dest, &compiled, &pkg.svc_user, &pkg.svc_group)?;
+                        outputln!(
+                            preamble service_group_name,
+                            "Modified configuration file {}",
+                            cfg_dest.display()
+                        );
+                        true
+                    }
+                }
             };
         }
         Ok(changed)

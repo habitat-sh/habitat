@@ -20,6 +20,7 @@ use crate::{env as henv,
                       PackageIdent,
                       PackageInstall}};
 use std::{env,
+          fmt,
           fs,
           io::{self,
                Write},
@@ -89,6 +90,7 @@ pub const DEFAULT_SECRET_KEY_PERMISSIONS: Permissions = Permissions::Standard;
 
 /// An `Option`-like abstraction over platform-specific ways to model
 /// file permissions.
+#[derive(PartialEq)]
 pub enum Permissions {
     /// Don't take any special action to set permissions beyond what
     /// they are "normally" set to when they are created. Here,
@@ -111,6 +113,21 @@ pub enum Permissions {
 
 impl Default for Permissions {
     fn default() -> Permissions { Permissions::Standard }
+}
+
+// Explicitly implementing this so we can get octal formatting on
+// Linux. Otherwise, it would just be a regular decimal number, which
+// isn't very helpful when dealing with permission bits.
+impl fmt::Debug for Permissions {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Standard => write!(f, "Standard"),
+            #[cfg(windows)]
+            Self::Explicit(permissions) => write!(f, "Explicit({:?})", permissions),
+            #[cfg(not(windows))]
+            Self::Explicit(permissions) => write!(f, "Explicit({:#o})", permissions),
+        }
+    }
 }
 
 lazy_static::lazy_static! {

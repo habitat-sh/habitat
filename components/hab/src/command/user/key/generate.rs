@@ -1,15 +1,13 @@
-use std::path::Path;
-
 use crate::{common::ui::{UIWriter,
                          UI},
-            hcore::crypto::BoxKeyPair};
+            error::Result};
+use habitat_core::crypto::keys::{Key,
+                                 KeyCache};
 
-use crate::error::Result;
-
-pub fn start(ui: &mut UI, user: &str, cache: &Path) -> Result<()> {
-    ui.begin(format!("Generating user key for {}", &user))?;
-    let pair = BoxKeyPair::generate_pair_for_user(user)?;
-    pair.to_pair_files(cache)?;
-    ui.end(format!("Generated user key pair {}.", &pair.name_with_rev()))?;
+pub fn start(ui: &mut UI, user: &str, key_cache: &KeyCache) -> Result<()> {
+    ui.begin(format!("Generating user key for {}", user))?;
+    let (public, _secret) = key_cache.new_user_encryption_pair(user)?;
+    ui.end(format!("Generated user encryption key pair {}.",
+                   public.named_revision()))?;
     Ok(())
 }

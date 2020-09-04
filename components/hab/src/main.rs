@@ -33,7 +33,8 @@ use hab::{cli::{self,
                       util::{bldr_auth_token_from_args_env_or_load,
                              bldr_url_from_args_env_load_or_default},
                       Hab},
-                parse_optional_arg},
+                parse_optional_arg,
+                KeyType},
           command::{self,
                     pkg::{download::{PackageSet,
                                      PackageSetFile},
@@ -51,7 +52,7 @@ use hab::{cli::{self,
           VERSION};
 use habitat_api_client::BuildOnUpload;
 use habitat_common::{self as common,
-                     cli::cache_key_path_from_matches,
+                     cli::key_cache_from_matches,
                      command::package::install::{InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,
@@ -63,9 +64,8 @@ use habitat_common::{self as common,
                           UI},
                      FeatureFlag};
 use habitat_core::{crypto::{init,
-                            keys::PairType,
-                            BoxKeyPair,
-                            SigKeyPair},
+                            keys::{Key,
+                                   KeyCache}},
                    env::{self as henv,
                          Config as _},
                    fs::{cache_artifact_path,
@@ -523,10 +523,10 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
 }
 
 fn sub_cli_setup(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let cache_key_path = cache_key_path_from_matches(&m);
+    let key_cache = key_cache_from_matches(&m)?;
     init()?;
 
-    command::cli::setup::start(ui, &cache_key_path)
+    command::cli::setup::start(ui, &key_cache)
 }
 
 fn sub_cli_completers(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
@@ -549,7 +549,7 @@ async fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> 
     let with_encryption = m.is_present("WITH_ENCRYPTION");
     let token = maybe_auth_token(&m);
     let url = bldr_url_from_matches(&m)?;
-    let cache_key_path = cache_key_path_from_matches(&m);
+    let key_cache = key_cache_from_matches(&m)?;
 
     command::origin::key::download::start(ui,
                                           &url,
@@ -558,40 +558,40 @@ async fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> 
                                           with_secret,
                                           with_encryption,
                                           token.as_deref(),
-                                          &cache_key_path).await
+                                          &key_cache).await
 }
 
 fn sub_origin_key_export(m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").unwrap(); // Required via clap
-    let pair_type = PairType::from_str(m.value_of("PAIR_TYPE").unwrap_or("public"))?;
-    let cache_key_path = cache_key_path_from_matches(&m);
+    let key_type = KeyType::from_str(m.value_of("KEY_TYPE").unwrap_or("public"))?;
+    let key_cache = key_cache_from_matches(&m)?;
     init()?;
 
-    command::origin::key::export::start(origin, pair_type, &cache_key_path)
+    command::origin::key::export::start(origin, key_type, &key_cache)
 }
 
 fn sub_origin_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = origin_param_or_env(&m)?;
-    let cache_key_path = cache_key_path_from_matches(&m);
+    let key_cache = key_cache_from_matches(&m)?;
     init()?;
 
-    command::origin::key::generate::start(ui, &origin, &cache_key_path)
+    command::origin::key::generate::start(ui, &origin, &key_cache)
 }
 
 fn sub_origin_key_import(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let mut content = String::new();
-    let cache_key_path = cache_key_path_from_matches(&m);
+    let key_cache = key_cache_from_matches(&m)?;
     init()?;
     io::stdin().read_to_string(&mut content)?;
 
     // Trim the content to lose line feeds added by Powershell pipeline
-    command::origin::key::import::start(ui, content.trim(), &cache_key_path)
+    command::origin::key::import::start(ui, content.trim(), &key_cache)
 }
 
 async fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
-    let cache_key_path = cache_key_path_from_matches(&m);
+    let key_cache = key_cache_from_matches(&m)?;
 
     init()?;
 
@@ -604,7 +604,7 @@ async fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                                    &token,
                                                    origin,
                                                    with_secret,
-                                                   &cache_key_path).await
+                                                   &key_cache).await
     } else {
         let keyfile = Path::new(m.value_of("PUBLIC_FILE").unwrap());
         let secret_keyfile = m.value_of("SECRET_FILE").map(|f| Path::new(f));
@@ -618,14 +618,14 @@ async fn sub_origin_secret_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()>
     let origin = origin_param_or_env(&m)?;
     let key = m.value_of("KEY_NAME").unwrap();
     let secret = m.value_of("SECRET").unwrap();
-    let cache_key_path = cache_key_path_from_matches(&m);
+    let key_cache = key_cache_from_matches(&m)?;
     command::origin::secret::upload::start(ui,
                                            &url,
                                            &token,
                                            &origin,
                                            &key,
                                            &secret,
-                                           &cache_key_path).await
+                                           &key_cache).await
 }
 
 async fn sub_origin_secret_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -780,11 +780,11 @@ async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let keys_string = match m.values_of("HAB_ORIGIN_KEYS") {
         Some(keys) => {
             init()?;
-            let cache_key_path = cache_key_path_from_matches(&m);
-            for key in keys.clone() {
+            let key_cache = key_cache_from_matches(&m)?;
+
+            for key_name in keys.clone() {
                 // Validate that all secret keys are present
-                let pair = SigKeyPair::get_latest_pair_for(key, &cache_key_path, None)?;
-                let _ = pair.secret();
+                key_cache.latest_secret_origin_signing_key(key_name)?;
             }
             Some(keys.collect::<Vec<_>>().join(","))
         }
@@ -1154,21 +1154,26 @@ async fn sub_pkg_search(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let origin = origin_param_or_env(&m)?;
+
     let src = Path::new(m.value_of("SOURCE").unwrap()); // Required via clap
     let dst = Path::new(m.value_of("DEST").unwrap()); // Required via clap
-    let cache_key_path = cache_key_path_from_matches(&m);
-    init()?;
-    let pair = SigKeyPair::get_latest_pair_for(&origin_param_or_env(&m)?,
-                                               &cache_key_path,
-                                               Some(PairType::Secret))?;
 
-    command::pkg::sign::start(ui, &pair, &src, &dst)
+    let key_cache = key_cache_from_matches(&m)?;
+
+    init()?;
+
+    let key = key_cache.latest_secret_origin_signing_key(&origin)?;
+    command::pkg::sign::start(ui, &key, &src, &dst)
 }
 
 async fn sub_pkg_bulkupload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let upload_dir = bulkupload_dir_from_matches(m);
     let artifact_path = upload_dir.join("artifacts");
     let key_path = upload_dir.join("keys");
+    let key_cache = KeyCache::new(key_path);
+    key_cache.setup()?;
+
     let url = bldr_url_from_matches(m)?;
     let additional_release_channel = channel_from_matches(m);
     let force_upload = m.is_present("FORCE");
@@ -1188,11 +1193,11 @@ async fn sub_pkg_bulkupload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                     force_upload,
                                     auto_build,
                                     auto_create_origins,
-                                    &key_path).await
+                                    &key_cache).await
 }
 
 async fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let key_path = cache_key_path_from_matches(&m);
+    let key_cache = key_cache_from_matches(&m)?;
     let url = bldr_url_from_matches(&m)?;
 
     // When packages are uploaded, they *always* go to `unstable`;
@@ -1219,7 +1224,7 @@ async fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                     artifact_path,
                                     force_upload,
                                     auto_build,
-                                    &key_path).await?;
+                                    &key_cache).await?;
     }
     Ok(())
 }
@@ -1237,10 +1242,10 @@ async fn sub_pkg_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_pkg_verify(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let src = Path::new(m.value_of("SOURCE").unwrap()); // Required via clap
-    let cache_key_path = cache_key_path_from_matches(&m);
+    let key_cache = key_cache_from_matches(&m)?;
     init()?;
 
-    command::pkg::verify::start(ui, &src, &cache_key_path)
+    command::pkg::verify::start(ui, &src, &key_cache)
 }
 
 fn sub_pkg_header(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -1307,17 +1312,20 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
         process::exit(1);
     }
     validate.cfg = Some(buf.clone());
-    let cache = cache_key_path_from_matches(&m);
+    let key_cache = key_cache_from_matches(&m)?;
+
     let mut set = sup_proto::ctl::SvcSetCfg::default();
     match (service_group.org(), user_param_or_env(&m)) {
         (Some(_org), Some(username)) => {
-            let user_pair = BoxKeyPair::get_latest_pair_for(username, &cache)?;
-            let service_pair = BoxKeyPair::get_latest_pair_for(&service_group, &cache)?;
+            let user_key = key_cache.latest_user_secret_key(&username)?;
+            let service_key = key_cache.latest_service_public_key(&service_group)?;
             ui.status(Status::Encrypting,
                       format!("TOML as {} for {}",
-                              user_pair.name_with_rev(),
-                              service_pair.name_with_rev()))?;
-            set.cfg = Some(user_pair.encrypt(&buf, Some(&service_pair))?.into_bytes());
+                              user_key.named_revision(),
+                              service_key.named_revision()))?;
+            set.cfg = Some(user_key.encrypt_for_service(&buf, &service_key)
+                                   .to_string()
+                                   .into_bytes());
             set.is_encrypted = Some(true);
         }
         _ => set.cfg = Some(buf.to_vec()),
@@ -1490,7 +1498,8 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     msg.version = Some(value_t!(m, "VERSION_NUMBER", u64).unwrap());
     msg.filename = Some(file.file_name().unwrap().to_string_lossy().into_owned());
     let mut buf = Vec::with_capacity(sup_proto::butterfly::MAX_FILE_PUT_SIZE_BYTES);
-    let cache = cache_key_path_from_matches(&m);
+    let key_cache = key_cache_from_matches(&m)?;
+
     ui.begin(format!("Uploading file {} to {} incarnation {}",
                      file.display(),
                      msg.version
@@ -1505,13 +1514,17 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     File::open(&file)?.read_to_end(&mut buf)?;
     match (service_group.org(), user_param_or_env(&m)) {
         (Some(_org), Some(username)) => {
-            let user_pair = BoxKeyPair::get_latest_pair_for(username, &cache)?;
-            let service_pair = BoxKeyPair::get_latest_pair_for(&service_group, &cache)?;
+            // That Some(_org) bit is really "was an org specified for
+            // this service group?"
+            let user_key = key_cache.latest_user_secret_key(&username)?;
+            let service_key = key_cache.latest_service_public_key(&service_group)?;
             ui.status(Status::Encrypting,
                       format!("file as {} for {}",
-                              user_pair.name_with_rev(),
-                              service_pair.name_with_rev()))?;
-            msg.content = Some(user_pair.encrypt(&buf, Some(&service_pair))?.into_bytes());
+                              user_key.named_revision(),
+                              service_key.named_revision()))?;
+            msg.content = Some(user_key.encrypt_for_service(&buf, &service_key)
+                                       .to_string()
+                                       .into_bytes());
             msg.is_encrypted = Some(true);
         }
         _ => msg.content = Some(buf.to_vec()),
@@ -1609,45 +1622,45 @@ fn sub_supportbundle(ui: &mut UI) -> Result<()> {
 
 fn sub_ring_key_export(m: &ArgMatches<'_>) -> Result<()> {
     let ring = m.value_of("RING").unwrap(); // Required via clap
-    let cache_key_path = cache_key_path_from_matches(&m);
+    let key_cache = key_cache_from_matches(&m)?;
     init()?;
 
-    command::ring::key::export::start(ring, &cache_key_path)
+    command::ring::key::export::start(ring, &key_cache)
 }
 
 fn sub_ring_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let ring = m.value_of("RING").unwrap(); // Required via clap
-    let cache_key_path = cache_key_path_from_matches(&m);
+    let key_cache = key_cache_from_matches(&m)?;
     init()?;
 
-    command::ring::key::generate::start(ui, ring, &cache_key_path)
+    command::ring::key::generate::start(ui, ring, &key_cache)
 }
 
 fn sub_ring_key_import(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let mut content = String::new();
-    let cache_key_path = cache_key_path_from_matches(&m);
+    let key_cache = key_cache_from_matches(&m)?;
     init()?;
     io::stdin().read_to_string(&mut content)?;
 
     // Trim the content to lose line feeds added by Powershell pipeline
-    command::ring::key::import::start(ui, content.trim(), &cache_key_path)
+    command::ring::key::import::start(ui, content.trim(), &key_cache)
 }
 
 fn sub_service_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let org = org_param_or_env(&m)?;
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
-    let cache_key_path = cache_key_path_from_matches(&m);
+    let key_cache = key_cache_from_matches(&m)?;
     init()?;
 
-    command::service::key::generate::start(ui, &org, &service_group, &cache_key_path)
+    command::service::key::generate::start(ui, &org, &service_group, &key_cache)
 }
 
 fn sub_user_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let user = m.value_of("USER").unwrap(); // Required via clap
-    let cache_key_path = cache_key_path_from_matches(&m);
+    let key_cache = key_cache_from_matches(&m)?;
     init()?;
 
-    command::user::key::generate::start(ui, user, &cache_key_path)
+    command::user::key::generate::start(ui, user, &key_cache)
 }
 
 fn args_after_first(args_to_skip: usize) -> Vec<OsString> {

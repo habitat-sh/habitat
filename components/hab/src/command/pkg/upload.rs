@@ -13,7 +13,6 @@
 //!
 //! This should be extended to cover uploading specific packages, and finding them by ways more
 //! complex than just latest version.
-
 use crate::{api_client::{self,
                          BuildOnUpload,
                          BuilderAPIClient,
@@ -25,14 +24,15 @@ use crate::{api_client::{self,
                           UI}},
             error::{Error,
                     Result},
-            hcore::{crypto::{artifact::get_artifact_header,
-                             keys::parse_name_with_rev},
-                    package::{PackageArchive,
-                              PackageIdent,
-                              PackageTarget},
-                    ChannelIdent},
             PRODUCT,
             VERSION};
+use habitat_core::{crypto::{artifact::get_artifact_header,
+                            keys::{KeyCache,
+                                   KeyFile}},
+                   package::{PackageArchive,
+                             PackageIdent,
+                             PackageTarget},
+                   ChannelIdent};
 use reqwest::StatusCode;
 use retry::delay;
 use std::path::{Path,
@@ -54,13 +54,13 @@ pub async fn start(ui: &mut UI,
                    archive_path: &Path,
                    force_upload: bool,
                    auto_build: BuildOnUpload,
-                   key_path: &Path)
+                   key_cache: &KeyCache)
                    -> Result<()> {
     let mut archive = PackageArchive::new(PathBuf::from(archive_path))?;
 
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
-    upload_public_key(ui, token, &api_client, &mut archive, &key_path).await?;
+    upload_public_key(ui, token, &api_client, &mut archive, key_cache).await?;
 
     let tdeps = archive.tdeps()?;
     let ident = archive.ident()?;
@@ -97,7 +97,7 @@ pub async fn start(ui: &mut UI,
                                                                       (&dep, target),
                                                                       additional_release_channel,
                                                                       &candidate_path,
-                                                                      key_path)).await
+                                                                      key_cache)).await
                         {
                             Ok(_) => trace!("attempt_upload_dep succeeded"),
                             Err(_) => {
@@ -222,13 +222,13 @@ async fn attempt_upload_dep(ui: &mut UI,
                             (ident, target): (&PackageIdent, PackageTarget),
                             additional_release_channel: &Option<ChannelIdent>,
                             archives_dir: &PathBuf,
-                            key_path: &Path)
+                            key_cache: &KeyCache)
                             -> Result<()> {
     let candidate_path = archives_dir.join(ident.archive_name_with_target(target).unwrap());
 
     if candidate_path.is_file() {
         let mut archive = PackageArchive::new(candidate_path)?;
-        upload_public_key(ui, &token, api_client, &mut archive, key_path).await?;
+        upload_public_key(ui, &token, api_client, &mut archive, key_cache).await?;
         upload_into_depot(ui,
                           api_client,
                           token,
@@ -254,28 +254,32 @@ async fn upload_public_key(ui: &mut UI,
                            token: &str,
                            api_client: &BuilderAPIClient,
                            archive: &mut PackageArchive,
-                           key_path: &Path)
+                           key_cache: &KeyCache)
                            -> Result<()> {
-    let hart_header = get_artifact_header(&archive.path)?;
-    let public_keyfile_name = format!("{}.pub", &hart_header.key_name);
-    let public_keyfile = key_path.join(&public_keyfile_name);
+    let header = get_artifact_header(&archive.path)?;
 
-    let (name, rev) = parse_name_with_rev(&hart_header.key_name)?;
+    let public_key = key_cache.public_signing_key(header.signer())?;
+    let public_keyfile_name = public_key.own_filename();
+    let path_in_cache = key_cache.path_in_cache(&public_key);
 
-    match api_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress())
+    let name = header.signer().name();
+    let rev = header.signer().revision();
+
+    match api_client.put_origin_key(&name, &rev, &path_in_cache, token, ui.progress())
                     .await
     {
         Ok(()) => {
-            ui.begin(format!("Uploading public origin key {}", &public_keyfile_name))?;
+            ui.begin(format!("Uploading public origin key {}",
+                             public_keyfile_name.display()))?;
 
             ui.status(Status::Uploaded,
-                      format!("public origin key {}", &public_keyfile_name))?;
+                      format!("public origin key {}", public_keyfile_name.display()))?;
             Ok(())
         }
         Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
             ui.status(Status::Using,
                       format!("existing public origin key {} already on target",
-                              &public_keyfile_name))?;
+                              public_keyfile_name.display()))?;
             Ok(())
         }
         Err(err) => Err(Error::from(err)),

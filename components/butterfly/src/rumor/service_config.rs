@@ -12,13 +12,13 @@ use crate::{error::{Error,
                     Rumor,
                     RumorPayload,
                     RumorType}};
-use habitat_core::{crypto::{keys::box_key_pair::WrappedSealedBox,
-                            BoxKeyPair},
+use habitat_core::{crypto::keys::{KeyCache,
+                                  SignedBox},
                    service::ServiceGroup};
-use std::{cmp::Ordering,
+use std::{borrow::Cow,
+          cmp::Ordering,
           fmt,
           mem,
-          path::Path,
           str::{self,
                 FromStr}};
 
@@ -70,39 +70,28 @@ impl ServiceConfig {
                         config }
     }
 
-    pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
-        self.config = user_pair.encrypt(&self.config, Some(service_pair))?
-                               .into_bytes();
-        self.encrypted = true;
-        Ok(())
-    }
+    pub fn config(&self, key_cache: &KeyCache) -> Result<toml::value::Table> {
+        let bytes = if self.encrypted {
+            let secret = SignedBox::from_bytes(&self.config)?;
+            let user_public_key = key_cache.user_public_encryption_key(secret.encryptor())?;
+            let service_secret_key = key_cache.service_secret_encryption_key(secret.decryptor())?;
 
-    pub fn config(&self, cache_key_path: &Path) -> Result<toml::value::Table> {
-        let config = if self.encrypted {
-            let bytes = BoxKeyPair::decrypt_with_path(
-                    &WrappedSealedBox::from_bytes(&self.config)
-                        .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?,
-                    cache_key_path,
-                    )?;
-            let encoded = str::from_utf8(&bytes).map_err(|e| {
-                                                    Error::ServiceConfigNotUtf8(self.service_group
-                                                                                    .to_string(),
-                                                                                e)
-                                                })?;
-            self.parse_config(&encoded)?
+            service_secret_key.decrypt_user_message(&secret, &user_public_key)
+                              .map(Cow::Owned)?
         } else {
-            let encoded = str::from_utf8(&self.config).map_err(|e| {
-                              Error::ServiceConfigNotUtf8(self.service_group.to_string(), e)
-                          })?;
-            self.parse_config(&encoded)?
+            Cow::Borrowed(&self.config)
         };
-        Ok(config)
-    }
 
-    fn parse_config(&self, encoded: &str) -> Result<toml::value::Table> {
-        toml::from_str(encoded).map_err(|e| {
-                                   Error::ServiceConfigDecode(self.service_group.to_string(), e)
-                               })
+        let config =
+            str::from_utf8(&bytes).map_err(|e| {
+                                      Error::ServiceConfigNotUtf8(self.service_group.to_string(), e)
+                                  })
+                                  .map(toml::from_str)?
+                                  .map_err(|e| {
+                                      Error::ServiceConfigDecode(self.service_group.to_string(), e)
+                                  })?;
+
+        Ok(config)
     }
 }
 
@@ -164,9 +153,8 @@ impl ConstIdRumor for ServiceConfig {
 
 #[cfg(test)]
 mod tests {
-    use super::ServiceConfig;
-    use crate::rumor::{ConstIdRumor as _,
-                       Rumor,
+    use super::*;
+    use crate::rumor::{Rumor,
                        RumorStore};
     use habitat_core::service::ServiceGroup;
     use std::{cmp::Ordering,
@@ -265,7 +253,7 @@ mod tests {
     #[test]
     fn config_comes_back_as_a_toml_value() {
         let s1 = create_service_config("adam", "yep=1");
-        let mock_cache_key_path = std::path::PathBuf::new();
+        let mock_cache_key_path = KeyCache::new(std::path::PathBuf::new());
         assert_eq!(s1.config(&mock_cache_key_path).unwrap(),
                    toml::from_str::<toml::value::Table>("yep=1").unwrap());
     }
