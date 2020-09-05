@@ -1436,7 +1436,14 @@ impl BuilderAPIClient {
     }
 }
 
-/// Retry API operations unless error is a client-side HTTP error (400-499).
+/// Retry an API function until it succeeds or a client-side HTTP error (400-499) results, or
+/// until the given `Duration` iterator ends.
+///
+/// Use the following syntax:
+/// `retry_builder_api!(Future<Output = Into<OperationResult<R, E>>>)`
+/// or
+/// `retry_builder_api!(Future<Output = Into<OperationResult<R, E>>>), with_custom_iterator:
+/// IntoIterator<Item = Duration>)`
 #[macro_export]
 macro_rules! retry_builder_api {
     ($api_future:expr) => {

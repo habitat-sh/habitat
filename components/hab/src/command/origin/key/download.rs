@@ -174,7 +174,7 @@ async fn download_key(ui: &mut UI,
         Ok(())
     } else {
         retry_builder_api!(async {
-            ui.status(Status::Downloading, &nwr)?;
+            ui.status(Status::Downloading, named_revision)?;
             api_client.fetch_origin_key(named_revision.name(),
                                         named_revision.revision(),
                                         token,
@@ -182,13 +182,12 @@ async fn download_key(ui: &mut UI,
                                         ui.progress())
                       .await?;
             ui.status(Status::Cached,
-                      &format!("{} to {}", named_revision, cache.display()))?;
+                      &format!("{} to {}", named_revision, key_cache.as_ref().display()))?;
             Ok::<_, habitat_api_client::error::Error>(())
         }).await
           .map_err(|e| {
               APIClientError(APIFailure::DownloadKeyFailed(API_RETRY_COUNT,
-                                                           named_revision.name(),
-                                                           named_revision.revision(),
+                                                           named_revision.to_string(),
                                                            Box::new(e)))
           })?;
         Ok(())

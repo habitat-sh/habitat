@@ -16,8 +16,8 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum APIFailure {
     DownloadPackageFailed(usize, PackageIdent, PackageTarget, Box<Error>),
     DownloadLatestKeyFailed(usize, String, Box<Error>),
-    DownloadKeyFailed(usize, String, String, Box<Error>),
-    UploadKeyFailed(usize, String, String, Box<Error>),
+    DownloadKeyFailed(usize, String, Box<Error>),
+    UploadKeyFailed(usize, String, Box<Error>),
 }
 
 impl std::fmt::Display for APIFailure {
@@ -38,20 +38,19 @@ impl std::fmt::Display for APIFailure {
                         error: {}",
                        retries, name, error)
             }
-            Self::DownloadKeyFailed(retries, name, rev, error) => {
+            Self::DownloadKeyFailed(retries, named_revision, error) => {
                 write!(f,
                        "When applicable, we try once, then re-attempt {} times to download an \
-                        origin key. Unfortunately, we failed to download the {}-{} origin key. \
-                        Last error: {}",
-                       retries, name, rev, error)
+                        origin key. Unfortunately, we failed to download the {} origin key. Last \
+                        error: {}",
+                       retries, named_revision, error)
             }
 
-            Self::UploadKeyFailed(retries, name, rev, error) => {
+            Self::UploadKeyFailed(retries, named_revision, error) => {
                 write!(f,
                        "When applicable, we try once, then re-attempt {} times to upload an \
-                        origin key. Unfortunately, we failed to upload the {}-{} key. Last error: \
-                        {}",
-                       retries, name, rev, error)
+                        origin key. Unfortunately, we failed to upload the {} key. Last error: {}",
+                       retries, named_revision, error)
             }
         }
     }

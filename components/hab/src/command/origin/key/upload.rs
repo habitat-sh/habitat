@@ -5,12 +5,10 @@ use crate::{api_client::{self,
                          Error::APIClientError,
                          API_RETRY_COUNT,
                          API_RETRY_DELAY},
-            common::{self,
-                     ui::{Status,
-                          UIWriter,
-                          UI}},
-            error::{Error,
-                    Result},
+            common::ui::{Status,
+                         UIWriter,
+                         UI},
+            error::Result,
             PRODUCT,
             VERSION};
 use habitat_core::crypto::keys::{Key,
@@ -39,18 +37,20 @@ pub async fn start(ui: &mut UI,
             match api_client.put_origin_key(&name, &rev, public_keyfile, token, ui.progress())
                             .await
             {
-                Ok(()) => ui.status(Status::Uploaded, &name_with_rev)?,
+                Ok(()) => ui.status(Status::Uploaded, public_key.named_revision())?,
                 Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
                     ui.status(Status::Using,
                               format!("public key revision {} which already exists in the depot",
-                                      &name_with_rev))?;
+                                      public_key.named_revision()))?;
                 }
                 Err(err) => return Err(err),
             }
             Ok::<_, habitat_api_client::error::Error>(())
         }).await
           .map_err(|e| {
-              APIClientError(APIFailure::UploadKeyFailed(API_RETRY_COUNT, name, rev, Box::new(e)))
+              APIClientError(APIFailure::UploadKeyFailed(API_RETRY_COUNT,
+                                                         public_key.named_revision().to_string(),
+                                                         Box::new(e)))
           })?
     }
 
@@ -67,7 +67,9 @@ pub async fn start(ui: &mut UI,
                       .await
         }).await
           .map_err(|e| {
-              APIClientError(APIFailure::UploadKeyFailed(API_RETRY_COUNT, name, rev, Box::new(e)))
+              APIClientError(APIFailure::UploadKeyFailed(API_RETRY_COUNT,
+                                                         secret_key.named_revision().to_string(),
+                                                         Box::new(e)))
           })?;
         ui.status(Status::Uploaded, secret_key.named_revision())?;
         ui.end(format!("Upload of secret origin key {} complete.",
