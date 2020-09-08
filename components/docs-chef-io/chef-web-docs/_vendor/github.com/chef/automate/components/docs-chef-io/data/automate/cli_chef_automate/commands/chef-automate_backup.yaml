@@ -1,0 +1,46 @@
+name: chef-automate backup
+synopsis: Chef Automate backup
+usage: chef-automate backup COMMAND [flags]
+options:
+- name: gcs-credentials-path
+  usage: The path to the GCP service account json file
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for backup
+- name: no-progress
+  default_value: "false"
+  usage: Don't follow operation progress
+- name: request-timeout
+  shorthand: r
+  default_value: "20"
+  usage: API request timeout for deployment-service in seconds
+- name: s3-access-key
+  usage: The S3 access key ID
+- name: s3-endpoint
+  usage: The S3 region endpoint URL
+- name: s3-secret-key
+  usage: The S3 secret access key
+- name: s3-session-token
+  usage: The S3 session token when assuming an IAM role
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI
+- cancel - cancel the running backup operation
+- create - create a backup of Chef Automate
+- delete - delete backups of Chef Automate
+- fix-repo-permissions - Ensure the hab user has the required permissions on the given path
+- integrity - Chef Automate shared object integrity
+- list - list all Chef Automate backups
+- restore - restore a Chef Automate backup
+- show - show the Chef Automate backup details
+- status - show the Chef Automate backup runner status

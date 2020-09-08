@@ -1,0 +1,20 @@
+name: chef-automate migrate-from-v1-status
+synopsis: Watch the status of the migration to Chef Automate 2
+usage: chef-automate migrate-from-v1-status [flags]
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for migrate-from-v1-status
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI

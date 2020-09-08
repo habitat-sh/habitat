@@ -1,0 +1,30 @@
+name: chef-automate version
+synopsis: Show CLI version
+usage: chef-automate version [flags]
+description: Show the CLI version.
+options:
+- name: connection-timeout
+  default_value: 0s
+  usage: Most time to wait to connect to service
+- name: endpoint
+  usage: The endpoint the service is listening on
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for version
+- name: verbose
+  shorthand: v
+  default_value: "false"
+  usage: Show additional version information
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI

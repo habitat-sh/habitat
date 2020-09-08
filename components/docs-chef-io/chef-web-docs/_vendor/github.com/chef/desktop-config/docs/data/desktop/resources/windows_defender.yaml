@@ -1,0 +1,111 @@
+---
+resource_reference: true
+properties_shortcode:
+resources_common_guards: true
+resources_common_notification: true
+resources_common_properties: true
+title: windows_defender resource
+resource: windows_defender
+aliases:
+- "/resource_windows_defender.html"
+menu:
+  desktop:
+    title: windows_defender
+    identifier: desktop/resources/windows_defender windows_defender
+    parent: desktop/resources
+resource_description_list:
+- markdown: Use the **windows_defender** resource to enable or disable the Microsoft
+    Windows Defender service.
+resource_new_in: '1.0'
+syntax_full_code_block: |-
+  windows_defender 'name' do
+    intrusion_protection_system      true, false # default value: true
+    lock_ui                          true, false
+    realtime_protection              true, false
+    scan_archives                    true, false # default value: true
+    scan_email                       true, false # default value: true
+    scan_mapped_drives               true, false # default value: true
+    scan_network_files               true, false # default value: true
+    scan_removable_drives            true, false # default value: true
+    scan_scripts                     true, false # default value: true
+    action      Symbol # defaults to :enable if not specified
+  end
+syntax_properties_list:
+syntax_full_properties_list:
+- "`windows_defender` is the resource."
+- "`name` is the name given to the resource block."
+- "`action` identifies which steps Chef Infra Client will take to bring the node into
+  the desired state."
+- "`intrusion_protection_system`, `lock_ui`, `realtime_protection`, `scan_archives`,
+  `scan_email`, `scan_mapped_drives`, `scan_network_files`, `scan_removable_drives`,
+  and `scan_scripts` are the properties available to this resource."
+actions_list:
+  :disable:
+    markdown: Disable Windows Defender.
+  :enable:
+    markdown: Enable Windows Defender and configure settings.
+  :nothing:
+    shortcode: resources_common_actions_nothing.md
+properties_list:
+- property: intrusion_protection_system
+  ruby_type: true, false
+  required: false
+  default_value: 'true'
+  new_in: '1.1'
+  description_list:
+  - markdown: Enable network protection against exploitation of known vulnerabilities.
+- property: lock_ui
+  ruby_type: true, false
+  required: false
+  new_in: '1.1'
+  description_list:
+  - markdown: Lock the UI to prevent users from changing Windows Defender settings.
+- property: realtime_protection
+  ruby_type: true, false
+  required: false
+  new_in: '1.1'
+  description_list:
+  - markdown: Enable realtime scanning of downloaded files and attachments.
+- property: scan_archives
+  ruby_type: true, false
+  required: false
+  default_value: 'true'
+  new_in: '1.1'
+  description_list:
+  - markdown: Scan file archives such as .zip or .gz archives.
+- property: scan_email
+  ruby_type: true, false
+  required: false
+  default_value: 'true'
+  new_in: '1.1'
+  description_list:
+  - markdown: Scan e-mails for malware.
+- property: scan_mapped_drives
+  ruby_type: true, false
+  required: false
+  default_value: 'true'
+  new_in: '1.1'
+  description_list:
+  - markdown: Scan files on mapped network drives.
+- property: scan_network_files
+  ruby_type: true, false
+  required: false
+  default_value: 'true'
+  new_in: '1.1'
+  description_list:
+  - markdown: Scan files on a network.
+- property: scan_removable_drives
+  ruby_type: true, false
+  required: false
+  default_value: 'true'
+  new_in: '1.1'
+  description_list:
+  - markdown: Scan content of removable drives.
+- property: scan_scripts
+  ruby_type: true, false
+  required: false
+  default_value: 'true'
+  new_in: '1.1'
+  description_list:
+  - markdown: Scan scripts in malware scans.
+examples:

@@ -1,0 +1,43 @@
+info:
+  description: |
+    # Authentication
+    The Chef Automate API typically uses an API token passed in the header of your API request.
+
+    To create admin token can and set it as an environment variable use the following command:
+
+    ```
+    export TOKEN=`chef-automate iam token create <TOKEN-NAME> --admin`
+    ```
+
+    An admin token has unlimited access the entire Chef Automate API.
+
+    Pass the token as part of the API call. For example:
+
+    ```
+    curl -s -H "api-token: $TOKEN" https://automate.example.com/apis/iam/v2/policies -v
+    ```
+
+    To create api tokens with limited permissions, use your admin token to create a standard token. You can then write a policy that exactly defines the API access for the standard token.
+
+    In this example, the `curl` command creates the new token and the `export` command saves it as an environment variable with the name "TOKEN2".
+
+    ```
+    curl -s -H "api-token: $TOKEN" -d '{"name":"New Token", "id":"new-token"}' https://automate.example.com/apis/iam/v2/tokens
+      {
+        "token": {
+          "id": "new-token",
+          "name": "New Token",
+          "value": "bww8EEpr39_eYMnQ2zybtrP9uzk=",
+          "active": true,
+          "created_at": "2020-02-26T19:36:07Z",
+          "updated_at": "2020-02-26T19:36:07Z",
+          "projects": []
+        }
+      }
+
+    export TOKEN2=bww8EEpr39_eYMnQ2zybtrP9uzk=
+    ```
+
+    The Chef Automate documentation covers policies, authentication, and authorization in greater detail.
+    * **[API Tokens](https://automate.chef.io/docs/api-tokens/)** explains authentication in Chef Automate.
+    * **[Authorization Overview](https://automate.chef.io/docs/iam-v2-overview)** explains authorization in Chef Automate.

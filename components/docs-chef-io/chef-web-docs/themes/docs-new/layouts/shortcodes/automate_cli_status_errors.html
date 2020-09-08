@@ -1,0 +1,17 @@
+{{ $data_path := index $.Site.Data (split (.Get "data_path") "/") }}
+<table>
+  <tr>
+    <th>Exit Code</th>
+    <th>Name</th>
+    <th>Description</th>
+  </tr>
+{{ range $data_path }}
+{{ range . }}
+  <tr>
+    <th>{{ .code }}</th>
+    <th>{{ .name }}</th>
+    <th>{{ .description }}</th>
+  </tr>
+{{ end }}
+{{ end }}
+</table>

@@ -1,0 +1,47 @@
+---
+resource_reference: true
+properties_shortcode: 
+resources_common_guards: true
+resources_common_notification: true
+resources_common_properties: true
+title: windows_app_management resource
+resource: windows_app_management
+aliases:
+- "/resource_windows_app_management.html"
+menu:
+  desktop:
+    title: windows_app_management
+    identifier: desktop/resources/windows_app_management windows_app_management
+    parent: desktop/resources
+resource_description_list:
+- markdown: Use the **windows_app_management** resource to configure nodes to use
+    Gorilla for application management.
+resource_new_in: '1.0'
+syntax_full_code_block: |-
+  windows_app_management 'name' do
+    update_check_frequency      String
+    action                              Symbol # defaults to :enable if not specified
+  end
+syntax_properties_list: 
+syntax_full_properties_list:
+- "`windows_app_management` is the resource."
+- "`name` is the name given to the resource block."
+- "`action` identifies which steps Chef Infra Client will take to bring the node into
+  the desired state."
+- "`update_check_frequency` is the property available to this resource."
+actions_list:
+  :disable:
+    markdown: "Disables the Windows Scheduled Task."
+  :enable:
+    markdown: "Sets the property, installs Gorilla, configures the local install with the yaml file, and sets a Windows Scheduled Task to run at the interval set by `how_often_to_check_for_updates`."
+  :nothing:
+    shortcode: resources_common_actions_nothing.md
+properties_list:
+- property: update_check_frequency
+  ruby_type: String
+  required: false
+  allowed_values: '"daily", "minute", "monthly", "none", "on_idle", "on_logon", "once",
+    "onstart", "weekly"'
+  description_list:
+  - markdown: How often should the Gorilla client check for updates.
+examples:

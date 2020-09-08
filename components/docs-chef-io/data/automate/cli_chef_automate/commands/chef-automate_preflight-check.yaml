@@ -1,0 +1,28 @@
+name: chef-automate preflight-check
+synopsis: Perform preflight check
+usage: chef-automate preflight-check [flags]
+description: |
+  Perform preflight check to verify host meets installation criteria.
+options:
+- name: airgap
+  default_value: "false"
+  usage: Pass this flag when the environment is airgapped
+- name: config
+  usage: Optional config file to use
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for preflight-check
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI
+- migrate-from-v1 - Run preflight checks specific to migrating from Chef Automate v1

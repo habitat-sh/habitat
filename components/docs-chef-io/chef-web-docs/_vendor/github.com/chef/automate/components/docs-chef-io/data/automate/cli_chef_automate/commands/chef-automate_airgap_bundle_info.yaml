@@ -1,0 +1,22 @@
+name: chef-automate airgap bundle info
+usage: chef-automate airgap bundle info /path/to/bundle.aib [flags]
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for info
+- name: verbose
+  default_value: "false"
+  usage: Output full AIB metadata
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- 'chef-automate airgap bundle - '

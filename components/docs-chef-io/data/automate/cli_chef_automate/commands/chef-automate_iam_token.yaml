@@ -1,0 +1,21 @@
+name: chef-automate iam token
+synopsis: Manage tokens
+usage: chef-automate iam token COMMAND [flags]
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for token
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate iam - Chef Automate iam commands
+- create - Generate a token

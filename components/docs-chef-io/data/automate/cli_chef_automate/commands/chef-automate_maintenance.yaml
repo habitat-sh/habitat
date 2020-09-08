@@ -1,0 +1,26 @@
+name: chef-automate maintenance
+synopsis: Put Chef Automate into or out of maintenance mode
+usage: chef-automate maintenance [on|off] [flags]
+description: |
+  Chef Automate maintenance mode keeps all services running but rejects new connections at the load balancer so that maintenance operations can be performed.
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for maintenance
+- name: timeout
+  shorthand: t
+  default_value: "10"
+  usage: Request timeout in seconds
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI

@@ -1,0 +1,25 @@
+name: chef-automate upgrade run
+synopsis: Run an upgrade of Chef Automate
+usage: chef-automate upgrade run [flags]
+description: Run an upgrade of Chef Automate
+options:
+- name: airgap-bundle
+  usage: Path to an airgap install bundle
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for run
+- name: version
+  usage: The exact Chef Automate version to install
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate upgrade - upgrade automate to the latest version

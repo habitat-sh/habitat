@@ -1,0 +1,70 @@
+---
+resource_reference: true
+properties_shortcode:
+resources_common_guards: true
+resources_common_notification: true
+resources_common_properties: true
+title: macos_desktop_screensaver resource
+resource: macos_desktop_screensaver
+aliases:
+- "/resource_macos_desktop_screensaver.html"
+menu:
+  desktop:
+    title: macos_desktop_screensaver
+    identifier: desktop/resources/macos_desktop_screensaver macos_desktop_screensaver
+    parent: desktop/resources
+resource_description_list:
+- markdown: Use the **macos_desktop_screensaver** resource to configure secure screensaver
+    settings on macOS systems.
+resource_new_in: '1.0'
+syntax_full_code_block: |-
+  macos_desktop_screensaver 'name' do
+    delay_before_password_prompt      Integer # default value: 5
+    idle_time                         Integer # default value: 20
+    label                             String # default value: "chefsoftware"
+    require_password                  true, false # default value: true
+    action                            Symbol # defaults to :enable if not specified
+  end
+syntax_properties_list:
+syntax_full_properties_list:
+- "`macos_desktop_screensaver` is the resource."
+- "`name` is the name given to the resource block."
+- "`action` identifies which steps Chef Infra Client will take to bring the node into
+  the desired state."
+- "`delay_before_password_prompt`, `idle_time`, `label`, and `require_password` are
+  the properties available to this resource."
+actions_list:
+  :disable:
+    markdown: "Turns off the screensaver."
+  :enable:
+    markdown: "Sets the properties and enables the screen saver."
+  :nothing:
+    shortcode: resources_common_actions_nothing.md
+properties_list:
+- property: delay_before_password_prompt
+  ruby_type: Integer
+  required: false
+  default_value: '5'
+  description_list:
+  - markdown: Time in seconds to interrupt the Screensaver before it asks for your
+      password
+- property: idle_time
+  ruby_type: Integer
+  required: false
+  default_value: '20'
+  description_list:
+  - markdown: Time in minutes before the the Screensaver comes on
+- property: label
+  ruby_type: String
+  required: false
+  default_value: chefsoftware
+  description_list:
+  - markdown: A label used to identify your Screensaver in the list of running resources.
+      Default is chefsoftware
+- property: require_password
+  ruby_type: true, false
+  required: false
+  default_value: 'true'
+  description_list:
+  - markdown: True/false to enable a password for your Screensaver. Default is True
+examples:

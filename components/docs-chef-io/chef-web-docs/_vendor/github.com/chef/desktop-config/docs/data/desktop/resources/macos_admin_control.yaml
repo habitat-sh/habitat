@@ -1,0 +1,38 @@
+---
+resource_reference: true
+properties_shortcode:
+resources_common_guards: true
+resources_common_notification: true
+resources_common_properties: true
+title: macos_admin_control resource
+resource: macos_admin_control
+aliases:
+- "/resource_macos_admin_control.html"
+menu:
+  desktop:
+    title: macos_admin_control
+    identifier: desktop/resources/macos_admin_control macos_admin_control
+    parent: desktop/resources
+resource_description_list:
+- markdown: Use the **macos_admin_control** resource to require Admin level privileges
+    to make system-wide changes
+resource_new_in: '1.0'
+syntax_full_code_block: |-
+  macos_admin_control 'name' do
+    action      Symbol # defaults to :enable if not specified
+  end
+syntax_properties_list:
+syntax_full_properties_list:
+- "`macos_admin_control` is the resource."
+- "`name` is the name given to the resource block."
+- "`action` identifies which steps Chef Infra Client will take to bring the node into
+  the desired state."
+actions_list:
+  :disable:
+    markdown:
+  :enable:
+    markdown:
+  :nothing:
+    shortcode: resources_common_actions_nothing.md
+properties_list: []
+examples:

@@ -1,0 +1,143 @@
+{
+  "x-tagGroups": [
+    {
+      "name": "Compliance",
+      "tags": [
+        "ReportingService",
+        "StatsService",
+        "JobsService",
+        "ProfilesService"
+      ]
+    },
+    {
+      "name": "Infra",
+      "tags": [
+        "ConfigMgmt"
+      ]
+    },
+    {
+      "name": "Node Management",
+      "tags": [
+        "NodeManagerService",
+        "NodesService"
+      ]
+    },
+    {
+      "name": "Event Feed",
+      "tags": [
+        "EventFeed"
+      ]
+    },
+    {
+      "name": "Secrets",
+      "tags": [
+        "SecretsService"
+      ]
+    },
+    {
+      "name": "Applications",
+      "tags": [
+        "service_groups",
+        "retention"
+      ]
+    },
+    {
+      "name": "Identity",
+      "tags": [
+        "users",
+        "teams",
+        "tokens"
+      ]
+    },
+    {
+      "name": "Access Management",
+      "tags": [
+        "policies",
+        "roles",
+        "projects",
+        "rules"
+      ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "ReportingService",
+      "x-displayName": "Reporting"
+    },
+    {
+      "name": "ProfilesService",
+      "x-displayName": "Profiles"
+    },
+    {
+      "name": "StatsService",
+      "x-displayName": "Stats"
+    },
+    {
+      "name": "ConfigMgmt",
+      "x-displayName": "Nodes"
+    },
+    {
+      "name": "NodesService",
+      "x-displayName": "Managed Nodes"
+    },
+    {
+      "name": "EventFeed",
+      "x-displayName": "Event Feed"
+    },
+    {
+      "name": "SecretsService",
+      "x-displayName": "Secrets"
+    },
+    {
+      "name": "service_groups",
+      "x-displayName": "Service Groups and Services"
+    },
+    {
+      "name": "retention",
+      "x-displayName": "Service Management"
+    },
+    {
+      "name": "NodeManagerService",
+      "x-displayName": "Node Managers"
+    },
+    {
+      "name": "policies",
+      "x-displayName": "IAM Policies",
+      "description": "A policy defines permissions for who may perform what action on which resources, based on the project. The ‘who’ is a user, a team, or a system. A policy has three components, the agent, the action, and the project. The agent is a user, team, or system. Users and teams are designated by name while systems communicate with Chef Automate using pre-authorized API tokens. Actions are activities that agents can take in relation to Chef Automate’s content and operation. Projects are collections of resources, such as API tokens or ingested compliance nodes."
+    },
+    {
+      "name": "roles",
+      "x-displayName": "IAM Roles",
+      "description": "A role encapsulates a list of actions. Chef Automate provides several default Chef-managed roles that cannot be altered but you may also define and use your own Custom roles."
+    },
+    {
+      "name": "projects",
+      "x-displayName": "IAM Projects",
+      "description": "Projects are used to group and permission Chef Automate resources as well as ingested data, specifically Compliance reports, Chef Infra Server events, and Infrastructure nodes."
+    },
+    {
+      "name": "rules",
+      "x-displayName": "IAM Project Rules",
+      "description": "Project rules define lists of one or more conditions that an ingested resource must meet in order to be assigned to a project."
+    },
+    {
+      "name": "tokens",
+      "x-displayName": "IAM API Tokens",
+      "description": "Tokens are used for API access to Automate endpoints as well as by systems (e.g. Chef Infra Servers) to communicate with Automate."
+    },
+    {
+      "name": "JobsService",
+      "x-displayName": "Scan Jobs"
+    },
+    {
+      "name": "users",
+      "x-displayName": "IAM Users",
+      "description": "IAM local users are not attached to external identity providers. They can be members of IAM teams and IAM policies."
+    },
+    {
+      "name": "teams",
+      "x-displayName": "IAM Teams",
+      "description": "Teams are used to group local users for policy membership."
+    } 
+  ]
+}

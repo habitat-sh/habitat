@@ -1,0 +1,38 @@
+@startuml Automate Permisssions
+
+(*) --> ===B1=== 
+
+  --> "Open Permissions for All?"
+
+  --> if "Grant Admin to Some?" then
+    -->[yes] "Add unrestricted policy
+              for select users/teams"
+    --> ===B2===
+  else
+    -->[no] ===B2===
+  endif
+
+===B1=== --> "Restrict Permissions for Some?"
+  --> "Delete default policies
+       for those to be restricted" as A1
+  --> "Add back policies
+       for select users/teams"
+  if "More to Restrict?" then
+    -->[yes] A1
+  else
+  -->[no] ===B2===
+  endif
+
+===B1=== --> "Permission API client?"
+  --> "Create API token" as A2
+  --> "Use that token to
+      create a client policy"
+  if "More to Permission?" then
+    -->[yes] A2
+  else
+  -->[no] ===B2===
+  endif
+
+--> (*)
+
+@enduml

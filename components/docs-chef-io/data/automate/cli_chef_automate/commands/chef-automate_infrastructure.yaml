@@ -1,0 +1,23 @@
+name: chef-automate infrastructure
+synopsis: Chef Automate infrastructure
+usage: chef-automate infrastructure COMMAND [flags]
+description: |
+  Commands for automation infrastructure management, for data related to chef-client runs and chef-server actions.
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for infrastructure
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI
+- node-delete - Delete node by node uuid

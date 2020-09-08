@@ -1,0 +1,25 @@
+name: chef-automate license apply
+synopsis: Apply Chef Automate license
+usage: chef-automate license apply LICENSE [flags]
+description: "Apply Chef Automate license token.\n\t- <LICENSE> must be valid encoded license string\n"
+options:
+- name: force
+  shorthand: f
+  default_value: "false"
+  usage: Force set license
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for apply
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate license - Chef Automate license management

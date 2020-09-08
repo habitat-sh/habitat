@@ -1,0 +1,130 @@
+{
+  "paths": {
+    "/api/v0/cfgmgmt/nodes/export": {
+      "post": {
+        "summary": "NodeExport",
+        "description": "Stream nodes in JSON (default) or CSV format.\n\nSupports filtering and sorting, but not pagination.\n\nInclude the value `csv` for the `output_type` parameter in the request to receive CSV formatted data.\nInclude the value `json` for the `output_type` parameter in the request to receive JSON formatted data.\nInclude the value `0` to sort descending.\nInclude the value `1` to sort ascending.\n Example: \n\n ```'{\"output_type\":\"csv\",\"sorting\":{\"order\": 1, \"field\": \"name\"},\"filters\":[{\"status\":\"success\",\"environment\":\"prod\", \"organization:chef\"}]}'```",
+        "tags": [
+          "ConfigMgmt"
+        ],
+        "operationId": "NodeExport",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chef.automate.api.common.ExportData"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/chef.automate.api.cfgmgmt.request.NodeExport"
+            }
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ]
+      }
+    },
+    "/api/v0/cfgmgmt/reports/export": {
+      "post": {
+        "summary": "ReportExport",
+        "description": "Stream node run reports in JSON (default) or CSV format.\n\nSupports filtering, but not pagination or sorting.\n\nInclude the value `csv` for the `output_type` parameter in the request to receive CSV formatted data.\nInclude the value `json` for the `output_type` parameter in the request to receive JSON formatted data.\nInclude the node ID for the `node_id` for the reports to receive.\nInclude the number of seconds since the Unix Epoch for the `start` and `end` fields.\n Example: \n\n ```'{\"output_type\":\"csv\"node_id\":\"80e73cf5-32eb-3556-ac99-6597274a8522\",\"start\":{\"seconds\":1585336095},\"end\":{\"seconds\":1585337095},\"filters\":[{\"status\":\"success\"}]}'```",
+        "tags": [
+          "ConfigMgmt"
+        ],
+        "operationId": "ReportExport",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chef.automate.api.common.ExportData"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/chef.automate.api.cfgmgmt.request.ReportExport"
+            }
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "chef.automate.api.cfgmgmt.request.NodeExport": {
+      "type": "object",
+      "properties": {
+        "filter": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Filters to apply to the request for nodes list. May be empty."
+        },
+        "sorting": {
+          "$ref": "#/definitions/chef.automate.api.common.query.Sorting",
+          "description": "sorting parameters to apply to the returned node list. Defaults to Asc and 'name'"
+        },
+        "output_type": {
+          "type": "string",
+          "enum": [
+            "json",
+            "csv"
+          ],
+          "default": "json",
+          "description": "File type, either JSON or CSV."
+        }
+      }
+    },
+    "chef.automate.api.cfgmgmt.request.ReportExport": {
+      "type": "object",
+      "properties": {
+        "filter": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Filters to apply to the request for nodes list. May be empty."
+        },
+        "node_id": {
+          "type": "string",
+          "description": "The node ID of the reports. Required."
+        },
+        "output_type": {
+          "type": "string",
+          "enum": [
+            "json",
+            "csv"
+          ],
+          "default": "json",
+          "description": "File type, either JSON or CSV."
+        },
+        "start": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Earliest (in history) run information to return for the runs list. Not required."
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Latest (in history) run information to return for the runs list. Not required."
+        }
+      }
+    }
+  }
+}

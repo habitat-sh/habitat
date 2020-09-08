@@ -1,0 +1,107 @@
+{
+    "paths": {
+        "/api/v0/compliance/profiles": {
+            "post": {
+                "summary": "Upload a Profile",
+                "description": "Upload a profile to Chef Automate. This can be a tarball or zip of the profile, or a reference to one of the market profiles.\n\n Example: \n\n ```api/v0/compliance/profiles?owner=admin -d '{\"name\":\"cis-amazonlinux-2014.09-2015.03-level2\",\"version\":\"1.1.0-5\"}'```\n\n Example: \n\n ```-F file=@/path-to-local-file/linux-baseline-2.0.0.zip api/v0compliance/profiles?contentType=application/x-gzip&owner=admin``` \n\n Authorization Action:\n```compliance:profiles:create```",
+                "tags": [
+                    "ProfilesService"
+                ],
+                "operationId": "Create",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/chef.automate.api.compliance.profiles.v1.CheckResult"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/chef.automate.api.compliance.profiles.v1.ProfilePostRequest"
+                        }
+                    }
+                ],
+                "produces": [
+                ]
+            }
+        },
+        "/api/v0/compliance/profiles/tar": {
+            "post": {
+                "summary": "Download a Profile",
+                "description": "Download a profile in tarball form. The profile will be downloaded to the user's local workstation.\n\nExample: \n\n ```{\"name\":\"cis-amazonlinux2-level1\",\"version\":\"1.0.0-5\"}'``` \n\n Authorization Action:\n```compliance:profiles:get``` \n ```compliance:marketProfiles:get```",
+                "tags": [
+                    "ProfilesService"
+                ],
+                "operationId": "ReadTar",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/chef.automate.api.compliance.profiles.v1.ProfileData"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/chef.automate.api.compliance.profiles.v1.ProfileDetails"
+                        }
+                    }
+                ],
+                "produces": [
+                ]
+            }
+        }
+    }, 
+    "definitions": {
+        "chef.automate.api.compliance.profiles.v1.ProfileDetails": {
+            "type": "object",
+            "properties": {
+                "owner": {
+                    "type": "string",
+                    "description": "Chef Automate user associated with the profile."
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Profile name."
+                },
+                "version": {
+                    "type": "string",
+                    "description": "Profile version."
+                },
+                "data": {
+                    "type": "bytes",
+                    "description": "Profile contents in byte form."
+                }
+            }
+        },
+        "chef.automate.api.compliance.profiles.v1.ProfilePostRequest": {
+            "type": "object",
+            "properties": {
+                "owner": {
+                    "type": "string",
+                    "description": "Associate a Chef Automate user with a profile. A profile is visible only to its associated user."
+                },
+                "chunk": {
+                    "ref": "#/definitions/chef.automate.api.compliance.profiles.v1.Chunk",
+                    "description": "Profile contents in byte form."
+                },
+                "meta": {
+                    "ref": "#/definitions/chef.automate.api.compliance.profiles.v1.Metadata",
+                    "description": "Profile metadata."
+                }
+            }
+        }
+      }
+    }
+    
+
+

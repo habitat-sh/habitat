@@ -1,0 +1,22 @@
+name: chef-automate license
+synopsis: Chef Automate license management
+usage: chef-automate license COMMAND [flags]
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for license
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI
+- apply - Apply Chef Automate license
+- status - Retrieve Chef Automate license status

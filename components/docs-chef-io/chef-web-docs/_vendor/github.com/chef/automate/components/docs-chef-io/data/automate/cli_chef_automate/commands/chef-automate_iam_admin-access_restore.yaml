@@ -1,0 +1,26 @@
+name: chef-automate iam admin-access restore
+synopsis: Restore the factory default admin user, team, and access
+usage: chef-automate iam admin-access restore PASSWORD [flags]
+description: |
+  Recreate the admin user, admin team, and related admin policy as needed to restore to factory default and update the admin user's password
+options:
+- name: dry-run
+  default_value: "false"
+  usage: |
+    Show what would be updated by this command without performing any changes
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for restore
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate iam admin-access - Manage and restore default admin access

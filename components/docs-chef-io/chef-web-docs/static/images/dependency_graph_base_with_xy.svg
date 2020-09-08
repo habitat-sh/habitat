@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 19.2.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 1366 768" style="enable-background:new 0 0 1366 768;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#FFFFFF;stroke:#000000;stroke-width:0.617;stroke-miterlimit:10;}
+	.st1{font-family:'MyriadPro-Regular';}
+	.st2{font-size:34.9052px;}
+	.st3{fill:#E6E7E8;}
+	.st4{fill:none;stroke:#231F20;stroke-linecap:round;stroke-miterlimit:10;}
+	.st5{fill:#231F20;}
+</style>
+<g>
+	<g>
+		<polygon class="st0" points="310.4,110 226.3,110 142.2,110 142.2,28.9 310.4,28.9 		"/>
+	</g>
+	<text transform="matrix(0.9988 0 0 1 159.8779 79.5817)" class="st1 st2">Project A</text>
+</g>
+<g>
+	<line class="st3" x1="137.4" y1="192.4" x2="192.8" y2="115.9"/>
+	<g>
+		<line class="st4" x1="141.6" y1="186.7" x2="192.8" y2="115.9"/>
+		<g>
+			<polygon class="st5" points="137.4,192.4 146.6,186.7 141.9,186.3 140,182 			"/>
+		</g>
+	</g>
+</g>
+<g>
+	<g>
+		<polygon class="st0" points="221.5,278.8 137.4,278.8 53.3,278.8 53.3,197.7 221.5,197.7 		"/>
+	</g>
+	<text transform="matrix(0.9988 0 0 1 70.989 248.3748)" class="st1 st2">Project B</text>
+</g>
+<g>
+	<g>
+		<polygon class="st0" points="409.5,278.8 325.4,278.8 241.3,278.8 241.3,197.7 409.5,197.7 		"/>
+	</g>
+	<text transform="matrix(0.9988 0 0 1 258.9671 248.3748)" class="st1 st2">Project C</text>
+</g>
+<g>
+	<g>
+		<polygon class="st0" points="221.5,478.4 137.4,478.4 53.3,478.4 53.3,397.3 221.5,397.3 		"/>
+	</g>
+	<text transform="matrix(0.9988 0 0 1 70.989 447.9839)" class="st1 st2">Project D</text>
+</g>
+<g>
+	<g>
+		<polygon class="st0" points="409.5,479.3 325.4,479.3 241.3,479.3 241.3,398.2 409.5,398.2 		"/>
+	</g>
+	<text transform="matrix(0.9988 0 0 1 258.9671 448.9462)" class="st1 st2">Project E</text>
+</g>
+<g>
+	<g>
+		<polygon class="st0" points="409.5,684.2 325.4,684.2 241.3,684.2 241.3,603.1 409.5,603.1 		"/>
+	</g>
+	<text transform="matrix(0.9988 0 0 1 258.9671 653.8372)" class="st1 st2">Project F</text>
+</g>
+<g>
+	<line class="st3" x1="315.9" y1="189.7" x2="256.9" y2="116"/>
+	<g>
+		<line class="st4" x1="311.5" y1="184.2" x2="256.9" y2="116"/>
+		<g>
+			<polygon class="st5" points="315.9,189.7 312.9,179.4 311.2,183.8 306.5,184.5 			"/>
+		</g>
+	</g>
+</g>
+<g>
+	<line class="st3" x1="325.4" y1="385.3" x2="325.4" y2="290.8"/>
+	<g>
+		<line class="st4" x1="325.4" y1="378.2" x2="325.4" y2="290.8"/>
+		<g>
+			<polygon class="st5" points="325.4,385.3 329.5,375.3 325.4,377.7 321.4,375.3 			"/>
+		</g>
+	</g>
+</g>
+<g>
+	<line class="st3" x1="325.4" y1="588.5" x2="325.4" y2="494"/>
+	<g>
+		<line class="st4" x1="325.4" y1="581.4" x2="325.4" y2="494"/>
+		<g>
+			<polygon class="st5" points="325.4,588.5 329.5,578.5 325.4,580.9 321.4,578.5 			"/>
+		</g>
+	</g>
+</g>
+<g>
+	<line class="st3" x1="137.4" y1="385.3" x2="137.4" y2="290.8"/>
+	<g>
+		<line class="st4" x1="137.4" y1="378.2" x2="137.4" y2="290.8"/>
+		<g>
+			<polygon class="st5" points="137.4,385.3 141.5,375.3 137.4,377.7 133.4,375.3 			"/>
+		</g>
+	</g>
+</g>
+<g>
+	<g>
+		<polygon class="st0" points="723.2,110 639.1,110 555,110 555,28.9 723.2,28.9 		"/>
+	</g>
+	<text transform="matrix(0.9988 0 0 1 572.6066 79.5817)" class="st1 st2">Project X</text>
+</g>
+<g>
+	<g>
+		<polygon class="st0" points="723.2,307.8 639.1,307.8 555,307.8 555,226.7 723.2,226.7 		"/>
+	</g>
+	<text transform="matrix(0.9988 0 0 1 572.6066 277.4249)" class="st1 st2">Project Y</text>
+</g>
+<g>
+	<line class="st3" x1="639.1" y1="215.6" x2="639.1" y2="121.1"/>
+	<g>
+		<line class="st4" x1="639.1" y1="208.5" x2="639.1" y2="121.1"/>
+		<g>
+			<polygon class="st5" points="639.1,215.6 643.1,205.6 639.1,208 635,205.6 			"/>
+		</g>
+	</g>
+</g>
+</svg>

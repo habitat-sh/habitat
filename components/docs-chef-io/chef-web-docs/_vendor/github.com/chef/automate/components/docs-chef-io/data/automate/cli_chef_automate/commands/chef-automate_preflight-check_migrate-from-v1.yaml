@@ -1,0 +1,60 @@
+name: chef-automate preflight-check migrate-from-v1
+synopsis: |
+  Run preflight checks specific to migrating from Chef Automate v1
+usage: chef-automate preflight-check migrate-from-v1 [flags]
+options:
+- name: delivery-running
+  shorthand: r
+  default_value: /etc/delivery/delivery-running.json
+  usage: Path to delivery-running.json
+- name: delivery-secrets
+  shorthand: s
+  default_value: /etc/delivery/delivery-secrets.json
+  usage: Path to delivery-secrets.json
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for migrate-from-v1
+- name: skip-backup-check
+  default_value: "false"
+  usage: |
+    Optionally do not check if your Chef Automate v1 installation has backups configured (default = false)
+- name: skip-disaster-recovery-check
+  default_value: "false"
+  usage: |
+    Optionally do not check if your Chef Automate v1 installation has disaster recovery configured (default = false)
+- name: skip-external-es-check
+  default_value: "false"
+  usage: |
+    Optionally do not check if your Chef Automate v1 installation has external Elasticsearch configured (default = false)
+- name: skip-fips-check
+  default_value: "false"
+  usage: |
+    Optionally do not check if your Chef Automate v1 installation has FIPS configured (default = false)
+- name: skip-saml-check
+  default_value: "false"
+  usage: |
+    Optionally do not check if your Chef Automate v1 installation has SAML configured (default = false)
+- name: skip-workflow-check
+  default_value: "false"
+  usage: |
+    Optionally do not check if your Chef Automate v1 installation has workflow configured (default = false)
+inherited_options:
+- name: airgap
+  default_value: "false"
+  usage: Pass this flag when the environment is airgapped
+- name: config
+  usage: Optional config file to use
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate preflight-check - Perform preflight check
+aliases:
+- upgrade-from-v1

@@ -1,0 +1,63 @@
+name: chef-automate applications show-svcs
+synopsis: Show services in the applications database
+usage: chef-automate applications show-svcs [flags]
+description: |2
+
+  Display a list of the habitat services stored in the applications database.
+options:
+- name: application
+  shorthand: a
+  usage: |
+    Select only services where the application name matches the given pattern
+- name: buildstamp
+  shorthand: b
+  usage: |
+    Select only services where the buildstamp matches the given pattern
+- name: channel
+  shorthand: c
+  usage: |
+    Select only services where the subscribed channel matches the given pattern
+- name: disconnected
+  shorthand: D
+  default_value: "false"
+  usage: Select only services that are disconnected
+- name: environment
+  shorthand: e
+  usage: |
+    Select only services where the application environment matches the given pattern
+- name: group
+  shorthand: g
+  usage: |
+    Select only services where the group name (suffix) matches the given pattern
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for show-svcs
+- name: origin
+  shorthand: o
+  usage: |
+    Select only services where the origin matches the given pattern
+- name: service-name
+  shorthand: "n"
+  usage: |
+    Select only services where the name matches the given pattern
+- name: site
+  shorthand: s
+  usage: |
+    Select only services where the site matches the given pattern
+- name: version
+  shorthand: v
+  usage: |
+    Select only services where the package version matches the given pattern
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate applications - Manage applications observability features

@@ -1,0 +1,1 @@
+[![image](/images/a2_docs_banner.svg)](/automate/)

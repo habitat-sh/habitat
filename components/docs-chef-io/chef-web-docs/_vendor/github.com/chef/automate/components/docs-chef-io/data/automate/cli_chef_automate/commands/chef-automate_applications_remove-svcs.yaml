@@ -1,0 +1,77 @@
+name: chef-automate applications remove-svcs
+synopsis: Remove services from the applications database
+usage: chef-automate applications remove-svcs [flags]
+description: |2
+
+  Remove services from the applications database.
+
+  You must fully decommission services by retiring physical hardware, terminating
+  the VM or container, or by using 'hab svc unload', before using the
+  'remove-svcs' command. Services that are incompletely decommissioned will send
+  a health-check at the appointed time and Automate will re-add them to the
+  services database.
+options:
+- name: all
+  default_value: "false"
+  usage: |
+    Delete all services in the database. This flag must be given if no other filter is given.
+- name: application
+  shorthand: a
+  usage: |
+    Select only services where the application name matches the given pattern
+- name: buildstamp
+  shorthand: b
+  usage: |
+    Select only services where the buildstamp matches the given pattern
+- name: channel
+  shorthand: c
+  usage: |
+    Select only services where the subscribed channel matches the given pattern
+- name: disconnected
+  shorthand: D
+  default_value: "false"
+  usage: Select only services that are disconnected
+- name: environment
+  shorthand: e
+  usage: |
+    Select only services where the application environment matches the given pattern
+- name: group
+  shorthand: g
+  usage: |
+    Select only services where the group name (suffix) matches the given pattern
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for remove-svcs
+- name: origin
+  shorthand: o
+  usage: |
+    Select only services where the origin matches the given pattern
+- name: service-name
+  shorthand: "n"
+  usage: |
+    Select only services where the name matches the given pattern
+- name: site
+  shorthand: s
+  usage: |
+    Select only services where the site matches the given pattern
+- name: version
+  shorthand: v
+  usage: |
+    Select only services where the package version matches the given pattern
+- name: "yes"
+  shorthand: "y"
+  default_value: "false"
+  usage: Delete the services without a confirmation prompt
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate applications - Manage applications observability features

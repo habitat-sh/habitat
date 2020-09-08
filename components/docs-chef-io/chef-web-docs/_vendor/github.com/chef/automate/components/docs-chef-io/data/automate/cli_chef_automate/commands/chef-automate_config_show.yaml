@@ -1,0 +1,31 @@
+name: chef-automate config show
+synopsis: show the Chef Automate configuration
+usage: |
+  chef-automate config show [/path/to/write/config.toml] [flags]
+description: |
+  Show the Chef Automate configuration. When given a filepath, the output will be written to the file instead of printed to STDOUT
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for show
+- name: overwrite
+  shorthand: o
+  default_value: "false"
+  usage: Overwrite existing config.toml
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+- name: timeout
+  shorthand: t
+  default_value: "10"
+  usage: Request timeout in seconds
+see_also:
+- chef-automate config - Chef Automate configuration

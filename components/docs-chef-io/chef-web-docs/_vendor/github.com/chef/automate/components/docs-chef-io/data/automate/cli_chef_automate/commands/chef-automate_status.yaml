@@ -1,0 +1,36 @@
+name: chef-automate status
+synopsis: Retrieve Chef Automate status
+usage: chef-automate status [flags]
+description: |
+  Retrieve Chef Automate status. Includes status of Automate services.
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for status
+- name: wait-for-healthy
+  shorthand: w
+  default_value: "false"
+  usage: |
+    Wait until the status response is healthy or the timeout is reached
+- name: wait-refresh-interval
+  shorthand: r
+  default_value: "2"
+  usage: How many seconds to wait between polling for status updates
+- name: wait-timeout
+  shorthand: t
+  default_value: "600"
+  usage: |
+    How many seconds to wait for the status to be healthy before returning an error
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI

@@ -1,0 +1,20 @@
+name: chef-automate airgap
+usage: chef-automate airgap COMMAND [flags]
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for airgap
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI
+- 'bundle - '

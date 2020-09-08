@@ -1,0 +1,360 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "components/automate-gateway/api/iam/v2/tokens.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/apis/iam/v2/tokens": {
+      "get": {
+        "summary": "Lists all tokens",
+        "description": "Lists all tokens, both admin and non-admin.\n\nAuthorization Action:\n```\niam:tokens:list\n```",
+        "operationId": "ListTokens",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chef.automate.api.iam.v2.ListTokensResp"
+            }
+          }
+        },
+        "tags": [
+          "tokens"
+        ]
+      },
+      "post": {
+        "summary": "Creates a token",
+        "description": "Creates a token.\nActive defaults to true when not specified.\nValue is auto-generated when not specified.\n\nNote that this creates *non-admin* tokens that may then be assigned permissions via policies just like users or teams (unless you have already created policies that encompass all tokens using `tokens:*``).\n\nYou cannot create admin tokens via the REST API.\nAdmin tokens can only be created by specifying the `--admin` flag to this chef-automate sub-command:\n```\nchef-automate iam token create \u003cyour-token-name\u003e --admin`\n```\n\nAuthorization Action:\n```\niam:tokens:create\n```",
+        "operationId": "CreateToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chef.automate.api.iam.v2.CreateTokenResp"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/chef.automate.api.iam.v2.CreateTokenReq"
+            }
+          }
+        ],
+        "tags": [
+          "tokens"
+        ],
+        "x-code-samples": [
+          {
+            "lang": "JSON",
+            "source": "{\"name\": \"token 1\", \"id\": \"token-1\", \"active\": true, \"projects\": [\"east-region\", \"west-region\"]}"
+          }
+        ]
+      }
+    },
+    "/apis/iam/v2/tokens/{id}": {
+      "get": {
+        "summary": "Gets a token",
+        "description": "Returns the details for a token.\n\nAuthorization Action:\n```\niam:tokens:get\n```",
+        "operationId": "GetToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chef.automate.api.iam.v2.GetTokenResp"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "ID of the token.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "tokens"
+        ]
+      },
+      "delete": {
+        "summary": "Deletes a token",
+        "description": "Deletes a token and remove it from any policies.\n\nAuthorization Action:\n```\niam:tokens:delete\n```",
+        "operationId": "DeleteToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chef.automate.api.iam.v2.DeleteTokenResp"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "ID of the token.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "tokens"
+        ]
+      },
+      "put": {
+        "summary": "Updates a token",
+        "description": "This operation overwrites all fields excepting ID, timestamps, and value,\nincluding those omitted from the request, so be sure to specify all properties.\nProperties that you do not include are reset to empty values.\n\nAuthorization Action:\n```\niam:tokens:update\n```",
+        "operationId": "UpdateToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chef.automate.api.iam.v2.UpdateTokenResp"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "Unique ID. Cannot be changed.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/chef.automate.api.iam.v2.UpdateTokenReq"
+            }
+          }
+        ],
+        "tags": [
+          "tokens"
+        ],
+        "x-code-samples": [
+          {
+            "lang": "JSON",
+            "source": "{\"name\": \"updated token name\", \"active\": true, \"projects\": [\"east-region\", \"south-region\"]}"
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "chef.automate.api.iam.v2.CreateTokenReq": {
+      "type": "object",
+      "example": {
+        "name": "token 1",
+        "id": "token-1",
+        "active": true,
+        "projects": [
+          "east-region",
+          "west-region"
+        ]
+      },
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique ID. Cannot be changed."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name for the token."
+        },
+        "active": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Active state. Defaults to true.\nIf set to false, token will not be authenticated or authorized."
+        },
+        "value": {
+          "type": "string",
+          "description": "Unique value for the token; if omitted the system will generate this."
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of projects this token belongs to."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "chef.automate.api.iam.v2.CreateTokenResp": {
+      "type": "object",
+      "example": {
+        "name": "token 1",
+        "id": "token-1",
+        "active": true,
+        "projects": [
+          "east-region",
+          "west-region"
+        ]
+      },
+      "properties": {
+        "token": {
+          "$ref": "#/definitions/chef.automate.api.iam.v2.Token"
+        }
+      }
+    },
+    "chef.automate.api.iam.v2.DeleteTokenResp": {
+      "type": "object"
+    },
+    "chef.automate.api.iam.v2.GetTokenResp": {
+      "type": "object",
+      "example": {
+        "name": "token 1",
+        "id": "token-1",
+        "active": true,
+        "projects": [
+          "east-region",
+          "west-region"
+        ]
+      },
+      "properties": {
+        "token": {
+          "$ref": "#/definitions/chef.automate.api.iam.v2.Token"
+        }
+      }
+    },
+    "chef.automate.api.iam.v2.ListTokensResp": {
+      "type": "object",
+      "example": {
+        "tokens": [
+          {
+            "name": "token 1",
+            "id": "token-1",
+            "active": true,
+            "projects": [
+              "east-region",
+              "west-region"
+            ]
+          },
+          {
+            "name": "token 2",
+            "id": "token-2",
+            "active": false,
+            "projects": [
+              "north-region",
+              "south-region"
+            ]
+          }
+        ]
+      },
+      "properties": {
+        "tokens": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/chef.automate.api.iam.v2.Token"
+          }
+        }
+      }
+    },
+    "chef.automate.api.iam.v2.Token": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique ID. Cannot be changed."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name for the token."
+        },
+        "value": {
+          "type": "string",
+          "description": "Unique, optionally user-specified value."
+        },
+        "active": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Active state. Defaults to true.\nIf set to false, token will not authenticate."
+        },
+        "created_at": {
+          "type": "string",
+          "description": "Created timestamp."
+        },
+        "updated_at": {
+          "type": "string",
+          "description": "Updated timestamp."
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of projects this token belongs to. May be empty."
+        }
+      }
+    },
+    "chef.automate.api.iam.v2.UpdateTokenReq": {
+      "type": "object",
+      "example": {
+        "name": "updated token name",
+        "active": true,
+        "projects": [
+          "east-region",
+          "south-region"
+        ]
+      },
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique ID. Cannot be changed."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name for the token."
+        },
+        "active": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Active state. Defaults to true.\nIf set to false, token will not be authenticated or authorized."
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of projects this token belongs to."
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "chef.automate.api.iam.v2.UpdateTokenResp": {
+      "type": "object",
+      "example": {
+        "name": "token 1",
+        "id": "token-1",
+        "active": true,
+        "projects": [
+          "east-region",
+          "west-region"
+        ]
+      },
+      "properties": {
+        "token": {
+          "$ref": "#/definitions/chef.automate.api.iam.v2.Token"
+        }
+      }
+    }
+  }
+}

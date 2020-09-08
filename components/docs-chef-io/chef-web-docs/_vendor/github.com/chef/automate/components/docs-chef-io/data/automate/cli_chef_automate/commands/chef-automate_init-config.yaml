@@ -1,0 +1,42 @@
+name: chef-automate init-config
+synopsis: Initialize default config
+usage: chef-automate init-config [flags]
+description: Initialize default configuration and save it to a file.
+options:
+- name: certificate
+  usage: |
+    The path to a certificate that should be used for external TLS connections (web and API).
+- name: channel
+  default_value: current
+  usage: Release channel to deploy all services from
+- name: es-mem
+  usage: |
+    The amount of system memory to allocate to Elasticsearch's heap.  (default: 25% of system memory)
+- name: file
+  default_value: config.toml
+  usage: File path to write the config
+- name: fqdn
+  usage: |
+    The fully-qualified domain name that Chef Automate can be accessed at. (default: hostname of this machine)
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for init-config
+- name: private-key
+  usage: |
+    The path to a private key corresponding to the TLS certificate.
+- name: upgrade-strategy
+  default_value: at-once
+  usage: Upgrade strategy to use for this deployment.
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI

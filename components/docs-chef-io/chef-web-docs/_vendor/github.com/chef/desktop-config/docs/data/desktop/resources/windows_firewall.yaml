@@ -1,0 +1,38 @@
+---
+resource_reference: true
+properties_shortcode:
+resources_common_guards: true
+resources_common_notification: true
+resources_common_properties: true
+title: windows_firewall resource
+resource: windows_firewall
+aliases:
+- "/resource_windows_firewall.html"
+menu:
+  desktop:
+    title: windows_firewall
+    identifier: desktop/resources/windows_firewall windows_firewall
+    parent: desktop/resources
+resource_description_list:
+- markdown: Use the **windows_firewall** resource to enable or disable the Windows
+    firewall service and all profiles.
+resource_new_in: '1.0'
+syntax_full_code_block: |-
+  windows_firewall 'name' do
+    action      Symbol # defaults to :enable if not specified
+  end
+syntax_properties_list:
+syntax_full_properties_list:
+- "`windows_firewall` is the resource."
+- "`name` is the name given to the resource block."
+- "`action` identifies which steps Chef Infra Client will take to bring the node into
+  the desired state."
+actions_list:
+  :disable:
+    markdown: Disable the Windows Firewall service
+  :enable:
+    markdown: Enable the Windows Firewall service and all profiles
+  :nothing:
+    shortcode: resources_common_actions_nothing.md
+properties_list: []
+examples:

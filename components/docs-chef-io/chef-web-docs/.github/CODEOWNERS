@@ -1,0 +1,5 @@
+# Order is important. The last matching pattern has the most precedence.
+
+*             @chef/docs-team @chef/client-maintainers
+.expeditor/** @chef/jex-team
+terraform/**  @chef/jex-team

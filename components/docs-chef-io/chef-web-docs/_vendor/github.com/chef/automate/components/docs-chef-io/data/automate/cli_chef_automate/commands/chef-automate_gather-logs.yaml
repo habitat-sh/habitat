@@ -1,0 +1,35 @@
+name: chef-automate gather-logs
+synopsis: Gather system diagnostics and logs
+usage: |
+  chef-automate gather-logs [/path/to/log/bundle.tar.gz] [flags]
+description: |
+  Collect system diagnostics and logs from Chef Automate and other services
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for gather-logs
+- name: local-fallback
+  shorthand: l
+  default_value: "false"
+  usage: run gather-logs in local fallback mode
+- name: log-lines
+  default_value: "500000"
+  usage: |
+    Number of system log lines (journald logs) to collect (0 for all logs)
+- name: overwrite
+  shorthand: o
+  default_value: "false"
+  usage: Overwrite existing log archive
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI

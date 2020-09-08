@@ -1,0 +1,46 @@
+---
+resource_reference: true
+properties_shortcode: 
+resources_common_guards: true
+resources_common_notification: true
+resources_common_properties: true
+title: windows_disk_encryption resource
+resource: windows_disk_encryption
+aliases:
+- "/resource_windows_disk_encryption.html"
+menu:
+  desktop:
+    title: windows_disk_encryption
+    identifier: desktop/resources/windows_disk_encryption windows_disk_encryption
+    parent: desktop/resources
+resource_description_list:
+- markdown: Use the **windows_disk_encryption** resource to enable or disable BitLocker
+    Drive Encryption on Windows systems.
+resource_new_in: '1.0'
+syntax_full_code_block: |-
+  windows_disk_encryption 'name' do
+    reboot_after_update      true, false # default value: true
+    action      Symbol # defaults to :enable if not specified
+  end
+syntax_properties_list: 
+syntax_full_properties_list:
+- "`windows_disk_encryption` is the resource."
+- "`name` is the name given to the resource block."
+- "`action` identifies which steps Chef Infra Client will take to bring the node into
+  the desired state."
+actions_list:
+  :disable:
+    markdown: "Turns off BitLocker."
+  :enable:
+    markdown: "Turns on BitLocker."
+  :nothing:
+    shortcode: resources_common_actions_nothing.md
+properties_list:
+- property: reboot_after_update
+  ruby_type: true, false
+  required: false
+  default_value: 'true'
+  new_in: '1.1'
+  description_list:
+  - markdown: Control the reboot behavior after enabling BitLocker
+examples: 

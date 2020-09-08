@@ -1,0 +1,47 @@
+name: chef-automate backup delete
+synopsis: delete backups of Chef Automate
+usage: chef-automate backup delete ID [ID2 IDN...] [flags]
+description: |
+  Delete one or many backups of Chef Automate that match the space separated strings of backup IDs
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for delete
+- name: wait-timeout
+  shorthand: t
+  default_value: "120"
+  usage: |
+    How long to wait for a operation to complete before raising an error
+- name: "yes"
+  default_value: "false"
+  usage: Agree to all prompts
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: gcs-credentials-path
+  usage: The path to the GCP service account json file
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: no-progress
+  default_value: "false"
+  usage: Don't follow operation progress
+- name: request-timeout
+  shorthand: r
+  default_value: "20"
+  usage: API request timeout for deployment-service in seconds
+- name: result-json
+  usage: Write command result as JSON to PATH
+- name: s3-access-key
+  usage: The S3 access key ID
+- name: s3-endpoint
+  usage: The S3 region endpoint URL
+- name: s3-secret-key
+  usage: The S3 secret access key
+- name: s3-session-token
+  usage: The S3 session token when assuming an IAM role
+see_also:
+- chef-automate backup - Chef Automate backup

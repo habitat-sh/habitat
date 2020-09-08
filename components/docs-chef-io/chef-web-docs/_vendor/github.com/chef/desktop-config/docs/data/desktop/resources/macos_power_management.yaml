@@ -1,0 +1,62 @@
+---
+resource_reference: true
+properties_shortcode:
+resources_common_guards: true
+resources_common_notification: true
+resources_common_properties: true
+title: macos_power_management resource
+resource: macos_power_management
+aliases:
+- "/resource_macos_power_management.html"
+menu:
+  desktop:
+    title: macos_power_management
+    identifier: desktop/resources/macos_power_management macos_power_management
+    parent: desktop/resources
+resource_description_list:
+- markdown: Use the **macos_power_management** resource to set the power settings
+    of a kiosk-style device when you need it always-on
+resource_new_in: '1.0'
+syntax_full_code_block: |-
+  macos_power_management 'name' do
+    computer_sleep_time      String # default value: "never"
+    disk_sleep_time          String # default value: "never"
+    display_sleep_time       String # default value: "never"
+    action                   Symbol # defaults to :set if not specified
+  end
+syntax_properties_list:
+syntax_full_properties_list:
+- "`macos_power_management` is the resource."
+- "`name` is the name given to the resource block."
+- "`action` identifies which steps Chef Infra Client will take to bring the node into
+  the desired state."
+- "`computer_sleep_time`, `disk_sleep_time`, and `display_sleep_time` are the properties
+  available to this resource."
+actions_list:
+  :nothing:
+    shortcode: resources_common_actions_nothing.md
+  :set:
+    markdown: "This action sets the policy as defined in its properties."
+properties_list:
+- property: computer_sleep_time
+  ruby_type: String
+  required: false
+  default_value: never
+  description_list:
+  - markdown: A time value between 1-60 minutes or "never" to use to set the computer
+      to sleep after. Defaults to never
+- property: disk_sleep_time
+  ruby_type: String
+  required: false
+  default_value: never
+  description_list:
+  - markdown: A time value between 1-60 minutes or "never" to use to set the hard
+      disk to sleep after. Defaults to never
+- property: display_sleep_time
+  ruby_type: String
+  required: false
+  default_value: never
+  description_list:
+  - markdown: A time value between 1-60 minutes or "never" to use to set the display
+      to sleep after. Defaults to never
+examples:

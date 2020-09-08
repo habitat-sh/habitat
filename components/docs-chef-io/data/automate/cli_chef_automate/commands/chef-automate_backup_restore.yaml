@@ -1,0 +1,65 @@
+name: chef-automate backup restore
+synopsis: restore a Chef Automate backup
+usage: chef-automate backup restore [ID_OR_PATH] [flags]
+description: |
+  Restore a Chef Automate backup. If no ID or path is given the latest found backup will be restored.
+options:
+- name: airgap-bundle
+  usage: The artifact to use for an air-gapped installation
+- name: backup-dir
+  shorthand: b
+  default_value: /var/opt/chef-automate/backups
+  usage: Directory used for backups
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for restore
+- name: patch-config
+  usage: Path to patch config if required
+- name: sha256
+  usage: The SHA256 checksum of the backup
+- name: skip-preflight
+  default_value: "false"
+  usage: Skip preflight checks when restoring a backup
+- name: upgrade
+  shorthand: u
+  default_value: "false"
+  usage: |
+    Upgrade to the latest package versions when restoring backups
+- name: wait-timeout
+  shorthand: t
+  default_value: "7200"
+  usage: |
+    How long to wait for a operation to complete before raising an error
+- name: "yes"
+  default_value: "false"
+  usage: Agree to all prompts
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: gcs-credentials-path
+  usage: The path to the GCP service account json file
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: no-progress
+  default_value: "false"
+  usage: Don't follow operation progress
+- name: request-timeout
+  shorthand: r
+  default_value: "20"
+  usage: API request timeout for deployment-service in seconds
+- name: result-json
+  usage: Write command result as JSON to PATH
+- name: s3-access-key
+  usage: The S3 access key ID
+- name: s3-endpoint
+  usage: The S3 region endpoint URL
+- name: s3-secret-key
+  usage: The S3 secret access key
+- name: s3-session-token
+  usage: The S3 session token when assuming an IAM role
+see_also:
+- chef-automate backup - Chef Automate backup

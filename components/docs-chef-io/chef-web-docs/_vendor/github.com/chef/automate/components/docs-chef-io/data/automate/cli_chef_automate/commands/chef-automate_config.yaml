@@ -1,0 +1,27 @@
+name: chef-automate config
+synopsis: Chef Automate configuration
+usage: chef-automate config COMMAND [flags]
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for config
+- name: timeout
+  shorthand: t
+  default_value: "10"
+  usage: Request timeout in seconds
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI
+- patch - patch the Chef Automate configuration
+- set - set the Chef Automate configuration
+- show - show the Chef Automate configuration

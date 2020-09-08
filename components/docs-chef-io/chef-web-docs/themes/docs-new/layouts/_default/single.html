@@ -1,0 +1,17 @@
+{{ define "main" }}
+<main id="main-content-col" tabindex="-1">
+<div class="col-content">
+  <div id="{{ anchorize ( .Title )}}"><h1>{{ .Title }}</h1></div>
+
+  {{ $headers := findRE "<h[12].*?>(.|\n])+?</h[12]>" .Content }}
+  {{ if and (ge (len $headers) 1) (ne .Params.toc false )}}
+    <button type="button" class="TOC-button hide-for-large" data-toggle="offCanvasRightTOC" data-close="left-nav-off-canvas">
+      <i class="fas fa-bars"></i> Table of Contents
+    </button>
+  {{ end }}
+    <div class="prose">
+      {{ .Content }}
+    </div>
+  </div>
+</main>
+{{ end }}

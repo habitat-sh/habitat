@@ -1,0 +1,44 @@
+name: chef-automate
+synopsis: Chef Automate CLI
+usage: chef-automate COMMAND [flags]
+description: A helpful utility to deploy and manage Chef Automate.
+options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for chef-automate
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- 'airgap - '
+- applications - Manage applications observability features
+- backup - Chef Automate backup
+- config - Chef Automate configuration
+- deploy - Deploy Chef Automate
+- external-cert - Manage Chef Automate's external certificate
+- gather-logs - Gather system diagnostics and logs
+- iam - Chef Automate iam commands
+- infrastructure - Chef Automate infrastructure
+- init-config - Initialize default config
+- internal-ca - Manage Chef Automate's internal certificate authority
+- license - Chef Automate license management
+- maintenance - Put Chef Automate into or out of maintenance mode
+- migrate-from-v1 - Migrate from Chef Automate v1
+- migrate-from-v1-status - Watch the status of the migration to Chef Automate 2
+- preflight-check - Perform preflight check
+- restart-services - restart deployment services
+- service-versions - Retrieve the versions of the individual Chef Automate services
+- start - Start Chef Automate
+- status - Retrieve Chef Automate status
+- stop - Stop deployment
+- system-logs - Tail Chef Automate logs
+- uninstall - Uninstall Chef Automate
+- upgrade - upgrade automate to the latest version
+- version - Show CLI version

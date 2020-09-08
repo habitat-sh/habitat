@@ -1,0 +1,26 @@
+name: chef-automate config patch
+synopsis: patch the Chef Automate configuration
+usage: chef-automate config patch path/to/config.toml [flags]
+description: |
+  Apply a partial Chef Automate configuration to the deployment. It will take the partial configuration, merge it with the existing configuration, and apply and required changes.
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for patch
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+- name: timeout
+  shorthand: t
+  default_value: "10"
+  usage: Request timeout in seconds
+see_also:
+- chef-automate config - Chef Automate configuration

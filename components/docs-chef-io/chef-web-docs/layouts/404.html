@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+{{ partial "head" . }}
+<body>
+  <a class="skip-main" href="#main-content-col">Skip to main content</a>
+
+  {{ partial "utility-bar" . }}
+  {{ partial "utility-bar-small" . }}
+
+  <div id="left-nav-off-canvas" class="hide-for-medium" data-toggler=".reveal">
+    {{ partial "sidebar-off-canvas" . }}
+  </div>
+
+  <div class="off-canvas-wrapper">
+    <div class="grid-container">
+      <div class="grid-x">
+
+        <div class="cell position-left off-canvas-absolute reveal-for-medium col-sidebar" id="left-nav-on-canvas" data-off-canvas data-transition="overlap" >
+            {{ partial "sidebar-on-canvas" . }}
+        </div>
+
+        <div id="main-content" class="cell off-canvas-content cell auto" data-off-canvas-content>
+					<main id="main-content-col" tabindex="-1">
+					<div class="col-content">
+						<div id="404_heading"><h1>404</h1></div>
+
+							<div class="prose">
+								<p>We did something wrong!</p>
+								<p>If a page has gone missing,</p>
+								<p><a href="/feedback/">contact us</a> for help.</p>
+							</div>
+						</div>
+					</main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer" class="cell small-12">
+    <div class="grid-x">
+      <div class="cell small-12">
+        <nav>
+          {{ partial "footer" . }}
+        </nav>
+      </div>
+    </div>
+  </div>
+  {{ partial "javascript" . }}
+  </body>
+</html>

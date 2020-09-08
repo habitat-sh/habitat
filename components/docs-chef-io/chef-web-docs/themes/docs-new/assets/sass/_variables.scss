@@ -1,0 +1,91 @@
+// Foundation overrides
+// https://raw.githubusercontent.com/zurb/foundation-sites/master/scss/settings/_settings.scss
+
+// TODO: Pull these colors into Sass variables.
+
+$charcoal: #424242;
+$blue: #92C1E9;
+  $blue-darker: #2a7ab0;
+$orange: #EF9600;
+  $orange-lighter: #f9a51d;
+  $orange-darker: #e58e00;
+$lightgray: #BABDBE;
+$lightlightgray: #e7e7e7;
+$sidebargray: #f4f5f7;
+$ash: #ECEFF1;
+$slate: #243541;
+$slate-light: #627b8f;
+$footer-text: #f3f6f8;
+$white: #FFFFFF;
+$border: #eeeeee;
+$border-dark: #a1a1a1;
+
+$fa-font-path: "/fonts/fontawesome";
+$font-family-monospace: "Source Code Pro", "Consolas","Inconsolata","Menlo","Monaco","Courier New","monospace";
+
+$grid-container: 1440px;
+$body-font-color: #424242;
+$body-font-family: Inter, sans-serif;
+$border-radius-base: 4px;
+$topbar-background: #fff;
+$code-border: transparent;
+$code-background: rgba(237, 237, 237, 0.5);
+$code-background-hover: #F2F2F2;
+$code-background-active: #D9D9D9;
+$code-background-focus: #E6E6E6;
+$code-font-weight: 300;
+$menu-item-color-active:#2a7ab0;
+$menu-item-background-active: #e0e1e5;
+$accordionmenu-arrow-color: #898a8d;
+$input-border: 1px solid #eceff1;
+$input-color: $body-font-color;
+$input-placeholder-color: rgba($input-color, 0.5);
+$input-font-size: .94rem;
+$input-shadow: none;
+$dropdown-background: $charcoal;
+$offcanvas-background: $white;
+$tab-content-padding: 0;
+
+$callout-font-color: $body-font-color;
+$callout-radius: $border-radius-base;
+$callout-padding: .5rem 1rem;
+$callout-margin: .5rem 0 1rem 0;
+$note-color: $blue;
+
+$foundation-palette: (
+  primary: $blue-darker,
+  secondary: #767676,
+  success: #3adb76,
+  warning: #ffae00,
+  alert: #cc4b37,
+);
+
+$breakpoint-classes: (small medium mediumlarge large xlarge xxlarge);
+
+$breakpoints: (
+  small: 0px,
+  medium: 768px,
+  mediumlarge: 900px,
+  large: 991px,
+  xlarge: 1200px,
+  xxlarge: 1440px,
+);
+
+$header-styles: (
+  'small': (
+    'h1': ('font-size': 24),
+    'h2': ('font-size': 20),
+    'h3': ('font-size': 18),
+    'h4': ('font-size': 16),
+    'h5': ('font-size': 14),
+    'h6': ('font-size': 14),
+  ),
+  'medium': (
+    'h1': ('font-size': 36),
+    'h2': ('font-size': 32),
+    'h3': ('font-size': 24),
+    'h4': ('font-size': 18),
+    'h5': ('font-size': 16),
+    'h6': ('font-size': 16),
+  )
+);

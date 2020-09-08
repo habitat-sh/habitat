@@ -1,0 +1,12 @@
+steps:
+
+  - label: lint hugo site
+    command:
+      - .expeditor/buildkite/hugo_lint.sh
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:

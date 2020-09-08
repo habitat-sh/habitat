@@ -1,0 +1,27 @@
+name: chef-automate external-cert show
+synopsis: |
+  Show the external TLS/SSL certificates in Automate. Optionally, save the certificates to a file in the specified path.
+usage: chef-automate external-cert show [flags]
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for show
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: file
+  shorthand: f
+  usage: File path to save automate TLS certifcate to.
+- name: hostname
+  shorthand: "n"
+  usage: Hostname for the automate TLS certificate
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate external-cert - Manage Chef Automate's external certificate

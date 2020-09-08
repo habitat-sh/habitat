@@ -1,0 +1,22 @@
+name: chef-automate system-logs
+synopsis: Tail Chef Automate logs
+usage: chef-automate system-logs [flags]
+description: |
+  Start streaming logs from the Chef Automate server. Ctrl + c to stop.
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for system-logs
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI

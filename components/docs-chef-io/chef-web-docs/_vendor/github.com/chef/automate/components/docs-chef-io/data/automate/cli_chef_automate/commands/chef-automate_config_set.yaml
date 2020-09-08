@@ -1,0 +1,26 @@
+name: chef-automate config set
+synopsis: set the Chef Automate configuration
+usage: chef-automate config set path/to/config.toml [flags]
+description: |
+  Set the Chef Automate configuration for the deployment. It will replace the Chef Automate configuration with the given configuration and apply any required changes.
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for set
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+- name: timeout
+  shorthand: t
+  default_value: "10"
+  usage: Request timeout in seconds
+see_also:
+- chef-automate config - Chef Automate configuration

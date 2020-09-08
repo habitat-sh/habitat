@@ -1,0 +1,26 @@
+name: chef-automate iam token create
+synopsis: Generate a token
+usage: chef-automate iam token create NAME [flags]
+options:
+- name: admin
+  default_value: "false"
+  usage: Generate a token and add it to the chef-managed admin policy
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for create
+- name: id
+  usage: |
+    Specify a custom ID (if omitted, an ID will be generated based on NAME)
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate iam token - Manage tokens

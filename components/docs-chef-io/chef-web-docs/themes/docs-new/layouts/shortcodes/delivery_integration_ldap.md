@@ -1,0 +1,1 @@
+You can configure Workflow to access your own LDAP database.

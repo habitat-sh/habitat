@@ -1,0 +1,34 @@
+{{ $data_path := index $.Site.Data (split (.Get "data_path") "/") }}
+{{ range $data_path }}
+{{ $id := urlize .name }}
+  <h3 id="{{ $id }}">{{ .name }}</h2>
+  <p>{{ .description }}</p>
+
+  <h4 id="{{ $id }}-usage">Usage</h3>
+  <pre><code>{{ .usage }}</code></pre>
+
+  <h4 id="{{ $id }}-flags">Flags</h3>
+  <div class="fake-code grid-x">
+    {{- range .options -}}
+    <div class="cell medium-4">{{ if .shorthand }}-{{ .shorthand }}, {{ end }}--{{ .name }}</div>
+    <div class="cell medium-8">{{ .usage }}{{ if .default_value }} (default: {{ .default_value }}){{ end }}</div>
+    {{- end -}}
+    {{- range .inherited_options -}}
+    <div class="cell medium-4">{{ if .shorthand }}-{{ .shorthand }}, {{ end }}--{{ .name }}</div>
+    <div class="cell medium-8">{{ .usage }}{{ if .default_value }} (default: {{ .default_value }}){{ end }}</div>
+    {{- end -}}
+  </div>
+
+  <h4 id="{{ $id }}-see-also">See Also</h3>
+  <div class="grid-x">
+    {{ range .see_also }}
+    {{ $sa_bits := split . " - " }}
+    {{ $sa_id := urlize (index $sa_bits 0) }}
+    {{ if not (hasPrefix $sa_id "chef-automate") }}
+      {{ $sa_id = delimit (slice "chef-automate" $sa_id) "-" }}
+    {{ end }}
+    <div class="cell medium-3"><a href="#{{ $sa_id }}">{{ index $sa_bits 0 }}</a></div>
+    <div class="cell medium-9">{{ index $sa_bits 1 }}</div>
+    {{ end }}
+  </div>
+{{ end }}

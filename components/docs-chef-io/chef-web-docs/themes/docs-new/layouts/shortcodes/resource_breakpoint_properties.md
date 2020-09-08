@@ -1,0 +1,1 @@
+This resource does not have any properties.

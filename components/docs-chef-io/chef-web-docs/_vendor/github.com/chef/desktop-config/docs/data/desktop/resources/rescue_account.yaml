@@ -1,0 +1,55 @@
+---
+resource_reference: true
+properties_shortcode:
+resources_common_guards: true
+resources_common_notification: true
+resources_common_properties: true
+title: rescue_account resource
+resource: rescue_account
+aliases:
+- "/resource_rescue_account.html"
+menu:
+  desktop:
+    title: rescue_account
+    identifier: desktop/resources/rescue_account rescue_account
+    parent: desktop/resources
+resource_description_list:
+- markdown: Use the **rescue_account** resource to provide Administrators with a rescue
+    account.
+resource_new_in: '1.0'
+syntax_full_code_block: |-
+  rescue_account 'name' do
+    account_name      String
+    password          String
+    action            Symbol # defaults to :create if not specified
+  end
+syntax_properties_list:
+syntax_full_properties_list:
+- "`rescue_account` is the resource."
+- "`name` is the name given to the resource block."
+- "`action` identifies which steps Chef Infra Client will take to bring the node into
+  the desired state."
+- "`account_name` and `password` are the properties available to this resource."
+actions_list:
+  :create:
+    markdown: "Creates the user specified in the property field."
+  :delete:
+    markdown: "Deletes the named user."
+  :disable:
+    markdown: "Turns off the account if it was enabled."
+  :enable:
+    markdown: "Turns the account on if previously disabled."
+  :nothing:
+    shortcode: resources_common_actions_nothing.md
+properties_list:
+- property: account_name
+  ruby_type: String
+  required: true
+  description_list:
+  - markdown: Name of the user to be created as a rescue account
+- property: password
+  ruby_type: String
+  required: true
+  description_list:
+  - markdown: Corresponding password for that user
+examples:

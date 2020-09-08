@@ -1,0 +1,24 @@
+name: chef-automate internal-ca
+synopsis: Manage Chef Automate's internal certificate authority
+usage: chef-automate internal-ca COMMAND [flags]
+description: |
+  Manage Chef Automate's internal certificate authority. Used for inter-service encryption and authentication.
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for internal-ca
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI
+- info - Print information the root certificate for the internal certificate authority
+- regenerate - Commands to regenerate certificates issued by the internal certificate authority

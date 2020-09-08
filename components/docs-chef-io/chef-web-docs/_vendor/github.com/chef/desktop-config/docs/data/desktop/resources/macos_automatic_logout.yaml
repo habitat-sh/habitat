@@ -1,0 +1,47 @@
+---
+resource_reference: true
+properties_shortcode:
+resources_common_guards: true
+resources_common_notification: true
+resources_common_properties: true
+title: macos_automatic_logout resource
+resource: macos_automatic_logout
+aliases:
+- "/resource_macos_automatic_logout.html"
+menu:
+  desktop:
+    title: macos_automatic_logout
+    identifier: desktop/resources/macos_automatic_logout macos_automatic_logout
+    parent: desktop/resources
+resource_description_list:
+- markdown: Use the **macos_automatic_logout** resource to set the system to automatically
+    logout after a set time.
+resource_new_in: '1.0'
+syntax_full_code_block: |-
+  macos_automatic_logout 'name' do
+    autologout_time      Integer # default value: 3600
+    action               Symbol # defaults to :enable if not specified
+  end
+syntax_properties_list:
+syntax_full_properties_list:
+- "`macos_automatic_logout` is the resource."
+- "`name` is the name given to the resource block."
+- "`action` identifies which steps Chef Infra Client will take to bring the node into
+  the desired state."
+- "`autologout_time` is the property available to this resource."
+actions_list:
+  :disable:
+    markdown:
+  :enable:
+    markdown:
+  :nothing:
+    shortcode: resources_common_actions_nothing.md
+properties_list:
+- property: autologout_time
+  ruby_type: Integer
+  required: false
+  default_value: '3600'
+  description_list:
+  - markdown: The amount of time in seconds to elapse before logging the system out.
+      Defaults to 1 hour
+examples:

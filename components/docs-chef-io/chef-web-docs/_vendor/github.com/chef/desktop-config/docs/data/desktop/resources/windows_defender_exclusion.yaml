@@ -1,0 +1,61 @@
+---
+resource_reference: true
+properties_shortcode:
+resources_common_guards: true
+resources_common_notification: true
+resources_common_properties: true
+title: windows_defender_exclusion resource
+resource: windows_defender_exclusion
+aliases:
+- "/resource_windows_defender_exclusion.html"
+menu:
+  desktop:
+    title: windows_defender_exclusion
+    identifier: desktop/resources/windows_defender_exclusion windows_defender_exclusion
+    parent: desktop/resources
+resource_description_list:
+- markdown: Use the **windows_defender_exclusion** resource to exclude paths, processes,
+    or file types from Windows Defender realtime protection scanning.
+resource_new_in: '1.1'
+syntax_full_code_block: |-
+  windows_defender_exclusion 'name' do
+    extensions         String, Array # default value: []
+    paths              String, Array # default value: []
+    process_paths      String, Array # default value: []
+    action             Symbol # defaults to :add if not specified
+  end
+syntax_properties_list:
+syntax_full_properties_list:
+- "`windows_defender_exclusion` is the resource."
+- "`name` is the name given to the resource block."
+- "`action` identifies which steps Chef Infra Client will take to bring the node into
+  the desired state."
+- "`extensions`, `paths`, and `process_paths` are the properties available to this
+  resource."
+actions_list:
+  :add:
+    markdown:
+  :nothing:
+    shortcode: resources_common_actions_nothing.md
+  :remove:
+    markdown:
+properties_list:
+- property: extensions
+  ruby_type: String, Array
+  required: false
+  default_value: "[]"
+  description_list:
+  - markdown: File extensions to exclude from scanning.
+- property: paths
+  ruby_type: String, Array
+  required: false
+  default_value: "[]"
+  description_list:
+  - markdown: File or directory paths to exclude from scanning.
+- property: process_paths
+  ruby_type: String, Array
+  required: false
+  default_value: "[]"
+  description_list:
+  - markdown: Paths to executables to exclude from scanning.
+examples:

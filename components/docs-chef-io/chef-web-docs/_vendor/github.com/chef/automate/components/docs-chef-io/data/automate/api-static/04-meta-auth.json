@@ -1,0 +1,10 @@
+{
+  "securityDefinitions": {
+    "APIToken": {
+      "description": "Authenticate with the Automate API using an API Token.",
+      "type": "apiKey",
+      "name": "api-token",
+      "in": "header"
+    }
+  }
+}

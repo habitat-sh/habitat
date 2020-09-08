@@ -1,0 +1,23 @@
+body {
+	margin: 0;
+	padding: 0;
+}
+
+a.return {
+	background: #EF9600;
+	display: block;
+	text-align: center;
+	width: 260px;
+	padding: 8px 0;
+	color: white;
+	text-decoration: none;
+	font-family: montserrat;
+	font-size: 14px;
+	position: fixed;
+	z-index: 1;
+}
+
+redoc[spec-url] a img[src^="/images/chef-automate-logo.svg"] {
+	width: 220px;
+	margin: 20px;
+}

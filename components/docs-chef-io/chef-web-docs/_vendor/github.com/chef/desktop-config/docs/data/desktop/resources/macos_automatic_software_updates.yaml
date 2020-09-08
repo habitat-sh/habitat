@@ -1,0 +1,68 @@
+---
+resource_reference: true
+properties_shortcode:
+resources_common_guards: true
+resources_common_notification: true
+resources_common_properties: true
+title: macos_automatic_software_updates resource
+resource: macos_automatic_software_updates
+aliases:
+- "/resource_macos_automatic_software_updates.html"
+menu:
+  desktop:
+    title: macos_automatic_software_updates
+    identifier: desktop/resources/macos_automatic_software_updates macos_automatic_software_updates
+    parent: desktop/resources
+resource_description_list:
+- markdown: Use the **macos_automatic_software_updates** resource to configure system
+    and application updates on macOS systems.
+resource_new_in: '1.0'
+syntax_full_code_block: |-
+  macos_automatic_software_updates 'name' do
+    check                  true, false
+    download               true, false
+    install_app_store      true, false
+    install_critical       true, false
+    install_os             true, false
+    action                 Symbol # defaults to :set if not specified
+  end
+syntax_properties_list:
+syntax_full_properties_list:
+- "`macos_automatic_software_updates` is the resource."
+- "`name` is the name given to the resource block."
+- "`action` identifies which steps Chef Infra Client will take to bring the node into
+  the desired state."
+- "`check`, `download`, `install_app_store`, `install_critical`, and `install_os`
+  are the properties available to this resource."
+actions_list:
+  :nothing:
+    shortcode: resources_common_actions_nothing.md
+  :set:
+    markdown:
+properties_list:
+- property: check
+  ruby_type: true, false
+  required: false
+  description_list:
+  - markdown: Tell the OS to check for updates
+- property: download
+  ruby_type: true, false
+  required: false
+  description_list:
+  - markdown: Tell the OS to download updates
+- property: install_app_store
+  ruby_type: true, false
+  required: false
+  description_list:
+  - markdown: Set this to add app updates
+- property: install_critical
+  ruby_type: true, false
+  required: false
+  description_list:
+  - markdown: Set this to install critical updates
+- property: install_os
+  ruby_type: true, false
+  required: false
+  description_list:
+  - markdown: Set to update the OS
+examples:

@@ -1,0 +1,21 @@
+name: chef-automate stop
+synopsis: Stop deployment
+usage: chef-automate stop [flags]
+description: Stop a running deployment of Automate.
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for stop
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI

@@ -1,0 +1,67 @@
+---
+resource_reference: true
+properties_shortcode: 
+resources_common_guards: true
+resources_common_notification: true
+resources_common_properties: true
+title: windows_desktop_screensaver resource
+resource: windows_desktop_screensaver
+aliases:
+- "/resource_windows_desktop_screensaver.html"
+menu:
+  desktop:
+    title: windows_desktop_screensaver
+    identifier: desktop/resources/windows_desktop_screensaver windows_desktop_screensaver
+    parent: desktop/resources
+resource_description_list:
+- markdown: Use the **windows_desktop_screensaver** resource to configure secure screensaver
+    settings on Windows systems.
+syntax_full_code_block: |-
+  windows_desktop_screensaver 'name' do
+    allow_lower_user_idle_time      true, false # default value: false
+    idle_time                       Integer # default value: 20
+    require_password                true, false # default value: true
+    screensaver_name                String
+    action                          Symbol # defaults to :enable if not specified
+  end
+syntax_properties_list: 
+syntax_full_properties_list:
+- "`windows_desktop_screensaver` is the resource."
+- "`name` is the name given to the resource block."
+- "`action` identifies which steps Chef Infra Client will take to bring the node into
+  the desired state."
+- "`allow_lower_user_idle_time`, `idle_time`, `require_password`, and `screensaver_name`
+  are the properties available to this resource."
+actions_list:
+  :disable:
+    markdown: Disable the desktop screen saver.
+  :enable:
+    markdown: Enable the desktop screen saver.
+  :nothing:
+    shortcode: resources_common_actions_nothing.md
+properties_list:
+- property: allow_lower_user_idle_time
+  ruby_type: true, false
+  required: false
+  default_value: 'false'
+  description_list:
+  - markdown: Allow users to set their screen saver idle time lower than the system
+      requirements.
+- property: idle_time
+  ruby_type: Integer
+  required: false
+  default_value: '20'
+  description_list:
+  - markdown: The amount of idle time in minutes before the screensaver comes on.
+- property: require_password
+  ruby_type: true, false
+  required: false
+  default_value: 'true'
+  description_list:
+  - markdown: Require a password when waking from the screensaver.
+- property: screensaver_name
+  ruby_type: String
+  required: false
+  description_list:
+  - markdown: The name of a specific or custom screensaver to enable.
+examples:

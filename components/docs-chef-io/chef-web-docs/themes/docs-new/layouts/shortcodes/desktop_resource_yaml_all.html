@@ -1,0 +1,849 @@
+{{ $SyntaxID := newScratch }}
+{{ $SyntaxID.Set "Value" 0 }}
+
+{{ $NamelessID := newScratch }}
+{{ $NamelessID.Set "Value" 0 }}
+
+{{ $ActionsID := newScratch }}
+{{ $ActionsID.Set "Value" 0 }}
+
+{{ $PropertiesID := newScratch }}
+{{ $PropertiesID.Set "Value" 0 }}
+
+{{ $resources_common_atomic_updateID := newScratch }}
+{{ $resources_common_atomic_updateID.Set "Value" 0 }}
+
+{{ $resources_common_windows_securityID := newScratch }}
+{{ $resources_common_windows_securityID.Set "Value" 0 }}
+
+{{ $remote_file_prevent_re_downloadsID := newScratch }}
+{{ $remote_file_prevent_re_downloadsID.Set "Value" 0 }}
+
+{{ $remote_file_unc_pathID := newScratch }}
+{{ $remote_file_unc_pathID.Set "Value" 0 }}
+
+{{ $ps_credential_helperID := newScratch }}
+{{ $ps_credential_helperID.Set "Value" 0 }}
+
+{{ $FunctionalityID := newScratch }}
+{{ $FunctionalityID.Set "Value" 0 }}
+
+{{ $resources_common_propertiesID := newScratch }}
+{{ $resources_common_propertiesID.Set "Value" 0 }}
+
+{{ $resources_common_notificationsID := newScratch }}
+{{ $resources_common_notificationsID.Set "Value" 0 }}
+
+{{ $resources_common_guardsID := newScratch }}
+{{ $resources_common_guardsID.Set "Value" 0 }}
+
+{{ $common_resource_functionality_multiple_packagesID := newScratch }}
+{{ $common_resource_functionality_multiple_packagesID.Set "Value" 0 }}
+
+{{ $resources_common_guard_interpreterID := newScratch }}
+{{ $resources_common_guard_interpreterID.Set "Value" 0 }}
+
+{{ $resource_directory_recursive_directoriesID := newScratch }}
+{{ $resource_directory_recursive_directoriesID.Set "Value" 0 }}
+
+{{ $remote_directory_recursive_directoriesID := newScratch }}
+{{ $remote_directory_recursive_directoriesID.Set "Value" 0 }}
+
+{{ $remote_directory_recursive_directories_exampleID := newScratch }}
+{{ $remote_directory_recursive_directories_exampleID.Set "Value" 0 }}
+
+{{ $ExamplesID := newScratch }}
+{{ $ExamplesID.Set "Value" 0 }}
+
+
+{{ range .Site.Data.desktop.resources }}
+  {{ $yaml_file := . }}
+
+  <h2 id="{{ .title | anchorize }}">{{.title}}</h2>
+
+
+  {{ if index $yaml_file "resource_description_list" }}
+    {{ range index $yaml_file "resource_description_list" }}
+      {{ range $key, $value := . }}
+        {{ if eq $key "markdown" }}
+          <p>{{- $value | markdownify -}}</p>
+        {{ end }}
+        {{ if eq $key "note" }}
+          <div class="admonition-note">
+            <p class="admonition-note-title">Note</p>
+            <div class="admonition-note-text">
+              {{ range $subkey, $subvalue := $value }}
+                {{ if eq $subkey "markdown" }}
+                  <p>
+                    {{- $subvalue | markdownify -}}
+                  </p>
+                {{ end }}
+                {{ if eq $subkey "shortcode" }}
+                  <p>
+                    {{ readFile (delimit (slice `layouts/shortcodes/` $subvalue ) "") | markdownify }}
+                  </p>
+                {{ end }}
+              {{ end }}
+            </div>
+          </div>
+        {{ end }}
+        {{ if eq $key "warning" }}
+          <div class="admonition-warning">
+            <p class="admonition-warning-title">Warning</p>
+            <div class="admonition-warning-text">
+              {{ range $subkey, $subvalue := $value }}
+                {{ if eq $subkey "markdown" }}
+                  <p>
+                    {{- $subvalue | markdownify -}}
+                  </p>
+                {{ end }}
+                {{ if eq $subkey "shortcode" }}
+                  <p>
+                    {{ readFile (delimit (slice `themes/docs-new/layouts/shortcodes/` $subvalue ) "") | markdownify }}
+                  </p>
+                {{ end }}
+              {{ end }}
+            </div>
+          </div>
+        {{ end }}
+        {{ if eq $key "shortcode" }}
+          <p>
+            {{ readFile (delimit (slice `themes/docs-new/layouts/shortcodes/` $value ) "") | markdownify }}
+          </p>
+        {{ end }}
+      {{ end }}
+    {{ end }}
+
+    {{ with index $yaml_file "resource_new_in" }}
+      {{ if isset $.Page.Params "desktop_resource_list" }}
+        <p><strong>New in Chef Desktop {{ index $yaml_file "resource_new_in" }}.</strong></p>
+      {{ else if isset $.Page.Params "infra_resource_list" }}
+        <p><strong>New in Chef Infra Client {{ index $yaml_file "resource_new_in" }}.</strong></p>
+      {{ end }}
+    {{ end }}
+
+    <!-------------- Handler Types ------------------->
+
+    {{ if index $yaml_file "handler_types" }}
+      <h2 id="handler_types">Handler Types</h2>
+      {{ readFile "themes/docs-new/layouts/shortcodes/handler_types.md" | markdownify }}
+
+      <h3 id="handler_type_exception_report">Exception / Report</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/handler_type_exception_report.md" | markdownify }}
+      {{ readFile "themes/docs-new/layouts/shortcodes/handler_type_exception_report_run_from_recipe.md" | markdownify }}
+
+
+      <h3 id="handler_type_start">Start</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/handler_type_start.md" | markdownify }}
+      {{ readFile "themes/docs-new/layouts/shortcodes/handler_type_start_run_from_recipe.md" | markdownify }}
+
+    {{ end }}
+
+    <!-------------- Package Resource ------------------->
+
+    {{ if index $yaml_file "package_resource" }}
+      {{ readFile "themes/docs-new/layouts/shortcodes/package_resource.md" | markdownify }}
+    {{ end }}
+
+
+    <!-------------- Syntax ------------------->
+
+    {{ $SyntaxID.Add "Value" 1 }}
+    <h2 id = "syntax-{{ $SyntaxID.Get "Value" }}">Syntax</h2>
+    <hr>
+
+    <p>{{ index $yaml_file "syntax_description" | markdownify }}</p>
+
+    {{ if index $yaml_file "syntax_code_block" }}
+      <p>{{- highlight index $yaml_file "syntax_code_block" "ruby" "" -}}</p>
+    {{ end }}
+
+    {{ if index $yaml_file "syntax_properties_list" }}
+      <p>where:</p>
+      <ul>
+        {{ range index $yaml_file "syntax_properties_list" }}
+        <li>{{ . | markdownify }}</li>
+        {{ end }}
+      </ul>
+    {{ end }}
+
+    {{ if index $yaml_file "syntax_full_code_block" }}
+      <p>The full syntax for all of the properties that are available to the <strong>{{ index $yaml_file "resource" }}</strong> resource is:</p>
+      <p>{{- highlight ( trim (index $yaml_file "syntax_full_code_block") "\n") "ruby" "" -}}</p>
+    {{ end }}
+
+    {{ if index $yaml_file "syntax_full_properties_list" }}
+      <p>where:</p>
+      <ul>
+        {{ range index $yaml_file "syntax_full_properties_list" }}
+        <li>{{ . | markdownify }}</li>
+        {{ end }}
+      </ul>
+    {{ end }}
+
+    {{ if index $yaml_file "syntax_shortcode"}}
+      {{ readFile (delimit (slice `themes/docs-new/layouts/shortcodes/` (index $yaml_file "syntax_shortcode") ) "") | markdownify }}
+    {{ end }}
+
+    {{ if index $yaml_file "registry_key" }}
+      <h3 id="windows_registry_key_backslashes">Registry Key Path Separators</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/windows_registry_key_backslashes.md" | markdownify }}
+
+      <h3 id="dsl_recipe_method_windows_methods">Recipe DSL Methods</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/dsl_recipe_method_windows_methods.md" | markdownify }}
+
+      <h4 id="dsl_recipe_method_registry_data_exists">registry_data_exists?</h4>
+      {{ $shortcode := "themes/docs-new/layouts/shortcodes/dsl_recipe_method_registry_data_exists.md" }}
+
+      {{ if in (readFile $shortcode) "readFile" }}
+        {{ $shortcode_text := newScratch }}
+        {{ $shortcode_text.Set "text" "" }}
+        {{ range split (readFile $shortcode) "\n"}}
+          {{ if in . "readFile" }}
+            {{ if ne $shortcode_text "" }}
+              {{ $shortcode_text.Get "text" | markdownify }}
+              {{ $shortcode_text.Set "text" "" }}
+            {{ end }}
+
+            <p>
+              {{ readFile (. | replaceRE `{{ readFile \"(themes\/docs-new\/layouts\/shortcodes\/\w+\.md)\" \| markdownify }}` "$1" ) | markdownify }}
+            </p>
+
+          {{ else }}
+            {{ $shortcode_text.Add "text" . }}
+            {{ $shortcode_text.Add "text" "\n" }}
+          {{ end }}
+        {{ end }}
+        {{ $shortcode_text.Get "text" | markdownify }}
+      {{ else }}
+        {{ readFile $shortcode | markdownify }}
+      {{ end }}
+
+      <h4 id="dsl_recipe_method_registry_get_subkeys">registry_get_subkeys</h4>
+      {{ $shortcode := "themes/docs-new/layouts/shortcodes/dsl_recipe_method_registry_get_subkeys.md" }}
+
+      {{ if in (readFile $shortcode) "readFile" }}
+        {{ $shortcode_text := newScratch }}
+        {{ $shortcode_text.Set "text" "" }}
+        {{ range split (readFile $shortcode) "\n"}}
+          {{ if in . "readFile" }}
+            {{ if ne $shortcode_text "" }}
+              {{ $shortcode_text.Get "text" | markdownify }}
+              {{ $shortcode_text.Set "text" "" }}
+            {{ end }}
+
+            <p>
+              {{ readFile (. | replaceRE `{{ readFile \"(themes\/docs-new\/layouts\/shortcodes\/\w+\.md)\" \| markdownify }}` "$1" ) | markdownify }}
+            </p>
+
+          {{ else }}
+            {{ $shortcode_text.Add "text" . }}
+            {{ $shortcode_text.Add "text" "\n" }}
+          {{ end }}
+        {{ end }}
+        {{ $shortcode_text.Get "text" | markdownify }}
+      {{ else }}
+        {{ readFile $shortcode | markdownify }}
+      {{ end }}
+
+      <h4 id="dsl_recipe_method_registry_get_values">registry_get_values</h4>
+      {{ $shortcode := "themes/docs-new/layouts/shortcodes/dsl_recipe_method_registry_get_values.md" }}
+
+      {{ if in (readFile $shortcode) "readFile" }}
+        {{ $shortcode_text := newScratch }}
+        {{ $shortcode_text.Set "text" "" }}
+        {{ range split (readFile $shortcode) "\n"}}
+          {{ if in . "readFile" }}
+            {{ if ne $shortcode_text "" }}
+              {{ $shortcode_text.Get "text" | markdownify }}
+              {{ $shortcode_text.Set "text" "" }}
+            {{ end }}
+
+            <p>
+              {{ readFile (. | replaceRE `{{ readFile \"(themes\/docs-new\/layouts\/shortcodes\/\w+\.md)\" \| markdownify }}` "$1" ) | markdownify }}
+            </p>
+
+          {{ else }}
+            {{ $shortcode_text.Add "text" . }}
+            {{ $shortcode_text.Add "text" "\n" }}
+          {{ end }}
+        {{ end }}
+        {{ $shortcode_text.Get "text" | markdownify }}
+      {{ else }}
+        {{ readFile $shortcode | markdownify }}
+      {{ end }}
+
+      <h4 id="dsl_recipe_method_registry_has_subkeys">registry_has_subkeys?</h4>
+      {{ $shortcode := "themes/docs-new/layouts/shortcodes/dsl_recipe_method_registry_has_subkeys.md" }}
+
+      {{ if in (readFile $shortcode) "readFile" }}
+        {{ $shortcode_text := newScratch }}
+        {{ $shortcode_text.Set "text" "" }}
+        {{ range split (readFile $shortcode) "\n"}}
+          {{ if in . "readFile" }}
+            {{ if ne $shortcode_text "" }}
+              {{ $shortcode_text.Get "text" | markdownify }}
+              {{ $shortcode_text.Set "text" "" }}
+            {{ end }}
+
+            <p>
+              {{ readFile (. | replaceRE `{{ readFile \"(themes\/docs-new\/layouts\/shortcodes\/\w+\.md)\" \| markdownify }}` "$1" ) | markdownify }}
+            </p>
+
+          {{ else }}
+            {{ $shortcode_text.Add "text" . }}
+            {{ $shortcode_text.Add "text" "\n" }}
+          {{ end }}
+        {{ end }}
+        {{ $shortcode_text.Get "text" | markdownify }}
+      {{ else }}
+        {{ readFile $shortcode | markdownify }}
+      {{ end }}
+
+      <h4 id="dsl_recipe_method_registry_key_exists">registry_key_exists?</h4>
+      {{ $shortcode := "themes/docs-new/layouts/shortcodes/dsl_recipe_method_registry_key_exists.md" }}
+
+      {{ if in (readFile $shortcode) "readFile" }}
+        {{ $shortcode_text := newScratch }}
+        {{ $shortcode_text.Set "text" "" }}
+        {{ range split (readFile $shortcode) "\n"}}
+          {{ if in . "readFile" }}
+            {{ if ne $shortcode_text "" }}
+              {{ $shortcode_text.Get "text" | markdownify }}
+              {{ $shortcode_text.Set "text" "" }}
+            {{ end }}
+
+            <p>
+              {{ readFile (. | replaceRE `{{ readFile \"(themes\/docs-new\/layouts\/shortcodes\/\w+\.md)\" \| markdownify }}` "$1" ) | markdownify }}
+            </p>
+
+          {{ else }}
+            {{ $shortcode_text.Add "text" . }}
+            {{ $shortcode_text.Add "text" "\n" }}
+          {{ end }}
+        {{ end }}
+        {{ $shortcode_text.Get "text" | markdownify }}
+      {{ else }}
+        {{ readFile $shortcode | markdownify }}
+      {{ end }}
+
+      <h4 id="dsl_recipe_method_registry_value_exists">registry_value_exists?</h4>
+      {{ $shortcode := "themes/docs-new/layouts/shortcodes/dsl_recipe_method_registry_value_exists.md" }}
+
+      {{ if in (readFile $shortcode) "readFile" }}
+        {{ $shortcode_text := newScratch }}
+        {{ $shortcode_text.Set "text" "" }}
+        {{ range split (readFile $shortcode) "\n"}}
+          {{ if in . "readFile" }}
+            {{ if ne $shortcode_text "" }}
+              {{ $shortcode_text.Get "text" | markdownify }}
+              {{ $shortcode_text.Set "text" "" }}
+            {{ end }}
+
+            <p>
+              {{ readFile (. | replaceRE `{{ readFile \"(themes\/docs-new\/layouts\/shortcodes\/\w+\.md)\" \| markdownify }}` "$1" ) | markdownify }}
+            </p>
+
+          {{ else }}
+            {{ $shortcode_text.Add "text" . }}
+            {{ $shortcode_text.Add "text" "\n" }}
+          {{ end }}
+        {{ end }}
+        {{ $shortcode_text.Get "text" | markdownify }}
+      {{ else }}
+        {{ readFile $shortcode | markdownify }}
+      {{ end }}
+
+    {{ end }}
+
+
+    <!-------------- Nameless ------------------->
+
+    {{ if index $yaml_file "nameless_apt_update" }}
+      {{ $NamelessID.Add "Value" 1 }}
+      <h2 id="nameless-{{ $NamelessID.Get "Value" }}">Nameless</h2>
+      {{ readFile "themes/docs-new/layouts/shortcodes/nameless_apt_update.md" | markdownify }}
+    {{ end }}
+
+    {{ if index $yaml_file "nameless_build_essential" }}
+      {{ $NamelessID.Add "Value" 1 }}
+      <h2 id="nameless-{{ $NamelessID.Get "Value" }}">Nameless</h2>
+      {{ readFile "themes/docs-new/layouts/shortcodes/nameless_build_essential.md" | markdownify }}
+    {{ end }}
+
+    <!-------------- Gem Package Options ------------------->
+
+    {{ if index $yaml_file "resource_package_options" }}
+      <h2 id="resource_package_options">Gem Package Options</h2>
+      {{ readFile "themes/docs-new/layouts/shortcodes/resource_package_options.md" | markdownify }}
+
+      <h3 id="resource_package_options_hash">Specify with Hash</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/resource_package_options_hash.md" | markdownify }}
+      <strong>Example</strong>
+      {{ readFile "themes/docs-new/layouts/shortcodes/resource_package_install_gem_with_hash_options.md" | markdownify }}
+
+
+      <h3 id="resource_package_options_string">Specify with String</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/resource_package_options_string.md" | markdownify }}
+      <strong>Example</strong>
+      {{ readFile "themes/docs-new/layouts/shortcodes/resource_package_install_gem_with_options_string.md" | markdownify }}
+
+      <h3 id="resource_package_options_gemrc">Specify with .gemrc File</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/resource_package_options_gemrc.md" | markdownify }}
+      {{ readFile "themes/docs-new/layouts/shortcodes/resource_package_install_gem_with_gemrc.md" | markdownify }}
+    {{ end }}
+
+    <!-------------- Actions ------------------->
+
+    {{ if index $yaml_file "actions_list" }}
+
+      {{ $ActionsID.Add "Value" 1 }}
+      <h2 id = "actions-{{ $ActionsID.Get "Value" }}">Actions</h2>
+      <hr>
+
+      <p>The {{ index $yaml_file "Title" }} has the following actions:</p>
+      <dl>
+        {{ range $key, $value := (index $yaml_file "actions_list") }}
+          <dt><code>{{ $key | markdownify }}</code></dt>
+          {{ range $subkey, $subvalue := $value }}
+            {{ if eq $subkey "shortcode" }}
+              <dd>{{ readFile (delimit (slice `themes/docs-new/layouts/shortcodes/` $subvalue ) "") | markdownify }}</dd>
+            {{ end }}
+            {{ if eq $subkey "markdown" }}
+              <dd>{{- $subvalue | markdownify -}}</dd>
+            {{ end }}
+          {{ end }}
+        {{ end }}
+      </dl>
+    {{ end }}
+
+    <!-------------- Properties ------------------->
+
+    {{ $PropertiesID.Add "Value" 1 }}
+    <h2 id = "properties-{{ $PropertiesID.Get "Value" }}">Properties</h2>
+    <hr>
+    {{ if or (index $yaml_file "properties_shortcode") (index $yaml_file "properties_list") }}
+      {{ if index $yaml_file "properties_list" }}
+        <p>The <strong>{{ index $yaml_file "resource" }}</strong> resource has the following properties:</p>
+        {{ range index $yaml_file "properties_list" }}
+          <dl>
+            {{ if and (.property) (ne .property nil) }}
+              <dt>
+                <code>{{ .property }}</code>
+              </dt>
+            {{ end }}
+
+            <dd>
+              {{ if ne .ruby_type nil }}
+                <strong>Ruby Type:</strong> {{ .ruby_type }} {{ if .default_value }}| <strong>Default Value:</strong> <code>{{ .default_value }}</code>{{ end }} {{ if .required }}| <code>REQUIRED</code>{{ end }}
+                {{ if .allowed_values }}</br><strong>Allowed Values:</strong> <code>{{ .allowed_values }}</code>{{ end }}
+                </p>
+              {{ end }}
+
+              {{ range .description_list }}
+                {{ range $key, $value :=  . }}
+                  {{ if eq $key "markdown" }}
+                    <p>{{- $value | markdownify -}}</p>
+                  {{ end }}
+
+                  {{ if eq $key "note" }}
+                    <div class="admonition-note">
+                      <p class="admonition-note-title">Note</p>
+                      <div class="admonition-note-text">
+                        {{ range $value }}
+                          {{ range $subkey, $subvalue := . }}
+                            {{ if eq $subkey "shortcode" }}
+                              <p>
+                                {{ readFile (delimit (slice `themes/docs-new/layouts/shortcodes/` $subvalue ) "") | markdownify }}
+                              </p>
+                            {{ end }}
+                            {{ if eq $subkey "markdown" }}
+                              <p>{{- $subvalue | markdownify -}}</p>
+                            {{ end }}
+                          {{ end }}
+                        {{ end }}
+                      </div>
+                    </div>
+                  {{ end }}
+                  {{ if eq $key "warning" }}
+                    <div class="admonition-warning">
+                      <p class="admonition-warning-title">Warning</p>
+                      <div class="admonition-warning-text">
+                        {{ range $value }}
+                          {{ range $subkey, $subvalue := . }}
+                            {{ if eq $subkey "shortcode" }}
+                              <p>
+                                {{ readFile (delimit (slice `themes/docs-new/layouts/shortcodes/` $subvalue ) "") | markdownify }}
+                              </p>
+                            {{ end }}
+                            {{ if eq $subkey "markdown" }}
+                              <p>
+                                {{- $subvalue | markdownify -}}
+                              </p>
+                            {{ end }}
+                          {{ end }}
+                        {{ end }}
+                      </div>
+                    </div>
+                  {{ end }}
+                  {{ if eq $key "shortcode" }}
+                    <p>
+                      {{ readFile (delimit (slice `themes/docs-new/layouts/shortcodes/` $value ) "") | markdownify }}
+                    </p>
+                  {{ end }}
+                {{ end }}
+              {{ end }}
+
+              {{ if and (.new_in) (ne .new_in nil) }}
+                {{ if isset $.Page.Params "desktop_resource_list" }}
+                  <p>
+                    New in Chef Desktop {{ .new_in }}
+                  </p>
+                {{ else if isset $.Page.Params "infra_resource_list" }}
+                  <p>
+                    {{ if ge .new_in 15 }}
+                      New in Chef Infra Client {{ .new_in }}
+                    {{ else }}
+                      New in Chef Client {{ .new_in }}
+                    {{ end }}
+                  </p>
+                {{ end }}
+              {{ end }}
+              {{ if and (.note) (ne .note nil) }}
+                <div class="admonition-note">
+                  <p class="admonition-note-title">Note</p>
+                  <div class="admonition-note-text">{{- .note | markdownify -}}</div>
+                </div>
+              {{ end }}
+            </dd>
+          </dl>
+          {{ end }}
+        {{ end }}
+        {{ if index $yaml_file "properties_shortcode" }}
+          {{ readFile (delimit (slice `themes/docs-new/layouts/shortcodes/` (index $yaml_file "properties_shortcode") ) "") | markdownify }}
+        {{ end }}
+      {{ else }}
+        <p>This resource does not have any properties.</p>
+      {{ end }}
+
+    {{ if index $yaml_file "properties_multiple_packages" }}
+      {{ $common_resource_functionality_multiple_packagesID.Add "Value" 1 }}
+      <h3 id="multiple-packages-{{ $common_resource_functionality_multiple_packagesID.Get "Value" }}">Multiple Packages</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_multiple_packages.md" | markdownify }}
+    {{ end }}
+
+    {{ if index $yaml_file "resource_directory_recursive_directories" }}
+      {{ $resource_directory_recursive_directoriesID.Add "Value" 1 }}
+      <h3 id="resource_directory_recursive_directories-{{ $resource_directory_recursive_directoriesID.Get "Value" }}">Recursive Directories</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/remote_directory_recursive_directories.md" | markdownify }}
+    {{ end }}
+
+    {{ if index $yaml_file "resources_common_atomic_update" }}
+
+      {{ $resources_common_atomic_updateID.Add "Value" 1 }}
+      <h3 id="resources_common_atomic_update-{{ $resources_common_atomic_updateID.Get "Value" }}">Atomic File Updates</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_atomic_update.md" | markdownify }}
+
+    {{ end }}
+
+    {{ if index $yaml_file "properties_resources_common_windows_security" }}
+
+      {{ $resources_common_windows_securityID.Add "Value" 1 }}
+      <h3 id="resources-common-windows-security-{{ $resources_common_windows_securityID.Get "Value" }}">Windows File Security</h3>
+
+      {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_windows_security.md" | markdownify }}
+      <strong>Access Control Lists (ACLs)</strong>
+      {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_windows_security_acl.md" | markdownify }}
+      <strong>Inheritance</strong>
+      {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_windows_security_inherits.md" | markdownify }}
+
+    {{ end }}
+
+    {{ if index $yaml_file "remote_file_prevent_re_downloads" }}
+
+      {{ $remote_file_prevent_re_downloadsID.Add "Value" 1 }}
+      <h3 id="prevent-re-downloads-{{ $remote_file_prevent_re_downloadsID.Get "Value" }}">Prevent Re-downloads</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/remote_file_prevent_re_downloads.md" | markdownify }}
+
+    {{ end }}
+
+    {{ if index $yaml_file "remote_file_unc_path" }}
+      {{ $remote_file_unc_pathID.Add "Value" 1 }}
+      <h3 id="access-a-remote-unc-path-on-windows-{{ $remote_file_unc_pathID.Get "Value" }}">Access a remote UNC path on Windows</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/remote_file_unc_path.md" | markdownify }}
+    {{ end }}
+
+    {{ if index $yaml_file "ps_credential_helper" }}
+      {{ $ps_credential_helperID.Add "Value" 1 }}
+      <h3 id="ps_credential-helper-{{ $ps_credential_helperID.Get "Value"}}">ps_credential Helper</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/ps_credential_helper.md" | markdownify }}
+    {{ end }}
+
+    <!-------------- Chef::Log Entries ------------------->
+
+    {{ if index $yaml_file "ruby_style_basics_chef_log" }}
+      <h2 id="ruby_style_basics_chef_log">Log Entries</h2>
+      {{ readFile "themes/docs-new/layouts/shortcodes/ruby_style_basics_chef_log.md" | markdownify }}
+      {{ readFile "themes/docs-new/layouts/shortcodes/ruby_class_chef_log_fatal.md" | markdownify }}
+      {{ readFile "themes/docs-new/layouts/shortcodes/ruby_class_chef_log_multiple.md" | markdownify }}
+    {{ end }}
+
+    <!-------------- Debug Recipes with chef-shell ------------------->
+
+    {{ if index $yaml_file "debug_recipes_chef_shell" }}
+
+      <h2 id="debug_recipes_chef_shell">Debug Recipes with chef-shell</h2>
+      {{ readFile "themes/docs-new/layouts/shortcodes/chef_shell_summary.md" | markdownify }}
+
+      <h3 id="chef_shell_modes">Modes</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/chef_shell_modes.md" | markdownify }}
+
+      <h3 id="debug_recipes_config">Configure</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/chef_shell_config.md" | markdownify }}
+
+      <h4 id="chef_shell_config_rb">chef-shell.rb</h4>
+      {{ readFile "themes/docs-new/layouts/shortcodes/chef_shell_config_rb.md" | markdownify }}
+
+      <h4 id="chef_shell_run_as_chef_client">Run as a Chef Infra Client</h4>
+      {{ readFile "themes/docs-new/layouts/shortcodes/chef_shell_run_as_chef_client.md" | markdownify }}
+
+      <h3 id="chef_shell_manage">Manage</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/chef_shell_manage.md" | markdownify }}
+
+      <h3 id="chef_shell_breakpoints">Use Breakpoints</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/chef_shell_breakpoints.md" | markdownify }}
+
+      <h4 id="chef_shell_step_through_run_list">Step Through Run-list</h4>
+      {{ readFile "themes/docs-new/layouts/shortcodes/chef_shell_step_through_run_list.md" | markdownify }}
+
+      <h4 id="chef_shell_debug_existing_recipe">Debug Existing Recipe</h4>
+      {{ readFile "themes/docs-new/layouts/shortcodes/chef_shell_debug_existing_recipe.md" | markdownify }}
+
+      <h4 id="chef_shell_advanced_debug">Advanced Debugging</h4>
+      {{ readFile "themes/docs-new/layouts/shortcodes/chef_shell_advanced_debug.md" | markdownify }}
+
+      <h3 id="chef_shell_debug_examples">Debug Examples</h3>
+
+      <p>The following examples show how to use chef-shell. </p>
+      <h4 id="chef_shell_debug_example_hello_world">"Hello World"</h4>
+      {{ readFile "themes/docs-new/layouts/shortcodes/chef_shell_example_hello_world.md" | markdownify }}
+
+      <h4 id="chef_shell_debug_examples_specific_nodes">Get Specific Nodes</h4>
+      {{ readFile "themes/docs-new/layouts/shortcodes/chef_shell_example_get_specific_nodes.md" | markdownify }}
+
+    {{ end }}
+
+    <!-------------- Using Templates ------------------->
+
+    {{ if index $yaml_file "template_requirements" }}
+      <h2 id="template_requirements">Using Templates</h2>
+      {{ readFile "themes/docs-new/layouts/shortcodes/template_requirements.md" | markdownify}}
+
+      <h3 id="template_specificity">File Specificity</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/template_specificity.md" | markdownify}}
+      {{ readFile "themes/docs-new/layouts/shortcodes/template_specificity_pattern.md" | markdownify}}
+      {{ readFile "themes/docs-new/layouts/shortcodes/template_specificity_example.md" | markdownify}}
+
+      <h3 id="template_helpers">Helpers</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/template_helpers.md" | markdownify}}
+
+      <h4 id="resource_template_inline_method">Inline Methods</h4>
+      {{ readFile "themes/docs-new/layouts/shortcodes/resource_template_inline_method.md" | markdownify}}
+
+      <h4 id="resource_template_inline_module">Inline Modules</h4>
+      {{ readFile "themes/docs-new/layouts/shortcodes/resource_template_inline_module.md" | markdownify}}
+
+      <h4 id="resource_template_library_module">Library Modules</h4>
+      {{ readFile "themes/docs-new/layouts/shortcodes/resource_template_library_module.md" | markdownify}}
+
+      <h3 id="template_host_notation">Host Notation</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/template_host_notation.md" | markdownify}}
+
+      <h3 id="template_partials">Partial Templates</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/template_partials.md" | markdownify}}
+
+      <h4 id="template_partials_render_method">render Method</h4>
+      {{ readFile "themes/docs-new/layouts/shortcodes/template_partials_render_method.md" | markdownify}}
+
+      <h3 id="template_transfer_frequency">Transfer Frequency</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/template_transfer_frequency.md" | markdownify}}
+
+      <h3 id="template_variables">Variables</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/template_variables.md" | markdownify}}
+
+    {{ end }}
+
+    <!------------------ Unit File Verification ---------------------->
+
+    {{ if index $yaml_file "unit_file_verification" }}
+      <h2 id="unit_file_verification">Unit file verification</h2>
+      {{ readFile "themes/docs-new/layouts/shortcodes/unit_file_verification.md" | markdownify }}
+    {{ end }}
+
+    <!-------------- Common Resource Functionality ------------------->
+
+
+    {{ if or (index $yaml_file "resources_common_properties" ) ( index $yaml_file "resources_common_notification" ) ( index $yaml_file "resources_common_guards" ) ( index $yaml_file "common_resource_functionality_multiple_packages" ) (  index $yaml_file "resources_common_guard_interpreter" ) (  index $yaml_file "remote_directory_recursive_directories" ) ( index $yaml_file "common_resource_functionality_resources_common_windows_security" )}}
+      <br>
+      {{ $FunctionalityID.Add "Value" 1 }}
+      <h2 id = "functionality-{{ $FunctionalityID.Get "Value" }}">Common Resource Functionality</h2>
+      <hr>
+
+      <p>Chef resources include common properties, notifications, and resource guards.</p>
+
+      {{ if index $yaml_file "resources_common_properties" }}
+        {{ $resources_common_propertiesID.Add "Value" 1 }}
+        <h3 id="resources_common_properties-{{ $resources_common_propertiesID.Get "Value" }}">Common Properties</h3>
+        {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_properties.md" | markdownify }}
+
+      {{ end }}
+
+      {{ if index $yaml_file "resources_common_notification" }}
+        {{ $resources_common_notificationsID.Add "Value" 1 }}
+        <h3 id="resources_common_notifications-{{ $resources_common_notificationsID.Get "Value" }}">Notifications</h3>
+
+        <dl>
+          <dt>
+            <code>notifies</code>
+          </dt>
+          <dd>
+            <p><strong>Ruby Type:</strong> Symbol, 'Chef::Resource[String]'</p>
+            {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_notification_notifies.md" | markdownify }}
+          </dd>
+        </dl>
+
+        {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_notification_timers.md" | markdownify  }}
+        {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_notification_notifies_syntax.md" | markdownify }}
+
+        <dl>
+          <dt>
+            <code>subscribes</code>
+          </dt>
+          <dd>
+            <p><strong>Ruby Type:</strong>  Symbol, 'Chef::Resource[String]'</p>
+          </dd>
+        </dl>
+        {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_notification_subscribes.md" | markdownify }}
+        {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_notification_timers.md" | markdownify }}
+        {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_notification_subscribes_syntax.md" | markdownify }}
+
+      {{ end }}
+
+      {{ if index $yaml_file "resources_common_guards" }}
+        {{ $resources_common_guardsID.Add "Value" 1 }}
+        <h3 id = "guards-{{ $resources_common_guardsID.Get "Value" }}">Guards</h3>
+
+        {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_guards.md" | markdownify }}
+        <strong>Properties</strong>
+        {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_guards_properties.md" | markdownify }}
+
+      {{ end }}
+
+      {{ if index $yaml_file "common_resource_functionality_multiple_packages" }}
+        {{ $common_resource_functionality_multiple_packagesID.Add "Value" 1 }}
+        <h3 id="multiple-packages-{{ $common_resource_functionality_multiple_packagesID.Get "Value" }}">Multiple Packages</h3>
+
+        {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_multiple_packages.md" | markdownify }}
+
+      {{ end }}
+
+      {{ if index $yaml_file "resources_common_guard_interpreter" }}
+        {{ $resources_common_guard_interpreterID.Add "Value" 1 }}
+        <h3 id="guard-interpreter-{{ $resources_common_guard_interpreterID.Get "Value" }}">Guard Interpreter</h3>
+
+        <p>
+          {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_guard_interpreter.md" | markdownify }}
+        </p>
+        <strong>Attributes</strong>
+        <p>
+          {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_guard_interpreter_attributes.md" | markdownify }}
+        </p>
+
+        <strong>Inheritance</strong>
+        <p>
+          {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_guard_interpreter_attributes_inherit.md" | markdownify }}
+        </p>
+
+        <strong>Example</strong>
+        <p>
+          {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_guard_interpreter_example_default.md" | markdownify }}
+        </p>
+
+      {{ end }}
+
+      {{ if index $yaml_file "remote_directory_recursive_directories" }}
+        {{ $remote_directory_recursive_directoriesID.Add "Value" 1 }}
+        {{ $remote_directory_recursive_directories_exampleID.Add "Value" 1 }}
+        <h3 id="recursive-directories-{{ $remote_directory_recursive_directoriesID.Get "Value" }}">Recursive Directories</h3>
+        {{ readFile "themes/docs-new/layouts/shortcodes/remote_directory_recursive_directories.md" | markdownify }}
+        <h4 id="recursive_directories_example-{{ $remote_directory_recursive_directories_exampleID.Get "Value" }}">Example</h4>
+        {{ readFile "themes/docs-new/layouts/shortcodes/remote_directory_recursive_directories_example.md" | markdownify }}
+
+      {{ end }}
+
+      {{ if index $yaml_file "common_resource_functionality_resources_common_windows_security" }}
+
+        {{ $resources_common_windows_securityID.Add "Value" 1 }}
+        <h3 id="resources_common_windows_security-{{ $resources_common_windows_securityID.Get "Value" }}">Windows File Security</h3>
+
+        {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_windows_security.md" | markdownify }}
+        <strong>Access Control Lists (ACLs)</strong>
+        {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_windows_security_acl.md" | markdownify }}
+        <strong>Inheritance</strong>
+        {{ readFile "themes/docs-new/layouts/shortcodes/resources_common_windows_security_inherits.md" | markdownify }}
+
+      {{ end }}
+    {{ end }}
+
+    <!-------------- Custom Handlers ------------------->
+
+    {{ if index $yaml_file "handler_custom" }}
+      <h2 id="handler_custom">Custom Handlers</h2>
+      {{ readFile "themes/docs-new/layouts/shortcodes/handler_custom.md" | markdownify }}
+
+      <h3 id="handler_custom_syntax">Syntax</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/handler_custom_syntax.md" | markdownify }}
+
+      <h3 id="handler_custom_interface_report">report Interface</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/handler_custom_interface_report.md" | markdownify }}
+
+      <h3 id="handler_custom_optional_interfaces">Optional Interfaces</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/handler_custom_optional_interfaces.md" | markdownify }}
+
+      <h4 id="handler_custom_interface_data">data</h4>
+      {{ readFile "themes/docs-new/layouts/shortcodes/handler_custom_interface_data.md" | markdownify }}
+
+      <h4 id="handler_custom_interface_run_report_safely">run_report_safely</h4>
+      {{ readFile "themes/docs-new/layouts/shortcodes/handler_custom_interface_run_report_safely.md" | markdownify }}
+
+      <h4 id="handler_custom_interface_run_report_unsafe">run_report_unsafe</h4>
+      {{ readFile "themes/docs-new/layouts/shortcodes/handler_custom_interface_run_report_unsafe.md" | markdownify }}
+
+      <h3 id="handler_custom_object_run_status">run_status Object</h3>
+      {{ readFile "themes/docs-new/layouts/shortcodes/handler_custom_object_run_status.md" | markdownify }}
+
+    {{ end }}
+
+    <!-------------- File Specificity ------------------->
+
+    {{ if index $yaml_file "cookbook_file_specificity" }}
+      <h2 id="cookbook_file_specificity">File Specificity</h2>
+      {{ readFile "themes/docs-new/layouts/shortcodes/cookbook_file_specificity.md" | markdownify }}
+    {{ end }}
+
+
+    <!-------------- Examples ------------------->
+
+    {{ $ExamplesID.Add "Value" 1 }}
+    <h2 id = "examples-{{ $ExamplesID.Get "Value" }}">Examples</h2>
+    <hr>
+    {{ if index $yaml_file "examples" }}
+      <p>The following examples demonstrate various approaches for using the <strong>{{ index $yaml_file "resource" }}</strong> resource in recipes:</p>
+      {{ index $yaml_file "examples" | markdownify }}
+    {{ else }}
+      <p>This resource does not have any examples.</p>
+    {{ end }}
+
+  {{ end }}
+
+{{ end }}

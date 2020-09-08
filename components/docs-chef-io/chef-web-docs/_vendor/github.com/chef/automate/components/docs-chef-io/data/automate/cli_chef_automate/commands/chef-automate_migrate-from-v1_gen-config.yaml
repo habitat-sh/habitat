@@ -1,0 +1,99 @@
+name: chef-automate migrate-from-v1 gen-config
+synopsis: Generate a config file
+usage: chef-automate migrate-from-v1 gen-config [flags]
+description: |
+  Generate a Chef Automate v2 configuration file from Chef Automate v1
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for gen-config
+- name: out
+  shorthand: o
+  default_value: ./automate-migrate.toml
+  usage: Output file
+inherited_options:
+- name: airgap-bundle
+  usage: Path to an airgap install bundle
+- name: channel
+  usage: |
+    Optional channel to use when installing packages from the depot
+- name: chef-server-running
+  default_value: /etc/opscode/chef-server-running.json
+  usage: Path to chef-server-running.json
+- name: config
+  shorthand: c
+  usage: Path to an automate-deploy.toml
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: delivery-running
+  shorthand: r
+  default_value: /etc/delivery/delivery-running.json
+  usage: Path to delivery-running.json
+- name: delivery-secrets
+  shorthand: s
+  default_value: /etc/delivery/delivery-secrets.json
+  usage: Path to delivery-secrets.json
+- name: enable-chef-server
+  default_value: "false"
+  usage: |
+    Enable integrated Chef Server migration and deployment; only valid for all-in-one topology
+- name: file-move-timeout
+  default_value: "0"
+  usage: |
+    Optional timeout for moving elasticsearch, compliance, and notifications files during Chef Automate v1 migration (0 to disable timeout)
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: postgres-dump-wait-seconds
+  default_value: "0"
+  usage: |
+    Optional timeout for Chef Automate v1 PostgreSQL dump (0 to disable timeout)
+- name: postgres-restore-wait-seconds
+  default_value: "0"
+  usage: |
+    Optional timeout for Chef Automate v1 PostgreSQL restore (0 to disable timeout)
+- name: result-json
+  usage: Write command result as JSON to PATH
+- name: skip-backup
+  default_value: "false"
+  usage: |
+    Optionally skip backup of your Chef Automate v1 installation (default = false)
+- name: skip-backup-check
+  default_value: "false"
+  usage: |
+    Optionally do not check if your Chef Automate v1 installation has backups configured (default = false)
+- name: skip-disaster-recovery-check
+  default_value: "false"
+  usage: |
+    Optionally do not check if your Chef Automate v1 installation has disaster recovery configured (default = false)
+- name: skip-external-es-check
+  default_value: "false"
+  usage: |
+    Optionally do not check if your Chef Automate v1 installation has external Elasticsearch configured (default = false)
+- name: skip-fips-check
+  default_value: "false"
+  usage: |
+    Optionally do not check if your Chef Automate v1 installation has FIPS configured (default = false)
+- name: skip-preflight
+  default_value: "false"
+  usage: Deploy regardless of pre-flight conditions
+- name: skip-saml-check
+  default_value: "false"
+  usage: |
+    Optionally do not check if your Chef Automate v1 installation has SAML configured (default = false)
+- name: skip-workflow-check
+  default_value: "false"
+  usage: |
+    Optionally do not check if your Chef Automate v1 installation has workflow configured (default = false)
+- name: upgrade-strategy
+  usage: |
+    Optional upgrade strategy to use when configuring the deployment service
+- name: "yes"
+  shorthand: "y"
+  default_value: "false"
+  usage: Do not prompt for confirmation; accept defaults and continue
+see_also:
+- chef-automate migrate-from-v1 - Migrate from Chef Automate v1

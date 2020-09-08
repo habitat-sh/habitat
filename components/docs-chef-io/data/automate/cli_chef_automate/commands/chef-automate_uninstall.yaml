@@ -1,0 +1,28 @@
+name: chef-automate uninstall
+synopsis: Uninstall Chef Automate
+usage: chef-automate uninstall [flags]
+description: Uninstall Chef Automate, deleting all data and configuration
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for uninstall
+- name: preserve-package-cache
+  default_value: "false"
+  usage: Preserve Habitat package cache (useful for faster reinstall)
+- name: "yes"
+  default_value: "false"
+  usage: |
+    Uninstall Chef Automate and destroy data without confirmation prompt
+inherited_options:
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Enable debug output
+- name: no-check-version
+  default_value: "false"
+  usage: Disable version check
+- name: result-json
+  usage: Write command result as JSON to PATH
+see_also:
+- chef-automate - Chef Automate CLI

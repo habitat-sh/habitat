@@ -1,0 +1,68 @@
+{
+  "paths": {
+    "/api/v0/compliance/reporting/export": {
+      "post": {
+        "summary": "Export reports",
+        "description": "Stream reports in JSON (default) or CSV format.\n\nSupports filtering, but not pagination or sorting.\n\nInclude the value `csv` for the `type` parameter in the request to receive CSV formatted data.\nIncluding more than one value for `profile_id`, or `profile_name` is not allowed.\nIncluding values for both `profile_id` and `profile_name` in one request is not allowed.\n\n Example: \n\n ```'{\"type\":\"csv\",\"filters\":[{\"type\":\"start_time\",\"values\":[\"2019-09-16T00:00:00Z\"]},{\"type\":\"end_time\",\"values\":[\"2019-09-18T23:59:59Z\"]}, {\"type\":\"environment\",\"values\":[\"_default\"]}]}'```",
+        "tags": [
+          "ReportingService"
+        ],
+        "operationId": "Export",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chef.automate.api.common.ExportData"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/chef.automate.api.compliance.profiles.v1.Query"
+            }
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ]
+      }
+    },
+    "/api/v0/compliance/reporting/node/export": {
+      "post": {
+        "summary": "Export node reports",
+        "description": "Stream historical reports for a single node in JSON (default) or CSV format.\n\nSupports filtering, but not pagination or sorting.\nRequires one `node_id` filter.\n\nInclude the value `csv` for the `type` parameter in the request to receive CSV formatted data.\nIncluding more than one value for `profile_id`, `profile_name`, or `node_id` is not allowed.\nIncluding values for both `profile_id` and `profile_name` in one request is not allowed.\nLimited to 9999 results.\n\nExample: \n\n ```'{\"type\":\"csv\",\"filters\":[{\"type\":\"start_time\",\"values\":[\"2019-09-16T00:00:00Z\"]},{\"type\":\"end_time\",\"values\":[\"2019-09-18T23:59:59Z\"]}, {\"type\":\"node_id\",\"values\":[\"9b9f4e51-b049-4b10-9555-10578916e149\"]}]}'```",
+        "tags": [
+          "ReportingService"
+        ],
+        "operationId": "Node Export",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chef.automate.api.common.ExportData"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/chef.automate.api.compliance.profiles.v1.Query"
+            }
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ]
+      }
+    }
+  }
+}

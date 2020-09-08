@@ -1,0 +1,115 @@
+errors:
+- name: HabUserAccessError
+  description: Unable to access file or directory with the hab user
+  code: "68"
+- name: SnapshotChecksumMismatchError
+  description: A file in the snapshot did not have the expected checksum
+  code: "69"
+- name: DatabaseError
+  description: An issue occurred with the database
+  code: "70"
+- name: CommandExecutionError
+  description: An issue occurred when running an executable command
+  code: "71"
+- name: TraceError
+  description: An issue occurred when attempting to trace the request
+  code: "72"
+- name: ProfileError
+  description: An issue occurred when attempting to profile the request
+  code: "73"
+- name: HabCommandError
+  description: An issue occurred when running a hab command
+  code: "74"
+- name: HabAPIError
+  description: An issue occurred when attempting to query the Habitat API
+  code: "75"
+- name: GatherLogsError
+  description: Unable to complete log gathering
+  code: "76"
+- name: PackageInstallError
+  description: Unable to install the habitat package
+  code: "77"
+- name: TimedOutError
+  description: Timed out waiting for the operation to complete
+  code: "78"
+- name: BackupRestoreError
+  description: Unable to restore backup
+  code: "79"
+- name: ServiceUnloadError
+  description: Unable to unload the habitat service
+  code: "80"
+- name: ServiceStartError
+  description: Unable to start the habitat service
+  code: "81"
+- name: AirgapUnpackInstallBundleError
+  description: An issue occurred when attempting to unpack the airgap install bundle
+  code: "82"
+- name: AirgapCreateInstallBundleError
+  description: An issue occurred when attempting to create the airgap install bundle
+  code: "83"
+- name: DownloadError
+  description: An issue occurred when attempting to perform a file download
+  code: "84"
+- name: UninstallError
+  description: An issue occurred when attempting to uninstall Chef Automate
+  code: "85"
+- name: BackupError
+  description: An issue occurred when creating or restoring a backup
+  code: "86"
+- name: UpgradeError
+  description: An issue occurred during the upgrade
+  code: "87"
+- name: MarshalError
+  description: Unable to convert or deconvert a textual representation of an internal object
+  code: "88"
+- name: LicenseError
+  description: The license is invalid, expired or incomplete
+  code: "89"
+- name: FileAccessError
+  description: Unable to access the file or directory
+  code: "90"
+- name: DiagnosticsError
+  description: One or more diagnostics checks failed
+  code: "91"
+- name: MustBeRootError
+  description: The command must be run as the root user
+  code: "92"
+- name: ConfigError
+  description: The configuration is invalid
+  code: "93"
+- name: DeployError
+  description: Unable to install, configure and start the service
+  code: "94"
+- name: PreflightError
+  description: One or more preflight checks failed
+  code: "95"
+- name: InvalidCommandArgsError
+  description: The arguments provided are invalid
+  code: "96"
+- name: UnhealthyStatusError
+  description: System status is unhealthy
+  code: "97"
+- name: DeploymentServiceCallError
+  description: A request to the deployment-service failed
+  code: "98"
+- name: DeploymentServiceUnreachableError
+  description: Unable to make a request to the deployment-service
+  code: "99"
+- name: APIError
+  description: An API error occurred during execution
+  code: "100"
+- name: UpdateExecError
+  description: An issue occurred when trying to run an auto-updated CLI executable
+  code: "112"
+- name: UnknownError
+  description: An unknown issue occurred during execution
+  code: "113"
+- name: APIUnreachableError
+  description: Could not connect to Automate API
+  code: "114"
+- name: UnknownError
+  description: Failed to upgrade IAM to v2
+  code: "115"
+- name: UnknownError
+  description: Failed to reset IAM state to v1
+  code: "116"
