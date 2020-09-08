@@ -46,7 +46,8 @@ use std::{fs::{self,
                Cursor},
           path::{Path,
                  PathBuf},
-          string::ToString};
+          string::ToString,
+          time::Duration};
 use tee::TeeReader;
 use tokio::task;
 use tokio_util::codec::{BytesCodec,
@@ -56,6 +57,15 @@ use url::Url;
 const X_FILENAME: &str = "x-filename";
 
 const DEFAULT_API_PATH: &str = "/v1";
+
+/// This constant is used by the retry_builder_api! macro and governs the number of maximum
+/// retries of an API function after a failure of the initial attempt.
+pub const API_RETRY_COUNT: usize = 5;
+/// The retry_builder_api! macro supports different types of retry strategies. This constant
+/// establishes the initial delay used in the respective retry algorithm. This delay and the
+/// retry algorithm chosen are combined to create an iterator of Duration representing the timing
+/// of the retry attempts.
+pub const API_RETRY_DELAY: Duration = Duration::from_secs(10);
 
 // The characters in this set are copied from
 // https://docs.rs/percent-encoding/1.0.1/percent_encoding/struct.PATH_SEGMENT_ENCODE_SET.html
@@ -1424,6 +1434,41 @@ impl BuilderAPIClient {
                                  .await?,
                              &[StatusCode::NO_CONTENT]).await
     }
+}
+
+/// Retry an API function until it succeeds or a client-side HTTP error (400-499) results, or
+/// until the given `Duration` iterator ends.
+///
+/// Use the following syntax:
+/// `retry_builder_api!(Future<Output = Into<OperationResult<R, E>>>)`
+/// or
+/// `retry_builder_api!(Future<Output = Into<OperationResult<R, E>>>), with_custom_iterator:
+/// IntoIterator<Item = Duration>)`
+#[macro_export]
+macro_rules! retry_builder_api {
+    ($api_future:expr) => {
+        retry_builder_api!($api_future,
+                           with_custom_iterator: retry::delay::Fibonacci::from(API_RETRY_DELAY).take(API_RETRY_COUNT))
+    };
+    ($api_future:expr,with_custom_iterator: $iterator:expr) => {
+        async {
+            retry::retry_future!($iterator, async {
+                match $api_future.await.into() {
+                    Ok(_) => retry::OperationResult::Ok(()),
+                    Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
+                        info!("Unsupported package platform or architecture. Skipping!");
+                        retry::OperationResult::Ok(())
+                    }
+                    Err(api_client::Error::APIError(code, error)) if code.is_client_error() => {
+                        retry::OperationResult::Err(api_client::Error::APIError(code, error))
+                    }
+                    Err(e) => retry::OperationResult::Retry(e),
+                }
+            }).await
+              // pull out the wrapped error from retry::OperationResult
+              .map_err(|e| e.error)
+        }
+    };
 }
 
 fn origin_keys_path(origin: &str) -> String { format!("depot/origins/{}/keys", origin) }

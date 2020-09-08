@@ -34,8 +34,11 @@ use reqwest::IntoUrl;
 use serde::Serialize;
 
 use crate::hab_core::package::PackageIdent;
-pub use crate::{builder::BuilderAPIClient,
-                error::{Error,
+pub use crate::{builder::{BuilderAPIClient,
+                          API_RETRY_COUNT,
+                          API_RETRY_DELAY},
+                error::{APIFailure,
+                        Error,
                         Result}};
 
 pub trait DisplayProgress: Write + Send + Sync {

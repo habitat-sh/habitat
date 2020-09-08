@@ -1,18 +1,21 @@
-use crate::{api_client::{BuilderAPIClient,
-                         Client},
-            common::{self,
-                     command::package::install::{RETRIES,
-                                                 RETRY_WAIT},
-                     ui::{Status,
-                          UIWriter,
-                          UI}},
+use crate::{api_client::{self,
+                         retry_builder_api,
+                         APIFailure,
+                         BuilderAPIClient,
+                         Client,
+                         Error::APIClientError,
+                         API_RETRY_COUNT,
+                         API_RETRY_DELAY},
+            common::ui::{Status,
+                         UIWriter,
+                         UI},
             error::{Error,
                     Result},
             PRODUCT,
             VERSION};
 use habitat_core::crypto::keys::{KeyCache,
                                  NamedRevision};
-use retry::delay;
+use reqwest::StatusCode;
 
 #[allow(clippy::too_many_arguments)]
 pub async fn start(ui: &mut UI,
@@ -117,7 +120,7 @@ pub async fn download_public_encryption_key(ui: &mut UI,
                                             token: &str,
                                             key_cache: &KeyCache)
                                             -> Result<()> {
-    retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
+    retry_builder_api!(async {
         ui.status(Status::Downloading, "latest public encryption key")?;
         let key_path = api_client.fetch_origin_public_encryption_key(name,
                                                                      token,
@@ -126,15 +129,14 @@ pub async fn download_public_encryption_key(ui: &mut UI,
                                  .await?;
         ui.status(Status::Cached,
                   key_path.file_name().unwrap().to_str().unwrap() /* lol */)?;
-        Ok::<_, Error>(())
+        Ok::<_, habitat_api_client::error::Error>(())
     }).await
-      .map_err(|_| {
-          Error::from(common::error::Error::DownloadFailed(format!("We tried {} times but could \
-                                                                    not download the latest \
-                                                                    public encryption key. \
-                                                                    Giving up.",
-                                                                   RETRIES,)))
-      })
+      .map_err(|e| {
+          APIClientError(APIFailure::DownloadLatestKeyFailed(API_RETRY_COUNT,
+                                                             name.to_string(),
+                                                             Box::new(e)))
+      })?;
+    Ok(())
 }
 
 async fn download_secret_key(ui: &mut UI,
@@ -143,22 +145,21 @@ async fn download_secret_key(ui: &mut UI,
                              token: &str,
                              key_cache: &KeyCache)
                              -> Result<()> {
-    retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
+    retry_builder_api!(async {
         ui.status(Status::Downloading, "latest secret key")?;
         let key_path =
             api_client.fetch_secret_origin_key(name, token, key_cache.as_ref(), ui.progress())
                       .await?;
         ui.status(Status::Cached,
                   key_path.file_name().unwrap().to_str().unwrap() /* lol */)?;
-        Ok::<_, Error>(())
+        Ok::<_, habitat_api_client::error::Error>(())
     }).await
-      .map_err(|_| {
-          Error::from(common::error::Error::DownloadFailed(format!("We tried {} times but could \
-                                                                    not download the latest \
-                                                                    secret origin key. Giving \
-                                                                    up.",
-                                                                   RETRIES,)))
-      })
+      .map_err(|e| {
+          APIClientError(APIFailure::DownloadLatestKeyFailed(API_RETRY_COUNT,
+                                                             name.to_string(),
+                                                             Box::new(e)))
+      })?;
+    Ok(())
 }
 
 async fn download_key(ui: &mut UI,
@@ -172,7 +173,7 @@ async fn download_key(ui: &mut UI,
                   &format!("{} in {}", named_revision, key_cache.as_ref().display()))?;
         Ok(())
     } else {
-        retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
+        retry_builder_api!(async {
             ui.status(Status::Downloading, named_revision)?;
             api_client.fetch_origin_key(named_revision.name(),
                                         named_revision.revision(),
@@ -182,13 +183,13 @@ async fn download_key(ui: &mut UI,
                       .await?;
             ui.status(Status::Cached,
                       &format!("{} to {}", named_revision, key_cache.as_ref().display()))?;
-            Ok::<_, Error>(())
+            Ok::<_, habitat_api_client::error::Error>(())
         }).await
-          .map_err(|_| {
-              Error::from(common::error::Error::DownloadFailed(format!("We tried {} times but \
-                                                                        could not download {} \
-                                                                        origin key. Giving up.",
-                                                                       RETRIES, named_revision)))
-          })
+          .map_err(|e| {
+              APIClientError(APIFailure::DownloadKeyFailed(API_RETRY_COUNT,
+                                                           named_revision.to_string(),
+                                                           Box::new(e)))
+          })?;
+        Ok(())
     }
 }
