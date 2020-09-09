@@ -4,9 +4,7 @@ SHELL=bash
 
 assets:
 	git submodule update --init --recursive
-	git submodule foreach git pull origin master
-	git submodule foreach git reset --hard
-	pushd chef-web-docs/themes/docs-new && make assets && popd
+	pushd chef-web-docs && git pull origin master && git reset --hard && pushd themes/docs-new && make assets && popd
 
 clean:
 	pushd chef-web-docs/themes/docs-new && make clean && popd
@@ -21,16 +19,17 @@ preview_netlify: chef_web_docs_submodule
 	pushd chef-web-docs && make assets; hugo --buildFuture --gc --minify --enableGitInfo && popd
 
 chef_web_docs_submodule:
-	git submodule update --init --recursive
-	git submodule foreach git pull origin master
-	git submodule foreach git reset --hard
-	cp -R content/* chef-web-docs/_vendor/github.com/inspec/inspec/www/content
-	cp -R static/images/* chef-web-docs/_vendor/github.com/inspec/inspec/www/static/images
-	cp -R layouts/* chef-web-docs/_vendor/github.com/inspec/inspec/www/layouts
+	git submodule update --init --recursive chef-web-docs
+	pushd chef-web-docs && git pull origin master && git reset --hard && popd
+	cp -R content/* chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io/content
+	cp -R static/images/* chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io/static/images
+	cp -R layouts/* chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io/layouts
 
 reset_chef_web_docs:
-	git submodule foreach git reset --hard
-	git submodule foreach git clean -f -d
+	pushd chef-web-docs && git reset --hard && git clean -f -d && popd
+
+update_chef_web_docs:
+	git submodule update --remote --merge chef-web-docs
 
 serve: assets
 	hugo server --buildDrafts --buildFuture --noHTTPCache
