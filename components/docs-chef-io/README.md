@@ -1,11 +1,11 @@
-# Automate Documentation
+# Habitat Documentation
 
-The Automate Documentation is deployed on https://docs.chef.io/automate/ using Hugo
+The Habitat Documentation is deployed on https://docs.chef.io/habitat/ using Hugo
 modules.
 
 ## The Fastest Way to Contribute
 
-There are two steps to updating the Chef Automate documentation:
+There are two steps to updating the Chef Habitat documentation:
 
 1. Update the documentation in the `habitat-sh/habitat` repository.
 1. Update the Chef Habitat repository module in `chef/chef-web-docs`.
@@ -197,7 +197,7 @@ Please keep all of the InSpec documentation in the `content/inspec` directory.
 To add a new Markdown file, run the following command from the `www` directory:
 
 ```
-hugo new content/automate/<filename>.md
+hugo new content/habitat/<filename>.md
 ```
 
 This will create a draft page with enough front matter to get you going.
@@ -225,7 +225,7 @@ The title is the name of the page as it appears in the left navigation menu.
 **Parent**
 The parent is the path to that page in the left navigation menu. For example, the
 `getting started` page is found by clicking on Chef Habitat so it's parent is
-`automate`.
+`habitat`.
 
 **Identifier**
 Each menu identifier must be unique. We use the menu parent value, followed by
@@ -240,10 +240,10 @@ Below is an example of a page menu entry:
 
 ```
 [menu]
-  [menu.automate]
+  [menu.habitat]
     title = "Page Menu Title"
-    identifier = "automate/<file_name>.md Page Title"
-    parent = "automate"
+    identifier = "habitat/<file_name>.md Page Title"
+    parent = "habitat"
     weight = 10
 ```
 
@@ -254,7 +254,7 @@ The framework for the Habitat menu is located in the `config.toml` file in
 page can be added to.
 
 You can modify the menu to try out a different layout in the `config.toml` file in
-`automate/components/docs-chef-io` and preview it locally, but that information
+`habitat/components/docs-chef-io` and preview it locally, but that information
 is not copied to the `config.toml` file in `chef/chef-web-docs` when the documentation
 is build for docs.chef.io.
 
@@ -263,10 +263,10 @@ the [Chef Documentation](https://docs.chef.io) site or to an external site. See
 the example below.
 
 ```
-[[menu.automate]]
+[[menu.habitat]]
 title = "Page Menu Title"
-identifier = "automate/<filename> Page Title"
-parent = "automate"
+identifier = "habitat/<filename> Page Title"
+parent = "habitat"
 url = "relative or absolute URL"
 weight = 10
 ```
@@ -388,13 +388,13 @@ frontmatter.
 
 ## Data Content
 
-Hugo allows us to nest our data directory structure as much as necessary. You can add as many folders as necessary under `components/docs-chef-io/data/automate`.
+Hugo allows us to nest our data directory structure as much as necessary. You can add as many folders as necessary under `components/docs-chef-io/data/habitat`.
 
 ```output
 .
 ├── data
-│   ├── automate
-│   │   ├── cli_chef_automate
+│   ├── habitat
+│   │   ├── cli_chef_habitat
 |   │   │   ├── command_one.yml
 |   │   │   └── command_two.yml
 ```
@@ -405,7 +405,7 @@ The [Chef Documentation](https://docs.chef.io) site uses [Hugo modules](https://
 to load content directly from `habitat-sh/habitat/components/docs-chef-io`. Every time
 `habitat-sh/habitat` is promoted to stable, Expeditor submits a PR to chef-web-docs to
 update the version of the `habitat-sh/habitat` repository that Hugo uses to build Chef
-Automate documentation on the [Chef Documentation](https://docs.chef.io) site.
+Habitat documentation on the [Chef Documentation](https://docs.chef.io) site.
 This is handled by the Expeditor subscriptions in the `chef/chef-web-docs` GitHub repository.
 
 ## Sending documentation feedback
