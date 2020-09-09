@@ -337,6 +337,7 @@ impl<'a> DownloadTask<'a> {
                    ident);
             ui.status(Status::Custom(Glyph::Elipses, String::from("Using cached")),
                       format!("{}", ident))?;
+        } else {
             self.fetch_artifact(ui, ident, target).await?;
         }
 
