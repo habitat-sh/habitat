@@ -1,3 +1,3 @@
-module github.com/chef/automate/components/docs-chef-io
+module github.com/habitat-sh/habitat/components/docs-chef-io
 
 go 1.14
