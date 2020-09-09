@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.150 -->
-## [1.6.150](https://github.com/habitat-sh/habitat/tree/1.6.150) (2020-09-08)
+<!-- latest_release 1.6.151 -->
+## [1.6.151](https://github.com/habitat-sh/habitat/tree/1.6.151) (2020-09-09)
 
-#### Behavioral Changes
-- an API retry pattern [#7874](https://github.com/habitat-sh/habitat/pull/7874) ([jeremymv2](https://github.com/jeremymv2))
+#### Merged Pull Requests
+- re-add removed else condition logic for hab pkg download [#7913](https://github.com/habitat-sh/habitat/pull/7913) ([jeremymv2](https://github.com/jeremymv2))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
@@ -21,6 +21,7 @@
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
+- re-add removed else condition logic for hab pkg download [#7913](https://github.com/habitat-sh/habitat/pull/7913) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.151 -->
 - Overhaul and refactoring of Keys [#7887](https://github.com/habitat-sh/habitat/pull/7887) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.149 -->
 - Rename dev docs directory &quot;dev-docs&quot; [#7909](https://github.com/habitat-sh/habitat/pull/7909) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.148 -->
 - Quick fixes for the Builder page [#7907](https://github.com/habitat-sh/habitat/pull/7907) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.147 -->
