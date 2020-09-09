@@ -21,14 +21,9 @@
 //! * Unpack it
 
 use crate::{api_client::{self,
-                         retry_builder_api,
-                         APIFailure,
                          BuilderAPIClient,
                          Client,
-                         Error::{APIClientError,
-                                 APIError},
-                         API_RETRY_COUNT,
-                         API_RETRY_DELAY},
+                         Error::APIError},
             error::{Error,
                     Result},
             templating::hooks::{InstallHook,
@@ -54,6 +49,7 @@ use habitat_core::{self,
                              PackageTarget},
                    ChannelIdent};
 use reqwest::StatusCode;
+use retry::delay;
 use std::{convert::TryFrom,
           fs::{self,
                File},
@@ -670,8 +666,15 @@ impl<'a> InstallTask<'a> {
                    ident);
         } else if self.is_offline() {
             return Err(Error::OfflineArtifactNotFound(ident.as_ref().clone()));
+        } else if let Err(err) =
+            retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES),
+                                 self.fetch_artifact(ui, (ident, target), token)).await
+        {
+            return Err(Error::DownloadFailed(format!("We tried {} times but \
+                                                      could not download {}. \
+                                                      Last error was: {}",
+                                                     RETRIES, ident, err)));
         }
-        self.fetch_artifact(ui, (ident, target), token).await?;
 
         let mut artifact = PackageArchive::new(self.cached_artifact_path(ident))?;
         ui.status(Status::Verifying, artifact.ident()?)?;
@@ -843,23 +846,22 @@ impl<'a> InstallTask<'a> {
                                -> Result<()>
         where T: UIWriter
     {
-        retry_builder_api!(async {
-            ui.status(Status::Downloading, format!("{} for {}", ident, target))?;
-            self.api_client
-                .fetch_package((ident.as_ref(), target),
-                               token,
-                               self.artifact_cache_path,
-                               ui.progress())
-                .await
-        }).await
-          .map_err(|e| {
-              APIClientError(APIFailure::DownloadPackageFailed(API_RETRY_COUNT,
-                                                               PackageIdent::from(ident.clone()),
-                                                               target,
-                                                               Box::new(e)))
-          })?;
-
-        Ok(())
+        ui.status(Status::Downloading, ident)?;
+        match self.api_client
+                  .fetch_package((ident.as_ref(), target),
+                                 token,
+                                 self.artifact_cache_path,
+                                 ui.progress())
+                  .await
+        {
+            Ok(_) => Ok(()),
+            Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
+                println!("Host platform or architecture not supported by the targeted depot; \
+                          skipping.");
+                Ok(())
+            }
+            Err(e) => Err(Error::from(e)),
+        }
     }
 
     async fn fetch_origin_key<T>(&self,

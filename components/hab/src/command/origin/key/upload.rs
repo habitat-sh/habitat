@@ -1,20 +1,19 @@
 use crate::{api_client::{self,
-                         retry_builder_api,
-                         APIFailure,
-                         Client,
-                         Error::APIClientError,
-                         API_RETRY_COUNT,
-                         API_RETRY_DELAY},
-            common::ui::{Status,
-                         UIWriter,
-                         UI},
-            error::Result,
+                         Client},
+            common::{command::package::install::{RETRIES,
+                                                 RETRY_WAIT},
+                     ui::{Status,
+                          UIWriter,
+                          UI}},
+            error::{Error,
+                    Result},
             PRODUCT,
             VERSION};
 use habitat_core::crypto::keys::{Key,
                                  PublicOriginSigningKey,
                                  SecretOriginSigningKey};
 use reqwest::StatusCode;
+use retry::delay;
 use std::{convert::TryFrom,
           path::Path};
 
@@ -32,7 +31,7 @@ pub async fn start(ui: &mut UI,
     let rev = public_key.named_revision().revision();
 
     {
-        retry_builder_api!(async {
+        retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
             ui.status(Status::Uploading, public_keyfile.display())?;
             match api_client.put_origin_key(&name, &rev, public_keyfile, token, ui.progress())
                             .await
@@ -43,15 +42,16 @@ pub async fn start(ui: &mut UI,
                               format!("public key revision {} which already exists in the depot",
                                       public_key.named_revision()))?;
                 }
-                Err(err) => return Err(err),
+                Err(err) => return Err(Error::from(err)),
             }
-            Ok::<_, habitat_api_client::error::Error>(())
+            Ok::<_, Error>(())
         }).await
-          .map_err(|e| {
-              APIClientError(APIFailure::UploadKeyFailed(API_RETRY_COUNT,
-                                                         public_key.named_revision().to_string(),
-                                                         Box::new(e)))
-          })?
+          .map_err(|_| {
+              Error::from(api_client::Error::UploadFailed(format!("We tried {} times but could \
+                                                                   not upload {}/{} public \
+                                                                   origin key. Giving up.",
+                                                                  RETRIES, &name, &rev)))
+          })?;
     }
 
     ui.end(format!("Upload of public origin key {} complete.",
@@ -61,19 +61,31 @@ pub async fn start(ui: &mut UI,
         let secret_key: SecretOriginSigningKey = TryFrom::try_from(secret_keyfile)?;
         let name = secret_key.named_revision().name();
         let rev = secret_key.named_revision().name();
-        retry_builder_api!(async {
+
+        retry::retry_future!(delay::Fixed::from(RETRY_WAIT).take(RETRIES), async {
             ui.status(Status::Uploading, secret_keyfile.display())?;
-            api_client.put_origin_secret_key(&name, &rev, secret_keyfile, token, ui.progress())
-                      .await
+            match api_client.put_origin_secret_key(&name,
+                                                   &rev,
+                                                   secret_keyfile,
+                                                   token,
+                                                   ui.progress())
+                            .await
+            {
+                Ok(()) => {
+                    ui.status(Status::Uploaded, secret_key.named_revision())?;
+                    ui.end(format!("Upload of secret origin key {} complete.",
+                                   secret_key.named_revision()))?;
+                    Ok(())
+                }
+                Err(e) => Err(Error::APIClient(e)),
+            }
         }).await
-          .map_err(|e| {
-              APIClientError(APIFailure::UploadKeyFailed(API_RETRY_COUNT,
-                                                         secret_key.named_revision().to_string(),
-                                                         Box::new(e)))
+          .map_err(|_| {
+              Error::from(api_client::Error::UploadFailed(format!("We tried {} times but could \
+                                                                   not upload {}/{} secret \
+                                                                   origin key. Giving up.",
+                                                                  RETRIES, &name, &rev)))
           })?;
-        ui.status(Status::Uploaded, secret_key.named_revision())?;
-        ui.end(format!("Upload of secret origin key {} complete.",
-                       secret_key.named_revision()))?;
     }
     Ok(())
 }

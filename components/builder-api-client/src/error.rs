@@ -1,6 +1,4 @@
-use crate::{hab_core::{self,
-                       package::{PackageIdent,
-                                 PackageTarget}},
+use crate::{hab_core,
             hab_http};
 use std::{error,
           fmt,
@@ -13,53 +11,8 @@ use tokio::task::JoinError;
 pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
-pub enum APIFailure {
-    DownloadPackageFailed(usize, PackageIdent, PackageTarget, Box<Error>),
-    DownloadLatestKeyFailed(usize, String, Box<Error>),
-    DownloadKeyFailed(usize, String, Box<Error>),
-    UploadKeyFailed(usize, String, Box<Error>),
-}
-
-impl std::fmt::Display for APIFailure {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::DownloadPackageFailed(retries, ident, target, error) => {
-                write!(f,
-                       "When applicable, we try once, then re-attempt {} times to
-                                      download a package. Unfortunately, we failed to download
-                                      {} for {}. Last error: {}",
-                       retries, ident, target, error)
-            }
-
-            Self::DownloadLatestKeyFailed(retries, name, error) => {
-                write!(f,
-                       "When applicable, we try once, then re-attempt {} times to download an \
-                        origin key. Unfortunately, we failed to download the latest {} key. Last \
-                        error: {}",
-                       retries, name, error)
-            }
-            Self::DownloadKeyFailed(retries, named_revision, error) => {
-                write!(f,
-                       "When applicable, we try once, then re-attempt {} times to download an \
-                        origin key. Unfortunately, we failed to download the {} origin key. Last \
-                        error: {}",
-                       retries, named_revision, error)
-            }
-
-            Self::UploadKeyFailed(retries, named_revision, error) => {
-                write!(f,
-                       "When applicable, we try once, then re-attempt {} times to upload an \
-                        origin key. Unfortunately, we failed to upload the {} key. Last error: {}",
-                       retries, named_revision, error)
-            }
-        }
-    }
-}
-
-#[derive(Debug)]
 pub enum Error {
     APIError(reqwest::StatusCode, String),
-    APIClientError(APIFailure),
     BadResponseBody(reqwest::Error),
     DownloadWrite(PathBuf, io::Error),
     HabitatCore(hab_core::Error),
@@ -86,7 +39,6 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::APIError(ref c, ref m) if !m.is_empty() => format!("[{}] {}", c, m),
             Error::APIError(ref c, _) => format!("[{}]", c),
-            Error::APIClientError(ref e) => format!("{}", e),
             Error::BadResponseBody(ref e) => format!("Failed to read response body, {}", e),
             Error::DownloadWrite(ref p, ref e) => {
                 format!("Failed to write contents of builder response, {}, {}",
