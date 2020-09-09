@@ -1,7 +1,0 @@
-{{ $file := (delimit (slice "themes/docs-new/layouts/shortcodes/" (.Get "file")) "") }}
-{{ if fileExists $file}}
-  {{ readFile $file | markdownify }}
-{{ else }}
-  {{ $file := (delimit (slice "chef-web-docs/themes/docs-new/layouts/shortcodes/" (.Get "file")) "") }}
-  {{ readFile $file | markdownify }}
-{{ end }}

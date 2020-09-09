@@ -1,1 +1,0 @@
-The `org-user-add` subcommand is used to add a user to an organization.

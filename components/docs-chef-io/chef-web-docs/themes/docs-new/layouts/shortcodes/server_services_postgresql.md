@@ -1,1 +1,0 @@
-The **postgresql** service is used to store node, object, and user data.

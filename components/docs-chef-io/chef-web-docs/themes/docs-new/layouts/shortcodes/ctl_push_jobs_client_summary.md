@@ -1,1 +1,0 @@
-The Chef Push Jobs executable can be run as a command-line tool.

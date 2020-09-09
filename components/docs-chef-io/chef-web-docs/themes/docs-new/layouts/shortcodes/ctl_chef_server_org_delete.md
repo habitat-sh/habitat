@@ -1,1 +1,0 @@
-The `org-delete` subcommand is used to delete an organization.
