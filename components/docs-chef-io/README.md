@@ -7,10 +7,10 @@ modules.
 
 There are two steps to updating the Chef Automate documentation:
 
-1. Update the documentation in the `chef/automate` repository.
-1. Update the Chef Automate repository module in `chef/chef-web-docs`.
+1. Update the documentation in the `habitat-sh/habitat` repository.
+1. Update the Chef Habitat repository module in `chef/chef-web-docs`.
 
-### Update Content in `chef/automate`
+### Update Content in `habitat-sh/habitat`
 
 The fastest way to change the documentation is to edit a page on the
 GitHub website using the GitHub UI.
@@ -40,7 +40,7 @@ We'll fix build errors before we merge, so you don't have to
 worry about passing all the CI checks, but it might add an extra
 few days. The important part is submitting your change.
 
-### Update the Automate Repository Module In `chef/chef-web-docs`
+### Update the Habitat Repository Module In `chef/chef-web-docs`
 
 We use [Hugo modules](https://gohugo.io/hugo-modules/) and [vendoring](https://gohugo.io/hugo-modules/use-modules/#vendor-your-modules)
 to build Chef's documentation from multiple repositories. The Hugo modules are
@@ -50,24 +50,24 @@ is updated in a repository, those changes won't appear in https://docs.chef.io u
 Hugo modules are updated to the new commit and documentation files are updated
 in the `_vendor` directory.
 
-This can be useful if you want to update documentation in `chef/automate`, but
+This can be useful if you want to update documentation in `habitat-sh/habitat`, but
 don't want it to appear on https://docs.chef.io until a later date.
 
-To update the Hugo module for documentation in `chef/automate`:
+To update the Hugo module for documentation in `habitat-sh/habitat`:
 
-1. Make sure your documentation changes are merged into master in `chef/automate`.
-1. Contact your friendly local Docs Team who will update the Automate Hugo module for you.
+1. Make sure your documentation changes are merged into master in `habitat-sh/habitat`.
+1. Contact your friendly local Docs Team who will update the Habitat Hugo module for you.
 
 Or, for the adventurous:
 
-1. Make sure your documentation changes are merged into master in `chef/automate`.
+1. Make sure your documentation changes are merged into master in `habitat-sh/habitat`.
 1. On a local clone of `chef/chef-web-docs` run:
-   1. `hugo mod get github.com/chef/automate/components/docs-chef-io`
+   1. `hugo mod get github.com/habitat-sh/habitat/components/docs-chef-io`
    1. `hugo mod tidy`
    1. `hugo mod vendor`
 1. Submit a pull request to `chef/chef-web-docs`.
 
-This will updated the Automate files that are vendored in `chef-web-docs/_vendor/github.com/chef/automate/`,
+This will updated the Habitat files that are vendored in `chef-web-docs/_vendor/github.com/habitat-sh/habitat/`,
 and update the commits in the go.mod and go.sum files in chef-web-docs.
 
 ## Local Development Environment
@@ -102,9 +102,9 @@ To install Hugo on Linux, run:
 
 We use a git submodule to grab the Hugo theme from the `chef/chef-web-docs` repository.
 
-## Preview Automate Documentation
+## Preview Habitat Documentation
 
-There are three ways to preview the documentation in `chef/automate`:
+There are three ways to preview the documentation in `habitat-sh/habitat`:
 
 - Submit a PR
 - `make serve`
@@ -112,13 +112,13 @@ There are three ways to preview the documentation in `chef/automate`:
 
 ### Submit a PR
 
-When you submit a PR to `chef/automate`, Netlify will build the documentation
+When you submit a PR to `habitat-sh/habitat`, Netlify will build the documentation
 and add a notification to the GitHub pull request page. You can review your
 documentation changes as they would appear on docs.chef.io.
 
 ### make serve
 
-`make serve` will only preview the documentation that exists in `chef/automate`.
+`make serve` will only preview the documentation that exists in `habitat-sh/habitat`.
 This also shows a preview page that includes page metadata which can be useful
 for changing where a page exists in the left navigation menu.
 
@@ -153,8 +153,8 @@ Deletes all changes to the chef-web-docs submodule. Changes to chef-web-docs mus
 ### Preview Content from chef/chef-web-docs
 
 You can run the Hugo server locally from `chef/chef-web-docs` and direct Hugo to
-preview content from your local copy of `chef/automate` instead of from the
-GitHub repo. This allows you to live reload documentation in `chef/automate` and
+preview content from your local copy of `habitat-sh/habitat` instead of from the
+GitHub repo. This allows you to live reload documentation in `habitat-sh/habitat` and
 see how it would look in https://docs.chef.io.
 
 See the README in `chef/chef-web-docs` for instructions.
@@ -209,13 +209,13 @@ definition lists.
 See our [Style Guide](https://docs.chef.io/style_guide/) for more information
 about formatting documentation using Markdown.
 
-## Chef Automate Page Menu
+## Chef Habitat Page Menu
 
 Adding pages to a menu or modifying a menu should be handled by the Docs Team.
 
 If you add content, it will not automatically show up in the left navigation menu.
 Build the site locally (`make serve`) and see the landing page (`http://localhost:1313`).
-Any page followed by `Automate Menu: False` has not been added to the left navigation menu.
+Any page followed by `Habitat Menu: False` has not been added to the left navigation menu.
 
 Each page needs a page title, an identifier, and a parent.
 
@@ -224,7 +224,7 @@ The title is the name of the page as it appears in the left navigation menu.
 
 **Parent**
 The parent is the path to that page in the left navigation menu. For example, the
-`getting started` page is found by clicking on Chef Automate so it's parent is
+`getting started` page is found by clicking on Chef Habitat so it's parent is
 `automate`.
 
 **Identifier**
@@ -247,9 +247,9 @@ Below is an example of a page menu entry:
     weight = 10
 ```
 
-## Automate Menu Config
+## Habitat Menu Config
 
-The framework for the Automate menu is located in the `config.toml` file in
+The framework for the Habitat menu is located in the `config.toml` file in
 `chef/chef-web-docs` file. This defines the parent menu directories that each
 page can be added to.
 
@@ -258,7 +258,7 @@ You can modify the menu to try out a different layout in the `config.toml` file 
 is not copied to the `config.toml` file in `chef/chef-web-docs` when the documentation
 is build for docs.chef.io.
 
-You can add links to the Automate menu that navigate to other pages on
+You can add links to the Habitat menu that navigate to other pages on
 the [Chef Documentation](https://docs.chef.io) site or to an external site. See
 the example below.
 
@@ -399,362 +399,12 @@ Hugo allows us to nest our data directory structure as much as necessary. You ca
 |   │   │   └── command_two.yml
 ```
 
-### chef-automate CLI Page
-
-There are two shortcodes that are used to generate the page content of the chef-automate CLI Page, `automate_cli_commands` and `automate_cli_status_errors`.
-The shortcodes are in the "docs-new" theme on `chef/chef-web-docs` and both have a `data_path`
-parameter which is the path to the data file or files that are used by the
-shortcodes to generate that page's content.
-
-In addition, the chef-automate CLI page has a custom layout that is used to generate
-that page's table of contents. The name of layout is specified in the chef-automate CLI page's frontmatter
-and the layout is in `layouts/partials`.
-
-## API Documentation
-
-To view the API documentation locally, navigate to the `components/docs-chef-io` directory, run the following command to start the development server:
-
-```shell
-make serve
-```
-
-To view the API docs in your browser, navigate to:
-
-```shell
-http://localhost:1313/automate/api
-```
-
-### Building API Docs
-
-Chef Automate generates API documentation from proto files comments using
-
-* [grpc-gateway protoc-gen-swagger](https://github.com/grpc-ecosystem/grpc-gateway/tree/master/protoc-gen-swagger) as the protoc compiler
-* [OpenAPI 2.0 specification](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md) as the API schema
-* [ReDoc](https://github.com/Redocly/redoc) as the front-end display
-
-To build the API documentation during development:
-
-1. Make any edits to the .proto files necessary. Note that an "Authorization Action:" section will be added automatically in the next step. See [this pull request](https://github.com/chef/automate/pull/2982) for details on how and what to document and things to watch out for.
-2. Recompile the .proto files as described in the [Automate development guide](https://github.com/chef/automate/blob/master/dev-docs/DEV_ENVIRONMENT.md)
-3. From the top of the `components/docs-chef-io` directory, sync the .swagger files generated with those in the docs component by running `make sync_swagger_files`
-4. Run the hugo server and view the documentation in your browser
-5. (Optional) From the top of the `components/docs-chef-io` directory, check for typos in documentation files by running `make spellcheck`
-
-Rebuilding the API docs is necessary when adding documentation content to Automate's .proto files. Changing the code in the .proto files does not require rebuilding, but new or updated services, messages, or fields require documentation.
-Our goal is to provide timely and accurate documentation for Chef Automate users.
-
-You can build the API docs by running the following all-in-one command from the top-level `automate` directory:
-
-`hab studio run "source .studiorc && compile_all_protobuf_components" && pushd components/docs-chef-io/ && make sync_swagger_files generate_swagger && make serve || popd`
-
-Review the API docs in your browser:
-
-`http://localhost:1313/docs/api`
-
-#### Notes on building the docs
-
-* If you end up with merge conflicts while writing API docs, don't attempt to resolve them in any generated files. It's better to resolve the conflicts in any human edited file and then regenerate the docs.
-* The all-in-one build command above can fail somewhere in the middle and leave things in an inconsistent state.
-It is safe to run this command multiple times in a row while fixing syntax errors in .proto files or similar, but since it changes directories, it can sometimes be necessary to change back to the root automate directory.
-
-### API File Index
-
-* **API Proto Files**: automate/components/automate-gateway/api/
-* **Example API Proto File**: automate/components/automate-gateway/api/compliance/reporting/
-* **Meta Swagger**: automate/components/docs-chef-io/data/automate/api-static/01-meta-swagger.json
-* **Reporting Export**: automate/components/docs-chef-io/data/automate/api-static/01-reporting-export.swagger.json
-* **Node Export**: automate/components/docs-chef-io/data/automate/api-static/05-node-export.swagger.json
-* **Description**: automate/components/docs-chef-io/data/automate/api-static/02-meta-description.yaml
-* **Tags**: automate/components/docs-chef-io/data/automate/api-static/03-tags.swagger.json
-* **Compiled Swagger**: automate/components/docs-chef-io/static/automate/api-docs/all-apis.swagger.json
-
-### Tags and Tag Groups
-
-* Endpoints need to appear in the rendered documentation as human-readable groupings. We use group and endpoint tags to create an organized and meaningful presentation for the Chef Automate API.
-* Endpoints must have a tag that is a member of a tag group in order to appear in the rendered documentation. Endpoints without tags that are members of a tag group will not show up.
-* An endpoint's default tag is the parent service where it was defined.
-* Every service must have a unique tag name. For services without unique names, follow the explicit tagging process. Without unique service tag names, all endpoints for all of these services appear together in the rendered documentation.
-
-#### Automatic tagging
-
-Set up automatic tagging in the `components/docs-chef-io/data/automate/api-static/03-tags.swagger.json` file.
-
-* Add the service's name to the `tags` list in a `tagGroup` or create a new `tagGroup` with the service's name in the `tags` list.
-* Make the service name human-friendly by adding an entry to the `tags` in with a custom `x-displayName`.
-
-#### Explicit tagging
-
-* Each endpoint needs a tag specified in its definition, by adding a block like this to the endpoint definition in the proto file:
-
-    ```go
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
-      tags: "My Custom Tag"
-    };
-    ```
-
-* All of the tags for an individual service should be the same, unless multiple groupings are desired in which case multiple independent tags can be used.
-* After this, the process described for automatic tagging can be used, substituting the custom tag defined in place of the service's name.
-
-### Notes
-
-* Proto files can use tabs and spaces. We have a defacto convention for using tabs since our protos are primarily used with Go code.
-* Endpoints will not show up in the UI unless one or more of their tags are assigned to a tag group, but they will still appear in the Swagger file accessible through the docs in the browser.
-* multiline fields are not allowed in proto files. This the main reason we settled on using the comment style of endpoint documentation.
-
-#### API Style Guide
-
-Add comments to protos file with standard Go block and inline comment syntax.
-
-Block comments are usually placed before the start of a gRPC service definition. Block comments for API documentation are sometimes called "leading comments".
-
-Inline are usually placed within the message formats. Inline comments for API documentation are sometimes called "following comments".
-
-```go
-/* This is a block comment.
-
-Block comments can span multiple lines.
-
-Block comments support Markdown */
-
-// This is an inline comment.
-```
-
-Block comments support multiple lines:
-
-```go
-  /*
-  Fetch a node
-
-  Fetch a specific node by id.
-  Does not support filtering, pagination or sorting.
-  */
-  rpc ListReportIds(Query) returns (ReportIds) {
-```
-
-Block comments supports common markdown elements, such as:
-
-```go
-  /*
-  Code blocks support `highlighting`
-
-  It also supports
-
-  Using code blocks, if you need them.
-
-  */
-```
-
-Block comments support markdown tables:
-
-```go
-  /*
-  List reports
-
-  Makes a list of reports. Adding a filter makes a list of all node reports that meet the filter criteria. Supports pagination, filtering, and sorting.
-
-  | Sort parameter | Sort value |
-  | --- | --- |
-  | latest_report.controls.failed.critical | controls_sums.failed.critical |
-  | latest_report.controls.failed.total | controls_sums.failed.total |
-  | latest_report.end_time (default) | end_time |
-  | latest_report.status | status |
-  | node_name | node_name.lower |
-  */
-  rpc ListReports(Query) returns (Reports) {
-```
-
-#### Excluding an endpoint
-
-You can exclude an endpoint from the swagger generation by importing this in your proto file:
-
-```go
-import "protoc-gen-swagger/options/annotations.proto";
-```
-
-And adding this annotation to the rpc in question:
-
-```go
-option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
-  tags: "hidden";
-};
-```
-
-### Service Documentation
-
-Not in iteration #1.
-
-### Resource Documentation
-
-Given a GRPC endpoint defined like this in the proto files:
-
-```go
->.rpc ListReports(Query) returns (Reports) {
->.>.option (google.api.http) = {
->.>.>.post: "/api/v0/compliance/reporting/reports"
->.>.>.body: "*"
->.>.};
->.};
-```
-
-* For the first iteration of the Chef Automate API docs, we need summaries and descriptions for all user-facing end points. This can be done two ways, in the comment style (preferred) or the attribute style.
-
-* Comment style of endpoint documentation supports multiline fields. Attribute style does not.
-
-* Descriptions support Github Flavored Markdown, which means that you can use lists, tables, code-blocks and more.
-
-#### Comment Style Descriptions
-
-```go
-  /*
-  List reports
-  This is the description.
-  The description can span multiple lines and can contain `Github Flavored Markdown`
-  */
-  rpc ListReports(Query) returns (Reports) {
-    option (google.api.http) = {
-      post: "/api/v0/compliance/reporting/reports"
-      body: "*"
-    };
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
-      tags: "Reporting"
-    };
-  };
-```
-
-#### Attribute Style Descriptions
-
-```go
-rpc ListReports(Query) returns (Reports) {
-    option (google.api.http) = {
-      post: "/api/v0/compliance/reporting/reports"
-      body: "*"
-    };
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
-      tags: "Reporting"
-      summary: "List reports"
-      description: "This is the description.\nThe description can span multiple lines and can contain Github Flavored Markdown."
-    };
-  };
-```
-
-Resource documentation provides RPC-level description. It is sometimes also called "method description" because it documents what you can do with a specific API HTTP Method.
-
-Use block/leading comments for RPC-level/method documentation.
-
-Compare the leading comments to the content of the API documentation for the `ReadNode(ID)` resource.
-
-```go
-  /*
-  Fetch a node #(summary)
-
-  Fetch a specific node by id. #(description)
-  Does not support filtering, pagination or sorting.
-  */
-  rpc ReadNode(Id) returns (Node) {
-```
-
-The rendered documentation:
-
-![View of rendered API docs](./static/automate/images/api-resource-definition.png)
-
-Note that once you recompile the proto files as described earlier, the actual source comment above will be updated to include an authorization action, for any relevant methods.
-
-```go
-  /*
-  Fetch a node #(summary)
-
-  Fetch a specific node by id. #(description)
-  Does not support filtering, pagination or sorting.
-
-  Authorization Action:
-
-  ```
-  compliance:reportNodes:get
-  ```
-
-  */
-  rpc ReadNode(Id) returns (Node) {
-```
-
-#### Message Level Descriptions
-
-Document fields and parameters directly above the relevant code line, using `//` inline comments
-
-### Message Documentation
-
-Given messages defined like this in the proto files:
-
-```go
-message Dog {
-  // The dog's name.
-  string name = 1;
-  // Intentionally blank.
-  Food favorite_food = 2;
-  // Types of food the dog is normally fed.
-  repeated Food typical_foods = 3;
-}
-// A type of food eaten by a Dog
-message Food {
-  // The food's name.
-  string name = 1;
-  // Serving size in ounces.
-  int32 serving_size =3;
-}
-```
-
-* Use a period (`.`) at the end of a comment to set it as the `description` for a message field. Omit the period to set a comment as the `title` for a message field. Our convention is to set comments as descriptions in message fields by closing them with periods.
-* Swagger relies on inheritance to document nested references. A parent message referenced in a child message inherits its description from the parent, not where it is referenced by the child (see the example of `favorite_food` above). The Chef API style uses `// Intentionally blank.` in the child message.
-This convention makes the purpose of the comment clear, makes undocumented message code visible, and makes bad blank message comment lines stand out in the UI.
-
-### Non-Proto File Sources for API Documentation
-
-We use non-proto file sources to document API content in cases where proto files run up against the limitations of tool we use for the Swagger conversion and also in cases where expressing the content in proto files is cumbersome.
-We support these cases by adding static Swagger JSON or YAML files that combine with the Swagger generated from the proto files.
-
-#### When to use Non-Proto Files
-
-* Endpoints that do not automatically generate Swagger files during proto compilation. An example of this is the ReportingService's Export endpoint, which derives its endpoint from outside of the proto files, and is excluded in the proto to Swagger conversion process. See: `components/docs-chef-io/data/automate/api-static/01-reporting-export.swagger.json`.
-* Documentation data that extends the protobuf or Swagger specs, for example the ReDoc `X-tagGroup` that we use for tag groups and tag display names. See: `components/docs-chef-io/data/automate/api-static/03-tags.swagger.json`.
-* Metadata that is specific to the API documentation. For example, the support page URL, the logo image, etc. See: `components/docs-chef-io/data/automate/api-static/00-meta.swagger.json`.
-* Large sections of prose or formatted text. With a few exceptions, proto files do not support multiline strings, so it is simpler to write and edit long content outside of the proto files. See: `components/docs-chef-io/data/automate/api-static/02-meta-description.yaml`.
-
-#### Creating Non-Proto File Documentation
-
-* Create a new JSON or YAML file in the `components/docs-chef-io/data/automate/api-static/` directory and its contents will be added to the final Swagger JSON  file used to render the documentation.
-* Files in this directory are sorted numerically so that the order in which things are applied is deterministic and predictable.
-* The Swagger files are combined in an additive way. The static user-edited Swagger files are applied first, follwed by all of the Swagger files generated from compiling the proto files.
-* The Chef API style prefers JSON files in nearly all cases, but uses YAML files to supply long text sections in the documentation.
-
-## Grammar and Style
-
-* Keep it short
-* Use [active voice](https://www.grammarly.com/blog/active-vs-passive-voice/)
-* Use [plain language](https://plainlanguage.gov/resources/checklists/checklist/)
-* Use [present tense](https://www.grammarly.com/blog/simple-present/)
-* Write [positively](https://www.plainlanguage.gov/guidelines/concise/use-positive-language/)
-
-### Specific Tips
-
-* Avoid "of the" for a [genitive case](https://www.learnenglish.de/grammar/casepossgen.html)
-    * Example: "The node name" instead of "Name of the node". (A simple genitive)
-    * Example: "The control's unique ID" instead of "The unique ID of the control".
-
-Note: We have not yet settled on conventions for using the grammatically questionable "simple genitive" instead of the categorically correct posessive. Try finding what sounds best to your ears.
-
-## External references
-
-* [OpenAPI 2.0 (aka swagger) spec](https://github.com/OAI/OpenAPI-Specification/blob/3.0.0/versions/2.0.md)
-* [An example proto file in the protoc-gen-swagger repo demonstrating how to use most features of the proto-to-swagger conversion](https://github.com/grpc-ecosystem/grpc-gateway/blob/master/examples/proto/examplepb/a_bit_of_everything.proto)
-* [ReDoc extensions to the Swagger spec](https://github.com/Redocly/redoc/blob/master/docs/redoc-vendor-extensions.md)
-* [An alternate Swagger spec](https://swagger.io/docs/specification/2-0/basic-structure/)
-* [Documentation in a code comment of how protoc-gen-swagger converts comments in proto files to Swagger fields](https://github.com/grpc-ecosystem/grpc-gateway/blob/c3787b4d95d15f4c89484b44e108a6640c1943ca/protoc-gen-swagger/genswagger/template.go#L1294-L1305)
-
-## What Is Happening Behind the Scenes
+## What Happens Behind the Scenes
 
 The [Chef Documentation](https://docs.chef.io) site uses [Hugo modules](https://gohugo.io/hugo-modules/)
-to load content directly from `chef/automate/components/docs-chef-io`. Every time
-`chef/automate` is promoted to stable, Expeditor submits a PR to chef-web-docs to
-update the version of the `chef/automate` repository that Hugo uses to build Chef
+to load content directly from `habitat-sh/habitat/components/docs-chef-io`. Every time
+`habitat-sh/habitat` is promoted to stable, Expeditor submits a PR to chef-web-docs to
+update the version of the `habitat-sh/habitat` repository that Hugo uses to build Chef
 Automate documentation on the [Chef Documentation](https://docs.chef.io) site.
 This is handled by the Expeditor subscriptions in the `chef/chef-web-docs` GitHub repository.
 
@@ -768,7 +418,7 @@ We love getting feedback. You can use:
   support.
 - Pull request --- Submit a PR to this repo using either of the two
   methods described above.
-- GitHub issues --- Use the https://github.com/chef/automate/issues.
+- GitHub issues --- Use the https://github.com/habitat-sh/habitat/issues.
   This is a good place for "important" documentation bugs that may need
   visibility among a larger group, especially in situations where a doc bug
   may also surface a product bug. You can also use [chef-web-docs
