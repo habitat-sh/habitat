@@ -102,6 +102,7 @@ pub enum Error {
     LogonTypeNotGranted,
     /// Occurs when a call to LogonUserW fails
     LogonUserFailed(io::Error),
+    NativeTlsError(native_tls::Error),
     /// Occurs when a BIND, BIND_OPTIONAL, or BIND_MAP MetaFile is
     /// read and contains a bad entry.
     MetaFileBadBind,
@@ -301,6 +302,7 @@ impl fmt::Display for Error {
                                                         .to_string()
             }
             Error::LogonUserFailed(ref e) => format!("Failure calling LogonUserW: {:?}", e),
+            Error::NativeTlsError(ref e) => format!("{}", e),
             Error::MetaFileBadBind => {
                 "Bad value parsed from BIND, BIND_OPTIONAL, or BIND_MAP".to_string()
             }
@@ -384,6 +386,10 @@ impl From<io::Error> for Error {
 #[cfg(not(windows))]
 impl From<nix::Error> for Error {
     fn from(err: nix::Error) -> Self { Error::Nix(err) }
+}
+
+impl From<native_tls::Error> for Error {
+    fn from(err: native_tls::Error) -> Self { Error::NativeTlsError(err) }
 }
 
 impl From<num::ParseIntError> for Error {
