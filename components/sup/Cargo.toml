@@ -45,7 +45,7 @@ prost = "*"
 prost-derive = "*"
 prost-types = "*"
 rand = "*"
-rants = "*"
+rants = { version = "*", features = ["native-tls"] }
 regex = "*"
 # Pinning for now. Since upgrading to 0.17.0 results in conflicts with other crates
 # See https://github.com/habitat-sh/habitat/issues/7523

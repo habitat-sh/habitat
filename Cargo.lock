@@ -2931,9 +2931,9 @@ dependencies = [
 
 [[package]]
 name = "rants"
-version = "0.4.4"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3c78242f232a316557a783ea5ad47221f014a61527ebd475ace77e62f5563bb"
+checksum = "418082b3907cba5702eb16c6cccf5ff81f4151bf34bfc77ef42ab90ac2e0d03a"
 dependencies = [
  "bytes",
  "futures",
@@ -2946,7 +2946,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
- "tokio-tls",
+ "tokio-native-tls",
  "tokio-util 0.2.0",
  "uuid 0.7.4",
 ]
@@ -3847,6 +3847,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "tokio-native-tls"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd608593a919a8e05a7d1fc6df885e40f6a88d3a70a3a7eff23ff27964eda069"
+dependencies = [
+ "native-tls",
+ "tokio",
 ]
 
 [[package]]

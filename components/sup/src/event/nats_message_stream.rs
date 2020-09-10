@@ -58,7 +58,7 @@ impl NatsMessageStream {
             tls_connector.add_root_certificate(certificate.into());
         }
         let tls_connector = tls_connector.build()?;
-        client.set_tls_connector(tls_connector).await;
+        client.set_tls_config(tls_connector).await;
 
         // Connect to the server. If a timeout was set, we want to ensure we establish a connection
         // before exiting the function. If we do not connect within the timeout we return an error.

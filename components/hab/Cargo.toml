@@ -35,7 +35,7 @@ lazy_static = "*"
 libc = "*"
 log = "*"
 pbr = "*"
-rants = "*"
+rants = { version = "*", features = ["native-tls"] }
 # reqwest 0.10.4 significantly increased compile times. The increase was about a 5.5
 # times slower on a local environment and resulted in several buildkite timeouts.
 # For now we will pin to 0.10.3.
