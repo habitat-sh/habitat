@@ -670,8 +670,9 @@ impl<'a> InstallTask<'a> {
                    ident);
         } else if self.is_offline() {
             return Err(Error::OfflineArtifactNotFound(ident.as_ref().clone()));
+        } else {
+            self.fetch_artifact(ui, (ident, target), token).await?;
         }
-        self.fetch_artifact(ui, (ident, target), token).await?;
 
         let mut artifact = PackageArchive::new(self.cached_artifact_path(ident))?;
         ui.status(Status::Verifying, artifact.ident()?)?;
