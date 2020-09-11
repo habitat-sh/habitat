@@ -47,9 +47,7 @@ prost-types = "*"
 rand = "*"
 rants = { version = "*", features = ["native-tls"] }
 regex = "*"
-# Pinning for now. Since upgrading to 0.17.0 results in conflicts with other crates
-# See https://github.com/habitat-sh/habitat/issues/7523
-rustls = "0.16.0"
+rustls = "*"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = { version = "*", features = [ "preserve_order" ] }
