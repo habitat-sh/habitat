@@ -4,7 +4,9 @@ SHELL=bash
 
 assets:
 	git submodule update --init --recursive
-	pushd chef-web-docs && git pull origin master && git reset --hard && pushd themes/docs-new && make assets && popd
+	git submodule foreach git pull origin master
+	git submodule foreach git reset --hard
+	pushd chef-web-docs/themes/docs-new && make assets && popd
 
 clean:
 	pushd chef-web-docs/themes/docs-new && make clean && popd

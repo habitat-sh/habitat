@@ -10,4 +10,4 @@ description = "Promote Packages Through Channels"
 
 +++
 
-![Chef Habitat Promote Packages Through Channels Diagram](/images/infographics/habitat-promote-packages-through-channels.png)
+![Chef Habitat Promote Packages Through Channels Diagram](/images/habitat-promote-packages-through-channels.png)

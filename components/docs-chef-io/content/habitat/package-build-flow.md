@@ -10,5 +10,5 @@ description = "Initial Package Build Flow"
 
 +++
 
-![Chef Habitat Initial Package Build Flow Diagram](/images/infographics/habitat-initial-package-build-flow.png)
+![Chef Habitat Initial Package Build Flow Diagram](/images/habitat-initial-package-build-flow.png)
 

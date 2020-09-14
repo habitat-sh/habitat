@@ -39,7 +39,7 @@ $ hab pkg promote -z <TOKEN> <origin>/<package>/<version>/<release> stable
 
 By using both channels and either the `at-once` or `rolling` [update strategies](#using-updates), you can automatically update packages in a given channel as shown below:
 
-![Promoting packages through channels](/images/infographics/habitat-promote-packages-through-channels.png)
+![Promoting packages through channels](/images/habitat-promote-packages-through-channels.png)
 
 Using the infographic as a guide, a typical continuous deployment scenario would be as follows:
 

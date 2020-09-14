@@ -10,4 +10,4 @@ description = "Chef Habitat Builder Architecture"
 
 +++
 
-![Chef Habitat Builder Architecture Diagram](/images/infographics/habitat-builder-architecture.png)
+![Chef Habitat Builder Architecture Diagram](/images/habitat-builder-architecture.png)
