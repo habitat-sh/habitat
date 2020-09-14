@@ -7,3 +7,6 @@
 [submodule "test/integration/test_helper/bats-support"]
 	path = test/integration/test_helper/bats-support
 	url = https://github.com/ztombol/bats-support
+[submodule "components/docs-chef-io/chef-web-docs"]
+	path = components/docs-chef-io/chef-web-docs
+	url = https://github.com/chef/chef-web-docs
