@@ -10,7 +10,20 @@ description = "About the Chef Habitat Studio"
 
 +++
 
-Scotts goals:
+## Customizing Studio
+
+When you enter a Studio, Chef Habitat will attempt to locate `/src/.studiorc` and
+source it. Think `~/.bashrc`. This file can be used to export any
+environment variables like the ones in /reference/environment-variables  as well as any other shell
+customizations to help you develop your plans from within the Studio.
+
+To use this feature, place a `.studiorc` in the current working directory
+where you will run `hab studio enter`.
+
+Note that a `.studiorc` will only be source when using `hab studio enter`--it will not be sourced when calling `hab studio run` or `hab studio build` (also `hab pkg build`).
+
+
+## Scotts goals:
 There are two goals I have with this document, the second being a component of the first, but is a major sticking point to selling Habitat right now.
 
 I frequently see questions posed about the Studio that (feel like) there is an assumption that the Studio is providing certain capabilities, when it is often the underlying tools a particular implementation uses that provide those capabilities. In the case of troubleshooting, knowing which implementation you are using leads you to the correct set of tools to diagnose and fix the issue.

@@ -49,7 +49,7 @@ Packages can be tested in the interactive studio environment or natively on a wo
 
 When entering an interactive studio, a Supervisor is started for you in the background by default. To run packages inside of this Supervisor:
 
-1. [Build a package](/docs/developing-packages/#plan-builds) inside an interactive studio. Do not exit the studio after it is built.
+1. [Build a package](/docs/plan-overview/#plan-builds) inside an interactive studio. Do not exit the studio after it is built.
 2. To start your service in the running Supervisor, type `hab svc load yourorigin/yourname`, substituting the name and origin of the package you built in Step 1. Your service should now be running.
 
 Because the Supervisor is running in the background, you will not see the Supervisor output as you start your service. However you can use the `sup-log` (or `Get-SupervisorLog` on Windows) command that will stream the tail of the Supervisor output (you can also look at the contents of `/hab/sup/default/sup.log`, which is where the Studio directs its Supervisor output).

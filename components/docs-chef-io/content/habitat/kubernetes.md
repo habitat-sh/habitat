@@ -210,5 +210,5 @@ Multi-container pod support through Chef Habitat is still under active developme
 
 ## Related Reading
 
-* [Export a Chef Habitat package](/docs/developing-packages/#pkg-exports)
+* [Export a Chef Habitat package](/docs/plan-overview/#pkg-exports)
 * [Chef Habitat CLI](/docs/habitat-cli)

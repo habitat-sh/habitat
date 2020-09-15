@@ -148,6 +148,18 @@ weight = 10
   parent = "habitat"
   weight = 60
 
+      [[menu.habitat]]
+      title = "Buildtime"
+      identifier = "habitat/plans/buildtime"
+      parent = "habitat/plans"
+      weight = 90
+
+      [[menu.habitat]]
+      title = "Runtime"
+      identifier = "habitat/plans/runtime"
+      parent = "habitat/plans"
+      weight = 100
+
   [[menu.habitat]]
   title = "Services"
   identifier = "habitat/services"

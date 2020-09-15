@@ -81,10 +81,10 @@ Packages are installed in the `/hab/pkgs/` directory, and then further organized
 : If you have defined a default.toml file in the root of your plan, then it will be included in the same relative location within the installed package directory. For more information on configuration and the default.toml file, see [Configuration Updates](/docs/using-habitat/#config-updates).
 
 **config directory**
-: If you have defined a `config` subdirectory with a templatized configuration file in your plan, then they will be included in the same relative location within the installed package directory. For more information on templatized configuration files, see [Add configuration to plans](/docs/developing-packages/#add-configuration).
+: If you have defined a `config` subdirectory with a templatized configuration file in your plan, then they will be included in the same relative location within the installed package directory. For more information on templatized configuration files, see [Add configuration to plans](/docs/plan-overview/#add-configuration).
 
 **config_install directory**
-: If you have defined a `config_install` subdirectory with a templatized configuration file in your plan, then they will be included in the same relative location within the installed package directory. For more information on templatized configuration files, see [Add configuration to plans](/docs/developing-packages/#add-configuration).
+: If you have defined a `config_install` subdirectory with a templatized configuration file in your plan, then they will be included in the same relative location within the installed package directory. For more information on templatized configuration files, see [Add configuration to plans](/docs/plan-overview/#add-configuration).
 
 **hooks directory**
 : If you have defined a `hooks` subdirectory with hook scripts in your plan, then they will be included in the same relative location within the installed package directory. Read more about [Application Lifecycle Hooks](/docs/reference/application-lifecycle-hooks).

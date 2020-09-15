@@ -1,6 +1,6 @@
 +++
 title = "Plan Settings"
-description = "Define basic information about your artifact with plan settings"
+description = "Define basic metadata about your artifact with plan settings"
 
 [menu]
   [menu.habitat]
@@ -11,7 +11,7 @@ description = "Define basic information about your artifact with plan settings"
 
 +++
 
-The following settings are defined at the beginning of your plan. They specify basic information about your plan such as name, version, and dependencies.
+The following settings are defined at the beginning of your plan. They specify basic metadata about your plan such as name, version, and dependencies.
 
 > **Note**: We are using Bash syntax here, but Powershell plans use the same variable names and should conform to standard Powershell language rules (ie. `$` before variable names and quoting string values).
 
