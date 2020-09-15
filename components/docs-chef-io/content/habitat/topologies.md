@@ -7,7 +7,6 @@ description = "Service Group Topologies"
     title = "Service Group Topologies"
     identifier = "habitat/services/topologies"
     parent = "habitat/services"
-    weight = 20
 
 +++
 

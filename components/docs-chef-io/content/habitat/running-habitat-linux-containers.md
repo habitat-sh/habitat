@@ -7,7 +7,6 @@ description = "Running Chef Habitat Linux Containers"
     title = "Running Chef Habitat Linux Containers"
     identifier = "habitat/containers/running-habitat-linux-containers Linux Containers"
     parent = "habitat/containers"
-    weight = 20
 
 +++
 

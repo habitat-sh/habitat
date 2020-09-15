@@ -5,9 +5,8 @@ description = "Update services at runtime or dynamically"
 [menu]
   [menu.habitat]
     title = "Service Updates"
-    identifier = "habitat/services/service-updates"
+    identifier = "habitat/services/service-updates Configuration Updates*?"
     parent = "habitat/services"
-    weight = 20
 
 +++
 

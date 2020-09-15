@@ -1,13 +1,12 @@
 +++
-title = "Service Group Update Strategy"
-description = "Configure the Supervisor for updating service groups"
+title = "Service Group Updates"
+description = "Update service groups with supervisor configuration"
 
 [menu]
   [menu.habitat]
-    title = "Service Group Update Strategy"
-    identifier = "habitat/supervisors/using-updates"
-    parent = "habitat/supervisors"
-    weight = 20
+    title = "Service Group Updates"
+    identifier = "habitat/services/service-updates"
+    parent = "habitat/services"
 
 +++
 

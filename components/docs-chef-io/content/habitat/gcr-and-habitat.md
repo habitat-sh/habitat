@@ -7,7 +7,6 @@ description = "Google Container Registry"
     title = "Google Container Registry (GCR)"
     identifier = "habitat/containers/gcr-and-habitat"
     parent = "habitat/containers"
-    weight = 20
 
 +++
 

@@ -5,8 +5,8 @@ description = "Running Chef Habitat on Servers (Linux and Windows)"
 [menu]
   [menu.habitat]
     title = "Running Chef Habitat on Servers (Linux and Windows)"
-    identifier = "habitat/services/running-habitat-servers"
-    parent = "habitat/services"
+    identifier = "habitat/reference/running-habitat-servers"
+    parent = "habitat/reference"
 
 +++
 

@@ -7,7 +7,7 @@ description = "Scaffolding"
     title = "Scaffolding"
     identifier = "habitat/plans/scaffolding"
     parent = "habitat/plans"
-    weight = 20
+    weight = 95
 
 +++
 
@@ -48,7 +48,3 @@ The remainder of the `lib/scaffolding.sh` contains one or more default implement
 * `do_default_prepare()`
 * `do_default_build()`
 * `do_default_install()`
-
-## Try them out
-
-The point of scaffoldings is to handle complexity for you, and make it easy to start building, deploying, and managing your application with Chef Habitat. So try it out and let us know how it goes!

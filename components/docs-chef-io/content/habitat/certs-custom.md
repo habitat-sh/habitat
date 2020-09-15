@@ -5,9 +5,8 @@ description = "Handling custom (CA) certificates"
 [menu]
   [menu.habitat]
     title = "Custom Certificates"
-    identifier = "habitat/reference/using-custom-certs"
+    identifier = "habitat/reference/certs-custom Custom Certs"
     parent = "habitat/reference"
-    weight = 20
 
 +++
 

@@ -1,13 +1,12 @@
 +++
-title = "Package Binds"
-description = "Define package binds in your plan file"
+title = "Runtime Binds"
+description = "Define runtime binds in your plan file"
 
 [menu]
   [menu.habitat]
-    title = "Service Binds"
+    title = "Runtime Binds *?"
     identifier = "habitat/plans/runtime/pkg-binds"
     parent = "habitat/plans/runtime"
-    weight = 20
 
 +++
 

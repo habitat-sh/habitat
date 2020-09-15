@@ -4,10 +4,10 @@ description = "Define dynamic plan configuration settings with plan helpers"
 
 [menu]
   [menu.habitat]
-    title = "Configuration Helpers"
+    title = "Configuration Helpers *"
     identifier = "habitat/plans/plan-helpers.md Plan configuration"
     parent = "habitat/plans"
-    weight = 20
+    weight = 70
 
 +++
 

@@ -4,16 +4,15 @@ description = "Running Chef Habitat Packages"
 
 [menu]
   [menu.habitat]
-    title = "Running Chef Habitat Packages"
-    identifier = "habitat/packages/using-packages"
-    parent = "habitat/packages"
-    weight = 20
+    title = "Running Chef Habitat Packages * "
+    identifier = "habitat/supervisors/sup-run"
+    parent = "habitat/supervisors"
 
 +++
 
 Use Chef Habitat packages to start services under the Chef Habitat Supervisor. At runtime, you can join services together in a service group running the same topology, send configuration updates to that group, and more. You can also export the Supervisor together with the package to an external immutable format, such as a Docker container or a virtual machine.
 
-<%= partial 'partials/global/package_platform_support' %>
+> **Note** Linux-based packages can run on Linux distributions running kernel 2.6.32 or later. Windows-based packages can run on Windows Server 2012 or later and Windows 8 64-bit or later.
 
 Information about [installing Chef Habitat](/docs/install-habitat) and configuring your workstation can be found in the previous section.
 

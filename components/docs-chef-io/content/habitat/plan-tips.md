@@ -7,7 +7,7 @@ description = "Best Practices for Plans"
     title = "Plan Tips"
     identifier = "habitat/plans/plan-tips"
     parent = "habitat/plans"
-    weight = 20
+    weight = 30
 
 +++
 

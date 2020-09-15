@@ -7,7 +7,6 @@ description = "Docker Container Publishing Flow"
     title = "Docker Container Publishing Flow"
     identifier = "habitat/reference/diagrams/docker-flow"
     parent = "habitat/reference/diagrams"
-    weight = 20
 
 +++
 

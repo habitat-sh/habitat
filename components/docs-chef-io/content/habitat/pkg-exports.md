@@ -1,22 +1,21 @@
 +++
-title = "Package Export Formats"
+title = "Exporting Packages"
 description = "Export Chef Habitat packages to Docker, Kubernetes, Helm, Mesos, DC/OS, Cloud Foundry, or as a tarball "
 
 [menu]
   [menu.habitat]
-    title = "Package Export Formats"
-    identifier = "habitat/packages/pkg-exports.md Export Chef Habitat Packages"
+    title = "Exporting Packages"
+    identifier = "habitat/packages/pkg-exports Export Chef Habitat Packages"
     parent = "habitat/packages"
-    weight = 20
+    weight = 40
 
 +++
-## Package Export Formats
 
 You can export packages into several different external, immutable runtime formats. This topic will be updated as more formats are supported in the future. Currently there are exports for: docker, mesos, tar, and cloudfoundry.
 
 The command to export a package is `hab pkg export <FORMAT> <PKG_IDENT>`. See the [Chef Habitat CLI Reference Guide](/docs/habitat-cli#hab-pkg-export) for more CLI information.
 
-> **Note** If you specify an <code>origin/package</code> identifier, such as <code>core/postgresql</code>, the Chef Habitat CLI will check Builder for the latest stable version of the package and export that.
+> **Note** If you specify an `origin/package` identifier, such as `core/postgresql`, the Chef Habitat CLI will check Builder for the latest stable version of the package and export that.
 
 > If you wish to export a package that is not on Builder, create a Chef Habitat artifact by running the `build` command, then point `hab pkg` to the `.hart` file within the `/results` directory:
 
@@ -40,7 +39,7 @@ You can create a Docker container image for any package by performing the follow
     hab pkg export docker ./results/<hart-filename>.hart
     ```
 
-    > **Note** The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling <code>hab pkg export docker origin/package</code>. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
+    > **Note** The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling `hab pkg export docker origin/package`. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
 
     > **Note** On Linux, exporting your Chef Habitat artifact to a Docker image requires the Docker Engine supplied by Docker. Packages from distribution-specific or otherwise alternative providers are currently not supported.
 

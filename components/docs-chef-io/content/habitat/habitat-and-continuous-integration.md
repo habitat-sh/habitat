@@ -7,7 +7,6 @@ description = "Chef Habitat and Continuous Integration"
     title = "Chef Habitat and Continuous Integration"
     identifier = "habitat/reference/habitat-and-continuous-integration"
     parent = "habitat/reference"
-    weight = 20
 
 +++
 

@@ -1,13 +1,13 @@
 +++
-title = "Build"
+title = "Building Packages"
 description = "Building Packages in the Studio"
 
 [menu]
   [menu.habitat]
-    title = "Build"
-    identifier = "habitat/studio/studio-build Build your Package"
-    parent = "habitat/studio"
-    weight = 20
+    title = "Building Packages"
+    identifier = "habitat/packages/pkg-build Build your Package"
+    parent = "habitat/packages"
+    weight = 10
 
 +++
 

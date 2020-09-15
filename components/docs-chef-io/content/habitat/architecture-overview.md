@@ -7,7 +7,6 @@ description = "Chef Habitat Architecture Overview"
     title = "Architecture Overview"
     identifier = "habitat/reference/diagrams/architecture-overview"
     parent = "habitat/reference/diagrams"
-    weight = 20
 
 +++
 

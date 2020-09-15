@@ -4,10 +4,9 @@ description = "Supervisor log code reference"
 
 [menu]
   [menu.habitat]
-    title = "Supervisor Log Key"
+    title = "Supervisor Log Key *"
     identifier = "habitat/supervisors/sup-log-key"
     parent = "habitat/supervisors"
-    weight = 20
 
 +++
 
@@ -20,12 +19,9 @@ redis.default(SV): Starting
 redis.default(O):
 ```
 
-The letters in parentheses are called "log keys" and signify what type of log
-message is being shown. This can be useful for log filtering.
+The letters in parentheses are called "log keys" and signify what type of log message is being shown. This can be useful for log filtering.
 
-They are mostly organized by the part of the Chef Habitat Supervisor code base that
-they are running from, so they often are of value to somebody troubleshooting
-problems in the Chef Habitat Supervisor source code.
+They are mostly organized by the part of the Chef Habitat Supervisor code base that they are running from, so they often are of value to somebody troubleshooting problems in the Chef Habitat Supervisor source code.
 
 The meanings of the keys are as follows:
 

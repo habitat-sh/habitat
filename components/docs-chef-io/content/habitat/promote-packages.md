@@ -7,7 +7,6 @@ description = "Promote Packages Through Channels"
     title = "Promote Packages Through Channels"
     identifier = "habitat/reference/diagrams/promote-packages"
     parent = "habitat/reference/diagrams"
-    weight = 20
 
 +++
 

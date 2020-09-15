@@ -1,11 +1,11 @@
 +++
-title = "Continuous Deployment"
-description = "Continuous Deployment"
+title = "Promote Packages"
+description = "Best practices for promoting packages in channels for building and testing code changes as part of continuous deployment with channel tags"
 
 [menu]
   [menu.habitat]
-    title = "Continuous Deployment"
-    identifier = "habitat/packages/continuous-deployment"
+    title = "Promoting Packages"
+    identifier = "habitat/packages/promote Promoting Packages"
     parent = "habitat/packages"
     weight = 20
 
@@ -15,7 +15,7 @@ Continuous deployment is a well-known software development practice of building 
 
 ## Continuous Deployment Using Channels
 
-<%= partial "/partials/global/channel-overview" %>
+Chef Habitat supports continuous deployment workflows through the use of channels. A channel is a tag for a package that the Supervisors in a service group can subscribe to. Channels are useful in CI/CD scenarios where you want to gate a package before making it the default version of the package that users should consume. You can think of this split as the difference between test and production, or nightly releases versus stable releases of products.
 
 By default, every new package is placed in the `unstable` channel by Builder. Packages in the `unstable` channel cannot be started or installed unless you specify the `--channel` flag in the `hab` CLI, or set the `HAB_BLDR_CHANNEL` environment variable to a non-stable channel. This is because the default channel used by the `hab` CLI when starting, installing, or loading packages is the `stable` channel. The `stable` channel indicates a level of stability and functionality suitable for use in multi-service applications or as a dependency for your service.
 

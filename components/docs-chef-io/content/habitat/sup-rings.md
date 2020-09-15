@@ -5,10 +5,8 @@ description = "Setting Up a Ring"
 [menu]
   [menu.habitat]
     title = "Setting Up a Ring"
-    identifier = "habitat/supervisors/setting-up-a-ring"
+    identifier = "habitat/supervisors/sup-rings"
     parent = "habitat/supervisors"
-    weight = 20
-
 +++
 
 ## Bastion Ring / Permanent Peers
