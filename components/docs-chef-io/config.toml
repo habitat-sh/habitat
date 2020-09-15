@@ -1,6 +1,6 @@
 baseURL = "/"
 languageCode = "en-us"
-title = "Chef InSpec Documentation"
+title = "Chef Habitat Documentation"
 theme = "docs-new"
 themesDir = "chef-web-docs/themes"
 enableGitInfo = true

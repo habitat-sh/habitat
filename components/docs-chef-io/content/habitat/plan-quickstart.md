@@ -7,8 +7,8 @@ draft = false
 [menu]
   [menu.habitat]
     title = "Plan Quickstart"
-    identifier = "habitat/plan-quickstart.md Plan Quickstart"
-    parent = "habitat"
+    identifier = "habitat/plans/plan-quickstart.md Plan Quickstart"
+    parent = "habitat/plans"
     weight = 10
 +++
 
