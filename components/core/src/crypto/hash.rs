@@ -1,5 +1,7 @@
 use crate::error::{Error,
                    Result};
+use blake2b_simd::{Params,
+                   State};
 use hex::FromHex;
 use serde::Serialize;
 use std::{convert::{TryFrom,
@@ -9,13 +11,14 @@ use std::{convert::{TryFrom,
           io::{BufReader,
                Read},
           path::Path,
-          ptr,
           str::FromStr};
 
+/// When hashing byte streams, we'll read 1KB at a time, adding this to the
+/// internal hashing state as we compute the final digest.
 const BUF_SIZE: usize = 1024;
 
-/// The size of a Blake2b hash digest (32 bytes)
-const HASH_DIGEST_SIZE: usize = libsodium_sys::crypto_generichash_BYTES as usize;
+/// The size of our Blake2b hash digests (32 bytes)
+const HASH_DIGEST_SIZE: usize = 32;
 
 /// Convenience wrapper type for a 32-byte Blake2b hash digest.
 ///
@@ -55,6 +58,15 @@ impl TryFrom<Vec<u8>> for Blake2bHash {
                                                             HASH_DIGEST_SIZE))
                              })?;
         Ok(Blake2bHash::new(*boxed))
+    }
+}
+
+impl From<blake2b_simd::Hash> for Blake2bHash {
+    fn from(src: blake2b_simd::Hash) -> Self {
+        let digest = src.as_bytes()
+                        .try_into()
+                        .expect("We know we can safely convert to a byte array");
+        Blake2bHash::new(digest)
     }
 }
 
@@ -129,6 +141,15 @@ impl std::ops::Deref for Blake2bHash {
 
 ////////////////////////////////////////////////////////////////////////
 
+/// Initialize the hasher state. In particular, set the digest length
+/// to 32 bytes. All hashing functions must use this to ensure
+/// consistency!
+fn hash_state() -> State {
+    let mut params = Params::new();
+    params.hash_length(HASH_DIGEST_SIZE);
+    params.to_state()
+}
+
 /// Calculate the BLAKE2b hash of a file.
 /// NOTE: the hashing is keyless
 pub fn hash_file<P>(filename: P) -> Result<Blake2bHash>
@@ -139,40 +160,20 @@ pub fn hash_file<P>(filename: P) -> Result<Blake2bHash>
     hash_reader(&mut reader)
 }
 
-pub fn hash_string(data: &str) -> Blake2bHash {
-    let mut out = [0u8; HASH_DIGEST_SIZE];
-    let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
-    #[allow(clippy::cast_ptr_alignment)]
-    let pst = st.as_mut_ptr() as *mut libsodium_sys::crypto_generichash_state;
-    unsafe {
-        libsodium_sys::crypto_generichash_init(pst, ptr::null_mut(), 0, out.len());
-        libsodium_sys::crypto_generichash_update(pst, data[..].as_ptr(), data.len() as u64);
-        libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
-    }
-    Blake2bHash::new(out)
-}
+#[deprecated = "use hash_bytes directly"]
+pub fn hash_string(data: &str) -> Blake2bHash { hash_bytes(data) }
 
-pub fn hash_bytes(data: &[u8]) -> Blake2bHash {
-    let mut out = [0u8; HASH_DIGEST_SIZE];
-    let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
-    #[allow(clippy::cast_ptr_alignment)]
-    let pst = st.as_mut_ptr() as *mut libsodium_sys::crypto_generichash_state;
-    unsafe {
-        libsodium_sys::crypto_generichash_init(pst, ptr::null_mut(), 0, out.len());
-        libsodium_sys::crypto_generichash_update(pst, data[..].as_ptr(), data.len() as u64);
-        libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
-    }
-    Blake2bHash::new(out)
+pub fn hash_bytes<B>(data: B) -> Blake2bHash
+    where B: AsRef<[u8]>
+{
+    let mut state = hash_state();
+    state.update(data.as_ref());
+    state.finalize().into()
 }
 
 pub fn hash_reader(reader: &mut dyn Read) -> Result<Blake2bHash> {
-    let mut out = [0u8; HASH_DIGEST_SIZE];
-    let mut st = vec![0u8; unsafe { libsodium_sys::crypto_generichash_statebytes() }];
-    #[allow(clippy::cast_ptr_alignment)]
-    let pst = st.as_mut_ptr() as *mut libsodium_sys::crypto_generichash_state;
-    unsafe {
-        libsodium_sys::crypto_generichash_init(pst, ptr::null_mut(), 0, out.len());
-    }
+    let mut state = hash_state();
+
     let mut buf = [0u8; BUF_SIZE];
     loop {
         let bytes_read = reader.read(&mut buf)?;
@@ -180,14 +181,10 @@ pub fn hash_reader(reader: &mut dyn Read) -> Result<Blake2bHash> {
             break;
         }
         let chunk = &buf[0..bytes_read];
-        unsafe {
-            libsodium_sys::crypto_generichash_update(pst, chunk.as_ptr(), chunk.len() as u64);
-        }
+        state.update(chunk);
     }
-    unsafe {
-        libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
-    }
-    Ok(Blake2bHash::new(out))
+
+    Ok(state.finalize().into())
 }
 
 #[cfg(test)]
