@@ -29,18 +29,14 @@ const HASH_DIGEST_SIZE: usize = 32;
 /// or parse it from a hex string.
 #[derive(Clone, Debug)]
 pub struct Blake2bHash {
-    digest:     [u8; HASH_DIGEST_SIZE],
-    /// Temporary field to support Deref<str> for backwards
-    /// compatibility with Builder until it can use the new types.
-    hex_string: String,
+    digest:     [u8; HASH_DIGEST_SIZE]
 }
 
 impl Blake2bHash {
     /// Temporary constructor while we store the hex encoding in the
     /// type directly.
     fn new(digest: [u8; HASH_DIGEST_SIZE]) -> Self {
-        let hex_string = hex::encode(&digest).to_lowercase();
-        Blake2bHash { digest, hex_string }
+        Blake2bHash { digest }
     }
 }
 
