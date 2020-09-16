@@ -114,14 +114,6 @@ impl Serialize for Blake2bHash {
     }
 }
 
-/// Temporary implementation to ease adoption in Builder. Once that's
-/// been updated, remove this (and the `hex_string` field).
-impl std::ops::Deref for Blake2bHash {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target { self.hex_string.as_str() }
-}
-
 ////////////////////////////////////////////////////////////////////////
 
 /// Initialize the hasher state. In particular, set the digest length
