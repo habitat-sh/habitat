@@ -2,7 +2,7 @@
 use crate::{error::{Error,
                     Result},
             hcore::{self,
-                    crypto::hash::Blake2bHash,
+                    crypto::Blake2bHash,
                     fs::{self,
                          USER_CONFIG_FILE}},
             outputln,

@@ -59,7 +59,7 @@ use habitat_common::{outputln,
                      FeatureFlag};
 #[cfg(windows)]
 use habitat_core::os::users;
-use habitat_core::{crypto::hash::Blake2bHash,
+use habitat_core::{crypto::Blake2bHash,
                    fs::{atomic_write,
                         svc_hooks_path,
                         SvcDir,

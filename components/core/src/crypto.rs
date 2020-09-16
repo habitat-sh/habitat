@@ -210,7 +210,6 @@
 //! <symkey_base64>
 //! ```
 
-pub use self::hash::Blake2bHash;
 use crate::error::{Error,
                    Result};
 
@@ -241,8 +240,10 @@ pub const SECRET_SYM_KEY_VERSION: &str = "SYM-SEC-1";
 pub mod artifact;
 #[cfg(windows)]
 pub mod dpapi;
-pub mod hash;
+mod hash;
 pub mod keys;
+
+pub use hash::Blake2bHash;
 
 pub fn init() -> Result<()> { sodiumoxide::init().map_err(|_| Error::SodiumInitFailed) }
 

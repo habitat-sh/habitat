@@ -1,6 +1,5 @@
-use crate::hcore::crypto::hash::Blake2bHash;
-
-use crate::error::Result;
+use crate::{error::Result,
+            hcore::crypto::Blake2bHash};
 
 pub fn start(src: &str) -> Result<()> {
     let h = Blake2bHash::from_file(&src)?;
