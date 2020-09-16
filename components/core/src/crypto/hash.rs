@@ -225,6 +225,10 @@ mod test {
         dir
     }
 
+    /// Helper function to create a Blake2bHash directly from a
+    /// hex-encoded string.
+    fn hash_from_hex(hex: &str) -> Blake2bHash { hex.parse().unwrap() }
+
     #[test]
     fn hash_file_working() {
         // The expected values were computed using the `b2sum` program from
@@ -232,18 +236,18 @@ mod test {
         //      b2sum -s=32 signme.dat
 
         let computed = hash_file(&fixture("signme.dat")).unwrap();
-        let expected = "20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233".parse()
-                                                                                         .unwrap();
+        let expected =
+            hash_from_hex("20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233");
         assert_eq!(computed, expected);
 
         let computed = hash_file(&fixture("happyhumans-20160424223347.sig.key")).unwrap();
-        let expected = "e966844bbc50b7a3a6d81e94dd38e27b92814b944095a8e55f1780921bfcfbe1".parse()
-                                                                                         .unwrap();
+        let expected =
+            hash_from_hex("e966844bbc50b7a3a6d81e94dd38e27b92814b944095a8e55f1780921bfcfbe1");
         assert_eq!(computed, expected);
 
         let computed = hash_file(&fixture("happyhumans-20160424223347.pub")).unwrap();
-        let expected = "b80c4f412f9a0a7727b6e6f115e1b5fa3bae79ad2fcf47f769ed4e42cfb12265".parse()
-                                                                                         .unwrap();
+        let expected =
+            hash_from_hex("b80c4f412f9a0a7727b6e6f115e1b5fa3bae79ad2fcf47f769ed4e42cfb12265");
         assert_eq!(computed, expected);
     }
 
