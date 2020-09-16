@@ -494,7 +494,7 @@ fn hash_content<T>(path: T) -> Result<Option<Blake2bHash>>
 fn write_hook<T>(content: &str, path: T) -> Result<bool>
     where T: AsRef<Path>
 {
-    let content_hash = crypto::hash::hash_string(&content);
+    let content_hash = crypto::hash::hash_bytes(&content);
     let existing_hash = hash_content(path.as_ref())?;
     if let Some(existing_hash) = existing_hash {
         if existing_hash == content_hash {

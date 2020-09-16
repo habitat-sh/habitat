@@ -425,7 +425,7 @@ impl CfgRenderer {
         let mut changed = false;
         for template in self.0.get_templates().keys() {
             let compiled = self.0.render(&template, ctx)?;
-            let compiled_hash = crypto::hash::hash_string(&compiled);
+            let compiled_hash = crypto::hash::hash_bytes(&compiled);
             let cfg_dest = render_path.as_ref().join(&template);
             let file_hash = match crypto::hash::hash_file(&cfg_dest) {
                 Ok(file_hash) => Some(file_hash),

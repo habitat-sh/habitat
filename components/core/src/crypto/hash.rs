@@ -160,9 +160,6 @@ pub fn hash_file<P>(filename: P) -> Result<Blake2bHash>
     hash_reader(&mut reader)
 }
 
-#[deprecated = "use hash_bytes directly"]
-pub fn hash_string(data: &str) -> Blake2bHash { hash_bytes(data) }
-
 pub fn hash_bytes<B>(data: B) -> Blake2bHash
     where B: AsRef<[u8]>
 {
@@ -229,7 +226,7 @@ mod test {
         let message = "supercalifragilisticexpialadocious";
         let expected =
             hash_from_hex("2ca8ebafca7e189de2a36125b92a1db20f393d1e2708f5daa55e51cf05114437");
-        let actual = hash_string(message);
+        let actual = hash_bytes(message);
 
         assert_eq!(expected, actual);
     }

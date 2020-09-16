@@ -142,7 +142,7 @@ impl KeyCache {
 
         if keyfile.is_file() {
             let existing_hash = hash::hash_file(&keyfile)?;
-            let new_hash = hash::hash_string(&content);
+            let new_hash = hash::hash_bytes(&content);
             if existing_hash != new_hash {
                 let msg = format!("Existing key file {} found but new version hash is different, \
                                    failing to write new file over existing. (existing = {}, \
