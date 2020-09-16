@@ -59,8 +59,7 @@ use habitat_common::{outputln,
                      FeatureFlag};
 #[cfg(windows)]
 use habitat_core::os::users;
-use habitat_core::{crypto::hash::{self,
-                                  Blake2bHash},
+use habitat_core::{crypto::hash::Blake2bHash,
                    fs::{atomic_write,
                         svc_hooks_path,
                         SvcDir,
@@ -1160,7 +1159,7 @@ impl Service {
                 None
             }
         };
-        let new_checksum = hash::hash_bytes(&contents);
+        let new_checksum = Blake2bHash::from_bytes(&contents);
 
         if let Some(current_checksum) = current_checksum {
             if new_checksum == current_checksum {

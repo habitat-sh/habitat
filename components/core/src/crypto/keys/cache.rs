@@ -1,5 +1,4 @@
-use crate::{crypto::{hash::{self,
-                            Blake2bHash},
+use crate::{crypto::{hash::Blake2bHash,
                      keys::{encryption::{generate_origin_encryption_key_pair,
                                          generate_service_encryption_key_pair,
                                          generate_user_encryption_key_pair,
@@ -142,7 +141,7 @@ impl KeyCache {
         let content = key.to_key_string();
 
         if keyfile.is_file() {
-            let new_hash = hash::hash_bytes(&content);
+            let new_hash = Blake2bHash::from_bytes(&content);
             let existing_hash = Blake2bHash::from_file(&keyfile)?;
             if existing_hash != new_hash {
                 let msg = format!("Existing key file {} found but new version hash is different, \

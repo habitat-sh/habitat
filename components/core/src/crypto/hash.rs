@@ -41,6 +41,15 @@ impl Blake2bHash {
         let mut reader = BufReader::new(file);
         hash_reader(&mut reader)
     }
+
+    /// Calculate the BLAKE2b hash of a sequence of bytes.
+    pub fn from_bytes<B>(data: B) -> Self
+        where B: AsRef<[u8]>
+    {
+        let mut state = hash_state();
+        state.update(data.as_ref());
+        state.finalize().into()
+    }
 }
 
 // We *could* just wrap the `blake2b_simd::Hash` directly in our
@@ -130,14 +139,6 @@ fn hash_state() -> State {
     params.to_state()
 }
 
-pub fn hash_bytes<B>(data: B) -> Blake2bHash
-    where B: AsRef<[u8]>
-{
-    let mut state = hash_state();
-    state.update(data.as_ref());
-    state.finalize().into()
-}
-
 pub fn hash_reader(reader: &mut dyn Read) -> Result<Blake2bHash> {
     let mut state = hash_state();
 
@@ -169,28 +170,28 @@ mod test {
     /// hex-encoded string.
     fn hash_from_hex(hex: &str) -> Blake2bHash { hex.parse().unwrap() }
 
-    #[test]
-    fn strings_can_be_hashed() {
-        let message = "supercalifragilisticexpialadocious";
-        let expected =
-            hash_from_hex("2ca8ebafca7e189de2a36125b92a1db20f393d1e2708f5daa55e51cf05114437");
-        let actual = hash_bytes(message);
-
-        assert_eq!(expected, actual);
-    }
-
-    #[test]
-    fn bytes_can_be_hashed() {
-        let message = [0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8, 9u8];
-        let expected =
-            hash_from_hex("8b57a796a5d07cb04cc1614dfc2acb3f73edc712d7f433619ca3bbe66bb15f49");
-        let actual = hash_bytes(&message);
-
-        assert_eq!(expected, actual);
-    }
-
     mod blake2bhash {
         use super::*;
+
+        #[test]
+        fn strings_can_be_hashed() {
+            let message = "supercalifragilisticexpialadocious";
+            let expected =
+                hash_from_hex("2ca8ebafca7e189de2a36125b92a1db20f393d1e2708f5daa55e51cf05114437");
+            let actual = Blake2bHash::from_bytes(message);
+
+            assert_eq!(expected, actual);
+        }
+
+        #[test]
+        fn bytes_can_be_hashed() {
+            let message = [0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8, 9u8];
+            let expected =
+                hash_from_hex("8b57a796a5d07cb04cc1614dfc2acb3f73edc712d7f433619ca3bbe66bb15f49");
+            let actual = Blake2bHash::from_bytes(&message);
+
+            assert_eq!(expected, actual);
+        }
 
         #[test]
         fn hash_file_working() {
