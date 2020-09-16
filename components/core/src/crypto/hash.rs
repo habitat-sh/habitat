@@ -252,6 +252,26 @@ mod test {
     }
 
     #[test]
+    fn strings_can_be_hashed() {
+        let message = "supercalifragilisticexpialadocious";
+        let expected =
+            hash_from_hex("2ca8ebafca7e189de2a36125b92a1db20f393d1e2708f5daa55e51cf05114437");
+        let actual = hash_string(message);
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn bytes_can_be_hashed() {
+        let message = [0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8, 9u8];
+        let expected =
+            hash_from_hex("8b57a796a5d07cb04cc1614dfc2acb3f73edc712d7f433619ca3bbe66bb15f49");
+        let actual = hash_bytes(&message);
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
     #[cfg(feature = "functional")]
     fn hash_file_large_binary() {
         let url = "http://ftp.kernel.org/pub/linux/kernel/v4.x/linux-4.3.tar.gz";
