@@ -29,15 +29,7 @@ const HASH_DIGEST_SIZE: usize = 32;
 /// or parse it from a hex string.
 #[derive(Clone, Debug)]
 pub struct Blake2bHash {
-    digest:     [u8; HASH_DIGEST_SIZE]
-}
-
-impl Blake2bHash {
-    /// Temporary constructor while we store the hex encoding in the
-    /// type directly.
-    fn new(digest: [u8; HASH_DIGEST_SIZE]) -> Self {
-        Blake2bHash { digest }
-    }
+    digest: [u8; HASH_DIGEST_SIZE],
 }
 
 impl From<blake2b_simd::Hash> for Blake2bHash {
@@ -45,7 +37,7 @@ impl From<blake2b_simd::Hash> for Blake2bHash {
         let digest = src.as_bytes()
                         .try_into()
                         .expect("We know we can safely convert to a byte array");
-        Blake2bHash::new(digest)
+        Blake2bHash { digest }
     }
 }
 
@@ -91,12 +83,13 @@ impl FromStr for Blake2bHash {
         // FromHex has an implementation for [u8; 32], so this ensures
         // the proper length of bytes... well, that and the compiler,
         // of course :)
-        FromHex::from_hex(s).map(Self::new).map_err(|e| {
-                                               Error::CryptoError(format!("Could not parse \
-                                                                           Blake2bHash from \
-                                                                           string: {}",
-                                                                          e))
-                                           })
+        let bytes = FromHex::from_hex(s).map_err(|e| {
+                                            Error::CryptoError(format!("Could not parse \
+                                                                        Blake2bHash from string: \
+                                                                        {}",
+                                                                       e))
+                                        })?;
+        Ok(Self { digest: bytes })
     }
 }
 
@@ -238,13 +231,15 @@ mod test {
 
         #[test]
         fn eq() {
-            let zeroes = Blake2bHash::new([0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
-                                           0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
-                                           0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8]);
+            let zeroes = Blake2bHash { digest: [0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
+                                                0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
+                                                0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
+                                                0u8, 0u8], };
 
-            let ones = Blake2bHash::new([1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
-                                         1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
-                                         1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8]);
+            let ones = Blake2bHash { digest: [1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                                              1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                                              1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                                              1u8, 1u8], };
 
             assert_ne!(zeroes, ones);
             assert_eq!(zeroes, zeroes);
@@ -253,9 +248,10 @@ mod test {
 
         #[test]
         fn display() {
-            let ones = Blake2bHash::new([1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
-                                         1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
-                                         1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8]);
+            let ones = Blake2bHash { digest: [1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                                              1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                                              1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                                              1u8, 1u8], };
             assert_eq!(ones.to_string(),
                        "0101010101010101010101010101010101010101010101010101010101010101");
         }
