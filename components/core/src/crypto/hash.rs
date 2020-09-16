@@ -4,8 +4,7 @@ use blake2b_simd::{Params,
                    State};
 use hex::FromHex;
 use serde::Serialize;
-use std::{convert::{TryFrom,
-                    TryInto},
+use std::{convert::TryInto,
           fmt,
           fs::File,
           io::{BufReader,
@@ -42,22 +41,6 @@ impl Blake2bHash {
     fn new(digest: [u8; HASH_DIGEST_SIZE]) -> Self {
         let hex_string = hex::encode(&digest).to_lowercase();
         Blake2bHash { digest, hex_string }
-    }
-}
-
-impl TryFrom<Vec<u8>> for Blake2bHash {
-    type Error = Error;
-
-    // Create a Blake2bHash from a vector of bytes. Ensures the vector
-    // is the correct length for the hash.
-    fn try_from(value: Vec<u8>) -> Result<Self> {
-        let boxed: Box<[u8]> = value.into_boxed_slice();
-        let boxed: Box<[u8; HASH_DIGEST_SIZE]> =
-            boxed.try_into().map_err(|_| {
-                                 Error::CryptoError(format!("Did not get {} bytes for digest",
-                                                            HASH_DIGEST_SIZE))
-                             })?;
-        Ok(Blake2bHash::new(*boxed))
     }
 }
 
