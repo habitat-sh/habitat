@@ -1421,6 +1421,7 @@ dependencies = [
  "paste 1.0.0",
  "rand 0.7.3",
  "regex 1.3.9",
+ "reqwest",
  "rust-crypto",
  "serde",
  "serde_derive",

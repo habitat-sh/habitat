@@ -197,33 +197,9 @@ mod test {
                   File};
     #[allow(unused_imports)]
     use std::io;
-    use std::{env,
-              path::PathBuf};
 
     use super::{super::test_support::*,
                 *};
-    #[cfg(feature = "functional")]
-    use hyper::{header,
-                Client,
-                Url};
-
-    #[allow(dead_code)]
-    fn mk_local_tmpdir() -> PathBuf {
-        let dir = env::current_exe().unwrap()
-                                    .parent()
-                                    .unwrap()
-                                    .parent()
-                                    .unwrap()
-                                    .parent()
-                                    .unwrap()
-                                    .parent()
-                                    .unwrap()
-                                    .parent()
-                                    .unwrap()
-                                    .join("tmp");
-        fs::create_dir_all(&dir).unwrap();
-        dir
-    }
 
     /// Helper function to create a Blake2bHash directly from a
     /// hex-encoded string.
@@ -274,30 +250,21 @@ mod test {
     #[test]
     #[cfg(feature = "functional")]
     fn hash_file_large_binary() {
-        let url = "http://ftp.kernel.org/pub/linux/kernel/v4.x/linux-4.3.tar.gz";
-        let dst: PathBuf = {
-            let file = mk_local_tmpdir().join(url.rsplit('/').next().unwrap());
-            if !file.is_file() {
-                let client = match env::var("http_proxy") {
-                    Ok(url) => {
-                        let url = Url::parse(&url).unwrap();
-                        Client::with_http_proxy(url.host_str().unwrap().to_string(),
-                                                url.port_or_known_default().unwrap())
-                    }
-                    _ => Client::new(),
-                };
-                let mut response = client.get(url)
-                                         .header(header::Connection::close())
-                                         .send()
-                                         .unwrap();
-                let mut f = File::create(&file).unwrap();
-                io::copy(&mut response, &mut f).unwrap();
-            }
-            file
-        };
-        let computed = hash_file(&dst);
-        let expected = "ba640dc063f0ed27e60b38dbb7cf19778cf7805d9fc91eb129fb68b409d46414".parse()
-                                                                                         .unwrap();
+        let dir = tempfile::Builder::new().prefix("large_file")
+                                          .tempdir()
+                                          .unwrap();
+
+        let url = "http://www.kernel.org/pub/linux/kernel/v4.x/linux-4.3.tar.gz";
+        let file = dir.path().join(url.rsplit('/').next().unwrap());
+
+        // Download the doc to the temp directory
+        let mut f = File::create(&file).unwrap();
+        let mut res = reqwest::blocking::get(url).unwrap();
+        res.copy_to(&mut f).unwrap();
+
+        let computed = Blake2bHash::from_file(&file).unwrap();
+        let expected =
+            hash_from_hex("ba640dc063f0ed27e60b38dbb7cf19778cf7805d9fc91eb129fb68b409d46414");
         assert_eq!(computed, expected);
     }
 
