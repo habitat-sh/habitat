@@ -1,5 +1,4 @@
-use crate::{crypto::{hash,
-                     keys::NamedRevision,
+use crate::{crypto::{keys::NamedRevision,
                      Blake2bHash,
                      PUBLIC_SIG_KEY_VERSION,
                      SECRET_SIG_KEY_VERSION},
@@ -59,7 +58,7 @@ impl PublicOriginSigningKey {
             .map_err(|_| Error::CryptoError("Error parsing artifact hash".to_string()))?
             .parse()?; // convert to Blake2bHash
 
-        let computed_blake2b_hash = hash::hash_reader(content)?;
+        let computed_blake2b_hash = Blake2bHash::from_reader(content)?;
 
         if computed_blake2b_hash == expected_blake2b_hash {
             Ok(expected_blake2b_hash)

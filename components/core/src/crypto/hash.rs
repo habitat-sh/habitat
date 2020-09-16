@@ -39,7 +39,7 @@ impl Blake2bHash {
     {
         let file = File::open(filename.as_ref())?;
         let mut reader = BufReader::new(file);
-        hash_reader(&mut reader)
+        Self::from_reader(&mut reader)
     }
 
     /// Calculate the BLAKE2b hash of a sequence of bytes.
@@ -49,6 +49,23 @@ impl Blake2bHash {
         let mut state = hash_state();
         state.update(data.as_ref());
         state.finalize().into()
+    }
+
+    /// Calculate the BLAKE2b hash of a Read implentation.
+    pub fn from_reader(reader: &mut dyn Read) -> Result<Self> {
+        let mut state = hash_state();
+
+        let mut buf = [0u8; BUF_SIZE];
+        loop {
+            let bytes_read = reader.read(&mut buf)?;
+            if bytes_read == 0 {
+                break;
+            }
+            let chunk = &buf[0..bytes_read];
+            state.update(chunk);
+        }
+
+        Ok(state.finalize().into())
     }
 }
 
@@ -137,22 +154,6 @@ fn hash_state() -> State {
     let mut params = Params::new();
     params.hash_length(HASH_DIGEST_SIZE);
     params.to_state()
-}
-
-pub fn hash_reader(reader: &mut dyn Read) -> Result<Blake2bHash> {
-    let mut state = hash_state();
-
-    let mut buf = [0u8; BUF_SIZE];
-    loop {
-        let bytes_read = reader.read(&mut buf)?;
-        if bytes_read == 0 {
-            break;
-        }
-        let chunk = &buf[0..bytes_read];
-        state.update(chunk);
-    }
-
-    Ok(state.finalize().into())
 }
 
 #[cfg(test)]
