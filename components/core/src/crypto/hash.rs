@@ -32,6 +32,17 @@ pub struct Blake2bHash {
     digest: [u8; HASH_DIGEST_SIZE],
 }
 
+impl Blake2bHash {
+    /// Calculate the BLAKE2b hash of the contents of a file.
+    pub fn from_file<P>(filename: P) -> Result<Self>
+        where P: AsRef<Path>
+    {
+        let file = File::open(filename.as_ref())?;
+        let mut reader = BufReader::new(file);
+        hash_reader(&mut reader)
+    }
+}
+
 // We *could* just wrap the `blake2b_simd::Hash` directly in our
 // `Blake2bHash` type, but then we wouldn't be able to parse a
 // `Blake2bHash` from a string, because `blake2b_simd::Hash does not
@@ -119,16 +130,6 @@ fn hash_state() -> State {
     params.to_state()
 }
 
-/// Calculate the BLAKE2b hash of a file.
-/// NOTE: the hashing is keyless
-pub fn hash_file<P>(filename: P) -> Result<Blake2bHash>
-    where P: AsRef<Path>
-{
-    let file = File::open(filename.as_ref())?;
-    let mut reader = BufReader::new(file);
-    hash_reader(&mut reader)
-}
-
 pub fn hash_bytes<B>(data: B) -> Blake2bHash
     where B: AsRef<[u8]>
 {
@@ -169,28 +170,6 @@ mod test {
     fn hash_from_hex(hex: &str) -> Blake2bHash { hex.parse().unwrap() }
 
     #[test]
-    fn hash_file_working() {
-        // The expected values were computed using the `b2sum` program from
-        // https://github.com/dchest/b2sum using the the `-s=32` option. For example:
-        //      b2sum -s=32 signme.dat
-
-        let computed = hash_file(&fixture("signme.dat")).unwrap();
-        let expected =
-            hash_from_hex("20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233");
-        assert_eq!(computed, expected);
-
-        let computed = hash_file(&fixture("happyhumans-20160424223347.sig.key")).unwrap();
-        let expected =
-            hash_from_hex("e966844bbc50b7a3a6d81e94dd38e27b92814b944095a8e55f1780921bfcfbe1");
-        assert_eq!(computed, expected);
-
-        let computed = hash_file(&fixture("happyhumans-20160424223347.pub")).unwrap();
-        let expected =
-            hash_from_hex("b80c4f412f9a0a7727b6e6f115e1b5fa3bae79ad2fcf47f769ed4e42cfb12265");
-        assert_eq!(computed, expected);
-    }
-
-    #[test]
     fn strings_can_be_hashed() {
         let message = "supercalifragilisticexpialadocious";
         let expected =
@@ -210,29 +189,53 @@ mod test {
         assert_eq!(expected, actual);
     }
 
-    #[test]
-    #[cfg(feature = "functional")]
-    fn hash_file_large_binary() {
-        let dir = tempfile::Builder::new().prefix("large_file")
-                                          .tempdir()
-                                          .unwrap();
-
-        let url = "http://www.kernel.org/pub/linux/kernel/v4.x/linux-4.3.tar.gz";
-        let file = dir.path().join(url.rsplit('/').next().unwrap());
-
-        // Download the doc to the temp directory
-        let mut f = File::create(&file).unwrap();
-        let mut res = reqwest::blocking::get(url).unwrap();
-        res.copy_to(&mut f).unwrap();
-
-        let computed = Blake2bHash::from_file(&file).unwrap();
-        let expected =
-            hash_from_hex("ba640dc063f0ed27e60b38dbb7cf19778cf7805d9fc91eb129fb68b409d46414");
-        assert_eq!(computed, expected);
-    }
-
     mod blake2bhash {
         use super::*;
+
+        #[test]
+        fn hash_file_working() {
+            // The expected values were computed using the `b2sum` program from
+            // https://github.com/dchest/b2sum using the the `-s=32` option. For example:
+            //      b2sum -s=32 signme.dat
+
+            let computed = Blake2bHash::from_file(&fixture("signme.dat")).unwrap();
+            let expected =
+                hash_from_hex("20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233");
+            assert_eq!(computed, expected);
+
+            let computed =
+                Blake2bHash::from_file(&fixture("happyhumans-20160424223347.sig.key")).unwrap();
+            let expected =
+                hash_from_hex("e966844bbc50b7a3a6d81e94dd38e27b92814b944095a8e55f1780921bfcfbe1");
+            assert_eq!(computed, expected);
+
+            let computed =
+                Blake2bHash::from_file(&fixture("happyhumans-20160424223347.pub")).unwrap();
+            let expected =
+                hash_from_hex("b80c4f412f9a0a7727b6e6f115e1b5fa3bae79ad2fcf47f769ed4e42cfb12265");
+            assert_eq!(computed, expected);
+        }
+
+        #[test]
+        #[cfg(feature = "functional")]
+        fn hash_file_large_binary() {
+            let dir = tempfile::Builder::new().prefix("large_file")
+                                              .tempdir()
+                                              .unwrap();
+
+            let url = "http://www.kernel.org/pub/linux/kernel/v4.x/linux-4.3.tar.gz";
+            let file = dir.path().join(url.rsplit('/').next().unwrap());
+
+            // Download the doc to the temp directory
+            let mut f = File::create(&file).unwrap();
+            let mut res = reqwest::blocking::get(url).unwrap();
+            res.copy_to(&mut f).unwrap();
+
+            let computed = Blake2bHash::from_file(&file).unwrap();
+            let expected =
+                hash_from_hex("ba640dc063f0ed27e60b38dbb7cf19778cf7805d9fc91eb129fb68b409d46414");
+            assert_eq!(computed, expected);
+        }
 
         #[test]
         fn eq() {

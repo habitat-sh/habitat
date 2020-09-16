@@ -484,7 +484,7 @@ fn hash_content<T>(path: T) -> Result<Option<Blake2bHash>>
     where T: AsRef<Path>
 {
     if path.as_ref().exists() {
-        let hash = crypto::hash::hash_file(path).map_err(Error::from)?;
+        let hash = Blake2bHash::from_file(path).map_err(Error::from)?;
         Ok(Some(hash))
     } else {
         Ok(None)

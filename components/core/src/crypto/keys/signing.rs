@@ -96,7 +96,7 @@ impl SecretOriginSigningKey {
         // string* of the Blake2b hash, NOT the hash itself! This will
         // have implications if we ever want to change in the future
         // :(
-        let hex_encoded_hash = hash::hash_file(&path)?;
+        let hex_encoded_hash = Blake2bHash::from_file(&path)?;
         Ok(self.sign_inner(hex_encoded_hash.to_string().as_bytes()))
     }
 
