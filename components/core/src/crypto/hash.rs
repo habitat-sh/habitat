@@ -32,6 +32,11 @@ pub struct Blake2bHash {
     digest: [u8; HASH_DIGEST_SIZE],
 }
 
+// We *could* just wrap the `blake2b_simd::Hash` directly in our
+// `Blake2bHash` type, but then we wouldn't be able to parse a
+// `Blake2bHash` from a string, because `blake2b_simd::Hash does not
+// have that ability. So, we'll just grab the bytes and call it a
+// day.
 impl From<blake2b_simd::Hash> for Blake2bHash {
     fn from(src: blake2b_simd::Hash) -> Self {
         let digest = src.as_bytes()
