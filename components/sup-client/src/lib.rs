@@ -183,8 +183,8 @@ impl SrvClient {
                                                    .transpose()
                                                    .expect("error parsing ctl gateway client key")
                                                    .map(PrivateKey::private_key);
-        let server_certificates =
-            henv::var("HAB_CTL_GATEWAY_SERVER_CERTIFICATE").ok()
+        let server_ca_certificates =
+            henv::var("HAB_CTL_GATEWAY_SERVER_CA_CERTIFICATE").ok()
                                                            .as_deref()
                                                            .map(RootCertificateStore::from_str)
                                                            .transpose()
@@ -192,7 +192,7 @@ impl SrvClient {
                                                            .map(RootCertificateStore::root_certificate_store);
 
         // TLS configuration
-        let maybe_tls_config = if let Some(server_certificates) = server_certificates {
+        let maybe_tls_config = if let Some(server_certificates) = server_ca_certificates {
             let mut tls_config = TlsClientConfig::new();
             tls_config.root_store = server_certificates;
             if let Some(client_key) = client_key {

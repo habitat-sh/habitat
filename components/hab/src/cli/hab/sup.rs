@@ -172,8 +172,9 @@ pub struct SupRun {
     pub ctl_server_key: Option<PrivateKey>,
     /// Enable client authentication for the control gateway and set the certificate authority to
     /// use when authenticating the client
-    #[structopt(long = "ctl-client-certificate", default_value = "/hab/cache/keys/ctl")]
-    pub ctl_client_certificate: Option<RootCertificateStore>,
+    #[structopt(long = "ctl-client-ca-certificate",
+                default_value = "/hab/cache/keys/ctl")]
+    pub ctl_client_ca_certificate: Option<RootCertificateStore>,
     /// The organization the Supervisor and its services are part of
     #[structopt(long = "org")]
     pub organization: Option<String>,
