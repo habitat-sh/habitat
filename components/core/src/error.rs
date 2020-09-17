@@ -1,5 +1,6 @@
-use crate::package::{self,
-                     Identifiable};
+use crate::{package::{self,
+                      Identifiable},
+            tls::rustls_reader::Error as RustlsReaderError};
 use std::{env,
           error,
           ffi,
@@ -136,6 +137,7 @@ pub enum Error {
     RegexParse(regex::Error),
     /// When an error occurs serializing rendering context
     RenderContextSerialization(serde_json::Error),
+    RustlsReader(RustlsReaderError),
     /// When an error occurs converting a `String` from a UTF-8 byte vector.
     StringFromUtf8Error(string::FromUtf8Error),
     /// When the system target (platform and architecture) do not match the package target.
@@ -333,6 +335,7 @@ impl fmt::Display for Error {
                                         and 'SE_ASSIGNPRIMARYTOKEN_NAME' privilege to spawn a new \
                                         process as a different user"
                                                                     .to_string(),
+            Error::RustlsReader(ref e) => format!("{}", e),
             Error::RenderContextSerialization(ref e) => {
                 format!("Unable to serialize rendering context, {}", e)
             }
@@ -398,4 +401,8 @@ impl From<num::ParseIntError> for Error {
 
 impl From<regex::Error> for Error {
     fn from(err: regex::Error) -> Self { Error::RegexParse(err) }
+}
+
+impl From<RustlsReaderError> for Error {
+    fn from(err: RustlsReaderError) -> Self { Error::RustlsReader(err) }
 }

@@ -303,7 +303,13 @@ async fn split_apart_sup_run(sup_run: SupRun,
                               } else {
                                   sup_run.listen_gossip
                               },
-                              ctl_listen: sup_run.listen_ctl,
+                              ctl_listen: sup_run.listen_ctl.to_listen_ctl_addr(),
+                              ctl_server_certificates: sup_run.ctl_server_certificate
+                                                              .map(|c| c.certificates()),
+                              ctl_server_key: sup_run.ctl_server_key.map(|k| k.private_key()),
+                              ctl_client_certificates:
+                                  sup_run.ctl_client_certificate
+                                         .map(|s| s.root_certificate_store()),
                               http_listen: sup_run.listen_http,
                               tls_config,
                               feature_flags,

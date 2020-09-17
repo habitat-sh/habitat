@@ -22,6 +22,7 @@ byteorder = "*"
 clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
 configopt = { git = "https://github.com/davidMcneil/configopt.git" }
 cpu-time = "*"
+derivative = "*"
 futures = { version = "0.3.1" }
 glob = "*"
 hab = { path = "../hab" }
@@ -59,6 +60,7 @@ tempfile = "*"
 termcolor = "*"
 toml = { version = "*", features = ["preserve_order"]}
 tokio = { version = "*", features = ["full"] }
+tokio-rustls = "*"
 tokio-util = { version = "*", features = ["full"] }
 url = "*"
 valico = "*"

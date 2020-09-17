@@ -1,9 +1,11 @@
+pub(crate) mod tls;
+
 use crate::{cli::valid_fully_qualified_ident,
             error::Error};
 use configopt::{self,
                 ConfigOpt};
 use habitat_common::{cli_config::CliConfig,
-                     types::ListenCtlAddr};
+                     types::ResolvedListenCtlAddr};
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    env as henv,
                    fs as hab_core_fs,
@@ -15,9 +17,6 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
 use lazy_static::lazy_static;
 use std::{ffi::OsString,
           fmt,
-          io,
-          net::{SocketAddr,
-                ToSocketAddrs},
           num::ParseIntError,
           path::PathBuf,
           str::FromStr,
@@ -178,30 +177,13 @@ pub struct RemoteSup {
     #[structopt(name = "REMOTE_SUP",
                 long = "remote-sup",
                 short = "r",
-                default_value = ListenCtlAddr::default_as_str(),
-                parse(try_from_str = ListenCtlAddr::resolve_listen_ctl_addr))]
+                default_value = ListenCtlAddr::default_as_str())]
     #[serde(default)]
-    remote_sup: ListenCtlAddr,
+    remote_sup: ResolvedListenCtlAddr,
 }
 
 impl RemoteSup {
-    pub fn to_listen_ctl_addr(&self) -> ListenCtlAddr { self.remote_sup }
-}
-
-pub fn socket_addr_with_default_port<S: AsRef<str>>(addr: S,
-                                                    default_port: u16)
-                                                    -> io::Result<SocketAddr> {
-    let addr = addr.as_ref();
-    let mut iter = if addr.find(':').is_some() {
-        addr.to_socket_addrs()
-    } else {
-        (addr, default_port).to_socket_addrs()
-    }?;
-    // We expect exactly one address
-    iter.next().ok_or_else(|| {
-                   io::Error::new(io::ErrorKind::InvalidInput,
-                                  "input did not resolve to SocketAddr or error")
-               })
+    pub fn to_listen_ctl_addr(&self) -> ListenCtlAddr { self.remote_sup.to_listen_ctl_addr() }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -276,18 +258,4 @@ pub struct ExternalCommandArgsWithHelpAndVersion {
     /// Arguments to the command
     #[structopt(parse(from_os_str), takes_value = true, multiple = true)]
     pub args: Vec<OsString>,
-}
-
-#[cfg(test)]
-mod test {
-    use super::socket_addr_with_default_port;
-
-    #[test]
-    fn test_socket_addr_with_default_port() {
-        assert_eq!(socket_addr_with_default_port("127.0.0.1", 89).unwrap(),
-                   "127.0.0.1:89".parse().expect(""));
-        assert_eq!(socket_addr_with_default_port("1.2.3.4:1500", 89).unwrap(),
-                   "1.2.3.4:1500".parse().expect(""));
-        assert!(socket_addr_with_default_port("an_invalid_address", 89).is_err());
-    }
 }

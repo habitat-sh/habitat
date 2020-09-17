@@ -1,3 +1,6 @@
+pub mod rustls_reader;
+mod tcp_or_tls_stream;
+
 use crate::{error::Result,
             fs::cache_ssl_path,
             package::{PackageIdent,
@@ -8,6 +11,7 @@ use std::{fs,
                  PathBuf},
           result::Result as StdResult,
           str::FromStr};
+pub use tcp_or_tls_stream::TcpOrTlsStream;
 
 const CACERTS_PKG_IDENT: &str = "core/cacerts";
 const CACERT_PEM: &str = include_str!(concat!(env!("OUT_DIR"), "/cacert.pem"));

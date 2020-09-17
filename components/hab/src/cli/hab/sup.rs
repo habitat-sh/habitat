@@ -1,13 +1,16 @@
 use super::{svc::{ConfigOptSharedLoad,
                   SharedLoad,
                   DEFAULT_SVC_CONFIG_DIR},
-            util::{self,
+            util::{tls::{CertificateChain,
+                         PrivateKey,
+                         RootCertificateStore},
                    CacheKeyPath,
                    ConfigOptCacheKeyPath,
                    ConfigOptRemoteSup,
                    DurationProxy,
                    RemoteSup}};
-use crate::VERSION;
+use crate::{error::Error,
+            VERSION};
 use configopt::{self,
                 configopt_fields,
                 ConfigOpt};
@@ -20,7 +23,8 @@ use habitat_common::{cli::{RING_ENVVAR,
                              EventStreamToken,
                              GossipListenAddr,
                              HttpListenAddr,
-                             ListenCtlAddr},
+                             ListenCtlAddr,
+                             ResolvedListenCtlAddr},
                      FeatureFlag,
                      FEATURE_FLAGS};
 use habitat_core::{env::Config,
@@ -29,7 +33,6 @@ use habitat_core::{env::Config,
 use rants::{error::Error as RantsError,
             Address as NatsAddress};
 use std::{fmt,
-          io,
           net::{IpAddr,
                 SocketAddr},
           path::PathBuf,
@@ -118,8 +121,8 @@ impl From<EventStreamAddress> for NatsAddress {
     fn from(address: EventStreamAddress) -> Self { address.0 }
 }
 
-fn parse_peer(s: &str) -> io::Result<SocketAddr> {
-    util::socket_addr_with_default_port(s, GossipListenAddr::DEFAULT_PORT)
+fn parse_peer(s: &str) -> Result<SocketAddr, Error> {
+    Ok(habitat_common::util::resolve_socket_addr_with_default_port(s, GossipListenAddr::DEFAULT_PORT)?.1)
 }
 
 /// Run the Habitat Supervisor
@@ -158,7 +161,19 @@ pub struct SupRun {
     #[structopt(long = "listen-ctl",
                 env = ListenCtlAddr::ENVVAR,
                 default_value = ListenCtlAddr::default_as_str())]
-    pub listen_ctl: ListenCtlAddr,
+    pub listen_ctl: ResolvedListenCtlAddr,
+    /// The control gateway server certificate to use for TLS
+    #[structopt(long = "ctl-server-certificate", default_value = "/hab/cache/keys/ctl")]
+    pub ctl_server_certificate: Option<CertificateChain>,
+    /// Enable TLS for the control gateway and set the private key
+    ///
+    /// See `ctl-server-certificate` and `ctl-client-certificate` for additional settings.
+    #[structopt(long = "ctl-server-key", default_value = "/hab/cache/keys/ctl")]
+    pub ctl_server_key: Option<PrivateKey>,
+    /// Enable client authentication for the control gateway and set the certificate authority to
+    /// use when authenticating the client
+    #[structopt(long = "ctl-client-certificate", default_value = "/hab/cache/keys/ctl")]
+    pub ctl_client_certificate: Option<RootCertificateStore>,
     /// The organization the Supervisor and its services are part of
     #[structopt(long = "org")]
     pub organization: Option<String>,

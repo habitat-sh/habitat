@@ -32,6 +32,7 @@
 //! ```
 
 use habitat_sup_protocol as protocol;
+use rustls::ClientConfig as TlsClientConfig;
 #[macro_use]
 extern crate log;
 use crate::{common::types::ListenCtlAddr,
@@ -44,11 +45,13 @@ use habitat_common::{self as common,
                      cli::CTL_SECRET_ENVVAR,
                      cli_config::{CliConfig,
                                   Error as CliConfigError}};
-use habitat_core::env as henv;
+use habitat_core::{env as henv,
+                   tls::TcpOrTlsStream};
 use std::{error,
           fmt,
           io,
           path::PathBuf,
+          sync::Arc,
           time::Duration};
 use tokio::{net::TcpStream,
             time};
@@ -149,8 +152,19 @@ impl SrvClient {
         address: &ListenCtlAddr,
         request: impl Into<SrvMessage> + fmt::Debug)
         -> Result<impl Stream<Item = Result<SrvMessage, io::Error>>, SrvClientError> {
-        let socket = TcpStream::connect(address.as_ref()).await?;
-        let mut socket = Framed::new(socket, SrvCodec::new());
+        let tcp_stream = TcpStream::connect(address.as_ref()).await?;
+
+        // TODO (DM): Finish this functionality
+        let tls = true;
+        // Upgrade to a TLS connection if necessary
+        let tcp_stream = if tls {
+            let tls_config = TlsClientConfig::new();
+            TcpOrTlsStream::new_tls_client(tcp_stream, Arc::new(tls_config), "todo.com").await?
+        } else {
+            TcpOrTlsStream::new(tcp_stream)
+        };
+
+        let mut tcp_stream = Framed::new(tcp_stream, SrvCodec::new());
         let mut current_transaction = SrvTxn::default();
 
         // Send the handshake message to the server
@@ -158,15 +172,15 @@ impl SrvClient {
         handshake.secret_key = Some(Self::ctl_secret_key()?);
         let mut message = SrvMessage::from(handshake);
         message.set_transaction(current_transaction);
-        socket.send(message).await?;
+        tcp_stream.send(message).await?;
 
         // Verify the handshake response. There are three kinds of errors we could encounter:
         // 1. The handshake timedout
-        // 2. The `socket.next()` call returns `None` indicating the connection was unexpectedly
+        // 2. The `tcp_stream.next()` call returns `None` indicating the connection was unexpectedly
         // closed by the server
         // 3. Any other socket io error
         let handshake_result =
-            time::timeout(Duration::from_millis(REQ_TIMEOUT), socket.next()).await;
+            time::timeout(Duration::from_millis(REQ_TIMEOUT), tcp_stream.next()).await;
         let handshake_reply = handshake_result.map_err(|_| {
                                                   io::Error::new(io::ErrorKind::TimedOut,
                                                                  "client timed out")
@@ -179,10 +193,10 @@ impl SrvClient {
         let mut message = request.into();
         message.set_transaction(current_transaction);
         trace!("Sending SrvMessage -> {:?}", message);
-        socket.send(message).await?;
+        tcp_stream.send(message).await?;
 
-        // Return the socket for use as a Stream of responses
-        Ok(socket)
+        // Return the tcp_stream for use as a Stream of responses
+        Ok(tcp_stream)
     }
 
     /// Check if the `HAB_CTL_SECRET` env var is set. If not, check the CLI config to see if there

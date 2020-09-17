@@ -41,6 +41,7 @@ rants = { version = "*", features = ["native-tls"] }
 # For now we will pin to 0.10.3.
 reqwest = { version = "=0.10.3", features = ["blocking", "json", "stream"] }
 retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
+rustls = "*"
 same-file = "*"
 serde = "*"
 serde_derive = "*"
