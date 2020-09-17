@@ -47,7 +47,7 @@ use bytes::{Buf,
             BufMut,
             Bytes,
             BytesMut};
-use habitat_core::tls::TcpOrTlsStream;
+use habitat_core::tls::rustls_wrapper::TcpOrTlsStream;
 use prost::{self,
             Message};
 use std::{fmt,

@@ -57,7 +57,7 @@ use habitat_common::{self as common,
                                                  InstallMode,
                                                  InstallSource,
                                                  LocalPackageUsage},
-                     types::ListenCtlAddr,
+                     types::ResolvedListenCtlAddr,
                      ui::{self,
                           Status,
                           UIWriter,
@@ -223,7 +223,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         }
                         HabSup::Depart { member_id,
                                          remote_sup, } => {
-                            return sub_sup_depart(member_id, &remote_sup.to_listen_ctl_addr()).await;
+                            return sub_sup_depart(member_id, &remote_sup.into()).await;
                         }
                         HabSup::Secret(Secret::Generate) => {
                             return sub_sup_secret_generate();
@@ -233,10 +233,10 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                             ui.warn("'hab sup status' as an alias for 'hab svc status' is \
                                      deprecated. Please update your automation and processes \
                                      accordingly.")?;
-                            return sub_svc_status(pkg_ident, &remote_sup.to_listen_ctl_addr()).await;
+                            return sub_svc_status(pkg_ident, &remote_sup.into()).await;
                         }
                         HabSup::Restart { remote_sup } => {
-                            return sub_sup_restart(&remote_sup.to_listen_ctl_addr()).await;
+                            return sub_sup_restart(&remote_sup.into()).await;
                         }
                     }
                 }
@@ -255,7 +255,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         Svc::Update(svc_update) => return sub_svc_update(svc_update).await,
                         Svc::Status { pkg_ident,
                                       remote_sup, } => {
-                            return sub_svc_status(pkg_ident, &remote_sup.to_listen_ctl_addr()).await;
+                            return sub_svc_status(pkg_ident, &remote_sup.into()).await;
                         }
                         _ => {
                             // All other commands will be caught by the CLI parsing logic below.
@@ -1408,7 +1408,7 @@ async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
-    let remote_sup_addr = svc_load.remote_sup.to_listen_ctl_addr();
+    let remote_sup_addr = svc_load.remote_sup.clone().into();
     let msg = habitat_sup_protocol::ctl::SvcLoad::try_from(svc_load)?;
     gateway_util::send(&remote_sup_addr, msg).await
 }
@@ -1439,7 +1439,7 @@ async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_update(u: hab::cli::hab::svc::Update) -> Result<()> {
-    let ctl_addr = u.remote_sup.to_listen_ctl_addr();
+    let ctl_addr = u.remote_sup.clone().into();
     let msg: sup_proto::ctl::SvcUpdate = TryFrom::try_from(u)?;
     gateway_util::send(&ctl_addr, msg).await
 }
@@ -1451,7 +1451,9 @@ async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
     gateway_util::send(&remote_sup_addr, msg).await
 }
 
-async fn sub_svc_status(pkg_ident: Option<PackageIdent>, remote_sup: &ListenCtlAddr) -> Result<()> {
+async fn sub_svc_status(pkg_ident: Option<PackageIdent>,
+                        remote_sup: &ResolvedListenCtlAddr)
+                        -> Result<()> {
     let mut msg = sup_proto::ctl::SvcStatus::default();
     msg.ident = pkg_ident.map(Into::into);
 
@@ -1552,7 +1554,7 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     Ok(())
 }
 
-async fn sub_sup_depart(member_id: String, remote_sup: &ListenCtlAddr) -> Result<()> {
+async fn sub_sup_depart(member_id: String, remote_sup: &ResolvedListenCtlAddr) -> Result<()> {
     let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SupDepart::default();
     msg.member_id = Some(member_id);
@@ -1579,7 +1581,7 @@ async fn sub_sup_depart(member_id: String, remote_sup: &ListenCtlAddr) -> Result
     Ok(())
 }
 
-async fn sub_sup_restart(remote_sup: &ListenCtlAddr) -> Result<()> {
+async fn sub_sup_restart(remote_sup: &ResolvedListenCtlAddr) -> Result<()> {
     let mut ui = ui::ui();
     let msg = sup_proto::ctl::SupRestart::default();
 
@@ -1982,10 +1984,10 @@ fn bulkupload_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
            .expect("CLAP-validated upload dir")
 }
 
-fn remote_sup_from_input(m: &ArgMatches<'_>) -> Result<ListenCtlAddr> {
+fn remote_sup_from_input(m: &ArgMatches<'_>) -> Result<ResolvedListenCtlAddr> {
     Ok(m.value_of("REMOTE_SUP")
-        .map_or(Ok(ListenCtlAddr::default()),
-                ListenCtlAddr::resolve_listen_ctl_addr)?)
+        .map_or(Ok(ResolvedListenCtlAddr::default()),
+                ResolvedListenCtlAddr::from_str)?)
 }
 
 fn required_pkg_ident_from_input(m: &ArgMatches<'_>) -> Result<PackageIdent> {

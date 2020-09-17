@@ -4,14 +4,14 @@
 //! # RPC Call Example
 //!
 //! ```rust no_run
-//! use habitat_common::types::ListenCtlAddr;
+//! use habitat_common::types::ResolvedListenCtlAddr;
 //! use habitat_sup_client::SrvClient;
 //! use habitat_sup_protocol as protocols;
 //! use futures::stream::StreamExt;
 //!
 //! #[tokio::main]
 //! async fn main() {
-//!     let listen_addr = ListenCtlAddr::default();
+//!     let listen_addr = ResolvedListenCtlAddr::default();
 //!     let msg = protocols::ctl::SvcGetDefaultCfg::default();
 //!     let mut response = SrvClient::request(&listen_addr, msg).await.unwrap();
 //!     while let Some(message_result) = response.next().await {
@@ -35,7 +35,7 @@ use habitat_sup_protocol as protocol;
 use rustls::ClientConfig as TlsClientConfig;
 #[macro_use]
 extern crate log;
-use crate::{common::types::ListenCtlAddr,
+use crate::{common::types::ResolvedListenCtlAddr,
             protocol::{codec::*,
                        net::NetErr}};
 use futures::{sink::SinkExt,
@@ -46,11 +46,16 @@ use habitat_common::{self as common,
                      cli_config::{CliConfig,
                                   Error as CliConfigError}};
 use habitat_core::{env as henv,
-                   tls::TcpOrTlsStream};
+                   tls::rustls_wrapper::{CertificateChain,
+                                         PrivateKey,
+                                         RootCertificateStore,
+                                         TcpOrTlsStream}};
+use rustls::TLSError as RustlsError;
 use std::{error,
           fmt,
           io,
           path::PathBuf,
+          str::FromStr,
           sync::Arc,
           time::Duration};
 use tokio::{net::TcpStream,
@@ -78,6 +83,7 @@ pub enum SrvClientError {
     NetErr(NetErr),
     /// A parse error from an Invalid Color string
     ParseColor(termcolor::ParseColorError),
+    RustlsError(RustlsError),
 }
 
 impl error::Error for SrvClientError {}
@@ -109,6 +115,9 @@ impl fmt::Display for SrvClientError {
             SrvClientError::Io(ref err) => format!("{}", err),
             SrvClientError::NetErr(ref err) => format!("{}", err),
             SrvClientError::ParseColor(ref err) => format!("{}", err),
+            SrvClientError::RustlsError(ref err) => {
+                format!("failed to establish TLS connection, err: {}", err)
+            }
         };
         write!(f, "{}", content)
     }
@@ -139,6 +148,10 @@ impl From<termcolor::ParseColorError> for SrvClientError {
     fn from(err: termcolor::ParseColorError) -> Self { SrvClientError::ParseColor(err) }
 }
 
+impl From<RustlsError> for SrvClientError {
+    fn from(err: RustlsError) -> Self { SrvClientError::RustlsError(err) }
+}
+
 /// Client for connecting and communicating with a server speaking SrvProtocol.
 ///
 /// See module doc for usage.
@@ -149,17 +162,51 @@ impl SrvClient {
     ///
     /// Returns a stream of `SrvMessage`'s representing the server response.
     pub async fn request(
-        address: &ListenCtlAddr,
+        addr: &ResolvedListenCtlAddr,
         request: impl Into<SrvMessage> + fmt::Debug)
         -> Result<impl Stream<Item = Result<SrvMessage, io::Error>>, SrvClientError> {
-        let tcp_stream = TcpStream::connect(address.as_ref()).await?;
+        let tcp_stream = TcpStream::connect(addr.addr()).await?;
 
-        // TODO (DM): Finish this functionality
-        let tls = true;
+        // TODO (DM): How should we get these three variables?
+        let client_certificates =
+            henv::var("HAB_CTL_GATEWAY_CLIENT_CERTIFICATE").ok()
+                                                           .as_deref()
+                                                           .map(CertificateChain::from_str)
+                                                           .transpose()
+                                                           .expect("error parsing ctl gateway \
+                                                                    client certificates")
+                                                           .map(CertificateChain::certificates);
+        let client_key =
+            henv::var("HAB_CTL_GATEWAY_CLIENT_KEY").ok()
+                                                   .as_deref()
+                                                   .map(PrivateKey::from_str)
+                                                   .transpose()
+                                                   .expect("error parsing ctl gateway client key")
+                                                   .map(PrivateKey::private_key);
+        let server_certificates =
+            henv::var("HAB_CTL_GATEWAY_SERVER_CERTIFICATE").ok()
+                                                           .as_deref()
+                                                           .map(RootCertificateStore::from_str)
+                                                           .transpose()
+                                                           .expect("error parsing ctl gateway server certificates")
+                                                           .map(RootCertificateStore::root_certificate_store);
+
+        // TLS configuration
+        let maybe_tls_config = if let Some(server_certificates) = server_certificates {
+            let mut tls_config = TlsClientConfig::new();
+            tls_config.root_store = server_certificates;
+            if let Some(client_key) = client_key {
+                tls_config.set_single_client_cert(client_certificates.unwrap_or_default(),
+                                                  client_key)?;
+            }
+            Some(Arc::new(tls_config))
+        } else {
+            None
+        };
+
         // Upgrade to a TLS connection if necessary
-        let tcp_stream = if tls {
-            let tls_config = TlsClientConfig::new();
-            TcpOrTlsStream::new_tls_client(tcp_stream, Arc::new(tls_config), "todo.com").await?
+        let tcp_stream = if let Some(tls_config) = maybe_tls_config {
+            TcpOrTlsStream::new_tls_client(tcp_stream, tls_config, addr.domain()).await?
         } else {
             TcpOrTlsStream::new(tcp_stream)
         };

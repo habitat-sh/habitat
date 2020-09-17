@@ -1,6 +1,6 @@
 use crate::{package::{self,
                       Identifiable},
-            tls::rustls_reader::Error as RustlsReaderError};
+            tls::rustls_wrapper::Error as RustlsReaderError};
 use std::{env,
           error,
           ffi,

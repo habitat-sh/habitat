@@ -51,7 +51,7 @@ impl NatsMessageStream {
 
         // Configure the tls connector
         let mut tls_connector = TlsConnector::builder();
-        for certificate in habitat_core::tls::certificates(None)? {
+        for certificate in habitat_core::tls::native_tls_wrapper::certificates(None)? {
             tls_connector.add_root_certificate(certificate);
         }
         if let Some(certificate) = server_certificate {

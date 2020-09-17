@@ -343,9 +343,13 @@ impl Default for ResolvedListenCtlAddr {
 }
 
 impl ResolvedListenCtlAddr {
-    pub fn to_listen_ctl_addr(&self) -> ListenCtlAddr { self.addr }
+    pub fn addr(&self) -> SocketAddr { self.addr.into() }
 
     pub fn domain(&self) -> &str { &self.domain }
+}
+
+impl From<ResolvedListenCtlAddr> for ListenCtlAddr {
+    fn from(r: ResolvedListenCtlAddr) -> Self { r.addr }
 }
 
 habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug, Deserialize, Serialize)]
@@ -436,15 +440,6 @@ impl ListenCtlAddr {
     pub fn ip(&self) -> IpAddr { self.0.ip() }
 
     pub fn port(&self) -> u16 { self.0.port() }
-
-    // TODO (CM): This really should be FromStr, but we can't use
-    // FromStr, because the current implementation of
-    // env_config_socketaddr! (and ultimately env_config!) macro
-    // defines one for us.
-    pub fn resolve_listen_ctl_addr(input: &str) -> crate::error::Result<ListenCtlAddr> {
-        Ok(util::resolve_socket_addr_with_default_port(input, Self::DEFAULT_PORT)?.1
-                                                                                  .into())
-    }
 }
 
 impl AsRef<SocketAddr> for ListenCtlAddr {

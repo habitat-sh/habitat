@@ -90,7 +90,7 @@ impl ApiClient {
                                                  .danger_accept_invalid_certs(skip_cert_verify);
 
         client =
-            habitat_core::tls::certificates_as_der(fs_root_path)?
+            habitat_core::tls::native_tls_wrapper::certificates_as_der(fs_root_path)?
                                        .into_iter()
                                        .map(|raw| ReqwestCertificate::from_der(&*raw))
                                        .collect::<std::result::Result<Vec<_>, _>>()?

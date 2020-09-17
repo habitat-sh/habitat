@@ -20,7 +20,7 @@ use futures::{channel::mpsc,
               task::{Context,
                      Poll}};
 use habitat_core::{crypto,
-                   tls::TcpOrTlsStream};
+                   tls::rustls_wrapper::TcpOrTlsStream};
 use habitat_sup_protocol::{self as protocol,
                            codec::{SrvCodec,
                                    SrvMessage,

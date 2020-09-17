@@ -30,16 +30,16 @@ pub fn resolve_socket_addr_with_default_port<S: AsRef<str>>(
 
 #[cfg(test)]
 mod test {
-    use super::socket_addr_with_default_port;
+    use super::resolve_socket_addr_with_default_port;
 
     #[test]
     fn test_socket_addr_with_default_port() {
-        assert_eq!(socket_addr_with_default_port("127.0.0.1", 89).unwrap(),
+        assert_eq!(resolve_socket_addr_with_default_port("127.0.0.1", 89).unwrap(),
                    ("127.0.0.1".to_string(), "127.0.0.1:89".parse().expect("")));
-        assert_eq!(socket_addr_with_default_port("localhost", 89).unwrap(),
+        assert_eq!(resolve_socket_addr_with_default_port("localhost", 89).unwrap(),
                    ("localhost".to_string(), "127.0.0.1:89".parse().expect("")));
-        assert_eq!(socket_addr_with_default_port("1.2.3.4:1500", 89).unwrap(),
+        assert_eq!(resolve_socket_addr_with_default_port("1.2.3.4:1500", 89).unwrap(),
                    ("1.2.3.4".to_string(), "1.2.3.4:1500".parse().expect("")));
-        assert!(socket_addr_with_default_port("an_invalid_address", 89).is_err());
+        assert!(resolve_socket_addr_with_default_port("an_invalid_address", 89).is_err());
     }
 }

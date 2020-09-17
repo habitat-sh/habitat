@@ -1,11 +1,12 @@
-pub(crate) mod tls;
+pub mod tls;
 
 use crate::{cli::valid_fully_qualified_ident,
             error::Error};
 use configopt::{self,
                 ConfigOpt};
 use habitat_common::{cli_config::CliConfig,
-                     types::ResolvedListenCtlAddr};
+                     types::{ListenCtlAddr,
+                             ResolvedListenCtlAddr}};
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    env as henv,
                    fs as hab_core_fs,
@@ -169,7 +170,7 @@ pub struct FullyQualifiedPkgIdent {
     pkg_ident: PackageIdent,
 }
 
-#[derive(ConfigOpt, StructOpt, Deserialize, Debug)]
+#[derive(Clone, ConfigOpt, StructOpt, Deserialize, Debug)]
 #[configopt(derive(Serialize, Clone, Debug))]
 #[structopt(no_version)]
 pub struct RemoteSup {
@@ -182,8 +183,8 @@ pub struct RemoteSup {
     remote_sup: ResolvedListenCtlAddr,
 }
 
-impl RemoteSup {
-    pub fn to_listen_ctl_addr(&self) -> ListenCtlAddr { self.remote_sup.to_listen_ctl_addr() }
+impl From<RemoteSup> for ResolvedListenCtlAddr {
+    fn from(r: RemoteSup) -> Self { r.remote_sup }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -16,6 +16,7 @@ use tokio_rustls::{webpki::DNSNameRef,
 
 /// A wrapper type that can either be a raw TCP stream or a TCP stream with TLS.
 #[pin_project(project = TcpOrTlsStreamProj)]
+#[allow(clippy::large_enum_variant)]
 pub enum TcpOrTlsStream {
     TcpStream(#[pin] TcpStream),
     TlsStream(#[pin] TlsStream<TcpStream>),
@@ -30,7 +31,7 @@ impl TcpOrTlsStream {
                                 tls_config: Arc<TlsServerConfig>)
                                 -> io::Result<Self> {
         let tcp_stream = Self::new(stream);
-        tcp_stream.to_tls_server(tls_config).await
+        tcp_stream.upgrade_to_tls_server(tls_config).await
     }
 
     /// Create a new `TlsStream` using client configuration
@@ -39,11 +40,11 @@ impl TcpOrTlsStream {
                                 domain: &str)
                                 -> io::Result<Self> {
         let tcp_stream = Self::new(stream);
-        tcp_stream.to_tls_client(tls_config, domain).await
+        tcp_stream.upgrade_to_tls_client(tls_config, domain).await
     }
 
     /// Upgrade a `TcpStream` into a `TlsStream` using server configuration
-    pub async fn to_tls_server(self, tls_config: Arc<TlsServerConfig>) -> io::Result<Self> {
+    pub async fn upgrade_to_tls_server(self, tls_config: Arc<TlsServerConfig>) -> io::Result<Self> {
         Ok(match self {
             Self::TcpStream(stream) => {
                 let tls_connector = TlsAcceptor::from(tls_config);
@@ -58,10 +59,10 @@ impl TcpOrTlsStream {
     }
 
     /// Upgrade a `TcpStream` to a `TlsStream` using client configuration
-    pub async fn to_tls_client(self,
-                               tls_config: Arc<TlsClientConfig>,
-                               domain: &str)
-                               -> io::Result<Self> {
+    pub async fn upgrade_to_tls_client(self,
+                                       tls_config: Arc<TlsClientConfig>,
+                                       domain: &str)
+                                       -> io::Result<Self> {
         Ok(match self {
             Self::TcpStream(stream) => {
                 let tls_connector = TlsConnector::from(tls_config);

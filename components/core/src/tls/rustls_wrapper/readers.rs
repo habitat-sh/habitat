@@ -67,13 +67,13 @@ pub fn private_keys_from_file(path: impl AsRef<Path>) -> Result<Vec<PrivateKey>,
 
 pub fn private_key_from_buf(buf: &[u8]) -> Result<PrivateKey, Error> {
     private_keys_from_buf(buf)?.into_iter()
-                               .nth(0)
+                               .next()
                                .ok_or_else(|| Error::NoPrivateKey)
 }
 
 pub fn private_key_from_file(path: impl AsRef<Path>) -> Result<PrivateKey, Error> {
     private_keys_from_file(path.as_ref())?.into_iter()
-                                          .nth(0)
+                                          .next()
                                           .ok_or_else(|| {
                                               Error::NoPrivateKeyFromFile(path.as_ref().into())
                                           })
