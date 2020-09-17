@@ -7,16 +7,17 @@ use crate::{api_client::{self,
                     Result},
             PRODUCT,
             VERSION};
-use habitat_core::crypto::keys::{Key,
-                                 KeyCache,
-                                 PublicOriginSigningKey,
-                                 SecretOriginSigningKey};
+use habitat_core::{crypto::keys::{Key,
+                                  KeyCache,
+                                  PublicOriginSigningKey,
+                                  SecretOriginSigningKey},
+                   origin::Origin};
 use reqwest::StatusCode;
 
 pub async fn start(ui: &mut UI,
                    bldr_url: &str,
                    token: &str,
-                   origin: &str,
+                   origin: &Origin,
                    with_secret: bool,
                    key_cache: &KeyCache)
                    -> Result<()> {

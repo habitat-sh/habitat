@@ -73,7 +73,9 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
                             config.auth_token,
                             Sensitivity::NoPrintValue);
     set_env_var_from_config(BLDR_URL_ENVVAR, config.bldr_url, Sensitivity::PrintValue);
-    set_env_var_from_config(ORIGIN_ENVVAR, config.origin, Sensitivity::PrintValue);
+    set_env_var_from_config(ORIGIN_ENVVAR,
+                            config.origin.map(|o| o.to_string()),
+                            Sensitivity::PrintValue);
 
     if config.ctl_secret.is_some() {
         ui.warn("Your Supervisor CtlGateway secret is not being copied to the Studio \

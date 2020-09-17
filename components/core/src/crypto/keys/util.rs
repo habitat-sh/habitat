@@ -199,7 +199,8 @@ mod tests {
 
         #[test]
         fn origin_keys() {
-            let (public, secret) = generate_origin_encryption_key_pair("my-origin");
+            let origin = "my-origin".parse().unwrap();
+            let (public, secret) = generate_origin_encryption_key_pair(&origin);
             assert_parse_round_trip!(OriginPublicEncryptionKey, public);
             assert_parse_round_trip!(OriginSecretEncryptionKey, secret);
         }
@@ -213,7 +214,8 @@ mod tests {
 
         #[test]
         fn signing_keys() {
-            let (public, secret) = generate_signing_key_pair("my-origin");
+            let origin = "my-origin".parse().unwrap();
+            let (public, secret) = generate_signing_key_pair(&origin);
             assert_parse_round_trip!(PublicOriginSigningKey, public);
             assert_parse_round_trip!(SecretOriginSigningKey, secret);
         }
@@ -322,8 +324,9 @@ mod tests {
 
                 #[test]
                 fn origin_encryption_keys_can_parse_as_all_other_encryption_keys() {
+                    let origin = "test-origin".parse().unwrap();
                     let (origin_public, origin_secret) =
-                        generate_origin_encryption_key_pair("test-origin");
+                        generate_origin_encryption_key_pair(&origin);
                     assert_public_key_equivalence!(origin_public);
                     assert_secret_key_equivalence!(origin_secret);
                 }
@@ -355,7 +358,8 @@ mod tests {
 
         #[test]
         fn origin_keys() {
-            let (public, secret) = generate_origin_encryption_key_pair("my-origin");
+            let origin = "my-origin".parse().unwrap();
+            let (public, secret) = generate_origin_encryption_key_pair(&origin);
 
             assert_eq!(format!("OriginPublicEncryptionKey my-origin-{}",
                                public.named_revision().revision()),
@@ -379,7 +383,8 @@ mod tests {
 
         #[test]
         fn signing_keys() {
-            let (public, secret) = generate_signing_key_pair("my-origin");
+            let origin = "my-origin".parse().unwrap();
+            let (public, secret) = generate_signing_key_pair(&origin);
             assert_eq!(format!("PublicOriginSigningKey my-origin-{}",
                                public.named_revision().revision()),
                        format!("{:?}", public));
@@ -454,7 +459,8 @@ mod tests {
 
             #[test]
             fn origin_keys() {
-                let (public, secret) = generate_origin_encryption_key_pair("my-origin");
+                let origin = "my-origin".parse().unwrap();
+                let (public, secret) = generate_origin_encryption_key_pair(&origin);
                 assert_eq!(PathBuf::from(&format!("{}.pub", public.named_revision())),
                            public.own_filename());
                 assert_eq!(PathBuf::from(&format!("{}.box.key", secret.named_revision())),
@@ -473,7 +479,8 @@ mod tests {
 
             #[test]
             fn signing_keys() {
-                let (public, secret) = generate_signing_key_pair("my-origin");
+                let origin = "my-origin".parse().unwrap();
+                let (public, secret) = generate_signing_key_pair(&origin);
                 assert_eq!(PathBuf::from(&format!("{}.pub", public.named_revision())),
                            public.own_filename());
                 assert_eq!(PathBuf::from(&format!("{}.sig.key", secret.named_revision())),

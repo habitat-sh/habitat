@@ -6,7 +6,7 @@ use std::{fmt,
           result,
           str::FromStr};
 
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Origin(String);
 
 impl Origin {
@@ -39,6 +39,10 @@ impl std::convert::TryFrom<&str> for Origin {
     type Error = Error;
 
     fn try_from(s: &str) -> Result<Self, Self::Error> { Self::from_str(s) }
+}
+
+impl AsRef<str> for Origin {
+    fn as_ref(&self) -> &str { &self.0 }
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]

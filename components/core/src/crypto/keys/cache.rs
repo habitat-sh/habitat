@@ -18,7 +18,8 @@ use crate::{crypto::{hash,
                             UserSecretEncryptionKey}},
             error::{Error,
                     Result},
-            fs::AtomicWriter};
+            fs::AtomicWriter,
+            origin::Origin};
 use serde::Deserialize;
 use std::{convert::TryFrom,
           io::Write,
@@ -62,7 +63,7 @@ impl KeyCache {
 
     /// Generate a new origin signing key pair and save both keys to disk.
     pub fn new_signing_pair(&self,
-                            origin: &str)
+                            origin: &Origin)
                             -> Result<(PublicOriginSigningKey, SecretOriginSigningKey)> {
         let (public, secret) = generate_signing_key_pair(origin);
         self.write_pair(&public, &secret)?;
@@ -72,7 +73,7 @@ impl KeyCache {
     /// Generate a new origin encryption key pair and save both keys to disk.
     pub fn new_origin_encryption_pair(
         &self,
-        origin: &str)
+        origin: &Origin)
         -> Result<(OriginPublicEncryptionKey, OriginSecretEncryptionKey)> {
         let (public, secret) = generate_origin_encryption_key_pair(origin);
         self.write_pair(&public, &secret)?;
@@ -169,12 +170,16 @@ impl KeyCache {
         self.fetch_latest_revision::<RingKey>(name)
     }
 
-    pub fn latest_secret_origin_signing_key(&self, name: &str) -> Result<SecretOriginSigningKey> {
-        self.fetch_latest_revision::<SecretOriginSigningKey>(name)
+    pub fn latest_secret_origin_signing_key(&self,
+                                            origin: &Origin)
+                                            -> Result<SecretOriginSigningKey> {
+        self.fetch_latest_revision::<SecretOriginSigningKey>(origin.as_ref())
     }
 
-    pub fn latest_public_origin_signing_key(&self, name: &str) -> Result<PublicOriginSigningKey> {
-        self.fetch_latest_revision::<PublicOriginSigningKey>(name)
+    pub fn latest_public_origin_signing_key(&self,
+                                            origin: &Origin)
+                                            -> Result<PublicOriginSigningKey> {
+        self.fetch_latest_revision::<PublicOriginSigningKey>(origin.as_ref())
     }
 
     pub fn latest_user_secret_key(&self, user_name: &str) -> Result<UserSecretEncryptionKey> {
@@ -182,9 +187,9 @@ impl KeyCache {
     }
 
     pub fn latest_origin_public_encryption_key(&self,
-                                               name: &str)
+                                               origin: &Origin)
                                                -> Result<OriginPublicEncryptionKey> {
-        self.fetch_latest_revision::<OriginPublicEncryptionKey>(name)
+        self.fetch_latest_revision::<OriginPublicEncryptionKey>(origin.as_ref())
     }
 
     /// Name should be in `"service.group@org"` format.
@@ -454,9 +459,10 @@ mod test {
     /// keys. This can be useful background data against which to
     /// evaluate `KeyCache::fetch_latest_revision`
     fn populate_cache(cache: &KeyCache) {
+        let origin = "my-origin".parse().unwrap();
         for _ in 0..=2 {
             cache.new_user_encryption_pair("my-user").unwrap();
-            cache.new_origin_encryption_pair("my-origin").unwrap();
+            cache.new_origin_encryption_pair(&origin).unwrap();
             cache.new_service_encryption_pair("my-org", "foo.default")
                  .unwrap();
 
@@ -466,7 +472,7 @@ mod test {
             // filename :/
             wait_1_sec();
 
-            cache.new_signing_pair("my-origin").unwrap();
+            cache.new_signing_pair(&origin).unwrap();
             cache.new_ring_key("beyonce").unwrap();
             wait_1_sec();
         }
@@ -493,7 +499,8 @@ mod test {
     fn origin_keys_round_trip() {
         let (cache, _dir) = new_cache();
         populate_cache(&cache);
-        let (public, secret) = generate_origin_encryption_key_pair("my-origin");
+        let origin = "my-origin".parse().unwrap();
+        let (public, secret) = generate_origin_encryption_key_pair(&origin);
         assert_cache_round_trip!(OriginPublicEncryptionKey, public, cache);
         assert_cache_round_trip!(OriginSecretEncryptionKey, secret, cache);
     }
@@ -511,7 +518,8 @@ mod test {
     fn signing_keys_round_trip() {
         let (cache, _dir) = new_cache();
         populate_cache(&cache);
-        let (public, secret) = generate_signing_key_pair("my-org");
+        let origin = "my-org".parse().unwrap();
+        let (public, secret) = generate_signing_key_pair(&origin);
         assert_cache_round_trip!(PublicOriginSigningKey, public, cache);
         assert_cache_round_trip!(SecretOriginSigningKey, secret, cache);
     }

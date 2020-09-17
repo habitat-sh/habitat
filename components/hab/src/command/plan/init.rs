@@ -1,3 +1,10 @@
+use crate::{common::ui::{Status,
+                         UIWriter,
+                         UI},
+            error::Result};
+use habitat_core::{origin::Origin,
+                   package::PackageIdent};
+use handlebars::Handlebars;
 use std::{collections::HashMap,
           env,
           fs::{canonicalize,
@@ -8,14 +15,6 @@ use std::{collections::HashMap,
                BufReader,
                Write},
           path::Path};
-
-use crate::hcore::package::PackageIdent;
-use handlebars::Handlebars;
-
-use crate::{common::ui::{Status,
-                         UIWriter,
-                         UI},
-            error::Result};
 
 const PLAN_TEMPLATE_SH: &str =
     include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/template_plan.sh"));
@@ -32,7 +31,7 @@ const DEFAULT_PKG_VERSION: &str = "0.1.0";
 
 #[allow(clippy::too_many_arguments)]
 pub fn start(ui: &mut UI,
-             origin: String,
+             origin: &Origin,
              minimal: bool,
              scaffolding_ident: Option<PackageIdent>,
              maybe_name: Option<String>)
@@ -63,7 +62,7 @@ pub fn start(ui: &mut UI,
     let handlebars = Handlebars::new();
     let mut data = HashMap::new();
     data.insert("pkg_name".to_string(), name);
-    data.insert("pkg_origin".to_string(), origin);
+    data.insert("pkg_origin".to_string(), origin.to_string());
     data.insert("pkg_version".to_string(), DEFAULT_PKG_VERSION.to_string());
 
     if let Some(ident) = scaffolding_ident {

@@ -1,11 +1,12 @@
 use crate::{cli::KeyType,
             error::Result};
-use habitat_core::crypto::keys::{KeyCache,
-                                 KeyFile};
+use habitat_core::{crypto::keys::{KeyCache,
+                                  KeyFile},
+                   origin::Origin};
 use std::{io,
           io::Write};
 
-pub fn start(origin: &str, key_type: KeyType, key_cache: &KeyCache) -> Result<()> {
+pub fn start(origin: &Origin, key_type: KeyType, key_cache: &KeyCache) -> Result<()> {
     match key_type {
         KeyType::Public => {
             let key = key_cache.latest_public_origin_signing_key(origin)?;

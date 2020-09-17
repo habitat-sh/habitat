@@ -7,11 +7,12 @@ use crate::{api_client::Client,
             hcore::ChannelIdent,
             PRODUCT,
             VERSION};
+use habitat_core::origin::Origin;
 
 pub async fn start(ui: &mut UI,
                    bldr_url: &str,
                    token: &str,
-                   origin: &str,
+                   origin: &Origin,
                    source_channel: &ChannelIdent,
                    target_channel: &ChannelIdent)
                    -> Result<()> {

@@ -2,17 +2,17 @@ use crate::{api_client::Client,
             common::ui::{Status,
                          UIWriter,
                          UI},
-            hcore::ChannelIdent};
-
-use crate::{error::{Error,
+            error::{Error,
                     Result},
             PRODUCT,
             VERSION};
+use habitat_core::{origin::Origin,
+                   ChannelIdent};
 
 pub async fn start(ui: &mut UI,
                    bldr_url: &str,
                    token: &str,
-                   origin: &str,
+                   origin: &Origin,
                    source_channel: &ChannelIdent,
                    target_channel: &ChannelIdent)
                    -> Result<()> {

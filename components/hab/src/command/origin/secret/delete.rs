@@ -1,17 +1,17 @@
 use crate::{api_client::Client,
             common::ui::{Status,
                          UIWriter,
-                         UI}};
-
-use crate::{error::{Error,
+                         UI},
+            error::{Error,
                     Result},
             PRODUCT,
             VERSION};
+use habitat_core::origin::Origin;
 
 pub async fn start(ui: &mut UI,
                    bldr_url: &str,
                    token: &str,
-                   origin: &str,
+                   origin: &Origin,
                    key: &str)
                    -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;

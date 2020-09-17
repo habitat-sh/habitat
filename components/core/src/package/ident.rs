@@ -1,5 +1,6 @@
 use crate::{error::{Error,
                     Result},
+            origin::Origin,
             package::PackageTarget};
 use regex::Regex;
 use serde_derive::{Deserialize,
@@ -22,6 +23,16 @@ pub struct PackageIdent {
     pub name:    String,
     pub version: Option<String>,
     pub release: Option<String>,
+}
+
+impl PackageIdent {
+    /// This is a *temporary* function in place until `PackageIdent`
+    /// returns a `&Origin` natively.
+    pub fn hacky_get_origin(&self) -> Origin {
+        self.origin
+            .parse()
+            .expect("A PackageIdent should always have a valid Origin name")
+    }
 }
 
 pub trait Identifiable: fmt::Display {

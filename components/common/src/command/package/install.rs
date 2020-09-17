@@ -1024,7 +1024,10 @@ impl<'a> InstallTask<'a> {
                                          -> Result<Vec<(String, String)>> {
         let mut res = Vec::new();
 
-        let channels = match self.api_client.list_channels(ident.origin(), false).await {
+        let channels = match self.api_client
+                                 .list_channels(&ident.hacky_get_origin(), false)
+                                 .await
+        {
             Ok(channels) => channels,
             Err(e) => {
                 debug!("Failed to get channel list: {:?}", e);
