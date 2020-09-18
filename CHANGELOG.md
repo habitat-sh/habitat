@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.154 -->
-## [1.6.154](https://github.com/habitat-sh/habitat/tree/1.6.154) (2020-09-18)
+<!-- latest_release 1.6.155 -->
+## [1.6.155](https://github.com/habitat-sh/habitat/tree/1.6.155) (2020-09-18)
 
 #### Merged Pull Requests
-- Organize the Hugo Docs [#7920](https://github.com/habitat-sh/habitat/pull/7920) ([kagarmoe](https://github.com/kagarmoe))
+- Add deprecation message for `hab sup status` [#7896](https://github.com/habitat-sh/habitat/pull/7896) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.115 -->
@@ -21,6 +21,7 @@
 - Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
+- Add deprecation message for `hab sup status` [#7896](https://github.com/habitat-sh/habitat/pull/7896) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.155 -->
 - Organize the Hugo Docs [#7920](https://github.com/habitat-sh/habitat/pull/7920) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.154 -->
 - Docs is coming! [#7914](https://github.com/habitat-sh/habitat/pull/7914) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.153 -->
 - skip remote download when present in cache or offline [#7915](https://github.com/habitat-sh/habitat/pull/7915) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.152 -->
