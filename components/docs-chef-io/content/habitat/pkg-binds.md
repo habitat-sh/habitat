@@ -4,9 +4,9 @@ description = "Define runtime binds in your plan file"
 
 [menu]
   [menu.habitat]
-    title = "Runtime Binds *?"
-    identifier = "habitat/plans/runtime/pkg-binds"
-    parent = "habitat/plans/runtime"
+    title = "Runtime Binds"
+    identifier = "habitat/packages/pkg-binds"
+    parent = "habitat/packages"
 
 +++
 

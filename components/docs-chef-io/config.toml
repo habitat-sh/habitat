@@ -136,18 +136,6 @@ weight = 10
   parent = "habitat"
   weight = 40
 
-      [[menu.habitat]]
-      title = "Buildtime"
-      identifier = "habitat/plans/buildtime"
-      parent = "habitat/plans"
-      weight = 200
-
-      [[menu.habitat]]
-      title = "Runtime"
-      identifier = "habitat/plans/runtime"
-      parent = "habitat/plans"
-      weight = 300
-
   [[menu.habitat]]
   title = "Services"
   identifier = "habitat/services"
@@ -179,9 +167,9 @@ weight = 10
   parent = "habitat"
   weight = 80
 
-    [[menu.habitat]]
-    title = "Diagrams"
-    identifier = "habitat/reference/diagrams"
-    parent = "habitat/reference"
-    weight = 500
+  [[menu.habitat]]
+  title = "Diagrams"
+  identifier = "habitat/diagrams"
+  parent = "habitat"
+  weight = 500
 

@@ -4,10 +4,9 @@ description = "Set package, service, and cache paths, compiler options, install 
 
 [menu]
   [menu.habitat]
-    title = "Plan Variables *"
-    identifier = "habitat/plans/plan-variables"
-    parent = "habitat/plans"
-    weight = 80
+    title = "Plan Variables"
+    identifier = "habitat/reference/plan-variables"
+    parent = "habitat/reference"
 
 +++
 
@@ -63,4 +62,3 @@ PREFIX
 
 LD_RUN_PATH
 : Where to find the binaries at run time.
-

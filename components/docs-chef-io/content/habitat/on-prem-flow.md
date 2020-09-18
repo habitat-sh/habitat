@@ -5,9 +5,8 @@ description = "Chef Habitat Builder on-prem Flow"
 [menu]
   [menu.habitat]
     title = "Chef Habitat Builder on-prem Flow"
-    identifier = "habitat/reference/diagrams/on-prem-flow"
-    parent = "habitat/reference/diagrams"
-    weight = 20
+    identifier = "habitat/diagrams/on-prem-flow"
+    parent = "habitat/diagrams"
 
 +++
 

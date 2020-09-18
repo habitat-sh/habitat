@@ -5,7 +5,7 @@ description = "Tips and tricks for managing hardcoded library dependencies in bi
 [menu]
   [menu.habitat]
     title = "Binary Wrapper Packages"
-    identifier = "habitat/packages/binary-wrapper "
+    identifier = "habitat/packages/binary-wrapper"
     parent = "habitat/packages"
 
 +++

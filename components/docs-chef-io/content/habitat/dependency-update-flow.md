@@ -5,8 +5,8 @@ description = "Dependency Update Flow"
 [menu]
   [menu.habitat]
     title = "Dependency Update Flow"
-    identifier = "habitat/reference/diagrams/dependency-update-flow"
-    parent = "habitat/reference/diagrams"
+    identifier = "habitat/diagrams/dependency-update-flow"
+    parent = "habitat/diagrams"
 
 +++
 

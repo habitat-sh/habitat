@@ -30,8 +30,21 @@ Builder
 Builder on-prem
 : In addition to our hosted service, we also support installing and running a Chef Habitat Builder Depot on-premises, using your own network and infrastructure, which allows you to choose from a wider selection of authentication providers and to manage how Builder fits into your existing CI/CD processes. Currently, our on-premises Builder depot only stores packages for download and upload by Supervisors and Studios. We intend to bring the full capabilities of Chef Habitat Builder to our on premises option in the future.   For a detailed explanation of features, requirements and setup instructions, [see the GitHub repository](https://github.com/habitat-sh/on-prem-builder).
 
+Buildtime
+: TODO:
+
+Callbacks
+: Used in plans to override build phase defaults.
+Chef Habitat's build phase defaults.
+
+Census
+: The census is the core of the service discovery mechanism in Chef Habitat. It keeps track of every Supervisor in the ring, and handles reading, writing, and serializing it with the discovery backend. Each Supervisor in the system is a *census entry* that together form a *census*. Operations to discover or mutate the state of the census happen through algorithms that arrive at the same conclusion given the same inputs, such as leader elections.
+
 Channel
 : Channels are a best practice in CI/CD, they allow you to gate a package for testing  before making it the default version of the package that users should consume. You can think of this split as the difference between test and production, or nightly releases versus stable releases of products. A channel is a tagged package location in Builder, which is used for managing the application lifecycle. Supervisors can subscribe to channels and take actions in response to changes within channels that are described in a plan's application lifecycle hooks.
+
+Control gateway
+: The Supervisor control gateway is used to issue commands to a remote Supervisor. When a new Supervisor is created, a key for the `HAB_CTL_SECRET` environment variable is generated for it by default, if one is not already present; this key is used to authenticate requests that are made via the control gateway. See the [control gateway](/docs/internals#control-gateway) documentation for more details.
 
 Fully-qualified package identifier (FQPI)
 : Four component name for a package, in the format: `origin/name/version/release`. For example, `core/glibc/2.22/20160310192356`.
@@ -41,6 +54,9 @@ Fully-qualified package identifier (FQPI)
 
 Hooks
 : Each plan can specify application lifecycle event handlers, or hooks, to perform certain actions during a service's runtime. Each hook is a script with a shebang defined at the top to specify the interpreter to be used. To see a full list of available hooks and how to use them check out our [hooks documentation](/docs/plans/application-lifecycle-hooks).
+
+Gossip
+: TODO:
 
 Launcher
 : The sidecar process for launching processes from the Chef Habitat Supervisor. It is the entry point for running the Supervisor and is the Supervisor for the Supervisor. Whereas the Supervisor is able to automatically update itself, the Launcher is currently released a bit differently, by design; it should be rare that the Launcher ever needs to change.
@@ -60,18 +76,11 @@ Package identifier
 Plan
 : A plan is a set of files that describe how to build a Chef Habitat package. At the heart of the plan is a configurable script named `plan.sh` for Linux and `plan.ps1` for Windows, containing instructions on how to download, compile, and install its software.
 
-Callbacks
-: Used in plans to override build phase defaults.
-Chef Habitat's build phase defaults.
-
-Census
-: The census is the core of the service discovery mechanism in Chef Habitat. It keeps track of every Supervisor in the ring, and handles reading, writing, and serializing it with the discovery backend. Each Supervisor in the system is a *census entry* that together form a *census*. Operations to discover or mutate the state of the census happen through algorithms that arrive at the same conclusion given the same inputs, such as leader elections.
-
-Control gateway
-: The Supervisor control gateway is used to issue commands to a remote Supervisor. When a new Supervisor is created, a key for the `HAB_CTL_SECRET` environment variable is generated for it by default, if one is not already present; this key is used to authenticate requests that are made via the control gateway. See the [control gateway](/docs/internals#control-gateway) documentation for more details.
-
 Ring encryption key
 : Use to encrypt *all* supervisor-to-supervisor communication. Type: shared symmetric key.
+
+Runtime
+: TODO:
 
 Scaffolding
 : Standardized plans for automated building and running your application for Ruby, Node.js, and Gradle. Each scaffolding is tuned to your application and helps you automatically create the appropriate [application lifecycle hooks](/docs/glossary/glossary-hooks) and runtime dependencies for building the package from your plan. Scaffoldings provide some default health check hooks where appropriate to ensure your application is functioning reliably.
@@ -80,7 +89,7 @@ Service
 : TODO:
 
 Service group
-: A set of one or more running services with a shared configuration and topology makes up a service group. If a service is started without explicitly naming the group, it's assigned to the `default` group for the name of that package. For example:
+: A set of one or more running services with a shared configuration and topology. Services started without explicitly naming the group, are assigned that package's to the `default` group. For example:
 
   - `redis.default`
   - `postgres.financialdb` (possibly running in a cluster)

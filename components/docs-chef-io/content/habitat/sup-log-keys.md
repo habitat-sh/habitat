@@ -1,12 +1,12 @@
 +++
-title = "Supervisor Log Key"
-description = "Supervisor log code reference"
+title = "Supervisor Log Codes"
+description = "Supervisor log code key reference"
 
 [menu]
   [menu.habitat]
-    title = "Supervisor Log Key *"
-    identifier = "habitat/supervisors/sup-log-key"
-    parent = "habitat/supervisors"
+    title = "Supervisor Log Codes"
+    identifier = "habitat/reference/sup-log-key"
+    parent = "habitat/reference"
 
 +++
 

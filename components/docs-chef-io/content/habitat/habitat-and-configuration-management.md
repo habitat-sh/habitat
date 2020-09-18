@@ -1,12 +1,13 @@
 +++
 title = "Chef Habitat and Configuration Management"
 description = "Chef Habitat and Configuration Management"
+draft = true
 
 [menu]
   [menu.habitat]
     title = "Chef Habitat and Configuration Management"
-    identifier = "habitat/reference/habitat-and-configuration-management"
-    parent = "habitat/reference"
+    identifier = "habitat/containers/habitat-and-configuration-management"
+    parent = "habitat/containers"
     weight = 20
 
 +++

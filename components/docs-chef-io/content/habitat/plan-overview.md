@@ -31,10 +31,11 @@ The Chef Habitat directory, also called the Chef Habitat Manifest directory, is 
 
 On Windows, only a `plan.ps1` will be used and a `plan.sh` will only be used on Linux or Linux kernel 2. So i
 
-## `habitat` Directory Structure
+## Habitat Directory Structure
 
 The command `hab plan init` creates a `habitat` directory wherever you run it. In most cases you will run the command at the root of your application directory. The `app/habitat` directory has the structure:
 
+```bash plan.sh
 app/
 └── habitat/
     └── config/
@@ -42,7 +43,9 @@ app/
     default.toml
     plan.sh
     README.md
+```
 
+```powershell plan.ps1
 app/
 └── habitat/
     └── config/
@@ -50,39 +53,48 @@ app/
     default.toml
     plan.ps1
     README.md
+```
 
 ### Simplified Habitat Directory Structure
 
 If your plan does not include hooks or configuration templates and just requires a plan file, you can use a simplified directory structure:
 
-```
+```bash
 app/
 └── habitat/
     |   plan.sh
 ```
 
-```
+```powershell
 app/
 └── habitat/
     |   plan.ps1
 ```
 
-## Writing a Plan for Multiple Platform Targets
+## Writing a Plans for Multiple Platform Targets
 
-If you are creating an application that runs on both Linux and Windows platform targets, you will need two plan files:
+Chef Habitat can build applications for Linux, Linux kernel 2, and Windows operating systems. To write and build plans for multiple targets, create subdirectories for each target operating in either the root of your project or in a top level `habitat` folder. Then save the plan, hooks, and configuration templates specific to a single platform all inside of that target specific folder.
 
-``` Simple directory with two target plans
-app/
-└── habitat/
-    |   plan.sh
-    |   plan.ps1
-```
-
-If your application requires different plans for Linux and Linux Kernel 2, even without hooks and configuration templates, you will need to use target folders for each platform.
-You can create target specific folders beneath either the root of your project or a top level `habitat` folder. Then save the plan, hooks, and configuration templates specific to a single platform all inside of that target specific folder.
 For example, this directory structure represents an application targeting Linux, Linux kernel 2, and Windows:
 
-``` Standard directory structure with multiple targets
+```bash habitat directory structure with multiple targets
+app/
+├── habitat/
+    ├── x86_64-linux/
+    |   |   plan.sh
+    |   └── hooks/
+    |           run
+    ├── x86_64-linux-kernel2/
+    |   |   plan.sh
+    |   └── hooks/
+    |           run
+    └── x86_64-windows/
+        |   plan.ps1
+        └── hooks/
+                run
+```
+
+```bash application directory structure with multiple targets
 app/
 ├── x86_64-linux/
 |   |   plan.sh
@@ -96,6 +108,44 @@ app/
     |   plan.ps1
     └── hooks/
             run
+```
+
+### Linux and Windows Targets
+
+If you are creating an application that runs on Linux and Windows platform targets, you will need two plan files.
+
+```bash Standard directory structure with multiple targets
+app/
+├── x86_64-linux/
+|   |   plan.sh
+|   └── hooks/
+|           run
+└── x86_64-windows/
+    |   plan.ps1
+    └── hooks/
+            run
+```
+
+If your application plans are simple--if they consists of only plan files without additional hooks or configuration files--you can use the simple directory structure:
+
+``` Simple directory with two target plans
+app/
+└── habitat/
+    |   plan.sh
+    |   plan.ps1
+```
+
+### Linux and Linux Kernel 2 Targets
+
+To build packages and applications that run on both Linux and Linux Kernel 2 hardware, you will need to use target folders for each platform, even if your Chef Habitat manifest directory consists of two plan files without additional hooks or configuration files.
+
+```bash habitat directory structure with multiple Linux targets
+app/
+├── habitat/
+    ├── x86_64-linux/
+    |   |   plan.sh
+    ├── x86_64-linux-kernel2/
+    |   |   plan.sh
 ```
 
 ## Build Plan Lookup
@@ -134,7 +184,7 @@ pkg_include_dirs=(include)
 pkg_bin_dirs=(bin)
 ```
 
-```powershell plan.ps1 metadata
+```powershell plan.ps1
 $pkg_name="sqlite"
 $pkg_version="3130000"
 $pkg_origin="core"
