@@ -7,7 +7,6 @@ description = "Dynamically adjust the logging configuration of a running Supervi
     title = "Supervisor Log Configuration"
     identifier = "habitat/supervisors/sup-log-configuration"
     parent = "habitat/supervisors"
-    weight = 20
 
 +++
 
