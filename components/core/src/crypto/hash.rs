@@ -27,7 +27,7 @@ const HASH_DIGEST_SIZE: usize = 32;
 /// There are intentionally no explicit constructors; to get a
 /// instance, you'll need to either convert it directly from a `&[u8]`
 /// or parse it from a hex string.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq)]
 pub struct Blake2bHash {
     digest: [u8; HASH_DIGEST_SIZE],
 }
@@ -95,8 +95,6 @@ impl PartialEq for Blake2bHash {
     // convenient way to modify this in the future.
     fn eq(&self, other: &Blake2bHash) -> bool { crate::crypto::secure_eq(self, other) }
 }
-
-impl Eq for Blake2bHash {}
 
 impl fmt::Display for Blake2bHash {
     /// Displays a Blake2bHash as a lowercase hex-encoded string.
