@@ -7,7 +7,6 @@ description = "Chef Habitat and Containers"
     title = "Chef Habitat and Containers"
     identifier = "habitat/containers/habitat-and-containers"
     parent = "habitat/containers"
-    weight = 20
 
 +++
 

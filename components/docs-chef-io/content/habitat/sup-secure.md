@@ -7,7 +7,6 @@ description = "Securing Supervisor Networks"
     title = "Securing Supervisor Networks"
     identifier = "habitat/supervisors/using-encryption"
     parent = "habitat/supervisors"
-    weight = 20
 
 +++
 
@@ -90,7 +89,7 @@ To aid the user in the visual identification of the many varieties of keys in us
 `YYYYMMDDRRRRRR` denotes the creation time and release identifier of that key.
 
 | Key Type | Header | Filename Format |
-|+++|+++|+++|
+|----------|--------|-----------------|
 | Private origin signing key | SIG-SEC-1 | originname-YYYYMMDDRRRRRR.sig.key |
 | Public origin signing key | SIG-PUB-1 | originname-YYYYMMDDRRRRRR.pub.key |
 | Ring wire encryption key | SYM-SEC-1 | ringname-YYYYMMDDRRRRRR.sym.key |

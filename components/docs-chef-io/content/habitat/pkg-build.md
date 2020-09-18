@@ -1,17 +1,32 @@
 +++
-title = "Build"
-description = "Building Plans in the Studio"
+title = "Building Packages"
+description = "Building Packages in the Studio"
 
 [menu]
   [menu.habitat]
-    title = "Build"
-    identifier = "habitat/plans/plan-builds Build your Plan"
-    parent = "habitat/plans"
-    weight = 20
+    title = "Building Packages"
+    identifier = "habitat/packages/pkg-build Build your Package"
+    parent = "habitat/packages"
+    weight = 10
 
 +++
 
-## Plan Builds
+## Build
+
+## Plan Build Process
+
+When you have finished creating your plan and call `build` in Chef Habitat Studio, the build script does following steps:
+
+1. Checks that Studio has the private origin key is available to sign the artifact
+2. Downloads the source code from the location in `pkg_source`, if specified
+3. Validates checksum of the downloaded file using the `pkg_shasum` value, if it is specified.
+4. Extracts the source into a temporary cache.
+5. Builds and installs the binary or library using `make` and `make install` for Linux based builds, and
+  TODO: WHAT DOES WINDOWS USE? Invoke-Unpack function with Start-Process? Invoke-Install & Copy-Item? unless the callback methods are overridden in the plan.
+6. Compresses the package contents (binaries, runtime dependencies, libraries, assets, etc.) into a tarball.
+7. Signs the tarball with your private origin key and gives it a `.hart` file extension.
+
+After the build script completes, you can then upload your package to Chef Habitat Builder, or install and start your package locally.
 
 Packages need to be signed with a private origin key at buildtime. Generate an origin key pair manually by running the following command on your host machine:
 
@@ -134,7 +149,7 @@ To use `attach`, insert it into your plan at the point where you would like to u
  }
 ```
 
-Now, perform a [build](/docs/developing-packages/#plan-builds) -- we recommend using an interactive studio so you do not need to set up the environment from scratch for every build.
+Now, perform a [build](/docs/plan-overview/#plan-builds) -- we recommend using an interactive studio so you do not need to set up the environment from scratch for every build.
 
 ```bash
 hab studio enter

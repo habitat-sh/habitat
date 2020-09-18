@@ -7,8 +7,7 @@ description = "Container Orchestration with Chef Habitat"
     title = "Container Orchestration"
     identifier = "habitat/containers/container-orchestration"
     parent = "habitat/containers"
-    weight = 20
 
 +++
 
-Chef Habitat packages may be exported with the Supervisor directly into a [a variety of container formats](/docs/developing-packages/#pkg-exports), but frequently the container is running in a container orchestrator such as Kubernetes or Mesos. Container orchestrators provide scheduling and resource allocation, ensuring workloads are running and available. Containerized Chef Habitat packages can run within these runtimes, managing the applications while the runtimes handle the environment surrounding the application (ie. compute, networking, security).
+Chef Habitat packages may be exported with the Supervisor directly into a [a variety of container formats](/docs/plan-overview/#pkg-exports), but frequently the container is running in a container orchestrator such as Kubernetes or Mesos. Container orchestrators provide scheduling and resource allocation, ensuring workloads are running and available. Containerized Chef Habitat packages can run within these runtimes, managing the applications while the runtimes handle the environment surrounding the application (ie. compute, networking, security).

@@ -5,9 +5,8 @@ description = "Automate Docker Container Publishing Flow"
 [menu]
   [menu.habitat]
     title = "Automate Docker Container Publishing Flow"
-    identifier = "habitat/reference/diagrams/docker-automated-flow"
-    parent = "habitat/reference/diagrams"
-    weight = 20
+    identifier = "habitat/diagrams/docker-automated-flow"
+    parent = "habitat/diagrams"
 
 +++
 

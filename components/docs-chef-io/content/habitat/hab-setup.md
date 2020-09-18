@@ -1,17 +1,17 @@
 +++
 title = "Configure the Chef Habitat CLI"
-description = "Setup the Chef Habitat CLI"
+description = "Set up the Chef Habitat CLI"
 
 [menu]
   [menu.habitat]
-    title = "Configure the Chef Habitat CLI"
-    identifier = "habitat/get_started/configure-workstation.md Install Chef Habitat"
+    title = "Set up the Chef Habitat CLI"
+    identifier = "habitat/get_started/hab-setup Install Chef Habitat"
     parent = "habitat/get_started"
     weight = 20
 
 +++
 
-Once Chef Habitat has been installed, the <code>hab</code> CLI makes it easy to get your workstation configured by guiding through the setup process. To set up your workstation, run <code>hab cli setup</code> and follow the instructions.
+Once Chef Habitat has been installed, the `hab` CLI makes it easy to get your workstation configured by guiding through the setup process. To set up your workstation, run `hab cli setup` and follow the instructions.
 
 <img alt="screenshot of hab cli setup output in CLI" src="/images/screenshots/hab-setup.png">
 
@@ -23,10 +23,10 @@ Optionally, you can also provide a Chef Habitat personal access token to upload 
 
 You will also be asked if you want to register Supervisor control gateway secret (see [Remote Command-and-Control of Supervisors](/docs/using-habitat/#remote-control) for further details).
 
-During setup, you may elect to provide anonymous usage data of the <code>hab</code> CLI tool. This information is used by the Chef Habitat team to improve the CLI experience.
+During setup, you may elect to provide anonymous usage data of the `hab` CLI tool. This information is used by the Chef Habitat team to improve the CLI experience.
 For information on the types of data we gather and how we intend to use it, see [Analytics in Chef Habitat](/docs/about-analytics).
 
-You can change your settings at any time by re-running the <code>hab cli setup</code> command.
+You can change your settings at any time by re-running the `hab cli setup` command.
 
 <img alt="screenshot of completed hab cli setup in CLI" src="/images/screenshots/hab-setup-complete.png">
 

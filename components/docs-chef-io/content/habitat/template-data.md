@@ -7,7 +7,6 @@ description = "Runtime Configuration Settings"
     title = "Runtime Configuration Settings"
     identifier = "habitat/reference/template-data"
     parent = "habitat/reference"
-    weight = 20
 
 +++
 

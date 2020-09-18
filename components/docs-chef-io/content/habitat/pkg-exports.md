@@ -1,22 +1,21 @@
 +++
-title = "Package Export Formats"
+title = "Exporting Packages"
 description = "Export Chef Habitat packages to Docker, Kubernetes, Helm, Mesos, DC/OS, Cloud Foundry, or as a tarball "
 
 [menu]
   [menu.habitat]
-    title = "Package Export Formats"
-    identifier = "habitat/packages/pkg-exports.md Export Chef Habitat Packages"
+    title = "Exporting Packages"
+    identifier = "habitat/packages/pkg-exports Export Chef Habitat Packages"
     parent = "habitat/packages"
-    weight = 20
+    weight = 40
 
 +++
-## Package Export Formats
 
 You can export packages into several different external, immutable runtime formats. This topic will be updated as more formats are supported in the future. Currently there are exports for: docker, mesos, tar, and cloudfoundry.
 
 The command to export a package is `hab pkg export <FORMAT> <PKG_IDENT>`. See the [Chef Habitat CLI Reference Guide](/docs/habitat-cli#hab-pkg-export) for more CLI information.
 
-> **Note** If you specify an <code>origin/package</code> identifier, such as <code>core/postgresql</code>, the Chef Habitat CLI will check Builder for the latest stable version of the package and export that.
+> **Note** If you specify an `origin/package` identifier, such as `core/postgresql`, the Chef Habitat CLI will check Builder for the latest stable version of the package and export that.
 
 > If you wish to export a package that is not on Builder, create a Chef Habitat artifact by running the `build` command, then point `hab pkg` to the `.hart` file within the `/results` directory:
 
@@ -34,13 +33,13 @@ You can create a Docker container image for any package by performing the follow
 
 1. Create an interactive studio with the `hab studio enter` command.
 
-1. [Build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create a Docker container image and then run the Docker exporter on the package.
+1. [Build](/docs/plan-overview/#plan-builds) the Chef Habitat package from which you want to create a Docker container image and then run the Docker exporter on the package.
 
     ```bash
     hab pkg export docker ./results/<hart-filename>.hart
     ```
 
-    > **Note** The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling <code>hab pkg export docker origin/package</code>. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
+    > **Note** The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling `hab pkg export docker origin/package`. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
 
     > **Note** On Linux, exporting your Chef Habitat artifact to a Docker image requires the Docker Engine supplied by Docker. Packages from distribution-specific or otherwise alternative providers are currently not supported.
 
@@ -54,7 +53,7 @@ You can create a Docker container image for any package by performing the follow
 
 1. Enter the Chef Habitat studio by using `hab studio enter`.
 
-2. Install or [build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create a tarball, for example:
+2. Install or [build](/docs/plan-overview/#plan-builds) the Chef Habitat package from which you want to create a tarball, for example:
 
     ```bash
     hab pkg install <ORIGIN>/<NAME>
@@ -104,7 +103,7 @@ The Kubernetes exporter is an additional command line subcommand to the standard
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
 
-2. Install or [build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create an application, for example:
+2. Install or [build](/docs/plan-overview/#plan-builds) the Chef Habitat package from which you want to create an application, for example:
 
     ```bash
     hab pkg install <ORIGIN>/<NAME>
@@ -194,7 +193,7 @@ Additionally, the Kubernetes Chef Habitat operator is automatically added to the
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
 
-2. Install or [build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create an application, for example:
+2. Install or [build](/docs/plan-overview/#plan-builds) the Chef Habitat package from which you want to create an application, for example:
 
     ```bash
     hab pkg install <ORIGIN>/<NAME>
@@ -216,7 +215,7 @@ Additionally, the Kubernetes Chef Habitat operator is automatically added to the
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
 
-2. Install or [build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create a Marathon application, for example:
+2. Install or [build](/docs/plan-overview/#plan-builds) the Chef Habitat package from which you want to create a Marathon application, for example:
 
     ```bash
     hab pkg install <ORIGIN>/<NAME>
@@ -293,7 +292,7 @@ The helper methods are designed to extract information from the standard Cloud F
 
 2. Enter the Studio through `hab studio enter`.
 
-3. Install or [build](/docs/developing-packages/#plan-builds) the package that you want to export.
+3. Install or [build](/docs/plan-overview/#plan-builds) the package that you want to export.
 
     ```bash
     hab pkg install <ORIGIN>/<NAME>

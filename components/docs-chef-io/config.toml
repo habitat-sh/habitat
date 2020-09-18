@@ -1,6 +1,6 @@
 baseURL = "/"
 languageCode = "en-us"
-title = "Chef InSpec Documentation"
+title = "Chef Habitat Documentation"
 theme = "docs-new"
 themesDir = "chef-web-docs/themes"
 enableGitInfo = true
@@ -113,74 +113,63 @@ identifier = "habitat"
 weight = 10
 
   [[menu.habitat]]
-  title = "Overview"
-  identifier = "habitat/overview"
-  parent = "habitat"
-  weight = 20
-
-    [[menu.habitat]]
-    title = "Concepts"
-    identifier = "habitat/overview/concepts"
-    parent = "habitat/overview"
-    weight = 100
-
-  [[menu.habitat]]
-  title = "Get Started"
+  title = "Install Habitat"
   identifier = "habitat/get_started"
   parent = "habitat"
-  weight = 30
+  weight = 10
 
   [[menu.habitat]]
   title = "Builder"
   identifier = "habitat/builder"
   parent = "habitat"
-  weight = 40
+  weight = 20
 
   [[menu.habitat]]
   title = "Packages"
   identifier = "habitat/packages"
   parent = "habitat"
-  weight = 50
+  weight = 30
 
   [[menu.habitat]]
   title = "Plans"
   identifier = "habitat/plans"
   parent = "habitat"
-  weight = 60
+  weight = 40
 
   [[menu.habitat]]
   title = "Services"
   identifier = "habitat/services"
   parent = "habitat"
-  weight = 70
+  weight = 50
 
   [[menu.habitat]]
   title = "Supervisors"
   identifier = "habitat/supervisors"
   parent = "habitat"
-  weight = 80
+  weight = 60
 
   [[menu.habitat]]
   title = "Studio"
   identifier = "habitat/studio"
   url = "/habitat/studio"
   parent = "habitat"
-  weight = 90
+  weight = 70
 
   [[menu.habitat]]
   title = "Containers"
   identifier = "habitat/containers"
   parent = "habitat"
-  weight = 110
+  weight = 100
 
   [[menu.habitat]]
   title = "Reference"
   identifier = "habitat/reference"
   parent = "habitat"
-  weight = 120
+  weight = 80
 
-    [[menu.habitat]]
-    title = "Diagrams"
-    identifier = "habitat/reference/diagrams"
-    parent = "habitat/reference"
+  [[menu.habitat]]
+  title = "Diagrams"
+  identifier = "habitat/diagrams"
+  parent = "habitat"
+  weight = 500
 

@@ -7,14 +7,13 @@ description = "Customize and configure your Chef Habitat Studio and Supervisor e
     title = "Environment Variables"
     identifier = "habitat/reference/environment-variables"
     parent = "habitat/reference"
-    weight = 20
 
 +++
 
 This is a list of all environment variables that can be used to modify the operation of the Chef Habitat Studio and Supervisor.
 
 | Variable | Context | Default | Description |
-|+++++++++-|+++++++++|+++++++++|++++++++++++-|
+|----------|----------|----------|-----------|
 | `HAB_AUTH_TOKEN` | build system | no default | Authorization token used to perform privileged operations against the depot, e.g. uploading packages or keys.
 | `HAB_BINLINK_DIR` | build system | `/hab/bin` | Allows you to change the target directory for the symlink created when you run `hab pkg binlink`. The default value is already included in the `$PATH` variable inside the Studio. |
 | `HAB_CACHE_KEY_PATH` | build system, Supervisor | `/hab/cache/keys` if running as root; `$HOME/.hab/cache/keys` if running as non-root | Cache directory for origin signing keys |
@@ -49,15 +48,3 @@ This is a list of all environment variables that can be used to modify the opera
 | `NO_INSTALL_DEPS` | build system | no default | Set this variable to prevent dependencies install during build |
 | `no_proxy` | build system, Supervisor | no default | A comma-separated list of domain exclusions for the `http_proxy` and `https_proxy` environment variables |
 | `SSL_CERT_FILE` | system | no default | Standard OpenSSL environment variable to override the system certificate file. This is particularly important for the secure HTTPS connection with a Builder instance. Can be used to help you navigate corporate firewalls. |
-
-## Customizing Studio
-
-When you enter a Studio, Chef Habitat will attempt to locate `/src/.studiorc` and
-source it. Think `~/.bashrc`. This file can be used to export any
-environment variables like the ones you see above as well as any other shell
-customizations to help you develop your plans from within the Studio.
-
-To use this feature, place a `.studiorc` in the current working directory
-where you will run `hab studio enter`.
-
-Note that a `.studiorc` will only be source when using `hab studio enter`--it will not be sourced when calling `hab studio run` or `hab studio build` (also `hab pkg build`).

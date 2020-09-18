@@ -1,29 +1,28 @@
 +++
 title = "Build Helpers"
-description = "Define how your package builds with helper functions."
+description = "Define package buildtime actions with helper functions."
 
 [menu]
   [menu.habitat]
     title = "Build Helpers"
-    identifier = "habitat/plans/build-helpers"
-    parent = "habitat/plans"
-    weight = 20
+    identifier = "habitat/reference/build-helpers*"
+    parent = "habitat/reference"
 
 +++
 
 
 The following helper functions can be useful in your plan to help you build your package correctly. Attach() specifically is to help with debugging - the other helper functions are to help you in building your package.
 
-> **Note**: Most of the following helper functions are not available in Powershell plans (`plan.ps1`). However in most cases, the standard Powershell cmdlets provide the same functionality. For example: use `Resolve-Path` instead of `abspath` or `Get-Command` instead of `exists`.
+> Note: Most of the following helper functions are not available in Powershell plans (`plan.ps1`). However in most cases, the standard Powershell cmdlets provide the same functionality. For example: use `Resolve-Path` instead of `abspath` or `Get-Command` instead of `exists`.
 
-**attach()**
+attach()
 : `plan.sh` only. Attaches your script to an interactive debugging session, which lets you check the state of variables, call arbitrary functions, and turn on higher levels of logging by using the `set -x` command and switch.
 
   To use attach, add `attach` to any callback or part of your plan.sh file and the debugging session with start up when hab-plan-build comes to that part in the file.
 
-> **Note**: Use the native Powershell cmdlet `Set-PSBreakpoint` for debugging plan.ps1 functions. You can set its `-Command` parameter to any build phase function.
+> Note: Use the native Powershell cmdlet `Set-PSBreakpoint` for debugging plan.ps1 functions. You can set its `-Command` parameter to any build phase function.
 
-**download_file()**
+download_file()
 : `plan.sh` only. Downloads a file from a source URL to a local file and uses an optional
 shasum to determine if an existing file can be used.
 
@@ -65,7 +64,7 @@ download_file http://example.com/file.tar.gz file.tar.gz mismatching_shasum
 
 Will return 0 if a file was downloaded or if a valid cached file was found.
 
-**pkg\_path\_for()/Get-HabPackagePath**
+pkg\_path\_for()/Get-HabPackagePath
 : Returns the path for a build or runtime package dependency on stdout from the list of dependencies referenced in `pkg_deps` or `pkg_build_deps`. This is useful if you need to install or reference specific dependencies from within a callback, such as `do_build()` or `do_install()`.
 
   Here's an example of how to use this function to retrieve the path to the perl binary in the core/perl package:
@@ -74,7 +73,7 @@ Will return 0 if a file was downloaded or if a valid cached file was found.
 _perl_path="$(pkg_path_for core/perl)/bin/perl"
 ```
 
-**fix_interpreter()**
+fix_interpreter()
 : `plan.sh` only. Edits the `#!` shebang of the target file in-place. This is useful for changing hard-coded paths defined by your source files to the equivalent path in a Chef Habitat package. You must include the required package that provides the expected path for the shebang in pkg_deps. This function performs a greedy match against the specified interpreter in the target file(s).
 
 To use this function in your plan, you must specify the following arguments:
@@ -94,7 +93,7 @@ For a single target, reference the file directly:
 fix_interpreter node_modules/.bin/concurrent core/coreutils bin/env
 ```
 
-**pkg\_interpreter\_for()**
+pkg\_interpreter\_for()
 : `plan.sh` only. Returns the path for the given package and interpreter by reading it from the INTERPRETERS metadata in the package. The directory of the interpreter needs to be specified, as an interpreter binary might live in `bin`, `sbin`, or `libexec`, depending on the software.
 
 The following shows how to call pkg_interpreter_for with the package and interpreter arguments specified.
@@ -105,10 +104,10 @@ pkg_interpreter_for core/coreutils bin/env
 
 This function will return 0 if the specified package and interpreter were found, and 1 if the package could not be found or the interpreter is not specified for that package.
 
-**pkg_version()**
+pkg_version()
 : An optional way to determine the value for `$pkg_version`. The function must print the computed version string to standard output and will be called when the Plan author invokes the `update_pkg_version()` helper in a `plan.sh`` or `Set-PkgVersion` in a `plan.ps1`.
 
-**update\_pkg\_version()/Set-PkgVersion**
+update\_pkg\_version()/Set-PkgVersion
 : Updates the value for `$pkg_version` by calling a Plan author-provided `pkg_version()` function. This function must be explicitly called in a Plan in or after the `do_before()`/`Invoke-Before` build phase but before the `do_prepare()`/`Invoke-Prepare` build phase. The `$pkg_version` variable will be updated and any other relevant variables will be recomputed. The following examples show how to use these functions to set a dynamic version number.
 
 This plan concatenates a static file in the source root of the
@@ -180,27 +179,27 @@ function Invoke-Download {
 }
 ```
 
-**abspath()**
+abspath()
 : `plan.sh` only. Return the absolute path for a path, which might be absolute or relative.
 
-**exists()**
+exists()
 : `plan.sh` only. Checks that the command exists. Returns 0 if it does, 1 if it does not.
 
-**build_line()/Write-BuildLine**
+build_line()/Write-BuildLine
 : Print a line of build output. Takes a string as its only argument.
 
 ```
 build_line "Checksum verified - ${pkg_shasum}"
 ```
 
-**warn()/Write-Warning**
+warn()/Write-Warning
 : Print a warning line on stderr. Takes a string as its only argument.
 
 ```
 warn "Checksum failed"
 ```
 
-**debug()/Write-Debug**
+debug()/Write-Debug
 : Prints a line only if the `$DEBUG` environment value is set to 1. The `debug` function takes a string as its only argument.
 
 ```bash
@@ -208,17 +207,17 @@ DEBUG=1
 debug "Only if things are set"
 ```
 
-**exit_with()**
+exit_with()
 : `plan.sh` only. Exits the program with an error message and a status code.
 
 ```bash
 exit_with "Something bad happened" 55
 ```
 
-**trim()**
+trim()
 : `plan.sh` only. Trims leading and trailing whitespace characters from a bash variable.
 
-**record()**
+record()
 : `plan.sh` only. Takes a session name and command to run as arguments function appends a timestamp to the log file. Alternative to piping build through tee.
 
 ```bash

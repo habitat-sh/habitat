@@ -7,7 +7,6 @@ description = "Amazon ECS and Chef Habitat"
     title = "Amazon ECS and Chef Habitat"
     identifier = "habitat/containers/ecs-and-habitat"
     parent = "habitat/containers"
-    weight = 20
 
 +++
 

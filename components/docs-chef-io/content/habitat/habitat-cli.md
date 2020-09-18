@@ -7,8 +7,6 @@ draft= false
     title = "hab CLI Reference"
     identifier = "habitat/reference/habitat-cli"
     parent = "habitat/reference"
-    weight = 20
-
 +++
 
 <!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->

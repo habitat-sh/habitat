@@ -5,9 +5,8 @@ description = "Runtime Services Group Binding"
 [menu]
   [menu.habitat]
     title = "Runtime Services Group Binding"
-    identifier = "habitat/reference/diagrams/runtime-binding"
-    parent = "habitat/reference/diagrams"
-    weight = 20
+    identifier = "habitat/diagrams/runtime-binding"
+    parent = "habitat/diagrams"
 
 +++
 

@@ -7,7 +7,6 @@ description = "Launcher"
     title = "Launcher"
     identifier = "habitat/supervisors/launcher"
     parent = "habitat/supervisors"
-    weight = 20
 
 +++
 

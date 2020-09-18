@@ -7,7 +7,6 @@ description = "Monitoring Services"
     title = "Monitoring Services"
     identifier = "habitat/services/monitor-services"
     parent = "habitat/services"
-    weight = 20
 
 +++
 

@@ -7,7 +7,6 @@ description = "Export your Chef Habitat package as a Docker and run it on a Kube
     title = "Kubernetes Development Patterns"
     identifier = "habitat/containers/kubernetes"
     parent = "habitat/containers/kubernetes"
-    weight = 20
 
 +++
 
@@ -210,5 +209,5 @@ Multi-container pod support through Chef Habitat is still under active developme
 
 ## Related Reading
 
-* [Export a Chef Habitat package](/docs/developing-packages/#pkg-exports)
+* [Export a Chef Habitat package](/docs/plan-overview/#pkg-exports)
 * [Chef Habitat CLI](/docs/habitat-cli)

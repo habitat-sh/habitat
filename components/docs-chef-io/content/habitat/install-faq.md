@@ -6,7 +6,7 @@ draft = false
 [menu]
   [menu.habitat]
     title = "Download and Install FAQ"
-    identifier = "habitat/get_started/install-faq.md Install Frequently Asked Questions FAQ"
+    identifier = "habitat/get_started/install-faq Install Frequently Asked Questions FAQ"
     parent = "habitat/get_started"
     weight = 30
 

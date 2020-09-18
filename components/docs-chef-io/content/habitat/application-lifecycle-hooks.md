@@ -5,9 +5,8 @@ description = "Control service runtime actions with application lifecycle hooks"
 [menu]
   [menu.habitat]
     title = "Application Lifecycle Hooks"
-    identifier = "habitat/plans/application-lifecycle-hooks.md Application Lifecycle Hooks"
-    parent = "habitat/plans"
-    weight = 20
+    identifier = "habitat/reference/application-lifecycle-hooks.md Application Lifecycle Hooks"
+    parent = "habitat/reference"
 
 +++
 
@@ -15,7 +14,7 @@ Each plan can specify lifecycle event handlers, or hooks, to perform certain act
 
 To define a hook, simply create a file of the same name in `/my_plan_name/hooks/`, for example, `/postgresql/hooks/health-check`.
 
-Optionally you may add an extension to the hook file. For example, you might create `/postgresql/hooks/health-check.sh` which can be useful in some editors to automatically take advantage of syntax highlighting. Note that having two files for the same hook but with different extensions is not permitted. For example you might create a `run.sh` and `run.ps1` to support both Linux and Windows packages. If you would like to create different hooks for different platforms, you must use [target directories](/docs/developing-packages/#plan-targets).
+Optionally you may add an extension to the hook file. For example, you might create `/postgresql/hooks/health-check.sh` which can be useful in some editors to automatically take advantage of syntax highlighting. Note that having two files for the same hook but with different extensions is not permitted. For example you might create a `run.sh` and `run.ps1` to support both Linux and Windows packages. If you would like to create different hooks for different platforms, you must use [target directories](/docs/plan-overview/#plan-targets).
 
 > **Important** You cannot block the thread in a hook unless it is in the `run` hook. Never call `hab` or `sleep` in a hook that is not the `run` hook.
 

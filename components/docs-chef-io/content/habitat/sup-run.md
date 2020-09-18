@@ -5,15 +5,14 @@ description = "Running Chef Habitat Packages"
 [menu]
   [menu.habitat]
     title = "Running Chef Habitat Packages"
-    identifier = "habitat/packages/using-packages"
-    parent = "habitat/packages"
-    weight = 20
+    identifier = "habitat/supervisors/sup-run"
+    parent = "habitat/supervisors"
 
 +++
 
 Use Chef Habitat packages to start services under the Chef Habitat Supervisor. At runtime, you can join services together in a service group running the same topology, send configuration updates to that group, and more. You can also export the Supervisor together with the package to an external immutable format, such as a Docker container or a virtual machine.
 
-<%= partial 'partials/global/package_platform_support' %>
+> Note Linux-based packages can run on Linux distributions running kernel 2.6.32 or later. Windows-based packages can run on Windows Server 2012 or later and Windows 8 64-bit or later.
 
 Information about [installing Chef Habitat](/docs/install-habitat) and configuring your workstation can be found in the previous section.
 
@@ -23,12 +22,12 @@ In order to run a Chef Habitat-packaged service, you must first run a Chef Habit
 
 For further details about these commands, including all the arguments and options they take, please consult [the hab documentation](/docs/habitat-cli).
 
-**hab sup run**
+hab sup run
 : Executing `hab sup run` will start a Supervisor process in the foreground. If this is the first time a Supervisor has been run on the system, nothing else will happen; the process will be waiting for the user to "load" services into it. However, if this is _not_ the first time the Supervisor has been run, any previously loaded services that were not "stopped" (i.e., told not to run) will be started up as well.
 
 When executing `hab sup run`, additional options can be passed that allow the Supervisor to communicate with other Supervisors (such as `--peer`, `--permanent-peer`, etc.), forming a connected network of Supervisors; this is the communication backbone that any services running on the Supervisors use to communicate with each other.
 
-**hab sup run \<PACKAGE_IDENTIFIER\>**
+hab sup run \<PACKAGE_IDENTIFIER\>
 : When you pass a package identifier (e.g., `core/redis`) as an argument to `hab sup run`, it will start up a Supervisor process, and then load and start the given package in what is effectively a single operation. This is a convenience that is intended primarily for container entry-point workflows, where a single defined service is the only thing ever intended to run on the Supervisor, but it can also be used for local testing or experimentation.
 
 This version of `hab sup run` can also accept options that affect how the _package_ should run, such as `--strategy` and `--topology`, in addition to the aforementioned Supervisor-specific options. It can be thought of as running the identifier-less `hab sup run`, along with a `hab sup load`, all as a single command.
@@ -49,7 +48,7 @@ Packages can be tested in the interactive studio environment or natively on a wo
 
 When entering an interactive studio, a Supervisor is started for you in the background by default. To run packages inside of this Supervisor:
 
-1. [Build a package](/docs/developing-packages/#plan-builds) inside an interactive studio. Do not exit the studio after it is built.
+1. [Build a package](/docs/plan-overview/#plan-builds) inside an interactive studio. Do not exit the studio after it is built.
 2. To start your service in the running Supervisor, type `hab svc load yourorigin/yourname`, substituting the name and origin of the package you built in Step 1. Your service should now be running.
 
 Because the Supervisor is running in the background, you will not see the Supervisor output as you start your service. However you can use the `sup-log` (or `Get-SupervisorLog` on Windows) command that will stream the tail of the Supervisor output (you can also look at the contents of `/hab/sup/default/sup.log`, which is where the Studio directs its Supervisor output).

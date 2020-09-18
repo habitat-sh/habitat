@@ -1,16 +1,16 @@
 +++
-title = "Developing Packages"
+title = "Plan Overview"
 description = "Documentation for writing Chef Habitat Plan files including configuration templates, binds, and exporting"
 
 [menu]
   [menu.habitat]
-    title = "Developing Packages"
-    identifier = "habitat/packages/developing-packages Develop Chef Habitat Packages"
-    parent = "habitat/packages"
-    weight = 20
+    title = "Plan Overview"
+    identifier = "habitat/plans/plans-overview Introducing Chef Habitat Plans"
+    parent = "habitat/plans"
+    weight = 10
 
 +++
-'
+
 In Chef Habitat the unit of automation is the application itself. This chapter includes content related specifically to the process and workflow of developing a plan that will instruct Chef Habitat in how to build, deploy, and manage your application.
 
 ## Writing Plans

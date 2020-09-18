@@ -1,14 +1,12 @@
 +++
-title = "Iterative Package Development"
+title = "Supervisor Configuration"
 description = "Configure the Supervisor for faster package development"
 
 [menu]
   [menu.habitat]
-    title = "Iterative Package Development"
-    identifier = "habitat/packages/iterative-development"
-    parent = "habitat/packages"
-    weight = 20
-
+    title = "Supervisor Package Configuration"
+    identifier = "habitat/supervisors/sup-pkg-config"
+    parent = "habitat/supervisors"
 +++
 
 To assist in creating new packages, or modifying existing ones, the Supervisor has an option to allow you to use the configuration directly from a specific directory, rather than the one it includes in the compiled artifact. This can significantly shorten the cycle time when working on configuration and application lifecycle hooks.

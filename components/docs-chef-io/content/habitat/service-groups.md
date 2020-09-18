@@ -7,7 +7,6 @@ description = "Service Groups"
     title = "Service Groups"
     identifier = "habitat/reference/services/service-groups"
     parent = "habitat/services"
-    weight = 20
 
 +++
 
