@@ -230,6 +230,9 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         }
                         HabSup::Status { pkg_ident,
                                          remote_sup, } => {
+                            ui.warn("'hab sup status' as an alias for 'hab svc status' is \
+                                     deprecated. Please update your automation and processes \
+                                     accordingly.")?;
                             return sub_svc_status(pkg_ident, &remote_sup.to_listen_ctl_addr()).await;
                         }
                         HabSup::Restart { remote_sup } => {
