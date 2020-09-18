@@ -75,6 +75,7 @@ use habitat_core::{crypto::{init,
                              PackageIdent,
                              PackageTarget},
                    service::ServiceGroup,
+                   tls::ctl_gateway as ctl_gateway_tls,
                    url::default_bldr_url,
                    ChannelIdent};
 use habitat_sup_client::{SrvClient,
@@ -225,8 +226,15 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                                          remote_sup, } => {
                             return sub_sup_depart(member_id, &remote_sup.into()).await;
                         }
-                        HabSup::Secret(Secret::Generate) => {
-                            return sub_sup_secret_generate();
+                        HabSup::Secret(secret) => {
+                            match secret {
+                                Secret::Generate => return sub_sup_secret_generate(),
+                                Secret::GenerateKey { subject_alternative_name,
+                                                      path, } => {
+                                    return sub_sup_secret_generate_key(&subject_alternative_name,
+                                                                       path)
+                                }
+                            }
                         }
                         HabSup::Status { pkg_ident,
                                          remote_sup, } => {
@@ -1609,6 +1617,11 @@ fn sub_sup_secret_generate() -> Result<()> {
     sup_proto::generate_secret_key(&mut buf);
     ui.info(buf)?;
     Ok(())
+}
+
+fn sub_sup_secret_generate_key(subject_alternative_name: &str, path: PathBuf) -> Result<()> {
+    Ok(ctl_gateway_tls::generate_self_signed_certificate_and_key(subject_alternative_name, path)
+        .map_err(habitat_core::Error::from)?)
 }
 
 fn sub_supportbundle(ui: &mut UI) -> Result<()> {

@@ -1,6 +1,7 @@
 use crate::{package::{self,
                       Identifiable},
-            tls::rustls_wrapper::Error as RustlsReaderError};
+            tls::{ctl_gateway::Error as CtlGatewayTls,
+                  rustls_wrapper::Error as RustlsReaderError}};
 use std::{env,
           error,
           ffi,
@@ -69,6 +70,7 @@ pub enum Error {
     CryptProtectDataFailed(String),
     /// Occurs when a call to CryptUnprotectData fails
     CryptUnprotectDataFailed(String),
+    CtlGatewayTls(CtlGatewayTls),
     /// Occurs when unable to locate the docker cli on the path
     DockerCommandNotFound(&'static str),
     /// Occurs when a file that should exist does not or could not be read.
@@ -255,6 +257,7 @@ impl fmt::Display for Error {
             Error::CryptoError(ref e) => format!("Crypto error: {}", e),
             Error::CryptProtectDataFailed(ref e) => e.to_string(),
             Error::CryptUnprotectDataFailed(ref e) => e.to_string(),
+            Error::CtlGatewayTls(ref e) => e.to_string(),
             Error::DockerCommandNotFound(ref c) => {
                 format!("Docker command `{}' was not found on the filesystem or in PATH",
                         c)
@@ -369,6 +372,10 @@ impl fmt::Display for Error {
 }
 
 impl error::Error for Error {}
+
+impl From<CtlGatewayTls> for Error {
+    fn from(err: CtlGatewayTls) -> Self { Error::CtlGatewayTls(err) }
+}
 
 impl From<env::JoinPathsError> for Error {
     fn from(err: env::JoinPathsError) -> Self { Error::JoinPathsError(err) }

@@ -1,9 +1,11 @@
 //! Types for reading certificates, private keys, and root certificate stores from the CLI
 //! TODO (DM): Ideally these would be defined in `hab::cli::hab::util::tls.rs` however the ctl
-//! gateway client currently needs access to these types so they must be defined in a common crate.
+//! gateway client currently needs access to these types so they must be defined in a common crate
+//! and we simply reexport them in `hab::cli::hab::util::tls.rs`.
 
 use crate::{error::Error,
-            tls::rustls_wrapper};
+            tls::{ctl_gateway,
+                  rustls_wrapper}};
 use rustls::{Certificate,
              PrivateKey as RustlsPrivateKey,
              RootCertStore};
@@ -29,9 +31,7 @@ impl FromStr for CertificateChain {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let path = PathBuf::from(s);
         let certificates = if path.is_dir() {
-            // TODO: If it is a directory generate a self signed cert and use that or use an
-            // existing cert with a given naming scheme
-            todo!()
+            ctl_gateway::latest_certificates(&path)?
         } else {
             rustls_wrapper::certificates_from_file(&path)?
         };
@@ -72,9 +72,7 @@ impl FromStr for PrivateKey {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let path = PathBuf::from(s);
         let private_key = if path.is_dir() {
-            // TODO: If it is a directory generate a self signed cert and use that or use an
-            // existing cert with a given naming scheme
-            todo!()
+            ctl_gateway::latest_private_key(&path)?
         } else {
             rustls_wrapper::private_key_from_file(&path)?
         };
@@ -115,9 +113,7 @@ impl FromStr for RootCertificateStore {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let path = PathBuf::from(s);
         let root_certificate_store = if path.is_dir() {
-            // TODO: If it is a directory generate a self signed cert and use that or use an
-            // existing cert with a given naming scheme
-            todo!()
+            ctl_gateway::latest_root_certificate_store(&path)?
         } else {
             rustls_wrapper::root_certificate_store_from_file(&path)?
         };

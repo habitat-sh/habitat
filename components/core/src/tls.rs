@@ -21,5 +21,6 @@
 //! keep logic specific to one of the TLS implementations behind the `native_tls_wrapper` or
 //! `rustls_wrapper` modules.
 
+pub mod ctl_gateway;
 pub mod native_tls_wrapper;
 pub mod rustls_wrapper;

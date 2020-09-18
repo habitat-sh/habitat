@@ -22,13 +22,13 @@ pub enum Error {
     #[error("failed to read PEM certificates from file {0}")]
     FailedToReadCertsFromFile(PathBuf),
 
-    #[error("failed to read PEM, RSA private keys")]
+    #[error("failed to read PEM, PKCS8 private keys")]
     FailedToReadPrivateKeys,
-    #[error("failed to read PEM, RSA private keys from file {0}")]
+    #[error("failed to read PEM, PKCS8 private keys from file {0}")]
     FailedToReadPrivateKeysFromFile(PathBuf),
-    #[error("no PEM, RSA private key")]
+    #[error("no PEM, PKCS8 private key")]
     NoPrivateKey,
-    #[error("no PEM, RSA private keys in file {0}")]
+    #[error("no PEM, PKCS8 private keys in file {0}")]
     NoPrivateKeyFromFile(PathBuf),
 
     #[error("failed to read PEM root certificate store")]
@@ -54,7 +54,7 @@ pub fn certificates_from_file(path: impl AsRef<Path>) -> Result<Vec<Certificate>
 
 pub fn private_keys_from_buf(buf: &[u8]) -> Result<Vec<PrivateKey>, Error> {
     let mut cursor = Cursor::new(buf);
-    pemfile::rsa_private_keys(&mut cursor).map_err(|_| Error::FailedToReadPrivateKeys)
+    pemfile::pkcs8_private_keys(&mut cursor).map_err(|_| Error::FailedToReadPrivateKeys)
 }
 
 pub fn private_keys_from_file(path: impl AsRef<Path>) -> Result<Vec<PrivateKey>, Error> {
