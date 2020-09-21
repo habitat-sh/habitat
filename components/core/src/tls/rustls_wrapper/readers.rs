@@ -7,7 +7,7 @@ use rustls::{internal::pemfile,
              RootCertStore};
 use std::{fs,
           io::{self,
-               Cursor},
+               BufReader},
           path::{Path,
                  PathBuf}};
 use thiserror::Error;
@@ -41,8 +41,8 @@ pub enum Error {
     FailedToReadCertificatesFromRootStoreFile(usize, PathBuf),
 }
 
-pub fn certificates_from_buf(buf: &[u8]) -> Result<Vec<Certificate>, Error> {
-    let mut cursor = Cursor::new(buf);
+fn certificates_from_buf(buf: &[u8]) -> Result<Vec<Certificate>, Error> {
+    let mut cursor = BufReader::new(buf);
     pemfile::certs(&mut cursor).map_err(|_| Error::FailedToReadCerts)
 }
 
@@ -52,8 +52,8 @@ pub fn certificates_from_file(path: impl AsRef<Path>) -> Result<Vec<Certificate>
     certificates_from_buf(&buf).map_err(|_| Error::FailedToReadCertsFromFile(path.as_ref().into()))
 }
 
-pub fn private_keys_from_buf(buf: &[u8]) -> Result<Vec<PrivateKey>, Error> {
-    let mut cursor = Cursor::new(buf);
+fn private_keys_from_buf(buf: &[u8]) -> Result<Vec<PrivateKey>, Error> {
+    let mut cursor = BufReader::new(buf);
     pemfile::pkcs8_private_keys(&mut cursor).map_err(|_| Error::FailedToReadPrivateKeys)
 }
 
@@ -65,12 +65,6 @@ pub fn private_keys_from_file(path: impl AsRef<Path>) -> Result<Vec<PrivateKey>,
                                })
 }
 
-pub fn private_key_from_buf(buf: &[u8]) -> Result<PrivateKey, Error> {
-    private_keys_from_buf(buf)?.into_iter()
-                               .next()
-                               .ok_or_else(|| Error::NoPrivateKey)
-}
-
 pub fn private_key_from_file(path: impl AsRef<Path>) -> Result<PrivateKey, Error> {
     private_keys_from_file(path.as_ref())?.into_iter()
                                           .next()
@@ -79,9 +73,9 @@ pub fn private_key_from_file(path: impl AsRef<Path>) -> Result<PrivateKey, Error
                                           })
 }
 
-pub fn root_certificate_store_from_buf(buf: &[u8]) -> Result<RootCertStore, Error> {
+fn root_certificate_store_from_buf(buf: &[u8]) -> Result<RootCertStore, Error> {
     let mut root_certificate_store = RootCertStore::empty();
-    let mut cursor = Cursor::new(buf);
+    let mut cursor = BufReader::new(buf);
     let (_, failed) = root_certificate_store.add_pem_file(&mut cursor)
                                             .map_err(|_| Error::FailedToReadPrivateKeys)?;
     if failed > 0 {
