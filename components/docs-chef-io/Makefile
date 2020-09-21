@@ -15,8 +15,21 @@ clean_all:
 	rm -rf chef-web-docs/resources/
 	rm -rf chef-web-docs/results/
 
-preview_netlify: chef_web_docs_submodule
+# uncomment this when we connect habitat docs to chef-web-docs
+# preview_netlify: chef_web_docs_submodule
+# 	pushd chef-web-docs && make assets; hugo --buildFuture --gc --minify --enableGitInfo && popd
+
+# delete this when we connect habitat docs to chef-web-docs
+preview_netlify: chef_web_docs_submodule_temp
 	pushd chef-web-docs && make assets; hugo --buildFuture --gc --minify --enableGitInfo && popd
+
+# delete this when we connect habitat docs to chef-web-docs
+chef_web_docs_submodule_temp:
+	git submodule update --init --recursive chef-web-docs
+	pushd chef-web-docs && git pull origin master && git reset --hard && popd
+	cp -R content/* chef-web-docs/content
+	cp -R static/images/* chef-web-docs/static/images
+	cp temp_config.toml chef-web-docs/config.toml
 
 chef_web_docs_submodule:
 	git submodule update --init --recursive chef-web-docs
