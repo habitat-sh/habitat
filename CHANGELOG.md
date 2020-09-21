@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.155 -->
-## [1.6.155](https://github.com/habitat-sh/habitat/tree/1.6.155) (2020-09-18)
+<!-- latest_release 1.6.156 -->
+## [1.6.156](https://github.com/habitat-sh/habitat/tree/1.6.156) (2020-09-21)
 
 #### Merged Pull Requests
-- Add deprecation message for `hab sup status` [#7896](https://github.com/habitat-sh/habitat/pull/7896) ([davidMcneil](https://github.com/davidMcneil))
+- Update changelog [#7886](https://github.com/habitat-sh/habitat/pull/7886) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.139 -->
@@ -14,6 +14,7 @@
 - an API retry pattern [#7874](https://github.com/habitat-sh/habitat/pull/7874) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.150 -->
 
 #### Merged Pull Requests
+- Update changelog [#7886](https://github.com/habitat-sh/habitat/pull/7886) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.156 -->
 - Add deprecation message for `hab sup status` [#7896](https://github.com/habitat-sh/habitat/pull/7896) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.155 -->
 - Organize the Hugo Docs [#7920](https://github.com/habitat-sh/habitat/pull/7920) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.154 -->
 - Docs is coming! [#7914](https://github.com/habitat-sh/habitat/pull/7914) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.153 -->
