@@ -7,18 +7,11 @@
 - Add deprecation message for `hab sup status` [#7896](https://github.com/habitat-sh/habitat/pull/7896) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.115 -->
-### Changes since 1.6.115 release
-
-#### New Features & Enhancements
-- Add `hab sup restart` command [#7878](https://github.com/habitat-sh/habitat/pull/7878) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.134 -->
-- builder origin rbac subcommand [#7841](https://github.com/habitat-sh/habitat/pull/7841) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.123 -->
+<!-- release_rollup since=1.6.139 -->
+### Changes since 1.6.139 release
 
 #### Behavioral Changes
 - an API retry pattern [#7874](https://github.com/habitat-sh/habitat/pull/7874) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.150 -->
-- Pull packages from the `--channel` argument on `hab sup run` [#7871](https://github.com/habitat-sh/habitat/pull/7871) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.131 -->
-- Deprecate CLI aliases [#7872](https://github.com/habitat-sh/habitat/pull/7872) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.129 -->
-- Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
 
 #### Merged Pull Requests
 - Add deprecation message for `hab sup status` [#7896](https://github.com/habitat-sh/habitat/pull/7896) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.155 -->
@@ -37,6 +30,22 @@
 - Rustfmt and Nightly Rust Bump to nightly-2020-08-28 [#7897](https://github.com/habitat-sh/habitat/pull/7897) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.142 -->
 - Fix update documentation pipeline [#7895](https://github.com/habitat-sh/habitat/pull/7895) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.141 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-08-24 [#7889](https://github.com/habitat-sh/habitat/pull/7889) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.140 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.139 -->
+## [1.6.139](https://github.com/habitat-sh/habitat/tree/1.6.139) (2020-08-24)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.115..1.6.139)
+
+#### New Features & Enhancements
+- Add `hab sup restart` command [#7878](https://github.com/habitat-sh/habitat/pull/7878) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.134 -->
+- builder origin rbac subcommand [#7841](https://github.com/habitat-sh/habitat/pull/7841) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.123 -->
+
+#### Behavioral Changes
+- Pull packages from the `--channel` argument on `hab sup run` [#7871](https://github.com/habitat-sh/habitat/pull/7871) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.131 -->
+- Deprecate CLI aliases [#7872](https://github.com/habitat-sh/habitat/pull/7872) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.129 -->
+- Add splay to health check execution [#7850](https://github.com/habitat-sh/habitat/pull/7850) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.121 -->
+
+#### Merged Pull Requests
 - Fix text in e2e test [#7883](https://github.com/habitat-sh/habitat/pull/7883) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.139 -->
 - Replace `hab install` with `hab pkg install` in plan-build [#7882](https://github.com/habitat-sh/habitat/pull/7882) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.138 -->
 - Fix CLI deprecation when generating completions [#7881](https://github.com/habitat-sh/habitat/pull/7881) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.137 -->
@@ -55,9 +64,8 @@
 - Update Changelog for 1.6.115 [#7864](https://github.com/habitat-sh/habitat/pull/7864) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.119 -->
 - make bind timeout configurable and add debug output around startup [#7858](https://github.com/habitat-sh/habitat/pull/7858) ([mwrock](https://github.com/mwrock)) <!-- 1.6.117 -->
 - Cleanup `hab pkg export` subcommand [#7857](https://github.com/habitat-sh/habitat/pull/7857) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.116 -->
-<!-- release_rollup -->
-
 <!-- latest_stable_release -->
+
 ## [1.6.115](https://github.com/habitat-sh/habitat/tree/1.6.115) (2020-08-10)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.56..1.6.115)
 
