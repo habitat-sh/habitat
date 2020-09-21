@@ -65,7 +65,6 @@ pub enum Error {
     CantUploadGossipToml,
     ChannelNotFound,
     CryptoKeyError(String),
-    DownloadFailed(String),
     EditorEnv(env::VarError),
     EditStatus,
     FileNameError,
@@ -157,7 +156,6 @@ impl fmt::Display for Error {
             }
             Error::ChannelNotFound => "Channel not found".to_string(),
             Error::CryptoKeyError(ref s) => format!("Missing or invalid key: {}", s),
-            Error::DownloadFailed(ref msg) => msg.to_string(),
             Error::EditorEnv(ref e) => format!("Missing EDITOR environment variable: {}", e),
             Error::EditStatus => "Failed edit text command".to_string(),
             Error::FileNameError => "Failed to extract a filename".to_string(),
