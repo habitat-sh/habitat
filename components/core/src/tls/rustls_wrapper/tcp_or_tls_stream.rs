@@ -31,7 +31,7 @@ impl TcpOrTlsStream {
                                 tls_config: Arc<TlsServerConfig>)
                                 -> io::Result<Self> {
         let tcp_stream = Self::new(stream);
-        tcp_stream.upgrade_to_tls_server(tls_config).await
+        tcp_stream.maybe_upgrade_to_tls_server(tls_config).await
     }
 
     /// Create a new `TlsStream` using client configuration
@@ -40,30 +40,34 @@ impl TcpOrTlsStream {
                                 domain: &str)
                                 -> io::Result<Self> {
         let tcp_stream = Self::new(stream);
-        tcp_stream.upgrade_to_tls_client(tls_config, domain).await
+        tcp_stream.maybe_upgrade_to_tls_client(tls_config, domain)
+                  .await
     }
 
     /// Upgrade a `TcpStream` into a `TlsStream` using server configuration
-    pub async fn upgrade_to_tls_server(self, tls_config: Arc<TlsServerConfig>) -> io::Result<Self> {
-        Ok(match self {
+    async fn maybe_upgrade_to_tls_server(self,
+                                         tls_config: Arc<TlsServerConfig>)
+                                         -> io::Result<Self> {
+        let tls_server_stream = match self {
             Self::TcpStream(stream) => {
-                let tls_connector = TlsAcceptor::from(tls_config);
-                let tls_stream = tls_connector.accept(stream)
-                                              .into_failable()
-                                              .await
-                                              .map_err(|e| e.0)?;
+                let tls_acceptor = TlsAcceptor::from(tls_config);
+                let tls_stream = tls_acceptor.accept(stream)
+                                             .into_failable()
+                                             .await
+                                             .map_err(|e| e.0)?;
                 Self::TlsStream(TlsStream::Server(tls_stream))
             }
-            Self::TlsStream(stream) => Self::TlsStream(stream),
-        })
+            stream @ Self::TlsStream(_) => stream,
+        };
+        Ok(tls_server_stream)
     }
 
     /// Upgrade a `TcpStream` to a `TlsStream` using client configuration
-    pub async fn upgrade_to_tls_client(self,
-                                       tls_config: Arc<TlsClientConfig>,
-                                       domain: &str)
-                                       -> io::Result<Self> {
-        Ok(match self {
+    async fn maybe_upgrade_to_tls_client(self,
+                                         tls_config: Arc<TlsClientConfig>,
+                                         domain: &str)
+                                         -> io::Result<Self> {
+        let tls_client_stream = match self {
             Self::TcpStream(stream) => {
                 let tls_connector = TlsConnector::from(tls_config);
                 let domain = DNSNameRef::try_from_ascii_str(domain).map_err(|_| {
@@ -76,8 +80,9 @@ impl TcpOrTlsStream {
                                               .map_err(|e| e.0)?;
                 Self::TlsStream(TlsStream::Client(tls_stream))
             }
-            Self::TlsStream(stream) => Self::TlsStream(stream),
-        })
+            stream @ Self::TlsStream(_) => stream,
+        };
+        Ok(tls_client_stream)
     }
 }
 
