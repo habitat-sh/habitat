@@ -11,6 +11,10 @@ description = "Install the Chef Habitat CLI and configure your workstation for C
 
 +++
 
+Test Netlify
+
+DO NOT MERGE
+
 Below you'll find installation instructions for each platform and their requirements. The Chef Habitat CLI is currently supported on Linux, Mac, and Windows.
 
 ## Download and Install the Chef Habitat CLI Tool
