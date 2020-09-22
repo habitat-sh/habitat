@@ -41,9 +41,9 @@ use habitat_core::{self,
                             keys::{KeyCache,
                                    RingKey}},
                    os::signals,
-                   tls::rustls_wrapper::{CertificateChain,
-                                         PrivateKey,
-                                         RootCertificateStore}};
+                   tls::rustls_wrapper::{CertificateChainCli,
+                                         PrivateKeyCli,
+                                         RootCertificateStoreCli}};
 use habitat_launcher_client::{LauncherCli,
                               ERR_NO_RETRY_EXCODE,
                               OK_NO_RETRY_EXCODE};
@@ -309,11 +309,11 @@ async fn split_apart_sup_run(sup_run: SupRun,
                         },
                         ctl_listen: sup_run.listen_ctl.into(),
                         ctl_server_certificates: sup_run.ctl_server_certificate
-                                                        .map(CertificateChain::certificates),
-                        ctl_server_key: sup_run.ctl_server_key.map(PrivateKey::private_key),
+                                                        .map(CertificateChainCli::into_inner),
+                        ctl_server_key: sup_run.ctl_server_key.map(PrivateKeyCli::into_inner),
                         ctl_client_ca_certificates:
                             sup_run.ctl_client_ca_certificate
-                                   .map(RootCertificateStore::root_certificate_store),
+                                   .map(RootCertificateStoreCli::into_inner),
                         http_listen: sup_run.listen_http,
                         tls_config,
                         feature_flags,

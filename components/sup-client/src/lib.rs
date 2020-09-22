@@ -46,9 +46,9 @@ use habitat_common::{self as common,
                      cli_config::{CliConfig,
                                   Error as CliConfigError}};
 use habitat_core::{env as henv,
-                   tls::rustls_wrapper::{CertificateChain,
-                                         PrivateKey,
-                                         RootCertificateStore,
+                   tls::rustls_wrapper::{CertificateChainCli,
+                                         PrivateKeyCli,
+                                         RootCertificateStoreCli,
                                          TcpOrTlsStream}};
 use rustls::TLSError as RustlsError;
 use std::{error,
@@ -171,25 +171,25 @@ impl SrvClient {
         let client_certificates =
             henv::var("HAB_CTL_GATEWAY_CLIENT_CERTIFICATE").ok()
                                                            .as_deref()
-                                                           .map(CertificateChain::from_str)
+                                                           .map(CertificateChainCli::from_str)
                                                            .transpose()
                                                            .expect("error parsing ctl gateway \
                                                                     client certificates")
-                                                           .map(CertificateChain::certificates);
+                                                           .map(CertificateChainCli::into_inner);
         let client_key =
             henv::var("HAB_CTL_GATEWAY_CLIENT_KEY").ok()
                                                    .as_deref()
-                                                   .map(PrivateKey::from_str)
+                                                   .map(PrivateKeyCli::from_str)
                                                    .transpose()
                                                    .expect("error parsing ctl gateway client key")
-                                                   .map(PrivateKey::private_key);
+                                                   .map(PrivateKeyCli::into_inner);
         let server_ca_certificates =
             henv::var("HAB_CTL_GATEWAY_SERVER_CA_CERTIFICATE").ok()
                                                            .as_deref()
-                                                           .map(RootCertificateStore::from_str)
+                                                           .map(RootCertificateStoreCli::from_str)
                                                            .transpose()
                                                            .expect("error parsing ctl gateway server certificates")
-                                                           .map(RootCertificateStore::root_certificate_store);
+                                                           .map(RootCertificateStoreCli::into_inner);
 
         // TLS configuration
         let maybe_tls_config = if let Some(server_certificates) = server_ca_certificates {

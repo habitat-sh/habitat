@@ -1,9 +1,9 @@
 use super::{svc::{ConfigOptSharedLoad,
                   SharedLoad,
                   DEFAULT_SVC_CONFIG_DIR},
-            util::{tls::{CertificateChain,
-                         PrivateKey,
-                         RootCertificateStore},
+            util::{tls::{CertificateChainCli,
+                         PrivateKeyCli,
+                         RootCertificateStoreCli},
                    CacheKeyPath,
                    ConfigOptCacheKeyPath,
                    ConfigOptRemoteSup,
@@ -164,17 +164,17 @@ pub struct SupRun {
     pub listen_ctl: ResolvedListenCtlAddr,
     /// The control gateway server certificate to use for TLS
     #[structopt(long = "ctl-server-certificate", default_value = "/hab/cache/keys/ctl")]
-    pub ctl_server_certificate: Option<CertificateChain>,
+    pub ctl_server_certificate: Option<CertificateChainCli>,
     /// Enable TLS for the control gateway and set the private key
     ///
     /// See `ctl-server-certificate` and `ctl-client-certificate` for additional settings.
     #[structopt(long = "ctl-server-key", default_value = "/hab/cache/keys/ctl")]
-    pub ctl_server_key: Option<PrivateKey>,
+    pub ctl_server_key: Option<PrivateKeyCli>,
     /// Enable client authentication for the control gateway and set the certificate authority to
     /// use when authenticating the client
     #[structopt(long = "ctl-client-ca-certificate",
                 default_value = "/hab/cache/keys/ctl")]
-    pub ctl_client_ca_certificate: Option<RootCertificateStore>,
+    pub ctl_client_ca_certificate: Option<RootCertificateStoreCli>,
     /// The organization the Supervisor and its services are part of
     #[structopt(long = "org")]
     pub organization: Option<String>,

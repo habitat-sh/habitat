@@ -16,16 +16,16 @@ use std::{path::PathBuf,
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(try_from = "&str", into = "String")]
-pub struct CertificateChain {
+pub struct CertificateChainCli {
     path:         PathBuf,
     certificates: Vec<Certificate>,
 }
 
-impl CertificateChain {
-    pub fn certificates(self) -> Vec<Certificate> { self.certificates }
+impl CertificateChainCli {
+    pub fn into_inner(self) -> Vec<Certificate> { self.certificates }
 }
 
-impl FromStr for CertificateChain {
+impl FromStr for CertificateChainCli {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -39,34 +39,24 @@ impl FromStr for CertificateChain {
     }
 }
 
-impl std::convert::TryFrom<&str> for CertificateChain {
-    type Error = Error;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> { Self::from_str(s) }
-}
-
-impl std::fmt::Display for CertificateChain {
+impl std::fmt::Display for CertificateChainCli {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.path.to_string_lossy())
+        write!(f, "{}", self.path.display())
     }
-}
-
-impl From<CertificateChain> for String {
-    fn from(pkg_ident: CertificateChain) -> Self { pkg_ident.to_string() }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(try_from = "&str", into = "String")]
-pub struct PrivateKey {
+pub struct PrivateKeyCli {
     path:        PathBuf,
     private_key: RustlsPrivateKey,
 }
 
-impl PrivateKey {
-    pub fn private_key(self) -> RustlsPrivateKey { self.private_key }
+impl PrivateKeyCli {
+    pub fn into_inner(self) -> RustlsPrivateKey { self.private_key }
 }
 
-impl FromStr for PrivateKey {
+impl FromStr for PrivateKeyCli {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -80,34 +70,24 @@ impl FromStr for PrivateKey {
     }
 }
 
-impl std::convert::TryFrom<&str> for PrivateKey {
-    type Error = Error;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> { Self::from_str(s) }
-}
-
-impl std::fmt::Display for PrivateKey {
+impl std::fmt::Display for PrivateKeyCli {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.path.to_string_lossy())
     }
 }
 
-impl From<PrivateKey> for String {
-    fn from(pkg_ident: PrivateKey) -> Self { pkg_ident.to_string() }
-}
-
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(try_from = "&str", into = "String")]
-pub struct RootCertificateStore {
+pub struct RootCertificateStoreCli {
     path:                   PathBuf,
     root_certificate_store: RootCertStore,
 }
 
-impl RootCertificateStore {
-    pub fn root_certificate_store(self) -> RootCertStore { self.root_certificate_store }
+impl RootCertificateStoreCli {
+    pub fn into_inner(self) -> RootCertStore { self.root_certificate_store }
 }
 
-impl FromStr for RootCertificateStore {
+impl FromStr for RootCertificateStoreCli {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -122,18 +102,12 @@ impl FromStr for RootCertificateStore {
     }
 }
 
-impl std::convert::TryFrom<&str> for RootCertificateStore {
-    type Error = Error;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> { Self::from_str(s) }
-}
-
-impl std::fmt::Display for RootCertificateStore {
+impl std::fmt::Display for RootCertificateStoreCli {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.path.to_string_lossy())
     }
 }
 
-impl From<RootCertificateStore> for String {
-    fn from(pkg_ident: RootCertificateStore) -> Self { pkg_ident.to_string() }
-}
+crate::impl_try_from_str_and_into_string!(CertificateChainCli,
+                                          PrivateKeyCli,
+                                          RootCertificateStoreCli);
