@@ -40,10 +40,8 @@ pub enum Error {
 pub fn generate_self_signed_certificate_and_key(subject_alternate_name: &str,
                                                 path: impl AsRef<Path>)
                                                 -> Result<(), Error> {
-    let mut params = CertificateParams::new(vec![subject_alternate_name.to_string(),
-                                                 "localhost".to_string(),
-                                                 "127.0.0.1".to_string(),
-                                                 "0.0.0.0".to_string()]);
+    let mut params =
+        CertificateParams::new(vec![subject_alternate_name.to_string(), "localhost".to_string(),]);
     let mut distinguished_name = DistinguishedName::new();
     distinguished_name.push(DnType::CommonName, "Habitat Supervisor Control Gateway");
     params.distinguished_name = distinguished_name;
