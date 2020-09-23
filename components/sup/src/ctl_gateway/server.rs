@@ -522,8 +522,13 @@ impl CtlGatewayServer {
                         match TcpOrTlsStream::new_tls_server(tcp_stream, Arc::clone(tls_config)).await
                     {
                         Ok(tcp_stream) => tcp_stream,
-                        Err(e) => {
+                        Err((e, tcp_stream)) => {
                             error!("Failed to accept TLS client connection, err {}", e);
+                            let mut srv_codec = SrvCodec::new().framed(tcp_stream);
+                            let net_err = net::err(ErrCode::TlsHandshakeFailed, format!("TLS handshake failed, err: {}", e));
+                            if let Err(e) = srv_codec.send(SrvMessage::from(net_err)).await {
+                                error!("Failed to send TLS failure message to client, err {}", e);
+                            }
                             continue;
                         }
                     }
@@ -531,10 +536,10 @@ impl CtlGatewayServer {
                         TcpOrTlsStream::new(tcp_stream)
                     };
 
-                    let io = SrvCodec::new().framed(tcp_stream);
+                    let srv_codec = SrvCodec::new().framed(tcp_stream);
                     let client = Client { state: Arc::clone(&state), };
                     tokio::spawn(async move {
-                        let res = client.serve(io).await;
+                        let res = client.serve(srv_codec).await;
                         debug!("DISCONNECTED from {:?} with result {:?}", addr, res);
                     });
                 }

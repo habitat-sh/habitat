@@ -29,7 +29,7 @@ impl TcpOrTlsStream {
     /// Create a new `TlsStream` using server configuration
     pub async fn new_tls_server(stream: TcpStream,
                                 tls_config: Arc<TlsServerConfig>)
-                                -> io::Result<Self> {
+                                -> Result<Self, (io::Error, TcpStream)> {
         let tcp_stream = Self::new(stream);
         tcp_stream.maybe_upgrade_to_tls_server(tls_config).await
     }
@@ -38,7 +38,7 @@ impl TcpOrTlsStream {
     pub async fn new_tls_client(stream: TcpStream,
                                 tls_config: Arc<TlsClientConfig>,
                                 domain: &str)
-                                -> io::Result<Self> {
+                                -> Result<Self, (io::Error, TcpStream)> {
         let tcp_stream = Self::new(stream);
         tcp_stream.maybe_upgrade_to_tls_client(tls_config, domain)
                   .await
@@ -47,14 +47,11 @@ impl TcpOrTlsStream {
     /// Upgrade a `TcpStream` into a `TlsStream` using server configuration
     async fn maybe_upgrade_to_tls_server(self,
                                          tls_config: Arc<TlsServerConfig>)
-                                         -> io::Result<Self> {
+                                         -> Result<Self, (io::Error, TcpStream)> {
         let tls_server_stream = match self {
             Self::TcpStream(stream) => {
                 let tls_acceptor = TlsAcceptor::from(tls_config);
-                let tls_stream = tls_acceptor.accept(stream)
-                                             .into_failable()
-                                             .await
-                                             .map_err(|e| e.0)?;
+                let tls_stream = tls_acceptor.accept(stream).into_failable().await?;
                 Self::TlsStream(TlsStream::Server(tls_stream))
             }
             stream @ Self::TlsStream(_) => stream,
@@ -66,18 +63,21 @@ impl TcpOrTlsStream {
     async fn maybe_upgrade_to_tls_client(self,
                                          tls_config: Arc<TlsClientConfig>,
                                          domain: &str)
-                                         -> io::Result<Self> {
+                                         -> Result<Self, (io::Error, TcpStream)> {
         let tls_client_stream = match self {
             Self::TcpStream(stream) => {
                 let tls_connector = TlsConnector::from(tls_config);
-                let domain = DNSNameRef::try_from_ascii_str(domain).map_err(|_| {
-                                 io::Error::new(io::ErrorKind::InvalidInput,
-                                                format!("invalid DNS name '{}'", domain))
-                             })?;
+                let domain = match DNSNameRef::try_from_ascii_str(domain) {
+                    Ok(domain) => domain,
+                    Err(_) => {
+                        let error = io::Error::new(io::ErrorKind::InvalidInput,
+                                                   format!("invalid DNS name '{}'", domain));
+                        return Err((error, stream));
+                    }
+                };
                 let tls_stream = tls_connector.connect(domain, stream)
                                               .into_failable()
-                                              .await
-                                              .map_err(|e| e.0)?;
+                                              .await?;
                 Self::TlsStream(TlsStream::Client(tls_stream))
             }
             stream @ Self::TlsStream(_) => stream,

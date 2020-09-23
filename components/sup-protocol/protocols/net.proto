@@ -22,6 +22,7 @@ enum ErrCode {
   // Requestor sent a message which the server cannot process. The requestor should update their
   // client before making the same request again.
   UpdateClient = 9;
+  TlsHandshakeFailed = 10;
 }
 
 // Returned when a transactional request is successful but no entities are returned. Useful

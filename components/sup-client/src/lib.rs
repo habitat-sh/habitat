@@ -197,7 +197,8 @@ impl SrvClient {
 
         // Upgrade to a TLS connection if necessary
         let tcp_stream = if let Some(tls_config) = maybe_tls_config {
-            TcpOrTlsStream::new_tls_client(tcp_stream, tls_config, addr.domain()).await?
+            TcpOrTlsStream::new_tls_client(tcp_stream, tls_config, addr.domain()).await
+                                                                                 .map_err(|e| e.0)?
         } else {
             TcpOrTlsStream::new(tcp_stream)
         };
