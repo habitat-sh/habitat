@@ -303,7 +303,7 @@ impl PartialEq<EventStreamServerCertificate> for EventStreamServerCertificate {
 }
 
 /// A wrapper around `ListenCtlAddr` that keeps track of the domain the socket address was resolved
-/// from. Ideally this would be done by the `env_config_socketaddr`.
+/// from. Ideally this would be done by `env_config_socketaddr`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(try_from = "&str", into = "String")]
 pub struct ResolvedListenCtlAddr {
@@ -322,20 +322,10 @@ impl FromStr for ResolvedListenCtlAddr {
     }
 }
 
-impl std::convert::TryFrom<&str> for ResolvedListenCtlAddr {
-    type Error = Error;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> { Self::from_str(s) }
-}
-
 impl std::fmt::Display for ResolvedListenCtlAddr {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}:{}", self.domain, self.addr.port())
     }
-}
-
-impl From<ResolvedListenCtlAddr> for String {
-    fn from(pkg_ident: ResolvedListenCtlAddr) -> Self { pkg_ident.to_string() }
 }
 
 impl Default for ResolvedListenCtlAddr {
@@ -351,6 +341,8 @@ impl ResolvedListenCtlAddr {
 impl From<ResolvedListenCtlAddr> for ListenCtlAddr {
     fn from(r: ResolvedListenCtlAddr) -> Self { r.addr }
 }
+
+habitat_core::impl_try_from_str_and_into_string!(ResolvedListenCtlAddr);
 
 habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug, Deserialize, Serialize)]
                                      pub GossipListenAddr,
