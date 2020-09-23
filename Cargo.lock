@@ -580,7 +580,7 @@ dependencies = [
 [[package]]
 name = "clap"
 version = "2.33.1"
-source = "git+https://github.com/habitat-sh/clap.git?branch=v2-master#57cf26b2ac2ac768bc3c2a8fb85cc8e722a150fd"
+source = "git+https://github.com/habitat-sh/clap.git?branch=v2-master#21690ba25d1ac5783f4fb413ff87e6d086d15b49"
 dependencies = [
  "ansi_term",
  "atty",
