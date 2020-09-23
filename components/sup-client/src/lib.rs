@@ -54,7 +54,6 @@ use rustls::TLSError as RustlsError;
 use std::{error,
           fmt,
           io,
-          path::PathBuf,
           str::FromStr,
           sync::Arc,
           time::Duration};
@@ -73,8 +72,6 @@ pub enum SrvClientError {
     /// The remote server unexpectedly closed the connection.
     ConnectionClosed,
     CliConfigError(CliConfigError),
-    /// Unable to locate a secret key on disk.
-    CtlSecretNotFound(PathBuf),
     /// Decoding a message from the remote failed.
     Decode(prost::DecodeError),
     /// An Os level IO error occurred.
@@ -105,12 +102,6 @@ impl fmt::Display for SrvClientError {
                                                                      .to_string()
             }
             SrvClientError::CliConfigError(ref err) => format!("{}", err),
-            SrvClientError::CtlSecretNotFound(ref path) => {
-                format!("No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run \
-                         `hab setup` or run the Supervisor for the first time before attempting \
-                         to command the Supervisor.",
-                        path.display())
-            }
             SrvClientError::Decode(ref err) => format!("{}", err),
             SrvClientError::Io(ref err) => format!("{}", err),
             SrvClientError::NetErr(ref err) => format!("{}", err),

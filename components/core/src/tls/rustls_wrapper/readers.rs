@@ -60,7 +60,7 @@ pub fn root_certificate_store_from_file(path: impl AsRef<Path>) -> Result<RootCe
     let (_, failed) = root_certificate_store.add_pem_file(&mut buf)
                                             .map_err(|_| Error::FailedToReadRootCertificateStore(path.as_ref().into()))?;
     if failed > 0 {
-        Err(Error::FailedToReadCertificatesFromRootCertificateStore(failed, path.as_ref().into()));
+        Err(Error::FailedToReadCertificatesFromRootCertificateStore(failed, path.as_ref().into()))
     } else {
         Ok(root_certificate_store)
     }
