@@ -1,26 +1,37 @@
-use crate::{error::{Error,
+use crate::{error::{Error as HabError,
                     Result},
-            hcore::{config::ConfigFile,
-                    fs::{am_i_root,
-                         FS_ROOT_PATH}},
+            hcore::fs::{am_i_root,
+                        FS_ROOT_PATH},
             CTL_SECRET_ENVVAR};
 use habitat_core::{env as henv,
                    origin::Origin};
 use habitat_sup_client::SrvClient;
 use std::{fs::{self,
                File},
-          io::Write,
-          path::PathBuf};
+          io::{self,
+               Write},
+          path::{Path,
+                 PathBuf}};
 
-const CLI_CONFIG_PATH: &str = "hab/etc/cli.toml";
+const CLI_CONFIG_PATH_POSTFIX: &str = "hab/etc/cli.toml";
 
 lazy_static::lazy_static! {
+    pub static ref CLI_CONFIG_PATH: PathBuf = cli_config_path();
+
     /// A cached reading of the config file. This avoids the need to continually read from disk.
     /// However, it also means changes to the file will not be picked up after the program has
     /// started. Ideally, we would repopulate this struct on file change or on some configured
     /// interval.
     /// https://github.com/habitat-sh/habitat/issues/7243
     pub static ref CACHED: Config = load().unwrap_or_default();
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("reading '{}' failed, err: {0}", CLI_CONFIG_PATH.display())]
+    File(#[from] io::Error),
+    #[error("parsing '{}' failed, err: {0}", CLI_CONFIG_PATH.display())]
+    Toml(#[from] toml::de::Error),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
@@ -31,8 +42,11 @@ pub struct Config {
     pub bldr_url:   Option<String>,
 }
 
-impl ConfigFile for Config {
-    type Error = Error;
+impl Config {
+    fn from_file<T: AsRef<Path>>(path: T) -> std::result::Result<Self, Error> {
+        let raw = fs::read_to_string(path)?;
+        Ok(toml::from_str(&raw)?)
+    }
 }
 
 impl Default for Config {
@@ -44,7 +58,7 @@ impl Default for Config {
     }
 }
 
-pub fn load() -> Result<Config> {
+pub fn load() -> std::result::Result<Config, Error> {
     let cli_config_path = cli_config_path();
     if cli_config_path.exists() {
         debug!("Loading CLI config from {}", cli_config_path.display());
@@ -60,7 +74,7 @@ pub fn save(config: &Config) -> Result<()> {
     let parent_path = match config_path.parent() {
         Some(p) => p,
         None => {
-            return Err(Error::FileNotFound(config_path.to_string_lossy().into_owned()));
+            return Err(HabError::FileNotFound(config_path.to_string_lossy().into_owned()));
         }
     };
     fs::create_dir_all(&parent_path)?;
@@ -79,7 +93,7 @@ pub fn ctl_secret_key(config: &Config) -> Result<String> {
         Err(_) => {
             match config.ctl_secret {
                 Some(ref v) => Ok(v.to_string()),
-                None => SrvClient::read_secret_key().map_err(Error::from),
+                None => SrvClient::read_secret_key().map_err(HabError::from),
             }
         }
     }
@@ -88,8 +102,8 @@ pub fn ctl_secret_key(config: &Config) -> Result<String> {
 fn cli_config_path() -> PathBuf {
     if !am_i_root() {
         if let Some(home) = dirs::home_dir() {
-            return home.join(format!(".{}", CLI_CONFIG_PATH));
+            return home.join(format!(".{}", CLI_CONFIG_PATH_POSTFIX));
         }
     }
-    PathBuf::from(&*FS_ROOT_PATH).join(CLI_CONFIG_PATH)
+    PathBuf::from(&*FS_ROOT_PATH).join(CLI_CONFIG_PATH_POSTFIX)
 }

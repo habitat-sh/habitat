@@ -50,6 +50,7 @@ structopt = { git = "https://github.com/habitat-sh/structopt.git" }
 tabwriter = "*"
 tar = "*"
 termcolor = "*"
+thiserror = "*"
 tokio = { version = "*", features = ["full"] }
 toml = { version = "*", features = [ "preserve_order" ] }
 url = { version = "*", features = ["serde"] }

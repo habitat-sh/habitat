@@ -1202,6 +1202,7 @@ dependencies = [
  "tar",
  "tempfile",
  "termcolor",
+ "thiserror",
  "tokio",
  "toml 0.5.6",
  "url",
