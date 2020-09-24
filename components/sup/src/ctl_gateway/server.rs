@@ -524,10 +524,16 @@ impl CtlGatewayServer {
                         Ok(tcp_stream) => tcp_stream,
                         Err((e, tcp_stream)) => {
                             error!("Failed to accept TLS client connection, err {}", e);
-                            let mut srv_codec = SrvCodec::new().framed(tcp_stream);
-                            let net_err = net::err(ErrCode::TlsHandshakeFailed, format!("TLS handshake failed, err: {}", e));
-                            if let Err(e) = srv_codec.send(SrvMessage::from(net_err)).await {
-                                error!("Failed to send TLS failure message to client, err {}", e);
+                            // If the client sent a corrupt TLS message it is a good indicator that
+                            // they did not upgrade to TLS. In this case send back an error response.
+                            // We do not always send back an error response because it can lead to
+                            // confusing error messages on the client.
+                            if let Some(&rustls::TLSError::CorruptMessage) = e.get_ref().and_then(|e| e.downcast_ref()) {
+                                let mut srv_codec = SrvCodec::new().framed(tcp_stream);
+                                let net_err = net::err(ErrCode::TlsHandshakeFailed, format!("TLS handshake failed, err: {}", e));
+                                if let Err(e) = srv_codec.send(SrvMessage::from(net_err)).await {
+                                    error!("Failed to send TLS failure message to client, err {}", e);
+                                }
                             }
                             continue;
                         }
