@@ -37,7 +37,7 @@ pub enum Error {
     Toml(#[from] toml::de::Error),
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Config {
     pub auth_token: Option<String>,
     pub origin:     Option<Origin>,
@@ -49,15 +49,6 @@ impl Config {
     fn from_file<T: AsRef<Path>>(path: T) -> std::result::Result<Self, Error> {
         let raw = fs::read_to_string(path)?;
         Ok(toml::from_str(&raw)?)
-    }
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Config { auth_token: None,
-                 origin:     None,
-                 ctl_secret: None,
-                 bldr_url:   None, }
     }
 }
 
