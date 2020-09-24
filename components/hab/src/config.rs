@@ -59,10 +59,9 @@ impl Default for Config {
 }
 
 pub fn load() -> std::result::Result<Config, Error> {
-    let cli_config_path = cli_config_path();
-    if cli_config_path.exists() {
-        debug!("Loading CLI config from {}", cli_config_path.display());
-        Ok(Config::from_file(&cli_config_path)?)
+    if CLI_CONFIG_PATH.exists() {
+        debug!("Loading CLI config from {}", CLI_CONFIG_PATH.display());
+        Ok(Config::from_file(&*CLI_CONFIG_PATH)?)
     } else {
         debug!("No CLI config found, loading defaults");
         Ok(Config::default())
@@ -70,17 +69,16 @@ pub fn load() -> std::result::Result<Config, Error> {
 }
 
 pub fn save(config: &Config) -> Result<()> {
-    let config_path = cli_config_path();
-    let parent_path = match config_path.parent() {
+    let parent_path = match CLI_CONFIG_PATH.parent() {
         Some(p) => p,
         None => {
-            return Err(HabError::FileNotFound(config_path.to_string_lossy().into_owned()));
+            return Err(HabError::FileNotFound(CLI_CONFIG_PATH.display().to_string()));
         }
     };
     fs::create_dir_all(&parent_path)?;
     let raw = toml::ser::to_string(config)?;
     debug!("Raw config toml:\n---\n{}\n---", &raw);
-    let mut file = File::create(&config_path)?;
+    let mut file = File::create(&*CLI_CONFIG_PATH)?;
     file.write_all(raw.as_bytes())?;
     Ok(())
 }
