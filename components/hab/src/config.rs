@@ -17,6 +17,9 @@ const CLI_CONFIG_PATH_POSTFIX: &str = "hab/etc/cli.toml";
 
 lazy_static::lazy_static! {
     pub static ref CLI_CONFIG_PATH: PathBuf = cli_config_path();
+    pub static ref CLI_CONFIG_PATH_PARENT: &'static Path = CLI_CONFIG_PATH
+                                                    .parent()
+                                                    .expect("cli config path parent");
 
     /// A cached reading of the config file. This avoids the need to continually read from disk.
     /// However, it also means changes to the file will not be picked up after the program has
@@ -69,13 +72,7 @@ pub fn load() -> std::result::Result<Config, Error> {
 }
 
 pub fn save(config: &Config) -> Result<()> {
-    let parent_path = match CLI_CONFIG_PATH.parent() {
-        Some(p) => p,
-        None => {
-            return Err(HabError::FileNotFound(CLI_CONFIG_PATH.display().to_string()));
-        }
-    };
-    fs::create_dir_all(&parent_path)?;
+    fs::create_dir_all(&*CLI_CONFIG_PATH_PARENT)?;
     let raw = toml::ser::to_string(config)?;
     debug!("Raw config toml:\n---\n{}\n---", &raw);
     let mut file = File::create(&*CLI_CONFIG_PATH)?;
