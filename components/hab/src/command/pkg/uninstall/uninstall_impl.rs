@@ -270,7 +270,7 @@ async fn supervisor_services() -> Result<Vec<PackageIdent>> {
         return Ok(vec![]);
     }
 
-    let cfg = config::load()?;
+    let cfg = config::Config::load()?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let listen_ctl_addr = ListenCtlAddr::default();
     let msg = habitat_sup_protocol::ctl::SvcStatus::default();

@@ -18,13 +18,6 @@ lazy_static::lazy_static! {
     static ref CLI_CONFIG_PATH_PARENT: &'static Path = CLI_CONFIG_PATH
                                                     .parent()
                                                     .expect("cli config path parent");
-
-    /// A cached reading of the config file. This avoids the need to continually read from disk.
-    /// However, it also means changes to the file will not be picked up after the program has
-    /// started. Ideally, we would repopulate this struct on file change or on some configured
-    /// interval.
-    /// https://github.com/habitat-sh/habitat/issues/7243
-    pub static ref CACHED: Config = load().unwrap_or_default();
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -50,24 +43,24 @@ impl Config {
         let raw = fs::read_to_string(path)?;
         Ok(toml::from_str(&raw)?)
     }
-}
 
-pub fn load() -> Result<Config, Error> {
-    if CLI_CONFIG_PATH.exists() {
-        debug!("Loading CLI config from {}", CLI_CONFIG_PATH.display());
-        Ok(Config::from_file(&*CLI_CONFIG_PATH)?)
-    } else {
-        debug!("No CLI config found, loading defaults");
-        Ok(Config::default())
+    pub fn load() -> Result<Self, Error> {
+        if CLI_CONFIG_PATH.exists() {
+            debug!("Loading CLI config from {}", CLI_CONFIG_PATH.display());
+            Ok(Config::from_file(&*CLI_CONFIG_PATH)?)
+        } else {
+            debug!("No CLI config found, loading defaults");
+            Ok(Config::default())
+        }
     }
-}
 
-pub fn save(config: &Config) -> Result<(), Error> {
-    fs::create_dir_all(&*CLI_CONFIG_PATH_PARENT)?;
-    let raw = toml::ser::to_string(config)?;
-    debug!("Raw config toml:\n---\n{}\n---", &raw);
-    fs::write(&*CLI_CONFIG_PATH, raw)?;
-    Ok(())
+    pub fn save(&self) -> Result<(), Error> {
+        fs::create_dir_all(&*CLI_CONFIG_PATH_PARENT)?;
+        let raw = toml::ser::to_string(self)?;
+        debug!("Raw config toml:\n---\n{}\n---", &raw);
+        fs::write(&*CLI_CONFIG_PATH, raw)?;
+        Ok(())
+    }
 }
 
 /// Check if the HAB_CTL_SECRET env var. If not, check the CLI config to see if there is a ctl

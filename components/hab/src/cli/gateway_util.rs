@@ -28,7 +28,7 @@ use termcolor::{self,
 pub async fn send(remote_sup_addr: &ListenCtlAddr,
                   msg: impl Into<SrvMessage> + fmt::Debug)
                   -> Result<()> {
-    let cfg = config::load()?;
+    let cfg = config::Config::load()?;
     let secret_key = config::ctl_secret_key(&cfg)?;
 
     let mut response = SrvClient::request(remote_sup_addr, &secret_key, msg).await?;

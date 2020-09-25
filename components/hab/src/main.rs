@@ -1298,7 +1298,7 @@ async fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
-    let cfg = config::load()?;
+    let cfg = config::Config::load()?;
     let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
@@ -1387,7 +1387,7 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
 
 async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;
-    let cfg = config::load()?;
+    let cfg = config::Config::load()?;
     let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcGetDefaultCfg::default();
@@ -1456,7 +1456,7 @@ async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_status(pkg_ident: Option<PackageIdent>, remote_sup: &ListenCtlAddr) -> Result<()> {
-    let cfg = config::load()?;
+    let cfg = config::Config::load()?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcStatus::default();
     msg.ident = pkg_ident.map(Into::into);
@@ -1490,7 +1490,7 @@ async fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
 
 async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
-    let cfg = config::load()?;
+    let cfg = config::Config::load()?;
     let remote_sup_addr = remote_sup_from_input(m)?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let mut ui = ui::ui();
@@ -1561,7 +1561,7 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_sup_depart(member_id: String, remote_sup: &ListenCtlAddr) -> Result<()> {
-    let cfg = config::load()?;
+    let cfg = config::Config::load()?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SupDepart::default();
@@ -1590,7 +1590,7 @@ async fn sub_sup_depart(member_id: String, remote_sup: &ListenCtlAddr) -> Result
 }
 
 async fn sub_sup_restart(remote_sup: &ListenCtlAddr) -> Result<()> {
-    let cfg = config::load()?;
+    let cfg = config::Config::load()?;
     let secret_key = config::ctl_secret_key(&cfg)?;
     let mut ui = ui::ui();
     let msg = sup_proto::ctl::SupRestart::default();
@@ -1684,13 +1684,11 @@ fn auth_token_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
             match henv::var(AUTH_TOKEN_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => {
-                    config::load()?.auth_token.ok_or_else(|| {
-                                                  Error::ArgumentError(
-                    "No auth token \
-                     specified"
-                        .into(),
-                )
-                                              })
+                    config::Config::load()?.auth_token.ok_or_else(|| {
+                                                          Error::ArgumentError("No auth token \
+                                                                                specified"
+                                                                                          .into())
+                                                      })
                 }
             }
         }
@@ -1719,7 +1717,7 @@ fn origin_param_or_env(m: &ArgMatches<'_>) -> Result<habitat_core::origin::Origi
             match henv::var(ORIGIN_ENVVAR) {
                 Ok(v) => Ok(v.parse()?),
                 Err(_) => {
-                    config::load()?.origin.ok_or_else(|| {
+                    config::Config::load()?.origin.ok_or_else(|| {
                                               Error::CryptoCLI("No origin specified".to_string())
                                           })
                 }
@@ -1749,7 +1747,7 @@ fn bldr_url_from_matches(matches: &ArgMatches<'_>) -> Result<String> {
             match henv::var(BLDR_URL_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => {
-                    let config = config::load()?;
+                    let config = config::Config::load()?;
                     match config.bldr_url {
                         Some(v) => Ok(v),
                         None => Ok(default_bldr_url()),

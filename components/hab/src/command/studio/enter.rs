@@ -67,7 +67,7 @@ fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
 }
 
 pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
-    let config = config::load()?;
+    let config = config::Config::load()?;
 
     set_env_var_from_config(AUTH_TOKEN_ENVVAR,
                             config.auth_token,
