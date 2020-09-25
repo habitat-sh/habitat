@@ -1,8 +1,15 @@
 #[cfg(windows)]
 use crate::common::cli::DEFAULT_BINLINK_DIR;
-use crate::common::ui::{UIReader,
-                        UIWriter,
-                        UI};
+use crate::{command,
+            common::ui::{UIReader,
+                         UIWriter,
+                         UI},
+            config::CliConfig,
+            error::Result,
+            AUTH_TOKEN_ENVVAR,
+            BLDR_URL_ENVVAR,
+            CTL_SECRET_ENVVAR,
+            ORIGIN_ENVVAR};
 #[cfg(windows)]
 use habitat_core::fs::{self,
                        FS_ROOT_PATH};
@@ -32,14 +39,6 @@ use winreg::enums::{HKEY_LOCAL_MACHINE,
                     KEY_READ};
 #[cfg(windows)]
 use winreg::RegKey;
-
-use crate::{command,
-            config,
-            error::Result,
-            AUTH_TOKEN_ENVVAR,
-            BLDR_URL_ENVVAR,
-            CTL_SECRET_ENVVAR,
-            ORIGIN_ENVVAR};
 
 pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
     ui.br()?;
@@ -219,25 +218,25 @@ fn ask_create_origin(ui: &mut UI, origin: &Origin) -> Result<bool> {
 }
 
 fn write_cli_config_origin(origin: &Origin) -> Result<()> {
-    let mut config = config::Config::load()?;
+    let mut config = CliConfig::load()?;
     config.origin = Some(origin.clone());
     Ok(config.save()?)
 }
 
 fn write_cli_config_bldr_url(url: &str) -> Result<()> {
-    let mut config = config::Config::load()?;
+    let mut config = CliConfig::load()?;
     config.bldr_url = Some(url.to_string());
     Ok(config.save()?)
 }
 
 fn write_cli_config_auth_token(auth_token: &str) -> Result<()> {
-    let mut config = config::Config::load()?;
+    let mut config = CliConfig::load()?;
     config.auth_token = Some(auth_token.to_string());
     Ok(config.save()?)
 }
 
 fn write_cli_config_ctl_secret(value: &str) -> Result<()> {
-    let mut config = config::Config::load()?;
+    let mut config = CliConfig::load()?;
     config.ctl_secret = Some(value.to_string());
     Ok(config.save()?)
 }
@@ -253,7 +252,7 @@ fn create_origin(ui: &mut UI, origin: &Origin, key_cache: &KeyCache) -> Result<(
 }
 
 fn prompt_origin(ui: &mut UI) -> Result<Origin> {
-    let config = config::Config::load()?;
+    let config = CliConfig::load()?;
     let default_origin_name = match config.origin {
         Some(o) => {
             ui.para(&format!("You already have a default origin set up as `{}', but feel free \
@@ -278,7 +277,7 @@ fn ask_default_ctl_secret(ui: &mut UI) -> Result<bool> {
 }
 
 fn prompt_url(ui: &mut UI) -> Result<String> {
-    let config = config::Config::load()?;
+    let config = CliConfig::load()?;
     let default = match config.bldr_url {
         Some(u) => {
             ui.para("You already have a default builder url set up, but feel free to change it \
@@ -291,7 +290,7 @@ fn prompt_url(ui: &mut UI) -> Result<String> {
 }
 
 fn prompt_auth_token(ui: &mut UI) -> Result<String> {
-    let config = config::Config::load()?;
+    let config = CliConfig::load()?;
     let default = match config.auth_token {
         Some(o) => {
             ui.para("You already have a default auth token set up, but feel free to change it \
@@ -304,7 +303,7 @@ fn prompt_auth_token(ui: &mut UI) -> Result<String> {
 }
 
 fn prompt_ctl_secret(ui: &mut UI) -> Result<String> {
-    let config = config::Config::load()?;
+    let config = CliConfig::load()?;
     let default = match config.ctl_secret {
         Some(o) => {
             ui.para(

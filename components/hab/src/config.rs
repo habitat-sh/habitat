@@ -31,14 +31,14 @@ pub enum Error {
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
-pub struct Config {
+pub struct CliConfig {
     pub auth_token: Option<String>,
     pub origin:     Option<Origin>,
     pub ctl_secret: Option<String>,
     pub bldr_url:   Option<String>,
 }
 
-impl Config {
+impl CliConfig {
     fn from_file<T: AsRef<Path>>(path: T) -> Result<Self, Error> {
         let raw = fs::read_to_string(path)?;
         Ok(toml::from_str(&raw)?)
@@ -47,10 +47,10 @@ impl Config {
     pub fn load() -> Result<Self, Error> {
         if CLI_CONFIG_PATH.exists() {
             debug!("Loading CLI config from {}", CLI_CONFIG_PATH.display());
-            Ok(Config::from_file(&*CLI_CONFIG_PATH)?)
+            Ok(CliConfig::from_file(&*CLI_CONFIG_PATH)?)
         } else {
             debug!("No CLI config found, loading defaults");
-            Ok(Config::default())
+            Ok(CliConfig::default())
         }
     }
 
@@ -65,7 +65,7 @@ impl Config {
 
 /// Check if the HAB_CTL_SECRET env var. If not, check the CLI config to see if there is a ctl
 /// secret set and return a copy of that value.
-pub fn ctl_secret_key(config: &Config) -> HabResult<String> {
+pub fn ctl_secret_key(config: &CliConfig) -> HabResult<String> {
     match henv::var(CTL_SECRET_ENVVAR) {
         Ok(v) => Ok(v),
         Err(_) => {
