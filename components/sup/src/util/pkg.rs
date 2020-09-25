@@ -6,7 +6,7 @@ use hab::{command::pkg::{self,
                          uninstall::{self,
                                      UninstallHookMode,
                                      UninstallSafety}},
-          config,
+          config::CliConfig,
           error::Result as HabResult};
 use habitat_api_client::BuilderAPIClient;
 use habitat_common::{command::package::install::{self as install_cmd,
@@ -31,7 +31,7 @@ static LOGKEY: &str = "UT";
 
 fn get_auth_token() -> Option<String> {
     henv::var(AUTH_TOKEN_ENVVAR).ok()
-                                .or_else(|| config::CACHED.auth_token.clone())
+                                .or_else(|| CliConfig::cache().auth_token.clone())
 }
 
 /// Helper function for use in the Supervisor to handle lower-level

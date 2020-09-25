@@ -18,6 +18,13 @@ lazy_static::lazy_static! {
     static ref CLI_CONFIG_PATH_PARENT: &'static Path = CLI_CONFIG_PATH
                                                     .parent()
                                                     .expect("cli config path parent");
+
+    /// A cached reading of the config file. This avoids the need to continually read from disk.
+    /// However, it also means changes to the file will not be picked up after the program has
+    /// started. Ideally, we would repopulate this struct on file change or on some configured
+    /// interval.
+    /// https://github.com/habitat-sh/habitat/issues/7243
+    static ref CACHED_CLI_CONFIG: CliConfig = CliConfig::load().unwrap_or_default();
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -44,6 +51,10 @@ impl CliConfig {
         Ok(toml::from_str(&raw)?)
     }
 
+    /// Get a reference to the `CliConfig` cached at startup
+    pub fn cache() -> &'static Self { &*CACHED_CLI_CONFIG }
+
+    /// Load an up to date `CliConfig` from disk
     pub fn load() -> Result<Self, Error> {
         if CLI_CONFIG_PATH.exists() {
             debug!("Loading CLI config from {}", CLI_CONFIG_PATH.display());
@@ -54,6 +65,7 @@ impl CliConfig {
         }
     }
 
+    /// Save the `CliConfig` to disk
     pub fn save(&self) -> Result<(), Error> {
         fs::create_dir_all(&*CLI_CONFIG_PATH_PARENT)?;
         let raw = toml::ser::to_string(self)?;
