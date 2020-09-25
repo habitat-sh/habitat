@@ -1,23 +1,21 @@
 use crate::{error::{Error as HabError,
-                    Result},
+                    Result as HabResult},
             hcore::fs::{am_i_root,
                         FS_ROOT_PATH},
             CTL_SECRET_ENVVAR};
 use habitat_core::{env as henv,
                    origin::Origin};
 use habitat_sup_client::SrvClient;
-use std::{fs::{self,
-               File},
-          io::{self,
-               Write},
+use std::{fs,
+          io,
           path::{Path,
                  PathBuf}};
 
 const CLI_CONFIG_PATH_POSTFIX: &str = "hab/etc/cli.toml";
 
 lazy_static::lazy_static! {
-    pub static ref CLI_CONFIG_PATH: PathBuf = cli_config_path();
-    pub static ref CLI_CONFIG_PATH_PARENT: &'static Path = CLI_CONFIG_PATH
+    static ref CLI_CONFIG_PATH: PathBuf = cli_config_path();
+    static ref CLI_CONFIG_PATH_PARENT: &'static Path = CLI_CONFIG_PATH
                                                     .parent()
                                                     .expect("cli config path parent");
 
@@ -31,10 +29,12 @@ lazy_static::lazy_static! {
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("reading '{}' failed, err: {0}", CLI_CONFIG_PATH.display())]
-    File(#[from] io::Error),
-    #[error("parsing '{}' failed, err: {0}", CLI_CONFIG_PATH.display())]
-    Toml(#[from] toml::de::Error),
+    #[error("'{}' io failure, err: {0}", CLI_CONFIG_PATH.display())]
+    Io(#[from] io::Error),
+    #[error("deserializing '{}' failed, err: {0}", CLI_CONFIG_PATH.display())]
+    Deserialize(#[from] toml::de::Error),
+    #[error("serializing '{}' failed, err: {0}", CLI_CONFIG_PATH.display())]
+    Serialize(#[from] toml::ser::Error),
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
@@ -46,13 +46,13 @@ pub struct Config {
 }
 
 impl Config {
-    fn from_file<T: AsRef<Path>>(path: T) -> std::result::Result<Self, Error> {
+    fn from_file<T: AsRef<Path>>(path: T) -> Result<Self, Error> {
         let raw = fs::read_to_string(path)?;
         Ok(toml::from_str(&raw)?)
     }
 }
 
-pub fn load() -> std::result::Result<Config, Error> {
+pub fn load() -> Result<Config, Error> {
     if CLI_CONFIG_PATH.exists() {
         debug!("Loading CLI config from {}", CLI_CONFIG_PATH.display());
         Ok(Config::from_file(&*CLI_CONFIG_PATH)?)
@@ -62,18 +62,17 @@ pub fn load() -> std::result::Result<Config, Error> {
     }
 }
 
-pub fn save(config: &Config) -> Result<()> {
+pub fn save(config: &Config) -> Result<(), Error> {
     fs::create_dir_all(&*CLI_CONFIG_PATH_PARENT)?;
     let raw = toml::ser::to_string(config)?;
     debug!("Raw config toml:\n---\n{}\n---", &raw);
-    let mut file = File::create(&*CLI_CONFIG_PATH)?;
-    file.write_all(raw.as_bytes())?;
+    fs::write(&*CLI_CONFIG_PATH, raw)?;
     Ok(())
 }
 
 /// Check if the HAB_CTL_SECRET env var. If not, check the CLI config to see if there is a ctl
 /// secret set and return a copy of that value.
-pub fn ctl_secret_key(config: &Config) -> Result<String> {
+pub fn ctl_secret_key(config: &Config) -> HabResult<String> {
     match henv::var(CTL_SECRET_ENVVAR) {
         Ok(v) => Ok(v),
         Err(_) => {

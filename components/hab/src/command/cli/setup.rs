@@ -221,25 +221,25 @@ fn ask_create_origin(ui: &mut UI, origin: &Origin) -> Result<bool> {
 fn write_cli_config_origin(origin: &Origin) -> Result<()> {
     let mut config = config::load()?;
     config.origin = Some(origin.clone());
-    config::save(&config)
+    Ok(config::save(&config)?)
 }
 
 fn write_cli_config_bldr_url(url: &str) -> Result<()> {
     let mut config = config::load()?;
     config.bldr_url = Some(url.to_string());
-    config::save(&config)
+    Ok(config::save(&config)?)
 }
 
 fn write_cli_config_auth_token(auth_token: &str) -> Result<()> {
     let mut config = config::load()?;
     config.auth_token = Some(auth_token.to_string());
-    config::save(&config)
+    Ok(config::save(&config)?)
 }
 
 fn write_cli_config_ctl_secret(value: &str) -> Result<()> {
     let mut config = config::load()?;
     config.ctl_secret = Some(value.to_string());
-    config::save(&config)
+    Ok(config::save(&config)?)
 }
 
 fn is_origin_in_cache(origin: &Origin, key_cache: &KeyCache) -> bool {
