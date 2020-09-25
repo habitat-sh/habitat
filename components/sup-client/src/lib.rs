@@ -181,12 +181,14 @@ impl SrvClient {
                                                            .transpose()
                                                            .expect("error parsing ctl gateway server certificates")
                                                            .map(RootCertificateStoreCli::into_inner);
+        let server_name_indication = henv::var("HAB_CTL_GATEWAY_SERVER_NAME_INDICATION").ok();
 
         // TLS configuration
         let maybe_tls_config = if let Some(server_certificates) = server_ca_certificates {
             let mut tls_config = TlsClientConfig::new();
             tls_config.root_store = server_certificates;
             if let Some(client_key) = client_key {
+                debug!("Configuring ctl-gateway TLS with client certificate");
                 tls_config.set_single_client_cert(client_certificates.unwrap_or_default(),
                                                   client_key)?;
             }
@@ -197,8 +199,11 @@ impl SrvClient {
 
         // Upgrade to a TLS connection if necessary
         let tcp_stream = if let Some(tls_config) = maybe_tls_config {
-            TcpOrTlsStream::new_tls_client(tcp_stream, tls_config, addr.domain()).await
-                                                                                 .map_err(|e| e.0)?
+            let domain = server_name_indication.as_deref()
+                                               .unwrap_or_else(|| addr.domain());
+            debug!("Upgrading ctl-gateway to TLS with domain '{}'", domain);
+            TcpOrTlsStream::new_tls_client(tcp_stream, tls_config, domain).await
+                                                                          .map_err(|e| e.0)?
         } else {
             TcpOrTlsStream::new(tcp_stream)
         };
