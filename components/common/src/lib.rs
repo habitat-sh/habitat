@@ -25,6 +25,7 @@ pub use self::error::{Error,
                       Result};
 
 pub mod cli;
+pub mod cli_config;
 pub mod command;
 pub mod error;
 pub mod liveliness_checker;

@@ -1,12 +1,12 @@
 //! Consolidate logic for interacting with the Supervisor's control
 //! gateway.
 
-use crate::{config::{self,
-                     CliConfig},
+use crate::{config,
             error::Result};
 use futures::stream::StreamExt;
 use habitat_common as common;
-use habitat_common::{types::ListenCtlAddr,
+use habitat_common::{cli_config::CliConfig,
+                     types::ListenCtlAddr,
                      ui::{UIWriter,
                           UI}};
 use habitat_sup_client::{SrvClient,

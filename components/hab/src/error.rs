@@ -1,10 +1,10 @@
 use crate::{api_client,
             common,
-            config,
             hcore,
             protocol::net,
             sup_client::SrvClientError};
-use habitat_common::error::DEFAULT_ERROR_EXIT_CODE;
+use habitat_common::{cli_config,
+                     error::DEFAULT_ERROR_EXIT_CODE};
 use habitat_core::package::PackageIdent;
 use std::{collections::HashMap,
           env,
@@ -32,7 +32,7 @@ pub enum Error {
     CannotRemoveFromChannel((String, String)),
     CannotRemovePackage(hcore::package::PackageIdent, usize),
     CommandNotFoundInPkg((String, String)),
-    Config(config::Error),
+    CliConfig(cli_config::Error),
     ConfigOpt(configopt::Error),
     CryptoCLI(String),
     CtlClient(SrvClientError),
@@ -103,7 +103,7 @@ impl fmt::Display for Error {
                 format!("`{}' was not found under any 'PATH' directories in the {} package",
                         c, p)
             }
-            Error::Config(ref err) => format!("{}", err),
+            Error::CliConfig(ref err) => format!("{}", err),
             Error::ConfigOpt(ref err) => format!("{}", err),
             Error::CryptoCLI(ref e) => e.to_string(),
             Error::CtlClient(ref e) => e.to_string(),
@@ -218,8 +218,8 @@ impl From<common::Error> for Error {
     fn from(err: common::Error) -> Error { Error::HabitatCommon(err) }
 }
 
-impl From<config::Error> for Error {
-    fn from(err: config::Error) -> Self { Error::Config(err) }
+impl From<cli_config::Error> for Error {
+    fn from(err: cli_config::Error) -> Self { Error::CliConfig(err) }
 }
 
 impl From<configopt::Error> for Error {

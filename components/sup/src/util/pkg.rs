@@ -6,10 +6,10 @@ use hab::{command::pkg::{self,
                          uninstall::{self,
                                      UninstallHookMode,
                                      UninstallSafety}},
-          config::CliConfig,
           error::Result as HabResult};
 use habitat_api_client::BuilderAPIClient;
-use habitat_common::{command::package::install::{self as install_cmd,
+use habitat_common::{cli_config::CliConfig,
+                     command::package::install::{self as install_cmd,
                                                  InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,

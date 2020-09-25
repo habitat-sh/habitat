@@ -1,12 +1,12 @@
 use super::{ExecutionStrategy,
             Scope};
 use crate::{command::pkg::list,
-            config::{self,
-                     CliConfig},
+            config,
             error::{Error,
                     Result}};
 use futures::stream::StreamExt;
-use habitat_common::{package_graph::PackageGraph,
+use habitat_common::{cli_config::CliConfig,
+                     package_graph::PackageGraph,
                      templating::hooks::{PackageMaintenanceHookExt,
                                          UninstallHook},
                      types::ListenCtlAddr,

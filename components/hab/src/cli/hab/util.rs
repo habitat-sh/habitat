@@ -1,9 +1,9 @@
 use crate::{cli::valid_fully_qualified_ident,
-            config::CliConfig,
             error::Error};
 use configopt::{self,
                 ConfigOpt};
-use habitat_common::types::ListenCtlAddr;
+use habitat_common::{cli_config::CliConfig,
+                     types::ListenCtlAddr};
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    env as henv,
                    fs as hab_core_fs,

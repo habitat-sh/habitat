@@ -1,23 +1,20 @@
+use crate::{common::ui::{UIWriter,
+                         UI},
+            error::{Error,
+                    Result},
+            hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
+                    env as henv,
+                    fs},
+            BLDR_URL_ENVVAR,
+            ORIGIN_ENVVAR};
+use habitat_common::cli_config::CliConfig;
+use habitat_core::AUTH_TOKEN_ENVVAR;
+use same_file::is_same_file;
 use std::{env,
           ffi::OsString,
           fs as stdfs,
           path::{Path,
                  PathBuf}};
-
-use crate::{common::ui::{UIWriter,
-                         UI},
-            hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
-                    env as henv,
-                    fs}};
-
-use crate::{config::CliConfig,
-            error::{Error,
-                    Result},
-            BLDR_URL_ENVVAR,
-            ORIGIN_ENVVAR};
-
-use habitat_core::AUTH_TOKEN_ENVVAR;
-use same_file::is_same_file;
 
 pub const ARTIFACT_PATH_ENVVAR: &str = "ARTIFACT_PATH";
 pub const CERT_PATH_ENVVAR: &str = "CERT_PATH";

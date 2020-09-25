@@ -4,12 +4,12 @@ use crate::{command,
             common::ui::{UIReader,
                          UIWriter,
                          UI},
-            config::CliConfig,
             error::Result,
             AUTH_TOKEN_ENVVAR,
             BLDR_URL_ENVVAR,
             CTL_SECRET_ENVVAR,
             ORIGIN_ENVVAR};
+use habitat_common::cli_config::CliConfig;
 #[cfg(windows)]
 use habitat_core::fs::{self,
                        FS_ROOT_PATH};
