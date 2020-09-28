@@ -12,9 +12,8 @@
 //! #[tokio::main]
 //! async fn main() {
 //!     let listen_addr = ListenCtlAddr::default();
-//!     let secret_key = "seekrit";
 //!     let msg = protocols::ctl::SvcGetDefaultCfg::default();
-//!     let mut response = SrvClient::request(&listen_addr, secret_key, msg).await.unwrap();
+//!     let mut response = SrvClient::request(&listen_addr, msg).await.unwrap();
 //!     while let Some(message_result) = response.next().await {
 //!         let reply = message_result.unwrap();
 //!         match reply.message_id() {
@@ -41,7 +40,11 @@ use crate::{common::types::ListenCtlAddr,
 use futures::{sink::SinkExt,
               stream::{Stream,
                        StreamExt}};
-use habitat_common as common;
+use habitat_common::{self as common,
+                     cli::CTL_SECRET_ENVVAR,
+                     cli_config::{CliConfig,
+                                  Error as CliConfigError}};
+use habitat_core::env as henv;
 use std::{error,
           fmt,
           io,
@@ -61,6 +64,7 @@ pub enum SrvClientError {
     ConnectionRefused,
     /// The remote server unexpectedly closed the connection.
     ConnectionClosed,
+    CliConfigError(CliConfigError),
     /// Unable to locate a secret key on disk.
     CtlSecretNotFound(PathBuf),
     /// Decoding a message from the remote failed.
@@ -91,6 +95,7 @@ impl fmt::Display for SrvClientError {
                  operating system's init process or Windows service."
                                                                      .to_string()
             }
+            SrvClientError::CliConfigError(ref err) => format!("{}", err),
             SrvClientError::CtlSecretNotFound(ref path) => {
                 format!("No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run \
                          `hab setup` or run the Supervisor for the first time before attempting \
@@ -104,6 +109,10 @@ impl fmt::Display for SrvClientError {
         };
         write!(f, "{}", content)
     }
+}
+
+impl From<CliConfigError> for SrvClientError {
+    fn from(err: CliConfigError) -> Self { SrvClientError::CliConfigError(err) }
 }
 
 impl From<NetErr> for SrvClientError {
@@ -138,7 +147,6 @@ impl SrvClient {
     /// Returns a stream of `SrvMessage`'s representing the server response.
     pub async fn request(
         address: &ListenCtlAddr,
-        secret_key: &str,
         request: impl Into<SrvMessage> + fmt::Debug)
         -> Result<impl Stream<Item = Result<SrvMessage, io::Error>>, SrvClientError> {
         let socket = TcpStream::connect(address.as_ref()).await?;
@@ -147,7 +155,7 @@ impl SrvClient {
 
         // Send the handshake message to the server
         let mut handshake = protocol::ctl::Handshake::default();
-        handshake.secret_key = Some(String::from(secret_key));
+        handshake.secret_key = Some(Self::ctl_secret_key()?);
         let mut message = SrvMessage::from(handshake);
         message.set_transaction(current_transaction);
         socket.send(message).await?;
@@ -177,10 +185,24 @@ impl SrvClient {
         Ok(socket)
     }
 
-    pub fn read_secret_key() -> Result<String, SrvClientError> {
+    /// Check if the `HAB_CTL_SECRET` env var is set. If not, check the CLI config to see if there
+    /// is a ctl secret set. If not, read CTL_SECRET
+    fn ctl_secret_key() -> Result<String, SrvClientError> {
+        match henv::var(CTL_SECRET_ENVVAR) {
+            Ok(v) => Ok(v),
+            Err(_) => {
+                let config = CliConfig::load()?;
+                match config.ctl_secret {
+                    Some(v) => Ok(v),
+                    None => SrvClient::ctl_secret_key_from_file(),
+                }
+            }
+        }
+    }
+
+    pub fn ctl_secret_key_from_file() -> Result<String, SrvClientError> {
         let mut buf = String::new();
-        protocol::read_secret_key(protocol::sup_root(None), &mut buf)
-            .map_err(SrvClientError::from)?;
+        protocol::read_secret_key(protocol::sup_root(None), &mut buf)?;
         Ok(buf)
     }
 }

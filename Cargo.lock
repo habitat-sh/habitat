@@ -1275,6 +1275,7 @@ dependencies = [
  "futures",
  "habitat-sup-protocol",
  "habitat_common",
+ "habitat_core",
  "log 0.4.11",
  "prost",
  "termcolor",

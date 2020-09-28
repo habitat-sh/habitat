@@ -1,12 +1,10 @@
 use super::{ExecutionStrategy,
             Scope};
 use crate::{command::pkg::list,
-            config,
             error::{Error,
                     Result}};
 use futures::stream::StreamExt;
-use habitat_common::{cli_config::CliConfig,
-                     package_graph::PackageGraph,
+use habitat_common::{package_graph::PackageGraph,
                      templating::hooks::{PackageMaintenanceHookExt,
                                          UninstallHook},
                      types::ListenCtlAddr,
@@ -271,13 +269,11 @@ async fn supervisor_services() -> Result<Vec<PackageIdent>> {
         return Ok(vec![]);
     }
 
-    let cfg = CliConfig::load()?;
-    let secret_key = config::ctl_secret_key(&cfg)?;
     let listen_ctl_addr = ListenCtlAddr::default();
     let msg = habitat_sup_protocol::ctl::SvcStatus::default();
 
     let mut out: Vec<PackageIdent> = vec![];
-    let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, msg).await?;
+    let mut response = SrvClient::request(&listen_ctl_addr, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
