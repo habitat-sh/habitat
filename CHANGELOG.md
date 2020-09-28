@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.159 -->
-## [1.6.159](https://github.com/habitat-sh/habitat/tree/1.6.159) (2020-09-28)
+<!-- latest_release 1.6.160 -->
+## [1.6.160](https://github.com/habitat-sh/habitat/tree/1.6.160) (2020-09-28)
 
 #### Merged Pull Requests
-- [REFACTOR] Utilize the `Origin` type more broadly [#7919](https://github.com/habitat-sh/habitat/pull/7919) ([christophermaier](https://github.com/christophermaier))
+- fix prompting to stop launcher when closing windows docker studio [#7930](https://github.com/habitat-sh/habitat/pull/7930) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.139 -->
@@ -14,6 +14,7 @@
 - an API retry pattern [#7874](https://github.com/habitat-sh/habitat/pull/7874) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.150 -->
 
 #### Merged Pull Requests
+- fix prompting to stop launcher when closing windows docker studio [#7930](https://github.com/habitat-sh/habitat/pull/7930) ([mwrock](https://github.com/mwrock)) <!-- 1.6.160 -->
 - [REFACTOR] Utilize the `Origin` type more broadly [#7919](https://github.com/habitat-sh/habitat/pull/7919) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.159 -->
 - [REFACTOR] Simplify Blake2b hash implementation [#7918](https://github.com/habitat-sh/habitat/pull/7918) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.158 -->
 - Temp Netlify configuration [#7924](https://github.com/habitat-sh/habitat/pull/7924) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.157 -->
