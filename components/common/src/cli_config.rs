@@ -5,7 +5,10 @@
 use crate::types::ResolvedListenCtlAddr;
 use habitat_core::{fs::{am_i_root,
                         FS_ROOT_PATH},
-                   origin::Origin};
+                   origin::Origin,
+                   tls::rustls_wrapper::{CertificateChainCli,
+                                         PrivateKeyCli,
+                                         RootCertificateStoreCli}};
 use std::{fs,
           io,
           path::{Path,
@@ -37,13 +40,17 @@ pub enum Error {
     Serialize(#[from] toml::ser::Error),
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct CliConfig {
-    pub auth_token: Option<String>,
-    pub origin:     Option<Origin>,
-    pub ctl_secret: Option<String>,
-    pub listen_ctl: Option<ResolvedListenCtlAddr>,
-    pub bldr_url:   Option<String>,
+    pub auth_token:                 Option<String>,
+    pub origin:                     Option<Origin>,
+    pub ctl_secret:                 Option<String>,
+    pub listen_ctl:                 Option<ResolvedListenCtlAddr>,
+    pub ctl_client_certificate:     Option<CertificateChainCli>,
+    pub ctl_client_key:             Option<PrivateKeyCli>,
+    pub ctl_server_ca_certificate:  Option<RootCertificateStoreCli>,
+    pub ctl_server_name_indication: Option<String>,
+    pub bldr_url:                   Option<String>,
 }
 
 impl CliConfig {

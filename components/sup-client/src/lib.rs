@@ -54,7 +54,6 @@ use rustls::TLSError as RustlsError;
 use std::{error,
           fmt,
           io,
-          str::FromStr,
           sync::Arc,
           time::Duration};
 use tokio::{net::TcpStream,
@@ -159,32 +158,14 @@ impl SrvClient {
         let addr = Self::ctl_addr(addr)?;
         let tcp_stream = TcpStream::connect(addr.addr()).await?;
 
-        // TODO (DM): How should we get these three variables?
-        let client_certificates =
-            henv::var("HAB_CTL_GATEWAY_CLIENT_CERTIFICATE").ok()
-                                                           .as_deref()
-                                                           .map(CertificateChainCli::from_str)
-                                                           .transpose()
-                                                           .expect("error parsing ctl gateway \
-                                                                    client certificates")
-                                                           .map(CertificateChainCli::into_inner);
-        let client_key =
-            henv::var("HAB_CTL_GATEWAY_CLIENT_KEY").ok()
-                                                   .as_deref()
-                                                   .map(PrivateKeyCli::from_str)
-                                                   .transpose()
-                                                   .expect("error parsing ctl gateway client key")
-                                                   .map(PrivateKeyCli::into_inner);
-        let server_ca_certificates =
-            henv::var("HAB_CTL_GATEWAY_SERVER_CA_CERTIFICATE").ok()
-                                                           .as_deref()
-                                                           .map(RootCertificateStoreCli::from_str)
-                                                           .transpose()
-                                                           .expect("error parsing ctl gateway server certificates")
-                                                           .map(RootCertificateStoreCli::into_inner);
-        let server_name_indication = henv::var("HAB_CTL_GATEWAY_SERVER_NAME_INDICATION").ok();
-
         // TLS configuration
+        let config = CliConfig::load()?;
+        let client_certificates = config.ctl_client_certificate
+                                        .map(CertificateChainCli::into_inner);
+        let client_key = config.ctl_client_key.map(PrivateKeyCli::into_inner);
+        let server_ca_certificates = config.ctl_server_ca_certificate
+                                           .map(RootCertificateStoreCli::into_inner);
+        let server_name_indication = config.ctl_server_name_indication;
         let maybe_tls_config = if let Some(server_certificates) = server_ca_certificates {
             let mut tls_config = TlsClientConfig::new();
             tls_config.root_store = server_certificates;
