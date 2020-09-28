@@ -12,6 +12,7 @@ cc = "*"
 
 [dependencies]
 base64 = "*"
+blake2b_simd = "*"
 chrono = "*"
 dirs = "*"
 dns-lookup = "*"
@@ -20,7 +21,6 @@ glob = "*"
 hex = "*"
 lazy_static = "*"
 libc = "0.2.76"
-libsodium-sys = "*"
 log = "*"
 os_info = "*"
 paste = "1.0"
@@ -54,6 +54,7 @@ windows-acl = "*"
 [dev-dependencies]
 num_cpus = "*" # For doc tests
 serde_test = "*"
+reqwest = {version = "*", features = ["blocking"]}
 
 [features]
 default = ["supported_targets"]

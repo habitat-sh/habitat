@@ -1,9 +1,8 @@
-use crate::hcore::crypto::hash;
-
-use crate::error::Result;
+use crate::{error::Result,
+            hcore::crypto::Blake2bHash};
 
 pub fn start(src: &str) -> Result<()> {
-    let h = hash::hash_file(&src)?;
+    let h = Blake2bHash::from_file(&src)?;
     println!("{}  {}", h, src);
     Ok(())
 }

@@ -59,7 +59,7 @@ use habitat_common::{outputln,
                      FeatureFlag};
 #[cfg(windows)]
 use habitat_core::os::users;
-use habitat_core::{crypto::hash,
+use habitat_core::{crypto::Blake2bHash,
                    fs::{atomic_write,
                         svc_hooks_path,
                         SvcDir,
@@ -1150,7 +1150,7 @@ impl Service {
     fn write_cache_file<T>(&self, file: T, contents: &[u8]) -> bool
         where T: AsRef<Path>
     {
-        let current_checksum = match hash::hash_file(&file) {
+        let current_checksum = match Blake2bHash::from_file(&file) {
             Ok(current_checksum) => Some(current_checksum),
             Err(err) => {
                 outputln!(preamble self.service_group, "Failed to get current checksum for {}, {}",
@@ -1159,7 +1159,7 @@ impl Service {
                 None
             }
         };
-        let new_checksum = hash::hash_bytes(&contents);
+        let new_checksum = Blake2bHash::from_bytes(&contents);
 
         if let Some(current_checksum) = current_checksum {
             if new_checksum == current_checksum {

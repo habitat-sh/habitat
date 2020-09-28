@@ -158,6 +158,14 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :linux: core functional"
+    command:
+      - .expeditor/scripts/verify/run_cargo_test.sh core --features "functional" -- --format=pretty
+    expeditor:
+      executor:
+        docker:
+    timeout_in_minutes: 20
+
   - label: "[unit] :linux: http-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh http-client
@@ -385,6 +393,16 @@ steps:
     retry:
       automatic:
         limit: 1
+
+  - label: "[unit] :windows: core functional"
+    command:
+      - .expeditor/scripts/verify/run_cargo_test.ps1 core -Features "functional"
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
+    timeout_in_minutes: 25
 
   - label: "[unit] :windows: hab"
     command:

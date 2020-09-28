@@ -10,8 +10,7 @@ use crate::{error::{Error,
 #[cfg(windows)]
 use habitat_core::os::process::windows_child::{Child,
                                                ExitStatus};
-use habitat_core::{crypto::{self,
-                            Blake2bHash},
+use habitat_core::{crypto::Blake2bHash,
                    fs,
                    fs::svc_hooks_path,
                    package::PackageInstall,
@@ -484,7 +483,7 @@ fn hash_content<T>(path: T) -> Result<Option<Blake2bHash>>
     where T: AsRef<Path>
 {
     if path.as_ref().exists() {
-        let hash = crypto::hash::hash_file(path).map_err(Error::from)?;
+        let hash = Blake2bHash::from_file(path).map_err(Error::from)?;
         Ok(Some(hash))
     } else {
         Ok(None)
@@ -494,7 +493,7 @@ fn hash_content<T>(path: T) -> Result<Option<Blake2bHash>>
 fn write_hook<T>(content: &str, path: T) -> Result<bool>
     where T: AsRef<Path>
 {
-    let content_hash = crypto::hash::hash_string(&content);
+    let content_hash = Blake2bHash::from_bytes(&content);
     let existing_hash = hash_content(path.as_ref())?;
     if let Some(existing_hash) = existing_hash {
         if existing_hash == content_hash {

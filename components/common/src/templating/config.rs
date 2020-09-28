@@ -2,7 +2,7 @@
 use crate::{error::{Error,
                     Result},
             hcore::{self,
-                    crypto,
+                    crypto::Blake2bHash,
                     fs::{self,
                          USER_CONFIG_FILE}},
             outputln,
@@ -425,9 +425,9 @@ impl CfgRenderer {
         let mut changed = false;
         for template in self.0.get_templates().keys() {
             let compiled = self.0.render(&template, ctx)?;
-            let compiled_hash = crypto::hash::hash_string(&compiled);
+            let compiled_hash = Blake2bHash::from_bytes(&compiled);
             let cfg_dest = render_path.as_ref().join(&template);
-            let file_hash = match crypto::hash::hash_file(&cfg_dest) {
+            let file_hash = match Blake2bHash::from_file(&cfg_dest) {
                 Ok(file_hash) => Some(file_hash),
                 Err(e) => {
                     debug!("Cannot read the file in order to hash it: {}", e);

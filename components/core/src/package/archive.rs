@@ -4,7 +4,7 @@ use super::{metadata::{MetaFile,
             PackageIdent,
             PackageTarget};
 use crate::{crypto::{artifact,
-                     hash},
+                     Blake2bHash},
             error::{Error,
                     Result},
             package::ident::FullyQualifiedPackageIdent};
@@ -192,7 +192,7 @@ impl PackageArchive {
 
     /// Calculate and return the Blake2b hash of the package archive.
     // TODO (CM): Convert this to Blake2bHash once Builder can use it
-    pub fn checksum(&self) -> Result<String> { Ok(hash::hash_file(&self.path)?.to_string()) }
+    pub fn checksum(&self) -> Result<String> { Ok(Blake2bHash::from_file(&self.path)?.to_string()) }
 
     pub fn cflags(&mut self) -> Option<&str> { self.read_metadata(MetaFile::CFlags) }
 
