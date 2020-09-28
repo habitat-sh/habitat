@@ -1,11 +1,13 @@
-$configPath = "/hab/etc/cli.toml"
+$etcPath = "/hab/etc"
+$configPath = "$etcPath/cli.toml"
 $ctlSecretPath = "/hab/sup/default/CTL_SECRET"
 
 Describe "reading from supervisor and service config files" {
     BeforeAll {
         Remove-Item -Force -Recurse -ErrorAction Ignore $configPath
+        New-Item -ItemType directory -Force -Path $etcPath
         Start-Supervisor -Timeout 45
-        $ctlSecret = Get-Content -Path $ctlSecretPath
+        $script:ctlSecret = Get-Content -Path $ctlSecretPath
     }
 
     It "CLI succeeds with secret from file" {
