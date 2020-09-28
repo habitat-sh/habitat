@@ -25,7 +25,8 @@ use crate::{crypto::keys::{encryption::{primitives,
                            NamedRevision},
             error::{Error,
                     Result},
-            fs::Permissions};
+            fs::Permissions,
+            origin::Origin};
 
 /// Given the name of an origin, generate a new encryption key pair.
 ///
@@ -36,9 +37,9 @@ use crate::{crypto::keys::{encryption::{primitives,
 /// encryption keys should never be created in the Supervisor or the
 /// CLI.
 pub fn generate_origin_encryption_key_pair(
-    origin_name: &str)
+    origin: &Origin)
     -> (OriginPublicEncryptionKey, OriginSecretEncryptionKey) {
-    let named_revision = NamedRevision::new(origin_name.to_string());
+    let named_revision = NamedRevision::new(origin.to_string());
     let (pk, sk) = primitives::gen_keypair();
 
     let public = OriginPublicEncryptionKey { named_revision: named_revision.clone(),

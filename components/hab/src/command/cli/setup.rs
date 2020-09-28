@@ -8,8 +8,7 @@ use habitat_core::fs::{self,
                        FS_ROOT_PATH};
 use habitat_core::{crypto::keys::KeyCache,
                    env as henv,
-                   package::ident,
-                   Error::InvalidOrigin};
+                   origin::Origin};
 #[cfg(windows)]
 use std::env;
 #[cfg(windows)]
@@ -93,15 +92,17 @@ pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
                  build service found at https://bldr.habitat.sh/.")?;
         ui.para("Origins must begin with a lowercase letter or number. Allowed characters \
                  include lowercase letters, numbers, _, -. No more than 255 characters.")?;
-        let mut origin = prompt_origin(ui)?;
-
-        while !ident::is_valid_origin_name(&origin) {
+        let mut origin = prompt_origin(ui);
+        while origin.is_err() {
             ui.br()?;
-            ui.fatal(&format!("{}", InvalidOrigin(origin)))?;
+            ui.fatal(&format!("{}", origin.err().unwrap()))?;
             ui.br()?;
 
-            origin = prompt_origin(ui)?;
+            origin = prompt_origin(ui);
         }
+        // Now that we're out of the while loop, we know this is `Ok`.
+        let origin = origin.unwrap();
+
         write_cli_config_origin(&origin)?;
         ui.br()?;
         if is_origin_in_cache(&origin, key_cache) {
@@ -212,14 +213,14 @@ fn ask_default_builder_instance(ui: &mut UI) -> Result<bool> {
     Ok(ui.prompt_yes_no("Connect to an on-premises Builder instance?", Some(false))?)
 }
 
-fn ask_create_origin(ui: &mut UI, origin: &str) -> Result<bool> {
+fn ask_create_origin(ui: &mut UI, origin: &Origin) -> Result<bool> {
     Ok(ui.prompt_yes_no(&format!("Create an origin key for `{}'?", origin),
                         Some(true))?)
 }
 
-fn write_cli_config_origin(origin: &str) -> Result<()> {
+fn write_cli_config_origin(origin: &Origin) -> Result<()> {
     let mut config = config::load()?;
-    config.origin = Some(origin.to_string());
+    config.origin = Some(origin.clone());
     config::save(&config)
 }
 
@@ -241,28 +242,29 @@ fn write_cli_config_ctl_secret(value: &str) -> Result<()> {
     config::save(&config)
 }
 
-fn is_origin_in_cache(origin: &str, key_cache: &KeyCache) -> bool {
+fn is_origin_in_cache(origin: &Origin, key_cache: &KeyCache) -> bool {
     key_cache.latest_secret_origin_signing_key(origin).is_ok()
 }
 
-fn create_origin(ui: &mut UI, origin: &str, key_cache: &KeyCache) -> Result<()> {
-    let result = command::origin::key::generate::start(ui, &origin, key_cache);
+fn create_origin(ui: &mut UI, origin: &Origin, key_cache: &KeyCache) -> Result<()> {
+    let result = command::origin::key::generate::start(ui, origin, key_cache);
     ui.br()?;
     result
 }
 
-fn prompt_origin(ui: &mut UI) -> Result<String> {
+fn prompt_origin(ui: &mut UI) -> Result<Origin> {
     let config = config::load()?;
-    let default = match config.origin {
+    let default_origin_name = match config.origin {
         Some(o) => {
             ui.para(&format!("You already have a default origin set up as `{}', but feel free \
                               to change it if you wish.",
                              &o))?;
-            Some(o)
+            Some(o.to_string())
         }
         None => henv::var(ORIGIN_ENVVAR).or_else(|_| henv::var("USER")).ok(),
     };
-    Ok(ui.prompt_ask("Default origin name", default.as_deref())?)
+    let name = ui.prompt_ask("Default origin name", default_origin_name.as_deref())?;
+    Ok(name.parse()?)
 }
 
 fn ask_default_auth_token(ui: &mut UI) -> Result<bool> {

@@ -444,7 +444,7 @@ impl BuilderAPIClient {
     /// * Remote Builder is not available
     /// * File cannot be created and written to
     pub async fn fetch_origin_public_encryption_key<'a>(&'a self,
-                                                        origin: &'a str,
+                                                        origin: &'a Origin,
                                                         token: &'a str,
                                                         dst_path: &'a Path,
                                                         progress: Option<Box<dyn DisplayProgress>>)
@@ -484,7 +484,7 @@ impl BuilderAPIClient {
     ///
     /// * Remote Builder is not available
     pub async fn create_origin_secret(&self,
-                                      origin: &str,
+                                      origin: &Origin,
                                       token: &str,
                                       key_name: &str,
                                       secret: &AnonymousBox)
@@ -512,7 +512,7 @@ impl BuilderAPIClient {
     ///
     /// * Remote Builder is not available
     pub async fn delete_origin_secret(&self,
-                                      origin: &str,
+                                      origin: &Origin,
                                       token: &str,
                                       key_name: &str)
                                       -> Result<()> {
@@ -804,7 +804,7 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub async fn list_origin_secrets(&self, origin: &str, token: &str) -> Result<Vec<String>> {
+    pub async fn list_origin_secrets(&self, origin: &Origin, token: &str) -> Result<Vec<String>> {
         debug!("Listing origin secret: {}", origin);
 
         let path = format!("depot/origins/{}/secret", origin);
@@ -850,7 +850,7 @@ impl BuilderAPIClient {
     /// * Remote Builder is not available
     /// * File cannot be created and written to
     pub async fn fetch_secret_origin_key<'a>(&'a self,
-                                             origin: &'a str,
+                                             origin: &'a Origin,
                                              token: &'a str,
                                              dst_path: &'a Path,
                                              progress: Option<Box<dyn DisplayProgress>>)
@@ -864,7 +864,7 @@ impl BuilderAPIClient {
             .await
     }
 
-    pub async fn show_origin_keys(&self, origin: &str) -> Result<Vec<OriginKeyIdent>> {
+    pub async fn show_origin_keys(&self, origin: &Origin) -> Result<Vec<OriginKeyIdent>> {
         debug!("Showing origin keys: {}", origin);
 
         let resp = self.0.get(&origin_keys_path(origin)).send().await?;
@@ -1259,7 +1259,7 @@ impl BuilderAPIClient {
     ///
     /// * Remote Builder is not available
     pub async fn create_channel(&self,
-                                origin: &str,
+                                origin: &Origin,
                                 channel: &ChannelIdent,
                                 token: &str)
                                 -> Result<()> {
@@ -1276,7 +1276,7 @@ impl BuilderAPIClient {
     ///
     /// * Remote Builder is not available
     pub async fn delete_channel(&self,
-                                origin: &str,
+                                origin: &Origin,
                                 channel: &ChannelIdent,
                                 token: &str)
                                 -> Result<()> {
@@ -1293,7 +1293,7 @@ impl BuilderAPIClient {
     ///
     /// * Remote Builder is not available
     pub async fn promote_channel_packages(&self,
-                                          origin: &str,
+                                          origin: &Origin,
                                           token: &str,
                                           source_channel: &ChannelIdent,
                                           target_channel: &ChannelIdent)
@@ -1320,7 +1320,7 @@ impl BuilderAPIClient {
     ///
     /// * Remote Builder is not available
     pub async fn demote_channel_packages(&self,
-                                         origin: &str,
+                                         origin: &Origin,
                                          token: &str,
                                          source_channel: &ChannelIdent,
                                          target_channel: &ChannelIdent)
@@ -1361,7 +1361,7 @@ impl BuilderAPIClient {
     /// * Remote Builder is not available
     /// * Authorization token was not set on client
     pub async fn list_channels(&self,
-                               origin: &str,
+                               origin: &Origin,
                                include_sandbox_channels: bool)
                                -> Result<Vec<String>> {
         debug!("Listing channels for origin {}", origin);
@@ -1471,7 +1471,7 @@ macro_rules! retry_builder_api {
     };
 }
 
-fn origin_keys_path(origin: &str) -> String { format!("depot/origins/{}/keys", origin) }
+fn origin_keys_path(origin: &Origin) -> String { format!("depot/origins/{}/keys", origin) }
 
 fn package_download(package: &PackageIdent) -> String {
     format!("{}/download", package_path(package))

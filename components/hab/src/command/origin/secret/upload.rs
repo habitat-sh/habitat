@@ -7,12 +7,13 @@ use crate::{api_client::Client,
                     Result},
             PRODUCT,
             VERSION};
-use habitat_core::crypto::keys::KeyCache;
+use habitat_core::{crypto::keys::KeyCache,
+                   origin::Origin};
 
 pub async fn start(ui: &mut UI,
                    bldr_url: &str,
                    token: &str,
-                   origin: &str,
+                   origin: &Origin,
                    key: &str,
                    secret: &str,
                    key_cache: &KeyCache)

@@ -199,7 +199,7 @@ async fn promote_to_channel(ui: &mut UI,
     ui.begin(format!("Promoting {} to channel '{}'", ident, channel))?;
 
     if channel != ChannelIdent::stable() && channel != ChannelIdent::unstable() {
-        match api_client.create_channel(&ident.origin, &channel, token)
+        match api_client.create_channel(&ident.hacky_get_origin(), &channel, token)
                         .await
         {
             Ok(_) => (),

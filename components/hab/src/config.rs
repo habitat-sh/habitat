@@ -4,7 +4,8 @@ use crate::{error::{Error,
                     fs::{am_i_root,
                          FS_ROOT_PATH}},
             CTL_SECRET_ENVVAR};
-use habitat_core::env as henv;
+use habitat_core::{env as henv,
+                   origin::Origin};
 use habitat_sup_client::SrvClient;
 use std::{fs::{self,
                File},
@@ -25,7 +26,7 @@ lazy_static::lazy_static! {
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Config {
     pub auth_token: Option<String>,
-    pub origin:     Option<String>,
+    pub origin:     Option<Origin>,
     pub ctl_secret: Option<String>,
     pub bldr_url:   Option<String>,
 }
