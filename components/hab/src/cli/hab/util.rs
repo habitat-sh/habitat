@@ -179,12 +179,11 @@ pub struct RemoteSup {
                 long = "remote-sup",
                 short = "r",
                 default_value = ListenCtlAddr::default_as_str())]
-    #[serde(default)]
-    remote_sup: ResolvedListenCtlAddr,
+    remote_sup: Option<ResolvedListenCtlAddr>,
 }
 
-impl From<RemoteSup> for ResolvedListenCtlAddr {
-    fn from(r: RemoteSup) -> Self { r.remote_sup }
+impl RemoteSup {
+    pub fn inner(&self) -> Option<&ResolvedListenCtlAddr> { self.remote_sup.as_ref() }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

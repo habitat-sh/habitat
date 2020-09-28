@@ -2,6 +2,7 @@
 //! for more than simply CLI configuration. If the opportunity arose it would be useful to rename
 //! this to convey that it is general configuration.
 
+use crate::types::ResolvedListenCtlAddr;
 use habitat_core::{fs::{am_i_root,
                         FS_ROOT_PATH},
                    origin::Origin};
@@ -41,6 +42,7 @@ pub struct CliConfig {
     pub auth_token: Option<String>,
     pub origin:     Option<Origin>,
     pub ctl_secret: Option<String>,
+    pub listen_ctl: Option<ResolvedListenCtlAddr>,
     pub bldr_url:   Option<String>,
 }
 

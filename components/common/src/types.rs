@@ -304,7 +304,7 @@ impl PartialEq<EventStreamServerCertificate> for EventStreamServerCertificate {
 
 /// A wrapper around `ListenCtlAddr` that keeps track of the domain the socket address was resolved
 /// from. Ideally this would be done by `env_config_socketaddr`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(try_from = "&str", into = "String")]
 pub struct ResolvedListenCtlAddr {
     domain: String,

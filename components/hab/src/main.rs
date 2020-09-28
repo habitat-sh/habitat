@@ -224,7 +224,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         }
                         HabSup::Depart { member_id,
                                          remote_sup, } => {
-                            return sub_sup_depart(member_id, &remote_sup.into()).await;
+                            return sub_sup_depart(member_id, remote_sup.inner()).await;
                         }
                         HabSup::Secret(secret) => {
                             match secret {
@@ -241,10 +241,10 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                             ui.warn("'hab sup status' as an alias for 'hab svc status' is \
                                      deprecated. Please update your automation and processes \
                                      accordingly.")?;
-                            return sub_svc_status(pkg_ident, &remote_sup.into()).await;
+                            return sub_svc_status(pkg_ident, remote_sup.inner()).await;
                         }
                         HabSup::Restart { remote_sup } => {
-                            return sub_sup_restart(&remote_sup.into()).await;
+                            return sub_sup_restart(remote_sup.inner()).await;
                         }
                     }
                 }
@@ -263,7 +263,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         Svc::Update(svc_update) => return sub_svc_update(svc_update).await,
                         Svc::Status { pkg_ident,
                                       remote_sup, } => {
-                            return sub_svc_status(pkg_ident, &remote_sup.into()).await;
+                            return sub_svc_status(pkg_ident, remote_sup.inner()).await;
                         }
                         _ => {
                             // All other commands will be caught by the CLI parsing logic below.
@@ -1307,6 +1307,7 @@ async fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     let remote_sup_addr = remote_sup_from_input(m)?;
+    let remote_sup_addr = SrvClient::ctl_addr(remote_sup_addr.as_ref())?;
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let mut ui = ui::ui();
     let mut validate = sup_proto::ctl::SvcValidateCfg::default();
@@ -1355,7 +1356,7 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                         .map(ToString::to_string)
                         .unwrap_or_else(|| "UNKNOWN".to_string()),))?;
     ui.status(Status::Creating, "service configuration")?;
-    let mut response = SrvClient::request(&remote_sup_addr, validate).await?;
+    let mut response = SrvClient::request(Some(&remote_sup_addr), validate).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1374,7 +1375,7 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
         }
     }
     ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))?;
-    let mut response = SrvClient::request(&remote_sup_addr, set).await?;
+    let mut response = SrvClient::request(Some(&remote_sup_addr), set).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1396,7 +1397,7 @@ async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     let remote_sup_addr = remote_sup_from_input(m)?;
     let mut msg = sup_proto::ctl::SvcGetDefaultCfg::default();
     msg.ident = Some(ident.into());
-    let mut response = SrvClient::request(&remote_sup_addr, msg).await?;
+    let mut response = SrvClient::request(remote_sup_addr.as_ref(), msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1416,9 +1417,9 @@ async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_load(svc_load: SvcLoad) -> Result<()> {
-    let remote_sup_addr = svc_load.remote_sup.clone().into();
+    let remote_sup_addr = svc_load.remote_sup.clone();
     let msg = habitat_sup_protocol::ctl::SvcLoad::try_from(svc_load)?;
-    gateway_util::send(&remote_sup_addr, msg).await
+    gateway_util::send(remote_sup_addr.inner(), msg).await
 }
 
 async fn sub_svc_bulk_load(svc_bulk_load: SvcBulkLoad) -> Result<()> {
@@ -1443,24 +1444,24 @@ async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
     let msg = sup_proto::ctl::SvcUnload { ident: Some(ident.into()),
                                           timeout_in_seconds };
     let remote_sup_addr = remote_sup_from_input(m)?;
-    gateway_util::send(&remote_sup_addr, msg).await
+    gateway_util::send(remote_sup_addr.as_ref(), msg).await
 }
 
 async fn sub_svc_update(u: hab::cli::hab::svc::Update) -> Result<()> {
-    let ctl_addr = u.remote_sup.clone().into();
+    let ctl_addr = u.remote_sup.clone();
     let msg: sup_proto::ctl::SvcUpdate = TryFrom::try_from(u)?;
-    gateway_util::send(&ctl_addr, msg).await
+    gateway_util::send(ctl_addr.inner(), msg).await
 }
 
 async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;
     let msg = sup_proto::ctl::SvcStart { ident: Some(ident.into()), };
     let remote_sup_addr = remote_sup_from_input(m)?;
-    gateway_util::send(&remote_sup_addr, msg).await
+    gateway_util::send(remote_sup_addr.as_ref(), msg).await
 }
 
 async fn sub_svc_status(pkg_ident: Option<PackageIdent>,
-                        remote_sup: &ResolvedListenCtlAddr)
+                        remote_sup: Option<&ResolvedListenCtlAddr>)
                         -> Result<()> {
     let mut msg = sup_proto::ctl::SvcStatus::default();
     msg.ident = pkg_ident.map(Into::into);
@@ -1489,12 +1490,13 @@ async fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
     let msg = sup_proto::ctl::SvcStop { ident: Some(ident.into()),
                                         timeout_in_seconds };
     let remote_sup_addr = remote_sup_from_input(m)?;
-    gateway_util::send(&remote_sup_addr, msg).await
+    gateway_util::send(remote_sup_addr.as_ref(), msg).await
 }
 
 async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let remote_sup_addr = remote_sup_from_input(m)?;
+    let remote_sup_addr = SrvClient::ctl_addr(remote_sup_addr.as_ref())?;
     let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SvcFilePut::default();
     let file = Path::new(m.value_of("FILE").unwrap());
@@ -1540,7 +1542,7 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     }
     ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))
       .unwrap();
-    let mut response = SrvClient::request(&remote_sup_addr, msg).await?;
+    let mut response = SrvClient::request(Some(&remote_sup_addr), msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1562,7 +1564,10 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     Ok(())
 }
 
-async fn sub_sup_depart(member_id: String, remote_sup: &ResolvedListenCtlAddr) -> Result<()> {
+async fn sub_sup_depart(member_id: String,
+                        remote_sup: Option<&ResolvedListenCtlAddr>)
+                        -> Result<()> {
+    let remote_sup = SrvClient::ctl_addr(remote_sup)?;
     let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SupDepart::default();
     msg.member_id = Some(member_id);
@@ -1572,7 +1577,7 @@ async fn sub_sup_depart(member_id: String, remote_sup: &ResolvedListenCtlAddr) -
       .unwrap();
     ui.status(Status::Applying, format!("via peer {}", remote_sup))
       .unwrap();
-    let mut response = SrvClient::request(&remote_sup, msg).await?;
+    let mut response = SrvClient::request(Some(&remote_sup), msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1589,12 +1594,13 @@ async fn sub_sup_depart(member_id: String, remote_sup: &ResolvedListenCtlAddr) -
     Ok(())
 }
 
-async fn sub_sup_restart(remote_sup: &ResolvedListenCtlAddr) -> Result<()> {
+async fn sub_sup_restart(remote_sup: Option<&ResolvedListenCtlAddr>) -> Result<()> {
+    let remote_sup = SrvClient::ctl_addr(remote_sup)?;
     let mut ui = ui::ui();
     let msg = sup_proto::ctl::SupRestart::default();
 
     ui.begin(format!("Restarting supervisor {}", remote_sup))?;
-    let mut response = SrvClient::request(&remote_sup, msg).await?;
+    let mut response = SrvClient::request(Some(&remote_sup), msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1997,10 +2003,10 @@ fn bulkupload_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
            .expect("CLAP-validated upload dir")
 }
 
-fn remote_sup_from_input(m: &ArgMatches<'_>) -> Result<ResolvedListenCtlAddr> {
+fn remote_sup_from_input(m: &ArgMatches<'_>) -> Result<Option<ResolvedListenCtlAddr>> {
     Ok(m.value_of("REMOTE_SUP")
-        .map_or(Ok(ResolvedListenCtlAddr::default()),
-                ResolvedListenCtlAddr::from_str)?)
+        .map(ResolvedListenCtlAddr::from_str)
+        .transpose()?)
 }
 
 fn required_pkg_ident_from_input(m: &ArgMatches<'_>) -> Result<PackageIdent> {
