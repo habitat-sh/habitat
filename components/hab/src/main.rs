@@ -40,7 +40,6 @@ use hab::{cli::{self,
                                      PackageSetFile},
                           list::ListingType,
                           uninstall::UninstallHookMode}},
-          config,
           error::{Error,
                   Result},
           license,
@@ -53,6 +52,7 @@ use hab::{cli::{self,
 use habitat_api_client::BuildOnUpload;
 use habitat_common::{self as common,
                      cli::key_cache_from_matches,
+                     cli_config::CliConfig,
                      command::package::install::{InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,
@@ -1298,9 +1298,7 @@ async fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
-    let cfg = config::load()?;
     let remote_sup_addr = remote_sup_from_input(m)?;
-    let secret_key = config::ctl_secret_key(&cfg)?;
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let mut ui = ui::ui();
     let mut validate = sup_proto::ctl::SvcValidateCfg::default();
@@ -1349,7 +1347,7 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                         .map(ToString::to_string)
                         .unwrap_or_else(|| "UNKNOWN".to_string()),))?;
     ui.status(Status::Creating, "service configuration")?;
-    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, validate).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, validate).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1368,7 +1366,7 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
         }
     }
     ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))?;
-    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, set).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, set).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1387,12 +1385,10 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
 
 async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;
-    let cfg = config::load()?;
     let remote_sup_addr = remote_sup_from_input(m)?;
-    let secret_key = config::ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcGetDefaultCfg::default();
     msg.ident = Some(ident.into());
-    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, msg).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1456,13 +1452,11 @@ async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_svc_status(pkg_ident: Option<PackageIdent>, remote_sup: &ListenCtlAddr) -> Result<()> {
-    let cfg = config::load()?;
-    let secret_key = config::ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcStatus::default();
     msg.ident = pkg_ident.map(Into::into);
 
     let mut out = TabWriter::new(io::stdout());
-    let mut response = SrvClient::request(remote_sup, &secret_key, msg).await?;
+    let mut response = SrvClient::request(remote_sup, msg).await?;
     // Ensure there is at least one result from the server otherwise produce an error
     if let Some(message_result) = response.next().await {
         let reply = message_result?;
@@ -1490,9 +1484,7 @@ async fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
 
 async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
-    let cfg = config::load()?;
     let remote_sup_addr = remote_sup_from_input(m)?;
-    let secret_key = config::ctl_secret_key(&cfg)?;
     let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SvcFilePut::default();
     let file = Path::new(m.value_of("FILE").unwrap());
@@ -1538,7 +1530,7 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     }
     ui.status(Status::Applying, format!("via peer {}", remote_sup_addr))
       .unwrap();
-    let mut response = SrvClient::request(&remote_sup_addr, &secret_key, msg).await?;
+    let mut response = SrvClient::request(&remote_sup_addr, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1561,8 +1553,6 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_sup_depart(member_id: String, remote_sup: &ListenCtlAddr) -> Result<()> {
-    let cfg = config::load()?;
-    let secret_key = config::ctl_secret_key(&cfg)?;
     let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SupDepart::default();
     msg.member_id = Some(member_id);
@@ -1572,7 +1562,7 @@ async fn sub_sup_depart(member_id: String, remote_sup: &ListenCtlAddr) -> Result
       .unwrap();
     ui.status(Status::Applying, format!("via peer {}", remote_sup))
       .unwrap();
-    let mut response = SrvClient::request(&remote_sup, &secret_key, msg).await?;
+    let mut response = SrvClient::request(&remote_sup, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1590,13 +1580,11 @@ async fn sub_sup_depart(member_id: String, remote_sup: &ListenCtlAddr) -> Result
 }
 
 async fn sub_sup_restart(remote_sup: &ListenCtlAddr) -> Result<()> {
-    let cfg = config::load()?;
-    let secret_key = config::ctl_secret_key(&cfg)?;
     let mut ui = ui::ui();
     let msg = sup_proto::ctl::SupRestart::default();
 
     ui.begin(format!("Restarting supervisor {}", remote_sup))?;
-    let mut response = SrvClient::request(&remote_sup, &secret_key, msg).await?;
+    let mut response = SrvClient::request(&remote_sup, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {
@@ -1684,13 +1672,11 @@ fn auth_token_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
             match henv::var(AUTH_TOKEN_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => {
-                    config::load()?.auth_token.ok_or_else(|| {
-                                                  Error::ArgumentError(
-                    "No auth token \
-                     specified"
-                        .into(),
-                )
-                                              })
+                    CliConfig::load()?.auth_token.ok_or_else(|| {
+                                                     Error::ArgumentError("No auth token \
+                                                                                specified"
+                                                                                          .into())
+                                                 })
                 }
             }
         }
@@ -1719,9 +1705,9 @@ fn origin_param_or_env(m: &ArgMatches<'_>) -> Result<habitat_core::origin::Origi
             match henv::var(ORIGIN_ENVVAR) {
                 Ok(v) => Ok(v.parse()?),
                 Err(_) => {
-                    config::load()?.origin.ok_or_else(|| {
-                                              Error::CryptoCLI("No origin specified".to_string())
-                                          })
+                    CliConfig::load()?.origin.ok_or_else(|| {
+                                                 Error::CryptoCLI("No origin specified".to_string())
+                                             })
                 }
             }
         }
@@ -1749,7 +1735,7 @@ fn bldr_url_from_matches(matches: &ArgMatches<'_>) -> Result<String> {
             match henv::var(BLDR_URL_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => {
-                    let config = config::load()?;
+                    let config = CliConfig::load()?;
                     match config.bldr_url {
                         Some(v) => Ok(v),
                         None => Ok(default_bldr_url()),

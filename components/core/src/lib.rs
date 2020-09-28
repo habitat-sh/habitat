@@ -8,7 +8,6 @@ pub use self::error::{Error,
                       Result};
 
 pub mod binlink;
-pub mod config;
 pub mod crypto;
 pub mod env;
 pub mod error;

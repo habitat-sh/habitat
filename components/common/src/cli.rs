@@ -17,6 +17,7 @@ use std::{ffi::OsStr,
 
 pub const RING_ENVVAR: &str = "HAB_RING";
 pub const RING_KEY_ENVVAR: &str = "HAB_RING_KEY";
+pub const CTL_SECRET_ENVVAR: &str = "HAB_CTL_SECRET";
 
 pub const LISTEN_HTTP_DEFAULT_PORT: u16 = 9631;
 pub const LISTEN_HTTP_DEFAULT_IP: &str = "0.0.0.0";

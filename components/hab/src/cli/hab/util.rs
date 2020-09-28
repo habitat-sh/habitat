@@ -1,9 +1,9 @@
 use crate::{cli::valid_fully_qualified_ident,
-            config,
             error::Error};
 use configopt::{self,
                 ConfigOpt};
-use habitat_common::types::ListenCtlAddr;
+use habitat_common::{cli_config::CliConfig,
+                     types::ListenCtlAddr};
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    env as henv,
                    fs as hab_core_fs,
@@ -59,7 +59,7 @@ pub struct BldrOrigin {
 
 fn bldr_url_from_env_load_or_default() -> String {
     bldr_url_from_env().unwrap_or_else(|| {
-                           match config::load() {
+                           match CliConfig::load() {
                                Ok(config) => {
                                    config.bldr_url
                                          .unwrap_or_else(|| DEFAULT_BLDR_URL.to_string())
@@ -89,14 +89,14 @@ pub fn bldr_auth_token_from_args_env_or_load(opt: Option<String>) -> Result<Stri
         match henv::var(AUTH_TOKEN_ENVVAR) {
             Ok(v) => Ok(v),
             Err(_) => {
-                config::load()?.auth_token.ok_or_else(|| {
-                                              Error::ArgumentError("No auth token specified. \
-                                                                    Please check that you have \
-                                                                    specified a valid Personal \
-                                                                    Access Token with:  -z, \
-                                                                    --auth <AUTH_TOKEN>"
-                                                                                        .into())
-                                          })
+                CliConfig::load()?.auth_token.ok_or_else(|| {
+                                                 Error::ArgumentError("No auth token specified. \
+                                                                       Please check that you have \
+                                                                       specified a valid Personal \
+                                                                       Access Token with:  -z, \
+                                                                       --auth <AUTH_TOKEN>"
+                                                                                           .into())
+                                             })
             }
         }
     }

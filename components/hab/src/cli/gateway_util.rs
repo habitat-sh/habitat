@@ -1,8 +1,7 @@
 //! Consolidate logic for interacting with the Supervisor's control
 //! gateway.
 
-use crate::{config,
-            error::Result};
+use crate::error::Result;
 use futures::stream::StreamExt;
 use habitat_common as common;
 use habitat_common::{types::ListenCtlAddr,
@@ -28,10 +27,7 @@ use termcolor::{self,
 pub async fn send(remote_sup_addr: &ListenCtlAddr,
                   msg: impl Into<SrvMessage> + fmt::Debug)
                   -> Result<()> {
-    let cfg = config::load()?;
-    let secret_key = config::ctl_secret_key(&cfg)?;
-
-    let mut response = SrvClient::request(remote_sup_addr, &secret_key, msg).await?;
+    let mut response = SrvClient::request(remote_sup_addr, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         handle_ctl_reply(&reply)?;

@@ -7,7 +7,6 @@ use std::{env,
           io,
           num,
           num::ParseIntError,
-          path::PathBuf,
           result,
           str,
           string};
@@ -24,8 +23,6 @@ pub enum Error {
     BadOriginMemberRole(String),
     /// An operation expected a composite package
     CompositePackageExpected(String),
-    /// Error reading raw contents of configuration file.
-    ConfigFileIO(PathBuf, io::Error),
     /// Parsing error while reading a configuration file.
     ConfigFileSyntax(toml::de::Error),
     /// Expected an array of socket addrs for configuration field value.
@@ -180,9 +177,6 @@ impl fmt::Display for Error {
             }
             Error::CompositePackageExpected(ref ident) => {
                 format!("The package is not a composite: {}", ident)
-            }
-            Error::ConfigFileIO(ref f, ref e) => {
-                format!("Error reading configuration file, {}, {}", f.display(), e)
             }
             Error::ConfigFileSyntax(ref e) => {
                 format!("Syntax errors while parsing TOML configuration file:\n\n{}",

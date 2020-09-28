@@ -11,6 +11,7 @@ async-trait = "*"
 bimap = "*"
 bitflags = "*"
 clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
+dirs = "*"
 glob = "*"
 habitat_api_client = { path = "../builder-api-client" }
 habitat_core = { path = "../core" }
@@ -41,6 +42,7 @@ serde_json = { version = "*", features = ["preserve_order"] }
 serde-transcode = "*"
 serde_yaml = "*"
 tempfile = "*"
+thiserror = "*"
 retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
 termcolor = "*"
 tokio = { version = "*", features = ["full"] }
