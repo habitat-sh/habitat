@@ -450,14 +450,14 @@ function Enter-Studio {
             if($habSvc -and ($habSvc.Status -eq "Running")) {
                 Stop-Service Habitat
             } elseif(Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") {
-                Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")
+                Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") -Force
                 Remove-Item "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK" -Force -ErrorAction SilentlyContinue
             }
         }
 
         Register-EngineEvent -SourceIdentifier PowerShell.Exiting -SupportEvent -Action {
-            if($env:startedNativeStudioSup -and (Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")) {
-                Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")
+            if($env:startedNativeStudioSup -eq $true -and (Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")) {
+                Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") -Force
                 $retry = 0
                 while(($retry -lt 5) -and (Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")) {
                     $retry += 1
