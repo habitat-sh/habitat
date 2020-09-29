@@ -174,7 +174,7 @@ function Wait-SupervisorServiceUnload($ServiceName, $Timeout = 1) {
     Write-Host "$ServiceName is now unloaded."
 }
 
-function Unload-SupervisorService($PackageName, $Timeout = 1) {
+function Unload-SupervisorService($PackageName, $Timeout = 5) {
     $svcName = ($PackageName -split "/")[1]
     $_ = Invoke-NativeCommand hab svc unload $PackageName
     Wait-SupervisorServiceUnload $svcName -Timeout $Timeout

@@ -887,7 +887,7 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[:linux: test_external_binaries]"
+  - label: "[:linux: test_cli_config_file]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_cli_config_file
     env:
