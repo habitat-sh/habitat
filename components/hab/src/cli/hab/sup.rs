@@ -40,6 +40,8 @@ use std::{fmt,
 use structopt::{clap::AppSettings,
                 StructOpt};
 
+const HAB_CTL_KEYS_CACHE: &str = "/hab/cache/keys/ctl";
+
 // All commands relating to the Supervisor (ie commands handled by both the `hab` and `hab-sup`
 // binary)
 #[derive(ConfigOpt, StructOpt)]
@@ -163,17 +165,17 @@ pub struct SupRun {
                 default_value = ListenCtlAddr::default_as_str())]
     pub listen_ctl: ResolvedListenCtlAddr,
     /// The control gateway server's TLS certificate
-    #[structopt(long = "ctl-server-certificate", default_value = "/hab/cache/keys/ctl")]
+    #[structopt(long = "ctl-server-certificate", default_value = HAB_CTL_KEYS_CACHE)]
     pub ctl_server_certificate: Option<CertificateChainCli>,
     /// Enable TLS for the control gateway and set the server's private key
     ///
     /// See `--ctl-server-certificate` and `--ctl-client-certificate` for additional settings.
-    #[structopt(long = "ctl-server-key", default_value = "/hab/cache/keys/ctl")]
+    #[structopt(long = "ctl-server-key", default_value = HAB_CTL_KEYS_CACHE)]
     pub ctl_server_key: Option<PrivateKeyCli>,
     /// Enable client authentication for the control gateway and set the certificate authority to
     /// use when authenticating the client
     #[structopt(long = "ctl-client-ca-certificate",
-                default_value = "/hab/cache/keys/ctl")]
+                default_value = HAB_CTL_KEYS_CACHE)]
     pub ctl_client_ca_certificate: Option<RootCertificateStoreCli>,
     /// The organization the Supervisor and its services are part of
     #[structopt(long = "org")]
@@ -334,7 +336,7 @@ pub enum Secret {
         #[structopt(long = "subject-alternative-name")]
         subject_alternative_name: String,
         /// The directory to store the generated private key and certificate
-        #[structopt(long = "path", default_value = "/hab/cache/keys/ctl")]
+        #[structopt(long = "path", default_value = HAB_CTL_KEYS_CACHE)]
         path:                     PathBuf,
     },
 }
