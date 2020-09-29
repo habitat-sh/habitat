@@ -1,4 +1,7 @@
-//! Types for reading certificates, private keys, and root certificate stores from the CLI
+//! Types for reading certificates, private keys, and root certificate stores from the CLI. These
+//! types act as a bridge from the CLI to interior types. These types implement `FromStr` (opposed
+//! to `From<Path>`) which `structopt` uses to parse the user input.
+//!
 //! TODO (DM): Ideally these would be defined in `hab::cli::hab::util::tls.rs` however the ctl
 //! gateway client currently needs access to these types so they must be defined in a common crate
 //! and we simply reexport them in `hab::cli::hab::util::tls.rs`.
