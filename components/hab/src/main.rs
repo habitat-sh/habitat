@@ -229,7 +229,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         HabSup::Secret(secret) => {
                             match secret {
                                 Secret::Generate => return sub_sup_secret_generate(),
-                                Secret::GenerateKey { subject_alternative_name,
+                                Secret::GenerateTls { subject_alternative_name,
                                                       path, } => {
                                     return sub_sup_secret_generate_key(&subject_alternative_name,
                                                                        path)

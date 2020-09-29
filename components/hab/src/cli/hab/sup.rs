@@ -162,12 +162,12 @@ pub struct SupRun {
                 env = ListenCtlAddr::ENVVAR,
                 default_value = ListenCtlAddr::default_as_str())]
     pub listen_ctl: ResolvedListenCtlAddr,
-    /// The control gateway server certificate to use for TLS
+    /// The control gateway server's TLS certificate
     #[structopt(long = "ctl-server-certificate", default_value = "/hab/cache/keys/ctl")]
     pub ctl_server_certificate: Option<CertificateChainCli>,
-    /// Enable TLS for the control gateway and set the private key
+    /// Enable TLS for the control gateway and set the server's private key
     ///
-    /// See `ctl-server-certificate` and `ctl-client-certificate` for additional settings.
+    /// See `--ctl-server-certificate` and `--ctl-client-certificate` for additional settings.
     #[structopt(long = "ctl-server-key", default_value = "/hab/cache/keys/ctl")]
     pub ctl_server_key: Option<PrivateKeyCli>,
     /// Enable client authentication for the control gateway and set the certificate authority to
@@ -327,12 +327,13 @@ pub struct SupRun {
 pub enum Secret {
     /// Generate a secret key to use as a Supervisor's Control Gateway secret
     Generate,
-    /// Generate a TLS key to use as a Supervisor's Control Gateway certificate and private key
-    GenerateKey {
+    /// Generate a private key and certificate for use in the Supervisor's Control Gateway TLS
+    /// connection
+    GenerateTls {
         /// The DNS name to use in the certificates subject alternative name extension
         #[structopt(long = "subject-alternative-name")]
         subject_alternative_name: String,
-        /// The path to store the generated certificate and private key in
+        /// The directory to store the generated private key and certificate
         #[structopt(long = "path", default_value = "/hab/cache/keys/ctl")]
         path:                     PathBuf,
     },
