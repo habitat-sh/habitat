@@ -322,7 +322,7 @@ function Install-Dependency($dependency, $install_args = $null) {
         $cmd = "$HAB_BIN pkg install -u $env:HAB_BLDR_URL --channel $env:HAB_BLDR_CHANNEL $dependency $install_args"
         if($env:HAB_FEAT_IGNORE_LOCAL -eq "true") { $cmd += " --ignore-local" }
         Invoke-Expression $cmd
-        if ($LASTEXITCODE -ne 0 -and ($env:HAB_BLDR_URL -ne $FALLBACK_CHANNEL)) {
+        if ($LASTEXITCODE -ne 0 -and ($env:HAB_BLDR_CHANNEL -ne $FALLBACK_CHANNEL)) {
             Write-BuildLine "Trying to install '$dependency' from '$FALLBACK_CHANNEL'"
             $cmd = "$HAB_BIN pkg install -u $env:HAB_BLDR_URL --channel $FALLBACK_CHANNEL $dependency $install_args"
             if($env:HAB_FEAT_IGNORE_LOCAL -eq "true") { $cmd += " --ignore-local" }
