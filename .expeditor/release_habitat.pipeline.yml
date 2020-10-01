@@ -15,6 +15,18 @@ expeditor:
         # Necessary to prevent old studios from poisoning builds after core plans refreshes
         HAB_STUDIO_SECRET_HAB_FEAT_IGNORE_LOCAL: "true"
 
+        # If you wish to build these packages as part of an evaluation
+        # of a core plans refresh, initiate a manual ad-hoc build of
+        # this pipeline, setting the HAB_FALLBACK_CHANNEL environment
+        # variable to the channel with the refresh packages.
+        #
+        # DO NOT change HAB_FALLBACK_CHANNEL in any other scenario.
+        #
+        # Similarly, if you want to collect any packages built from
+        # such a manual pipeline run, you will want to set the
+        # COLLECTION_CHANNEL environment variable to something
+        # meaningful.
+
 steps:
 #######################################################################
 # Release!
@@ -441,6 +453,24 @@ steps:
       - .expeditor/scripts/release_habitat/promote_artifacts_to_dev.sh habitat-release-$BUILDKITE_BUILD_ID
     # Only "real" executions of this pipeline, initiated by Expeditor, should promote anything
     if: build.creator.name == 'Chef Expeditor'
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+
+  # This is ONLY done if the COLLECTION_CHANNEL variable has been set; in
+  # normal everyday executions of this pipeline, it will not be set.
+  #
+  # Be aware that `hab bldr channel promote` moves ALL packages in the
+  # source channel to the destination channel. Normally we would be
+  # wary of such an operation, but it's of no concern here, since the
+  # source channel was created specifically for this pipeline, and
+  # only contains the packages we created here, which is precisely
+  # what we want.
+  - label: "[:habicat: Promote to custom collection channel]"
+    command:
+      - hab bldr channel promote habitat-release-\$BUILDKITE_BUILD_ID \$COLLECTION_CHANNEL --auth=\$PIPELINE_HAB_AUTH_TOKEN --url=\$PIPELINE_HAB_BLDR_URL --origin=\$HAB_ORIGIN
+    if: build.env("COLLECTION_CHANNEL") != null
     expeditor:
       executor:
         docker:
