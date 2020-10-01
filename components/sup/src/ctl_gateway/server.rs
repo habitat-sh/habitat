@@ -489,22 +489,9 @@ impl CtlGatewayServer {
             TcpListener::bind(&listen_addr).await
                                            .expect("Could not bind ctl gateway listen address!");
 
-        // TLS configuration
-        let maybe_tls_config = if let Some(server_key) = server_key {
-            let mut tls_config = if let Some(client_certificates) = client_certificates {
-                debug!("Upgrading ctl-gateway to TLS with client authentication");
-                TlsServerConfig::new(AllowAnyAuthenticatedClient::new(client_certificates))
-            } else {
-                debug!("Upgrading ctl-gateway to TLS");
-                TlsServerConfig::new(NoClientAuth::new())
-            };
-            tls_config.set_single_cert(server_certificates.unwrap_or_default(), server_key)
-                      .expect("Could not set certificate for ctl gateway!");
-            Some(Arc::new(tls_config))
-        } else {
-            None
-        };
-
+        let maybe_tls_config = Self::maybe_tls_config(server_certificates,
+                                                      server_key,
+                                                      client_certificates).map(Arc::new);
         let mut incoming = listener.incoming();
         while let Some(tcp_stream) = incoming.next().await {
             match tcp_stream {
@@ -551,6 +538,26 @@ impl CtlGatewayServer {
                 }
                 Err(e) => error!("SrvHandler failed to connect, err: {}", e),
             }
+        }
+    }
+
+    fn maybe_tls_config(server_certificates: Option<Vec<Certificate>>,
+                        server_key: Option<PrivateKey>,
+                        client_certificates: Option<RootCertStore>)
+                        -> Option<TlsServerConfig> {
+        if let Some(server_key) = server_key {
+            let mut tls_config = if let Some(client_certificates) = client_certificates {
+                debug!("Upgrading ctl-gateway to TLS with client authentication");
+                TlsServerConfig::new(AllowAnyAuthenticatedClient::new(client_certificates))
+            } else {
+                debug!("Upgrading ctl-gateway to TLS");
+                TlsServerConfig::new(NoClientAuth::new())
+            };
+            tls_config.set_single_cert(server_certificates.unwrap_or_default(), server_key)
+                      .expect("Could not set certificate for ctl gateway!");
+            Some(tls_config)
+        } else {
+            None
         }
     }
 }
