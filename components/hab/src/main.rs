@@ -100,6 +100,7 @@ use std::{collections::HashMap,
           string::ToString,
           thread};
 use tabwriter::TabWriter;
+use webpki::DNSNameRef;
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
@@ -231,7 +232,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                                 Secret::Generate => return sub_sup_secret_generate(),
                                 Secret::GenerateTls { subject_alternative_name,
                                                       path, } => {
-                                    return sub_sup_secret_generate_key(&subject_alternative_name,
+                                    return sub_sup_secret_generate_key(subject_alternative_name.inner(),
                                                                        path)
                                 }
                             }
@@ -1625,7 +1626,7 @@ fn sub_sup_secret_generate() -> Result<()> {
     Ok(())
 }
 
-fn sub_sup_secret_generate_key(subject_alternative_name: &str, path: PathBuf) -> Result<()> {
+fn sub_sup_secret_generate_key(subject_alternative_name: DNSNameRef, path: PathBuf) -> Result<()> {
     Ok(ctl_gateway_tls::generate_self_signed_certificate_and_key(subject_alternative_name, path)
         .map_err(habitat_core::Error::from)?)
 }

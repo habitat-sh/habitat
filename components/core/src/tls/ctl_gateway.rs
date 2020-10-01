@@ -20,6 +20,7 @@ use std::{fs::{self,
           path::{Path,
                  PathBuf}};
 use thiserror::Error;
+use webpki::DNSNameRef;
 
 const NAME_PREFIX: &str = "ctl-gateway";
 const CRT_EXTENSION: &str = "crt.pem";
@@ -37,11 +38,12 @@ pub enum Error {
     CertificateWrite(#[from] IoError),
 }
 
-pub fn generate_self_signed_certificate_and_key(subject_alternate_name: &str,
+pub fn generate_self_signed_certificate_and_key(subject_alternate_name: DNSNameRef,
                                                 path: impl AsRef<Path>)
                                                 -> Result<(), Error> {
     let mut params =
-        CertificateParams::new(vec![subject_alternate_name.to_string(), "localhost".to_string(),]);
+        CertificateParams::new(vec![Into::<&str>::into(subject_alternate_name).to_string(),
+                                    "localhost".to_string(),]);
     let mut distinguished_name = DistinguishedName::new();
     distinguished_name.push(DnType::OrganizationName,
                             "Habitat Supervisor Control Gateway");
@@ -99,12 +101,13 @@ mod tests {
     use std::{fs,
               time::Duration};
     use tempfile::TempDir;
+    use webpki::DNSNameRef;
 
     #[test]
     fn ctl_gateway_generate_and_read_tls_files() {
         let tmpdir = TempDir::new().unwrap();
 
-        generate_self_signed_certificate_and_key("a_test_domain", &tmpdir).unwrap();
+        generate_self_signed_certificate_and_key(DNSNameRef::try_from_ascii_str("a_test_domain").unwrap(), &tmpdir).unwrap();
         assert_eq!(fs::read_dir(&tmpdir).unwrap().count(), 2);
         let first_path =
             get_latest_path(&tmpdir, &format!("{}-*.{}", NAME_PREFIX, CRT_EXTENSION)).unwrap();
@@ -118,7 +121,7 @@ mod tests {
         // name.
         std::thread::sleep(Duration::from_secs(2));
 
-        generate_self_signed_certificate_and_key("another_domain", &tmpdir).unwrap();
+        generate_self_signed_certificate_and_key(DNSNameRef::try_from_ascii_str("another_domain").unwrap(), &tmpdir).unwrap();
         assert_eq!(fs::read_dir(&tmpdir).unwrap().count(), 4);
         let second_path =
             get_latest_path(&tmpdir, &format!("{}-*.{}", NAME_PREFIX, CRT_EXTENSION)).unwrap();

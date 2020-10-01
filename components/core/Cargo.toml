@@ -45,6 +45,7 @@ tokio-rustls = "*"
 toml = { version = "0.5.6", features = [ "preserve_order" ] }
 typemap = "*"
 url = "*"
+webpki = "*"
 xz2 = "*"
 
 [target.'cfg(not(windows))'.dependencies]

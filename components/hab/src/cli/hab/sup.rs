@@ -8,7 +8,8 @@ use super::{svc::{ConfigOptSharedLoad,
                    ConfigOptCacheKeyPath,
                    ConfigOptRemoteSup,
                    DurationProxy,
-                   RemoteSup}};
+                   RemoteSup,
+                   SubjectAlternativeName}};
 use crate::{error::Error,
             VERSION};
 use configopt::{self,
@@ -333,7 +334,7 @@ pub enum Secret {
     GenerateTls {
         /// The DNS name to use in the certificates subject alternative name extension
         #[structopt(long = "subject-alternative-name")]
-        subject_alternative_name: String,
+        subject_alternative_name: SubjectAlternativeName,
         /// The directory to store the generated private key and certificate
         #[structopt(long = "path", default_value = HAB_CTL_KEYS_CACHE)]
         path:                     PathBuf,
