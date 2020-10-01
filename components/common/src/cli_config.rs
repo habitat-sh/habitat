@@ -9,6 +9,8 @@ use habitat_core::{fs::{am_i_root,
                    tls::rustls_wrapper::{CertificateChainCli,
                                          PrivateKeyCli,
                                          RootCertificateStoreCli}};
+use rustls::{ClientConfig as TlsClientConfig,
+             TLSError};
 use std::{fs,
           io,
           path::{Path,
@@ -80,6 +82,26 @@ impl CliConfig {
         debug!("Raw config toml:\n---\n{}\n---", &raw);
         fs::write(&*CLI_CONFIG_PATH, raw)?;
         Ok(())
+    }
+
+    pub fn maybe_tls_client_config(self) -> Result<Option<TlsClientConfig>, TLSError> {
+        let client_certificates = self.ctl_client_certificate
+                                      .map(CertificateChainCli::into_inner);
+        let client_key = self.ctl_client_key.map(PrivateKeyCli::into_inner);
+        let server_ca_certificates = self.ctl_server_ca_certificate
+                                         .map(RootCertificateStoreCli::into_inner);
+        if let Some(server_certificates) = server_ca_certificates {
+            let mut tls_config = TlsClientConfig::new();
+            tls_config.root_store = server_certificates;
+            if let Some(client_key) = client_key {
+                debug!("Configuring ctl-gateway TLS with client certificate");
+                tls_config.set_single_client_cert(client_certificates.unwrap_or_default(),
+                                                  client_key)?;
+            }
+            Ok(Some(tls_config))
+        } else {
+            Ok(None)
+        }
     }
 }
 

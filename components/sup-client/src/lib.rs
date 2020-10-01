@@ -32,7 +32,6 @@
 //! ```
 
 use habitat_sup_protocol as protocol;
-use rustls::ClientConfig as TlsClientConfig;
 #[macro_use]
 extern crate log;
 use crate::{common::types::ResolvedListenCtlAddr,
@@ -46,10 +45,7 @@ use habitat_common::{self as common,
                      cli_config::{CliConfig,
                                   Error as CliConfigError}};
 use habitat_core::{env as henv,
-                   tls::rustls_wrapper::{CertificateChainCli,
-                                         PrivateKeyCli,
-                                         RootCertificateStoreCli,
-                                         TcpOrTlsStream}};
+                   tls::rustls_wrapper::TcpOrTlsStream};
 use rustls::TLSError as RustlsError;
 use std::{error,
           fmt,
@@ -158,29 +154,10 @@ impl SrvClient {
         let addr = Self::ctl_addr(addr)?;
         let tcp_stream = TcpStream::connect(addr.addr()).await?;
 
-        // TLS configuration
-        let config = CliConfig::load()?;
-        let client_certificates = config.ctl_client_certificate
-                                        .map(CertificateChainCli::into_inner);
-        let client_key = config.ctl_client_key.map(PrivateKeyCli::into_inner);
-        let server_ca_certificates = config.ctl_server_ca_certificate
-                                           .map(RootCertificateStoreCli::into_inner);
-        let server_name_indication = config.ctl_server_name_indication;
-        let maybe_tls_config = if let Some(server_certificates) = server_ca_certificates {
-            let mut tls_config = TlsClientConfig::new();
-            tls_config.root_store = server_certificates;
-            if let Some(client_key) = client_key {
-                debug!("Configuring ctl-gateway TLS with client certificate");
-                tls_config.set_single_client_cert(client_certificates.unwrap_or_default(),
-                                                  client_key)?;
-            }
-            Some(Arc::new(tls_config))
-        } else {
-            None
-        };
-
         // Upgrade to a TLS connection if necessary
-        let tcp_stream = if let Some(tls_config) = maybe_tls_config {
+        let config = CliConfig::load()?;
+        let server_name_indication = config.ctl_server_name_indication.clone();
+        let tcp_stream = if let Some(tls_config) = config.maybe_tls_client_config()?.map(Arc::new) {
             let domain = server_name_indication.as_deref()
                                                .unwrap_or_else(|| addr.domain());
             debug!("Upgrading ctl-gateway to TLS with domain '{}'", domain);

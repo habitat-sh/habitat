@@ -1436,6 +1436,7 @@ dependencies = [
  "regex 1.3.9",
  "reqwest",
  "retry",
+ "rustls",
  "serde",
  "serde-transcode",
  "serde_derive",
