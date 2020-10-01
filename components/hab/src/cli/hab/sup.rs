@@ -28,6 +28,7 @@ use habitat_common::{cli::{RING_ENVVAR,
                      FeatureFlag,
                      FEATURE_FLAGS};
 use habitat_core::{env::Config,
+                   fs::HAB_CTL_KEYS_CACHE,
                    package::PackageIdent,
                    util as core_util};
 use rants::{error::Error as RantsError,
@@ -39,8 +40,6 @@ use std::{fmt,
           str::FromStr};
 use structopt::{clap::AppSettings,
                 StructOpt};
-
-const HAB_CTL_KEYS_CACHE: &str = "/hab/cache/keys/ctl";
 
 // All commands relating to the Supervisor (ie commands handled by both the `hab` and `hab-sup`
 // binary)
