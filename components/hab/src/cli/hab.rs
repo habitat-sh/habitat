@@ -62,7 +62,7 @@ use structopt::{clap::AppSettings,
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "hab",
             version = VERSION,
-            about = "\"A Habitat is the natural environment for your services\" - Alan Turing",
+            about = "Patents: https://chef.io/patents\n\"A Habitat is the natural environment for your services\" - Alan Turing",
             author = "\nThe Habitat Maintainers <humans@habitat.sh>\n",
             settings = &[AppSettings::GlobalVersion],
             after_help = AFTER_HELP
