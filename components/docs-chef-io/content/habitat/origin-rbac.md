@@ -9,7 +9,7 @@ draft = false
     title = "Origin Membership & RBAC"
     identifier = "habitat/origins/origin-rbac Builder RBAC"
     parent = "habitat/origins"
-    weight = 10
+    weight = 30
 +++
 
 [\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/builder-rbac.md)

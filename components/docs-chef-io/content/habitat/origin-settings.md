@@ -9,7 +9,7 @@ draft = false
     title = "Origin Settings"
     identifier = "habitat/origins/origin-settings Origin Settings"
     parent = "habitat/origins"
-    weight = 10
+    weight = 40
 +++
 
 [\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/origin-settings.md)
