@@ -829,7 +829,8 @@ dependencies = [
 [[package]]
 name = "env_proxy"
 version = "0.4.1"
-source = "git+https://github.com/inejge/env_proxy.git#ab89caf27c3caa852cd945b877d86bb1f638c4e0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a5019be18538406a43b5419a5501461f0c8b49ea7dfda0cfc32f4e51fc44be1"
 dependencies = [
  "log 0.4.11",
  "url",
