@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.164 -->
-## [1.6.164](https://github.com/habitat-sh/habitat/tree/1.6.164) (2020-10-14)
+<!-- latest_release 1.6.165 -->
+## [1.6.165](https://github.com/habitat-sh/habitat/tree/1.6.165) (2020-10-14)
 
 #### Merged Pull Requests
-- add patents notification to `hab` cli [#7937](https://github.com/habitat-sh/habitat/pull/7937) ([sdelano](https://github.com/sdelano))
+- Updates Hugo, Node modules [#7941](https://github.com/habitat-sh/habitat/pull/7941) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.139 -->
@@ -14,6 +14,8 @@
 - an API retry pattern [#7874](https://github.com/habitat-sh/habitat/pull/7874) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.150 -->
 
 #### Merged Pull Requests
+- Updates Hugo, Node modules [#7941](https://github.com/habitat-sh/habitat/pull/7941) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.165 -->
+- Temporarily disable website deploy triggers [#7904](https://github.com/habitat-sh/habitat/pull/7904) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.6.165 -->
 - add patents notification to `hab` cli [#7937](https://github.com/habitat-sh/habitat/pull/7937) ([sdelano](https://github.com/sdelano)) <!-- 1.6.164 -->
 - eliminate usages of `hab install` alias in plan-build-ps1 [#7938](https://github.com/habitat-sh/habitat/pull/7938) ([mwrock](https://github.com/mwrock)) <!-- 1.6.164 -->
 - Update env_proxy to 0.4.1 [#7933](https://github.com/habitat-sh/habitat/pull/7933) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.163 -->
