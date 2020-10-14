@@ -73,7 +73,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                                    .setting(AppSettings::Hidden);
 
     clap_app!(hab =>
-        (about: "\"A Habitat is the natural environment for your services\" - Alan Turing")
+        (about: "Patents: https://chef.io/patents\n\"A Habitat is the natural environment for your services\" - Alan Turing")
         (version: super::VERSION)
         (author: "\nThe Habitat Maintainers <humans@habitat.sh>\n")
         (@setting GlobalVersion)

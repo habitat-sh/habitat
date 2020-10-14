@@ -13,7 +13,7 @@ native-tls = { version = "*", features = ["vendored"] }
 pem = "*"
 httparse = "*"
 reqwest = { version = "*", features = ["blocking", "json", "stream"] }
-env_proxy = { git = "https://github.com/inejge/env_proxy.git" }
+env_proxy = "*"
 serde = "*"
 serde_json = { version = "*", features = [ "preserve_order" ] }
 url = "*"
