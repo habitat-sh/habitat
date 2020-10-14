@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.163 -->
-## [1.6.163](https://github.com/habitat-sh/habitat/tree/1.6.163) (2020-10-14)
+<!-- latest_release 1.6.164 -->
+## [1.6.164](https://github.com/habitat-sh/habitat/tree/1.6.164) (2020-10-14)
 
 #### Merged Pull Requests
-- Update env_proxy to 0.4.1 [#7933](https://github.com/habitat-sh/habitat/pull/7933) ([christophermaier](https://github.com/christophermaier))
+- add patents notification to `hab` cli [#7937](https://github.com/habitat-sh/habitat/pull/7937) ([sdelano](https://github.com/sdelano))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.139 -->
@@ -14,6 +14,8 @@
 - an API retry pattern [#7874](https://github.com/habitat-sh/habitat/pull/7874) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.150 -->
 
 #### Merged Pull Requests
+- add patents notification to `hab` cli [#7937](https://github.com/habitat-sh/habitat/pull/7937) ([sdelano](https://github.com/sdelano)) <!-- 1.6.164 -->
+- eliminate usages of `hab install` alias in plan-build-ps1 [#7938](https://github.com/habitat-sh/habitat/pull/7938) ([mwrock](https://github.com/mwrock)) <!-- 1.6.164 -->
 - Update env_proxy to 0.4.1 [#7933](https://github.com/habitat-sh/habitat/pull/7933) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.163 -->
 - Fix e2e tests [#7934](https://github.com/habitat-sh/habitat/pull/7934) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.162 -->
 - Cleanup the CLI config file [#7931](https://github.com/habitat-sh/habitat/pull/7931) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.161 -->
