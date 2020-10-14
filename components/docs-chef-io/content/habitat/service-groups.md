@@ -48,10 +48,10 @@ hab svc load core/redis --group=prod
 ```
 
 Each will start up, and will be joined into the same group; here is Supervisor A's output:
-![Supervisor A running Redis](/images/docs/service-groups/supervisor_a_before.png)
+![Supervisor A running Redis](/images/habitat/docs/service-groups/supervisor_a_before.png)
 
 And here is Supervisor B's output:
-![Supervisor B running Redis](/images/docs/service-groups/supervisor_b_before.png)
+![Supervisor B running Redis](/images/habitat/docs/service-groups/supervisor_b_before.png)
 
 Note that they are both listening on the same port.
 
@@ -65,11 +65,11 @@ echo 'port = 2112' | hab config apply redis.prod 1
 
 Both service instances restart with the new configuration. Supervisor A's output is:
 
-![Supervisor A running Redis on a new port](/images/docs/service-groups/supervisor_a_after.png)
+![Supervisor A running Redis on a new port](/images/habitat/docs/service-groups/supervisor_a_after.png)
 
 and Supervisor B's output is:
 
-![Supervisor B running Redis on a new port](/images/docs/service-groups/supervisor_b_after.png)
+![Supervisor B running Redis on a new port](/images/habitat/docs/service-groups/supervisor_b_after.png)
 
 Note that they have both restarted (as evidenced by the new PID values), and that both are now running on port 2112, as we instructed.
 

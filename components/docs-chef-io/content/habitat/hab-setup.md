@@ -13,7 +13,7 @@ description = "Set up the Chef Habitat CLI"
 
 Once Chef Habitat has been installed, the `hab` CLI makes it easy to get your workstation configured by guiding through the setup process. To set up your workstation, run `hab cli setup` and follow the instructions.
 
-<img alt="screenshot of hab cli setup output in CLI" src="/images/hab-setup.png">
+<img alt="screenshot of hab cli setup output in CLI" src="/images/habitat/hab-setup.png">
 
 Setup asks you to create a new origin and a set of origin keys.
 
@@ -28,6 +28,6 @@ For information on the types of data we gather and how we intend to use it, see 
 
 You can change your settings at any time by re-running the `hab cli setup` command.
 
-<img alt="screenshot of completed hab cli setup in CLI" src="/images/hab-setup-complete.png">
+<img alt="screenshot of completed hab cli setup in CLI" src="/images/habitat/hab-setup-complete.png">
 
 That's it. You're all set up and ready to use Chef Habitat to build and run packages!

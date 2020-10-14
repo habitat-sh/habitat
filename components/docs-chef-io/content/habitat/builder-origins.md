@@ -18,11 +18,11 @@ For more on invitations, see [origin membership and RBAC](#origin-membership).
 
 ### Create an Origin
 
-![Chef Habitat Builder without origins](/images/create-origin.png)
+![Chef Habitat Builder without origins](/images/habitat/create-origin.png)
 
 To create an origin, select the **Create origin** button on the _My Origins_ page which opens the _Create New Origin_ form. (Chef Habitat Builder > My Origins )
 
-![Creating an origin](/images/create-origin-form.png)
+![Creating an origin](/images/habitat/create-origin-form.png)
 
 First, enter a unique name that you want to associate with your packages.  Chef Habitat will only let you create an origin with a unique name. Some examples that you'll see in Chef Habitat Builder are team names, user names, and abstract concepts.
 
@@ -37,7 +37,7 @@ When you select **Save and Continue**, Chef Habitat Builder:
 1. Creates an [origin key pair](#origin-keys)
 1. Redirects Chef Habitat Builder to the origin page
 
-![Origin successfully created](/images/create-origin-done.png)
+![Origin successfully created](/images/habitat/create-origin-done.png)
 
 #### Create an Origin with the Chef Habitat CLI
 
@@ -125,7 +125,7 @@ RBAC Origin Member Roles:
 
 In tandem with the changes to the Builder membership roles, we've also updated the `hab` CLI to support RBAC. We're working on adding role management to the Chef Habitat Builder site, but in the meantime, you'll need to use the CLI for now.
 
-![Manage origin membership](../images/origin_members.png)
+![Manage origin membership](../images/habitat/origin_members.png)
 
 #### Manage origin membership with `hab origin invitations`
 
@@ -258,19 +258,19 @@ testorigin-20190416223046.sig.key
 
 When you create an origin, Chef Habitat Builder automatically generates an origin key pair and saves both keys. To view your origin keys on Chef Habitat Builder, navigate to your origin and select the **Keys** tab. (Builder > Origins > Keys) You will always be able to view and download origin public keys, but you will only see the private keys for origins in which you are an "administrator" or "owner".
 
-![Viewing your origin keys](/images/origin-keys.png)
+![Viewing your origin keys](/images/habitat/origin-keys.png)
 
 #### Download Origin Keys
 
 Download your private or public origin key by selecting the **download** icon from the right end of the key details, under the _Actions_ heading.
 
-![Detail of the download icon](/images/origin-key-download.png)
+![Detail of the download icon](/images/habitat/origin-key-download.png)
 
 #### Upload Origin Keys
 
 You can upload origin keys that you generate on the command line to Chef Habitat Builder by selecting either the **Upload a private key** or **Upload a public key** icon, and copy your key into the form that appears.
 
-![Example form content for uploading an origin key in Builder](/images/builder-key-upload.png)
+![Example form content for uploading an origin key in Builder](/images/habitat/builder-key-upload.png)
 
 ### <a name="key-cli" id="key-cli" data-magellan-target="key-cli"> Managing Origin Keys with the CLI </a>
 
@@ -405,7 +405,7 @@ Everyone with origin membership can see the _Settings_ tab, but only origin admi
 | View secrets | N | N | Y | Y | Y |
 | Add/Update/Delete secrets | N | N | N | Y | Y |
 
-![The administrator or owner's view of the origin settings tab with a public default package setting and a saved origin secret](/images/origin-secrets.png)
+![The administrator or owner's view of the origin settings tab with a public default package setting and a saved origin secret](/images/habitat/origin-secrets.png)
 
 ### Default Package Settings
 

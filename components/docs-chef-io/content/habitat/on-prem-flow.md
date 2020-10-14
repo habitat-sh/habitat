@@ -10,5 +10,5 @@ description = "Chef Habitat Builder on-prem Flow"
 
 +++
 
-![Chef Habitat On-premises Builder Depot Flow Diagram](/images/habitat-on-premises-builder-depot-flow.png)
+![Chef Habitat On-premises Builder Depot Flow Diagram](/images/habitat/habitat-on-premises-builder-depot-flow.png)
 
