@@ -51,7 +51,7 @@ Your public and private origin keys are located at `~/.hab/cache/keys` on your h
 
 ## Upload Your Origin Keys
 
-If you created a new Habitat origin from your host machine or from the Studio, Builder will not have either of the origin keys corresponding to your artifact. Builder will not accept uploaded artifacts without first having the correct origin public key.
+If you created a new Habitat origin from your host machine or from the Studio, Builder will not have either of the origin keys corresponding to your artifact. Builder will not accept uploaded artifacts without first having the correct public origin key.
 
 You can upload keys for the origin through the web interface for Builder, or by using the `hab origin key upload` command. You must have the access token for authentication, as described earlier, before you can upload keys.
 
