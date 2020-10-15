@@ -1,45 +1,18 @@
 +++
-title = "Get Started with Chef Habitat Builder"
-description = "Setting up Chef Habitat Builder in the Cloud and on your workstation"
+title = "Builder Profile"
+
+date = 2020-10-12T16:08:26-07:00
+draft = false
 
 [menu]
   [menu.habitat]
-    title = "Get Started"
-    identifier = "habitat/builder/builder-get-started"
+    title = "Builder Profile"
+    identifier = "habitat/builder/builder-profile.md Builder Profile"
     parent = "habitat/builder"
-    weight = 20
-
+    weight = 30
 +++
 
-Whether you are looking to leverage the SaaS or on-prem version of Chef Habitat Builder, you will need to create an account on the SaaS version of Chef Habitat Builder. After you have then downloaded the version, you will then sync the two accounts.
-
-This documentation covers everything from creating an account to setting up automated builds and exporting packages to a variety of container registries.
-
-## Get an Account
-
-### Prerequisites
-
-You need to set a few things up before you can get started with Chef Habitat Builder:
-
-* Download and install the [Chef Habitat CLI](https://www.habitat.sh/docs/install-habitat/#install-habitat)
-* A [GitHub account](https://github.com/join)
-
-### Sign-in and Authorize Chef Habitat Builder
-
-Chef Habitat Builder automatically creates your account the first time you sign in using the GitHub authentication process. You'll also need to authorize the Chef Habitat Builder application in Github.
-
-Head over to the Chef Habitat Builder sign-in page at [https://bldr.habitat.sh/#/sign-in](https://bldr.habitat.sh/#/sign-in) to get started.
-
-1. To sign in with an existing GitHub account, select **Sign in with GitHub**
-1. If you need to set up a GitHub account, select the **Sign up here** link
-
-![Chef Habitat sign in with Github](/images/screenshots/builder_signin.png)
-
-Signing in with your GitHub account and authorizing the Chef Habitat Builder application the first time you sign in grants you access to the Chef Habitat Builder platform. Once you've completed signing in and authorizing Chef Habitat Builder, you'll arrive at the 'My Origins' view.
-
-![Authorize the Chef Habitat Application](/images/screenshots/authorize.png)
-
-## Set up your Profile
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/builder-profile.md)
 
 Use the _Profile_ tab to:
 
@@ -57,7 +30,7 @@ Adding an email address to your profile gives the Chef Habitat team permission t
 
 ![Register your email address](/images/screenshots/builder_profile_user.png)
 
-### <a name="builder-token" id="builder-token" data-magellan-target="builder-token">Create a Personal Access Token </a>
+### Create a Personal Access Token
 
 Chef Habitat Builder uses an access token, called a _personal access token_ or a _Habitat authentication token_ (HAB_AUTH_TOKEN), to give you access to actions that you would like to take on Chef Habitat Builder. The _personal access token_ is the first level of permissions that you need to for any interactions with Chef Habitat Builder, such as uploading packages or checking the status of build jobs.
 
@@ -69,7 +42,7 @@ Your generated access token will appear in the field. The access token is visibl
 
 ![Copy your personal access token](/images/screenshots/copy-token.png)
 
-####  <a name="builder-token-windows" id="builder-token-windows" data-magellan-target="builder-token-windows">Set the personal access token as a Windows Environment Variable</a>
+#### Set the personal access token as a Windows Environment Variable
 
 You can use your personal access token as a [Windows environment variable](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-7) for a single session by passing it in the command line or save it in your user settings for use across sessions.
 
@@ -97,7 +70,7 @@ Create a permanent environment variable by entering `HAB_AUTH_TOKEN` as the vari
 
 To test that your new token works correctly, open the Command Prompt---which you can find by entering command in the Windows search box---and entering `echo %HAB_AUTH_TOKEN%`. You should see the value that you pasted into the environment variable.
 
-####  <a name="builder-token-macos" id="builder-token-macos" data-magellan-target="builder-token-macos">Set the personal access token as a macOS Environment Variable</a>
+#### Set the personal access token as a macOS Environment Variable
 
 Set the `HAB_AUTH_TOKEN` in the CLI with:
 
