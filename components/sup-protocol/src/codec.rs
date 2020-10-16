@@ -47,13 +47,13 @@ use bytes::{Buf,
             BufMut,
             Bytes,
             BytesMut};
-use habitat_core::tls::rustls_wrapper::TcpOrTlsStream;
 use prost::{self,
             Message};
 use std::{fmt,
           io::{self,
                Cursor},
           str};
+use tokio::net::TcpStream;
 use tokio_util::codec::{Decoder,
                         Encoder,
                         Framed};
@@ -73,7 +73,7 @@ const COMPLETE_MASK: u32 = 0x1;
 
 /// A `TcpStream` framed with `SrvCodec`. This is the base socket connection that the CtlGateway
 /// client and server speak.
-pub type SrvStream = Framed<TcpOrTlsStream, SrvCodec>;
+pub type SrvStream = Framed<TcpStream, SrvCodec>;
 
 // The type of the transaction id.
 pub type TxnId = u32;

@@ -12,7 +12,6 @@ habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
 log = "*"
 prost = "*"
-rustls = "*"
 termcolor = "*"
 tokio = { version = "*", features = ["full"] }
 tokio-util = { version = "*", features = ["full"] }

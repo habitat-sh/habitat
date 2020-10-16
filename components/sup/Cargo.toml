@@ -22,7 +22,6 @@ byteorder = "*"
 clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
 configopt = { git = "https://github.com/davidMcneil/configopt.git" }
 cpu-time = "*"
-derivative = "*"
 futures = { version = "0.3.1" }
 glob = "*"
 hab = { path = "../hab" }
@@ -46,9 +45,11 @@ prost = "*"
 prost-derive = "*"
 prost-types = "*"
 rand = "*"
-rants = { version = "*", features = ["native-tls"] }
+rants = "*"
 regex = "*"
-rustls = "*"
+# Pinning for now. Since upgrading to 0.17.0 results in conflicts with other crates
+# See https://github.com/habitat-sh/habitat/issues/7523
+rustls = "0.16.0"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = { version = "*", features = [ "preserve_order" ] }
@@ -60,7 +61,6 @@ tempfile = "*"
 termcolor = "*"
 toml = { version = "*", features = ["preserve_order"]}
 tokio = { version = "*", features = ["full"] }
-tokio-rustls = "*"
 tokio-util = { version = "*", features = ["full"] }
 url = "*"
 valico = "*"

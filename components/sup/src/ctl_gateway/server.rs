@@ -19,8 +19,7 @@ use futures::{channel::mpsc,
               ready,
               task::{Context,
                      Poll}};
-use habitat_core::{crypto,
-                   tls::rustls_wrapper::TcpOrTlsStream};
+use habitat_core::crypto;
 use habitat_sup_protocol::{self as protocol,
                            codec::{SrvCodec,
                                    SrvMessage,
@@ -34,12 +33,6 @@ use pin_project::pin_project;
 use prometheus::{HistogramTimer,
                  HistogramVec,
                  IntCounterVec};
-use rustls::{AllowAnyAuthenticatedClient,
-             Certificate,
-             NoClientAuth,
-             PrivateKey,
-             RootCertStore,
-             ServerConfig as TlsServerConfig};
 use std::{error,
           fmt,
           io,
@@ -460,104 +453,36 @@ struct SrvState {
     mgr_sender: MgrSender,
 }
 
-pub(crate) struct CtlGatewayServer {
-    pub(crate) listen_addr:         SocketAddr,
-    pub(crate) secret_key:          String,
-    pub(crate) mgr_sender:          MgrSender,
-    pub(crate) server_certificates: Option<Vec<Certificate>>,
-    pub(crate) server_key:          Option<PrivateKey>,
-    pub(crate) client_certificates: Option<RootCertStore>,
-}
-
-impl CtlGatewayServer {
-    /// Start a new thread which will run the CtlGateway server.
-    ///
-    /// New connections will be authenticated using `secret_key`. Messages from the main thread
-    /// will be sent over the channel `mgr_sender`.
-    pub async fn run(self) {
-        let Self { listen_addr,
-                   secret_key,
-                   mgr_sender,
-                   server_certificates,
-                   server_key,
-                   client_certificates, } = self;
-
-        let state = SrvState { secret_key,
-                               mgr_sender };
-        let state = Arc::new(Mutex::new(state));
-        let mut listener =
-            TcpListener::bind(&listen_addr).await
-                                           .expect("Could not bind ctl gateway listen address!");
-
-        let maybe_tls_config = Self::maybe_tls_config(server_certificates,
-                                                      server_key,
-                                                      client_certificates).map(Arc::new);
-        let mut incoming = listener.incoming();
-        while let Some(tcp_stream) = incoming.next().await {
-            match tcp_stream {
-                Ok(tcp_stream) => {
-                    let addr = match tcp_stream.peer_addr() {
-                        Ok(addr) => addr,
-                        Err(e) => {
-                            error!("Client peer address not available from socket, err {}", e);
-                            continue;
-                        }
-                    };
-
-                    // Upgrade to a TLS connection if necessary
-                    let tcp_stream = if let Some(tls_config) = &maybe_tls_config {
-                        match TcpOrTlsStream::new_tls_server(tcp_stream, Arc::clone(tls_config)).await
-                    {
-                        Ok(tcp_stream) => tcp_stream,
-                        Err((e, tcp_stream)) => {
-                            error!("Failed to accept TLS client connection, err {}", e);
-                            // If the client sent a corrupt TLS message it is a good indicator that
-                            // they did not upgrade to TLS. In this case send back an error response.
-                            // We do not always send back an error response because it can lead to
-                            // confusing error messages on the client.
-                            if let Some(&rustls::TLSError::CorruptMessage) = e.get_ref().and_then(|e| e.downcast_ref()) {
-                                let mut srv_codec = SrvCodec::new().framed(tcp_stream);
-                                let net_err = net::err(ErrCode::TlsHandshakeFailed, format!("TLS handshake failed, err: {}", e));
-                                if let Err(e) = srv_codec.send(SrvMessage::from(net_err)).await {
-                                    error!("Failed to send TLS failure message to client, err {}", e);
-                                }
-                            }
-                            continue;
-                        }
+/// Start a new thread which will run the CtlGateway server.
+///
+/// New connections will be authenticated using `secret_key`. Messages from the main thread
+/// will be sent over the channel `mgr_sender`.
+pub async fn run(listen_addr: SocketAddr, secret_key: String, mgr_sender: MgrSender) {
+    let state = SrvState { secret_key,
+                           mgr_sender };
+    let state = Arc::new(Mutex::new(state));
+    let mut listner =
+        TcpListener::bind(&listen_addr).await
+                                       .expect("Could not bind ctl gateway listen address!");
+    let mut incoming = listner.incoming();
+    while let Some(tcp_stream) = incoming.next().await {
+        match tcp_stream {
+            Ok(tcp_stream) => {
+                let addr = match tcp_stream.peer_addr() {
+                    Ok(addr) => addr,
+                    Err(e) => {
+                        debug!("Client peer address not available from socket, err {}", e);
+                        continue;
                     }
-                    } else {
-                        TcpOrTlsStream::new(tcp_stream)
-                    };
-
-                    let srv_codec = SrvCodec::new().framed(tcp_stream);
-                    let client = Client { state: Arc::clone(&state), };
-                    tokio::spawn(async move {
-                        let res = client.serve(srv_codec).await;
-                        debug!("DISCONNECTED from {:?} with result {:?}", addr, res);
-                    });
-                }
-                Err(e) => error!("SrvHandler failed to connect, err: {}", e),
+                };
+                let io = SrvCodec::new().framed(tcp_stream);
+                let client = Client { state: Arc::clone(&state), };
+                tokio::spawn(async move {
+                    let res = client.serve(io).await;
+                    debug!("DISCONNECTED from {:?} with result {:?}", addr, res);
+                });
             }
-        }
-    }
-
-    fn maybe_tls_config(server_certificates: Option<Vec<Certificate>>,
-                        server_key: Option<PrivateKey>,
-                        client_certificates: Option<RootCertStore>)
-                        -> Option<TlsServerConfig> {
-        if let Some(server_key) = server_key {
-            let mut tls_config = if let Some(client_certificates) = client_certificates {
-                debug!("Upgrading ctl-gateway to TLS with client authentication");
-                TlsServerConfig::new(AllowAnyAuthenticatedClient::new(client_certificates))
-            } else {
-                debug!("Upgrading ctl-gateway to TLS");
-                TlsServerConfig::new(NoClientAuth::new())
-            };
-            tls_config.set_single_cert(server_certificates.unwrap_or_default(), server_key)
-                      .expect("Could not set certificate for ctl gateway!");
-            Some(tls_config)
-        } else {
-            None
+            Err(e) => error!("SrvHandler failed to connect, err: {}", e),
         }
     }
 }

@@ -50,7 +50,6 @@ pub enum Error {
     HabitatCore(hcore::Error),
     // Boxed due to clippy::large_enum_variant
     HandlebarsRenderError(Box<handlebars::TemplateRenderError>),
-    InvalidDnsName(String),
     IO(io::Error),
     JobGroupPromoteOrDemote(api_client::Error, bool /* promote */),
     JobGroupCancel(api_client::Error),
@@ -152,7 +151,6 @@ impl fmt::Display for Error {
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::HabitatCommon(ref e) => e.to_string(),
             Error::HabitatCore(ref e) => e.to_string(),
-            Error::InvalidDnsName(ref e) => format!("Invalid DNS name: {}", e),
             Error::HandlebarsRenderError(ref e) => e.to_string(),
             Error::IO(ref err) => format!("{}", err),
             Error::JobGroupPromoteOrDemoteUnprocessable(true) => {
