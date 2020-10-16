@@ -1,17 +1,17 @@
-.expeditor @christophermaier @smacfarlane @davidMcneil
-components/builder-api-client @davidMcneil
-components/butterfly* @christophermaier @davidMcneil
-components/core @christophermaier @davidMcneil
-components/common @christophermaier @davidMcneil
-components/hab @christophermaier @eeyun @davidMcneil
-components/http-client @davidMcneil
-components/launcher* @christophermaier @davidMcneil
-components/pkg-* @christophermaier @eeyun @davidMcneil
-components/plan-build @christophermaier
-components/studio @eeyun
-components/sup* @christophermaier @davidMcneil
-components/win-users @mwrock @davidMcneil
-support @christophermaier @davidMcneil
-tools @christophermaier @eeyun @davidMcneil
+.expeditor @christophermaier @smacfarlane @markan @jeremymv2
+components/builder-api-client @christophermaier @smacfarlane @markan @jeremymv2
+components/butterfly* @christophermaier @smacfarlane @markan @jeremymv2
+components/core @christophermaier @smacfarlane @markan @jeremymv2
+components/common @christophermaier @smacfarlane @markan @jeremymv2
+components/hab @christophermaier @smacfarlane @markan @jeremymv2
+components/http-client @christophermaier @smacfarlane @markan @jeremymv2
+components/launcher* @christophermaier @smacfarlane @markan @jeremymv2
+components/pkg-* @christophermaier @smacfarlane @markan @jeremymv2
+components/plan-build @christophermaier @smacfarlane @markan @jeremymv2
+components/studio @christophermaier @smacfarlane @markan @jeremymv2
+components/sup* @christophermaier @smacfarlane @markan @jeremymv2
+components/win-users @christophermaier @smacfarlane @markan @jeremymv2
+support @christophermaier @smacfarlane @markan @jeremymv2
+tools @christophermaier @smacfarlane @markan @jeremymv2
 www @chef/automate-ui-team @kagarmoe @mjingle @ianmadd
-UX_PRINCIPLES.md @apriofrost
+UX_PRINCIPLES.md @christophermaier @smacfarlane @markan @jeremymv2
