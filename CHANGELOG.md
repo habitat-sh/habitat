@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.167 -->
-## [1.6.167](https://github.com/habitat-sh/habitat/tree/1.6.167) (2020-10-15)
+<!-- latest_release 1.6.168 -->
+## [1.6.168](https://github.com/habitat-sh/habitat/tree/1.6.168) (2020-10-16)
 
 #### Merged Pull Requests
-- Make shorter Builder pages [#7939](https://github.com/habitat-sh/habitat/pull/7939) ([kagarmoe](https://github.com/kagarmoe))
+- Revert &quot;Merge pull request #7923 from habitat-sh/dmcneil/ctl-gateway-… [#7943](https://github.com/habitat-sh/habitat/pull/7943) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.139 -->
@@ -14,6 +14,7 @@
 - an API retry pattern [#7874](https://github.com/habitat-sh/habitat/pull/7874) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.150 -->
 
 #### Merged Pull Requests
+- Revert &quot;Merge pull request #7923 from habitat-sh/dmcneil/ctl-gateway-… [#7943](https://github.com/habitat-sh/habitat/pull/7943) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.168 -->
 - Make shorter Builder pages [#7939](https://github.com/habitat-sh/habitat/pull/7939) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.167 -->
 - Add TLS support to the ctl gateway [#7923](https://github.com/habitat-sh/habitat/pull/7923) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.166 -->
 - Updates Hugo, Node modules [#7941](https://github.com/habitat-sh/habitat/pull/7941) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.165 -->
