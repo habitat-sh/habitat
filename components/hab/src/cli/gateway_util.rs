@@ -4,7 +4,7 @@
 use crate::error::Result;
 use futures::stream::StreamExt;
 use habitat_common as common;
-use habitat_common::{types::ResolvedListenCtlAddr,
+use habitat_common::{types::ListenCtlAddr,
                      ui::{UIWriter,
                           UI}};
 use habitat_sup_client::{SrvClient,
@@ -24,7 +24,7 @@ use termcolor::{self,
 ///
 /// Unfortunately not all control gateway-interacting functions use
 /// this logic yet.
-pub async fn send(remote_sup_addr: Option<&ResolvedListenCtlAddr>,
+pub async fn send(remote_sup_addr: &ListenCtlAddr,
                   msg: impl Into<SrvMessage> + fmt::Debug)
                   -> Result<()> {
     let mut response = SrvClient::request(remote_sup_addr, msg).await?;

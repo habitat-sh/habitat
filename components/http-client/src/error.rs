@@ -13,6 +13,7 @@ pub enum Error {
     IO(io::Error),
     Json(serde_json::Error),
     UrlParseError(url::ParseError),
+    NativeTlsError(native_tls::Error),
 }
 
 impl fmt::Display for Error {
@@ -23,6 +24,7 @@ impl fmt::Display for Error {
             Error::IO(ref e) => format!("{}", e),
             Error::Json(ref e) => format!("{}", e),
             Error::UrlParseError(ref e) => format!("{}", e),
+            Error::NativeTlsError(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
     }
@@ -44,4 +46,8 @@ impl From<io::Error> for Error {
 
 impl From<url::ParseError> for Error {
     fn from(err: url::ParseError) -> Self { Error::UrlParseError(err) }
+}
+
+impl From<native_tls::Error> for Error {
+    fn from(err: native_tls::Error) -> Self { Error::NativeTlsError(err) }
 }

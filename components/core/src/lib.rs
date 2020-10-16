@@ -17,7 +17,6 @@ pub mod origin;
 pub mod os;
 pub mod package;
 pub mod service;
-pub mod tls;
 pub mod url;
 pub mod util;
 
