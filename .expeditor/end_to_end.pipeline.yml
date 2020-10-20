@@ -33,6 +33,8 @@ steps:
   - label: "[:linux: test_hab_help_doesnt_install_hab_sup]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_hab_help_doesnt_install_hab_sup
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -69,6 +71,8 @@ steps:
   - label: "[:windows: hab-svc-load]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_load_service
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -83,6 +87,8 @@ steps:
   - label: "[:windows: Start-Service]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_windows_service
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -97,6 +103,8 @@ steps:
   - label: "[:windows: cleanly-shutdown-supervisor]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_windows_shutdown
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -111,6 +119,8 @@ steps:
   - label: "[:windows: hab-svc-load-with-svc-user]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_load_service_with_password
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -125,6 +135,8 @@ steps:
   - label: "[:windows: test_supervisor_binds]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_binds
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -139,6 +151,8 @@ steps:
   - label: "[:linux: test_supervisor_binds]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_supervisor_binds
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -151,6 +165,8 @@ steps:
   - label: "[:windows: test_supervisor_term]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_term
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -162,6 +178,8 @@ steps:
   - label: "[:linux: test_supervisor_term]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_supervisor_term
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -174,6 +192,8 @@ steps:
   - label: "[:windows: hab-svc-load-with-hab-user]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_load_with_hab_user
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -189,7 +209,7 @@ steps:
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_launcher_checks_supervisor_version
     artifact_paths:
-      - sup.log
+      - "*.log"
     soft_fail: true
     expeditor:
       executor:
@@ -204,7 +224,7 @@ steps:
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_launcher_exits_on_supervisor_connection_failure
     artifact_paths:
-      - sup.log
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -216,7 +236,7 @@ steps:
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_launcher_exits_on_supervisor_startup_failure
     artifact_paths:
-      - sup.log
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -228,7 +248,7 @@ steps:
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_supervisor_restarts
     artifact_paths:
-      - sup.log
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -239,6 +259,8 @@ steps:
   - label: "[:linux: test_socket_file_cleanup]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_socket_file_cleanup
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -249,6 +271,8 @@ steps:
   - label: "[:linux: test_tar_export]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_tar_export
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -259,6 +283,8 @@ steps:
   - label: "[:windows: test_tar_export]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_tar_export
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -273,6 +299,8 @@ steps:
   - label: "[:linux: test_studio_auto_installs]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_auto_installs
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -285,6 +313,8 @@ steps:
   - label: "[:linux: test_studio_with_ssl_cert_file_envvar_set]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_with_ssl_cert_file_envvar_set
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -297,6 +327,8 @@ steps:
   - label: "[:windows: test_studio_with_ssl_cert_file_envvar_set]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_with_ssl_cert_file_envvar_set
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -312,6 +344,8 @@ steps:
   - label: "[:linux: :docker: test_studio_with_ssl_cert_file_envvar_set]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_with_ssl_cert_file_envvar_set
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-linux
       STUDIO_DOCKER_TEST: true
@@ -324,6 +358,8 @@ steps:
   - label: "[:windows: test_studio_version]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_version
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -339,6 +375,8 @@ steps:
   - label: "[:windows: 2019 :docker: test_studio_version]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_version
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-windows
       DOCKER_STUDIO_TEST: true
@@ -352,6 +390,8 @@ steps:
   - label: "[:windows: 2016 :docker: test_studio_version]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_version
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-windows
       DOCKER_STUDIO_TEST: true
@@ -366,6 +406,8 @@ steps:
   - label: "[:linux: test_studio_version]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_version
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -379,6 +421,8 @@ steps:
   - label: "[:linux: :docker: test_studio_version]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_version
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-linux
       DOCKER_STUDIO_TEST: true
@@ -392,6 +436,8 @@ steps:
   - label: "[:windows: test_studio_supervisor]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_supervisor
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -407,6 +453,8 @@ steps:
   - label: "[:windows: :docker: test_studio_supervisor]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_supervisor
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-windows
       DOCKER_STUDIO_TEST: true
@@ -420,6 +468,8 @@ steps:
   - label: "[:windows: test_studio_profile]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_profile
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -435,6 +485,8 @@ steps:
   - label: "[:windows: :docker: test_studio_profile]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_profile
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-windows
       DOCKER_STUDIO_TEST: true
@@ -449,6 +501,8 @@ steps:
   - label: "[:linux: test_fresh_install_can_communicate_with_builder]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_fresh_install_can_communicate_with_builder
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -460,6 +514,8 @@ steps:
   - label: "[:linux: test_studio_can_build_packages]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_can_build_packages
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -471,6 +527,8 @@ steps:
   - label: "[:windows: test_studio_can_build_packages]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_can_build_packages
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -486,6 +544,8 @@ steps:
   - label: "[:windows: test_studio_can_build_packages_with_pkg_version_function]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_can_build_packages_with_pkg_version_function
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -501,6 +561,8 @@ steps:
   - label: "[:windows: test_studio_can_build_scaffolded_package]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_can_build_scaffolded_package
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -516,6 +578,8 @@ steps:
   - label: "[:linux: test_studio_unmount_with_long_filesystem]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_studio_unmount_with_long_filesystem
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-linux
     expeditor:
@@ -527,6 +591,8 @@ steps:
   - label: "[:linux: test_self_signed_cert_is_loaded_by_hab]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_self_signed_cert_is_loaded_by_hab
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -537,6 +603,8 @@ steps:
   - label: "[:windows: test_windows_service_stops_on_launcher_termination]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_windows_service_stops_on_launcher_termination
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -551,6 +619,8 @@ steps:
   - label: "[:windows: test_ssl_certificate_loading]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_ssl_certificate_loading
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -566,6 +636,8 @@ steps:
   - label: "[:windows: test_pkg_install]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_pkg_install
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -581,6 +653,8 @@ steps:
   - label: "[:linux: test_pkg_install]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_pkg_install
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -591,6 +665,8 @@ steps:
   - label: "[:linux: test_pkg_download]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_pkg_download
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -601,6 +677,8 @@ steps:
   - label: "[:linux: test_pkg_bulkupload]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_pkg_bulkupload
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -613,6 +691,8 @@ steps:
   - label: "[:linux: test_simple_hooks]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_simple_hooks
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -623,6 +703,8 @@ steps:
   - label: "[:windows: test_simple_hooks]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_simple_hooks
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -637,6 +719,8 @@ steps:
   - label: "[:linux: test pids from Launcher with compatible Launcher]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_service_pids_come_from_new_launcher
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -647,6 +731,8 @@ steps:
   - label: "[:linux: test service PID files with old Launcher]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_service_pids_written_to_file_using_old_launcher
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -657,6 +743,8 @@ steps:
   - label: "[:linux: test_event_stream]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_event_stream
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -667,6 +755,8 @@ steps:
   - label: "[:linux: test_at_once_service_updater]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_at_once_service_updater
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -679,6 +769,8 @@ steps:
   - label: "[:linux: test_self_keep_latest_packages]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_self_keep_latest_packages
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -689,6 +781,8 @@ steps:
   - label: "[:linux: test_pkg_uninstall]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_pkg_uninstall
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -699,6 +793,8 @@ steps:
   - label: "[:linux: test_pkg_uninstall_hook]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_pkg_uninstall_hook
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -709,6 +805,8 @@ steps:
   - label: "[:windows: test_pkg_uninstall_hook]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_pkg_uninstall_hook
+    artifact_paths:
+      - "*.log"
     expeditor:
       executor:
         docker:
@@ -724,6 +822,8 @@ steps:
   - label: "[:linux: test_container_exporter]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_container_exporter
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-linux
     expeditor:
@@ -735,6 +835,8 @@ steps:
   - label: "[:windows: test_container_exporter]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_container_exporter
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-windows
     expeditor:
@@ -746,6 +848,8 @@ steps:
   - label: "[:linux: test_svc_update]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_svc_update
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-linux
     expeditor:
@@ -759,6 +863,8 @@ steps:
   - label: "[:windows: test_svc_update]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_svc_update
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-windows
     expeditor:
@@ -776,6 +882,8 @@ steps:
   - label: "[:linux: test_config_files]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_config_files
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-linux
     expeditor:
@@ -789,6 +897,8 @@ steps:
   - label: "[:windows: test_config_files]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_config_files
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-windows
     expeditor:
@@ -806,6 +916,8 @@ steps:
   - label: "[:linux: test_alternate_error_exit_codes]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_alternate_error_exit_codes
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-linux
     expeditor:
@@ -819,6 +931,8 @@ steps:
   - label: "[:windows: test_alternate_error_exit_codes]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_alternate_error_exit_codes
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-windows
     expeditor:
@@ -836,6 +950,8 @@ steps:
   - label: "[:linux: test_supplemental_groups]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_supplemental_groups
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-linux
     expeditor:
@@ -848,6 +964,8 @@ steps:
   - label: "[:linux: test_license]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_license
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-linux
     expeditor:
@@ -860,6 +978,8 @@ steps:
   - label: "[:linux: test_external_binaries]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_external_binaries
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-linux
     expeditor:
@@ -873,6 +993,8 @@ steps:
   - label: "[:windows: test_external_binaries]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_external_binaries
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-windows
     expeditor:
@@ -890,6 +1012,8 @@ steps:
   - label: "[:linux: test_cli_config_file]"
     command:
       - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_cli_config_file
+    artifact_paths:
+      - "*.log"
     env:
       BUILD_PKG_TARGET: x86_64-linux
     expeditor:

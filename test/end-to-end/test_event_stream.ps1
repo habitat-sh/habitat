@@ -9,7 +9,8 @@ Describe "event stream connection to nats" {
 
     It "fails to start with no NATS server and --event-stream-connect-timeout set" {
         {
-            Start-Supervisor -Timeout 3 -SupArgs @( `
+            $supLog = New-SupervisorLogFile("event_stream-fails_to_start_with_no_NATS_server_with_timeout")
+            Start-Supervisor -LogFile $supLog -Timeout 3 -SupArgs @( `
                     "--event-stream-application=MY_APP", `
                     "--event-stream-environment=MY_ENV", `
                     "--event-stream-site=MY_SITE", `
@@ -21,7 +22,7 @@ Describe "event stream connection to nats" {
     }
 
     # Start the supervisor but do not require an initial event stream connection
-    $supLog = New-TemporaryFile
+    $supLog =  New-SupervisorLogFile("test_event_stream")
     Start-Supervisor -Timeout 45 -LogFile $supLog -SupArgs @( `
             "--event-stream-application=MY_APP", `
             "--event-stream-environment=MY_ENV", `

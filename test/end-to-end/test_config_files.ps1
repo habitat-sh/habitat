@@ -21,17 +21,17 @@ Describe "reading from supervisor and service config files" {
         $out = hab sup run --generate-config
         Set-Content -Path $supConfig -Force -Value $out
         Get-Content -Path $supConfig | Should -Contain "### The listen address for the Gossip Gateway"
-
-        Start-Supervisor -Timeout 45
+        $supLog = New-SupervisorLogFile("supervisor_starts_with_output_of_hab_sup_run_--generate-config")
+        Start-Supervisor -LogFile $supLog -Timeout 45
     }
 
     Stop-Supervisor
 
     It "Supervisor starts with correctly configured gossip address" {
-        $supLog = New-TemporaryFile
         $address = "127.0.0.1:1234"
         Set-Content -Path $supConfig -Force -Value "listen_gossip = '$address'"
 
+        $supLog = New-SupervisorLogFile("supervisor_starts_with_correctly_configured_gossip_address")
         Start-Supervisor -Timeout 45 -LogFile $supLog
         Start-Sleep -Seconds 3
 
@@ -42,7 +42,7 @@ Describe "reading from supervisor and service config files" {
     Stop-Supervisor
 
     It "Supervisor does not start with invalid config file" {
-        $supLog = New-TemporaryFile
+        $supLog = New-SupervisorLogFile("supervisor_does_not_start_with_invalid_config_file")
         Set-Content -Path $supBadConfig -Force -Value "a bad confg"
 
         {
@@ -53,7 +53,8 @@ Describe "reading from supervisor and service config files" {
     }
 
     Stop-Supervisor
-    Start-Supervisor -Timeout 45
+    $supLog = New-SupervisorLogFile("test_config_files")
+    Start-Supervisor -LogFile $supLog -Timeout 45
 
     It "service does not start without ident" {
         $out = hab svc load --generate-config
@@ -85,7 +86,8 @@ Describe "reading from supervisor and service config files" {
     Stop-Supervisor
 
     It "service starts on Supervisor startup" {
-        Start-Supervisor
+        $supLog = New-SupervisorLogFile("service_starts_on_supervisor_startup")
+        Start-Supervisor -LogFile $supLog
         Wait-SupervisorService $svcName
     }
 

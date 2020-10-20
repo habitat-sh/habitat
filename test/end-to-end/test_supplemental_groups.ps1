@@ -42,7 +42,8 @@ Describe "supplemental group behavior" {
         Stop-Supervisor
     }
 
-    Start-Supervisor -Timeout 45
+    $supLog = New-SupervisorLogFile("test_supplemental_groups")
+    Start-Supervisor -LogFile $supLog -Timeout 45
 
     It "should be able to run a service that depends on supplemental groups being set" {
         # Install the package first so we don't have to wait during

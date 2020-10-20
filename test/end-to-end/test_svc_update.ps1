@@ -24,7 +24,8 @@ Describe "hab svc update" {
         Stop-Supervisor
     }
 
-    Start-Supervisor -Timeout 45
+    $supLog = New-SupervisorLogFile("test_svc_update")
+    Start-Supervisor -LogFile $supLog -Timeout 45
     Load-SupervisorService $nginx_release
     Wait-Release -Ident $nginx_release
 

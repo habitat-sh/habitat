@@ -7,7 +7,8 @@ Describe "Using a Launcher that cannot provide service PIDs" {
     # being able to provide service PIDs to the Supervisor directly.
     hab pkg install core/hab-launcher/12605/20191112144831
 
-    Start-Supervisor -Timeout 20
+    $supLog = New-SupervisorLogFile("using_a_launcher_that_cannot_provide_service_pids")
+    Start-Supervisor -LogFile $supLog -Timeout 20
     Load-SupervisorService -PackageName "core/redis"
     Wait-Process redis-server -Timeout 10
 

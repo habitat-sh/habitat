@@ -1,6 +1,6 @@
 $TestStartTime = Get-Date
-$sup_log = New-TemporaryFile
-Start-Supervisor -LogFile $sup_log -Timeout 45 | Out-Null
+$supLog = New-SupervisorLogFile("test_simple_hooks")
+Start-Supervisor -LogFile $supLog -Timeout 45 | Out-Null
 
 $pkg = "$(Get-EndToEndTestingOrigin)/simple-hooks"
 
@@ -21,7 +21,7 @@ Describe "Simple hooks output" {
     }
 
     It "Has correct 'run' hook stdout" {
-        $out = Get-Content $sup_log
+        $out = Get-Content $supLog
         $out | Should -Contain "$svc.default(O): run hook $svc"
     }
 
