@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.169 -->
-## [1.6.169](https://github.com/habitat-sh/habitat/tree/1.6.169) (2020-10-16)
+<!-- latest_release 1.6.170 -->
+## [1.6.170](https://github.com/habitat-sh/habitat/tree/1.6.170) (2020-10-20)
 
 #### Merged Pull Requests
-- updating codeowners due to team departures [#7944](https://github.com/habitat-sh/habitat/pull/7944) ([jeremymv2](https://github.com/jeremymv2))
+- adds docs component &amp; team as codeowners [#7946](https://github.com/habitat-sh/habitat/pull/7946) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.139 -->
@@ -14,6 +14,7 @@
 - an API retry pattern [#7874](https://github.com/habitat-sh/habitat/pull/7874) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.150 -->
 
 #### Merged Pull Requests
+- adds docs component &amp; team as codeowners [#7946](https://github.com/habitat-sh/habitat/pull/7946) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.170 -->
 - updating codeowners due to team departures [#7944](https://github.com/habitat-sh/habitat/pull/7944) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.169 -->
 - Revert &quot;Merge pull request #7923 from habitat-sh/dmcneil/ctl-gateway-… [#7943](https://github.com/habitat-sh/habitat/pull/7943) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.168 -->
 - Make shorter Builder pages [#7939](https://github.com/habitat-sh/habitat/pull/7939) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.167 -->
