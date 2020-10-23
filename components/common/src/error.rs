@@ -82,6 +82,7 @@ pub enum Error {
     IO(io::Error),
     /// Errors when joining paths :)
     JoinPathsError(env::JoinPathsError),
+    ListenCtlResolutionError(String, io::Error),
     MissingCLIInputError(String),
     NamedPipeTimeoutOnStart(String, String, io::Error),
     NativeTls(native_tls::Error),
@@ -95,7 +96,6 @@ pub enum Error {
     PermissionFailed(String),
     /// When an error occurs serializing rendering context
     RenderContextSerialization(serde_json::Error),
-    RemoteSupResolutionError(String, io::Error),
     RootRequired,
     StatusFileCorrupt(PathBuf),
     StrFromUtf8Error(str::Utf8Error),
@@ -204,9 +204,8 @@ impl fmt::Display for Error {
             Error::RenderContextSerialization(ref e) => {
                 format!("Unable to serialize rendering context, {}", e)
             }
-            Error::RemoteSupResolutionError(ref sup_addr, ref err) => {
-                format!("Failed to resolve remote supervisor '{}': {}",
-                        sup_addr, err,)
+            Error::ListenCtlResolutionError(ref sup_addr, ref err) => {
+                format!("Failed to resolve ctl address '{}': {}", sup_addr, err,)
             }
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation".to_string()

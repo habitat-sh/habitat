@@ -1,4 +1,5 @@
-use crate::error::Error;
+use crate::{error::Error,
+            util};
 use clap::ArgMatches;
 use native_tls::Certificate;
 use std::{collections::HashMap,
@@ -301,6 +302,48 @@ impl PartialEq<EventStreamServerCertificate> for EventStreamServerCertificate {
     }
 }
 
+/// A wrapper around `ListenCtlAddr` that keeps track of the domain the socket address was resolved
+/// from. Ideally this would be done by `env_config_socketaddr`.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(try_from = "&str", into = "String")]
+pub struct ResolvedListenCtlAddr {
+    domain: String,
+    addr:   ListenCtlAddr,
+}
+
+impl FromStr for ResolvedListenCtlAddr {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (domain, addr) =
+            util::resolve_socket_addr_with_default_port(s, ListenCtlAddr::DEFAULT_PORT)?;
+        Ok(Self { domain,
+                  addr: ListenCtlAddr::from(addr) })
+    }
+}
+
+impl std::fmt::Display for ResolvedListenCtlAddr {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}:{}", self.domain, self.addr.port())
+    }
+}
+
+impl Default for ResolvedListenCtlAddr {
+    fn default() -> Self { ListenCtlAddr::default_as_str().parse().unwrap() }
+}
+
+impl ResolvedListenCtlAddr {
+    pub fn addr(&self) -> SocketAddr { self.addr.into() }
+
+    pub fn domain(&self) -> &str { &self.domain }
+}
+
+impl From<ResolvedListenCtlAddr> for ListenCtlAddr {
+    fn from(r: ResolvedListenCtlAddr) -> Self { r.addr }
+}
+
+habitat_core::impl_try_from_str_and_into_string!(ResolvedListenCtlAddr);
+
 habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug, Deserialize, Serialize)]
                                      pub GossipListenAddr,
                                      HAB_LISTEN_GOSSIP,
@@ -389,30 +432,6 @@ impl ListenCtlAddr {
     pub fn ip(&self) -> IpAddr { self.0.ip() }
 
     pub fn port(&self) -> u16 { self.0.port() }
-
-    // TODO (CM): This really should be FromStr, but we can't use
-    // FromStr, because the current implementation of
-    // env_config_socketaddr! (and ultimately env_config!) macro
-    // defines one for us.
-    pub fn resolve_listen_ctl_addr(input: &str) -> crate::error::Result<ListenCtlAddr> {
-        let listen_ctl_addr = if input.find(':').is_some() {
-            input.to_string()
-        } else {
-            format!("{}:{}", input, ListenCtlAddr::DEFAULT_PORT)
-        };
-
-        listen_ctl_addr.to_socket_addrs()
-                       .and_then(|mut addrs| {
-                           addrs.find(std::net::SocketAddr::is_ipv4).ok_or_else(|| {
-                                                                        io::Error::new(
-                        io::ErrorKind::AddrNotAvailable,
-                        "Address could not be resolved.",
-                    )
-                                                                    })
-                       })
-                       .map(ListenCtlAddr::from)
-                       .map_err(|e| Error::RemoteSupResolutionError(listen_ctl_addr, e))
-    }
 }
 
 impl AsRef<SocketAddr> for ListenCtlAddr {
@@ -504,42 +523,6 @@ mod tests {
             let envvar = lock_hab_testing_thingie();
             envvar.set("I'm not a number");
             assert_eq!(Thingie::configured_value(), Thingie::default());
-        }
-    }
-
-    mod resolve_listen_ctl_addr {
-        use super::*;
-
-        #[test]
-        fn ip_is_resolved() {
-            let expected =
-                ListenCtlAddr::from_str("127.0.0.1:8080").expect("Could not create ListenCtlAddr");
-            let actual =
-                ListenCtlAddr::resolve_listen_ctl_addr("127.0.0.1:8080").expect("Could not resolve string");
-
-            assert_eq!(expected, actual);
-        }
-
-        #[test]
-        fn localhost_is_resolved() {
-            let expected =
-                ListenCtlAddr::from_str("127.0.0.1:8080").expect("Could not create ListenCtlAddr");
-            let actual =
-                ListenCtlAddr::resolve_listen_ctl_addr("localhost:8080").expect("Could not resolve string");
-
-            assert_eq!(expected, actual);
-        }
-
-        #[test]
-        fn port_is_set_to_default_if_not_specified() {
-            let expected =
-                ListenCtlAddr::from_str(&format!("127.0.0.1:{}", ListenCtlAddr::DEFAULT_PORT))
-                    .expect("Could not create ListenCtlAddr");
-            let actual =
-                ListenCtlAddr::resolve_listen_ctl_addr("localhost").expect("Could not resolve \
-                                                                            string");
-
-            assert_eq!(expected, actual);
         }
     }
 }

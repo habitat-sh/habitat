@@ -71,6 +71,27 @@ macro_rules! ok_trace {
     };
 }
 
+/// This macro implements `TryFrom<&str>` and `Into<String>` for a list of types implementing
+/// `FromStr` and `Display`. The traits `FromStr` and `Display` are preferred. However, occasionally
+/// there are instances where type bounds require `TryFrom<&str>` and `Into<String>`. For example,
+/// using the serde tag `#[serde(try_from = "&str", into = "String")]`
+#[macro_export]
+macro_rules! impl_try_from_str_and_into_string {
+    ($($ty:ty),*) => {
+        $(
+            impl std::convert::TryFrom<&str> for $ty {
+                type Error = Error;
+
+                fn try_from(s: &str) -> Result<Self, Self::Error> { Self::from_str(s) }
+            }
+
+            impl From<$ty> for String {
+                fn from(t: $ty) -> Self { t.to_string() }
+            }
+        )*
+    };
+}
+
 /// returns the common arguments to pass to pwsh.exe when spawning a powershell instance.
 /// These arguments are optimized for a background powershell process running hooks.
 /// The NonInteractive flag specifies that the console is not intended to interact with

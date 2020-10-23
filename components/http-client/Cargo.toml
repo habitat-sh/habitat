@@ -3,7 +3,6 @@ name = "habitat_http_client"
 version = "0.0.0"
 edition = "2018"
 authors = ["The Habitat Maintainers <humans@habitat.sh>"]
-build = "build.rs"
 workspace = "../../"
 
 [dependencies]
