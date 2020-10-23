@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.171 -->
-## [1.6.171](https://github.com/habitat-sh/habitat/tree/1.6.171) (2020-10-20)
+<!-- latest_release 1.6.172 -->
+## [1.6.172](https://github.com/habitat-sh/habitat/tree/1.6.172) (2020-10-23)
 
 #### Merged Pull Requests
-- Monday module update [#7945](https://github.com/habitat-sh/habitat/pull/7945) ([kagarmoe](https://github.com/kagarmoe))
+- [CI] Capture Supervisor logs from e2e tests  [#7942](https://github.com/habitat-sh/habitat/pull/7942) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.139 -->
@@ -14,6 +14,7 @@
 - an API retry pattern [#7874](https://github.com/habitat-sh/habitat/pull/7874) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.150 -->
 
 #### Merged Pull Requests
+- [CI] Capture Supervisor logs from e2e tests  [#7942](https://github.com/habitat-sh/habitat/pull/7942) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.172 -->
 - Monday module update [#7945](https://github.com/habitat-sh/habitat/pull/7945) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.171 -->
 - adds docs component &amp; team as codeowners [#7946](https://github.com/habitat-sh/habitat/pull/7946) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.170 -->
 - updating codeowners due to team departures [#7944](https://github.com/habitat-sh/habitat/pull/7944) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.169 -->
