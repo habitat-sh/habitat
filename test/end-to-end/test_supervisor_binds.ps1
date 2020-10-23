@@ -4,8 +4,8 @@ Describe "Supervisor binds" {
 
         Invoke-BuildAndInstall testpkgbindproducer
         Invoke-BuildAndInstall testpkgbindconsumer
-
-        Start-Supervisor -Timeout 45 | Out-Null
+        $supLog = New-SupervisorLogFile("test_supervisor_binds")
+        Start-Supervisor -LogFile $supLog -Timeout 45 | Out-Null
     }
 
     It "consumer bind to producer export" {

@@ -5,7 +5,7 @@
 
 $env:HAB_AUTH_TOKEN = $env:PIPELINE_HAB_AUTH_TOKEN
 
-$supLog = New-TemporaryFile
+$supLog = New-SupervisorLogFile("test_at_once_service_updater")
 Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
         "--keep-latest-packages=1"
 ) | Out-Null

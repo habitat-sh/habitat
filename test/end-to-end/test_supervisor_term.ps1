@@ -1,5 +1,6 @@
 $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) "testpkgstophook.out"
-$launcherProc = Start-Supervisor -Timeout 45
+$supLog = New-SupervisorLogFile("test_supervisor_term")
+$launcherProc = Start-Supervisor -LogFile $supLog -Timeout 45
 
 Describe "hab sup term" {
     BeforeAll {

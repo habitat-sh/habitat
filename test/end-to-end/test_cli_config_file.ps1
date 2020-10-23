@@ -6,7 +6,8 @@ Describe "reading from supervisor and service config files" {
     BeforeAll {
         Remove-Item -Force -Recurse -ErrorAction Ignore $configPath
         New-Item -ItemType directory -Force -Path $etcPath
-        Start-Supervisor -Timeout 45
+        $supLog = New-SupervisorLogFile("cli_config_file")
+        Start-Supervisor -LogFile $supLog -Timeout 45
         $script:ctlSecret = Get-Content -Path $ctlSecretPath
     }
 
