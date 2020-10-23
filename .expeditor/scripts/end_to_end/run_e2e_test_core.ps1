@@ -107,7 +107,7 @@ function Wait-StopSupervisor($Timeout = 10, $port = 9631) {
 #    monkeypants-oqUwJ.log
 #
 function New-SupervisorLogFile($BaseName) {
-     Join-String -OutputPrefix "$BaseName-" -OutputSuffix ".log" -InputObject (-join ((65..90) + (97..122) | Get-Random -Count 5 | Foreach-Object {[char]$_}))
+    Join-String -OutputPrefix "$BaseName-" -OutputSuffix ".log" -InputObject (-join ((65..90) + (97..122) | Get-Random -Count 5 | ForEach-Object {[char]$_}))
 }
 
 function Start-Supervisor($LogFile, $Timeout = 1, $SupArgs = @()) {
