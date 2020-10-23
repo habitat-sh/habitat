@@ -1,5 +1,7 @@
-use crate::package::{self,
-                     Identifiable};
+use crate::{package::{self,
+                      Identifiable},
+            tls::{ctl_gateway::Error as CtlGatewayTls,
+                  rustls_wrapper::Error as RustlsReaderError}};
 use std::{env,
           error,
           ffi,
@@ -68,6 +70,7 @@ pub enum Error {
     CryptProtectDataFailed(String),
     /// Occurs when a call to CryptUnprotectData fails
     CryptUnprotectDataFailed(String),
+    CtlGatewayTls(CtlGatewayTls),
     /// Occurs when unable to locate the docker cli on the path
     DockerCommandNotFound(&'static str),
     /// Occurs when a file that should exist does not or could not be read.
@@ -102,6 +105,7 @@ pub enum Error {
     LogonTypeNotGranted,
     /// Occurs when a call to LogonUserW fails
     LogonUserFailed(io::Error),
+    NativeTlsError(native_tls::Error),
     /// Occurs when a BIND, BIND_OPTIONAL, or BIND_MAP MetaFile is
     /// read and contains a bad entry.
     MetaFileBadBind,
@@ -135,6 +139,7 @@ pub enum Error {
     RegexParse(regex::Error),
     /// When an error occurs serializing rendering context
     RenderContextSerialization(serde_json::Error),
+    RustlsReader(RustlsReaderError),
     /// When an error occurs converting a `String` from a UTF-8 byte vector.
     StringFromUtf8Error(string::FromUtf8Error),
     /// When the system target (platform and architecture) do not match the package target.
@@ -252,6 +257,7 @@ impl fmt::Display for Error {
             Error::CryptoError(ref e) => format!("Crypto error: {}", e),
             Error::CryptProtectDataFailed(ref e) => e.to_string(),
             Error::CryptUnprotectDataFailed(ref e) => e.to_string(),
+            Error::CtlGatewayTls(ref e) => e.to_string(),
             Error::DockerCommandNotFound(ref c) => {
                 format!("Docker command `{}' was not found on the filesystem or in PATH",
                         c)
@@ -301,6 +307,7 @@ impl fmt::Display for Error {
                                                         .to_string()
             }
             Error::LogonUserFailed(ref e) => format!("Failure calling LogonUserW: {:?}", e),
+            Error::NativeTlsError(ref e) => format!("{}", e),
             Error::MetaFileBadBind => {
                 "Bad value parsed from BIND, BIND_OPTIONAL, or BIND_MAP".to_string()
             }
@@ -331,6 +338,7 @@ impl fmt::Display for Error {
                                         and 'SE_ASSIGNPRIMARYTOKEN_NAME' privilege to spawn a new \
                                         process as a different user"
                                                                     .to_string(),
+            Error::RustlsReader(ref e) => format!("{}", e),
             Error::RenderContextSerialization(ref e) => {
                 format!("Unable to serialize rendering context, {}", e)
             }
@@ -365,6 +373,10 @@ impl fmt::Display for Error {
 
 impl error::Error for Error {}
 
+impl From<CtlGatewayTls> for Error {
+    fn from(err: CtlGatewayTls) -> Self { Error::CtlGatewayTls(err) }
+}
+
 impl From<env::JoinPathsError> for Error {
     fn from(err: env::JoinPathsError) -> Self { Error::JoinPathsError(err) }
 }
@@ -386,10 +398,18 @@ impl From<nix::Error> for Error {
     fn from(err: nix::Error) -> Self { Error::Nix(err) }
 }
 
+impl From<native_tls::Error> for Error {
+    fn from(err: native_tls::Error) -> Self { Error::NativeTlsError(err) }
+}
+
 impl From<num::ParseIntError> for Error {
     fn from(err: num::ParseIntError) -> Self { Error::ParseIntError(err) }
 }
 
 impl From<regex::Error> for Error {
     fn from(err: regex::Error) -> Self { Error::RegexParse(err) }
+}
+
+impl From<RustlsReaderError> for Error {
+    fn from(err: RustlsReaderError) -> Self { Error::RustlsReader(err) }
 }

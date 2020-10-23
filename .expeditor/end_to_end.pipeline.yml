@@ -1024,6 +1024,19 @@ steps:
             - BUILD_PKG_TARGET=x86_64-linux
             - PIPELINE_HAB_AUTH_TOKEN
 
+  - label: "[:linux: test_tls_ctl_gateway]"
+    command:
+      - bash .expeditor/scripts/end_to_end/run_e2e_test.sh dev test_tls_ctl_gateway
+    env:
+      BUILD_PKG_TARGET: x86_64-linux
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+            - PIPELINE_HAB_AUTH_TOKEN
+
   - wait
 
   - label: "[:habicat: Promote to Acceptance]"

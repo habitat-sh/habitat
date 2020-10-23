@@ -35,6 +35,7 @@ use crate::{census::{CensusRing,
                      CensusRingProxy},
             ctl_gateway::{self,
                           acceptor::CtlAcceptor,
+                          server::CtlGatewayServer,
                           CtlRequest},
             error::{Error,
                     Result},
@@ -44,6 +45,7 @@ use crate::{census::{CensusRing,
             util::pkg,
             VERSION};
 use cpu_time::ProcessTime;
+use derivative::Derivative;
 use futures::{channel::{mpsc as fut_mpsc,
                         oneshot},
               future,
@@ -88,7 +90,9 @@ use prometheus::{HistogramVec,
                  IntGaugeVec};
 use rustls::{internal::pemfile,
              AllowAnyAuthenticatedClient,
+             Certificate,
              NoClientAuth,
+             PrivateKey,
              RootCertStore,
              ServerConfig};
 use std::{collections::{HashMap,
@@ -255,32 +259,37 @@ impl FsCfg {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Derivative)]
+#[derivative(PartialEq)]
 pub struct ManagerConfig {
-    pub auto_update:           bool,
-    pub auto_update_period:    Duration,
-    pub service_update_period: Duration,
-    pub custom_state_path:     Option<PathBuf>,
-    pub key_cache:             KeyCache,
-    pub update_url:            String,
-    pub update_channel:        ChannelIdent,
-    pub gossip_listen:         GossipListenAddr,
-    pub ctl_listen:            ListenCtlAddr,
-    pub http_listen:           HttpListenAddr,
-    pub http_disable:          bool,
-    pub gossip_peers:          Vec<SocketAddr>,
-    pub gossip_permanent:      bool,
-    pub ring_key:              Option<RingKey>,
-    pub organization:          Option<String>,
-    pub watch_peer_file:       Option<String>,
-    pub tls_config:            Option<TLSConfig>,
-    pub feature_flags:         FeatureFlag,
-    pub event_stream_config:   Option<EventStreamConfig>,
+    pub auto_update:                bool,
+    pub auto_update_period:         Duration,
+    pub service_update_period:      Duration,
+    pub custom_state_path:          Option<PathBuf>,
+    pub key_cache:                  KeyCache,
+    pub update_url:                 String,
+    pub update_channel:             ChannelIdent,
+    pub gossip_listen:              GossipListenAddr,
+    pub ctl_listen:                 ListenCtlAddr,
+    pub ctl_server_certificates:    Option<Vec<Certificate>>,
+    pub ctl_server_key:             Option<PrivateKey>,
+    #[derivative(PartialEq = "ignore")]
+    pub ctl_client_ca_certificates: Option<RootCertStore>,
+    pub http_listen:                HttpListenAddr,
+    pub http_disable:               bool,
+    pub gossip_peers:               Vec<SocketAddr>,
+    pub gossip_permanent:           bool,
+    pub ring_key:                   Option<RingKey>,
+    pub organization:               Option<String>,
+    pub watch_peer_file:            Option<String>,
+    pub tls_config:                 Option<TLSConfig>,
+    pub feature_flags:              FeatureFlag,
+    pub event_stream_config:        Option<EventStreamConfig>,
     /// If this field is `Some`, keep the indicated number of latest packages and uninstall all
     /// others during service start. If this field is `None`, automatic package cleanup is
     /// disabled.
-    pub keep_latest_packages:  Option<usize>,
-    pub sys_ip:                IpAddr,
+    pub keep_latest_packages:       Option<usize>,
+    pub sys_ip:                     IpAddr,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -946,10 +955,22 @@ impl Manager {
 
         self.persist_state_rsr_mlr_gsw_msr().await;
         let http_listen_addr = self.sys.http_listen();
-        let ctl_listen_addr = self.sys.ctl_listen();
-        let ctl_secret_key = ctl_gateway::readgen_secret_key(&self.fs_cfg.sup_root)?;
-        outputln!("Starting ctl-gateway on {}", &ctl_listen_addr);
-        tokio::spawn(ctl_gateway::server::run(ctl_listen_addr, ctl_secret_key, mgr_sender));
+        let ctl_gateway_server =
+            CtlGatewayServer { listen_addr: self.sys.ctl_listen(),
+                               secret_key: ctl_gateway::readgen_secret_key(&self.fs_cfg
+                                                                                .sup_root)?,
+                               mgr_sender,
+                               server_certificates: self.state
+                                                        .cfg
+                                                        .ctl_server_certificates
+                                                        .clone(),
+                               server_key: self.state.cfg.ctl_server_key.clone(),
+                               client_certificates: self.state
+                                                        .cfg
+                                                        .ctl_client_ca_certificates
+                                                        .clone() };
+        outputln!("Starting ctl-gateway on {}", ctl_gateway_server.listen_addr);
+        tokio::spawn(ctl_gateway_server.run());
         debug!("ctl-gateway started");
 
         if self.http_disable {
@@ -1979,27 +2000,30 @@ mod test {
     // code, so only implement it under test configuration.
     impl Default for ManagerConfig {
         fn default() -> Self {
-            ManagerConfig { auto_update:           false,
-                            auto_update_period:    Duration::from_secs(60),
-                            service_update_period: Duration::from_secs(60),
-                            custom_state_path:     None,
-                            key_cache:             KeyCache::new(&*CACHE_KEY_PATH),
-                            update_url:            "".to_string(),
-                            update_channel:        ChannelIdent::default(),
-                            gossip_listen:         GossipListenAddr::default(),
-                            ctl_listen:            ListenCtlAddr::default(),
-                            http_listen:           HttpListenAddr::default(),
-                            http_disable:          false,
-                            gossip_peers:          vec![],
-                            gossip_permanent:      false,
-                            ring_key:              None,
-                            organization:          None,
-                            watch_peer_file:       None,
-                            tls_config:            None,
-                            feature_flags:         FeatureFlag::empty(),
-                            event_stream_config:   None,
-                            keep_latest_packages:  None,
-                            sys_ip:                IpAddr::V4(Ipv4Addr::LOCALHOST), }
+            ManagerConfig { auto_update:                false,
+                            auto_update_period:         Duration::from_secs(60),
+                            service_update_period:      Duration::from_secs(60),
+                            custom_state_path:          None,
+                            key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
+                            update_url:                 "".to_string(),
+                            update_channel:             ChannelIdent::default(),
+                            gossip_listen:              GossipListenAddr::default(),
+                            ctl_listen:                 ListenCtlAddr::default(),
+                            ctl_server_certificates:    None,
+                            ctl_server_key:             None,
+                            ctl_client_ca_certificates: None,
+                            http_listen:                HttpListenAddr::default(),
+                            http_disable:               false,
+                            gossip_peers:               vec![],
+                            gossip_permanent:           false,
+                            ring_key:                   None,
+                            organization:               None,
+                            watch_peer_file:            None,
+                            tls_config:                 None,
+                            feature_flags:              FeatureFlag::empty(),
+                            event_stream_config:        None,
+                            keep_latest_packages:       None,
+                            sys_ip:                     IpAddr::V4(Ipv4Addr::LOCALHOST), }
         }
     }
 

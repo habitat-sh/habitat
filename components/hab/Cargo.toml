@@ -35,12 +35,13 @@ lazy_static = "*"
 libc = "*"
 log = "*"
 pbr = "*"
-rants = "*"
+rants = { version = "*", features = ["native-tls"] }
 # reqwest 0.10.4 significantly increased compile times. The increase was about a 5.5
 # times slower on a local environment and resulted in several buildkite timeouts.
 # For now we will pin to 0.10.3.
 reqwest = { version = "=0.10.3", features = ["blocking", "json", "stream"] }
 retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
+rustls = "*"
 same-file = "*"
 serde = "*"
 serde_derive = "*"
@@ -55,6 +56,7 @@ tokio = { version = "*", features = ["full"] }
 toml = { version = "*", features = [ "preserve_order" ] }
 url = { version = "*", features = ["serde"] }
 walkdir = "*"
+webpki = "*"
 
 [dependencies.uuid]
 version = "*"

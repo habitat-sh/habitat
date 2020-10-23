@@ -36,6 +36,8 @@ pub const CACHE_PATH: &str = "hab/cache";
 pub const CACHE_ARTIFACT_PATH: &str = "hab/cache/artifacts";
 /// The default path where cryptographic keys are stored
 pub const CACHE_KEY_PATH_POSTFIX: &str = "hab/cache/keys";
+/// The default path for ctl gateway TLS certificate and keys
+pub const HAB_CTL_KEYS_CACHE: &str = "/hab/cache/keys/ctl";
 /// The default path where source artifacts are downloaded, extracted, & compiled
 pub const CACHE_SRC_PATH: &str = "hab/cache/src";
 /// The default path where SSL-related artifacts are placed

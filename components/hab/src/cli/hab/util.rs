@@ -1,9 +1,12 @@
+pub mod tls;
+
 use crate::{cli::valid_fully_qualified_ident,
             error::Error};
 use configopt::{self,
                 ConfigOpt};
 use habitat_common::{cli_config::CliConfig,
-                     types::ListenCtlAddr};
+                     types::{ListenCtlAddr,
+                             ResolvedListenCtlAddr}};
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    env as henv,
                    fs as hab_core_fs,
@@ -15,9 +18,6 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
 use lazy_static::lazy_static;
 use std::{ffi::OsString,
           fmt,
-          io,
-          net::{SocketAddr,
-                ToSocketAddrs},
           num::ParseIntError,
           path::PathBuf,
           str::FromStr,
@@ -26,6 +26,8 @@ use structopt::{clap::AppSettings,
                 StructOpt};
 use url::{ParseError,
           Url};
+use webpki::{DNSName,
+             DNSNameRef};
 
 #[derive(ConfigOpt, StructOpt)]
 #[configopt(derive(Serialize))]
@@ -170,7 +172,7 @@ pub struct FullyQualifiedPkgIdent {
     pkg_ident: PackageIdent,
 }
 
-#[derive(ConfigOpt, StructOpt, Deserialize, Debug)]
+#[derive(Clone, ConfigOpt, StructOpt, Deserialize, Debug)]
 #[configopt(derive(Serialize, Clone, Debug))]
 #[structopt(no_version)]
 pub struct RemoteSup {
@@ -178,30 +180,12 @@ pub struct RemoteSup {
     #[structopt(name = "REMOTE_SUP",
                 long = "remote-sup",
                 short = "r",
-                default_value = ListenCtlAddr::default_as_str(),
-                parse(try_from_str = ListenCtlAddr::resolve_listen_ctl_addr))]
-    #[serde(default)]
-    remote_sup: ListenCtlAddr,
+                default_value = ListenCtlAddr::default_as_str())]
+    remote_sup: Option<ResolvedListenCtlAddr>,
 }
 
 impl RemoteSup {
-    pub fn to_listen_ctl_addr(&self) -> ListenCtlAddr { self.remote_sup }
-}
-
-pub fn socket_addr_with_default_port<S: AsRef<str>>(addr: S,
-                                                    default_port: u16)
-                                                    -> io::Result<SocketAddr> {
-    let addr = addr.as_ref();
-    let mut iter = if addr.find(':').is_some() {
-        addr.to_socket_addrs()
-    } else {
-        (addr, default_port).to_socket_addrs()
-    }?;
-    // We expect exactly one address
-    iter.next().ok_or_else(|| {
-                   io::Error::new(io::ErrorKind::InvalidInput,
-                                  "input did not resolve to SocketAddr or error")
-               })
+    pub fn inner(&self) -> Option<&ResolvedListenCtlAddr> { self.remote_sup.as_ref() }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -278,16 +262,26 @@ pub struct ExternalCommandArgsWithHelpAndVersion {
     pub args: Vec<OsString>,
 }
 
-#[cfg(test)]
-mod test {
-    use super::socket_addr_with_default_port;
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(try_from = "&str", into = "String")]
+pub struct SubjectAlternativeName(DNSName);
 
-    #[test]
-    fn test_socket_addr_with_default_port() {
-        assert_eq!(socket_addr_with_default_port("127.0.0.1", 89).unwrap(),
-                   "127.0.0.1:89".parse().expect(""));
-        assert_eq!(socket_addr_with_default_port("1.2.3.4:1500", 89).unwrap(),
-                   "1.2.3.4:1500".parse().expect(""));
-        assert!(socket_addr_with_default_port("an_invalid_address", 89).is_err());
+impl FromStr for SubjectAlternativeName {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(SubjectAlternativeName(DNSNameRef::try_from_ascii_str(s).map_err(|_| Error::InvalidDnsName(s.to_string()))?.to_owned()))
     }
 }
+
+impl std::fmt::Display for SubjectAlternativeName {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", AsRef::<str>::as_ref(&self.0))
+    }
+}
+
+impl SubjectAlternativeName {
+    pub fn inner(&self) -> DNSNameRef { self.0.as_ref() }
+}
+
+habitat_core::impl_try_from_str_and_into_string!(SubjectAlternativeName);
