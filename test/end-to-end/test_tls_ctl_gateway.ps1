@@ -20,7 +20,8 @@ Describe "ctl gateway TLS" {
     }
 
     It "ctl gateway TLS connection fails without TLS enabled client" {
-        Start-Supervisor -Timeout 45 -SupArgs @( `
+        $supLog = New-SupervisorLogFile("ctl_gateway_tls_connection_fails_without_tls_enabled_client")
+        Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
                 "--ctl-server-certificate", `
                 "--ctl-server-key"
         )
@@ -30,7 +31,8 @@ Describe "ctl gateway TLS" {
     }
 
     It "ctl gateway TLS connection" {
-        Start-Supervisor -Timeout 45 -SupArgs @( `
+        $supLog = New-SupervisorLogFile("ctl_gateway_tls_connection")
+        Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
                 "--ctl-server-certificate", `
                 "--ctl-server-key"
         )
@@ -39,7 +41,8 @@ Describe "ctl gateway TLS" {
     }
 
     It "ctl gateway TLS connection fails with wrong SNI" {
-        Start-Supervisor -Timeout 45 -SupArgs @( `
+        $supLog = New-SupervisorLogFile("ctl_gateway_tls_connection_fails_with_wrong_sni")
+        Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
                 "--ctl-server-certificate", `
                 "--ctl-server-key"
         )
@@ -50,7 +53,8 @@ Describe "ctl gateway TLS" {
     }
 
     It "ctl gateway TLS connection fails with wrong server certificate" {
-        Start-Supervisor -Timeout 45 -SupArgs @( `
+        $supLog = New-SupervisorLogFile("ctl_gateway_tls_connection_fails_with_wrong_server_certificate")
+        Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
                 "--ctl-server-certificate", `
                 "--ctl-server-key"
         )
@@ -71,7 +75,8 @@ Describe "ctl gateway TLS" {
     }
 
     It "ctl gateway mutual TLS connection fails without TLS enabled client" {
-        Start-Supervisor -Timeout 45 -SupArgs @( `
+        $supLog = New-SupervisorLogFile("ctl_gateway_mutual_tls_connection_fails_without_tls_enabled_client")
+        Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
                 "--ctl-server-certificate", `
                 "--ctl-server-key", `
                 "--ctl-client-ca-certificate"
@@ -83,7 +88,8 @@ Describe "ctl gateway TLS" {
     }
 
     It "ctl gateway mutual TLS connection" {
-        Start-Supervisor -Timeout 45 -SupArgs @( `
+        $supLog = New-SupervisorLogFile("ctl_gateway_mutual_tls_connection")
+        Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
                 "--ctl-server-certificate", `
                 "--ctl-server-key", `
                 "--ctl-client-ca-certificate"
@@ -93,7 +99,8 @@ Describe "ctl gateway TLS" {
     }
 
     It "ctl gateway TLS connection fails with wrong client certificate" {
-        Start-Supervisor -Timeout 45 -SupArgs @( `
+        $supLog = New-SupervisorLogFile("ctl_gateway_tls_connection_fails_with_wrong_client_certificate")
+        Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
                 "--ctl-server-certificate", `
                 "--ctl-server-key", `
                 "--ctl-client-ca-certificate"
@@ -125,8 +132,8 @@ Describe "ctl gateway TLS" {
 
     It "ctl gateway TLS connection with custom SNI" {
         Invoke-NativeCommand hab sup secret generate-tls --subject-alternative-name a_test_server_name
-
-        Start-Supervisor -Timeout 45 -SupArgs @( `
+        $supLog = New-SupervisorLogFile("ctl_gateway_tls_connection_with_custom_sni")
+        Start-Supervisor -LogFile $supLog -Timeout 45 -SupArgs @( `
                 "--ctl-server-certificate", `
                 "--ctl-server-key"
         )
