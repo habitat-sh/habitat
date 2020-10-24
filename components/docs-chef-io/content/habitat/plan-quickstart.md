@@ -14,7 +14,7 @@ draft = false
 
 All plans must have a `plan.sh` or `plan.ps1` at the root of the plan context. They may even include both if a package is targeting both Windows and Linux platforms. This file will be used by the `hab-plan-build` command to build your package. To create a plan, do the following:
 
-1. If you haven't done so already, [download the `hab` CLI](/docs/install-habitat/) and install it per the instructions on the download page.
+1. If you haven't done so already, [download the `hab` CLI](/install-habitat/) and install it per the instructions on the download page.
 
 2. Run `hab cli setup` and follow the instructions in the setup script.
 
@@ -38,7 +38,7 @@ All plans must have a `plan.sh` or `plan.ps1` at the root of the plan context. T
        hab plan init yourplan
     ```
 
-     See [hab plan init](/docs/habitat-cli#hab-plan-init) for more information on how to use this subcommand.
+     See [hab plan init](/habitat-cli#hab-plan-init) for more information on how to use this subcommand.
 
 4. Now that you have stubbed out your plan file in your plan context, open it and begin modifying it to suit your needs.
 

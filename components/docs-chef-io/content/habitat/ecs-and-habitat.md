@@ -52,5 +52,5 @@ The ```command``` entry for the National Parks Tomcat application allows the Che
 
 ## Related Reading
 
-* [Blog: A Journey with Chef Habitat on Amazon ECS, Part 1](/blog/2017/09/a-journey-with-habitat-on-amazon-ecs-part1/)
-* [Blog: A Journey with Chef Habitat on Amazon ECS, Part 2](/blog/2017/09/a-journey-with-habitat-on-amazon-ecs-part2/)
+* [A Journey with Chef Habitat on Amazon ECS, Part 1](https://blog.chef.io/a-journey-with-habitat-on-amazon-ecs-part-1/))
+* [A Journey with Chef Habitat on Amazon ECS, Part 2](https://blog.chef.io/a-journey-with-habitat-on-amazon-ecs-part-2/)
