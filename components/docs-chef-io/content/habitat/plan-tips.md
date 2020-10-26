@@ -14,7 +14,7 @@ description = "Best Practices for Plans"
 ## Package Name Conventions
 
 Each package is identified by a unique string containing four sub-strings separated
-by a forward slash (`/`) called a [PackageIdent](/glossary/#glossary-artifacts).
+by a forward slash (`/`) called a [PackageIdent]({{< relref "glossary/#glossary-artifacts" >}}).
 
     `origin`/`name`/`version`/`release`
 
@@ -38,7 +38,7 @@ Packages meeting this exception will always have their latest major version foun
 
 ## Plan Basic Settings
 
-You can read more about [basic plan settings](/plan-overview/#write-plans) here. The minimum requirements for a core plan are:
+You can read more about [basic plan settings]({{< relref "plan-overview/#write-plans" >}}) here. The minimum requirements for a core plan are:
 
 - pkg_name is set
 - pkg_origin is set
@@ -47,7 +47,7 @@ You can read more about [basic plan settings](/plan-overview/#write-plans) here.
 
 ## Callbacks
 
-You can read more about [callbacks](/reference/#reference-callbacks) here. The minimum requirement for a core plan are:
+You can read more about [callbacks]({{< relref "reference#reference-callbacks" >}}) here. The minimum requirement for a core plan are:
 
 ### Callback Do's
 
@@ -58,13 +58,13 @@ You can read more about [callbacks](/reference/#reference-callbacks) here. The m
 
 - Don't call `exit` within a build phase. In a `plan.sh`, you should instead return an exit code such as `return 1` for failure, and `return 0` for success. In a `plan.ps1` you should call `Write-Exception` or `throw` an exception upon failure.
 - Don't use `pkg_source` unless you are downloading something as a third party.
-- Don't shell out to `hab` from inside of a callback. If you think you want to, you should use a [utility function](/reference/#utility-functions) instead.
+- Don't shell out to `hab` from inside of a callback. If you think you want to, you should use a [utility function]({{< relref "reference#utility-functions" >}}) instead.
 - Don't call any functions or helper sthat begin with an underscore, for example `_dont_call_this_function()`. Those are internal for internal builder functions and are not supported for external use. They will break your plan if you call them.
 - Don't run any code or run anything outside of a build phase or a function.
 
 ## Application Lifecycle Hooks
 
-The Supervisor dynamically invokes hooks at run-time, triggered by an application lifecycle event. You can read more about [hooks](/plans/application-lifestyle-hooks) here.
+The Supervisor dynamically invokes hooks at run-time, triggered by an application lifecycle event. You can read more about [hooks]({{< relref "plan-overview" >}}) here.
 
 ### Lifecycle Hook Do's
 
@@ -75,7 +75,7 @@ The Supervisor dynamically invokes hooks at run-time, triggered by an applicatio
 ### Lifecycle Hook Don't's
 
 - Don't call `hab` or `sleep` in a hook that is not the `run` hook. You can only block the thread in a hook if it is in the `run` hook.
-- Don't shell out to `hab` from within a hook. If you think you want to, you should use a [runtime configuration setting](/reference/#template-data) instead. If none of those will solve your problem, open an issue and tell the core team why.
+- Don't shell out to `hab` from within a hook. If you think you want to, you should use a [runtime configuration setting]({{< relref "reference/#template-data" >}}) instead. If none of those will solve your problem, open an issue and tell the core team why.
 - Don't use `exec` if you're running something with a pipe. It won't work.
 - Don't execute commands as a `root` user or try to `sudo hab pkg install`.
 - Don't edit any of the Supervisor rendered templates.

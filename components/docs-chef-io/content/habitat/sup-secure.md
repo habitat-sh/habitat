@@ -49,7 +49,7 @@ Supervisors running in a ring can be configured to encrypt all traffic between t
 
 Supervisors in a service group can be configured to require key-based authorization prior to allowing configuration changes. In this scenario, the Supervisor in a named service group starts up with a key for that group bound to an _organization_. This allows for multiple service groups with the same name in different organizations.
 
-As explained in the [security overview](/internals#crypto-internals), this process also requires the generation of a user key for every user making configuration updates to the Supervisor network.
+As explained in the [security overview]({{< relref "internals#crypto-internals" >}}), this process also requires the generation of a user key for every user making configuration updates to the Supervisor network.
 
 ### Generating Service Group Keys
 

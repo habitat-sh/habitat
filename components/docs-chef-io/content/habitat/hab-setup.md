@@ -17,14 +17,14 @@ Once Chef Habitat has been installed, the `hab` CLI makes it easy to get your wo
 
 Setup asks you to create a new origin and a set of origin keys.
 
-Optionally, you can also provide a Chef Habitat personal access token to upload packages to the public depot and share them with the Chef Habitat community. See the [access token documentation](/using-builder/#builder-token) for details on generating and using your access token.
+Optionally, you can also provide a Chef Habitat personal access token to upload packages to the public depot and share them with the Chef Habitat community. See the [access token documentation]({{< relref "using-builder/#builder-token" >}}) for details on generating and using your access token.
 
-> For more information about using Chef Habitat Builder, see the section on [Using Builder](/using-builder/).
+> For more information about using Chef Habitat Builder, see the section on [Using Builder]({{< relref "using-builder" >}}).
 
-You will also be asked if you want to register Supervisor control gateway secret (see [Remote Command-and-Control of Supervisors](/using-habitat/#remote-control) for further details).
+You will also be asked if you want to register Supervisor control gateway secret (see [Remote Command-and-Control of Supervisors]({{< relref "using-habitat/#remote-control" >}}) for further details).
 
 During setup, you may elect to provide anonymous usage data of the `hab` CLI tool. This information is used by the Chef Habitat team to improve the CLI experience.
-For information on the types of data we gather and how we intend to use it, see [Analytics in Chef Habitat](/about-analytics).
+For information on the types of data we gather and how we intend to use it, see [Analytics in Chef Habitat]({{< relref "about-analytics" >}}).
 
 You can change your settings at any time by re-running the `hab cli setup` command.
 

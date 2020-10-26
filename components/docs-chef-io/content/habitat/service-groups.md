@@ -12,7 +12,7 @@ description = "Service Groups"
 
 A service group is a logical grouping of services with the same package and topology type connected together across a Supervisor network.
 They are created to share configuration and file updates among the services within those groups and can be segmented based on workflow or deployment needs (QA, Production, and so on).
-Updates can also be [encrypted](/using-habitat/using-encryption) so that only members of a specific service group can decrypt the contents.
+Updates can also be [encrypted]({{< relref "using-habitat#using-encryption" >}}) so that only members of a specific service group can decrypt the contents.
 
 By default, every service joins the _service-name_.**default** service group unless otherwise specified at runtime.
 

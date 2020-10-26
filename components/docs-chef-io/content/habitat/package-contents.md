@@ -12,7 +12,7 @@ description = "Chef Habitat Package Contents"
 
 During the build process, the hab-plan-build script creates several files that specify dependency, build, and configuration information. When packages are unpacked (extracted) and installed during the initialization phase of a Chef Habitat service, these files define what those packages need to run.
 
-Packages are installed in the `/hab/pkgs/` directory, and then further organized in subdirectories corresponding to fully-qualified package identifiers: `origin/name/version/release`. For more information on package identifiers, see [Packages](/glossary/#glossary-artifacts).
+Packages are installed in the `/hab/pkgs/` directory, and then further organized in subdirectories corresponding to fully-qualified package identifiers: `origin/name/version/release`. For more information on package identifiers, see [Packages]({{< relref "glossary/#glossary-artifacts" >}}).
 
 ## Contents of a Chef Habitat package
 
@@ -41,7 +41,7 @@ IDENT
 : The fully-qualified identifier for the package. The format is `origin/name/version/release`.
 
 INTERPRETERS
-: If `pkg_interpreters` is specified in your plan.sh, then this file will be generated and contain a list of absolute paths to any interpreters that a package can provide. Code in a `plan.sh` may use the `fix_interpreter` function to replace hard-coded instances of interpreters, such as `/bin/env`. The location of interpreters in Chef Habitat will be nested under `/hab/pkgs/`. For more information on interpreters, see the fix_interpreter description in [Plan helper functions](/reference/build-helpers).
+: If `pkg_interpreters` is specified in your plan.sh, then this file will be generated and contain a list of absolute paths to any interpreters that a package can provide. Code in a `plan.sh` may use the `fix_interpreter` function to replace hard-coded instances of interpreters, such as `/bin/env`. The location of interpreters in Chef Habitat will be nested under `/hab/pkgs/`. For more information on interpreters, see the fix_interpreter description in [Plan helper functions]({{< relref "reference/#build-helpers" >}}).
 
 LDFLAGS
 : Additional switches to be passed to the compiler when this package is used as a build dependency.
@@ -77,13 +77,13 @@ SVC_USER
 : The value of `pkg_svc_user` from a plan. The Chef Habitat Supervisor will try to start a service with this user if it exists.
 
 default.toml
-: If you have defined a `default.toml` file in the root of your plan, then it will be included in the same relative location within the installed package directory. For more information on configuration and the default.toml file, see [Configuration Updates](/using-habitat/#config-updates).
+: If you have defined a `default.toml` file in the root of your plan, then it will be included in the same relative location within the installed package directory. For more information on configuration and the default.toml file, see [Configuration Updates]({{< relref "using-habitat/#config-updates" >}}).
 
 config directory
-: If you have defined a `config` subdirectory with a templatized configuration file in your plan, then they will be included in the same relative location within the installed package directory. For more information on templatized configuration files, see [Add configuration to plans](/plan-overview/#add-configuration).
+: If you have defined a `config` subdirectory with a templatized configuration file in your plan, then they will be included in the same relative location within the installed package directory. For more information on templatized configuration files, see [Add configuration to plans]({{< relref "plan-overview/#add-configuration" >}}).
 
 config_install directory
-: If you have defined a `config_install` subdirectory with a templatized configuration file in your plan, then they will be included in the same relative location within the installed package directory. For more information on templatized configuration files, see [Add configuration to plans](/plan-overview/#add-configuration).
+: If you have defined a `config_install` subdirectory with a templatized configuration file in your plan, then they will be included in the same relative location within the installed package directory. For more information on templatized configuration files, see [Add configuration to plans]({{< relref "plan-overview/#add-configuration" >}}).
 
 hooks directory
-: If you have defined a `hooks` subdirectory with hook scripts in your plan, then they will be included in the same relative location within the installed package directory. Read more about [Application Lifecycle Hooks](/reference/application-lifecycle-hooks).
+: If you have defined a `hooks` subdirectory with hook scripts in your plan, then they will be included in the same relative location within the installed package directory. Read more about [Application Lifecycle Hooks]({{< relref "reference/#application-lifecycle-hooks" >}}).

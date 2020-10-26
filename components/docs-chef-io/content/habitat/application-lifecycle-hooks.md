@@ -14,13 +14,13 @@ Each plan can specify lifecycle event handlers, or hooks, to perform certain act
 
 To define a hook, simply create a file of the same name in `/my_plan_name/hooks/`, for example, `/postgresql/hooks/health-check`.
 
-Optionally you may add an extension to the hook file. For example, you might create `/postgresql/hooks/health-check.sh` which can be useful in some editors to automatically take advantage of syntax highlighting. Note that having two files for the same hook but with different extensions is not permitted. For example you might create a `run.sh` and `run.ps1` to support both Linux and Windows packages. If you would like to create different hooks for different platforms, you must use [target directories](/plan-overview/#plan-targets).
+Optionally you may add an extension to the hook file. For example, you might create `/postgresql/hooks/health-check.sh` which can be useful in some editors to automatically take advantage of syntax highlighting. Note that having two files for the same hook but with different extensions is not permitted. For example you might create a `run.sh` and `run.ps1` to support both Linux and Windows packages. If you would like to create different hooks for different platforms, you must use [target directories]({{< relref "plan-overview/#plan-targets" >}}).
 
 > **Important** You cannot block the thread in a hook unless it is in the `run` hook. Never call `hab` or `sleep` in a hook that is not the `run` hook.
 
 ## Runtime Settings
 
-[Chef Habitat's runtime configuration settings](/reference/template-data) can be used in any of the plan hooks and also in any templatized configuration file for your application or service.
+[Chef Habitat's runtime configuration settings]({{< relref "reference/#template-data" >}}) can be used in any of the plan hooks and also in any templatized configuration file for your application or service.
 
 > **Note**: In Chef Habitat 0.68.0 and less, some hooks used `_` in their names. This is now deprecated; if you used them, please use `-` instead.
 

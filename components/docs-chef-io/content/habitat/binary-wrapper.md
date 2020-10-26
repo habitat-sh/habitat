@@ -16,7 +16,7 @@ You can write plans to package up these binary artifacts with minimal special ha
 
 ## Override The Build Phases You Don't Need
 
-A Chef Habitat package build proceeds in phases: download, verification, unpacking (where you would also patch source code, if you had it), build, and finally installation. Each of these phases has [default behavior](/reference/#reference-callbacks) within the build system.
+A Chef Habitat package build proceeds in phases: download, verification, unpacking (where you would also patch source code, if you had it), build, and finally installation. Each of these phases has [default behavior]({{< relref "reference/#reference-callbacks" >}}) within the build system.
 
 When building binary packages, you override the behavior of phases that do not apply to you. At the very minimum, you must override the `do_build` and `do_install` phases, for example:
 

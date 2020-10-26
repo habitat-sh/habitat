@@ -99,7 +99,7 @@ Depending on the platform of your host and your Docker configuration, the behavi
 * **Mac** - A Docker container based Linux Studio
 * **Windows** - A local Windows studio. You can force a Docker based studio by adding the `-D` flag to the `hab studio enter` command. The platform of the spawned container depends on the mode your Docker service is running, which can be toggled between Linux Containers and Windows Containers. Make sure your Docker service is running in the correct mode for the kind of studio you wish to enter.
 
-> Note: For more details related to Windows containers see [Running Chef Habitat Windows Containers](/best-practices/#running-habitat-windows-containers).
+> Note: For more details related to Windows containers see [Running Chef Habitat Windows Containers]({{< relref "best-practices/#running-habitat-windows-containers" >}}).
 
 #### Building Dependent Plans in the Studio
 
@@ -132,7 +132,7 @@ A non-interactive build is one in which Chef Habitat creates a Studio for you, b
 
 By default, the Studio is reset to a clean state after the package is built; however, *if you are using the Linux version of `hab`*, you can reuse a previous Studio when building your package by specifying the `-R` option when calling the `hab pkg build` subcommand.
 
-For information on the contents of an installed package, see [Package contents](/reference/#package-contents).
+For information on the contents of an installed package, see [Package contents]({{< relref "reference/#package-contents" >}}).
 
 ## Troubleshooting Builds
 
@@ -149,7 +149,7 @@ To use `attach`, insert it into your plan at the point where you would like to u
  }
 ```
 
-Now, perform a [build](/plan-overview/#plan-builds) -- we recommend using an interactive studio so you do not need to set up the environment from scratch for every build.
+Now, perform a [build]({{< relref "plan-overview/#plan-builds" >}}) -- we recommend using an interactive studio so you do not need to set up the environment from scratch for every build.
 
 ```bash
 hab studio enter

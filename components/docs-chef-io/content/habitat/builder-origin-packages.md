@@ -29,7 +29,7 @@ Chef Habitat Builder supports both public and private origins, packages, and Git
 
 ## Create a Builder Account
 
-If you haven't created an account yet, see the [Create a Builder Account](/using-builder/builder-account) section above.
+If you haven't created an account yet, see the [Create a Builder Account]({{< relref "builder-account" >}}) section above.
 
 ## Create or Join an Existing Origin
 
@@ -39,7 +39,7 @@ You can create your own origin in Builder or be invited to join an existing one.
 
 When you upload a package to Builder, you are required to supply an auth token as part of the `hab pkg upload` subcommand. You can generate a Chef Habitat personal access token via the Builder site [Profile page](https://bldr.habitat.sh/#/profile) for use with the `hab` command-line utility.
 
-Once you have this token, you can set the `HAB_AUTH_TOKEN` [environment variable](/reference#environment-variables) to this value, so that any commands requiring authentication will use it.
+Once you have this token, you can set the `HAB_AUTH_TOKEN` [environment variable]({{< relref "reference/#environment-variables" >}}) to this value, so that any commands requiring authentication will use it.
 
 ## Create an Origin Key Pair
 
@@ -71,11 +71,11 @@ $ hab pkg promote -z <TOKEN> origin/package/version/release stable
 
 > **Note** You can also promote packages to the `stable` channel using the *promote to stable* button in the web app.
 
-For more information on how to use channels, see [Continuous Deployment Using Channels](/using-habitat/continuous-deployment).
+For more information on how to use channels, see [Continuous Deployment Using Channels]({{< relref "using-habitat/#continuous-deployment" >}}).
 
 ### Running Packages from Builder
 
-> **Note:** When running private packages from Builder, it's necessary to add your [Chef Habitat access token](/using-builder/builder-token) to the machine where you intend to deploy the package, via `export HAB_AUTH_TOKEN=<token>`.
+> **Note:** When running private packages from Builder, it's necessary to add your [Chef Habitat access token]({{< relref "using-builder/#builder-token" >}}) to the machine where you intend to deploy the package, via `export HAB_AUTH_TOKEN=<token>`.
 
 You can instruct the Supervisor to download and run packages from Builder by using the `hab sup` and `hab svc` commands, for example:
 
