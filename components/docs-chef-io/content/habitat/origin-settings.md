@@ -29,7 +29,7 @@ Everyone with origin membership can see the _Settings_ tab, but only origin admi
 | View secrets | N | N | Y | Y | Y |
 | Add/Update/Delete secrets | N | N | N | Y | Y |
 
-![The administrator or owner's view of the origin settings tab with a public default package setting and a saved origin secret](/images/screenshots/origin-secrets.png)
+![The administrator or owner's view of the origin settings tab with a public default package setting and a saved origin secret](/images/habitat/origin-secrets.png)
 
 ## Default Package Settings
 

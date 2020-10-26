@@ -26,7 +26,7 @@ You can create native Mesos containers from Chef Habitat packages by following t
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
 
-2. Install or [build](/docs/developing-packages#plan-builds) the Chef Habitat package from which you want to create a Marathon application, for example:
+2. Install or [build](/developing-packages#plan-builds) the Chef Habitat package from which you want to create a Marathon application, for example:
 
     ```bash
     $ hab pkg install yourorigin/yourpackage
@@ -56,24 +56,24 @@ You can create native Mesos containers from Chef Habitat packages by following t
 
 6. From the DC/OS web interface, launch the Marathon Service.
 
-    ![Screen shot of DC/OS Services](/images/mesos/mesos1-services-marathon.png)
+    ![Screen shot of DC/OS Services](/images/habitat/mesos1-services-marathon.png)
 
 7. Select "Create Application".
 
-    ![Screen shot of Marathon Applications List](/images/mesos/mesos2-new-application.png)
+    ![Screen shot of Marathon Applications List](/images/habitat/mesos2-new-application.png)
 
 8. Click on the "JSON Mode" selector and enter the JSON output of the Mesos exporter and click "Create Application".
 
-    ![Screen shot of Marathon New Application JSON Mode](/images/mesos/mesos3-new-application-json.png)
+    ![Screen shot of Marathon New Application JSON Mode](/images/habitat/mesos3-new-application-json.png)
 
 9. Marathon will then deploy the application and enter the "Running" status.
 
-    ![Screen shot of Marathon Application Running](/images/mesos/mesos4-application.png)
+    ![Screen shot of Marathon Application Running](/images/habitat/mesos4-application.png)
 
 ## Debugging
 
 You can get to the output from the running application by clicking on the "Marathon" service from the DC/OS "Services" tab. Select the application and the "Log Viewer" and choose either the "Error" or "Output" to see `stderr` and `stdout` respectively. If you have SSH access into the nodes, the Mesos container directories are beneath `/var/lib/mesos/slave/slaves`.
-    ![Screen shot of Debugging a Running Application](/images/mesos/mesos5-debugging.png)
+    ![Screen shot of Debugging a Running Application](/images/habitat/mesos5-debugging.png)
 
 ## Future Enhancements
 

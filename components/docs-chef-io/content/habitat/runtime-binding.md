@@ -10,4 +10,4 @@ description = "Runtime Services Group Binding"
 
 +++
 
-![Chef Habitat Runtime Services Group Binding Diagram](/images/infographics/habitat-runtime-service-group-binding.png)
+![Chef Habitat Runtime Services Group Binding Diagram](/images/habitat/habitat-runtime-service-group-binding.png)

@@ -10,5 +10,5 @@ description = "Application Rebuild Flow"
 
 +++
 
-![Chef Habitat Application Rebuild Flow Diagram](/images/infographics/habitat-application-rebuild-flow.png)
+![Chef Habitat Application Rebuild Flow Diagram](/images/habitat/habitat-application-rebuild-flow.png)
 

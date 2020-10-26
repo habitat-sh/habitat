@@ -17,7 +17,7 @@ In Chef Habitat the unit of automation is the application itself. This chapter i
 
 Artifacts are the cryptographically-signed tarballs that are uploaded, downloaded, unpacked, and installed in Chef Habitat. They are built from shell scripts known as plans, but may also include application lifecycle hooks and service configuration files that describe the behavior and configuration of a running service.
 
-At the center of Chef Habitat packaging is the plan. This is a directory comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the software in the artifact. More conceptual information on artifacts can be found in the [Artifacts glossary topic](/docs/glossary#glossary-artifacts).
+At the center of Chef Habitat packaging is the plan. This is a directory comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the software in the artifact. More conceptual information on artifacts can be found in the [Artifacts glossary topic](/glossary#glossary-artifacts).
 
 As a way to start to understand plans, let's look at an example `plan.sh` for [sqlite](http://www.sqlite.org/):
 
@@ -44,7 +44,7 @@ pkg_bin_dirs=(bin)
 
 It has the name of the software, the version, where to download it, a checksum to verify the contents are what we expect, run dependencies on `core/glibc` and `core/readline`, build dependencies on `core/coreutils`, `core/make`, `core/gcc`, libraries files in `lib`, header files in `include`, and a binary file in `bin`. Also, because it's a core plan, it has a description and upstream URL for the source project included.
 
-> Note: The `core` prefix is the origin of those dependencies. For more information, see [Create an Origin](/docs/using-builder/#builder-origin)
+> Note: The `core` prefix is the origin of those dependencies. For more information, see [Create an Origin](/using-builder/#builder-origin)
 
 When you have finished creating your plan and call `build` in Chef Habitat studio, the following occurs:
 
@@ -64,7 +64,7 @@ After the build script completes, you can then upload your package to Chef Habit
 
 All plans must have a `plan.sh` or `plan.ps1` at the root of the plan context. They may even include both if a package is targeting both Windows and Linux platforms. This file will be used by the `hab-plan-build` command to build your package. To create a plan, do the following:
 
-1. If you haven't done so already, [download the `hab` CLI](/docs/install-habitat/) and install it per the instructions on the download page.
+1. If you haven't done so already, [download the `hab` CLI](/install-habitat/) and install it per the instructions on the download page.
 
 2. Run `hab cli setup` and follow the instructions in the setup script.
 
@@ -88,7 +88,7 @@ All plans must have a `plan.sh` or `plan.ps1` at the root of the plan context. T
        hab plan init yourplan
     ```
 
-     See [hab plan init](/docs/habitat-cli#hab-plan-init) for more information on how to use this subcommand.
+     See [hab plan init](/habitat-cli#hab-plan-init) for more information on how to use this subcommand.
 
 4. Now that you have stubbed out your plan file in your plan context, open it and begin modifying it to suit your needs.
 
@@ -156,7 +156,7 @@ The following sections describe each of these steps in more detail.
 
 The origin is a place for you to set default privacy rules, store your packages, and collaborate with teammates. For example, the "core" origin is where the core maintainers of Chef Habitat share packages that are foundational to building other packages. If you would like to browse them, they are located in the [core-plans repo](https://github.com/habitat-sh/core-plans), and on [Chef Habitat Builder's Core Origin](https://bldr.habitat.sh/#/pkgs/core).
 
-Creating artifacts for a specific origin requires that you have access to the that origin's private key. The private origin key will be used to sign the artifact when it is built by the `hab plan build` command. Origin keys are kept in `$HOME/.hab/cache/keys` on the host machine when running `hab` as a non-root user and `/hab/cache/keys` when running as root (including in the studio). For more information on origin keys, see [Keys](/docs/glossary/#glossary-keys).
+Creating artifacts for a specific origin requires that you have access to the that origin's private key. The private origin key will be used to sign the artifact when it is built by the `hab plan build` command. Origin keys are kept in `$HOME/.hab/cache/keys` on the host machine when running `hab` as a non-root user and `/hab/cache/keys` when running as root (including in the studio). For more information on origin keys, see [Keys](/glossary/#glossary-keys).
 
 The next important part of your package identifier is the name of the package. Standard naming convention is to base the name of the package off of the name of the source or project you download and install into the package.
 
@@ -205,7 +205,7 @@ After you have either specified your source in `pkg_source`, or overridden the *
 
 > Note: If your computed value does not match the value calculated by the `hab-plan-build` script, an error with the expected value will be returned when you execute your plan.
 
-If your package does not download any application or service source files, then you will need to override the **do_download()**, **do_verify()**, and **do_unpack()** callbacks. See [Callbacks](/docs/reference#reference-callbacks) for more details.
+If your package does not download any application or service source files, then you will need to override the **do_download()**, **do_verify()**, and **do_unpack()** callbacks. See [Callbacks](/reference#reference-callbacks) for more details.
 
 #### Define Your Dependencies
 
@@ -215,11 +215,11 @@ Declare any build dependencies in `pkg_build_deps` and any run dependencies in `
 
 The package `core/glibc` is typically listed as a run dependency and `core/coreutils` as a build dependency, however, you should not take any inference from this. There are no standard dependencies that every package must have. For example, the mytutorialapp package only includes the `core/node` as a run dependency. You should include dependencies that would natively be part of the build or runtime dependencies your application or service would normally depend on.
 
-There is a third type of dependencies, transitive dependencies, that are the run dependencies of either the build or run dependencies listed in your plan. You do not need to explicitly declare transitive dependencies, but they are included in the list of files when your package is built. See [Package contents](/docs/reference/#package-contents) for more information.
+There is a third type of dependencies, transitive dependencies, that are the run dependencies of either the build or run dependencies listed in your plan. You do not need to explicitly declare transitive dependencies, but they are included in the list of files when your package is built. See [Package contents](/reference/#package-contents) for more information.
 
 #### Override Build Phase Defaults with Callbacks
 
-As shown in an example above, there are occasions when you want to override the default behavior of the hab-plan-build script. The Plan syntax guide lists the default implementations for [build phase callbacks](/docs/reference/#reference-callbacks), but if you need to reference specific packages in the process of building your applications or services, then you need to override the default implementations as in the example below.
+As shown in an example above, there are occasions when you want to override the default behavior of the hab-plan-build script. The Plan syntax guide lists the default implementations for [build phase callbacks](/reference/#reference-callbacks), but if you need to reference specific packages in the process of building your applications or services, then you need to override the default implementations as in the example below.
 
 ```bash
 pkg_name=httpd
@@ -274,22 +274,22 @@ Here the plan is building an application written in Rust. So it overrides `Invok
 
 > Note: Powershell plan function names differ from their Bash counterparts in that they use the `Invoke` `verb` instead of the `do_` prefix.
 
-When overriding any callbacks, you may use any of the variables, settings, or functions in the [Plan syntax guide](/docs/reference/), except for the runtime template data. Those can only be used in Application Lifecycle hooks once a Chef Habitat service is running.
+When overriding any callbacks, you may use any of the variables, settings, or functions in the [Plan syntax guide](/reference/), except for the runtime template data. Those can only be used in Application Lifecycle hooks once a Chef Habitat service is running.
 
 ### Runtime Workflow
 
-Similar to defining the setup and installation experience at buildtime, behavior for your application or service needs to be defined for the Supervisor. This is done at runtime through Application lifecycle hooks. See [Application Lifecycle hooks](/docs/reference/#reference-hooks) for more information and examples.
+Similar to defining the setup and installation experience at buildtime, behavior for your application or service needs to be defined for the Supervisor. This is done at runtime through Application lifecycle hooks. See [Application Lifecycle hooks](/reference/#reference-hooks) for more information and examples.
 
 If you only need to start the application or service when the Chef Habitat service starts, you can instead use the `pkg_svc_run` setting and specify the command as a string. When your package is created, a basic run hook will be created by Chef Habitat.
 
-You can use any of the [runtime configuration settings](/docs/reference/#template-data), either defined by you in your config file, or defined by Chef Habitat.
+You can use any of the [runtime configuration settings](/reference/#template-data), either defined by you in your config file, or defined by Chef Habitat.
 
-Once you are done writing your plan, use the studio to [build your package](/docs/developing-packages/#plan-builds).
+Once you are done writing your plan, use the studio to [build your package](/developing-packages/#plan-builds).
 
 ### Related Resources
 
-- [Write plans](/docs/developing-packages/#write-plans): Describes what a plan is and how to create one.
-- [Add configuration to plans](/docs/developing-packages/#add-configuration): Learn how to make your running service configurable by templatizing configuration files in your plan.
-- [Binary-only packages](/docs/best-practices/#binary-wrapper): Learn how to create packages from software that comes only in binary form, like off-the-shelf or legacy programs.
+- [Write plans](/developing-packages/#write-plans): Describes what a plan is and how to create one.
+- [Add configuration to plans](/developing-packages/#add-configuration): Learn how to make your running service configurable by templatizing configuration files in your plan.
+- [Binary-only packages](/best-practices/#binary-wrapper): Learn how to create packages from software that comes only in binary form, like off-the-shelf or legacy programs.
 
-You may also find the [plan syntax guide](/docs/reference/) useful. It lists the settings, variables, and functions that you can use when creating your plan.
+You may also find the [plan syntax guide](/reference/) useful. It lists the settings, variables, and functions that you can use when creating your plan.

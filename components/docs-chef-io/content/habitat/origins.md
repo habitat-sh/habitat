@@ -18,11 +18,11 @@ For more on invitations, see [origin membership and RBAC]({{< relref "origin-rba
 
 ### Create an Origin
 
-![Chef Habitat Builder without origins](/images/screenshots/create-origin.png)
+![Chef Habitat Builder without origins](/images/habitat/create-origin.png)
 
 To create an origin, select the **Create origin** button on the _My Origins_ page which opens the _Create New Origin_ form. (Chef Habitat Builder > My Origins )
 
-![Creating an origin](/images/screenshots/create-origin-form.png)
+![Creating an origin](/images/habitat/create-origin-form.png)
 
 First, enter a unique name that you want to associate with your packages.  Chef Habitat will only let you create an origin with a unique name. Some examples that you'll see in Chef Habitat Builder are team names, user names, and abstract concepts.
 
@@ -37,7 +37,7 @@ When you select **Save and Continue**, Chef Habitat Builder:
 1. Creates an [origin key pair]({{< relref "origin-keys.md" >}})
 1. Redirects Chef Habitat Builder to the origin page
 
-![Origin successfully created](/images/screenshots/create-origin-done.png)
+![Origin successfully created](/images/habitat/create-origin-done.png)
 
 #### Create an Origin with the Chef Habitat CLI
 

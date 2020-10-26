@@ -60,19 +60,19 @@ testorigin-20190416223046.sig.key
 
 When you create an origin, Chef Habitat Builder automatically generates an origin key pair and saves both keys. To view your origin keys on Chef Habitat Builder, navigate to your origin and select the **Keys** tab. (Builder > Origins > Keys) You will always be able to view and download public origin keys, but you will only see the private keys for origins in which you are an "administrator" or "owner".
 
-![Viewing your origin keys](/images/screenshots/origin-keys.png)
+![Viewing your origin keys](/images/habitat/origin-keys.png)
 
 ### Download Origin Keys from the Keys Tab
 
 Download your private or public origin key by selecting the **download** icon from the right end of the key details, under the _Actions_ heading.
 
-![Detail of the download icon](/images/screenshots/origin-key-download.png)
+![Detail of the download icon](/images/habitat/origin-key-download.png)
 
 ### Upload Origin Keys from the Keys Tab
 
 You can upload origin keys that you generate on the command line to Chef Habitat Builder by selecting either the **Upload a private key** or **Upload a public key** icon, and copy your key into the form that appears.
 
-![Example form content for uploading an origin key in Builder](/images/screenshots/builder-key-upload.png)
+![Example form content for uploading an origin key in Builder](/images/habitat/builder-key-upload.png)
 
 ## Managing Origin Keys with the CLI
 

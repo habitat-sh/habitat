@@ -12,7 +12,7 @@ description = "Service Groups"
 
 A service group is a logical grouping of services with the same package and topology type connected together across a Supervisor network.
 They are created to share configuration and file updates among the services within those groups and can be segmented based on workflow or deployment needs (QA, Production, and so on).
-Updates can also be [encrypted](/docs/using-habitat/using-encryption) so that only members of a specific service group can decrypt the contents.
+Updates can also be [encrypted](/using-habitat/using-encryption) so that only members of a specific service group can decrypt the contents.
 
 By default, every service joins the _service-name_.**default** service group unless otherwise specified at runtime.
 
@@ -48,10 +48,10 @@ hab svc load core/redis --group=prod
 ```
 
 Each will start up, and will be joined into the same group; here is Supervisor A's output:
-![Supervisor A running Redis](/images/docs/service-groups/supervisor_a_before.png)
+![Supervisor A running Redis](/images/habitat/supervisor_a_before.png)
 
 And here is Supervisor B's output:
-![Supervisor B running Redis](/images/docs/service-groups/supervisor_b_before.png)
+![Supervisor B running Redis](/images/habitat/supervisor_b_before.png)
 
 Note that they are both listening on the same port.
 
@@ -65,11 +65,11 @@ echo 'port = 2112' | hab config apply redis.prod 1
 
 Both service instances restart with the new configuration. Supervisor A's output is:
 
-![Supervisor A running Redis on a new port](/images/docs/service-groups/supervisor_a_after.png)
+![Supervisor A running Redis on a new port](/images/habitat/supervisor_a_after.png)
 
 and Supervisor B's output is:
 
-![Supervisor B running Redis on a new port](/images/docs/service-groups/supervisor_b_after.png)
+![Supervisor B running Redis on a new port](/images/habitat/supervisor_b_after.png)
 
 Note that they have both restarted (as evidenced by the new PID values), and that both are now running on port 2112, as we instructed.
 

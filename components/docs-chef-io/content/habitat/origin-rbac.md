@@ -90,7 +90,7 @@ Owner
 
 In tandem with the changes to the Builder membership roles, we've also updated the `hab` CLI to support RBAC. We're working on adding role management to the Chef Habitat Builder site, but in the meantime, you'll need to use the CLI for now.
 
-![Manage origin membership](/images/screenshots/origin_members.png)
+![Manage origin membership](/images/habitat/origin-members.png)
 
 ### Manage origin membership with `hab origin invitations`
 

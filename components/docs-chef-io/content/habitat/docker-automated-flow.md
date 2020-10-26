@@ -10,5 +10,5 @@ description = "Automate Docker Container Publishing Flow"
 
 +++
 
-![Chef Habitat Automated Docker Container Publishing Flow Diagram](/images/infographics/habitat-automated-docker-container-publishing-flow.png)
+![Chef Habitat Automated Docker Container Publishing Flow Diagram](/images/habitat/habitat-automated-docker-container-publishing-flow.png)
 

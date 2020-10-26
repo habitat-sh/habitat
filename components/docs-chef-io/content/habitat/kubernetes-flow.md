@@ -10,6 +10,6 @@ description = "Chef Habitat and Kubernetes Overview"
 
 +++
 
-![Chef Habitat and Kubernetes: Three Tiers of Service Deployment Diagram](/images/infographics/habitat-and-kubernetes-three-tiers-of-service-deployment.png)
+![Chef Habitat and Kubernetes: Three Tiers of Service Deployment Diagram](/images/habitat/habitat-and-kubernetes-three-tiers-of-service-deployment.png)
 
-![Deploy Services to Kubernetes with Chef Habitat Flow Diagram](/images/infographics/deploy-services-to-kubernetes-with-habitat-flow.png)
+![Deploy Services to Kubernetes with Chef Habitat Flow Diagram](/images/habitat/deploy-services-to-kubernetes-with-habitat-flow.png)

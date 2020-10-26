@@ -16,7 +16,7 @@ Chef Habitat and Kubernetes are complementary. While Kubernetes provides a platf
 ## Chef Habitat on Kubernetes
 
 Chef Habitat can export your package as a Docker container that runs on Kubernetes in the form of a pod.
-Additionally, a Chef Habitat bastion pod provides essential gossip ring features like service discovery (binds), secrets and the required [initial peer](/docs/best-practices/robust-supervisor-networks) to all other pods.
+Additionally, a Chef Habitat bastion pod provides essential gossip ring features like service discovery (binds), secrets and the required [initial peer](/best-practices/robust-supervisor-networks) to all other pods.
 
 Chef Habitat robustly deploys the bastion pod with a Kubernetes stateful set, persistent volume, and liveness checking, which ensures node availability and ring data persistence. The Kubernetes stateful set comes with an attached Kubernetes service that makes discoverable with DNS. Each namespace should contain a single service and stateful set.
 
@@ -183,7 +183,7 @@ spec:
 
 ## Bare Kubernetes
 
-If your packages don't require communication with the Chef Habitat Supervisor ring, such as binds, secrets, etc., then you can execute your packages directly on the cluster. You can deploy Chef Habitat packages exported as containers to Kubernetes with the [`kubectl` command](http://kubernetes.io/docs/user-guide/pods/single-container/). Using the [Docker exporter](/docs/developing-packages#pkg-exports) to create a containerized application, you can launch the container like this example:
+If your packages don't require communication with the Chef Habitat Supervisor ring, such as binds, secrets, etc., then you can execute your packages directly on the cluster. You can deploy Chef Habitat packages exported as containers to Kubernetes with the [`kubectl` command](http://kubernetes.io/docs/user-guide/pods/single-container/). Using the [Docker exporter](/developing-packages#pkg-exports) to create a containerized application, you can launch the container like this example:
 
 ```shell
 $ kubectl run mytutorial --image=myorigin/mytutorial --port=8080
@@ -209,5 +209,5 @@ Multi-container pod support through Chef Habitat is still under active developme
 
 ## Related Reading
 
-* [Export a Chef Habitat package](/docs/plan-overview/#pkg-exports)
-* [Chef Habitat CLI](/docs/habitat-cli)
+* [Export a Chef Habitat package](/plan-overview/#pkg-exports)
+* [Chef Habitat CLI](/habitat-cli)
