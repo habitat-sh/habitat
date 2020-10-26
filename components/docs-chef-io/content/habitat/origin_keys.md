@@ -16,10 +16,10 @@ draft = false
 
 Prerequisites:
 
-- [Get Chef Habitat]({{< relref "install-habitat.md" >}})
-- [Create a Chef Habitat Builder account]({{< relref "builder-account#builder-account" >}})
-- [Generate a personal access token]({{< relref "builder-profile#create-a-personal-access-token" >}})
-- [Create an origin]({{< relref "origins" >}}) or join an origin by [invitation]({{< relref "origin-rbac#manage-origin-membership-with-hab-origin-invitations" >}})
+- [Get Chef Habitat]({{< relref "install_habitat.md" >}})
+- [Create a Chef Habitat Builder account]({{< relref "builder_account#builder-account" >}})
+- [Generate a personal access token]({{< relref "builder_profile#create-a-personal-access-token" >}})
+- [Create an origin]({{< relref "origins" >}}) or join an origin by [invitation]({{< relref "origin_rbac#manage-origin-membership-with-hab-origin-invitations" >}})
 
 When you create an origin, Chef Habitat Builder automatically generates _origin keys_.
 Origin key cryptography is asymmetric: it has a public origin key that you can distribute freely, and a private origin key (also called a "signing key") that you should distribute only to users of the origin.
@@ -78,7 +78,7 @@ You can upload origin keys that you generate on the command line to Chef Habitat
 
 Run Chef Habitat CLI commands from your local environment or from within the Chef Habitat Studio.
 
-See the CLI documentation for more information on the [`hab origin key`]({{< relref "habitat-cli.md/#hab-origin-key" >}}) commands.
+See the CLI documentation for more information on the [`hab origin key`]({{< relref "habitat_cli.md/#hab-origin-key" >}}) commands.
 
 ### Find Your Origin Keys
 
@@ -118,7 +118,7 @@ When you create an origin through the site, Chef Habitat Builder automatically g
 
 The Chef Habitat CLI creates origin key pairs through two different commands, for two different uses:
 
-- Use [`hab setup`]({{< relref "install-habitat.md" >}}) to generate your first origin key pair as part of setting up the `hab` CLI
+- Use [`hab setup`]({{< relref "install_habitat.md" >}}) to generate your first origin key pair as part of setting up the `hab` CLI
 - Use the `hab origin key generate <ORIGIN>` command to create a key pair for an origin
 
 Create origin keys with the `hab` command:

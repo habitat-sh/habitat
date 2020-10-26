@@ -38,7 +38,7 @@ Packages meeting this exception will always have their latest major version foun
 
 ## Plan Basic Settings
 
-You can read more about [basic plan settings]({{< relref "plan-overview/#write-plans" >}}) here. The minimum requirements for a core plan are:
+You can read more about [basic plan settings]({{< relref "plan_overview/#write-plans" >}}) here. The minimum requirements for a core plan are:
 
 - pkg_name is set
 - pkg_origin is set
@@ -64,7 +64,7 @@ You can read more about [callbacks]({{< relref "reference#reference-callbacks" >
 
 ## Application Lifecycle Hooks
 
-The Supervisor dynamically invokes hooks at run-time, triggered by an application lifecycle event. You can read more about [hooks]({{< relref "plan-overview" >}}) here.
+The Supervisor dynamically invokes hooks at run-time, triggered by an application lifecycle event. You can read more about [hooks]({{< relref "plan_overview" >}}) here.
 
 ### Lifecycle Hook Do's
 

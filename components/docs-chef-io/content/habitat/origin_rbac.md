@@ -16,9 +16,9 @@ draft = false
 
 Prerequisites:
 
-- [Download the Chef Habitat CLI]({{< relref "install-habitat.md" >}})
-- [Create a Chef Habitat Builder account]({{< relref "builder-account" >}})
-- [Generate a personal access token]({{< relref "builder-profile#create-a-personal-access-token" >}})
+- [Download the Chef Habitat CLI]({{< relref "install_habitat.md" >}})
+- [Create a Chef Habitat Builder account]({{< relref "builder_account" >}})
+- [Generate a personal access token]({{< relref "builder_profile#create-a-personal-access-token" >}})
 - [Create an origin]({{< relref "origins.md#create-origin" >}}) or accept an [invitation]({{< relref "#manage-origin-membership-with-hab-origin-invitations" >}}) to an existing origin
 - [Get origin keys]({{< relref "origins.md#origin-keys" >}})
 
@@ -94,7 +94,7 @@ In tandem with the changes to the Builder membership roles, we've also updated t
 
 ### Manage origin membership with `hab origin invitations`
 
-Use the [hab origin invitations]({{< relref "habitat-cli.md#hab-origin-invitations" >}}) command to invite users to join your origin and to respond to invitations. Origin Administrators and Owners can use this command to manage invitations.
+Use the [hab origin invitations]({{< relref "habitat_cli.md#hab-origin-invitations" >}}) command to invite users to join your origin and to respond to invitations. Origin Administrators and Owners can use this command to manage invitations.
 
 All Chef Habitat Builder users can accept, ignore, and see invitations for their accounts.
 
@@ -142,7 +142,7 @@ hab origin transfer [OPTIONS] <ORIGIN> <NEW_OWNER_ACCOUNT>
 
 ### Manage membership roles with `hab origin rbac`
 
-Use the [hab origin rbac]({{< relref "habitat-cli.md#hab-origin-rbac" >}}) command to see and set role based access control (RBAC) from the command line.
+Use the [hab origin rbac]({{< relref "habitat_cli.md#hab-origin-rbac" >}}) command to see and set role based access control (RBAC) from the command line.
 An origin `MEMBER_ACCOUNT` is the name used to sign in to Chef Habitat builder. You can find the list of user names on an origin's _Members Tab_. (Builder > Origin > Members)
 
 The RBAC command syntax is:

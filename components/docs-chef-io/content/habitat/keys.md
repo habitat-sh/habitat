@@ -32,7 +32,7 @@ hab origin key import < <PATH_TO_KEY>
 curl <URL_THAT_RETURNS_KEY> | hab origin key import
 ```
 
-See the [hab origin key]({{< relref "habitat-cli/#hab-origin-key" >}}) command
+See the [hab origin key]({{< relref "habitat_cli/#hab-origin-key" >}}) command
 documentation for more information about working with origin keys from the command line.
 
 ## User and Service Group Keys

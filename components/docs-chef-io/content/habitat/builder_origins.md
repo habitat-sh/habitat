@@ -41,9 +41,9 @@ When you select **Save and Continue**, Chef Habitat Builder:
 
 #### Create an Origin with the Chef Habitat CLI
 
-Use the [hab origin]({{< relref "habitat-cli/#hab-origin" >}}) commands to manage your origins from the command line.
+Use the [hab origin]({{< relref "habitat_cli/#hab-origin" >}}) commands to manage your origins from the command line.
 
-Create an origin from the command line with the [hab origin create]({{< relref "habitat-cli/#hab-origin-create/" >}}) command
+Create an origin from the command line with the [hab origin create]({{< relref "habitat_cli/#hab-origin-create/" >}}) command
 
 ```
 hab origin create <origin>
@@ -54,13 +54,13 @@ The results of this command differ slightly from creating an origin on the Chef 
 1. Creates an origin on the Chef Habitat Builder site
 1. Does _not_ generate an origin key pair
 
-For more information, see the [`hab origin create`]({{< relref "habitat-cli/#hab-origin-create" >}}) CLI documentation.
+For more information, see the [`hab origin create`]({{< relref "habitat_cli/#hab-origin-create" >}}) CLI documentation.
 
 ## Origin Membership & RBAC
 
 Prerequisites:
 
-* [Download the Chef Habitat CLI]({{< relref "install-habitat" >}})
+* [Download the Chef Habitat CLI]({{< relref "install_habitat" >}})
 * [Create a Chef Habitat Builder account](#builder-account)
 * [Generate a personal access token](#builder-token)
 * [Create an origin](#create-origin) or accept an invitation to an existing origin
@@ -129,7 +129,7 @@ In tandem with the changes to the Builder membership roles, we've also updated t
 
 #### Manage origin membership with `hab origin invitations`
 
-Manage Chef Habitat Builder origin membership with the Chef Habitat CLI, using the [hab origin invitations]({{< relref "habitat-cli/#hab-origin-invitations" >}}) command.
+Manage Chef Habitat Builder origin membership with the Chef Habitat CLI, using the [hab origin invitations]({{< relref "habitat_cli/#hab-origin-invitations" >}}) command.
 
 All Chef Habitat Builder users can accept, ignore, and see invitations for their accounts.
 
@@ -214,7 +214,7 @@ hab origin rbac set bluewhale admin --origin two-tier-app
 
 Prerequisites:
 
-* [Download the Chef Habitat CLI]({{< relref "install-habitat" >}})
+* [Download the Chef Habitat CLI]({{< relref "install_habitat" >}})
 * [Create a Chef Habitat Builder account](#builder-account)
 * [Generate a personal access token](#builder-token)
 * [Create an origin with `hab origin create` or join an origin by invitation](#create-origin)
@@ -276,7 +276,7 @@ You can upload origin keys that you generate on the command line to Chef Habitat
 
 Run Chef Habitat CLI commands from your local environment or from within the Chef Habitat Studio.
 
-See the CLI documentation for more information on the [`hab origin key`]({{< relref "habitat-cli/#hab-origin-key" >}}) commands.
+See the CLI documentation for more information on the [`hab origin key`]({{< relref "habitat_cli/#hab-origin-key" >}}) commands.
 
 #### Find Your Local Origin Keys
 
@@ -316,7 +316,7 @@ When you create an origin through the site, Chef Habitat Builder automatically g
 
 The Chef Habitat CLI creates origin key pairs through two different commands, for two different uses:
 
-* Use [`hab setup`]({{< relref "install-habitat" >}}) to generate your first origin key pair as part of setting up the `hab` CLI
+* Use [`hab setup`]({{< relref "install_habitat" >}}) to generate your first origin key pair as part of setting up the `hab` CLI
 * Use the `hab origin key generate <ORIGIN>` command to create an key pair for an origin created with the `hab origin create` command
 
 Create origin keys with the `hab` command:
@@ -476,6 +476,6 @@ hab origin secret delete AWS_ACCESS_KEY_ID
 hab origin secret delete AWS_SECRET_ACCESS_KEY
 ```
 
-See [Using Origin Secrets in Plans]({{< relref "plan-overview/#buildtime-workflow" >}}) for guidance on using origin secrets.
+See [Using Origin Secrets in Plans]({{< relref "plan_overview/#buildtime-workflow" >}}) for guidance on using origin secrets.
 
-See the [`hab origin secret`]({{< relref "habitat-cli/#hab-origin-secret" >}}) CLI documentation for more information on these commands.
+See the [`hab origin secret`]({{< relref "habitat_cli/#hab-origin-secret" >}}) CLI documentation for more information on these commands.

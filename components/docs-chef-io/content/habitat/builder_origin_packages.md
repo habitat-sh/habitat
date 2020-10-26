@@ -29,7 +29,7 @@ Chef Habitat Builder supports both public and private origins, packages, and Git
 
 ## Create a Builder Account
 
-If you haven't created an account yet, see the [Create a Builder Account]({{< relref "builder-account" >}}) section above.
+If you haven't created an account yet, see the [Create a Builder Account]({{< relref "builder_account" >}}) section above.
 
 ## Create or Join an Existing Origin
 
@@ -71,11 +71,11 @@ $ hab pkg promote -z <TOKEN> origin/package/version/release stable
 
 > **Note** You can also promote packages to the `stable` channel using the *promote to stable* button in the web app.
 
-For more information on how to use channels, see [Continuous Deployment Using Channels]({{< relref "using-habitat/#continuous-deployment" >}}).
+For more information on how to use channels, see [Continuous Deployment Using Channels]({{< relref "using_habitat/#continuous-deployment" >}}).
 
 ### Running Packages from Builder
 
-> **Note:** When running private packages from Builder, it's necessary to add your [Chef Habitat access token]({{< relref "using-builder/#builder-token" >}}) to the machine where you intend to deploy the package, via `export HAB_AUTH_TOKEN=<token>`.
+> **Note:** When running private packages from Builder, it's necessary to add your [Chef Habitat access token]({{< relref "using_builder/#builder-token" >}}) to the machine where you intend to deploy the package, via `export HAB_AUTH_TOKEN=<token>`.
 
 You can instruct the Supervisor to download and run packages from Builder by using the `hab sup` and `hab svc` commands, for example:
 

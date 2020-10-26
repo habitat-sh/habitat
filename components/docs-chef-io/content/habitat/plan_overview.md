@@ -44,7 +44,7 @@ pkg_bin_dirs=(bin)
 
 It has the name of the software, the version, where to download it, a checksum to verify the contents are what we expect, run dependencies on `core/glibc` and `core/readline`, build dependencies on `core/coreutils`, `core/make`, `core/gcc`, libraries files in `lib`, header files in `include`, and a binary file in `bin`. Also, because it's a core plan, it has a description and upstream URL for the source project included.
 
-> Note: The `core` prefix is the origin of those dependencies. For more information, see [Create an Origin]({{< relref "using-builder/#builder-origin" >}})
+> Note: The `core` prefix is the origin of those dependencies. For more information, see [Create an Origin]({{< relref "using_builder/#builder-origin" >}})
 
 When you have finished creating your plan and call `build` in Chef Habitat studio, the following occurs:
 
@@ -64,7 +64,7 @@ After the build script completes, you can then upload your package to Chef Habit
 
 All plans must have a `plan.sh` or `plan.ps1` at the root of the plan context. They may even include both if a package is targeting both Windows and Linux platforms. This file will be used by the `hab-plan-build` command to build your package. To create a plan, do the following:
 
-1. If you haven't done so already, [download the `hab` CLI]({{< relref "install-habitat/" >}}) and install it per the instructions on the download page.
+1. If you haven't done so already, [download the `hab` CLI]({{< relref "install_habitat/" >}}) and install it per the instructions on the download page.
 
 2. Run `hab cli setup` and follow the instructions in the setup script.
 
@@ -88,7 +88,7 @@ All plans must have a `plan.sh` or `plan.ps1` at the root of the plan context. T
        hab plan init yourplan
     ```
 
-     See [hab plan init]({{< relref "habitat-cli#hab-plan-init" >}}) for more information on how to use this subcommand.
+     See [hab plan init]({{< relref "habitat_cli#hab-plan-init" >}}) for more information on how to use this subcommand.
 
 4. Now that you have stubbed out your plan file in your plan context, open it and begin modifying it to suit your needs.
 
@@ -284,12 +284,12 @@ If you only need to start the application or service when the Chef Habitat servi
 
 You can use any of the [runtime configuration settings]({{< relref "reference/#template-data" >}}), either defined by you in your config file, or defined by Chef Habitat.
 
-Once you are done writing your plan, use the studio to [build your package]({{< relref "developing-packages/#plan-builds" >}}).
+Once you are done writing your plan, use the studio to [build your package]({{< relref "developing_packages/#plan-builds" >}}).
 
 ### Related Resources
 
-- [Write plans]({{< relref "developing-packages#write-plans" >}}): Describes what a plan is and how to create one.
-- [Add configuration to plans]({{< relref "developing-packages#add-configuration" >}}): Learn how to make your running service configurable by templatizing configuration files in your plan.
-- [Binary-only packages]({{< relref "best-practices#binary-wrapper" >}}): Learn how to create packages from software that comes only in binary form, like off-the-shelf or legacy programs.
+- [Write plans]({{< relref "developing_packages#write-plans" >}}): Describes what a plan is and how to create one.
+- [Add configuration to plans]({{< relref "developing_packages#add-configuration" >}}): Learn how to make your running service configurable by templatizing configuration files in your plan.
+- [Binary-only packages]({{< relref "best_practices#binary-wrapper" >}}): Learn how to create packages from software that comes only in binary form, like off-the-shelf or legacy programs.
 
 You may also find the [plan syntax guide]({{< relref "reference" >}}) useful. It lists the settings, variables, and functions that you can use when creating your plan.

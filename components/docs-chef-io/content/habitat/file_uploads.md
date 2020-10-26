@@ -12,7 +12,7 @@ description = "Update Services with File Uploads"
 
 ## Uploading files to a service group
 
-In addition to [configuration updates]({{< relref "using-habitat#config-updates" >}}), you can upload files to a service group. Keep these small - we recommend 4k or less per file, and keep the count of files to a minimum.
+In addition to [configuration updates]({{< relref "using_habitat#config-updates" >}}), you can upload files to a service group. Keep these small - we recommend 4k or less per file, and keep the count of files to a minimum.
 
 ### Usage
 
