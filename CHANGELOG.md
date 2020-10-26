@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.175 -->
-## [1.6.175](https://github.com/habitat-sh/habitat/tree/1.6.175) (2020-10-26)
+<!-- latest_release 1.6.176 -->
+## [1.6.176](https://github.com/habitat-sh/habitat/tree/1.6.176) (2020-10-26)
 
 #### Merged Pull Requests
-- Expose HAB_FALLBACK_CHANNEL in plan build [#7951](https://github.com/habitat-sh/habitat/pull/7951) ([christophermaier](https://github.com/christophermaier))
+- Curate docs images in docs-chef-io [#7916](https://github.com/habitat-sh/habitat/pull/7916) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.139 -->
@@ -14,6 +14,7 @@
 - an API retry pattern [#7874](https://github.com/habitat-sh/habitat/pull/7874) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.150 -->
 
 #### Merged Pull Requests
+- Curate docs images in docs-chef-io [#7916](https://github.com/habitat-sh/habitat/pull/7916) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.176 -->
 - Expose HAB_FALLBACK_CHANNEL in plan build [#7951](https://github.com/habitat-sh/habitat/pull/7951) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.175 -->
 - [BUG] Update actix-web calling conventions [#7950](https://github.com/habitat-sh/habitat/pull/7950) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.174 -->
 - Revert &quot;Merge pull request #7943 from habitat-sh/cm/revert-tls&quot; [#7949](https://github.com/habitat-sh/habitat/pull/7949) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.173 -->
