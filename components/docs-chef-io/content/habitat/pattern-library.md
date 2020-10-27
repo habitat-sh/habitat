@@ -24,8 +24,6 @@ For help with Chef Habitat and these patterns, ask:
 +++
 [\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pattern-library.md)
 
-**Note:** If you are using a container scheduler such as Kubernetes, Swarm, or Mesos DC/OS, or a PaaS such as Cloud Foundry, you should not follow the bastion ring pattern, because the scheduler handles persistence and orchestration on your behalf.
-
 ## Kubernetes Bastion Ring Pattern
 
 A _bastion ring_ is a robust type of Supervisor network in which a small number of Supervisors are set up as permanent peers and that are dedicated to anchoring Supervisor network communication. These Supervisors are designated solely for communication between Supervisor and _do not run services_. These solely to anchor the entire Supervisor network. See [Robust Supervisor Networks](/best-practices/#robust-supervisor-networks/) for more information. The following examples demonstrate running a bastion ring in Kubernetes.
