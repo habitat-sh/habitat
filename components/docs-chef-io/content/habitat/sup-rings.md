@@ -7,7 +7,10 @@ description = "Setting Up a Ring"
     title = "Setting Up a Ring"
     identifier = "habitat/supervisors/sup-rings"
     parent = "habitat/supervisors"
+    weight = 50
 +++
+
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup-rings.md)
 
 ## Bastion Ring / Permanent Peers
 
@@ -15,15 +18,15 @@ A "Bastion Ring" is a pattern for preventing rumor loss and a split brain in a n
 
 ## Using a Scheduler
 
-Please note, if you are using a container scheduler such as Kubernetes, Swarm, or Mesos DC/OS, or a PaaS such as CloudFoundry, you should not follow the bastion ring pattern, as the scheduler handles that level of persistence and orchestration on your behalf.
-
-For Kubernetes, you should use the Chef Habitat Operator for Kubernetes to ensure that the application behavior you've established for your services when you defined them with Chef Habitat is run in a Kubernetes-native way to ensure consistent and expected behavior cross-platform.
+**Note:** If you are using a container scheduler such as the Kubernetes `kube-scheduler`, Docker Swarm mode, Mesos DC/OS's Marathon or Chronos, or a PaaS such as Cloud Foundry, you should not follow the bastion ring pattern, because the scheduler handles persistence and orchestration on your behalf.
 
 More resources on schedulers:
 
-- <https://www.habitat.sh/get-started/kubernetes/>
-- <https://www.habitat.sh/docs/best-practices/#container-orchestration>
-- <https://www.habitat.sh/get-started/cloudfoundry/>
+- Chef Habitat Container Orchestration: https://www.habitat.sh/docs/best-practices/#container-orchestration
+- Kubernetes `kube-scheduler`: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler
+- Docker Swarm mode: https://docs.docker.com/engine/swarm
+- Mesos DC/OS Marathon or Chronos: https://mesosphere.github.io/marathon/
+- Cloud Foundry: https://www.habitat.sh/get-started/cloudfoundry
 
 ## Initial Peer(s)
 

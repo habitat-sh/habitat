@@ -7,8 +7,10 @@ description = "Application Rebuild Flow"
     title = "Application Rebuild Flow"
     identifier = "habitat/diagrams/application-rebuild-flow Application Rebuild Flow"
     parent = "habitat/diagrams"
+    weight = 40
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/application-rebuild-flow.md)
 
 ![Chef Habitat Application Rebuild Flow Diagram](/images/habitat/habitat-application-rebuild-flow.png)
 

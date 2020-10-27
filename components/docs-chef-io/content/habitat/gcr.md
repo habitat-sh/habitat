@@ -5,11 +5,12 @@ description = "Google Container Registry"
 [menu]
   [menu.habitat]
     title = "Google Container Registry (GCR)"
-    identifier = "habitat/containers/gcr-and-habitat"
+    identifier = "habitat/containers/gcr GCR"
     parent = "habitat/containers"
+    weight = 60
 
 +++
-
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/gcr.md)
 
 [Google Container Registry](https://cloud.google.com/container-registry/) is a private Docker repository that
 works with popular continuous delivery systems. It runs on GCP to provide consistent uptime on an infrastructure

@@ -5,10 +5,12 @@ description = "Tips and tricks for managing hardcoded library dependencies in bi
 [menu]
   [menu.habitat]
     title = "Binary Wrapper Packages"
-    identifier = "habitat/packages/binary-wrapper"
-    parent = "habitat/packages"
+    identifier = "habitat/plans/binary-wrapper"
+    parent = "habitat/plans"
 
 +++
+
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/binary-wrapper.md)
 
 While Chef Habitat provides the best behavior for applications that can be compiled from source into the Chef Habitat ecosystem, it can also bring the same management benefits to applications distributed in binary-only form.
 

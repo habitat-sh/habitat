@@ -1,14 +1,16 @@
 +++
-title = "Service Group Updates"
-description = "Update service groups with supervisor configuration"
+title = "Service Group Update Strategies"
+description = "Update service groups programatically"
 
 [menu]
   [menu.habitat]
-    title = "Service Group Updates"
-    identifier = "habitat/services/service-updates"
+    title = "Service Group Update Strategies"
+    identifier = "habitat/services/service-updates Update Strategies"
     parent = "habitat/services"
+    weight = 60
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/service-updates.md)
 
 The Chef Habitat Supervisor can be configured to leverage an optional _update strategy_, which describes how the Supervisor and its peers within a service group should respond when a new version of a package is available.
 

@@ -9,6 +9,7 @@ description = "Example code for Chef Habitat plans and more!"
     parent = "habitat/reference"
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pattern-library.md)
 
 ## <a name="hab-patterns" id="hab-patterns" type="anchor">Chef Habitat Pattern Library</a>
 
@@ -21,6 +22,8 @@ For help with Chef Habitat and these patterns, ask:
 - In the [Chef Habitat Slack](http://slack.habitat.sh/)
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pattern-library.md)
+
 ## Kubernetes Bastion Ring Pattern
 
 A _bastion ring_ is a robust type of Supervisor network in which a small number of Supervisors are set up as permanent peers and that are dedicated to anchoring Supervisor network communication. These Supervisors are designated solely for communication between Supervisor and _do not run services_. These solely to anchor the entire Supervisor network. See [Robust Supervisor Networks](/best-practices/#robust-supervisor-networks/) for more information. The following examples demonstrate running a bastion ring in Kubernetes.

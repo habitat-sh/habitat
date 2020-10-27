@@ -5,9 +5,11 @@ draft= false
 [menu]
   [menu.habitat]
     title = "hab CLI Reference"
-    identifier = "habitat/reference/habitat-cli"
+    identifier = "habitat/reference/habitat-cli CLI Reference"
     parent = "habitat/reference"
+    weight = 10
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/hab-cli.md)
 
 <!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
 

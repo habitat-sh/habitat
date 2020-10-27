@@ -1,6 +1,6 @@
 +++
-title = "Chef Habitat Package Contents"
-description = "Chef Habitat Package Contents"
+title = "Package Contents"
+description = "Package Contents"
 
 [menu]
   [menu.habitat]
@@ -9,6 +9,7 @@ description = "Chef Habitat Package Contents"
     parent = "habitat/reference"
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/package-contents.md)
 
 During the build process, the hab-plan-build script creates several files that specify dependency, build, and configuration information. When packages are unpacked (extracted) and installed during the initialization phase of a Chef Habitat service, these files define what those packages need to run.
 

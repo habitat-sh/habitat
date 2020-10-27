@@ -1,16 +1,16 @@
 +++
-title = "Chef Habitat and Configuration Management"
-description = "Chef Habitat and Configuration Management"
-draft = true
+title = "Configuration Management"
+description = "Configuration Management"
+draft = false
 
 [menu]
   [menu.habitat]
-    title = "Chef Habitat and Configuration Management"
-    identifier = "habitat/containers/habitat-and-configuration-management"
-    parent = "habitat/containers"
-    weight = 20
+    title = "Configuration Management"
+    identifier = "habitat/reference/configuration-management"
+    parent = "habitat/reference"
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/configuration-management.md)
 
 **Examples: [Ansible](https://www.ansible.com/), [Chef](https://www.chef.io/chef/), [Puppet](https://puppet.com/), and [Salt](https://saltstack.com/)**
 

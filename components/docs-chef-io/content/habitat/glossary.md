@@ -5,7 +5,7 @@ draft = false
 [menu]
   [menu.habitat]
     title = "Glossary"
-    identifier = "habitat/reference/glossary.md Glossary"
+    identifier = "habitat/reference/glossary Glossary"
     parent = "habitat/reference"
 +++
 

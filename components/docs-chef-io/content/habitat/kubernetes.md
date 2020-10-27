@@ -1,14 +1,16 @@
 +++
-title = "Kubernetes Development Patterns"
+title = "Kubernetes"
 description = "Export your Chef Habitat package as a Docker and run it on a Kubernetes Pod"
 
 [menu]
   [menu.habitat]
-    title = "Kubernetes Development Patterns"
-    identifier = "habitat/containers/kubernetes"
-    parent = "habitat/containers/kubernetes"
+    title = "Kubernetes"
+    identifier = "habitat/containers/kubernetes Kubernetes Development Patterns"
+    parent = "habitat/containers"
+    weight = 30
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/kubernetes.md)
 
 [Kubernetes](http://kubernetes.io/) is an open source container cluster manager that is available as a stand-alone platform or embedded in several distributed platforms including [Google's Container Engine](https://cloud.google.com/container-engine/), [AWS Elastic Kubernetes Service](https://aws.amazon.com/eks/), [Azure Kubernetes Service](https://azure.microsoft.com/services/kubernetes-service/), and [Red Hat OpenShift](https://openshift.com/).
 Chef Habitat and Kubernetes are complementary. While Kubernetes provides a platform for deployment, scaling, and operations of application containers across clusters of hosts, Chef Habitat manages the build pipeline and lifecycle of those application containers.
@@ -201,11 +203,7 @@ Chef Habitat packages can be exported in both Docker and ACI formats (as well as
 
 ## Environment Variables and Networking
 
-Kubernetes supports passing [environment variables](http://kubernetes.io/docs/user-guide/environment-guide/) into containers, which can be done [via the Chef Habitat Operator](https://github.com/habitat-sh/habitat-operator/tree/master/examples/env-vars).
-
-## Multi-container Pods
-
-Multi-container pod support through Chef Habitat is still under active development as part of the Chef Habitat Operator.
+Kubernetes supports passing [environment variables](http://kubernetes.io/docs/user-guide/environment-guide/) into containers.
 
 ## Related Reading
 

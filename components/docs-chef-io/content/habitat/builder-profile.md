@@ -7,14 +7,12 @@ draft = false
 [menu]
   [menu.habitat]
     title = "Builder Profile"
-    identifier = "habitat/builder/builder-profile.md Builder Profile"
+    identifier = "habitat/builder/builder-profile Builder Profile"
     parent = "habitat/builder"
     weight = 30
 +++
-
-<<<<<<< HEAD:components/docs-chef-io/content/habitat/builder-profile.md
 [\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/builder-profile.md)
-=======
+
 Whether you are looking to leverage the SaaS or on-prem version of Chef Habitat Builder, you will need to create an account on the SaaS version of Chef Habitat Builder. After you have then downloaded the version, you will then sync the two accounts.
 
 This documentation covers everything from creating an account to setting up automated builds and exporting packages to a variety of container registries.
@@ -44,7 +42,6 @@ Signing in with your GitHub account and authorizing the Chef Habitat Builder app
 ![Authorize the Chef Habitat Application](/images/habitat/authorize.png)
 
 ## Set up your Profile
->>>>>>> b2e0b5b8... Keep only used images in /static/images/habitat:components/docs-chef-io/content/habitat/builder-get-started.md
 
 Use the _Profile_ tab to:
 

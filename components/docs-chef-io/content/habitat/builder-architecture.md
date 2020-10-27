@@ -7,7 +7,9 @@ description = "Chef Habitat Builder Architecture"
     title = "Chef Habitat Builder Architecture"
     identifier = "habitat/diagrams/builder-architecture"
     parent = "habitat/diagrams"
+    weight = 90
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/builder-architecture.md)
 
 ![Chef Habitat Builder Architecture Diagram](/images/habitat/habitat-builder-architecture.png)

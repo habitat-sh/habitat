@@ -10,8 +10,11 @@ description = "Export Chef Habitat packages to Docker, Kubernetes, Helm, Mesos, 
     weight = 40
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pkg-exports.md)
 
-You can export packages into several different external, immutable runtime formats. This topic will be updated as more formats are supported in the future. Currently there are exports for: docker, mesos, tar, and cloudfoundry.
+Chef Habitat Artifacts--`.hart` files--can be exported in a number of different formats depending on what you need and where you need it. This is powerful because you can use the same immutable Chef Habitat artifact by exporting it into a format that you need for a specific job.
+
+You can export packages into several different external, immutable runtime formats. Currently there are exports for: docker, mesos, tar, and cloudfoundry.
 
 The command to export a package is `hab pkg export <FORMAT> <PKG_IDENT>`. See the [Chef Habitat CLI Reference Guide](/habitat-cli#hab-pkg-export) for more CLI information.
 
@@ -97,119 +100,6 @@ You can create a Docker container image for any package by performing the follow
     sudo /hab/bin/hab sup run
     sudo /hab/bin/hab svc load <ORIGIN>/<NAME>
     ```
-### Exporting to Kubernetes
-
-The Kubernetes exporter is an additional command line subcommand to the standard Chef Habitat CLI interface. It leverages the existing Docker image export functionality and, additionally, generates a Kubernetes manifest that can be deployed to a Kubernetes cluster running the Chef Habitat operator.
-
-1. Create an interactive studio in any directory with the `hab studio enter` command.
-
-2. Install or [build](/plan-overview/#plan-builds) the Chef Habitat package from which you want to create an application, for example:
-
-    ```bash
-    hab pkg install <ORIGIN>/<NAME>
-    ```
-
-3. Run the Kubernetes exporter on the package.
-
-    ```bash
-    hab pkg export kubernetes ./results/<hart-filename>.hart
-    ```
-
-    You can run `hab pkg export kubernetes --help` to see the full list of available options and general help.
-
-4. The Kubernetes exporter outputs a Kubernetes manifest yaml file. You can redirect the output to a file like this:
-
-    ```bash
-    hab pkg export kubernetes ./results/<hart-filename>.hart -o my_app.yaml
-    ```
-5. To push the Docker image created by the Kubernetes exporter to Docker Hub or another container registry, use:
-
-    ```bash
-    hab pkg export kubernetes --push-image --username <your_docker_hub_username> --password <your_docker_hub_password> -o my_app.yaml
-    ```
-6. Add the HAB_LICENSE environment variable to the generated manifest YAML file. For example, add the environmental variable directly to the generated manifest:
-
-    ```yaml
-    ---
-    apiVersion: habitat.sh/v1beta1
-    kind: Habitat
-    customVersion: v1beta2
-    metadata:
-    ## Name of the Kubernetes resource.
-    name: sample-node-app-1-1-0-20190516204636
-    spec:
-    v1beta2:
-        ## Name of the Habitat service package exported as a Docker image.
-        image: user/sample-node-app:1.1.0-20190516204636
-        ## Number of desired instances.
-        count: 1
-        ## An object containing parameters that affects how the Habitat service
-        ## is executed.
-        service:
-        ## Name of the Habitat service.
-        name: sample-node-app
-        ## Habitat topology of the service.
-        topology: standalone
-        env:
-        - name: HAB_LICENSE
-          value: accept-no-persist
-    ```
-
-7. You can run this manifest in your Kubernetes cluster with:
-
-    ```bash
-    kubectl create -f my_app.yaml
-    ```
-
-8. This will create a Kubernetes StatefulSet running your package. To access the pod running your package from the outside internet, you will need to add a Kubernetes service (i.e. a Kubernetes load balancer) with an external IP. Here is an example.
-
-    ```bash
-    ---
-    apiVersion: v1
-    kind: Service
-    metadata:
-    name: app-0
-    spec:
-    type: LoadBalancer
-    selector:
-        habitat-name: sample-node-app-1-1-0-20190516204636
-    ports:
-    - protocol: TCP
-        port: 8000
-        targetPort: 8000
-    ```
-
-9. You can add this service to your Kubernetes cluster with:
-
-    ```bash
-    kubectl create -f ./service.yml
-    ```
-
-### Export to a Helm Chart
-
-The Helm exporter is an additional command line subcommand to the standard Chef Habitat CLI interface. It is very similar to the Kubernetes exporter but it takes you even further. It also leverages the existing Docker image export functionality but unlike the Kubernetes exporter, instead of generating a Kubernetes manifest, it creates a distributable Helm chart directory. This chart directory can not only be deployed in your local Kubernetes cluster, but also easily packaged and distributed.
-
-Additionally, the Kubernetes Chef Habitat operator is automatically added to the Helm chart as a dependency and hence installed automatically as part of the Chef Habitat Helm chart.
-
-1. Create an interactive studio in any directory with the `hab studio enter` command.
-
-2. Install or [build](/plan-overview/#plan-builds) the Chef Habitat package from which you want to create an application, for example:
-
-    ```bash
-    hab pkg install <ORIGIN>/<NAME>
-    ```
-
-3. Run the Helm exporter on the package.
-
-    ```bash
-    hab pkg export helm <ORIGIN>/<NAME>
-    ```
-
-    You can run `hab pkg export helm --help` to see the full list of available options and general help.
-
-4. More information on how to setup Helm and use of the Helm exporter can be found on the [Chef blog](https://blog.chef.io/habitat-and-helm/).
-
-5. Add the HAB_LICENSE environment variable to the generated chart, usually in the `templates/habitat.yaml` file.
 
 ### Exporting to Apache Mesos and DC/OS
 

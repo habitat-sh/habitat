@@ -1,14 +1,16 @@
 +++
-title = "Service Updates"
-description = "Update services at runtime or dynamically"
+title = "Single Service Updates"
+description = "Update single services at runtime or dynamically"
 
 [menu]
   [menu.habitat]
-    title = "Service Updates"
-    identifier = "habitat/services/service-updates Configuration Updates*?"
+    title = "Single Service Updates"
+    identifier = "habitat/services/service-updates Individual Configuration Updates"
     parent = "habitat/services"
+    weight = 40
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/config-updates.md)
 
 One of the key features of Chef Habitat is the ability to define an immutable package with a default configuration which can then be updated dynamically at runtime. You can update service configuration on two levels: individual services (for testing purposes), or a service group.
 
@@ -30,7 +32,7 @@ $ HAB_MYTUTORIALAPP='{"message":"Chef Habitat rocks!"}' hab run <origin>/<packag
 
 > Note: The syntax used for applying configuration through environment variables can be either JSON or TOML, but TOML is preferred. The package name in the environment variable must be uppercase, any dashes must be replaced with underscores.
 
-> Note: The way that environment variable configuration is currently processed means that variables must be set when the Supervisor process starts, not when the service is loaded, which may require a bit of planning on the part of the Chef Habitat operator. This may change in the future.
+> Note: Variables must be set when the Supervisor process starts, not when the service is loaded, which may require a bit of planning on the part of the Chef Habitat user.
 
 For multiline environment variables, such as those in a TOML table or nested key value pairs, it can be easier to place your changes in a file and pass it in using something like `HAB_PACKAGENAME="$(cat foo.toml)"` or `HAB_PACKAGENAME="$(cat foo.json)"`.
 

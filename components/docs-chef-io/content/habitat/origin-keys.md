@@ -11,7 +11,6 @@ draft = false
     parent = "habitat/origins"
     weight = 20
 +++
-
 [\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/origin-keys.md)
 
 Prerequisites:
