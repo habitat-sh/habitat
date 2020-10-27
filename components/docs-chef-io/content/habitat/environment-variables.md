@@ -9,6 +9,7 @@ description = "Customize and configure your Chef Habitat Studio and Supervisor e
     parent = "habitat/reference"
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/environment-variables.md)
 
 This is a list of all environment variables that can be used to modify the operation of the Chef Habitat Studio and Supervisor.
 

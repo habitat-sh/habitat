@@ -1,14 +1,16 @@
 +++
-title = "Amazon ECS and Chef Habitat"
-description = "Amazon ECS and Chef Habitat"
+title = "Amazon ECS"
+description = "Amazon ECS registry service and Chef Habitat"
 
 [menu]
   [menu.habitat]
-    title = "Amazon ECS and Chef Habitat"
-    identifier = "habitat/containers/ecs-and-habitat"
+    title = "Amazon Container Services (ECS)"
+    identifier = "habitat/containers/ecs.md EC2 Container Service"
     parent = "habitat/containers"
+    weight = 50
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/ecs.md)
 
 Amazon Web Services provides a container management service called [EC2 Container Service (ECS)](https://aws.amazon.com/ecs/). ECS provides a Docker registry, container hosting and tooling to make deploying Docker-based containers fairly straightforward. ECS will schedule and deploy  your Docker containers within a Task while Chef Habitat manages the applications.
 

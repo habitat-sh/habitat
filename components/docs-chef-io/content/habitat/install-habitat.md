@@ -10,6 +10,7 @@ description = "Install the Chef Habitat CLI and configure your workstation for C
     weight = 10
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/install-habitat.md)
 
 Below you'll find installation instructions for each platform and their requirements. The Chef Habitat CLI is currently supported on Linux, Mac, and Windows.
 

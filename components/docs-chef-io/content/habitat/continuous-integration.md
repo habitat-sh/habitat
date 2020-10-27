@@ -4,11 +4,14 @@ description = "Chef Habitat and Continuous Integration"
 
 [menu]
   [menu.habitat]
-    title = "Chef Habitat and Continuous Integration"
+    title = "Continuous Integration"
     identifier = "habitat/packages/habitat-and-continuous-integration"
     parent = "habitat/packages"
+    weight = 200
 
 +++
+
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/continuous-integration.md)
 
 **Examples: [Jenkins](https://jenkins.io/), [TravisCI](https://travis-ci.org/), and [Drone](https://drone.io/)**
 

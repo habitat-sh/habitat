@@ -7,8 +7,10 @@ description = "Chef Habitat and Kubernetes Overview"
     title = "Chef Habitat and Kubernetes Overview"
     identifier = "habitat/diagrams/kubernetes-flow"
     parent = "habitat/diagrams"
+    weight = 110
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/kubernetes-flow.md)
 
 ![Chef Habitat and Kubernetes: Three Tiers of Service Deployment Diagram](/images/habitat/habitat-and-kubernetes-three-tiers-of-service-deployment.png)
 

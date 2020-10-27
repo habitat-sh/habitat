@@ -5,10 +5,12 @@ description = "Chef Habitat and Containers"
 [menu]
   [menu.habitat]
     title = "Chef Habitat and Containers"
-    identifier = "habitat/containers/habitat-and-containers"
+    identifier = "habitat/containers/containers.md"
     parent = "habitat/containers"
+    weight = 10
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/containers.md)
 
 **Examples: [Docker](https://www.docker.com/) and [CoreOS](https://coreos.com/)**
 

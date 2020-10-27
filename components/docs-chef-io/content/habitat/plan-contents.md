@@ -1,20 +1,38 @@
 +++
-title = "Plan Tips"
+title = "Plan Contents"
 description = "Best Practices for Plans"
 
 [menu]
   [menu.habitat]
-    title = "Plan Tips"
-    identifier = "habitat/plans/plan-tips"
+    title = "Plan Contents"
+    identifier = "habitat/plans/plan-contents.md"
     parent = "habitat/plans"
     weight = 30
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/plan-contents.md)
+
+The following is a best practice guide to how to write a production quality plan. These best practices are reflected in the requirements for a user to contribute a plan to the Chef Habitat [Core Plans](https://github.com/habitat-sh/core-plans/).
+
+If you haven't already, a good first step is to read [the Writing Plans](/plan-writing/) documentation.
+
+## Package Metadata
+
+Each package plan should contain a value adhering to the guidelines for each of the following elements:
+
+- `pkg_description`
+- `pkg_license` (in [SPDX format](http://spdx.org/licenses/))
+- `pkg_maintainer` in the format of "The Chef Habitat Maintainers <humans@habitat.sh>"
+- `pkg_name` see the section of this document on "Package Name Conventions"
+- `pkg_origin` must be set to `core`
+- `pkg_source`
+- `pkg_upstream_url`
+- `pkg_version` must be the complete version number of the software
 
 ## Package Name Conventions
 
 Each package is identified by a unique string containing four sub-strings separated
-by a forward slash (`/`) called a [PackageIdent](/glossary/#glossary-artifacts).
+by a forward slash (`/`) called a [PackageIdent](/package_ids).
 
     `origin`/`name`/`version`/`release`
 

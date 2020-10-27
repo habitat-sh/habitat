@@ -1,14 +1,16 @@
 +++
-title = "Kubernetes Development Patterns"
+title = "Kubernetes"
 description = "Export your Chef Habitat package as a Docker and run it on a Kubernetes Pod"
 
 [menu]
   [menu.habitat]
-    title = "Kubernetes Development Patterns"
-    identifier = "habitat/containers/kubernetes"
-    parent = "habitat/containers/kubernetes"
+    title = "Kubernetes"
+    identifier = "habitat/containers/kubernetes.md Kubernetes Development Patterns"
+    parent = "habitat/containers"
+    weight = 30
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/kubernetes.md)
 
 [Kubernetes](http://kubernetes.io/) is an open source container cluster manager that is available as a stand-alone platform or embedded in several distributed platforms including [Google's Container Engine](https://cloud.google.com/container-engine/), [AWS Elastic Kubernetes Service](https://aws.amazon.com/eks/), [Azure Kubernetes Service](https://azure.microsoft.com/services/kubernetes-service/), and [Red Hat OpenShift](https://openshift.com/).
 Chef Habitat and Kubernetes are complementary. While Kubernetes provides a platform for deployment, scaling, and operations of application containers across clusters of hosts, Chef Habitat manages the build pipeline and lifecycle of those application containers.

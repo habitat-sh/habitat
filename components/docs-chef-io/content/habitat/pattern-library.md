@@ -9,6 +9,7 @@ description = "Example code for Chef Habitat plans and more!"
     parent = "habitat/reference"
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pattern-library.md)
 
 ## <a name="hab-patterns" id="hab-patterns" type="anchor">Chef Habitat Pattern Library</a>
 

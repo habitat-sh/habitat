@@ -1,14 +1,16 @@
 +++
-title = "Service Updates"
-description = "Update services at runtime or dynamically"
+title = "Single Service Updates"
+description = "Update single services at runtime or dynamically"
 
 [menu]
   [menu.habitat]
-    title = "Service Updates"
-    identifier = "habitat/services/service-updates Configuration Updates*?"
+    title = "Single Service Updates"
+    identifier = "habitat/services/service-updates Individual Configuration Updates"
     parent = "habitat/services"
+    weight = 40
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/config-updates.md)
 
 One of the key features of Chef Habitat is the ability to define an immutable package with a default configuration which can then be updated dynamically at runtime. You can update service configuration on two levels: individual services (for testing purposes), or a service group.
 

@@ -7,7 +7,10 @@ description = "Setting Up a Ring"
     title = "Setting Up a Ring"
     identifier = "habitat/supervisors/sup-rings"
     parent = "habitat/supervisors"
+    weight = 50
 +++
+
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup-rings.md)
 
 ## Bastion Ring / Permanent Peers
 

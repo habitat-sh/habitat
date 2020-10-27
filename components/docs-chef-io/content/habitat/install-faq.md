@@ -11,6 +11,7 @@ draft = false
     weight = 30
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/install-faq.md)
 
 This section tracks some questions that are frequently encountered when downloading and installing the `hab` binary.
 

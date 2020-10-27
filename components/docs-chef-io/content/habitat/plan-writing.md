@@ -1,15 +1,17 @@
 +++
-title = "Plan Overview"
+title = "Writing Plans"
 description = "Documentation for writing Chef Habitat Plan files including configuration templates, binds, and exporting"
 
 [menu]
   [menu.habitat]
-    title = "Plan Overview"
-    identifier = "habitat/plans/plans-overview Introducing Chef Habitat Plans"
+    title = "Plan Writing"
+    identifier = "habitat/plans/plans-overview Writing Chef Habitat Plans"
     parent = "habitat/plans"
     weight = 10
 
 +++
+
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/plan-writing.md)
 
 In Chef Habitat the unit of automation is the application itself. This chapter includes content related specifically to the process and workflow of developing a plan that will instruct Chef Habitat in how to build, deploy, and manage your application.
 

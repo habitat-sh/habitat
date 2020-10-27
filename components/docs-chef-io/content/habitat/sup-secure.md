@@ -4,11 +4,14 @@ description = "Securing Supervisor Networks"
 
 [menu]
   [menu.habitat]
-    title = "Securing Supervisor Networks"
+    title = "Securing Networks"
     identifier = "habitat/supervisors/using-encryption"
     parent = "habitat/supervisors"
+    weight = 80
 
 +++
+
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup-secure.md)
 
 By default, a Supervisor runs unsecured. It communicates with other Supervisors in cleartext, and it allows any user to apply new configuration without authentication. While this is beneficial for demonstrating the concepts of Chef Habitat, users will want to provide external security on production deployments of Chef Habitat Supervisor networks.
 

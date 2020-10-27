@@ -11,6 +11,7 @@ description = "Chef Habitat License"
     weight = 20
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/accept-the-license.md)
 
 Please visit <a href="https://docs.chef.io/chef_license_accept.html">the license acceptance page</a> on the Chef docs site for more information.
 

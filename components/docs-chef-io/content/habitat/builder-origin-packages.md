@@ -11,6 +11,8 @@ description = "Upload and Promote packages on Chef Habitat Builder enables autom
 
 +++
 
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/builder-origin-packages.md)
+
 While you can build and run Chef Habitat packages without sharing them on [Chef Habitat Builder](https://bldr.habitat.sh), uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated.
 
 > Note: Chef Habitat Builder can only build Linux based plans (`plan.sh`) at this time.

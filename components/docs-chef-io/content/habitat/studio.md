@@ -2,14 +2,16 @@
 
 title = "Studio"
 description = "About the Chef Habitat Studio"
+draft = true
 
 [menu]
   [menu.habitat]
     title = "About the Studio"
-    identifier = "habitat/studio/studio"
+    identifier = "habitat/studio/studio.md"
     parent = "habitat/studio"
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/studio.md)
 
 ## Customizing Studio
 

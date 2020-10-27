@@ -4,15 +4,17 @@ description = "Update Services with File Uploads"
 
 [menu]
   [menu.habitat]
-    title = "Service Group Configuration"
+    title = "Service Group Updates"
     identifier = "habitat/services/file-uploads"
     parent = "habitat/services"
+    weight = 60
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/file-uploads.md)
 
-## Uploading files to a service group
+In addition to [updating single services](/using-habitat#config-updates), you can upload files to a service group. Keep these small - we recommend 4k or less per file, and keep the count of files to a minimum.
 
-In addition to [configuration updates](/using-habitat#config-updates), you can upload files to a service group. Keep these small - we recommend 4k or less per file, and keep the count of files to a minimum.
+## Uploading Configuration Files to a Service Group
 
 ### Usage
 

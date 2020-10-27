@@ -10,8 +10,11 @@ description = "Export Chef Habitat packages to Docker, Kubernetes, Helm, Mesos, 
     weight = 40
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pkg-exports.md)
 
-You can export packages into several different external, immutable runtime formats. This topic will be updated as more formats are supported in the future. Currently there are exports for: docker, mesos, tar, and cloudfoundry.
+Chef Habitat Artifacts--`.hart` files--can be exported in a number of different formats depending on what you need and where you need it. This is powerful because you can use the same immutable Chef Habitat artifact by exporting it into a format that you need for a specific job. For example, when you can use one format for iterating locally in a Docker container, another to deploy that Chef Habitat artifact to an environment running Kubernetes, and a third to deploy it to a data center that's running virtual machines, but the Chef Habitat artifact is identical in each location---it's simply exported to the correct format for the job you are trying to do.
+
+You can export packages into several different external, immutable runtime formats. Currently there are exports for: docker, mesos, tar, and cloudfoundry.
 
 The command to export a package is `hab pkg export <FORMAT> <PKG_IDENT>`. See the [Chef Habitat CLI Reference Guide](/habitat-cli#hab-pkg-export) for more CLI information.
 
