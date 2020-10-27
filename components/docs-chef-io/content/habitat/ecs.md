@@ -31,7 +31,7 @@ $ docker push aws_account_id.dkr.ecr.ap-southeast-2.amazonaws.com/core/mongodb:l
 
 ## EC2 Compute Service
 
-Once Docker images are pushed to ECR, they may be run on Amazon's ECS within a [Task Definition](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_defintions.html) which may be expressed as a [Docker Compose file](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/cmd-ecs-cli-compose.html). Here is an example of a Tomcat application using a Mongo database demonstrating using Chef Habitat-managed containers:
+Once Docker images are pushed to ECR, they may be run on Amazon's ECS within a [Task Definition](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_defintions.html) which may be expressed as a [Docker Compose file](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cmd-ecs-cli-compose.html). Here is an example of a Tomcat application using a Mongo database demonstrating using Chef Habitat-managed containers:
 
 ```yaml docker-compose.yml
 version: '2'

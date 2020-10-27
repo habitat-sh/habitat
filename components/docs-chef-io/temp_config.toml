@@ -978,13 +978,6 @@ weight = 10
   weight = 70
 
   [[menu.habitat]]
-  title = "Studio"
-  identifier = "habitat/studio"
-  url = "/habitat/studio"
-  parent = "habitat"
-  weight = 80
-
-  [[menu.habitat]]
   title = "Reference"
   identifier = "habitat/reference"
   parent = "habitat"
