@@ -5,7 +5,7 @@ description = "Controlling Supervisors Remotely"
 [menu]
   [menu.habitat]
     title = "Remote Control"
-    identifier = "habitat/supervisors/sup-remote-control.md"
+    identifier = "habitat/supervisors/sup-remote-control"
     parent = "habitat/supervisors"
     weight = 120
 

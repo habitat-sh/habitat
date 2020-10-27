@@ -5,7 +5,7 @@ description = "Google Container Registry"
 [menu]
   [menu.habitat]
     title = "Google Container Registry (GCR)"
-    identifier = "habitat/containers/gcr.md GCR"
+    identifier = "habitat/containers/gcr GCR"
     parent = "habitat/containers"
     weight = 60
 

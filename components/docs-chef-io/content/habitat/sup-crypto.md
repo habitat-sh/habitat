@@ -7,7 +7,7 @@ draft = false
 [menu]
   [menu.habitat]
     title = "Supervisor Cryptography"
-    identifier = "habitat/supervisors/sup-crypto.md Supervisor Crypto"
+    identifier = "habitat/supervisors/sup-crypto Supervisor Crypto"
     parent = "habitat/supervisors"
     weight = 70
 +++

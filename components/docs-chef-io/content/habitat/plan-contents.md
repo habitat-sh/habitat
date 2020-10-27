@@ -5,7 +5,7 @@ description = "Best Practices for Plans"
 [menu]
   [menu.habitat]
     title = "Plan Contents"
-    identifier = "habitat/plans/plan-contents.md"
+    identifier = "habitat/plans/plan-contents"
     parent = "habitat/plans"
     weight = 30
 

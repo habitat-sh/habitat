@@ -7,7 +7,7 @@ draft = false
 [menu]
   [menu.habitat]
     title = "Leader Elections"
-    identifier = "habitat/supervisors/sup-elections.md Sup Inelections"
+    identifier = "habitat/supervisors/sup-elections Supervisor Elections"
     parent = "habitat/supervisors"
     weight = 40
 +++

@@ -7,7 +7,7 @@ draft = false
 [menu]
   [menu.habitat]
     title = "Supervisor Configuration File"
-    identifier = "habitat/supervisors/sup_config.md How to Rollback"
+    identifier = "habitat/supervisors/sup_config How to Rollback"
     parent = "habitat/supervisors"
     weight = 85
 +++

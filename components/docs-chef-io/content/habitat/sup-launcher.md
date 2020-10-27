@@ -5,7 +5,7 @@ description = "Launcher"
 [menu]
   [menu.habitat]
     title = "Launcher"
-    identifier = "habitat/supervisors/sup-launcher.md"
+    identifier = "habitat/supervisors/sup-launcher Supervisor Launcher Sidecar Process"
     parent = "habitat/supervisors"
     weight = 110
 

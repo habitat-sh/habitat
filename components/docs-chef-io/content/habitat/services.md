@@ -7,7 +7,7 @@ draft = false
 [menu]
   [menu.habitat]
     title = "About Services"
-    identifier = "habitat/services/services.md Chef Habitat Services"
+    identifier = "habitat/services/services Chef Habitat Services"
     parent = "habitat/services"
     weight = 10
 +++

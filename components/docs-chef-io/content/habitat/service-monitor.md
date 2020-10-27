@@ -5,7 +5,7 @@ description = "Monitoring Services"
 [menu]
   [menu.habitat]
     title = "Monitoring Services"
-    identifier = "habitat/services/service-monitor.md"
+    identifier = "habitat/services/service-monitor"
     parent = "habitat/services"
     weight = 70
 

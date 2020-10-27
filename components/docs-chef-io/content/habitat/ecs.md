@@ -5,7 +5,7 @@ description = "Amazon ECS registry service and Chef Habitat"
 [menu]
   [menu.habitat]
     title = "Amazon Container Services (ECS)"
-    identifier = "habitat/containers/ecs.md EC2 Container Service"
+    identifier = "habitat/containers/ecs EC2 Container Service"
     parent = "habitat/containers"
     weight = 50
 

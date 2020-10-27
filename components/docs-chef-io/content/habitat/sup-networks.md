@@ -5,7 +5,7 @@ description = "Robust Supervisor Networks"
 [menu]
   [menu.habitat]
     title = "Supervisor Networks"
-    identifier = "habitat/supervisors/sup-networks.md"
+    identifier = "habitat/supervisors/sup-networks Supervisor Networks Explained"
     parent = "habitat/supervisors"
     weight = 60
 

@@ -7,7 +7,7 @@ draft = false
 [menu]
   [menu.habitat]
     title = "Service Template Data"
-    identifier = "habitat/reference/service_templates.md Service Template Configuration"
+    identifier = "habitat/reference/service_templates Service Template Configuration"
     parent = "habitat/reference"
 +++
 

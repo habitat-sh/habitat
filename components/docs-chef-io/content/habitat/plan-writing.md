@@ -5,7 +5,7 @@ description = "Documentation for writing Chef Habitat Plan files including confi
 [menu]
   [menu.habitat]
     title = "Plan Writing"
-    identifier = "habitat/plans/plans-overview Writing Chef Habitat Plans"
+    identifier = "habitat/plans/plan-writing Chef Habitat Plan Overview"
     parent = "habitat/plans"
     weight = 10
 

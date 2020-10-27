@@ -5,7 +5,7 @@ description = "Azure and Kubernetes K8"
 [menu]
   [menu.habitat]
     title = "Azure Container Services (AKS)"
-    identifier = "habitat/containers/aks.md Habitat Azure Kubernetes"
+    identifier = "habitat/containers/aks Chef Habitat Azure Kubernetes"
     parent = "habitat/containers"
     weight = 40
 

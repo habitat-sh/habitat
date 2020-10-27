@@ -7,7 +7,7 @@ draft = true
 [menu]
   [menu.habitat]
     title = "About the Studio"
-    identifier = "habitat/studio/studio.md"
+    identifier = "habitat/studio/studio Setting up Studio"
     parent = "habitat/studio"
 
 +++

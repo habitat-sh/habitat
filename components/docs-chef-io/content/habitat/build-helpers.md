@@ -5,7 +5,7 @@ description = "Define package buildtime actions with helper functions."
 [menu]
   [menu.habitat]
     title = "Build Helpers"
-    identifier = "habitat/reference/build-helpers*"
+    identifier = "habitat/reference/build-helpers"
     parent = "habitat/reference"
 
 +++

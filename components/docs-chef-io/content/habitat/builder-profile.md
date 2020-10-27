@@ -7,7 +7,7 @@ draft = false
 [menu]
   [menu.habitat]
     title = "Builder Profile"
-    identifier = "habitat/builder/builder-profile.md Builder Profile"
+    identifier = "habitat/builder/builder-profile Builder Profile"
     parent = "habitat/builder"
     weight = 30
 +++
