@@ -32,7 +32,7 @@ $ HAB_MYTUTORIALAPP='{"message":"Chef Habitat rocks!"}' hab run <origin>/<packag
 
 > Note: The syntax used for applying configuration through environment variables can be either JSON or TOML, but TOML is preferred. The package name in the environment variable must be uppercase, any dashes must be replaced with underscores.
 
-> Note: The way that environment variable configuration is currently processed means that variables must be set when the Supervisor process starts, not when the service is loaded, which may require a bit of planning on the part of the Chef Habitat operator. This may change in the future.
+> Note: Variables must be set when the Supervisor process starts, not when the service is loaded, which may require a bit of planning on the part of the Chef Habitat user.
 
 For multiline environment variables, such as those in a TOML table or nested key value pairs, it can be easier to place your changes in a file and pass it in using something like `HAB_PACKAGENAME="$(cat foo.toml)"` or `HAB_PACKAGENAME="$(cat foo.json)"`.
 

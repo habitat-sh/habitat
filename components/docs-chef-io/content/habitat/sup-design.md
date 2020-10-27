@@ -81,7 +81,7 @@ Confirmed
 : this member has been un-responsive long enough that we can cease attempting to check its health.
 
 Departed
-: this member has been intentionally kicked out of the ring for behavior unbecoming of a Supervisor, and is prevented from rejoining. This is done via a human operator using the `hab` CLI commands.
+: this member has been intentionally kicked out of the ring for behavior unbecoming of a Supervisor, and is prevented from rejoining. This is accomplished with `hab` CLI commands.
 
 The essential flow is:
 

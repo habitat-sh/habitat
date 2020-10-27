@@ -18,9 +18,7 @@ A "Bastion Ring" is a pattern for preventing rumor loss and a split brain in a n
 
 ## Using a Scheduler
 
-Please note, if you are using a container scheduler such as Kubernetes, Swarm, or Mesos DC/OS, or a PaaS such as CloudFoundry, you should not follow the bastion ring pattern, as the scheduler handles that level of persistence and orchestration on your behalf.
-
-For Kubernetes, you should use the Chef Habitat Operator for Kubernetes to ensure that the application behavior you've established for your services when you defined them with Chef Habitat is run in a Kubernetes-native way to ensure consistent and expected behavior cross-platform.
+**Note:** If you are using a container scheduler such as Kubernetes, Swarm, or Mesos DC/OS, or a PaaS such as Cloud Foundry, you should not follow the bastion ring pattern, because the scheduler handles persistence and orchestration on your behalf.
 
 More resources on schedulers:
 

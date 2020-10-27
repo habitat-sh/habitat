@@ -37,7 +37,7 @@ $pkg_exports=@{
 }
 ```
 
-This will export the runtime values of its `network.port` and `network.ssl.port` configuration entries publicly as `port` and `ssl-port`, respectively. All configuration entries in `pkg_exports` must have a default value in `default.toml`, but the actual exported values will change at runtime to reflect the producer's current configuration. When values change (such as when an operator uses `hab config apply`), the consumer service will be notified that its producer service configuration has changed. We'll see how to use this on the consumer in the sections below.
+This will export the runtime values of its `network.port` and `network.ssl.port` configuration entries publicly as `port` and `ssl-port`, respectively. All configuration entries in `pkg_exports` must have a default value in `default.toml`, but the actual exported values will change at runtime to reflect the producer's current configuration. When values change (for example, by `hab config apply`), the consumer service will be notified that its producer service configuration has changed. We'll see how to use this on the consumer in the sections below.
 
 Producer services export only the *subset* of their configuration that is defined through `pkg_exports` and not the entire thing. Consumer services see only what the producer service exports, and nothing more. This is important, because it means that configuration that must remain secret--such as passwords--are not shared _unless_ they are explicitly defined in `pkg_exports`.
 

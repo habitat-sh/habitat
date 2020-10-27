@@ -15,7 +15,7 @@ description = "Securing Supervisor Networks"
 
 By default, a Supervisor runs unsecured. It communicates with other Supervisors in cleartext, and it allows any user to apply new configuration without authentication. While this is beneficial for demonstrating the concepts of Chef Habitat, users will want to provide external security on production deployments of Chef Habitat Supervisor networks.
 
-There are several types of security measures that can be undertaken by the operator:
+There are several types of security measures:
 
 * Wire encryption of inter-Supervisor traffic
 * Trust relationships between supervisors and users

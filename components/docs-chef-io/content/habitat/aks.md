@@ -44,11 +44,9 @@ echo "  Password : $BLDR_PRINCIPAL_PASSWORD"
 Note: The unique Service Principal Name (the UUID) should be provided in the Chef Habitat Builder
 configuration.
 
-## Connecting ACR and AKS for Chef Habitat Operator
+## Connecting ACR and AKS
 
-Since ACR is a private Docker registry, AKS must be authorized to pull images from it. The best way is to
-create a role assignment on the Service Principal that is automatically created for AKS, granting it
-`Reader` access on your ACR instance.
+Since ACR is a private Docker registry, AKS must be authorized to pull images from it. The best way is to create a role assignment on the Service Principal that is automatically created for AKS, granting it `Reader` access on your ACR instance.
 
 To do this you can use the following script, changing the environment variable values to match your configuration.
 

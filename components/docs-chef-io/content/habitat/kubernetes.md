@@ -203,11 +203,7 @@ Chef Habitat packages can be exported in both Docker and ACI formats (as well as
 
 ## Environment Variables and Networking
 
-Kubernetes supports passing [environment variables](http://kubernetes.io/docs/user-guide/environment-guide/) into containers, which can be done [via the Chef Habitat Operator](https://github.com/habitat-sh/habitat-operator/tree/master/examples/env-vars).
-
-## Multi-container Pods
-
-Multi-container pod support through Chef Habitat is still under active development as part of the Chef Habitat Operator.
+Kubernetes supports passing [environment variables](http://kubernetes.io/docs/user-guide/environment-guide/) into containers.
 
 ## Related Reading
 
