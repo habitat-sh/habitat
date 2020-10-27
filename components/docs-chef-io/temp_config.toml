@@ -89,6 +89,9 @@ notAlternative = true
   tag = "tags"
   resource = "resources"
 
+[params.product_version]
+[params.product_version.chef-server]
+versions = ["13_2", "14_0"]
 
 [module]
 
