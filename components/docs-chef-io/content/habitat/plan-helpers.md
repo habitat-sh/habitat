@@ -13,35 +13,39 @@ description = "Define dynamic plan configuration settings with plan helpers"
 
 Chef Habitat allows you to use [Handlebars-based](http://handlebarsjs.com) tuneables in your plan, and you can also use both built-in Handlebars helpers and Chef Habitat-specific helpers in defining your configuration logic.
 
-- [Built-In Helpers](#built-in-helpers)
-- [<a name="plan-helpers" id="plan-helpers" data-magellan-target="plan-helpers" class="anchor">Plan Helpers</a>](#plan-helpers)
-
-## Built-In Helpers
+## Built-in Helpers
 
 You can use block expressions to add basic logic to your template such as checking if a value exists or iterating through a list of items.
 
-Block expressions use a helper function to perform the logic. The
-syntax is the same for all block expressions and looks like this:
+Block expressions use a helper function to perform the logic.
+The syntax is the same for all block expressions and looks like this:
 
+```
     {{#helper blockname}}
       {{expression}}
     {{/helper}}
+```
 
 Chef Habitat supports the standard [built-in helpers](http://handlebarsjs.com/builtin_helpers.html):
 
-* `if`
-* `unless`
-* `each`
-* `with`
-* `lookup`
-* `>` ([partials](http://handlebarsjs.com/partials.html))
-* `log`
+- `if`
+- `unless`
+- `each`
+- `with`
+- `lookup`
+- `>` ([partials](http://handlebarsjs.com/partials.html))
+- `log`
 
-> Note Per [Handlebars Paths](http://handlebarsjs.com/#paths), when using `each` in a block expression, you must reference the parent context of that block to use any user-defined configuration values referenced _within_ the block, such as those that start with `cfg`. For example, if your block looked like the following, you must reference `cfg.port` from the parent context of the block:
+{{< note >}}
+Per [Handlebars Paths](http://handlebarsjs.com/#paths), when using `each` in a block expression, you must reference the parent context of that block to use any user-defined configuration values referenced _within_ the block, such as those that start with `cfg`. For example, if your block looked like the following, you must reference `cfg.port` from the parent context of the block:
 
+```
     {{#each svc.members ~}}
       server {{sys.ip}}:{{../cfg.port}}
     {{/each}}
+```
+
+{{< /note >}}
 
 The most common block helpers that you will probably use are the `if` and `with` helpers.
 
@@ -50,29 +54,36 @@ if
 0, "", as well as undefined values all evaluate to false in `if`
 blocks.
 
-Here's an example that will only write out configuration for the
-unixsocket tunable if a value was set by the user:
+Here's an example that will only write out configuration for the unixsocket tunable if a value was set by the user:
 
+```
     {{#if cfg.unixsocket ~}}
     unixsocket {{cfg.unixsocket}}
     {{/if ~}}
+```
 
-> Note The `~` indicates that whitespace should be omitted when rendering
+{{< note >}}
+The `~` indicates that whitespace should be omitted when rendering.
+{{< /note >}}
 
 TOML allows you to create sections (called [TOML tables](https://github.com/toml-lang/toml#table)) to better organize your configuration variables. For example, your `default.toml` or user defined TOML could have a `[repl]` section for variables controlling replication behavior. Here's what that looks like:
 
-    [repl]
-    backlog-size = 200
-    backlog-ttl = 100
-    disable-tcp-nodelay = no
+```toml
+   [repl]
+   backlog-size = 200
+   backlog-ttl = 100
+   disable-tcp-nodelay = no
+```
 
 When writing your template, you can use the `with` helper to reduce duplication:
 
+```toml
     {{#with cfg.repl ~}}
       repl-backlog-size {{backlog-size}}
       repl-backlog-ttl {{backlog-ttl}}
       repl-disable-tcp-nodelay {{disable-tcp-nodelay}}
     {{/with ~}}
+```
 
 Helpers can also be nested and used together in block expressions. Here is another example from the redis.config file where the `if` and `with` helpers are used together to set up `core/redis` Chef Habitat services  in a leader-follower topology.
 
@@ -117,7 +128,9 @@ And for both each and unless, you can use `@first` and `@last` to specify which 
       {{/each ~}}
     }
 
-> Note The `@first` and `@last` variables also work with the Chef Habitat helper `eachAlive`, and in the example above, it would be preferable to the built-in `each` helper because it checks whether the service is available before trying to retrieve any values.
+{{< note >}}
+The `@first` and `@last` variables also work with the Chef Habitat helper `eachAlive`, and in the example above, it would be preferable to the built-in `each` helper because it checks whether the service is available before trying to retrieve any values.
+{{< /note >}}
 
 unless
 : For `unless`, using `@last` can also be helpful when you need to optionally include delimiters. In the example below, the IP addresses of the alive members returned by the `servers` binding is comma-separated. The logic check `{{#unless @last}}, {{/unless}}` at the end ensures that the comma is written after each element except the last element.
@@ -127,7 +140,7 @@ unless
       {{#unless @last ~}}, {{/unless ~}}
     {{/eachAlive ~}}]
 
-## <a name="plan-helpers" id="plan-helpers" data-magellan-target="plan-helpers" class="anchor">Plan Helpers</a>
+## Plan Helpers
 
 Chef Habitat's templating flavour includes a number of custom helpers for writing configuration and hook files.
 
@@ -286,9 +299,7 @@ strJoin
 
 You cannot join an object (e.g. `{{strJoin web}}`), but you could join the variables in an object (e.g. `{{strJoin web.list "/"}}`).
 
-
 strConcat
 : The `concat` helper can be used to connect multiple strings into one string without a separator. For example, `{{strConcat "foo" "bar" "baz"}}` would return `"foobarbaz"`.\
 
 You cannot concatenate an object (e.g. `{{strConcat web}}`), but you could concatenate the variables in an object (e.g. `{{strConcat web.list}}`).
-

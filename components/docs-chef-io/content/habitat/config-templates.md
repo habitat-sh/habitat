@@ -30,8 +30,8 @@ recv_buffer {{cfg.recv_buffer}}
 Chef Habitat can read values that it will use to render the templatized config files in three ways:
 
 1. `default.toml` - Each plan includes a `default.toml` file that specifies the default values to use in the absence of any user provided inputs. These files are written in [TOML](https://github.com/toml-lang/toml), a simple config format.
-2. At runtime - Users can alter config at runtime using `hab config apply`. The input for this command also uses the TOML format.
-3. Environment variable - At start up, tunable config values can be passed to Chef Habitat using environment variables; this most over-riding way of setting these but require you to restart the supervisor to change them.
+1. At runtime - Users can alter config at runtime using `hab config apply`. The input for this command also uses the TOML format.
+1. Environment variable - At start up, tunable config values can be passed to Chef Habitat using environment variables; this most over-riding way of setting these but require you to restart the supervisor to change them.
 
 Here's what we'd add to our project's `default.toml` file to provide a default value for the `recv_buffer` tunable:
 

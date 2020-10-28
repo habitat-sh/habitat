@@ -20,22 +20,22 @@ pkg_dirname
 : Set to `{pkg_name}-{pkg_version}` by default. If a .tar file extracts to a directory that's different from the filename, then you would need to override this value to match the directory name created during extraction.
 
 pkg_svc_path
-: Where the running service is located. `HAB_ROOT_PATH/svc/pkg_name`
+: Where the running service is located. Location: `HAB_ROOT_PATH/svc/pkg_name`
 
 pkg_svc_data_path
-: Where the running service data is located. `pkg_svc_path/data`
+: Where the running service data is located. Location: `pkg_svc_path/data`
 
 pkg_svc_files_path
-: Where the gossiped configuration files are located. `pkg_svc_path/files`
+: Where the gossiped configuration files are located. Location: `pkg_svc_path/files`
 
 pkg_svc_var_path
-: Where the running service variable data is located. `pkg_svc_path/var`
+: Where the running service variable data is located. Location: `pkg_svc_path/var`
 
 pkg_svc_config_path
-: Where the running service configuration is located. `pkg_svc_path/config`
+: Where the running service configuration is located. Location: `pkg_svc_path/config`
 
 pkg_svc_static_path
-: Where the running service static data is located. `pkg_svc_path/static`
+: Where the running service static data is located. Location: `pkg_svc_path/static`
 
 CACHE_PATH
 : A temporary directory that will be clean on every build.
