@@ -1,19 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.177 -->
-## [1.6.177](https://github.com/habitat-sh/habitat/tree/1.6.177) (2020-10-27)
+<!-- latest_release 1.6.178 -->
+## [1.6.178](https://github.com/habitat-sh/habitat/tree/1.6.178) (2020-10-28)
 
 #### Merged Pull Requests
-- Update pages, weights, and edit on GH links [#7953](https://github.com/habitat-sh/habitat/pull/7953) ([kagarmoe](https://github.com/kagarmoe))
+- Update Changelog for 1.6.175 [#7956](https://github.com/habitat-sh/habitat/pull/7956) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.175 -->
 ### Changes since 1.6.175 release
 
 #### Merged Pull Requests
+- Update Changelog for 1.6.175 [#7956](https://github.com/habitat-sh/habitat/pull/7956) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.178 -->
 - Update pages, weights, and edit on GH links [#7953](https://github.com/habitat-sh/habitat/pull/7953) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.177 -->
 - Curate docs images in docs-chef-io [#7916](https://github.com/habitat-sh/habitat/pull/7916) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.176 -->
-
 <!-- release_rollup -->
 
 <!-- latest_stable_release 1.6.175 -->
