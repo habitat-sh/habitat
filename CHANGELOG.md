@@ -7,15 +7,23 @@
 - Update pages, weights, and edit on GH links [#7953](https://github.com/habitat-sh/habitat/pull/7953) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.139 -->
-### Changes since 1.6.139 release
+<!-- release_rollup since=1.6.175 -->
+### Changes since 1.6.175 release
+
+#### Merged Pull Requests
+- Update pages, weights, and edit on GH links [#7953](https://github.com/habitat-sh/habitat/pull/7953) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.177 -->
+- Curate docs images in docs-chef-io [#7916](https://github.com/habitat-sh/habitat/pull/7916) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.176 -->
+
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.175 -->
+## [1.6.175](https://github.com/habitat-sh/habitat/tree/1.6.175) (2020-10-28)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.139..1.6.175)
 
 #### Behavioral Changes
 - an API retry pattern [#7874](https://github.com/habitat-sh/habitat/pull/7874) ([jeremymv2](https://github.com/jeremymv2)) <!-- 1.6.150 -->
 
 #### Merged Pull Requests
-- Update pages, weights, and edit on GH links [#7953](https://github.com/habitat-sh/habitat/pull/7953) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.177 -->
-- Curate docs images in docs-chef-io [#7916](https://github.com/habitat-sh/habitat/pull/7916) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.176 -->
 - Expose HAB_FALLBACK_CHANNEL in plan build [#7951](https://github.com/habitat-sh/habitat/pull/7951) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.175 -->
 - [BUG] Update actix-web calling conventions [#7950](https://github.com/habitat-sh/habitat/pull/7950) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.174 -->
 - Revert &quot;Merge pull request #7943 from habitat-sh/cm/revert-tls&quot; [#7949](https://github.com/habitat-sh/habitat/pull/7949) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.173 -->
@@ -54,7 +62,6 @@
 - Rustfmt and Nightly Rust Bump to nightly-2020-08-28 [#7897](https://github.com/habitat-sh/habitat/pull/7897) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.142 -->
 - Fix update documentation pipeline [#7895](https://github.com/habitat-sh/habitat/pull/7895) ([davidMcneil](https://github.com/davidMcneil)) <!-- 1.6.141 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-08-24 [#7889](https://github.com/habitat-sh/habitat/pull/7889) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.140 -->
-<!-- release_rollup -->
 
 <!-- latest_stable_release 1.6.139 -->
 ## [1.6.139](https://github.com/habitat-sh/habitat/tree/1.6.139) (2020-08-24)
