@@ -82,7 +82,6 @@ if (!(Test-Path Env:\HAB_BLDR_CHANNEL)) {
 #
 # Also note that this only really comes into play if HAB_BLDR_CHANNEL
 # has been set to something different.
-$env:HAB_FALLBACK_CHANNEL = "$script:HAB_FALLBACK_CHANNEL"
 if (!(Test-Path Env:\HAB_FALLBACK_CHANNEL)) {
     $env:HAB_FALLBACK_CHANNEL = "stable"
 }
@@ -332,9 +331,9 @@ function Install-Dependency($dependency, $install_args = $null) {
         $cmd = "$HAB_BIN pkg install -u $env:HAB_BLDR_URL --channel $env:HAB_BLDR_CHANNEL $dependency $install_args"
         if($env:HAB_FEAT_IGNORE_LOCAL -eq "true") { $cmd += " --ignore-local" }
         Invoke-Expression $cmd
-        if ($LASTEXITCODE -ne 0 -and ($env:HAB_BLDR_CHANNEL -ne $HAB_FALLBACK_CHANNEL)) {
-            Write-BuildLine "Trying to install '$dependency' from '$HAB_FALLBACK_CHANNEL'"
-            $cmd = "$HAB_BIN pkg install -u $env:HAB_BLDR_URL --channel $HAB_FALLBACK_CHANNEL $dependency $install_args"
+        if ($LASTEXITCODE -ne 0 -and ($env:HAB_BLDR_CHANNEL -ne $env:HAB_FALLBACK_CHANNEL)) {
+            Write-BuildLine "Trying to install '$dependency' from '$env:HAB_FALLBACK_CHANNEL'"
+            $cmd = "$HAB_BIN pkg install -u $env:HAB_BLDR_URL --channel $env:HAB_FALLBACK_CHANNEL $dependency $install_args"
             if($env:HAB_FEAT_IGNORE_LOCAL -eq "true") { $cmd += " --ignore-local" }
             Invoke-Expression $cmd
         }
