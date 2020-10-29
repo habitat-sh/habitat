@@ -329,8 +329,8 @@ pub struct SupRun {
 pub enum Secret {
     /// Generate a secret key to use as a Supervisor's Control Gateway secret
     Generate,
-    /// Generate a private key and certificate for use in the Supervisor's Control Gateway TLS
-    /// connection
+    /// Generate a private key and certificate for the Supervisor's
+    /// Control Gateway TLS connection
     GenerateTls {
         /// The DNS name to use in the certificates subject alternative name extension
         #[structopt(long = "subject-alternative-name")]
