@@ -17,7 +17,7 @@ function New-Image() {
     )
 
     # NOTE: the container exporter is installed in setup_environment.{sh,ps1}
-    Write-Host (hab pkg export container core/nginx --tag-custom=$tag $extra_args | Out-String)
+    Write-Host (hab pkg export container --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --tag-custom=$tag $extra_args | Out-String)
     "core/nginx:$tag"
 }
 
@@ -60,7 +60,7 @@ function Confirm-ContainerBehavior() {
 Describe "Old 'hab pkg export docker' alias" {
     BeforeAll {
         $tag = New-CustomTag
-        Write-Host (hab pkg export docker core/nginx --tag-custom=$tag | Out-String)
+        Write-Host (hab pkg export docker --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --tag-custom=$tag | Out-String)
         $script:image = "core/nginx:$tag"
     }
 
@@ -167,7 +167,7 @@ if ($IsLinux) {
     Describe "hab pkg export container --engine=buildah" {
         It "Runs successfully" {
             $tag = New-CustomTag
-            Invoke-NativeCommand hab pkg export container core/nginx --engine=buildah --tag-custom="$tag"
+            Invoke-NativeCommand hab pkg export container --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --engine=buildah --tag-custom="$tag"
             Invoke-NativeCommand hab pkg exec core/buildah buildah rmi "core/nginx:$tag"
         }
     }
