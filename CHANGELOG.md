@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.183 -->
-## [1.6.183](https://github.com/habitat-sh/habitat/tree/1.6.183) (2020-10-30)
+<!-- latest_release 1.6.184 -->
+## [1.6.184](https://github.com/habitat-sh/habitat/tree/1.6.184) (2020-10-30)
 
 #### Merged Pull Requests
-- WIP - Chef Habitat Resources structural edits [#7959](https://github.com/habitat-sh/habitat/pull/7959) ([mjingle](https://github.com/mjingle))
+- Delete glossary page [#7962](https://github.com/habitat-sh/habitat/pull/7962) ([IanMadd](https://github.com/IanMadd))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
 ### Changes since 1.6.181 release
 
 #### Merged Pull Requests
+- Delete glossary page [#7962](https://github.com/habitat-sh/habitat/pull/7962) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.184 -->
+- Update page names and page links [#7961](https://github.com/habitat-sh/habitat/pull/7961) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.184 -->
 - WIP - Chef Habitat Resources structural edits [#7959](https://github.com/habitat-sh/habitat/pull/7959) ([mjingle](https://github.com/mjingle)) <!-- 1.6.183 -->
 - Automated update of Habitat Documentation [#7963](https://github.com/habitat-sh/habitat/pull/7963) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.183 -->
 - 1.6.181 Changelog [#7964](https://github.com/habitat-sh/habitat/pull/7964) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.182 -->
