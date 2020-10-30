@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.180 -->
-## [1.6.180](https://github.com/habitat-sh/habitat/tree/1.6.180) (2020-10-29)
+<!-- latest_release 1.6.181 -->
+## [1.6.181](https://github.com/habitat-sh/habitat/tree/1.6.181) (2020-10-30)
 
-#### Merged Pull Requests
-- 1.6.175 Documentation, plus docs generation script update [#7957](https://github.com/habitat-sh/habitat/pull/7957) ([christophermaier](https://github.com/christophermaier))
+#### Bug Fixes
+- [FIX] Minimal change to enable non-root containers again [#7960](https://github.com/habitat-sh/habitat/pull/7960) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.175 -->
 ### Changes since 1.6.175 release
+
+#### Bug Fixes
+- [FIX] Minimal change to enable non-root containers again [#7960](https://github.com/habitat-sh/habitat/pull/7960) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.181 -->
 
 #### Merged Pull Requests
 - 1.6.175 Documentation, plus docs generation script update [#7957](https://github.com/habitat-sh/habitat/pull/7957) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.180 -->
