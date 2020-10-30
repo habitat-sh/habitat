@@ -28,7 +28,7 @@ A _bastion ring_ is a robust type of Supervisor network in which a small number 
 ### Kubernetes Bastion Ring Plan
 
 ```bash
-  pkg_name=hab_bastion
+pkg_name=hab_bastion
 pkg_origin=habitat
 pkg_version="0.1.0"
 pkg_maintainer="irvingpop"
@@ -133,7 +133,6 @@ spec:
 ### Kubernetes Bastion Ring Consumer Pattern
 
 ```yaml
-
   apiVersion: apps/v1
 kind: StatefulSet
 metadata:
