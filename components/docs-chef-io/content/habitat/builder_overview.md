@@ -2,6 +2,8 @@
 title = "About Chef Habitat Builder"
 description = "Chef Habitat Builder is Chef's Application Delivery Enterprise hub"
 
+aliases = ["/habitat/using-builder/"]
+
 [menu]
   [menu.habitat]
     title = "Chef Habitat Builder"

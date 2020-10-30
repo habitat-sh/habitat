@@ -1,6 +1,8 @@
 +++
 title = "Supervisor Design"
 
+aliases = ["/habitat/internals/"]
+
 date = 2020-10-26T18:55:28-07:00
 draft = false
 

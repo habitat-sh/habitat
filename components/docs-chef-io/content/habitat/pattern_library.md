@@ -2,6 +2,8 @@
 title = "Pattern Library Introduction"
 description = "Example code for Chef Habitat plans and more!"
 
+aliases = ["/habitat/pattern-library/"]
+
 [menu]
   [menu.habitat]
     title = "Pattern Library"

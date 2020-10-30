@@ -2,6 +2,8 @@
 title = "Writing Plans"
 description = "Documentation for writing Chef Habitat Plan files including configuration templates, binds, and exporting"
 
+aliases = ["/habitat/developing-packages/"]
+
 [menu]
   [menu.habitat]
     title = "Plan Writing"

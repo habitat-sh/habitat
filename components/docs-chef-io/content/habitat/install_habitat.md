@@ -2,6 +2,8 @@
 title = "Get Chef Habitat"
 description = "Install the Chef Habitat CLI and configure your workstation for Chef Habitat development"
 
+aliases = ["/habitat/install-habitat/"]
+
 [menu]
   [menu.habitat]
     title = "Get Chef Habitat"

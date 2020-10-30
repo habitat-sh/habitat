@@ -1,6 +1,8 @@
 +++
 title = "Services"
 
+aliases = ["/habitat/using-habitat/"]
+
 date = 2020-10-26T18:37:38-07:00
 draft = false
 

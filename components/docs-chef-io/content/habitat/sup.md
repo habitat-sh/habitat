@@ -1,6 +1,8 @@
 +++
 title = "Chef Habitat Supervisor"
 
+aliases = ["/habitat/best-practices/"]
+
 date = 2020-10-26T18:47:18-07:00
 draft = false
 
