@@ -43,7 +43,6 @@ do_build() {
 do_install() {
   return 0
 }
-
 ```
 
 ### Kubernetes Bastion Ring Producer Pattern

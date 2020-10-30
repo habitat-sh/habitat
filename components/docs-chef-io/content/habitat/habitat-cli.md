@@ -18,8 +18,8 @@ draft= false
 The commands for the Chef Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
-| ++++++- | ++++++++++++ |
-| hab 1.5.50/20200303162333 (linux) | 3 Mar 2020 |
+| ------- | ------------ |
+| hab 1.6.175/20201026161911 (linux) | 28 Oct 2020 |
 
 ## hab
 
@@ -55,7 +55,7 @@ term       Alias for: 'sup term'
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab bldr](#hab-bldr) | Commands relating to Habitat Builder |
 | [hab cli](#hab-cli) | Commands relating to Habitat runtime config |
 | [hab config](#hab-config) | Commands relating to a Service's runtime config |
@@ -70,7 +70,7 @@ term       Alias for: 'sup term'
 | [hab supportbundle](#hab-supportbundle) | Create a tarball of Habitat Supervisor data to send to support |
 | [hab svc](#hab-svc) | Commands relating to Habitat services |
 | [hab user](#hab-user) | Commands relating to Habitat users |
-+++
+---
 
 ## hab bldr
 
@@ -95,10 +95,10 @@ hab bldr <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab bldr channel](#hab-bldr-channel) | Commands relating to Habitat Builder channels |
 | [hab bldr job](#hab-bldr-job) | Commands relating to Habitat Builder jobs |
-+++
+---
 
 ### hab bldr channel
 
@@ -123,13 +123,13 @@ hab bldr channel <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab bldr channel create](#hab-bldr-channel-create) | Creates a new channel |
 | [hab bldr channel demote](#hab-bldr-channel-demote) | Atomically demotes selected packages in a target channel |
 | [hab bldr channel destroy](#hab-bldr-channel-destroy) | Destroys a channel |
 | [hab bldr channel list](#hab-bldr-channel-list) | Lists origin channels |
 | [hab bldr channel promote](#hab-bldr-channel-promote) | Atomically promotes all packages in channel |
-+++
+---
 
 ### hab bldr channel create
 
@@ -163,7 +163,7 @@ hab bldr channel create [OPTIONS] <CHANNEL>
 
 
 
-+++
+---
 
 ### hab bldr channel demote
 
@@ -199,7 +199,7 @@ hab bldr channel demote [OPTIONS] <SOURCE_CHANNEL> <TARGET_CHANNEL> --origin <OR
 
 
 
-+++
+---
 
 ### hab bldr channel destroy
 
@@ -233,7 +233,7 @@ hab bldr channel destroy [OPTIONS] <CHANNEL>
 
 
 
-+++
+---
 
 ### hab bldr channel list
 
@@ -266,7 +266,7 @@ hab bldr channel list [OPTIONS] [ORIGIN]
 
 
 
-+++
+---
 
 ### hab bldr channel promote
 
@@ -302,7 +302,7 @@ hab bldr channel promote [OPTIONS] <SOURCE_CHANNEL> <TARGET_CHANNEL> --origin <O
 
 
 
-+++
+---
 
 ### hab bldr job
 
@@ -327,13 +327,13 @@ hab bldr job <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab bldr job cancel](#hab-bldr-job-cancel) | Cancel a build job group and any in-progress builds |
 | [hab bldr job demote](#hab-bldr-job-demote) | Demote packages from a completed build job from a specified channel |
 | [hab bldr job promote](#hab-bldr-job-promote) | Promote packages from a completed build job to a specified channel |
 | [hab bldr job start](#hab-bldr-job-start) | Schedule a build job or group of jobs |
 | [hab bldr job status](#hab-bldr-job-status) | Get the status of one or more job groups |
-+++
+---
 
 ### hab bldr job cancel
 
@@ -368,7 +368,7 @@ hab bldr job cancel [FLAGS] [OPTIONS] <GROUP_ID>
 
 
 
-+++
+---
 
 ### hab bldr job demote
 
@@ -405,7 +405,7 @@ hab bldr job demote [FLAGS] [OPTIONS] <GROUP_ID> <CHANNEL>
 
 
 
-+++
+---
 
 ### hab bldr job promote
 
@@ -442,7 +442,7 @@ hab bldr job promote [FLAGS] [OPTIONS] <GROUP_ID> <CHANNEL>
 
 
 
-+++
+---
 
 ### hab bldr job start
 
@@ -478,7 +478,7 @@ hab bldr job start [FLAGS] [OPTIONS] <PKG_IDENT> [PKG_TARGET]
 
 
 
-+++
+---
 
 ### hab bldr job status
 
@@ -514,7 +514,7 @@ hab bldr job status [FLAGS] [OPTIONS] <GROUP_ID|--origin <ORIGIN>>
 
 
 
-+++
+---
 
 ## hab cli
 
@@ -539,10 +539,10 @@ hab cli <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab cli completers](#hab-cli-completers) | Creates command-line completers for your shell |
 | [hab cli setup](#hab-cli-setup) | Sets up the CLI with reasonable defaults |
-+++
+---
 
 ### hab cli completers
 
@@ -570,7 +570,7 @@ hab cli completers --shell <SHELL>
 
 
 
-+++
+---
 
 ### hab cli setup
 
@@ -579,7 +579,7 @@ Sets up the CLI with reasonable defaults
 **USAGE**
 
 ```
-hab cli setup --cache-key-path <CACHE_KEY_PATH>
+hab cli setup [OPTIONS]
 ```
 
 **FLAGS**
@@ -592,13 +592,13 @@ hab cli setup --cache-key-path <CACHE_KEY_PATH>
 **OPTIONS**
 
 ```
---cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+--cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 ```
 
 
 
 
-+++
+---
 
 ## hab config
 
@@ -623,10 +623,10 @@ hab config <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab config apply](#hab-config-apply) | Sets a configuration to be shared by members of a Service Group |
 | [hab config show](#hab-config-show) | Displays the default configuration options for a service |
-+++
+---
 
 ### hab config apply
 
@@ -635,7 +635,7 @@ Sets a configuration to be shared by members of a Service Group
 **USAGE**
 
 ```
-hab config apply [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> --cache-key-path <CACHE_KEY_PATH> [FILE]
+hab config apply [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> [FILE]
 ```
 
 **FLAGS**
@@ -648,7 +648,7 @@ hab config apply [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> --cache-key-path <CA
 **OPTIONS**
 
 ```
---cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+--cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 -r, --remote-sup <REMOTE_SUP>            Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
 -u, --user <USER>                        Name of a user key to use for encryption
 ```
@@ -663,7 +663,7 @@ hab config apply [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> --cache-key-path <CA
 
 
 
-+++
+---
 
 ### hab config show
 
@@ -696,7 +696,7 @@ hab config show [OPTIONS] <PKG_IDENT>
 
 
 
-+++
+---
 
 ## hab file
 
@@ -721,9 +721,9 @@ hab file <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab file upload](#hab-file-upload) | Uploads a file to be shared between members of a Service Group |
-+++
+---
 
 ### hab file upload
 
@@ -732,7 +732,7 @@ Uploads a file to be shared between members of a Service Group
 **USAGE**
 
 ```
-hab file upload [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> <FILE> --cache-key-path <CACHE_KEY_PATH>
+hab file upload [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> <FILE>
 ```
 
 **FLAGS**
@@ -745,7 +745,7 @@ hab file upload [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> <FILE> --cache-key-pa
 **OPTIONS**
 
 ```
---cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+--cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 -r, --remote-sup <REMOTE_SUP>            Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
 -u, --user <USER>                        Name of the user key
 ```
@@ -760,7 +760,7 @@ hab file upload [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> <FILE> --cache-key-pa
 
 
 
-+++
+---
 
 ## hab license
 
@@ -785,9 +785,9 @@ hab license <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab license accept](#hab-license-accept) | Accept the Chef Binary Distribution Agreement without prompting |
-+++
+---
 
 ### hab license accept
 
@@ -810,7 +810,7 @@ hab license accept
 
 
 
-+++
+---
 
 ## hab origin
 
@@ -835,16 +835,17 @@ hab origin <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab origin create](#hab-origin-create) | Creates a new Builder origin |
 | [hab origin delete](#hab-origin-delete) | Removes an unused/empty origin |
 | [hab origin depart](#hab-origin-depart) | Departs membership from selected origin |
 | [hab origin info](#hab-origin-info) | Displays general information about an origin |
 | [hab origin invitations](#hab-origin-invitations) | Manage origin member invitations |
 | [hab origin key](#hab-origin-key) | Commands relating to Habitat origin key maintenance |
+| [hab origin rbac](#hab-origin-rbac) | Role Based Access Control for origin members |
 | [hab origin secret](#hab-origin-secret) | Commands related to secret management |
 | [hab origin transfer](#hab-origin-transfer) | Transfers ownership of an origin to another member of that origin |
-+++
+---
 
 ### hab origin create
 
@@ -878,7 +879,7 @@ hab origin create [OPTIONS] <ORIGIN>
 
 
 
-+++
+---
 
 ### hab origin delete
 
@@ -912,7 +913,7 @@ hab origin delete [OPTIONS] <ORIGIN>
 
 
 
-+++
+---
 
 ### hab origin depart
 
@@ -946,7 +947,7 @@ hab origin depart [OPTIONS] <ORIGIN>
 
 
 
-+++
+---
 
 ### hab origin info
 
@@ -981,7 +982,7 @@ hab origin info [FLAGS] [OPTIONS] <ORIGIN>
 
 
 
-+++
+---
 
 ### hab origin invitations
 
@@ -1006,14 +1007,14 @@ hab origin invitations <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab origin invitations accept](#hab-origin-invitations-accept) | Accept an origin member invitation |
 | [hab origin invitations ignore](#hab-origin-invitations-ignore) | Ignore an origin member invitation |
 | [hab origin invitations list](#hab-origin-invitations-list) | List origin invitations sent to your account |
 | [hab origin invitations pending](#hab-origin-invitations-pending) | List pending invitations for a particular origin. Requires that you are the origin owner |
 | [hab origin invitations rescind](#hab-origin-invitations-rescind) | Rescind an existing origin member invitation |
 | [hab origin invitations send](#hab-origin-invitations-send) | Send an origin member invitation |
-+++
+---
 
 ### hab origin invitations accept
 
@@ -1048,7 +1049,7 @@ hab origin invitations accept [OPTIONS] <ORIGIN> <INVITATION_ID>
 
 
 
-+++
+---
 
 ### hab origin invitations ignore
 
@@ -1083,7 +1084,7 @@ hab origin invitations ignore [OPTIONS] <ORIGIN> <INVITATION_ID>
 
 
 
-+++
+---
 
 ### hab origin invitations list
 
@@ -1112,7 +1113,7 @@ hab origin invitations list [OPTIONS]
 
 
 
-+++
+---
 
 ### hab origin invitations pending
 
@@ -1146,7 +1147,7 @@ hab origin invitations pending [OPTIONS] <ORIGIN>
 
 
 
-+++
+---
 
 ### hab origin invitations rescind
 
@@ -1181,7 +1182,7 @@ hab origin invitations rescind [OPTIONS] <ORIGIN> <INVITATION_ID>
 
 
 
-+++
+---
 
 ### hab origin invitations send
 
@@ -1216,7 +1217,7 @@ hab origin invitations send [OPTIONS] <ORIGIN> <INVITEE_ACCOUNT>
 
 
 
-+++
+---
 
 ### hab origin key
 
@@ -1241,13 +1242,13 @@ hab origin key <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab origin key download](#hab-origin-key-download) | Download origin key(s) |
 | [hab origin key export](#hab-origin-key-export) | Outputs the latest origin key contents to stdout |
 | [hab origin key generate](#hab-origin-key-generate) | Generates a Habitat origin key pair |
 | [hab origin key import](#hab-origin-key-import) | Reads a stdin stream containing a public or private origin key contents and writes the key to disk |
 | [hab origin key upload](#hab-origin-key-upload) | Upload origin keys to Builder |
-+++
+---
 
 ### hab origin key download
 
@@ -1256,7 +1257,7 @@ Download origin key(s)
 **USAGE**
 
 ```
-hab origin key download [FLAGS] [OPTIONS] <ORIGIN> --cache-key-path <CACHE_KEY_PATH> [REVISION]
+hab origin key download [FLAGS] [OPTIONS] <ORIGIN> [REVISION]
 ```
 
 **FLAGS**
@@ -1273,7 +1274,7 @@ hab origin key download [FLAGS] [OPTIONS] <ORIGIN> --cache-key-path <CACHE_KEY_P
 ```
 -z, --auth <AUTH_TOKEN>                  Authentication token for Builder (required for downloading origin private keys)
 -u, --url <BLDR_URL>                     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-    --cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+    --cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 ```
 
 **ARGS**
@@ -1285,7 +1286,7 @@ hab origin key download [FLAGS] [OPTIONS] <ORIGIN> --cache-key-path <CACHE_KEY_P
 
 
 
-+++
+---
 
 ### hab origin key export
 
@@ -1294,7 +1295,7 @@ Outputs the latest origin key contents to stdout
 **USAGE**
 
 ```
-hab origin key export [OPTIONS] <ORIGIN> --cache-key-path <CACHE_KEY_PATH>
+hab origin key export [OPTIONS] <ORIGIN>
 ```
 
 **FLAGS**
@@ -1307,8 +1308,8 @@ hab origin key export [OPTIONS] <ORIGIN> --cache-key-path <CACHE_KEY_PATH>
 **OPTIONS**
 
 ```
---cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
--t, --type <PAIR_TYPE>                   Export either the 'public' or 'secret' key. The 'secret' key is the origin private key
+--cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
+-t, --type <KEY_TYPE>                    Export either the 'public' or 'secret' key. The 'secret' key is the origin private key
 ```
 
 **ARGS**
@@ -1319,7 +1320,7 @@ hab origin key export [OPTIONS] <ORIGIN> --cache-key-path <CACHE_KEY_PATH>
 
 
 
-+++
+---
 
 ### hab origin key generate
 
@@ -1328,7 +1329,7 @@ Generates a Habitat origin key pair
 **USAGE**
 
 ```
-hab origin key generate --cache-key-path <CACHE_KEY_PATH> [ORIGIN]
+hab origin key generate [OPTIONS] [ORIGIN]
 ```
 
 **FLAGS**
@@ -1341,7 +1342,7 @@ hab origin key generate --cache-key-path <CACHE_KEY_PATH> [ORIGIN]
 **OPTIONS**
 
 ```
---cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+--cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 ```
 
 **ARGS**
@@ -1352,7 +1353,7 @@ hab origin key generate --cache-key-path <CACHE_KEY_PATH> [ORIGIN]
 
 
 
-+++
+---
 
 ### hab origin key import
 
@@ -1361,7 +1362,7 @@ Reads a stdin stream containing a public or private origin key contents and writ
 **USAGE**
 
 ```
-hab origin key import --cache-key-path <CACHE_KEY_PATH>
+hab origin key import [OPTIONS]
 ```
 
 **FLAGS**
@@ -1374,13 +1375,13 @@ hab origin key import --cache-key-path <CACHE_KEY_PATH>
 **OPTIONS**
 
 ```
---cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+--cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 ```
 
 
 
 
-+++
+---
 
 ### hab origin key upload
 
@@ -1389,7 +1390,7 @@ Upload origin keys to Builder
 **USAGE**
 
 ```
-hab origin key upload [FLAGS] [OPTIONS] --cache-key-path <CACHE_KEY_PATH> <ORIGIN|--pubfile <PUBLIC_FILE>>
+hab origin key upload [FLAGS] [OPTIONS] <ORIGIN|--pubfile <PUBLIC_FILE>>
 ```
 
 **FLAGS**
@@ -1405,7 +1406,7 @@ hab origin key upload [FLAGS] [OPTIONS] --cache-key-path <CACHE_KEY_PATH> <ORIGI
 ```
 -z, --auth <AUTH_TOKEN>                  Authentication token for Builder
 -u, --url <BLDR_URL>                     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-    --cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+    --cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
     --pubfile <PUBLIC_FILE>              Path to a local public origin key file on disk
     --secfile <SECRET_FILE>              Path to a local origin private key file on disk
 ```
@@ -1418,7 +1419,108 @@ hab origin key upload [FLAGS] [OPTIONS] --cache-key-path <CACHE_KEY_PATH> <ORIGI
 
 
 
-+++
+---
+
+### hab origin rbac
+
+Role Based Access Control for origin members
+
+**USAGE**
+
+```
+hab origin rbac <SUBCOMMAND>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+
+
+
+**SUBCOMMANDS**
+
+| Command | Description |
+| ------- | ----------- |
+| [hab origin rbac set](#hab-origin-rbac-set) | Change an origin member's role |
+| [hab origin rbac show](#hab-origin-rbac-show) | Display an origin member's current role |
+---
+
+### hab origin rbac set
+
+Change an origin member's role
+
+**USAGE**
+
+```
+hab origin rbac set [FLAGS] [OPTIONS] <MEMBER_ACCOUNT> <ROLE> --origin <ORIGIN>
+```
+
+**FLAGS**
+
+```
+-n, --no-prompt    Do not prompt for confirmation
+-h, --help         Prints help information
+-V, --version      Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin <ORIGIN>      The Builder origin name to target
+```
+
+**ARGS**
+
+```
+<MEMBER_ACCOUNT>    The account name whose role will be changed
+<ROLE>              The role name to enforce for the member account [possible values: readonly_member, member, maintainer, administrator, owner]
+```
+
+
+
+---
+
+### hab origin rbac show
+
+Display an origin member's current role
+
+**USAGE**
+
+```
+hab origin rbac show [FLAGS] [OPTIONS] <MEMBER_ACCOUNT> --origin <ORIGIN>
+```
+
+**FLAGS**
+
+```
+-j, --json       Output will be rendered in json
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin <ORIGIN>      The Builder origin name to target
+```
+
+**ARGS**
+
+```
+<MEMBER_ACCOUNT>    The account name of the role to display
+```
+
+
+
+---
 
 ### hab origin secret
 
@@ -1443,11 +1545,11 @@ hab origin secret <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab origin secret delete](#hab-origin-secret-delete) | Delete a secret for your origin |
 | [hab origin secret list](#hab-origin-secret-list) | List all secrets for your origin |
 | [hab origin secret upload](#hab-origin-secret-upload) | Create and upload a secret for your origin |
-+++
+---
 
 ### hab origin secret delete
 
@@ -1482,7 +1584,7 @@ hab origin secret delete [OPTIONS] <KEY_NAME>
 
 
 
-+++
+---
 
 ### hab origin secret list
 
@@ -1512,7 +1614,7 @@ hab origin secret list [OPTIONS]
 
 
 
-+++
+---
 
 ### hab origin secret upload
 
@@ -1521,7 +1623,7 @@ Create and upload a secret for your origin
 **USAGE**
 
 ```
-hab origin secret upload [OPTIONS] <KEY_NAME> <SECRET> --cache-key-path <CACHE_KEY_PATH>
+hab origin secret upload [OPTIONS] <KEY_NAME> <SECRET>
 ```
 
 **FLAGS**
@@ -1536,7 +1638,7 @@ hab origin secret upload [OPTIONS] <KEY_NAME> <SECRET> --cache-key-path <CACHE_K
 ```
 -z, --auth <AUTH_TOKEN>                  Authentication token for Builder
 -u, --url <BLDR_URL>                     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-    --cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+    --cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 -o, --origin <ORIGIN>                    The origin for which the secret will be uploaded. Default is from HAB_ORIGIN' or cli.toml
 ```
 
@@ -1549,7 +1651,7 @@ hab origin secret upload [OPTIONS] <KEY_NAME> <SECRET> --cache-key-path <CACHE_K
 
 
 
-+++
+---
 
 ### hab origin transfer
 
@@ -1584,7 +1686,7 @@ hab origin transfer [OPTIONS] <ORIGIN> <NEW_OWNER_ACCOUNT>
 
 
 
-+++
+---
 
 ## hab pkg
 
@@ -1609,7 +1711,7 @@ hab pkg <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab pkg binds](#hab-pkg-binds) | Displays the binds for a service |
 | [hab pkg binlink](#hab-pkg-binlink) | Creates a binlink for a package binary in a common 'PATH' location |
 | [hab pkg build](#hab-pkg-build) | Builds a Plan using a Studio |
@@ -1635,7 +1737,7 @@ hab pkg <SUBCOMMAND>
 | [hab pkg uninstall](#hab-pkg-uninstall) | Safely uninstall a package and dependencies from the local filesystem |
 | [hab pkg upload](#hab-pkg-upload) | Uploads a local Habitat Artifact to Builder |
 | [hab pkg verify](#hab-pkg-verify) | Verifies a Habitat Artifact with an origin key |
-+++
+---
 
 ### hab pkg binds
 
@@ -1663,7 +1765,7 @@ hab pkg binds <PKG_IDENT>
 
 
 
-+++
+---
 
 ### hab pkg binlink
 
@@ -1698,7 +1800,7 @@ hab pkg binlink [FLAGS] [OPTIONS] <PKG_IDENT> [BINARY]
 
 
 
-+++
+---
 
 ### hab pkg build
 
@@ -1707,7 +1809,7 @@ Builds a Plan using a Studio
 **USAGE**
 
 ```
-hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT> --cache-key-path <CACHE_KEY_PATH>
+hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT>
 ```
 
 **FLAGS**
@@ -1722,7 +1824,7 @@ hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT> --cache-key-path <CACHE_KEY_PATH>
 **OPTIONS**
 
 ```
---cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+--cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 -k, --keys <HAB_ORIGIN_KEYS>             Installs secret origin keys (ex: "unicorn", "acme,other,acme-ops")
 -r, --root <HAB_STUDIO_ROOT>             Sets the Studio root (default: /hab/studios/<DIR_NAME>)
 -s, --src <SRC_PATH>                     Sets the source path (default: $PWD)
@@ -1736,7 +1838,7 @@ hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT> --cache-key-path <CACHE_KEY_PATH>
 
 
 
-+++
+---
 
 ### hab pkg bulkupload
 
@@ -1774,7 +1876,7 @@ hab pkg bulkupload [FLAGS] [OPTIONS] <UPLOAD_DIRECTORY>
 
 
 
-+++
+---
 
 ### hab pkg channels
 
@@ -1809,7 +1911,7 @@ hab pkg channels [OPTIONS] <PKG_IDENT> [PKG_TARGET]
 
 
 
-+++
+---
 
 ### hab pkg config
 
@@ -1837,7 +1939,7 @@ hab pkg config <PKG_IDENT>
 
 
 
-+++
+---
 
 ### hab pkg delete
 
@@ -1872,7 +1974,7 @@ hab pkg delete [OPTIONS] <PKG_IDENT> [PKG_TARGET]
 
 
 
-+++
+---
 
 ### hab pkg demote
 
@@ -1908,7 +2010,7 @@ hab pkg demote [OPTIONS] <PKG_IDENT> <CHANNEL> [PKG_TARGET]
 
 
 
-+++
+---
 
 ### hab pkg dependencies
 
@@ -1938,7 +2040,7 @@ hab pkg dependencies [FLAGS] <PKG_IDENT>
 
 
 
-+++
+---
 
 ### hab pkg download
 
@@ -1979,7 +2081,7 @@ hab pkg download [FLAGS] [OPTIONS] [--] [PKG_IDENT]...
 
 
 
-+++
+---
 
 ### hab pkg env
 
@@ -2007,7 +2109,7 @@ hab pkg env <PKG_IDENT>
 
 
 
-+++
+---
 
 ### hab pkg exec
 
@@ -2032,12 +2134,12 @@ hab pkg exec <PKG_IDENT> <CMD> [ARGS]...
 ```
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 <CMD>          The command to execute (ex: ls)
-<ARGS>...      Arguments to the command (ex: -l /tmp)
+<ARGS>...      Arguments to the command
 ```
 
 
 
-+++
+---
 
 ### hab pkg export
 
@@ -2046,7 +2148,7 @@ Exports the package to the specified format
 **USAGE**
 
 ```
-hab pkg export [OPTIONS] <FORMAT> <PKG_IDENT>
+hab pkg export <SUBCOMMAND>
 ```
 
 **FLAGS**
@@ -2056,23 +2158,18 @@ hab pkg export [OPTIONS] <FORMAT> <PKG_IDENT>
 -V, --version    Prints version information
 ```
 
-**OPTIONS**
-
-```
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
--c, --channel <CHANNEL>    Retrieve the container's package from the specified release channel [env: HAB_BLDR_CHANNEL=]  [default: stable]
-```
-
-**ARGS**
-
-```
-<FORMAT>       The export format (ex: cf, docker, mesos, or tar)
-<PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2) or filepath to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-```
 
 
 
-+++
+**SUBCOMMANDS**
+
+| Command | Description |
+| ------- | ----------- |
+| [hab pkg export cf](#hab-pkg-export-cf) | Cloud Foundry exporter |
+| [hab pkg export container](#hab-pkg-export-container) | Container exporter |
+| [hab pkg export mesos](#hab-pkg-export-mesos) | Mesos exporter |
+| [hab pkg export tar](#hab-pkg-export-tar) | Tar exporter |
+---
 
 ### hab pkg hash
 
@@ -2100,7 +2197,7 @@ hab pkg hash [SOURCE]
 
 
 
-+++
+---
 
 ### hab pkg info
 
@@ -2115,7 +2212,7 @@ hab pkg info [FLAGS] <SOURCE>
 **FLAGS**
 
 ```
--j, --json       Output will be rendered in json
+-j, --json       Output will be rendered in json. (Includes extended metadata)
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
@@ -2129,7 +2226,7 @@ hab pkg info [FLAGS] <SOURCE>
 
 
 
-+++
+---
 
 ### hab pkg install
 
@@ -2168,7 +2265,7 @@ hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
 
 
 
-+++
+---
 
 ### hab pkg list
 
@@ -2202,7 +2299,7 @@ hab pkg list [OPTIONS] <--all|--origin <ORIGIN>|PKG_IDENT>
 
 
 
-+++
+---
 
 ### hab pkg path
 
@@ -2230,7 +2327,7 @@ hab pkg path <PKG_IDENT>
 
 
 
-+++
+---
 
 ### hab pkg promote
 
@@ -2266,7 +2363,7 @@ hab pkg promote [OPTIONS] <PKG_IDENT> <CHANNEL> [PKG_TARGET]
 
 
 
-+++
+---
 
 ### hab pkg provides
 
@@ -2296,7 +2393,7 @@ hab pkg provides [FLAGS] <FILE>
 
 
 
-+++
+---
 
 ### hab pkg search
 
@@ -2331,7 +2428,7 @@ hab pkg search [OPTIONS] <SEARCH_TERM>
 
 
 
-+++
+---
 
 ### hab pkg sign
 
@@ -2340,7 +2437,7 @@ Signs an archive with an origin key, generating a Habitat Artifact
 **USAGE**
 
 ```
-hab pkg sign [OPTIONS] <SOURCE> <DEST> --cache-key-path <CACHE_KEY_PATH>
+hab pkg sign [OPTIONS] <SOURCE> <DEST>
 ```
 
 **FLAGS**
@@ -2353,7 +2450,7 @@ hab pkg sign [OPTIONS] <SOURCE> <DEST> --cache-key-path <CACHE_KEY_PATH>
 **OPTIONS**
 
 ```
---cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+--cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
     --origin <ORIGIN>                    Origin key used to create signature
 ```
 
@@ -2366,7 +2463,7 @@ hab pkg sign [OPTIONS] <SOURCE> <DEST> --cache-key-path <CACHE_KEY_PATH>
 
 
 
-+++
+---
 
 ### hab pkg uninstall
 
@@ -2381,16 +2478,18 @@ hab pkg uninstall [FLAGS] [OPTIONS] <PKG_IDENT>
 **FLAGS**
 
 ```
--d, --dryrun     Just show what would be uninstalled, don't actually do it
-    --no-deps    Don't uninstall dependencies
--h, --help       Prints help information
--V, --version    Prints version information
+-d, --dryrun                   Just show what would be uninstalled, don't actually do it
+    --ignore-uninstall-hook    Do not run any uninstall hooks
+    --no-deps                  Don't uninstall dependencies
+-h, --help                     Prints help information
+-V, --version                  Prints version information
 ```
 
 **OPTIONS**
 
 ```
---exclude <EXCLUDE>...    Identifier of one or more packages that should not be uninstalled. (ex: core/redis, core/busybox-static/1.42.2/21120102031201)
+--exclude <EXCLUDE>...         Identifier of one or more packages that should not be uninstalled. (ex: core/redis, core/busybox-static/1.42.2/21120102031201)
+    --keep-latest <KEEP_LATEST>    Only keep this number of latest packages uninstalling all others
 ```
 
 **ARGS**
@@ -2401,7 +2500,7 @@ hab pkg uninstall [FLAGS] [OPTIONS] <PKG_IDENT>
 
 
 
-+++
+---
 
 ### hab pkg upload
 
@@ -2410,7 +2509,7 @@ Uploads a local Habitat Artifact to Builder
 **USAGE**
 
 ```
-hab pkg upload [FLAGS] [OPTIONS] <HART_FILE>... --cache-key-path <CACHE_KEY_PATH>
+hab pkg upload [FLAGS] [OPTIONS] <HART_FILE>...
 ```
 
 **FLAGS**
@@ -2427,7 +2526,7 @@ hab pkg upload [FLAGS] [OPTIONS] <HART_FILE>... --cache-key-path <CACHE_KEY_PATH
 ```
 -z, --auth <AUTH_TOKEN>                  Authentication token for Builder
 -u, --url <BLDR_URL>                     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-    --cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+    --cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 -c, --channel <CHANNEL>                  Optional additional release channel to upload package to. Packages are always uploaded to unstable, regardless of the value of this option
 ```
 
@@ -2439,7 +2538,7 @@ hab pkg upload [FLAGS] [OPTIONS] <HART_FILE>... --cache-key-path <CACHE_KEY_PATH
 
 
 
-+++
+---
 
 ### hab pkg verify
 
@@ -2448,7 +2547,7 @@ Verifies a Habitat Artifact with an origin key
 **USAGE**
 
 ```
-hab pkg verify <SOURCE> --cache-key-path <CACHE_KEY_PATH>
+hab pkg verify [OPTIONS] <SOURCE>
 ```
 
 **FLAGS**
@@ -2461,7 +2560,7 @@ hab pkg verify <SOURCE> --cache-key-path <CACHE_KEY_PATH>
 **OPTIONS**
 
 ```
---cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+--cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 ```
 
 **ARGS**
@@ -2472,7 +2571,7 @@ hab pkg verify <SOURCE> --cache-key-path <CACHE_KEY_PATH>
 
 
 
-+++
+---
 
 ## hab plan
 
@@ -2497,10 +2596,10 @@ hab plan <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab plan init](#hab-plan-init) | Generates common package specific configuration files. Executing without argument will create a habitat directory in your current folder for the plan. If PKG_NAME is specified it will create a folder with that name. Environment variables (those starting with 'pkg_') that are set will be used in the generated plan |
 | [hab plan render](#hab-plan-render) | Renders plan config files |
-+++
+---
 
 ### hab plan init
 
@@ -2535,7 +2634,7 @@ hab plan init [FLAGS] [OPTIONS] [PKG_NAME]
 
 
 
-+++
+---
 
 ### hab plan render
 
@@ -2574,7 +2673,7 @@ hab plan render [FLAGS] [OPTIONS] <TEMPLATE_PATH>
 
 
 
-+++
+---
 
 ## hab ring
 
@@ -2599,9 +2698,9 @@ hab ring <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab ring key](#hab-ring-key) | Commands relating to Habitat ring keys |
-+++
+---
 
 ### hab ring key
 
@@ -2626,11 +2725,11 @@ hab ring key <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab ring key export](#hab-ring-key-export) | Outputs the latest ring key contents to stdout |
 | [hab ring key generate](#hab-ring-key-generate) | Generates a Habitat ring key |
 | [hab ring key import](#hab-ring-key-import) | Reads a stdin stream containing ring key contents and writes the key to disk |
-+++
+---
 
 ### hab ring key export
 
@@ -2639,7 +2738,7 @@ Outputs the latest ring key contents to stdout
 **USAGE**
 
 ```
-hab ring key export <RING> --cache-key-path <CACHE_KEY_PATH>
+hab ring key export [OPTIONS] <RING>
 ```
 
 **FLAGS**
@@ -2652,7 +2751,7 @@ hab ring key export <RING> --cache-key-path <CACHE_KEY_PATH>
 **OPTIONS**
 
 ```
---cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+--cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 ```
 
 **ARGS**
@@ -2663,7 +2762,7 @@ hab ring key export <RING> --cache-key-path <CACHE_KEY_PATH>
 
 
 
-+++
+---
 
 ### hab ring key generate
 
@@ -2672,7 +2771,7 @@ Generates a Habitat ring key
 **USAGE**
 
 ```
-hab ring key generate <RING> --cache-key-path <CACHE_KEY_PATH>
+hab ring key generate [OPTIONS] <RING>
 ```
 
 **FLAGS**
@@ -2685,7 +2784,7 @@ hab ring key generate <RING> --cache-key-path <CACHE_KEY_PATH>
 **OPTIONS**
 
 ```
---cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+--cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 ```
 
 **ARGS**
@@ -2696,7 +2795,7 @@ hab ring key generate <RING> --cache-key-path <CACHE_KEY_PATH>
 
 
 
-+++
+---
 
 ### hab ring key import
 
@@ -2705,7 +2804,7 @@ Reads a stdin stream containing ring key contents and writes the key to disk
 **USAGE**
 
 ```
-hab ring key import --cache-key-path <CACHE_KEY_PATH>
+hab ring key import [OPTIONS]
 ```
 
 **FLAGS**
@@ -2718,13 +2817,13 @@ hab ring key import --cache-key-path <CACHE_KEY_PATH>
 **OPTIONS**
 
 ```
---cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+--cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 ```
 
 
 
 
-+++
+---
 
 ## hab studio
 
@@ -2743,14 +2842,14 @@ hab studio [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ..]
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab studio build](#hab-studio-build) | Build using a Studio |
 | [hab studio enter](#hab-studio-enter) | Interactively enter a Studio |
 | [hab studio new](#hab-studio-new) | Creates a new Studio |
 | [hab studio rm](#hab-studio-rm) | Destroys a Studio |
 | [hab studio run](#hab-studio-run) | Run a command in a Studio |
 | [hab studio version](#hab-studio-version) | Prints version information |
-+++
+---
 
 ### hab studio build
 
@@ -2772,7 +2871,7 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] build [FLAGS] [PLAN_DIR]
 
 
 
-+++
+---
 
 ### hab studio enter
 
@@ -2789,7 +2888,7 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] enter
 
 
 
-+++
+---
 
 ### hab studio new
 
@@ -2806,7 +2905,7 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] new
 
 
 
-+++
+---
 
 ### hab studio rm
 
@@ -2823,7 +2922,7 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] rm
 
 
 
-+++
+---
 
 ### hab studio run
 
@@ -2840,7 +2939,7 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] run [CMD] [ARG ..]
 
 
 
-+++
+---
 
 ### hab studio version
 
@@ -2852,7 +2951,7 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] run [CMD] [ARG ..]
 
 
 
-+++
+---
 
 ## hab sup
 
@@ -2877,15 +2976,16 @@ hab sup <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab sup bash](#hab-sup-bash) | Start an interactive Bash-like shell |
 | [hab sup depart](#hab-sup-depart) | Depart a Supervisor from the gossip ring; kicking and banning the target from joining again with the same member-id |
+| [hab sup restart](#hab-sup-restart) | Restart a Supervisor without restarting its services |
 | [hab sup run](#hab-sup-run) | Run the Habitat Supervisor |
 | [hab sup secret](#hab-sup-secret) | Commands relating to a Habitat Supervisor's Control Gateway secret |
 | [hab sup sh](#hab-sup-sh) | Start an interactive Bourne-like shell |
 | [hab sup status](#hab-sup-status) | Query the status of Habitat services |
 | [hab sup term](#hab-sup-term) | Gracefully terminate the Habitat Supervisor and all of its running services |
-+++
+---
 
 ### hab sup bash
 
@@ -2907,7 +3007,7 @@ hab sup bash
 
 
 
-+++
+---
 
 ### hab sup depart
 
@@ -2939,7 +3039,34 @@ hab sup depart [OPTIONS] <MEMBER_ID>
 
 
 
-+++
+---
+
+### hab sup restart
+
+Restart a Supervisor without restarting its services
+
+**USAGE**
+
+```
+hab sup restart [OPTIONS]
+```
+
+**FLAGS**
+
+```
+-h, --help    Prints help information
+```
+
+**OPTIONS**
+
+```
+-r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+```
+
+
+
+
+---
 
 ### hab sup run
 
@@ -2955,74 +3082,100 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 
 ```
 -A, --auto-update          Enable automatic updates for the Supervisor itself
+    --generate-config      Generate a TOML config
 -D, --http-disable         Disable the HTTP Gateway completely
-    --json-logging         Use structured JSON logging for the Supervisor. Implies NO_COLOR
+    --json-logging         Use structured JSON logging for the Supervisor
     --local-gossip-mode    Start the supervisor in local mode
     --no-color             Turn ANSI color off
--I, --permanent-peer       If this Supervisor is a permanent peer
--v                         Verbose output; shows file and line/column numbers
+-I, --permanent-peer       Make this Supervisor a permanent peer
+-v                         Verbose output showing file and line/column numbers
 -h, --help                 Prints help information
 ```
 
 **OPTIONS**
 
 ```
---bind <BIND>... One or more service groups to bind to a configuration
+--auto-update-period <AUTO_UPDATE_PERIOD> The period of time in seconds between Supervisor update checks [default: 60]
 
-    --binding-mode <BINDING_MODE> Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] [values: relaxed, strict]
--u, --url <BLDR_URL> Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined (default: https://bldr.habitat.sh)
-    --cache-key-path <CACHE_KEY_PATH> Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
-    --ca-certs <CA_CERT_FILE> Used for enabling client-authentication with TLS for the HTTP gateway. Read CA certificate from CA_CERT_FILE. This should contain PEM-format certificate that can be used to validate client requests
-    --certs <CERT_FILE> Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. This should contain PEM-format certificates in the right order (the first certificate should certify KEY_FILE, the last should be a root CA)
-    --channel <CHANNEL> Receive Supervisor updates from the specified release channel [default: stable]
+    --bind <BIND>... One or more service groups to bind to a configuration
 
-    --config-from <CONFIG_DIR> Use package config from this path, rather than the package itself
+    --binding-mode <BINDING_MODE> Governs how the presence or absence of binds affects service startup [default: strict]  [possible values: strict, relaxed]
+-u, --url <BLDR_URL> Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --cache-key-path <CACHE_KEY_PATH> Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 
-    --event-stream-application <EVENT_STREAM_APPLICATION> The name of the application for event stream purposes. This will be attached to all events generated by this Supervisor
-    --event-stream-connect-timeout <EVENT_STREAM_CONNECT_TIMEOUT> How long in seconds to wait for an event stream connection before exiting the Supervisor. Set to '0' to immediately start the Supervisor and continue running regardless of the initial connection status [env: HAB_EVENT_STREAM_CONNECT_TIMEOUT=]  [default: 0]
-    --event-stream-environment <EVENT_STREAM_ENVIRONMENT> The name of the environment for event stream purposes. This will be attached to all events generated by this Supervisor
-    --event-meta <EVENT_STREAM_METADATA>... An arbitrary key-value pair to add to each event generated by this Supervisor
+    --ca-certs <CA_CERT_FILE> The CA certificate for HTTP Gateway TLS encryption
 
-    --event-stream-server-certificate <EVENT_STREAM_SERVER_CERTIFICATE> The path to Chef Automate's event stream certificate in PEM format used to establish a TLS connection
+    --certs <CERT_FILE> The server certificates for HTTP Gateway TLS encryption
+
+    --channel <CHANNEL> Receive updates from the specified release channel [default: stable]
+
+    --config-files <CONFIG_FILES>...                                       Paths to config files to read
+    --config-from <CONFIG_FROM> Use the package config from this path rather than the package itself
+
+    --ctl-client-ca-certificate <CTL_CLIENT_CA_CERTIFICATE> Enable client authentication for the control gateway and set the certificate authority to use when authenticating the client [default: /hab/cache/keys/ctl]
+    --ctl-server-certificate <CTL_SERVER_CERTIFICATE> The control gateway server's TLS certificate [default: /hab/cache/keys/ctl]
+
+    --ctl-server-key <CTL_SERVER_KEY> Enable TLS for the control gateway and set the server's private key [default: /hab/cache/keys/ctl]
+
+    --event-meta <EVENT_META>... An arbitrary key-value pair to add to each event generated by this Supervisor
+
+    --event-stream-application <EVENT_STREAM_APPLICATION> The name of the application for event stream purposes
+
+    --event-stream-connect-timeout <EVENT_STREAM_CONNECT_TIMEOUT> Event stream connection timeout before exiting the Supervisor [env: HAB_EVENT_STREAM_CONNECT_TIMEOUT=] default: 0]
+    --event-stream-environment <EVENT_STREAM_ENVIRONMENT> The name of the environment for event stream purposes
+
+    --event-stream-server-certificate <EVENT_STREAM_SERVER_CERTIFICATE> The path to Chef Automate's event stream certificate used to establish a TLS connection
 
     --event-stream-site <EVENT_STREAM_SITE> The name of the site where this Supervisor is running for event stream purposes
 
     --event-stream-token <EVENT_STREAM_TOKEN> The authentication token for connecting the event stream to Chef Automate [env: HAB_AUTOMATE_AUTH_TOKEN=]
 
-    --event-stream-url <EVENT_STREAM_URL> The event stream connection string (host:port) used by this Supervisor to send events to Chef Automate. This enables the event stream and requires --event-stream-application, --event-stream-environment, and --event- stream-token also be set
-    --group <GROUP> The service group; shared config and topology [default: default]
+    --event-stream-url <EVENT_STREAM_URL> The event stream connection url used to send events to Chef Automate
 
--i, --health-check-interval <HEALTH_CHECK_INTERVAL> The interval (seconds) on which to run health checks [default: 30]
+    --group <GROUP> The service group with shared config and topology [default: default]
 
-    --key <KEY_FILE> Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. This should be a RSA private key or PKCS8-encoded private key, in PEM format
-    --listen-ctl <LISTEN_CTL> The listen address for the Control Gateway. If not specified, the value will be taken from the HAB_LISTEN_CTL environment variable if defined [env: HAB_LISTEN_CTL=]  [default: 127.0.0.1:9632]
-    --listen-gossip <LISTEN_GOSSIP> The listen address for the Gossip System Gateway [env: HAB_LISTEN_GOSSIP=]  [default: 0.0.0.0:9638]
+-i, --health-check-interval <HEALTH_CHECK_INTERVAL> The interval in seconds on which to run health checks [default: 30]
+
+    --keep-latest-packages <KEEP_LATEST_PACKAGES> Automatically cleanup old packages [env: HAB_KEEP_LATEST_PACKAGES=]
+
+    --key <KEY_FILE> The private key for HTTP Gateway TLS encryption
+
+    --listen-ctl <LISTEN_CTL> The listen address for the Control Gateway [env: HAB_LISTEN_CTL=]  [default: 127.0.0.1:9632]
+
+    --listen-gossip <LISTEN_GOSSIP> The listen address for the Gossip Gateway [env: HAB_LISTEN_GOSSIP=]  [default: 0.0.0.0:9638]
 
     --listen-http <LISTEN_HTTP> The listen address for the HTTP Gateway [env: HAB_LISTEN_HTTP=]  [default: 0.0.0.0:9631]
 
-    --org <ORGANIZATION> The organization that the Supervisor and its subsequent services are part of
+    --org <ORGANIZATION> The organization the Supervisor and its services are part of
 
     --peer <PEER>... The listen address of one or more initial peers (IP[:PORT])
 
     --peer-watch-file <PEER_WATCH_FILE> Watch this file for connecting to the ring
 
--r, --ring <RING> The name of the ring used by the Supervisor when running with wire encryption. (ex: hab sup run --ring myring) [env: HAB_RING=]
-    --shutdown-timeout <SHUTDOWN_TIMEOUT> The number of seconds after sending a shutdown signal to wait before killing a service process (default: set in plan)
--s, --strategy <STRATEGY> The update strategy; [default: none] [values: none, at-once, rolling]
+-r, --ring <RING> The name of the ring used by the Supervisor when running with wire encryption [env: HAB_RING=]
 
-    --sys-ip-address <SYS_IP_ADDRESS> The IPv4 address to use as the sys.ip template variable. If this argument is not set, the supervisor tries to dynamically determine an IP address. If that fails, the supervisor defaults to using 127.0.0.1
--t, --topology <TOPOLOGY> Service topology; [default: none] [possible values: standalone, leader]
+    --service-update-period <SERVICE_UPDATE_PERIOD> The period of time in seconds between service update checks [default: 60]
+
+    --shutdown-timeout <SHUTDOWN_TIMEOUT> The delay in seconds after sending the shutdown signal to wait before killing the service process
+
+-s, --strategy <STRATEGY> The update strategy [default: none]  [possible values: none, at-once, rolling]
+
+    --sys-ip-address <SYS_IP_ADDRESS> The IPv4 address to use as the sys.ip template variable
+
+-t, --topology <TOPOLOGY> Service topology [possible values: standalone, leader]
+
+    --update-condition <UPDATE_CONDITION> The condition dictating when this service should update [default: latest]  [possible values: latest, track- channel]
 ```
 
 **ARGS**
 
 ```
-<PKG_IDENT_OR_ARTIFACT>    Load the given Habitat package as part of the Supervisor startup specified by a package identifier (ex: core/redis) or filepath to a Habitat Artifact (ex: home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)
+<PKG_IDENT_OR_ARTIFACT>    Load a Habitat package as part of the Supervisor startup
 ```
 
 
 
-+++
+---
 
 ### hab sup secret
 
@@ -3046,9 +3199,10 @@ hab sup secret <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab sup secret generate](#hab-sup-secret-generate) | Generate a secret key to use as a Supervisor's Control Gateway secret |
-+++
+| [hab sup secret generate-tls](#hab-sup-secret-generate-tls) | Generate a private key and certificate for the Supervisor's Control Gateway TLS connection |
+---
 
 ### hab sup secret generate
 
@@ -3071,7 +3225,37 @@ hab sup secret generate
 
 
 
-+++
+---
+
+### hab sup secret generate-tls
+
+Generate a private key and certificate for the Supervisor's Control Gateway TLS connection
+
+**USAGE**
+
+```
+hab sup secret generate-tls [OPTIONS] --subject-alternative-name <subject-alternative-name>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+--path <path> The directory to store the generated private key and certificate [default: /hab/cache/keys/ctl]
+
+    --subject-alternative-name <subject-alternative-name> The DNS name to use in the certificates subject alternative name extension
+```
+
+
+
+
+---
 
 ### hab sup sh
 
@@ -3093,7 +3277,7 @@ hab sup sh
 
 
 
-+++
+---
 
 ### hab sup status
 
@@ -3125,7 +3309,7 @@ hab sup status [OPTIONS] [PKG_IDENT]
 
 
 
-+++
+---
 
 ### hab sup term
 
@@ -3134,7 +3318,7 @@ Gracefully terminate the Habitat Supervisor and all of its running services
 **USAGE**
 
 ```
-hab sup term [OPTIONS]
+hab sup term
 ```
 
 **FLAGS**
@@ -3147,7 +3331,7 @@ hab sup term [OPTIONS]
 
 
 
-+++
+---
 
 ## hab supportbundle
 
@@ -3170,7 +3354,7 @@ hab supportbundle
 
 
 
-+++
+---
 
 ## hab svc
 
@@ -3195,14 +3379,15 @@ hab svc <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab svc key](#hab-svc-key) | Commands relating to Habitat service keys |
 | [hab svc load](#hab-svc-load) | Load a service to be started and supervised by Habitat from a package identifier. If an installed package doesn't satisfy the given package identifier, a suitable package will be installed from Builder |
 | [hab svc start](#hab-svc-start) | Start a loaded, but stopped, Habitat service |
 | [hab svc status](#hab-svc-status) | Query the status of Habitat services |
 | [hab svc stop](#hab-svc-stop) | Stop a running Habitat service |
 | [hab svc unload](#hab-svc-unload) | Unload a service loaded by the Habitat Supervisor. If the service is running it will additionally be stopped |
-+++
+| [hab svc update](#hab-svc-update) | Update how the Supervisor manages an already-running service. Depending on the given changes, they may be able to be applied without restarting the service |
+---
 
 ### hab svc key
 
@@ -3227,9 +3412,9 @@ hab svc key <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab svc key generate](#hab-svc-key-generate) | Generates a Habitat service key |
-+++
+---
 
 ### hab svc key generate
 
@@ -3238,7 +3423,7 @@ Generates a Habitat service key
 **USAGE**
 
 ```
-hab svc key generate <SERVICE_GROUP> --cache-key-path <CACHE_KEY_PATH> [ORG]
+hab svc key generate [OPTIONS] <SERVICE_GROUP> [ORG]
 ```
 
 **FLAGS**
@@ -3251,7 +3436,7 @@ hab svc key generate <SERVICE_GROUP> --cache-key-path <CACHE_KEY_PATH> [ORG]
 **OPTIONS**
 
 ```
---cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+--cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 ```
 
 **ARGS**
@@ -3263,7 +3448,7 @@ hab svc key generate <SERVICE_GROUP> --cache-key-path <CACHE_KEY_PATH> [ORG]
 
 
 
-+++
+---
 
 ### hab svc load
 
@@ -3287,20 +3472,24 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
 
 ```
 --bind <BIND>...                                   One or more service groups to bind to a configuration
-    --binding-mode <BINDING_MODE> Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] [values: relaxed, strict]
+    --binding-mode <BINDING_MODE> Governs how the presence or absence of binds affects service startup [default: strict]  [possible values: strict, relaxed]
 -u, --url <BLDR_URL> Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-    --channel <CHANNEL> Receive package updates from the specified release channel [default: stable]
+    --channel <CHANNEL> Receive updates from the specified release channel [default: stable]
 
-    --group <GROUP> The service group; shared config and topology [default: default]
+    --config-from <CONFIG_FROM> Use the package config from this path rather than the package itself
 
--i, --health-check-interval <HEALTH_CHECK_INTERVAL> The interval (seconds) on which to run health checks [default: 30]
+    --group <GROUP> The service group with shared config and topology [default: default]
+
+-i, --health-check-interval <HEALTH_CHECK_INTERVAL> The interval in seconds on which to run health checks [default: 30]
 
 -r, --remote-sup <REMOTE_SUP> Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
 
-    --shutdown-timeout <SHUTDOWN_TIMEOUT> The number of seconds after sending a shutdown signal to wait before killing a service process (default: set in plan)
--s, --strategy <STRATEGY> The update strategy; [default: none] [values: none, at-once, rolling]
+    --shutdown-timeout <SHUTDOWN_TIMEOUT> The delay in seconds after sending the shutdown signal to wait before killing the service process
 
--t, --topology <TOPOLOGY> Service topology; [default: none] [possible values: standalone, leader]
+-s, --strategy <STRATEGY> The update strategy [default: none]  [possible values: none, at-once, rolling]
+
+-t, --topology <TOPOLOGY>                              Service topology [possible values: standalone, leader]
+    --update-condition <UPDATE_CONDITION> The condition dictating when this service should update [default: latest]  [possible values: latest, track- channel]
 ```
 
 **ARGS**
@@ -3311,7 +3500,7 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
 
 
 
-+++
+---
 
 ### hab svc start
 
@@ -3344,7 +3533,7 @@ hab svc start [OPTIONS] <PKG_IDENT>
 
 
 
-+++
+---
 
 ### hab svc status
 
@@ -3377,7 +3566,7 @@ hab svc status [OPTIONS] [PKG_IDENT]
 
 
 
-+++
+---
 
 ### hab svc stop
 
@@ -3401,7 +3590,7 @@ hab svc stop [OPTIONS] <PKG_IDENT>
 ```
 -r, --remote-sup <REMOTE_SUP> Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
 
-    --shutdown-timeout <SHUTDOWN_TIMEOUT> The number of seconds after sending a shutdown signal to wait before killing a service process (default: set in plan)
+    --shutdown-timeout <SHUTDOWN_TIMEOUT> The delay in seconds after sending the shutdown signal to wait before killing the service process
 ```
 
 **ARGS**
@@ -3412,7 +3601,7 @@ hab svc stop [OPTIONS] <PKG_IDENT>
 
 
 
-+++
+---
 
 ### hab svc unload
 
@@ -3436,7 +3625,7 @@ hab svc unload [OPTIONS] <PKG_IDENT>
 ```
 -r, --remote-sup <REMOTE_SUP> Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
 
-    --shutdown-timeout <SHUTDOWN_TIMEOUT> The number of seconds after sending a shutdown signal to wait before killing a service process (default: set in plan)
+    --shutdown-timeout <SHUTDOWN_TIMEOUT> The delay in seconds after sending the shutdown signal to wait before killing the service process
 ```
 
 **ARGS**
@@ -3447,7 +3636,53 @@ hab svc unload [OPTIONS] <PKG_IDENT>
 
 
 
-+++
+---
+
+### hab svc update
+
+Update how the Supervisor manages an already-running service. Depending on the given changes, they may be able to be
+
+**USAGE**
+
+```
+hab svc update [OPTIONS] <PKG_IDENT>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+--bind <BIND>...                                   One or more service groups to bind to a configuration
+    --binding-mode <BINDING_MODE> Governs how the presence or absence of binds affects service startup [possible values: strict, relaxed]
+
+-u, --url <BLDR_URL>                                   Specify an alternate Builder endpoint
+    --channel <CHANNEL>                                Receive updates from the specified release channel
+    --group <GROUP>                                    The service group with shared config and topology
+-i, --health-check-interval <HEALTH_CHECK_INTERVAL>    The interval in seconds on which to run health checks
+-r, --remote-sup <REMOTE_SUP> Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+
+    --shutdown-timeout <SHUTDOWN_TIMEOUT> The delay in seconds after sending the shutdown signal to wait before killing the service process
+
+-s, --strategy <STRATEGY>                              The update strategy [possible values: none, at-once, rolling]
+-t, --topology <TOPOLOGY>                              Service topology [possible values: standalone, leader]
+    --update-condition <UPDATE_CONDITION> The condition dictating when this service should update [possible values: latest, track-channel]
+```
+
+**ARGS**
+
+```
+<PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+```
+
+
+
+---
 
 ## hab user
 
@@ -3472,9 +3707,9 @@ hab user <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab user key](#hab-user-key) | Commands relating to Habitat user keys |
-+++
+---
 
 ### hab user key
 
@@ -3499,9 +3734,9 @@ hab user key <SUBCOMMAND>
 **SUBCOMMANDS**
 
 | Command | Description |
-| ++++++- | +++++++++-- |
+| ------- | ----------- |
 | [hab user key generate](#hab-user-key-generate) | Generates a Habitat user key |
-+++
+---
 
 ### hab user key generate
 
@@ -3510,7 +3745,7 @@ Generates a Habitat user key
 **USAGE**
 
 ```
-hab user key generate <USER> --cache-key-path <CACHE_KEY_PATH>
+hab user key generate [OPTIONS] <USER>
 ```
 
 **FLAGS**
@@ -3523,7 +3758,7 @@ hab user key generate <USER> --cache-key-path <CACHE_KEY_PATH>
 **OPTIONS**
 
 ```
---cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise [env: HAB_CACHE_KEY_PATH=]
+--cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 ```
 
 **ARGS**
@@ -3534,5 +3769,4 @@ hab user key generate <USER> --cache-key-path <CACHE_KEY_PATH>
 
 
 
-+++
-
+---
