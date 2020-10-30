@@ -36,8 +36,8 @@ The Supervisor settings look-up order:
 2. Files passed with the command, `hab sup run --config-files /config/file1.toml /config/file2.toml`, where
     * You can pass more than one file command
     * The settings in the later files overwrite those from the earlier, which means that for the same settings specified in both files in the command `hab sup run --config-files /config/file1.toml /config/file2.toml`, you will end up with the settings from `file2.toml` applied to the Supervisor
-3. From [environment variables](/docs/reference/#environment-variables), if they exist
-4. From settings passed from the [`hab sup run` command](/docs/habitat-cli/#hab-sup-run)
+3. From [environment variables]({{< relref "environment_variables" >}}), if they exist
+4. From settings passed from the [`hab sup run` command]({{< relref "habitat_cli/#hab-sup-run" >}})
 
 ```toml config.toml
 ### The listen address for the Gossip Gateway

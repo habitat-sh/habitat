@@ -13,7 +13,7 @@ description = "Service Group Topologies"
 
 [\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/topologies.md)
 
-A topology describes the intended relationship between peers within a service group. Two topologies ship with Chef Habitat by default: standalone, and leader-follower. The leader-follower topology employs [leader election](/internals/#election-internals) to define a leader.
+A topology describes the intended relationship between peers within a service group. Two topologies ship with Chef Habitat by default: standalone, and leader-follower. The leader-follower topology employs [leader election]({{< relref "sup_crypto" >}}) to define a leader.
 
 ## Standalone
 
@@ -66,4 +66,4 @@ $ hab svc load <ORIGIN>/<NAME>
 
 When this is used we will attempt to ping the permanent peer and achieve quorum, even if they are confirmed dead.
 
-The notion of a permanent peer is an extension to the original [SWIM](http://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf) gossip protocol. It can add robustness provided everyone has a permanent member on both sides of the split.
+The notion of a permanent peer is an extension to the original [SWIM](https://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf) gossip protocol. It can add robustness provided everyone has a permanent member on both sides of the split.

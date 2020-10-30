@@ -15,7 +15,7 @@ description = "Create an Origin on Chef Habitat Builder"
 An origin is a space on Chef Habitat Builder where you can store, share, and build packages. It is a unique namespace within Chef Habitat Builder, and while you can delete or transfer an origin, you can't rename an origin after it is created. One example of an origin is the "core" origin, which is the set of foundational packages managed and versioned by the core Chef Habitat maintainers.
 
 You can join existing origins by invitation and you can create your own origins.
-For more on invitations, see [origin membership and RBAC]({{< relref "origin-rbac.md#origin-membership" >}}).
+For more on invitations, see [origin membership and RBAC]({{< relref "origin_rbac.md#origin-membership" >}}).
 
 ### Create an Origin
 
@@ -35,16 +35,16 @@ Next, choose a privacy setting to set as the default for new packages. You can o
 When you select **Save and Continue**, Chef Habitat Builder:
 
 1. Creates your origin
-1. Creates an [origin key pair]({{< relref "origin-keys.md" >}})
+1. Creates an [origin key pair]({{< relref "origin_keys.md" >}})
 1. Redirects Chef Habitat Builder to the origin page
 
 ![Origin successfully created](/images/habitat/create-origin-done.png)
 
 #### Create an Origin with the Chef Habitat CLI
 
-Use the [hab origin]({{< relref "habitat-cli.md#hab-origin" >}}) commands to manage your origins from the command line.
+Use the [hab origin]({{< relref "habitat_cli.md#hab-origin" >}}) commands to manage your origins from the command line.
 
-Create an origin from the command line with the [hab origin create]({{< relref "habitat-cli.md#hab-origin-create" >}}) command
+Create an origin from the command line with the [hab origin create]({{< relref "habitat_cli.md#hab-origin-create" >}}) command
 
 ```bash
 hab origin create <origin>
@@ -55,4 +55,4 @@ The results of this command differ slightly from creating an origin on the Chef 
 1. Creates an origin on the Chef Habitat Builder site
 1. Does _not_ generate an origin key pair
 
-For more information, see the [`hab origin create`]({{< relref "habitat-cli.md#hab-origin-create" >}}) CLI documentation.
+For more information, see the [`hab origin create`]({{< relref "habitat_cli.md#hab-origin-create" >}}) CLI documentation.

@@ -6,9 +6,10 @@ draft = true
 
 [menu]
   [menu.habitat]
-    title = "About the Studio"
-    identifier = "habitat/studio/studio Setting up Studio"
-    parent = "habitat/studio"
+    title = "Habitat Studio"
+    identifier = "habitat/studio Habitat Studio"
+    parent = "habitat"
+    weight = 80
 
 +++
 [\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/studio.md)
