@@ -984,6 +984,11 @@ weight = 10
   weight = 90
 
   [[menu.habitat]]
+  title = "API"
+  identifier = "habitat/reference/api"
+  parent = "habitat/reference"
+
+  [[menu.habitat]]
   title = "Containers"
   identifier = "habitat/containers"
   parent = "habitat"
