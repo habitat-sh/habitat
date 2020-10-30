@@ -240,12 +240,17 @@ impl BuildSpec {
         let sup = self.install_base_pkg(ui, &self.hab_sup, rootfs).await?;
         let launcher = self.install_base_pkg(ui, &self.hab_launcher, rootfs)
                            .await?;
+
+        // TODO (CM): at some point these should be considered as
+        // something other than "base" packages... replacing busybox
+        // and cacerts isn't really something that's going to need to
+        // be done
         let busybox = if cfg!(target_os = "linux") {
-            Some(self.install_base_pkg(ui, BUSYBOX_IDENT, rootfs).await?)
+            Some(self.install_stable_pkg(ui, BUSYBOX_IDENT, rootfs).await?)
         } else {
             None
         };
-        let cacerts = self.install_base_pkg(ui, CACERTS_IDENT, rootfs).await?;
+        let cacerts = self.install_stable_pkg(ui, CACERTS_IDENT, rootfs).await?;
 
         Ok(BasePkgIdents { hab,
                            sup,
@@ -333,6 +338,20 @@ impl BuildSpec {
                      ident_or_archive,
                      &self.base_pkgs_url,
                      &self.base_pkgs_channel,
+                     fs_root_path,
+                     None)
+            .await
+    }
+
+    async fn install_stable_pkg(&self,
+                                ui: &mut UI,
+                                ident_or_archive: &str,
+                                fs_root_path: &Path)
+                                -> Result<FullyQualifiedPackageIdent> {
+        self.install(ui,
+                     ident_or_archive,
+                     &self.base_pkgs_url,
+                     &ChannelIdent::stable(),
                      fs_root_path,
                      None)
             .await
