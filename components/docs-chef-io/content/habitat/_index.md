@@ -1,6 +1,8 @@
 +++
 title = "About Chef Habitat"
 
+aliases = ["/habitat/reference/", "/habitat/glossary/", "/habitat/diagrams/"]
+
 [menu]
   [menu.habitat]
     title = "About Chef Habitat"
@@ -15,7 +17,7 @@ You can deploy and run your Chef Habitat app on many different infrastructure en
 
 ## Chef Habitat Builder
 
-[Chef Habitat Builder]({{< relref "builder-overview" >}}) acts as the core of Chef's Application Delivery Enterprise hub. You can run Chef Habitat Builder as a cloud-based service or on-premises.
+[Chef Habitat Builder]({{< relref "builder_overview" >}}) acts as the core of Chef's Application Delivery Enterprise hub. You can run Chef Habitat Builder as a cloud-based service or on-premises.
 
 Chef Habitat Builder provides package storage, search, and an API for clients.
 
@@ -23,7 +25,7 @@ The contents of your app are stored in the Chef Habitat Builder SaaS, where the 
 
 ## Plans
 
-A [plan]({{< relref "plan-overview" >}}) is the file where you define how you will build, deploy, and manage your app. A plan file is named `plan.sh` for Linux systems or `plan.ps1` for Windows, and your app can have plan files for both Linux and Windows operating systems. You can find your plan file in the `habitat` directory, which you install at the root of your app with `hab plan init`.
+A [plan]({{< relref "plan_writing" >}}) is the file where you define how you will build, deploy, and manage your app. A plan file is named `plan.sh` for Linux systems or `plan.ps1` for Windows, and your app can have plan files for both Linux and Windows operating systems. You can find your plan file in the `habitat` directory, which you install at the root of your app with `hab plan init`.
 
 ## Supervisor
 
@@ -38,4 +40,4 @@ A [service]({{< relref "services" >}}) is your Chef Habitat package that is run 
 
 ## Installing Chef Habitat
 
-The Chef Habitat CLI can be [installed]({{< relref "install-habitat" >}}) on Linux, Mac, and Windows.
+The Chef Habitat CLI can be [installed]({{< relref "install_habitat" >}}) on Linux, Mac, and Windows.
