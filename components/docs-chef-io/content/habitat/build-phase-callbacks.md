@@ -49,19 +49,26 @@ Only the runtime portion of this combined buildtime environment is made availabl
 
 To add or modify your environment variables, there are special functions to call within this callback to ensure that the variables are set up appropriately.
 
-Bash:
+{{< foundation_tabs tabs-id="bash-powershell-panel1" >}}
+  {{< foundation_tab active="true" panel-link="bash-panel1" tab-text="bash">}}
+  {{< foundation_tab panel-link="powershell-panel1" tab-text="Powershell" >}}
+{{< /foundation_tabs >}}
 
-```bash
-set_runtime_env [-f] VARIABLE_NAME VALUE
-set_buildtime_env [-f] VARIABLE_NAME VALUE
-```
+{{< foundation_tabs_panels tabs-id="bash-powershell-panel1" >}}
+  {{< foundation_tabs_panel active="true" panel-id="bash-panel1" >}}
+  ```bash
+  set_runtime_env [-f] VARIABLE_NAME VALUE
+  set_buildtime_env [-f] VARIABLE_NAME VALUE
+  ```
+  {{< /foundation_tabs_panel >}}
 
-Powershell:
-
-```powershell
-Set-RuntimeEnv VARIABLE_NAME VALUE [-force] [-IsPath]
-Set-BuildtimeEnv VARIABLE_NAME VALUE [-force] [-IsPath]
-```
+  {{< foundation_tabs_panel panel-id="powershell-panel1" >}}
+  ```powershell
+  Set-RuntimeEnv VARIABLE_NAME VALUE [-force] [-IsPath]
+  Set-BuildtimeEnv VARIABLE_NAME VALUE [-force] [-IsPath]
+  ```
+  {{< /foundation_tabs_panel >}}
+{{< /foundation_tabs_panels >}}
 
 In Powershell plans, if your variable contains values that are file paths pointing inside the Chef Habitat `/hab` directory, you can use the `-IsPath` flag to ensure that the path remains portable accross different Chef Habitat environments. For example in a local (non-Docker) Windows Studio, the following line:
 
@@ -81,35 +88,49 @@ These functions allow you to _set_ an environment variable's value. If one of yo
 
 For pushing new values onto a multi-valued environment variable (like `PATH`), use the following functions:
 
-Bash:
+{{< foundation_tabs tabs-id="bash-powershell-panel2" >}}
+  {{< foundation_tab active="true" panel-link="bash-panel2" tab-text="bash">}}
+  {{< foundation_tab panel-link="powershell-panel2" tab-text="Powershell" >}}
+{{< /foundation_tabs >}}
 
-```bash
-push_runtime_env VARIABLE_NAME VALUE
-push_buildtime_env VARIABLE_NAME VALUE
-```
+{{< foundation_tabs_panels tabs-id="bash-powershell-panel2" >}}
+  {{< foundation_tabs_panel active="true" panel-id="bash-panel2" >}}
+  ```bash
+  push_runtime_env VARIABLE_NAME VALUE
+  push_buildtime_env VARIABLE_NAME VALUE
+  ```
+  {{< /foundation_tabs_panel >}}
 
-Powershell:
-
-```powershell
-Push-RuntimeEnv VARIABLE_NAME VALUE [-IsPath]
-Push-BuildtimeEnv VARIABLE_NAME VALUE [-IsPath]
-```
+  {{< foundation_tabs_panel panel-id="powershell-panel2" >}}
+  ```powershell
+  Push-RuntimeEnv VARIABLE_NAME VALUE [-IsPath]
+  Push-BuildtimeEnv VARIABLE_NAME VALUE [-IsPath]
+  ```
+  {{< /foundation_tabs_panel >}}
+{{< /foundation_tabs_panels >}}
 
 These functions allow you to push a new value onto a multi-valued environment variable without overwriting the existing values. These multi-valued variables are referred to as "aggregate" variables in Chef Habitat. Single-value environment variables are known as "primitive" variables.
 
 By default, Chef Habitat treats all variables as "primitive" variables. If you are working with a value that is actually an "aggregate" type, you must set the following special environment variable somewhere in the top level of your plan.
 
-Bash:
+{{< foundation_tabs tabs-id="bash-powershell-panel3" >}}
+  {{< foundation_tab active="true" panel-link="bash-panel3" tab-text="bash">}}
+  {{< foundation_tab panel-link="powershell-panel3" tab-text="Powershell" >}}
+{{< /foundation_tabs >}}
 
-```bash
-export HAB_ENV_FOO_TYPE=aggregate
-```
+{{< foundation_tabs_panels tabs-id="bash-powershell-panel3" >}}
+  {{< foundation_tabs_panel active="true" panel-id="bash-panel3" >}}
+  ```bash
+  export HAB_ENV_FOO_TYPE=aggregate
+  ```
+  {{< /foundation_tabs_panel >}}
 
-Powershell:
-
-```powershell
-$env:HAB_ENV_FOO_TYPE="aggregate"
-```
+  {{< foundation_tabs_panel panel-id="powershell-panel3" >}}
+  ```powershell
+  $env:HAB_ENV_FOO_TYPE="aggregate"
+  ```
+  {{< /foundation_tabs_panel >}}
+{{< /foundation_tabs_panels >}}
 
 Similarly, Chef Habitat defaults to using the colon (`:`) as a separator for aggregate variables on Linux. If the hypothetical `FOO` variable uses a semicolon (`;`) as a separator instead, then you must add `export HAB_ENV_FOO_SEPARATOR=;` at the top level of the plan. On Windows, `;` is the default separator.
 

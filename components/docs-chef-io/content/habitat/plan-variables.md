@@ -59,7 +59,7 @@ LDFLAGS
 : C linker options.
 
 PREFIX
-: Where to install the software; same as `pkg_prefix`
+: Where to install the software; same as `pkg_prefix`.
 
 LD_RUN_PATH
 : Where to find the binaries at run time.

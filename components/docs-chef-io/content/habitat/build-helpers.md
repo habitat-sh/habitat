@@ -117,36 +117,53 @@ update\_pkg\_version()/Set-PkgVersion
 : Updates the value for `$pkg_version` by calling a Plan author-provided `pkg_version()` function. This function must be explicitly called in a Plan in or after the `do_before()`/`Invoke-Before` build phase but before the `do_prepare()`/`Invoke-Prepare` build phase. The `$pkg_version` variable will be updated and any other relevant variables will be recomputed. The following examples show how to use these functions to set a dynamic version number.
 
 This plan concatenates a static file in the source root of the
-project to determine the version in the
-`before` phase:
+project to determine the version in the `before` phase:
 
-```bash
-pkg_version() {
+{{< foundation_tabs tabs-id="bash-powershell-panel1" >}}
+  {{< foundation_tab active="true" panel-link="bash-panel1" tab-text="bash">}}
+  {{< foundation_tab panel-link="powershell-panel1" tab-text="Powershell" >}}
+{{< /foundation_tabs >}}
+
+{{< foundation_tabs_panels tabs-id="bash-powershell-panel1" >}}
+  {{< foundation_tabs_panel active="true" panel-id="bash-panel1" >}}
+  ```bash
+  pkg_version() {
   cat "$SRC_PATH/version.txt"
-}
+  }
 
-do_before() {
+  do_before() {
   do_default_before
   update_pkg_version
-}
-```
+  }
+  ```
+  {{< /foundation_tabs_panel >}}
 
-```powershell
-function pkg_version {
+  {{< foundation_tabs_panel panel-id="powershell-panel1" >}}
+  ```powershell
+  function pkg_version {
   Get-Content "$SRC_PATH/version.txt"
-}
+  }
 
-Invoke-Before {
+  Invoke-Before {
   Invoke-DefaultBefore
   Set-PkgVersion
-}
-```
+  }
+  ```
+  {{< /foundation_tabs_panel >}}
+{{< /foundation_tabs_panels >}}
 
 The `pkg_version` function in this plan dynamically creates a version with a date stamp to format the final version string to standard output.
 As the downloaded file is required before running the version logic, this helper function is called in the `download` build phase:
 
-```bash
-pkg_version() {
+{{< foundation_tabs tabs-id="bash-powershell-panel2" >}}
+  {{< foundation_tab active="true" panel-link="bash-panel2" tab-text="bash">}}
+  {{< foundation_tab panel-link="powershell-panel2" tab-text="Powershell" >}}
+{{< /foundation_tabs >}}
+
+{{< foundation_tabs_panels tabs-id="bash-powershell-panel2" >}}
+  {{< foundation_tabs_panel active="true" panel-id="bash-panel2" >}}
+  ```bash
+  pkg_version() {
   local build_date
 
   # Extract the build date of the certificates file
@@ -155,32 +172,36 @@ pkg_version() {
     | sed 's/^## Certificate data from Mozilla as of: //')
 
   date --date="$build_date" "+%Y.%m.%d"
-}
-
-do_download() {
-  do_default_download
-  update_pkg_version
-}
-```
-
-```powershell
-function pkg_version {
-  # Extract the build date of the certificates file
-  $matchStr = "## Certificate data from Mozilla as of: "
-  foreach($line in (Get-Content "$HAB_CACHE_SRC_PATH/$pkg_filename")) {
-    if($line.StartsWith($matchStr)) {
-      $build_date = $line.Substring($matchStr.Length)
-    }
   }
 
-  [DateTime]::Parse($build_date).ToString("yyyy.mm.dd")
-}
+  do_download() {
+  do_default_download
+  update_pkg_version
+  }
+  ```
+  {{< /foundation_tabs_panel >}}
 
-function Invoke-Download {
-  Invoke-DefaultDownload
-  Set-PkgVersion
-}
-```
+  {{< foundation_tabs_panel panel-id="powershell-panel2" >}}
+  ```powershell
+  function pkg_version {
+    # Extract the build date of the certificates file
+    $matchStr = "## Certificate data from Mozilla as of: "
+    foreach($line in (Get-Content "$HAB_CACHE_SRC_PATH/$pkg_filename")) {
+      if($line.StartsWith($matchStr)) {
+        $build_date = $line.Substring($matchStr.Length)
+      }
+    }
+
+    [DateTime]::Parse($build_date).ToString("yyyy.mm.dd")
+  }
+
+  function Invoke-Download {
+    Invoke-DefaultDownload
+    Set-PkgVersion
+  }
+  ```
+  {{< /foundation_tabs_panel >}}
+{{< /foundation_tabs_panels >}}
 
 abspath()
 : `plan.sh` only. Return the absolute path for a path, which might be absolute or relative.
