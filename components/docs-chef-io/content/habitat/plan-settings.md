@@ -38,7 +38,7 @@ pkg_name
 : Sets the name of the package. Can contain upper and lowercase letters, numbers, dashes, and underscores. By default, Chef Habitat uses `pkg_name`, `pkg_origin`, and `pkg_version` to create the fully-qualified package name. Type: string. _Required_.
 
 {{< foundation_tabs tabs-id="bash-powershell-panel" >}}
-  {{< foundation_tab active="true" panel-link="bash-panel" tab-text="bash">}}
+  {{< foundation_tab active="true" panel-link="bash-panel" tab-text="Bash">}}
   {{< foundation_tab panel-link="powershell-panel" tab-text="Powershell" >}}
 {{< /foundation_tabs >}}
 
@@ -60,7 +60,7 @@ pkg_origin
 : The name of the origin for this package. Can contain upper and lowercase letters, numbers, dashes, and underscores. The `HAB_ORIGIN` environment variable overrides the `pkg_origin` Type: string. _Required_.
 
 {{< foundation_tabs tabs-id="bash-powershell-panel1" >}}
-  {{< foundation_tab active="true" panel-link="bash-panel1" tab-text="bash">}}
+  {{< foundation_tab active="true" panel-link="bash-panel1" tab-text="Bash">}}
   {{< foundation_tab panel-link="powershell-panel1" tab-text="Powershell" >}}
 {{< /foundation_tabs >}}
 
@@ -82,7 +82,7 @@ pkg_version
 : Sets the version of the package By default, Chef Habitat uses `pkg_name`, `pkg_origin`, and `pkg_version` to create the fully-qualified package name. You can set the value through the `pkg_version()` function. Type: string. _Required_.
 
 {{< foundation_tabs tabs-id="bash-powershell-panel2" >}}
-  {{< foundation_tab active="true" panel-link="bash-panel2" tab-text="bash">}}
+  {{< foundation_tab active="true" panel-link="bash-panel2" tab-text="Bash">}}
   {{< foundation_tab panel-link="powershell-panel2" tab-text="Powershell" >}}
 {{< /foundation_tabs >}}
 
@@ -104,7 +104,7 @@ pkg_maintainer
 : The name and email address of the package maintainer. Type: string._Optional_.
 
 {{< foundation_tabs tabs-id="bash-powershell-panel3" >}}
-  {{< foundation_tab active="true" panel-link="bash-panel3" tab-text="bash">}}
+  {{< foundation_tab active="true" panel-link="bash-panel3" tab-text="Bash">}}
   {{< foundation_tab panel-link="powershell-panel3" tab-text="Powershell" >}}
 {{< /foundation_tabs >}}
 
@@ -126,7 +126,7 @@ pkg_license
 : One or more [valid software licenses](https://spdx.org/licenses/) that relate to this package. Type: array. _Optional_.
 
 {{< foundation_tabs tabs-id="bash-powershell-panel4" >}}
-  {{< foundation_tab active="true" panel-link="bash-panel4" tab-text="bash">}}
+  {{< foundation_tab active="true" panel-link="bash-panel4" tab-text="Bash">}}
   {{< foundation_tab panel-link="powershell-panel4" tab-text="Powershell" >}}
 {{< /foundation_tabs >}}
 
@@ -152,7 +152,7 @@ pkg_source
 : A URL that specifies the location from which to download an external source. Any valid `wget` url will work. Typically, the relative path for the URL typically contains the `pkg_name` and `pkg_version` values. Type: URL. _Optional_.
 
 {{< foundation_tabs tabs-id="bash-powershell-panel5" >}}
-  {{< foundation_tab active="true" panel-link="bash-panel5" tab-text="bash">}}
+  {{< foundation_tab active="true" panel-link="bash-panel5" tab-text="Bash">}}
   {{< foundation_tab panel-link="powershell-panel5" tab-text="Powershell" >}}
 {{< /foundation_tabs >}}
 
@@ -174,7 +174,7 @@ pkg_filename
 : The filename for the finished artifact. By default, Chef Habitat ] constructs this from `pkg_name` and `pkg_version`. Type: string. _Optional_.
 
 {{< foundation_tabs tabs-id="bash-powershell-panel6" >}}
-  {{< foundation_tab active="true" panel-link="bash-panel6" tab-text="bash">}}
+  {{< foundation_tab active="true" panel-link="bash-panel6" tab-text="Bash">}}
   {{< foundation_tab panel-link="powershell-panel6" tab-text="Powershell" >}}
 {{< /foundation_tabs >}}
 
@@ -196,7 +196,7 @@ pkg_shasum
 : The sha-256 sum of the downloaded `pkg_source`. If you do not have the checksum, generate it by downloading the source and using the `sha256sum` or `gsha256sum` tools. Override with `do_verify()`. When the value is unset or incorrect and you do not override it with `do_verify()`, then the build output of your package will show the expected value. Type: varchar(64) or char(64). _Required_ when providing a valid URL is provided for `pkg_source`, but is otherwise _Optional_.
 
 {{< foundation_tabs tabs-id="bash-powershell-panel7" >}}
-  {{< foundation_tab active="true" panel-link="bash-panel7" tab-text="bash">}}
+  {{< foundation_tab active="true" panel-link="bash-panel7" tab-text="Bash">}}
   {{< foundation_tab panel-link="powershell-panel7" tab-text="Powershell" >}}
 {{< /foundation_tabs >}}
 
@@ -218,7 +218,7 @@ pkg_deps
 : The dependencies that your packages needs at runtime. Refer to packages at three levels of specificity: origin/package, origin/package/version, or origin/package/version/release. Type: array. _Optional_.
 
 {{< foundation_tabs tabs-id="bash-powershell-panel8" >}}
-  {{< foundation_tab active="true" panel-link="bash-panel8" tab-text="bash">}}
+  {{< foundation_tab active="true" panel-link="bash-panel8" tab-text="Bash">}}
   {{< foundation_tab panel-link="powershell-panel8" tab-text="Powershell" >}}
 {{< /foundation_tabs >}}
 
@@ -240,7 +240,7 @@ pkg_build_deps
 : The dependencies your package requires at build time. Type: array. _Optional_.
 
 {{< foundation_tabs tabs-id="bash-powershell-panel9" >}}
-  {{< foundation_tab active="true" panel-link="bash-panel9" tab-text="bash">}}
+  {{< foundation_tab active="true" panel-link="bash-panel9" tab-text="Bash">}}
   {{< foundation_tab panel-link="powershell-panel9" tab-text="Powershell" >}}
 {{< /foundation_tabs >}}
 

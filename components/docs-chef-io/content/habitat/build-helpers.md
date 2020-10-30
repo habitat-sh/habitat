@@ -120,7 +120,7 @@ This plan concatenates a static file in the source root of the
 project to determine the version in the `before` phase:
 
 {{< foundation_tabs tabs-id="bash-powershell-panel1" >}}
-  {{< foundation_tab active="true" panel-link="bash-panel1" tab-text="bash">}}
+  {{< foundation_tab active="true" panel-link="bash-panel1" tab-text="Bash">}}
   {{< foundation_tab panel-link="powershell-panel1" tab-text="Powershell" >}}
 {{< /foundation_tabs >}}
 
@@ -156,7 +156,7 @@ The `pkg_version` function in this plan dynamically creates a version with a dat
 As the downloaded file is required before running the version logic, this helper function is called in the `download` build phase:
 
 {{< foundation_tabs tabs-id="bash-powershell-panel2" >}}
-  {{< foundation_tab active="true" panel-link="bash-panel2" tab-text="bash">}}
+  {{< foundation_tab active="true" panel-link="bash-panel2" tab-text="Bash">}}
   {{< foundation_tab panel-link="powershell-panel2" tab-text="Powershell" >}}
 {{< /foundation_tabs >}}
 

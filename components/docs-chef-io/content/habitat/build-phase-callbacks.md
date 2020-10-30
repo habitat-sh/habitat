@@ -50,7 +50,7 @@ Only the runtime portion of this combined buildtime environment is made availabl
 To add or modify your environment variables, there are special functions to call within this callback to ensure that the variables are set up appropriately.
 
 {{< foundation_tabs tabs-id="bash-powershell-panel1" >}}
-  {{< foundation_tab active="true" panel-link="bash-panel1" tab-text="bash">}}
+  {{< foundation_tab active="true" panel-link="bash-panel1" tab-text="Bash">}}
   {{< foundation_tab panel-link="powershell-panel1" tab-text="Powershell" >}}
 {{< /foundation_tabs >}}
 
@@ -89,7 +89,7 @@ These functions allow you to _set_ an environment variable's value. If one of yo
 For pushing new values onto a multi-valued environment variable (like `PATH`), use the following functions:
 
 {{< foundation_tabs tabs-id="bash-powershell-panel2" >}}
-  {{< foundation_tab active="true" panel-link="bash-panel2" tab-text="bash">}}
+  {{< foundation_tab active="true" panel-link="bash-panel2" tab-text="Bash">}}
   {{< foundation_tab panel-link="powershell-panel2" tab-text="Powershell" >}}
 {{< /foundation_tabs >}}
 
@@ -114,7 +114,7 @@ These functions allow you to push a new value onto a multi-valued environment va
 By default, Chef Habitat treats all variables as "primitive" variables. If you are working with a value that is actually an "aggregate" type, you must set the following special environment variable somewhere in the top level of your plan.
 
 {{< foundation_tabs tabs-id="bash-powershell-panel3" >}}
-  {{< foundation_tab active="true" panel-link="bash-panel3" tab-text="bash">}}
+  {{< foundation_tab active="true" panel-link="bash-panel3" tab-text="Bash">}}
   {{< foundation_tab panel-link="powershell-panel3" tab-text="Powershell" >}}
 {{< /foundation_tabs >}}
 

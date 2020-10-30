@@ -21,9 +21,9 @@ Block expressions use a helper function to perform the logic.
 The syntax is the same for all block expressions and looks like this:
 
 ```
-    {{#helper blockname}}
-      {{expression}}
-    {{/helper}}
+{{#helper blockname}}
+  {{expression}}
+{{/helper}}
 ```
 
 Chef Habitat supports the standard [built-in helpers](http://handlebarsjs.com/builtin_helpers.html):
@@ -39,10 +39,10 @@ Chef Habitat supports the standard [built-in helpers](http://handlebarsjs.com/bu
 {{< note >}}
 Per [Handlebars Paths](http://handlebarsjs.com/#paths), when using `each` in a block expression, you must reference the parent context of that block to use any user-defined configuration values referenced _within_ the block, such as those that start with `cfg`. For example, if your block looked like the following, you must reference `cfg.port` from the parent context of the block:
 
-```
-    {{#each svc.members ~}}
-      server {{sys.ip}}:{{../cfg.port}}
-    {{/each}}
+```handlebars
+{{#each svc.members ~}}
+    server {{sys.ip}}:{{../cfg.port}}
+  {{/each}}
 ```
 
 {{< /note >}}
@@ -56,10 +56,10 @@ blocks.
 
 Here's an example that will only write out configuration for the unixsocket tunable if a value was set by the user:
 
-```
-    {{#if cfg.unixsocket ~}}
-    unixsocket {{cfg.unixsocket}}
-    {{/if ~}}
+```handlebars
+{{#if cfg.unixsocket ~}}
+  unixsocket {{cfg.unixsocket}}
+{{/if ~}}
 ```
 
 {{< note >}}
@@ -69,20 +69,20 @@ The `~` indicates that whitespace should be omitted when rendering.
 TOML allows you to create sections (called [TOML tables](https://github.com/toml-lang/toml#table)) to better organize your configuration variables. For example, your `default.toml` or user defined TOML could have a `[repl]` section for variables controlling replication behavior. Here's what that looks like:
 
 ```toml
-   [repl]
-   backlog-size = 200
-   backlog-ttl = 100
-   disable-tcp-nodelay = no
+[repl]
+backlog-size = 200
+backlog-ttl = 100
+disable-tcp-nodelay = no
 ```
 
 When writing your template, you can use the `with` helper to reduce duplication:
 
-```toml
-    {{#with cfg.repl ~}}
-      repl-backlog-size {{backlog-size}}
-      repl-backlog-ttl {{backlog-ttl}}
-      repl-disable-tcp-nodelay {{disable-tcp-nodelay}}
-    {{/with ~}}
+```handlebars
+{{#with cfg.repl ~}}
+  repl-backlog-size {{backlog-size}}
+  repl-backlog-ttl {{backlog-ttl}}
+  repl-disable-tcp-nodelay {{disable-tcp-nodelay}}
+{{/with ~}}
 ```
 
 Helpers can also be nested and used together in block expressions. Here is another example from the redis.config file where the `if` and `with` helpers are used together to set up `core/redis` Chef Habitat services  in a leader-follower topology.
