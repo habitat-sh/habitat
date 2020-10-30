@@ -7,8 +7,13 @@
 - [FIX] Minimal change to enable non-root containers again [#7960](https://github.com/habitat-sh/habitat/pull/7960) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.175 -->
-### Changes since 1.6.175 release
+<!-- release_rollup since=1.6.181 -->
+### Changes since 1.6.181 release
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.181 -->
+## [1.6.181](https://github.com/habitat-sh/habitat/tree/1.6.181) (2020-10-30)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.175..1.6.181)
 
 #### Bug Fixes
 - [FIX] Minimal change to enable non-root containers again [#7960](https://github.com/habitat-sh/habitat/pull/7960) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.181 -->
@@ -19,9 +24,7 @@
 - Update Changelog for 1.6.175 [#7956](https://github.com/habitat-sh/habitat/pull/7956) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.178 -->
 - Update pages, weights, and edit on GH links [#7953](https://github.com/habitat-sh/habitat/pull/7953) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.177 -->
 - Curate docs images in docs-chef-io [#7916](https://github.com/habitat-sh/habitat/pull/7916) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.176 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release 1.6.175 -->
 ## [1.6.175](https://github.com/habitat-sh/habitat/tree/1.6.175) (2020-10-28)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.139..1.6.175)
 
