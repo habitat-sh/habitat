@@ -13,7 +13,7 @@ draft= false
 
 <!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
 
-# Chef Habitat Command-Line Interface (CLI) Reference
+Chef Habitat Command-Line Interface (CLI) Reference
 
 The commands for the Chef Habitat CLI (`hab`) are listed below.
 
@@ -22,8 +22,6 @@ The commands for the Chef Habitat CLI (`hab`) are listed below.
 | hab 1.6.175/20201026161911 (linux) | 28 Oct 2020 |
 
 ## hab
-
-
 
 **USAGE**
 
@@ -37,8 +35,6 @@ hab <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
 
 **ALIASES**
 
@@ -89,9 +85,6 @@ hab bldr <SUBCOMMAND>
 -V, --version    Prints version information
 ```
 
-
-
-
 **SUBCOMMANDS**
 
 | Command | Description |
@@ -116,9 +109,6 @@ hab bldr channel <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -161,10 +151,6 @@ hab bldr channel create [OPTIONS] <CHANNEL>
 <CHANNEL>    The channel name
 ```
 
-
-
----
-
 ### hab bldr channel demote
 
 Atomically demotes selected packages in a target channel
@@ -197,10 +183,6 @@ hab bldr channel demote [OPTIONS] <SOURCE_CHANNEL> <TARGET_CHANNEL> --origin <OR
 <TARGET_CHANNEL>    The channel selected packages will be removed from
 ```
 
-
-
----
-
 ### hab bldr channel destroy
 
 Destroys a channel
@@ -231,10 +213,6 @@ hab bldr channel destroy [OPTIONS] <CHANNEL>
 <CHANNEL>    The channel name
 ```
 
-
-
----
-
 ### hab bldr channel list
 
 Lists origin channels
@@ -261,12 +239,8 @@ hab bldr channel list [OPTIONS] [ORIGIN]
 **ARGS**
 
 ```
-<ORIGIN>    The origin for which channels will be listed. Default is from 'HAB_ORIGIN' or cli.toml
+<ORIGIN>    The origin for which channels will be listed. Default is from 'HAB_ORIGIN' or cli.
 ```
-
-
-
----
 
 ### hab bldr channel promote
 
@@ -300,10 +274,6 @@ hab bldr channel promote [OPTIONS] <SOURCE_CHANNEL> <TARGET_CHANNEL> --origin <O
 <TARGET_CHANNEL>    The channel to which packages will be promoted
 ```
 
-
-
----
-
 ### hab bldr job
 
 Commands relating to Habitat Builder jobs
@@ -320,9 +290,6 @@ hab bldr job <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -366,10 +333,6 @@ hab bldr job cancel [FLAGS] [OPTIONS] <GROUP_ID>
 <GROUP_ID>    The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
 ```
 
-
-
----
-
 ### hab bldr job demote
 
 Demote packages from a completed build job from a specified channel
@@ -402,10 +365,6 @@ hab bldr job demote [FLAGS] [OPTIONS] <GROUP_ID> <CHANNEL>
 <GROUP_ID>    The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
 <CHANNEL>     The name of the channel to demote from
 ```
-
-
-
----
 
 ### hab bldr job promote
 
@@ -440,10 +399,6 @@ hab bldr job promote [FLAGS] [OPTIONS] <GROUP_ID> <CHANNEL>
 <CHANNEL>     The target channel name
 ```
 
-
-
----
-
 ### hab bldr job start
 
 Schedule a build job or group of jobs
@@ -475,10 +430,6 @@ hab bldr job start [FLAGS] [OPTIONS] <PKG_IDENT> [PKG_TARGET]
 <PKG_IDENT>     A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 <PKG_TARGET>    A package target (ex: x86_64-windows) (default: system appropriate target) [env: HAB_PACKAGE_TARGET=]
 ```
-
-
-
----
 
 ### hab bldr job status
 
@@ -512,10 +463,6 @@ hab bldr job status [FLAGS] [OPTIONS] <GROUP_ID|--origin <ORIGIN>>
 <GROUP_ID>    The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
 ```
 
-
-
----
-
 ## hab cli
 
 Commands relating to Habitat runtime config
@@ -532,9 +479,6 @@ hab cli <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -567,11 +511,6 @@ hab cli completers --shell <SHELL>
 -s, --shell <SHELL>    The name of the shell you want to generate the command-completion [possible values: Bash, Fish, Zsh, PowerShell]
 ```
 
-
-
-
----
-
 ### hab cli setup
 
 Sets up the CLI with reasonable defaults
@@ -595,11 +534,6 @@ hab cli setup [OPTIONS]
 --cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 ```
 
-
-
-
----
-
 ## hab config
 
 Commands relating to a Service's runtime config
@@ -616,9 +550,6 @@ hab config <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -661,10 +592,6 @@ hab config apply [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> [FILE]
 <FILE>              Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)
 ```
 
-
-
----
-
 ### hab config show
 
 Displays the default configuration options for a service
@@ -694,10 +621,6 @@ hab config show [OPTIONS] <PKG_IDENT>
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
 
-
-
----
-
 ## hab file
 
 Commands relating to Habitat files
@@ -714,9 +637,6 @@ hab file <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -758,10 +678,6 @@ hab file upload [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> <FILE>
 <FILE>              Path to local file on disk
 ```
 
-
-
----
-
 ## hab license
 
 Commands relating to Habitat license agreements
@@ -778,9 +694,6 @@ hab license <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -806,12 +719,6 @@ hab license accept
 -V, --version    Prints version information
 ```
 
-
-
-
-
----
-
 ## hab origin
 
 Commands relating to Habitat Builder origins
@@ -828,9 +735,6 @@ hab origin <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -877,10 +781,6 @@ hab origin create [OPTIONS] <ORIGIN>
 <ORIGIN>    The origin to be created
 ```
 
-
-
----
-
 ### hab origin delete
 
 Removes an unused/empty origin
@@ -911,10 +811,6 @@ hab origin delete [OPTIONS] <ORIGIN>
 <ORIGIN>    The origin name
 ```
 
-
-
----
-
 ### hab origin depart
 
 Departs membership from selected origin
@@ -944,10 +840,6 @@ hab origin depart [OPTIONS] <ORIGIN>
 ```
 <ORIGIN>    The origin name
 ```
-
-
-
----
 
 ### hab origin info
 
@@ -980,10 +872,6 @@ hab origin info [FLAGS] [OPTIONS] <ORIGIN>
 <ORIGIN>    The origin name to be queried
 ```
 
-
-
----
-
 ### hab origin invitations
 
 Manage origin member invitations
@@ -1000,9 +888,6 @@ hab origin invitations <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -1047,10 +932,6 @@ hab origin invitations accept [OPTIONS] <ORIGIN> <INVITATION_ID>
 <INVITATION_ID>    The id of the invitation to accept
 ```
 
-
-
----
-
 ### hab origin invitations ignore
 
 Ignore an origin member invitation
@@ -1082,10 +963,6 @@ hab origin invitations ignore [OPTIONS] <ORIGIN> <INVITATION_ID>
 <INVITATION_ID>    The id of the invitation to ignore
 ```
 
-
-
----
-
 ### hab origin invitations list
 
 List origin invitations sent to your account
@@ -1109,11 +986,6 @@ hab origin invitations list [OPTIONS]
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
 -u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 ```
-
-
-
-
----
 
 ### hab origin invitations pending
 
@@ -1144,10 +1016,6 @@ hab origin invitations pending [OPTIONS] <ORIGIN>
 ```
 <ORIGIN>    The name of the origin you wish to list invitations for
 ```
-
-
-
----
 
 ### hab origin invitations rescind
 
@@ -1180,10 +1048,6 @@ hab origin invitations rescind [OPTIONS] <ORIGIN> <INVITATION_ID>
 <INVITATION_ID>    The id of the invitation to rescind
 ```
 
-
-
----
-
 ### hab origin invitations send
 
 Send an origin member invitation
@@ -1215,10 +1079,6 @@ hab origin invitations send [OPTIONS] <ORIGIN> <INVITEE_ACCOUNT>
 <INVITEE_ACCOUNT>    The account name to invite into the origin
 ```
 
-
-
----
-
 ### hab origin key
 
 Commands relating to Habitat origin key maintenance
@@ -1235,9 +1095,6 @@ hab origin key <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -1284,10 +1141,6 @@ hab origin key download [FLAGS] [OPTIONS] <ORIGIN> [REVISION]
 <REVISION>    The origin key revision
 ```
 
-
-
----
-
 ### hab origin key export
 
 Outputs the latest origin key contents to stdout
@@ -1318,10 +1171,6 @@ hab origin key export [OPTIONS] <ORIGIN>
 <ORIGIN>    The origin name
 ```
 
-
-
----
-
 ### hab origin key generate
 
 Generates a Habitat origin key pair
@@ -1351,10 +1200,6 @@ hab origin key generate [OPTIONS] [ORIGIN]
 <ORIGIN>    The origin name
 ```
 
-
-
----
-
 ### hab origin key import
 
 Reads a stdin stream containing a public or private origin key contents and writes the key to disk
@@ -1377,11 +1222,6 @@ hab origin key import [OPTIONS]
 ```
 --cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 ```
-
-
-
-
----
 
 ### hab origin key upload
 
@@ -1417,10 +1257,6 @@ hab origin key upload [FLAGS] [OPTIONS] <ORIGIN|--pubfile <PUBLIC_FILE>>
 <ORIGIN>    The origin name
 ```
 
-
-
----
-
 ### hab origin rbac
 
 Role Based Access Control for origin members
@@ -1437,9 +1273,6 @@ hab origin rbac <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -1482,10 +1315,6 @@ hab origin rbac set [FLAGS] [OPTIONS] <MEMBER_ACCOUNT> <ROLE> --origin <ORIGIN>
 <ROLE>              The role name to enforce for the member account [possible values: readonly_member, member, maintainer, administrator, owner]
 ```
 
-
-
----
-
 ### hab origin rbac show
 
 Display an origin member's current role
@@ -1518,10 +1347,6 @@ hab origin rbac show [FLAGS] [OPTIONS] <MEMBER_ACCOUNT> --origin <ORIGIN>
 <MEMBER_ACCOUNT>    The account name of the role to display
 ```
 
-
-
----
-
 ### hab origin secret
 
 Commands related to secret management
@@ -1538,9 +1363,6 @@ hab origin secret <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -1582,10 +1404,6 @@ hab origin secret delete [OPTIONS] <KEY_NAME>
 <KEY_NAME>    The name of the variable key to be injected into the studio
 ```
 
-
-
----
-
 ### hab origin secret list
 
 List all secrets for your origin
@@ -1610,11 +1428,6 @@ hab origin secret list [OPTIONS]
 -u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -o, --origin <ORIGIN>      The origin for which secrets will be listed. Default is from 'HAB_ORIGIN' or cli.toml
 ```
-
-
-
-
----
 
 ### hab origin secret upload
 
@@ -1649,10 +1462,6 @@ hab origin secret upload [OPTIONS] <KEY_NAME> <SECRET>
 <SECRET>      The contents of the variable to be injected into the studio
 ```
 
-
-
----
-
 ### hab origin transfer
 
 Transfers ownership of an origin to another member of that origin
@@ -1684,10 +1493,6 @@ hab origin transfer [OPTIONS] <ORIGIN> <NEW_OWNER_ACCOUNT>
 <NEW_OWNER_ACCOUNT>    The account name of the new origin owner
 ```
 
-
-
----
-
 ## hab pkg
 
 Commands relating to Habitat packages
@@ -1704,9 +1509,6 @@ hab pkg <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -1756,16 +1558,11 @@ hab pkg binds <PKG_IDENT>
 -V, --version    Prints version information
 ```
 
-
 **ARGS**
 
 ```
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
-
-
-
----
 
 ### hab pkg binlink
 
@@ -1797,10 +1594,6 @@ hab pkg binlink [FLAGS] [OPTIONS] <PKG_IDENT> [BINARY]
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 <BINARY>       The command to binlink (ex: bash)
 ```
-
-
-
----
 
 ### hab pkg build
 
@@ -1836,10 +1629,6 @@ hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT>
 <PLAN_CONTEXT>    A directory containing a plan file or a habitat/ directory which contains the plan file
 ```
 
-
-
----
-
 ### hab pkg bulkupload
 
 Bulk Uploads Habitat Artifacts to a Depot from a local directory
@@ -1874,10 +1663,6 @@ hab pkg bulkupload [FLAGS] [OPTIONS] <UPLOAD_DIRECTORY>
 <UPLOAD_DIRECTORY>    Directory Path from which artifacts will be uploaded
 ```
 
-
-
----
-
 ### hab pkg channels
 
 Find out what channels a package belongs to
@@ -1909,10 +1694,6 @@ hab pkg channels [OPTIONS] <PKG_IDENT> [PKG_TARGET]
 <PKG_TARGET>    A package target (ex: x86_64-windows) (default: system appropriate target) [env: HAB_PACKAGE_TARGET=]
 ```
 
-
-
----
-
 ### hab pkg config
 
 Displays the default configuration options for a service
@@ -1936,10 +1717,6 @@ hab pkg config <PKG_IDENT>
 ```
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
-
-
-
----
 
 ### hab pkg delete
 
@@ -1971,10 +1748,6 @@ hab pkg delete [OPTIONS] <PKG_IDENT> [PKG_TARGET]
 <PKG_IDENT>     A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
 <PKG_TARGET>    A package target (ex: x86_64-windows) (default: system appropriate target) [env: HAB_PACKAGE_TARGET=]
 ```
-
-
-
----
 
 ### hab pkg demote
 
@@ -2008,10 +1781,6 @@ hab pkg demote [OPTIONS] <PKG_IDENT> <CHANNEL> [PKG_TARGET]
 <PKG_TARGET>    A package target (ex: x86_64-windows) (default: system appropriate target) [env: HAB_PACKAGE_TARGET=]
 ```
 
-
-
----
-
 ### hab pkg dependencies
 
 Returns the Habitat Artifact dependencies. By default it will return the direct dependencies of the package
@@ -2031,16 +1800,11 @@ hab pkg dependencies [FLAGS] <PKG_IDENT>
 -V, --version       Prints version information
 ```
 
-
 **ARGS**
 
 ```
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
-
-
-
----
 
 ### hab pkg download
 
@@ -2079,10 +1843,6 @@ hab pkg download [FLAGS] [OPTIONS] [--] [PKG_IDENT]...
 <PKG_IDENT>...    One or more Habitat package identifiers (ex: acme/redis)
 ```
 
-
-
----
-
 ### hab pkg env
 
 Prints the runtime environment of a specific installed package
@@ -2100,16 +1860,11 @@ hab pkg env <PKG_IDENT>
 -V, --version    Prints version information
 ```
 
-
 **ARGS**
 
 ```
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
-
-
-
----
 
 ### hab pkg exec
 
@@ -2128,7 +1883,6 @@ hab pkg exec <PKG_IDENT> <CMD> [ARGS]...
 -V, --version    Prints version information
 ```
 
-
 **ARGS**
 
 ```
@@ -2136,10 +1890,6 @@ hab pkg exec <PKG_IDENT> <CMD> [ARGS]...
 <CMD>          The command to execute (ex: ls)
 <ARGS>...      Arguments to the command
 ```
-
-
-
----
 
 ### hab pkg export
 
@@ -2157,9 +1907,6 @@ hab pkg export <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -2188,16 +1935,11 @@ hab pkg hash [SOURCE]
 -V, --version    Prints version information
 ```
 
-
 **ARGS**
 
 ```
 <SOURCE>    A filepath of the target
 ```
-
-
-
----
 
 ### hab pkg info
 
@@ -2217,16 +1959,11 @@ hab pkg info [FLAGS] <SOURCE>
 -V, --version    Prints version information
 ```
 
-
 **ARGS**
 
 ```
 <SOURCE>    A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 ```
-
-
-
----
 
 ### hab pkg install
 
@@ -2263,10 +2000,6 @@ hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
 <PKG_IDENT_OR_ARTIFACT>...    One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 ```
 
-
-
----
-
 ### hab pkg list
 
 List all versions of installed packages
@@ -2297,10 +2030,6 @@ hab pkg list [OPTIONS] <--all|--origin <ORIGIN>|PKG_IDENT>
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
 
-
-
----
-
 ### hab pkg path
 
 Prints the path to a specific installed release of a package
@@ -2318,16 +2047,11 @@ hab pkg path <PKG_IDENT>
 -V, --version    Prints version information
 ```
 
-
 **ARGS**
 
 ```
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
-
-
-
----
 
 ### hab pkg promote
 
@@ -2361,10 +2085,6 @@ hab pkg promote [OPTIONS] <PKG_IDENT> <CHANNEL> [PKG_TARGET]
 <PKG_TARGET>    A package target (ex: x86_64-windows) (default: system appropriate target) [env: HAB_PACKAGE_TARGET=]
 ```
 
-
-
----
-
 ### hab pkg provides
 
 Search installed Habitat packages for a given file
@@ -2384,16 +2104,11 @@ hab pkg provides [FLAGS] <FILE>
 -V, --version    Prints version information
 ```
 
-
 **ARGS**
 
 ```
 <FILE>    File name to find
 ```
-
-
-
----
 
 ### hab pkg search
 
@@ -2426,10 +2141,6 @@ hab pkg search [OPTIONS] <SEARCH_TERM>
 <SEARCH_TERM>    Search term
 ```
 
-
-
----
-
 ### hab pkg sign
 
 Signs an archive with an origin key, generating a Habitat Artifact
@@ -2460,10 +2171,6 @@ hab pkg sign [OPTIONS] <SOURCE> <DEST>
 <SOURCE>    A path to a source archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)
 <DEST>      The destination path to the signed Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201- x86_64-linux.hart)
 ```
-
-
-
----
 
 ### hab pkg uninstall
 
@@ -2497,10 +2204,6 @@ hab pkg uninstall [FLAGS] [OPTIONS] <PKG_IDENT>
 ```
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
-
-
-
----
 
 ### hab pkg upload
 
@@ -2536,10 +2239,6 @@ hab pkg upload [FLAGS] [OPTIONS] <HART_FILE>...
 <HART_FILE>...    One or more filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64- linux.hart)
 ```
 
-
-
----
-
 ### hab pkg verify
 
 Verifies a Habitat Artifact with an origin key
@@ -2569,10 +2268,6 @@ hab pkg verify [OPTIONS] <SOURCE>
 <SOURCE>    A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 ```
 
-
-
----
-
 ## hab plan
 
 Commands relating to plans and other app-specific configuration
@@ -2589,9 +2284,6 @@ hab plan <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -2632,10 +2324,6 @@ hab plan init [FLAGS] [OPTIONS] [PKG_NAME]
 <PKG_NAME>    Name for the new app
 ```
 
-
-
----
-
 ### hab plan render
 
 Renders plan config files
@@ -2671,10 +2359,6 @@ hab plan render [FLAGS] [OPTIONS] <TEMPLATE_PATH>
 <TEMPLATE_PATH>    Path to config to render
 ```
 
-
-
----
-
 ## hab ring
 
 Commands relating to Habitat rings
@@ -2691,9 +2375,6 @@ hab ring <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -2718,9 +2399,6 @@ hab ring key <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -2760,10 +2438,6 @@ hab ring key export [OPTIONS] <RING>
 <RING>    Ring key name
 ```
 
-
-
----
-
 ### hab ring key generate
 
 Generates a Habitat ring key
@@ -2793,10 +2467,6 @@ hab ring key generate [OPTIONS] <RING>
 <RING>    Ring key name
 ```
 
-
-
----
-
 ### hab ring key import
 
 Reads a stdin stream containing ring key contents and writes the key to disk
@@ -2820,24 +2490,13 @@ hab ring key import [OPTIONS]
 --cache-key-path <CACHE_KEY_PATH>    Cache for creating and searching for encryption keys [env: HAB_CACHE_KEY_PATH=]  [default: /hab/cache/keys]
 ```
 
-
-
-
----
-
 ## hab studio
-
-
 
 **USAGE**
 
 ```
 hab studio [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ..]
 ```
-
-
-
-
 
 **SUBCOMMANDS**
 
@@ -2853,8 +2512,6 @@ hab studio [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ..]
 
 ### hab studio build
 
-
-
 **USAGE**
 
 ```
@@ -2867,15 +2524,7 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] build [FLAGS] [PLAN_DIR]
 -R  Reuse a previous Studio state (default: clean up before building)
 ```
 
-
-
-
-
----
-
 ### hab studio enter
-
-
 
 **USAGE**
 
@@ -2883,16 +2532,7 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] build [FLAGS] [PLAN_DIR]
 hab studio [COMMON_FLAGS] [COMMON_OPTIONS] enter
 ```
 
-
-
-
-
-
----
-
 ### hab studio new
-
-
 
 **USAGE**
 
@@ -2900,16 +2540,7 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] enter
 hab studio [COMMON_FLAGS] [COMMON_OPTIONS] new
 ```
 
-
-
-
-
-
----
-
 ### hab studio rm
-
-
 
 **USAGE**
 
@@ -2917,16 +2548,7 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] new
 hab studio [COMMON_FLAGS] [COMMON_OPTIONS] rm
 ```
 
-
-
-
-
-
----
-
 ### hab studio run
-
-
 
 **USAGE**
 
@@ -2934,28 +2556,10 @@ hab studio [COMMON_FLAGS] [COMMON_OPTIONS] rm
 hab studio [COMMON_FLAGS] [COMMON_OPTIONS] run [CMD] [ARG ..]
 ```
 
-
-
-
-
-
----
-
 ### hab studio version
 
 
-
-
-
-
-
-
-
----
-
 ## hab sup
-
-
 
 **USAGE**
 
@@ -2969,9 +2573,6 @@ hab sup <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -3003,12 +2604,6 @@ hab sup bash
 -h, --help    Prints help information
 ```
 
-
-
-
-
----
-
 ### hab sup depart
 
 Depart a Supervisor from the gossip ring; kicking and banning the target from joining again with the same member-id
@@ -3037,10 +2632,6 @@ hab sup depart [OPTIONS] <MEMBER_ID>
 <MEMBER_ID>    The member-id of the Supervisor to depart
 ```
 
-
-
----
-
 ### hab sup restart
 
 Restart a Supervisor without restarting its services
@@ -3062,11 +2653,6 @@ hab sup restart [OPTIONS]
 ```
 -r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
 ```
-
-
-
-
----
 
 ### hab sup run
 
@@ -3173,10 +2759,6 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 <PKG_IDENT_OR_ARTIFACT>    Load a Habitat package as part of the Supervisor startup
 ```
 
-
-
----
-
 ### hab sup secret
 
 Commands relating to a Habitat Supervisor's Control Gateway secret
@@ -3192,9 +2774,6 @@ hab sup secret <SUBCOMMAND>
 ```
 -h, --help    Prints help information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -3221,12 +2800,6 @@ hab sup secret generate
 -V, --version    Prints version information
 ```
 
-
-
-
-
----
-
 ### hab sup secret generate-tls
 
 Generate a private key and certificate for the Supervisor's Control Gateway TLS connection
@@ -3252,11 +2825,6 @@ hab sup secret generate-tls [OPTIONS] --subject-alternative-name <subject-altern
     --subject-alternative-name <subject-alternative-name> The DNS name to use in the certificates subject alternative name extension
 ```
 
-
-
-
----
-
 ### hab sup sh
 
 Start an interactive Bourne-like shell
@@ -3272,12 +2840,6 @@ hab sup sh
 ```
 -h, --help    Prints help information
 ```
-
-
-
-
-
----
 
 ### hab sup status
 
@@ -3307,10 +2869,6 @@ hab sup status [OPTIONS] [PKG_IDENT]
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
 
-
-
----
-
 ### hab sup term
 
 Gracefully terminate the Habitat Supervisor and all of its running services
@@ -3326,12 +2884,6 @@ hab sup term
 ```
 -h, --help    Prints help information
 ```
-
-
-
-
-
----
 
 ## hab supportbundle
 
@@ -3351,11 +2903,6 @@ hab supportbundle
 ```
 
 
-
-
-
----
-
 ## hab svc
 
 Commands relating to Habitat services
@@ -3372,9 +2919,6 @@ hab svc <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -3405,9 +2949,6 @@ hab svc key <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -3445,10 +2986,6 @@ hab svc key generate [OPTIONS] <SERVICE_GROUP> [ORG]
 <SERVICE_GROUP>    Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)
 <ORG>              The service organization
 ```
-
-
-
----
 
 ### hab svc load
 
@@ -3498,10 +3035,6 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
 
-
-
----
-
 ### hab svc start
 
 Start a loaded, but stopped, Habitat service
@@ -3531,10 +3064,6 @@ hab svc start [OPTIONS] <PKG_IDENT>
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
 
-
-
----
-
 ### hab svc status
 
 Query the status of Habitat services
@@ -3563,10 +3092,6 @@ hab svc status [OPTIONS] [PKG_IDENT]
 ```
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
-
-
-
----
 
 ### hab svc stop
 
@@ -3599,10 +3124,6 @@ hab svc stop [OPTIONS] <PKG_IDENT>
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
 
-
-
----
-
 ### hab svc unload
 
 Unload a service loaded by the Habitat Supervisor. If the service is running it will additionally be stopped
@@ -3633,10 +3154,6 @@ hab svc unload [OPTIONS] <PKG_IDENT>
 ```
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
-
-
-
----
 
 ### hab svc update
 
@@ -3680,10 +3197,6 @@ hab svc update [OPTIONS] <PKG_IDENT>
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 ```
 
-
-
----
-
 ## hab user
 
 Commands relating to Habitat users
@@ -3700,9 +3213,6 @@ hab user <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -3727,9 +3237,6 @@ hab user key <SUBCOMMAND>
 -h, --help       Prints help information
 -V, --version    Prints version information
 ```
-
-
-
 
 **SUBCOMMANDS**
 
@@ -3766,7 +3273,3 @@ hab user key generate [OPTIONS] <USER>
 ```
 <USER>    Name of the user key
 ```
-
-
-
----
