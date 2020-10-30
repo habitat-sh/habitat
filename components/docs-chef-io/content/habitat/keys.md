@@ -45,4 +45,5 @@ User and service group keys also utilize asymmetric cryptography. To apply confi
 
 ## Ring Encryption Key
 
-A Supervisor network can be optionally set up to encrypt *all* supervisor-to-supervisor communication. This requires the use of a symmetric, pre-shared key.
+A Supervisor network can be optionally set up to encrypt *all* supervisor-to-supervisor communication.
+This requires the use of a symmetric, pre-shared key.

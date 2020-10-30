@@ -31,6 +31,7 @@ Finally, you will need to wire Chef Habitat up to your systems init system. This
 
 A basic SystemD unit file for Chef Habitat might look like this. This assumes that you have already created the `hab` user and group, as instructed above, and that your `hab` binary is linked to `/bin/hab`.
 
+```toml
     [Unit]
     Description=The Chef Habitat Supervisor
 
@@ -39,6 +40,7 @@ A basic SystemD unit file for Chef Habitat might look like this. This assumes th
 
     [Install]
     WantedBy=default.target
+```
 
 Depending on your needs and deployment, you will want to modify the options passed to `hab sup run`. In particular, if you wish to participate in larger Supervisor networks, you will need to pass at least one `--peer` option.
 
@@ -48,6 +50,6 @@ As with Linux, you must first [install Chef Habitat](docs/install-habitat) on th
 
 On Windows, you can run the Supervisor as a Windows Service. You can use the `windows-service` Chef Habitat package to host the Supervisor inside the Windows Service Control Manager:
 
-```bash
-PS C:\\> hab pkg install core/windows-service
+```powershell
+hab pkg install core/windows-service
 ```

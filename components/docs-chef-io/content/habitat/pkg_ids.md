@@ -15,11 +15,8 @@ A Chef Habitat artifact the binary distribution for a given package built with C
 
 When referring to Chef Habitat artifacts from either Builder or the Studio, you can refer to them in two ways:
 
-- Fully-qualified package identifier (FQPI)
-: Uses four components in the following format: `origin/name/version/release`. For example, `core/glibc/2.22/20160310192356`.
-
-- Short package identifier
-: Uses two components in the following format `origin/name`. For example, `core/redis` or `core/openssl`. Use the three-component form `origin/name/version`, such as `core/redis/5.0.4`, when you need a specific version of an artifact.
+- Fully-qualified package identifier (FQPI) - Uses four components in the following format: `origin/name/version/release`. For example, `core/glibc/2.22/20160310192356`.
+- Short package identifier - Uses two components in the following format `origin/name`. For example, `core/redis` or `core/openssl`. Use the three-component form `origin/name/version`, such as `core/redis/5.0.4`, when you need a specific version of an artifact.
 
 ## Package Identifier Components
 
@@ -33,7 +30,5 @@ When referring to Chef Habitat artifacts from either Builder or the Studio, you 
 If the Chef Habitat artifact identifier isn't fully qualified (having fewer than four components), and exactly one artifact is required, then the missing components are assumed to be the most recent values. For example:
 
 - `core/glibc` assumes that version and release values are for the latest version of core/glibc.
-
 - `core/glibc/2.22` assumes that the version of core/glibc is 2.22 and that the release is for the most recent value of core/glibc/2.22.
-
 - `core/glibc/2.22/20160310192356` only refers to the specific Chef Habitat artifact 20160310192356.
