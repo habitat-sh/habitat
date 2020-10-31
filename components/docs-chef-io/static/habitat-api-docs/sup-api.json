@@ -1,8 +1,21 @@
 {
-  "openapi": "3.0.0",
+  "openapi": "3.0",
   "info": {
-    "title": "Habitat Supervisor",
-    "version": "undefined"
+    "title": "Chef Habitat API Documentation",
+    "version": "",
+    "termsOfService": "https://www.chef.io/terms-and-conditions-of-use/",
+    "contact": {
+      "email": "support@chef.io",
+      "url": "https://www.chef.io/support/"
+    },
+    "x-logo": {
+      "url": "/images/habitat-logo.svg",
+      "altText": "Chef Habitat logo"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://github.com/chef/automate/blob/master/LICENSE"
+    }
   },
   "servers": [
     {
