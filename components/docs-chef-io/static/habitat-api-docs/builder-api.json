@@ -1,0 +1,3145 @@
+{
+  "openapi": "3.0",
+  "info": {
+    "title": "Chef Habitat API Documentation",
+    "version": "",
+    "termsOfService": "https://www.chef.io/terms-and-conditions-of-use/",
+    "contact": {
+      "email": "support@chef.io",
+      "url": "https://www.chef.io/support/"
+    },
+    "x-logo": {
+      "url": "/images/habitat-logo.svg",
+      "altText": "Chef Habitat logo"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://github.com/chef/automate/blob/master/LICENSE"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://{rootUri}/{version}",
+      "variables": {
+        "rootUri": {
+          "default": "rootUri"
+        },
+        "version": {
+          "default": "version"
+        }
+      }
+    }
+  ],
+  "paths": {
+    "/status": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Service is healthy"
+          },
+          "500": {
+            "description": "Server fault"
+          },
+          "503": {
+            "description": "Service temporarily unavailable"
+          }
+        },
+        "description": "Returns the health of the service",
+        "operationId": "GET_status"
+      }
+    },
+    "/authenticate/{code}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "token": "0b79bab50daca910b000d4f1a2b675d604257e42",
+                    "email": "reset@chef.io",
+                    "name": "reset",
+                    "id": "73089155726360582",
+                    "flags": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "GET_authenticate-code"
+      },
+      "parameters": [
+        {
+          "name": "code",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/ext/installations/{install_id}/repos/{repo_id}/contents/{path}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "Bad search query parameter provided"
+          }
+        },
+        "operationId": "GET_ext-installations-install_id-repos-repo_id-contents-path"
+      },
+      "parameters": [
+        {
+          "name": "repo_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "path",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "install_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/profile": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": 1234567890,
+                  "name": "jimmy",
+                  "email": "jimmy@example.com"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/userProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          }
+        },
+        "description": "Retrieve your profile",
+        "operationId": "GET_profile",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "patch": {
+        "responses": {
+          "200": {
+            "description": "Update successful"
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "422": {
+            "description": "Bad JSON submitted"
+          }
+        },
+        "description": "Update your profile",
+        "operationId": "PATCH_profile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "email": "jimmy@example.com"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/userProfileUpdate"
+              }
+            }
+          },
+          "required": false
+        },
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      }
+    },
+    "/profile/access-tokens": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": ""
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed"
+          }
+        },
+        "description": "Retrieve your personal access tokens",
+        "operationId": "GET_profile-access-tokens",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "post": {
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "Received a malformed JSON body"
+          },
+          "401": {
+            "description": "Authentication failed"
+          }
+        },
+        "description": "Generate a new personal access token",
+        "operationId": "POST_profile-access-tokens",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": false
+        },
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "delete": {
+        "responses": {
+          "200": {
+            "description": "Delete successful"
+          },
+          "401": {
+            "description": "Authentication failed"
+          }
+        },
+        "description": "Delete (revoke) a personal access token",
+        "operationId": "DELETE_profile-access-tokens",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": false
+        },
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      }
+    },
+    "/jobs": {
+      "post": {
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": "73089155726360582",
+                    "state": 0
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Received a malformed JSON body"
+          },
+          "404": {
+            "description": "Project does not exist with corresponding projectId"
+          },
+          "422": {
+            "description": "Invalid or missing projectId in body"
+          }
+        },
+        "description": "Create a new job for the given project",
+        "operationId": "POST_jobs",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "core/nginx"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/jobCreate"
+              }
+            }
+          },
+          "required": false
+        },
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      }
+    },
+    "/jobs/group/{id}/promote/{channel}": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Successful promotion"
+          },
+          "400": {
+            "description": "ID or channel not provided"
+          },
+          "404": {
+            "description": "Group not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "description": "Promote every successful project in a job group to the specified channel",
+        "operationId": "POST_jobs-group-id-promote-channel"
+      },
+      "parameters": [
+        {
+          "name": "channel",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/jobs/{jobId}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "73089155726360582",
+                  "origin": "core",
+                  "project": "nginx",
+                  "version": "1.0.0",
+                  "release": "20170505001756",
+                  "state": "Complete",
+                  "created_at": "2017-05-05 00:42:35.213765+00",
+                  "build_started_at": "2017-05-05 00:43:11.729835+00",
+                  "build_finished_at": "2017-05-05 00:44:00.896919+00"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/job"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Received a jobId that was not a number"
+          }
+        },
+        "description": "Get the status of the given job",
+        "operationId": "GET_jobs-jobId"
+      },
+      "parameters": [
+        {
+          "name": "jobId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/jobs/{jobId}/log": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "example": "{\n    \"start\": 0,\n    \"stop\": 2,\n    \"content\": [\n        \"this is the first line\",\n        \"this is the second line\"\n    ],\n    is_complete: false\n}\n",
+                "schema": {
+                  "$ref": "#/components/schemas/jobLog"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Received a jobId that was not a number, or\nan invalid value for the `start` query\nparameter (e.g., negative, or larger than\nthe actual size of the log file.\n"
+          },
+          "404": {
+            "description": "Job does not exist with corresponding jobId,\nor no log was found for the given job.\n"
+          }
+        },
+        "description": "Get the build log (or a portion thereof) for the\ngiven job. Until an SSE endpoint can be implemented,\nthis endpoint can be used to poll for the logs of a\ncurrently-running job; use of the `start` query\nparameter ensures that only the portion of the log\nthat is \"new\", relative to a prior request, will be\nretrieved.\n",
+        "operationId": "GET_jobs-jobId-log",
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Return the portion of the log output that\nstarts at the zero-indexed line\nspecified. A request with no given value\ndefaults to `0`; in other words, the\nentire log will be sent back.\n",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "color",
+            "in": "query",
+            "description": "Whether or not to include embedded ANSI color\ncodes in the log output. By default, all ANSI\nsequences are removed, yielding plain output.\n\nThe following values are interpreted as `true`:\n  * `true`\n  * `TRUE`\n  * `t`\n  * `T`\n  * `1`\n  * `on`\n  * `ON`\n\nThe following values are interpreted as `false`:\n  * `false`\n  * `FALSE`\n  * `f`\n  * `F`\n  * `0`\n  * `off`\n  * `OFF`\n\nAll other values are considered `false`.\n",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "jobId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/rdeps/{origin}/{name}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "origin": "core",
+                    "name": "linux-headers",
+                    "rdeps": [
+                      "core/redis"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Package not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "description": "Retrieves the list of reverse dependencies for this package.\n",
+        "operationId": "GET_rdeps-origin-name"
+      },
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/rdeps/{origin}/{name}/group": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "origin": "core",
+                    "name": "linux-headers",
+                    "rdeps": [
+                      {
+                        "group": 0,
+                        "idents": [
+                          "core/redis",
+                          "core/protobuf"
+                        ]
+                      },
+                      {
+                        "group": 1,
+                        "idents": [
+                          "core/node"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Package not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "description": "Retrieves the list of reverse dependencies for this package,\ncollated into build groups that can be build in parallel\n",
+        "operationId": "GET_rdeps-origin-name-group"
+      },
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/user/invitations": {
+      "get": {
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "operationId": "GET_user-invitations",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      }
+    },
+    "/user/{invitationId}": {
+      "delete": {
+        "responses": {
+          "204": {
+            "description": "Invitation successfully ignored"
+          }
+        },
+        "operationId": "DELETE_user-invitationId",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "put": {
+        "responses": {
+          "204": {
+            "description": "Invitation successfully accepted"
+          }
+        },
+        "operationId": "PUT_user-invitationId",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "invitationId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/user/origins": {
+      "get": {
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "operationId": "GET_user-origins",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      }
+    },
+    "/projects": {
+      "post": {
+        "responses": {
+          "201": {
+            "description": "Project created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "habitat/builder-api",
+                  "plan_path": "components/builder-api/plan.sh",
+                  "vcs": {
+                    "type": "git",
+                    "url": "https://github.com/habitat-sh/habitat.git"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/project"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Received a malformed JSON body"
+          },
+          "409": {
+            "description": "This project already exists"
+          },
+          "422": {
+            "description": "The request body contained missing or invalid values or the file at the given\nlocation was unreadable or did not contain a valid plan.\n"
+          }
+        },
+        "description": "Creates a new project for building a Habitat plan scoped to the given origin. The\nresulting project will be created with an identifier containing the origin and name\nof the project the plan is building separated by a forward slash (i.e. `core/nginx`).\n",
+        "operationId": "POST_projects",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "origin": "core",
+                "plan_path": "components/builder-api/plan.sh",
+                "installation_id": 1234,
+                "repo_id": 4567
+              },
+              "schema": {
+                "$ref": "#/components/schemas/projectCreate"
+              }
+            }
+          },
+          "required": false
+        },
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      }
+    },
+    "/projects/{origin}/{name}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "habitat/builder-api",
+                  "plan_path": "components/builder-api/plan.sh",
+                  "vcs": {
+                    "type": "git",
+                    "url": "https://github.com/habitat-sh/habitat.git"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/project"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return the project matching the given ID",
+        "operationId": "GET_projects-origin-name"
+      },
+      "put": {
+        "responses": {
+          "204": {
+            "description": "Project updated successfully"
+          },
+          "400": {
+            "description": "Received a malformed JSON body"
+          },
+          "404": {
+            "description": "Project not found"
+          },
+          "422": {
+            "description": "The request body contained missing or invalid values or the file at the\ngiven location was unreadable, did not contain a valid plan, or the name\nof the package it builds does not match the projectId's `name`\n"
+          }
+        },
+        "description": "Update the project matching the given ID",
+        "operationId": "PUT_projects-origin-name",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "plan_path": "components/builder-api/plan.sh",
+                "github": {
+                  "organization": "habitat-sh",
+                  "repo": "habitat"
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/project"
+              }
+            }
+          },
+          "required": false
+        },
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "delete": {
+        "responses": {
+          "204": {
+            "description": "Project deleted successfully"
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        },
+        "description": "Destroys the project matching the given ID",
+        "operationId": "DELETE_projects-origin-name",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/projects/{origin}/{name}/{visibility}": {
+      "patch": {
+        "responses": {
+          "204": {
+            "description": "Visibility settings toggled successfully"
+          },
+          "400": {
+            "description": "Missing origin, name, visibility. Visibility other than public or private submitted."
+          },
+          "403": {
+            "description": "Not authorized to modify this origin"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "description": "Toggle the visibility settings on a project. Public projects that are made\nprivate will change to hidden instead. Changes made to a project's\nvisibility settings will cascade to its packages.\n",
+        "operationId": "PATCH_projects-origin-name-visibility"
+      },
+      "parameters": [
+        {
+          "name": "visibility",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/projects/{origin}/{name}/jobs": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "example": {
+                  "range_start": 0,
+                  "range_end": 5,
+                  "total_count": 6,
+                  "data": [
+                    {
+                      "id": "73089155726360582",
+                      "origin": "core",
+                      "project": "nginx",
+                      "version": "1.0.0",
+                      "release": "20170505001756",
+                      "state": "Complete",
+                      "created_at": "2017-05-05 00:42:35.213765+00",
+                      "build_started_at": "2017-05-05 00:43:11.729835+00",
+                      "build_finished_at": "2017-05-05 00:44:00.896919+00"
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/jobs"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        },
+        "description": "Retrieve the most recently started jobs for the given project.\n",
+        "operationId": "GET_projects-origin-name-jobs"
+      },
+      "parameters": [
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/origins": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "77732030103691265",
+                  "name": "reset",
+                  "owner_id": "77730215748435968",
+                  "default_package_visibility": "public"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/origin"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The origin already exists"
+          },
+          "422": {
+            "description": "Malformed origin in request body"
+          }
+        },
+        "description": "Create a new origin",
+        "operationId": "POST_origins",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "reset",
+                "default_package_visibility": "public"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/origin"
+              }
+            }
+          },
+          "required": false
+        },
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      }
+    },
+    "/origins/{origin}/users/{username}/invitations": {
+      "post": {
+        "responses": {
+          "201": {
+            "description": "Invitation created successfully"
+          },
+          "204": {
+            "description": "Invitation creation request received"
+          },
+          "400": {
+            "description": "No origin or username given"
+          },
+          "401": {
+            "description": "You are not authorized to send invitations on behalf of this origin"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "description": "Create an invitation to this origin for this user",
+        "operationId": "POST_origins-origin-users-username-invitations",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "username",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/origins/{origin}/integrations": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "docker": [
+                      "region1",
+                      "region2"
+                    ],
+                    "google": [
+                      "region3"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Get an object of all integrations",
+        "operationId": "GET_origins-origin-integrations",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/origins/{origin}/integrations/{integrationName}/default": {
+      "put": {
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "docker_hub_repo_name": "myorg/myrepo",
+                    "custom_tag": "some-tag",
+                    "latest_tag": true,
+                    "version_tag": false,
+                    "version_release_tag": true
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "description": "Create or update an origin project integration",
+        "operationId": "PUT_origins-origin-integrations-integrationName-default",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "delete": {
+        "responses": {
+          "204": {
+            "description": "Integration deleted"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "description": "Delete an origin project integration",
+        "operationId": "DELETE_origins-origin-integrations-integrationName-default",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "integrationName",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/origins/{origin}/transfer/{user}": {
+      "post": {
+        "responses": {
+          "204": {
+            "description": "Transfer successful"
+          },
+          "403": {
+            "description": "Not authorized to transfer ownership"
+          },
+          "422": {
+            "description": "Cannot transfer to self or non-members"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "description": "Transfer ownership of origin to new origin member",
+        "operationId": "POST_origins-origin-transfer-user",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "user",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/origins/{origin}/depart": {
+      "post": {
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "description": "Leave an origin you no longer wish to be a member of",
+        "operationId": "POST_origins-origin-depart",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/origins/{origin}/invitations/{invitationId}": {
+      "put": {
+        "responses": {
+          "204": {
+            "description": "Accepted the invitation"
+          },
+          "400": {
+            "description": "No origin or invitation id given"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "description": "Accept this invitation",
+        "operationId": "PUT_origins-origin-invitations-invitationId",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "delete": {
+        "responses": {
+          "204": {
+            "description": "Invitation rescinded"
+          },
+          "400": {
+            "description": "No origin or invitation id given"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "description": "Rescind an invitation that hasn't already been ignored",
+        "operationId": "DELETE_origins-origin-invitations-invitationId",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "invitationId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/origins/{origin}/invitations/{invitationId}/ignore": {
+      "put": {
+        "responses": {
+          "204": {
+            "description": "Invitation ignored"
+          },
+          "400": {
+            "description": "No origin or invitation id given"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "description": "Ignore this invitation",
+        "operationId": "PUT_origins-origin-invitations-invitationId-ignore",
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "invitationId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/origins/{originId}": {
+      "get": {
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "operationId": "GET_origins-originId",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": "{\n    \"id\": \"77732030103691265\",\n    \"name\": \"reset\",\n    \"owner_id\": \"77730215748435968\"\n    \"default_package_visibility\": \"public\"\n}\n",
+              "schema": {
+                "$ref": "#/components/schemas/origin"
+              }
+            }
+          },
+          "required": false
+        }
+      },
+      "parameters": [
+        {
+          "name": "originId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/origins/{originId}/keys": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": [
+                    {
+                      "origin": "core",
+                      "revision": "20160423193732",
+                      "location": "/origins/core/keys/20160423193732"
+                    },
+                    {
+                      "origin": "core",
+                      "revision": "20160423193733",
+                      "location": "/origins/core/keys/20160423193733"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "Return a list of key revisions for an organization.",
+        "operationId": "GET_origins-originId-keys"
+      },
+      "parameters": [
+        {
+          "name": "originId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/origins/{originId}/keys/{revision}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "example": "SIG-PUB-1\ncore-20160423193745\n\nJpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=\n"
+                }
+              }
+            }
+          }
+        },
+        "description": "Get a key revision for a specific origin",
+        "operationId": "GET_origins-originId-keys-revision"
+      },
+      "post": {
+        "responses": {
+          "201": {
+            "description": "Key successfully uploaded"
+          },
+          "403": {
+            "description": "Authenticated user not a member of the given Origin"
+          },
+          "409": {
+            "description": "Key already exists in Origin"
+          }
+        },
+        "description": "Upload a new key revision for an origin",
+        "operationId": "POST_origins-originId-keys-revision",
+        "requestBody": {
+          "content": {
+            "text/plain": {
+              "example": "SIG-PUB-1\ncore-20160423193745\n\nJpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=\n",
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": false
+        },
+        "security": [
+          {
+            "oauth_2_0": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "revision",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "originId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/origins/{originId}/secret_keys/latest": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "",
+                  "origin_id": "",
+                  "name": "",
+                  "revision": "",
+                  "body": "",
+                  "owner_id": ""
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/secret_key"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Secret key already exists in origin"
+          }
+        },
+        "description": "Retrieve the latest secret key",
+        "operationId": "GET_origins-originId-secret_keys-latest"
+      },
+      "parameters": [
+        {
+          "name": "originId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/origins/{originId}/encryption_key": {
+      "get": {
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "description": "Download public encryption key for origin responses",
+        "operationId": "GET_origins-originId-encryption_key"
+      },
+      "parameters": [
+        {
+          "name": "originId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/origins/{originId}/secret": {
+      "post": {
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "description": "upload a secret payload body",
+        "operationId": "POST_origins-originId-secret"
+      },
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": [
+                    {
+                      "key1": "value"
+                    },
+                    {
+                      "key2": "value"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "Get a list of all secrets for your origin",
+        "operationId": "GET_origins-originId-secret"
+      },
+      "parameters": [
+        {
+          "name": "originId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/origins/{originId}/secret/{secret}": {
+      "delete": {
+        "responses": {
+          "200": {
+            "description": "Key deleted"
+          },
+          "404": {
+            "description": "Key not found"
+          }
+        },
+        "description": "Delete a secret for an origin given a secret name",
+        "operationId": "DELETE_origins-originId-secret-secret"
+      },
+      "parameters": [
+        {
+          "name": "secret",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "originId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/origins/{originId}/users": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "members": [
+                      "reset"
+                    ],
+                    "origin_id": "77731431660388352"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "List all members of an origin",
+        "operationId": "GET_origins-originId-users"
+      },
+      "parameters": [
+        {
+          "name": "originId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/pkgs/search/{query}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Packages were found and fit on one page"
+          },
+          "206": {
+            "description": "Packages were found and require pagination"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "description": "Search for packages with a query string",
+        "operationId": "GET_pkgs-search-query",
+        "parameters": [
+          {
+            "name": "distinct",
+            "in": "query",
+            "description": "Whether to show a distinct list of packages or not",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "query",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/pkgs/{origin}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          },
+          "500": {
+            "description": ""
+          }
+        },
+        "description": "List packages for an origin",
+        "operationId": "GET_pkgs-origin",
+        "parameters": [
+          {
+            "name": "distinct",
+            "in": "query",
+            "description": "Whether to show a distinct list of packages or not",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/pkgs/{origin}/{name}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          },
+          "500": {
+            "description": ""
+          }
+        },
+        "description": "TODO",
+        "operationId": "GET_pkgs-origin-name"
+      },
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/pkgs/{origin}/{name}/versions": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": [
+                    {
+                      "origin": "core",
+                      "name": "redis",
+                      "version": "3.2.1",
+                      "release_count": "3",
+                      "latest": "20170215222111"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Origin or package name not supplied"
+          },
+          "404": {
+            "description": "Package not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "description": "Returns all versions and a count of releases for each version for a given package",
+        "operationId": "GET_pkgs-origin-name-versions"
+      },
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/pkgs/{origin}/{name}/latest": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          },
+          "500": {
+            "description": ""
+          }
+        },
+        "description": "TODO",
+        "operationId": "GET_pkgs-origin-name-latest"
+      },
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/pkgs/{origin}/{name}/{version}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          },
+          "500": {
+            "description": ""
+          }
+        },
+        "description": "TODO",
+        "operationId": "GET_pkgs-origin-name-version"
+      },
+      "parameters": [
+        {
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/pkgs/{origin}/{name}/{version}/latest": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          },
+          "500": {
+            "description": ""
+          }
+        },
+        "operationId": "GET_pkgs-origin-name-version-latest"
+      },
+      "parameters": [
+        {
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/pkgs/{origin}/{name}/{version}/{release}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          },
+          "500": {
+            "description": ""
+          }
+        },
+        "operationId": "GET_pkgs-origin-name-version-release"
+      },
+      "post": {
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
+          },
+          "422": {
+            "description": ""
+          },
+          "424": {
+            "description": ""
+          }
+        },
+        "operationId": "POST_pkgs-origin-name-version-release"
+      },
+      "parameters": [
+        {
+          "name": "release",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/pkgs/{origin}/{name}/{version}/{release}/{visibility}": {
+      "patch": {
+        "responses": {
+          "200": {
+            "description": "Successfully changed"
+          },
+          "400": {
+            "description": "Missing origin or name or version or release or visibility. Visibility not \"public\" or \"private\"."
+          },
+          "403": {
+            "description": "Unauthorized to change packages for this origin"
+          },
+          "404": {
+            "description": "Package not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "description": "Change the visibility of a package",
+        "operationId": "PATCH_pkgs-origin-name-version-release-visibility"
+      },
+      "parameters": [
+        {
+          "name": "visibility",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "release",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/pkgs/{origin}/{name}/{version}/{release}/download": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": ""
+          },
+          "500": {
+            "description": ""
+          }
+        },
+        "operationId": "GET_pkgs-origin-name-version-release-download"
+      },
+      "parameters": [
+        {
+          "name": "release",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/pkgs/{origin}/{name}/{version}/{release}/channels": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": [
+                    "stable",
+                    "unstable"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Package identifier is not fully qualified"
+          },
+          "404": {
+            "description": "Specified package could not be found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "operationId": "GET_pkgs-origin-name-version-release-channels"
+      },
+      "parameters": [
+        {
+          "name": "release",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/channels/{origin}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": [
+                    "stable",
+                    "unstable"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Origin not specified"
+          }
+        },
+        "description": "List all channels for an origin",
+        "operationId": "GET_channels-origin"
+      },
+      "parameters": [
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/channels/{origin}/{channel}": {
+      "post": {
+        "responses": {
+          "201": {
+            "description": "Channel successfully created"
+          },
+          "400": {
+            "description": "Origin or channel not supplied"
+          },
+          "404": {
+            "description": "Origin does not exist"
+          },
+          "409": {
+            "description": "Channel already exists"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "description": "Create a channel",
+        "operationId": "POST_channels-origin-channel"
+      },
+      "delete": {
+        "responses": {
+          "200": {
+            "description": "Channel successfully deleted"
+          },
+          "400": {
+            "description": "Origin or channel not supplied"
+          },
+          "403": {
+            "description": "Channel can not be deleted"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "description": "Deletes a channel",
+        "operationId": "DELETE_channels-origin-channel"
+      },
+      "parameters": [
+        {
+          "name": "channel",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/channels/{origin}/{channel}/pkgs": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Returns a list of packages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "range_start": 0,
+                    "range_end": 49,
+                    "total_count": 8,
+                    "data": [
+                      {
+                        "origin": "core",
+                        "name": "glibc",
+                        "version": "2.22",
+                        "release": "20160612063629"
+                      },
+                      {
+                        "origin": "core",
+                        "name": "linux-headers",
+                        "version": "4.3",
+                        "release": "20160612063537"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Origin or channel not supplied"
+          },
+          "404": {
+            "description": "Origin or channel does not exist"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "description": "List all packages in a channel",
+        "operationId": "GET_channels-origin-channel-pkgs"
+      },
+      "parameters": [
+        {
+          "name": "channel",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/channels/{origin}/{channel}/pkgs/promote": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Packages successfully promoted"
+          },
+          "400": {
+            "description": "Forbidden packages/Badly formed request for promotion"
+          },
+          "401": {
+            "description": "You are not authorized to request promotion for this origin"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "description": "Promotes all packages in a channel queryParameters",
+        "operationId": "POST_channels-origin-channel-pkgs-promote"
+      },
+      "parameters": [
+        {
+          "name": "channel",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/channels/{origin}/{channel}/pkgs/demote": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Packages successfully demoted"
+          },
+          "400": {
+            "description": "Forbidden packages/Badly formed request for demotion"
+          },
+          "401": {
+            "description": "You are not authorized to request demotion for this origin"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "description": "Demotes list of packages from a channel queryParameters",
+        "operationId": "POST_channels-origin-channel-pkgs-demote"
+      },
+      "parameters": [
+        {
+          "name": "channel",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/channels/{origin}/{channel}/pkgs/{pkg}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Returns a list of packages"
+          },
+          "400": {
+            "description": "Origin or channel not supplied"
+          },
+          "404": {
+            "description": "Origin or channel does not exist"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "description": "List all packages in a channel that match the specified identifier",
+        "operationId": "GET_channels-origin-channel-pkgs-pkg"
+      },
+      "parameters": [
+        {
+          "name": "pkg",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "channel",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/channels/{origin}/{channel}/pkgs/{pkg}/latest": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Returns a package",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "checksum": "7a998b6a756f7ca769ac75edf66c119d14aa911d7cfb5fd91ad3ff21ddf0d257",
+                    "config": "",
+                    "deps": [
+                      {
+                        "name": "glibc",
+                        "origin": "core",
+                        "release": "20160612063629",
+                        "version": "2.22"
+                      }
+                    ],
+                    "exposes": [],
+                    "ident": {
+                      "name": "tree",
+                      "origin": "core",
+                      "release": "20161102210957",
+                      "version": "1.7.0"
+                    },
+                    "manifest": "# core / tree\n\n\n* __Maintainer__: The Habitat Maintainers <humans@habitat.sh>\n* __Version__: 1.7.0\n* __Release__: 20161102210957\n* __Architecture__: x86_64\n* __System__: linux\n* __Target__: x86_64-linux\n* __Upstream URL__: upstream project's website or home page is not defined\n* __License__: gplv2+ \n* __Source__: [http://mama.indstate.edu/users/ice/tree/src/tree-1.7.0.tgz](http://mama.indstate.edu/users/ice/tree/src/tree-1.7.0.tgz)\n* __SHA__: `6957c20e82561ac4231638996e74f4cfa4e6faabc5a2f511f0b4e3940e8f7b12`\n* __Path__: `/hab/pkgs/core/tree/1.7.0/20161102210957`\n* __Build Dependencies__: `core/make core/gcc `\n* __Dependencies__: `core/glibc `\n* __Interpreters__: no interpreters or undefined\n\n# Plan\n\n## Build Flags\n\n```bash\nCFLAGS: -I/hab/pkgs/core/glibc/2.22/20160612063629/include -I/hab/pkgs/core/make/4.2.1/20161102154828/include -I/hab/pkgs/core/gcc/5.2.0/20161031031637/include\nCPPFLAGS: -I/hab/pkgs/core/glibc/2.22/20160612063629/include -I/hab/pkgs/core/make/4.2.1/20161102154828/include -I/hab/pkgs/core/gcc/5.2.0/20161031031637/include\nCXXFLAGS: -I/hab/pkgs/core/glibc/2.22/20160612063629/include -I/hab/pkgs/core/make/4.2.1/20161102154828/include -I/hab/pkgs/core/gcc/5.2.0/20161031031637/include\nLDFLAGS: -L/hab/pkgs/core/glibc/2.22/20160612063629/lib -L/hab/pkgs/core/gcc/5.2.0/20161031031637/lib\nLD_RUN_PATH: /hab/pkgs/core/tree/1.7.0/20161102210957/lib:/hab/pkgs/core/glibc/2.22/20160612063629/lib\n```\n\n## Plan Source\n\n```bash\npkg_name=tree\npkg_origin=core\npkg_version=1.7.0\npkg_maintainer=\"The Habitat Maintainers <humans@habitat.sh>\"\npkg_license=('gplv2+')\npkg_source=http://mama.indstate.edu/users/ice/tree/src/tree-${pkg_version}.tgz\npkg_shasum=6957c20e82561ac4231638996e74f4cfa4e6faabc5a2f511f0b4e3940e8f7b12\npkg_deps=(core/glibc)\npkg_build_deps=(core/make core/gcc)\npkg_bin_dirs=(bin)\npkg_include_dirs=(include)\npkg_lib_dirs=(lib)\n\ndo_build() {\n  make\n}\n\ndo_install() {\n  sed -i \"s#prefix = /usr#prefix = ${pkg_prefix}#\" Makefile\n  make install\n}\n```",
+                    "tdeps": [
+                      {
+                        "name": "glibc",
+                        "origin": "core",
+                        "release": "20160612063629",
+                        "version": "2.22"
+                      },
+                      {
+                        "name": "linux-headers",
+                        "origin": "core",
+                        "release": "20160612063537",
+                        "version": "4.3"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Origin or channel or identifier not supplied"
+          },
+          "404": {
+            "description": "Origin or channel does not exist"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "description": "Get the latest version of the package in this channel that matches the specified identifier",
+        "operationId": "GET_channels-origin-channel-pkgs-pkg-latest"
+      },
+      "parameters": [
+        {
+          "name": "pkg",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "channel",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/channels/{origin}/{channel}/pkgs/{pkg}/{version}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Returns a list of packages"
+          },
+          "400": {
+            "description": "Origin or channel or identifier or version not supplied"
+          },
+          "404": {
+            "description": "Origin or channel does not exist"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "description": "List all packages in a channel that match the specified identifier and version",
+        "operationId": "GET_channels-origin-channel-pkgs-pkg-version"
+      },
+      "parameters": [
+        {
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "pkg",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "channel",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/channels/{origin}/{channel}/pkgs/{pkg}/{version}/latest": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Returns a package"
+          },
+          "400": {
+            "description": "Origin or channel or identifier or version not supplied"
+          },
+          "404": {
+            "description": "Origin or channel does not exist"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "description": "Get the latest version of the package in this channel that matches the specified identifier and version",
+        "operationId": "GET_channels-origin-channel-pkgs-pkg-version-latest"
+      },
+      "parameters": [
+        {
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "pkg",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "channel",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/channels/{origin}/{channel}/pkgs/{pkg}/{version}/{release}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Returns a package"
+          },
+          "400": {
+            "description": "Origin or channel or identifier or version or release not supplied"
+          },
+          "404": {
+            "description": "Origin or channel does not exist"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "description": "Get the package in a channel that matches the specified identifier, version and release",
+        "operationId": "GET_channels-origin-channel-pkgs-pkg-version-release"
+      },
+      "parameters": [
+        {
+          "name": "release",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "pkg",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "channel",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/channels/{origin}/{channel}/pkgs/{pkg}/{version}/{release}/promote": {
+      "put": {
+        "responses": {
+          "200": {
+            "description": "Package successfully promoted"
+          },
+          "400": {
+            "description": "Origin or channel or identifier or version or release not supplied"
+          },
+          "404": {
+            "description": "Origin or channel or identifier or version or release does not exist"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "description": "Promote a package to a specific channel",
+        "operationId": "PUT_channels-origin-channel-pkgs-pkg-version-release-promote"
+      },
+      "parameters": [
+        {
+          "name": "release",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "pkg",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "channel",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/channels/{origin}/{channel}/pkgs/{pkg}/{version}/{release}/demote": {
+      "put": {
+        "responses": {
+          "200": {
+            "description": "Package successfully demoted"
+          },
+          "400": {
+            "description": "Origin or channel or identifier or version or release not supplied"
+          },
+          "403": {
+            "description": "Attempting to demote from unstable is not supported"
+          },
+          "404": {
+            "description": "Origin or channel or identifier or version or release does not exist"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "description": "Demote a package from a specific channel",
+        "operationId": "PUT_channels-origin-channel-pkgs-pkg-version-release-demote"
+      },
+      "parameters": [
+        {
+          "name": "release",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "pkg",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "channel",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/settings/{origin}/{name}/post": {
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/settings/{origin}/{name}/get": {
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/settings/{origin}/{name}/put": {
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "origin",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    }
+  },
+  "components": {
+    "schemas": {
+      "netError": {
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "msg": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "msg"
+        ],
+        "type": "object"
+      },
+      "job": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "origin": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "release": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "Complete",
+              "Dispatched",
+              "Failed",
+              "Pending",
+              "Processing",
+              "Rejected"
+            ],
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "build_started_at": {
+            "type": "string"
+          },
+          "build_finished_at": {
+            "type": "string"
+          },
+          "error": {
+            "$ref": "#/components/schemas/netError"
+          }
+        },
+        "required": [
+          "id",
+          "origin",
+          "name",
+          "version",
+          "release",
+          "state"
+        ],
+        "type": "object"
+      },
+      "jobs": {
+        "properties": {
+          "jobs": {
+            "minItems": 0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/job"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "jobCreate": {
+        "properties": {
+          "project_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "type": "object"
+      },
+      "jobLog": {
+        "properties": {
+          "start": {
+            "description": "The zero-indexed line number (inclusive) of the first line of log output in `content`.",
+            "type": "integer"
+          },
+          "stop": {
+            "description": "The zero-indexed line number (exclusive) of the last line of log output in `content`. Pass this number as the `start` query parameter on your next log request to retrieve the next portion of the log.",
+            "type": "integer"
+          },
+          "content": {
+            "description": "A subset of the log output, presented as individual lines. Trailing newline characters are not present. May be empty.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "is_complete": {
+            "description": "Indicates whether the job log is complete; i.e. additional polling for new lines is not required. Note that a job itself may be complete (i.e., finished running) but the log may not, as log processing is decoupled from build processing.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "start",
+          "stop",
+          "content",
+          "is_complete"
+        ],
+        "type": "object"
+      },
+      "project": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "plan_path": {
+            "type": "string"
+          },
+          "vcs": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "url"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "plan_path",
+          "vcs"
+        ],
+        "type": "object"
+      },
+      "projectCreate": {
+        "properties": {
+          "origin": {
+            "type": "string"
+          },
+          "plan_path": {
+            "type": "string"
+          },
+          "github": {
+            "type": "object",
+            "properties": {
+              "organization": {
+                "type": "string"
+              },
+              "repo": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "organization",
+              "repo"
+            ]
+          }
+        },
+        "required": [
+          "origin",
+          "plan_path",
+          "github"
+        ],
+        "type": "object"
+      },
+      "projectUpdate": {
+        "properties": {
+          "plan_path": {
+            "type": "string"
+          },
+          "github": {
+            "type": "object",
+            "properties": {
+              "organization": {
+                "type": "string"
+              },
+              "repo": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "organization",
+              "repo"
+            ]
+          }
+        },
+        "required": [
+          "plan_path",
+          "github"
+        ],
+        "type": "object"
+      },
+      "userProfile": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email"
+        ],
+        "type": "object"
+      },
+      "userProfileUpdate": {
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "type": "object"
+      },
+      "origin": {
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "owner_id": {
+            "type": "string"
+          },
+          "default_package_visibility": {
+            "enum": [
+              "Public",
+              "Private"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "secret_key": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "origin_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "owner_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "origin_id",
+          "name",
+          "revision",
+          "body",
+          "owner_id"
+        ],
+        "type": "object"
+      }
+    },
+    "responses": {},
+    "parameters": {},
+    "examples": {},
+    "requestBodies": {},
+    "headers": {},
+    "securitySchemes": {
+      "oauth_2_0": {
+        "description": "Builder supports OAuth 2.0 for authenticating all API requests.",
+        "type": "oauth2",
+        "flows": {
+          "implicit": {
+            "authorizationUrl": "https://{rootUri}/oauth2/authorize",
+            "scopes": {}
+          }
+        }
+      }
+    },
+    "links": {},
+    "callbacks": {}
+  }
+}

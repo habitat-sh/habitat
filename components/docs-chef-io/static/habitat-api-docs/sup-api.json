@@ -1,0 +1,714 @@
+{
+  "openapi": "3.0",
+  "info": {
+    "title": "Chef Habitat API Documentation",
+    "version": "",
+    "termsOfService": "https://www.chef.io/terms-and-conditions-of-use/",
+    "contact": {
+      "email": "support@chef.io",
+      "url": "https://www.chef.io/support/"
+    },
+    "x-logo": {
+      "url": "/images/habitat-logo.svg",
+      "altText": "Chef Habitat logo"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://github.com/chef/automate/blob/master/LICENSE"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://{rootUri}/",
+      "variables": {
+        "rootUri": {
+          "default": "rootUri"
+        }
+      }
+    }
+  ],
+  "paths": {
+    "/butterfly": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "description": "Butterfly debug output",
+        "operationId": "GET_butterfly"
+      }
+    },
+    "/census": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "description": "Census debug output",
+        "operationId": "GET_census"
+      }
+    },
+    "/services": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/service"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Supervisor hasn't fully started. Try again later."
+          }
+        },
+        "description": "List information of all loaded services",
+        "operationId": "GET_services"
+      }
+    },
+    "/services/{name}/{group}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not loaded"
+          },
+          "503": {
+            "description": "Supervisor hasn't fully started. Try again later."
+          }
+        },
+        "description": "Show information of a single loaded service",
+        "operationId": "GET_services-name-group"
+      },
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "group",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/services/{name}/{group}/config": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/toml": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not loaded"
+          },
+          "503": {
+            "description": "Supervisor hasn't fully started. Try again later."
+          }
+        },
+        "description": "Get last configuration for the given service group",
+        "operationId": "GET_services-name-group-config"
+      },
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "group",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/services/{name}/{group}/health": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Health Check - Ok / Warning",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/healthCheckOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not loaded"
+          },
+          "500": {
+            "description": "Health Check - Unknown"
+          },
+          "503": {
+            "description": "Health Check - Critical"
+          }
+        },
+        "description": "Health check status and output for the given service group",
+        "operationId": "GET_services-name-group-health"
+      },
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "group",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/services/{name}/{group}/{organization}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/service"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not loaded"
+          },
+          "503": {
+            "description": "Supervisor hasn't fully started. Try again later."
+          }
+        },
+        "description": "Show information of a single loaded service scoped to an organization",
+        "operationId": "GET_services-name-group-organization"
+      },
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "group",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "organization",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/services/{name}/{group}/{organization}/config": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/toml": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not loaded"
+          },
+          "503": {
+            "description": "Temporarily couldn't load configuration"
+          }
+        },
+        "description": "Get last configuration for the given service group",
+        "operationId": "GET_services-name-group-organization-config"
+      },
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "group",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "organization",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/services/{name}/{group}/{organization}/health": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Health Check - Ok / Warning",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/healthCheckOutput"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not loaded"
+          },
+          "500": {
+            "description": "Health Check - Unknown"
+          },
+          "503": {
+            "description": "Health Check - Critical"
+          }
+        },
+        "description": "Health check status and output for the given service group",
+        "operationId": "GET_services-name-group-organization-health"
+      },
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "group",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "organization",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    }
+  },
+  "components": {
+    "schemas": {
+      "healthCheckOutput": {
+        "type": "object",
+        "properties": {
+          "stdout": {
+            "type": "string"
+          },
+          "stderr": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "stdout",
+          "stderr"
+        ]
+      },
+      "hookInfo": {
+        "type": "object",
+        "properties": {
+          "render_pair": {
+            "type": "string"
+          },
+          "stdout_log_path": {
+            "type": "string"
+          },
+          "stderr_log_path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "render_pair",
+          "stdout_log_path",
+          "stderr_log_path"
+        ]
+      },
+      "hookTable": {
+        "type": "object",
+        "properties": {
+          "health_check": {
+            "$ref": "#/components/schemas/hookInfo"
+          },
+          "init": {
+            "$ref": "#/components/schemas/hookInfo"
+          },
+          "file_updated": {
+            "$ref": "#/components/schemas/hookInfo"
+          },
+          "reload": {
+            "$ref": "#/components/schemas/hookInfo"
+          },
+          "reconfigure": {
+            "$ref": "#/components/schemas/hookInfo"
+          },
+          "suitability": {
+            "$ref": "#/components/schemas/hookInfo"
+          },
+          "run": {
+            "$ref": "#/components/schemas/hookInfo"
+          },
+          "post_run": {
+            "$ref": "#/components/schemas/hookInfo"
+          }
+        }
+      },
+      "processInfo": {
+        "type": "object",
+        "properties": {
+          "pid": {
+            "type": "integer"
+          },
+          "preamble": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "Up",
+              "Down",
+              "Start",
+              "Restart"
+            ],
+            "type": "string"
+          },
+          "state_entered": {
+            "type": "integer"
+          },
+          "started": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "pid",
+          "preamble",
+          "state",
+          "state_entered",
+          "started"
+        ]
+      },
+      "pkg": {
+        "type": "object",
+        "properties": {
+          "ident": {
+            "type": "string"
+          },
+          "origin": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "release": {
+            "type": "string"
+          },
+          "deps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/pkgIdent"
+            }
+          },
+          "env": {
+            "type": "object"
+          },
+          "exposes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "exports": {
+            "type": "object"
+          },
+          "path": {
+            "type": "string"
+          },
+          "svc_path": {
+            "type": "string"
+          },
+          "svc_config_path": {
+            "type": "string"
+          },
+          "svc_data_path": {
+            "type": "string"
+          },
+          "svc_files_path": {
+            "type": "string"
+          },
+          "svc_static_path": {
+            "type": "string"
+          },
+          "svc_var_path": {
+            "type": "string"
+          },
+          "svc_pid_file": {
+            "type": "string"
+          },
+          "svc_run": {
+            "type": "string"
+          },
+          "svc_user": {
+            "type": "string"
+          },
+          "svc_group": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ident",
+          "origin",
+          "name",
+          "version",
+          "release",
+          "deps",
+          "env",
+          "exposes",
+          "exports",
+          "path",
+          "svc_path",
+          "svc_config_path",
+          "svc_data_path",
+          "svc_files_path",
+          "svc_static_path",
+          "svc_var_path",
+          "svc_pid_file",
+          "svc_run",
+          "svc_user",
+          "svc_group"
+        ]
+      },
+      "pkgIdent": {
+        "type": "object",
+        "properties": {
+          "origin": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "release": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "origin",
+          "name"
+        ]
+      },
+      "service": {
+        "type": "object",
+        "properties": {
+          "service_group": {
+            "type": "string"
+          },
+          "bldr_url": {
+            "type": "string"
+          },
+          "spec_file": {
+            "type": "string"
+          },
+          "spec_ident": {
+            "$ref": "#/components/schemas/pkgIdent"
+          },
+          "topology": {
+            "enum": [
+              "standalone",
+              "leader"
+            ],
+            "type": "string"
+          },
+          "update_strategy": {
+            "enum": [
+              "none",
+              "rolling",
+              "at-once"
+            ],
+            "type": "string"
+          },
+          "cfg": {
+            "type": "object"
+          },
+          "pkg": {
+            "$ref": "#/components/schemas/pkg"
+          },
+          "sys": {
+            "$ref": "#/components/schemas/systemInfo"
+          },
+          "health_check": {
+            "enum": [
+              "Ok",
+              "Warning",
+              "Critical",
+              "Unknown"
+            ],
+            "type": "string"
+          },
+          "initialized": {
+            "type": "boolean"
+          },
+          "last_election_status": {
+            "type": "string"
+          },
+          "needs_reload": {
+            "type": "boolean"
+          },
+          "needs_reconfiguration": {
+            "type": "boolean"
+          },
+          "hooks": {
+            "$ref": "#/components/schemas/hookTable"
+          },
+          "config_from": {
+            "type": "string"
+          },
+          "process": {
+            "$ref": "#/components/schemas/processInfo"
+          }
+        },
+        "required": [
+          "service_group",
+          "bldr_url",
+          "spec_file",
+          "spec_ident",
+          "topology",
+          "update_strategy",
+          "cfg",
+          "pkg",
+          "sys",
+          "health_check",
+          "initialized",
+          "last_election_status",
+          "needs_reload",
+          "needs_reconfiguration",
+          "hooks",
+          "process"
+        ]
+      },
+      "systemInfo": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "member_id": {
+            "type": "string"
+          },
+          "ip": {
+            "type": "string"
+          },
+          "hostname": {
+            "type": "string"
+          },
+          "gossip_ip": {
+            "type": "string"
+          },
+          "gossip_port": {
+            "type": "integer"
+          },
+          "http_gateway_ip": {
+            "type": "string"
+          },
+          "http_gateway_port": {
+            "type": "integer"
+          },
+          "permanent": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "version",
+          "member_id",
+          "ip",
+          "hostname",
+          "gossip_ip",
+          "gossip_port",
+          "http_gateway_ip",
+          "http_gateway_port",
+          "permanent"
+        ]
+      }
+    },
+    "responses": {},
+    "parameters": {},
+    "examples": {},
+    "requestBodies": {},
+    "headers": {},
+    "securitySchemes": {},
+    "links": {},
+    "callbacks": {}
+  }
+}
