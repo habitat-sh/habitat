@@ -1,46 +1,121 @@
 +++
-title = "Service Group Update Strategies"
-description = "Update service groups programatically"
+title = "Single Service Updates"
+description = "Update single services at runtime or dynamically"
 
 [menu]
   [menu.habitat]
-    title = "Service Group Update Strategies"
-    identifier = "habitat/services/service-updates Update Strategies"
+    title = "Single Service Updates"
+    identifier = "habitat/services/service-updates Individual Configuration Updates"
     parent = "habitat/services"
-    weight = 60
+    weight = 40
 
 +++
+
 [\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/service_updates.md)
 
-The Chef Habitat Supervisor can be configured to leverage an optional _update strategy_, which describes how the Supervisor and its peers within a service group should respond when a new version of a package is available.
+One of the key features of Chef Habitat is the ability to define an immutable package with a default configuration which can then be updated dynamically at runtime. You can update service configuration on two levels: individual services (for testing purposes), or a service group.
 
-To use an update strategy, the Supervisor is configured to subscribe to Chef Habitat Builder, and more specifically, a channel for new versions.
+## Apply Configuration Updates to an Individual Service
 
-## Configuring an Update Strategy
+When starting a single service, you can provide alternate configuration values to those specified in `default.toml`.
 
-Chef Habitat supports three update strategies: `none`, `rolling`, and `at-once`.
+### Using a _user.toml_ File
 
-To start a Supervisor with the auto-update strategy, pass the `--strategy` argument to a Supervisor run command, and optionally specify the depot URL:
+You can supply a `user.toml` containing any configuration data that you want to override default values. This file should be placed in the Chef Habitat `user` directory under the `config` subdirectory of the specific service directory that owns the configuration data. For example, to override the default configuration of the `myservice` service, this `user.toml` would be located at `/hab/user/myservice/config/user.toml`.
+
+### Using an Environment Variable
+
+Override default configuration data through the use of an environment variable with the following format: 
 
 ```bash
-$ hab sup run --strategy rolling --url https://bldr.habitat.sh
-$ hab svc load <ORIGIN>/<NAME>
+HAB_PACKAGENAME='{"keyname1":"newvalue1", "tablename1":{"keyname2":"newvalue2"}}'
 ```
 
-### None Strategy
+```bash
+HAB_MYTUTORIALAPP='{"message":"Chef Habitat rocks!"}' hab run <origin>/<packagename>
+```
 
-This strategy means your package will not automatically be updated when a newer version is available. By default, Supervisors start with their update strategy set to `none` unless explicitly set to one of the other two update strategies.
+{{< note >}}
+The syntax used for applying configuration through environment variables can be either JSON or TOML, but TOML is preferred. The package name in the environment variable must be uppercase, any dashes must be replaced with underscores.
+{{< /note >}}
 
-### Rolling Strategy
+{{< note >}}
+Variables must be set when the Supervisor process starts, not when the service is loaded, which may require a bit of planning on the part of the Chef Habitat user.
+{{< /note >}}
 
-This strategy requires Supervisors to update to a newer version of their package one at a time in their service group. An update leader is elected which all Supervisors within a service group will update around. All update followers will first ensure they are running the same version of a service that their leader is running, and then, the leader will poll Builder for a newer version of the service's package.
+For multiline environment variables, such as those in a TOML table or nested key value pairs, it can be easier to place your changes in a file and pass the file in. For example:
 
-Once the update leader finds a new version it will update and wait until all other alive members in the service group have also been updated before once again attempting to find a newer version of software to update to. Updates will happen more or less one at a time until completion with the exception of a new node being introduced into the service group during the middle of an update.
+```bash
+HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab run
+hab svc load <origin>/mytutorialapp
+```
 
-If your service group is also running with the `--topology leader` flag, the leader of that election will never become the update leader, so all followers within a leader topology will update first.
+Or, for [testing scenarios and containerized workflows]({{< relref "sup_run/#starting-the-supervisor" >}}):
 
-It's important to note that because we must perform a leader election to determine an update leader, *you must have at least 3 Supervisors running a service group to take advantage of the rolling update strategy*.
+```bash
+HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab run <origin>/mytutorialapp
+```
 
-### At-Once Strategy
+The main advantage of applying configuration updates to an individual service through an environment variable is that you can quickly test configuration settings to see how your service behaves at runtime. The disadvantages of this method are that configuration changes have to be applied when the Supervisor itself starts up, and you have to restart a running Supervisor (and thus, all services it may be running) in order to change these settings again.
 
-This strategy does no peer coordination with other Supervisors in the service group; it merely updates the underlying Chef Habitat package whenever it detects that a new version has either been published to a depot or installed to the local Chef Habitat `pkg` cache. No coordination between Supervisors is done, each Supervisor will poll Builder on their own.
+## Apply Configuration Updates to all Services in a Service Group
+
+Similar to specifying updates to individual settings at runtime, you can apply multiple configuration changes to an entire service group at runtime. These configuration updates can be sent in the clear or encrypted in gossip messages through [wire encryption]({{< relref "sup_secure" >}}). Configuration updates to a service group will trigger a restart of the services as new changes are applied throughout the group.
+
+### Usage
+
+When submitting a configuration update to a service group, you must specify the following:
+
+- a Supervisor to connect to
+- the version number of the configuration update
+- the new configuration
+
+Configuration updates can be either TOML passed into stdin, or passed in a TOML
+file that is referenced in [`hab config apply`]({{< relref "habitat_cli#hab-config-apply" >}}).
+
+{{< note >}}
+Configuration updates for service groups must be versioned. The version number must be an integer that starts at one and must be incremented with every subsequent update to the same service group. *If the version number is less than or equal to the current version number, the change(s) will not be applied.*
+{{< /note >}}
+
+Here are some examples of how to apply configuration changes through both the shell and through a TOML file.
+
+**Stdin**
+
+```bash
+echo 'buffersize = 16384' | hab config apply --remote-sup=hab1.mycompany.com myapp.prod 1
+```
+
+**TOML file**
+
+```bash
+hab config apply --remote-sup=hab1.mycompany.com myapp.prod 1 /tmp/newconfig.toml
+```
+
+Your output would look something like this:
+
+```bash
+» Setting new configuration version 1 for myapp.prod
+Ω Creating service configuration
+↑ Applying via peer 172.18.0.2:9632
+★ Applied configuration
+```
+
+The services in the myapp.prod service group will restart.
+
+```bash
+myapp.prod(SR): Service configuration updated from butterfly: acd2c21580748d38f64a014f964f19a0c1547955e4c86e63bf641a4e142b2200
+hab-sup(SC): Updated myapp.conf a85c2ed271620f895abd3f8065f265e41f198973317cc548a016f3eb60c7e13c
+myapp.prod(SV): Stopping
+...
+myapp.prod(SV): Starting
+```
+
+{{< note >}}
+As with all Supervisor interaction commands, if you do not specify `--remote-sup`, `hab config apply` will attempt to connect to a Supervisor running on the same host.
+{{< /note >}}
+
+### Encryption
+
+Configuration updates can be encrypted for the service group they are intended. To do so, pass the `--user` option with the name of your user key, and the `--org` option with the organization of the service group. If you have the public key for the service group, the data will be encrypted for that key, signed with your user key, and sent to the ring.
+
+It will then be stored encrypted in memory, and decrypted on disk.

@@ -36,7 +36,7 @@ A Supervisor is a process manager that runs the app packages that you defined in
 
 ## Services
 
-A [service]({{< relref "services" >}}) is your Chef Habitat package that is run and managed by a Supervisor. Services can be joined together into a [service group]({{< relref "service_groups" >}}), which is a collection of services with the same package and topology type that are connected together across a Supervisor network.
+A [service]({{< relref "about_services" >}}) is your Chef Habitat package that is run and managed by a Supervisor. Services can be joined together into a [service group]({{< relref "service_groups" >}}), which is a collection of services with the same package and topology type that are connected together across a Supervisor network.
 
 ## Installing Chef Habitat
 

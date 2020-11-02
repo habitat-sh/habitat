@@ -8,16 +8,19 @@ description = "Monitoring Services"
     identifier = "habitat/services/service-monitor"
     parent = "habitat/services"
     weight = 70
-
 +++
 
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/service_monitor.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/monitor_services.md)
 
-Use the HTTP API to monitor services. When a service starts, the Supervisor exposes the status of its services' health and other information through an HTTP API endpoint. This information can be useful in monitoring service health, results of leader elections, and so on.
+Use the HTTP API to monitor services. When a service starts, the [Supervisor]({{< relref "sup_networks">}}) exposes the status of its services' health and other information through an HTTP API endpoint. This information can be useful in monitoring service health, results of leader elections, and so on.
 
 ## Authentication
 
-The Supervisor currently supports simple HTTP authentication using Bearer tokens. By default, no authentication is used. If you would like to require authentication, export the `HAB_SUP_GATEWAY_AUTH_TOKEN` environment variable before starting the Supervisor. All HTTP requests will then require that same token to be present in an Authorization header, or they will receive a 401 Unauthorized response.
+The Supervisor currently supports simple HTTP authentication using Bearer tokens.
+By default, no authentication is used. If you would like to require authentication,
+export the `HAB_SUP_GATEWAY_AUTH_TOKEN` environment variable before starting the
+Supervisor. All HTTP requests will then require that same token to be present in
+an Authorization header, or they will receive a 401 Unauthorized response.
 
 ## Endpoints
 
@@ -38,14 +41,14 @@ The HTTP API provides information on the following endpoints:
 Most of the HTTP API endpoint return these errors:
 
 | Error | Description |
-| +++-- | +++++++++-- |
+| ----- | ----------- |
 | 404 | Service not loaded |
 | 503 | Supervisor hasn't fully started. Try again later. |
 
 The `/health` endpoints return:
 
 | Error | Description |
-| +++-- | +++++++++-- |
+| ----- | ----------- |
 | 404 | Service not loaded |
 | 500 | Health Check - Unknown |
 | 503 | Health Check - Critical |
@@ -55,10 +58,10 @@ The `/health` endpoints return:
 Connect to the Supervisor of the running service using the following syntax. This example uses `curl` to do the GET request.
 
 ```bash
-$ curl http://172.17.0.2:9631/services
+curl http://172.17.0.2:9631/services
 ```
 
-> Note: The default listening port on the Supervisor is 9631; however, that can be changed by using the `--listen-http` option when starting a service.
+**Note**: The default listening port on the Supervisor is 9631; however, you can change the listening port by using the `--listen-http` option when starting a service.
 
 Depending on the endpoint you hit, the data may be formatted in JSON, TOML, or plain text.
 
