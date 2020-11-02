@@ -50,7 +50,7 @@ HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab run
 hab svc load <origin>/mytutorialapp
 ```
 
-Or, for [testing scenarios and containerized workflows]({{< relref "sup-run/#starting-the-supervisor" >}}):
+Or, for [testing scenarios and containerized workflows]({{< relref "sup_run/#starting-the-supervisor" >}}):
 
 ```bash
 HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab run <origin>/mytutorialapp
