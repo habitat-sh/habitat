@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.185 -->
-## [1.6.185](https://github.com/habitat-sh/habitat/tree/1.6.185) (2020-10-31)
+<!-- latest_release 1.6.186 -->
+## [1.6.186](https://github.com/habitat-sh/habitat/tree/1.6.186) (2020-11-02)
 
 #### Merged Pull Requests
-- Add About Habitat index page [#7948](https://github.com/habitat-sh/habitat/pull/7948) ([IanMadd](https://github.com/IanMadd))
+- Add Hab API docs [#7966](https://github.com/habitat-sh/habitat/pull/7966) ([IanMadd](https://github.com/IanMadd))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
 ### Changes since 1.6.181 release
 
 #### Merged Pull Requests
+- Add Hab API docs [#7966](https://github.com/habitat-sh/habitat/pull/7966) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.186 -->
 - Add About Habitat index page [#7948](https://github.com/habitat-sh/habitat/pull/7948) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.185 -->
 - Delete glossary page [#7962](https://github.com/habitat-sh/habitat/pull/7962) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.184 -->
 - Update page names and page links [#7961](https://github.com/habitat-sh/habitat/pull/7961) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.184 -->
