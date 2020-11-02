@@ -7,7 +7,6 @@ use futures::stream::StreamExt;
 use habitat_common::{package_graph::PackageGraph,
                      templating::hooks::{PackageMaintenanceHookExt,
                                          UninstallHook},
-                     types::ListenCtlAddr,
                      ui::{Status,
                           UIWriter}};
 use habitat_core::{error as herror,
@@ -269,11 +268,10 @@ async fn supervisor_services() -> Result<Vec<PackageIdent>> {
         return Ok(vec![]);
     }
 
-    let listen_ctl_addr = ListenCtlAddr::default();
     let msg = habitat_sup_protocol::ctl::SvcStatus::default();
 
     let mut out: Vec<PackageIdent> = vec![];
-    let mut response = SrvClient::request(&listen_ctl_addr, msg).await?;
+    let mut response = SrvClient::request(None, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
         match reply.message_id() {

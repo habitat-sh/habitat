@@ -10,9 +10,11 @@ description = "Service Group Topologies"
     weight = 30
 +++
 
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/service_group_topologies.md)
+
 A topology describes the intended relationship between peers within a service group.
 Two topologies ship with Chef Habitat by default: **standalone** and **leader-follower**.
-The leader-follower topology employs leader election to define a leader.
+The leader-follower topology employs [leader election]({{< relref "sup_crypto" >}}) to define a leader.
 
 ## Standalone
 

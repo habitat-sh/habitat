@@ -89,6 +89,9 @@ notAlternative = true
   tag = "tags"
   resource = "resources"
 
+[params.product_version]
+[params.product_version.chef-server]
+versions = ["13_2", "14_0"]
 
 [module]
 
@@ -975,17 +978,15 @@ weight = 10
   weight = 70
 
   [[menu.habitat]]
-  title = "Studio"
-  identifier = "habitat/studio"
-  url = "/habitat/studio"
-  parent = "habitat"
-  weight = 80
-
-  [[menu.habitat]]
   title = "Reference"
   identifier = "habitat/reference"
   parent = "habitat"
   weight = 90
+
+  [[menu.habitat]]
+  title = "API"
+  identifier = "habitat/reference/api"
+  parent = "habitat/reference"
 
   [[menu.habitat]]
   title = "Containers"

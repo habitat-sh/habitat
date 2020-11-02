@@ -10,6 +10,8 @@ description = "Update Services with File Uploads"
     weight = 40
 +++
 
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/service_group_configuration.md)
+
 ## Uploading Files to a Service Group
 
 In addition to [configuration updates]({{< relref "service_updates" >}}), you can
@@ -18,7 +20,7 @@ file, and keep the count of files to a minimum.
 
 ### Usage
 
-Use the [`hab file upload`]({{< relref "habitat-cli#hab-file-upload" >}}) command
+Use the [`hab file upload`]({{< relref "habitat_cli#hab-file-upload" >}}) command
 to submit a file to a service group. Specify a peer in the ring to connect to,
 the version number of the file, and the new path to the file itself.
 

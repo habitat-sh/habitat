@@ -1,14 +1,19 @@
 +++
 title = "About Services"
+aliases = ["/habitat/using-habitat/"]
 
+date = 2020-10-26T18:37:38-07:00
+draft = false
 
 [menu]
   [menu.habitat]
     title = "About Services"
     identifier = "habitat/services/About Services"
     parent = "habitat/services"
-    weight = 5
+    weight = 10
 +++
+
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/about_services.md)
 
 A service is a Chef Habitat package running under a Chef Habitat Supervisor.
 
@@ -40,3 +45,6 @@ nodes to use a leader/follower configuration. Leaders are elected with Chef Habi
 leader election algorithm, and followers are restarted to reflect a configuration
 that follows the new leader. Subsequent elections due to leader failure will update
 both leader and follower configuration data.
+
+You can read more about the internals behind the elections in our [advanced developer
+documentation]({{< relref "sup_crypto#leader-election" >}}).

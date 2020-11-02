@@ -5,15 +5,14 @@ description = "Monitoring Services"
 [menu]
   [menu.habitat]
     title = "Monitoring Services"
-    identifier = "habitat/services/Monitoring Services"
+    identifier = "habitat/services/service-monitor"
     parent = "habitat/services"
-    weight = 10
+    weight = 70
 +++
 
-Use the HTTP API to monitor services. When a service starts, the [Supervisor]({{< relref "robust-supervisor-networks">}}) exposes
-the status of its services' health and other information through an HTTP API endpoint.
-This information can be useful in monitoring service health, the results of leader
-elections, and so on.
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/monitor_services.md)
+
+Use the HTTP API to monitor services. When a service starts, the [Supervisor]({{< relref "sup_networks">}}) exposes the status of its services' health and other information through an HTTP API endpoint. This information can be useful in monitoring service health, results of leader elections, and so on.
 
 ## Authentication
 

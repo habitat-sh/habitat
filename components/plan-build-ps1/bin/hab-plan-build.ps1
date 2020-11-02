@@ -75,7 +75,16 @@ $env:HAB_BLDR_URL = "$script:HAB_BLDR_URL"
 if (!(Test-Path Env:\HAB_BLDR_CHANNEL)) {
     $env:HAB_BLDR_CHANNEL = "stable"
 }
-$script:FALLBACK_CHANNEL = "stable"
+# Fall back here if package can't be installed from $HAB_BLDR_CHANNEL
+# This is overridable with the sole intention of supporting core plans
+# refresh evaluations (where we want to pull dependencies from a
+# separate channel, and not "stable").
+#
+# Also note that this only really comes into play if HAB_BLDR_CHANNEL
+# has been set to something different.
+if (!(Test-Path Env:\HAB_FALLBACK_CHANNEL)) {
+    $env:HAB_FALLBACK_CHANNEL = "stable"
+}
 # The value of `$env:Path` on initial start of this program
 $script:INITIAL_PATH = "$env:Path"
 # The full target tuple this plan will be built for
@@ -322,9 +331,9 @@ function Install-Dependency($dependency, $install_args = $null) {
         $cmd = "$HAB_BIN pkg install -u $env:HAB_BLDR_URL --channel $env:HAB_BLDR_CHANNEL $dependency $install_args"
         if($env:HAB_FEAT_IGNORE_LOCAL -eq "true") { $cmd += " --ignore-local" }
         Invoke-Expression $cmd
-        if ($LASTEXITCODE -ne 0 -and ($env:HAB_BLDR_URL -ne $FALLBACK_CHANNEL)) {
-            Write-BuildLine "Trying to install '$dependency' from '$FALLBACK_CHANNEL'"
-            $cmd = "$HAB_BIN pkg install -u $env:HAB_BLDR_URL --channel $FALLBACK_CHANNEL $dependency $install_args"
+        if ($LASTEXITCODE -ne 0 -and ($env:HAB_BLDR_CHANNEL -ne $env:HAB_FALLBACK_CHANNEL)) {
+            Write-BuildLine "Trying to install '$dependency' from '$env:HAB_FALLBACK_CHANNEL'"
+            $cmd = "$HAB_BIN pkg install -u $env:HAB_BLDR_URL --channel $env:HAB_FALLBACK_CHANNEL $dependency $install_args"
             if($env:HAB_FEAT_IGNORE_LOCAL -eq "true") { $cmd += " --ignore-local" }
             Invoke-Expression $cmd
         }

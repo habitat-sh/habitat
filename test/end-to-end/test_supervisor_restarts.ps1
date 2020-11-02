@@ -7,7 +7,8 @@
 Describe "Supervisor restarts on abrupt exit" {
     $exit_file = New-TemporaryFile
     $env:HAB_FEAT_TEST_EXIT = $exit_file
-    $launcher_proc = Start-Supervisor -Timeout 45 -LogFile "sup.log"
+    $supLog = New-SupervisorLogFile("supervisor_restarts_on_abrupt_exit")
+    $launcher_proc = Start-Supervisor -Timeout 45 -LogFile $supLog
     $supervisor_proc = Get-Process hab-sup
     Set-Content $exit_file -Value 1
 
@@ -38,7 +39,8 @@ Describe "Supervisor restarts on abrupt exit" {
 }
 
 Describe "Supervisor restarts on 'hab sup restart'" {
-    $launcher_proc = Start-Supervisor -Timeout 45 -LogFile "sup.log"
+    $supLog = New-SupervisorLogFile("supervisor_restarts_on_hab_sup_restart")
+    $launcher_proc = Start-Supervisor -Timeout 45 -LogFile $supLog
     $supervisor_proc = Get-Process hab-sup
     Invoke-NativeCommand hab sup restart
 

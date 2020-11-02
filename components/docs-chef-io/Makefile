@@ -28,14 +28,14 @@ chef_web_docs_submodule_temp:
 	git submodule update --init --recursive chef-web-docs
 	pushd chef-web-docs && git pull origin master && git reset --hard && popd
 	cp -R content/* chef-web-docs/content
-	cp -R static/images/* chef-web-docs/static/images
+	cp -R static/* chef-web-docs/static
 	cp temp_config.toml chef-web-docs/config.toml
 
 chef_web_docs_submodule:
 	git submodule update --init --recursive chef-web-docs
 	pushd chef-web-docs && git pull origin master && git reset --hard && popd
 	cp -R content/* chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io/content
-	cp -R static/images/* chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io/static/images
+	cp -R static/* chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io/static
 	cp -R layouts/* chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io/layouts
 
 reset_chef_web_docs:

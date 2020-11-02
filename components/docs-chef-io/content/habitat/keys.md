@@ -9,12 +9,13 @@ description = "Chef Habitat Security"
     parent = "habitat/reference"
 
 +++
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/keys.md)
 
 Chef Habitat has strong cryptography built into Chef Habitat Builder, the Supervisor, and the `hab` CLI commands. This means there are several different kinds of keys.
 
 ## Origin Key Pairs
 
-Every Chef Habitat artifact belongs to an [origin](/docs/glossary/glossary-artifacts) and is cryptographically signed with that origin's private key. Chef Habitat requires the private key for producing artifacts and requires the public key for verification of artifacts before installation. If it is present on Builder, Chef Habitat will automatically download the public key for an origin when necessary.
+Every Chef Habitat artifact belongs to an [origin]({{< relref "pkg_ids" >}}) and is cryptographically signed with that origin's private key. Chef Habitat requires the private key for producing artifacts and requires the public key for verification of artifacts before installation. If it is present on Builder, Chef Habitat will automatically download the public key for an origin when necessary.
 
 Origin key cryptography is asymmetric: it has a public key that you can distribute freely, and a private key that you should keep safe.
 
@@ -32,7 +33,7 @@ hab origin key import < <PATH_TO_KEY>
 curl <URL_THAT_RETURNS_KEY> | hab origin key import
 ```
 
-See the [hab origin key](docs/habitat-cli/#hab-origin-key) command documentation for more information about working with origin keys from the command line.
+See the [hab origin key]({{< relref "habitat_cli/#hab-origin-key" >}}) command documentation for more information about working with origin keys from the command line.
 
 ## User and Service Group Keys
 
@@ -44,4 +45,5 @@ User and service group keys also utilize asymmetric cryptography. To apply confi
 
 ## Ring Encryption Key
 
-A Supervisor network can be optionally set up to encrypt *all* supervisor-to-supervisor communication. This requires the use of a symmetric, pre-shared key.
+A Supervisor network can be optionally set up to encrypt *all* supervisor-to-supervisor communication.
+This requires the use of a symmetric, pre-shared key.

@@ -123,7 +123,7 @@ fn authentication_middleware<S>(req: ServiceRequest,
                                 -> impl Future<Output = Result<ServiceResponse<Body>, Error>>
     where S: Service<Request = ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
 {
-    let current_token = &req.app_data::<AppState>()
+    let current_token = &req.app_data::<Data<AppState>>()
                             .expect("app data")
                             .authentication_token;
     let current_token = if let Some(t) = current_token {
@@ -171,7 +171,7 @@ fn metrics_middleware<S>(req: ServiceRequest,
     HTTP_GATEWAY_REQUESTS.with_label_values(label_values).inc();
     let timer = HTTP_GATEWAY_REQUEST_DURATION.with_label_values(label_values)
                                              .start_timer();
-    req.app_data::<AppState>()
+    req.app_data::<Data<AppState>>()
        .expect("app data")
        .timer
        .set(Some(timer));
@@ -196,7 +196,7 @@ fn redact_http_middleware<S>(req: ServiceRequest,
                              -> impl Future<Output = Result<ServiceResponse<Body>, Error>>
     where S: Service<Request = ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
 {
-    if req.app_data::<AppState>()
+    if req.app_data::<Data<AppState>>()
           .expect("app data")
           .feature_flags
           .contains(FeatureFlag::REDACT_HTTP)

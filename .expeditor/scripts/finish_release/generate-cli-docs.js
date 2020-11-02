@@ -61,7 +61,7 @@ function parseOutput(command, output) {
     subcommands: (result.SUBCOMMANDS || [])
       .filter(line => !line.match(/help/))
       .map(line => {
-        const matched = line.match(/^(\w+) (.+)$/);
+        const matched = line.match(/^([^ ]+) (.+)$/);
         return {
           parent: `${command}`,
           command: matched ? matched[1].trim() : '',

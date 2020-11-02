@@ -4,16 +4,16 @@
 //! # RPC Call Example
 //!
 //! ```rust no_run
-//! use habitat_common::types::ListenCtlAddr;
+//! use habitat_common::types::ResolvedListenCtlAddr;
 //! use habitat_sup_client::SrvClient;
 //! use habitat_sup_protocol as protocols;
 //! use futures::stream::StreamExt;
 //!
 //! #[tokio::main]
 //! async fn main() {
-//!     let listen_addr = ListenCtlAddr::default();
+//!     let listen_addr = ResolvedListenCtlAddr::default();
 //!     let msg = protocols::ctl::SvcGetDefaultCfg::default();
-//!     let mut response = SrvClient::request(&listen_addr, msg).await.unwrap();
+//!     let mut response = SrvClient::request(Some(&listen_addr), msg).await.unwrap();
 //!     while let Some(message_result) = response.next().await {
 //!         let reply = message_result.unwrap();
 //!         match reply.message_id() {
@@ -34,7 +34,7 @@
 use habitat_sup_protocol as protocol;
 #[macro_use]
 extern crate log;
-use crate::{common::types::ListenCtlAddr,
+use crate::{common::types::ResolvedListenCtlAddr,
             protocol::{codec::*,
                        net::NetErr}};
 use futures::{sink::SinkExt,
@@ -44,11 +44,13 @@ use habitat_common::{self as common,
                      cli::CTL_SECRET_ENVVAR,
                      cli_config::{CliConfig,
                                   Error as CliConfigError}};
-use habitat_core::env as henv;
+use habitat_core::{env as henv,
+                   tls::rustls_wrapper::TcpOrTlsStream};
+use rustls::TLSError as RustlsError;
 use std::{error,
           fmt,
           io,
-          path::PathBuf,
+          sync::Arc,
           time::Duration};
 use tokio::{net::TcpStream,
             time};
@@ -65,8 +67,6 @@ pub enum SrvClientError {
     /// The remote server unexpectedly closed the connection.
     ConnectionClosed,
     CliConfigError(CliConfigError),
-    /// Unable to locate a secret key on disk.
-    CtlSecretNotFound(PathBuf),
     /// Decoding a message from the remote failed.
     Decode(prost::DecodeError),
     /// An Os level IO error occurred.
@@ -75,6 +75,7 @@ pub enum SrvClientError {
     NetErr(NetErr),
     /// A parse error from an Invalid Color string
     ParseColor(termcolor::ParseColorError),
+    RustlsError(RustlsError),
 }
 
 impl error::Error for SrvClientError {}
@@ -96,16 +97,13 @@ impl fmt::Display for SrvClientError {
                                                                      .to_string()
             }
             SrvClientError::CliConfigError(ref err) => format!("{}", err),
-            SrvClientError::CtlSecretNotFound(ref path) => {
-                format!("No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run \
-                         `hab setup` or run the Supervisor for the first time before attempting \
-                         to command the Supervisor.",
-                        path.display())
-            }
             SrvClientError::Decode(ref err) => format!("{}", err),
             SrvClientError::Io(ref err) => format!("{}", err),
             SrvClientError::NetErr(ref err) => format!("{}", err),
             SrvClientError::ParseColor(ref err) => format!("{}", err),
+            SrvClientError::RustlsError(ref err) => {
+                format!("failed to establish TLS connection, err: {}", err)
+            }
         };
         write!(f, "{}", content)
     }
@@ -136,6 +134,10 @@ impl From<termcolor::ParseColorError> for SrvClientError {
     fn from(err: termcolor::ParseColorError) -> Self { SrvClientError::ParseColor(err) }
 }
 
+impl From<RustlsError> for SrvClientError {
+    fn from(err: RustlsError) -> Self { SrvClientError::RustlsError(err) }
+}
+
 /// Client for connecting and communicating with a server speaking SrvProtocol.
 ///
 /// See module doc for usage.
@@ -146,11 +148,26 @@ impl SrvClient {
     ///
     /// Returns a stream of `SrvMessage`'s representing the server response.
     pub async fn request(
-        address: &ListenCtlAddr,
+        addr: Option<&ResolvedListenCtlAddr>,
         request: impl Into<SrvMessage> + fmt::Debug)
         -> Result<impl Stream<Item = Result<SrvMessage, io::Error>>, SrvClientError> {
-        let socket = TcpStream::connect(address.as_ref()).await?;
-        let mut socket = Framed::new(socket, SrvCodec::new());
+        let addr = Self::ctl_addr(addr)?;
+        let tcp_stream = TcpStream::connect(addr.addr()).await?;
+
+        // Upgrade to a TLS connection if necessary
+        let config = CliConfig::load()?;
+        let server_name_indication = config.ctl_server_name_indication.clone();
+        let tcp_stream = if let Some(tls_config) = config.maybe_tls_client_config()?.map(Arc::new) {
+            let domain = server_name_indication.as_deref()
+                                               .unwrap_or_else(|| addr.domain());
+            debug!("Upgrading ctl-gateway to TLS with domain '{}'", domain);
+            TcpOrTlsStream::new_tls_client(tcp_stream, tls_config, domain).await
+                                                                          .map_err(|e| e.0)?
+        } else {
+            TcpOrTlsStream::new(tcp_stream)
+        };
+
+        let mut tcp_stream = Framed::new(tcp_stream, SrvCodec::new());
         let mut current_transaction = SrvTxn::default();
 
         // Send the handshake message to the server
@@ -158,15 +175,15 @@ impl SrvClient {
         handshake.secret_key = Some(Self::ctl_secret_key()?);
         let mut message = SrvMessage::from(handshake);
         message.set_transaction(current_transaction);
-        socket.send(message).await?;
+        tcp_stream.send(message).await?;
 
         // Verify the handshake response. There are three kinds of errors we could encounter:
         // 1. The handshake timedout
-        // 2. The `socket.next()` call returns `None` indicating the connection was unexpectedly
+        // 2. The `tcp_stream.next()` call returns `None` indicating the connection was unexpectedly
         // closed by the server
         // 3. Any other socket io error
         let handshake_result =
-            time::timeout(Duration::from_millis(REQ_TIMEOUT), socket.next()).await;
+            time::timeout(Duration::from_millis(REQ_TIMEOUT), tcp_stream.next()).await;
         let handshake_reply = handshake_result.map_err(|_| {
                                                   io::Error::new(io::ErrorKind::TimedOut,
                                                                  "client timed out")
@@ -179,10 +196,27 @@ impl SrvClient {
         let mut message = request.into();
         message.set_transaction(current_transaction);
         trace!("Sending SrvMessage -> {:?}", message);
-        socket.send(message).await?;
+        tcp_stream.send(message).await?;
 
-        // Return the socket for use as a Stream of responses
-        Ok(socket)
+        // Return the tcp_stream for use as a Stream of responses
+        Ok(tcp_stream)
+    }
+
+    /// Return the ctl gateway address with the following order of precedence:
+    /// 1. `maybe_addr` parameter
+    /// 2. cli.toml
+    /// 3. default value
+    ///
+    /// This is public because it allows parts of the code to lookup the address, log messages with
+    /// that address, and then use that address to actually make the request.
+    pub fn ctl_addr(maybe_addr: Option<&ResolvedListenCtlAddr>)
+                    -> Result<ResolvedListenCtlAddr, SrvClientError> {
+        if let Some(addr) = maybe_addr {
+            Ok(addr.clone())
+        } else {
+            let config = CliConfig::load()?;
+            Ok(config.listen_ctl.unwrap_or_default())
+        }
     }
 
     /// Check if the `HAB_CTL_SECRET` env var is set. If not, check the CLI config to see if there
@@ -200,7 +234,7 @@ impl SrvClient {
         }
     }
 
-    pub fn ctl_secret_key_from_file() -> Result<String, SrvClientError> {
+    fn ctl_secret_key_from_file() -> Result<String, SrvClientError> {
         let mut buf = String::new();
         protocol::read_secret_key(protocol::sup_root(None), &mut buf)?;
         Ok(buf)

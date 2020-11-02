@@ -91,7 +91,26 @@ function Wait-StopSupervisor($Timeout = 10, $port = 9631) {
     Write-Host "Supervisor is now stopped."
 }
 
-function Start-Supervisor($Timeout = 1, $LogFile = (New-TemporaryFile), $SupArgs = @()) {
+# Generate a new unique log file name, given a base name.
+#
+# The base name should be something descriptive that allows you to
+# trace a given log file back to the test case that generated it.
+#
+# This is used instead of the standard `New-TemporaryFile`, since that
+# does not seem to allow you to specify any non-random components,
+# which we will need for both correlating outputs to tests, as well as
+# easily collecting log outputs in Buildkite.
+#
+# Example:
+#
+#    > New-SupervisorLogFile "monkeypants"
+#    monkeypants-oqUwJ.log
+#
+function New-SupervisorLogFile($BaseName) {
+    Join-String -OutputPrefix "$BaseName-" -OutputSuffix ".log" -InputObject (-join ((65..90) + (97..122) | Get-Random -Count 5 | ForEach-Object {[char]$_}))
+}
+
+function Start-Supervisor($LogFile, $Timeout = 1, $SupArgs = @()) {
     Add-Type -TypeDefinition (Get-Content "$PSScriptroot/SupervisorRunner.cs" | Out-String)
     $sup = New-Object SupervisorRunner
     $supPid = $sup.Run($LogFile, $SupArgs)

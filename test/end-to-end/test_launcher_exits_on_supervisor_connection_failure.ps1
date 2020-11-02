@@ -9,8 +9,6 @@ $env:HAB_LAUNCH_NO_SUP_VERSION_CHECK="true"
 
 Add-Type -TypeDefinition (Get-Content "$PSScriptroot/../../.expeditor/scripts/end_to_end/SupervisorRunner.cs" | Out-String)
 
-$sup_log = "sup.log"
-
 # Preinstall these packages. If we don't, then we spend the bulk of
 # our time in the following `while` loop downloading them, rather than
 # actually exercising the functionality we're after. That leads to
@@ -22,7 +20,8 @@ hab pkg install core/hab-launcher --channel="${env:HAB_BLDR_CHANNEL}"
 
 Describe "Supervisor boot failure" {
     $sup = New-Object SupervisorRunner
-    $supPid = $sup.Run($sup_log)
+    $supLog = New-SupervisorLogFile("supervisor_boot_failure")
+    $supPid = $sup.Run($supLog)
 
     It "exits launcher before timeout" {
         $retries=0
@@ -41,6 +40,6 @@ Describe "Supervisor boot failure" {
         $supPid.ExitCode | Should -Not -Be 0
     }
     It "logs connection failure" {
-        $sup_log | Should -FileContentMatch "Unable to accept connection from Supervisor"
+        $supLog | Should -FileContentMatch "Unable to accept connection from Supervisor"
     }
 }

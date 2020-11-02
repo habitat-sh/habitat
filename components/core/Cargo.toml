@@ -22,11 +22,16 @@ hex = "*"
 lazy_static = "*"
 libc = "0.2.76"
 log = "*"
+native-tls = { version = "*", features = ["vendored"] }
 os_info = "*"
 paste = "1.0"
+pem = "*"
+pin-project = "*"
 rand = "*"
 regex = "*"
+rcgen = "*"
 rust-crypto = "*"
+rustls = "*"
 serde = "*"
 serde_derive = "*"
 serde_json = { version = "*", features = [ "preserve_order" ] }
@@ -34,9 +39,13 @@ sodiumoxide = "*"
 tabwriter = "*"
 tar = "*"
 tempfile = "*"
+thiserror = "*"
+tokio = { version = "*", features = ["full"] }
+tokio-rustls = "*"
 toml = { version = "0.5.6", features = [ "preserve_order" ] }
 typemap = "*"
 url = "*"
+webpki = "*"
 xz2 = "*"
 
 [target.'cfg(not(windows))'.dependencies]

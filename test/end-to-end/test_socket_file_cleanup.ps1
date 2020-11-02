@@ -9,7 +9,8 @@ Describe "Supervisor shutdown" {
     $socket_files_before = New-TemporaryFile
     Get-SocketFile | Out-File $socket_files_before
 
-    $launcher_proc = Start-Supervisor -Timeout 60
+    $supLog = New-SupervisorLogFile("test_socket_file_cleanup")
+    $launcher_proc = Start-Supervisor -LogFile $supLog -Timeout 60
     hab sup term
     $launcher_proc.WaitForExit()
 
