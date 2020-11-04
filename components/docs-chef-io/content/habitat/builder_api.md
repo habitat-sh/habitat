@@ -1,6 +1,8 @@
 +++
 title = "Chef Habitat Builder API"
 
+aliases = ["/habitat/api/builder-api/"]
+
 date = 2019-03-06T17:25:30-07:00
 draft = false
 layout = "data-api"
