@@ -80,14 +80,22 @@ function markdownForHeader() {
   const now = new Date();
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const formatted = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`
-  return `---
-title: Chef Habitat Docs - hab CLI Reference
-draft: false
----
+  return `+++
+  title = "Chef Habitat Command-Line Interface (CLI) Reference"
+  draft= false
+  
+  aliases = ["/habitat/habitat-cli/"]
+  
+  [menu]
+    [menu.habitat]
+      title = "hab CLI Reference"
+      identifier = "habitat/reference/hab CLI Reference"
+      parent = "habitat/reference"
+      weight = 10
+  +++
 
-<!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
+<!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/.expeditor/scripts/finish_release/generate-cli-docs.js -->
 
-# Chef Habitat Command-Line Interface (CLI) Reference
 
 The commands for the Chef Habitat CLI (\`hab\`) are listed below.
 
