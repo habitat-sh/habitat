@@ -280,7 +280,11 @@ mod inner {
                                                "-File"].into_iter()
                                                        .map(Into::into)
                                                        .collect();
-        cmd_args.push(studio_command.into());
+        if let Some(cmd) = find_command(&studio_command) {
+            cmd_args.push(cmd.into());
+        } else {
+            return Err(Error::ExecCommandNotFound(studio_command));
+        }
         cmd_args.extend_from_slice(args);
 
         if let Some(cmd) = find_command(&pwsh_command) {
