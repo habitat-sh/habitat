@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.189 -->
-## [1.6.189](https://github.com/habitat-sh/habitat/tree/1.6.189) (2020-11-05)
+<!-- latest_release 1.6.190 -->
+## [1.6.190](https://github.com/habitat-sh/habitat/tree/1.6.190) (2020-11-05)
 
 #### Merged Pull Requests
-- fix studio failure building outside system drive [#7969](https://github.com/habitat-sh/habitat/pull/7969) ([mwrock](https://github.com/mwrock))
+- Rustfmt and Nightly Rust Bump to nightly-2020-10-25 [#7954](https://github.com/habitat-sh/habitat/pull/7954) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
 ### Changes since 1.6.181 release
 
 #### Merged Pull Requests
+- Rustfmt and Nightly Rust Bump to nightly-2020-10-25 [#7954](https://github.com/habitat-sh/habitat/pull/7954) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.190 -->
+- Add Dependabot config for Rust [#7970](https://github.com/habitat-sh/habitat/pull/7970) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.190 -->
 - fix studio failure building outside system drive [#7969](https://github.com/habitat-sh/habitat/pull/7969) ([mwrock](https://github.com/mwrock)) <!-- 1.6.189 -->
 - Add redirects for api pages [#7967](https://github.com/habitat-sh/habitat/pull/7967) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.188 -->
 - Edits to service docs [#7947](https://github.com/habitat-sh/habitat/pull/7947) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.187 -->
