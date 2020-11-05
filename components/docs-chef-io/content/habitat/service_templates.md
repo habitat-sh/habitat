@@ -13,13 +13,13 @@ draft = false
 
 [\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/service_templates.md)
 
-<!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-template-reference.js -->
+<!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/.expeditor/scripts/finish_release/generate-template-reference.js -->
 
 The following settings can be used during a Chef Habitat service's lifecycle. This means that you can use these settings in any of the plan hooks, such as `init`, or `run`, and also in any templatized configuration file for your application or service.
 
 These configuration settings are referenced using the [Handlebars.js](https://github.com/wycats/handlebars.js/) version of [Mustache-style](https://mustache.github.io/mustache.5.html) tags.
 
-### sys
+## sys
 
 System information
 
@@ -37,7 +37,7 @@ System information
 | permanent | boolean | Set to true if a Supervisor is being used as a permanent peer, to increase Ring network traffic stability. |
 | version | string | Version of the Habitat Supervisor, e.g., `0.54.0/20180221023448` |
 
-### pkg
+## pkg
 
 Details about the package currently running the service
 
@@ -64,11 +64,11 @@ Details about the package currently running the service
 | svc_user | string | The value of `pkg_svc_user` specified in a plan. |
 | svc_group | string | The value of `pkg_svc_group` specified in a plan. |
 
-### cfg
+## cfg
 
 These are settings defined in your templatized configuration file. The values for those settings are pulled from the `default.toml` file included in your package.
 
-### svc
+## svc
 
 Information about the current service's service group
 
@@ -89,7 +89,7 @@ Information about the current service's service group
 | leader | [svc_member]({{< relref "#svc_member" >}}) | The current leader of the service group, if any (`null` otherwise) |
 | update_leader | [svc_member]({{< relref "#svc_member" >}}) | The current update_leader of the service group, if any (`null` otherwise) |
 
-### bind
+## bind
 
 Exposes information about the service groups this service is bound to. Each key is the name of a bind, while each value is one of the objects described below
 
@@ -99,11 +99,11 @@ Exposes information about the service groups this service is bound to. Each key 
 | leader | [svc_member]({{< relref "#svc_member" >}}) | The current leader of this service group, if running in a leader topology |
 | members | array | All active members (`alive` and `suspect`) of the service group, across the entire ring. As of 0.56.0, does _not_ include `departed` or `confirmed` members |
 
-### Reference Objects
+## Reference Objects
 
 Some of the template expressions referenced above return objects of a specific shape; for example, the `svc.me` and `svc.first` expressions return "service member" objects, and the `pkg` property of a service member returns a "package identifier" object. These are defined below.
 
-### package_identifier
+## package_identifier
 
 A Habitat package identifier, split apart into its constituent components
 
@@ -114,7 +114,7 @@ A Habitat package identifier, split apart into its constituent components
 | version | string | The version of the Habitat package |
 | release | string | The release of the Habitat package |
 
-### svc_member
+## svc_member
 
 Represents a member of a service group
 
