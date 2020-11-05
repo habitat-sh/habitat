@@ -1420,7 +1420,7 @@ dependencies = [
  "bimap",
  "bitflags",
  "clap",
- "dirs 2.0.2",
+ "dirs 3.0.1",
  "glob",
  "habitat_api_client",
  "habitat_core",
@@ -3603,9 +3603,9 @@ dependencies = [
 
 [[package]]
 name = "state"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7345c971d1ef21ffdbd103a75990a15eb03604fc8b8852ca8cb418ee1a099028"
+checksum = "3015a7d0a5fd5105c91c3710d42f9ccf0abfb287d62206484dcc67f9569a6483"
 
 [[package]]
 name = "static_assertions"
