@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.190 -->
-## [1.6.190](https://github.com/habitat-sh/habitat/tree/1.6.190) (2020-11-05)
+<!-- latest_release 1.6.191 -->
+## [1.6.191](https://github.com/habitat-sh/habitat/tree/1.6.191) (2020-11-05)
 
 #### Merged Pull Requests
-- Rustfmt and Nightly Rust Bump to nightly-2020-10-25 [#7954](https://github.com/habitat-sh/habitat/pull/7954) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
+- Bump state from 0.4.1 to 0.4.2 [#7972](https://github.com/habitat-sh/habitat/pull/7972) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
 ### Changes since 1.6.181 release
 
 #### Merged Pull Requests
+- Bump state from 0.4.1 to 0.4.2 [#7972](https://github.com/habitat-sh/habitat/pull/7972) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.191 -->
+- Specify winapi version more tightly [#7976](https://github.com/habitat-sh/habitat/pull/7976) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.191 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-10-25 [#7954](https://github.com/habitat-sh/habitat/pull/7954) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.190 -->
 - Add Dependabot config for Rust [#7970](https://github.com/habitat-sh/habitat/pull/7970) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.190 -->
 - fix studio failure building outside system drive [#7969](https://github.com/habitat-sh/habitat/pull/7969) ([mwrock](https://github.com/mwrock)) <!-- 1.6.189 -->
