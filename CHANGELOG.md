@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.191 -->
-## [1.6.191](https://github.com/habitat-sh/habitat/tree/1.6.191) (2020-11-05)
+<!-- latest_release 1.6.192 -->
+## [1.6.192](https://github.com/habitat-sh/habitat/tree/1.6.192) (2020-11-05)
 
 #### Merged Pull Requests
-- Bump state from 0.4.1 to 0.4.2 [#7972](https://github.com/habitat-sh/habitat/pull/7972) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Update automation for CLI and Service Template Data docs [#7968](https://github.com/habitat-sh/habitat/pull/7968) ([IanMadd](https://github.com/IanMadd))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
 ### Changes since 1.6.181 release
 
 #### Merged Pull Requests
+- Update automation for CLI and Service Template Data docs [#7968](https://github.com/habitat-sh/habitat/pull/7968) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.192 -->
 - Bump state from 0.4.1 to 0.4.2 [#7972](https://github.com/habitat-sh/habitat/pull/7972) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.191 -->
 - Specify winapi version more tightly [#7976](https://github.com/habitat-sh/habitat/pull/7976) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.191 -->
 - Rustfmt and Nightly Rust Bump to nightly-2020-10-25 [#7954](https://github.com/habitat-sh/habitat/pull/7954) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.190 -->
