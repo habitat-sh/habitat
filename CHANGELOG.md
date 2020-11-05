@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.188 -->
-## [1.6.188](https://github.com/habitat-sh/habitat/tree/1.6.188) (2020-11-04)
+<!-- latest_release 1.6.189 -->
+## [1.6.189](https://github.com/habitat-sh/habitat/tree/1.6.189) (2020-11-05)
 
 #### Merged Pull Requests
-- Add redirects for api pages [#7967](https://github.com/habitat-sh/habitat/pull/7967) ([IanMadd](https://github.com/IanMadd))
+- fix studio failure building outside system drive [#7969](https://github.com/habitat-sh/habitat/pull/7969) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
 ### Changes since 1.6.181 release
 
 #### Merged Pull Requests
+- fix studio failure building outside system drive [#7969](https://github.com/habitat-sh/habitat/pull/7969) ([mwrock](https://github.com/mwrock)) <!-- 1.6.189 -->
 - Add redirects for api pages [#7967](https://github.com/habitat-sh/habitat/pull/7967) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.188 -->
 - Edits to service docs [#7947](https://github.com/habitat-sh/habitat/pull/7947) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.187 -->
 - Add Hab API docs [#7966](https://github.com/habitat-sh/habitat/pull/7966) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.186 -->
