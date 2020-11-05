@@ -80,7 +80,7 @@ mio-named-pipes = "*"
 # See https://github.com/habitat-sh/habitat/issues/7522
 mio = "0.6.21"
 uuid = { version = "*", features = ["v4"] }
-winapi =  { version = "*", features = ["namedpipeapi", "tlhelp32"] }
+winapi =  { version = "^0.3.9", features = ["namedpipeapi", "tlhelp32"] }
 
 [dev-dependencies]
 habitat_core = { path = "../core" }
