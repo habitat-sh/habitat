@@ -230,7 +230,7 @@ function New-Studio {
         try {
             if(!(Test-Path artifacts)) {
                 mkdir artifacts | Out-Null
-                New-Item -Name artifacts -ItemType Junction -target "/hab/cache/artifacts" | Out-Null
+                New-Item -Name artifacts -ItemType Junction -target "$env:SYSTEMDRIVE/hab/cache/artifacts" | Out-Null
             }
         } finally {
             Pop-Location
