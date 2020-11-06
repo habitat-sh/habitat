@@ -458,6 +458,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3441f0f7b02788e948e47f457ca01f1d7e6d92c693bc132c22b087d3141c03ff"
 
 [[package]]
+name = "base64"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
+
+[[package]]
 name = "bimap"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1218,7 +1224,7 @@ name = "hab"
 version = "0.0.0"
 dependencies = [
  "atty",
- "base64 0.12.3",
+ "base64 0.13.0",
  "bitflags",
  "chrono",
  "clap",
@@ -1340,7 +1346,7 @@ dependencies = [
 name = "habitat-sup-protocol"
 version = "0.0.0"
 dependencies = [
- "base64 0.12.3",
+ "base64 0.13.0",
  "bytes",
  "habitat_core",
  "lazy_static 1.4.0",
@@ -1458,7 +1464,7 @@ dependencies = [
 name = "habitat_core"
 version = "0.0.0"
 dependencies = [
- "base64 0.12.3",
+ "base64 0.13.0",
  "blake2b_simd",
  "caps",
  "cc",
@@ -1511,7 +1517,7 @@ dependencies = [
 name = "habitat_http_client"
 version = "0.0.0"
 dependencies = [
- "base64 0.12.3",
+ "base64 0.13.0",
  "env_proxy",
  "habitat_core",
  "httparse",
@@ -1529,7 +1535,7 @@ dependencies = [
 name = "habitat_pkg_export_container"
 version = "0.0.0"
 dependencies = [
- "base64 0.12.3",
+ "base64 0.13.0",
  "clap",
  "env_logger",
  "failure",
@@ -1556,7 +1562,7 @@ dependencies = [
 name = "habitat_pkg_export_tar"
 version = "0.0.0"
 dependencies = [
- "base64 0.12.3",
+ "base64 0.13.0",
  "clap",
  "env_logger",
  "failure",
