@@ -17,7 +17,7 @@ habitat_core = { path = "../core" }
 habitat-launcher-protocol = { path = "../launcher-protocol" }
 ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }
 libc = "*"
-log = "*"
+log = "^0.4.11"
 prost = "*"
 semver = "*"
 

@@ -35,7 +35,7 @@ habitat-launcher-client = { path = "../launcher-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 lazy_static = "*"
 libc = "*"
-log = "*"
+log = "^0.4.11"
 log4rs = "*"
 notify = "*"
 num_cpus = "*"
