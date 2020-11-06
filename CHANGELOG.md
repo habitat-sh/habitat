@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.194 -->
-## [1.6.194](https://github.com/habitat-sh/habitat/tree/1.6.194) (2020-11-06)
+<!-- latest_release 1.6.195 -->
+## [1.6.195](https://github.com/habitat-sh/habitat/tree/1.6.195) (2020-11-06)
 
 #### Merged Pull Requests
-- Lock down log dependencies [#7979](https://github.com/habitat-sh/habitat/pull/7979) ([christophermaier](https://github.com/christophermaier))
+- Bump os_info from 2.0.8 to 3.0.1 [#7980](https://github.com/habitat-sh/habitat/pull/7980) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
 ### Changes since 1.6.181 release
 
 #### Merged Pull Requests
+- Bump os_info from 2.0.8 to 3.0.1 [#7980](https://github.com/habitat-sh/habitat/pull/7980) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.195 -->
 - Lock down log dependencies [#7979](https://github.com/habitat-sh/habitat/pull/7979) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.194 -->
 - only test non system drive build on windows [#7978](https://github.com/habitat-sh/habitat/pull/7978) ([mwrock](https://github.com/mwrock)) <!-- 1.6.193 -->
 - Update automation for CLI and Service Template Data docs [#7968](https://github.com/habitat-sh/habitat/pull/7968) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.192 -->
