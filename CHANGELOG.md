@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.195 -->
-## [1.6.195](https://github.com/habitat-sh/habitat/tree/1.6.195) (2020-11-06)
+<!-- latest_release 1.6.196 -->
+## [1.6.196](https://github.com/habitat-sh/habitat/tree/1.6.196) (2020-11-06)
 
 #### Merged Pull Requests
-- Bump os_info from 2.0.8 to 3.0.1 [#7980](https://github.com/habitat-sh/habitat/pull/7980) ([christophermaier](https://github.com/christophermaier))
+- Lock Tokio dependencies to 0.2 line [#7982](https://github.com/habitat-sh/habitat/pull/7982) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
 ### Changes since 1.6.181 release
 
 #### Merged Pull Requests
+- Lock Tokio dependencies to 0.2 line [#7982](https://github.com/habitat-sh/habitat/pull/7982) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.196 -->
+- Lock lazy_static dependency [#7981](https://github.com/habitat-sh/habitat/pull/7981) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.196 -->
 - Bump os_info from 2.0.8 to 3.0.1 [#7980](https://github.com/habitat-sh/habitat/pull/7980) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.195 -->
 - Lock down log dependencies [#7979](https://github.com/habitat-sh/habitat/pull/7979) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.194 -->
 - only test non system drive build on windows [#7978](https://github.com/habitat-sh/habitat/pull/7978) ([mwrock](https://github.com/mwrock)) <!-- 1.6.193 -->
