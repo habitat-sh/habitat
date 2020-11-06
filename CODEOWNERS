@@ -1,18 +1,18 @@
-.expeditor @christophermaier @smacfarlane @markan @jeremymv2
-components/builder-api-client @christophermaier @smacfarlane @markan @jeremymv2
-components/butterfly* @christophermaier @smacfarlane @markan @jeremymv2
-components/core @christophermaier @smacfarlane @markan @jeremymv2
-components/common @christophermaier @smacfarlane @markan @jeremymv2
+.expeditor @christophermaier @markan @jeremymv2
+components/builder-api-client @christophermaier @markan @jeremymv2
+components/butterfly* @christophermaier @markan @jeremymv2
+components/core @christophermaier @markan @jeremymv2
+components/common @christophermaier @markan @jeremymv2
 components/docs-chef-io @kagarmoe @mjingle @ianmadd
-components/hab @christophermaier @smacfarlane @markan @jeremymv2
-components/http-client @christophermaier @smacfarlane @markan @jeremymv2
-components/launcher* @christophermaier @smacfarlane @markan @jeremymv2
-components/pkg-* @christophermaier @smacfarlane @markan @jeremymv2
-components/plan-build @christophermaier @smacfarlane @markan @jeremymv2
-components/studio @christophermaier @smacfarlane @markan @jeremymv2
-components/sup* @christophermaier @smacfarlane @markan @jeremymv2
-components/win-users @christophermaier @smacfarlane @markan @jeremymv2
-support @christophermaier @smacfarlane @markan @jeremymv2
-tools @christophermaier @smacfarlane @markan @jeremymv2
+components/hab @christophermaier @markan @jeremymv2
+components/http-client @christophermaier @markan @jeremymv2
+components/launcher* @christophermaier @markan @jeremymv2
+components/pkg-* @christophermaier @markan @jeremymv2
+components/plan-build @christophermaier @markan @jeremymv2
+components/studio @christophermaier @markan @jeremymv2
+components/sup* @christophermaier @markan @jeremymv2
+components/win-users @christophermaier @markan @jeremymv2
+support @christophermaier @markan @jeremymv2
+tools @christophermaier @markan @jeremymv2
 www @chef/automate-ui-team @kagarmoe @mjingle @ianmadd
-UX_PRINCIPLES.md @christophermaier @smacfarlane @markan @jeremymv2
+UX_PRINCIPLES.md @christophermaier @markan @jeremymv2
