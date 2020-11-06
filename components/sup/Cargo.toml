@@ -33,7 +33,7 @@ habitat_api_client = { path = "../builder-api-client" }
 habitat_http_client = { path = "../http-client" }
 habitat-launcher-client = { path = "../launcher-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
-lazy_static = "*"
+lazy_static = "^1.4.0"
 libc = "*"
 log = "^0.4.11"
 log4rs = "*"
