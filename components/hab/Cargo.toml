@@ -52,7 +52,7 @@ tabwriter = "*"
 tar = "*"
 termcolor = "*"
 thiserror = "*"
-tokio = { version = "*", features = ["full"] }
+tokio = { version = "^0.2", features = ["full"] }
 toml = { version = "*", features = [ "preserve_order" ] }
 url = { version = "*", features = ["serde"] }
 walkdir = "*"
