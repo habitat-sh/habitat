@@ -41,18 +41,20 @@ Describe "Studio build" {
         "/hab/cache/artifacts/$pkg_artifact" | Should -Exist
     }
 
-    It "builds plan in non system drive" {
-        subst x: $env:USERPROFILE
-        $cd = Get-Location
-        $dir = Split-Path -Leaf $cd.Path
-        Push-Location x:\
-        New-Item -Name $dir -ItemType Junction -target $cd.Path
-        Set-Location $dir
-        hab pkg build test/fixtures/minimal-package
-        $exitCode = $LASTEXITCODE
-        Pop-Location
+    if($IsWindows) {
+        It "builds plan in non system drive" {
+            subst x: $env:USERPROFILE
+            $cd = Get-Location
+            $dir = Split-Path -Leaf $cd.Path
+            Push-Location x:\
+            New-Item -Name $dir -ItemType Junction -target $cd.Path
+            Set-Location $dir
+            hab pkg build test/fixtures/minimal-package
+            $exitCode = $LASTEXITCODE
+            Pop-Location
 
-        $exitCode | Should -Be 0
+            $exitCode | Should -Be 0
+        }
     }
 
     It "strips hook extension" {
