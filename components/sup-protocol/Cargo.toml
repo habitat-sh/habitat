@@ -17,8 +17,8 @@ prost-derive = "*"
 rand = "*"
 serde = "*"
 serde_derive = "*"
-tokio = { version = "*", features = ["full"] }
-tokio-util = { version = "*", features = ["full"] }
+tokio = { version = "^0.2", features = ["full"] }
+tokio-util = { version = "^0.3", features = ["full"] }
 
 [build-dependencies]
 prost-build = "*"
