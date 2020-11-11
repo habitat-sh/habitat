@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.196 -->
-## [1.6.196](https://github.com/habitat-sh/habitat/tree/1.6.196) (2020-11-06)
+<!-- latest_release 1.6.197 -->
+## [1.6.197](https://github.com/habitat-sh/habitat/tree/1.6.197) (2020-11-11)
 
 #### Merged Pull Requests
-- Lock Tokio dependencies to 0.2 line [#7982](https://github.com/habitat-sh/habitat/pull/7982) ([christophermaier](https://github.com/christophermaier))
+- Remove me as codeowner [#7983](https://github.com/habitat-sh/habitat/pull/7983) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
 ### Changes since 1.6.181 release
 
 #### Merged Pull Requests
+- Remove me as codeowner [#7983](https://github.com/habitat-sh/habitat/pull/7983) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.6.197 -->
 - Lock Tokio dependencies to 0.2 line [#7982](https://github.com/habitat-sh/habitat/pull/7982) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.196 -->
 - Lock lazy_static dependency [#7981](https://github.com/habitat-sh/habitat/pull/7981) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.196 -->
 - Bump os_info from 2.0.8 to 3.0.1 [#7980](https://github.com/habitat-sh/habitat/pull/7980) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.195 -->
