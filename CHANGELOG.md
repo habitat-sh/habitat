@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.197 -->
-## [1.6.197](https://github.com/habitat-sh/habitat/tree/1.6.197) (2020-11-11)
+<!-- latest_release 1.6.198 -->
+## [1.6.198](https://github.com/habitat-sh/habitat/tree/1.6.198) (2020-11-13)
 
 #### Merged Pull Requests
-- Remove me as codeowner [#7983](https://github.com/habitat-sh/habitat/pull/7983) ([smacfarlane](https://github.com/smacfarlane))
+- Bump actix-web from 3.0.0 to 3.2.0 [#7975](https://github.com/habitat-sh/habitat/pull/7975) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
 ### Changes since 1.6.181 release
 
 #### Merged Pull Requests
+- Bump actix-web from 3.0.0 to 3.2.0 [#7975](https://github.com/habitat-sh/habitat/pull/7975) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.198 -->
 - Remove me as codeowner [#7983](https://github.com/habitat-sh/habitat/pull/7983) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.6.197 -->
 - Lock Tokio dependencies to 0.2 line [#7982](https://github.com/habitat-sh/habitat/pull/7982) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.196 -->
 - Lock lazy_static dependency [#7981](https://github.com/habitat-sh/habitat/pull/7981) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.196 -->
