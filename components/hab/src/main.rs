@@ -1258,8 +1258,7 @@ async fn sub_pkg_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 }
 
 fn sub_pkg_verify(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let src = required_value_of(m, "SOURCE");
-    let src = Path::new(src);
+    let src = Path::new(required_value_of(m, "SOURCE"));
     let key_cache = key_cache_from_matches(m)?;
     init()?;
 
@@ -1267,16 +1266,14 @@ fn sub_pkg_verify(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 }
 
 fn sub_pkg_header(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let src = required_value_of(m, "SOURCE");
-    let src = Path::new(src);
+    let src = Path::new(required_value_of(m, "SOURCE"));
     init()?;
 
     command::pkg::header::start(ui, &src)
 }
 
 fn sub_pkg_info(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let src = required_value_of(m, "SOURCE");
-    let src = Path::new(src);
+    let src = Path::new(required_value_of(m, "SOURCE"));
     let to_json = m.is_present("TO_JSON");
     init()?;
 
