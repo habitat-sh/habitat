@@ -1310,8 +1310,7 @@ async fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     let remote_sup_addr = remote_sup_from_input(m)?;
     let remote_sup_addr = SrvClient::ctl_addr(remote_sup_addr.as_ref())?;
-    let service_group = required_value_of(m, "SERVICE_GROUP");
-    let service_group = ServiceGroup::from_str(service_group)?;
+    let service_group = required_value_of(m, "SERVICE_GROUP").parse::<ServiceGroup>()?;
     let mut ui = ui::ui();
     let mut validate = sup_proto::ctl::SvcValidateCfg::default();
     validate.service_group = Some(service_group.clone().into());
@@ -1497,14 +1496,12 @@ async fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
 }
 
 async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
-    let service_group = required_value_of(m, "SERVICE_GROUP");
-    let service_group = ServiceGroup::from_str(service_group)?;
+    let service_group = required_value_of(m, "SERVICE_GROUP").parse::<ServiceGroup>()?;
     let remote_sup_addr = remote_sup_from_input(m)?;
     let remote_sup_addr = SrvClient::ctl_addr(remote_sup_addr.as_ref())?;
     let mut ui = ui::ui();
     let mut msg = sup_proto::ctl::SvcFilePut::default();
-    let file = required_value_of(m, "FILE");
-    let file = Path::new(file);
+    let file = Path::new(required_value_of(m, "FILE"));
     if file.metadata()?.len() > sup_proto::butterfly::MAX_FILE_PUT_SIZE_BYTES as u64 {
         ui.fatal(format!("File too large. Maximum size allowed is {} bytes.",
                          sup_proto::butterfly::MAX_FILE_PUT_SIZE_BYTES))?;
@@ -1669,8 +1666,7 @@ fn sub_ring_key_import(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_service_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let org = org_param_or_env(m)?;
-    let service_group = required_value_of(m, "SERVICE_GROUP");
-    let service_group = ServiceGroup::from_str(service_group)?;
+    let service_group = required_value_of(m, "SERVICE_GROUP").parse::<ServiceGroup>()?;
     let key_cache = key_cache_from_matches(m)?;
     init()?;
 
