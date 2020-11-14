@@ -772,8 +772,7 @@ async fn sub_origin_member_role_set(ui: &mut UI, r: RbacSet) -> Result<()> {
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;
-    let dest_dir = required_value_of(m, "DEST_DIR");
-    let dest_dir = Path::new(dest_dir);
+    let dest_dir = Path::new(required_value_of(m, "DEST_DIR"));
     let force = m.is_present("FORCE");
     match m.value_of("BINARY") {
         Some(binary) => {
