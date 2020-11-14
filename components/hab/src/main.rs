@@ -1173,10 +1173,8 @@ async fn sub_pkg_search(m: &ArgMatches<'_>) -> Result<()> {
 fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = origin_param_or_env(m)?;
 
-    let src = required_value_of(m, "SOURCE");
-    let src = Path::new(src);
-    let dst = required_value_of(m, "DEST");
-    let dst = Path::new(dst);
+    let src = Path::new(required_value_of(m, "SOURCE"));
+    let dst = Path::new(required_value_of(m, "DEST"));
 
     let key_cache = key_cache_from_matches(m)?;
 
