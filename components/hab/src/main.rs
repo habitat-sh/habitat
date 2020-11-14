@@ -607,21 +607,23 @@ async fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
     init()?;
 
-    if m.is_present("ORIGIN") {
-        let origin = required_value_of(m, "ORIGIN").parse()?;
-        // you can either specify files, or infer the latest key names
-        let with_secret = m.is_present("WITH_SECRET");
-        command::origin::key::upload_latest::start(ui,
-                                                   &url,
-                                                   &token,
-                                                   &origin,
-                                                   with_secret,
-                                                   &key_cache).await
-    } else {
-        let secret_file = required_value_of(m, "PUBLIC_FILE");
-        let keyfile = Path::new(secret_file);
-        let secret_keyfile = m.value_of("SECRET_FILE").map(|f| Path::new(f));
-        command::origin::key::upload::start(ui, &url, &token, &keyfile, secret_keyfile).await
+    match m.value_of("ORIGIN") {
+        Some(origin) => {
+            let origin = origin.parse()?;
+            // you can either specify files, or infer the latest key names
+            let with_secret = m.is_present("WITH_SECRET");
+            command::origin::key::upload_latest::start(ui,
+                                                       &url,
+                                                       &token,
+                                                       &origin,
+                                                       with_secret,
+                                                       &key_cache).await
+        },
+        None => {
+            let keyfile = Path::new(required_value_of(m, "PUBLIC_FILE"));
+            let secret_keyfile = m.value_of("SECRET_FILE").map(|f| Path::new(f));
+            command::origin::key::upload::start(ui, &url, &token, &keyfile, secret_keyfile).await
+        }
     }
 }
 
