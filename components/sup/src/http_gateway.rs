@@ -398,8 +398,8 @@ fn health_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) -
 
     if let Some(health_check) = state.gateway_state.lock_gsr().health_of(&service_group) {
         let mut body = HealthCheckBody::default();
-        let stdout_path = hooks::stdout_log_path::<HealthCheckHook>(&service_group);
-        let stderr_path = hooks::stderr_log_path::<HealthCheckHook>(&service_group);
+        let stdout_path = hooks::stdout_log_path::<HealthCheckHook>(service_group.service());
+        let stderr_path = hooks::stderr_log_path::<HealthCheckHook>(service_group.service());
         let http_status: StatusCode = health_check.into();
 
         body.status = health_check.to_string();
