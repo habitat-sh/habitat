@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.199 -->
-## [1.6.199](https://github.com/habitat-sh/habitat/tree/1.6.199) (2020-11-16)
+<!-- latest_release 1.6.200 -->
+## [1.6.200](https://github.com/habitat-sh/habitat/tree/1.6.200) (2020-11-16)
 
 #### Merged Pull Requests
-- Lock pin-project crate to 0.4.23 for explicitness [#7985](https://github.com/habitat-sh/habitat/pull/7985) ([christophermaier](https://github.com/christophermaier))
+- Bump dns-lookup from 1.0.3 to 1.0.5 [#7977](https://github.com/habitat-sh/habitat/pull/7977) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
 ### Changes since 1.6.181 release
 
 #### Merged Pull Requests
+- Bump dns-lookup from 1.0.3 to 1.0.5 [#7977](https://github.com/habitat-sh/habitat/pull/7977) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.200 -->
 - Lock pin-project crate to 0.4.23 for explicitness [#7985](https://github.com/habitat-sh/habitat/pull/7985) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.199 -->
 - Bump actix-web from 3.0.0 to 3.2.0 [#7975](https://github.com/habitat-sh/habitat/pull/7975) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.198 -->
 - Remove me as codeowner [#7983](https://github.com/habitat-sh/habitat/pull/7983) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.6.197 -->
