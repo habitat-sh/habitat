@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.198 -->
-## [1.6.198](https://github.com/habitat-sh/habitat/tree/1.6.198) (2020-11-13)
+<!-- latest_release 1.6.199 -->
+## [1.6.199](https://github.com/habitat-sh/habitat/tree/1.6.199) (2020-11-16)
 
 #### Merged Pull Requests
-- Bump actix-web from 3.0.0 to 3.2.0 [#7975](https://github.com/habitat-sh/habitat/pull/7975) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Lock pin-project crate to 0.4.23 for explicitness [#7985](https://github.com/habitat-sh/habitat/pull/7985) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
 ### Changes since 1.6.181 release
 
 #### Merged Pull Requests
+- Lock pin-project crate to 0.4.23 for explicitness [#7985](https://github.com/habitat-sh/habitat/pull/7985) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.199 -->
 - Bump actix-web from 3.0.0 to 3.2.0 [#7975](https://github.com/habitat-sh/habitat/pull/7975) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.198 -->
 - Remove me as codeowner [#7983](https://github.com/habitat-sh/habitat/pull/7983) ([smacfarlane](https://github.com/smacfarlane)) <!-- 1.6.197 -->
 - Lock Tokio dependencies to 0.2 line [#7982](https://github.com/habitat-sh/habitat/pull/7982) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.196 -->
