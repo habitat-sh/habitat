@@ -21,37 +21,37 @@ pkg_dirname
 
   If a .tar file extracts to a directory that's different from the filename, then you would need to override this value to match the directory name created during extraction.
 
-  Default value: `{pkg_name}-{pkg_version}`
+  Default value: `${pkg_name}-${pkg_version}`
 
 pkg_svc_path
 : Where the running service is located.
 
-  Default value: `HAB_ROOT_PATH/svc/pkg_name`
+  Read-only value: `${HAB_ROOT_PATH}/svc/${pkg_name}`
 
 pkg_svc_data_path
 : Where the running service data is located.
 
-  Default value: `pkg_svc_path/data`
+  Read-only value: `${pkg_svc_path}/data`
 
 pkg_svc_files_path
 : Where the gossiped configuration files are located.
 
-  Default value: `pkg_svc_path/files`
+  Read-only value: `${pkg_svc_path}/files`
 
 pkg_svc_var_path
 : Where the running service variable data is located.
 
-  Default value: `pkg_svc_path/var`
+  Read-only value: `${pkg_svc_path}/var`
 
 pkg_svc_config_path
 : Where the running service configuration is located.
 
-  Read-only value: `pkg_svc_path/config`
+  Read-only value: `${pkg_svc_path}/config`
 
 pkg_svc_static_path
 : Where the running service static data is located.
 
-  Default value: `pkg_svc_path/static`
+  Read-only value: `${pkg_svc_path}/static`
 
 CACHE_PATH
 : A temporary directory that will be clean on every build.
