@@ -618,7 +618,7 @@ async fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                                        &origin,
                                                        with_secret,
                                                        &key_cache).await
-        },
+        }
         None => {
             let keyfile = Path::new(required_value_of(m, "PUBLIC_FILE"));
             let secret_keyfile = m.value_of("SECRET_FILE").map(|f| Path::new(f));
