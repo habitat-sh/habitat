@@ -1666,7 +1666,7 @@ fn sub_ring_key_import(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_service_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let org = org_param_or_env(m)?;
-    let service_group = required_value_of(m, "SERVICE_GROUP").parse::<ServiceGroup>()?;
+    let service_group = required_value_of(m, "SERVICE_GROUP").parse()?;
     let key_cache = key_cache_from_matches(m)?;
     init()?;
 
