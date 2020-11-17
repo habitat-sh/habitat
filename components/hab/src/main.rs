@@ -1162,9 +1162,7 @@ fn sub_pkg_provides(m: &ArgMatches<'_>) -> Result<()> {
 async fn sub_pkg_search(m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(m)?;
     let search_term = required_value_of(m, "SEARCH_TERM");
-    let limit = required_value_of(m, "LIMIT")
-                 .parse()
-                 .expect("valid LIMIT");
+    let limit = required_value_of(m, "LIMIT").parse().expect("valid LIMIT");
     let token = maybe_auth_token(m);
     command::pkg::search::start(&search_term, &url, limit, token.as_deref()).await
 }
