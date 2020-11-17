@@ -7,6 +7,10 @@ source .expeditor/scripts/release_habitat/shared.sh
 export HAB_AUTH_TOKEN="${PIPELINE_HAB_AUTH_TOKEN}"
 export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 
+# Before we do *ANYTHING*, we're going to just delete any prior
+# version of Habitat that exists in the container.
+rm -Rf /hab/pkgs/core/hab
+
 ########################################################################
 
 # `component` should be the subdirectory name in `components` where a
