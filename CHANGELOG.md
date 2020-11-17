@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.204 -->
-## [1.6.204](https://github.com/habitat-sh/habitat/tree/1.6.204) (2020-11-17)
+<!-- latest_release 1.6.205 -->
+## [1.6.205](https://github.com/habitat-sh/habitat/tree/1.6.205) (2020-11-17)
 
 #### Merged Pull Requests
-- Bump serde_json from 1.0.57 to 1.0.59 [#7988](https://github.com/habitat-sh/habitat/pull/7988) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- [CI] Remove old `hab` binaries on Linux containers [#7994](https://github.com/habitat-sh/habitat/pull/7994) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
 ### Changes since 1.6.181 release
 
 #### Merged Pull Requests
+- [CI] Remove old `hab` binaries on Linux containers [#7994](https://github.com/habitat-sh/habitat/pull/7994) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.205 -->
 - Bump serde_json from 1.0.57 to 1.0.59 [#7988](https://github.com/habitat-sh/habitat/pull/7988) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.204 -->
 - Bump errno from 0.2.6 to 0.2.7 [#7989](https://github.com/habitat-sh/habitat/pull/7989) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.203 -->
 - Bump thiserror from 1.0.20 to 1.0.22 [#7986](https://github.com/habitat-sh/habitat/pull/7986) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.202 -->
