@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.201 -->
-## [1.6.201](https://github.com/habitat-sh/habitat/tree/1.6.201) (2020-11-16)
+<!-- latest_release 1.6.202 -->
+## [1.6.202](https://github.com/habitat-sh/habitat/tree/1.6.202) (2020-11-17)
 
 #### Merged Pull Requests
-- Bump semver from 0.10.0 to 0.11.0 [#7974](https://github.com/habitat-sh/habitat/pull/7974) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump thiserror from 1.0.20 to 1.0.22 [#7986](https://github.com/habitat-sh/habitat/pull/7986) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
 ### Changes since 1.6.181 release
 
 #### Merged Pull Requests
+- Bump thiserror from 1.0.20 to 1.0.22 [#7986](https://github.com/habitat-sh/habitat/pull/7986) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.202 -->
 - Bump semver from 0.10.0 to 0.11.0 [#7974](https://github.com/habitat-sh/habitat/pull/7974) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.201 -->
 - Bump dns-lookup from 1.0.3 to 1.0.5 [#7977](https://github.com/habitat-sh/habitat/pull/7977) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.200 -->
 - Lock pin-project crate to 0.4.23 for explicitness [#7985](https://github.com/habitat-sh/habitat/pull/7985) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.199 -->
