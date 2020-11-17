@@ -730,8 +730,7 @@ async fn sub_list_pending_origin_invitations(ui: &mut UI, m: &ArgMatches<'_>) ->
 
 async fn sub_rescind_origin_invitation(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = required_value_of(m, "ORIGIN");
-    let invitation_id = required_value_of(m, "INVITATION_ID");
-    let invitation_id: u64 = invitation_id
+    let invitation_id = required_value_of(m, "INVITATION_ID")
                               .parse()
                               .expect("INVITATION_ID should be valid at this point");
     let url = bldr_url_from_matches(m)?;
