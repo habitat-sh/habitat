@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.209 -->
-## [1.6.209](https://github.com/habitat-sh/habitat/tree/1.6.209) (2020-11-18)
+<!-- latest_release 1.6.210 -->
+## [1.6.210](https://github.com/habitat-sh/habitat/tree/1.6.210) (2020-11-18)
 
 #### Merged Pull Requests
-- Bump hyper from 0.13.7 to 0.13.9 [#7996](https://github.com/habitat-sh/habitat/pull/7996) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump parking_lot from 0.11.0 to 0.11.1 [#7997](https://github.com/habitat-sh/habitat/pull/7997) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
@@ -14,6 +14,7 @@
 - [FIX] Ensure that health check output is available via HTTP gateway [#7991](https://github.com/habitat-sh/habitat/pull/7991) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.207 -->
 
 #### Merged Pull Requests
+- Bump parking_lot from 0.11.0 to 0.11.1 [#7997](https://github.com/habitat-sh/habitat/pull/7997) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.210 -->
 - Bump hyper from 0.13.7 to 0.13.9 [#7996](https://github.com/habitat-sh/habitat/pull/7996) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.209 -->
 - [CI] Unload test-probe service after test [#8000](https://github.com/habitat-sh/habitat/pull/8000) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.208 -->
 - Bump prometheus from 0.9.0 to 0.10.0 [#7987](https://github.com/habitat-sh/habitat/pull/7987) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.206 -->
