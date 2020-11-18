@@ -6,6 +6,7 @@ if ($IsWindows) {
 
 Describe "HTTP gateway" {
     AfterAll {
+        Unload-SupervisorService -PackageName habitat-testing/test-probe -Timeout 30
         Stop-Supervisor
     }
 
