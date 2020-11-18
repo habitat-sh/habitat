@@ -56,7 +56,7 @@ node .expeditor/scripts/release_habitat/generate-template-reference.js \
      "${tempdir}"/render_context_schema.json > "${docs_dir}/service_templates.md"
 
 echo "--- :package: Packaging generated documentation into a tarball"
-docs_tarball="${docs_dir}-${version}.tar.gz"
+docs_tarball="${docs_dir}.tar.gz"
 tar --create \
     --gzip \
     --verbose \
