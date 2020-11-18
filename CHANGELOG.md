@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.207 -->
-## [1.6.207](https://github.com/habitat-sh/habitat/tree/1.6.207) (2020-11-18)
+<!-- latest_release 1.6.208 -->
+## [1.6.208](https://github.com/habitat-sh/habitat/tree/1.6.208) (2020-11-18)
 
-#### Bug Fixes
-- [FIX] Ensure that health check output is available via HTTP gateway [#7991](https://github.com/habitat-sh/habitat/pull/7991) ([christophermaier](https://github.com/christophermaier))
+#### Merged Pull Requests
+- [CI] Unload test-probe service after test [#8000](https://github.com/habitat-sh/habitat/pull/8000) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
@@ -14,6 +14,7 @@
 - [FIX] Ensure that health check output is available via HTTP gateway [#7991](https://github.com/habitat-sh/habitat/pull/7991) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.207 -->
 
 #### Merged Pull Requests
+- [CI] Unload test-probe service after test [#8000](https://github.com/habitat-sh/habitat/pull/8000) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.208 -->
 - Bump prometheus from 0.9.0 to 0.10.0 [#7987](https://github.com/habitat-sh/habitat/pull/7987) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.206 -->
 - [CI] Remove old `hab` binaries on Linux containers [#7994](https://github.com/habitat-sh/habitat/pull/7994) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.205 -->
 - Bump serde_json from 1.0.57 to 1.0.59 [#7988](https://github.com/habitat-sh/habitat/pull/7988) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.204 -->
