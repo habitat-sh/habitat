@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.212 -->
-## [1.6.212](https://github.com/habitat-sh/habitat/tree/1.6.212) (2020-11-18)
+<!-- latest_release 1.6.213 -->
+## [1.6.213](https://github.com/habitat-sh/habitat/tree/1.6.213) (2020-11-19)
 
 #### Merged Pull Requests
-- [CI] Move documentation generation to release pipeline [#7993](https://github.com/habitat-sh/habitat/pull/7993) ([christophermaier](https://github.com/christophermaier))
+- [CI] Increase service unload timeouts for test_config_files e2e test [#8005](https://github.com/habitat-sh/habitat/pull/8005) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.181 -->
@@ -14,6 +14,7 @@
 - [FIX] Ensure that health check output is available via HTTP gateway [#7991](https://github.com/habitat-sh/habitat/pull/7991) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.207 -->
 
 #### Merged Pull Requests
+- [CI] Increase service unload timeouts for test_config_files e2e test [#8005](https://github.com/habitat-sh/habitat/pull/8005) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.213 -->
 - [CI] Move documentation generation to release pipeline [#7993](https://github.com/habitat-sh/habitat/pull/7993) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.212 -->
 - Bump url from 2.1.1 to 2.2.0 [#7995](https://github.com/habitat-sh/habitat/pull/7995) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.211 -->
 - Bump parking_lot from 0.11.0 to 0.11.1 [#7997](https://github.com/habitat-sh/habitat/pull/7997) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.210 -->
