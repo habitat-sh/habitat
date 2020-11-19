@@ -2032,7 +2032,7 @@ fn user_param_or_env(m: &ArgMatches<'_>) -> Option<String> {
 /// Helper function to get information about the argument given its name
 fn required_value_of<'a>(matches: &'a ArgMatches<'a>, name: &str) -> &'a str {
     matches.value_of(name)
-           .expect(&format!("{} CLAP required arg missing", name))
+           .unwrap_or_else(|| panic!("{} CLAP required arg missing", name))
 }
 
 #[cfg(test)]
