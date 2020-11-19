@@ -1500,7 +1500,7 @@ dependencies = [
  "nix 0.18.0",
  "num_cpus",
  "os_info",
- "paste 1.0.0",
+ "paste 1.0.3",
  "pem",
  "pin-project 0.4.23",
  "rand 0.7.3",
@@ -2548,9 +2548,9 @@ dependencies = [
 
 [[package]]
 name = "paste"
-version = "1.0.0"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6ddc8e145de01d9180ac7b78b9676f95a9c2447f6a88b2c2a04702211bc5d71"
+checksum = "7151b083b0664ed58ed669fcdd92f01c3d2fdbf10af4931a301474950b52bfa9"
 
 [[package]]
 name = "paste-impl"
