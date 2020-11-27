@@ -258,7 +258,7 @@ pub struct Load {
 }
 
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(no_version, rename_all = "screamingsnake")]
+#[structopt(name = "unload", no_version, rename_all = "screamingsnake")]
 /// Unload a service loaded by the Habitat Supervisor. If the service is running it will
 /// additionally be stopped.
 pub struct SvcUnload {

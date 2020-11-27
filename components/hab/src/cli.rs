@@ -9,7 +9,8 @@ use crate::{cli::hab::{origin::Rbac,
                              SupRun},
                        svc::{BulkLoad as SvcBulkLoad,
                              Load as SvcLoad,
-                             Update as SvcUpdate},
+                             Update as SvcUpdate,
+                             SvcUnload},
                        util::CACHE_KEY_PATH_DEFAULT,
                        Hab},
             command::studio};
@@ -840,7 +841,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (subcommand: sub_svc_start().aliases(&["star"]))
             (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
             (subcommand: sub_svc_stop().aliases(&["sto"]))
-            (subcommand: sub_svc_unload().aliases(&["u", "un", "unl", "unlo", "unloa"]))
+            (subcommand: SvcUnload::clap().aliases(&["u", "un", "unl", "unlo", "unloa"]))
         )
         (subcommand: Studio::clap().aliases(&["stu", "stud", "studi"]))
         (@subcommand supportbundle =>
@@ -1079,18 +1080,6 @@ pub fn parse_optional_arg<T: FromStr>(name: &str, m: &ArgMatches) -> Option<T>
 fn sub_svc_stop() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand stop =>
         (about: "Stop a running Habitat service")
-        (@arg PKG_IDENT: +required +takes_value {valid_ident}
-            "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
-            "Address to a remote Supervisor's Control Gateway")
-    );
-    add_shutdown_timeout_option(sub)
-}
-
-fn sub_svc_unload() -> App<'static, 'static> {
-    let sub = clap_app!(@subcommand unload =>
-        (about: "Unload a service loaded by the Habitat Supervisor. If the service is \
-            running it will additionally be stopped")
         (@arg PKG_IDENT: +required +takes_value {valid_ident}
             "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
