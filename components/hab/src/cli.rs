@@ -10,7 +10,8 @@ use crate::{cli::hab::{origin::Rbac,
                        svc::{BulkLoad as SvcBulkLoad,
                              Load as SvcLoad,
                              Update as SvcUpdate,
-                             SvcUnload},
+                             SvcUnload,
+                             SvcStop},
                        util::CACHE_KEY_PATH_DEFAULT,
                        Hab},
             command::studio};
@@ -27,7 +28,6 @@ use habitat_common::{cli::{file_into_idents,
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    env::Config,
                    origin::Origin,
-                   os::process::ShutdownTimeout,
                    package::{Identifiable,
                              PackageIdent,
                              PackageTarget},
@@ -69,7 +69,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
     let alias_start = sub_svc_start().about("Alias for 'svc start'")
                                      .aliases(&["sta", "star"])
                                      .setting(AppSettings::Hidden);
-    let alias_stop = sub_svc_stop().about("Alias for 'svc stop'")
+    let alias_stop = SvcStop::clap().about("Alias for 'svc stop'")
                                    .aliases(&["sto"])
                                    .setting(AppSettings::Hidden);
 
@@ -840,7 +840,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (subcommand: SvcUpdate::clap())
             (subcommand: sub_svc_start().aliases(&["star"]))
             (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
-            (subcommand: sub_svc_stop().aliases(&["sto"]))
+            (subcommand: SvcStop::clap().aliases(&["sto"]))
             (subcommand: SvcUnload::clap().aliases(&["u", "un", "unl", "unlo", "unloa"]))
         )
         (subcommand: Studio::clap().aliases(&["stu", "stud", "studi"]))
@@ -1077,16 +1077,6 @@ pub fn parse_optional_arg<T: FromStr>(name: &str, m: &ArgMatches) -> Option<T>
     m.value_of(name).map(|s| s.parse().expect("Valid argument"))
 }
 
-fn sub_svc_stop() -> App<'static, 'static> {
-    let sub = clap_app!(@subcommand stop =>
-        (about: "Stop a running Habitat service")
-        (@arg PKG_IDENT: +required +takes_value {valid_ident}
-            "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
-            "Address to a remote Supervisor's Control Gateway")
-    );
-    add_shutdown_timeout_option(sub)
-}
 
 // CLAP Validation Functions
 ////////////////////////////////////////////////////////////////////////
@@ -1209,34 +1199,12 @@ fn valid_fully_qualified_ident(val: String) -> result::Result<(), String> {
 fn valid_origin(val: String) -> result::Result<(), String> { Origin::validate(val) }
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_shutdown_timeout(val: String) -> result::Result<(), String> {
-    match ShutdownTimeout::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            Err(format!("'{}' is not a valid value for shutdown timeout: \
-                         {}",
-                        val, e))
-        }
-    }
-}
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn non_empty(val: String) -> result::Result<(), String> {
     if val.is_empty() {
         Err("must not be empty (check env overrides)".to_string())
     } else {
         Ok(())
     }
-}
-
-/// Adds extra configuration option for shutting down a service with a customized timeout.
-fn add_shutdown_timeout_option(app: App<'static, 'static>) -> App<'static, 'static> {
-    app.arg(Arg::with_name("SHUTDOWN_TIMEOUT").help("The delay in seconds after sending the \
-                                                     shutdown signal to wait before killing the \
-                                                     service process")
-                                              .long("shutdown-timeout")
-                                              .validator(valid_shutdown_timeout)
-                                              .takes_value(true))
 }
 
 ////////////////////////////////////////////////////////////////////////

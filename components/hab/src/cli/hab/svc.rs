@@ -87,7 +87,7 @@ pub struct SvcStart {
 
 /// Stop a running Habitat service.
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(no_version, rename_all = "screamingsnake")]
+#[structopt(name="stop", no_version, rename_all = "screamingsnake")]
 pub struct SvcStop {
     #[structopt(flatten)]
     pkg_ident:        PkgIdent,
