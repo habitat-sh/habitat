@@ -54,20 +54,7 @@ pub enum Svc {
         remote_sup: RemoteSup,
     },
     Stop(SvcStop),
-    /// Unload a service loaded by the Habitat Supervisor. If the service is running it will
-    /// additionally be stopped.
-    Unload {
-        #[structopt(flatten)]
-        pkg_ident:        PkgIdent,
-        #[structopt(flatten)]
-        remote_sup:       RemoteSup,
-        /// The delay in seconds after sending the shutdown signal to wait before killing the
-        /// service process
-        ///
-        /// The default value is set in the packages plan file.
-        #[structopt(name = "SHUTDOWN_TIMEOUT", long = "shutdown-timeout")]
-        shutdown_timeout: Option<ShutdownTimeout>,
-    },
+    Unload(SvcUnload),
 }
 
 #[derive(ConfigOpt, StructOpt)]
@@ -268,6 +255,23 @@ pub struct Load {
     #[structopt(flatten)]
     #[serde(flatten)]
     pub shared_load: SharedLoad,
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, rename_all = "screamingsnake")]
+/// Unload a service loaded by the Habitat Supervisor. If the service is running it will
+/// additionally be stopped.
+pub struct SvcUnload {
+    #[structopt(flatten)]
+    pkg_ident:        PkgIdent,
+    #[structopt(flatten)]
+    remote_sup:       RemoteSup,
+    /// The delay in seconds after sending the shutdown signal to wait before killing the
+    /// service process
+    ///
+    /// The default value is set in the packages plan file.
+    #[structopt(name = "SHUTDOWN_TIMEOUT", long = "shutdown-timeout")]
+    shutdown_timeout: Option<ShutdownTimeout>,
 }
 
 pub fn svc_loads_from_paths<T: AsRef<Path>>(paths: &[T]) -> Result<Vec<Load>> {
