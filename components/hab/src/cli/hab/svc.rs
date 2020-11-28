@@ -77,7 +77,7 @@ pub struct BulkLoad {
 
 /// Start a loaded, but stopped, Habitat service.
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(no_version, rename_all = "screamingsnake")]
+#[structopt(name="start", no_version, rename_all = "screamingsnake")]
 pub struct SvcStart {
     #[structopt(flatten)]
     pkg_ident:  PkgIdent,

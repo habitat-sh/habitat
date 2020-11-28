@@ -11,7 +11,8 @@ use crate::{cli::hab::{origin::Rbac,
                              Load as SvcLoad,
                              Update as SvcUpdate,
                              SvcUnload,
-                             SvcStop},
+                             SvcStop,
+                             SvcStart},
                        util::CACHE_KEY_PATH_DEFAULT,
                        Hab},
             command::studio};
@@ -66,7 +67,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
     let alias_setup = sub_cli_setup().about("Alias for 'cli setup'")
                                      .aliases(&["set", "setu"])
                                      .setting(AppSettings::Hidden);
-    let alias_start = sub_svc_start().about("Alias for 'svc start'")
+    let alias_start = SvcStart::clap().about("Alias for 'svc start'")
                                      .aliases(&["sta", "star"])
                                      .setting(AppSettings::Hidden);
     let alias_stop = SvcStop::clap().about("Alias for 'svc stop'")
@@ -838,7 +839,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             )
             (subcommand: SvcLoad::clap())
             (subcommand: SvcUpdate::clap())
-            (subcommand: sub_svc_start().aliases(&["star"]))
+            (subcommand: SvcStart::clap().aliases(&["star"]))
             (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
             (subcommand: SvcStop::clap().aliases(&["sto"]))
             (subcommand: SvcUnload::clap().aliases(&["u", "un", "unl", "unlo", "unloa"]))
@@ -1047,16 +1048,6 @@ fn sub_config_apply() -> App<'static, 'static> {
     (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
         "Address to a remote Supervisor's Control Gateway")
     (arg: arg_cache_key_path())
-    )
-}
-
-fn sub_svc_start() -> App<'static, 'static> {
-    clap_app!(@subcommand start =>
-        (about: "Start a loaded, but stopped, Habitat service")
-        (@arg PKG_IDENT: +required +takes_value {valid_ident}
-            "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
-            "Address to a remote Supervisor's Control Gateway")
     )
 }
 
