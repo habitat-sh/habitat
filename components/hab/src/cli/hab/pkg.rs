@@ -76,34 +76,7 @@ pub enum Pkg {
         #[structopt(name = "FORCE", short = "f", long = "force")]
         force:     bool,
     },
-    /// Builds a Plan using a Studio
-    Build {
-        /// Installs secret origin keys (ex: "unicorn", "acme,other,acme-ops")
-        #[structopt(name = "HAB_ORIGIN_KEYS", short = "k", long = "keys")]
-        hab_origin_keys: Option<String>,
-        /// Sets the Studio root (default: /hab/studios/<DIR_NAME>)
-        #[structopt(name = "HAB_STUDIO_ROOT", short = "r", long = "root")]
-        hab_studio_root: Option<PathBuf>,
-        /// Sets the source path (default: $PWD)
-        #[structopt(name = "SRC_PATH", short = "s", long = "src")]
-        src_path:        Option<PathBuf>,
-        /// A directory containing a plan file or a `habitat/` directory which contains the plan
-        /// file
-        #[structopt(name = "PLAN_CONTEXT")]
-        plan_context:    PathBuf,
-        #[structopt(flatten)]
-        cache_key_path:  CacheKeyPath,
-        #[cfg(any(target_os = "linux", target_os = "windows"))]
-        /// Reuses a previous Studio for the build (default: clean up before building)
-        // Only a truly native/local Studio can be reused--the Docker implementation will always be
-        // ephemeral
-        #[structopt(name = "REUSE", short = "R", long = "reuse")]
-        reuse:           bool,
-        #[cfg(any(target_os = "linux", target_os = "windows"))]
-        /// Uses a Dockerized Studio for the build
-        #[structopt(name = "DOCKER", short = "D", long = "docker")]
-        docker:          bool,
-    },
+    Build(PkgBuild),
     /// Bulk Uploads Habitat Artifacts to a Depot from a local directory
     Bulkupload {
         #[structopt(flatten)]
@@ -337,6 +310,37 @@ pub enum Pkg {
         #[structopt(flatten)]
         cache_key_path: CacheKeyPath,
     },
+}
+
+/// Builds a Plan using a Studio
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, rename_all = "screamingsnake")]
+pub struct PkgBuild {
+    /// Installs secret origin keys (ex: "unicorn", "acme,other,acme-ops")
+    #[structopt(name = "HAB_ORIGIN_KEYS", short = "k", long = "keys")]
+    hab_origin_keys: Option<String>,
+    /// Sets the Studio root (default: /hab/studios/<DIR_NAME>)
+    #[structopt(name = "HAB_STUDIO_ROOT", short = "r", long = "root")]
+    hab_studio_root: Option<PathBuf>,
+    /// Sets the source path (default: $PWD)
+    #[structopt(name = "SRC_PATH", short = "s", long = "src")]
+    src_path:        Option<PathBuf>,
+    /// A directory containing a plan file or a `habitat/` directory which contains the plan
+    /// file
+    #[structopt(name = "PLAN_CONTEXT")]
+    plan_context:    PathBuf,
+    #[structopt(flatten)]
+    cache_key_path:  CacheKeyPath,
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    /// Reuses a previous Studio for the build (default: clean up before building)
+    // Only a truly native/local Studio can be reused--the Docker implementation will always be
+    // ephemeral
+    #[structopt(name = "REUSE", short = "R", long = "reuse")]
+    reuse:           bool,
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    /// Uses a Dockerized Studio for the build
+    #[structopt(name = "DOCKER", short = "D", long = "docker")]
+    docker:          bool,
 }
 
 /// Download Habitat artifacts (including dependencies and keys) from Builder
