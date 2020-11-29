@@ -3,7 +3,8 @@ pub mod hab;
 
 use crate::{cli::hab::{origin::Rbac,
                        pkg::{ExportCommand,
-                             PkgExec},
+                             PkgExec,
+                             PkgDownload},
                        studio::Studio,
                        sup::{HabSup,
                              SupRun},
@@ -557,7 +558,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
              )
-            (subcommand: sub_pkg_download())
+            (subcommand: PkgDownload::clap())
             (@subcommand env =>
                 (about: "Prints the runtime environment of a specific installed package")
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
@@ -978,30 +979,6 @@ fn sub_pkg_build() -> App<'static, 'static> {
                                               .long("docker"));
     }
 
-    sub
-}
-
-fn sub_pkg_download() -> App<'static, 'static> {
-    let sub = clap_app!(@subcommand download =>
-    (about: "Download Habitat artifacts (including dependencies and keys) from Builder")
-    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-    (@arg BLDR_URL: --url -u +takes_value {valid_url}
-        "Specify an alternate Builder endpoint. If not specified, the value will \
-         be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)")
-    (@arg CHANNEL: --channel -c +takes_value default_value[stable] env(ChannelIdent::ENVVAR)
-        "Download from the specified release channel. Overridden if channel is specified in toml file")
-    (@arg DOWNLOAD_DIRECTORY: --("download-directory") +takes_value "The path to store downloaded artifacts")
-    (@arg PKG_IDENT_FILE: --file +takes_value +multiple {valid_ident_or_toml_file}
-        "File with newline separated package identifiers, or TOML file (ending with .toml extension)")
-    (@arg PKG_IDENT: +multiple +takes_value {valid_ident}
-            "One or more Habitat package identifiers (ex: acme/redis)")
-    (@arg PKG_TARGET: --target -t +takes_value {valid_target}
-            "Target architecture to fetch. E.g. x86_64-linux. Overridden if architecture is specified in toml file")
-    (@arg VERIFY: --verify
-            "Verify package integrity after download (Warning: this can be slow)")
-    (@arg IGNORE_MISSING_SEEDS: --("ignore-missing-seeds")
-            "Ignore packages specified that are not present on the target Builder")
-    );
     sub
 }
 

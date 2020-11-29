@@ -341,7 +341,7 @@ pub enum Pkg {
 
 /// Download Habitat artifacts (including dependencies and keys) from Builder
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(no_version, rename_all = "screamingsnake")]
+#[structopt(name="download", no_version, rename_all = "screamingsnake")]
 pub struct PkgDownload {
     #[structopt(flatten)]
     auth_token:          AuthToken,
