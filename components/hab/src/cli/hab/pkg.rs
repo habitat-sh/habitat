@@ -185,41 +185,7 @@ pub enum Pkg {
         #[structopt(name = "REVERSE", short = "r", long = "reverse")]
         reverse:    bool,
     },
-    /// Download Habitat artifacts (including dependencies and keys) from Builder
-    Download {
-        #[structopt(flatten)]
-        auth_token:          AuthToken,
-        #[structopt(flatten)]
-        bldr_url:            BldrUrl,
-        /// Download from the specified release channel. Overridden if channel is specified in toml
-        /// file
-        #[structopt(name = "CHANNEL",
-                    short = "c",
-                    long = "channel",
-                    default_value = "stable",
-                    env = ChannelIdent::ENVVAR)]
-        channel:             String,
-        /// The path to store downloaded artifacts
-        #[structopt(name = "DOWNLOAD_DIRECTORY", long = "download-directory")]
-        download_directory:  Option<PathBuf>,
-        /// File with newline separated package identifiers, or TOML file (ending with .toml
-        /// extension)
-        #[structopt(name = "PKG_IDENT_FILE", long = "file", validator = valid_ident_or_toml_file)]
-        pkg_ident_file:      Vec<String>,
-        /// One or more Habitat package identifiers (ex: acme/redis)
-        #[structopt(name = "PKG_IDENT")]
-        pkg_ident:           Vec<PackageIdent>,
-        /// Target architecture to fetch. E.g. x86_64-linux. Overridden if architecture is
-        /// specified in toml file
-        #[structopt(name = "PKG_TARGET", short = "t", long = "target")]
-        pkg_target:          Option<PackageTarget>,
-        /// Verify package integrity after download (Warning: this can be slow)
-        #[structopt(name = "VERIFY", long = "verify")]
-        verify:              bool,
-        /// Ignore packages specified that are not present on the target Builder
-        #[structopt(name = "IGNORE_MISSING_SEEDS", long = "ignore-missing-seeds")]
-        ignore_missing_seed: bool,
-    },
+    Download(PkgDownload),
     /// Prints the runtime environment of a specific installed package
     Env {
         #[structopt(flatten)]
@@ -371,6 +337,44 @@ pub enum Pkg {
         #[structopt(flatten)]
         cache_key_path: CacheKeyPath,
     },
+}
+
+/// Download Habitat artifacts (including dependencies and keys) from Builder
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, rename_all = "screamingsnake")]
+pub struct PkgDownload {
+    #[structopt(flatten)]
+    auth_token:          AuthToken,
+    #[structopt(flatten)]
+    bldr_url:            BldrUrl,
+    /// Download from the specified release channel. Overridden if channel is specified in toml
+    /// file
+    #[structopt(name = "CHANNEL",
+                short = "c",
+                long = "channel",
+                default_value = "stable",
+                env = ChannelIdent::ENVVAR)]
+    channel:             String,
+    /// The path to store downloaded artifacts
+    #[structopt(name = "DOWNLOAD_DIRECTORY", long = "download-directory")]
+    download_directory:  Option<PathBuf>,
+    /// File with newline separated package identifiers, or TOML file (ending with .toml
+    /// extension)
+    #[structopt(name = "PKG_IDENT_FILE", long = "file", validator = valid_ident_or_toml_file)]
+    pkg_ident_file:      Vec<String>,
+    /// One or more Habitat package identifiers (ex: acme/redis)
+    #[structopt(name = "PKG_IDENT")]
+    pkg_ident:           Vec<PackageIdent>,
+    /// Target architecture to fetch. E.g. x86_64-linux. Overridden if architecture is
+    /// specified in toml file
+    #[structopt(name = "PKG_TARGET", short = "t", long = "target")]
+    pkg_target:          Option<PackageTarget>,
+    /// Verify package integrity after download (Warning: this can be slow)
+    #[structopt(name = "VERIFY", long = "verify")]
+    verify:              bool,
+    /// Ignore packages specified that are not present on the target Builder
+    #[structopt(name = "IGNORE_MISSING_SEEDS", long = "ignore-missing-seeds")]
+    ignore_missing_seed: bool,
 }
 
 /// Executes a command using the 'PATH' context of an installed package
