@@ -314,7 +314,7 @@ pub enum Pkg {
 
 /// Builds a Plan using a Studio
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(no_version, rename_all = "screamingsnake")]
+#[structopt(name="build", no_version, rename_all = "screamingsnake")]
 pub struct PkgBuild {
     /// Installs secret origin keys (ex: "unicorn", "acme,other,acme-ops")
     #[structopt(name = "HAB_ORIGIN_KEYS", short = "k", long = "keys")]

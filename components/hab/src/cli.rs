@@ -4,7 +4,8 @@ pub mod hab;
 use crate::{cli::hab::{origin::Rbac,
                        pkg::{ExportCommand,
                              PkgExec,
-                             PkgDownload},
+                             PkgDownload,
+                             PkgBuild},
                        studio::Studio,
                        sup::{HabSup,
                              SupRun},
@@ -17,8 +18,7 @@ use crate::{cli::hab::{origin::Rbac,
                              SvcStatus},
                        util::CACHE_KEY_PATH_DEFAULT,
                        config::{ServiceConfigApply},
-                       Hab},
-            command::studio};
+                       Hab}};
 use clap::{App,
            AppSettings,
            Arg,
@@ -551,7 +551,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     "Sets the destination directory")
                 (@arg FORCE: -f --force "Overwrite existing binlinks")
              )
-            (subcommand: sub_pkg_build())
+            (subcommand: PkgBuild::clap())
             (@subcommand config =>
                 (about: "Displays the default configuration options for a service")
                 (aliases: &["conf", "cfg"])
@@ -951,35 +951,6 @@ fn arg_target() -> Arg<'static, 'static> {
                                 .env(PACKAGE_TARGET_ENVVAR)
                                 .help("A package target (ex: x86_64-windows) (default: system \
                                        appropriate target)")
-}
-
-fn sub_pkg_build() -> App<'static, 'static> {
-    let mut sub = clap_app!(@subcommand build =>
-    (about: "Builds a Plan using a Studio")
-    (@arg HAB_ORIGIN_KEYS: -k --keys +takes_value
-        "Installs secret origin keys (ex: \"unicorn\", \"acme,other,acme-ops\")")
-    (@arg HAB_STUDIO_ROOT: -r --root +takes_value
-        "Sets the Studio root (default: /hab/studios/<DIR_NAME>)")
-    (@arg SRC_PATH: -s --src +takes_value
-        "Sets the source path (default: $PWD)")
-    (@arg PLAN_CONTEXT: +required +takes_value
-        "A directory containing a plan file \
-        or a `habitat/` directory which contains the plan file")
-    (arg: arg_cache_key_path())
-    );
-    // Only a truly native/local Studio can be reused--the Docker implementation will always be
-    // ephemeral
-    if studio::native_studio_support() {
-        sub = sub.arg(Arg::with_name("REUSE").help("Reuses a previous Studio for the build \
-                                                    (default: clean up before building)")
-                                             .short("R")
-                                             .long("reuse"))
-                 .arg(Arg::with_name("DOCKER").help("Uses a Dockerized Studio for the build")
-                                              .short("D")
-                                              .long("docker"));
-    }
-
-    sub
 }
 
 fn sub_pkg_install(feature_flags: FeatureFlag) -> App<'static, 'static> {
