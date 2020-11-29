@@ -1,6 +1,6 @@
 mod bldr;
 mod cli;
-mod config;
+pub mod config;
 mod file;
 pub mod license;
 pub mod origin;

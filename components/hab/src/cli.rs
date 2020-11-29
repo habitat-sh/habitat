@@ -15,6 +15,7 @@ use crate::{cli::hab::{origin::Rbac,
                              SvcStart,
                              SvcStatus},
                        util::CACHE_KEY_PATH_DEFAULT,
+                       config::{ServiceConfigApply},
                        Hab},
             command::studio};
 use clap::{App,
@@ -56,7 +57,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         return Hab::clap();
     }
 
-    let alias_apply = sub_config_apply().about("Alias for 'config apply'")
+    let alias_apply = ServiceConfigApply::clap().about("Alias for 'config apply'")
                                         .aliases(&["ap", "app", "appl"])
                                         .setting(AppSettings::Hidden);
     let alias_install =
@@ -102,7 +103,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (aliases: &["co", "con", "conf", "confi"])
             (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
-            (subcommand: sub_config_apply().aliases(&["ap", "app", "appl"]))
+            (subcommand: ServiceConfigApply::clap().aliases(&["ap", "app", "appl"]))
             (@subcommand show =>
                 (about: "Displays the default configuration options for a service")
                 (aliases: &["sh", "sho"])
@@ -1034,22 +1035,6 @@ fn sub_pkg_install(feature_flags: FeatureFlag) -> App<'static, 'static> {
                                                     .hidden(!feature_flags.contains(FeatureFlag::IGNORE_LOCAL))
                                                     .long("ignore-local"));
     sub
-}
-
-fn sub_config_apply() -> App<'static, 'static> {
-    clap_app!(@subcommand apply =>
-    (about: "Sets a configuration to be shared by members of a Service Group")
-    (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
-        "Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)")
-    (@arg VERSION_NUMBER: +required +takes_value
-        "A version number (positive integer) for this configuration (ex: 42)")
-    (@arg FILE: +takes_value {file_exists_or_stdin}
-        "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
-    (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
-    (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
-        "Address to a remote Supervisor's Control Gateway")
-    (arg: arg_cache_key_path())
-    )
 }
 
 pub fn parse_optional_arg<T: FromStr>(name: &str, m: &ArgMatches) -> Option<T>

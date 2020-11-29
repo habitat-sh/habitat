@@ -25,7 +25,7 @@ pub enum ServiceConfig {
 
 /// Sets a configuration to be shared by members of a Service Group
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(no_version, rename_all = "screamingsnake")]
+#[structopt(name="apply", no_version, rename_all = "screamingsnake")]
 pub struct ServiceConfigApply {
     /// Target service group service.group[@organization] (ex: redis.default or
     /// foo.default@bazcorp)
