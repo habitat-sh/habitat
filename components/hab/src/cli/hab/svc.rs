@@ -44,15 +44,8 @@ pub enum Svc {
     #[structopt(no_version)]
     Update(Update),
     Start(SvcStart),
-    /// Query the status of Habitat services
     #[structopt(aliases = &["stat", "statu"])]
-    Status {
-        /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
-        #[structopt(name = "PKG_IDENT")]
-        pkg_ident:  Option<PackageIdent>,
-        #[structopt(flatten)]
-        remote_sup: RemoteSup,
-    },
+    Status(SvcStatus),
     Stop(SvcStop),
     Unload(SvcUnload),
 }
@@ -83,6 +76,17 @@ pub struct SvcStart {
     pkg_ident:  PkgIdent,
     #[structopt(flatten)]
     remote_sup: RemoteSup,
+}
+
+/// Query the status of Habitat services
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name="status", no_version, rename_all = "screamingsnake")]
+pub struct SvcStatus {
+    /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+    #[structopt(name = "PKG_IDENT")]
+    pub pkg_ident:  Option<PackageIdent>,
+    #[structopt(flatten)]
+    pub remote_sup: RemoteSup,
 }
 
 /// Stop a running Habitat service.

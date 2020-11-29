@@ -12,7 +12,8 @@ use crate::{cli::hab::{origin::Rbac,
                              Update as SvcUpdate,
                              SvcUnload,
                              SvcStop,
-                             SvcStart},
+                             SvcStart,
+                             SvcStatus},
                        util::CACHE_KEY_PATH_DEFAULT,
                        Hab},
             command::studio};
@@ -840,7 +841,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (subcommand: SvcLoad::clap())
             (subcommand: SvcUpdate::clap())
             (subcommand: SvcStart::clap().aliases(&["star"]))
-            (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
+            (subcommand: SvcStatus::clap().aliases(&["stat", "statu"]))
             (subcommand: SvcStop::clap().aliases(&["sto"]))
             (subcommand: SvcUnload::clap().aliases(&["u", "un", "unl", "unlo", "unloa"]))
         )
@@ -1048,17 +1049,6 @@ fn sub_config_apply() -> App<'static, 'static> {
     (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
         "Address to a remote Supervisor's Control Gateway")
     (arg: arg_cache_key_path())
-    )
-}
-
-// `hab svc status` is the canonical location for this command, but we
-// have historically used `hab sup status` as an alias.
-fn sub_svc_status() -> App<'static, 'static> {
-    clap_app!(@subcommand status =>
-        (about: "Query the status of Habitat services")
-        (@arg PKG_IDENT: +takes_value {valid_ident} "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
-            "Address to a remote Supervisor's Control Gateway")
     )
 }
 
