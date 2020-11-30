@@ -18,7 +18,8 @@ use crate::{cli::hab::{origin::Rbac,
                              SvcStatus},
                        util::CACHE_KEY_PATH_DEFAULT,
                        config::{ServiceConfigApply},
-                       cli::{CliSetup},
+                       cli::{CliSetup,
+                             CliCompleters},
                        Hab}};
 use clap::{App,
            AppSettings,
@@ -98,7 +99,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
             (subcommand: CliSetup::clap().aliases(&["s", "se", "set", "setu"]))
-            (subcommand: sub_cli_completers().aliases(&["c", "co", "com", "comp"]))
+            (subcommand: CliCompleters::clap().aliases(&["c", "co", "com", "comp"]))
         )
         (@subcommand config =>
             (about: "Commands relating to a Service's runtime config")
@@ -909,26 +910,6 @@ fn alias_term() -> App<'static, 'static> {
         (about: "Alias for 'sup term'")
         (@setting Hidden)
     )
-}
-
-fn sub_cli_completers() -> App<'static, 'static> {
-    let sub = clap_app!(@subcommand completers =>
-        (about: "Creates command-line completers for your shell"));
-
-    let supported_shells = ["Bash", "Fish", "Zsh", "PowerShell"];
-
-    // The clap_app! macro above is great but does not support the ability to specify a range of
-    // possible values. We wanted to fail here with an unsupported shell instead of pushing off a
-    // bad value to clap.
-
-    sub.arg(Arg::with_name("SHELL").help("The name of the shell you want to generate the \
-                                          command-completion")
-                                   .short("s")
-                                   .long("shell")
-                                   .required(true)
-                                   .takes_value(true)
-                                   .case_insensitive(true)
-                                   .possible_values(&supported_shells))
 }
 
 fn arg_cache_key_path() -> Arg<'static, 'static> {
