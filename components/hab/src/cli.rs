@@ -8,7 +8,8 @@ use crate::{cli::hab::{origin::Rbac,
                              PkgBuild},
                        studio::Studio,
                        sup::{HabSup,
-                             SupRun},
+                             SupRun,
+                             SupTerm},
                        svc::{BulkLoad as SvcBulkLoad,
                              Load as SvcLoad,
                              Update as SvcUpdate,
@@ -77,6 +78,8 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                                      .setting(AppSettings::Hidden);
     let alias_stop = SvcStop::clap().about("Alias for 'svc stop'")
                                    .aliases(&["sto"])
+                                   .setting(AppSettings::Hidden);
+    let alias_term = SupTerm::clap().about("Alias for 'sup term'")
                                    .setting(AppSettings::Hidden);
 
     clap_app!(hab =>
@@ -878,7 +881,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         (subcommand: alias_setup)
         (subcommand: alias_start)
         (subcommand: alias_stop)
-        (subcommand: alias_term())
+        (subcommand: alias_term)
         (after_help: AFTER_HELP)
     )
 }
@@ -904,16 +907,6 @@ impl FromStr for KeyType {
 }
 
 ////////////////////////////////////////////////////////////////////////
-
-fn alias_term() -> App<'static, 'static> {
-    #[derive(StructOpt)]
-    #[structopt(no_version, settings = &[AppSettings::Hidden])]
-    /// Alias for 'sup term'
-    pub struct Term {
-    }
-
-    Term::clap()
-}
 
 fn arg_cache_key_path() -> Arg<'static, 'static> {
     Arg::with_name("CACHE_KEY_PATH").long("cache-key-path")
