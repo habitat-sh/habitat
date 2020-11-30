@@ -906,10 +906,13 @@ impl FromStr for KeyType {
 ////////////////////////////////////////////////////////////////////////
 
 fn alias_term() -> App<'static, 'static> {
-    clap_app!(@subcommand term =>
-        (about: "Alias for 'sup term'")
-        (@setting Hidden)
-    )
+    #[derive(StructOpt)]
+    #[structopt(no_version, settings = &[AppSettings::Hidden])]
+    /// Alias for 'sup term'
+    pub struct Term {
+    }
+
+    Term::clap()
 }
 
 fn arg_cache_key_path() -> Arg<'static, 'static> {
