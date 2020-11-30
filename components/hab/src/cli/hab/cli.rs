@@ -4,7 +4,7 @@ use configopt::ConfigOpt;
 use structopt::StructOpt;
 
 arg_enum! {
-    #[derive(Deserialize)]
+    #[derive(Serialize, Deserialize)]
     pub enum Shell {
         Bash,
         Fish,
@@ -20,16 +20,7 @@ pub enum Cli {
     /// Sets up the CLI with reasonable defaults
     Setup(CacheKeyPath),
     /// Creates command-line completers for your shell
-    #[structopt(no_version)]
-    Completers {
-        /// The name of the shell you want to generate the command-completion
-        #[structopt(name = "SHELL",
-                    short = "s",
-                    long = "shell",
-                    possible_values = &Shell::variants(),
-                    case_insensitive = true)]
-        shell: Shell,
-    },
+    Completers(CliCompleters),
 }
 
 #[derive(ConfigOpt, StructOpt)]
@@ -38,4 +29,17 @@ pub enum Cli {
 pub struct CliSetup {
     #[structopt(flatten)]
     cache_key_path: CacheKeyPath
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "completers", no_version, rename_all = "screamingsnake")]
+/// Creates command-line completers for your shell
+pub struct CliCompleters {
+    /// The name of the shell you want to generate the command-completion
+    #[structopt(name = "SHELL",
+                short = "s",
+                long = "shell",
+                possible_values = &Shell::variants(),
+                case_insensitive = true)]
+    shell: Shell,
 }
