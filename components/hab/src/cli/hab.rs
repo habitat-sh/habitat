@@ -1,5 +1,5 @@
 mod bldr;
-mod cli;
+pub mod cli;
 pub mod config;
 mod file;
 pub mod license;

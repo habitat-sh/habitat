@@ -18,6 +18,7 @@ use crate::{cli::hab::{origin::Rbac,
                              SvcStatus},
                        util::CACHE_KEY_PATH_DEFAULT,
                        config::{ServiceConfigApply},
+                       cli::{CliSetup},
                        Hab}};
 use clap::{App,
            AppSettings,
@@ -67,7 +68,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                                       .setting(AppSettings::Hidden);
     let alias_run = SupRun::clap().about("Alias for 'sup run'")
                                   .setting(AppSettings::Hidden);
-    let alias_setup = sub_cli_setup().about("Alias for 'cli setup'")
+    let alias_setup = CliSetup::clap().about("Alias for 'cli setup'")
                                      .aliases(&["set", "setu"])
                                      .setting(AppSettings::Hidden);
     let alias_start = SvcStart::clap().about("Alias for 'svc start'")
@@ -96,7 +97,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (aliases: &["cl"])
             (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
-            (subcommand: sub_cli_setup().aliases(&["s", "se", "set", "setu"]))
+            (subcommand: CliSetup::clap().aliases(&["s", "se", "set", "setu"]))
             (subcommand: sub_cli_completers().aliases(&["c", "co", "com", "comp"]))
         )
         (@subcommand config =>
@@ -907,13 +908,6 @@ fn alias_term() -> App<'static, 'static> {
     clap_app!(@subcommand term =>
         (about: "Alias for 'sup term'")
         (@setting Hidden)
-    )
-}
-
-fn sub_cli_setup() -> App<'static, 'static> {
-    clap_app!(@subcommand setup =>
-    (about: "Sets up the CLI with reasonable defaults")
-    (arg: arg_cache_key_path())
     )
 }
 
