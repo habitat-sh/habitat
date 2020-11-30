@@ -18,7 +18,6 @@ arg_enum! {
 /// Commands relating to Habitat runtime config
 pub enum Cli {
     /// Sets up the CLI with reasonable defaults
-    #[structopt(no_version)]
     Setup(CacheKeyPath),
     /// Creates command-line completers for your shell
     #[structopt(no_version)]
@@ -31,4 +30,12 @@ pub enum Cli {
                     case_insensitive = true)]
         shell: Shell,
     },
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "setup", no_version, rename_all = "screamingsnake")]
+/// Sets up the CLI with reasonable defaults
+pub struct CliSetup {
+    #[structopt(flatten)]
+    cache_key_path: CacheKeyPath
 }
