@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.217 -->
-## [1.6.217](https://github.com/habitat-sh/habitat/tree/1.6.217) (2020-12-01)
+<!-- latest_release 1.6.218 -->
+## [1.6.218](https://github.com/habitat-sh/habitat/tree/1.6.218) (2020-12-01)
 
 #### Merged Pull Requests
-- Update CHANGELOG for 1.6.216 [#8012](https://github.com/habitat-sh/habitat/pull/8012) ([christophermaier](https://github.com/christophermaier))
+- Bump tar from 0.4.29 to 0.4.30 [#8003](https://github.com/habitat-sh/habitat/pull/8003) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.216 -->
 ### Changes since 1.6.216 release
 
 #### Merged Pull Requests
+- Bump tar from 0.4.29 to 0.4.30 [#8003](https://github.com/habitat-sh/habitat/pull/8003) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.218 -->
 - Update CHANGELOG for 1.6.216 [#8012](https://github.com/habitat-sh/habitat/pull/8012) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.217 -->
 <!-- release_rollup -->
 
