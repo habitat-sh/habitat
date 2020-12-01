@@ -53,22 +53,6 @@ steps:
 
     soft_fail: true
 
-  - label: ":rust: Cargo update"
-    command:
-      - .expeditor/scripts/finish_release/cargo_update.sh
-    expeditor:
-      account:
-        - github
-      secrets:
-        GITHUB_TOKEN:
-          account: github/habitat-sh
-          field: token
-      executor:
-        docker:
-          environment:
-            - GITHUB_USER
-    soft_fail: true
-
   - label: "Sync acceptance packages from prod"
     command:
       - .expeditor/scripts/finish_release/sync_acceptance.sh
