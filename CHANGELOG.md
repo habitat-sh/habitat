@@ -7,8 +7,15 @@
 - [CI] Remove `--no-modify-path` from `install_rustup` [#8009](https://github.com/habitat-sh/habitat/pull/8009) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.181 -->
-### Changes since 1.6.181 release
+<!-- release_rollup since=1.6.216 -->
+### Changes since 1.6.216 release
+
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.216 -->
+
+## [1.6.216](https://github.com/habitat-sh/habitat/tree/1.6.216) (2020-12-01)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.181..1.6.216)
 
 #### Bug Fixes
 - [FIX] Ensure that health check output is available via HTTP gateway [#7991](https://github.com/habitat-sh/habitat/pull/7991) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.207 -->
@@ -53,9 +60,8 @@
 - WIP - Chef Habitat Resources structural edits [#7959](https://github.com/habitat-sh/habitat/pull/7959) ([mjingle](https://github.com/mjingle)) <!-- 1.6.183 -->
 - Automated update of Habitat Documentation [#7963](https://github.com/habitat-sh/habitat/pull/7963) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.183 -->
 - 1.6.181 Changelog [#7964](https://github.com/habitat-sh/habitat/pull/7964) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.182 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release 1.6.181 -->
+
 ## [1.6.181](https://github.com/habitat-sh/habitat/tree/1.6.181) (2020-10-30)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.175..1.6.181)
 
