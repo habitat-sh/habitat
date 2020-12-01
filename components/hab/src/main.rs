@@ -263,7 +263,8 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         }
                         Svc::Update(svc_update) => return sub_svc_update(svc_update).await,
                         Svc::Status(svc_status) => {
-                            return sub_svc_status(svc_status.pkg_ident, svc_status.remote_sup.inner()).await;
+                            return sub_svc_status(svc_status.pkg_ident,
+                                                  svc_status.remote_sup.inner()).await;
                         }
                         _ => {
                             // All other commands will be caught by the CLI parsing logic below.

@@ -1,28 +1,29 @@
 pub mod gateway_util;
 pub mod hab;
 
-use crate::{cli::hab::{origin::Rbac,
-                       pkg::{ExportCommand,
-                             PkgExec,
-                             PkgDownload,
-                             PkgBuild,
-                             PkgInstall},
-                       studio::Studio,
-                       sup::{HabSup,
-                             SupRun,
-                             SupTerm},
-                       svc::{BulkLoad as SvcBulkLoad,
-                             Load as SvcLoad,
-                             Update as SvcUpdate,
-                             SvcUnload,
-                             SvcStop,
-                             SvcStart,
-                             SvcStatus},
-                       util::{self, CACHE_KEY_PATH_DEFAULT},
-                       config::{ServiceConfigApply},
-                       cli::{CliSetup,
-                             CliCompleters},
-                       Hab}};
+use crate::cli::hab::{cli::{CliCompleters,
+                            CliSetup},
+                      config::ServiceConfigApply,
+                      origin::Rbac,
+                      pkg::{ExportCommand,
+                            PkgBuild,
+                            PkgDownload,
+                            PkgExec,
+                            PkgInstall},
+                      studio::Studio,
+                      sup::{HabSup,
+                            SupRun,
+                            SupTerm},
+                      svc::{BulkLoad as SvcBulkLoad,
+                            Load as SvcLoad,
+                            SvcStart,
+                            SvcStatus,
+                            SvcStop,
+                            SvcUnload,
+                            Update as SvcUpdate},
+                      util::{self,
+                             CACHE_KEY_PATH_DEFAULT},
+                      Hab};
 use clap::{App,
            AppSettings,
            Arg,
@@ -61,25 +62,24 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
     }
 
     let alias_apply = ServiceConfigApply::clap().about("Alias for 'config apply'")
-                                        .aliases(&["ap", "app", "appl"])
-                                        .setting(AppSettings::Hidden);
-    let alias_install =
-        PkgInstall::clap().about("Alias for 'pkg install'")
-                                      .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
-                                      .setting(AppSettings::Hidden);
+                                                .aliases(&["ap", "app", "appl"])
+                                                .setting(AppSettings::Hidden);
+    let alias_install = PkgInstall::clap().about("Alias for 'pkg install'")
+                                          .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
+                                          .setting(AppSettings::Hidden);
     let alias_run = SupRun::clap().about("Alias for 'sup run'")
                                   .setting(AppSettings::Hidden);
     let alias_setup = CliSetup::clap().about("Alias for 'cli setup'")
-                                     .aliases(&["set", "setu"])
-                                     .setting(AppSettings::Hidden);
+                                      .aliases(&["set", "setu"])
+                                      .setting(AppSettings::Hidden);
     let alias_start = SvcStart::clap().about("Alias for 'svc start'")
-                                     .aliases(&["sta", "star"])
-                                     .setting(AppSettings::Hidden);
+                                      .aliases(&["sta", "star"])
+                                      .setting(AppSettings::Hidden);
     let alias_stop = SvcStop::clap().about("Alias for 'svc stop'")
-                                   .aliases(&["sto"])
-                                   .setting(AppSettings::Hidden);
+                                    .aliases(&["sto"])
+                                    .setting(AppSettings::Hidden);
     let alias_term = SupTerm::clap().about("Alias for 'sup term'")
-                                   .setting(AppSettings::Hidden);
+                                    .setting(AppSettings::Hidden);
 
     clap_app!(hab =>
         (about: "Patents: https://chef.io/patents\n\"A Habitat is the natural environment for your services\" - Alan Turing")
@@ -928,7 +928,6 @@ pub fn parse_optional_arg<T: FromStr>(name: &str, m: &ArgMatches) -> Option<T>
 {
     m.value_of(name).map(|s| s.parse().expect("Valid argument"))
 }
-
 
 // CLAP Validation Functions
 ////////////////////////////////////////////////////////////////////////

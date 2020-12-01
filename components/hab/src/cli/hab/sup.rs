@@ -104,9 +104,8 @@ pub enum Sup {
 }
 
 #[derive(StructOpt)]
-#[structopt(name="term", no_version)]
-pub struct SupTerm {
-}
+#[structopt(name = "term", no_version)]
+pub struct SupTerm {}
 
 // TODO (DM): This is unnecessarily difficult due to this issue in serde
 // https://github.com/serde-rs/serde/issues/723. The easiest way to get around the issue is by

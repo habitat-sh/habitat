@@ -17,10 +17,10 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    AUTH_TOKEN_ENVVAR};
 use lazy_static::lazy_static;
 use std::{ffi::OsString,
-          result,
           fmt,
           num::ParseIntError,
           path::PathBuf,
+          result,
           str::FromStr,
           time::Duration};
 use structopt::{clap::AppSettings,

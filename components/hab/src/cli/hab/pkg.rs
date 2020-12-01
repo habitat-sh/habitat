@@ -315,7 +315,7 @@ pub enum Pkg {
 
 /// Builds a Plan using a Studio
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(name="build", no_version, rename_all = "screamingsnake")]
+#[structopt(name = "build", no_version, rename_all = "screamingsnake")]
 pub struct PkgBuild {
     /// Installs secret origin keys (ex: "unicorn", "acme,other,acme-ops")
     #[structopt(name = "HAB_ORIGIN_KEYS", short = "k", long = "keys")]
@@ -346,7 +346,7 @@ pub struct PkgBuild {
 
 /// Download Habitat artifacts (including dependencies and keys) from Builder
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(name="download", no_version, rename_all = "screamingsnake")]
+#[structopt(name = "download", no_version, rename_all = "screamingsnake")]
 pub struct PkgDownload {
     #[structopt(flatten)]
     auth_token:          AuthToken,
@@ -397,7 +397,7 @@ pub struct PkgExec {
 
 /// Installs a Habitat package from Builder or locally from a Habitat Artifact
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(name="install", no_version, rename_all = "screamingsnake")]
+#[structopt(name = "install", no_version, rename_all = "screamingsnake")]
 pub struct PkgInstall {
     #[structopt(flatten)]
     bldr_url:              BldrUrl,

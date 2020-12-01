@@ -28,7 +28,7 @@ pub enum Cli {
 /// Sets up the CLI with reasonable defaults
 pub struct CliSetup {
     #[structopt(flatten)]
-    cache_key_path: CacheKeyPath
+    cache_key_path: CacheKeyPath,
 }
 
 #[derive(ConfigOpt, StructOpt)]

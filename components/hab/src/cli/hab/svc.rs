@@ -70,7 +70,7 @@ pub struct BulkLoad {
 
 /// Start a loaded, but stopped, Habitat service.
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(name="start", no_version, rename_all = "screamingsnake")]
+#[structopt(name = "start", no_version, rename_all = "screamingsnake")]
 pub struct SvcStart {
     #[structopt(flatten)]
     pkg_ident:  PkgIdent,
@@ -80,7 +80,7 @@ pub struct SvcStart {
 
 /// Query the status of Habitat services
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(name="status", no_version, rename_all = "screamingsnake")]
+#[structopt(name = "status", no_version, rename_all = "screamingsnake")]
 pub struct SvcStatus {
     /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
     #[structopt(name = "PKG_IDENT")]
@@ -91,7 +91,7 @@ pub struct SvcStatus {
 
 /// Stop a running Habitat service.
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(name="stop", no_version, rename_all = "screamingsnake")]
+#[structopt(name = "stop", no_version, rename_all = "screamingsnake")]
 pub struct SvcStop {
     #[structopt(flatten)]
     pkg_ident:        PkgIdent,
