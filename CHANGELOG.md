@@ -1,15 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.216 -->
-## [1.6.216](https://github.com/habitat-sh/habitat/tree/1.6.216) (2020-11-30)
+<!-- latest_release 1.6.217 -->
+## [1.6.217](https://github.com/habitat-sh/habitat/tree/1.6.217) (2020-12-01)
 
 #### Merged Pull Requests
-- [CI] Remove `--no-modify-path` from `install_rustup` [#8009](https://github.com/habitat-sh/habitat/pull/8009) ([christophermaier](https://github.com/christophermaier))
+- Update CHANGELOG for 1.6.216 [#8012](https://github.com/habitat-sh/habitat/pull/8012) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.216 -->
 ### Changes since 1.6.216 release
 
+#### Merged Pull Requests
+- Update CHANGELOG for 1.6.216 [#8012](https://github.com/habitat-sh/habitat/pull/8012) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.217 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release 1.6.216 -->
