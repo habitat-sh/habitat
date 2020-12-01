@@ -17,6 +17,7 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    AUTH_TOKEN_ENVVAR};
 use lazy_static::lazy_static;
 use std::{ffi::OsString,
+          result,
           fmt,
           num::ParseIntError,
           path::PathBuf,
@@ -106,6 +107,15 @@ pub fn bldr_auth_token_from_args_env_or_load(opt: Option<String>) -> Result<Stri
 
 pub fn maybe_bldr_auth_token_from_args_or_load(opt: Option<String>) -> Option<String> {
     bldr_auth_token_from_args_env_or_load(opt).ok()
+}
+
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
+pub fn non_empty(val: String) -> result::Result<(), String> {
+    if val.is_empty() {
+        Err("must not be empty (check env overrides)".to_string())
+    } else {
+        Ok(())
+    }
 }
 
 lazy_static! {

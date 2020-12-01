@@ -1,4 +1,5 @@
-use super::util::{AuthToken,
+use super::util::{self,
+                  AuthToken,
                   BldrUrl,
                   CacheKeyPath,
                   ConfigOptAuthToken,
@@ -416,6 +417,7 @@ pub struct PkgInstall {
     /// Binlink all binaries from installed package(s) into BINLINK_DIR
     #[structopt(long = "binlink-dir",
                 default_value = DEFAULT_BINLINK_DIR,
+                validator = util::non_empty,
                 env = BINLINK_DIR_ENVVAR)]
     binlink_dir:           PathBuf,
     /// Overwrite existing binlinks

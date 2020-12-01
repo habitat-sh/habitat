@@ -18,7 +18,7 @@ use crate::{cli::hab::{origin::Rbac,
                              SvcStop,
                              SvcStart,
                              SvcStatus},
-                       util::CACHE_KEY_PATH_DEFAULT,
+                       util::{self, CACHE_KEY_PATH_DEFAULT},
                        config::{ServiceConfigApply},
                        cli::{CliSetup,
                              CliCompleters},
@@ -339,7 +339,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                      be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                      https://bldr.habitat.sh)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                (@arg NEW_OWNER_ACCOUNT: +required +takes_value {non_empty} "The account name of the new origin owner")
+                (@arg NEW_OWNER_ACCOUNT: +required +takes_value {util::non_empty} "The account name of the new origin owner")
             )
             (@subcommand depart =>
                 (about: "Departs membership from selected origin")
@@ -414,7 +414,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@subcommand send =>
                      (about: "Send an origin member invitation")
                      (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name the invitation applies to")
-                     (@arg INVITEE_ACCOUNT: +required +takes_value {non_empty} "The account name to invite into the origin")
+                     (@arg INVITEE_ACCOUNT: +required +takes_value {util::non_empty} "The account name to invite into the origin")
                      (@arg BLDR_URL: -u --url +takes_value {valid_url}
                           "Specify an alternate Builder endpoint. If not specified, the value will \
                           be taken from the HAB_BLDR_URL environment variable if defined. (default: \
@@ -551,7 +551,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                 (@arg BINARY: +takes_value
                     "The command to binlink (ex: bash)")
-                (@arg DEST_DIR: -d --dest +takes_value {non_empty} env(BINLINK_DIR_ENVVAR) default_value(DEFAULT_BINLINK_DIR)
+                (@arg DEST_DIR: -d --dest +takes_value {util::non_empty} env(BINLINK_DIR_ENVVAR) default_value(DEFAULT_BINLINK_DIR)
                     "Sets the destination directory")
                 (@arg FORCE: -f --force "Overwrite existing binlinks")
              )
@@ -909,7 +909,7 @@ impl FromStr for KeyType {
 
 fn arg_cache_key_path() -> Arg<'static, 'static> {
     Arg::with_name("CACHE_KEY_PATH").long("cache-key-path")
-                                    .validator(non_empty)
+                                    .validator(util::non_empty)
                                     .env(CACHE_KEY_PATH_ENV_VAR)
                                     .default_value(&*CACHE_KEY_PATH_DEFAULT)
                                     .help("Cache for creating and searching for encryption keys")
