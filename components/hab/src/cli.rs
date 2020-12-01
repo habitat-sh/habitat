@@ -5,7 +5,8 @@ use crate::{cli::hab::{origin::Rbac,
                        pkg::{ExportCommand,
                              PkgExec,
                              PkgDownload,
-                             PkgBuild},
+                             PkgBuild,
+                             PkgInstall},
                        studio::Studio,
                        sup::{HabSup,
                              SupRun,
@@ -33,13 +34,11 @@ use habitat_common::{cli::{file_into_idents,
                            PACKAGE_TARGET_ENVVAR},
                      FeatureFlag};
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
-                   env::Config,
                    origin::Origin,
                    package::{Identifiable,
                              PackageIdent,
                              PackageTarget},
-                   service::ServiceGroup,
-                   ChannelIdent};
+                   service::ServiceGroup};
 use std::{path::Path,
           result,
           str::FromStr};
@@ -65,7 +64,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                                         .aliases(&["ap", "app", "appl"])
                                         .setting(AppSettings::Hidden);
     let alias_install =
-        sub_pkg_install(feature_flags).about("Alias for 'pkg install'")
+        PkgInstall::clap().about("Alias for 'pkg install'")
                                       .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
                                       .setting(AppSettings::Hidden);
     let alias_run = SupRun::clap().about("Alias for 'sup run'")
@@ -576,7 +575,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (aliases: &["ha", "has"])
                 (@arg SOURCE: +takes_value {file_exists} "A filepath of the target")
             )
-            (subcommand: sub_pkg_install(feature_flags).aliases(
+            (subcommand: PkgInstall::clap().aliases(
                 &["i", "in", "ins", "inst", "insta", "instal"]))
             (@subcommand path =>
                 (about: "Prints the path to a specific installed release of a package")
@@ -922,38 +921,6 @@ fn arg_target() -> Arg<'static, 'static> {
                                 .env(PACKAGE_TARGET_ENVVAR)
                                 .help("A package target (ex: x86_64-windows) (default: system \
                                        appropriate target)")
-}
-
-fn sub_pkg_install(feature_flags: FeatureFlag) -> App<'static, 'static> {
-    let mut sub = clap_app!(@subcommand install =>
-        (about: "Installs a Habitat package from Builder or locally from a Habitat Artifact")
-        (@arg BLDR_URL: --url -u +takes_value {valid_url}
-            "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
-        (@arg CHANNEL: --channel -c +takes_value default_value[stable] env(ChannelIdent::ENVVAR)
-            "Install from the specified release channel")
-        (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple +takes_value
-            "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths \
-            to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-        (@arg BINLINK: -b --binlink
-            "Binlink all binaries from installed package(s) into BINLINK_DIR")
-        (@arg BINLINK_DIR: --("binlink-dir") +takes_value {non_empty} env(BINLINK_DIR_ENVVAR)
-            default_value(DEFAULT_BINLINK_DIR) "Binlink all binaries from installed package(s) into BINLINK_DIR")
-        (@arg FORCE: -f --force "Overwrite existing binlinks")
-        (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-        (@arg IGNORE_INSTALL_HOOK: --("ignore-install-hook") "Do not run any install hooks")
-    );
-    sub = sub.arg(Arg::with_name("OFFLINE").help("Install packages in offline mode")
-                                               .hidden(!feature_flags.contains(FeatureFlag::OFFLINE_INSTALL))
-                                               .long("offline"));
-    sub = sub.arg(Arg::with_name("IGNORE_LOCAL").help("Do not use locally-installed \
-                                                           packages when a corresponding \
-                                                           package cannot be installed from \
-                                                           Builder")
-                                                    .hidden(!feature_flags.contains(FeatureFlag::IGNORE_LOCAL))
-                                                    .long("ignore-local"));
-    sub
 }
 
 pub fn parse_optional_arg<T: FromStr>(name: &str, m: &ArgMatches) -> Option<T>

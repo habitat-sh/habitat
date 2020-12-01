@@ -396,7 +396,7 @@ pub struct PkgExec {
 
 /// Installs a Habitat package from Builder or locally from a Habitat Artifact
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(no_version, rename_all = "screamingsnake")]
+#[structopt(name="install", no_version, rename_all = "screamingsnake")]
 pub struct PkgInstall {
     #[structopt(flatten)]
     bldr_url:              BldrUrl,
