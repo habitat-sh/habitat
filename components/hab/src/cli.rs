@@ -1050,15 +1050,6 @@ fn valid_fully_qualified_ident(val: String) -> result::Result<(), String> {
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_origin(val: String) -> result::Result<(), String> { Origin::validate(val) }
 
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn non_empty(val: String) -> result::Result<(), String> {
-    if val.is_empty() {
-        Err("must not be empty (check env overrides)".to_string())
-    } else {
-        Ok(())
-    }
-}
-
 ////////////////////////////////////////////////////////////////////////
 
 #[cfg(test)]
