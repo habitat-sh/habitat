@@ -178,21 +178,7 @@ pub enum Job {
         #[structopt(flatten)]
         auth_token:  AuthToken,
     },
-    /// Schedule a build job or group of jobs
-    Start {
-        #[structopt(flatten)]
-        pkg_ident:  PkgIdent,
-        /// A package target (ex: x86_64-windows) (default: system appropriate target)
-        #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
-        pkg_target: Option<PackageTarget>,
-        #[structopt(flatten)]
-        bldr_url:   BldrUrl,
-        #[structopt(flatten)]
-        auth_token: AuthToken,
-        /// Schedule jobs for this package and all of its reverse dependencies
-        #[structopt(name = "GROUP", short = "g", long = "group")]
-        group:      bool,
-    },
+    Start(JobStart),
     /// Get the status of one or more job groups
     Status {
         #[structopt(flatten)]
@@ -206,4 +192,22 @@ pub enum Job {
         #[structopt(flatten)]
         bldr_url:  BldrUrl,
     },
+}
+
+/// Schedule a build job or group of jobs
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "start", no_version)]
+pub struct JobStart {
+    #[structopt(flatten)]
+    pkg_ident:  PkgIdent,
+    /// A package target (ex: x86_64-windows) (default: system appropriate target)
+    #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
+    pkg_target: Option<PackageTarget>,
+    #[structopt(flatten)]
+    bldr_url:   BldrUrl,
+    #[structopt(flatten)]
+    auth_token: AuthToken,
+    /// Schedule jobs for this package and all of its reverse dependencies
+    #[structopt(name = "GROUP", short = "g", long = "group")]
+    group:      bool,
 }

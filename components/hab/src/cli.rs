@@ -1,7 +1,8 @@
 pub mod gateway_util;
 pub mod hab;
 
-use crate::cli::hab::{cli::{CliCompleters,
+use crate::cli::hab::{bldr::JobStart,
+                      cli::{CliCompleters,
                             CliSetup},
                       config::{ServiceConfigApply,
                                ServiceConfigShow},
@@ -127,20 +128,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (aliases: &["j", "jo"])
                 (@setting ArgRequiredElseHelp)
                 (@setting SubcommandRequiredElseHelp)
-                (@subcommand start =>
-                    (about: "Schedule a build job or group of jobs")
-                    (aliases: &["s", "st", "sta", "star"])
-                    (@arg PKG_IDENT: +required +takes_value {valid_ident}
-                        "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-                    (arg: arg_target())
-                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. \
-                         (default: https://bldr.habitat.sh)")
-                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                    (@arg GROUP: -g --group "Schedule jobs for this package and all of its reverse \
-                        dependencies")
-                )
+                (subcommand: JobStart::clap().aliases(&["s", "st", "sta", "star"]))
                 (@subcommand cancel =>
                     (about: "Cancel a build job group and any in-progress builds")
                     (aliases: &["c", "ca", "can", "cance", "cancel"])

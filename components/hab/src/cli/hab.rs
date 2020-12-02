@@ -1,4 +1,4 @@
-mod bldr;
+pub mod bldr;
 pub mod cli;
 pub mod config;
 pub mod file;
