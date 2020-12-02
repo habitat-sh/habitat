@@ -5,6 +5,7 @@ use crate::cli::hab::{cli::{CliCompleters,
                             CliSetup},
                       config::{ServiceConfigApply,
                                ServiceConfigShow},
+                      file::FileUpload,
                       origin::Rbac,
                       pkg::{ExportCommand,
                             PkgBuild,
@@ -117,19 +118,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (aliases: &["f", "fi", "fil"])
             (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
-            (@subcommand upload =>
-                (about: "Uploads a file to be shared between members of a Service Group")
-                (aliases: &["u", "up", "upl", "uplo", "uploa"])
-                (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
-                    "Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)")
-                (@arg VERSION_NUMBER: +required +takes_value
-                    "A version number (positive integer) for this configuration (ex: 42)")
-                (@arg FILE: +required +takes_value {file_exists} "Path to local file on disk")
-                (@arg USER: -u --user +takes_value "Name of the user key")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
-                    "Address to a remote Supervisor's Control Gateway")
-                (arg: arg_cache_key_path())
-            )
+            (subcommand: FileUpload::clap().aliases(&["u", "up", "upl", "uplo", "uploa"]))
         )
         (@subcommand bldr =>
             (about: "Commands relating to Habitat Builder")

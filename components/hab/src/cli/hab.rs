@@ -1,7 +1,7 @@
 mod bldr;
 pub mod cli;
 pub mod config;
-mod file;
+pub mod file;
 pub mod license;
 pub mod origin;
 pub mod pkg;
