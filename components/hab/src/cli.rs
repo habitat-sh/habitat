@@ -6,6 +6,7 @@ use crate::cli::hab::{cli::{CliCompleters,
                       config::{ServiceConfigApply,
                                ServiceConfigShow},
                       file::FileUpload,
+                      license::License,
                       origin::Rbac,
                       pkg::{ExportCommand,
                             PkgBuild,
@@ -92,13 +93,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         (@setting GlobalVersion)
         (@setting ArgRequiredElseHelp)
         (@setting SubcommandRequiredElseHelp)
-        (@subcommand license =>
-            (about: "Commands relating to Habitat license agreements")
-            (@setting ArgRequiredElseHelp)
-            (@setting SubcommandRequiredElseHelp)
-            (@subcommand accept =>
-                (about: "Accept the Chef Binary Distribution Agreement without prompting"))
-        )
+        (subcommand: License::clap().settings(&[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp]))
         (@subcommand cli =>
             (about: "Commands relating to Habitat runtime config")
             (aliases: &["cl"])
