@@ -3,7 +3,8 @@ pub mod hab;
 
 use crate::cli::hab::{cli::{CliCompleters,
                             CliSetup},
-                      config::ServiceConfigApply,
+                      config::{ServiceConfigApply,
+                               ServiceConfigShow},
                       origin::Rbac,
                       pkg::{ExportCommand,
                             PkgBuild,
@@ -109,14 +110,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
             (subcommand: ServiceConfigApply::clap().aliases(&["ap", "app", "appl"]))
-            (@subcommand show =>
-                (about: "Displays the default configuration options for a service")
-                (aliases: &["sh", "sho"])
-                (@arg PKG_IDENT: +required +takes_value {valid_ident}
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-                (@arg REMOTE_SUP: --("remote-sup") -r +takes_value default_value("127.0.0.1:9632")
-                    "Address to a remote Supervisor's Control Gateway")
-            )
+            (subcommand: ServiceConfigShow::clap().aliases(&["sh", "sho"]))
         )
         (@subcommand file =>
             (about: "Commands relating to Habitat files")
