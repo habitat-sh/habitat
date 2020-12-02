@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.221 -->
-## [1.6.221](https://github.com/habitat-sh/habitat/tree/1.6.221) (2020-12-02)
+<!-- latest_release 1.6.222 -->
+## [1.6.222](https://github.com/habitat-sh/habitat/tree/1.6.222) (2020-12-02)
 
 #### Merged Pull Requests
-- Bump env_logger from 0.7.1 to 0.8.2 [#8014](https://github.com/habitat-sh/habitat/pull/8014) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump futures from 0.3.5 to 0.3.8 [#8015](https://github.com/habitat-sh/habitat/pull/8015) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.216 -->
 ### Changes since 1.6.216 release
 
 #### Merged Pull Requests
+- Bump futures from 0.3.5 to 0.3.8 [#8015](https://github.com/habitat-sh/habitat/pull/8015) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.222 -->
 - Bump env_logger from 0.7.1 to 0.8.2 [#8014](https://github.com/habitat-sh/habitat/pull/8014) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.221 -->
 - Edit plan_variable docs for clarity [#7992](https://github.com/habitat-sh/habitat/pull/7992) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.220 -->
 - Bump async-trait from 0.1.38 to 0.1.42 [#8007](https://github.com/habitat-sh/habitat/pull/8007) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.219 -->
