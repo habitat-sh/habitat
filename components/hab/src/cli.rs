@@ -23,6 +23,7 @@ use crate::cli::hab::{cli::{CliCompleters,
                             SvcStop,
                             SvcUnload,
                             Update as SvcUpdate},
+                      user::{Key as UserKey},
                       util::{self,
                              CACHE_KEY_PATH_DEFAULT},
                       Hab};
@@ -844,17 +845,8 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (aliases: &["u", "us", "use"])
             (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
-            (@subcommand key =>
-                (about: "Commands relating to Habitat user keys")
-                (aliases: &["k", "ke"])
-                (@setting ArgRequiredElseHelp)
-                (@setting SubcommandRequiredElseHelp)
-                (@subcommand generate =>
-                    (about: "Generates a Habitat user key")
-                    (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
-                    (@arg USER: +required +takes_value "Name of the user key")
-                    (arg: arg_cache_key_path())
-                )
+            (subcommand: UserKey::clap().aliases(&["stu", "stud", "studi"])
+                                        .settings(&[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])
             )
         )
         (subcommand: alias_apply)

@@ -12,7 +12,7 @@ pub mod sup;
 pub mod svc;
 #[cfg(test)]
 mod tests;
-mod user;
+pub mod user;
 pub mod util;
 
 use self::{bldr::{Bldr,

@@ -7,13 +7,12 @@ use structopt::StructOpt;
 #[structopt(no_version)]
 /// Commands relating to Habitat users
 pub enum User {
-    /// Commands relating to Habitat user keys
     Key(Key),
 }
 
-#[derive(ConfigOpt, StructOpt)]
-#[structopt(no_version)]
 /// Commands relating to Habitat users
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "key", no_version)]
 pub enum Key {
     /// Generates a Habitat user key
     Generate {
