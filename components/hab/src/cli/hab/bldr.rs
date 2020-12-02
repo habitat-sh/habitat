@@ -121,19 +121,7 @@ pub struct BldrJobStatusSourceGroup {
 #[structopt(no_version)]
 /// Commands relating to Habitat Builder jobs
 pub enum Job {
-    /// Cancel a build job group and any in-progress builds
-    Cancel {
-        /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
-        #[structopt(name = "GROUP_ID")]
-        group_id:   String,
-        #[structopt(flatten)]
-        bldr_url:   BldrUrl,
-        /// Don't prompt for confirmation
-        #[structopt(name = "FORCE", short = "f", long = "force")]
-        force:      bool,
-        #[structopt(flatten)]
-        auth_token: AuthToken,
-    },
+    Cancel(JobCancel),
     /// Demote packages from a completed build job from a specified channel
     Demote {
         /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
@@ -194,6 +182,21 @@ pub enum Job {
     },
 }
 
+/// Cancel a build job group and any in-progress builds
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "cancel", no_version)]
+pub struct JobCancel {
+    /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
+    #[structopt(name = "GROUP_ID")]
+    group_id:   String,
+    #[structopt(flatten)]
+    bldr_url:   BldrUrl,
+    /// Don't prompt for confirmation
+    #[structopt(name = "FORCE", short = "f", long = "force")]
+    force:      bool,
+    #[structopt(flatten)]
+    auth_token: AuthToken,
+}
 /// Schedule a build job or group of jobs
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "start", no_version)]
