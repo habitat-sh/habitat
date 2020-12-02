@@ -2,6 +2,7 @@ pub mod gateway_util;
 pub mod hab;
 
 use crate::cli::hab::{bldr::{JobCancel,
+                             JobPromote,
                              JobStart},
                       cli::{CliCompleters,
                             CliSetup},
@@ -131,23 +132,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@setting SubcommandRequiredElseHelp)
                 (subcommand: JobStart::clap().aliases(&["s", "st", "sta", "star"]))
                 (subcommand: JobCancel::clap().aliases(&["c", "ca", "can", "cance", "cancel"]))
-                (@subcommand promote =>
-                    (about: "Promote packages from a completed build job to a specified channel")
-                    (aliases: &["p", "pr", "pro", "prom", "promo", "promot"])
-                    (@arg GROUP_ID: +required +takes_value
-                        "The job group id that was returned from \"hab bldr job start\" \
-                        (ex: 771100000000000000)")
-                    (@arg CHANNEL: +takes_value +required "The target channel name")
-                    (@arg ORIGIN: -o --origin +takes_value {valid_origin}
-                        "Limit the promotable packages to the specified origin")
-                    (@arg INTERACTIVE: -i --interactive
-                        "Allow editing the list of promotable packages")
-                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
-                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                )
+                (subcommand: JobPromote::clap().aliases(&["p", "pr", "pro", "prom", "promo", "promot"]))
                 (@subcommand demote =>
                     (about: "Demote packages from a completed build job from a specified channel")
                     (aliases: &["d", "de", "dem", "demo", "demot"])

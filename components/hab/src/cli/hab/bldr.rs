@@ -144,28 +144,7 @@ pub enum Job {
         #[structopt(flatten)]
         auth_token:  AuthToken,
     },
-    /// Promote packages from a completed build job to a specified channel
-    Promote {
-        /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
-        #[structopt(name = "GROUP_ID")]
-        group_id:    String,
-        /// The target channel name
-        #[structopt(name = "CHANNEL")]
-        channel:     String,
-        /// Limit the promotable packages to the specified origin
-        #[structopt(name = "ORIGIN",
-                short = "o",
-                long = "origin",
-                validator = valid_origin)]
-        origin:      Option<String>,
-        /// Allow editing the list of promotable packages
-        #[structopt(name = "INTERACTIVE", short = "i", long = "interactive")]
-        interactive: bool,
-        #[structopt(flatten)]
-        bldr_url:    BldrUrl,
-        #[structopt(flatten)]
-        auth_token:  AuthToken,
-    },
+    Promote(JobPromote),
     Start(JobStart),
     /// Get the status of one or more job groups
     Status {
@@ -197,6 +176,32 @@ pub struct JobCancel {
     #[structopt(flatten)]
     auth_token: AuthToken,
 }
+
+/// Promote packages from a completed build job to a specified channel
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "promote", no_version)]
+pub struct JobPromote {
+    /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
+    #[structopt(name = "GROUP_ID")]
+    group_id:    String,
+    /// The target channel name
+    #[structopt(name = "CHANNEL")]
+    channel:     String,
+    /// Limit the promotable packages to the specified origin
+    #[structopt(name = "ORIGIN",
+            short = "o",
+            long = "origin",
+            validator = valid_origin)]
+    origin:      Option<String>,
+    /// Allow editing the list of promotable packages
+    #[structopt(name = "INTERACTIVE", short = "i", long = "interactive")]
+    interactive: bool,
+    #[structopt(flatten)]
+    bldr_url:    BldrUrl,
+    #[structopt(flatten)]
+    auth_token:  AuthToken,
+}
+
 /// Schedule a build job or group of jobs
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "start", no_version)]
