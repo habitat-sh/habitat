@@ -122,28 +122,7 @@ pub struct BldrJobStatusSourceGroup {
 /// Commands relating to Habitat Builder jobs
 pub enum Job {
     Cancel(JobCancel),
-    /// Demote packages from a completed build job from a specified channel
-    Demote {
-        /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
-        #[structopt(name = "GROUP_ID")]
-        group_id:    String,
-        /// The name of the channel to demote from
-        #[structopt(name = "CHANNEL")]
-        channel:     String,
-        /// Limit the demotable packages to the specified origin
-        #[structopt(name = "ORIGIN",
-                short = "o",
-                long = "origin",
-                validator = valid_origin)]
-        origin:      Option<String>,
-        /// Allow editing the list of demotable packages
-        #[structopt(name = "INTERACTIVE", short = "i", long = "interactive")]
-        interactive: bool,
-        #[structopt(flatten)]
-        bldr_url:    BldrUrl,
-        #[structopt(flatten)]
-        auth_token:  AuthToken,
-    },
+    Demote(JobDemote),
     Promote(JobPromote),
     Start(JobStart),
     /// Get the status of one or more job groups
@@ -175,6 +154,31 @@ pub struct JobCancel {
     force:      bool,
     #[structopt(flatten)]
     auth_token: AuthToken,
+}
+
+/// Demote packages from a completed build job from a specified channel
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "demote", no_version)]
+pub struct JobDemote {
+    /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
+    #[structopt(name = "GROUP_ID")]
+    group_id:    String,
+    /// The name of the channel to demote from
+    #[structopt(name = "CHANNEL")]
+    channel:     String,
+    /// Limit the demotable packages to the specified origin
+    #[structopt(name = "ORIGIN",
+            short = "o",
+            long = "origin",
+            validator = valid_origin)]
+    origin:      Option<String>,
+    /// Allow editing the list of demotable packages
+    #[structopt(name = "INTERACTIVE", short = "i", long = "interactive")]
+    interactive: bool,
+    #[structopt(flatten)]
+    bldr_url:    BldrUrl,
+    #[structopt(flatten)]
+    auth_token:  AuthToken,
 }
 
 /// Promote packages from a completed build job to a specified channel
