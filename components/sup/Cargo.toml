@@ -23,7 +23,7 @@ clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", f
 configopt = { git = "https://github.com/davidMcneil/configopt.git" }
 cpu-time = "*"
 derivative = "*"
-futures = { version = "0.3.1" }
+futures = { version = "0.3.8" }
 glob = "*"
 hab = { path = "../hab" }
 habitat_butterfly = { path = "../butterfly", default-features = false }
