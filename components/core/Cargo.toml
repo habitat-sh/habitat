@@ -20,7 +20,7 @@ errno = "*"
 glob = "*"
 hex = "*"
 lazy_static = "^1.4.0"
-libc = "0.2.76"
+libc = "0.2.80"
 log = "^0.4.11"
 native-tls = { version = "*", features = ["vendored"] }
 os_info = "*"
