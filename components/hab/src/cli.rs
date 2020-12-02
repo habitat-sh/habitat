@@ -17,6 +17,7 @@ use crate::cli::hab::{cli::{CliCompleters,
                             SupRun,
                             SupTerm},
                       svc::{BulkLoad as SvcBulkLoad,
+                            KeyGenerate,
                             Load as SvcLoad,
                             SvcStart,
                             SvcStatus,
@@ -819,14 +820,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (aliases: &["k", "ke"])
                 (@setting ArgRequiredElseHelp)
                 (@setting SubcommandRequiredElseHelp)
-                (@subcommand generate =>
-                    (about: "Generates a Habitat service key")
-                    (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
-                    (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
-                        "Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)")
-                    (@arg ORG: +takes_value "The service organization")
-                    (arg: arg_cache_key_path())
-                )
+                (subcommand: KeyGenerate::clap().aliases(&["g", "ge", "gen", "gene", "gener", "genera", "generat"]))
             )
             (subcommand: SvcLoad::clap())
             (subcommand: SvcUpdate::clap())

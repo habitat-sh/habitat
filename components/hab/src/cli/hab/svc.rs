@@ -109,18 +109,22 @@ pub struct SvcStop {
 #[structopt(no_version)]
 /// Commands relating to Habitat service keys
 pub enum Key {
-    /// Generates a Habitat service key
-    Generate {
-        /// Target service group service.group[@organization] (ex: redis.default or
-        /// foo.default@bazcorp)
-        #[structopt(name = "SERVICE_GROUP")]
-        service_group:  ServiceGroup,
-        /// The service organization
-        #[structopt(name = "ORG")]
-        org:            Option<String>,
-        #[structopt(flatten)]
-        cache_key_path: CacheKeyPath,
-    },
+    Generate(KeyGenerate),
+}
+
+/// Generates a Habitat service key
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "generate", no_version)]
+pub struct KeyGenerate {
+    /// Target service group service.group[@organization] (ex: redis.default or
+    /// foo.default@bazcorp)
+    #[structopt(name = "SERVICE_GROUP")]
+    service_group:  ServiceGroup,
+    /// The service organization
+    #[structopt(name = "ORG")]
+    org:            Option<String>,
+    #[structopt(flatten)]
+    cache_key_path: CacheKeyPath,
 }
 
 lazy_static::lazy_static! {
