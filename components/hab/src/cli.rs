@@ -25,6 +25,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgDownload,
                             PkgExec,
                             PkgInstall,
+                            PkgProvides,
                             PkgSearch,
                             PkgSign,
                             PkgUninstall,
@@ -464,15 +465,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             )
             (subcommand: PkgList::clap().aliases(&["li"]))
-            (@subcommand provides =>
-                (about: "Search installed Habitat packages for a given file")
-                (@arg FILE: +required +takes_value
-                    "File name to find")
-                (@arg FULL_RELEASES: -r
-                    "Show fully qualified package names \
-                    (ex: core/busybox-static/1.24.2/20160708162350)")
-                (@arg FULL_PATHS: -p "Show full path to file")
-            )
+            (subcommand: PkgProvides::clap())
             (subcommand: PkgSearch::clap())
             (subcommand: PkgSign::clap().aliases(&["s", "si", "sig"]))
             (subcommand: PkgUninstall::clap().aliases(&["un", "unin"]))

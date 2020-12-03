@@ -214,23 +214,27 @@ pub enum Pkg {
         #[structopt(flatten)]
         auth_token: AuthToken,
     },
-    /// Search installed Habitat packages for a given file
-    Provides {
-        /// File name to find
-        #[structopt(name = "FILE")]
-        file:          String,
-        /// Show fully qualified package names (ex: core/busybox-static/1.24.2/20160708162350)
-        #[structopt(name = "FULL_RELEASES", short = "r")]
-        full_releases: bool,
-        /// Show full path to file
-        #[structopt(name = "FULL_PATHS", short = "p")]
-        full_paths:    bool,
-    },
+    Provides(PkgProvides),
     Search(PkgSearch),
     Sign(PkgSign),
     Uninstall(PkgUninstall),
     Upload(PkgUpload),
     Verify(PkgVerify),
+}
+
+/// Search installed Habitat packages for a given file
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "provides", no_version, rename_all = "screamingsnake")]
+pub struct PkgProvides {
+    /// File name to find
+    #[structopt(name = "FILE")]
+    file:          String,
+    /// Show fully qualified package names (ex: core/busybox-static/1.24.2/20160708162350)
+    #[structopt(name = "FULL_RELEASES", short = "r")]
+    full_releases: bool,
+    /// Show full path to file
+    #[structopt(name = "FULL_PATHS", short = "p")]
+    full_paths:    bool,
 }
 
 /// Search for a package in Builder
