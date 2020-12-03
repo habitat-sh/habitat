@@ -20,6 +20,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                       plan::{PlanInit,
                              PlanRender},
                       pkg::{ExportCommand,
+                            List as PkgList,
                             PkgBuild,
                             PkgDownload,
                             PkgExec,
@@ -457,20 +458,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             )
-            (@subcommand list =>
-                (about: "List all versions of installed packages")
-                (aliases: &["li"])
-                (@group prefix =>
-                    (@attributes +required)
-                    (@arg ALL: -a --all
-                            "List all installed packages")
-                    (@arg ORIGIN: -o --origin +takes_value {valid_origin}
-                            "An origin to list")
-                    (@arg PKG_IDENT: +takes_value {valid_ident}
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-                )
-
-            )
+            (subcommand: PkgList::clap().aliases(&["li"]))
             (@subcommand provides =>
                 (about: "Search installed Habitat packages for a given file")
                 (@arg FILE: +required +takes_value

@@ -32,8 +32,9 @@ use structopt::{clap::{AppSettings,
                        ArgGroup},
                 StructOpt};
 
+/// List all versions of installed packages
 #[derive(ConfigOpt, StructOpt, Debug)]
-#[structopt(group = ArgGroup::with_name("prefix").required(true), no_version)]
+#[structopt(name = "list", group = ArgGroup::with_name("prefix").required(true), no_version)]
 pub struct List {
     /// List all installed packages
     #[structopt(name = "ALL", short = "a", long = "all", group = "prefix")]
@@ -192,7 +193,6 @@ pub enum Pkg {
         source:  PathBuf,
     },
     Install(PkgInstall),
-    /// List all versions of installed packages
     List(List),
     /// Prints the path to a specific installed release of a package
     Path {
