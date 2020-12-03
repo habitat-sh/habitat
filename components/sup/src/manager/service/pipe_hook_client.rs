@@ -7,12 +7,11 @@ use habitat_core::{env as henv,
                    os::process::windows_child::Child,
                    util::{self,
                           BufReadLossy}};
-use mio::{Events,
+use mio::{windows::NamedPipe,
+          Events,
+          Interest,
           Poll,
-          PollOpt,
-          Ready,
           Token};
-use mio_named_pipes::NamedPipe;
 use std::{self,
           env,
           ffi::OsStr,
@@ -32,7 +31,8 @@ use std::{self,
           time::{Duration,
                  Instant}};
 use uuid::Uuid;
-use winapi::um::{namedpipeapi,
+use winapi::um::{handleapi,
+                 namedpipeapi,
                  processthreadsapi,
                  winbase};
 
@@ -89,30 +89,40 @@ impl PipeHookClient {
         File::create(&self.stdout_log_file)?;
         File::create(&self.stderr_log_file)?;
 
-        let (mut pipe, poll) = self.connect()?;
+        let (mut pipe, mut poll) = self.connect()?;
         debug!("connected to {} {} hook pipe",
                service_group, self.hook_name);
 
         // The powershell server takes a single byte as input which will be either
         // 0 to shut down (see drop below) or 1 to run the hook
-        self.pipe_ready(&poll, Ready::writable())?;
+        self.pipe_ready(&mut poll, Interest::WRITABLE)?;
         pipe.write_all(&SIGNAL_EXEC_HOOK)?;
 
         // Now we wait for the hook to run and the powershell service to
         // send back the hook's exit code over the pipe
-        self.pipe_ready(&poll, Ready::readable())?;
+        self.pipe_ready(&mut poll, Interest::READABLE)?;
         let mut exit_buf = [0; std::mem::size_of::<u32>()];
         pipe.read_exact(&mut exit_buf)?;
+        unsafe {
+            handleapi::CloseHandle(pipe.as_raw_handle());
+        }
         Ok(u32::from_ne_bytes(exit_buf))
     }
 
-    fn pipe_ready(&self, poll: &Poll, readiness: Ready) -> io::Result<bool> {
+    fn pipe_ready(&self, poll: &mut Poll, readiness: Interest) -> io::Result<bool> {
         let mut events = Events::with_capacity(1024);
         let loop_value = loop {
             let checked_thread = liveliness_checker::mark_thread_alive();
-            let result =
-                poll.poll(&mut events, None)
-                    .map(|_| events.iter().any(|e| e.readiness().contains(readiness)));
+            let result = poll.poll(&mut events, None).map(|_| {
+                                                         events.iter().any(|e| {
+                                                                          (e.is_readable()
+                                                                  && readiness
+                                                                     == Interest::READABLE)
+                                                                 || (e.is_writable()
+                                                                     && readiness
+                                                                        == Interest::WRITABLE)
+                                                                      })
+                                                     });
             if let Ok(false) = result {
                 continue;
             } else {
@@ -131,9 +141,10 @@ impl PipeHookClient {
             .custom_flags(winbase::FILE_FLAG_OVERLAPPED);
         let file = opts.open(self.abs_pipe_name())?;
 
-        let pipe = unsafe { NamedPipe::from_raw_handle(file.into_raw_handle()) };
+        let mut pipe = unsafe { NamedPipe::from_raw_handle(file.into_raw_handle()) };
         let poll = Poll::new()?;
-        poll.register(&pipe, Token(0), Ready::all(), PollOpt::edge())?;
+        poll.registry()
+            .register(&mut pipe, Token(0), Interest::WRITABLE | Interest::READABLE)?;
         Ok((pipe, poll))
     }
 
@@ -231,8 +242,8 @@ impl PipeHookClient {
             debug!("error checking if pipe exists: {}", err);
         } else {
             debug!("Telling {} pipe server to quit", self.pipe_name);
-            let (mut pipe, poll) = self.connect()?;
-            self.pipe_ready(&poll, Ready::writable())?;
+            let (mut pipe, mut poll) = self.connect()?;
+            self.pipe_ready(&mut poll, Interest::WRITABLE)?;
             pipe.write_all(&SIGNAL_QUIT)?;
         }
         Ok(())

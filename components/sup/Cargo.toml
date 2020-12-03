@@ -75,12 +75,9 @@ jemalloc-ctl = "*"
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
 habitat-launcher-protocol = { path = "../launcher-protocol" }
-mio-named-pipes = "*"
-# Pinning for now. Since upgrading to 0.7.0 results in conflicts with other crates
-# See https://github.com/habitat-sh/habitat/issues/7522
-mio = "^0.6"
+mio = { version = "*", features = ["os-ext"] }
 uuid = { version = "*", features = ["v4"] }
-winapi =  { version = "^0.3.9", features = ["namedpipeapi", "tlhelp32"] }
+winapi = { version = "^0.3.9", features = ["namedpipeapi", "tlhelp32"] }
 
 [dev-dependencies]
 habitat_core = { path = "../core" }
