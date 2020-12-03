@@ -17,6 +17,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                       file::FileUpload,
                       license::License,
                       origin::Rbac,
+                      plan::{PlanInit},
                       pkg::{ExportCommand,
                             PkgBuild,
                             PkgDownload,
@@ -638,19 +639,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (aliases: &["pl", "pla"])
             (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
-            (@subcommand init =>
-                (about: "Generates common package specific configuration files. Executing without \
-                    argument will create a `habitat` directory in your current folder for the \
-                    plan. If `PKG_NAME` is specified it will create a folder with that name. \
-                    Environment variables (those starting with 'pkg_') that are set will be used \
-                    in the generated plan")
-                (aliases: &["i", "in", "ini"])
-                (@arg PKG_NAME: +takes_value "Name for the new app")
-                (@arg ORIGIN: --origin -o +takes_value {valid_origin} "Origin for the new app")
-                (@arg MIN: --min -m "Create a minimal plan file")
-                (@arg SCAFFOLDING: --scaffolding -s +takes_value
-                    "Specify explicit Scaffolding for your app (ex: node, ruby)")
-            )
+            (subcommand: PlanInit::clap().aliases(&["i", "in", "ini"]))
             (@subcommand render =>
                 (about: "Renders plan config files")
                 (aliases: &["r", "re", "ren", "rend", "rende"])

@@ -5,7 +5,7 @@ pub mod file;
 pub mod license;
 pub mod origin;
 pub mod pkg;
-mod plan;
+pub mod plan;
 pub mod ring;
 pub mod studio;
 pub mod sup;
