@@ -142,16 +142,7 @@ pub enum Pkg {
         #[structopt(name = "SOURCE", validator = file_exists)]
         source: PathBuf,
     },
-    /// Returns the Habitat Artifact information
-    Info {
-        /// Output will be rendered in json. (Includes extended metadata)
-        #[structopt(name = "TO_JSON", short = "j", long = "json")]
-        to_json: bool,
-        /// A path to a Habitat Artifact (ex:
-        /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-        #[structopt(name = "SOURCE", validator = file_exists)]
-        source:  PathBuf,
-    },
+    Info(PkgInfo),
     Install(PkgInstall),
     List(List),
     Path(PkgPath),
@@ -437,6 +428,19 @@ pub struct PkgExec {
     pub cmd:       PathBuf,
     #[structopt(flatten)]
     pub args:      ExternalCommandArgsWithHelpAndVersion,
+}
+
+/// Returns the Habitat Artifact information
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "info", no_version, rename_all = "screamingsnake")]
+pub struct PkgInfo {
+    /// Output will be rendered in json. (Includes extended metadata)
+    #[structopt(name = "TO_JSON", short = "j", long = "json")]
+    to_json: bool,
+    /// A path to a Habitat Artifact (ex:
+    /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    #[structopt(name = "SOURCE", validator = file_exists)]
+    source:  PathBuf,
 }
 
 /// Installs a Habitat package from Builder or locally from a Habitat Artifact

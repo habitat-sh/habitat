@@ -28,6 +28,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgDependencies,
                             PkgDownload,
                             PkgExec,
+                            PkgInfo,
                             PkgInstall,
                             PkgPath,
                             PkgProvides,
@@ -511,13 +512,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg SOURCE: +required +takes_value {file_exists} "A path to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
-            (@subcommand info =>
-                (about: "Returns the Habitat Artifact information")
-                (aliases: &["inf", "info"])
-                (@arg TO_JSON: -j --json "Output will be rendered in json. (Includes extended metadata)")
-                (@arg SOURCE: +required +takes_value {file_exists} "A path to a Habitat Artifact \
-                    (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-            )
+            (subcommand: PkgInfo::clap().aliases(&["inf", "info"]))
             (subcommand: PkgDependencies::clap().aliases(&["dep", "deps"]))
         )
         (@subcommand plan =>
