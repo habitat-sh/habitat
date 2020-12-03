@@ -28,6 +28,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgDownload,
                             PkgExec,
                             PkgInstall,
+                            PkgPath,
                             PkgProvides,
                             PkgSearch,
                             PkgSign,
@@ -449,12 +450,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             )
             (subcommand: PkgInstall::clap().aliases(
                 &["i", "in", "ins", "inst", "insta", "instal"]))
-            (@subcommand path =>
-                (about: "Prints the path to a specific installed release of a package")
-                (aliases: &["p", "pa", "pat"])
-                (@arg PKG_IDENT: +required +takes_value {valid_ident}
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-            )
+            (subcommand: PkgPath::clap().aliases(&["p", "pa", "pat"]))
             (subcommand: PkgList::clap().aliases(&["li"]))
             (subcommand: PkgProvides::clap())
             (subcommand: PkgSearch::clap())

@@ -50,6 +50,14 @@ pub struct List {
     pkg_ident: Option<PackageIdent>,
 }
 
+/// Prints the path to a specific installed release of a package
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "path", no_version)]
+pub struct PkgPath {
+    #[structopt(flatten)]
+    pkg_ident: PkgIdent,
+}
+
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 #[allow(clippy::large_enum_variant)]
@@ -142,11 +150,7 @@ pub enum Pkg {
     },
     Install(PkgInstall),
     List(List),
-    /// Prints the path to a specific installed release of a package
-    Path {
-        #[structopt(flatten)]
-        pkg_ident: PkgIdent,
-    },
+    Path(PkgPath),
     /// Promote a package to a specified channel
     Promote {
         #[structopt(flatten)]
