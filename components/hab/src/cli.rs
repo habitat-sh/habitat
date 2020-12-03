@@ -23,7 +23,8 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgExec,
                             PkgInstall},
                       ring::{KeyExport,
-                             KeyGenerate as RingKeyGenerate},
+                             KeyGenerate as RingKeyGenerate,
+                             KeyImport},
                       studio::Studio,
                       sup::{HabSup,
                             SupRun,
@@ -675,12 +676,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@setting ArgRequiredElseHelp)
                 (@setting SubcommandRequiredElseHelp)
                 (subcommand: KeyExport::clap().aliases(&["e", "ex", "exp", "expo", "expor"]))
-                (@subcommand import =>
-                    (about: "Reads a stdin stream containing ring key contents and writes \
-                    the key to disk")
-                    (aliases: &["i", "im", "imp", "impo", "impor"])
-                    (arg: arg_cache_key_path())
-                )
+                (subcommand: KeyImport::clap().aliases(&["i", "im", "imp", "impo", "impor"]))
                 (subcommand: RingKeyGenerate::clap().aliases(&["g", "ge", "gen", "gene", "gener", "genera", "generat"]))
             )
         )

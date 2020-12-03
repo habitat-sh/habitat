@@ -16,11 +16,7 @@ pub enum Ring {
 pub enum Key {
     Export(KeyExport),
     Generate(KeyGenerate),
-    /// Reads a stdin stream containing ring key contents and writes the key to disk
-    Import {
-        #[structopt(flatten)]
-        cache_key_path: CacheKeyPath,
-    },
+    Import(KeyImport),
 }
 
 /// Outputs the latest ring key contents to stdout
@@ -41,6 +37,14 @@ pub struct KeyGenerate {
     /// Ring key name
     #[structopt(name = "RING")]
     ring:           String,
+    #[structopt(flatten)]
+    cache_key_path: CacheKeyPath,
+}
+
+/// Reads a stdin stream containing ring key contents and writes the key to disk
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "import", no_version)]
+pub struct KeyImport {
     #[structopt(flatten)]
     cache_key_path: CacheKeyPath,
 }
