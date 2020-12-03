@@ -45,20 +45,7 @@ pub enum Channel {
         #[structopt(flatten)]
         auth_token:     AuthToken,
     },
-    /// Destroys a channel
-    Destroy {
-        #[structopt(flatten)]
-        bldr_url: BldrUrl,
-        /// The channel name
-        #[structopt(name = "CHANNEL")]
-        channel:  String,
-        /// Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN' or cli.toml
-        #[structopt(name = "ORIGIN",
-            short = "o",
-            long = "origin",
-            validator = valid_origin)]
-        origin:   Option<String>,
-    },
+    Destroy(ChannelDestroy),
     /// Lists origin channels
     List {
         #[structopt(flatten)]
@@ -225,5 +212,22 @@ pub struct ChannelCreate {
                 short = "o",
                 long = "origin",
                 validator = valid_origin)]
+    origin:   Option<String>,
+}
+
+/// Destroys a channel
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "destroy", no_version)]
+pub struct ChannelDestroy {
+    #[structopt(flatten)]
+    bldr_url: BldrUrl,
+    /// The channel name
+    #[structopt(name = "CHANNEL")]
+    channel:  String,
+    /// Sets the origin to which the channel belongs. Default is from 'HAB_ORIGIN' or cli.toml
+    #[structopt(name = "ORIGIN",
+        short = "o",
+        long = "origin",
+        validator = valid_origin)]
     origin:   Option<String>,
 }
