@@ -21,6 +21,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                                Depart as OriginDepart,
                                Info as OriginInfo,
                                Rbac,
+                               Send,
                                Transfer},
                       plan::{PlanInit,
                              PlanRender},
@@ -260,16 +261,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                           https://bldr.habitat.sh)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
-                (@subcommand send =>
-                     (about: "Send an origin member invitation")
-                     (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name the invitation applies to")
-                     (@arg INVITEE_ACCOUNT: +required +takes_value {util::non_empty} "The account name to invite into the origin")
-                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                          "Specify an alternate Builder endpoint. If not specified, the value will \
-                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                          https://bldr.habitat.sh)")
-                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                )
+                (subcommand: Send::clap())
             )
             (@subcommand key =>
                 (about: "Commands relating to Habitat origin key maintenance")

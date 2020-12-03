@@ -161,19 +161,23 @@ pub enum Invitations {
         #[structopt(flatten)]
         auth_token:    AuthToken,
     },
-    /// Send an origin member invitation
-    Send {
-        /// The origin name the invitation applies to
-        #[structopt(name = "ORIGIN", validator = valid_origin)]
-        origin:          String,
-        /// The account name to invite into the origin
-        #[structopt(name = "INVITEE_ACCOUNT")]
-        invitee_account: String,
-        #[structopt(flatten)]
-        bldr_url:        BldrUrl,
-        #[structopt(flatten)]
-        auth_token:      AuthToken,
-    },
+    Send(Send),
+}
+
+/// Send an origin member invitation
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "send", no_version)]
+pub struct Send {
+    /// The origin name the invitation applies to
+    #[structopt(name = "ORIGIN", validator = valid_origin)]
+    origin:          String,
+    /// The account name to invite into the origin
+    #[structopt(name = "INVITEE_ACCOUNT")]
+    invitee_account: String,
+    #[structopt(flatten)]
+    bldr_url:        BldrUrl,
+    #[structopt(flatten)]
+    auth_token:      AuthToken,
 }
 
 #[derive(ConfigOpt, StructOpt)]
