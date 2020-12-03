@@ -30,6 +30,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgExec,
                             PkgInfo,
                             PkgInstall,
+                            PkgHash,
                             PkgHeader,
                             PkgPath,
                             PkgProvides,
@@ -442,11 +443,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             )
             (subcommand: PkgExec::clap())
             (subcommand: ExportCommand::clap())
-            (@subcommand hash =>
-                (about: "Generates a blake2b hashsum from a target at any given filepath")
-                (aliases: &["ha", "has"])
-                (@arg SOURCE: +takes_value {file_exists} "A filepath of the target")
-            )
+            (subcommand: PkgHash::clap().aliases(&["ha", "has"]))
             (subcommand: PkgInstall::clap().aliases(
                 &["i", "in", "ins", "inst", "insta", "instal"]))
             (subcommand: PkgPath::clap().aliases(&["p", "pa", "pat"]))

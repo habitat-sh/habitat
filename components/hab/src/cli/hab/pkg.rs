@@ -128,12 +128,7 @@ pub enum Pkg {
     },
     Exec(PkgExec),
     Export(ExportCommand),
-    /// Generates a blake2b hashsum from a target at any given filepath
-    Hash {
-        /// A filepath of the target
-        #[structopt(name = "SOURCE", validator = file_exists)]
-        source: Option<PathBuf>,
-    },
+    Hash(PkgHash),
     Header(PkgHeader),
     Info(PkgInfo),
     Install(PkgInstall),
@@ -421,6 +416,15 @@ pub struct PkgExec {
     pub cmd:       PathBuf,
     #[structopt(flatten)]
     pub args:      ExternalCommandArgsWithHelpAndVersion,
+}
+
+/// Generates a blake2b hashsum from a target at any given filepath
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "hash", no_version, settings = &[AppSettings::Hidden])]
+pub struct PkgHash {
+    /// A filepath of the target
+    #[structopt(name = "SOURCE", validator = file_exists)]
+    source: Option<PathBuf>,
 }
 
 /// Returns the Habitat Artifact header
