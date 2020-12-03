@@ -25,6 +25,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgDownload,
                             PkgExec,
                             PkgInstall,
+                            PkgUninstall,
                             PkgUpload,
                             PkgVerify},
                       ring::{KeyExport,
@@ -492,20 +493,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
                 (arg: arg_cache_key_path())
             )
-            (@subcommand uninstall =>
-                (about: "Safely uninstall a package and dependencies from the local filesystem")
-                (aliases: &["un", "unin"])
-                (@arg PKG_IDENT: +required +takes_value {valid_ident}
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-                (@arg DRYRUN: -d --dryrun "Just show what would be uninstalled, don't actually do it")
-                (@arg KEEP_LATEST: --("keep-latest") +takes_value {valid_numeric::<usize>}
-                    "Only keep this number of latest packages uninstalling all others")
-                (@arg EXCLUDE: --exclude +takes_value +multiple {valid_ident}
-                    "Identifier of one or more packages that should not be uninstalled. \
-                    (ex: core/redis, core/busybox-static/1.42.2/21120102031201)")
-                (@arg NO_DEPS: --("no-deps") "Don't uninstall dependencies")
-                (@arg IGNORE_UNINSTALL_HOOK: --("ignore-uninstall-hook") "Do not run any uninstall hooks")
-            )
+            (subcommand: PkgUninstall::clap().aliases(&["un", "unin"]))
             // alas no hyphens in subcommand names..
             // https://github.com/clap-rs/clap/issues/1297
             (@subcommand bulkupload =>
