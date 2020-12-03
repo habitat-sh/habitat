@@ -22,6 +22,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgDownload,
                             PkgExec,
                             PkgInstall},
+                      ring::{KeyExport},
                       studio::Studio,
                       sup::{HabSup,
                             SupRun,
@@ -672,12 +673,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (aliases: &["k", "ke"])
                 (@setting ArgRequiredElseHelp)
                 (@setting SubcommandRequiredElseHelp)
-                (@subcommand export =>
-                    (about: "Outputs the latest ring key contents to stdout")
-                    (aliases: &["e", "ex", "exp", "expo", "expor"])
-                    (@arg RING: +required +takes_value "Ring key name")
-                    (arg: arg_cache_key_path())
-                )
+                (subcommand: KeyExport::clap().aliases(&["e", "ex", "exp", "expo", "expor"]))
                 (@subcommand import =>
                     (about: "Reads a stdin stream containing ring key contents and writes \
                     the key to disk")

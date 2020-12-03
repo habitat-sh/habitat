@@ -6,7 +6,7 @@ pub mod license;
 pub mod origin;
 pub mod pkg;
 mod plan;
-mod ring;
+pub mod ring;
 pub mod studio;
 pub mod sup;
 pub mod svc;
