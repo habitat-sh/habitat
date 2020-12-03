@@ -118,25 +118,28 @@ pub enum Invitations {
         #[structopt(flatten)]
         auth_token:    AuthToken,
     },
-    /// Ignore an origin member invitation
-    Ignore {
-        /// The origin name the invitation applies to
-        #[structopt(name = "ORIGIN", validator = valid_origin)]
-        origin:        String,
-        /// The id of the invitation to ignore
-        #[structopt(name = "INVITATION_ID")]
-        invitation_id: u64,
-        #[structopt(flatten)]
-        bldr_url:      BldrUrl,
-        #[structopt(flatten)]
-        auth_token:    AuthToken,
-    },
+    Ignore(Ignore),
     List(List),
     Pending(Pending),
     Rescind(Rescind),
     Send(Send),
 }
 
+/// Ignore an origin member invitation
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "ignore", no_version)]
+pub struct Ignore {
+    /// The origin name the invitation applies to
+    #[structopt(name = "ORIGIN", validator = valid_origin)]
+    origin:        String,
+    /// The id of the invitation to ignore
+    #[structopt(name = "INVITATION_ID")]
+    invitation_id: u64,
+    #[structopt(flatten)]
+    bldr_url:      BldrUrl,
+    #[structopt(flatten)]
+    auth_token:    AuthToken,
+}
 /// List origin invitations sent to your account
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "list", no_version)]
