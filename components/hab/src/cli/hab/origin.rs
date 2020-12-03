@@ -66,19 +66,23 @@ pub enum Origin {
     /// Role Based Access Control for origin members
     Rbac(Rbac),
     Secret(Secret),
-    /// Transfers ownership of an origin to another member of that origin
-    Transfer {
-        /// The origin name
-        #[structopt(name = "ORIGIN", validator = valid_origin)]
-        origin:            String,
-        #[structopt(flatten)]
-        bldr_url:          BldrUrl,
-        #[structopt(flatten)]
-        auth_token:        AuthToken,
-        /// The account name of the new origin owner
-        #[structopt(name = "NEW_OWNER_ACCOUNT")]
-        new_owner_account: String,
-    },
+    Transfer(Transfer),
+}
+
+/// Transfers ownership of an origin to another member of that origin
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "transfer", no_version)]
+pub struct Transfer {
+    /// The origin name
+    #[structopt(name = "ORIGIN", validator = valid_origin)]
+    origin:            String,
+    #[structopt(flatten)]
+    bldr_url:          BldrUrl,
+    #[structopt(flatten)]
+    auth_token:        AuthToken,
+    /// The account name of the new origin owner
+    #[structopt(name = "NEW_OWNER_ACCOUNT")]
+    new_owner_account: String,
 }
 
 #[derive(ConfigOpt, StructOpt)]

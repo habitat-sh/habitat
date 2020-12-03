@@ -16,7 +16,8 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                                ServiceConfigShow},
                       file::FileUpload,
                       license::License,
-                      origin::Rbac,
+                      origin::{Rbac,
+                               Transfer},
                       plan::{PlanInit,
                              PlanRender},
                       pkg::{ExportCommand,
@@ -219,16 +220,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                      https://bldr.habitat.sh)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
-            (@subcommand transfer =>
-                (about: "Transfers ownership of an origin to another member of that origin")
-                (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name")
-                (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                     "Specify an alternate Builder endpoint. If not specified, the value will \
-                     be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                     https://bldr.habitat.sh)")
-                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                (@arg NEW_OWNER_ACCOUNT: +required +takes_value {util::non_empty} "The account name of the new origin owner")
-            )
+            (subcommand: Transfer::clap() )
             (@subcommand depart =>
                 (about: "Departs membership from selected origin")
                 (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name")
