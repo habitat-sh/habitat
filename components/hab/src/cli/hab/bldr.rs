@@ -26,25 +26,7 @@ pub enum Bldr {
 /// Commands relating to Habitat Builder channels
 pub enum Channel {
     Create(ChannelCreate),
-    /// Atomically demotes selected packages in a target channel
-    Demote {
-        #[structopt(flatten)]
-        bldr_url:       BldrUrl,
-        /// The origin for the channels. Default is from 'HAB_ORIGIN' or cli.toml
-        #[structopt(name = "ORIGIN",
-                    short = "o",
-                    long = "origin",
-                    validator = valid_origin)]
-        origin:         String,
-        /// The channel from which all packages will be selected for demotion
-        #[structopt(name = "SOURCE_CHANNEL")]
-        source_channel: String,
-        /// The channel selected packages will be removed from
-        #[structopt(name = "TARGET_CHANNEL")]
-        target_channel: String,
-        #[structopt(flatten)]
-        auth_token:     AuthToken,
-    },
+    Demote(ChannelDemote),
     Destroy(ChannelDestroy),
     /// Lists origin channels
     List {
@@ -213,6 +195,28 @@ pub struct ChannelCreate {
                 long = "origin",
                 validator = valid_origin)]
     origin:   Option<String>,
+}
+
+/// Atomically demotes selected packages in a target channel
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "demote", no_version)]
+pub struct ChannelDemote {
+    #[structopt(flatten)]
+    bldr_url:       BldrUrl,
+    /// The origin for the channels. Default is from 'HAB_ORIGIN' or cli.toml
+    #[structopt(name = "ORIGIN",
+                short = "o",
+                long = "origin",
+                validator = valid_origin)]
+    origin:         String,
+    /// The channel from which all packages will be selected for demotion
+    #[structopt(name = "SOURCE_CHANNEL")]
+    source_channel: String,
+    /// The channel selected packages will be removed from
+    #[structopt(name = "TARGET_CHANNEL")]
+    target_channel: String,
+    #[structopt(flatten)]
+    auth_token:     AuthToken,
 }
 
 /// Destroys a channel

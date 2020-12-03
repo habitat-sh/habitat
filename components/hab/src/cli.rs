@@ -2,6 +2,7 @@ pub mod gateway_util;
 pub mod hab;
 
 use crate::cli::hab::{bldr::{ChannelCreate,
+                             ChannelDemote,
                              ChannelDestroy,
                              JobCancel,
                              JobDemote,
@@ -181,22 +182,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
 
                 )
-                (@subcommand demote =>
-                    (about: "Atomically demotes selected packages in a target channel")
-                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
-                    (@arg ORIGIN: -o --origin +required +takes_value {valid_origin}
-                        "The origin for the channels. Default is from \
-                        'HAB_ORIGIN' or cli.toml")
-                    (@arg SOURCE_CHANNEL: +required +takes_value
-                        "The channel from which all packages will be selected for demotion")
-                    (@arg TARGET_CHANNEL: +required +takes_value
-                        "The channel selected packages will be removed from")
-                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-
-                )
+                (subcommand: ChannelDemote::clap())
                 (subcommand: ChannelCreate::clap().aliases(&["c", "cr", "cre", "crea", "creat"]))
                 (subcommand: ChannelDestroy::clap().aliases(&["d", "de", "des", "dest", "destr", "destro"]))
                 (@subcommand list =>
