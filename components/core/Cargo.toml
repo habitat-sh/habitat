@@ -40,7 +40,7 @@ tabwriter = "*"
 tar = "*"
 tempfile = "*"
 thiserror = "*"
-tokio = { version = "^0.2", features = ["full"] }
+tokio = { version = "^0.3", features = ["full"] }
 tokio-rustls = "^0.14" # Tokio 0.2
 toml = { version = "0.5.6", features = [ "preserve_order" ] }
 typemap = "*"
