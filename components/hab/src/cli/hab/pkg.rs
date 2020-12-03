@@ -278,31 +278,35 @@ pub enum Pkg {
         #[structopt(name = "IGNORE_UNINSTALL_HOOK", long = "ignore-uninstall-hook")]
         ignore_uninstall_hook: bool,
     },
-    /// Uploads a local Habitat Artifact to Builder
-    Upload {
-        #[structopt(flatten)]
-        bldr_url:       BldrUrl,
-        #[structopt(flatten)]
-        auth_token:     AuthToken,
-        /// Optional additional release channel to upload package to. Packages are always uploaded
-        /// to `unstable`, regardless of the value of this option
-        #[structopt(name = "CHANNEL", short = "c", long = "channel")]
-        channel:        Option<String>,
-        /// Skips checking availability of package and force uploads, potentially overwriting a
-        /// stored copy of a package. (default: false)
-        #[structopt(name = "FORCE", long = "force")]
-        force:          bool,
-        /// Disable auto-build for all packages in this upload
-        #[structopt(name = "NO_BUILD", long = "no-build")]
-        no_builde:      bool,
-        /// One or more filepaths to a Habitat Artifact (ex:
-        /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-        #[structopt(name = "HART_FILE", required = true, validator = file_exists)]
-        hart_file:      Vec<PathBuf>,
-        #[structopt(flatten)]
-        cache_key_path: CacheKeyPath,
-    },
+    Upload(PkgUpload),
     Verify(PkgVerify),
+}
+
+/// Uploads a local Habitat Artifact to Builder
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "upload", no_version, rename_all = "screamingsnake")]
+pub struct PkgUpload {
+    #[structopt(flatten)]
+    bldr_url:       BldrUrl,
+    #[structopt(flatten)]
+    auth_token:     AuthToken,
+    /// Optional additional release channel to upload package to. Packages are always uploaded
+    /// to `unstable`, regardless of the value of this option
+    #[structopt(name = "CHANNEL", short = "c", long = "channel")]
+    channel:        Option<String>,
+    /// Skips checking availability of package and force uploads, potentially overwriting a
+    /// stored copy of a package. (default: false)
+    #[structopt(name = "FORCE", long = "force")]
+    force:          bool,
+    /// Disable auto-build for all packages in this upload
+    #[structopt(name = "NO_BUILD", long = "no-build")]
+    no_builde:      bool,
+    /// One or more filepaths to a Habitat Artifact (ex:
+    /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    #[structopt(name = "HART_FILE", required = true, validator = file_exists)]
+    hart_file:      Vec<PathBuf>,
+    #[structopt(flatten)]
+    cache_key_path: CacheKeyPath,
 }
 
 /// Verifies a Habitat Artifact with an origin key

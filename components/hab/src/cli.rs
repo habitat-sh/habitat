@@ -25,6 +25,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgDownload,
                             PkgExec,
                             PkgInstall,
+                            PkgUpload,
                             PkgVerify},
                       ring::{KeyExport,
                              KeyGenerate as RingKeyGenerate,
@@ -527,26 +528,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg UPLOAD_DIRECTORY: +required +takes_value {dir_exists}
                     "Directory Path from which artifacts will be uploaded")
             )
-            (@subcommand upload =>
-                (about: "Uploads a local Habitat Artifact to Builder")
-                (aliases: &["u", "up", "upl", "uplo", "uploa"])
-                (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
-                    endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
-                    environment variable if defined. (default: https://bldr.habitat.sh)")
-                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                (@arg CHANNEL: --channel -c +takes_value
-                    "Optional additional release channel to upload package to. \
-                     Packages are always uploaded to `unstable`, regardless \
-                     of the value of this option")
-                (@arg FORCE: --force "Skips checking availability of package and \
-                    force uploads, potentially overwriting a stored copy of a package. \
-                    (default: false)")
-                (@arg NO_BUILD: --("no-build")  "Disable auto-build for all packages in this upload")
-                (@arg HART_FILE: +required +multiple +takes_value {file_exists}
-                    "One or more filepaths to a Habitat Artifact \
-                    (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-                (arg: arg_cache_key_path())
-            )
+            (subcommand: PkgUpload::clap().aliases(&["u", "up", "upl", "uplo", "uploa"]))
             (@subcommand delete =>
                 (about: "Removes a package from Builder")
                 (aliases: &["del", "dele"])
