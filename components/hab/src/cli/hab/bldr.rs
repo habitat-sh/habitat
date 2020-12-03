@@ -36,25 +36,7 @@ pub enum Channel {
         #[structopt(name = "ORIGIN", validator = valid_origin)]
         origin:   Option<String>,
     },
-    /// Atomically promotes all packages in channel
-    Promote {
-        #[structopt(flatten)]
-        bldr_url:       BldrUrl,
-        /// The origin for the channels. Default is from 'HAB_ORIGIN' or cli.toml
-        #[structopt(name = "ORIGIN",
-                    short = "o",
-                    long = "origin",
-                    validator = valid_origin)]
-        origin:         String,
-        /// The channel from which all packages will be selected for promotion
-        #[structopt(name = "SOURCE_CHANNEL")]
-        source_channel: String,
-        /// The channel to which packages will be promoted
-        #[structopt(name = "TARGET_CHANNEL")]
-        target_channel: String,
-        #[structopt(flatten)]
-        auth_token:     AuthToken,
-    },
+    Promote(ChannelPromote),
 }
 
 #[derive(ConfigOpt, StructOpt, Debug)]
@@ -195,6 +177,28 @@ pub struct ChannelCreate {
                 long = "origin",
                 validator = valid_origin)]
     origin:   Option<String>,
+}
+
+/// Atomically promotes all packages in channel
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "promote", no_version)]
+pub struct ChannelPromote {
+    #[structopt(flatten)]
+    bldr_url:       BldrUrl,
+    /// The origin for the channels. Default is from 'HAB_ORIGIN' or cli.toml
+    #[structopt(name = "ORIGIN",
+                short = "o",
+                long = "origin",
+                validator = valid_origin)]
+    origin:         String,
+    /// The channel from which all packages will be selected for promotion
+    #[structopt(name = "SOURCE_CHANNEL")]
+    source_channel: String,
+    /// The channel to which packages will be promoted
+    #[structopt(name = "TARGET_CHANNEL")]
+    target_channel: String,
+    #[structopt(flatten)]
+    auth_token:     AuthToken,
 }
 
 /// Atomically demotes selected packages in a target channel
