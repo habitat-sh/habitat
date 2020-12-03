@@ -79,31 +79,7 @@ pub enum Pkg {
         force:     bool,
     },
     Build(PkgBuild),
-    /// Bulk Uploads Habitat Artifacts to a Depot from a local directory
-    Bulkupload {
-        #[structopt(flatten)]
-        bldr_url:             BldrUrl,
-        #[structopt(flatten)]
-        auth_token:           AuthToken,
-        /// Optional additional release channel to upload package to. Packages are always uploaded
-        /// to `unstable`, regardless of the value of this option
-        #[structopt(name = "CHANNEL", short = "c", long = "channel")]
-        channel:              Option<String>,
-        /// Skip checking availability of package and force uploads, potentially overwriting a
-        /// stored copy of a package
-        #[structopt(name = "FORCE", long = "force")]
-        force:                bool,
-        /// Enable auto-build for all packages in this upload. Only applicable to SaaS Builder
-        #[structopt(name = "AUTO_BUILD", long = "auto-build")]
-        auto_build:           bool,
-        /// Skip the confirmation prompt and automatically create origins that do not exist in the
-        /// target Builder
-        #[structopt(name = "AUTO_CREATE_ORIGINS", long = "auto-create-origins")]
-        auto_create_channels: bool,
-        /// Directory Path from which artifacts will be uploaded
-        #[structopt(name = "UPLOAD_DIRECTORY", validator = dir_exists)]
-        upload_directory:     PathBuf,
-    },
+    Bulkupload(PkgBulkupload),
     /// Find out what channels a package belongs to
     Channels {
         #[structopt(flatten)]
@@ -366,6 +342,34 @@ pub struct PkgBuild {
     /// Uses a Dockerized Studio for the build
     #[structopt(name = "DOCKER", short = "D", long = "docker")]
     docker:          bool,
+}
+
+/// Bulk Uploads Habitat Artifacts to a Depot from a local directory
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "bulkupload", no_version, rename_all = "screamingsnake")]
+pub struct PkgBulkupload {
+    #[structopt(flatten)]
+    bldr_url:             BldrUrl,
+    #[structopt(flatten)]
+    auth_token:           AuthToken,
+    /// Optional additional release channel to upload package to. Packages are always uploaded
+    /// to `unstable`, regardless of the value of this option
+    #[structopt(name = "CHANNEL", short = "c", long = "channel")]
+    channel:              Option<String>,
+    /// Skip checking availability of package and force uploads, potentially overwriting a
+    /// stored copy of a package
+    #[structopt(name = "FORCE", long = "force")]
+    force:                bool,
+    /// Enable auto-build for all packages in this upload. Only applicable to SaaS Builder
+    #[structopt(name = "AUTO_BUILD", long = "auto-build")]
+    auto_build:           bool,
+    /// Skip the confirmation prompt and automatically create origins that do not exist in the
+    /// target Builder
+    #[structopt(name = "AUTO_CREATE_ORIGINS", long = "auto-create-origins")]
+    auto_create_channels: bool,
+    /// Directory Path from which artifacts will be uploaded
+    #[structopt(name = "UPLOAD_DIRECTORY", validator = dir_exists)]
+    upload_directory:     PathBuf,
 }
 
 /// Download Habitat artifacts (including dependencies and keys) from Builder

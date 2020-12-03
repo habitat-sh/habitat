@@ -22,6 +22,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                       pkg::{ExportCommand,
                             List as PkgList,
                             PkgBuild,
+                            PkgBulkupload,
                             PkgDownload,
                             PkgExec,
                             PkgInstall,
@@ -471,26 +472,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (subcommand: PkgUninstall::clap().aliases(&["un", "unin"]))
             // alas no hyphens in subcommand names..
             // https://github.com/clap-rs/clap/issues/1297
-            (@subcommand bulkupload =>
-                (about: "Bulk Uploads Habitat Artifacts to a Depot from a local directory")
-                (aliases: &["bul", "bulk"])
-                (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
-                    endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
-                    environment variable if defined. (default: https://bldr.habitat.sh)")
-                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                (@arg CHANNEL: --channel -c +takes_value
-                    "Optional additional release channel to upload package to. \
-                     Packages are always uploaded to `unstable`, regardless \
-                     of the value of this option")
-                (@arg FORCE: --force "Skip checking availability of package and \
-                    force uploads, potentially overwriting a stored copy of a package")
-                (@arg AUTO_BUILD: --("auto-build") "Enable auto-build for all packages in this upload. \
-                    Only applicable to SaaS Builder")
-                (@arg AUTO_CREATE_ORIGINS: --("auto-create-origins") "Skip the confirmation prompt and \
-                    automatically create origins that do not exist in the target Builder")
-                (@arg UPLOAD_DIRECTORY: +required +takes_value {dir_exists}
-                    "Directory Path from which artifacts will be uploaded")
-            )
+            (subcommand: PkgBulkupload::clap().aliases(&["bul", "bulk"]))
             (subcommand: PkgUpload::clap().aliases(&["u", "up", "upl", "uplo", "uploa"]))
             (@subcommand delete =>
                 (about: "Removes a package from Builder")
