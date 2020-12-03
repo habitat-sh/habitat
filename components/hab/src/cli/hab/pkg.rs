@@ -121,11 +121,7 @@ pub enum Pkg {
     },
     Dependencies(PkgDependencies),
     Download(PkgDownload),
-    /// Prints the runtime environment of a specific installed package
-    Env {
-        #[structopt(flatten)]
-        pkg_ident: PkgIdent,
-    },
+    Env(PkgEnv),
     Exec(PkgExec),
     Export(ExportCommand),
     Hash(PkgHash),
@@ -418,9 +414,17 @@ pub struct PkgExec {
     pub args:      ExternalCommandArgsWithHelpAndVersion,
 }
 
+/// Prints the runtime environment of a specific installed package
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "env", no_version)]
+pub struct PkgEnv {
+    #[structopt(flatten)]
+    pkg_ident: PkgIdent,
+}
+
 /// Generates a blake2b hashsum from a target at any given filepath
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(name = "hash", no_version, settings = &[AppSettings::Hidden])]
+#[structopt(name = "hash", no_version)]
 pub struct PkgHash {
     /// A filepath of the target
     #[structopt(name = "SOURCE", validator = file_exists)]

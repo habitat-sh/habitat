@@ -27,6 +27,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgBulkupload,
                             PkgDependencies,
                             PkgDownload,
+                            PkgEnv,
                             PkgExec,
                             PkgInfo,
                             PkgInstall,
@@ -436,11 +437,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
              )
             (subcommand: PkgDownload::clap())
-            (@subcommand env =>
-                (about: "Prints the runtime environment of a specific installed package")
-                (@arg PKG_IDENT: +required +takes_value {valid_ident}
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-            )
+            (subcommand: PkgEnv::clap())
             (subcommand: PkgExec::clap())
             (subcommand: ExportCommand::clap())
             (subcommand: PkgHash::clap().aliases(&["ha", "has"]))
