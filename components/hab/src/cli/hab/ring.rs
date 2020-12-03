@@ -15,14 +15,7 @@ pub enum Ring {
 /// Commands relating to Habitat ring keys
 pub enum Key {
     Export(KeyExport),
-    /// Generates a Habitat ring key
-    Generate {
-        /// Ring key name
-        #[structopt(name = "RING")]
-        ring:           String,
-        #[structopt(flatten)]
-        cache_key_path: CacheKeyPath,
-    },
+    Generate(KeyGenerate),
     /// Reads a stdin stream containing ring key contents and writes the key to disk
     Import {
         #[structopt(flatten)]
@@ -34,6 +27,17 @@ pub enum Key {
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "export", no_version)]
 pub struct KeyExport {
+    /// Ring key name
+    #[structopt(name = "RING")]
+    ring:           String,
+    #[structopt(flatten)]
+    cache_key_path: CacheKeyPath,
+}
+
+/// Generates a Habitat ring key
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "generate", no_version)]
+pub struct KeyGenerate {
     /// Ring key name
     #[structopt(name = "RING")]
     ring:           String,

@@ -22,7 +22,8 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgDownload,
                             PkgExec,
                             PkgInstall},
-                      ring::{KeyExport},
+                      ring::{KeyExport,
+                             KeyGenerate as RingKeyGenerate},
                       studio::Studio,
                       sup::{HabSup,
                             SupRun,
@@ -680,12 +681,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (aliases: &["i", "im", "imp", "impo", "impor"])
                     (arg: arg_cache_key_path())
                 )
-                (@subcommand generate =>
-                    (about: "Generates a Habitat ring key")
-                    (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
-                    (@arg RING: +required +takes_value "Ring key name")
-                    (arg: arg_cache_key_path())
-                )
+                (subcommand: RingKeyGenerate::clap().aliases(&["g", "ge", "gen", "gene", "gener", "genera", "generat"]))
             )
         )
         (subcommand: HabSup::clap())
