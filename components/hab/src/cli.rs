@@ -21,6 +21,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                              PlanRender},
                       pkg::{ExportCommand,
                             List as PkgList,
+                            PkgBinlink,
                             PkgBuild,
                             PkgBulkupload,
                             PkgDownload,
@@ -57,8 +58,6 @@ use clap::{App,
            ArgMatches};
 use habitat_common::{cli::{file_into_idents,
                            is_toml_file,
-                           BINLINK_DIR_ENVVAR,
-                           DEFAULT_BINLINK_DIR,
                            PACKAGE_TARGET_ENVVAR},
                      FeatureFlag};
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
@@ -426,17 +425,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             )
-            (@subcommand binlink =>
-                (about: "Creates a binlink for a package binary in a common 'PATH' location")
-                (aliases: &["bi", "bin", "binl", "binli", "binlin"])
-                (@arg PKG_IDENT: +required +takes_value {valid_ident}
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-                (@arg BINARY: +takes_value
-                    "The command to binlink (ex: bash)")
-                (@arg DEST_DIR: -d --dest +takes_value {util::non_empty} env(BINLINK_DIR_ENVVAR) default_value(DEFAULT_BINLINK_DIR)
-                    "Sets the destination directory")
-                (@arg FORCE: -f --force "Overwrite existing binlinks")
-             )
+            (subcommand: PkgBinlink::clap().aliases(&["bi", "bin", "binl", "binli", "binlin"]))
             (subcommand: PkgBuild::clap())
             (@subcommand config =>
                 (about: "Displays the default configuration options for a service")

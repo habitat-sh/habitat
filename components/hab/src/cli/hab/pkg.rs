@@ -60,24 +60,7 @@ pub enum Pkg {
         #[structopt(flatten)]
         pkg_ident: PkgIdent,
     },
-    /// Creates a binlink for a package binary in a common 'PATH' location
-    Binlink {
-        #[structopt(flatten)]
-        pkg_ident: PkgIdent,
-        /// The command to binlink (ex: bash)
-        #[structopt(name = "BINARY")]
-        binary:    Option<String>,
-        /// Sets the destination directory
-        #[structopt(name = "DEST_DIR",
-                    short = "d",
-                    long = "dest",
-                    env = BINLINK_DIR_ENVVAR,
-                    default_value = DEFAULT_BINLINK_DIR)]
-        dest_dir:  PathBuf,
-        /// Overwrite existing binlinks
-        #[structopt(name = "FORCE", short = "f", long = "force")]
-        force:     bool,
-    },
+    Binlink(PkgBinlink),
     Build(PkgBuild),
     Bulkupload(PkgBulkupload),
     /// Find out what channels a package belongs to
@@ -311,6 +294,27 @@ pub struct PkgVerify {
     source:         PathBuf,
     #[structopt(flatten)]
     cache_key_path: CacheKeyPath,
+}
+
+/// Creates a binlink for a package binary in a common 'PATH' location
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "binlink", no_version, rename_all = "screamingsnake")]
+pub struct PkgBinlink {
+    #[structopt(flatten)]
+    pkg_ident: PkgIdent,
+    /// The command to binlink (ex: bash)
+    #[structopt(name = "BINARY")]
+    binary:    Option<String>,
+    /// Sets the destination directory
+    #[structopt(name = "DEST_DIR",
+                short = "d",
+                long = "dest",
+                env = BINLINK_DIR_ENVVAR,
+                default_value = DEFAULT_BINLINK_DIR)]
+    dest_dir:  PathBuf,
+    /// Overwrite existing binlinks
+    #[structopt(name = "FORCE", short = "f", long = "force")]
+    force:     bool,
 }
 
 /// Builds a Plan using a Studio
