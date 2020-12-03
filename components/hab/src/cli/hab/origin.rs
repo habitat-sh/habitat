@@ -148,20 +148,24 @@ pub enum Invitations {
         #[structopt(flatten)]
         auth_token: AuthToken,
     },
-    /// Rescind an existing origin member invitation
-    Rescind {
-        /// The origin name the invitation applies to
-        #[structopt(name = "ORIGIN", validator = valid_origin)]
-        origin:        String,
-        /// The id of the invitation to rescind
-        #[structopt(name = "INVITATION_ID")]
-        invitation_id: u64,
-        #[structopt(flatten)]
-        bldr_url:      BldrUrl,
-        #[structopt(flatten)]
-        auth_token:    AuthToken,
-    },
+    Rescind(Rescind),
     Send(Send),
+}
+
+/// Rescind an existing origin member invitation
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "rescind", no_version)]
+pub struct Rescind {
+    /// The origin name the invitation applies to
+    #[structopt(name = "ORIGIN", validator = valid_origin)]
+    origin:        String,
+    /// The id of the invitation to rescind
+    #[structopt(name = "INVITATION_ID")]
+    invitation_id: u64,
+    #[structopt(flatten)]
+    bldr_url:      BldrUrl,
+    #[structopt(flatten)]
+    auth_token:    AuthToken,
 }
 
 /// Send an origin member invitation

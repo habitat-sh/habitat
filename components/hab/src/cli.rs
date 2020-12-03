@@ -20,6 +20,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                                Delete as OriginDelete,
                                Depart as OriginDepart,
                                Info as OriginInfo,
+                               Rescind,
                                Rbac,
                                Send,
                                Transfer},
@@ -251,16 +252,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                           https://bldr.habitat.sh)")
                      (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
-                (@subcommand rescind =>
-                    (about: "Rescind an existing origin member invitation")
-                    (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name the invitation applies to")
-                     (@arg INVITATION_ID: +required +takes_value {valid_numeric::<u64>} "The id of the invitation to rescind")
-                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                          "Specify an alternate Builder endpoint. If not specified, the value will \
-                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                          https://bldr.habitat.sh)")
-                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                )
+                (subcommand: Rescind::clap())
                 (subcommand: Send::clap())
             )
             (@subcommand key =>
