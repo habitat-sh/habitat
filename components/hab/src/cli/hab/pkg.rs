@@ -302,15 +302,19 @@ pub enum Pkg {
         #[structopt(flatten)]
         cache_key_path: CacheKeyPath,
     },
-    /// Verifies a Habitat Artifact with an origin key
-    Verify {
-        /// A path to a Habitat Artifact (ex:
-        /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-        #[structopt(name = "SOURCE", validator = file_exists)]
-        source:         PathBuf,
-        #[structopt(flatten)]
-        cache_key_path: CacheKeyPath,
-    },
+    Verify(PkgVerify),
+}
+
+/// Verifies a Habitat Artifact with an origin key
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "verify", no_version, rename_all = "screamingsnake")]
+pub struct PkgVerify {
+    /// A path to a Habitat Artifact (ex:
+    /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    #[structopt(name = "SOURCE", validator = file_exists)]
+    source:         PathBuf,
+    #[structopt(flatten)]
+    cache_key_path: CacheKeyPath,
 }
 
 /// Builds a Plan using a Studio

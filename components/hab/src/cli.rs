@@ -24,7 +24,8 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgBuild,
                             PkgDownload,
                             PkgExec,
-                            PkgInstall},
+                            PkgInstall,
+                            PkgVerify},
                       ring::{KeyExport,
                              KeyGenerate as RingKeyGenerate,
                              KeyImport},
@@ -592,13 +593,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (arg: arg_target())
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
-            (@subcommand verify =>
-                (about: "Verifies a Habitat Artifact with an origin key")
-                (aliases: &["v", "ve", "ver", "veri", "verif"])
-                (@arg SOURCE: +required +takes_value {file_exists} "A path to a Habitat Artifact \
-                    (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-                (arg: arg_cache_key_path())
-            )
+            (subcommand: PkgVerify::clap().aliases(&["v", "ve", "ver", "veri", "verif"]))
             (@subcommand header =>
                 (about: "Returns the Habitat Artifact header")
                 (aliases: &["hea", "head", "heade", "header"])
