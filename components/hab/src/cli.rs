@@ -30,6 +30,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgExec,
                             PkgInfo,
                             PkgInstall,
+                            PkgHeader,
                             PkgPath,
                             PkgProvides,
                             PkgSearch,
@@ -505,13 +506,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
             (subcommand: PkgVerify::clap().aliases(&["v", "ve", "ver", "veri", "verif"]))
-            (@subcommand header =>
-                (about: "Returns the Habitat Artifact header")
-                (aliases: &["hea", "head", "heade", "header"])
-                (@setting Hidden)
-                (@arg SOURCE: +required +takes_value {file_exists} "A path to a Habitat Artifact \
-                    (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-            )
+            (subcommand: PkgHeader::clap().aliases(&["hea", "head", "heade", "header"]))
             (subcommand: PkgInfo::clap().aliases(&["inf", "info"]))
             (subcommand: PkgDependencies::clap().aliases(&["dep", "deps"]))
         )

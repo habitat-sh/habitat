@@ -134,14 +134,7 @@ pub enum Pkg {
         #[structopt(name = "SOURCE", validator = file_exists)]
         source: Option<PathBuf>,
     },
-    /// Returns the Habitat Artifact header
-    #[structopt(settings = &[AppSettings::Hidden])]
-    Header {
-        /// A path to a Habitat Artifact (ex:
-        /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-        #[structopt(name = "SOURCE", validator = file_exists)]
-        source: PathBuf,
-    },
+    Header(PkgHeader),
     Info(PkgInfo),
     Install(PkgInstall),
     List(List),
@@ -428,6 +421,16 @@ pub struct PkgExec {
     pub cmd:       PathBuf,
     #[structopt(flatten)]
     pub args:      ExternalCommandArgsWithHelpAndVersion,
+}
+
+/// Returns the Habitat Artifact header
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "header", no_version, settings = &[AppSettings::Hidden])]
+pub struct PkgHeader {
+    /// A path to a Habitat Artifact (ex:
+    /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    #[structopt(name = "SOURCE", validator = file_exists)]
+    source: PathBuf,
 }
 
 /// Returns the Habitat Artifact information
