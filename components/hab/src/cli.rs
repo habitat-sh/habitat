@@ -4,6 +4,7 @@ pub mod hab;
 use crate::cli::hab::{bldr::{ChannelCreate,
                              ChannelDemote,
                              ChannelDestroy,
+                             ChannelList,
                              ChannelPromote,
                              JobCancel,
                              JobDemote,
@@ -171,17 +172,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (subcommand: ChannelDemote::clap())
                 (subcommand: ChannelCreate::clap().aliases(&["c", "cr", "cre", "crea", "creat"]))
                 (subcommand: ChannelDestroy::clap().aliases(&["d", "de", "des", "dest", "destr", "destro"]))
-                (@subcommand list =>
-                    (about: "Lists origin channels")
-                    (aliases: &["l", "li", "lis"])
-                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
-                    (@arg ORIGIN: +takes_value {valid_origin}
-                        "The origin for which channels will be listed. Default is from 'HAB_ORIGIN' \
-                        or cli.toml")
-                )
+                (subcommand: ChannelList::clap().aliases(&["l", "li", "lis"]))
             )
         )
         (@subcommand origin =>

@@ -28,14 +28,7 @@ pub enum Channel {
     Create(ChannelCreate),
     Demote(ChannelDemote),
     Destroy(ChannelDestroy),
-    /// Lists origin channels
-    List {
-        #[structopt(flatten)]
-        bldr_url: BldrUrl,
-        /// The origin for which channels will be listed. Default is from 'HAB_ORIGIN' or cli.toml
-        #[structopt(name = "ORIGIN", validator = valid_origin)]
-        origin:   Option<String>,
-    },
+    List(ChannelList),
     Promote(ChannelPromote),
 }
 
@@ -176,6 +169,17 @@ pub struct ChannelCreate {
                 short = "o",
                 long = "origin",
                 validator = valid_origin)]
+    origin:   Option<String>,
+}
+
+/// Lists origin channels
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "list", no_version)]
+pub struct ChannelList {
+    #[structopt(flatten)]
+    bldr_url: BldrUrl,
+    /// The origin for which channels will be listed. Default is from 'HAB_ORIGIN' or cli.toml
+    #[structopt(name = "ORIGIN", validator = valid_origin)]
     origin:   Option<String>,
 }
 
