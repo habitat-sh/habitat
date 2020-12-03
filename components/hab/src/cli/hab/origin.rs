@@ -28,16 +28,7 @@ pub enum Origin {
         #[structopt(flatten)]
         auth_token: AuthToken,
     },
-    /// Removes an unused/empty origin
-    Delete {
-        #[structopt(flatten)]
-        bldr_url:   BldrUrl,
-        /// The origin name
-        #[structopt(name = "ORIGIN", validator = valid_origin)]
-        origin:     String,
-        #[structopt(flatten)]
-        auth_token: AuthToken,
-    },
+    Delete(Delete),
     Depart(Depart),
     Info(Info),
     Invitations(Invitations),
@@ -46,6 +37,19 @@ pub enum Origin {
     Rbac(Rbac),
     Secret(Secret),
     Transfer(Transfer),
+}
+
+/// Removes an unused/empty origin
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "delete", no_version)]
+pub struct Delete {
+    #[structopt(flatten)]
+    bldr_url:   BldrUrl,
+    /// The origin name
+    #[structopt(name = "ORIGIN", validator = valid_origin)]
+    origin:     String,
+    #[structopt(flatten)]
+    auth_token: AuthToken,
 }
 
 /// Departs membership from selected origin
