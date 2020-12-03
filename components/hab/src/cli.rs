@@ -55,7 +55,7 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    package::{Identifiable,
                              PackageIdent,
                              PackageTarget},
-                   service::ServiceGroup};
+                   };
 use std::{path::Path,
           result,
           str::FromStr};
@@ -784,11 +784,6 @@ fn valid_key_type(val: String) -> result::Result<(), String> {
                                                     (public, secret)",
                                                    &val)
                                        })
-}
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_service_group(val: String) -> result::Result<(), String> {
-    ServiceGroup::validate(&val).map_err(|e| e.to_string())
 }
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
