@@ -25,6 +25,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgDownload,
                             PkgExec,
                             PkgInstall,
+                            PkgSearch,
                             PkgSign,
                             PkgUninstall,
                             PkgUpload,
@@ -472,16 +473,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (ex: core/busybox-static/1.24.2/20160708162350)")
                 (@arg FULL_PATHS: -p "Show full path to file")
             )
-            (@subcommand search =>
-                (about: "Search for a package in Builder")
-                (@arg SEARCH_TERM: +required +takes_value "Search term")
-                (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
-                    endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
-                    environment variable if defined. (default: https://bldr.habitat.sh)")
-                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                (@arg LIMIT: -l --limit +takes_value default_value("50") {valid_numeric::<usize>}
-                    "Limit how many packages to retrieve")
-            )
+            (subcommand: PkgSearch::clap())
             (subcommand: PkgSign::clap().aliases(&["s", "si", "sig"]))
             (subcommand: PkgUninstall::clap().aliases(&["un", "unin"]))
             // alas no hyphens in subcommand names..

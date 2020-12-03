@@ -226,23 +226,27 @@ pub enum Pkg {
         #[structopt(name = "FULL_PATHS", short = "p")]
         full_paths:    bool,
     },
-    /// Search for a package in Builder
-    Search {
-        /// Search term
-        #[structopt(name = "SEARCH_TERM")]
-        search_term: String,
-        #[structopt(flatten)]
-        bldr_url:    BldrUrl,
-        #[structopt(flatten)]
-        auth_token:  AuthToken,
-        /// Limit how many packages to retrieve
-        #[structopt(name = "LIMIT", short = "l", long = "limit", default_value = "50")]
-        limit:       usize,
-    },
+    Search(PkgSearch),
     Sign(PkgSign),
     Uninstall(PkgUninstall),
     Upload(PkgUpload),
     Verify(PkgVerify),
+}
+
+/// Search for a package in Builder
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "search", no_version, rename_all = "screamingsnake")]
+pub struct PkgSearch {
+    /// Search term
+    #[structopt(name = "SEARCH_TERM")]
+    search_term: String,
+    #[structopt(flatten)]
+    bldr_url:    BldrUrl,
+    #[structopt(flatten)]
+    auth_token:  AuthToken,
+    /// Limit how many packages to retrieve
+    #[structopt(name = "LIMIT", short = "l", long = "limit", default_value = "50")]
+    limit:       usize,
 }
 
 /// Signs an archive with an origin key, generating a Habitat Artifact
