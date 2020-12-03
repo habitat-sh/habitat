@@ -25,6 +25,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgDownload,
                             PkgExec,
                             PkgInstall,
+                            PkgSign,
                             PkgUninstall,
                             PkgUpload,
                             PkgVerify},
@@ -481,18 +482,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg LIMIT: -l --limit +takes_value default_value("50") {valid_numeric::<usize>}
                     "Limit how many packages to retrieve")
             )
-            (@subcommand sign =>
-                (about: "Signs an archive with an origin key, generating a Habitat Artifact")
-                (aliases: &["s", "si", "sig"])
-                (@arg ORIGIN: --origin +takes_value {valid_origin} "Origin key used to create signature")
-                (@arg SOURCE: +required +takes_value {file_exists}
-                    "A path to a source archive file \
-                    (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)")
-                (@arg DEST: +required +takes_value
-                    "The destination path to the signed Habitat Artifact \
-                    (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-                (arg: arg_cache_key_path())
-            )
+            (subcommand: PkgSign::clap().aliases(&["s", "si", "sig"]))
             (subcommand: PkgUninstall::clap().aliases(&["un", "unin"]))
             // alas no hyphens in subcommand names..
             // https://github.com/clap-rs/clap/issues/1297

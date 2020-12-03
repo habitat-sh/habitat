@@ -239,27 +239,31 @@ pub enum Pkg {
         #[structopt(name = "LIMIT", short = "l", long = "limit", default_value = "50")]
         limit:       usize,
     },
-    /// Signs an archive with an origin key, generating a Habitat Artifact
-    Sign {
-        /// Origin key used to create signature
-        #[structopt(name = "ORIGIN",
-            long = "origin",
-            validator = valid_origin)]
-        origin:         Option<String>,
-        /// A path to a source archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)
-        #[structopt(name = "SOURCE",
-                    validator = file_exists)]
-        source:         PathBuf,
-        /// The destination path to the signed Habitat Artifact (ex:
-        /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-        #[structopt(name = "DEST")]
-        dest:           PathBuf,
-        #[structopt(flatten)]
-        cache_key_path: CacheKeyPath,
-    },
+    Sign(PkgSign),
     Uninstall(PkgUninstall),
     Upload(PkgUpload),
     Verify(PkgVerify),
+}
+
+/// Signs an archive with an origin key, generating a Habitat Artifact
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "sign", no_version, rename_all = "screamingsnake")]
+pub struct PkgSign {
+    /// Origin key used to create signature
+    #[structopt(name = "ORIGIN",
+        long = "origin",
+        validator = valid_origin)]
+    origin:         Option<String>,
+    /// A path to a source archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)
+    #[structopt(name = "SOURCE",
+                validator = file_exists)]
+    source:         PathBuf,
+    /// The destination path to the signed Habitat Artifact (ex:
+    /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    #[structopt(name = "DEST")]
+    dest:           PathBuf,
+    #[structopt(flatten)]
+    cache_key_path: CacheKeyPath,
 }
 
 /// Safely uninstall a package and dependencies from the local filesystem
