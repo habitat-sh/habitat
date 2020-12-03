@@ -38,16 +38,7 @@ pub enum Origin {
         #[structopt(flatten)]
         auth_token: AuthToken,
     },
-    /// Departs membership from selected origin
-    Depart {
-        #[structopt(flatten)]
-        bldr_url:   BldrUrl,
-        /// The origin name
-        #[structopt(name = "ORIGIN", validator = valid_origin)]
-        origin:     String,
-        #[structopt(flatten)]
-        auth_token: AuthToken,
-    },
+    Depart(Depart),
     Info(Info),
     Invitations(Invitations),
     Key(Key),
@@ -55,6 +46,19 @@ pub enum Origin {
     Rbac(Rbac),
     Secret(Secret),
     Transfer(Transfer),
+}
+
+/// Departs membership from selected origin
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "depart", no_version)]
+pub struct Depart {
+    #[structopt(flatten)]
+    bldr_url:   BldrUrl,
+    /// The origin name
+    #[structopt(name = "ORIGIN", validator = valid_origin)]
+    origin:     String,
+    #[structopt(flatten)]
+    auth_token: AuthToken,
 }
 
 /// Displays general information about an origin
