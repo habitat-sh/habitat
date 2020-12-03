@@ -24,6 +24,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgBinlink,
                             PkgBuild,
                             PkgBulkupload,
+                            PkgDependencies,
                             PkgDownload,
                             PkgExec,
                             PkgInstall,
@@ -524,15 +525,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg SOURCE: +required +takes_value {file_exists} "A path to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
-            (@subcommand dependencies =>
-                (about: "Returns the Habitat Artifact dependencies. By default it will return \
-                    the direct dependencies of the package")
-                (aliases: &["dep", "deps"])
-                (@arg TRANSITIVE: -t --transitive "Show transitive dependencies")
-                (@arg REVERSE: -r --reverse "Show packages which are dependant on this one")
-                (@arg PKG_IDENT: +required +takes_value {valid_ident}
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-            )
+            (subcommand: PkgDependencies::clap().aliases(&["dep", "deps"]))
         )
         (@subcommand plan =>
             (about: "Commands relating to plans and other app-specific configuration")

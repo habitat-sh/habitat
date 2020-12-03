@@ -107,18 +107,7 @@ pub enum Pkg {
         #[structopt(flatten)]
         auth_token: AuthToken,
     },
-    /// Returns the Habitat Artifact dependencies. By default it will return the direct
-    /// dependencies of the package
-    Dependencies {
-        #[structopt(flatten)]
-        pkg_ident:  PkgIdent,
-        /// Show transitive dependencies
-        #[structopt(name = "TRANSITIVE", short = "t", long = "transitive")]
-        transitive: bool,
-        /// Show packages which are dependant on this one
-        #[structopt(name = "REVERSE", short = "r", long = "reverse")]
-        reverse:    bool,
-    },
+    Dependencies(PkgDependencies),
     Download(PkgDownload),
     /// Prints the runtime environment of a specific installed package
     Env {
@@ -374,6 +363,21 @@ pub struct PkgBulkupload {
     /// Directory Path from which artifacts will be uploaded
     #[structopt(name = "UPLOAD_DIRECTORY", validator = dir_exists)]
     upload_directory:     PathBuf,
+}
+
+/// Returns the Habitat Artifact dependencies. By default it will return the direct
+/// dependencies of the package
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "dependencies", no_version, rename_all = "screamingsnake")]
+pub struct PkgDependencies {
+    #[structopt(flatten)]
+    pkg_ident:  PkgIdent,
+    /// Show transitive dependencies
+    #[structopt(name = "TRANSITIVE", short = "t", long = "transitive")]
+    transitive: bool,
+    /// Show packages which are dependant on this one
+    #[structopt(name = "REVERSE", short = "r", long = "reverse")]
+    reverse:    bool,
 }
 
 /// Download Habitat artifacts (including dependencies and keys) from Builder
