@@ -20,6 +20,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                                Delete as OriginDelete,
                                Depart as OriginDepart,
                                Info as OriginInfo,
+                               Pending,
                                Rescind,
                                Rbac,
                                Send,
@@ -243,15 +244,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                           https://bldr.habitat.sh)")
                      (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
-                (@subcommand pending =>
-                     (about: "List pending invitations for a particular origin. Requires that you are the origin owner")
-                     (@arg ORIGIN: +required +takes_value {valid_origin} "The name of the origin you wish to list invitations for")
-                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                          "Specify an alternate Builder endpoint. If not specified, the value will \
-                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                          https://bldr.habitat.sh)")
-                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                )
+                (subcommand: Pending::clap())
                 (subcommand: Rescind::clap())
                 (subcommand: Send::clap())
             )

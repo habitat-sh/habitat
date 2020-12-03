@@ -138,18 +138,22 @@ pub enum Invitations {
         #[structopt(flatten)]
         auth_token: AuthToken,
     },
-    /// List pending invitations for a particular origin. Requires that you are the origin owner
-    Pending {
-        /// The name of the origin you wish to list invitations for
-        #[structopt(name = "ORIGIN", validator = valid_origin)]
-        origin:     String,
-        #[structopt(flatten)]
-        bldr_url:   BldrUrl,
-        #[structopt(flatten)]
-        auth_token: AuthToken,
-    },
+    Pending(Pending),
     Rescind(Rescind),
     Send(Send),
+}
+
+/// List pending invitations for a particular origin. Requires that you are the origin owner
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "pending", no_version)]
+pub struct Pending {
+    /// The name of the origin you wish to list invitations for
+    #[structopt(name = "ORIGIN", validator = valid_origin)]
+    origin:     String,
+    #[structopt(flatten)]
+    bldr_url:   BldrUrl,
+    #[structopt(flatten)]
+    auth_token: AuthToken,
 }
 
 /// Rescind an existing origin member invitation
