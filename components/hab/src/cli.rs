@@ -16,7 +16,8 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                                ServiceConfigShow},
                       file::FileUpload,
                       license::License,
-                      origin::{Delete as OriginDelete,
+                      origin::{Create as OriginCreate,
+                               Delete as OriginDelete,
                                Depart as OriginDepart,
                                Info as OriginInfo,
                                Rbac,
@@ -203,16 +204,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (aliases: &["o", "or", "ori", "orig", "origi"])
             (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
-            (@subcommand create =>
-                (about: "Creates a new Builder origin")
-                (aliases: &["cre", "crea"])
-                (@arg ORIGIN: +required +takes_value {valid_origin} "The origin to be created")
-                (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                     "Specify an alternate Builder endpoint. If not specified, the value will \
-                     be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                     https://bldr.habitat.sh)")
-                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-            )
+            (subcommand: OriginCreate::clap().aliases(&["cre", "crea"]))
             (subcommand: OriginDelete::clap().aliases(&["del", "dele"]))
             (subcommand: Transfer::clap() )
             (subcommand: OriginDepart::clap())

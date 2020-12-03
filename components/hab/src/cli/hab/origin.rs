@@ -18,16 +18,7 @@ use structopt::{clap::ArgGroup,
 #[structopt(no_version)]
 /// Commands relating to Habitat Builder origins
 pub enum Origin {
-    /// Creates a new Builder origin
-    Create {
-        #[structopt(flatten)]
-        bldr_url:   BldrUrl,
-        /// The origin to be created
-        #[structopt(name = "ORIGIN", validator = valid_origin)]
-        origin:     String,
-        #[structopt(flatten)]
-        auth_token: AuthToken,
-    },
+    Create(Create),
     Delete(Delete),
     Depart(Depart),
     Info(Info),
@@ -37,6 +28,19 @@ pub enum Origin {
     Rbac(Rbac),
     Secret(Secret),
     Transfer(Transfer),
+}
+
+/// Creates a new Builder origin
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "create", no_version)]
+pub struct Create {
+    #[structopt(flatten)]
+    bldr_url:   BldrUrl,
+    /// The origin to be created
+    #[structopt(name = "ORIGIN", validator = valid_origin)]
+    origin:     String,
+    #[structopt(flatten)]
+    auth_token: AuthToken,
 }
 
 /// Removes an unused/empty origin
