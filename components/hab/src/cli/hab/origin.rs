@@ -131,16 +131,20 @@ pub enum Invitations {
         #[structopt(flatten)]
         auth_token:    AuthToken,
     },
-    /// List origin invitations sent to your account
-    List {
-        #[structopt(flatten)]
-        bldr_url:   BldrUrl,
-        #[structopt(flatten)]
-        auth_token: AuthToken,
-    },
+    List(List),
     Pending(Pending),
     Rescind(Rescind),
     Send(Send),
+}
+
+/// List origin invitations sent to your account
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "list", no_version)]
+pub struct List {
+    #[structopt(flatten)]
+    bldr_url:   BldrUrl,
+    #[structopt(flatten)]
+    auth_token: AuthToken,
 }
 
 /// List pending invitations for a particular origin. Requires that you are the origin owner
