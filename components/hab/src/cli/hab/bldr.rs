@@ -25,21 +25,7 @@ pub enum Bldr {
 #[structopt(no_version)]
 /// Commands relating to Habitat Builder channels
 pub enum Channel {
-    /// Creates a new channel
-    Create {
-        #[structopt(flatten)]
-        bldr_url: BldrUrl,
-        /// The channel name
-        #[structopt(name = "CHANNEL")]
-        channel:  String,
-        /// Sets the origin to which the channel will belong. Default is from 'HAB_ORIGIN' or
-        /// cli.toml
-        #[structopt(name = "ORIGIN",
-                    short = "o",
-                    long = "origin",
-                    validator = valid_origin)]
-        origin:   Option<String>,
-    },
+    Create(ChannelCreate),
     /// Atomically demotes selected packages in a target channel
     Demote {
         #[structopt(flatten)]
@@ -222,4 +208,22 @@ pub struct JobStart {
     /// Schedule jobs for this package and all of its reverse dependencies
     #[structopt(name = "GROUP", short = "g", long = "group")]
     group:      bool,
+}
+
+/// Creates a new channel
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "create", no_version)]
+pub struct ChannelCreate {
+    #[structopt(flatten)]
+    bldr_url: BldrUrl,
+    /// The channel name
+    #[structopt(name = "CHANNEL")]
+    channel:  String,
+    /// Sets the origin to which the channel will belong. Default is from 'HAB_ORIGIN' or
+    /// cli.toml
+    #[structopt(name = "ORIGIN",
+                short = "o",
+                long = "origin",
+                validator = valid_origin)]
+    origin:   Option<String>,
 }

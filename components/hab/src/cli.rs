@@ -1,7 +1,8 @@
 pub mod gateway_util;
 pub mod hab;
 
-use crate::cli::hab::{bldr::{JobCancel,
+use crate::cli::hab::{bldr::{ChannelCreate,
+                             JobCancel,
                              JobDemote,
                              JobPromote,
                              JobStart},
@@ -195,18 +196,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
 
                 )
-                (@subcommand create =>
-                    (about: "Creates a new channel")
-                    (aliases: &["c", "cr", "cre", "crea", "creat"])
-                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
-                    (@arg CHANNEL: +required + takes_value "The channel name")
-                    (@arg ORIGIN: -o --origin +takes_value {valid_origin}
-                        "Sets the origin to which the channel will belong. Default is from \
-                        'HAB_ORIGIN' or cli.toml")
-                )
+                (subcommand: ChannelCreate::clap().aliases(&["c", "cr", "cre", "crea", "creat"]))
                 (@subcommand destroy =>
                     (about: "Destroys a channel")
                     (aliases: &["d", "de", "des", "dest", "destr", "destro"])
