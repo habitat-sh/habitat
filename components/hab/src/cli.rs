@@ -21,6 +21,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                              PlanRender},
                       pkg::{ExportCommand,
                             List as PkgList,
+                            PkgBinds,
                             PkgBinlink,
                             PkgBuild,
                             PkgBulkupload,
@@ -422,11 +423,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (aliases: &["p", "pk", "package"])
             (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
-            (@subcommand binds =>
-                (about: "Displays the binds for a service")
-                (@arg PKG_IDENT: +required +takes_value {valid_ident}
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-            )
+            (subcommand: PkgBinds::clap())
             (subcommand: PkgBinlink::clap().aliases(&["bi", "bin", "binl", "binli", "binlin"]))
             (subcommand: PkgBuild::clap())
             (@subcommand config =>

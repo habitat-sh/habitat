@@ -58,16 +58,20 @@ pub struct PkgPath {
     pkg_ident: PkgIdent,
 }
 
+/// Displays the binds for a service
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "binds", no_version)]
+pub struct PkgBinds {
+    #[structopt(flatten)]
+    pkg_ident: PkgIdent,
+}
+
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
 #[allow(clippy::large_enum_variant)]
 /// Commands relating to Habitat packages
 pub enum Pkg {
-    /// Displays the binds for a service
-    Binds {
-        #[structopt(flatten)]
-        pkg_ident: PkgIdent,
-    },
+    Binds(PkgBinds),
     Binlink(PkgBinlink),
     Build(PkgBuild),
     Bulkupload(PkgBulkupload),
