@@ -215,14 +215,7 @@ pub enum Key {
         #[structopt(flatten)]
         cache_key_path: CacheKeyPath,
     },
-    /// Generates a Habitat origin key pair
-    Generate {
-        /// The origin name
-        #[structopt(name = "ORIGIN", validator = valid_origin)]
-        origin:         Option<String>,
-        #[structopt(flatten)]
-        cache_key_path: CacheKeyPath,
-    },
+    Generate(Generate),
     /// Reads a stdin stream containing a public or private origin key contents and writes the key
     /// to disk
     Import {
@@ -249,6 +242,17 @@ pub enum Key {
         #[structopt(flatten)]
         auth_token:     AuthToken,
     },
+}
+
+/// Generates a Habitat origin key pair
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "generate", no_version)]
+pub struct Generate {
+    /// The origin name
+    #[structopt(name = "ORIGIN", validator = valid_origin)]
+    origin:         Option<String>,
+    #[structopt(flatten)]
+    cache_key_path: CacheKeyPath,
 }
 
 /// Download origin key(s)

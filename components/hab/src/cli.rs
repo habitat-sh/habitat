@@ -21,6 +21,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                                Delete as OriginDelete,
                                Depart as OriginDepart,
                                Download as KeyDownload,
+                               Generate as OriginKeyGenerate,
                                Info as OriginInfo,
                                Ignore,
                                List,
@@ -241,13 +242,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                         "Export either the 'public' or 'secret' key. The 'secret' key is the origin private key")
                     (arg: arg_cache_key_path())
                 )
-                (@subcommand generate =>
-                    (about: "Generates a Habitat origin key pair")
-                    (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
-                    (@arg ORIGIN: +takes_value {valid_origin} "The origin name")
-                    (arg: arg_cache_key_path())
-
-                )
+                (subcommand: OriginKeyGenerate::clap().aliases(&["g", "ge", "gen", "gene", "gener", "genera", "generat"]))
                 (@subcommand import =>
                     (about: "Reads a stdin stream containing a public or private origin key \
                         contents and writes the key to disk")
