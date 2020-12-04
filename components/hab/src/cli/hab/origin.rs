@@ -105,24 +105,28 @@ pub struct Transfer {
 #[structopt(no_version)]
 /// Manage origin member invitations
 pub enum Invitations {
-    /// Accept an origin member invitation
-    Accept {
-        /// The origin name the invitation applies to
-        #[structopt(name = "ORIGIN", validator = valid_origin)]
-        origin:        String,
-        /// The id of the invitation to accept
-        #[structopt(name = "INVITATION_ID")]
-        invitation_id: u64,
-        #[structopt(flatten)]
-        bldr_url:      BldrUrl,
-        #[structopt(flatten)]
-        auth_token:    AuthToken,
-    },
+    Accept(Accept),
     Ignore(Ignore),
     List(List),
     Pending(Pending),
     Rescind(Rescind),
     Send(Send),
+}
+
+/// Accept an origin member invitation
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "accept", no_version)]
+pub struct Accept {
+    /// The origin name the invitation applies to
+    #[structopt(name = "ORIGIN", validator = valid_origin)]
+    origin:        String,
+    /// The id of the invitation to accept
+    #[structopt(name = "INVITATION_ID")]
+    invitation_id: u64,
+    #[structopt(flatten)]
+    bldr_url:      BldrUrl,
+    #[structopt(flatten)]
+    auth_token:    AuthToken,
 }
 
 /// Ignore an origin member invitation

@@ -16,7 +16,8 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                                ServiceConfigShow},
                       file::FileUpload,
                       license::License,
-                      origin::{Create as OriginCreate,
+                      origin::{Accept,
+                               Create as OriginCreate,
                                Delete as OriginDelete,
                                Depart as OriginDepart,
                                Info as OriginInfo,
@@ -218,16 +219,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (about: "Manage origin member invitations")
                 (@setting ArgRequiredElseHelp)
                 (@setting SubcommandRequiredElseHelp)
-                (@subcommand accept =>
-                     (about: "Accept an origin member invitation")
-                     (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name the invitation applies to")
-                     (@arg INVITATION_ID: +required +takes_value {valid_numeric::<u64>} "The id of the invitation to accept")
-                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                          "Specify an alternate Builder endpoint. If not specified, the value will \
-                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                          https://bldr.habitat.sh)")
-                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                )
+                (subcommand: Accept::clap())
                 (subcommand: Ignore::clap())
                 (subcommand: List::clap())
                 (subcommand: Pending::clap())
