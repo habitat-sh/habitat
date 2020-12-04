@@ -1031,6 +1031,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "fs2"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9564fc758e15025b46aa6643b1b77d047d1a56a1aea6e01002ac0c7026876213"
+dependencies = [
+ "libc",
+ "winapi 0.3.9",
+]
+
+[[package]]
 name = "fs_extra"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1616,6 +1626,7 @@ dependencies = [
  "cpu-time",
  "ctrlc",
  "derivative",
+ "fs2",
  "futures",
  "glob",
  "hab",
@@ -1640,6 +1651,7 @@ dependencies = [
  "num_cpus",
  "parking_lot",
  "pin-project 0.4.23",
+ "procfs",
  "prometheus",
  "prost",
  "prost-build",
@@ -1658,6 +1670,7 @@ dependencies = [
  "structopt",
  "tempfile",
  "termcolor",
+ "thiserror",
  "tokio",
  "tokio-rustls",
  "tokio-util 0.3.1",
@@ -2801,6 +2814,21 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "procfs"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab8809e0c18450a2db0f236d2a44ec0b4c1412d0eb936233579f0990faa5d5cd"
+dependencies = [
+ "bitflags",
+ "byteorder",
+ "chrono",
+ "flate2",
+ "hex",
+ "lazy_static 1.4.0",
+ "libc",
 ]
 
 [[package]]
