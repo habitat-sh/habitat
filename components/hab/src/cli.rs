@@ -38,6 +38,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgBinlink,
                             PkgBuild,
                             PkgBulkupload,
+                            PkgChannels,
                             PkgConfig,
                             PkgDependencies,
                             PkgDownload,
@@ -380,17 +381,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (arg: arg_target())
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
-            (@subcommand channels =>
-                (about: "Find out what channels a package belongs to")
-                (aliases: &["ch", "cha", "chan", "chann", "channe", "channel"])
-                (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
-                    endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
-                    environment variable if defined. (default: https://bldr.habitat.sh)")
-                (@arg PKG_IDENT: +required +takes_value {valid_fully_qualified_ident} "A fully qualified package identifier \
-                    (ex: core/busybox-static/1.42.2/20170513215502)")
-                (arg: arg_target())
-                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-            )
+            (subcommand: PkgChannels::clap().aliases(&["ch", "cha", "chan", "chann", "channe", "channel"]))
             (subcommand: PkgVerify::clap().aliases(&["v", "ve", "ver", "veri", "verif"]))
             (subcommand: PkgHeader::clap().aliases(&["hea", "head", "heade", "header"]))
             (subcommand: PkgInfo::clap().aliases(&["inf", "info"]))

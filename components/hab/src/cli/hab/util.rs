@@ -175,6 +175,7 @@ impl PkgIdent {
 
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
+#[configopt(derive(Serialize))]
 #[allow(dead_code)]
 pub struct FullyQualifiedPkgIdent {
     /// A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)

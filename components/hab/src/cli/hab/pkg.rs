@@ -75,18 +75,7 @@ pub enum Pkg {
     Binlink(PkgBinlink),
     Build(PkgBuild),
     Bulkupload(PkgBulkupload),
-    /// Find out what channels a package belongs to
-    Channels {
-        #[structopt(flatten)]
-        bldr_url:   BldrUrl,
-        #[structopt(flatten)]
-        pkg_ident:  FullyQualifiedPkgIdent,
-        /// A package target (ex: x86_64-windows) (default: system appropriate target)
-        #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
-        pkg_target: Option<PackageTarget>,
-        #[structopt(flatten)]
-        auth_token: AuthToken,
-    },
+    Channels(PkgChannels),
     Config(PkgConfig),
     /// Removes a package from Builder
     Delete {
@@ -147,6 +136,21 @@ pub enum Pkg {
     Uninstall(PkgUninstall),
     Upload(PkgUpload),
     Verify(PkgVerify),
+}
+
+/// Find out what channels a package belongs to
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "channels", no_version)]
+pub struct PkgChannels {
+    #[structopt(flatten)]
+    bldr_url:   BldrUrl,
+    #[structopt(flatten)]
+    pkg_ident:  FullyQualifiedPkgIdent,
+    /// A package target (ex: x86_64-windows) (default: system appropriate target)
+    #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
+    pkg_target: Option<PackageTarget>,
+    #[structopt(flatten)]
+    auth_token: AuthToken,
 }
 
 /// Displays the default configuration options for a service
