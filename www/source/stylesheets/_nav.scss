@@ -15,8 +15,7 @@ $main-nav-breakpoint: 1060px;
 #main-nav {
   position: fixed;
   background: $white;
-  border-bottom: 1px solid $docs-gray;
-  max-height: $header-height-mobile;
+  min-height: $header-height-mobile;
   width: 100%;
   transition: top 0.4s ease;
   box-shadow: 0 0 50px 2px transparent;
@@ -116,7 +115,7 @@ $main-nav-breakpoint: 1060px;
       background: url("../images/chef-logo.svg") no-repeat left 10%;
       background-size: 80%;
       color: $white;
-      height: $header-height-mobile;
+      max-height: $header-height;
       margin-bottom: 0;
       max-width: 130px;
 
@@ -126,7 +125,7 @@ $main-nav-breakpoint: 1060px;
       }
 
       @media screen and (max-width: 639px) {
-        background-size: 100% !important;
+        background-size: 90% !important;
       }
     }
   }
@@ -166,7 +165,7 @@ $main-nav-breakpoint: 1060px;
         .avatar {
           display: block;
           border-radius: 50%;
-          border: 1px solid $hab-orange;
+          border: 1px solid $chef-primary;
           padding: 2px;
           margin-left: rem-calc(20);
           cursor: pointer;
@@ -250,7 +249,7 @@ $main-nav-breakpoint: 1060px;
     position: relative;
     color: $dark-gray;
     transition: color 0.2s ease;
-    float: left;
+    // float: left;
 
     &:hover,
     &:active,
@@ -264,6 +263,7 @@ $main-nav-breakpoint: 1060px;
 
     @include small-nav {
       width: 100%;
+
     }
 
     // @include large-nav {
@@ -283,13 +283,13 @@ $main-nav-breakpoint: 1060px;
 
   &.cta-link a {
     margin-left: rem-calc(60);
-    color: $hab-orange;
+    color: $chef-primary;
 
     &:hover,
     &:active,
     &:focus,
     &.is-current-page {
-      color: lighten($hab-orange, 10);
+      color: lighten($chef-primary, 10);
     }
   }
 
@@ -355,8 +355,7 @@ $main-nav-breakpoint: 1060px;
   margin-top: -1rem;
 
   @include small-nav {
-    display: block;
-    height: 100%;
+    display: none;
   }
 
   svg rect {
@@ -367,7 +366,7 @@ $main-nav-breakpoint: 1060px;
     transform: rotate(90deg);
 
     svg .bar {
-      fill: $hab-orange;
+      fill: $chef-primary;
     }
   }
 }
@@ -406,3 +405,100 @@ $main-nav-breakpoint: 1060px;
     display: none;
   }
 }
+
+.callout {
+  position: fixed;
+  background-position: bottom;
+  min-height: $header-height;
+  width: 100%;
+  transition: top 0.4s ease;
+  padding: 0px;
+  margin-bottom: 0px;
+  z-index: 10;
+
+  // modifiers for nav on homepage on large screens
+  .home &:not(.is-sticky) {
+    .callout--logo {
+      min-height: $header-height;
+      padding-bottom: 0px;
+      @include large-nav {
+        h1 {
+          max-height: $header-height-mobile;
+          background: url("../images/decor/last-habicat.svg") no-repeat right -10%;
+        }
+      }
+    }
+  }
+}
+
+
+.callout--container {
+  max-width: 1316px;
+  margin: 0 12px;
+
+  @include small-nav {
+    padding: 0;
+    height: rem-calc(75);
+    line-height: rem-calc(75);
+    position: relative;
+
+    > .columns {
+      width: auto;
+      padding: 0px;
+      height: 100%;
+      position: absolute;
+      top: 0px;
+    }
+    // > .callout--logo {
+    //   right: rem-calc(20);
+    //   z-index: 2;
+    //   background-size: contain;
+    // }
+  }
+}
+
+.alert.callout{
+
+  padding: 12px 16px;
+  background-color: $chef-primary;
+  font-weight: bold;
+  button {
+      font-size: large;
+    }
+
+  a {
+    color: $chef-tertiary;
+  }
+
+    @media screen and (max-width: 639px) {
+      padding: 2px 0;
+      button {
+        font-size: small;
+      }
+    }
+  }
+
+.callout--logo {
+  @include breakpoint(medium) {
+    @include grid-column(3);
+  }
+
+  > a {
+
+    > h1 {
+      margin-bottom: 0px;
+      overflow: hidden;
+      text-indent: 400%;
+      white-space: nowrap;
+      background: url("../images/decor/last-habicat.svg") no-repeat;
+      background-size: contain;
+      background-position: center right rem-calc(10);
+      vertical-align: middle;
+      @include large-nav {
+        height: $header-height;
+      }
+
+    }
+  }
+}
+
