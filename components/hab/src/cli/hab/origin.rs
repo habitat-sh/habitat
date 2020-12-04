@@ -203,28 +203,7 @@ pub struct Send {
 #[structopt(no_version)]
 /// Commands relating to Habitat origin key maintenance
 pub enum Key {
-    /// Download origin key(s)
-    Download {
-        #[structopt(flatten)]
-        cache_key_path:  CacheKeyPath,
-        /// The origin name
-        #[structopt(name = "ORIGIN", validator = valid_origin)]
-        origin:          String,
-        /// The origin key revision
-        #[structopt(name = "REVISION")]
-        revision:        Option<String>,
-        #[structopt(flatten)]
-        bldr_url:        BldrUrl,
-        /// Download origin private key instead of origin public key
-        #[structopt(name = "WITH_SECRET", short = "s", long = "secret")]
-        with_secret:     bool,
-        /// Download public encryption key instead of origin public key
-        #[structopt(name = "WITH_ENCRYPTION", short = "e", long = "encryption")]
-        with_encryption: bool,
-        /// Authentication token for Builder (required for downloading origin private keys)
-        #[structopt(name = "AUTH_TOKEN", short = "z", long = "auth")]
-        auth_token:      Option<String>,
-    },
+    Download(Download),
     /// Outputs the latest origin key contents to stdout
     Export {
         /// The origin name
@@ -270,6 +249,31 @@ pub enum Key {
         #[structopt(flatten)]
         auth_token:     AuthToken,
     },
+}
+
+/// Download origin key(s)
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "download", no_version)]
+pub struct Download {
+    #[structopt(flatten)]
+    cache_key_path:  CacheKeyPath,
+    /// The origin name
+    #[structopt(name = "ORIGIN", validator = valid_origin)]
+    origin:          String,
+    /// The origin key revision
+    #[structopt(name = "REVISION")]
+    revision:        Option<String>,
+    #[structopt(flatten)]
+    bldr_url:        BldrUrl,
+    /// Download origin private key instead of origin public key
+    #[structopt(name = "WITH_SECRET", short = "s", long = "secret")]
+    with_secret:     bool,
+    /// Download public encryption key instead of origin public key
+    #[structopt(name = "WITH_ENCRYPTION", short = "e", long = "encryption")]
+    with_encryption: bool,
+    /// Authentication token for Builder (required for downloading origin private keys)
+    #[structopt(name = "AUTH_TOKEN", short = "z", long = "auth")]
+    auth_token:      Option<String>,
 }
 
 #[derive(ConfigOpt, StructOpt, Debug)]

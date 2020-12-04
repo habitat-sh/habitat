@@ -20,6 +20,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                                Create as OriginCreate,
                                Delete as OriginDelete,
                                Depart as OriginDepart,
+                               Download as KeyDownload,
                                Info as OriginInfo,
                                Ignore,
                                List,
@@ -231,23 +232,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (aliases: &["k", "ke"])
                 (@setting ArgRequiredElseHelp)
                 (@setting SubcommandRequiredElseHelp)
-                (@subcommand download =>
-                    (about: "Download origin key(s)")
-                    (aliases: &["d", "do", "dow", "down", "downl", "downlo", "downloa"])
-                    (arg: arg_cache_key_path())
-                    (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name" )
-                    (@arg REVISION: +takes_value "The origin key revision")
-                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
-                    (@arg WITH_SECRET: -s --secret
-                        "Download origin private key instead of origin public key")
-                    (@arg WITH_ENCRYPTION: -e --encryption
-                        "Download public encryption key instead of origin public key")
-                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder \
-                        (required for downloading origin private keys)")
-                )
+                (subcommand: KeyDownload::clap().aliases(&["d", "do", "dow", "down", "downl", "downlo", "downloa"]))
                 (@subcommand export =>
                     (about: "Outputs the latest origin key contents to stdout")
                     (aliases: &["e", "ex", "exp", "expo", "expor"])
