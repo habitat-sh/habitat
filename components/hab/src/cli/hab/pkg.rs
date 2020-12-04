@@ -87,11 +87,7 @@ pub enum Pkg {
         #[structopt(flatten)]
         auth_token: AuthToken,
     },
-    /// Displays the default configuration options for a service
-    Config {
-        #[structopt(flatten)]
-        pkg_ident: PkgIdent,
-    },
+    Config(PkgConfig),
     /// Removes a package from Builder
     Delete {
         #[structopt(flatten)]
@@ -151,6 +147,14 @@ pub enum Pkg {
     Uninstall(PkgUninstall),
     Upload(PkgUpload),
     Verify(PkgVerify),
+}
+
+/// Displays the default configuration options for a service
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "config", no_version)]
+pub struct PkgConfig {
+    #[structopt(flatten)]
+    pkg_ident: PkgIdent,
 }
 
 /// Search installed Habitat packages for a given file

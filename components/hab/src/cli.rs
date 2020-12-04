@@ -38,6 +38,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgBinlink,
                             PkgBuild,
                             PkgBulkupload,
+                            PkgConfig,
                             PkgDependencies,
                             PkgDownload,
                             PkgEnv,
@@ -326,12 +327,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (subcommand: PkgBinds::clap())
             (subcommand: PkgBinlink::clap().aliases(&["bi", "bin", "binl", "binli", "binlin"]))
             (subcommand: PkgBuild::clap())
-            (@subcommand config =>
-                (about: "Displays the default configuration options for a service")
-                (aliases: &["conf", "cfg"])
-                (@arg PKG_IDENT: +required +takes_value {valid_ident}
-                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-             )
+            (subcommand: PkgConfig::clap().aliases(&["conf", "cfg"]))
             (subcommand: PkgDownload::clap())
             (subcommand: PkgEnv::clap())
             (subcommand: PkgExec::clap())
@@ -564,18 +560,6 @@ fn valid_numeric<T: FromStr>(val: String) -> result::Result<(), String> {
     match val.parse::<T>() {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("'{}' is not a valid number", &val)),
-    }
-}
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_ident(val: String) -> result::Result<(), String> {
-    match PackageIdent::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => {
-            Err(format!("'{}' is not valid. Package identifiers have the \
-                         form origin/name[/version[/release]]",
-                        &val))
-        }
     }
 }
 
