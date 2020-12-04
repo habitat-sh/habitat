@@ -89,21 +89,7 @@ pub enum Pkg {
         #[structopt(flatten)]
         auth_token: AuthToken,
     },
-    /// Demote a package from a specified channel
-    Demote {
-        #[structopt(flatten)]
-        bldr_url:   BldrUrl,
-        #[structopt(flatten)]
-        pkg_ident:  FullyQualifiedPkgIdent,
-        /// Demote from the specified release channel
-        #[structopt(name = "CHANNEL")]
-        channel:    String,
-        /// A package target (ex: x86_64-windows) (default: system appropriate target)
-        #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
-        pkg_target: Option<PackageTarget>,
-        #[structopt(flatten)]
-        auth_token: AuthToken,
-    },
+    Demote(PkgDemote),
     Dependencies(PkgDependencies),
     Download(PkgDownload),
     Env(PkgEnv),
@@ -122,6 +108,24 @@ pub enum Pkg {
     Uninstall(PkgUninstall),
     Upload(PkgUpload),
     Verify(PkgVerify),
+}
+
+/// Demote a package from a specified channel
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "demote", no_version)]
+pub struct PkgDemote {
+    #[structopt(flatten)]
+    bldr_url:   BldrUrl,
+    #[structopt(flatten)]
+    pkg_ident:  FullyQualifiedPkgIdent,
+    /// Demote from the specified release channel
+    #[structopt(name = "CHANNEL")]
+    channel:    String,
+    /// A package target (ex: x86_64-windows) (default: system appropriate target)
+    #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
+    pkg_target: Option<PackageTarget>,
+    #[structopt(flatten)]
+    auth_token: AuthToken,
 }
 
 /// Promote a package to a specified channel
