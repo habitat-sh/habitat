@@ -115,27 +115,31 @@ pub enum Pkg {
     Install(PkgInstall),
     List(List),
     Path(PkgPath),
-    /// Promote a package to a specified channel
-    Promote {
-        #[structopt(flatten)]
-        bldr_url:   BldrUrl,
-        #[structopt(flatten)]
-        pkg_ident:  FullyQualifiedPkgIdent,
-        /// Promote to the specified release channel
-        #[structopt(name = "CHANNEL")]
-        channel:    String,
-        /// A package target (ex: x86_64-windows) (default: system appropriate target)
-        #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
-        pkg_target: Option<PackageTarget>,
-        #[structopt(flatten)]
-        auth_token: AuthToken,
-    },
+    Promote(PkgPromote),
     Provides(PkgProvides),
     Search(PkgSearch),
     Sign(PkgSign),
     Uninstall(PkgUninstall),
     Upload(PkgUpload),
     Verify(PkgVerify),
+}
+
+/// Promote a package to a specified channel
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "promote", no_version)]
+pub struct PkgPromote {
+    #[structopt(flatten)]
+    bldr_url:   BldrUrl,
+    #[structopt(flatten)]
+    pkg_ident:  FullyQualifiedPkgIdent,
+    /// Promote to the specified release channel
+    #[structopt(name = "CHANNEL")]
+    channel:    String,
+    /// A package target (ex: x86_64-windows) (default: system appropriate target)
+    #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
+    pkg_target: Option<PackageTarget>,
+    #[structopt(flatten)]
+    auth_token: AuthToken,
 }
 
 /// Find out what channels a package belongs to

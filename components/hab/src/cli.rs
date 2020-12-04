@@ -49,6 +49,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgHash,
                             PkgHeader,
                             PkgPath,
+                            PkgPromote,
                             PkgProvides,
                             PkgSearch,
                             PkgSign,
@@ -357,18 +358,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (arg: arg_target())
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
-            (@subcommand promote =>
-                (about: "Promote a package to a specified channel")
-                (aliases: &["pr", "pro", "promo", "promot"])
-                (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
-                    endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
-                    environment variable if defined. (default: https://bldr.habitat.sh)")
-                (@arg PKG_IDENT: +required +takes_value {valid_fully_qualified_ident} "A fully qualified package identifier \
-                    (ex: core/busybox-static/1.42.2/20170513215502)")
-                (@arg CHANNEL: +required +takes_value "Promote to the specified release channel")
-                (arg: arg_target())
-                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-            )
+            (subcommand: PkgPromote::clap().aliases(&["pr", "pro", "promo", "promot"]))
             (@subcommand demote =>
                 (about: "Demote a package from a specified channel")
                 (aliases: &["de", "dem", "demo", "demot"])
