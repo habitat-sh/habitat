@@ -80,7 +80,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             SvcStop,
                             SvcUnload,
                             Update as SvcUpdate},
-                      user::Key as UserKey,
+                      user::KeyGenerate as UserKeyGenerate,
                       Hab};
 use clap::{App,
            AppSettings,
@@ -106,6 +106,14 @@ pub const AFTER_HELP: &str =
      install'\n    run        Alias for: 'sup run'\n    setup      Alias for: 'cli setup'\n    \
      start      Alias for: 'svc start'\n    stop       Alias for: 'svc stop'\n    term       \
      Alias for: 'sup term'\n";
+
+#[derive(StructOpt)]
+#[structopt(name = "key", no_version, aliases = &["k", "ke"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat user keys
+pub enum UserKey {
+    #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
+    Generate(UserKeyGenerate),
+}
 
 pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
     if feature_flags.contains(FeatureFlag::STRUCTOPT_CLI) {
@@ -322,9 +330,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (aliases: &["u", "us", "use"])
             (@setting ArgRequiredElseHelp)
             (@setting SubcommandRequiredElseHelp)
-            (subcommand: UserKey::clap().aliases(&["stu", "stud", "studi"])
-                                        .settings(&[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])
-            )
+            (subcommand: UserKey::clap())
         )
         (subcommand: alias_apply)
         (subcommand: alias_install)

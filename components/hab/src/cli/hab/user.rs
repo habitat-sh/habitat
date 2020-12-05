@@ -10,16 +10,20 @@ pub enum User {
     Key(Key),
 }
 
-/// Commands relating to Habitat users
+/// Commands relating to Habitat user keys
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "key", no_version)]
 pub enum Key {
-    /// Generates a Habitat user key
-    Generate {
-        /// Name of the user key
-        #[structopt(name = "USER")]
-        user:           String,
-        #[structopt(flatten)]
-        cache_key_path: CacheKeyPath,
-    },
+    Generate(KeyGenerate),
+}
+
+/// Generates a Habitat user key
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "generate", no_version)]
+pub struct KeyGenerate {
+    /// Name of the user key
+    #[structopt(name = "USER")]
+    user:           String,
+    #[structopt(flatten)]
+    cache_key_path: CacheKeyPath,
 }
