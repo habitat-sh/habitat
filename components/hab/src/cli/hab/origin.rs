@@ -345,22 +345,26 @@ pub enum Rbac {
 #[structopt(no_version)]
 /// Commands related to secret management
 pub enum Secret {
-    /// Delete a secret for your origin
-    Delete {
-        /// The name of the variable key to be injected into the studio
-        #[structopt(name = "KEY_NAME")]
-        key_name:   String,
-        #[structopt(flatten)]
-        bldr_url:   BldrUrl,
-        #[structopt(flatten)]
-        auth_token: AuthToken,
-        /// The origin for which the secret will be deleted. Default is from 'HAB_ORIGIN' or
-        /// cli.toml
-        #[structopt(name = "ORIGIN", short = "o", long = "origin", validator = valid_origin)]
-        origin:     Option<String>,
-    },
+    Delete(SecretDelete),
     List(SecretList),
     Upload(SecretUpload),
+}
+
+/// Delete a secret for your origin
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "delete", no_version)]
+pub struct SecretDelete {
+    /// The name of the variable key to be injected into the studio
+    #[structopt(name = "KEY_NAME")]
+    key_name:   String,
+    #[structopt(flatten)]
+    bldr_url:   BldrUrl,
+    #[structopt(flatten)]
+    auth_token: AuthToken,
+    /// The origin for which the secret will be deleted. Default is from 'HAB_ORIGIN' or
+    /// cli.toml
+    #[structopt(name = "ORIGIN", short = "o", long = "origin", validator = valid_origin)]
+    origin:     Option<String>,
 }
 
 /// List all secrets for your origin

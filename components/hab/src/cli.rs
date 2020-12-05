@@ -29,6 +29,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                                Pending,
                                Rescind,
                                Rbac,
+                               SecretDelete,
                                SecretList,
                                SecretUpload,
                                Send,
@@ -97,7 +98,6 @@ use std::{path::Path,
           result,
           str::FromStr};
 use structopt::StructOpt;
-use url::Url;
 
 /// Process exit code from Supervisor which indicates to Launcher that the Supervisor
 /// ran to completion with a successful result. The Launcher should not attempt to restart
@@ -243,19 +243,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@setting ArgRequiredElseHelp)
                 (@setting SubcommandRequiredElseHelp)
                 (subcommand: SecretUpload::clap())
-                (@subcommand delete =>
-                    (about: "Delete a secret for your origin")
-                    (@arg KEY_NAME: +required +takes_value
-                        "The name of the variable key to be injected into the studio")
-                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
-                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                    (@arg ORIGIN: -o --origin +takes_value {valid_origin}
-                        "The origin for which the secret will be deleted. Default is from \
-                        'HAB_ORIGIN' or cli.toml")
-                )
+                (subcommand: SecretDelete::clap())
                 (subcommand: SecretList::clap())
             )
         )
@@ -434,14 +422,6 @@ fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
         Ok(())
     } else {
         file_exists(val)
-    }
-}
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_url(val: String) -> result::Result<(), String> {
-    match Url::parse(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!("URL: '{}' is not valid", &val)),
     }
 }
 
