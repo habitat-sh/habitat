@@ -29,6 +29,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                                Pending,
                                Rescind,
                                Rbac,
+                               SecretUpload,
                                Send,
                                Transfer,
                                Upload as KeyUpload},
@@ -240,23 +241,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (about: "Commands related to secret management")
                 (@setting ArgRequiredElseHelp)
                 (@setting SubcommandRequiredElseHelp)
-                (@subcommand upload =>
-                    (about: "Create and upload a secret for your origin")
-                    (@arg KEY_NAME: +required +takes_value
-                        "The name of the variable key to be injected into the studio. \
-                        Ex: KEY=\"some_value\"")
-                    (@arg SECRET: +required +takes_value
-                        "The contents of the variable to be injected into the studio")
-                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
-                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                    (@arg ORIGIN: -o --origin +takes_value {valid_origin}
-                        "The origin for which the secret will be uploaded. Default is from \
-                        'HAB_ORIGIN' or cli.toml")
-                    (arg: arg_cache_key_path())
-                )
+                (subcommand: SecretUpload::clap())
                 (@subcommand delete =>
                     (about: "Delete a secret for your origin")
                     (@arg KEY_NAME: +required +takes_value

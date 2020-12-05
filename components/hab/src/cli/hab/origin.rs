@@ -369,23 +369,28 @@ pub enum Secret {
         #[structopt(name = "ORIGIN", short = "o", long = "origin", validator = valid_origin)]
         origin:     Option<String>,
     },
-    /// Create and upload a secret for your origin
-    Upload {
-        /// The name of the variable key to be injected into the studio. Ex: KEY="some_value"
-        #[structopt(name = "KEY_NAME")]
-        key_name:       String,
-        /// The contents of the variable to be injected into the studio
-        #[structopt(name = "SECRET")]
-        secret:         String,
-        #[structopt(flatten)]
-        bldr_url:       BldrUrl,
-        #[structopt(flatten)]
-        auth_token:     AuthToken,
-        /// The origin for which the secret will be uploaded. Default is from 'HAB_ORIGIN' or
-        /// cli.toml
-        #[structopt(name = "ORIGIN", short = "o", long = "origin", validator = valid_origin)]
-        origin:         Option<String>,
-        #[structopt(flatten)]
-        cache_key_path: CacheKeyPath,
-    },
+    
+    Upload(SecretUpload),
+}
+
+/// Create and upload a secret for your origin
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "upload", no_version)]
+pub struct SecretUpload {
+    /// The name of the variable key to be injected into the studio. Ex: KEY="some_value"
+    #[structopt(name = "KEY_NAME")]
+    key_name:       String,
+    /// The contents of the variable to be injected into the studio
+    #[structopt(name = "SECRET")]
+    secret:         String,
+    #[structopt(flatten)]
+    bldr_url:       BldrUrl,
+    #[structopt(flatten)]
+    auth_token:     AuthToken,
+    /// The origin for which the secret will be uploaded. Default is from 'HAB_ORIGIN' or
+    /// cli.toml
+    #[structopt(name = "ORIGIN", short = "o", long = "origin", validator = valid_origin)]
+    origin:         Option<String>,
+    #[structopt(flatten)]
+    cache_key_path: CacheKeyPath,
 }
