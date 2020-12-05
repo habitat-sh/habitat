@@ -216,13 +216,17 @@ pub enum Key {
         cache_key_path: CacheKeyPath,
     },
     Generate(Generate),
-    /// Reads a stdin stream containing a public or private origin key contents and writes the key
-    /// to disk
-    Import {
-        #[structopt(flatten)]
-        cache_key_path: CacheKeyPath,
-    },
+    Import(KeyImport),
     Upload(Upload),
+}
+
+/// Reads a stdin stream containing a public or private origin key contents and writes the key
+/// to disk
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "import", no_version)]
+pub struct KeyImport {
+    #[structopt(flatten)]
+    cache_key_path: CacheKeyPath,
 }
 
 /// Upload origin keys to Builder

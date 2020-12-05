@@ -25,6 +25,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                                Generate as OriginKeyGenerate,
                                Info as OriginInfo,
                                Ignore,
+                               KeyImport as OriginKeyImport,
                                List,
                                Pending,
                                Rescind,
@@ -229,12 +230,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (arg: arg_cache_key_path())
                 )
                 (subcommand: OriginKeyGenerate::clap().aliases(&["g", "ge", "gen", "gene", "gener", "genera", "generat"]))
-                (@subcommand import =>
-                    (about: "Reads a stdin stream containing a public or private origin key \
-                        contents and writes the key to disk")
-                    (aliases: &["i", "im", "imp", "impo", "impor"])
-                    (arg: arg_cache_key_path())
-                )
+                (subcommand: OriginKeyImport::clap().aliases(&["i", "im", "imp", "impo", "impor"]))
                 (subcommand: KeyUpload::clap().aliases(&["u", "up", "upl", "uplo", "uploa"]))
             )
             (subcommand: Rbac::clap())
