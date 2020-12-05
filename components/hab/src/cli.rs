@@ -40,6 +40,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             PkgBulkupload,
                             PkgChannels,
                             PkgConfig,
+                            PkgDelete,
                             PkgDemote,
                             PkgDependencies,
                             PkgDownload,
@@ -81,14 +82,12 @@ use clap::{App,
            Arg,
            ArgMatches};
 use habitat_common::{cli::{file_into_idents,
-                           is_toml_file,
-                           PACKAGE_TARGET_ENVVAR},
+                           is_toml_file},
                      FeatureFlag};
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    origin::Origin,
                    package::{Identifiable,
-                             PackageIdent,
-                             PackageTarget},
+                             PackageIdent},
                    };
 use std::{path::Path,
           result,
@@ -348,17 +347,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             // https://github.com/clap-rs/clap/issues/1297
             (subcommand: PkgBulkupload::clap().aliases(&["bul", "bulk"]))
             (subcommand: PkgUpload::clap().aliases(&["u", "up", "upl", "uplo", "uploa"]))
-            (@subcommand delete =>
-                (about: "Removes a package from Builder")
-                (aliases: &["del", "dele"])
-                (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
-                    endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
-                    environment variable if defined. (default: https://bldr.habitat.sh)")
-                (@arg PKG_IDENT: +required +takes_value {valid_fully_qualified_ident} "A fully qualified package identifier \
-                    (ex: core/busybox-static/1.42.2/20170513215502)")
-                (arg: arg_target())
-                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-            )
+            (subcommand: PkgDelete::clap().aliases(&["del", "dele"]))
             (subcommand: PkgPromote::clap().aliases(&["pr", "pro", "promo", "promot"]))
             (subcommand: PkgDemote::clap().aliases(&["de", "dem", "demo", "demot"]))
             (subcommand: PkgChannels::clap().aliases(&["ch", "cha", "chan", "chann", "channe", "channel"]))
@@ -466,14 +455,6 @@ fn arg_cache_key_path() -> Arg<'static, 'static> {
                                     .help("Cache for creating and searching for encryption keys")
 }
 
-fn arg_target() -> Arg<'static, 'static> {
-    Arg::with_name("PKG_TARGET").takes_value(true)
-                                .validator(valid_target)
-                                .env(PACKAGE_TARGET_ENVVAR)
-                                .help("A package target (ex: x86_64-windows) (default: system \
-                                       appropriate target)")
-}
-
 pub fn parse_optional_arg<T: FromStr>(name: &str, m: &ArgMatches) -> Option<T>
     where <T as std::str::FromStr>::Err: std::fmt::Debug
 {
@@ -549,22 +530,6 @@ fn valid_ident_or_toml_file(val: String) -> result::Result<(), String> {
 fn valid_ident_file(val: String) -> result::Result<(), String> {
     file_into_idents(&val).map(|_| ())
                           .map_err(|e| e.to_string())
-}
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_target(val: String) -> result::Result<(), String> {
-    match PackageTarget::from_str(&val) {
-        Ok(_) => Ok(()),
-        Err(_) => {
-            let targets: Vec<_> = PackageTarget::targets().map(std::convert::AsRef::as_ref)
-                                                          .collect();
-            Err(format!("'{}' is not valid. Valid targets are in the form \
-                         architecture-platform (currently Habitat allows \
-                         the following: {})",
-                        &val,
-                        targets.join(", ")))
-        }
-    }
 }
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP

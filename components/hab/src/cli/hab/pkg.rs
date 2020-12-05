@@ -77,18 +77,7 @@ pub enum Pkg {
     Bulkupload(PkgBulkupload),
     Channels(PkgChannels),
     Config(PkgConfig),
-    /// Removes a package from Builder
-    Delete {
-        #[structopt(flatten)]
-        bldr_url:   BldrUrl,
-        #[structopt(flatten)]
-        pkg_ident:  FullyQualifiedPkgIdent,
-        /// A package target (ex: x86_64-windows) (default: system appropriate target)
-        #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
-        pkg_target: Option<PackageTarget>,
-        #[structopt(flatten)]
-        auth_token: AuthToken,
-    },
+    Delete(PkgDelete),
     Demote(PkgDemote),
     Dependencies(PkgDependencies),
     Download(PkgDownload),
@@ -108,6 +97,21 @@ pub enum Pkg {
     Uninstall(PkgUninstall),
     Upload(PkgUpload),
     Verify(PkgVerify),
+}
+
+/// Removes a package from Builder
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "delete", no_version)]
+pub struct PkgDelete {
+    #[structopt(flatten)]
+    bldr_url:   BldrUrl,
+    #[structopt(flatten)]
+    pkg_ident:  FullyQualifiedPkgIdent,
+    /// A package target (ex: x86_64-windows) (default: system appropriate target)
+    #[structopt(name = "PKG_TARGET", env = PACKAGE_TARGET_ENVVAR)]
+    pkg_target: Option<PackageTarget>,
+    #[structopt(flatten)]
+    auth_token: AuthToken,
 }
 
 /// Demote a package from a specified channel
