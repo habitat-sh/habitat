@@ -222,26 +222,30 @@ pub enum Key {
         #[structopt(flatten)]
         cache_key_path: CacheKeyPath,
     },
-    /// Upload origin keys to Builder
-    Upload {
-        #[structopt(flatten)]
-        upload:         UploadGroup,
-        #[structopt(flatten)]
-        cache_key_path: CacheKeyPath,
-        /// Upload origin private key in addition to the public key
-        #[structopt(name = "WITH_SECRET",
-                    short = "s",
-                    long = "secret",
-                    conflicts_with = "PUBLIC_FILE")]
-        with_secret:    bool,
-        /// Path to a local origin private key file on disk
-        #[structopt(name = "SECRET_FILE", long = "secfile", conflicts_with = "ORIGIN")]
-        secret_file:    Option<PathBuf>,
-        #[structopt(flatten)]
-        bldr_url:       BldrUrl,
-        #[structopt(flatten)]
-        auth_token:     AuthToken,
-    },
+    Upload(Upload),
+}
+
+/// Upload origin keys to Builder
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "upload", no_version)]
+pub struct Upload {
+    #[structopt(flatten)]
+    upload:         UploadGroup,
+    #[structopt(flatten)]
+    cache_key_path: CacheKeyPath,
+    /// Upload origin private key in addition to the public key
+    #[structopt(name = "WITH_SECRET",
+                short = "s",
+                long = "secret",
+                conflicts_with = "PUBLIC_FILE")]
+    with_secret:    bool,
+    /// Path to a local origin private key file on disk
+    #[structopt(name = "SECRET_FILE", long = "secfile", conflicts_with = "ORIGIN")]
+    secret_file:    Option<PathBuf>,
+    #[structopt(flatten)]
+    bldr_url:       BldrUrl,
+    #[structopt(flatten)]
+    auth_token:     AuthToken,
 }
 
 /// Generates a Habitat origin key pair
@@ -281,6 +285,7 @@ pub struct Download {
 }
 
 #[derive(ConfigOpt, StructOpt, Debug)]
+#[configopt(derive(Serialize))]
 #[structopt(group = ArgGroup::with_name("upload").required(true), no_version)]
 pub struct UploadGroup {
     /// The origin name

@@ -30,7 +30,8 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                                Rescind,
                                Rbac,
                                Send,
-                               Transfer},
+                               Transfer,
+                               Upload as KeyUpload},
                       plan::{PlanInit,
                              PlanRender},
                       pkg::{ExportCommand,
@@ -232,26 +233,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (aliases: &["i", "im", "imp", "impo", "impor"])
                     (arg: arg_cache_key_path())
                 )
-                (@subcommand upload =>
-                    (@group upload =>
-                        (@attributes +required)
-                        (@arg ORIGIN : +takes_value {valid_origin} "The origin name")
-                        (@arg PUBLIC_FILE: --pubfile +takes_value {file_exists}
-                            "Path to a local public origin key file on disk")
-                    )
-                    (about: "Upload origin keys to Builder")
-                    (aliases: &["u", "up", "upl", "uplo", "uploa"])
-                    (arg: arg_cache_key_path())
-                    (@arg WITH_SECRET: -s --secret conflicts_with[PUBLIC_FILE]
-                        "Upload origin private key in addition to the public key")
-                    (@arg SECRET_FILE: --secfile +takes_value {file_exists} conflicts_with[ORIGIN]
-                        "Path to a local origin private key file on disk")
-                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
-                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                )
+                (subcommand: KeyUpload::clap().aliases(&["u", "up", "upl", "uplo", "uploa"]))
             )
             (subcommand: Rbac::clap())
             (@subcommand secret =>
