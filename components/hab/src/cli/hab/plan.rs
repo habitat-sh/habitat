@@ -19,21 +19,21 @@ pub enum Plan {
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "init", no_version)]
 pub struct PlanInit {
-        /// Name for the new app
-        #[structopt(name = "PKG_NAME")]
-        pkg_name:    Option<String>,
-        /// Origin for the new app
-        #[structopt(name = "ORIGIN",
-        short = "o",
-        long = "origin",
-        validator = valid_origin)]
-        origin:      Option<String>,
-        /// Create a minimal plan file
-        #[structopt(name = "MIN", short = "m", long = "min")]
-        min:         bool,
-        /// Specify explicit Scaffolding for your app (ex: node, ruby)
-        #[structopt(name = "SCAFFOLDING", short = "s", long = "scaffolding")]
-        scaffolding: Option<String>,
+    /// Name for the new app
+    #[structopt(name = "PKG_NAME")]
+    pkg_name:    Option<String>,
+    /// Origin for the new app
+    #[structopt(name = "ORIGIN",
+    short = "o",
+    long = "origin",
+    validator = valid_origin)]
+    origin:      Option<String>,
+    /// Create a minimal plan file
+    #[structopt(name = "MIN", short = "m", long = "min")]
+    min:         bool,
+    /// Specify explicit Scaffolding for your app (ex: node, ruby)
+    #[structopt(name = "SCAFFOLDING", short = "s", long = "scaffolding")]
+    scaffolding: Option<String>,
 }
 
 /// Renders plan config files      
