@@ -33,6 +33,7 @@ pub enum Channel {
 }
 
 #[derive(ConfigOpt, StructOpt, Debug)]
+#[configopt(derive(Serialize))]
 #[structopt(group = ArgGroup::with_name("status").required(true), no_version)]
 pub struct BldrJobStatusSourceGroup {
     /// The job group id that was returned from "hab bldr job start" (ex: 771100000000000000)
@@ -55,19 +56,23 @@ pub enum Job {
     Demote(JobDemote),
     Promote(JobPromote),
     Start(JobStart),
-    /// Get the status of one or more job groups
-    Status {
-        #[structopt(flatten)]
-        source:    BldrJobStatusSourceGroup,
-        /// Limit how many job groups to retrieve, ordered by most recent (default: 10)
-        #[structopt(name = "LIMIT", short = "l", long = "limit")]
-        limit:     Option<usize>,
-        /// Show the status of all build jobs for a retrieved job group
-        #[structopt(name = "SHOW_JOBS", short = "s", long = "showjobs")]
-        show_jobs: bool,
-        #[structopt(flatten)]
-        bldr_url:  BldrUrl,
-    },
+    Status(JobStatus),
+}
+
+/// Get the status of one or more job groups
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "status", no_version)]
+pub struct JobStatus {
+    #[structopt(flatten)]
+    source:    BldrJobStatusSourceGroup,
+    /// Limit how many job groups to retrieve, ordered by most recent (default: 10)
+    #[structopt(name = "LIMIT", short = "l", long = "limit")]
+    limit:     Option<usize>,
+    /// Show the status of all build jobs for a retrieved job group
+    #[structopt(name = "SHOW_JOBS", short = "s", long = "showjobs")]
+    show_jobs: bool,
+    #[structopt(flatten)]
+    bldr_url:  BldrUrl,
 }
 
 /// Cancel a build job group and any in-progress builds
