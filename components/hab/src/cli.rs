@@ -25,6 +25,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                                Generate as OriginKeyGenerate,
                                Info as OriginInfo,
                                Ignore,
+                               KeyExport as OritinKeyExport,
                                KeyImport as OriginKeyImport,
                                List,
                                Pending,
@@ -80,22 +81,19 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             SvcUnload,
                             Update as SvcUpdate},
                       user::{Key as UserKey},
-                      util::{self,
-                             CACHE_KEY_PATH_DEFAULT},
                       Hab};
 use clap::{App,
            AppSettings,
-           Arg,
            ArgMatches};
 use habitat_common::{cli::{file_into_idents,
                            is_toml_file},
                      FeatureFlag};
-use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
-                   origin::Origin,
+use habitat_core::{origin::Origin,
                    package::{Identifiable,
                              PackageIdent},
                    };
-use std::{path::Path,
+use std::{fmt,
+          path::Path,
           result,
           str::FromStr};
 use structopt::StructOpt;
@@ -221,14 +219,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@setting ArgRequiredElseHelp)
                 (@setting SubcommandRequiredElseHelp)
                 (subcommand: KeyDownload::clap().aliases(&["d", "do", "dow", "down", "downl", "downlo", "downloa"]))
-                (@subcommand export =>
-                    (about: "Outputs the latest origin key contents to stdout")
-                    (aliases: &["e", "ex", "exp", "expo", "expor"])
-                    (@arg ORIGIN: +required +takes_value {valid_origin} "The origin name")
-                    (@arg KEY_TYPE: -t --type +takes_value {valid_key_type}
-                        "Export either the 'public' or 'secret' key. The 'secret' key is the origin private key")
-                    (arg: arg_cache_key_path())
-                )
+                (subcommand: OritinKeyExport::clap().aliases(&["e", "ex", "exp", "expo", "expor"]))
                 (subcommand: OriginKeyGenerate::clap().aliases(&["g", "ge", "gen", "gene", "gener", "genera", "generat"]))
                 (subcommand: OriginKeyImport::clap().aliases(&["i", "im", "imp", "impo", "impor"]))
                 (subcommand: KeyUpload::clap().aliases(&["u", "up", "upl", "uplo", "uploa"]))
@@ -349,7 +340,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
 
 ////////////////////////////////////////////////////////////////////////
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub enum KeyType {
     Public,
     Secret,
@@ -367,15 +358,16 @@ impl FromStr for KeyType {
     }
 }
 
-////////////////////////////////////////////////////////////////////////
-
-fn arg_cache_key_path() -> Arg<'static, 'static> {
-    Arg::with_name("CACHE_KEY_PATH").long("cache-key-path")
-                                    .validator(util::non_empty)
-                                    .env(CACHE_KEY_PATH_ENV_VAR)
-                                    .default_value(&*CACHE_KEY_PATH_DEFAULT)
-                                    .help("Cache for creating and searching for encryption keys")
+impl fmt::Display for KeyType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            KeyType::Public => write!(f, "Public"),
+            KeyType::Secret => write!(f, "Secret"),
+        }
+    }
 }
+
+////////////////////////////////////////////////////////////////////////
 
 pub fn parse_optional_arg<T: FromStr>(name: &str, m: &ArgMatches) -> Option<T>
     where <T as std::str::FromStr>::Err: std::fmt::Debug
@@ -385,15 +377,6 @@ pub fn parse_optional_arg<T: FromStr>(name: &str, m: &ArgMatches) -> Option<T>
 
 // CLAP Validation Functions
 ////////////////////////////////////////////////////////////////////////
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_key_type(val: String) -> result::Result<(), String> {
-    KeyType::from_str(&val).map(|_| ()).map_err(|_| {
-                                           format!("KEY_TYPE: {} is invalid, must be one of \
-                                                    (public, secret)",
-                                                   &val)
-                                       })
-}
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn dir_exists(val: String) -> result::Result<(), String> {

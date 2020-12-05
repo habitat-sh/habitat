@@ -204,20 +204,24 @@ pub struct Send {
 /// Commands relating to Habitat origin key maintenance
 pub enum Key {
     Download(Download),
-    /// Outputs the latest origin key contents to stdout
-    Export {
-        /// The origin name
-        #[structopt(name = "ORIGIN", validator = valid_origin)]
-        origin:         String,
-        /// Export either the 'public' or 'secret' key. The 'secret' key is the origin private key
-        #[structopt(name = "KEY_TYPE", short = "t", long = "type")]
-        key_type:       Option<KeyType>,
-        #[structopt(flatten)]
-        cache_key_path: CacheKeyPath,
-    },
+    Export(KeyExport),
     Generate(Generate),
     Import(KeyImport),
     Upload(Upload),
+}
+
+/// Outputs the latest origin key contents to stdout
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "export", no_version)]
+pub struct KeyExport {
+    /// The origin name
+    #[structopt(name = "ORIGIN", validator = valid_origin)]
+    origin:         String,
+    /// Export either the 'public' or 'secret' key. The 'secret' key is the origin private key
+    #[structopt(name = "KEY_TYPE", short = "t", long = "type")]
+    key_type:       Option<KeyType>,
+    #[structopt(flatten)]
+    cache_key_path: CacheKeyPath,
 }
 
 /// Reads a stdin stream containing a public or private origin key contents and writes the key
