@@ -488,14 +488,6 @@ fn valid_url(val: String) -> result::Result<(), String> {
 }
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_numeric<T: FromStr>(val: String) -> result::Result<(), String> {
-    match val.parse::<T>() {
-        Ok(_) => Ok(()),
-        Err(_) => Err(format!("'{}' is not a valid number", &val)),
-    }
-}
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_ident_or_toml_file(val: String) -> result::Result<(), String> {
     if is_toml_file(&val) {
         // We could do some more validation (parse the whole toml file and check it) but that seems
