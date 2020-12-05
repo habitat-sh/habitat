@@ -359,18 +359,21 @@ pub enum Secret {
         #[structopt(name = "ORIGIN", short = "o", long = "origin", validator = valid_origin)]
         origin:     Option<String>,
     },
-    /// List all secrets for your origin
-    List {
-        #[structopt(flatten)]
-        bldr_url:   BldrUrl,
-        #[structopt(flatten)]
-        auth_token: AuthToken,
-        /// The origin for which secrets will be listed. Default is from 'HAB_ORIGIN' or cli.toml
-        #[structopt(name = "ORIGIN", short = "o", long = "origin", validator = valid_origin)]
-        origin:     Option<String>,
-    },
-    
+    List(SecretList),
     Upload(SecretUpload),
+}
+
+/// List all secrets for your origin
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "list", no_version)]
+pub struct SecretList {
+    #[structopt(flatten)]
+    bldr_url:   BldrUrl,
+    #[structopt(flatten)]
+    auth_token: AuthToken,
+    /// The origin for which secrets will be listed. Default is from 'HAB_ORIGIN' or cli.toml
+    #[structopt(name = "ORIGIN", short = "o", long = "origin", validator = valid_origin)]
+    origin:     Option<String>,
 }
 
 /// Create and upload a secret for your origin

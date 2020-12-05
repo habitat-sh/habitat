@@ -29,6 +29,7 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                                Pending,
                                Rescind,
                                Rbac,
+                               SecretList,
                                SecretUpload,
                                Send,
                                Transfer,
@@ -255,17 +256,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                         "The origin for which the secret will be deleted. Default is from \
                         'HAB_ORIGIN' or cli.toml")
                 )
-                (@subcommand list =>
-                    (about: "List all secrets for your origin")
-                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                        "Specify an alternate Builder endpoint. If not specified, the value will \
-                         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                         https://bldr.habitat.sh)")
-                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                    (@arg ORIGIN: -o --origin +takes_value {valid_origin}
-                        "The origin for which secrets will be listed. Default is from 'HAB_ORIGIN' \
-                        or cli.toml")
-                )
+                (subcommand: SecretList::clap())
             )
         )
         (@subcommand pkg =>
