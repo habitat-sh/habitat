@@ -83,7 +83,6 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                       user::KeyGenerate as UserKeyGenerate,
                       Hab};
 use clap::{App,
-           AppSettings,
            ArgMatches};
 use habitat_common::{cli::{file_into_idents,
                            is_toml_file},
@@ -95,7 +94,9 @@ use std::{fmt,
           path::Path,
           result,
           str::FromStr};
-use structopt::StructOpt;
+use crate::{VERSION};
+use structopt::{clap::AppSettings,
+                StructOpt};
 
 /// Process exit code from Supervisor which indicates to Launcher that the Supervisor
 /// ran to completion with a successful result. The Launcher should not attempt to restart
@@ -108,6 +109,106 @@ pub const AFTER_HELP: &str =
      Alias for: 'sup term'\n";
 
 #[derive(StructOpt)]
+#[structopt(name = "hab",
+           version = VERSION,
+           about = "Patents: https://chef.io/patents\n\"A Habitat is the natural environment for your services\" - Alan Turing",
+           author = "\nThe Habitat Maintainers <humans@habitat.sh>\n",
+           settings = &[AppSettings::GlobalVersion, AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp],
+           after_help = AFTER_HELP
+       )]
+#[allow(clippy::large_enum_variant)]
+pub enum Options {
+   #[structopt(no_version, settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+   License(License),
+   #[structopt(no_version)]
+   Cli(Cli),
+   #[structopt(no_version)]
+   Config(ServiceConfig),
+   #[structopt(no_version)]
+   File(File),
+   #[structopt(no_version)]
+   Bldr(Bldr),
+   #[structopt(no_version)]
+   Origin(HabOrigin),
+   #[structopt(no_version)]
+   Pkg(Pkg),
+   #[structopt(no_version)]
+   Plan(Plan),
+   #[structopt(no_version)]
+   Ring(Ring),
+   #[structopt(name = "sup", no_version)]
+   HabSup(HabSup),
+   #[structopt(no_version)]
+   Svc(Svc),
+   #[structopt(no_version, aliases = &["stu", "stud", "studi"])]
+   Studio(Studio),
+   #[structopt(name = "supportbundle", no_version, aliases = &["supp", "suppo", "suppor", "support-bundle"])]
+   /// Create a tarball of Habitat Supervisor data to send to support
+   SupportBundle,
+   #[structopt(no_version)]
+   User(User),
+   #[structopt(no_version, aliases = &["u", "us", "use"], setting = AppSettings::Hidden)]
+   /// Alias for 'config apply'
+   Apply(ServiceConfigApply),
+   #[structopt(no_version, aliases = &["i", "in", "ins", "inst", "insta", "instal"], setting = AppSettings::Hidden)]
+   /// Alias for 'pkg install'
+   Install(PkgInstall),
+   #[structopt(no_version, setting = AppSettings::Hidden)]
+   /// Alias for 'sup run'
+   Run(SupRun),
+   #[structopt(no_version, aliases =&["set", "setu"], setting = AppSettings::Hidden)]
+   /// Alias for 'cli setup'
+   Setup(CliSetup),
+   #[structopt(no_version, aliases =&["sta", "star"], setting = AppSettings::Hidden)]
+   /// Alias for 'svc start'
+   Start(SvcStart),
+   #[structopt(no_version, aliases = &["sto"], setting = AppSettings::Hidden)]
+   /// Alias for 'svc stop'
+   Stop(SvcStop),
+   #[structopt(no_version, setting = AppSettings::Hidden)]
+   /// Alias for 'sup term'
+   Term(SupTerm),
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version, aliases = &["f", "fi", "fil"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat files
+pub enum File {
+    #[structopt(no_version, aliases = &["u", "up", "upl", "uplo", "uploa"])]
+    /// Uploads a file to be shared between members of a Service Group
+    Upload (FileUpload),
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version, aliases = &["co", "con", "conf", "confi"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to a Service's runtime config
+pub enum ServiceConfig {
+    #[structopt(no_version, aliases = &["ap", "app", "appl"])]
+    Apply(ServiceConfigApply),
+    #[structopt(no_version, aliases = &["sh", "sho"])]
+    Show(ServiceConfigShow),
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version, aliases = &["cl"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat runtime config
+pub enum Cli {
+    #[structopt(no_version, aliases = &["s", "se", "set", "setu"])]
+    /// Sets up the CLI with reasonable defaults
+    Setup(CliSetup),
+    #[structopt(no_version, aliases = &["c", "co", "com", "comp"])]
+    /// Creates command-line completers for your shell
+    Completers(CliCompleters),
+}
+
+/// Commands relating to Habitat users
+#[derive(StructOpt)]
+#[structopt(no_version, aliases = &["u", "us", "use"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+pub enum User {
+    Key(UserKey),
+}
+
+#[derive(StructOpt)]
 #[structopt(name = "key", no_version, aliases = &["k", "ke"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to Habitat user keys
 pub enum UserKey {
@@ -115,232 +216,216 @@ pub enum UserKey {
     Generate(UserKeyGenerate),
 }
 
+#[derive(StructOpt)]
+#[structopt(no_version, aliases = &["b", "bl", "bld"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat Builder
+pub enum Bldr {
+    #[structopt(no_version)]
+    Channel(Channel),
+    #[structopt(no_version)]
+    Job(Job),
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version, aliases = &["c", "ch", "cha", "chan", "chann", "channe"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat Builder channels
+pub enum Channel {
+    #[structopt(no_version, aliases = &["c", "cr", "cre", "crea", "creat"])]
+    Create(ChannelCreate),
+    Demote(ChannelDemote),
+    #[structopt(no_version, aliases = &["d", "de", "des", "dest", "destr", "destro"])]
+    Destroy(ChannelDestroy),
+    #[structopt(no_version, aliases = &["l", "li", "lis"])]
+    List(ChannelList),
+    Promote(ChannelPromote),
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version, aliases = &["j", "jo"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat Builder jobs
+pub enum Job {
+    #[structopt(no_version, aliases = &["s", "st", "sta", "star"])]
+    Cancel(JobCancel),
+    #[structopt(no_version, aliases = &["c", "ca", "can", "cance", "cancel"])]
+    Demote(JobDemote),
+    #[structopt(no_version, aliases = &["p", "pr", "pro", "prom", "promo", "promot"])]
+    Promote(JobPromote),
+    #[structopt(no_version, aliases = &["d", "de", "dem", "demo", "demot"])]
+    Start(JobStart),
+    #[structopt(no_version, aliases = &["stat", "statu"])]
+    Status(JobStatus),
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version, aliases = &["r", "ri", "rin"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat rings
+pub enum Ring {
+    Key(RingKey),
+}
+
+#[derive(StructOpt)]
+#[structopt(name = "key", no_version, aliases = &["k", "ke"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat ring keys
+pub enum RingKey {
+    #[structopt(no_version, aliases = &["e", "ex", "exp", "expo", "expor"])]
+    Export(KeyExport),
+    #[structopt(no_version, aliases = &["i", "im", "imp", "impo", "impor"])]
+    Import(KeyImport),
+    #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
+    Generate(RingKeyGenerate),
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version, aliases = &["pl", "pla"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to plans and other app-specific configuration
+pub enum Plan {
+    #[structopt(no_version, aliases = &["i", "in", "ini"])]
+    Init(PlanInit),
+    #[structopt(no_version, aliases = &["r", "re", "ren", "rend", "rende"])]
+    Render(PlanRender),
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version, aliases = &["sv", "ser", "serv", "service"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat services
+pub enum Svc {
+    #[structopt(name = "bulkload")]
+    BulkLoad(SvcBulkLoad),
+    Key(SvcKey),
+    #[structopt(no_version)]
+    Load(SvcLoad),
+    #[structopt(no_version)]
+    Update(SvcUpdate),
+    #[structopt(aliases = &["star"])]
+    Start(SvcStart),
+    #[structopt(aliases = &["stat", "statu"])]
+    Status(SvcStatus),
+    #[structopt(aliases = &["sto"])]
+    Stop(SvcStop),
+    #[structopt(aliases = &["u", "un", "unl", "unlo", "unloa"])]
+    Unload(SvcUnload),
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version, aliases = &["k", "ke"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat service keys
+pub enum SvcKey {
+    #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
+    Generate(KeyGenerate),
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version, aliases = &["p", "pk", "package"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat packages
+pub enum Pkg {
+    Binds(PkgBinds),
+    #[structopt(no_version, aliases = &["bi", "bin", "binl", "binli", "binlin"])]
+    Binlink(PkgBinlink),
+    #[structopt(no_version)]
+    Build(PkgBuild),
+    #[structopt(no_version, aliases = &["conf", "cfg"])]
+    Config(PkgConfig),
+    Download(PkgDownload),
+    Env(PkgEnv),
+    Exec(PkgExec),
+    Export(ExportCommand),
+    #[structopt(no_version, aliases = &["ha", "has"])]
+    Hash(PkgHash),
+    #[structopt(no_version, aliases = &["i", "in", "ins", "inst", "insta", "instal"])]
+    Install(PkgInstall),
+    #[structopt(no_version, aliases = &["p", "pa", "pat"])]
+    Path(PkgPath),
+    #[structopt(no_version, aliases = &["li"])]
+    List(PkgList),
+    Provides(PkgProvides),
+    Search(PkgSearch),
+    #[structopt(no_version, aliases = &["s", "si", "sig"])]
+    Sign(PkgSign),
+    #[structopt(no_version, aliases = &["un", "unin"])]
+    Uninstall(PkgUninstall),
+    #[structopt(no_version, aliases = &["bul", "bulk"])]
+    Bulkupload(PkgBulkupload),
+    #[structopt(no_version, aliases = &["u", "up", "upl", "uplo", "uploa"])]
+    Upload(PkgUpload),
+    #[structopt(no_version, aliases = &["del", "dele"])]
+    Delete(PkgDelete),
+    #[structopt(no_version, aliases = &["pr", "pro", "promo", "promot"])]
+    Promote(PkgPromote),
+    #[structopt(no_version, aliases = &["de", "dem", "demo", "demot"])]
+    Demote(PkgDemote),
+    #[structopt(no_version, aliases = &["ch", "cha", "chan", "chann", "channe", "channel"])]
+    Channels(PkgChannels),
+    #[structopt(no_version, aliases = &["v", "ve", "ver", "veri", "verif"])]
+    Verify(PkgVerify),
+    #[structopt(no_version, aliases = &["hea", "head", "heade", "header"])]
+    Header(PkgHeader),
+    #[structopt(no_version, aliases = &["inf", "info"])]
+    Info(PkgInfo),
+    #[structopt(no_version, aliases = &["dep", "deps"])]
+    Dependencies(PkgDependencies),
+}
+
+#[derive(StructOpt)]
+#[structopt(name = "origin", no_version, aliases = &["o", "or", "ori", "orig", "origi"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat Builder origins
+pub enum HabOrigin {
+    #[structopt(no_version, aliases = &["cre", "crea"])]
+    Create(OriginCreate),
+    #[structopt(no_version, aliases = &["del", "dele"])]
+    Delete(OriginDelete),
+    Depart(OriginDepart),
+    Info(OriginInfo),
+    Invitations(Invitations),
+    Key(OriginKey),
+    /// Role Based Access Control for origin members
+    Rbac(Rbac),
+    Secret(OriginSecret),
+    Transfer(Transfer),
+}
+
+#[derive(StructOpt)]
+#[structopt(no_version, settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Manage origin member invitations
+pub enum Invitations {
+    Accept(Accept),
+    Ignore(Ignore),
+    List(List),
+    Pending(Pending),
+    Rescind(Rescind),
+    Send(Send),
+}
+
+#[derive(StructOpt)]
+#[structopt(name = "key", no_version, aliases = &["k", "ke"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat origin key maintenance
+pub enum OriginKey {
+    #[structopt(no_version, aliases = &["d", "do", "dow", "down", "downl", "downlo", "downloa"])]
+    Download(KeyDownload),
+    #[structopt(no_version, aliases = &["e", "ex", "exp", "expo", "expor"])]
+    Export(OritinKeyExport),
+    #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
+    Generate(OriginKeyGenerate),
+    #[structopt(no_version, aliases = &["i", "im", "imp", "impo", "impor"])]
+    Import(OriginKeyImport),
+    #[structopt(no_version, aliases = &["u", "up", "upl", "uplo", "uploa"])]
+    Upload(KeyUpload),
+}
+
+#[derive(StructOpt)]
+#[structopt(name = "secret", no_version, settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands related to secret management
+pub enum OriginSecret {
+    Delete(SecretDelete),
+    List(SecretList),
+    Upload(SecretUpload),
+}
+
 pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
     if feature_flags.contains(FeatureFlag::STRUCTOPT_CLI) {
         return Hab::clap();
     }
 
-    let alias_apply = ServiceConfigApply::clap().about("Alias for 'config apply'")
-                                                .aliases(&["ap", "app", "appl"])
-                                                .setting(AppSettings::Hidden);
-    let alias_install = PkgInstall::clap().about("Alias for 'pkg install'")
-                                          .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
-                                          .setting(AppSettings::Hidden);
-    let alias_run = SupRun::clap().about("Alias for 'sup run'")
-                                  .setting(AppSettings::Hidden);
-    let alias_setup = CliSetup::clap().about("Alias for 'cli setup'")
-                                      .aliases(&["set", "setu"])
-                                      .setting(AppSettings::Hidden);
-    let alias_start = SvcStart::clap().about("Alias for 'svc start'")
-                                      .aliases(&["sta", "star"])
-                                      .setting(AppSettings::Hidden);
-    let alias_stop = SvcStop::clap().about("Alias for 'svc stop'")
-                                    .aliases(&["sto"])
-                                    .setting(AppSettings::Hidden);
-    let alias_term = SupTerm::clap().about("Alias for 'sup term'")
-                                    .setting(AppSettings::Hidden);
-
-    clap_app!(hab =>
-        (about: "Patents: https://chef.io/patents\n\"A Habitat is the natural environment for your services\" - Alan Turing")
-        (version: super::VERSION)
-        (author: "\nThe Habitat Maintainers <humans@habitat.sh>\n")
-        (@setting GlobalVersion)
-        (@setting ArgRequiredElseHelp)
-        (@setting SubcommandRequiredElseHelp)
-        (subcommand: License::clap().settings(&[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp]))
-        (@subcommand cli =>
-            (about: "Commands relating to Habitat runtime config")
-            (aliases: &["cl"])
-            (@setting ArgRequiredElseHelp)
-            (@setting SubcommandRequiredElseHelp)
-            (subcommand: CliSetup::clap().aliases(&["s", "se", "set", "setu"]))
-            (subcommand: CliCompleters::clap().aliases(&["c", "co", "com", "comp"]))
-        )
-        (@subcommand config =>
-            (about: "Commands relating to a Service's runtime config")
-            (aliases: &["co", "con", "conf", "confi"])
-            (@setting ArgRequiredElseHelp)
-            (@setting SubcommandRequiredElseHelp)
-            (subcommand: ServiceConfigApply::clap().aliases(&["ap", "app", "appl"]))
-            (subcommand: ServiceConfigShow::clap().aliases(&["sh", "sho"]))
-        )
-        (@subcommand file =>
-            (about: "Commands relating to Habitat files")
-            (aliases: &["f", "fi", "fil"])
-            (@setting ArgRequiredElseHelp)
-            (@setting SubcommandRequiredElseHelp)
-            (subcommand: FileUpload::clap().aliases(&["u", "up", "upl", "uplo", "uploa"]))
-        )
-        (@subcommand bldr =>
-            (about: "Commands relating to Habitat Builder")
-            (aliases: &["b", "bl", "bld"])
-            (@setting ArgRequiredElseHelp)
-            (@setting SubcommandRequiredElseHelp)
-            (@subcommand job =>
-                (about: "Commands relating to Habitat Builder jobs")
-                (aliases: &["j", "jo"])
-                (@setting ArgRequiredElseHelp)
-                (@setting SubcommandRequiredElseHelp)
-                (subcommand: JobStart::clap().aliases(&["s", "st", "sta", "star"]))
-                (subcommand: JobCancel::clap().aliases(&["c", "ca", "can", "cance", "cancel"]))
-                (subcommand: JobPromote::clap().aliases(&["p", "pr", "pro", "prom", "promo", "promot"]))
-                (subcommand: JobDemote::clap().aliases(&["d", "de", "dem", "demo", "demot"]))
-                (subcommand: JobStatus::clap().aliases(&["stat", "statu"]))
-            )
-            (@subcommand channel =>
-                (about: "Commands relating to Habitat Builder channels")
-                (aliases: &["c", "ch", "cha", "chan", "chann", "channe"])
-                (@setting ArgRequiredElseHelp)
-                (@setting SubcommandRequiredElseHelp)
-                (subcommand: ChannelPromote::clap())
-                (subcommand: ChannelDemote::clap())
-                (subcommand: ChannelCreate::clap().aliases(&["c", "cr", "cre", "crea", "creat"]))
-                (subcommand: ChannelDestroy::clap().aliases(&["d", "de", "des", "dest", "destr", "destro"]))
-                (subcommand: ChannelList::clap().aliases(&["l", "li", "lis"]))
-            )
-        )
-        (@subcommand origin =>
-            (about: "Commands relating to Habitat Builder origins")
-            (aliases: &["o", "or", "ori", "orig", "origi"])
-            (@setting ArgRequiredElseHelp)
-            (@setting SubcommandRequiredElseHelp)
-            (subcommand: OriginCreate::clap().aliases(&["cre", "crea"]))
-            (subcommand: OriginDelete::clap().aliases(&["del", "dele"]))
-            (subcommand: Transfer::clap() )
-            (subcommand: OriginDepart::clap())
-            (subcommand: OriginInfo::clap())
-            (@subcommand invitations =>
-                (about: "Manage origin member invitations")
-                (@setting ArgRequiredElseHelp)
-                (@setting SubcommandRequiredElseHelp)
-                (subcommand: Accept::clap())
-                (subcommand: Ignore::clap())
-                (subcommand: List::clap())
-                (subcommand: Pending::clap())
-                (subcommand: Rescind::clap())
-                (subcommand: Send::clap())
-            )
-            (@subcommand key =>
-                (about: "Commands relating to Habitat origin key maintenance")
-                (aliases: &["k", "ke"])
-                (@setting ArgRequiredElseHelp)
-                (@setting SubcommandRequiredElseHelp)
-                (subcommand: KeyDownload::clap().aliases(&["d", "do", "dow", "down", "downl", "downlo", "downloa"]))
-                (subcommand: OritinKeyExport::clap().aliases(&["e", "ex", "exp", "expo", "expor"]))
-                (subcommand: OriginKeyGenerate::clap().aliases(&["g", "ge", "gen", "gene", "gener", "genera", "generat"]))
-                (subcommand: OriginKeyImport::clap().aliases(&["i", "im", "imp", "impo", "impor"]))
-                (subcommand: KeyUpload::clap().aliases(&["u", "up", "upl", "uplo", "uploa"]))
-            )
-            (subcommand: Rbac::clap())
-            (@subcommand secret =>
-                (about: "Commands related to secret management")
-                (@setting ArgRequiredElseHelp)
-                (@setting SubcommandRequiredElseHelp)
-                (subcommand: SecretUpload::clap())
-                (subcommand: SecretDelete::clap())
-                (subcommand: SecretList::clap())
-            )
-        )
-        (@subcommand pkg =>
-            (about: "Commands relating to Habitat packages")
-            (aliases: &["p", "pk", "package"])
-            (@setting ArgRequiredElseHelp)
-            (@setting SubcommandRequiredElseHelp)
-            (subcommand: PkgBinds::clap())
-            (subcommand: PkgBinlink::clap().aliases(&["bi", "bin", "binl", "binli", "binlin"]))
-            (subcommand: PkgBuild::clap())
-            (subcommand: PkgConfig::clap().aliases(&["conf", "cfg"]))
-            (subcommand: PkgDownload::clap())
-            (subcommand: PkgEnv::clap())
-            (subcommand: PkgExec::clap())
-            (subcommand: ExportCommand::clap())
-            (subcommand: PkgHash::clap().aliases(&["ha", "has"]))
-            (subcommand: PkgInstall::clap().aliases(
-                &["i", "in", "ins", "inst", "insta", "instal"]))
-            (subcommand: PkgPath::clap().aliases(&["p", "pa", "pat"]))
-            (subcommand: PkgList::clap().aliases(&["li"]))
-            (subcommand: PkgProvides::clap())
-            (subcommand: PkgSearch::clap())
-            (subcommand: PkgSign::clap().aliases(&["s", "si", "sig"]))
-            (subcommand: PkgUninstall::clap().aliases(&["un", "unin"]))
-            // alas no hyphens in subcommand names..
-            // https://github.com/clap-rs/clap/issues/1297
-            (subcommand: PkgBulkupload::clap().aliases(&["bul", "bulk"]))
-            (subcommand: PkgUpload::clap().aliases(&["u", "up", "upl", "uplo", "uploa"]))
-            (subcommand: PkgDelete::clap().aliases(&["del", "dele"]))
-            (subcommand: PkgPromote::clap().aliases(&["pr", "pro", "promo", "promot"]))
-            (subcommand: PkgDemote::clap().aliases(&["de", "dem", "demo", "demot"]))
-            (subcommand: PkgChannels::clap().aliases(&["ch", "cha", "chan", "chann", "channe", "channel"]))
-            (subcommand: PkgVerify::clap().aliases(&["v", "ve", "ver", "veri", "verif"]))
-            (subcommand: PkgHeader::clap().aliases(&["hea", "head", "heade", "header"]))
-            (subcommand: PkgInfo::clap().aliases(&["inf", "info"]))
-            (subcommand: PkgDependencies::clap().aliases(&["dep", "deps"]))
-        )
-        (@subcommand plan =>
-            (about: "Commands relating to plans and other app-specific configuration")
-            (aliases: &["pl", "pla"])
-            (@setting ArgRequiredElseHelp)
-            (@setting SubcommandRequiredElseHelp)
-            (subcommand: PlanInit::clap().aliases(&["i", "in", "ini"]))
-            (subcommand: PlanRender::clap().aliases(&["r", "re", "ren", "rend", "rende"]))
-        )
-        (@subcommand ring =>
-            (about: "Commands relating to Habitat rings")
-            (aliases: &["r", "ri", "rin"])
-            (@setting ArgRequiredElseHelp)
-            (@setting SubcommandRequiredElseHelp)
-            (@subcommand key =>
-                (about: "Commands relating to Habitat ring keys")
-                (aliases: &["k", "ke"])
-                (@setting ArgRequiredElseHelp)
-                (@setting SubcommandRequiredElseHelp)
-                (subcommand: KeyExport::clap().aliases(&["e", "ex", "exp", "expo", "expor"]))
-                (subcommand: KeyImport::clap().aliases(&["i", "im", "imp", "impo", "impor"]))
-                (subcommand: RingKeyGenerate::clap().aliases(&["g", "ge", "gen", "gene", "gener", "genera", "generat"]))
-            )
-        )
-        (subcommand: HabSup::clap())
-        (@subcommand svc =>
-            (about: "Commands relating to Habitat services")
-            (aliases: &["sv", "ser", "serv", "service"])
-            (@setting ArgRequiredElseHelp)
-            (@setting SubcommandRequiredElseHelp)
-            (subcommand: SvcBulkLoad::clap())
-            (@subcommand key =>
-                (about: "Commands relating to Habitat service keys")
-                (aliases: &["k", "ke"])
-                (@setting ArgRequiredElseHelp)
-                (@setting SubcommandRequiredElseHelp)
-                (subcommand: KeyGenerate::clap().aliases(&["g", "ge", "gen", "gene", "gener", "genera", "generat"]))
-            )
-            (subcommand: SvcLoad::clap())
-            (subcommand: SvcUpdate::clap())
-            (subcommand: SvcStart::clap().aliases(&["star"]))
-            (subcommand: SvcStatus::clap().aliases(&["stat", "statu"]))
-            (subcommand: SvcStop::clap().aliases(&["sto"]))
-            (subcommand: SvcUnload::clap().aliases(&["u", "un", "unl", "unlo", "unloa"]))
-        )
-        (subcommand: Studio::clap().aliases(&["stu", "stud", "studi"]))
-        (@subcommand supportbundle =>
-            (about: "Create a tarball of Habitat Supervisor data to send to support")
-            (aliases: &["supp", "suppo", "suppor", "support-bundle"])
-        )
-        (@subcommand user =>
-            (about: "Commands relating to Habitat users")
-            (aliases: &["u", "us", "use"])
-            (@setting ArgRequiredElseHelp)
-            (@setting SubcommandRequiredElseHelp)
-            (subcommand: UserKey::clap())
-        )
-        (subcommand: alias_apply)
-        (subcommand: alias_install)
-        (subcommand: alias_run)
-        (subcommand: alias_setup)
-        (subcommand: alias_start)
-        (subcommand: alias_stop)
-        (subcommand: alias_term)
-        (after_help: AFTER_HELP)
-    )
+    Options::clap()
 }
 
 ////////////////////////////////////////////////////////////////////////
