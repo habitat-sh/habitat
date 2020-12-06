@@ -7,7 +7,7 @@
   / = partial "layouts/message"
 
   .main-nav--container.row
-    .columns.large-2.main-nav--logo
+    .columns.large-4.main-nav--logo
       a href="https://community.chef.io/" data-builder-url="#{builder_web_url}"
         h1 habitat
     .columns.large-10.nav.main-nav--links-wrap
@@ -26,3 +26,12 @@
           a.downloads href="https://downloads.chef.io/" target="_blank" Downloads
         li.main-nav--link
           a.enterprise href="https://www.chef.io/" target="_blank" Enterprise
+  .callout.alert.callout.row data-closable=""
+    .columns.small-2.medium-2.large-2.callout--logo
+      a href="https://docs.chef.io/habitat"
+         h1 mydocs
+      button.close-button aria-label=("Dismiss alert") data-close="" type="button" x
+    .columns.small-9.offset-1.medium-10.offset-1.large-9.offset-1.callout--text
+      | The Habitat Docs are moving to
+      a<> href="https://docs.chef.io/habitat" title='new habitat documentation site' docs.chef.io
+      | on December 30! Stop by today to preview our new look, shorter articles, and search all the Chef docs at once!
