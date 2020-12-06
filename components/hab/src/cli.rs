@@ -1,7 +1,7 @@
 pub mod gateway_util;
 pub mod hab;
 
-use crate::cli::hab::{bldr::{ChannelCreate,
+use crate::{cli::hab::{bldr::{ChannelCreate,
                              ChannelDemote,
                              ChannelDestroy,
                              ChannelList,
@@ -81,7 +81,8 @@ use crate::cli::hab::{bldr::{ChannelCreate,
                             SvcUnload,
                             Update as SvcUpdate},
                       user::KeyGenerate as UserKeyGenerate,
-                      Hab};
+                      Hab},
+            VERSION};
 use clap::{App,
            ArgMatches};
 use habitat_common::{cli::{file_into_idents,
@@ -94,7 +95,6 @@ use std::{fmt,
           path::Path,
           result,
           str::FromStr};
-use crate::{VERSION};
 use structopt::{clap::AppSettings,
                 StructOpt};
 
@@ -118,56 +118,56 @@ pub const AFTER_HELP: &str =
        )]
 #[allow(clippy::large_enum_variant)]
 pub enum Options {
-   #[structopt(no_version, settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
-   License(License),
-   #[structopt(no_version)]
-   Cli(Cli),
-   #[structopt(no_version)]
-   Config(ServiceConfig),
-   #[structopt(no_version)]
-   File(File),
-   #[structopt(no_version)]
-   Bldr(Bldr),
-   #[structopt(no_version)]
-   Origin(HabOrigin),
-   #[structopt(no_version)]
-   Pkg(Pkg),
-   #[structopt(no_version)]
-   Plan(Plan),
-   #[structopt(no_version)]
-   Ring(Ring),
-   #[structopt(name = "sup", no_version)]
-   HabSup(HabSup),
-   #[structopt(no_version)]
-   Svc(Svc),
-   #[structopt(no_version, aliases = &["stu", "stud", "studi"])]
-   Studio(Studio),
-   #[structopt(name = "supportbundle", no_version, aliases = &["supp", "suppo", "suppor", "support-bundle"])]
-   /// Create a tarball of Habitat Supervisor data to send to support
-   SupportBundle,
-   #[structopt(no_version)]
-   User(User),
-   #[structopt(no_version, aliases = &["u", "us", "use"], setting = AppSettings::Hidden)]
-   /// Alias for 'config apply'
-   Apply(ServiceConfigApply),
-   #[structopt(no_version, aliases = &["i", "in", "ins", "inst", "insta", "instal"], setting = AppSettings::Hidden)]
-   /// Alias for 'pkg install'
-   Install(PkgInstall),
-   #[structopt(no_version, setting = AppSettings::Hidden)]
-   /// Alias for 'sup run'
-   Run(SupRun),
-   #[structopt(no_version, aliases =&["set", "setu"], setting = AppSettings::Hidden)]
-   /// Alias for 'cli setup'
-   Setup(CliSetup),
-   #[structopt(no_version, aliases =&["sta", "star"], setting = AppSettings::Hidden)]
-   /// Alias for 'svc start'
-   Start(SvcStart),
-   #[structopt(no_version, aliases = &["sto"], setting = AppSettings::Hidden)]
-   /// Alias for 'svc stop'
-   Stop(SvcStop),
-   #[structopt(no_version, setting = AppSettings::Hidden)]
-   /// Alias for 'sup term'
-   Term(SupTerm),
+    #[structopt(no_version, settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+    License(License),
+    #[structopt(no_version)]
+    Cli(Cli),
+    #[structopt(no_version)]
+    Config(ServiceConfig),
+    #[structopt(no_version)]
+    File(File),
+    #[structopt(no_version)]
+    Bldr(Bldr),
+    #[structopt(no_version)]
+    Origin(HabOrigin),
+    #[structopt(no_version)]
+    Pkg(Pkg),
+    #[structopt(no_version)]
+    Plan(Plan),
+    #[structopt(no_version)]
+    Ring(Ring),
+    #[structopt(name = "sup", no_version)]
+    HabSup(HabSup),
+    #[structopt(no_version)]
+    Svc(Svc),
+    #[structopt(no_version, aliases = &["stu", "stud", "studi"])]
+    Studio(Studio),
+    #[structopt(name = "supportbundle", no_version, aliases = &["supp", "suppo", "suppor", "support-bundle"])]
+    /// Create a tarball of Habitat Supervisor data to send to support
+    SupportBundle,
+    #[structopt(no_version)]
+    User(User),
+    #[structopt(no_version, aliases = &["u", "us", "use"], setting = AppSettings::Hidden)]
+    /// Alias for 'config apply'
+    Apply(ServiceConfigApply),
+    #[structopt(no_version, aliases = &["i", "in", "ins", "inst", "insta", "instal"], setting = AppSettings::Hidden)]
+    /// Alias for 'pkg install'
+    Install(PkgInstall),
+    #[structopt(no_version, setting = AppSettings::Hidden)]
+    /// Alias for 'sup run'
+    Run(SupRun),
+    #[structopt(no_version, aliases =&["set", "setu"], setting = AppSettings::Hidden)]
+    /// Alias for 'cli setup'
+    Setup(CliSetup),
+    #[structopt(no_version, aliases =&["sta", "star"], setting = AppSettings::Hidden)]
+    /// Alias for 'svc start'
+    Start(SvcStart),
+    #[structopt(no_version, aliases = &["sto"], setting = AppSettings::Hidden)]
+    /// Alias for 'svc stop'
+    Stop(SvcStop),
+    #[structopt(no_version, setting = AppSettings::Hidden)]
+    /// Alias for 'sup term'
+    Term(SupTerm),
 }
 
 #[derive(StructOpt)]
@@ -176,7 +176,7 @@ pub enum Options {
 pub enum File {
     #[structopt(no_version, aliases = &["u", "up", "upl", "uplo", "uploa"])]
     /// Uploads a file to be shared between members of a Service Group
-    Upload (FileUpload),
+    Upload(FileUpload),
 }
 
 #[derive(StructOpt)]
