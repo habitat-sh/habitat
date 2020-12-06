@@ -293,9 +293,9 @@ pub enum Svc {
     BulkLoad(SvcBulkLoad),
     Key(SvcKey),
     #[structopt(no_version)]
-    Load(SvcLoad),
+    Load(Box<SvcLoad>), // Boxed due to clippy::large_enum_variant
     #[structopt(no_version)]
-    Update(SvcUpdate),
+    Update(Box<SvcUpdate>),  // Boxed due to clippy::large_enum_variant
     #[structopt(aliases = &["star"])]
     Start(SvcStart),
     #[structopt(aliases = &["stat", "statu"])]
