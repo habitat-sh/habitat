@@ -4,6 +4,7 @@ use configopt::ConfigOpt;
 use structopt::StructOpt;
 
 arg_enum! {
+    // Serialize required by the bound in toml::Value::try_from
     #[derive(Serialize, Deserialize)]
     pub enum Shell {
         Bash,
