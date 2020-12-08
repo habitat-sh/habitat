@@ -55,9 +55,9 @@ dependencies = [
 
 [[package]]
 name = "actix-http"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "404df68c297f73b8d36c9c9056404913d25905a8f80127b0e5fe147c9c4b9f02"
+checksum = "452299e87817ae5673910e53c243484ca38be3828db819b6011736fc6982e874"
 dependencies = [
  "actix-codec 0.3.0",
  "actix-connect",
@@ -93,7 +93,7 @@ dependencies = [
  "regex 1.4.2",
  "serde",
  "serde_json",
- "serde_urlencoded",
+ "serde_urlencoded 0.7.0",
  "sha-1",
  "slab",
  "time 0.2.16",
@@ -252,9 +252,9 @@ dependencies = [
 
 [[package]]
 name = "actix-web"
-version = "3.2.0"
+version = "3.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88344b7a5ef27e5e09e73565379f69273dd3e2d29e82afc381b84d170d0a5631"
+checksum = "e641d4a172e7faa0862241a20ff4f1f5ab0ab7c279f00c2d4587b77483477b86"
 dependencies = [
  "actix-codec 0.3.0",
  "actix-http",
@@ -283,7 +283,7 @@ dependencies = [
  "rustls",
  "serde",
  "serde_json",
- "serde_urlencoded",
+ "serde_urlencoded 0.7.0",
  "socket2",
  "time 0.2.16",
  "tinyvec 1.0.1",
@@ -403,16 +403,17 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
 name = "awc"
-version = "2.0.0"
+version = "2.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "150e00c06683ab44c5f97d033950e5d87a7a042d06d77f5eecb443cbd23d0575"
+checksum = "b381e490e7b0cfc37ebc54079b0413d8093ef43d14a4e4747083f7fa47a9e691"
 dependencies = [
  "actix-codec 0.3.0",
  "actix-http",
  "actix-rt",
  "actix-service",
- "base64 0.12.3",
+ "base64 0.13.0",
  "bytes",
+ "cfg-if 1.0.0",
  "derive_more",
  "futures-core",
  "log 0.4.11",
@@ -422,7 +423,7 @@ dependencies = [
  "rustls",
  "serde",
  "serde_json",
- "serde_urlencoded",
+ "serde_urlencoded 0.7.0",
 ]
 
 [[package]]
@@ -3216,7 +3217,7 @@ dependencies = [
  "pin-project-lite",
  "serde",
  "serde_json",
- "serde_urlencoded",
+ "serde_urlencoded 0.6.1",
  "time 0.1.44",
  "tokio",
  "tokio-tls",
@@ -3574,6 +3575,18 @@ dependencies = [
  "itoa",
  "serde",
  "url",
+]
+
+[[package]]
+name = "serde_urlencoded"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "edfa57a7f8d9c1d260a549e7224100f6c43d43f9103e06dd8b4095a9b2b43ce9"
+dependencies = [
+ "form_urlencoded",
+ "itoa",
+ "ryu",
+ "serde",
 ]
 
 [[package]]
