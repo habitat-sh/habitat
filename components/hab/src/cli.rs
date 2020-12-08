@@ -451,8 +451,8 @@ impl FromStr for KeyType {
 impl fmt::Display for KeyType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            KeyType::Public => write!(f, "Public"),
-            KeyType::Secret => write!(f, "Secret"),
+            KeyType::Public => write!(f, "public"),
+            KeyType::Secret => write!(f, "secret"),
         }
     }
 }
