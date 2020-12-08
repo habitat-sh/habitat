@@ -25,7 +25,7 @@ use crate::{cli::hab::{bldr::{ChannelCreate,
                                Generate as OriginKeyGenerate,
                                Ignore,
                                Info as OriginInfo,
-                               KeyExport as OritinKeyExport,
+                               KeyExport as OriginKeyExport,
                                KeyImport as OriginKeyImport,
                                List,
                                Pending,
@@ -402,7 +402,7 @@ pub enum OriginKey {
     #[structopt(no_version, aliases = &["d", "do", "dow", "down", "downl", "downlo", "downloa"])]
     Download(KeyDownload),
     #[structopt(no_version, aliases = &["e", "ex", "exp", "expo", "expor"])]
-    Export(OritinKeyExport),
+    Export(OriginKeyExport),
     #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
     Generate(OriginKeyGenerate),
     #[structopt(no_version, aliases = &["i", "im", "imp", "impo", "impor"])]
