@@ -49,8 +49,8 @@ use self::{bldr::{Bldr,
                  Svc,
                  SvcStart,
                  SvcStop},
-           user::{ConfigOptUser,
-                  User},
+           user::{ConfigOptUserKeyGenerate,
+                  UserKeyGenerate},
            util::{CacheKeyPath,
                   ConfigOptCacheKeyPath}};
 use crate::{cli::AFTER_HELP,
@@ -122,4 +122,19 @@ pub enum Hab {
     /// Alias for 'sup term'
     #[structopt(no_version, settings = &[AppSettings::Hidden])]
     Term,
+}
+
+/// Commands relating to Habitat users
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "user", no_version, aliases = &["u", "us", "use"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+pub enum User {
+    Key(UserKey),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "key", no_version, aliases = &["k", "ke"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat user keys
+pub enum UserKey {
+    #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
+    Generate(UserKeyGenerate),
 }

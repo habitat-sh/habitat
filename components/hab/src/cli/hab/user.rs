@@ -14,13 +14,13 @@ pub enum User {
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "key", no_version)]
 pub enum Key {
-    Generate(KeyGenerate),
+    Generate(UserKeyGenerate),
 }
 
 /// Generates a Habitat user key
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "generate", no_version)]
-pub struct KeyGenerate {
+pub struct UserKeyGenerate {
     /// Name of the user key
     #[structopt(name = "USER")]
     user:           String,

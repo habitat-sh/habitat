@@ -80,7 +80,7 @@ use crate::{cli::hab::{bldr::{ChannelCreate,
                             SvcStop,
                             SvcUnload,
                             Update as SvcUpdate},
-                      user::KeyGenerate as UserKeyGenerate,
+                      user::UserKeyGenerate,
                       Hab},
             VERSION};
 use clap::{App,
