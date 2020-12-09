@@ -77,7 +77,7 @@ pub enum Hab {
     Config(ServiceConfig),
     #[structopt(no_version)]
     File(File),
-    #[structopt(no_version)]
+    #[structopt(no_version, settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
     License(License),
     #[structopt(no_version)]
     Origin(Origin),
