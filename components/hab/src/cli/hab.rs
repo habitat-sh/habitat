@@ -39,10 +39,10 @@ use self::{bldr::{ConfigOptChannelCreate,
                  ConfigOptCliCompleters,
                  CliSetup,
                  ConfigOptCliSetup},
-           config::{ConfigOptServiceConfig,
-                    ConfigOptServiceConfigApply,
-                    ServiceConfig,
-                    ServiceConfigApply},
+           config::{ConfigOptServiceConfigApply,
+                    ConfigOptServiceConfigShow,
+                    ServiceConfigApply,
+                    ServiceConfigShow},
            file::{ConfigOptFile,
                   File},
            license::{ConfigOptLicense,
@@ -194,6 +194,16 @@ pub enum Cli {
     #[structopt(no_version, aliases = &["c", "co", "com", "comp"])]
     /// Creates command-line completers for your shell
     Completers(CliCompleters),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["co", "con", "conf", "confi"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to a Service's runtime config
+pub enum ServiceConfig {
+    #[structopt(no_version, aliases = &["ap", "app", "appl"])]
+    Apply(ServiceConfigApply),
+    #[structopt(no_version, aliases = &["sh", "sho"])]
+    Show(ServiceConfigShow),
 }
 
 /// Commands relating to Habitat users
