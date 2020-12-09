@@ -35,8 +35,10 @@ use self::{bldr::{ConfigOptChannelCreate,
                   JobPromote,
                   JobStart,
                   JobStatus},
-           cli::{Cli,
-                 ConfigOptCli},
+           cli::{CliCompleters,
+                 ConfigOptCliCompleters,
+                 CliSetup,
+                 ConfigOptCliSetup},
            config::{ConfigOptServiceConfig,
                     ConfigOptServiceConfigApply,
                     ServiceConfig,
@@ -180,6 +182,18 @@ pub enum Job {
     Start(JobStart),
     #[structopt(no_version, aliases = &["stat", "statu"])]
     Status(JobStatus),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["cl"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat runtime config
+pub enum Cli {
+    #[structopt(no_version, aliases = &["s", "se", "set", "setu"])]
+    /// Sets up the CLI with reasonable defaults
+    Setup(CliSetup),
+    #[structopt(no_version, aliases = &["c", "co", "com", "comp"])]
+    /// Creates command-line completers for your shell
+    Completers(CliCompleters),
 }
 
 /// Commands relating to Habitat users
