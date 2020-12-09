@@ -15,8 +15,26 @@ mod tests;
 pub mod user;
 pub mod util;
 
-use self::{bldr::{Bldr,
-                  ConfigOptBldr},
+use self::{bldr::{ConfigOptChannelCreate,
+                  ConfigOptChannelDemote,
+                  ConfigOptChannelDestroy,
+                  ConfigOptChannelList,
+                  ConfigOptChannelPromote,
+                  ConfigOptJobCancel,
+                  ConfigOptJobDemote,
+                  ConfigOptJobPromote,
+                  ConfigOptJobStart,
+                  ConfigOptJobStatus,
+                  ChannelCreate,
+                  ChannelDemote,
+                  ChannelDestroy,
+                  ChannelList,
+                  ChannelPromote,
+                  JobCancel,
+                  JobDemote,
+                  JobPromote,
+                  JobStart,
+                  JobStatus},
            cli::{Cli,
                  ConfigOptCli},
            config::{ConfigOptServiceConfig,
@@ -122,6 +140,46 @@ pub enum Hab {
     /// Alias for 'sup term'
     #[structopt(no_version, settings = &[AppSettings::Hidden])]
     Term,
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["b", "bl", "bld"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat Builder
+pub enum Bldr {
+    #[structopt(no_version)]
+    Channel(Channel),
+    #[structopt(no_version)]
+    Job(Job),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["c", "ch", "cha", "chan", "chann", "channe"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat Builder channels
+pub enum Channel {
+    #[structopt(no_version, aliases = &["c", "cr", "cre", "crea", "creat"])]
+    Create(ChannelCreate),
+    Demote(ChannelDemote),
+    #[structopt(no_version, aliases = &["d", "de", "des", "dest", "destr", "destro"])]
+    Destroy(ChannelDestroy),
+    #[structopt(no_version, aliases = &["l", "li", "lis"])]
+    List(ChannelList),
+    Promote(ChannelPromote),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["j", "jo"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat Builder jobs
+pub enum Job {
+    #[structopt(no_version, aliases = &["c", "ca", "can", "cance", "cancel"])]
+    Cancel(JobCancel),
+    #[structopt(no_version, aliases = &["d", "de", "dem", "demo", "demot"])]
+    Demote(JobDemote),
+    #[structopt(no_version, aliases = &["p", "pr", "pro", "prom", "promo", "promot"])]
+    Promote(JobPromote),
+    #[structopt(no_version, aliases = &["s", "st", "sta", "star"])]
+    Start(JobStart),
+    #[structopt(no_version, aliases = &["stat", "statu"])]
+    Status(JobStatus),
 }
 
 /// Commands relating to Habitat users
