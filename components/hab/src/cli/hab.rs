@@ -43,8 +43,8 @@ use self::{bldr::{ConfigOptChannelCreate,
                     ConfigOptServiceConfigShow,
                     ServiceConfigApply,
                     ServiceConfigShow},
-           file::{ConfigOptFile,
-                  File},
+           file::{ConfigOptFileUpload,
+                  FileUpload},
            license::{ConfigOptLicense,
                      License},
            origin::{ConfigOptOrigin,
@@ -204,6 +204,15 @@ pub enum ServiceConfig {
     Apply(ServiceConfigApply),
     #[structopt(no_version, aliases = &["sh", "sho"])]
     Show(ServiceConfigShow),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["f", "fi", "fil"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat files
+pub enum File {
+    #[structopt(no_version, aliases = &["u", "up", "upl", "uplo", "uploa"])]
+    /// Uploads a file to be shared between members of a Service Group
+    Upload(FileUpload),
 }
 
 /// Commands relating to Habitat users
