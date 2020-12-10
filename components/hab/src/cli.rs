@@ -27,9 +27,7 @@ pub const AFTER_HELP: &str =
      start      Alias for: 'svc start'\n    stop       Alias for: 'svc stop'\n    term       \
      Alias for: 'sup term'\n";
 
-pub fn get(_feature_flags: FeatureFlag) -> App<'static, 'static> {
-    Hab::clap()
-}
+pub fn get(_feature_flags: FeatureFlag) -> App<'static, 'static> { Hab::clap() }
 
 ////////////////////////////////////////////////////////////////////////
 
