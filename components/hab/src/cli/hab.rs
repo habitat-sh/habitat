@@ -53,8 +53,10 @@ use self::{bldr::{ConfigOptChannelCreate,
                  ConfigOptPkgInstall,
                  Pkg,
                  PkgInstall},
-           plan::{ConfigOptPlan,
-                  Plan},
+           plan::{ConfigOptPlanInit,
+                  ConfigOptPlanRender,
+                  PlanInit,
+                  PlanRender},
            ring::{ConfigOptRingKeyExport,
                   ConfigOptRingKeyImport,
                   ConfigOptRingKeyGenerate,
@@ -232,6 +234,16 @@ pub enum User {
 pub enum UserKey {
     #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
     Generate(UserKeyGenerate),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["pl", "pla"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to plans and other app-specific configuration
+pub enum Plan {
+    #[structopt(no_version, aliases = &["i", "in", "ini"])]
+    Init(PlanInit),
+    #[structopt(no_version, aliases = &["r", "re", "ren", "rend", "rende"])]
+    Render(PlanRender),
 }
 
 #[derive(ConfigOpt, StructOpt)]
