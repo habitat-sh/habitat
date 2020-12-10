@@ -17,26 +17,26 @@ use crate::{cli::hab::{bldr::{ChannelCreate,
                                ServiceConfigShow},
                       file::FileUpload,
                       license::License,
-                      origin::{Accept,
-                               Create as OriginCreate,
-                               Delete as OriginDelete,
-                               Depart as OriginDepart,
-                               Download as KeyDownload,
-                               Generate as OriginKeyGenerate,
-                               Ignore,
-                               Info as OriginInfo,
-                               KeyExport as OriginKeyExport,
-                               KeyImport as OriginKeyImport,
-                               List,
-                               Pending,
+                      origin::{InvitationsAccept,
+                               OriginCreate,
+                               OriginDelete,
+                               OriginDepart,
+                               OriginKeyDownload,
+                               OriginKeyGenerate,
+                               InvitationsIgnore,
+                               OriginInfo,
+                               OriginKeyExport,
+                               OriginKeyImport,
+                               InvitationsList,
+                               InvitationsPending,
                                Rbac,
-                               Rescind,
+                               InvitationsRescind,
                                SecretDelete,
                                SecretList,
                                SecretUpload,
-                               Send,
-                               Transfer,
-                               Upload as KeyUpload},
+                               InvitationsSend,
+                               OriginTransfer,
+                               OriginKeyUpload},
                       pkg::{ExportCommand,
                             PkgList,
                             PkgBinds,
@@ -88,7 +88,7 @@ use clap::{App,
 use habitat_common::{cli::{file_into_idents,
                            is_toml_file},
                      FeatureFlag};
-use habitat_core::{origin::Origin,
+use habitat_core::{origin::Origin as CoreOrigin,
                    package::{Identifiable,
                              PackageIdent}};
 use std::{fmt,
@@ -129,7 +129,7 @@ pub enum Options {
     #[structopt(no_version)]
     Bldr(Bldr),
     #[structopt(no_version)]
-    Origin(HabOrigin),
+    Origin(Origin),
     #[structopt(no_version)]
     Pkg(Pkg),
     #[structopt(no_version)]
@@ -366,9 +366,9 @@ pub enum Pkg {
 }
 
 #[derive(StructOpt)]
-#[structopt(name = "origin", no_version, aliases = &["o", "or", "ori", "orig", "origi"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+#[structopt(no_version, aliases = &["o", "or", "ori", "orig", "origi"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to Habitat Builder origins
-pub enum HabOrigin {
+pub enum Origin {
     #[structopt(no_version, aliases = &["cre", "crea"])]
     Create(OriginCreate),
     #[structopt(no_version, aliases = &["del", "dele"])]
@@ -380,19 +380,19 @@ pub enum HabOrigin {
     /// Role Based Access Control for origin members
     Rbac(Rbac),
     Secret(OriginSecret),
-    Transfer(Transfer),
+    Transfer(OriginTransfer),
 }
 
 #[derive(StructOpt)]
 #[structopt(no_version, settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Manage origin member invitations
 pub enum Invitations {
-    Accept(Accept),
-    Ignore(Ignore),
-    List(List),
-    Pending(Pending),
-    Rescind(Rescind),
-    Send(Send),
+    Accept(InvitationsAccept),
+    Ignore(InvitationsIgnore),
+    List(InvitationsList),
+    Pending(InvitationsPending),
+    Rescind(InvitationsRescind),
+    Send(InvitationsSend),
 }
 
 #[derive(StructOpt)]
@@ -400,7 +400,7 @@ pub enum Invitations {
 /// Commands relating to Habitat origin key maintenance
 pub enum OriginKey {
     #[structopt(no_version, aliases = &["d", "do", "dow", "down", "downl", "downlo", "downloa"])]
-    Download(KeyDownload),
+    Download(OriginKeyDownload),
     #[structopt(no_version, aliases = &["e", "ex", "exp", "expo", "expor"])]
     Export(OriginKeyExport),
     #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
@@ -408,7 +408,7 @@ pub enum OriginKey {
     #[structopt(no_version, aliases = &["i", "im", "imp", "impo", "impor"])]
     Import(OriginKeyImport),
     #[structopt(no_version, aliases = &["u", "up", "upl", "uplo", "uploa"])]
-    Upload(KeyUpload),
+    Upload(OriginKeyUpload),
 }
 
 #[derive(StructOpt)]
@@ -525,7 +525,7 @@ fn valid_fully_qualified_ident(val: String) -> result::Result<(), String> {
 }
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn valid_origin(val: String) -> result::Result<(), String> { Origin::validate(val) }
+fn valid_origin(val: String) -> result::Result<(), String> { CoreOrigin::validate(val) }
 
 ////////////////////////////////////////////////////////////////////////
 

@@ -47,8 +47,46 @@ use self::{bldr::{ConfigOptChannelCreate,
                   FileUpload},
            license::{ConfigOptLicense,
                      License},
-           origin::{ConfigOptOrigin,
-                    Origin},
+           origin::{ConfigOptInvitationsAccept,
+                    ConfigOptOriginCreate,
+                    ConfigOptOriginDelete,
+                    ConfigOptOriginDepart,
+                    ConfigOptOriginKeyDownload,
+                    ConfigOptOriginKeyGenerate,
+                    ConfigOptInvitationsIgnore,
+                    ConfigOptOriginInfo,
+                    ConfigOptOriginKeyExport,
+                    ConfigOptOriginKeyImport,
+                    ConfigOptInvitationsList,
+                    ConfigOptInvitationsPending,
+                    ConfigOptRbac,
+                    ConfigOptInvitationsRescind,
+                    ConfigOptSecretDelete,
+                    ConfigOptSecretList,
+                    ConfigOptSecretUpload,
+                    ConfigOptInvitationsSend,
+                    ConfigOptOriginTransfer,
+                    ConfigOptOriginKeyUpload,
+                    InvitationsAccept,
+                    OriginCreate,
+                    OriginDelete,
+                    OriginDepart,
+                    OriginKeyDownload,
+                    OriginKeyGenerate,
+                    InvitationsIgnore,
+                    OriginInfo,
+                    OriginKeyExport,
+                    OriginKeyImport,
+                    InvitationsList,
+                    InvitationsPending,
+                    Rbac,
+                    InvitationsRescind,
+                    SecretDelete,
+                    SecretList,
+                    SecretUpload,
+                    InvitationsSend,
+                    OriginTransfer,
+                    OriginKeyUpload},
            pkg::{ConfigOptExportCommand,
                  ConfigOptPkgList,
                  ConfigOptPkgBinds,
@@ -282,6 +320,61 @@ pub enum User {
 pub enum UserKey {
     #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
     Generate(UserKeyGenerate),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["o", "or", "ori", "orig", "origi"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat Builder origins
+pub enum Origin {
+    #[structopt(no_version, aliases = &["cre", "crea"])]
+    Create(OriginCreate),
+    #[structopt(no_version, aliases = &["del", "dele"])]
+    Delete(OriginDelete),
+    Depart(OriginDepart),
+    Info(OriginInfo),
+    Invitations(OriginInvitations),
+    Key(OriginKey),
+    /// Role Based Access Control for origin members
+    Rbac(Rbac),
+    Secret(OriginSecret),
+    Transfer(OriginTransfer),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Manage origin member invitations
+pub enum OriginInvitations {
+    Accept(InvitationsAccept),
+    Ignore(InvitationsIgnore),
+    List(InvitationsList),
+    Pending(InvitationsPending),
+    Rescind(InvitationsRescind),
+    Send(InvitationsSend),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "key", no_version, aliases = &["k", "ke"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat origin key maintenance
+pub enum OriginKey {
+    #[structopt(no_version, aliases = &["d", "do", "dow", "down", "downl", "downlo", "downloa"])]
+    Download(OriginKeyDownload),
+    #[structopt(no_version, aliases = &["e", "ex", "exp", "expo", "expor"])]
+    Export(OriginKeyExport),
+    #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
+    Generate(OriginKeyGenerate),
+    #[structopt(no_version, aliases = &["i", "im", "imp", "impo", "impor"])]
+    Import(OriginKeyImport),
+    #[structopt(no_version, aliases = &["u", "up", "upl", "uplo", "uploa"])]
+    Upload(OriginKeyUpload),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "secret", no_version, settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands related to secret management
+pub enum OriginSecret {
+    Delete(SecretDelete),
+    List(SecretList),
+    Upload(SecretUpload),
 }
 
 #[derive(ConfigOpt, StructOpt)]
