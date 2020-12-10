@@ -55,8 +55,12 @@ use self::{bldr::{ConfigOptChannelCreate,
                  PkgInstall},
            plan::{ConfigOptPlan,
                   Plan},
-           ring::{ConfigOptRing,
-                  Ring},
+           ring::{ConfigOptRingKeyExport,
+                  ConfigOptRingKeyImport,
+                  ConfigOptRingKeyGenerate,
+                  RingKeyExport,
+                  RingKeyImport,
+                  RingKeyGenerate},
            studio::{ConfigOptStudio,
                     Studio},
            sup::{ConfigOptHabSup,
@@ -228,4 +232,23 @@ pub enum User {
 pub enum UserKey {
     #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
     Generate(UserKeyGenerate),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["r", "ri", "rin"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat rings
+pub enum Ring {
+    Key(RingKey),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "key", no_version, aliases = &["k", "ke"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat ring keys
+pub enum RingKey {
+    #[structopt(no_version, aliases = &["e", "ex", "exp", "expo", "expor"])]
+    Export(RingKeyExport),
+    #[structopt(no_version, aliases = &["i", "im", "imp", "impo", "impor"])]
+    Import(RingKeyImport),
+    #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
+    Generate(RingKeyGenerate),
 }

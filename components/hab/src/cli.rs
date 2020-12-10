@@ -65,9 +65,9 @@ use crate::{cli::hab::{bldr::{ChannelCreate,
                             PkgVerify},
                       plan::{PlanInit,
                              PlanRender},
-                      ring::{KeyExport,
-                             KeyGenerate as RingKeyGenerate,
-                             KeyImport},
+                      ring::{RingKeyExport,
+                             RingKeyGenerate,
+                             RingKeyImport},
                       studio::Studio,
                       sup::{HabSup,
                             SupRun,
@@ -268,9 +268,9 @@ pub enum Ring {
 /// Commands relating to Habitat ring keys
 pub enum RingKey {
     #[structopt(no_version, aliases = &["e", "ex", "exp", "expo", "expor"])]
-    Export(KeyExport),
+    Export(RingKeyExport),
     #[structopt(no_version, aliases = &["i", "im", "imp", "impo", "impor"])]
-    Import(KeyImport),
+    Import(RingKeyImport),
     #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
     Generate(RingKeyGenerate),
 }
