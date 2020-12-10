@@ -49,10 +49,58 @@ use self::{bldr::{ConfigOptChannelCreate,
                      License},
            origin::{ConfigOptOrigin,
                     Origin},
-           pkg::{ConfigOptPkg,
+           pkg::{ConfigOptExportCommand,
+                 ConfigOptPkgList,
+                 ConfigOptPkgBinds,
+                 ConfigOptPkgBinlink,
+                 ConfigOptPkgBuild,
+                 ConfigOptPkgBulkupload,
+                 ConfigOptPkgChannels,
+                 ConfigOptPkgConfig,
+                 ConfigOptPkgDelete,
+                 ConfigOptPkgDemote,
+                 ConfigOptPkgDependencies,
+                 ConfigOptPkgDownload,
+                 ConfigOptPkgEnv,
+                 ConfigOptPkgExec,
+                 ConfigOptPkgHash,
+                 ConfigOptPkgHeader,
+                 ConfigOptPkgInfo,
                  ConfigOptPkgInstall,
-                 Pkg,
-                 PkgInstall},
+                 ConfigOptPkgPath,
+                 ConfigOptPkgPromote,
+                 ConfigOptPkgProvides,
+                 ConfigOptPkgSearch,
+                 ConfigOptPkgSign,
+                 ConfigOptPkgUninstall,
+                 ConfigOptPkgUpload,
+                 ConfigOptPkgVerify,
+                 ExportCommand,
+                 PkgList,
+                 PkgBinds,
+                 PkgBinlink,
+                 PkgBuild,
+                 PkgBulkupload,
+                 PkgChannels,
+                 PkgConfig,
+                 PkgDelete,
+                 PkgDemote,
+                 PkgDependencies,
+                 PkgDownload,
+                 PkgEnv,
+                 PkgExec,
+                 PkgHash,
+                 PkgHeader,
+                 PkgInfo,
+                 PkgInstall,
+                 PkgPath,
+                 PkgPromote,
+                 PkgProvides,
+                 PkgSearch,
+                 PkgSign,
+                 PkgUninstall,
+                 PkgUpload,
+                 PkgVerify},
            plan::{ConfigOptPlanInit,
                   ConfigOptPlanRender,
                   PlanInit,
@@ -234,6 +282,57 @@ pub enum User {
 pub enum UserKey {
     #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
     Generate(UserKeyGenerate),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["p", "pk", "package"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat packages
+pub enum Pkg {
+    Binds(PkgBinds),
+    #[structopt(no_version, aliases = &["bi", "bin", "binl", "binli", "binlin"])]
+    Binlink(PkgBinlink),
+    #[structopt(no_version)]
+    Build(PkgBuild),
+    #[structopt(no_version, aliases = &["conf", "cfg"])]
+    Config(PkgConfig),
+    Download(PkgDownload),
+    Env(PkgEnv),
+    Exec(PkgExec),
+    Export(ExportCommand),
+    #[structopt(no_version, aliases = &["ha", "has"])]
+    Hash(PkgHash),
+    #[structopt(no_version, aliases = &["i", "in", "ins", "inst", "insta", "instal"])]
+    Install(PkgInstall),
+    #[structopt(no_version, aliases = &["p", "pa", "pat"])]
+    Path(PkgPath),
+    #[structopt(no_version, aliases = &["li"])]
+    List(PkgList),
+    Provides(PkgProvides),
+    Search(PkgSearch),
+    #[structopt(no_version, aliases = &["s", "si", "sig"])]
+    Sign(PkgSign),
+    #[structopt(no_version, aliases = &["un", "unin"])]
+    Uninstall(PkgUninstall),
+    #[structopt(no_version, aliases = &["bul", "bulk"])]
+    Bulkupload(PkgBulkupload),
+    #[structopt(no_version, aliases = &["u", "up", "upl", "uplo", "uploa"])]
+    Upload(PkgUpload),
+    #[structopt(no_version, aliases = &["del", "dele"])]
+    Delete(PkgDelete),
+    #[structopt(no_version, aliases = &["pr", "pro", "promo", "promot"])]
+    Promote(PkgPromote),
+    #[structopt(no_version, aliases = &["de", "dem", "demo", "demot"])]
+    Demote(PkgDemote),
+    #[structopt(no_version, aliases = &["ch", "cha", "chan", "chann", "channe", "channel"])]
+    Channels(PkgChannels),
+    #[structopt(no_version, aliases = &["v", "ve", "ver", "veri", "verif"])]
+    Verify(PkgVerify),
+    #[structopt(no_version, aliases = &["hea", "head", "heade", "header"])]
+    Header(PkgHeader),
+    #[structopt(no_version, aliases = &["inf", "info"])]
+    Info(PkgInfo),
+    #[structopt(no_version, aliases = &["dep", "deps"])]
+    Dependencies(PkgDependencies),
 }
 
 #[derive(ConfigOpt, StructOpt)]

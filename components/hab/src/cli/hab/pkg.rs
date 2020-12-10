@@ -35,7 +35,7 @@ use structopt::{clap::{AppSettings,
 /// List all versions of installed packages
 #[derive(ConfigOpt, StructOpt, Debug)]
 #[structopt(name = "list", group = ArgGroup::with_name("prefix").required(true), no_version)]
-pub struct List {
+pub struct PkgList {
     /// List all installed packages
     #[structopt(name = "ALL", short = "a", long = "all", group = "prefix")]
     all:       bool,
@@ -88,7 +88,7 @@ pub enum Pkg {
     Header(PkgHeader),
     Info(PkgInfo),
     Install(PkgInstall),
-    List(List),
+    List(PkgList),
     Path(PkgPath),
     Promote(PkgPromote),
     Provides(PkgProvides),
