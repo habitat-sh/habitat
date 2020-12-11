@@ -61,8 +61,8 @@ pub mod ctl_gateway;
 pub mod error;
 pub mod event;
 pub mod http_gateway;
-pub mod logger; // must be pub if used in the `hab-sup` binary
 pub mod lock_file;
+pub mod logger; // must be pub if used in the `hab-sup` binary
 pub mod manager;
 mod sys;
 #[cfg(test)]
