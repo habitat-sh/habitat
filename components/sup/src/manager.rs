@@ -620,16 +620,12 @@ impl Manager {
     /// implicitly assumed to be that of a running Launcher process. That
     /// PID is then told to terminate.
     pub fn term() -> Result<()> {
-        match crate::lock_file::read_lock_file() {
-            Ok(pid) => {
-                #[cfg(unix)]
-                process::signal(pid, Signal::TERM).map_err(|_| Error::SignalFailed)?;
-                #[cfg(windows)]
-                process::terminate(pid)?;
-                Ok(())
-            }
-            Err(err) => Err(err)?,
-        }
+        let pid = crate::lock_file::read_lock_file()?;
+        #[cfg(unix)]
+        process::signal(pid, Signal::TERM).map_err(|_| Error::SignalFailed)?;
+        #[cfg(windows)]
+        process::terminate(pid)?;
+        Ok(())
     }
 
     /// # Locking (see locking.md)

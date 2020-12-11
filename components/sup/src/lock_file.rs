@@ -27,7 +27,8 @@ use std::{fmt,
                OpenOptions},
           io::{Read,
                Write},
-          path::PathBuf,
+          path::{Path,
+                 PathBuf},
           str::FromStr};
 
 type Result<T> = std::result::Result<T, Error>;
@@ -158,7 +159,9 @@ impl LockFile {
     /// Implementation of lock file creation / acquisition logic, separating it
     /// from the logic of determining the file path and the PID to write to that
     /// file.
-    fn acquire_impl(path: PathBuf, pid: PositiveNonZeroPid) -> Result<Self> {
+    fn acquire_impl<P>(path: P, pid: PositiveNonZeroPid) -> Result<Self>
+        where P: AsRef<Path>
+    {
         // Create the file in a block simply to contain the mutability.
         let file = {
             // We use `create`, rather than `create_new`, because the lock file may
@@ -179,7 +182,7 @@ impl LockFile {
             let mut file = OpenOptions::new().write(true)
                                               .create(true)
                                               .truncate(false) // NEVER TRUE!
-                                              .open(&path)
+                                              .open(path)
                                               .map_err(Error::CannotOpen)?;
 
             // If we can't get an exclusive lock, then something else has locked the
@@ -306,9 +309,11 @@ pub fn read_lock_file() -> Result<Pid> { read_lock_file_impl(lock_file_path()) }
 
 /// Implementation of main lockfile reading logic, separate from the specific
 /// file being read. Done to facilitate testing.
-fn read_lock_file_impl(path: PathBuf) -> Result<Pid> {
+fn read_lock_file_impl<P>(path: P) -> Result<Pid>
+    where P: AsRef<Path>
+{
     let mut file = OpenOptions::new().read(true)
-                                     .open(&path)
+                                     .open(path)
                                      .map_err(Error::IOError)?;
 
     // This function is expected to be called in a context where a Supervisor is
@@ -328,7 +333,7 @@ fn read_lock_file_impl(path: PathBuf) -> Result<Pid> {
               .map_err(|e| Error::CorruptLockFile(Box::new(e)))?
     };
 
-    if pid_holds_lock(pid, file)? {
+    if pid_holds_lock(pid, &file)? {
         Ok(pid.into())
     } else {
         Err(Error::InvalidProcess(pid.into()))
@@ -337,7 +342,7 @@ fn read_lock_file_impl(path: PathBuf) -> Result<Pid> {
 
 #[cfg(target_os = "linux")] // This implementation depends on /proc
 /// Returns `true` if the given PID holds a file lock on `file`.
-fn pid_holds_lock(pid: PositiveNonZeroPid, file: File) -> Result<bool> {
+fn pid_holds_lock(pid: PositiveNonZeroPid, file: &File) -> Result<bool> {
     let file_inode = file.metadata().map_err(Error::IOError)?.ino();
     let pid = pid.into();
 
@@ -345,21 +350,20 @@ fn pid_holds_lock(pid: PositiveNonZeroPid, file: File) -> Result<bool> {
     // that holds the lock on the file, then we're good!
     Ok(procfs::locks().map_err(Error::Proc)?
                       .into_iter()
-                      .find(|lock| {
+                      .any(|lock| {
                           // LockMode and LockKind don't implement PartialEq :(
                           lock.mode.as_str() == "ADVISORY"
                           && lock.kind.as_str() == "READ"
                           && lock.inode == file_inode
                           && lock.pid == Some(pid)
-                      })
-                      .is_some())
+                      }))
 }
 
 #[cfg(windows)]
 /// Always returns `true` on Windows; the mandatory nature of file locking on
 /// Windows seems to remove the possibility of the file holding a non-Launcher
 /// PID
-fn pid_holds_lock(_pid: PositiveNonZeroPid, _file: File) -> Result<bool> { Ok(true) }
+fn pid_holds_lock(_pid: PositiveNonZeroPid, _file: &File) -> Result<bool> { Ok(true) }
 
 #[cfg(test)]
 mod tests {
@@ -407,8 +411,7 @@ mod tests {
 
         assert!(!lock_path.exists());
 
-        let _lock_file =
-            LockFile::acquire_impl(lock_path.clone(), PositiveNonZeroPid(2112)).unwrap();
+        let _lock_file = LockFile::acquire_impl(&lock_path, PositiveNonZeroPid(2112)).unwrap();
 
         assert_file_contents(lock_path, "2112");
     }
@@ -423,8 +426,7 @@ mod tests {
         write_to_file(&lock_path, "Rusty McRustface");
         assert_file_contents(&lock_path, "Rusty McRustface");
 
-        let _lock_file =
-            LockFile::acquire_impl(lock_path.clone(), PositiveNonZeroPid(2112)).unwrap();
+        let _lock_file = LockFile::acquire_impl(&lock_path, PositiveNonZeroPid(2112)).unwrap();
 
         assert_file_contents(&lock_path, "2112");
     }
@@ -434,28 +436,27 @@ mod tests {
     fn cannot_have_more_than_one_instance() {
         let (lock_path, _dir) = setup();
 
-        let lock_file_1 = LockFile::acquire_impl(lock_path.clone(), PositiveNonZeroPid(2112));
+        let lock_file_1 = LockFile::acquire_impl(&lock_path, PositiveNonZeroPid(2112));
         assert!(lock_file_1.is_ok());
 
         // Acquiring a second lock will fail because the first one is still in
         // effect.
-        LockFile::acquire_impl(lock_path, PositiveNonZeroPid(2113)).unwrap();
+        LockFile::acquire_impl(&lock_path, PositiveNonZeroPid(2113)).unwrap();
     }
 
     #[test]
     fn dropping_releases_lock() {
         let (lock_path, _dir) = setup();
 
-        let lock_file_1 =
-            LockFile::acquire_impl(lock_path.clone(), PositiveNonZeroPid(2112)).unwrap();
+        let lock_file_1 = LockFile::acquire_impl(&lock_path, PositiveNonZeroPid(2112)).unwrap();
 
         // We can't acquire the lock a second time, as tested above.
-        let lock_file_2 = LockFile::acquire_impl(lock_path.clone(), PositiveNonZeroPid(2112));
+        let lock_file_2 = LockFile::acquire_impl(&lock_path, PositiveNonZeroPid(2112));
         assert!(lock_file_2.is_err());
 
         // However, once we get rid of the old lock, though, we can reacquire it.
         drop(lock_file_1);
-        let lock_file_2 = LockFile::acquire_impl(lock_path.clone(), PositiveNonZeroPid(2112));
+        let lock_file_2 = LockFile::acquire_impl(&lock_path, PositiveNonZeroPid(2112));
         assert!(lock_file_2.is_ok());
     }
 
@@ -465,8 +466,7 @@ mod tests {
 
         assert!(!lock_path.exists());
 
-        let lock_file =
-            LockFile::acquire_impl(lock_path.clone(), PositiveNonZeroPid(2112)).unwrap();
+        let lock_file = LockFile::acquire_impl(&lock_path, PositiveNonZeroPid(2112)).unwrap();
 
         // Just asserting that the file really gets created
         assert_file_contents(&lock_path, "2112");
