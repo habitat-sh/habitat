@@ -106,10 +106,10 @@ impl FromStr for PositiveNonZeroPid {
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.parse() {
             Ok(pid) => {
-                if pid <= 0 {
-                    Err(Error::PidParse(s.to_string()))
-                } else {
+                if pid > 0 {
                     Ok(PositiveNonZeroPid(pid))
+                } else {
+                    Err(Error::PidParse(s.to_string()))
                 }
             }
             Err(_e) => Err(Error::PidParse(s.to_string())),
