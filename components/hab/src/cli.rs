@@ -1,8 +1,7 @@
 pub mod gateway_util;
 pub mod hab;
 
-use crate::cli::hab::{sup::SupRun,
-                      Hab};
+use crate::cli::hab::Hab;
 use clap::{App,
            ArgMatches};
 use habitat_common::{cli::{file_into_idents,
@@ -194,6 +193,7 @@ mod tests {
 
     mod event_stream_feature {
         use super::*;
+        use crate::cli::hab::sup::SupRun;
 
         #[test]
         fn app_and_env_and_token_options_required_if_url_option() {
