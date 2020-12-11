@@ -16,7 +16,7 @@ function Write-Lockfile($content) {
 # we don't want to accidentally kill something important!
 function Select-BogusPID() {
     $test_pid = 2112
-     while (Get-Process -Id $test_pid -ErrorAction SilentlyContinue) {
+    while (Get-Process -Id $test_pid -ErrorAction SilentlyContinue) {
         $test_pid += 1
     }
     $test_pid
