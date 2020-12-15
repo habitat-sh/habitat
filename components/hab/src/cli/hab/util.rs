@@ -20,6 +20,7 @@ use std::{ffi::OsString,
           fmt,
           num::ParseIntError,
           path::PathBuf,
+          result,
           str::FromStr,
           time::Duration};
 use structopt::{clap::AppSettings,
@@ -108,6 +109,15 @@ pub fn maybe_bldr_auth_token_from_args_or_load(opt: Option<String>) -> Option<St
     bldr_auth_token_from_args_env_or_load(opt).ok()
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
+pub fn non_empty(val: String) -> result::Result<(), String> {
+    if val.is_empty() {
+        Err("must not be empty (check env overrides)".to_string())
+    } else {
+        Ok(())
+    }
+}
+
 lazy_static! {
     pub static ref CACHE_KEY_PATH_DEFAULT: String =
         hab_core_fs::CACHE_KEY_PATH.to_string_lossy().to_string();
@@ -165,6 +175,7 @@ impl PkgIdent {
 
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
+#[configopt(derive(Serialize))]
 #[allow(dead_code)]
 pub struct FullyQualifiedPkgIdent {
     /// A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)

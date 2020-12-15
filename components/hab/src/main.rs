@@ -16,12 +16,10 @@ use futures::stream::StreamExt;
 use hab::{cli::{self,
                 gateway_util,
                 hab::{license::License,
-                      origin::{Origin,
-                               Rbac,
+                      origin::{Rbac,
                                RbacSet,
                                RbacShow},
                       pkg::{ExportCommand as PkgExportCommand,
-                            Pkg,
                             PkgExec},
                       sup::{HabSup,
                             Secret,
@@ -32,7 +30,9 @@ use hab::{cli::{self,
                             Svc},
                       util::{bldr_auth_token_from_args_env_or_load,
                              bldr_url_from_args_env_load_or_default},
-                      Hab},
+                      Hab,
+                      Origin,
+                      Pkg},
                 parse_optional_arg,
                 KeyType},
           command::{self,
@@ -262,9 +262,9 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                             return sub_svc_load(svc_load).await;
                         }
                         Svc::Update(svc_update) => return sub_svc_update(svc_update).await,
-                        Svc::Status { pkg_ident,
-                                      remote_sup, } => {
-                            return sub_svc_status(pkg_ident, remote_sup.inner()).await;
+                        Svc::Status(svc_status) => {
+                            return sub_svc_status(svc_status.pkg_ident,
+                                                  svc_status.remote_sup.inner()).await;
                         }
                         _ => {
                             // All other commands will be caught by the CLI parsing logic below.
