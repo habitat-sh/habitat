@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.223 -->
-## [1.6.223](https://github.com/habitat-sh/habitat/tree/1.6.223) (2020-12-15)
+<!-- latest_release 1.6.224 -->
+## [1.6.224](https://github.com/habitat-sh/habitat/tree/1.6.224) (2020-12-15)
 
-#### Bug Fixes
-- Improve handling of Supervisor LOCK file [#8036](https://github.com/habitat-sh/habitat/pull/8036) ([christophermaier](https://github.com/christophermaier))
+#### Merged Pull Requests
+- Migrate cli implementation from clap to structopt [#8027](https://github.com/habitat-sh/habitat/pull/8027) ([sajjaphani](https://github.com/sajjaphani))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.216 -->
@@ -14,6 +14,7 @@
 - Improve handling of Supervisor LOCK file [#8036](https://github.com/habitat-sh/habitat/pull/8036) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.223 -->
 
 #### Merged Pull Requests
+- Migrate cli implementation from clap to structopt [#8027](https://github.com/habitat-sh/habitat/pull/8027) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.224 -->
 - Bump pem from 0.8.1 to 0.8.2 [#8034](https://github.com/habitat-sh/habitat/pull/8034) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.223 -->
 - Bump flate2 from 1.0.17 to 1.0.19 [#8033](https://github.com/habitat-sh/habitat/pull/8033) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.223 -->
 - Bump futures from 0.3.5 to 0.3.8 [#8015](https://github.com/habitat-sh/habitat/pull/8015) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.222 -->
