@@ -24,7 +24,7 @@ habitat_core = { path = "../core" }
 #   with our templating syntax; we use "foo[0]", but it now requires
 #   "foo.[0]"
 #   See https://github.com/sunng87/handlebars-rust/commit/707f05442ef6f441a1cfc6b13ac180b78cb296db
-handlebars = { version = "= 0.28.3", default-features = false }
+handlebars = { version = "= 0.29.1", default-features = false }
 json = "*"
 lazy_static = "^1.4.0"
 libc = "*"

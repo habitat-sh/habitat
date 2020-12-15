@@ -1260,7 +1260,7 @@ dependencies = [
  "habitat_api_client",
  "habitat_common",
  "habitat_core",
- "handlebars 0.29.1",
+ "handlebars",
  "lazy_static 1.4.0",
  "libc",
  "log 0.4.11",
@@ -1450,7 +1450,7 @@ dependencies = [
  "glob",
  "habitat_api_client",
  "habitat_core",
- "handlebars 0.28.3",
+ "handlebars",
  "json",
  "lazy_static 1.4.0",
  "libc",
@@ -1563,7 +1563,7 @@ dependencies = [
  "hab",
  "habitat_common",
  "habitat_core",
- "handlebars 0.29.1",
+ "handlebars",
  "lazy_static 1.4.0",
  "linked-hash-map",
  "log 0.4.11",
@@ -1590,7 +1590,7 @@ dependencies = [
  "flate2",
  "habitat_common",
  "habitat_core",
- "handlebars 0.29.1",
+ "handlebars",
  "lazy_static 1.4.0",
  "log 0.4.11",
  "mktemp",
@@ -1676,21 +1676,6 @@ dependencies = [
  "log 0.4.11",
  "widestring",
  "winapi 0.3.9",
-]
-
-[[package]]
-name = "handlebars"
-version = "0.28.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1bed53dfb11098ec893ed54aa8b9828ffb98d28acbe56a49419935e5a8688ca9"
-dependencies = [
- "lazy_static 0.2.11",
- "log 0.3.9",
- "pest 0.3.3",
- "quick-error",
- "regex 0.2.11",
- "serde",
- "serde_json",
 ]
 
 [[package]]
