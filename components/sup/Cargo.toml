@@ -69,7 +69,6 @@ valico = "*"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
-procfs = "*"
 
 [target.'cfg(target_family = "unix")'.dependencies]
 jemallocator = "*"

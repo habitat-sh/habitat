@@ -1651,7 +1651,6 @@ dependencies = [
  "num_cpus",
  "parking_lot",
  "pin-project 0.4.23",
- "procfs",
  "prometheus",
  "prost",
  "prost-build",
@@ -2814,21 +2813,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "procfs"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab8809e0c18450a2db0f236d2a44ec0b4c1412d0eb936233579f0990faa5d5cd"
-dependencies = [
- "bitflags",
- "byteorder",
- "chrono",
- "flate2",
- "hex",
- "lazy_static 1.4.0",
- "libc",
 ]
 
 [[package]]

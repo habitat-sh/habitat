@@ -20,8 +20,6 @@ use fs2::FileExt;
 use habitat_core::{env,
                    os::process::Pid};
 use habitat_launcher_client::LAUNCHER_PID_ENV;
-#[cfg(unix)]
-use std::os::unix::fs::MetadataExt;
 use std::{fmt,
           fs::{File,
                OpenOptions},
@@ -70,13 +68,6 @@ pub enum Error {
 
     #[error("Could not parse '{0}' as a non-zero positive PID")]
     PidParse(String),
-
-    #[error("PID in file '{}' ({0}) does not hold a lock on the file", lock_file_path().display())]
-    InvalidProcess(Pid),
-
-    #[cfg(target_os = "linux")]
-    #[error("Error encountered interacting with /proc filesystem")]
-    Proc(#[source] procfs::ProcError),
 }
 
 /// Returns the path of the lock file.
@@ -295,16 +286,11 @@ impl Drop for LockFile {
 ///
 /// - the file is already locked by a process, and
 /// - the file contains a valid PID
-/// - the process identified by that PID holds the lock*
 ///
-/// then it is assumed that the process identified by the PID is the Launcher.
+/// then it is assumed that:
 ///
-/// * Currently, we only verify that the PID in the file holds the lock on the
-/// file on Linux, due to the advisory nature of locks on that platform. This
-/// is mainly done as a general sanity-preserving measure. While unlikely,
-/// this would prevent some misbehaving process from writing an arbitrary PID
-/// into the lockfile, thus targeting that process for termination on the next
-/// invocation of `hab sup term`.
+/// - the process identified by that PID holds the lock, and
+/// - the process identified by the PID is the Launcher.
 pub fn read_lock_file() -> Result<Pid> { read_lock_file_impl(lock_file_path()) }
 
 /// Implementation of main lockfile reading logic, separate from the specific
@@ -325,7 +311,7 @@ fn read_lock_file_impl<P>(path: P) -> Result<Pid>
         return Err(Error::StaleLockFile);
     }
 
-    let pid = {
+    let pid: PositiveNonZeroPid = {
         let mut buffer = String::new();
         file.read_to_string(&mut buffer).map_err(Error::IOError)?;
         buffer.trim()
@@ -333,37 +319,8 @@ fn read_lock_file_impl<P>(path: P) -> Result<Pid>
               .map_err(|e| Error::CorruptLockFile(Box::new(e)))?
     };
 
-    if pid_holds_lock(pid, &file)? {
-        Ok(pid.into())
-    } else {
-        Err(Error::InvalidProcess(pid.into()))
-    }
+    Ok(pid.into())
 }
-
-#[cfg(target_os = "linux")] // This implementation depends on /proc
-/// Returns `true` if the given PID holds a file lock on `file`.
-fn pid_holds_lock(pid: PositiveNonZeroPid, file: &File) -> Result<bool> {
-    let file_inode = file.metadata().map_err(Error::IOError)?.ino();
-    let pid = pid.into();
-
-    // If we find an advisory read lock where the PID is the process
-    // that holds the lock on the file, then we're good!
-    Ok(procfs::locks().map_err(Error::Proc)?
-                      .into_iter()
-                      .any(|lock| {
-                          // LockMode and LockKind don't implement PartialEq :(
-                          lock.mode.as_str() == "ADVISORY"
-                          && lock.kind.as_str() == "READ"
-                          && lock.inode == file_inode
-                          && lock.pid == Some(pid)
-                      }))
-}
-
-#[cfg(windows)]
-/// Always returns `true` on Windows; the mandatory nature of file locking on
-/// Windows seems to remove the possibility of the file holding a non-Launcher
-/// PID
-fn pid_holds_lock(_pid: PositiveNonZeroPid, _file: &File) -> Result<bool> { Ok(true) }
 
 #[cfg(test)]
 mod tests {
@@ -501,44 +458,5 @@ mod tests {
 
         // Trying to get the PID out will fail now.
         read_lock_file_impl(lock_path).unwrap();
-    }
-
-    #[test]
-    #[cfg(target_os = "linux")]
-    #[should_panic(expected = "InvalidProcess")]
-    fn does_not_return_pid_if_it_does_not_lock_the_file() {
-        let (lock_path, _dir) = setup();
-
-        // We're going to put a PID that is NOT the PID of this testing process
-        // into the lock file, and then have this testing process take a lock to
-        // the file.
-        let this_pid = std::process::id() as Pid;
-        let pid_to_write = this_pid - 1; // just make it different
-
-        let file = write_to_file(&lock_path, pid_to_write.to_string());
-        file.lock_shared().unwrap();
-
-        // Because this testing process' PID isn't in the file, this check will
-        // fail.
-        read_lock_file_impl(lock_path).unwrap();
-    }
-
-    #[test]
-    #[cfg(target_os = "linux")]
-    fn only_return_pid_if_lock_held_by_that_pid() {
-        let (lock_path, _dir) = setup();
-
-        // Put the PID of this testing process into the file, and then have this
-        // testing process take a lock on the file.
-        let this_pid = std::process::id() as Pid;
-        let file = write_to_file(&lock_path, this_pid.to_string());
-        file.lock_shared().unwrap();
-
-        // We should thus get our PID back because it's in the file, and this
-        // process holds the lock.
-        let result = read_lock_file_impl(lock_path);
-        assert!(result.is_ok());
-        let actual_pid = result.unwrap();
-        assert_eq!(this_pid, actual_pid);
     }
 }
