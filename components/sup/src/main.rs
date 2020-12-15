@@ -20,8 +20,7 @@ use crate::sup::{cli::cli,
                  logger,
                  manager::{Manager,
                            ManagerConfig,
-                           TLSConfig,
-                           PROC_LOCK_FILE},
+                           TLSConfig},
                  util};
 use configopt::ConfigOpt;
 use hab::cli::hab::{sup::SupRun,
@@ -226,13 +225,9 @@ async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run: SupRun,
 async fn sub_sh() -> Result<()> { command::shell::sh().await }
 
 fn sub_term() -> Result<()> {
-    // We were generating a ManagerConfig from matches here, but 'hab sup term' takes no options.
-    // This means that we were implicitly getting the default ManagerConfig here. Instead of calling
-    // a function to generate said config, we can just explicitly pass the default.
-    let proc_lock_file = habitat_sup_protocol::sup_root(None).join(PROC_LOCK_FILE);
-    match Manager::term(&proc_lock_file) {
-        Err(Error::ProcessLockIO(..)) => {
-            println!("Supervisor not started.");
+    match Manager::term() {
+        Err(e @ Error::LockFileError(..)) => {
+            println!("Supervisor not terminated: {}", e);
             Ok(())
         }
         result => result,

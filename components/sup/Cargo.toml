@@ -23,6 +23,7 @@ clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", f
 configopt = { git = "https://github.com/davidMcneil/configopt.git" }
 cpu-time = "*"
 derivative = "*"
+fs2 = "*"
 futures = { version = "0.3.8" }
 glob = "*"
 hab = { path = "../hab" }
@@ -58,6 +59,7 @@ state = "*"
 structopt = { git = "https://github.com/habitat-sh/structopt.git" }
 tempfile = "*"
 termcolor = "*"
+thiserror = "*"
 toml = { version = "*", features = ["preserve_order"]}
 tokio = { version = "^0.2", features = ["full"] }
 tokio-rustls = "^0.14" # Tokio 0.2

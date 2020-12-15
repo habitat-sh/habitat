@@ -42,6 +42,7 @@ use crate::{census::{CensusRing,
             event::{self,
                     EventStreamConfig},
             http_gateway,
+            lock_file::LockFile,
             util::pkg,
             VERSION};
 use cpu_time::ProcessTime;
@@ -71,7 +72,6 @@ use habitat_core::{crypto::keys::{KeyCache,
                    env::Config,
                    fs::FS_ROOT_PATH,
                    os::process::{self,
-                                 Pid,
                                  ShutdownTimeout},
                    package::{Identifiable,
                              PackageIdent,
@@ -79,9 +79,7 @@ use habitat_core::{crypto::keys::{KeyCache,
                    service::ServiceGroup,
                    util::ToI64,
                    ChannelIdent};
-use habitat_launcher_client::{LauncherCli,
-                              LAUNCHER_LOCK_CLEAN_ENV,
-                              LAUNCHER_PID_ENV};
+use habitat_launcher_client::LauncherCli;
 use habitat_sup_protocol::{self};
 use parking_lot::{Mutex,
                   RwLock};
@@ -99,10 +97,8 @@ use std::{collections::{HashMap,
                         HashSet},
           ffi::OsStr,
           fs::{self,
-               File,
-               OpenOptions},
-          io::{BufRead,
-               BufReader,
+               File},
+          io::{BufReader,
                Read,
                Write},
           iter::{FromIterator,
@@ -592,6 +588,11 @@ pub struct Manager {
 
     feature_flags: FeatureFlag,
     pid_source:    ServicePidSource,
+
+    /// Open file handle to the Launcher's lock file. As long as we hold this,
+    /// we are the only Supervisor process that may run on this host. We don't
+    /// actually use this; we just keep it open.
+    _lock_file: LockFile,
 }
 
 impl Manager {
@@ -603,34 +604,37 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `MemberList::initial_members` (write)
     pub async fn load_imlw(cfg: ManagerConfig, launcher: LauncherCli) -> Result<Manager> {
+        let lock_file = LockFile::acquire()?;
+
         let state_path = cfg.sup_root();
         let fs_cfg = FsCfg::new(state_path);
         Self::create_state_path_dirs(&fs_cfg)?;
         Self::clean_dirty_state(&fs_cfg)?;
-        if env::var(LAUNCHER_LOCK_CLEAN_ENV).is_ok() {
-            release_process_lock(&fs_cfg);
-        }
-        obtain_process_lock(&fs_cfg)?;
-
-        Self::new_imlw(cfg, fs_cfg, launcher).await
+        Self::new_imlw(cfg, fs_cfg, lock_file, launcher).await
     }
 
-    pub fn term(proc_lock_file: &Path) -> Result<()> {
-        match read_process_lock(proc_lock_file) {
-            Ok(pid) => {
-                #[cfg(unix)]
-                process::signal(pid, Signal::TERM).map_err(|_| Error::SignalFailed)?;
-                #[cfg(windows)]
-                process::terminate(pid)?;
-                Ok(())
-            }
-            Err(err) => Err(err),
-        }
+    /// Terminate the locally-running Supervisor/Launcher (assuming it is
+    /// running, of course).
+    ///
+    /// If the lock file can be read successfully, the PID being returned is
+    /// implicitly assumed to be that of a running Launcher process. That
+    /// PID is then told to terminate.
+    pub fn term() -> Result<()> {
+        let pid = crate::lock_file::read_lock_file()?;
+        #[cfg(unix)]
+        process::signal(pid, Signal::TERM).map_err(|_| Error::SignalFailed)?;
+        #[cfg(windows)]
+        process::terminate(pid)?;
+        Ok(())
     }
 
     /// # Locking (see locking.md)
     /// * `MemberList::initial_members` (write)
-    async fn new_imlw(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
+    async fn new_imlw(cfg: ManagerConfig,
+                      fs_cfg: FsCfg,
+                      lock_file: LockFile,
+                      launcher: LauncherCli)
+                      -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
         outputln!("{} ({})", SUP_PKG_IDENT, *THIS_SUPERVISOR_IDENT);
         let cfg_static = cfg.clone();
@@ -718,7 +722,8 @@ impl Manager {
                      busy_services: Arc::default(),
                      services_need_reconciliation: ReconciliationFlag::new(false),
                      feature_flags: cfg.feature_flags,
-                     pid_source })
+                     pid_source,
+                     _lock_file: lock_file })
     }
 
     /// Load the initial Butterly Member which is used in initializing the Butterfly server. This
@@ -1253,7 +1258,6 @@ impl Manager {
             }
         }
 
-        release_process_lock(&self.fs_cfg);
         self.butterfly.persist_data_rsr_mlr();
 
         match shutdown_mode {
@@ -1818,85 +1822,6 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
     server_config.set_single_cert(cert_chain, key)?;
     server_config.ignore_client_order = true;
     Ok(server_config)
-}
-
-fn obtain_process_lock(fs_cfg: &FsCfg) -> Result<()> {
-    match write_process_lock(&fs_cfg.proc_lock_file) {
-        Ok(()) => Ok(()),
-        Err(_) => {
-            match read_process_lock(&fs_cfg.proc_lock_file) {
-                Ok(pid) => {
-                    if process::is_alive(pid) {
-                        return Err(Error::ProcessLocked(pid));
-                    }
-                    release_process_lock(&fs_cfg);
-                    write_process_lock(&fs_cfg.proc_lock_file)
-                }
-                Err(Error::ProcessLockCorrupt) => {
-                    release_process_lock(&fs_cfg);
-                    write_process_lock(&fs_cfg.proc_lock_file)
-                }
-                Err(err) => Err(err),
-            }
-        }
-    }
-}
-
-fn read_process_lock<T>(lock_path: T) -> Result<Pid>
-    where T: AsRef<Path>
-{
-    match File::open(lock_path.as_ref()) {
-        Ok(file) => {
-            let reader = BufReader::new(file);
-            match reader.lines().next() {
-                Some(Ok(line)) => {
-                    match line.parse::<Pid>() {
-                        Ok(pid) if pid == 0 => {
-                            error!(target: "pidfile_tracing", "Read PID of 0 from process lock file {}!",
-                                   lock_path.as_ref().display());
-                            // Treat this the same as a corrupt pid
-                            // file, because that's basically what it
-                            // is.
-                            //
-                            // This *should* be an impossible situation.
-                            Err(Error::ProcessLockCorrupt)
-                        }
-                        Ok(pid) => Ok(pid),
-                        Err(_) => Err(Error::ProcessLockCorrupt),
-                    }
-                }
-                _ => Err(Error::ProcessLockCorrupt),
-            }
-        }
-        Err(err) => Err(Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)),
-    }
-}
-
-fn release_process_lock(fs_cfg: &FsCfg) {
-    if let Err(err) = fs::remove_file(&fs_cfg.proc_lock_file) {
-        debug!("Couldn't cleanup Supervisor process lock, {}", err);
-    }
-}
-
-fn write_process_lock<T>(lock_path: T) -> Result<()>
-    where T: AsRef<Path>
-{
-    match OpenOptions::new().write(true)
-                            .create_new(true)
-                            .open(lock_path.as_ref())
-    {
-        Ok(mut file) => {
-            let pid = match env::var(LAUNCHER_PID_ENV) {
-                Ok(pid) => pid.parse::<Pid>().expect("Unable to parse launcher pid"),
-                Err(_) => process::current_pid(),
-            };
-            match write!(&mut file, "{}", pid) {
-                Ok(()) => Ok(()),
-                Err(err) => Err(Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)),
-            }
-        }
-        Err(err) => Err(Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)),
-    }
 }
 
 #[cfg(windows)]

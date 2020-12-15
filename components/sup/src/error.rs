@@ -1,7 +1,6 @@
 use crate::event;
 use futures::channel::oneshot;
 use habitat_core::{self,
-                   os::process::Pid,
                    package::{self,
                              Identifiable}};
 use std::{env,
@@ -60,6 +59,7 @@ pub enum Error {
     Io(io::Error),
     TaskJoin(JoinError),
     Launcher(habitat_launcher_client::Error),
+    LockFileError(crate::lock_file::Error),
     MissingRequiredBind(Vec<String>),
     MissingRequiredIdent,
     NameLookup(io::Error),
@@ -75,9 +75,6 @@ pub enum Error {
     PackageNotFound(package::PackageIdent),
     PackageNotRunnable(package::PackageIdent),
     Permissions(String),
-    ProcessLockCorrupt,
-    ProcessLocked(Pid),
-    ProcessLockIO(PathBuf, io::Error),
     RecvError(mpsc::RecvError),
     RecvTimeoutError(mpsc::RecvTimeoutError),
     ServiceDeserializationError(serde_json::Error),
@@ -148,6 +145,13 @@ impl fmt::Display for Error {
             Error::BadStartStyle(ref style) => format!("Unknown service start style '{}'", style),
             Error::BindTimeout(ref err) => format!("Timeout waiting to bind to {}", err),
             Error::LockPoisoned => "A mutex or read/write lock has failed.".to_string(),
+
+            // This '->' formatting is taken from the thiserror crate and how it
+            // presents source error information. Ultimately, it would be good
+            // to standardize on that, as it provides an easy way to generate
+            // informative error messages for users.
+            Error::LockFileError(e) => format!("Lock file error -> {}", e),
+
             Error::TestBootFail => "Simulated boot failure".to_string(),
             Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
             Error::CtlSecretIo(ref path, ref err) => {
@@ -209,18 +213,6 @@ impl fmt::Display for Error {
                 }
             }
             Error::PackageNotRunnable(ref pkg) => format!("Package is not runnable: {}", pkg),
-            Error::ProcessLockCorrupt => "Unable to decode contents of process lock".to_string(),
-            Error::ProcessLocked(ref pid) => {
-                format!("Unable to start Habitat Supervisor because another instance is already \
-                         running with the pid {}.",
-                        pid)
-            }
-            Error::ProcessLockIO(ref path, ref err) => {
-                format!("Unable to start Habitat Supervisor because we weren't able to write or \
-                         read to a process lock at {}, {}",
-                        path.display(),
-                        err)
-            }
             Error::RecvError(ref err) => err.to_string(),
             Error::RecvTimeoutError(ref err) => err.to_string(),
             Error::ServiceDeserializationError(ref e) => {
@@ -277,6 +269,7 @@ impl error::Error for Error {
         match self {
             // Nothing else implements source yet
             Error::EventError(ref e) => e.source(),
+            Error::LockFileError(ref e) => e.source(),
             _ => None,
         }
     }
@@ -388,4 +381,8 @@ impl From<event::Error> for Error {
 
 impl From<env::VarError> for Error {
     fn from(err: env::VarError) -> Error { Error::EnvVarError(err) }
+}
+
+impl From<crate::lock_file::Error> for Error {
+    fn from(src: crate::lock_file::Error) -> Self { Error::LockFileError(src) }
 }
