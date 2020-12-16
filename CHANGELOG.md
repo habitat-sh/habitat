@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.227 -->
-## [1.6.227](https://github.com/habitat-sh/habitat/tree/1.6.227) (2020-12-16)
+<!-- latest_release 1.6.228 -->
+## [1.6.228](https://github.com/habitat-sh/habitat/tree/1.6.228) (2020-12-16)
 
 #### Merged Pull Requests
-- Bump widestring from 0.4.2 to 0.4.3 [#8042](https://github.com/habitat-sh/habitat/pull/8042) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- perform configopt parsing in separate thread to avoid stack overflow in main [#8041](https://github.com/habitat-sh/habitat/pull/8041) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.216 -->
@@ -14,6 +14,9 @@
 - Improve handling of Supervisor LOCK file [#8036](https://github.com/habitat-sh/habitat/pull/8036) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.223 -->
 
 #### Merged Pull Requests
+- perform configopt parsing in separate thread to avoid stack overflow in main [#8041](https://github.com/habitat-sh/habitat/pull/8041) ([mwrock](https://github.com/mwrock)) <!-- 1.6.228 -->
+- Bump reqwest from 0.10.3 to 0.10.10 [#8039](https://github.com/habitat-sh/habitat/pull/8039) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.228 -->
+- Bump libc from 0.2.80 to 0.2.81 [#8037](https://github.com/habitat-sh/habitat/pull/8037) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.228 -->
 - Bump widestring from 0.4.2 to 0.4.3 [#8042](https://github.com/habitat-sh/habitat/pull/8042) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.227 -->
 - [CI] Bump macOS builder timeouts [#8043](https://github.com/habitat-sh/habitat/pull/8043) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.226 -->
 - Create the Supervisor state directories before acquiring lock [#8040](https://github.com/habitat-sh/habitat/pull/8040) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.225 -->
