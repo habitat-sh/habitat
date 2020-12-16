@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.225 -->
-## [1.6.225](https://github.com/habitat-sh/habitat/tree/1.6.225) (2020-12-16)
+<!-- latest_release 1.6.226 -->
+## [1.6.226](https://github.com/habitat-sh/habitat/tree/1.6.226) (2020-12-16)
 
 #### Merged Pull Requests
-- Create the Supervisor state directories before acquiring lock [#8040](https://github.com/habitat-sh/habitat/pull/8040) ([christophermaier](https://github.com/christophermaier))
+- [CI] Bump macOS builder timeouts [#8043](https://github.com/habitat-sh/habitat/pull/8043) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.216 -->
@@ -14,6 +14,7 @@
 - Improve handling of Supervisor LOCK file [#8036](https://github.com/habitat-sh/habitat/pull/8036) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.223 -->
 
 #### Merged Pull Requests
+- [CI] Bump macOS builder timeouts [#8043](https://github.com/habitat-sh/habitat/pull/8043) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.226 -->
 - Create the Supervisor state directories before acquiring lock [#8040](https://github.com/habitat-sh/habitat/pull/8040) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.225 -->
 - Migrate cli implementation from clap to structopt [#8027](https://github.com/habitat-sh/habitat/pull/8027) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.224 -->
 - Bump pem from 0.8.1 to 0.8.2 [#8034](https://github.com/habitat-sh/habitat/pull/8034) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.223 -->
