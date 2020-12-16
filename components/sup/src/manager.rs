@@ -604,11 +604,12 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `MemberList::initial_members` (write)
     pub async fn load_imlw(cfg: ManagerConfig, launcher: LauncherCli) -> Result<Manager> {
-        let lock_file = LockFile::acquire()?;
-
         let state_path = cfg.sup_root();
         let fs_cfg = FsCfg::new(state_path);
         Self::create_state_path_dirs(&fs_cfg)?;
+        // The lock file exists within the state directory, so we have to create
+        // it first!
+        let lock_file = LockFile::acquire()?;
         Self::clean_dirty_state(&fs_cfg)?;
         Self::new_imlw(cfg, fs_cfg, lock_file, launcher).await
     }
