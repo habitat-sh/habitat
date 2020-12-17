@@ -59,6 +59,7 @@ steps:
     env:
       BUILD_PKG_TARGET: "x86_64-darwin"
       HOMEBREW_NO_INSTALL_CLEANUP: 1
+      HOMEBREW_NO_AUTO_UPDATE: 1
     expeditor:
       executor:
         macos:
