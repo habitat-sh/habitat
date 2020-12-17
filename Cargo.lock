@@ -750,7 +750,7 @@ version = "3.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b57a92e9749e10f25a171adcebfafe72991d45e7ec2dcb853e8f83d9dafaeb08"
 dependencies = [
- "nix",
+ "nix 0.18.0",
  "winapi 0.3.9",
 ]
 
@@ -1306,7 +1306,7 @@ dependencies = [
  "ipc-channel",
  "libc",
  "log 0.4.11",
- "nix",
+ "nix 0.19.1",
  "prost",
  "semver 0.11.0",
  "winapi 0.3.9",
@@ -1460,7 +1460,7 @@ dependencies = [
  "libc",
  "log 0.4.11",
  "native-tls",
- "nix",
+ "nix 0.19.1",
  "owning_ref",
  "parking_lot",
  "pbr",
@@ -1504,7 +1504,7 @@ dependencies = [
  "libc",
  "log 0.4.11",
  "native-tls",
- "nix",
+ "nix 0.19.1",
  "num_cpus",
  "os_info",
  "paste 1.0.3",
@@ -2376,6 +2376,18 @@ dependencies = [
  "bitflags",
  "cc",
  "cfg-if 0.1.10",
+ "libc",
+]
+
+[[package]]
+name = "nix"
+version = "0.19.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2ccba0cfe4fdf15982d1674c69b1fd80bad427d293849982668dfe454bd61f2"
+dependencies = [
+ "bitflags",
+ "cc",
+ "cfg-if 1.0.0",
  "libc",
 ]
 
