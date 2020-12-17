@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.230 -->
-## [1.6.230](https://github.com/habitat-sh/habitat/tree/1.6.230) (2020-12-17)
+<!-- latest_release 1.6.231 -->
+## [1.6.231](https://github.com/habitat-sh/habitat/tree/1.6.231) (2020-12-17)
 
 #### Merged Pull Requests
-- [CI] Unblock macOS workers again [#8049](https://github.com/habitat-sh/habitat/pull/8049) ([christophermaier](https://github.com/christophermaier))
+- Bump ctrlc from 3.1.6 to 3.1.7 [#8044](https://github.com/habitat-sh/habitat/pull/8044) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.216 -->
@@ -14,6 +14,7 @@
 - Improve handling of Supervisor LOCK file [#8036](https://github.com/habitat-sh/habitat/pull/8036) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.223 -->
 
 #### Merged Pull Requests
+- Bump ctrlc from 3.1.6 to 3.1.7 [#8044](https://github.com/habitat-sh/habitat/pull/8044) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.231 -->
 - [CI] Unblock macOS workers again [#8049](https://github.com/habitat-sh/habitat/pull/8049) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.230 -->
 - [CI] Add additional documentation for the CI pipeline [#8008](https://github.com/habitat-sh/habitat/pull/8008) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.229 -->
 - perform configopt parsing in separate thread to avoid stack overflow in main [#8041](https://github.com/habitat-sh/habitat/pull/8041) ([mwrock](https://github.com/mwrock)) <!-- 1.6.228 -->
