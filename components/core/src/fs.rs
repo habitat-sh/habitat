@@ -659,21 +659,21 @@ pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
             match find_command_in_pkg(program, pkg_install, Path::new(&*FS_ROOT_PATH)) {
                 Ok(Some(p)) => p,
                 Ok(None) => {
-                    panic!(format!("Could not find '{}' in the '{}' package! This is required \
-                                    for the proper operation of this program.",
-                                   program, &ident))
+                    panic!("Could not find '{}' in the '{}' package! This is required for the \
+                            proper operation of this program.",
+                           program, &ident)
                 }
                 Err(err) => {
-                    panic!(format!("Error finding '{}' in the '{}' package! This is required for \
-                                    the proper operation of this program. (Err: {:?})",
-                                   program, &ident, err))
+                    panic!("Error finding '{}' in the '{}' package! This is required for the \
+                            proper operation of this program. (Err: {:?})",
+                           program, &ident, err)
                 }
             }
         }
         Err(err) => {
-            panic!(format!("Package installation for '{}' not found on disk! This is required \
-                            for the proper operation of this program (Err: {:?})",
-                           &ident, err))
+            panic!("Package installation for '{}' not found on disk! This is required for the \
+                    proper operation of this program (Err: {:?})",
+                   &ident, err)
         }
     };
     debug!("resolved absolute path to program, program={}, ident={}, abs_path={}",
