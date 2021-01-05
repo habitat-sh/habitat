@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.234 -->
-## [1.6.234](https://github.com/habitat-sh/habitat/tree/1.6.234) (2021-01-04)
+<!-- latest_release 1.6.235 -->
+## [1.6.235](https://github.com/habitat-sh/habitat/tree/1.6.235) (2021-01-05)
 
 #### Merged Pull Requests
-- Remove the Hab docs website [#8055](https://github.com/habitat-sh/habitat/pull/8055) ([kagarmoe](https://github.com/kagarmoe))
+- [CI] Update to use new mac bootstrapper [#8051](https://github.com/habitat-sh/habitat/pull/8051) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.216 -->
@@ -14,6 +14,7 @@
 - Improve handling of Supervisor LOCK file [#8036](https://github.com/habitat-sh/habitat/pull/8036) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.223 -->
 
 #### Merged Pull Requests
+- [CI] Update to use new mac bootstrapper [#8051](https://github.com/habitat-sh/habitat/pull/8051) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.235 -->
 - Remove the Hab docs website [#8055](https://github.com/habitat-sh/habitat/pull/8055) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.234 -->
 - Bump rcgen from 0.8.5 to 0.8.9 [#8048](https://github.com/habitat-sh/habitat/pull/8048) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.233 -->
 - remove unnecessary format! from panic! in fs [#8050](https://github.com/habitat-sh/habitat/pull/8050) ([mwrock](https://github.com/mwrock)) <!-- 1.6.232 -->
