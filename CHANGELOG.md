@@ -7,8 +7,15 @@
 - [CI] Update to use new mac bootstrapper [#8051](https://github.com/habitat-sh/habitat/pull/8051) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.216 -->
-### Changes since 1.6.216 release
+<!-- release_rollup since=1.6.235 -->
+### Changes since 1.6.235 release
+
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.235 -->
+
+## [1.6.235](https://github.com/habitat-sh/habitat/tree/1.6.235) (2020-01-06)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.216..1.6.235)
 
 #### Bug Fixes
 - Improve handling of Supervisor LOCK file [#8036](https://github.com/habitat-sh/habitat/pull/8036) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.223 -->
@@ -36,9 +43,6 @@
 - Bump async-trait from 0.1.38 to 0.1.42 [#8007](https://github.com/habitat-sh/habitat/pull/8007) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.219 -->
 - Bump tar from 0.4.29 to 0.4.30 [#8003](https://github.com/habitat-sh/habitat/pull/8003) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.218 -->
 - Update CHANGELOG for 1.6.216 [#8012](https://github.com/habitat-sh/habitat/pull/8012) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.217 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 1.6.216 -->
 
 ## [1.6.216](https://github.com/habitat-sh/habitat/tree/1.6.216) (2020-12-01)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.181..1.6.216)
