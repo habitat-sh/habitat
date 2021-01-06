@@ -172,7 +172,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     if matches!((args.next().unwrap_or_default().as_str(),
                  args.next().unwrap_or_default().as_str(),
                  args.next().unwrap_or_default().as_str()),
-                 (_, "sup", "--version") | (_, "sup", "-V"))
+                (_, "sup", "--version") | (_, "sup", "-V"))
     {
         return command::sup::start(ui, &args_after_first(2)).await;
     }
