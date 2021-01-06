@@ -1,15 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.235 -->
-## [1.6.235](https://github.com/habitat-sh/habitat/tree/1.6.235) (2021-01-05)
+<!-- latest_release 1.6.236 -->
+## [1.6.236](https://github.com/habitat-sh/habitat/tree/1.6.236) (2021-01-06)
 
 #### Merged Pull Requests
-- [CI] Update to use new mac bootstrapper [#8051](https://github.com/habitat-sh/habitat/pull/8051) ([christophermaier](https://github.com/christophermaier))
+- Update changelog for 1.6.235 release [#8059](https://github.com/habitat-sh/habitat/pull/8059) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.235 -->
 ### Changes since 1.6.235 release
 
+#### Merged Pull Requests
+- Update changelog for 1.6.235 release [#8059](https://github.com/habitat-sh/habitat/pull/8059) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.236 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release 1.6.235 -->
