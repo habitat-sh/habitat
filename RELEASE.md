@@ -272,16 +272,8 @@ for additional details.
 
 # Release Notification
 
-1. Create new posts in [Chef Release Announcements](https://discourse.chef.io/c/chef-release) on the Chef Discourse as well as [Announcements](https://forums.habitat.sh/c/announcements) in the Habitat forums.
+1. Create new posts in [Chef Release Announcements](https://discourse.chef.io) on the Chef Discourse.
 1. Tweet a release announcement from `@habitatsh`.
-1. Link forum posts to the github release
-
-# Update Cargo.lock
-
-1. In the [habitat](https://github.com/habitat-sh/habitat) repo, run `cargo update`, `cargo check --all --tests`.
-1. If there are warnings or errors that are simple, fix them. Otherwise, lock the appropriate versions in `Cargo.toml` files that lets the build succeed and file an issue to resolve the failure and relax the version lock.
-1. Open a PR for the `Cargo.lock` updates and any accompanying fixes which are necessary.
-1. Repeat with the [builder](https://github.com/habitat-sh/builder) repo (omit the `habitat-launcher` build).
 
 # Release postmortem
 
