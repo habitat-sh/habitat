@@ -274,7 +274,6 @@ for additional details.
 
 1. Create new posts in [Chef Release Announcements](https://discourse.chef.io) on the Chef Discourse.
 1. Tweet a release announcement from `@habitatsh`.
-1. Link forum posts to the github release
 
 # Update Cargo.lock
 
