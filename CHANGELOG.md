@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.238 -->
-## [1.6.238](https://github.com/habitat-sh/habitat/tree/1.6.238) (2021-01-06)
+<!-- latest_release 1.6.239 -->
+## [1.6.239](https://github.com/habitat-sh/habitat/tree/1.6.239) (2021-01-07)
 
 #### Merged Pull Requests
-- Update kernel2 evaluation VM to Centos 6.10 [#8060](https://github.com/habitat-sh/habitat/pull/8060) ([christophermaier](https://github.com/christophermaier))
+- Fix some minor errors in the generate-cli-docs script [#8062](https://github.com/habitat-sh/habitat/pull/8062) ([IanMadd](https://github.com/IanMadd))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.235 -->
 ### Changes since 1.6.235 release
 
 #### Merged Pull Requests
+- Fix some minor errors in the generate-cli-docs script [#8062](https://github.com/habitat-sh/habitat/pull/8062) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.239 -->
 - Update kernel2 evaluation VM to Centos 6.10 [#8060](https://github.com/habitat-sh/habitat/pull/8060) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.238 -->
 - Assorted release instruction updates [#8061](https://github.com/habitat-sh/habitat/pull/8061) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.238 -->
 - Rustfmt and Nightly Rust Bump to nightly-2021-01-06 [#8058](https://github.com/habitat-sh/habitat/pull/8058) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.237 -->
