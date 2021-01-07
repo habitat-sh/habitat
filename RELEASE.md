@@ -3,6 +3,10 @@
 This document contains step-by-step details for how to release Habitat. All components are released
 from the master branch on a bi-weekly schedule occurring every other Monday.
 
+Note: this document covers what to do once you decide you want to make
+an official release. If you would like further details on how the
+overall pipeline, please go [here](./.expeditor/README.md).
+
 ## Promote a Candidate for Manual Testing
 
 In Slack, execute the following command:
@@ -229,7 +233,14 @@ The Buildkite release is fairly-well automated at this point, but once it is com
 
 ## Update Homebrew
 
-The [Habitat Homebrew](https://github.com/habitat-sh/homebrew-habitat) repository will automatically generate a PR to update the Homebrew tap after a release is promoted to stable. This PR will be tested to ensure the updated version is able to install.  If the PR checks are green, it is safe to merge and this will update our `brew install`ed version to the current stable release. 
+The [Habitat Homebrew](https://github.com/habitat-sh/homebrew-habitat) repository will automatically generate a PR to update the Homebrew tap after a release is promoted to stable. This PR will be tested to ensure the updated version is able to install.  If the PR checks are green, it is safe to merge and this will update our `brew install`ed version to the current stable release.
+
+## Create Github Release
+
+We do have some automation for this, but it has some problems that
+need to be addressed. Until it is fixed, visit [the Habitat repository
+release page](https://github.com/habitat-sh/habitat/releases/new) to
+create a new release based on the corresponding tag.
 
 ## The Builder Worker
 
