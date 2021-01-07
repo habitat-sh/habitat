@@ -81,18 +81,16 @@ function markdownForHeader() {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const formatted = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`
   return `+++
-  title = "Chef Habitat Command-Line Interface (CLI) Reference"
-  draft= false
-  
-  aliases = ["/habitat/habitat-cli/"]
-  
-  [menu]
-    [menu.habitat]
-      title = "hab CLI Reference"
-      identifier = "habitat/reference/hab CLI Reference"
-      parent = "habitat/reference"
-      weight = 10
-  +++
+title = "Chef Habitat Command-Line Interface (CLI) Reference"
+draft= false
+
+[menu]
+  [menu.habitat]
+    title = "Habitat CLI Reference"
+    identifier = "habitat/reference/Habitat CLI Reference"
+    parent = "habitat/reference"
+    weight = 10
++++
 
 <!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/.expeditor/scripts/finish_release/generate-cli-docs.js -->
 
