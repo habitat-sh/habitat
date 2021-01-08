@@ -283,7 +283,7 @@ for additional details.
 
 # Release Notification
 
-1. Create new posts in [Chef Release Announcements](https://discourse.chef.io) on the Chef Discourse.
+1. Create new posts in the [Chef Release Announcements](https://discourse.chef.io/c/chef-release) category on the [Chef Discourse server](https://discourse.chef.io).
 1. Tweet a release announcement from `@habitatsh`.
 
 # Release postmortem
