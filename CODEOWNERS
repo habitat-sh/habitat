@@ -1,18 +1,18 @@
-.expeditor @christophermaier @markan @jeremymv2
-components/builder-api-client @christophermaier @markan @jeremymv2
-components/butterfly* @christophermaier @markan @jeremymv2
-components/core @christophermaier @markan @jeremymv2
-components/common @christophermaier @markan @jeremymv2
+.expeditor @markan @jeremymv2
+components/builder-api-client @markan @jeremymv2
+components/butterfly* @markan @jeremymv2
+components/core @markan @jeremymv2
+components/common @markan @jeremymv2
 components/docs-chef-io @kagarmoe @mjingle @ianmadd
-components/hab @christophermaier @markan @jeremymv2
-components/http-client @christophermaier @markan @jeremymv2
-components/launcher* @christophermaier @markan @jeremymv2
-components/pkg-* @christophermaier @markan @jeremymv2
-components/plan-build @christophermaier @markan @jeremymv2
-components/studio @christophermaier @markan @jeremymv2
-components/sup* @christophermaier @markan @jeremymv2
-components/win-users @christophermaier @markan @jeremymv2
-support @christophermaier @markan @jeremymv2
-tools @christophermaier @markan @jeremymv2
+components/hab @markan @jeremymv2
+components/http-client @markan @jeremymv2
+components/launcher* @markan @jeremymv2
+components/pkg-* @markan @jeremymv2
+components/plan-build @markan @jeremymv2
+components/studio @markan @jeremymv2
+components/sup* @markan @jeremymv2
+components/win-users @markan @jeremymv2
+support @markan @jeremymv2
+tools @markan @jeremymv2
 www @chef/automate-ui-team @kagarmoe @mjingle @ianmadd
-UX_PRINCIPLES.md @christophermaier @markan @jeremymv2
+UX_PRINCIPLES.md @markan @jeremymv2
