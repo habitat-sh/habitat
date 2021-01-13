@@ -63,7 +63,7 @@ thiserror = "*"
 toml = { version = "*", features = ["preserve_order"]}
 tokio = { version = "^0.2", features = ["full"] }
 tokio-rustls = "^0.14" # Tokio 0.2
-tokio-util = { version = "^0.3", features = ["full"] }
+tokio-util = { version = "^0.6", features = ["full"] }
 url = "*"
 valico = "*"
 
