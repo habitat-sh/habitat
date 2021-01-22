@@ -111,12 +111,20 @@ ident_has_target() {
 
 get_version_from_hart() {
     local hart="${1}"
-    ${hab_binary} pkg info --json "${hart}" | jq -r '.version'
+    # Note that we redirect stderr to /dev/null to compensate for
+    # a bug that emits deperecated alias warnings from `hab pkg info`
+    # we can stop doing this once the next release after 1.6.235 lands
+    # in stable
+    ${hab_binary} pkg info --json "${hart}" 2>/dev/null | jq -r '.version'
 }
 
 get_release_from_hart() {
     local hart="${1}"
-    ${hab_binary} pkg info --json "${hart}" | jq -r '.release'
+    # Note that we redirect stderr to /dev/null to compensate for
+    # a bug that emits deperecated alias warnings from `hab pkg info`
+    # we can stop doing this once the next release after 1.6.235 lands
+    # in stable
+    ${hab_binary} pkg info --json "${hart}" 2>/dev/null | jq -r '.release'
 }
 
 # This bit of magic strips off the Habitat header (first 6 lines) from
