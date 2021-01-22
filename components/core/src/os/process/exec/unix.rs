@@ -141,8 +141,19 @@ fn set_supplementary_groups(user_id: Uid,
                     let user = CString::new(user.name).map_err(io_error!("User name cannot \
                                                                           convert to CString!: \
                                                                           {:?}"))?;
-                    let groups = getgrouplist(&user, group_id).map_err(io_error!("getgrouplist \
-                                                                                  failed!: {:?}"))?;
+
+                    // There are some platforms (ex. SUSE 12 sp5) that may return
+                    // EINVAL from getgrouplist. This only appears to occur from
+                    // statically compiled (MUSL) executables like the hab CLI. The
+                    // error has not been reproducible from a dynamic executable like
+                    // the supervisor.
+                    let groups = getgrouplist(&user, group_id).unwrap_or_else(|e| {
+                                                                  warn!("unable to get \
+                                                                         supplementary groups \
+                                                                         with getgrouplist: {}",
+                                                                        e);
+                                                                  vec![group_id]
+                                                              });
                     setgroups(&groups).map_err(io_error!("setgroups failed! {:?}"))?; // CAP_SETGID
                 } else {
                     return Err(io::Error::new(io::ErrorKind::Other,
