@@ -155,7 +155,7 @@ pub enum Channel {
 #[structopt(no_version, aliases = &["j", "jo"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
 /// Commands relating to Habitat Builder jobs
 pub enum Job {
-    #[structopt(no_version, aliases = &["c", "ca", "can", "cance", "cancel"])]
+    #[structopt(no_version, aliases = &["c", "ca", "can", "cance"])]
     Cancel(JobCancel),
     #[structopt(no_version, aliases = &["d", "de", "dem", "demo", "demot"])]
     Demote(JobDemote),
@@ -311,9 +311,9 @@ pub enum Pkg {
     Channels(PkgChannels),
     #[structopt(no_version, aliases = &["v", "ve", "ver", "veri", "verif"])]
     Verify(PkgVerify),
-    #[structopt(no_version, aliases = &["hea", "head", "heade", "header"])]
+    #[structopt(no_version, aliases = &["hea", "head", "heade"])]
     Header(PkgHeader),
-    #[structopt(no_version, aliases = &["inf", "info"])]
+    #[structopt(no_version, aliases = &["inf"])]
     Info(PkgInfo),
     #[structopt(no_version, aliases = &["dep", "deps"])]
     Dependencies(PkgDependencies),
