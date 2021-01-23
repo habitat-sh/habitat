@@ -49,7 +49,7 @@ webpki = "*"
 xz2 = "*"
 
 [target.'cfg(not(windows))'.dependencies]
-nix = "0.18.0"
+nix = "*"
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
 
