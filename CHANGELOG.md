@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.244 -->
-## [1.6.244](https://github.com/habitat-sh/habitat/tree/1.6.244) (2021-01-22)
+<!-- latest_release 1.6.245 -->
+## [1.6.245](https://github.com/habitat-sh/habitat/tree/1.6.245) (2021-01-23)
 
 #### Merged Pull Requests
-- set groups with primary group if unable to retrieve supplemental groups [#8069](https://github.com/habitat-sh/habitat/pull/8069) ([mwrock](https://github.com/mwrock))
+- Bump nix from 0.18.0 to 0.19.1 [#8047](https://github.com/habitat-sh/habitat/pull/8047) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.235 -->
 ### Changes since 1.6.235 release
 
 #### Merged Pull Requests
+- Bump nix from 0.18.0 to 0.19.1 [#8047](https://github.com/habitat-sh/habitat/pull/8047) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.245 -->
 - set groups with primary group if unable to retrieve supplemental groups [#8069](https://github.com/habitat-sh/habitat/pull/8069) ([mwrock](https://github.com/mwrock)) <!-- 1.6.244 -->
 - remove some unnecessary aliases [#8071](https://github.com/habitat-sh/habitat/pull/8071) ([mwrock](https://github.com/mwrock)) <!-- 1.6.243 -->
 - Remove christophermaier as code owner [#8066](https://github.com/habitat-sh/habitat/pull/8066) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.242 -->
