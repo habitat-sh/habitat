@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.246 -->
-## [1.6.246](https://github.com/habitat-sh/habitat/tree/1.6.246) (2021-01-23)
+<!-- latest_release 1.6.247 -->
+## [1.6.247](https://github.com/habitat-sh/habitat/tree/1.6.247) (2021-01-29)
 
 #### Merged Pull Requests
-- Bump valico from 3.4.0 to 3.5.0 [#8072](https://github.com/habitat-sh/habitat/pull/8072) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- emit hab-sup --version output to debug if parsing version fails [#8074](https://github.com/habitat-sh/habitat/pull/8074) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.235 -->
 ### Changes since 1.6.235 release
 
 #### Merged Pull Requests
+- emit hab-sup --version output to debug if parsing version fails [#8074](https://github.com/habitat-sh/habitat/pull/8074) ([mwrock](https://github.com/mwrock)) <!-- 1.6.247 -->
 - Bump valico from 3.4.0 to 3.5.0 [#8072](https://github.com/habitat-sh/habitat/pull/8072) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.246 -->
 - Bump nix from 0.18.0 to 0.19.1 [#8047](https://github.com/habitat-sh/habitat/pull/8047) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.245 -->
 - set groups with primary group if unable to retrieve supplemental groups [#8069](https://github.com/habitat-sh/habitat/pull/8069) ([mwrock](https://github.com/mwrock)) <!-- 1.6.244 -->
