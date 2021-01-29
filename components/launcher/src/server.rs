@@ -588,6 +588,7 @@ fn is_supported_supervisor_version(version_output: &str) -> bool {
             }
             Err(e) => {
                 error!("{}: {}", e, version_str);
+                debug!("Original version command output: {}", version_output);
                 false
             }
         }
