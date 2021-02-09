@@ -611,7 +611,9 @@ fn spawn_supervisor(pipe: &str, args: &[String]) -> Result<Child> {
         warn!("Launching Supervisor {:?} without version checking", binary);
     } else {
         debug!("Checking Supervisor {:?} version", binary);
-        let version_check = Command::new(&binary).arg("--version").output()?;
+        let version_check = Command::new(&binary).arg("--version")
+                                                 .env("RUST_LOG", "error")
+                                                 .output()?;
         let sup_version = String::from_utf8_lossy(&version_check.stdout);
         if !is_supported_supervisor_version(&sup_version.trim()) {
             error!("This Launcher requires Habitat version {}", SUP_VERSION_REQ);
