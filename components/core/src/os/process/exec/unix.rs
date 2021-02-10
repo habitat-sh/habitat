@@ -84,19 +84,6 @@ fn with_user_and_group_information(cmd: &mut Command, uid: Uid, gid: Gid) -> &mu
     cmd
 }
 
-/// Stupid little private helper macro to make mapping `Nix` errors to
-/// IO errors for our `pre_exec` hooks.
-///
-/// The format string should have a single variable placeholder for
-/// the actual error.
-///
-/// e.g. `result.map_err(io_err!("blah blah {:?}"))`
-macro_rules! io_error {
-    ($format_string:tt) => {
-        move |e| io::Error::new(io::ErrorKind::Other, format!($format_string, e))
-    };
-}
-
 /// Returns a function that sets the supplementary group IDs of the
 /// process to those that `user_id` belongs to.
 ///
@@ -134,13 +121,18 @@ fn set_supplementary_groups(user_id: Uid,
                                   User};
                 use std::ffi::CString;
 
-                if let Some(user) = User::from_uid(user_id).map_err(io_error!("Error resolving \
-                                                                               user from ID: \
-                                                                               {:?}"))?
+                if let Some(user) =
+                    User::from_uid(user_id).map_err(|e| {
+                                               eprintln!("Error resolving user from ID: {:?}", e);
+                                               io::Error::last_os_error()
+                                           })?
                 {
-                    let user = CString::new(user.name).map_err(io_error!("User name cannot \
-                                                                          convert to CString!: \
-                                                                          {:?}"))?;
+                    let user = CString::new(user.name).map_err(|e| {
+                                                          eprintln!("User name cannot convert to \
+                                                                     CString!: {:?}",
+                                                                    e);
+                                                          e
+                                                      })?;
 
                     // There are some platforms (ex. SUSE 12 sp5) that may return
                     // EINVAL from getgrouplist. This only appears to occur from
@@ -154,16 +146,25 @@ fn set_supplementary_groups(user_id: Uid,
                                                                         e);
                                                                   vec![group_id]
                                                               });
-                    setgroups(&groups).map_err(io_error!("setgroups failed! {:?}"))?; // CAP_SETGID
+                    setgroups(&groups).map_err(|e| {
+                                          eprintln!("setgroups failed! {:?}", e);
+                                          io::Error::last_os_error()
+                                      })?; // CAP_SETGID
                 } else {
-                    return Err(io::Error::new(io::ErrorKind::Other,
-                                              "Could not find user from user ID"));
+                    eprintln!("Could not find user from user ID. Wil not set supplementary \
+                               groups.");
                 }
             }
 
             // These calls replace `CommandExt::uid` and `CommandExt::gid`
-            setgid(group_id).map_err(io_error!("setgid failed! {:?}"))?; // CAP_SETGID
-            setuid(user_id).map_err(io_error!("setuid failed! {:?}"))?; // CAP_SETUID
+            setgid(group_id).map_err(|e| {
+                                eprintln!("setgid failed! {:?}", e);
+                                io::Error::last_os_error()
+                            })?; // CAP_SETGID
+            setuid(user_id).map_err(|e| {
+                               eprintln!("setuid failed! {:?}", e);
+                               io::Error::last_os_error()
+                           })?; // CAP_SETUID
         }
 
         Ok(())
