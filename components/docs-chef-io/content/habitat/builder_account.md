@@ -1,6 +1,7 @@
 +++
 title = "Create an Account"
 description = "Setting up Chef Habitat Builder in the Cloud and on your workstation"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -10,8 +11,6 @@ description = "Setting up Chef Habitat Builder in the Cloud and on your workstat
     weight = 20
 
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/builder_account.md)
 
 Whether you are looking to leverage the SaaS or on-prem version of Chef Habitat Builder, you will need to create an account on the SaaS version of Chef Habitat Builder. After you have then downloaded the version, you will then sync the two accounts.
 

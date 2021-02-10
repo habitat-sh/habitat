@@ -1,6 +1,7 @@
 +++
 title = "Scaffolding"
 description = "Scaffolding"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -8,9 +9,7 @@ description = "Scaffolding"
     identifier = "habitat/plans/scaffolding"
     parent = "habitat/plans"
     weight = 95
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/scaffolding.md)
 
 Chef Habitat scaffoldings are standardized plans for automated building and running your application. Each scaffolding is tuned to the way your application was built, which allows it to create the appropriate [application lifecycle hooks]({{< relref "application_lifecycle_hooks" >}}) and add in the correct runtime dependencies when building the package for your application. Scaffoldings also provide some default health check hooks where appropriate to ensure your application is functioning reliably. Customized Scaffolding can be created to facilitate re-usability of common patterns in your organization for developing, building, and running your applications.
 

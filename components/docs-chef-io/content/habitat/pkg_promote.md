@@ -1,6 +1,7 @@
 +++
 title = "Promote Packages"
 description = "Best practices for promoting packages in channels for building and testing code changes as part of continuous deployment with channel tags"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -10,7 +11,6 @@ description = "Best practices for promoting packages in channels for building an
     weight = 20
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pkg_promote.md)
 
 Continuous deployment is a well-known software development practice of building and testing code changes in preparation for a release to a production environment.
 

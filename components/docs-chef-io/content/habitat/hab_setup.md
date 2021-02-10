@@ -1,6 +1,7 @@
 +++
 title = "Configure the Chef Habitat CLI"
 description = "Set up the Chef Habitat CLI"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -8,9 +9,7 @@ description = "Set up the Chef Habitat CLI"
     identifier = "habitat/get_started/hab-setup Install Chef Habitat"
     parent = "habitat/get_started"
     weight = 20
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/hab_setup.md)
 
 Once Chef Habitat has been installed, the `hab` CLI makes it easy to get your workstation configured by guiding through the setup process. To set up your workstation, run `hab cli setup` and follow the instructions.
 

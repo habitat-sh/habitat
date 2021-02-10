@@ -1,15 +1,14 @@
 +++
 title = "Plan Variables"
 description = "Set package, service, and cache paths, compiler options, install location and context with plan variables"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
     title = "Plan Variables"
     identifier = "habitat/reference/plan-variables"
     parent = "habitat/reference"
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/plan_variables.md)
 
 The following variables can be used in your plans to help get binaries and libraries
 to build and install in the correct locations in your package. The values for the

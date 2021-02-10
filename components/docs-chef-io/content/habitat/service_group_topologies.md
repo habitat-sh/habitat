@@ -1,6 +1,7 @@
 +++
 title = "Service Group Topologies"
 description = "Service Group Topologies"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -9,8 +10,6 @@ description = "Service Group Topologies"
     parent = "habitat/services"
     weight = 30
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/service_group_topologies.md)
 
 A topology describes the intended relationship between peers within a service group.
 Two topologies ship with Chef Habitat by default: **standalone** and **leader-follower**.

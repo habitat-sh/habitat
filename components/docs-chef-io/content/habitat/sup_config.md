@@ -3,6 +3,7 @@ title = "Supervisor Configuration File"
 description = "Service Change Rollback"
 date = 2020-10-26T17:32:36-07:00
 draft = false
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -11,8 +12,6 @@ draft = false
     parent = "habitat/supervisors"
     weight = 85
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_config.md)
 
 Generate a Supervisor configuration file and use it to set any of the 40+ Supervisor configuration settings instead of configuring them on the command line.
 

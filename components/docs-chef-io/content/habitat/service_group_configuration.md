@@ -1,6 +1,7 @@
 +++
 title = "Service Group Configuration"
 description = "Update Services with File Uploads"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -9,8 +10,6 @@ description = "Update Services with File Uploads"
     parent = "habitat/services"
     weight = 40
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/service_group_configuration.md)
 
 ## Uploading Files to a Service Group
 

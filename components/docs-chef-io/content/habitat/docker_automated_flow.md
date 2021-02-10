@@ -1,6 +1,7 @@
 +++
 title = "Automate Docker Container Publishing Flow"
 description = "Automate Docker Container Publishing Flow"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -10,7 +11,5 @@ description = "Automate Docker Container Publishing Flow"
     weight = 60
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/docker_automated_flow.md)
-
 ![Chef Habitat Automated Docker Container Publishing Flow Diagram](/images/habitat/habitat-automated-docker-container-publishing-flow.png)
 

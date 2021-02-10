@@ -1,6 +1,7 @@
 +++
 title = "Service Groups"
 description = "Service Groups"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -9,8 +10,6 @@ description = "Service Groups"
     parent = "habitat/services"
     weight = 20
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/service_groups.md)
 
 A service group is a logical grouping of services with the same package and topology type connected together across a Supervisor network.
 They are created to share configuration and file updates among the services within those groups and can be segmented based on workflow or deployment needs (QA, Production, and so on).

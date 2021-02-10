@@ -1,6 +1,7 @@
 +++
 title = "Plan Contents"
 description = "Best Practices for Plans"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -8,9 +9,7 @@ description = "Best Practices for Plans"
     identifier = "habitat/plans/plan-contents"
     parent = "habitat/plans"
     weight = 30
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/plan_contents.md)
 
 The following is a best practice guide to how to write a production quality plan. These best practices are reflected in the requirements for a user to contribute a plan to the Chef Habitat [Core Plans](https://github.com/habitat-sh/core-plans/).
 

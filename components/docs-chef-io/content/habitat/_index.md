@@ -1,6 +1,7 @@
 +++
 title = "About Chef Habitat"
 aliases = ["/habitat/reference/", "/habitat/glossary/", "/habitat/diagrams/"]
+gh_repo = "habitat"
 
 [cascade]
   product = ["habitat"]

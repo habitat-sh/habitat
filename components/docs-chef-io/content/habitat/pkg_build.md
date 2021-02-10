@@ -1,6 +1,7 @@
 +++
 title = "Building Packages"
 description = "Building Packages in the Studio"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -8,9 +9,7 @@ description = "Building Packages in the Studio"
     identifier = "habitat/packages/pkg-build Build your Package"
     parent = "habitat/packages"
     weight = 10
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pkg_build.md)
 
 When you have finished creating your plan and call `build` in Chef Habitat Studio, the build script does following steps:
 

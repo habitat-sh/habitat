@@ -1,8 +1,8 @@
 +++
 title = "Get Chef Habitat"
 description = "Install the Chef Habitat CLI and configure your workstation for Chef Habitat development"
-
 aliases = ["/habitat/install-habitat/"]
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -10,9 +10,7 @@ aliases = ["/habitat/install-habitat/"]
     identifier = "habitat/get_started/installing-packages"
     parent = "habitat/get_started"
     weight = 10
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/install_habitat.md)
 
 Below you'll find installation instructions for each platform and their requirements. The Chef Habitat CLI is currently supported on Linux, Mac, and Windows.
 

@@ -1,6 +1,7 @@
 +++
 title = "Service Group Updates"
 description = "Update service groups with supervisor configuration"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -9,8 +10,6 @@ description = "Update service groups with supervisor configuration"
     parent = "habitat/services"
     weight = 50
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/service_group_updates.md)
 
 The Chef Habitat Supervisor can be configured to leverage an optional _update strategy_,
 which describes how the Supervisor and its peers within a service group should

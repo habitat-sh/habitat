@@ -1,16 +1,14 @@
 +++
 title = "Supervisor Log Codes"
 description = "Supervisor log code key reference"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
     title = "Supervisor Log Codes"
     identifier = "habitat/reference/sup-log-key"
     parent = "habitat/reference"
-
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_log_keys.md)
 
 When running services with the Chef Habitat Supervisor you'll see log output similar to this:
 

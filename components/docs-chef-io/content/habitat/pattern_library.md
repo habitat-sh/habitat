@@ -1,7 +1,7 @@
 +++
 title = "Pattern Library Introduction"
 description = "Example code for Chef Habitat plans and more!"
-
+gh_repo = "habitat"
 aliases = ["/habitat/pattern-library/"]
 
 [menu]
@@ -9,10 +9,7 @@ aliases = ["/habitat/pattern-library/"]
     title = "Pattern Library"
     identifier = "habitat/pattern_library"
     parent = "habitat/reference"
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pattern_library.md)
-
 ## Chef Habitat Pattern Library
 
 The Chef Habitat Pattern Library is an evolving set of design patterns to use as starting-points. These patterns are examples and require configuration and customization for your unique situation.

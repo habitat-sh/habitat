@@ -1,6 +1,7 @@
 +++
 title = "Running Chef Habitat Windows Containers"
 description = "Running Chef Habitat Windows Containers"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -8,9 +9,7 @@ description = "Running Chef Habitat Windows Containers"
     identifier = "habitat/containers/running-habitat-windows-containers Windows Containers"
     parent = "habitat/containers"
     weight = 80
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/running_habitat_windows_containers.md)
 
 Exported Windows images use `microsoft/windowsservercore` as their base. This is the equivalent of a minimal Windows Server 2016 Core install. So you should not expect non default features and roles to be enabled such as IIS or Active Directory. Consider using an `init` hook to install any features needed by your Chef Habitat service.
 

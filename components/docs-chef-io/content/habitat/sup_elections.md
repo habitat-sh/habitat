@@ -1,8 +1,8 @@
 +++
 title = "Leader Elections"
-
 date = 2020-10-26T19:05:42-07:00
 draft = false
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -11,8 +11,6 @@ draft = false
     parent = "habitat/supervisors"
     weight = 40
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_elections.md)
 
 This document provides developer documentation on how the Chef Habitat system becomes self-sustaining. It is built upon the work from the [Linux from Scratch](http://www.linuxfromscratch.org/lfs/) project.
 

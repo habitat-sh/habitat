@@ -1,9 +1,9 @@
 +++
 title = "About Services"
 aliases = ["/habitat/using-habitat/"]
-
 date = 2020-10-26T18:37:38-07:00
 draft = false
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -12,8 +12,6 @@ draft = false
     parent = "habitat/services"
     weight = 10
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/about_services.md)
 
 A service is a Chef Habitat package running under a Chef Habitat Supervisor.
 

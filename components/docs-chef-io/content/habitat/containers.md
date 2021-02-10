@@ -1,6 +1,7 @@
 +++
 title = "Chef Habitat and Containers"
 description = "Chef Habitat and Containers"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -10,8 +11,6 @@ description = "Chef Habitat and Containers"
     weight = 10
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/containers.md)
-
 **Examples: [Docker](https://www.docker.com/) and [CoreOS](https://coreos.com/)**
 
 Containers enable you to build an immutable snapshot of your runtime environment, including your operating system, system libraries, application libraries, and application. The container is built with a CLI tool, and then pushed to a container-specific artifact repository, known as a container registry. Chef Habitat is not a container format and exports your application to the container format of your choice.
