@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.248 -->
-## [1.6.248](https://github.com/habitat-sh/habitat/tree/1.6.248) (2021-02-09)
+<!-- latest_release 1.6.249 -->
+## [1.6.249](https://github.com/habitat-sh/habitat/tree/1.6.249) (2021-02-10)
 
 #### Merged Pull Requests
-- use error log_level when querying supervisor version [#8080](https://github.com/habitat-sh/habitat/pull/8080) ([mwrock](https://github.com/mwrock))
+- use eprintln! to output specific error messages in pre_exec [#8082](https://github.com/habitat-sh/habitat/pull/8082) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.235 -->
 ### Changes since 1.6.235 release
 
 #### Merged Pull Requests
+- use eprintln! to output specific error messages in pre_exec [#8082](https://github.com/habitat-sh/habitat/pull/8082) ([mwrock](https://github.com/mwrock)) <!-- 1.6.249 -->
 - use error log_level when querying supervisor version [#8080](https://github.com/habitat-sh/habitat/pull/8080) ([mwrock](https://github.com/mwrock)) <!-- 1.6.248 -->
 - emit hab-sup --version output to debug if parsing version fails [#8074](https://github.com/habitat-sh/habitat/pull/8074) ([mwrock](https://github.com/mwrock)) <!-- 1.6.247 -->
 - Bump valico from 3.4.0 to 3.5.0 [#8072](https://github.com/habitat-sh/habitat/pull/8072) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.246 -->
