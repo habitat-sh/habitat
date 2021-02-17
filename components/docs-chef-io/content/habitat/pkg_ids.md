@@ -1,15 +1,14 @@
 +++
 title = "Package Identifiers"
 description = "How to call a package in Chef Habitat Builder, Studio, and plan files"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
     title = "Package Identifiers"
     identifier = "habitat/reference/pkg_ids Package ID"
     parent = "habitat/reference"
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pkg_ids.md)
 
 A Chef Habitat artifact the binary distribution for a given package built with Chef Habitat. A Chef Habitat artifact is a signed tarball with a `.hart` file extension. Chef Habitat artifacts are composed of a software library or application, the configuration information for that software, and lifecycle hooks. They are created from a the plan file, a `plan.sh` on Linux systems or a `plan.ps1` on Windows systems, and are built with Chef Habitat tools. Chef Habitat artifacts can be exported to a specific format, such as when creating a Docker image.
 

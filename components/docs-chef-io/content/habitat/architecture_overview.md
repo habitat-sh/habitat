@@ -1,6 +1,7 @@
 +++
 title = "Chef Habitat Architecture Overview"
 description = "Chef Habitat Architecture Overview"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -10,7 +11,5 @@ description = "Chef Habitat Architecture Overview"
     weight = 10
 
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/architecture_overview.md)
 
 ![Chef Habitat Architecture Overview Diagram](/images/habitat/habitat-architecture-overview.png)

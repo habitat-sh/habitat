@@ -1,6 +1,7 @@
 +++
 title = "Monitoring Services"
 description = "Monitoring Services"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -9,8 +10,6 @@ description = "Monitoring Services"
     parent = "habitat/services"
     weight = 70
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/monitor_services.md)
 
 Use the HTTP API to monitor services. When a service starts, the [Supervisor]({{< relref "sup_networks">}}) exposes the status of its services' health and other information through an HTTP API endpoint. This information can be useful in monitoring service health, results of leader elections, and so on.
 

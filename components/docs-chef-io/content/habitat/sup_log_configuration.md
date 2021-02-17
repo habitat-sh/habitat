@@ -1,6 +1,7 @@
 +++
 title = "Supervisor Log Configuration"
 description = "Dynamically adjust the logging configuration of a running Supervisor"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -8,10 +9,7 @@ description = "Dynamically adjust the logging configuration of a running Supervi
     identifier = "habitat/supervisors/sup-log-configuration"
     parent = "habitat/supervisors"
     weight = 90
-
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_log_configuration.md)
 
 With the 0.83.0 release of the Chef Habitat Supervisor, it is possible to have greater control over logging output, including the ability to dynamically adjust the logging configuration of a running Supervisor. There are two main ways of configuring logging, each of which has their own strengths and weaknesses: using environment variables, and using a configuration file.
 

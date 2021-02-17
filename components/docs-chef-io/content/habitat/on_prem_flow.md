@@ -1,6 +1,7 @@
 +++
 title = "Chef Habitat Builder on-prem Flow"
 description = "Chef Habitat Builder on-prem Flow"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -10,7 +11,6 @@ description = "Chef Habitat Builder on-prem Flow"
     weight = 100
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/on_prem_flow.md)
 
 ![Chef Habitat On-premises Builder Depot Flow Diagram](/images/habitat/habitat-on-premises-builder-depot-flow.png)
 

@@ -1,6 +1,7 @@
 +++
 title = "Control Supervisors Remotely"
 description = "Controlling Supervisors Remotely"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -8,10 +9,7 @@ description = "Controlling Supervisors Remotely"
     identifier = "habitat/supervisors/sup-remote-control"
     parent = "habitat/supervisors"
     weight = 120
-
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_remote_control.md)
 
 Since the 0.56.0 Supervisor release, it is possible to command and control one or more Supervisors from a remote location. Before this, the only way to interact with a Supervisor was by taking action directly on machine on which the Supervisor was running. While that is still an option (and is indeed the default behavior), remote command and control opens up more possibilities for using and managing Chef Habitat.
 

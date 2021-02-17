@@ -1,16 +1,14 @@
 +++
 title = "Build Phase Callbacks"
 description = "Override default buildtime behavior with build phase callbacks"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
     title = "Build Phase Callbacks"
     identifier = "habitat/reference/build-phase-callbacks"
     parent = "habitat/reference"
-
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/build_phase_callbacks.md)
 
 When defining your plan, you can override the default behavior of Chef Habitat in each build phase through a callback. To define a callback, simply create a shell function of the same name in your plan file and then write your script. If you do not want to use the default callback behavior, you must override the callback and `return 0` in the function definition or simply provide no implementation in a `plan.ps1`.
 

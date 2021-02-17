@@ -1,6 +1,7 @@
 +++
 title = "Application Lifecycle Hooks"
 description = "Control service runtime actions with application lifecycle hooks"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -9,8 +10,6 @@ description = "Control service runtime actions with application lifecycle hooks"
     parent = "habitat/reference"
 
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/application_lifecycle_hooks.md)
 
 Each plan can specify lifecycle event handlers, or hooks, to perform certain actions during a service's runtime. Each hook is a script with a [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) defined at the top to specify the interpreter to be used. On Windows, Powershell Core is the only interpreter ever used.
 

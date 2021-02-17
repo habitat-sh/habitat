@@ -1,8 +1,8 @@
 +++
 title = "{{ .Name | humanize | title }}"
-
 date = {{ .Date }}
 draft = false
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -11,5 +11,3 @@ draft = false
     parent = "habitat"
     weight = 10
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/{{ .Name }}.md)

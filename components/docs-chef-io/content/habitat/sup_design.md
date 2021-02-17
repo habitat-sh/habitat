@@ -1,10 +1,9 @@
 +++
 title = "Supervisor Design"
-
 aliases = ["/habitat/internals/"]
-
 date = 2020-10-26T18:55:28-07:00
 draft = false
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -13,8 +12,6 @@ draft = false
     parent = "habitat/supervisors"
     weight = 30
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_design.md)
 
 This section will dive into the implementation details of important Chef Habitat components. These topics are for advanced users. It is not necessary to learn these concepts in order to use Chef Habitat.
 

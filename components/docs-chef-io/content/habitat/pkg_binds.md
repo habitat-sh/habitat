@@ -1,6 +1,7 @@
 +++
 title = "Runtime Binds"
 description = "Define runtime binds in your plan file"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -9,8 +10,6 @@ description = "Define runtime binds in your plan file"
     parent = "habitat/packages"
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pkg_binds.md)
-
 *Runtime binding* in Chef Habitat refers to the ability for one service group to connect to another, forming a producer-consumer relationship where the consumer service can use the producer service's current configuration in order to configure itself at runtime. When the producer's configuration change, the consumer is notified and can reconfigure itself as needed.
 
 With runtime binding, a consumer service can use a "binding name" of their choosing in their configuration and lifecycle hook templates as a kind of handle to refer to the configuration values they need from the producer service. This name isn't inherently tied to any particular package or service group name. Instead, when the service is run, users associate a service group with that binding name, which gives Chef Habitat all the information it needs to wire the producer and consumer services together.

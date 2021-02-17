@@ -1,8 +1,8 @@
 +++
 title = "Supervisor Cryptography"
-
 date = 2020-10-26T19:09:25-07:00
 draft = false
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -11,8 +11,6 @@ draft = false
     parent = "habitat/supervisors"
     weight = 70
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_crypto.md)
 
 ## Leader Election
 

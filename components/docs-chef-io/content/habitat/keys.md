@@ -1,6 +1,7 @@
 +++
 title = "Keys"
 description = "Chef Habitat Security"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -9,7 +10,6 @@ description = "Chef Habitat Security"
     parent = "habitat/reference"
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/keys.md)
 
 Chef Habitat has strong cryptography built into Chef Habitat Builder, the Supervisor, and the `hab` CLI commands. This means there are several different kinds of keys.
 

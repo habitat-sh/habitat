@@ -1,6 +1,7 @@
 +++
 title = "Azure Container Services (AKS)"
 description = "Azure and Kubernetes K8"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -8,9 +9,7 @@ description = "Azure and Kubernetes K8"
     identifier = "habitat/containers/aks Chef Habitat Azure Kubernetes"
     parent = "habitat/containers"
     weight = 40
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/aks.md)
 
 [Azure Container Services (AKS)](https://azure.microsoft.com/services/container-service/)
 is a fully managed Kubernetes service running on the Azure platform.
