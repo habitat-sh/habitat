@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.250 -->
-## [1.6.250](https://github.com/habitat-sh/habitat/tree/1.6.250) (2021-02-17)
+<!-- latest_release 1.6.251 -->
+## [1.6.251](https://github.com/habitat-sh/habitat/tree/1.6.251) (2021-02-19)
 
 #### Merged Pull Requests
-- Page metadata [#8081](https://github.com/habitat-sh/habitat/pull/8081) ([IanMadd](https://github.com/IanMadd))
+- Bump log4net from 2.0.8 to 2.0.10 in /components/windows-service [#8076](https://github.com/habitat-sh/habitat/pull/8076) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.235 -->
 ### Changes since 1.6.235 release
 
 #### Merged Pull Requests
+- Bump log4net from 2.0.8 to 2.0.10 in /components/windows-service [#8076](https://github.com/habitat-sh/habitat/pull/8076) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.251 -->
 - Page metadata [#8081](https://github.com/habitat-sh/habitat/pull/8081) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.250 -->
 - use eprintln! to output specific error messages in pre_exec [#8082](https://github.com/habitat-sh/habitat/pull/8082) ([mwrock](https://github.com/mwrock)) <!-- 1.6.249 -->
 - use error log_level when querying supervisor version [#8080](https://github.com/habitat-sh/habitat/pull/8080) ([mwrock](https://github.com/mwrock)) <!-- 1.6.248 -->
