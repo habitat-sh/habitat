@@ -46,7 +46,7 @@ thiserror = "*"
 retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
 rustls = "*"
 termcolor = "*"
-tokio = { version = "^0.2", features = ["full"] }
+tokio = { version = "^1.2", features = ["full"] }
 toml = { version = "*", features = ["preserve_order"] }
 uuid = { version = "*", features = ["v4"] }
 valico = "*"

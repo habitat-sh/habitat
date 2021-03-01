@@ -23,6 +23,6 @@ serde = "*"
 serde_derive = "*"
 serde_json = { version = "*", features = [ "preserve_order" ] }
 tee = "*"
-tokio = { version = "^0.2", features = ["full"] }
+tokio = { version = "^1.2", features = ["full"] }
 tokio-util = "^0.3"
 url = "*"
