@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.252 -->
-## [1.6.252](https://github.com/habitat-sh/habitat/tree/1.6.252) (2021-03-01)
+<!-- latest_release 1.6.253 -->
+## [1.6.253](https://github.com/habitat-sh/habitat/tree/1.6.253) (2021-03-01)
 
 #### Merged Pull Requests
-- Bump log4rs from 0.13.0 to 1.0.0 [#8046](https://github.com/habitat-sh/habitat/pull/8046) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump httparse from 1.3.4 to 1.3.5 [#8085](https://github.com/habitat-sh/habitat/pull/8085) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.235 -->
 ### Changes since 1.6.235 release
 
 #### Merged Pull Requests
+- Bump httparse from 1.3.4 to 1.3.5 [#8085](https://github.com/habitat-sh/habitat/pull/8085) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.253 -->
 - Bump log4rs from 0.13.0 to 1.0.0 [#8046](https://github.com/habitat-sh/habitat/pull/8046) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.252 -->
 - Bump log4net from 2.0.8 to 2.0.10 in /components/windows-service [#8076](https://github.com/habitat-sh/habitat/pull/8076) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.251 -->
 - Page metadata [#8081](https://github.com/habitat-sh/habitat/pull/8081) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.250 -->
