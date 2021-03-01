@@ -271,9 +271,9 @@ impl Server {
             if let Ok(b) = bind {
                 // Starting the server could be simplified
                 // See https://github.com/habitat-sh/habitat/issues/7352
-                System::new("actix-rt").block_on(async move {
-                                           b.run().await.expect("to start http server");
-                                       })
+                System::new().block_on(async move {
+                                 b.run().await.expect("to start http server");
+                             })
             }
         });
     }
