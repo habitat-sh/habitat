@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.255 -->
-## [1.6.255](https://github.com/habitat-sh/habitat/tree/1.6.255) (2021-03-02)
+<!-- latest_release 1.6.256 -->
+## [1.6.256](https://github.com/habitat-sh/habitat/tree/1.6.256) (2021-03-02)
 
 #### Merged Pull Requests
-- Bump serde_test from 1.0.117 to 1.0.123 [#8087](https://github.com/habitat-sh/habitat/pull/8087) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Revert &quot;Bump actix-rt from 1.1.1 to 2.1.0&quot; [#8089](https://github.com/habitat-sh/habitat/pull/8089) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.235 -->
 ### Changes since 1.6.235 release
 
 #### Merged Pull Requests
+- Revert &quot;Bump actix-rt from 1.1.1 to 2.1.0&quot; [#8089](https://github.com/habitat-sh/habitat/pull/8089) ([mwrock](https://github.com/mwrock)) <!-- 1.6.256 -->
 - Bump serde_test from 1.0.117 to 1.0.123 [#8087](https://github.com/habitat-sh/habitat/pull/8087) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.255 -->
 - Bump actix-rt from 1.1.1 to 2.1.0 [#8086](https://github.com/habitat-sh/habitat/pull/8086) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.254 -->
 - Bump httparse from 1.3.4 to 1.3.5 [#8085](https://github.com/habitat-sh/habitat/pull/8085) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.253 -->
