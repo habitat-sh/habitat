@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.259 -->
-## [1.6.259](https://github.com/habitat-sh/habitat/tree/1.6.259) (2021-03-02)
+<!-- latest_release 1.6.260 -->
+## [1.6.260](https://github.com/habitat-sh/habitat/tree/1.6.260) (2021-03-02)
 
 #### Merged Pull Requests
-- bump rand to 0.8.3 [#8098](https://github.com/habitat-sh/habitat/pull/8098) ([mwrock](https://github.com/mwrock))
+- Bump flate2 from 1.0.19 to 1.0.20 [#8095](https://github.com/habitat-sh/habitat/pull/8095) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.235 -->
 ### Changes since 1.6.235 release
 
 #### Merged Pull Requests
+- Bump flate2 from 1.0.19 to 1.0.20 [#8095](https://github.com/habitat-sh/habitat/pull/8095) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.260 -->
 - bump rand to 0.8.3 [#8098](https://github.com/habitat-sh/habitat/pull/8098) ([mwrock](https://github.com/mwrock)) <!-- 1.6.259 -->
 - Bump thiserror from 1.0.22 to 1.0.24 [#8092](https://github.com/habitat-sh/habitat/pull/8092) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.258 -->
 - Bump tempfile from 3.1.0 to 3.2.0 [#8091](https://github.com/habitat-sh/habitat/pull/8091) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.257 -->
