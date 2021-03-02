@@ -79,7 +79,7 @@ impl PackageUpdateWorker {
     // TODO (DM): The returned package ident should use FullyQualifiedPackageIdent.
     pub async fn update_to(&self, ident: PackageIdent) -> PackageIdent {
         let period = PackageUpdateWorkerPeriod::get().unwrap_or(self.period);
-        let splay = Duration::from_secs(rand::thread_rng().gen_range(0, period.as_secs()));
+        let splay = Duration::from_secs(rand::thread_rng().gen_range(0..period.as_secs()));
         debug!("Starting package update worker for {} in {}s",
                ident,
                splay.as_secs());
