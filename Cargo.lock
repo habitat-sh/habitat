@@ -759,7 +759,7 @@ version = "3.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c15b8ec3b5755a188c141c1f6a98e76de31b936209bf066b647979e2a84764a9"
 dependencies = [
- "nix 0.20.0",
+ "nix",
  "winapi 0.3.9",
 ]
 
@@ -1307,7 +1307,7 @@ dependencies = [
  "tokio",
  "toml 0.5.8",
  "url",
- "uuid 0.8.1",
+ "uuid 0.8.2",
  "walkdir",
  "webpki",
  "widestring",
@@ -1326,7 +1326,7 @@ dependencies = [
  "ipc-channel",
  "libc",
  "log 0.4.11",
- "nix 0.19.1",
+ "nix",
  "prost",
  "semver 0.11.0",
  "winapi 0.3.9",
@@ -1457,7 +1457,7 @@ dependencies = [
  "tempfile",
  "threadpool",
  "toml 0.5.8",
- "uuid 0.8.1",
+ "uuid 0.8.2",
  "winapi 0.3.9",
  "zmq",
 ]
@@ -1480,7 +1480,7 @@ dependencies = [
  "libc",
  "log 0.4.11",
  "native-tls",
- "nix 0.19.1",
+ "nix",
  "owning_ref",
  "parking_lot",
  "pbr",
@@ -1499,7 +1499,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml 0.5.8",
- "uuid 0.8.1",
+ "uuid 0.8.2",
  "valico",
  "winapi 0.3.9",
 ]
@@ -1524,7 +1524,7 @@ dependencies = [
  "libc",
  "log 0.4.11",
  "native-tls",
- "nix 0.19.1",
+ "nix",
  "num_cpus",
  "os_info",
  "paste 1.0.3",
@@ -1689,7 +1689,7 @@ dependencies = [
  "tokio-util 0.3.1",
  "toml 0.5.8",
  "url",
- "uuid 0.8.1",
+ "uuid 0.8.2",
  "valico",
  "winapi 0.3.9",
 ]
@@ -2396,18 +2396,6 @@ dependencies = [
  "cfg-if 0.1.10",
  "libc",
  "winapi 0.3.9",
-]
-
-[[package]]
-name = "nix"
-version = "0.19.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2ccba0cfe4fdf15982d1674c69b1fd80bad427d293849982668dfe454bd61f2"
-dependencies = [
- "bitflags",
- "cc",
- "cfg-if 1.0.0",
- "libc",
 ]
 
 [[package]]
@@ -4483,11 +4471,11 @@ dependencies = [
 
 [[package]]
 name = "uuid"
-version = "0.8.1"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9fde2f6a4bea1d6e007c4ad38c6839fa71cbb63b6dbf5b595aa38dc9b1093c11"
+checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 dependencies = [
- "rand 0.7.3",
+ "getrandom 0.2.2",
 ]
 
 [[package]]
@@ -4509,7 +4497,7 @@ dependencies = [
  "serde_json",
  "uritemplate",
  "url",
- "uuid 0.8.1",
+ "uuid 0.8.2",
 ]
 
 [[package]]
