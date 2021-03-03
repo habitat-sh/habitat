@@ -271,7 +271,10 @@ impl Service {
                           -> Result<Service> {
         spec.validate(&package)?;
         let all_pkg_binds = package.all_binds()?;
-        let pkg = Self::resolve_pkg(&package, &spec).await?;
+        let mut pkg = Self::resolve_pkg(&package, &spec).await?;
+        if let Some(timeout) = spec.shutdown_timeout {
+            pkg.shutdown_timeout = timeout;
+        }
         let spec_file = manager_fs_cfg.specs_path.join(spec.file());
         let service_group = ServiceGroup::new(&pkg.name, &spec.group, organization)?;
         let config_root = Self::config_root(&pkg, spec.config_from.as_ref());
