@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.263 -->
-## [1.6.263](https://github.com/habitat-sh/habitat/tree/1.6.263) (2021-03-03)
+<!-- latest_release 1.6.264 -->
+## [1.6.264](https://github.com/habitat-sh/habitat/tree/1.6.264) (2021-03-03)
 
 #### Merged Pull Requests
-- Bump ctrlc from 3.1.7 to 3.1.8 [#8100](https://github.com/habitat-sh/habitat/pull/8100) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- serialized package shutdown_timeout should reflect effective timeout [#8099](https://github.com/habitat-sh/habitat/pull/8099) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.235 -->
 ### Changes since 1.6.235 release
 
 #### Merged Pull Requests
+- serialized package shutdown_timeout should reflect effective timeout [#8099](https://github.com/habitat-sh/habitat/pull/8099) ([mwrock](https://github.com/mwrock)) <!-- 1.6.264 -->
+- Bump toml from 0.5.7 to 0.5.8 [#8101](https://github.com/habitat-sh/habitat/pull/8101) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.264 -->
 - Bump ctrlc from 3.1.7 to 3.1.8 [#8100](https://github.com/habitat-sh/habitat/pull/8100) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.263 -->
 - Bump serde_yaml from 0.8.13 to 0.8.17 [#8093](https://github.com/habitat-sh/habitat/pull/8093) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.262 -->
 - Bump libc from 0.2.81 to 0.2.87 [#8097](https://github.com/habitat-sh/habitat/pull/8097) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.261 -->
