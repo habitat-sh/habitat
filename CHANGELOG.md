@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.264 -->
-## [1.6.264](https://github.com/habitat-sh/habitat/tree/1.6.264) (2021-03-03)
+<!-- latest_release 1.6.265 -->
+## [1.6.265](https://github.com/habitat-sh/habitat/tree/1.6.265) (2021-03-03)
 
 #### Merged Pull Requests
-- serialized package shutdown_timeout should reflect effective timeout [#8099](https://github.com/habitat-sh/habitat/pull/8099) ([mwrock](https://github.com/mwrock))
+- Bump termcolor from 1.1.0 to 1.1.2 [#8104](https://github.com/habitat-sh/habitat/pull/8104) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.235 -->
 ### Changes since 1.6.235 release
 
 #### Merged Pull Requests
+- Bump termcolor from 1.1.0 to 1.1.2 [#8104](https://github.com/habitat-sh/habitat/pull/8104) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.265 -->
+- Bump uuid from 0.8.1 to 0.8.2 [#8103](https://github.com/habitat-sh/habitat/pull/8103) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.265 -->
 - serialized package shutdown_timeout should reflect effective timeout [#8099](https://github.com/habitat-sh/habitat/pull/8099) ([mwrock](https://github.com/mwrock)) <!-- 1.6.264 -->
 - Bump toml from 0.5.7 to 0.5.8 [#8101](https://github.com/habitat-sh/habitat/pull/8101) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.264 -->
 - Bump ctrlc from 3.1.7 to 3.1.8 [#8100](https://github.com/habitat-sh/habitat/pull/8100) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.263 -->
