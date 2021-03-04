@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.265 -->
-## [1.6.265](https://github.com/habitat-sh/habitat/tree/1.6.265) (2021-03-03)
+<!-- latest_release 1.6.266 -->
+## [1.6.266](https://github.com/habitat-sh/habitat/tree/1.6.266) (2021-03-04)
 
 #### Merged Pull Requests
-- Bump termcolor from 1.1.0 to 1.1.2 [#8104](https://github.com/habitat-sh/habitat/pull/8104) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump hyper from 0.13.9 to 0.14.4 [#8106](https://github.com/habitat-sh/habitat/pull/8106) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.235 -->
 ### Changes since 1.6.235 release
 
 #### Merged Pull Requests
+- Bump hyper from 0.13.9 to 0.14.4 [#8106](https://github.com/habitat-sh/habitat/pull/8106) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.266 -->
 - Bump termcolor from 1.1.0 to 1.1.2 [#8104](https://github.com/habitat-sh/habitat/pull/8104) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.265 -->
 - Bump uuid from 0.8.1 to 0.8.2 [#8103](https://github.com/habitat-sh/habitat/pull/8103) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.265 -->
 - serialized package shutdown_timeout should reflect effective timeout [#8099](https://github.com/habitat-sh/habitat/pull/8099) ([mwrock](https://github.com/mwrock)) <!-- 1.6.264 -->
