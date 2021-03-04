@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.266 -->
-## [1.6.266](https://github.com/habitat-sh/habitat/tree/1.6.266) (2021-03-04)
+<!-- latest_release 1.6.267 -->
+## [1.6.267](https://github.com/habitat-sh/habitat/tree/1.6.267) (2021-03-04)
 
 #### Merged Pull Requests
-- Bump hyper from 0.13.9 to 0.14.4 [#8106](https://github.com/habitat-sh/habitat/pull/8106) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump paste from 1.0.3 to 1.0.4 [#8108](https://github.com/habitat-sh/habitat/pull/8108) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.235 -->
 ### Changes since 1.6.235 release
 
 #### Merged Pull Requests
+- Bump paste from 1.0.3 to 1.0.4 [#8108](https://github.com/habitat-sh/habitat/pull/8108) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.267 -->
+- Bump blake2b_simd from 0.5.10 to 0.5.11 [#8107](https://github.com/habitat-sh/habitat/pull/8107) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.267 -->
 - Bump hyper from 0.13.9 to 0.14.4 [#8106](https://github.com/habitat-sh/habitat/pull/8106) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.266 -->
 - Bump termcolor from 1.1.0 to 1.1.2 [#8104](https://github.com/habitat-sh/habitat/pull/8104) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.265 -->
 - Bump uuid from 0.8.1 to 0.8.2 [#8103](https://github.com/habitat-sh/habitat/pull/8103) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.265 -->
