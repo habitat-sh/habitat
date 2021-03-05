@@ -1358,10 +1358,10 @@ dependencies = [
 name = "habitat-launcher-protocol"
 version = "0.0.0"
 dependencies = [
- "bytes 0.5.6",
+ "bytes 1.0.1",
  "prost",
  "prost-build",
- "prost-derive",
+ "prost-derive 0.7.0",
  "serde",
  "serde_derive",
 ]
@@ -1397,13 +1397,13 @@ name = "habitat-sup-protocol"
 version = "0.0.0"
 dependencies = [
  "base64 0.13.0",
- "bytes 0.5.6",
+ "bytes 1.0.1",
  "habitat_core",
  "lazy_static 1.4.0",
  "log 0.4.11",
  "prost",
  "prost-build",
- "prost-derive",
+ "prost-derive 0.7.0",
  "rand 0.8.3",
  "serde",
  "serde_derive",
@@ -1418,7 +1418,7 @@ name = "habitat_api_client"
 version = "0.0.0"
 dependencies = [
  "broadcast",
- "bytes 0.5.6",
+ "bytes 1.0.1",
  "chrono",
  "env",
  "futures",
@@ -1444,7 +1444,7 @@ name = "habitat_butterfly"
 version = "0.1.0"
 dependencies = [
  "byteorder",
- "bytes 0.5.6",
+ "bytes 1.0.1",
  "env_logger",
  "habitat_common",
  "habitat_core",
@@ -1455,7 +1455,7 @@ dependencies = [
  "prometheus",
  "prost",
  "prost-build",
- "prost-derive",
+ "prost-derive 0.7.0",
  "rand 0.8.3",
  "serde",
  "serde_derive",
@@ -1639,7 +1639,7 @@ dependencies = [
  "actix-rt",
  "actix-web",
  "byteorder",
- "bytes 0.5.6",
+ "bytes 1.0.1",
  "caps",
  "clap",
  "configopt",
@@ -1674,7 +1674,7 @@ dependencies = [
  "prometheus",
  "prost",
  "prost-build",
- "prost-derive",
+ "prost-derive 0.7.0",
  "prost-types",
  "rand 0.8.3",
  "rants",
@@ -1998,6 +1998,15 @@ name = "itertools"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f56a2d0bc861f9165be4eb3442afd3c236d8a98afd426f65d92324ae1091a484"
+dependencies = [
+ "either",
+]
+
+[[package]]
+name = "itertools"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "284f18f85651fe11e8a991b2adb42cb078325c996ed026d994719efcfca1d54b"
 dependencies = [
  "either",
 ]
@@ -2899,7 +2908,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce49aefe0a6144a45de32927c77bd2859a5f7677b55f220ae5b744e87389c212"
 dependencies = [
  "bytes 0.5.6",
- "prost-derive",
+ "prost-derive 0.6.1",
 ]
 
 [[package]]
@@ -2910,7 +2919,7 @@ checksum = "02b10678c913ecbd69350e8535c3aef91a8676c0773fc1d7b95cdd196d7f2f26"
 dependencies = [
  "bytes 0.5.6",
  "heck",
- "itertools",
+ "itertools 0.8.2",
  "log 0.4.11",
  "multimap",
  "petgraph",
@@ -2927,7 +2936,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "537aa19b95acde10a12fec4301466386f757403de4cd4e5b4fa78fb5ecb18f72"
 dependencies = [
  "anyhow",
- "itertools",
+ "itertools 0.8.2",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "prost-derive"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "169a15f3008ecb5160cba7d37bcd690a7601b6d30cfb87a117d45e59d52af5d4"
+dependencies = [
+ "anyhow",
+ "itertools 0.9.0",
  "proc-macro2",
  "quote",
  "syn",
