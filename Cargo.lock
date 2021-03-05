@@ -1358,7 +1358,7 @@ dependencies = [
 name = "habitat-launcher-protocol"
 version = "0.0.0"
 dependencies = [
- "bytes 0.5.6",
+ "bytes 1.0.1",
  "prost",
  "prost-build",
  "prost-derive",
@@ -1397,7 +1397,7 @@ name = "habitat-sup-protocol"
 version = "0.0.0"
 dependencies = [
  "base64 0.13.0",
- "bytes 0.5.6",
+ "bytes 1.0.1",
  "habitat_core",
  "lazy_static 1.4.0",
  "log 0.4.11",
@@ -1418,7 +1418,7 @@ name = "habitat_api_client"
 version = "0.0.0"
 dependencies = [
  "broadcast",
- "bytes 0.5.6",
+ "bytes 1.0.1",
  "chrono",
  "env",
  "futures",
@@ -1444,7 +1444,7 @@ name = "habitat_butterfly"
 version = "0.1.0"
 dependencies = [
  "byteorder",
- "bytes 0.5.6",
+ "bytes 1.0.1",
  "env_logger",
  "habitat_common",
  "habitat_core",
@@ -1639,7 +1639,7 @@ dependencies = [
  "actix-rt",
  "actix-web",
  "byteorder",
- "bytes 0.5.6",
+ "bytes 1.0.1",
  "caps",
  "clap",
  "configopt",
@@ -3688,9 +3688,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.59"
+version = "1.0.64"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dcac07dbffa1c65e7f816ab9eba78eb142c6d44410f4eeba1e26e4f5dfa56b95"
+checksum = "799e97dc9fdae36a5c8b8f2cae9ce2ee9fdce2058c57a93e6099d919fd982f79"
 dependencies = [
  "indexmap",
  "itoa",
