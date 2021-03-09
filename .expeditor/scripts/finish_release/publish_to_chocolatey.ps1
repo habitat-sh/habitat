@@ -35,7 +35,7 @@ Get-Content $choco_install | Write-Host
 
 Write-Host "--- Publishing package"
 
-$valid_build_creator="Chef Expeditor"
+$valid_build_creator="Matt Wrock"
 
 $pack_cmd = "choco pack $tempDir/habitat.nuspec --version $Version"
 $publish_cmd = "choco push habitat.$Version.nupkg --timeout 600"
