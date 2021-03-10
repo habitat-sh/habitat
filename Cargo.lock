@@ -762,16 +762,6 @@ dependencies = [
 
 [[package]]
 name = "crypto-mac"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b584a330336237c1eecd3e94266efb216c56ed91225d634cb2991c5f3fd1aeab"
-dependencies = [
- "generic-array",
- "subtle",
-]
-
-[[package]]
-name = "crypto-mac"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4857fd85a0c34b3c3297875b747c1e02e06b6a0ea32dd892d8192b9ce0813ea6"
@@ -819,16 +809,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3dd60d1080a57a05ab032377049e0591415d2b31afd7028356dbf3cc6dcb066"
 dependencies = [
  "generic-array",
-]
-
-[[package]]
-name = "dirs"
-version = "2.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13aea89a5c93364a98e9b37b2fa237effbb694d5cfe01c5b70941f7eb087d5e3"
-dependencies = [
- "cfg-if 0.1.10",
- "dirs-sys",
 ]
 
 [[package]]
@@ -1322,7 +1302,7 @@ dependencies = [
  "clap",
  "configopt",
  "ctrlc",
- "dirs 3.0.1",
+ "dirs",
  "env_logger",
  "flate2",
  "futures",
@@ -1518,7 +1498,7 @@ dependencies = [
  "bimap",
  "bitflags",
  "clap",
- "dirs 3.0.1",
+ "dirs",
  "glob",
  "habitat_api_client",
  "habitat_core",
@@ -1562,7 +1542,7 @@ dependencies = [
  "cc",
  "chrono",
  "ctrlc",
- "dirs 3.0.1",
+ "dirs",
  "dns-lookup",
  "errno",
  "glob",
@@ -1639,8 +1619,8 @@ dependencies = [
  "lazy_static 1.4.0",
  "linked-hash-map",
  "log 0.4.14",
- "rusoto_core 0.45.0",
- "rusoto_credential 0.45.0",
+ "rusoto_core",
+ "rusoto_credential",
  "rusoto_ecr",
  "serde",
  "serde_json",
@@ -1817,21 +1797,11 @@ checksum = "644f9158b2f133fd50f5fb3242878846d9eb792e445c893805ff0e3824006e35"
 
 [[package]]
 name = "hmac"
-version = "0.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "126888268dcc288495a26bf004b38c5fdbb31682f992c84ceb046a1f0fe38840"
-dependencies = [
- "crypto-mac 0.8.0",
- "digest",
-]
-
-[[package]]
-name = "hmac"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c1441c6b1e930e2817404b5046f1f989899143a12bf92de603b69f4e0aee1e15"
 dependencies = [
- "crypto-mac 0.10.0",
+ "crypto-mac",
  "digest",
 ]
 
@@ -3482,34 +3452,6 @@ dependencies = [
 
 [[package]]
 name = "rusoto_core"
-version = "0.45.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e977941ee0658df96fca7291ecc6fc9a754600b21ad84b959eb1dbbc9d5abcc7"
-dependencies = [
- "async-trait",
- "base64 0.12.3",
- "bytes 0.5.6",
- "crc32fast",
- "futures",
- "http",
- "hyper 0.13.10",
- "hyper-tls 0.4.3",
- "lazy_static 1.4.0",
- "log 0.4.14",
- "md5",
- "percent-encoding",
- "pin-project 0.4.23",
- "rusoto_credential 0.45.0",
- "rusoto_signature 0.45.0",
- "rustc_version",
- "serde",
- "serde_json",
- "tokio 0.2.23",
- "xml-rs",
-]
-
-[[package]]
-name = "rusoto_core"
 version = "0.46.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02aff20978970d47630f08de5f0d04799497818d16cafee5aec90c4b4d0806cf"
@@ -3524,33 +3466,13 @@ dependencies = [
  "hyper-tls 0.5.0",
  "lazy_static 1.4.0",
  "log 0.4.14",
- "rusoto_credential 0.46.0",
- "rusoto_signature 0.46.0",
+ "rusoto_credential",
+ "rusoto_signature",
  "rustc_version",
  "serde",
  "serde_json",
  "tokio 1.2.0",
  "xml-rs",
-]
-
-[[package]]
-name = "rusoto_credential"
-version = "0.45.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09ac05563f83489b19b4d413607a30821ab08bbd9007d14fa05618da3ef09d8b"
-dependencies = [
- "async-trait",
- "chrono",
- "dirs 2.0.2",
- "futures",
- "hyper 0.13.10",
- "pin-project 0.4.23",
- "regex 1.4.2",
- "serde",
- "serde_json",
- "shlex",
- "tokio 0.2.23",
- "zeroize",
 ]
 
 [[package]]
@@ -3580,34 +3502,9 @@ dependencies = [
  "async-trait",
  "bytes 1.0.1",
  "futures",
- "rusoto_core 0.46.0",
+ "rusoto_core",
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "rusoto_signature"
-version = "0.45.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97a740a88dde8ded81b6f2cff9cd5e054a5a2e38a38397260f7acdd2c85d17dd"
-dependencies = [
- "base64 0.12.3",
- "bytes 0.5.6",
- "futures",
- "hex",
- "hmac 0.8.1",
- "http",
- "hyper 0.13.10",
- "log 0.4.14",
- "md5",
- "percent-encoding",
- "pin-project 0.4.23",
- "rusoto_credential 0.45.0",
- "rustc_version",
- "serde",
- "sha2",
- "time 0.2.16",
- "tokio 0.2.23",
 ]
 
 [[package]]
@@ -3620,14 +3517,14 @@ dependencies = [
  "bytes 1.0.1",
  "futures",
  "hex",
- "hmac 0.10.1",
+ "hmac",
  "http",
  "hyper 0.14.4",
  "log 0.4.14",
  "md5",
  "percent-encoding",
  "pin-project-lite 0.2.0",
- "rusoto_credential 0.46.0",
+ "rusoto_credential",
  "rustc_version",
  "serde",
  "sha2",

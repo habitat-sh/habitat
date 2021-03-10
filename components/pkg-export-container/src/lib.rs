@@ -108,7 +108,7 @@ impl Credentials {
                     StaticProvider::new_minimal(username.to_string(), password.to_string());
                 // TODO TED: Make the region configurable
                 let client = EcrClient::new_with(HttpClient::new()?, provider, Region::UsWest2);
-                let auth_token_req = GetAuthorizationTokenRequest { registry_ids: None };
+                let auth_token_req = GetAuthorizationTokenRequest {};
                 let token = client.get_authorization_token(auth_token_req)
                                   .await
                                   .map_err(Error::TokenFetchFailed)
