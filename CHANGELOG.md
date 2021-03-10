@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.272 -->
-## [1.6.272](https://github.com/habitat-sh/habitat/tree/1.6.272) (2021-03-10)
+<!-- latest_release 1.6.273 -->
+## [1.6.273](https://github.com/habitat-sh/habitat/tree/1.6.273) (2021-03-10)
 
 #### Merged Pull Requests
-- pin bytes in butterfly [#8123](https://github.com/habitat-sh/habitat/pull/8123) ([mwrock](https://github.com/mwrock))
+- Bump serde from 1.0.115 to 1.0.124 [#8118](https://github.com/habitat-sh/habitat/pull/8118) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.267 -->
 ### Changes since 1.6.267 release
 
 #### Merged Pull Requests
+- Bump serde from 1.0.115 to 1.0.124 [#8118](https://github.com/habitat-sh/habitat/pull/8118) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.273 -->
+- Bump log from 0.4.11 to 0.4.14 [#8117](https://github.com/habitat-sh/habitat/pull/8117) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.273 -->
+- Bump pem from 0.8.2 to 0.8.3 [#8121](https://github.com/habitat-sh/habitat/pull/8121) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.273 -->
 - pin bytes in butterfly [#8123](https://github.com/habitat-sh/habitat/pull/8123) ([mwrock](https://github.com/mwrock)) <!-- 1.6.272 -->
 - pin bytes crate [#8122](https://github.com/habitat-sh/habitat/pull/8122) ([mwrock](https://github.com/mwrock)) <!-- 1.6.271 -->
 - Bump serde_json from 1.0.59 to 1.0.64 [#8110](https://github.com/habitat-sh/habitat/pull/8110) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.270 -->
