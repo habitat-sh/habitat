@@ -621,10 +621,8 @@ impl MemberList {
         if member.persistent {
             return true;
         }
-        match self.health_of_mlr(member) {
-            Some(Health::Alive) | Some(Health::Suspect) => true,
-            _ => false,
-        }
+        matches!(self.health_of_mlr(member),
+                 Some(Health::Alive) | Some(Health::Suspect))
     }
 
     /// Returns true if we are pinging this member because they are persistent, but we think they

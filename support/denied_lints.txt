@@ -1,6 +1,6 @@
 clippy::assign_op_pattern
 clippy::blacklisted_name
-clippy::block_in_if_condition_stmt
+clippy::blocks_in_if_conditions
 clippy::bool_comparison
 clippy::cast_lossless
 clippy::checked_conversions
@@ -17,7 +17,7 @@ clippy::find_map
 clippy::for_kv_map
 clippy::get_last_with_len
 clippy::get_unwrap
-clippy::identity_conversion
+clippy::useless_conversion
 clippy::if_let_some_result
 clippy::inherent_to_string
 clippy::inherent_to_string_shadow_display

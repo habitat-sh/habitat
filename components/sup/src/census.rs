@@ -110,7 +110,7 @@ impl CensusRing {
         self.census_groups.get(sg)
     }
 
-    pub fn groups(&self) -> Vec<&CensusGroup> { self.census_groups.values().map(|cg| cg).collect() }
+    pub fn groups(&self) -> Vec<&CensusGroup> { self.census_groups.values().collect() }
 
     /// Populates the census from `ServiceRumor`s and Butterfly-level
     /// membership lists.
