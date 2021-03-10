@@ -7,7 +7,7 @@ workspace = "../../"
 
 [dependencies]
 broadcast = "*"
-bytes = "*"
+bytes = "^0.5"
 chrono = "*"
 env = "*"
 futures = "*"
