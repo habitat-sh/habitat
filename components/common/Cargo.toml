@@ -28,7 +28,7 @@ handlebars = { version = "= 0.28.3", default-features = false }
 json = "*"
 lazy_static = "^1.4.0"
 libc = "*"
-log = "^0.4.11"
+log = "^0.4.14"
 native-tls = { version = "*", features = ["vendored"] }
 owning_ref = "*"
 parking_lot = "*"

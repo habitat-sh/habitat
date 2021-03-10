@@ -10,7 +10,7 @@ futures = { version = "*" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
-log = "^0.4.11"
+log = "^0.4.14"
 prost = "*"
 rustls = "*"
 termcolor = "*"
