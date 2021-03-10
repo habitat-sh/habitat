@@ -7,7 +7,7 @@ workspace = "../../"
 
 [dependencies]
 base64 = "*"
-log = "^0.4.11"
+log = "^0.4.14"
 native-tls = { version = "*", features = ["vendored"] }
 pem = "*"
 httparse = "*"
