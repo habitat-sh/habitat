@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.273 -->
-## [1.6.273](https://github.com/habitat-sh/habitat/tree/1.6.273) (2021-03-10)
+<!-- latest_release 1.6.274 -->
+## [1.6.274](https://github.com/habitat-sh/habitat/tree/1.6.274) (2021-03-10)
 
 #### Merged Pull Requests
-- Bump serde from 1.0.115 to 1.0.124 [#8118](https://github.com/habitat-sh/habitat/pull/8118) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rusoto_ecr from 0.45.0 to 0.46.0 [#8120](https://github.com/habitat-sh/habitat/pull/8120) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.267 -->
 ### Changes since 1.6.267 release
 
 #### Merged Pull Requests
+- Bump rusoto_ecr from 0.45.0 to 0.46.0 [#8120](https://github.com/habitat-sh/habitat/pull/8120) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.274 -->
 - Bump serde from 1.0.115 to 1.0.124 [#8118](https://github.com/habitat-sh/habitat/pull/8118) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.273 -->
 - Bump log from 0.4.11 to 0.4.14 [#8117](https://github.com/habitat-sh/habitat/pull/8117) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.273 -->
 - Bump pem from 0.8.2 to 0.8.3 [#8121](https://github.com/habitat-sh/habitat/pull/8121) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.273 -->
