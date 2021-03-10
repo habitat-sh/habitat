@@ -7,7 +7,7 @@ build = "build.rs"
 workspace = "../../"
 
 [dependencies]
-bytes = "*"
+bytes = "^0.5"
 prost = "*"
 prost-derive = "*"
 serde = "*"

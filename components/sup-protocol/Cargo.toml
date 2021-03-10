@@ -8,7 +8,7 @@ workspace = "../../"
 
 [dependencies]
 base64 = "*"
-bytes = "*"
+bytes = "^0.5"
 habitat_core = { path = "../core" }
 lazy_static = "^1.4.0"
 log = "^0.4.11"
