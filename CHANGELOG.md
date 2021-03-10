@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.267 -->
-## [1.6.267](https://github.com/habitat-sh/habitat/tree/1.6.267) (2021-03-09)
+<!-- latest_release 1.6.268 -->
+## [1.6.268](https://github.com/habitat-sh/habitat/tree/1.6.268) (2021-03-10)
 
 #### Merged Pull Requests
-- Bump paste from 1.0.3 to 1.0.4 [#8108](https://github.com/habitat-sh/habitat/pull/8108) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- post release updates [#8116](https://github.com/habitat-sh/habitat/pull/8116) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.267 -->
 ### Changes since 1.6.267 release
+
+#### Merged Pull Requests
+- post release updates [#8116](https://github.com/habitat-sh/habitat/pull/8116) ([mwrock](https://github.com/mwrock)) <!-- 1.6.268 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release 1.6.267 -->
