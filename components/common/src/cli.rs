@@ -57,12 +57,7 @@ pub fn key_cache_from_matches(matches: &ArgMatches<'_>) -> crate::error::Result<
 
 pub fn is_toml_file(val: &str) -> bool {
     let extension = Path::new(&val).extension().and_then(OsStr::to_str);
-    match extension {
-        // We could do some more validation (parse the whole toml file and check it) but that seems
-        // excessive.
-        Some("toml") => true,
-        _ => false,
-    }
+    matches!(extension, Some("toml"))
 }
 
 pub fn file_into_idents(path: &str) -> Result<Vec<PackageIdent>, habitat_core::error::Error> {
