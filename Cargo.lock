@@ -560,9 +560,9 @@ dependencies = [
 
 [[package]]
 name = "caps"
-version = "0.4.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7cad42d60031544f3332449273d5148028deb89e275300e87cdc1930021ec7d4"
+checksum = "d092fbb6657fb1f98a7da70c14335ac97e5a9477e1a8156d4bbf19a3a7aece51"
 dependencies = [
  "errno",
  "libc",
