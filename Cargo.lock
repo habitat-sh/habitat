@@ -90,7 +90,7 @@ dependencies = [
  "percent-encoding",
  "pin-project 1.0.1",
  "rand 0.7.3",
- "regex 1.4.2",
+ "regex 1.4.5",
  "serde",
  "serde_json",
  "serde_urlencoded",
@@ -118,7 +118,7 @@ dependencies = [
  "bytestring",
  "http",
  "log 0.4.14",
- "regex 1.4.2",
+ "regex 1.4.5",
  "serde",
 ]
 
@@ -279,7 +279,7 @@ dependencies = [
  "log 0.4.14",
  "mime",
  "pin-project 1.0.1",
- "regex 1.4.2",
+ "regex 1.4.5",
  "rustls",
  "serde",
  "serde_json",
@@ -918,7 +918,7 @@ dependencies = [
  "atty",
  "humantime",
  "log 0.4.14",
- "regex 1.4.2",
+ "regex 1.4.5",
  "termcolor",
 ]
 
@@ -1450,7 +1450,7 @@ dependencies = [
  "pbr",
  "percent-encoding",
  "rand 0.8.3",
- "regex 1.4.2",
+ "regex 1.4.5",
  "reqwest",
  "serde",
  "serde_derive",
@@ -1513,7 +1513,7 @@ dependencies = [
  "parking_lot",
  "pbr",
  "petgraph",
- "regex 1.4.2",
+ "regex 1.4.5",
  "reqwest",
  "retry",
  "rustls",
@@ -1560,7 +1560,7 @@ dependencies = [
  "pin-project 0.4.23",
  "rand 0.8.3",
  "rcgen",
- "regex 1.4.2",
+ "regex 1.4.5",
  "reqwest",
  "rust-crypto",
  "rustls",
@@ -1700,7 +1700,7 @@ dependencies = [
  "prost-types",
  "rand 0.8.3",
  "rants",
- "regex 1.4.2",
+ "regex 1.4.5",
  "rustls",
  "serde",
  "serde-transcode",
@@ -2230,7 +2230,7 @@ dependencies = [
  "log 0.4.14",
  "log-mdc",
  "parking_lot",
- "regex 1.4.2",
+ "regex 1.4.5",
  "serde",
  "serde-value",
  "serde_json",
@@ -2715,7 +2715,7 @@ checksum = "fd56cbd21fea48d0c440b41cd69c589faacade08c992d9a54e471b79d0fd13eb"
 dependencies = [
  "base64 0.13.0",
  "once_cell",
- "regex 1.4.2",
+ "regex 1.4.5",
 ]
 
 [[package]]
@@ -2924,7 +2924,7 @@ dependencies = [
  "lazy_static 1.4.0",
  "parking_lot",
  "protobuf",
- "regex 1.4.2",
+ "regex 1.4.5",
  "thiserror",
 ]
 
@@ -2994,7 +2994,7 @@ dependencies = [
  "error-chain 0.12.4",
  "idna",
  "lazy_static 1.4.0",
- "regex 1.4.2",
+ "regex 1.4.5",
  "url",
 ]
 
@@ -3340,14 +3340,13 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.4.2"
+version = "1.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38cf2c13ed4745de91a5eb834e11c00bcc3709e773173b2ce4c56c9fbde04b9c"
+checksum = "957056ecddbeba1b26965114e191d2e8589ce74db242b6ea25fc4062427a5c19"
 dependencies = [
  "aho-corasick 0.7.13",
  "memchr 2.3.3",
- "regex-syntax 0.6.21",
- "thread_local 1.0.1",
+ "regex-syntax 0.6.23",
 ]
 
 [[package]]
@@ -3367,9 +3366,9 @@ dependencies = [
 
 [[package]]
 name = "regex-syntax"
-version = "0.6.21"
+version = "0.6.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b181ba2dcf07aaccad5448e8ead58db5b742cf85dfe035e2227f137a539a189"
+checksum = "24d5f089152e60f62d28b835fbff2cd2e8dc0baf1ac13343bef92ab7eed84548"
 
 [[package]]
 name = "remove_dir_all"
@@ -4132,15 +4131,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "thread_local"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d40c6d1b69745a6ec6fb1ca717914848da4b44ae29d9b3080cbee91d72a69b14"
-dependencies = [
- "lazy_static 1.4.0",
-]
-
-[[package]]
 name = "threadpool"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4611,7 +4601,7 @@ dependencies = [
  "phf",
  "phf_codegen",
  "publicsuffix",
- "regex 1.4.2",
+ "regex 1.4.5",
  "serde",
  "serde_json",
  "uritemplate",
