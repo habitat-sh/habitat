@@ -469,9 +469,9 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "bimap"
-version = "0.5.2"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43806ad6cd3dec8ef84ac19f35a7b0075aee8c8a913ffc3a09191e6d7131e781"
+checksum = "f92b72b8f03128773278bf74418b9205f3d2a12c39a61f92395f47af390c32bf"
 
 [[package]]
 name = "bincode"
