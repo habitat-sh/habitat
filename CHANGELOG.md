@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.277 -->
-## [1.6.277](https://github.com/habitat-sh/habitat/tree/1.6.277) (2021-03-16)
+<!-- latest_release 1.6.278 -->
+## [1.6.278](https://github.com/habitat-sh/habitat/tree/1.6.278) (2021-03-16)
 
 #### Merged Pull Requests
-- fix segmentation faults of musl binaries with static relocation-model [#8135](https://github.com/habitat-sh/habitat/pull/8135) ([mwrock](https://github.com/mwrock))
+- Bump regex from 1.4.2 to 1.4.5 [#8134](https://github.com/habitat-sh/habitat/pull/8134) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.267 -->
 ### Changes since 1.6.267 release
 
 #### Merged Pull Requests
+- Bump regex from 1.4.2 to 1.4.5 [#8134](https://github.com/habitat-sh/habitat/pull/8134) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.278 -->
 - fix segmentation faults of musl binaries with static relocation-model [#8135](https://github.com/habitat-sh/habitat/pull/8135) ([mwrock](https://github.com/mwrock)) <!-- 1.6.277 -->
 - Bump async-trait from 0.1.42 to 0.1.48 [#8125](https://github.com/habitat-sh/habitat/pull/8125) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.276 -->
 - Bump hex from 0.4.2 to 0.4.3 [#8127](https://github.com/habitat-sh/habitat/pull/8127) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.276 -->
