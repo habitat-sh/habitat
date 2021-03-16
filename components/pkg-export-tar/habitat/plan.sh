@@ -64,6 +64,12 @@ do_prepare() {
   PLAN_TAR_PKG_IDENT=$(pkg_path_for tar | sed "s,^$HAB_PKG_PATH/,,")
   export PLAN_TAR_PKG_IDENT
   build_line "Setting PLAN_TAR_PKG_IDENT=$PLAN_TAR_PKG_IDENT"
+
+  # rust 1.46.0 enabled Position Independent Executables(PIE) for x86_64-unknown-linux-musl.
+  # This causes the compiled binary to segfault when building with GCC versions that
+  # support it. While we should investigate if there is something in the way we compile
+  # GCC which causes this. Setting relocation-model to static suppresses PIE.
+  export RUSTFLAGS='-C relocation-model=static'
 }
 
 do_build() {
