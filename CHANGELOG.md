@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.280 -->
-## [1.6.280](https://github.com/habitat-sh/habitat/tree/1.6.280) (2021-03-17)
+<!-- latest_release 1.6.281 -->
+## [1.6.281](https://github.com/habitat-sh/habitat/tree/1.6.281) (2021-03-17)
 
 #### Merged Pull Requests
-- Bump cc from 1.0.66 to 1.0.67 [#8141](https://github.com/habitat-sh/habitat/pull/8141) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump native-tls from 0.2.6 to 0.2.7 [#8142](https://github.com/habitat-sh/habitat/pull/8142) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.267 -->
 ### Changes since 1.6.267 release
 
 #### Merged Pull Requests
+- Bump native-tls from 0.2.6 to 0.2.7 [#8142](https://github.com/habitat-sh/habitat/pull/8142) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.281 -->
+- Bump valico from 3.5.0 to 3.6.0 [#8143](https://github.com/habitat-sh/habitat/pull/8143) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.281 -->
+- Bump url from 2.2.0 to 2.2.1 [#8145](https://github.com/habitat-sh/habitat/pull/8145) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.281 -->
 - Bump cc from 1.0.66 to 1.0.67 [#8141](https://github.com/habitat-sh/habitat/pull/8141) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.280 -->
 - Bump prometheus from 0.11.0 to 0.12.0 [#8139](https://github.com/habitat-sh/habitat/pull/8139) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.279 -->
 - Bump windows-acl from 0.2.2 to 0.3.0 [#8133](https://github.com/habitat-sh/habitat/pull/8133) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.279 -->
