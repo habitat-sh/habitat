@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.279 -->
-## [1.6.279](https://github.com/habitat-sh/habitat/tree/1.6.279) (2021-03-16)
+<!-- latest_release 1.6.280 -->
+## [1.6.280](https://github.com/habitat-sh/habitat/tree/1.6.280) (2021-03-17)
 
 #### Merged Pull Requests
-- Bump prometheus from 0.11.0 to 0.12.0 [#8139](https://github.com/habitat-sh/habitat/pull/8139) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.0.66 to 1.0.67 [#8141](https://github.com/habitat-sh/habitat/pull/8141) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.267 -->
 ### Changes since 1.6.267 release
 
 #### Merged Pull Requests
+- Bump cc from 1.0.66 to 1.0.67 [#8141](https://github.com/habitat-sh/habitat/pull/8141) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.280 -->
 - Bump prometheus from 0.11.0 to 0.12.0 [#8139](https://github.com/habitat-sh/habitat/pull/8139) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.279 -->
 - Bump windows-acl from 0.2.2 to 0.3.0 [#8133](https://github.com/habitat-sh/habitat/pull/8133) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.279 -->
 - Bump derivative from 2.1.1 to 2.2.0 [#8131](https://github.com/habitat-sh/habitat/pull/8131) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.279 -->
