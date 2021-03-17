@@ -15,4 +15,4 @@ prost = "*"
 rustls = "*"
 termcolor = "*"
 tokio = { version = "^0.2", features = ["full"] }
-tokio-util = { version = "^0.3", features = ["full"] }
+tokio-util = { version = "^0.6", features = ["full"] }

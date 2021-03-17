@@ -1411,7 +1411,7 @@ dependencies = [
  "rustls",
  "termcolor",
  "tokio 0.2.23",
- "tokio-util 0.3.1",
+ "tokio-util 0.6.4",
 ]
 
 [[package]]
@@ -1431,7 +1431,7 @@ dependencies = [
  "serde_derive",
  "tempfile",
  "tokio 0.2.23",
- "tokio-util 0.3.1",
+ "tokio-util 0.6.4",
  "toml 0.5.8",
 ]
 
@@ -1457,7 +1457,7 @@ dependencies = [
  "serde_json",
  "tee",
  "tokio 0.2.23",
- "tokio-util 0.3.1",
+ "tokio-util 0.6.4",
  "url",
 ]
 
@@ -1714,7 +1714,7 @@ dependencies = [
  "thiserror",
  "tokio 0.2.23",
  "tokio-rustls",
- "tokio-util 0.3.1",
+ "tokio-util 0.6.4",
  "toml 0.5.8",
  "url",
  "uuid 0.8.2",
@@ -4337,11 +4337,26 @@ checksum = "be8242891f2b6cbef26a2d7e8605133c2c554cd35b3e4948ea892d6d68436499"
 dependencies = [
  "bytes 0.5.6",
  "futures-core",
- "futures-io",
  "futures-sink",
  "log 0.4.14",
  "pin-project-lite 0.1.7",
  "tokio 0.2.23",
+]
+
+[[package]]
+name = "tokio-util"
+version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec31e5cc6b46e653cf57762f36f71d5e6386391d88a72fd6db4508f8f676fb29"
+dependencies = [
+ "bytes 1.0.1",
+ "futures-core",
+ "futures-io",
+ "futures-sink",
+ "log 0.4.14",
+ "pin-project-lite 0.2.0",
+ "slab",
+ "tokio 1.2.0",
 ]
 
 [[package]]
