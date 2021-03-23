@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.284 -->
-## [1.6.284](https://github.com/habitat-sh/habitat/tree/1.6.284) (2021-03-23)
+<!-- latest_release 1.6.285 -->
+## [1.6.285](https://github.com/habitat-sh/habitat/tree/1.6.285) (2021-03-23)
 
 #### Merged Pull Requests
-- Bump serde from 1.0.124 to 1.0.125 [#8154](https://github.com/habitat-sh/habitat/pull/8154) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump walkdir from 2.3.1 to 2.3.2 [#8152](https://github.com/habitat-sh/habitat/pull/8152) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.267 -->
 ### Changes since 1.6.267 release
 
 #### Merged Pull Requests
+- Bump walkdir from 2.3.1 to 2.3.2 [#8152](https://github.com/habitat-sh/habitat/pull/8152) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.285 -->
+- Bump serde_test from 1.0.124 to 1.0.125 [#8153](https://github.com/habitat-sh/habitat/pull/8153) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.285 -->
+- Bump libc from 0.2.90 to 0.2.91 [#8151](https://github.com/habitat-sh/habitat/pull/8151) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.285 -->
 - Bump serde from 1.0.124 to 1.0.125 [#8154](https://github.com/habitat-sh/habitat/pull/8154) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.284 -->
 - Bump libc from 0.2.89 to 0.2.90 [#8149](https://github.com/habitat-sh/habitat/pull/8149) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.283 -->
 - Bump linked-hash-map from 0.5.3 to 0.5.4 [#8146](https://github.com/habitat-sh/habitat/pull/8146) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.282 -->
