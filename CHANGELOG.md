@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.287 -->
-## [1.6.287](https://github.com/habitat-sh/habitat/tree/1.6.287) (2021-03-31)
+<!-- latest_release 1.6.288 -->
+## [1.6.288](https://github.com/habitat-sh/habitat/tree/1.6.288) (2021-04-02)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.91 to 0.2.92 [#8156](https://github.com/habitat-sh/habitat/pull/8156) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- explicily remove iconv library from mac-bootstrapper path [#8157](https://github.com/habitat-sh/habitat/pull/8157) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.267 -->
 ### Changes since 1.6.267 release
 
 #### Merged Pull Requests
+- explicily remove iconv library from mac-bootstrapper path [#8157](https://github.com/habitat-sh/habitat/pull/8157) ([mwrock](https://github.com/mwrock)) <!-- 1.6.288 -->
 - Bump libc from 0.2.91 to 0.2.92 [#8156](https://github.com/habitat-sh/habitat/pull/8156) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.287 -->
 - Bump dns-lookup from 1.0.5 to 1.0.6 [#8155](https://github.com/habitat-sh/habitat/pull/8155) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.286 -->
 - Bump walkdir from 2.3.1 to 2.3.2 [#8152](https://github.com/habitat-sh/habitat/pull/8152) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.285 -->
