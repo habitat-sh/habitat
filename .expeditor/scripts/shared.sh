@@ -377,8 +377,8 @@ macos_install_bootstrap_package() {
     echo "--- Installing mac bootstrap package"
     # subscribe to releases: https://github.com/habitat-sh/release-engineering/issues/84
     bootstrap_package_version="$(cat MAC_BOOTSTRAPPER_VERSION)"
-    bootstrap_package_name="mac-bootstrapper-${bootstrap_package_version}-1"
-    curl "https://packages.chef.io/files/stable/mac-bootstrapper/${bootstrap_package_version}/mac_os_x/10.13/${bootstrap_package_name}.dmg" -O
+    bootstrap_package_name="mac-bootstrapper-${bootstrap_package_version}-1.x86_64"
+    curl "https://packages.chef.io/files/stable/mac-bootstrapper/${bootstrap_package_version}/mac_os_x/10.15/${bootstrap_package_name}.dmg" -O
     sudo hdiutil attach "${bootstrap_package_name}.dmg"
     sudo installer -verbose -pkg "/Volumes/Habitat macOS Bootstrapper/${bootstrap_package_name}.pkg" -target /
     sudo hdiutil detach "/Volumes/Habitat macOS Bootstrapper"

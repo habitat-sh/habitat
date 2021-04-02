@@ -31,7 +31,6 @@ do_prepare() {
   la_ldflags="$la_ldflags -L/opt/mac-bootstrapper/embedded/lib -llzma"
   la_ldflags="$la_ldflags -L/opt/mac-bootstrapper/embedded/lib -lbz2"
   la_ldflags="$la_ldflags -L/opt/mac-bootstrapper/embedded/lib -lexpat"
-  la_ldflags="$la_ldflags -L/opt/mac-bootstrapper/embedded/lib -liconv"
 
   export SODIUM_LIB_DIR=/opt/mac-bootstrapper/embedded/lib
 }
