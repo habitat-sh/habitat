@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.288 -->
-## [1.6.288](https://github.com/habitat-sh/habitat/tree/1.6.288) (2021-04-05)
+<!-- latest_release 1.6.289 -->
+## [1.6.289](https://github.com/habitat-sh/habitat/tree/1.6.289) (2021-04-05)
 
 #### Merged Pull Requests
-- explicily remove iconv library from mac-bootstrapper path [#8157](https://github.com/habitat-sh/habitat/pull/8157) ([mwrock](https://github.com/mwrock))
+- update changelog [#8159](https://github.com/habitat-sh/habitat/pull/8159) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.288 -->
 ### Changes since 1.6.288 release
+
+#### Merged Pull Requests
+- update changelog [#8159](https://github.com/habitat-sh/habitat/pull/8159) ([mwrock](https://github.com/mwrock)) <!-- 1.6.289 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release 1.6.288 -->
