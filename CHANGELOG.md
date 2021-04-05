@@ -1,14 +1,18 @@
 # Habitat CHANGELOG
 
 <!-- latest_release 1.6.288 -->
-## [1.6.288](https://github.com/habitat-sh/habitat/tree/1.6.288) (2021-04-02)
+## [1.6.288](https://github.com/habitat-sh/habitat/tree/1.6.288) (2021-04-05)
 
 #### Merged Pull Requests
 - explicily remove iconv library from mac-bootstrapper path [#8157](https://github.com/habitat-sh/habitat/pull/8157) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.267 -->
-### Changes since 1.6.267 release
+<!-- release_rollup since=1.6.288 -->
+### Changes since 1.6.288 release
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.288 -->
+## [1.6.288](https://github.com/habitat-sh/habitat/tree/1.6.288) (2021-04-05)
 
 #### Merged Pull Requests
 - explicily remove iconv library from mac-bootstrapper path [#8157](https://github.com/habitat-sh/habitat/pull/8157) ([mwrock](https://github.com/mwrock)) <!-- 1.6.288 -->
@@ -50,9 +54,7 @@
 - Bump winreg from 0.7.0 to 0.8.0 [#8111](https://github.com/habitat-sh/habitat/pull/8111) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.270 -->
 - Rustfmt and Nightly Rust Bump to nightly-2021-03-09 [#8115](https://github.com/habitat-sh/habitat/pull/8115) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.269 -->
 - post release updates [#8116](https://github.com/habitat-sh/habitat/pull/8116) ([mwrock](https://github.com/mwrock)) <!-- 1.6.268 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release 1.6.267 -->
 ## [1.6.267](https://github.com/habitat-sh/habitat/tree/1.6.267) (2021-03-09)
 
 #### Merged Pull Requests
