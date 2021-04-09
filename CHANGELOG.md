@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.292 -->
-## [1.6.292](https://github.com/habitat-sh/habitat/tree/1.6.292) (2021-04-07)
+<!-- latest_release 1.6.293 -->
+## [1.6.293](https://github.com/habitat-sh/habitat/tree/1.6.293) (2021-04-09)
 
 #### Merged Pull Requests
-- Bump os_info from 3.0.1 to 3.0.2 [#8160](https://github.com/habitat-sh/habitat/pull/8160) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump httparse from 1.3.5 to 1.3.6 [#8163](https://github.com/habitat-sh/habitat/pull/8163) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.288 -->
 ### Changes since 1.6.288 release
 
 #### Merged Pull Requests
+- Bump httparse from 1.3.5 to 1.3.6 [#8163](https://github.com/habitat-sh/habitat/pull/8163) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.293 -->
 - Bump os_info from 3.0.1 to 3.0.2 [#8160](https://github.com/habitat-sh/habitat/pull/8160) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.292 -->
 - Bump libc from 0.2.92 to 0.2.93 [#8161](https://github.com/habitat-sh/habitat/pull/8161) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.291 -->
 - Rustfmt and Nightly Rust Bump to nightly-2021-03-25 [#8158](https://github.com/habitat-sh/habitat/pull/8158) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.290 -->
