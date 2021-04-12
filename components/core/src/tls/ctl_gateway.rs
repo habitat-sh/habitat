@@ -20,7 +20,7 @@ use std::{fs::{self,
           path::{Path,
                  PathBuf}};
 use thiserror::Error;
-use webpki::DNSNameRef;
+use webpki::DnsNameRef;
 
 const NAME_PREFIX: &str = "ctl-gateway";
 const CRT_EXTENSION: &str = "crt.pem";
@@ -38,7 +38,7 @@ pub enum Error {
     CertificateWrite(#[from] IoError),
 }
 
-pub fn generate_self_signed_certificate_and_key(subject_alternate_name: DNSNameRef,
+pub fn generate_self_signed_certificate_and_key(subject_alternate_name: DnsNameRef,
                                                 path: impl AsRef<Path>)
                                                 -> Result<(), Error> {
     let mut params =
@@ -102,13 +102,13 @@ mod tests {
     use std::{fs,
               time::Duration};
     use tempfile::TempDir;
-    use webpki::DNSNameRef;
+    use webpki::DnsNameRef;
 
     #[test]
     fn ctl_gateway_generate_and_read_tls_files() {
         let tmpdir = TempDir::new().unwrap();
 
-        generate_self_signed_certificate_and_key(DNSNameRef::try_from_ascii_str("a_test_domain").unwrap(), &tmpdir).unwrap();
+        generate_self_signed_certificate_and_key(DnsNameRef::try_from_ascii_str("a_test_domain").unwrap(), &tmpdir).unwrap();
         assert_eq!(fs::read_dir(&tmpdir).unwrap().count(), 2);
         let first_path =
             get_last_path(&tmpdir, &format!("{}-*.{}", NAME_PREFIX, CRT_EXTENSION)).unwrap();
@@ -122,7 +122,7 @@ mod tests {
         // name.
         std::thread::sleep(Duration::from_secs(2));
 
-        generate_self_signed_certificate_and_key(DNSNameRef::try_from_ascii_str("another_domain").unwrap(), &tmpdir).unwrap();
+        generate_self_signed_certificate_and_key(DnsNameRef::try_from_ascii_str("another_domain").unwrap(), &tmpdir).unwrap();
         assert_eq!(fs::read_dir(&tmpdir).unwrap().count(), 4);
         let second_path =
             get_last_path(&tmpdir, &format!("{}-*.{}", NAME_PREFIX, CRT_EXTENSION)).unwrap();
