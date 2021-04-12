@@ -50,7 +50,7 @@ dependencies = [
  "tokio-rustls",
  "trust-dns-proto",
  "trust-dns-resolver",
- "webpki",
+ "webpki 0.21.4",
 ]
 
 [[package]]
@@ -208,7 +208,7 @@ dependencies = [
  "futures-util",
  "rustls",
  "tokio-rustls",
- "webpki",
+ "webpki 0.21.4",
  "webpki-roots",
 ]
 
@@ -1328,7 +1328,7 @@ dependencies = [
  "url",
  "uuid 0.8.2",
  "walkdir",
- "webpki",
+ "webpki 0.22.0",
  "widestring",
  "winapi 0.3.9",
  "winreg 0.8.0",
@@ -1569,7 +1569,7 @@ dependencies = [
  "toml 0.5.8",
  "typemap",
  "url",
- "webpki",
+ "webpki 0.22.0",
  "widestring",
  "winapi 0.3.9",
  "windows-acl",
@@ -3550,7 +3550,7 @@ dependencies = [
  "log 0.4.14",
  "ring",
  "sct",
- "webpki",
+ "webpki 0.21.4",
 ]
 
 [[package]]
@@ -4256,7 +4256,7 @@ dependencies = [
  "futures-core",
  "rustls",
  "tokio 0.2.23",
- "webpki",
+ "webpki 0.21.4",
 ]
 
 [[package]]
@@ -4696,12 +4696,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "webpki"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f095d78192e208183081cc07bc5515ef55216397af48b873e5edcd72637fa1bd"
+dependencies = [
+ "ring",
+ "untrusted",
+]
+
+[[package]]
 name = "webpki-roots"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0f20dea7535251981a9670857150d571846545088359b28e4951d350bdaf179f"
 dependencies = [
- "webpki",
+ "webpki 0.21.4",
 ]
 
 [[package]]
