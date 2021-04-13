@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.296 -->
-## [1.6.296](https://github.com/habitat-sh/habitat/tree/1.6.296) (2021-04-12)
+<!-- latest_release 1.6.297 -->
+## [1.6.297](https://github.com/habitat-sh/habitat/tree/1.6.297) (2021-04-13)
 
 #### Merged Pull Requests
-- Bump webpki from 0.21.4 to 0.22.0 [#8165](https://github.com/habitat-sh/habitat/pull/8165) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump byteorder from 1.3.4 to 1.4.3 [#8169](https://github.com/habitat-sh/habitat/pull/8169) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.288 -->
 ### Changes since 1.6.288 release
 
 #### Merged Pull Requests
+- Bump byteorder from 1.3.4 to 1.4.3 [#8169](https://github.com/habitat-sh/habitat/pull/8169) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.297 -->
 - Bump webpki from 0.21.4 to 0.22.0 [#8165](https://github.com/habitat-sh/habitat/pull/8165) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.296 -->
 - Bump bincode from 1.3.2 to 1.3.3 [#8164](https://github.com/habitat-sh/habitat/pull/8164) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.295 -->
 - Bump bimap from 0.6.0 to 0.6.1 [#8162](https://github.com/habitat-sh/habitat/pull/8162) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.294 -->
