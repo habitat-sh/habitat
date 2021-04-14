@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.298 -->
-## [1.6.298](https://github.com/habitat-sh/habitat/tree/1.6.298) (2021-04-14)
+<!-- latest_release 1.6.299 -->
+## [1.6.299](https://github.com/habitat-sh/habitat/tree/1.6.299) (2021-04-14)
 
 #### Merged Pull Requests
-- Bump async-trait from 0.1.48 to 0.1.49 [#8170](https://github.com/habitat-sh/habitat/pull/8170) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump ctrlc from 3.1.8 to 3.1.9 [#8171](https://github.com/habitat-sh/habitat/pull/8171) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.288 -->
 ### Changes since 1.6.288 release
 
 #### Merged Pull Requests
+- Bump ctrlc from 3.1.8 to 3.1.9 [#8171](https://github.com/habitat-sh/habitat/pull/8171) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.299 -->
 - Bump async-trait from 0.1.48 to 0.1.49 [#8170](https://github.com/habitat-sh/habitat/pull/8170) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.298 -->
 - Bump byteorder from 1.3.4 to 1.4.3 [#8169](https://github.com/habitat-sh/habitat/pull/8169) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.297 -->
 - Bump webpki from 0.21.4 to 0.22.0 [#8165](https://github.com/habitat-sh/habitat/pull/8165) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.296 -->
