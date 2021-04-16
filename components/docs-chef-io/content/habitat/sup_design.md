@@ -17,7 +17,7 @@ This section will dive into the implementation details of important Chef Habitat
 
 The Chef Habitat Supervisor is similar in some ways to well-known process supervisors like [systemd](https://www.freedesktop.org/wiki/Software/systemd/), [runit](http://smarden.org/runit/) or [smf](https://en.wikipedia.org/wiki/Service_Management_Facility). It accepts and passes POSIX signals to its child processes, restarts child processes if and when they fail, ensures that children processes terminate cleanly, and so on.
 
-Because the basic functionality of process supervision is well-known, this document does not discuss those details. Instead, this document focuses strictly on the internals of the feature that makes the Chef Habitat Supervisor special: the fact that each Supervisor is connected to others in a peer-to-peer, masterless network which we refer to as a _ring_. This allows Supervisors to share configuration data with one another and adapt to changing conditions in the ring by modifying their own configuration.
+Because the basic functionality of process supervision is well-known, this document does not discuss those details. Instead, this document focuses strictly on the internals of the feature that makes the Chef Habitat Supervisor special: the fact that each Supervisor is connected to others in a peer-to-peer network which we refer to as a _ring_. This allows Supervisors to share configuration data with one another and adapt to changing conditions in the ring by modifying their own configuration.
 
 ## Important Terms
 
@@ -41,6 +41,12 @@ Ring
 
 Incarnation
 : A counter used to determine which message is "newer"
+
+## Supervisor Internals
+
+The Chef Habitat Supervisor is similar in some ways to well-known process supervisors like [systemd](https://www.freedesktop.org/wiki/Software/systemd/), [runit](http://smarden.org/runit/) or [smf](https://en.wikipedia.org/wiki/Service_Management_Facility). It accepts and passes POSIX signals to its child processes, restarts child processes if and when they fail, ensures that children processes terminate cleanly, and so on.
+
+Because the basic functionality of process supervision is well-known, this document does not discuss those details. Instead, this document focuses strictly on the internals of the feature that makes the Chef Habitat Supervisor special: the fact that each Supervisor is connected to others in a peer-to-peer network which we refer to as a _ring_. This allows Supervisors to share configuration data with one another and adapt to changing conditions in the ring by modifying their own configuration.
 
 ## Architecture
 
@@ -82,7 +88,7 @@ Confirmed
 Departed
 : this member has been intentionally kicked out of the ring for behavior unbecoming of a Supervisor, and is prevented from rejoining. This is accomplished with `hab` CLI commands.
 
-The essential flow is:
+The essential flow for detecting a failure is:
 
 * Randomize the list of all known members who are not Confirmed or Departed.
 * Every 3.1 seconds, pop a member off the list, and send it a "PING" message.
@@ -131,4 +137,3 @@ Whats good about this system:
 * [SWIM: Scalable Weakly-consistent Infection-style Process Group Membership
 Protocol](https://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf) by Abhinandan Das, Indranil Gupta, and Ashish Motivala.
 * [A Robust and Scalable Peer-to-Peer Gossiping Protocol](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.8773&rep=rep1&type=pdf) by Spyros Voulgaris, Mark Jelasity, and Maarten van Steen.
-
