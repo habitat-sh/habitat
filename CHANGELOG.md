@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.301 -->
-## [1.6.301](https://github.com/habitat-sh/habitat/tree/1.6.301) (2021-04-19)
+<!-- latest_release 1.6.302 -->
+## [1.6.302](https://github.com/habitat-sh/habitat/tree/1.6.302) (2021-04-19)
 
 #### Merged Pull Requests
-- Fix sup content. [#8174](https://github.com/habitat-sh/habitat/pull/8174) ([kagarmoe](https://github.com/kagarmoe))
+- Bump httparse from 1.3.6 to 1.4.0 [#8177](https://github.com/habitat-sh/habitat/pull/8177) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.288 -->
 ### Changes since 1.6.288 release
 
 #### Merged Pull Requests
+- Bump httparse from 1.3.6 to 1.4.0 [#8177](https://github.com/habitat-sh/habitat/pull/8177) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.302 -->
+- Bump notify from 4.0.15 to 4.0.16 [#8176](https://github.com/habitat-sh/habitat/pull/8176) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.302 -->
+- Bump async-trait from 0.1.49 to 0.1.50 [#8178](https://github.com/habitat-sh/habitat/pull/8178) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.302 -->
 - Fix sup content. [#8174](https://github.com/habitat-sh/habitat/pull/8174) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.301 -->
 - Bump rcgen from 0.8.9 to 0.8.10 [#8172](https://github.com/habitat-sh/habitat/pull/8172) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.300 -->
 - Bump ctrlc from 3.1.8 to 3.1.9 [#8171](https://github.com/habitat-sh/habitat/pull/8171) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.299 -->
