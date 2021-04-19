@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.300 -->
-## [1.6.300](https://github.com/habitat-sh/habitat/tree/1.6.300) (2021-04-15)
+<!-- latest_release 1.6.301 -->
+## [1.6.301](https://github.com/habitat-sh/habitat/tree/1.6.301) (2021-04-19)
 
 #### Merged Pull Requests
-- Bump rcgen from 0.8.9 to 0.8.10 [#8172](https://github.com/habitat-sh/habitat/pull/8172) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Fix sup content. [#8174](https://github.com/habitat-sh/habitat/pull/8174) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.288 -->
 ### Changes since 1.6.288 release
 
 #### Merged Pull Requests
+- Fix sup content. [#8174](https://github.com/habitat-sh/habitat/pull/8174) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.301 -->
 - Bump rcgen from 0.8.9 to 0.8.10 [#8172](https://github.com/habitat-sh/habitat/pull/8172) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.300 -->
 - Bump ctrlc from 3.1.8 to 3.1.9 [#8171](https://github.com/habitat-sh/habitat/pull/8171) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.299 -->
 - Bump async-trait from 0.1.48 to 0.1.49 [#8170](https://github.com/habitat-sh/habitat/pull/8170) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.298 -->
