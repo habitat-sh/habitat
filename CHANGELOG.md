@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.302 -->
-## [1.6.302](https://github.com/habitat-sh/habitat/tree/1.6.302) (2021-04-19)
+<!-- latest_release 1.6.303 -->
+## [1.6.303](https://github.com/habitat-sh/habitat/tree/1.6.303) (2021-04-21)
 
 #### Merged Pull Requests
-- Bump httparse from 1.3.6 to 1.4.0 [#8177](https://github.com/habitat-sh/habitat/pull/8177) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Fix search typo [#8180](https://github.com/habitat-sh/habitat/pull/8180) ([sajjaphani](https://github.com/sajjaphani))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.288 -->
 ### Changes since 1.6.288 release
 
 #### Merged Pull Requests
+- Fix search typo [#8180](https://github.com/habitat-sh/habitat/pull/8180) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.303 -->
 - Bump httparse from 1.3.6 to 1.4.0 [#8177](https://github.com/habitat-sh/habitat/pull/8177) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.302 -->
 - Bump notify from 4.0.15 to 4.0.16 [#8176](https://github.com/habitat-sh/habitat/pull/8176) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.302 -->
 - Bump async-trait from 0.1.49 to 0.1.50 [#8178](https://github.com/habitat-sh/habitat/pull/8178) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.302 -->
