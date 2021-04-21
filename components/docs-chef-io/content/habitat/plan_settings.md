@@ -100,6 +100,10 @@ pkg_version
   {{< /foundation_tabs_panel >}}
 {{< /foundation_tabs_panels >}}
 
+{{< note >}}
+Habitat uses the guidelines of the semantic versioning specification to determine version order (see https://semver.org/). Keep in mind that including a hyphen in your version indicates that the package is a pre-release that will be given lower precedence to other versions.
+{{< /note >}}
+
 pkg_maintainer
 : The name and email address of the package maintainer. Type: string._Optional_.
 
