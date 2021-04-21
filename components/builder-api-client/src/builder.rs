@@ -224,7 +224,7 @@ impl BuilderAPIClient {
         }).await?
     }
 
-    async fn seach_package_with_range(&self,
+    async fn search_package_with_range(&self,
                                       search_term: &str,
                                       token: Option<&str>,
                                       range: usize)
@@ -1351,7 +1351,7 @@ impl BuilderAPIClient {
                                 limit: usize,
                                 token: Option<&str>)
                                 -> Result<(Vec<PackageIdent>, usize)> {
-        self.search_package_impl(search_term, limit, token, Self::seach_package_with_range)
+        self.search_package_impl(search_term, limit, token, Self::search_package_with_range)
             .await
     }
 
