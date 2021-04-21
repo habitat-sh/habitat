@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.303 -->
-## [1.6.303](https://github.com/habitat-sh/habitat/tree/1.6.303) (2021-04-21)
+<!-- latest_release 1.6.304 -->
+## [1.6.304](https://github.com/habitat-sh/habitat/tree/1.6.304) (2021-04-21)
 
 #### Merged Pull Requests
-- Fix search typo [#8180](https://github.com/habitat-sh/habitat/pull/8180) ([sajjaphani](https://github.com/sajjaphani))
+- Update plan_settings.md - &quot;Add a note for pkg_version on semver&quot; [#8181](https://github.com/habitat-sh/habitat/pull/8181) ([hhodzic](https://github.com/hhodzic))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.288 -->
 ### Changes since 1.6.288 release
 
 #### Merged Pull Requests
+- Update plan_settings.md - &quot;Add a note for pkg_version on semver&quot; [#8181](https://github.com/habitat-sh/habitat/pull/8181) ([hhodzic](https://github.com/hhodzic)) <!-- 1.6.304 -->
 - Fix search typo [#8180](https://github.com/habitat-sh/habitat/pull/8180) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.303 -->
 - Bump httparse from 1.3.6 to 1.4.0 [#8177](https://github.com/habitat-sh/habitat/pull/8177) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.302 -->
 - Bump notify from 4.0.15 to 4.0.16 [#8176](https://github.com/habitat-sh/habitat/pull/8176) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.302 -->
