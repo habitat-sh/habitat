@@ -224,11 +224,11 @@ impl BuilderAPIClient {
         }).await?
     }
 
-    async fn seach_package_with_range(&self,
-                                      search_term: &str,
-                                      token: Option<&str>,
-                                      range: usize)
-                                      -> Result<(PackageResults<PackageIdent>, bool)> {
+    async fn search_package_with_range(&self,
+                                       search_term: &str,
+                                       token: Option<&str>,
+                                       range: usize)
+                                       -> Result<(PackageResults<PackageIdent>, bool)> {
         debug!("Searching for package {} with range {}", search_term, range);
         let req = self.0
                       .get_with_custom_url(&package_search(search_term), |url| {
@@ -1351,7 +1351,7 @@ impl BuilderAPIClient {
                                 limit: usize,
                                 token: Option<&str>)
                                 -> Result<(Vec<PackageIdent>, usize)> {
-        self.search_package_impl(search_term, limit, token, Self::seach_package_with_range)
+        self.search_package_impl(search_term, limit, token, Self::search_package_with_range)
             .await
     }
 
