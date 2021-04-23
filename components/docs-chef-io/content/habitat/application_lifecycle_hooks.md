@@ -84,7 +84,7 @@ An `install` hook may be triggered by `hab pkg install` or by a Supervisor loadi
 
 The exit code returned from an `install` hook will be "remembered". If a previously installed package is either installed again via `hab pkg install` or loaded into a Supervisor, its `install` hook will be rerun if it previously failed (exited with a non `0` result) or has not been previously run (perhaps because `--ignore-install-hook` was passed to `hab pkg install`).
 
-An `install` hook, unlike other hooks, will not have access to any census data exposed via binds or the `svc` namespace. Also, configuration in `svc_config_path` is not accessible to an `install` hook. If an `install` hook needs to utilize templated configuration files, templates located in the `svc_config_install_path` may be referenced. This location will contain rendered templates in a package's `config_install` folder. Finally, any configuration updates made during a service's runtime that would alter an `install` hook or any configuration template in `svc_config_install_path` will not cause a service to reload.
+An `install` hook, unlike other hooks, will not have access to any census data exposed via binds or the `svc` namespace. Also, configuration in `svc_config_path` is not accessible to an `install` hook. If an `install` hook needs to use templated configuration files, templates located in the `svc_config_install_path` may be referenced. This location will contain rendered templates in a package's `config_install` folder. Finally, any configuration updates made during a service's runtime that would alter an `install` hook or any configuration template in `svc_config_install_path` will not cause a service to reload.
 
 ### reload
 
