@@ -142,3 +142,11 @@ File location: `<plan>/hooks/post-run`. The post run hook will get executed afte
 ### post-stop
 
 File location: `<plan>/hooks/post-stop`. The post-stop hook will get executed after service has been stopped successfully. You may use this hook to undo what the `init` hook has done.
+
+### uninstall
+
+File location: `<plan>/hooks/uninstall`. This hook is run when a package is uninstalled.
+
+The `uninstall` hook runs when the last package of an `origin/package` is uninstalled. If there are other versions or revisions installed for the package, the `uninstall` hook is skipped. When more than one revision of an origin are uninstalled at the same time, the process removes them from oldest to newest. This ensures that the uninstall hook of the latest revision is the version that runs.
+
+Like the `install` hook, the `uninstall` hook is not limited to packages that are loaded as services into a Supervisor. Also like the `install` hook, configuration in `svc_config_path` is not accessible to an `uninstall` hook. If an `uninstall` hook needs to use templated configuration files, templates located in the `svc_config_install_path` may be referenced. This location will contain rendered templates in a package's `config_install` folder. Finally, any configuration updates made during a service's runtime that would alter an `uninstall` hook or any configuration template in `svc_config_install_path` will not cause a service to reload.
