@@ -143,7 +143,7 @@ File location: `<plan>/hooks/post-run`. The post run hook will get executed afte
 
 File location: `<plan>/hooks/post-stop`. The post-stop hook will get executed after service has been stopped successfully. You may use this hook to undo what the `init` hook has done.
 
-#### uninstall
+### uninstall
 
 File location: `<plan>/hooks/uninstall`. This hook is run when a package is uninstalled.
 
