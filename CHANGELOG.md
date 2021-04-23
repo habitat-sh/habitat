@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.306 -->
-## [1.6.306](https://github.com/habitat-sh/habitat/tree/1.6.306) (2021-04-23)
+<!-- latest_release 1.6.307 -->
+## [1.6.307](https://github.com/habitat-sh/habitat/tree/1.6.307) (2021-04-23)
 
 #### Merged Pull Requests
-- Bump regex from 1.4.5 to 1.4.6 [#8182](https://github.com/habitat-sh/habitat/pull/8182) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Add the uninstall hook to the docs [#8175](https://github.com/habitat-sh/habitat/pull/8175) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.288 -->
 ### Changes since 1.6.288 release
 
 #### Merged Pull Requests
+- Add the uninstall hook to the docs [#8175](https://github.com/habitat-sh/habitat/pull/8175) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.307 -->
 - Bump regex from 1.4.5 to 1.4.6 [#8182](https://github.com/habitat-sh/habitat/pull/8182) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.306 -->
 - &#39;Use&#39; not &#39;utilize&#39; [#8183](https://github.com/habitat-sh/habitat/pull/8183) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.305 -->
 - Update plan_settings.md - &quot;Add a note for pkg_version on semver&quot; [#8181](https://github.com/habitat-sh/habitat/pull/8181) ([hhodzic](https://github.com/hhodzic)) <!-- 1.6.304 -->
