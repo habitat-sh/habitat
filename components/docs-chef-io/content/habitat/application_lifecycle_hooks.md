@@ -143,8 +143,6 @@ File location: `<plan>/hooks/post-run`. The post run hook will get executed afte
 
 File location: `<plan>/hooks/post-stop`. The post-stop hook will get executed after service has been stopped successfully. You may use this hook to undo what the `init` hook has done.
 
-n `install` hook, unlike other hooks with the exception of the `uninstall` hook, will not have access to any census data exposed via binds or the `svc` namespace. Also, configuration in `svc_config_path` is not accessible to an `install` hook. If an `install` hook needs to use templated configuration files, templates located in the `svc_config_install_path` may be referenced. This location will contain rendered templates in a package's `config_install` folder. Finally, any configuration updates made during a service's runtime that would alter an `install` hook or any configuration template in `svc_config_install_path` will not cause a service to reload.
-
 #### uninstall
 
 File location: `<plan>/hooks/uninstall`. This hook is run when a package is uninstalled.
