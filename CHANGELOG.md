@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.307 -->
-## [1.6.307](https://github.com/habitat-sh/habitat/tree/1.6.307) (2021-04-23)
+<!-- latest_release 1.6.308 -->
+## [1.6.308](https://github.com/habitat-sh/habitat/tree/1.6.308) (2021-04-28)
 
 #### Merged Pull Requests
-- Add the uninstall hook to the docs [#8175](https://github.com/habitat-sh/habitat/pull/8175) ([kagarmoe](https://github.com/kagarmoe))
+- Bump dirs from 3.0.1 to 3.0.2 [#8184](https://github.com/habitat-sh/habitat/pull/8184) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.288 -->
 ### Changes since 1.6.288 release
 
 #### Merged Pull Requests
+- Bump dirs from 3.0.1 to 3.0.2 [#8184](https://github.com/habitat-sh/habitat/pull/8184) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.308 -->
 - Add the uninstall hook to the docs [#8175](https://github.com/habitat-sh/habitat/pull/8175) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.307 -->
 - Bump regex from 1.4.5 to 1.4.6 [#8182](https://github.com/habitat-sh/habitat/pull/8182) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.306 -->
 - &#39;Use&#39; not &#39;utilize&#39; [#8183](https://github.com/habitat-sh/habitat/pull/8183) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.305 -->
