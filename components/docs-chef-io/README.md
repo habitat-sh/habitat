@@ -53,7 +53,7 @@ before the next promotion.
 
 We use [Hugo](https://gohugo.io/), [Go](https://golang.org/), [NPM](https://www.npmjs.com/),
 [go-swagger](https://goswagger.io/install.html), and [jq](https://stedolan.github.io/jq/).
-You will need Hugo 0.78.1 or higher installed and running to build and view our documentation properly.
+You will need Hugo 0.83.1 or higher installed and running to build and view our documentation properly.
 
 To install Hugo, NPM, and Go on Windows and macOS:
 
