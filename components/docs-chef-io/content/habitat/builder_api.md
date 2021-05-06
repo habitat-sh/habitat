@@ -7,6 +7,7 @@ layout = "data-api"
 style_sheet = "/habitat-api-styles.css"
 api_file_path = "/habitat-api-docs/builder-api.json"
 return_page = "/habitat/"
+description = "Chef Habitat Builder API documentation."
 
 [menu]
   [menu.habitat]
