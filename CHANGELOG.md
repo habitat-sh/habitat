@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.313 -->
-## [1.6.313](https://github.com/habitat-sh/habitat/tree/1.6.313) (2021-05-07)
+<!-- latest_release 1.6.314 -->
+## [1.6.314](https://github.com/habitat-sh/habitat/tree/1.6.314) (2021-05-10)
 
 #### Merged Pull Requests
-- Bump regex from 1.5.3 to 1.5.4 [#8192](https://github.com/habitat-sh/habitat/pull/8192) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump url from 2.2.1 to 2.2.2 [#8193](https://github.com/habitat-sh/habitat/pull/8193) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.288 -->
 ### Changes since 1.6.288 release
 
 #### Merged Pull Requests
+- Bump url from 2.2.1 to 2.2.2 [#8193](https://github.com/habitat-sh/habitat/pull/8193) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.314 -->
 - Bump regex from 1.5.3 to 1.5.4 [#8192](https://github.com/habitat-sh/habitat/pull/8192) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.313 -->
 - Bump regex from 1.4.6 to 1.5.3 [#8189](https://github.com/habitat-sh/habitat/pull/8189) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.312 -->
 - Bump rcgen from 0.8.10 to 0.8.11 [#8187](https://github.com/habitat-sh/habitat/pull/8187) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.311 -->
