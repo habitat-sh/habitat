@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.314 -->
-## [1.6.314](https://github.com/habitat-sh/habitat/tree/1.6.314) (2021-05-10)
+<!-- latest_release 1.6.315 -->
+## [1.6.315](https://github.com/habitat-sh/habitat/tree/1.6.315) (2021-05-11)
 
 #### Merged Pull Requests
-- Bump url from 2.2.1 to 2.2.2 [#8193](https://github.com/habitat-sh/habitat/pull/8193) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- gossip service rumor after update [#8194](https://github.com/habitat-sh/habitat/pull/8194) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.288 -->
 ### Changes since 1.6.288 release
 
 #### Merged Pull Requests
+- gossip service rumor after update [#8194](https://github.com/habitat-sh/habitat/pull/8194) ([mwrock](https://github.com/mwrock)) <!-- 1.6.315 -->
 - Bump url from 2.2.1 to 2.2.2 [#8193](https://github.com/habitat-sh/habitat/pull/8193) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.314 -->
 - Bump regex from 1.5.3 to 1.5.4 [#8192](https://github.com/habitat-sh/habitat/pull/8192) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.313 -->
 - Bump regex from 1.4.6 to 1.5.3 [#8189](https://github.com/habitat-sh/habitat/pull/8189) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.312 -->
