@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.318 -->
-## [1.6.318](https://github.com/habitat-sh/habitat/tree/1.6.318) (2021-05-11)
+<!-- latest_release 1.6.319 -->
+## [1.6.319](https://github.com/habitat-sh/habitat/tree/1.6.319) (2021-05-12)
 
 #### Merged Pull Requests
-- Add descriptions to API pages [#8191](https://github.com/habitat-sh/habitat/pull/8191) ([IanMadd](https://github.com/IanMadd))
+- gossip after service is updated [#8197](https://github.com/habitat-sh/habitat/pull/8197) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.288 -->
 ### Changes since 1.6.288 release
 
 #### Merged Pull Requests
+- gossip after service is updated [#8197](https://github.com/habitat-sh/habitat/pull/8197) ([mwrock](https://github.com/mwrock)) <!-- 1.6.319 -->
 - Add descriptions to API pages [#8191](https://github.com/habitat-sh/habitat/pull/8191) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.318 -->
 - Bump caps from 0.5.1 to 0.5.2 [#8196](https://github.com/habitat-sh/habitat/pull/8196) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.317 -->
 - Bump httparse from 1.4.0 to 1.4.1 [#8195](https://github.com/habitat-sh/habitat/pull/8195) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.316 -->
