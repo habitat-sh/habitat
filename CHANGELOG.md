@@ -7,8 +7,12 @@
 - gossip after service is updated [#8197](https://github.com/habitat-sh/habitat/pull/8197) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.288 -->
-### Changes since 1.6.288 release
+<!-- release_rollup since=1.6.319 -->
+### Changes since 1.6.319 release
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.319 -->
+## [1.6.319](https://github.com/habitat-sh/habitat/tree/1.6.319) (2021-05-12)
 
 #### Merged Pull Requests
 - gossip after service is updated [#8197](https://github.com/habitat-sh/habitat/pull/8197) ([mwrock](https://github.com/mwrock)) <!-- 1.6.319 -->
@@ -45,9 +49,6 @@
 - Bump libc from 0.2.92 to 0.2.93 [#8161](https://github.com/habitat-sh/habitat/pull/8161) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.291 -->
 - Rustfmt and Nightly Rust Bump to nightly-2021-03-25 [#8158](https://github.com/habitat-sh/habitat/pull/8158) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.290 -->
 - update changelog [#8159](https://github.com/habitat-sh/habitat/pull/8159) ([mwrock](https://github.com/mwrock)) <!-- 1.6.289 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 1.6.288 -->
 ## [1.6.288](https://github.com/habitat-sh/habitat/tree/1.6.288) (2021-04-05)
 
 #### Merged Pull Requests
