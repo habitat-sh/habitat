@@ -12,7 +12,7 @@ gh_repo = "habitat"
     weight = 40
 +++
 
-The Chef Habitat Supervisor performs leader election natively for service groups [topologies](/docs/glossary/#glossary-services) that require one, such as _leader-follower_.
+The Chef Habitat Supervisor performs leader election natively for service groups [topologies]({{< relref "service_group_topologies" >}}) that require one, such as _leader-follower_.
 
 Because Chef Habitat is an eventually-consistent distributed system, the role of the leader is different than in strongly-consistent systems. It only serves as the leader for *application level semantics*, e.g. a database write leader. The fact that a Supervisor is a leader has no bearing upon other operations in the Chef Habitat system, including rumor dissemination for configuration updates. It is _not_ akin to a [Raft](https://raft.github.io/) leader, through which writes must all be funneled. This allows for very high scalability of the Chef Habitat Supervisor ring.
 
