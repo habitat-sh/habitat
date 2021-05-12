@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.319 -->
-## [1.6.319](https://github.com/habitat-sh/habitat/tree/1.6.319) (2021-05-12)
+<!-- latest_release 1.6.320 -->
+## [1.6.320](https://github.com/habitat-sh/habitat/tree/1.6.320) (2021-05-12)
 
 #### Merged Pull Requests
-- gossip after service is updated [#8197](https://github.com/habitat-sh/habitat/pull/8197) ([mwrock](https://github.com/mwrock))
+- update changelog for 1.6.319 [#8200](https://github.com/habitat-sh/habitat/pull/8200) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.319 -->
 ### Changes since 1.6.319 release
+
+#### Merged Pull Requests
+- update changelog for 1.6.319 [#8200](https://github.com/habitat-sh/habitat/pull/8200) ([mwrock](https://github.com/mwrock)) <!-- 1.6.320 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release 1.6.319 -->
