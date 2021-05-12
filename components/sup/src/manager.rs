@@ -1140,11 +1140,6 @@ impl Manager {
                         if let Err(err) = self.state.cfg.save_spec_for(&service_spec) {
                             warn!("Tried to update '{}', but couldn't write the spec: {:?}",
                                   service_spec.ident, err);
-                        } else {
-                            let mut services = self.state.services.lock_msw();
-                            if let Some(s) = services.get_mut(&service_spec.ident) {
-                                self.gossip_latest_service_rumor_rsw_mlw_rhw(&s);
-                            }
                         }
                     }
                 }
@@ -1675,6 +1670,7 @@ impl Manager {
                     // ServiceSpec#reconcile must guarantee.
                     if let Some(s) = services.get_mut(&spec.ident) {
                         s.set_spec(spec);
+                        self.gossip_latest_service_rumor_rsw_mlw_rhw(&s);
                         for op in ops {
                             match op {
                                 RefreshOperation::RestartUpdater => {
