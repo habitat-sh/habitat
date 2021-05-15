@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.323 -->
-## [1.6.323](https://github.com/habitat-sh/habitat/tree/1.6.323) (2021-05-14)
+<!-- latest_release 1.6.324 -->
+## [1.6.324](https://github.com/habitat-sh/habitat/tree/1.6.324) (2021-05-15)
 
 #### Merged Pull Requests
-- Bump serde_test from 1.0.125 to 1.0.126 [#8201](https://github.com/habitat-sh/habitat/pull/8201) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump notify from 4.0.16 to 4.0.17 [#8203](https://github.com/habitat-sh/habitat/pull/8203) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.319 -->
 ### Changes since 1.6.319 release
 
 #### Merged Pull Requests
+- Bump notify from 4.0.16 to 4.0.17 [#8203](https://github.com/habitat-sh/habitat/pull/8203) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.324 -->
 - Bump serde_test from 1.0.125 to 1.0.126 [#8201](https://github.com/habitat-sh/habitat/pull/8201) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.323 -->
 - Bump os_info from 3.0.4 to 3.0.5 [#8204](https://github.com/habitat-sh/habitat/pull/8204) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.322 -->
 - Rustfmt and Nightly Rust Bump to nightly-2021-05-12 [#8199](https://github.com/habitat-sh/habitat/pull/8199) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.321 -->
