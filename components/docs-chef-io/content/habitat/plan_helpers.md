@@ -84,7 +84,7 @@ When writing your template, you can use the `with` helper to reduce duplication:
 {{/with ~}}
 ```
 
-Helpers can also be nested and used together in block expressions. Here is another example from the redis.config file where the `if` and `with` helpers are used together to set up `core/redis` Chef Habitat services  in a leader-follower topology.
+Helpers can also be nested and used together in block expressions. Here is another example from the redis.config file where the `if` and `with` helpers are used together to set up `core/redis` Chef Habitat services in a leader-follower topology.
 
     {{#if svc.me.follower ~}}
       replicaof {{svc.leader.sys.ip}} {{svc.leader.cfg.port}}
