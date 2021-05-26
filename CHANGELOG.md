@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.328 -->
-## [1.6.328](https://github.com/habitat-sh/habitat/tree/1.6.328) (2021-05-25)
+<!-- latest_release 1.6.329 -->
+## [1.6.329](https://github.com/habitat-sh/habitat/tree/1.6.329) (2021-05-26)
 
 #### Merged Pull Requests
-- Fix bad link [#8198](https://github.com/habitat-sh/habitat/pull/8198) ([IanMadd](https://github.com/IanMadd))
+- Bump thiserror from 1.0.24 to 1.0.25 [#8208](https://github.com/habitat-sh/habitat/pull/8208) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.319 -->
 ### Changes since 1.6.319 release
 
 #### Merged Pull Requests
+- Bump thiserror from 1.0.24 to 1.0.25 [#8208](https://github.com/habitat-sh/habitat/pull/8208) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.329 -->
 - Fix bad link [#8198](https://github.com/habitat-sh/habitat/pull/8198) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.328 -->
 - Update Hugo and fix docs build command [#8190](https://github.com/habitat-sh/habitat/pull/8190) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.327 -->
 - Bump os_info from 3.0.5 to 3.0.6 [#8207](https://github.com/habitat-sh/habitat/pull/8207) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.326 -->
