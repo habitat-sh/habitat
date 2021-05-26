@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.329 -->
-## [1.6.329](https://github.com/habitat-sh/habitat/tree/1.6.329) (2021-05-26)
+<!-- latest_release 1.6.330 -->
+## [1.6.330](https://github.com/habitat-sh/habitat/tree/1.6.330) (2021-05-26)
 
 #### Merged Pull Requests
-- Bump thiserror from 1.0.24 to 1.0.25 [#8208](https://github.com/habitat-sh/habitat/pull/8208) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump libc from 0.2.94 to 0.2.95 [#8211](https://github.com/habitat-sh/habitat/pull/8211) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.319 -->
 ### Changes since 1.6.319 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.94 to 0.2.95 [#8211](https://github.com/habitat-sh/habitat/pull/8211) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.330 -->
+- Bump winreg from 0.8.0 to 0.9.0 [#8209](https://github.com/habitat-sh/habitat/pull/8209) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.330 -->
 - Bump thiserror from 1.0.24 to 1.0.25 [#8208](https://github.com/habitat-sh/habitat/pull/8208) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.329 -->
 - Fix bad link [#8198](https://github.com/habitat-sh/habitat/pull/8198) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.328 -->
 - Update Hugo and fix docs build command [#8190](https://github.com/habitat-sh/habitat/pull/8190) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.327 -->
