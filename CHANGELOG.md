@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.332 -->
-## [1.6.332](https://github.com/habitat-sh/habitat/tree/1.6.332) (2021-05-27)
+<!-- latest_release 1.6.333 -->
+## [1.6.333](https://github.com/habitat-sh/habitat/tree/1.6.333) (2021-05-28)
 
 #### Merged Pull Requests
-- Bump semver from 0.11.0 to 1.0.0 [#8212](https://github.com/habitat-sh/habitat/pull/8212) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tar from 0.4.33 to 0.4.35 [#8213](https://github.com/habitat-sh/habitat/pull/8213) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.319 -->
 ### Changes since 1.6.319 release
 
 #### Merged Pull Requests
+- Bump tar from 0.4.33 to 0.4.35 [#8213](https://github.com/habitat-sh/habitat/pull/8213) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.333 -->
 - Bump semver from 0.11.0 to 1.0.0 [#8212](https://github.com/habitat-sh/habitat/pull/8212) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.332 -->
 - Bump cc from 1.0.67 to 1.0.68 [#8210](https://github.com/habitat-sh/habitat/pull/8210) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.331 -->
 - Bump libc from 0.2.94 to 0.2.95 [#8211](https://github.com/habitat-sh/habitat/pull/8211) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.330 -->
