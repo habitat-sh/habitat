@@ -1335,7 +1335,7 @@ dependencies = [
  "log 0.4.14",
  "nix 0.21.0",
  "prost",
- "semver 1.0.0",
+ "semver 1.0.3",
  "winapi 0.3.9",
 ]
 
@@ -3606,9 +3606,9 @@ dependencies = [
 
 [[package]]
 name = "semver"
-version = "1.0.0"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76b5842e81eb9bbea19276a9dbbda22ac042532f390a67ab08b895617978abf3"
+checksum = "5f3aac57ee7f3272d8395c6e4f502f434f0e289fcd62876f70daa008c20dcabe"
 
 [[package]]
 name = "semver-parser"
