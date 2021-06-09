@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.335 -->
-## [1.6.335](https://github.com/habitat-sh/habitat/tree/1.6.335) (2021-06-08)
+<!-- latest_release 1.6.336 -->
+## [1.6.336](https://github.com/habitat-sh/habitat/tree/1.6.336) (2021-06-09)
 
 #### Merged Pull Requests
-- Bump semver from 1.0.0 to 1.0.3 [#8218](https://github.com/habitat-sh/habitat/pull/8218) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump dns-lookup from 1.0.6 to 1.0.7 [#8219](https://github.com/habitat-sh/habitat/pull/8219) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.319 -->
 ### Changes since 1.6.319 release
 
 #### Merged Pull Requests
+- Bump dns-lookup from 1.0.6 to 1.0.7 [#8219](https://github.com/habitat-sh/habitat/pull/8219) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.336 -->
 - Bump semver from 1.0.0 to 1.0.3 [#8218](https://github.com/habitat-sh/habitat/pull/8218) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.335 -->
 - Bump nix from 0.20.0 to 0.21.0 [#8216](https://github.com/habitat-sh/habitat/pull/8216) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.334 -->
 - Bump tar from 0.4.33 to 0.4.35 [#8213](https://github.com/habitat-sh/habitat/pull/8213) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.333 -->
