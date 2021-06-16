@@ -22,8 +22,14 @@ pub fn init() {
         });
 }
 
-pub fn pending_sighup() -> bool { PENDING_HUP.compare_and_swap(true, false, Ordering::SeqCst) }
-pub fn pending_sigchld() -> bool { PENDING_CHLD.compare_and_swap(true, false, Ordering::SeqCst) }
+pub fn pending_sighup() -> bool {
+    PENDING_HUP.compare_exchange(true, false, Ordering::SeqCst, Ordering::SeqCst)
+               .unwrap_or_else(core::convert::identity)
+}
+pub fn pending_sigchld() -> bool {
+    PENDING_CHLD.compare_exchange(true, false, Ordering::SeqCst, Ordering::SeqCst)
+                .unwrap_or_else(core::convert::identity)
+}
 
 fn start_signal_handler() -> io::Result<()> {
     let mut handled_signals = Sigset::empty()?;
