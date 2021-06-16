@@ -1176,8 +1176,7 @@ mod test_atomic_writer {
               io::{Read,
                    Seek,
                    SeekFrom,
-                   Write},
-              panic};
+                   Write}};
 
     const EXPECTED_CONTENT: &str = "A very good file format";
 

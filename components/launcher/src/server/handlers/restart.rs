@@ -14,8 +14,8 @@ impl Handler for RestartHandler {
         let mut service = match services.remove(msg.pid as u32) {
             Some(service) => service,
             None => {
-                let mut reply = protocol::NetErr::default();
-                reply.code = protocol::ErrCode::NoPid;
+                let reply = protocol::NetErr { code: protocol::ErrCode::NoPid,
+                                               ..Default::default() };
                 return Err(reply);
             }
         };
@@ -24,8 +24,7 @@ impl Handler for RestartHandler {
             Ok(_status) => {
                 match service::run(service.take_args()) {
                     Ok(new_service) => {
-                        let mut reply = protocol::SpawnOk::default();
-                        reply.pid = new_service.id().into();
+                        let reply = protocol::SpawnOk { pid: new_service.id().into(), };
                         services.insert(new_service);
                         Ok(reply)
                     }
@@ -33,8 +32,8 @@ impl Handler for RestartHandler {
                 }
             }
             Err(_) => {
-                let mut reply = protocol::NetErr::default();
-                reply.code = protocol::ErrCode::ExecWait;
+                let reply = protocol::NetErr { code: protocol::ErrCode::ExecWait,
+                                               ..Default::default() };
                 Err(reply)
             }
         }

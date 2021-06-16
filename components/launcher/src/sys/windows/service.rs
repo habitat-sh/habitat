@@ -12,7 +12,6 @@ use core::{os::{process::{handle_from_pid,
 use std::{collections::HashMap,
           env,
           io,
-          iter::FromIterator,
           mem,
           time::{Duration,
                  Instant}};
@@ -168,7 +167,7 @@ fn spawn_pwsh(ps_binary_name: &str, msg: protocol::Spawn) -> Result<Service> {
         }
     };
 
-    let new_env = HashMap::from_iter(msg.env.clone().into_iter());
+    let new_env = msg.env.clone().into_iter().collect();
 
     match Child::spawn(ps_binary_name,
                        &util::pwsh_args(ps_cmd.as_str()),

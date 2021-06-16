@@ -10,7 +10,6 @@ clippy::collapsible_if
 clippy::correctness
 clippy::cognitive_complexity
 clippy::deref_addrof
-clippy::drop_bounds
 clippy::expect_fun_call
 clippy::filter_map_next
 clippy::find_map

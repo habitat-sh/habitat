@@ -209,9 +209,8 @@ pub(crate) mod sync {
         }
 
         fn test_member(member_id: &str) -> Member {
-            let mut m = Member::default();
-            m.id = member_id.to_string();
-            m
+            Member { id: member_id.to_string(),
+                     ..Default::default() }
         }
 
         /// Helper function that tests that a given rumor is currently

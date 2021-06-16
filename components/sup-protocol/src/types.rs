@@ -242,9 +242,9 @@ impl Into<core::service::BindingMode> for BindingMode {
 
 impl From<core::service::ServiceGroup> for ServiceGroup {
     fn from(service_group: core::service::ServiceGroup) -> Self {
-        let mut proto = ServiceGroup::default();
-        proto.group = service_group.group().to_string();
-        proto.service = service_group.service().to_string();
+        let mut proto = ServiceGroup { group: service_group.group().to_string(),
+                                       service: service_group.service().to_string(),
+                                       ..Default::default() };
         if let Some(organization) = service_group.org() {
             proto.organization = Some(organization.to_string());
         }

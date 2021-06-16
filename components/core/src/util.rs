@@ -160,6 +160,7 @@ impl<T: BufRead> BufReadLossy for T {}
 
 /// Provide a way to convert numeric types safely to i64
 pub trait ToI64 {
+    #[allow(clippy::wrong_self_convention)]
     fn to_i64(self) -> i64;
 }
 

@@ -122,10 +122,10 @@ impl PeerWatcher {
                     }
                 };
                 let addr: SocketAddr = addrs[0];
-                let mut member = Member::default();
-                member.address = format!("{}", addr.ip());
-                member.swim_port = addr.port();
-                member.gossip_port = addr.port();
+                let member = Member { address: format!("{}", addr.ip()),
+                                      swim_port: addr.port(),
+                                      gossip_port: addr.port(),
+                                      ..Default::default() };
                 members.push(member);
             }
         }
@@ -174,16 +174,16 @@ mod tests {
         let watcher = PeerWatcher::run(path).unwrap();
         writeln!(file, "1.2.3.4:5").unwrap();
         writeln!(file, "4.3.2.1").unwrap();
-        let mut member1 = Member::default();
-        member1.id = String::new();
-        member1.address = String::from("1.2.3.4");
-        member1.swim_port = 5;
-        member1.gossip_port = 5;
-        let mut member2 = Member::default();
-        member2.id = String::new();
-        member2.address = String::from("4.3.2.1");
-        member2.swim_port = GossipListenAddr::DEFAULT_PORT;
-        member2.gossip_port = GossipListenAddr::DEFAULT_PORT;
+        let member1 = Member { id: String::new(),
+                               address: String::from("1.2.3.4"),
+                               swim_port: 5,
+                               gossip_port: 5,
+                               ..Default::default() };
+        let member2 = Member { id: String::new(),
+                               address: String::from("4.3.2.1"),
+                               swim_port: GossipListenAddr::DEFAULT_PORT,
+                               gossip_port: GossipListenAddr::DEFAULT_PORT,
+                               ..Default::default() };
         let expected_members = vec![member1, member2];
         let mut members = watcher.get_members().unwrap();
         for mut member in &mut members {

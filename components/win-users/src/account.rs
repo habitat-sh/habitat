@@ -144,7 +144,7 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
 
     let mut sid: Vec<u8> = Vec::with_capacity(sid_size as usize);
     let mut domain: Vec<u16> = Vec::with_capacity(domain_size as usize);
-    let mut sid_type: SID_NAME_USE = 0 as SID_NAME_USE;
+    let mut sid_type: SID_NAME_USE = 0;
 
     let ret = unsafe {
         LookupAccountNameW(null_mut(),

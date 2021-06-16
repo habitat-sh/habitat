@@ -427,9 +427,8 @@ mod test {
     #[test]
     fn test_codec() {
         let mut codec = SrvCodec::new();
-        let mut inner = net::NetErr::default();
-        inner.code = net::ErrCode::NotFound as i32;
-        inner.msg = "this".to_string();
+        let inner = net::NetErr { code: net::ErrCode::NotFound as i32,
+                                  msg:  "this".to_string(), };
         let msg = SrvMessage::from(inner);
         let mut buf = BytesMut::new();
         codec.encode(msg.clone(), &mut buf).unwrap();
