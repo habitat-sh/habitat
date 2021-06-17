@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.340 -->
-## [1.6.340](https://github.com/habitat-sh/habitat/tree/1.6.340) (2021-06-17)
+<!-- latest_release 1.6.341 -->
+## [1.6.341](https://github.com/habitat-sh/habitat/tree/1.6.341) (2021-06-17)
 
 #### Merged Pull Requests
-- bump rust to 1.50.0 [#8224](https://github.com/habitat-sh/habitat/pull/8224) ([mwrock](https://github.com/mwrock))
+- Bump state from 0.4.2 to 0.5.1 [#8220](https://github.com/habitat-sh/habitat/pull/8220) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.319 -->
 ### Changes since 1.6.319 release
 
 #### Merged Pull Requests
+- Bump state from 0.4.2 to 0.5.1 [#8220](https://github.com/habitat-sh/habitat/pull/8220) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.341 -->
 - bump rust to 1.50.0 [#8224](https://github.com/habitat-sh/habitat/pull/8224) ([mwrock](https://github.com/mwrock)) <!-- 1.6.340 -->
 - Bump libc from 0.2.96 to 0.2.97 [#8222](https://github.com/habitat-sh/habitat/pull/8222) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.339 -->
 - Bump env_logger from 0.8.3 to 0.8.4 [#8223](https://github.com/habitat-sh/habitat/pull/8223) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.338 -->
