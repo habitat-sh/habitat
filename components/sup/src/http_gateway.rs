@@ -571,9 +571,9 @@ mod tests {
                 *gossip_port_guard += 1;
             }
             let gossip_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), gossip_port);
-            let mut member = Member::default();
-            member.swim_port = swim_port;
-            member.gossip_port = gossip_port;
+            let member = Member { swim_port,
+                                  gossip_port,
+                                  ..Default::default() };
             Server::new(swim_listen,
                         gossip_listen,
                         member,

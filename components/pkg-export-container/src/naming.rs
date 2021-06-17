@@ -293,15 +293,15 @@ mod tests {
 
     #[test]
     fn latest_tag() {
-        let mut naming = Naming::default();
-        naming.include_latest_tag = true;
+        let naming = Naming { include_latest_tag: true,
+                              ..Default::default() };
         assert_eq!(naming.latest_tag().unwrap(), "latest");
     }
 
     #[test]
     fn version_tag() {
-        let mut naming = Naming::default();
-        naming.include_version_tag = true;
+        let naming = Naming { include_version_tag: true,
+                              ..Default::default() };
 
         let context = context();
         assert_eq!(naming.version_tag(&context).unwrap(), "1.2.3");
@@ -309,8 +309,8 @@ mod tests {
 
     #[test]
     fn version_release_tag() {
-        let mut naming = Naming::default();
-        naming.include_version_release_tag = true;
+        let naming = Naming { include_version_release_tag: true,
+                              ..Default::default() };
 
         let context = context();
         assert_eq!(naming.version_release_tag(&context).unwrap(),
@@ -319,10 +319,8 @@ mod tests {
 
     #[test]
     fn image_name_with_registry_url() {
-        let mut naming = Naming::default();
-        // TODO (CM): IMPLEMENTATION QUIRK
-        // Registry type has no bearing on this! Fix it!
-        naming.registry_url = Some(String::from("registry.mycompany.com:8080/v1"));
+        let naming = Naming { registry_url: Some(String::from("registry.mycompany.com:8080/v1")),
+                              ..Default::default() };
 
         let context = context();
 

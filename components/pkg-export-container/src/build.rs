@@ -65,6 +65,7 @@ const DEFAULT_USER_AND_GROUP_ID: u32 = 42;
 const DEFAULT_HAB_UID: u32 = 84;
 const DEFAULT_HAB_GID: u32 = 84;
 
+#[allow(clippy::unnecessary_wraps)]
 fn default_base_image() -> Result<String> {
     #[cfg(unix)]
     {

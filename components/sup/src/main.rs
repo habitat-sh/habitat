@@ -450,14 +450,13 @@ mod test {
         use std::{collections::HashMap,
                   fs::File,
                   io::Write,
-                  iter::FromIterator,
                   path::PathBuf,
                   str::FromStr,
                   time::Duration};
 
         locked_env_var!(HAB_CACHE_KEY_PATH, lock_var);
 
-        fn cmd_vec_from_cmd_str(cmd: &str) -> Vec<&str> { Vec::from_iter(cmd.split_whitespace()) }
+        fn cmd_vec_from_cmd_str(cmd: &str) -> Vec<&str> { cmd.split_whitespace().collect() }
 
         fn sup_run_from_cmd_vec(cmd_vec: Vec<&str>) -> SupRun {
             let sup =

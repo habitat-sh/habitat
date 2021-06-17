@@ -16,21 +16,21 @@ impl Handler for TerminateHandler {
                 let shutdown_method = service.kill();
                 match service.wait() {
                     Ok(status) => {
-                        let mut reply = protocol::TerminateOk::default();
-                        reply.exit_code = status.code().unwrap_or(0);
-                        reply.shutdown_method = shutdown_method;
+                        let reply = protocol::TerminateOk { exit_code: status.code()
+                                                                             .unwrap_or(0),
+                                                            shutdown_method };
                         Ok(reply)
                     }
                     Err(_) => {
-                        let mut reply = protocol::NetErr::default();
-                        reply.code = protocol::ErrCode::ExecWait;
+                        let reply = protocol::NetErr { code: protocol::ErrCode::ExecWait,
+                                                       ..Default::default() };
                         Err(reply)
                     }
                 }
             }
             None => {
-                let mut reply = protocol::NetErr::default();
-                reply.code = protocol::ErrCode::NoPid;
+                let reply = protocol::NetErr { code: protocol::ErrCode::NoPid,
+                                               ..Default::default() };
                 Err(reply)
             }
         }

@@ -171,8 +171,7 @@ impl SrvClient {
         let mut current_transaction = SrvTxn::default();
 
         // Send the handshake message to the server
-        let mut handshake = protocol::ctl::Handshake::default();
-        handshake.secret_key = Some(Self::ctl_secret_key()?);
+        let handshake = protocol::ctl::Handshake { secret_key: Some(Self::ctl_secret_key()?), };
         let mut message = SrvMessage::from(handshake);
         message.set_transaction(current_transaction);
         tcp_stream.send(message).await?;

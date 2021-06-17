@@ -1,7 +1,6 @@
 use clap::{App,
            ArgMatches};
-use std::{fmt,
-          iter::FromIterator};
+use std::fmt;
 
 #[derive(Debug)]
 pub enum Expectation<'a> {
@@ -67,7 +66,7 @@ Command Parse error:
 }
 
 pub fn assert_command(app: App<'_, '_>, cmd: &str, assertions: Vec<(&str, Expectation<'_>)>) {
-    let cmd_vec = Vec::from_iter(cmd.split_whitespace());
+    let cmd_vec: Vec<&str> = cmd.split_whitespace().collect();
     let errors = match app.get_matches_from_safe(cmd_vec) {
         Ok(matches) => {
             match matches.subcommand() {

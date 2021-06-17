@@ -1490,10 +1490,10 @@ fn channel_package_path(channel: &ChannelIdent, package: &PackageIdent) -> Strin
                            channel,
                            package.name());
     if let Some(version) = package.version() {
-        path.push_str("/");
+        path.push('/');
         path.push_str(version);
         if let Some(release) = package.release() {
-            path.push_str("/");
+            path.push('/');
             path.push_str(release);
         }
     }

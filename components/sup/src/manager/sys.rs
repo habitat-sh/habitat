@@ -54,16 +54,14 @@ impl Sys {
     }
 
     pub fn as_sys_info(&self) -> SysInfo {
-        let mut sys_info = SysInfo::default();
-        sys_info.ip = self.ip.to_string();
-        sys_info.hostname = self.hostname.clone();
-        sys_info.gossip_ip = self.gossip_ip.to_string();
-        sys_info.gossip_port = u32::from(self.gossip_port);
-        sys_info.ctl_gateway_ip = self.ctl_gateway_ip.to_string();
-        sys_info.ctl_gateway_port = u32::from(self.ctl_gateway_port);
-        sys_info.http_gateway_ip = self.http_gateway_ip.to_string();
-        sys_info.http_gateway_port = u32::from(self.http_gateway_port);
-        sys_info
+        SysInfo { ip:                self.ip.to_string(),
+                  hostname:          self.hostname.clone(),
+                  gossip_ip:         self.gossip_ip.to_string(),
+                  gossip_port:       u32::from(self.gossip_port),
+                  ctl_gateway_ip:    self.ctl_gateway_ip.to_string(),
+                  ctl_gateway_port:  u32::from(self.ctl_gateway_port),
+                  http_gateway_ip:   self.http_gateway_ip.to_string(),
+                  http_gateway_port: u32::from(self.http_gateway_port), }
     }
 
     pub fn ctl_listen(&self) -> SocketAddr {

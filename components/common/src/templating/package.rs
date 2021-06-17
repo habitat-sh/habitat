@@ -16,7 +16,6 @@ use std::{collections::{BTreeMap,
                         HashMap},
           convert::TryFrom,
           env,
-          iter::FromIterator,
           ops::Deref,
           path::PathBuf,
           result};
@@ -53,9 +52,7 @@ impl Env {
         Ok(Env(env))
     }
 
-    pub fn to_hash_map(&self) -> HashMap<String, String> {
-        HashMap::from_iter(self.0.clone().into_iter())
-    }
+    pub fn to_hash_map(&self) -> HashMap<String, String> { self.0.clone().into_iter().collect() }
 
     async fn transform_path(path: Option<&String>) -> Result<String> {
         let mut paths: Vec<PathBuf> = match path {

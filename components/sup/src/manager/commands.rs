@@ -388,12 +388,10 @@ struct ServiceStatus {
 
 impl From<ServiceStatus> for protocol::types::ServiceStatus {
     fn from(other: ServiceStatus) -> Self {
-        let mut proto = protocol::types::ServiceStatus::default();
-        proto.ident = PackageIdent::from(other.pkg.ident).into();
-        proto.process = Some(other.process.into());
-        proto.service_group = other.service_group.into();
-        proto.desired_state = Some(other.desired_state.into());
-        proto
+        protocol::types::ServiceStatus { ident:         PackageIdent::from(other.pkg.ident).into(),
+                                         process:       Some(other.process.into()),
+                                         service_group: other.service_group.into(),
+                                         desired_state: Some(other.desired_state.into()), }
     }
 }
 
@@ -417,9 +415,9 @@ struct ProcessStatus {
 
 impl From<ProcessStatus> for protocol::types::ProcessStatus {
     fn from(other: ProcessStatus) -> Self {
-        let mut proto = protocol::types::ProcessStatus::default();
-        proto.elapsed = Some(other.elapsed.as_secs());
-        proto.state = other.state.into();
+        let mut proto = protocol::types::ProcessStatus { elapsed: Some(other.elapsed.as_secs()),
+                                                         state: other.state.into(),
+                                                         ..Default::default() };
         if let Some(pid) = other.pid {
             proto.pid = Some(pid);
         }

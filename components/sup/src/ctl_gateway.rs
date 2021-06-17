@@ -160,10 +160,12 @@ impl Write for CtlRequest {
         // at least), we'll apply colored output.
         //
         // `line` will also have a newline character at the end, FYI.
-        let mut msg = habitat_sup_protocol::ctl::ConsoleLine::default();
-        msg.line = line.to_string();
-        msg.color = color_to_string(self.current_color_spec.fg());
-        msg.bold = self.current_color_spec.bold();
+        let msg =
+            habitat_sup_protocol::ctl::ConsoleLine { line:  line.to_string(),
+                                                     color:
+                                                         color_to_string(self.current_color_spec
+                                                                             .fg()),
+                                                     bold:  self.current_color_spec.bold(), };
         self.reply_partial(msg);
 
         // Down here, however, we're doing double-duty by *also*

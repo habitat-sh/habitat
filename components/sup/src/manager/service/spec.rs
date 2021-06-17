@@ -24,7 +24,6 @@ use std::{collections::HashSet,
                File},
           io::{BufReader,
                Read},
-          iter::FromIterator,
           path::{Path,
                  PathBuf},
           result,
@@ -176,8 +175,7 @@ impl ServiceSpec {
     /// * If any required package binds are missing in service binds
     /// * If any given service binds are in neither required nor optional package binds
     pub fn validate(&self, package: &PackageInstall) -> Result<()> {
-        let mut svc_binds: HashSet<&str> =
-            HashSet::from_iter(self.binds.iter().map(ServiceBind::name));
+        let mut svc_binds: HashSet<&str> = self.binds.iter().map(ServiceBind::name).collect();
         let mut missing_req_binds = Vec::new();
 
         // Remove each service bind that matches a required package bind. If a required package
@@ -551,6 +549,7 @@ mod test {
               io::{BufReader,
                    Read,
                    Write},
+              iter::FromIterator,
               path::{Path,
                      PathBuf},
               str::FromStr};

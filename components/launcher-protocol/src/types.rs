@@ -2,10 +2,8 @@ use crate::{error::{Error,
                     Result},
             generated};
 use prost::Message;
-use std::{collections::{BTreeMap,
-                        HashMap},
-          fmt,
-          iter::FromIterator};
+use std::{collections::BTreeMap,
+          fmt};
 
 pub trait LauncherMessage
     where Self: Clone + fmt::Debug
@@ -147,7 +145,7 @@ impl LauncherMessage for Spawn {
                    svc_user:     proto.svc_user,
                    svc_group:    proto.svc_group,
                    svc_password: proto.svc_password,
-                   env:          BTreeMap::from_iter(proto.env.into_iter()),
+                   env:          proto.env.into_iter().collect(),
                    svc_user_id:  proto.svc_user_id,
                    svc_group_id: proto.svc_group_id, })
     }
@@ -160,7 +158,7 @@ impl From<Spawn> for generated::Spawn {
                            svc_user:     value.svc_user,
                            svc_group:    value.svc_group,
                            svc_password: value.svc_password,
-                           env:          HashMap::from_iter(value.env.into_iter()),
+                           env:          value.env.into_iter().collect(),
                            svc_user_id:  value.svc_user_id,
                            svc_group_id: value.svc_group_id, }
     }

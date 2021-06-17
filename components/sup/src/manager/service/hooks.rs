@@ -762,13 +762,13 @@ mod tests {
                ring: &'a mut CensusRing)
                -> RenderContext<'a> {
         // SysInfo is basic Swim infrastructure information
-        let mut sys_info = SysInfo::default();
-        sys_info.ip = "1.2.3.4".to_string();
-        sys_info.hostname = "hostname".to_string();
-        sys_info.gossip_ip = "0.0.0.0".to_string();
-        sys_info.gossip_port = 7777;
-        sys_info.http_gateway_ip = "0.0.0.0".to_string();
-        sys_info.http_gateway_port = 9631;
+        let sys_info = SysInfo { ip: "1.2.3.4".to_string(),
+                                 hostname: "hostname".to_string(),
+                                 gossip_ip: "0.0.0.0".to_string(),
+                                 gossip_port: 7777,
+                                 http_gateway_ip: "0.0.0.0".to_string(),
+                                 http_gateway_port: 9631,
+                                 ..Default::default() };
 
         let sg_one = service_group.clone(); // ServiceGroup::new("shield", "one", None).unwrap();
 

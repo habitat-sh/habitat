@@ -28,4 +28,7 @@ pub fn init() {
 }
 
 /// Returns `true` if we have received a signal to shut down.
-pub fn pending_shutdown() -> bool { SHUTDOWN.compare_and_swap(true, false, Ordering::SeqCst) }
+pub fn pending_shutdown() -> bool {
+    SHUTDOWN.compare_exchange(true, false, Ordering::SeqCst, Ordering::SeqCst)
+            .unwrap_or_else(core::convert::identity)
+}

@@ -1046,9 +1046,8 @@ mod tests {
                 let initial_incarnation = Incarnation::from(10); // just to pick a number
 
                 let member = {
-                    let mut m = Member::default();
-                    m.incarnation = initial_incarnation;
-                    m
+                    Member { incarnation: initial_incarnation,
+                             ..Default::default() }
                 };
 
                 assert!(ml.insert_mlw(member.clone(), from_health),
@@ -1125,9 +1124,8 @@ mod tests {
                 let initial_incarnation = Incarnation::from(10); // just to pick a number
 
                 let member = {
-                    let mut m = Member::default();
-                    m.incarnation = initial_incarnation;
-                    m
+                    Member { incarnation: initial_incarnation,
+                             ..Default::default() }
                 };
 
                 assert!(ml.insert_mlw(member.clone(), from_health),
@@ -1204,9 +1202,8 @@ mod tests {
                 let initial_incarnation = Incarnation::from(10); // just to pick a number
 
                 let member = {
-                    let mut m = Member::default();
-                    m.incarnation = initial_incarnation;
-                    m
+                    Member { incarnation: initial_incarnation,
+                             ..Default::default() }
                 };
 
                 assert!(ml.insert_mlw(member.clone(), from_health),

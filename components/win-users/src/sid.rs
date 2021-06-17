@@ -143,14 +143,14 @@ pub struct Sid {
 }
 
 impl Sid {
-    fn from_psid(psid: PSID) -> io::Result<Self> {
+    fn from_psid(psid: PSID) -> Self {
         unsafe {
             let sz = GetLengthSid(psid) as usize;
             let mut raw = Vec::with_capacity(sz);
             for p in 0..sz {
                 raw.push(*(psid as *mut u8).add(p));
             }
-            Ok(Self { raw })
+            Self { raw }
         }
     }
 
@@ -181,7 +181,7 @@ impl Sid {
 
             handleapi::CloseHandle(token);
             handleapi::CloseHandle(handle);
-            Self::from_psid((*p_token_user).User.Sid)
+            Ok(Self::from_psid((*p_token_user).User.Sid))
         }
     }
 
@@ -196,7 +196,7 @@ impl Sid {
         unsafe {
             let mut sid: PSID = null_mut();
             cvt(ObtainSid(token, &mut sid))?;
-            Self::from_psid(sid)
+            Ok(Self::from_psid(sid))
         }
     }
 
@@ -207,7 +207,7 @@ impl Sid {
         cvt(unsafe { ConvertStringSidToSidW(sidstring.as_ptr(), &mut buffer) })?;
         let sid = Self::from_psid(buffer);
         unsafe { winbase::LocalFree(buffer as HLOCAL) };
-        sid
+        Ok(sid)
     }
 
     pub fn built_in_administrators() -> io::Result<Self> {
@@ -251,6 +251,7 @@ impl Sid {
             let mut pacl: PACL = null_mut();
 
             if GetUserObjectSecurity(handle,
+                                     #[allow(const_item_mutation)]
                                      &mut DACL_SECURITY_INFORMATION,
                                      null_mut(),
                                      0,
@@ -271,6 +272,7 @@ impl Sid {
             // TODO JB: fix this clippy
             #[allow(clippy::cast_ptr_alignment)]
             cvt(GetUserObjectSecurity(handle,
+                                      #[allow(const_item_mutation)]
                                       &mut DACL_SECURITY_INFORMATION,
                                       sd.as_mut_ptr()
                                       as PSECURITY_INFORMATION,
@@ -354,6 +356,7 @@ impl Sid {
                                           FALSE))?;
 
             cvt(SetUserObjectSecurity(handle,
+                                      #[allow(const_item_mutation)]
                                       &mut DACL_SECURITY_INFORMATION,
                                       sd_new.as_mut_ptr()
                                       as PSECURITY_DESCRIPTOR))?;

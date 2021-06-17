@@ -183,23 +183,14 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     // is migrated to use `structopt` the parsing logic below this using clap directly will be gone.
     match hab {
         Ok(hab) => {
-            #[allow(clippy::single_match)]
             match hab {
-                Hab::Origin(origin) => {
-                    match origin {
-                        // hab origin rbac set|show
-                        Origin::Rbac(action) => {
-                            match action {
-                                Rbac::Set(rbac_set) => {
-                                    return sub_origin_member_role_set(ui, rbac_set).await;
-                                }
-                                Rbac::Show(rbac_show) => {
-                                    return sub_origin_member_role_show(ui, rbac_show).await;
-                                }
-                            }
+                Hab::Origin(Origin::Rbac(action)) => {
+                    match action {
+                        Rbac::Set(rbac_set) => {
+                            return sub_origin_member_role_set(ui, rbac_set).await;
                         }
-                        _ => {
-                            // All other commands will be caught by the CLI parsing logic below.
+                        Rbac::Show(rbac_show) => {
+                            return sub_origin_member_role_show(ui, rbac_show).await;
                         }
                     }
                 }
@@ -359,7 +350,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
         ("cli", Some(matches)) => {
             match matches.subcommand() {
                 ("setup", Some(m)) => sub_cli_setup(ui, m)?,
-                ("completers", Some(m)) => sub_cli_completers(m, feature_flags)?,
+                ("completers", Some(m)) => sub_cli_completers(m, feature_flags),
                 _ => unreachable!(),
             }
         }
@@ -547,7 +538,7 @@ fn sub_cli_setup(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     command::cli::setup::start(ui, &key_cache)
 }
 
-fn sub_cli_completers(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
+fn sub_cli_completers(m: &ArgMatches<'_>, feature_flags: FeatureFlag) {
     let shell = m.value_of("SHELL")
                  .expect("Missing Shell; A shell is required");
 
@@ -557,7 +548,6 @@ fn sub_cli_completers(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<
     cli::get(feature_flags).gen_completions_to("hab",
                                                shell.parse::<Shell>().unwrap(),
                                                &mut io::stdout());
-    Ok(())
 }
 
 async fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -1315,8 +1305,9 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     let remote_sup_addr = SrvClient::ctl_addr(remote_sup_addr.as_ref())?;
     let service_group = required_value_of(m, "SERVICE_GROUP").parse::<ServiceGroup>()?;
     let mut ui = ui::ui();
-    let mut validate = sup_proto::ctl::SvcValidateCfg::default();
-    validate.service_group = Some(service_group.clone().into());
+    let mut validate = sup_proto::ctl::SvcValidateCfg { service_group:
+                                                            Some(service_group.clone().into()),
+                                                        ..Default::default() };
     let mut buf = Vec::with_capacity(sup_proto::butterfly::MAX_SVC_CFG_SIZE);
     let cfg_len = match m.value_of("FILE") {
         Some("-") | None => io::stdin().read_to_end(&mut buf)?,
@@ -1400,8 +1391,7 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
 async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;
     let remote_sup_addr = remote_sup_from_input(m)?;
-    let mut msg = sup_proto::ctl::SvcGetDefaultCfg::default();
-    msg.ident = Some(ident.into());
+    let msg = sup_proto::ctl::SvcGetDefaultCfg { ident: Some(ident.into()), };
     let mut response = SrvClient::request(remote_sup_addr.as_ref(), msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
@@ -1468,8 +1458,7 @@ async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
 async fn sub_svc_status(pkg_ident: Option<PackageIdent>,
                         remote_sup: Option<&ResolvedListenCtlAddr>)
                         -> Result<()> {
-    let mut msg = sup_proto::ctl::SvcStatus::default();
-    msg.ident = pkg_ident.map(Into::into);
+    let msg = sup_proto::ctl::SvcStatus { ident: pkg_ident.map(Into::into), };
 
     let mut out = TabWriter::new(io::stdout());
     let mut response = SrvClient::request(remote_sup, msg).await?;
@@ -1574,8 +1563,7 @@ async fn sub_sup_depart(member_id: String,
                         -> Result<()> {
     let remote_sup = SrvClient::ctl_addr(remote_sup)?;
     let mut ui = ui::ui();
-    let mut msg = sup_proto::ctl::SupDepart::default();
-    msg.member_id = Some(member_id);
+    let msg = sup_proto::ctl::SupDepart { member_id: Some(member_id), };
 
     ui.begin(format!("Permanently marking {} as departed",
                      msg.member_id.as_deref().unwrap_or("UNKNOWN")))

@@ -561,7 +561,11 @@ impl Server {
     }
 
     /// Stop the outbound and inbound threads from processing work.
-    pub fn pause(&mut self) { self.pause.compare_and_swap(false, true, Ordering::Relaxed); }
+    pub fn pause(&mut self) {
+        self.pause
+            .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)
+            .unwrap_or_else(core::convert::identity);
+    }
 
     /// Whether this server is currently paused.
     pub fn paused(&self) -> bool { self.pause.load(Ordering::Relaxed) }
@@ -777,7 +781,8 @@ impl Server {
         let rk = RumorKey::from(&departure);
         if *self.member_id == departure.member_id {
             self.departed
-                .compare_and_swap(false, true, Ordering::Relaxed);
+                .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)
+                .unwrap_or_else(core::convert::identity);
         }
 
         self.member_list.set_departed_mlw(&departure.member_id);
@@ -1711,9 +1716,9 @@ mod tests {
                 *gossip_port_guard += 1;
             }
             let gossip_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), gossip_port);
-            let mut member = Member::default();
-            member.swim_port = swim_port;
-            member.gossip_port = gossip_port;
+            let member = Member { swim_port,
+                                  gossip_port,
+                                  ..Default::default() };
             Server::new(swim_listen,
                         gossip_listen,
                         member,
@@ -1738,9 +1743,9 @@ mod tests {
                 *gossip_port_guard += 1;
             }
             let gossip_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), gossip_port);
-            let mut member = Member::default();
-            member.swim_port = swim_port;
-            member.gossip_port = gossip_port;
+            let member = Member { swim_port,
+                                  gossip_port,
+                                  ..Default::default() };
             let rumor_name = format!("{}{}", member.id, ".rst");
             let file_path = tmpdir.path().to_owned().join(rumor_name);
             let mut rumor_file = File::create(file_path).unwrap();

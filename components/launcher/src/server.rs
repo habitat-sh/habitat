@@ -301,7 +301,7 @@ impl Server {
         // process being reaped; our ultimate response is dependent on
         // this.
         let mut reaped_sup_status: Option<ExitStatus> = None;
-        let mut waitpid_status = 0 as libc::c_int;
+        let mut waitpid_status = 0;
 
         // We reap as many child processes as need reaping.
         loop {

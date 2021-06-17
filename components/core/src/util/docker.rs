@@ -7,7 +7,7 @@ use std::{path::PathBuf,
 const DOCKER_CMD: &str = "docker";
 
 pub fn command_path() -> Result<PathBuf> {
-    find_command(DOCKER_CMD).ok_or_else(|| Error::DockerCommandNotFound(DOCKER_CMD))
+    find_command(DOCKER_CMD).ok_or(Error::DockerCommandNotFound(DOCKER_CMD))
 }
 
 /// Makes a best attempt to retrieve the appropriate image tag based on

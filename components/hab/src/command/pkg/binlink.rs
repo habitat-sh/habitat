@@ -77,7 +77,7 @@ impl Binlink {
 
     #[cfg(windows)]
     pub fn link(&self, env: BTreeMap<String, String>) -> Result<()> {
-        fs::write(&self.link, self.stub_template(env)?.as_bytes())?;
+        fs::write(&self.link, self.stub_template(env).as_bytes())?;
         Ok(())
     }
 
@@ -101,7 +101,7 @@ impl Binlink {
     }
 
     #[cfg(windows)]
-    fn stub_template(&self, env: BTreeMap<String, String>) -> Result<String> {
+    fn stub_template(&self, env: BTreeMap<String, String>) -> String {
         let mut exports = String::new();
         for (key, mut value) in env.into_iter() {
             if key == "PATH" {
@@ -110,10 +110,9 @@ impl Binlink {
             exports.push_str(&format!("SET {}={}\n", key, value));
         }
 
-        Ok(format!(include_str!("../../../static/template_binstub.\
-                                 bat"),
-                   target = self.target.display(),
-                   env = exports))
+        format!(include_str!("../../../static/template_binstub.bat"),
+                target = self.target.display(),
+                env = exports)
     }
 }
 

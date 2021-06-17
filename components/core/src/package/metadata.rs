@@ -8,8 +8,7 @@ use std::{self,
           fmt,
           fs::File,
           io::Read,
-          iter::{FromIterator,
-                 IntoIterator},
+          iter::IntoIterator,
           path::{Path,
                  PathBuf},
           str::FromStr,
@@ -23,11 +22,10 @@ const ENV_PATH_SEPARATOR: char = ':';
 const ENV_PATH_SEPARATOR: char = ';';
 
 pub fn parse_key_value(s: &str) -> Result<BTreeMap<String, String>> {
-    Ok(BTreeMap::from_iter(s.lines()
-                            .map(|l| l.splitn(2, '=').collect::<Vec<_>>())
-                            .map(|kv| {
-                                (kv[0].to_string(), kv[1].to_string())
-                            })))
+    Ok(s.lines()
+        .map(|l| l.splitn(2, '=').collect::<Vec<_>>())
+        .map(|kv| (kv[0].to_string(), kv[1].to_string()))
+        .collect())
 }
 
 #[derive(Clone, Debug, Serialize)]

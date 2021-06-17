@@ -378,7 +378,11 @@ impl ReconciliationFlag {
     /// one place seemed the prudent choice. In the long-term, we
     /// should be able to dispense with this altogether once we're all
     /// asynchronous.
-    fn toggle_if_set(&self) -> bool { self.0.compare_and_swap(true, false, Ordering::Relaxed) }
+    fn toggle_if_set(&self) -> bool {
+        self.0
+            .compare_exchange(true, false, Ordering::Relaxed, Ordering::Relaxed)
+            .unwrap_or_else(core::convert::identity)
+    }
 }
 
 /// This struct encapsulates the shared state for the supervisor. It's worth noting that if there's
@@ -670,10 +674,10 @@ impl Manager {
                                                     suitability_lookup)?;
         outputln!("Supervisor Member-ID {}", sys.member_id);
         for peer_addr in &cfg.gossip_peers {
-            let mut peer = Member::default();
-            peer.address = format!("{}", peer_addr.ip());
-            peer.swim_port = peer_addr.port();
-            peer.gossip_port = peer_addr.port();
+            let peer = Member { address: format!("{}", peer_addr.ip()),
+                                swim_port: peer_addr.port(),
+                                gossip_port: peer_addr.port(),
+                                ..Default::default() };
             server.member_list.add_initial_member_imlw(peer);
         }
 
@@ -1245,6 +1249,7 @@ impl Manager {
                 outputln!("Gracefully departing from butterfly network.");
                 self.butterfly.set_departed_mlw_smw_rhw();
 
+                #[allow(clippy::from_iter_instead_of_collect)]
                 let service_stop_futures =
                     FuturesUnordered::from_iter(self.state
                                                     .services
@@ -1965,8 +1970,9 @@ mod test {
 
     #[test]
     fn manager_state_path_custom() {
-        let mut cfg = ManagerConfig::default();
-        cfg.custom_state_path = Some(PathBuf::from("/tmp/peanuts-and-cake"));
+        let cfg = ManagerConfig { custom_state_path:
+                                      Some(PathBuf::from("/tmp/peanuts-and-cake")),
+                                  ..Default::default() };
         let path = cfg.sup_root();
 
         assert_eq!(PathBuf::from("/tmp/peanuts-and-cake"), path);
@@ -1974,8 +1980,8 @@ mod test {
 
     #[test]
     fn manager_state_path_custom_beats_name() {
-        let mut cfg = ManagerConfig::default();
-        cfg.custom_state_path = Some(PathBuf::from("/tmp/partay"));
+        let cfg = ManagerConfig { custom_state_path: Some(PathBuf::from("/tmp/partay")),
+                                  ..Default::default() };
         let path = cfg.sup_root();
 
         assert_eq!(PathBuf::from("/tmp/partay"), path);

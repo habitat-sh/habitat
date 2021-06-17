@@ -240,10 +240,7 @@ fn create_docker_config_file(credentials: &Credentials,
     std::fs::create_dir_all(workdir)?; // why wouldn't this already exist?
     let config = workdir.join("config.json");
 
-    let registry = match registry_url {
-        Some(url) => url,
-        None => "https://index.docker.io/v1/",
-    };
+    let registry = registry_url.unwrap_or("https://index.docker.io/v1/");
 
     debug!("Using registry: {:?}", registry);
     let json = json!({
