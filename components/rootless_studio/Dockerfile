@@ -1,12 +1,10 @@
 FROM alpine
-MAINTAINER Elliott Davis <elliott@excellent.io>
 ARG HAB_VERSION=
 ARG PACKAGE_TARGET
 RUN set -ex \
   && apk add --no-cache --virtual .build-deps \
     ca-certificates \
     gnupg \
-    libressl \
     wget \
     bash \
   \
