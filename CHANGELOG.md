@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.342 -->
-## [1.6.342](https://github.com/habitat-sh/habitat/tree/1.6.342) (2021-06-17)
+<!-- latest_release 1.6.343 -->
+## [1.6.343](https://github.com/habitat-sh/habitat/tree/1.6.343) (2021-06-21)
 
 #### Merged Pull Requests
-- Bump rand from 0.8.3 to 0.8.4 [#8225](https://github.com/habitat-sh/habitat/pull/8225) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- exclude libressl install in rootless studio build [#8228](https://github.com/habitat-sh/habitat/pull/8228) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.319 -->
 ### Changes since 1.6.319 release
 
 #### Merged Pull Requests
+- exclude libressl install in rootless studio build [#8228](https://github.com/habitat-sh/habitat/pull/8228) ([mwrock](https://github.com/mwrock)) <!-- 1.6.343 -->
 - Bump rand from 0.8.3 to 0.8.4 [#8225](https://github.com/habitat-sh/habitat/pull/8225) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.342 -->
 - Bump state from 0.4.2 to 0.5.1 [#8220](https://github.com/habitat-sh/habitat/pull/8220) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.341 -->
 - bump rust to 1.50.0 [#8224](https://github.com/habitat-sh/habitat/pull/8224) ([mwrock](https://github.com/mwrock)) <!-- 1.6.340 -->
