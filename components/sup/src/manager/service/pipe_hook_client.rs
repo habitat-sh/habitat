@@ -25,7 +25,8 @@ use std::{self,
           os::windows::{ffi::OsStrExt,
                         fs::*,
                         io::*},
-          path::PathBuf,
+          path::{Path,
+                 PathBuf},
           process,
           thread,
           time::{Duration,
@@ -267,7 +268,7 @@ impl Drop for PipeHookClient {
     }
 }
 
-fn stream_output<T>(out: T, log_file: &PathBuf, preamble_str: &str)
+fn stream_output<T>(out: T, log_file: &Path, preamble_str: &str)
     where T: Read
 {
     File::create(&log_file).unwrap_or_else(|_| {
@@ -276,25 +277,23 @@ fn stream_output<T>(out: T, log_file: &PathBuf, preamble_str: &str)
                                       &log_file.to_string_lossy())
                            });
 
-    for line in BufReader::new(out).lines_lossy() {
-        if let Ok(ref l) = line {
-            outputln!(preamble preamble_str, l);
-            // we append each line to the log file instead of continuously
-            // streaming to an open file because the parent thread needs to
-            // truncate the log on each hook execution so that the log only
-            // holds the output of the last run. This mimics the behavior of
-            // the HookOutput streaming.
-            match OpenOptions::new().write(true).append(true).open(&log_file) {
-                Ok(mut log) => {
-                    if let Err(e) = writeln!(log, "{}", l) {
-                        outputln!(preamble preamble_str, "couldn't write line. {}", e);
-                    }
+    for line in BufReader::new(out).lines_lossy().flatten() {
+        outputln!(preamble preamble_str, &line);
+        // we append each line to the log file instead of continuously
+        // streaming to an open file because the parent thread needs to
+        // truncate the log on each hook execution so that the log only
+        // holds the output of the last run. This mimics the behavior of
+        // the HookOutput streaming.
+        match OpenOptions::new().write(true).append(true).open(&log_file) {
+            Ok(mut log) => {
+                if let Err(e) = writeln!(log, "{}", line) {
+                    outputln!(preamble preamble_str, "couldn't write line. {}", e);
                 }
-                Err(err) => {
-                    outputln!(preamble preamble_str, "unable to open log {} : {}",
-                            &log_file.to_string_lossy(),
-                            err);
-                }
+            }
+            Err(err) => {
+                outputln!(preamble preamble_str, "unable to open log {} : {}",
+                        &log_file.to_string_lossy(),
+                        err);
             }
         }
     }

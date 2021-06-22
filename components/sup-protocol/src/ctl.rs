@@ -84,6 +84,7 @@ impl std::iter::FromIterator<habitat_core::service::ServiceBind> for ServiceBind
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<Vec<habitat_core::service::ServiceBind>> for ServiceBindList {
     fn into(self) -> Vec<habitat_core::service::ServiceBind> {
         self.binds.into_iter().map(Into::into).collect()

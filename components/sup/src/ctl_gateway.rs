@@ -183,7 +183,7 @@ impl Write for CtlRequest {
         // usually be the case when styling changes) of a line, then
         // non-json content should just be printed as-is.
         let is_line_ending = line.ends_with('\n');
-        if self.is_new_line || output::get_format() == OutputFormat::JSON {
+        if self.is_new_line || output::get_format() == OutputFormat::Json {
             let output_format =
                 if !self.current_color_spec.is_none() && output::get_format().is_color() {
                     OutputFormat::Color(self.current_color_spec.clone())
@@ -218,12 +218,7 @@ impl Write for CtlRequest {
     }
 }
 
-fn color_to_string(color: Option<&Color>) -> Option<String> {
-    match color {
-        Some(c) => Some(format!("{:?}", c)),
-        None => None,
-    }
-}
+fn color_to_string(color: Option<&Color>) -> Option<String> { color.map(|c| format!("{:?}", c)) }
 
 /// A wrapper around a [`protocol.ctl.NetProgress`] and [`CtlRequest`]. This type implements
 /// traits for writing it's progress to the console.

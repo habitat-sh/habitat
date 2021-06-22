@@ -44,6 +44,7 @@ pub struct PackageInstall {
 
 // The docs recommend implementing `From` instead, but that feels a
 // bit odd here.
+#[allow(clippy::from_over_into)]
 impl Into<PackageIdent> for PackageInstall {
     fn into(self) -> PackageIdent { self.ident }
 }
@@ -775,7 +776,7 @@ mod test {
         let cfg = package_install.default_cfg().unwrap();
 
         if let Err(e) = toml::ser::to_string(&cfg) {
-            panic!(format!("{:?}", e));
+            panic!("{:?}", e);
         }
     }
 

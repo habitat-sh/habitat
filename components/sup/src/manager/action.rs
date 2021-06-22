@@ -35,12 +35,14 @@ pub enum SupervisorAction {
 
 pub type ActionSender = mpsc::Sender<SupervisorAction>;
 
+#[allow(clippy::from_over_into)]
 impl Into<ShutdownInput> for habitat_sup_protocol::ctl::SvcUnload {
     fn into(self) -> ShutdownInput {
         ShutdownInput { timeout: self.timeout_in_seconds.map(ShutdownTimeout::from), }
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<ShutdownInput> for habitat_sup_protocol::ctl::SvcStop {
     fn into(self) -> ShutdownInput {
         ShutdownInput { timeout: self.timeout_in_seconds.map(ShutdownTimeout::from), }

@@ -39,8 +39,8 @@ impl CtlAcceptor {
                shutdown_trigger: oneshot::Receiver<()>,
                action_sender: ActionSender)
                -> Self {
-        CtlAcceptor { state,
-                      mgr_receiver,
+        CtlAcceptor { mgr_receiver,
+                      state,
                       shutdown_trigger,
                       action_sender }
     }

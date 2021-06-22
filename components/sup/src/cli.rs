@@ -26,6 +26,7 @@ mod test {
         assert_eq!(r.unwrap_err().kind, ErrorKind::HelpDisplayed);
     }
 
+    #[allow(clippy::vec_init_then_push)]
     mod sup_run {
         use super::*;
 

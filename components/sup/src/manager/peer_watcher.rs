@@ -65,7 +65,7 @@ impl PeerWatcher {
         Ok(have_events)
     }
 
-    fn file_watcher_loop_body(path: &PathBuf, have_events: Arc<AtomicBool>) -> bool {
+    fn file_watcher_loop_body(path: &Path, have_events: Arc<AtomicBool>) -> bool {
         let callbacks = PeerCallbacks { have_events };
         let mut file_watcher = match default_file_watcher(&path, callbacks) {
             Ok(w) => w,
@@ -107,27 +107,25 @@ impl PeerWatcher {
         let file = File::open(&self.path).map_err(Error::Io)?;
         let reader = BufReader::new(file);
         let mut members: Vec<Member> = Vec::new();
-        for line in reader.lines() {
-            if let Ok(peer) = line {
-                let peer_addr = if peer.find(':').is_some() {
-                    peer
-                } else {
-                    format!("{}:{}", peer, GossipListenAddr::DEFAULT_PORT)
-                };
-                let addrs: Vec<SocketAddr> = match peer_addr.to_socket_addrs() {
-                    Ok(addrs) => addrs.collect(),
-                    Err(e) => {
-                        outputln!("Failed to resolve peer: {}", peer_addr);
-                        return Err(Error::NameLookup(e));
-                    }
-                };
-                let addr: SocketAddr = addrs[0];
-                let member = Member { address: format!("{}", addr.ip()),
-                                      swim_port: addr.port(),
-                                      gossip_port: addr.port(),
-                                      ..Default::default() };
-                members.push(member);
-            }
+        for line in reader.lines().flatten() {
+            let peer_addr = if line.find(':').is_some() {
+                line
+            } else {
+                format!("{}:{}", line, GossipListenAddr::DEFAULT_PORT)
+            };
+            let addrs: Vec<SocketAddr> = match peer_addr.to_socket_addrs() {
+                Ok(addrs) => addrs.collect(),
+                Err(e) => {
+                    outputln!("Failed to resolve peer: {}", peer_addr);
+                    return Err(Error::NameLookup(e));
+                }
+            };
+            let addr: SocketAddr = addrs[0];
+            let member = Member { address: format!("{}", addr.ip()),
+                                  swim_port: addr.port(),
+                                  gossip_port: addr.port(),
+                                  ..Default::default() };
+            members.push(member);
         }
         self.have_events.store(false, Ordering::Relaxed);
         Ok(members)

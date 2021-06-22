@@ -161,6 +161,7 @@ impl From<core::service::ServiceBind> for ServiceBind {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<core::service::ServiceBind> for ServiceBind {
     fn into(self) -> core::service::ServiceBind {
         core::service::ServiceBind::new(&self.name, self.service_group.into())
@@ -207,6 +208,7 @@ impl From<package::PackageIdent> for PackageIdent {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<package::PackageIdent> for PackageIdent {
     fn into(self) -> package::PackageIdent {
         package::PackageIdent::new(self.origin, self.name, self.version, self.release)
@@ -231,6 +233,7 @@ impl From<core::service::BindingMode> for BindingMode {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<core::service::BindingMode> for BindingMode {
     fn into(self) -> core::service::BindingMode {
         match self {
@@ -252,6 +255,7 @@ impl From<core::service::ServiceGroup> for ServiceGroup {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<core::service::ServiceGroup> for ServiceGroup {
     fn into(self) -> core::service::ServiceGroup {
         core::service::ServiceGroup::new(self.service,

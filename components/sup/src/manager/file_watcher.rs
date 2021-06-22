@@ -73,7 +73,7 @@ struct DirFileName {
 
 impl DirFileName {
     // split_path separates the dirname from the basename.
-    fn split_path(path: &PathBuf) -> Option<Self> {
+    fn split_path(path: &Path) -> Option<Self> {
         let parent = match path.parent() {
             None => return None,
             Some(p) => p,
@@ -449,7 +449,7 @@ impl IndentedToString for WatchedFile {
 // "baz/.." == ".".
 //
 // I went here with the "cd" way. Likely less surprising.
-fn simplify_abs_path(abs_path: &PathBuf) -> PathBuf {
+fn simplify_abs_path(abs_path: &Path) -> PathBuf {
     let mut simple = PathBuf::new();
     for c in abs_path.components() {
         match c {
@@ -667,10 +667,10 @@ impl IndentedToString for Paths {
 }
 
 impl Paths {
-    fn new(simplified_abs_path: &PathBuf) -> Self {
+    fn new(simplified_abs_path: &Path) -> Self {
         Self { paths: HashMap::new(),
                dirs: HashMap::new(),
-               start_path: simplified_abs_path.clone(),
+               start_path: simplified_abs_path.to_path_buf(),
                symlink_loop_catcher: HashMap::new(),
                real_file: None,
                paths_to_settle: HashSet::new(),
@@ -687,7 +687,7 @@ impl Paths {
 
     // Separate the root from the `simplified_abs_path` rest and store
     // them in a `ProcessPathArgs` instance.
-    fn path_for_processing(simplified_abs_path: &PathBuf) -> ProcessPathArgs {
+    fn path_for_processing(simplified_abs_path: &Path) -> ProcessPathArgs {
         // Holds the `/` component of a path, or the path prefix and
         // root on Windows (e.g. `C:\`).
         let mut path = PathBuf::new();
@@ -915,17 +915,17 @@ impl Paths {
     }
 
     // Checks whether the path is present in the list of watched paths.
-    fn get_watched_file(&self, path: &PathBuf) -> Option<&WatchedFile> { self.paths.get(path) }
+    fn get_watched_file(&self, path: &Path) -> Option<&WatchedFile> { self.paths.get(path) }
 
-    fn get_mut_watched_file(&mut self, path: &PathBuf) -> Option<&mut WatchedFile> {
+    fn get_mut_watched_file(&mut self, path: &Path) -> Option<&mut WatchedFile> {
         self.paths.get_mut(path)
     }
 
-    fn get_directory(&self, path: &PathBuf) -> Option<&u32> { self.dirs.get(path) }
+    fn get_directory(&self, path: &Path) -> Option<&u32> { self.dirs.get(path) }
 
-    fn get_mut_directory(&mut self, path: &PathBuf) -> Option<&mut u32> { self.dirs.get_mut(path) }
+    fn get_mut_directory(&mut self, path: &Path) -> Option<&mut u32> { self.dirs.get_mut(path) }
 
-    fn drop_watch(&mut self, path: &PathBuf) -> Option<PathBuf> {
+    fn drop_watch(&mut self, path: &Path) -> Option<PathBuf> {
         if let Some(watched_file) = self.paths.remove(path) {
             let common = watched_file.steal_common();
             let dir_path = common.dir_file_name.directory;
@@ -968,16 +968,16 @@ impl Paths {
     }
 
     fn symlink_loop(&mut self,
-                    path: &PathBuf,
+                    path: &Path,
                     path_rest: &VecDeque<OsString>,
-                    new_path: &PathBuf,
+                    new_path: &Path,
                     new_path_rest: &VecDeque<OsString>)
                     -> bool {
         let mut merged_path_rest = new_path_rest.clone();
         merged_path_rest.extend(path_rest.iter().cloned());
-        let mut merged_path = new_path.clone();
+        let mut merged_path = new_path.to_path_buf();
         merged_path.extend(merged_path_rest);
-        match self.symlink_loop_catcher.entry(path.clone()) {
+        match self.symlink_loop_catcher.entry(path.to_path_buf()) {
             Entry::Occupied(o) => *o.get() == merged_path,
             Entry::Vacant(v) => {
                 v.insert(merged_path);
@@ -1529,15 +1529,14 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
                 }
             }
             DebouncedEvent::Rename(from, to) => {
-                let mut events = Vec::new();
+                let events = vec![Self::handle_notice_remove_event(paths, &to),
+                                  EventAction::SettlePath(to),
+                                  Self::handle_remove_event(paths, from)];
                 // Rename is annoying in that it does not come
                 // together with `NoticeRemove` of the destination
                 // file (it is preceded with `NoticeRemove` of the
                 // source file only), so we just going to emulate it
                 // and then settle the destination path.
-                events.push(Self::handle_notice_remove_event(paths, &to));
-                events.push(EventAction::SettlePath(to));
-                events.push(Self::handle_remove_event(paths, from));
                 debug!("translated to {:?}", events);
                 return events;
             }
@@ -1548,7 +1547,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         vec![event_action]
     }
 
-    fn handle_notice_remove_event(paths: &Paths, p: &PathBuf) -> EventAction {
+    fn handle_notice_remove_event(paths: &Paths, p: &Path) -> EventAction {
         match paths.get_watched_file(p) {
             None => EventAction::Ignore,
             // Our directory was removed, moved elsewhere or

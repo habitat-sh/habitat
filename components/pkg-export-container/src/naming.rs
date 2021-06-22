@@ -128,7 +128,7 @@ impl Naming {
                         self.version_tag(&context),
                         self.version_release_tag(&context),
                         self.custom_tag(&context)?].into_iter()
-                                                   .filter_map(|e| e)
+                                                   .flatten()
                                                    .collect::<Vec<String>>();
 
         let expanded_identifiers = Self::expanded_identifiers(&name, &tags);

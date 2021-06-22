@@ -311,7 +311,7 @@ impl Supervisor {
     }
 
     /// Create a PID file for a running service
-    fn create_pidfile(&self, pid_file: &PathBuf) -> Result<()> {
+    fn create_pidfile(&self, pid_file: &Path) -> Result<()> {
         if let Some(pid) = self.pid {
             // TODO (CM): when this pidfile tracing bit has been
             // cleared up, remove this logging target; it was added

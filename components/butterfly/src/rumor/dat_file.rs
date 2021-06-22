@@ -452,8 +452,8 @@ impl Header {
                                LittleEndian::read_u64(&bytes[40..48]));
                 offsets.insert(Departure::MESSAGE_ID.to_string(), 0);
                 Header { offsets,
-                         version,
-                         size }
+                         size,
+                         version }
             }
             // This should be the latest version of the header. As we deprecate
             // header versions, just roll this code up, and match it, then add
@@ -481,8 +481,8 @@ impl Header {
                 offsets.insert(Departure::MESSAGE_ID.to_string(),
                                LittleEndian::read_u64(&bytes[56..64]));
                 Header { offsets,
-                         version,
-                         size }
+                         size,
+                         version }
             }
         }
     }

@@ -221,7 +221,7 @@ async fn attempt_upload_dep(ui: &mut UI,
                             token: &str,
                             (ident, target): (&PackageIdent, PackageTarget),
                             additional_release_channel: &Option<ChannelIdent>,
-                            archives_dir: &PathBuf,
+                            archives_dir: &Path,
                             key_cache: &KeyCache)
                             -> Result<()> {
     let candidate_path = archives_dir.join(ident.archive_name_with_target(target).unwrap());
