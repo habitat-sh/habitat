@@ -117,9 +117,9 @@ fn find_exe<B>(binary_name: B) -> PathBuf
         .to_path_buf();
     let bin = exe_root.join(binary_name.as_ref());
     assert!(bin.exists(),
-            format!("Expected to find a {:?} executable at {:?}",
-                    binary_name.as_ref(),
-                    bin));
+            "Expected to find a {:?} executable at {:?}",
+            binary_name.as_ref(),
+            bin);
     bin
 }
 

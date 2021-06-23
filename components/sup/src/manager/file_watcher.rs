@@ -2669,12 +2669,12 @@ mod tests {
     }
 
     impl<'a> FsOps<'a> {
-        fn ln_s(&self, target: &PathBuf, path: &PathBuf) -> u32 {
+        fn ln_s(&self, target: &Path, path: &PathBuf) -> u32 {
             let pp = self.prepend_root(&path);
             let tt = if target.is_absolute() {
                 self.prepend_root(&target)
             } else {
-                target.clone()
+                target.to_path_buf()
             };
             unix_fs::symlink(&tt, &pp).unwrap_or_else(|_| {
                                           panic!("could not create symlink at {} pointing to {}, \
@@ -2692,7 +2692,7 @@ mod tests {
             }
         }
 
-        fn mkdir_p(&self, path: &PathBuf) -> u32 {
+        fn mkdir_p(&self, path: &Path) -> u32 {
             let full_path = self.prepend_root(&path);
             match self.watched_dirs {
                 Some(wd) => {
@@ -2716,7 +2716,7 @@ mod tests {
             }
         }
 
-        fn real_mkdir(&self, real_path: &PathBuf) {
+        fn real_mkdir(&self, real_path: &Path) {
             fs::create_dir_all(&real_path).unwrap_or_else(|_| {
                                               panic!("could not create directories up to {}, \
                                                       debug info:\n{}",
@@ -2725,7 +2725,7 @@ mod tests {
                                           });
         }
 
-        fn touch(&self, path: &PathBuf) -> u32 {
+        fn touch(&self, path: &Path) -> u32 {
             let pp = self.prepend_root(&path);
             File::create(&pp).unwrap_or_else(|_| {
                                  panic!("could not create file {}, debug info:\n{}",
@@ -2741,7 +2741,7 @@ mod tests {
             }
         }
 
-        fn mv(&self, from: &PathBuf, to: &PathBuf) -> u32 {
+        fn mv(&self, from: &Path, to: &Path) -> u32 {
             let ff = self.prepend_root(&from);
             let tt = self.prepend_root(&to);
             fs::rename(&ff, &tt).unwrap_or_else(|_| {
@@ -2775,7 +2775,7 @@ mod tests {
             }
         }
 
-        fn rm_rf(&mut self, path: &PathBuf) -> u32 {
+        fn rm_rf(&mut self, path: &Path) -> u32 {
             let pp = self.prepend_root(&path);
             let metadata = match pp.symlink_metadata() {
                 Ok(m) => m,
@@ -2811,9 +2811,9 @@ mod tests {
             event_count
         }
 
-        fn get_event_count_on_rm_rf(&self, top_path: &PathBuf) -> u32 {
+        fn get_event_count_on_rm_rf(&self, top_path: &Path) -> u32 {
             let mut queue = VecDeque::new();
-            queue.push_back(top_path.clone());
+            queue.push_back(top_path.to_path_buf());
             let mut event_count = 0;
             while let Some(path) = queue.pop_front() {
                 if !self.parent_is_watched(&path) {
@@ -2839,7 +2839,7 @@ mod tests {
             event_count
         }
 
-        fn get_dir_contents(&self, path: &PathBuf) -> Vec<PathBuf> {
+        fn get_dir_contents(&self, path: &Path) -> Vec<PathBuf> {
             fs::read_dir(&path).unwrap_or_else(|err| {
                                    panic!("failed to read directory {}: {}, debug info:\n{}",
                                           path.display(),
@@ -2858,18 +2858,18 @@ mod tests {
                                .collect()
         }
 
-        fn parent_is_watched(&self, path: &PathBuf) -> bool {
+        fn parent_is_watched(&self, path: &Path) -> bool {
             self.path_is_watched(&self.get_parent(&path))
         }
 
-        fn path_is_watched(&self, path: &PathBuf) -> bool {
+        fn path_is_watched(&self, path: &Path) -> bool {
             match self.watched_dirs {
                 Some(wd) => wd.contains(path),
                 None => false,
             }
         }
 
-        fn get_parent(&self, path: &PathBuf) -> PathBuf {
+        fn get_parent(&self, path: &Path) -> PathBuf {
             path.parent()
                 .unwrap_or_else(|| {
                     panic!("path {} has no parent, debug info:\n{}",
@@ -2879,7 +2879,7 @@ mod tests {
                 .to_owned()
         }
 
-        fn prepend_root(&self, p: &PathBuf) -> PathBuf {
+        fn prepend_root(&self, p: &Path) -> PathBuf {
             prepend_root_impl(self.root, p, self.debug_info)
         }
     }
@@ -3010,7 +3010,7 @@ mod tests {
 
         fn test_paths(&mut self,
                       step_paths: &HashMap<PathBuf, PathState>,
-                      init_path: &PathBuf,
+                      init_path: &Path,
                       actual_paths: &HashMap<PathBuf, WatchedFile>) {
             let expected_paths = self.fixup_expected_paths(&step_paths, &init_path);
             self.debug_info
@@ -3106,7 +3106,7 @@ mod tests {
 
         fn fixup_expected_paths(&self,
                                 paths: &HashMap<PathBuf, PathState>,
-                                init_path: &PathBuf)
+                                init_path: &Path)
                                 -> HashMap<PathBuf, PathState> {
             let expected_paths = self.get_initial_expected_paths(paths);
             let real_first_expected =
@@ -3166,20 +3166,14 @@ mod tests {
                      (self.prepend_root(&p),
                       PathState { kind:      s.kind,
                                   path_rest: s.path_rest.clone(),
-                                  prev:      match &s.prev {
-                                      Some(ref p) => Some(self.prepend_root(&p)),
-                                      None => None,
-                                  },
-                                  next:      match &s.next {
-                                      Some(ref p) => Some(self.prepend_root(&p)),
-                                      None => None,
-                                  }, })
+                                  prev:      s.prev.as_ref().map(|p| self.prepend_root(&p)),
+                                  next:      s.next.as_ref().map(|p| self.prepend_root(&p)), })
                  })
                  .collect()
         }
 
         fn get_real_first_expected_path(&self,
-                                        init_path: &PathBuf,
+                                        init_path: &Path,
                                         expected_paths: &HashMap<PathBuf, PathState>)
                                         -> PathBuf {
             let first_expected = get_first_item(&init_path);
@@ -3202,12 +3196,12 @@ mod tests {
             real_first_expected
         }
 
-        fn prepend_root(&self, p: &PathBuf) -> PathBuf {
+        fn prepend_root(&self, p: &Path) -> PathBuf {
             prepend_root_impl(&self.root, p, &self.debug_info)
         }
 
         fn get_additional_paths(&self,
-                                real_first_expected: &PathBuf,
+                                real_first_expected: &Path,
                                 first_item: &PathState)
                                 -> Vec<(PathBuf, PathState)> {
             let mut ap_vec = Vec::new();
@@ -3337,7 +3331,7 @@ mod tests {
         }
     }
 
-    fn prepend_root_impl(root: &PathBuf, p: &PathBuf, debug_info: &DebugInfo) -> PathBuf {
+    fn prepend_root_impl(root: &Path, p: &Path, debug_info: &DebugInfo) -> PathBuf {
         if !p.is_absolute() {
             panic!("expected path {} to be absolute, debug info:\n{}",
                    p.display(),
@@ -3346,7 +3340,7 @@ mod tests {
         root.join(strip_prefix_and_root(p))
     }
 
-    fn get_first_item(path: &PathBuf) -> PathBuf {
+    fn get_first_item(path: &Path) -> PathBuf {
         let mut first = PathBuf::new();
 
         for component in path.components() {
@@ -3365,7 +3359,7 @@ mod tests {
         first
     }
 
-    fn to_path_rest(path: &PathBuf) -> Vec<OsString> {
+    fn to_path_rest(path: &Path) -> Vec<OsString> {
         let mut path_rest = Vec::new();
 
         for component in path.components() {
@@ -3381,7 +3375,7 @@ mod tests {
         path_rest
     }
 
-    fn strip_prefix_and_root(path: &PathBuf) -> PathBuf {
+    fn strip_prefix_and_root(path: &Path) -> PathBuf {
         let mut stripped = PathBuf::new();
 
         for component in path.components() {
