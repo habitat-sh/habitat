@@ -808,7 +808,7 @@ impl AtomicWriter {
     /// ensures the durability of AtomicWriter but is not required for
     /// the atomocity guarantee.
     #[cfg(unix)]
-    fn sync_parent(dest: &PathBuf) -> io::Result<()> {
+    fn sync_parent(dest: &Path) -> io::Result<()> {
         let parent = parent(dest)?;
         let f = fs::File::open(parent)?;
         if let Err(e) = f.sync_all() {
