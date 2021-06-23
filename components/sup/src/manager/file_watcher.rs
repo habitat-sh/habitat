@@ -2669,7 +2669,7 @@ mod tests {
     }
 
     impl<'a> FsOps<'a> {
-        fn ln_s(&self, target: &Path, path: &PathBuf) -> u32 {
+        fn ln_s(&self, target: &Path, path: &Path) -> u32 {
             let pp = self.prepend_root(&path);
             let tt = if target.is_absolute() {
                 self.prepend_root(&target)
