@@ -42,10 +42,10 @@ pipelines:
 
 staging_areas:
   - release_staging:
-      workload: pull_request_merged:{{agent_id}}:*
+      workload: pull_request_merged:{{github_repo}}:{{release_branch}}:*
 
 subscriptions:
-  - workload: pull_request_opened:{{agent_id}}:*
+  - workload: pull_request_opened:{{github_repo}}:{{release_branch}}:*
     actions:
       - post_github_comment:.expeditor/templates/welcome.mustache:
           ignore_team_members:
@@ -133,16 +133,15 @@ subscriptions:
     actions:
       - bash:.expeditor/scripts/finish_release/notify_rustfmt.sh
 
-promote:
-  channels:
-    # e2e pipeline tests from here
-    - dev
-    # acceptance Builder Supervisors update from here
-    - acceptance
-    # stable "holding area" for us to perform manual evaluations. This
-    # is only really until we have automated more of our testing.
-    - staging
-    # prod Builder Supervisors update from here
-    - current
-    # Habitat packages in stable, binary packages available to the world
-    - stable
+artifact_channels:
+  # e2e pipeline tests from here
+  - dev
+  # acceptance Builder Supervisors update from here
+  - acceptance
+  # stable "holding area" for us to perform manual evaluations. This
+  # is only really until we have automated more of our testing.
+  - staging
+  # prod Builder Supervisors update from here
+  - current
+  # Habitat packages in stable, binary packages available to the world
+  - stable
