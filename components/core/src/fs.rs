@@ -295,7 +295,7 @@ pub fn pkg_install_path<T>(ident: &PackageIdent, fs_root: Option<T>) -> PathBuf
 /// this will "re-root" the path just under the fs_root. Otherwise returns
 /// the given path unchanged. Non-Windows platforms will always return the
 /// unchanged path.
-pub fn fs_rooted_path(path: &PathBuf, fs_root: &Path) -> PathBuf {
+pub fn fs_rooted_path(path: &Path, fs_root: &Path) -> PathBuf {
     if path.starts_with("/") && cfg!(windows) {
         fs_root.join(path.strip_prefix("/").unwrap())
     } else {
@@ -686,7 +686,7 @@ pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
 // Windows relies on path extensions to resolve commands like `docker` to `docker.exe`
 // Path extensions are found in the PATHEXT environment variable.
 // We should only search with PATHEXT if the file does not already have an extension.
-fn find_command_with_pathext(candidate: &PathBuf) -> Option<PathBuf> {
+fn find_command_with_pathext(candidate: &Path) -> Option<PathBuf> {
     if candidate.extension().is_none() {
         if let Some(pathexts) = henv::var_os("PATHEXT") {
             for pathext in env::split_paths(&pathexts) {
@@ -808,7 +808,7 @@ impl AtomicWriter {
     /// ensures the durability of AtomicWriter but is not required for
     /// the atomocity guarantee.
     #[cfg(unix)]
-    fn sync_parent(dest: &PathBuf) -> io::Result<()> {
+    fn sync_parent(dest: &Path) -> io::Result<()> {
         let parent = parent(dest)?;
         let f = fs::File::open(parent)?;
         if let Err(e) = f.sync_all() {

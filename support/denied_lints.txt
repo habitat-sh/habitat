@@ -12,7 +12,6 @@ clippy::cognitive_complexity
 clippy::deref_addrof
 clippy::expect_fun_call
 clippy::filter_map_next
-clippy::find_map
 clippy::for_kv_map
 clippy::get_last_with_len
 clippy::get_unwrap

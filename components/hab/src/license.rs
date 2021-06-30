@@ -43,7 +43,8 @@ use std::{env,
           fs::{self,
                File},
           io::Write,
-          path::PathBuf};
+          path::{Path,
+                 PathBuf}};
 
 const LICENSE_FILE_FORMAT_VERSION: &str = "1.0";
 const LICENSE_ACCEPT_ENVVAR: &str = "HAB_LICENSE";
@@ -159,9 +160,9 @@ fn user_license_root() -> PathBuf {
     }
 }
 
-fn license_path(root_path: &PathBuf) -> PathBuf { root_path.join("accepted-licenses") }
+fn license_path(root_path: &Path) -> PathBuf { root_path.join("accepted-licenses") }
 
-fn license_file(license_path: &PathBuf) -> PathBuf { license_path.join("habitat") }
+fn license_file(license_path: &Path) -> PathBuf { license_path.join("habitat") }
 
 fn writeable_license_path() -> PathBuf {
     let root_dir = if am_i_root() {

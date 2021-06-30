@@ -85,6 +85,7 @@ struct HealthCheckBody {
     stderr: String,
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<StatusCode> for HealthCheckResult {
     fn into(self) -> StatusCode {
         match self {

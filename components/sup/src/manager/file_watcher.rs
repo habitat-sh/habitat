@@ -73,7 +73,7 @@ struct DirFileName {
 
 impl DirFileName {
     // split_path separates the dirname from the basename.
-    fn split_path(path: &PathBuf) -> Option<Self> {
+    fn split_path(path: &Path) -> Option<Self> {
         let parent = match path.parent() {
             None => return None,
             Some(p) => p,
@@ -449,7 +449,7 @@ impl IndentedToString for WatchedFile {
 // "baz/.." == ".".
 //
 // I went here with the "cd" way. Likely less surprising.
-fn simplify_abs_path(abs_path: &PathBuf) -> PathBuf {
+fn simplify_abs_path(abs_path: &Path) -> PathBuf {
     let mut simple = PathBuf::new();
     for c in abs_path.components() {
         match c {
@@ -667,10 +667,10 @@ impl IndentedToString for Paths {
 }
 
 impl Paths {
-    fn new(simplified_abs_path: &PathBuf) -> Self {
+    fn new(simplified_abs_path: &Path) -> Self {
         Self { paths: HashMap::new(),
                dirs: HashMap::new(),
-               start_path: simplified_abs_path.clone(),
+               start_path: simplified_abs_path.to_path_buf(),
                symlink_loop_catcher: HashMap::new(),
                real_file: None,
                paths_to_settle: HashSet::new(),
@@ -687,7 +687,7 @@ impl Paths {
 
     // Separate the root from the `simplified_abs_path` rest and store
     // them in a `ProcessPathArgs` instance.
-    fn path_for_processing(simplified_abs_path: &PathBuf) -> ProcessPathArgs {
+    fn path_for_processing(simplified_abs_path: &Path) -> ProcessPathArgs {
         // Holds the `/` component of a path, or the path prefix and
         // root on Windows (e.g. `C:\`).
         let mut path = PathBuf::new();
@@ -915,17 +915,17 @@ impl Paths {
     }
 
     // Checks whether the path is present in the list of watched paths.
-    fn get_watched_file(&self, path: &PathBuf) -> Option<&WatchedFile> { self.paths.get(path) }
+    fn get_watched_file(&self, path: &Path) -> Option<&WatchedFile> { self.paths.get(path) }
 
-    fn get_mut_watched_file(&mut self, path: &PathBuf) -> Option<&mut WatchedFile> {
+    fn get_mut_watched_file(&mut self, path: &Path) -> Option<&mut WatchedFile> {
         self.paths.get_mut(path)
     }
 
-    fn get_directory(&self, path: &PathBuf) -> Option<&u32> { self.dirs.get(path) }
+    fn get_directory(&self, path: &Path) -> Option<&u32> { self.dirs.get(path) }
 
-    fn get_mut_directory(&mut self, path: &PathBuf) -> Option<&mut u32> { self.dirs.get_mut(path) }
+    fn get_mut_directory(&mut self, path: &Path) -> Option<&mut u32> { self.dirs.get_mut(path) }
 
-    fn drop_watch(&mut self, path: &PathBuf) -> Option<PathBuf> {
+    fn drop_watch(&mut self, path: &Path) -> Option<PathBuf> {
         if let Some(watched_file) = self.paths.remove(path) {
             let common = watched_file.steal_common();
             let dir_path = common.dir_file_name.directory;
@@ -968,16 +968,16 @@ impl Paths {
     }
 
     fn symlink_loop(&mut self,
-                    path: &PathBuf,
+                    path: &Path,
                     path_rest: &VecDeque<OsString>,
-                    new_path: &PathBuf,
+                    new_path: &Path,
                     new_path_rest: &VecDeque<OsString>)
                     -> bool {
         let mut merged_path_rest = new_path_rest.clone();
         merged_path_rest.extend(path_rest.iter().cloned());
-        let mut merged_path = new_path.clone();
+        let mut merged_path = new_path.to_path_buf();
         merged_path.extend(merged_path_rest);
-        match self.symlink_loop_catcher.entry(path.clone()) {
+        match self.symlink_loop_catcher.entry(path.to_path_buf()) {
             Entry::Occupied(o) => *o.get() == merged_path,
             Entry::Vacant(v) => {
                 v.insert(merged_path);
@@ -1529,15 +1529,14 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
                 }
             }
             DebouncedEvent::Rename(from, to) => {
-                let mut events = Vec::new();
+                let events = vec![Self::handle_notice_remove_event(paths, &to),
+                                  EventAction::SettlePath(to),
+                                  Self::handle_remove_event(paths, from)];
                 // Rename is annoying in that it does not come
                 // together with `NoticeRemove` of the destination
                 // file (it is preceded with `NoticeRemove` of the
                 // source file only), so we just going to emulate it
                 // and then settle the destination path.
-                events.push(Self::handle_notice_remove_event(paths, &to));
-                events.push(EventAction::SettlePath(to));
-                events.push(Self::handle_remove_event(paths, from));
                 debug!("translated to {:?}", events);
                 return events;
             }
@@ -1548,7 +1547,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         vec![event_action]
     }
 
-    fn handle_notice_remove_event(paths: &Paths, p: &PathBuf) -> EventAction {
+    fn handle_notice_remove_event(paths: &Paths, p: &Path) -> EventAction {
         match paths.get_watched_file(p) {
             None => EventAction::Ignore,
             // Our directory was removed, moved elsewhere or
@@ -2670,12 +2669,12 @@ mod tests {
     }
 
     impl<'a> FsOps<'a> {
-        fn ln_s(&self, target: &PathBuf, path: &PathBuf) -> u32 {
+        fn ln_s(&self, target: &Path, path: &Path) -> u32 {
             let pp = self.prepend_root(&path);
             let tt = if target.is_absolute() {
                 self.prepend_root(&target)
             } else {
-                target.clone()
+                target.to_path_buf()
             };
             unix_fs::symlink(&tt, &pp).unwrap_or_else(|_| {
                                           panic!("could not create symlink at {} pointing to {}, \
@@ -2693,7 +2692,7 @@ mod tests {
             }
         }
 
-        fn mkdir_p(&self, path: &PathBuf) -> u32 {
+        fn mkdir_p(&self, path: &Path) -> u32 {
             let full_path = self.prepend_root(&path);
             match self.watched_dirs {
                 Some(wd) => {
@@ -2717,7 +2716,7 @@ mod tests {
             }
         }
 
-        fn real_mkdir(&self, real_path: &PathBuf) {
+        fn real_mkdir(&self, real_path: &Path) {
             fs::create_dir_all(&real_path).unwrap_or_else(|_| {
                                               panic!("could not create directories up to {}, \
                                                       debug info:\n{}",
@@ -2726,7 +2725,7 @@ mod tests {
                                           });
         }
 
-        fn touch(&self, path: &PathBuf) -> u32 {
+        fn touch(&self, path: &Path) -> u32 {
             let pp = self.prepend_root(&path);
             File::create(&pp).unwrap_or_else(|_| {
                                  panic!("could not create file {}, debug info:\n{}",
@@ -2742,7 +2741,7 @@ mod tests {
             }
         }
 
-        fn mv(&self, from: &PathBuf, to: &PathBuf) -> u32 {
+        fn mv(&self, from: &Path, to: &Path) -> u32 {
             let ff = self.prepend_root(&from);
             let tt = self.prepend_root(&to);
             fs::rename(&ff, &tt).unwrap_or_else(|_| {
@@ -2776,7 +2775,7 @@ mod tests {
             }
         }
 
-        fn rm_rf(&mut self, path: &PathBuf) -> u32 {
+        fn rm_rf(&mut self, path: &Path) -> u32 {
             let pp = self.prepend_root(&path);
             let metadata = match pp.symlink_metadata() {
                 Ok(m) => m,
@@ -2812,9 +2811,9 @@ mod tests {
             event_count
         }
 
-        fn get_event_count_on_rm_rf(&self, top_path: &PathBuf) -> u32 {
+        fn get_event_count_on_rm_rf(&self, top_path: &Path) -> u32 {
             let mut queue = VecDeque::new();
-            queue.push_back(top_path.clone());
+            queue.push_back(top_path.to_path_buf());
             let mut event_count = 0;
             while let Some(path) = queue.pop_front() {
                 if !self.parent_is_watched(&path) {
@@ -2840,7 +2839,7 @@ mod tests {
             event_count
         }
 
-        fn get_dir_contents(&self, path: &PathBuf) -> Vec<PathBuf> {
+        fn get_dir_contents(&self, path: &Path) -> Vec<PathBuf> {
             fs::read_dir(&path).unwrap_or_else(|err| {
                                    panic!("failed to read directory {}: {}, debug info:\n{}",
                                           path.display(),
@@ -2859,18 +2858,18 @@ mod tests {
                                .collect()
         }
 
-        fn parent_is_watched(&self, path: &PathBuf) -> bool {
+        fn parent_is_watched(&self, path: &Path) -> bool {
             self.path_is_watched(&self.get_parent(&path))
         }
 
-        fn path_is_watched(&self, path: &PathBuf) -> bool {
+        fn path_is_watched(&self, path: &Path) -> bool {
             match self.watched_dirs {
                 Some(wd) => wd.contains(path),
                 None => false,
             }
         }
 
-        fn get_parent(&self, path: &PathBuf) -> PathBuf {
+        fn get_parent(&self, path: &Path) -> PathBuf {
             path.parent()
                 .unwrap_or_else(|| {
                     panic!("path {} has no parent, debug info:\n{}",
@@ -2880,7 +2879,7 @@ mod tests {
                 .to_owned()
         }
 
-        fn prepend_root(&self, p: &PathBuf) -> PathBuf {
+        fn prepend_root(&self, p: &Path) -> PathBuf {
             prepend_root_impl(self.root, p, self.debug_info)
         }
     }
@@ -3011,7 +3010,7 @@ mod tests {
 
         fn test_paths(&mut self,
                       step_paths: &HashMap<PathBuf, PathState>,
-                      init_path: &PathBuf,
+                      init_path: &Path,
                       actual_paths: &HashMap<PathBuf, WatchedFile>) {
             let expected_paths = self.fixup_expected_paths(&step_paths, &init_path);
             self.debug_info
@@ -3107,7 +3106,7 @@ mod tests {
 
         fn fixup_expected_paths(&self,
                                 paths: &HashMap<PathBuf, PathState>,
-                                init_path: &PathBuf)
+                                init_path: &Path)
                                 -> HashMap<PathBuf, PathState> {
             let expected_paths = self.get_initial_expected_paths(paths);
             let real_first_expected =
@@ -3167,20 +3166,14 @@ mod tests {
                      (self.prepend_root(&p),
                       PathState { kind:      s.kind,
                                   path_rest: s.path_rest.clone(),
-                                  prev:      match &s.prev {
-                                      Some(ref p) => Some(self.prepend_root(&p)),
-                                      None => None,
-                                  },
-                                  next:      match &s.next {
-                                      Some(ref p) => Some(self.prepend_root(&p)),
-                                      None => None,
-                                  }, })
+                                  prev:      s.prev.as_ref().map(|p| self.prepend_root(&p)),
+                                  next:      s.next.as_ref().map(|p| self.prepend_root(&p)), })
                  })
                  .collect()
         }
 
         fn get_real_first_expected_path(&self,
-                                        init_path: &PathBuf,
+                                        init_path: &Path,
                                         expected_paths: &HashMap<PathBuf, PathState>)
                                         -> PathBuf {
             let first_expected = get_first_item(&init_path);
@@ -3203,12 +3196,12 @@ mod tests {
             real_first_expected
         }
 
-        fn prepend_root(&self, p: &PathBuf) -> PathBuf {
+        fn prepend_root(&self, p: &Path) -> PathBuf {
             prepend_root_impl(&self.root, p, &self.debug_info)
         }
 
         fn get_additional_paths(&self,
-                                real_first_expected: &PathBuf,
+                                real_first_expected: &Path,
                                 first_item: &PathState)
                                 -> Vec<(PathBuf, PathState)> {
             let mut ap_vec = Vec::new();
@@ -3338,7 +3331,7 @@ mod tests {
         }
     }
 
-    fn prepend_root_impl(root: &PathBuf, p: &PathBuf, debug_info: &DebugInfo) -> PathBuf {
+    fn prepend_root_impl(root: &Path, p: &Path, debug_info: &DebugInfo) -> PathBuf {
         if !p.is_absolute() {
             panic!("expected path {} to be absolute, debug info:\n{}",
                    p.display(),
@@ -3347,7 +3340,7 @@ mod tests {
         root.join(strip_prefix_and_root(p))
     }
 
-    fn get_first_item(path: &PathBuf) -> PathBuf {
+    fn get_first_item(path: &Path) -> PathBuf {
         let mut first = PathBuf::new();
 
         for component in path.components() {
@@ -3366,7 +3359,7 @@ mod tests {
         first
     }
 
-    fn to_path_rest(path: &PathBuf) -> Vec<OsString> {
+    fn to_path_rest(path: &Path) -> Vec<OsString> {
         let mut path_rest = Vec::new();
 
         for component in path.components() {
@@ -3382,7 +3375,7 @@ mod tests {
         path_rest
     }
 
-    fn strip_prefix_and_root(path: &PathBuf) -> PathBuf {
+    fn strip_prefix_and_root(path: &Path) -> PathBuf {
         let mut stripped = PathBuf::new();
 
         for component in path.components() {

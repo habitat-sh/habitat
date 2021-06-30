@@ -246,10 +246,7 @@ impl FromStr for ServiceGroup {
             Some(g) => g.as_str(),
             None => return Err(Error::InvalidServiceGroup(value.to_string())),
         };
-        let org = match caps.name("organization") {
-            Some(o) => Some(o.as_str()),
-            None => None,
-        };
+        let org = caps.name("organization").map(|o| o.as_str());
         Ok(ServiceGroup(ServiceGroup::format(service, group, org)))
     }
 }

@@ -180,6 +180,7 @@ impl std::fmt::Display for InstallSource {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<String> for InstallSource {
     fn into(self) -> String { self.to_string() }
 }
@@ -198,6 +199,7 @@ impl From<PackageIdent> for InstallSource {
     fn from(ident: PackageIdent) -> Self { (ident, PackageTarget::active_target()).into() }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<PackageIdent> for InstallSource {
     fn into(self) -> PackageIdent {
         match self {

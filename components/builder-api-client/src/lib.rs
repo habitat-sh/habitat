@@ -236,9 +236,8 @@ impl TabularText for UserOriginInvitationsResponse {
     fn as_tabbed(&self) -> std::result::Result<String, habitat_core::error::Error> {
         let tw = tabw().padding(2).minwidth(5);
         if !self.0.is_empty() {
-            let mut body = Vec::new();
-            body.push(String::from("Invitation Id\tOrigin Name\tAccount Name\tCreation \
-                                    Date\tIgnored"));
+            let mut body = vec![String::from("Invitation Id\tOrigin Name\tAccount \
+                                              Name\tCreation Date\tIgnored")];
             for invitation in self.0.iter() {
                 body.push(format!("{}\t{}\t{}\t{}\t{}",
                                   invitation.id,
@@ -258,8 +257,8 @@ impl TabularText for PendingOriginInvitationsResponse {
     fn as_tabbed(&self) -> std::result::Result<String, habitat_core::error::Error> {
         let tw = tabw().padding(2).minwidth(5);
         if !self.invitations.is_empty() {
-            let mut body = Vec::new();
-            body.push(String::from("Invitation Id\tAccount Name\tCreation Date\tIgnored"));
+            let mut body =
+                vec![String::from("Invitation Id\tAccount Name\tCreation Date\tIgnored")];
             for invitation in self.invitations.iter() {
                 body.push(format!("{}\t{}\t{}\t{}",
                                   invitation.id,

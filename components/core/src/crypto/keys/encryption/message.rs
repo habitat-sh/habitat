@@ -302,8 +302,8 @@ mod tests {
 
             let signed = SignedBox { encryptor,
                                      decryptor,
-                                     nonce,
-                                     ciphertext };
+                                     ciphertext,
+                                     nonce };
 
             assert_eq!(signed.to_string(), SIGNED_TEXT);
         }

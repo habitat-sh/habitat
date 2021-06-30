@@ -776,16 +776,15 @@ impl Manager {
         debug!("Cleaning cached health checks");
         match fs::read_dir(&data_path) {
             Ok(entries) => {
-                for entry in entries {
-                    if let Ok(entry) = entry {
-                        match entry.path().extension().and_then(OsStr::to_str) {
-                            Some("tmp") | Some("health") => {
-                                fs::remove_file(&entry.path()).map_err(|err| {
-                                    Error::BadDataPath(data_path.clone(), err)
-                                })?;
-                            }
-                            _ => continue,
+                for entry in entries.flatten() {
+                    match entry.path().extension().and_then(OsStr::to_str) {
+                        Some("tmp") | Some("health") => {
+                            fs::remove_file(&entry.path()).map_err(|err| {
+                                                              Error::BadDataPath(data_path.clone(),
+                                                                                 err)
+                                                          })?;
                         }
+                        _ => continue,
                     }
                 }
                 Ok(())

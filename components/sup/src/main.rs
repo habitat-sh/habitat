@@ -388,7 +388,7 @@ fn set_supervisor_logging_options(sup_run: &SupRun) {
         output::set_format(OutputFormat::NoColor)
     }
     if sup_run.json_logging {
-        output::set_format(OutputFormat::JSON)
+        output::set_format(OutputFormat::Json)
     }
 }
 

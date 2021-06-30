@@ -76,7 +76,7 @@ impl From<ShutdownTimeout> for Duration {
 // This defines a handful of Unix signals that we want to deal with,
 // but we are making it available on Windows as well for situations
 // where a Windows CLI is communicating with a Linux Supervisor.
-#[allow(non_snake_case)]
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Deserialize, Serialize, PartialEq, Debug, Clone, Copy)]
 pub enum Signal {
     INT,

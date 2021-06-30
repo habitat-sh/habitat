@@ -76,6 +76,7 @@ impl std::convert::TryFrom<&str> for EventStreamMetaPair {
     fn try_from(s: &str) -> Result<Self, Self::Error> { Ok(EventStreamMetaPair::from_str(s)?) }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<String> for EventStreamMetaPair {
     fn into(self) -> String { self.to_string() }
 }
@@ -85,6 +86,7 @@ impl Into<String> for EventStreamMetaPair {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct EventStreamMetadata(HashMap<String, String>);
 
+#[allow(clippy::from_over_into)]
 impl Into<HashMap<String, String>> for EventStreamMetadata {
     fn into(self) -> HashMap<String, String> { self.0 }
 }
@@ -214,6 +216,7 @@ impl fmt::Display for EventStreamConnectMethod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", u64::from(*self)) }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<Option<Duration>> for EventStreamConnectMethod {
     fn into(self) -> Option<Duration> {
         match self {
@@ -269,10 +272,12 @@ impl std::convert::TryFrom<&str> for EventStreamServerCertificate {
     fn try_from(s: &str) -> Result<Self, Self::Error> { EventStreamServerCertificate::from_str(s) }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<Certificate> for EventStreamServerCertificate {
     fn into(self) -> Certificate { self.certificate }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<PathBuf> for EventStreamServerCertificate {
     fn into(self) -> PathBuf { self.path }
 }

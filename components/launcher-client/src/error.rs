@@ -5,6 +5,7 @@ use std::{error,
           result};
 
 #[derive(Debug)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum Error {
     AcceptConn,
     BadPipe(io::Error),
