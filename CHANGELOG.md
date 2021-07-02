@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.346 -->
-## [1.6.346](https://github.com/habitat-sh/habitat/tree/1.6.346) (2021-06-30)
+<!-- latest_release 1.6.347 -->
+## [1.6.347](https://github.com/habitat-sh/habitat/tree/1.6.347) (2021-07-02)
 
 #### Merged Pull Requests
-- Bump sodiumoxide from 0.2.6 to 0.2.7 [#8231](https://github.com/habitat-sh/habitat/pull/8231) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Updating expeditor configuration [#8232](https://github.com/habitat-sh/habitat/pull/8232) ([jayashrig158](https://github.com/jayashrig158))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.319 -->
 ### Changes since 1.6.319 release
 
 #### Merged Pull Requests
+- Updating expeditor configuration [#8232](https://github.com/habitat-sh/habitat/pull/8232) ([jayashrig158](https://github.com/jayashrig158)) <!-- 1.6.347 -->
 - Bump sodiumoxide from 0.2.6 to 0.2.7 [#8231](https://github.com/habitat-sh/habitat/pull/8231) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.346 -->
 - update rust to 1.52.1 [#8230](https://github.com/habitat-sh/habitat/pull/8230) ([mwrock](https://github.com/mwrock)) <!-- 1.6.345 -->
 - Bump state from 0.5.1 to 0.5.2 [#8227](https://github.com/habitat-sh/habitat/pull/8227) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.344 -->
