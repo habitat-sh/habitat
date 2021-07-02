@@ -11,8 +11,10 @@ pub mod win_perm;
 use crate::{error::Result,
             os::process::windows_child::Child};
 
-use std::{collections::HashMap,
-          io::{self,
+#[cfg(windows)]
+use std::collections::HashMap;
+
+use std::{io::{self,
                BufRead},
           mem};
 
@@ -123,7 +125,7 @@ pub fn spawn_pwsh<U, P>(command: &str,
     let mut new_env = HashMap::new();
     // Opts out of powershell application insights telemetry code on shell startup
     new_env.insert("POWERSHELL_TELEMETRY_OPTOUT".to_string(), "1".to_string());
-    new_env.extend(env.into_iter().map(|(k, v)| (k.clone(), v.clone())));
+    new_env.extend(env.iter().map(|(k, v)| (k.clone(), v.clone())));
 
     Child::spawn("pwsh.exe",
                  &args,
