@@ -4,8 +4,7 @@ use crate::{error::{Error,
                        ShutdownMethod},
             service::Service};
 use core::{os::{process::{handle_from_pid,
-                          windows_child::{Child,
-                                          ExitStatus,
+                          windows_child::{ExitStatus,
                                           Handle}},
                 users::get_current_username},
            util};
@@ -18,8 +17,7 @@ use std::{collections::HashMap,
 use winapi::{shared::{minwindef::{DWORD,
                                   LPDWORD,
                                   MAX_PATH},
-                      winerror::{ERROR_FILE_NOT_FOUND,
-                                 WAIT_TIMEOUT}},
+                      winerror::WAIT_TIMEOUT},
              um::{handleapi::{self,
                               INVALID_HANDLE_VALUE},
                   processthreadsapi,
@@ -117,25 +115,6 @@ impl Process {
 }
 
 pub fn run(msg: protocol::Spawn) -> Result<Service> {
-    // Supervisors prior to version 0.53.0 pulled in beta versions of
-    // powershell. The official 6.0.0 version of powershell changed
-    // the name of the powershell binary to pwsh.exe. Here we will
-    // first attempt the latest binary name and fall back to the
-    // former name.
-    match spawn_pwsh("pwsh.exe", msg.clone()) {
-        Ok(service) => Ok(service),
-        Err(Error::Spawn(err)) => {
-            if err.raw_os_error() == Some(ERROR_FILE_NOT_FOUND as i32) {
-                spawn_pwsh("powershell.exe", msg)
-            } else {
-                Err(Error::Spawn(err))
-            }
-        }
-        Err(err) => Err(err),
-    }
-}
-
-fn spawn_pwsh(ps_binary_name: &str, msg: protocol::Spawn) -> Result<Service> {
     debug!("launcher is spawning {}", msg.binary);
     let ps_cmd = format!("iex $(gc {} | out-string)", &msg.binary);
     let password = msg.svc_password.clone();
@@ -169,12 +148,7 @@ fn spawn_pwsh(ps_binary_name: &str, msg: protocol::Spawn) -> Result<Service> {
 
     let new_env = msg.env.clone().into_iter().collect();
 
-    match Child::spawn(ps_binary_name,
-                       &util::pwsh_args(ps_cmd.as_str()),
-                       &new_env,
-                       &user,
-                       password)
-    {
+    match util::spawn_pwsh(&ps_cmd, &new_env, &user, password) {
         Ok(child) => {
             let process = Process::new(child.handle);
             Ok(Service::new(msg, process, child.stdout, child.stderr))

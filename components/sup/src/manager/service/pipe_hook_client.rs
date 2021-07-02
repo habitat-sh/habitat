@@ -4,7 +4,6 @@ use habitat_common::{error::{Error,
                      outputln,
                      templating::package::Pkg};
 use habitat_core::{env as henv,
-                   os::process::windows_child::Child,
                    util::{self,
                           BufReadLossy}};
 use mio::{windows::NamedPipe,
@@ -171,11 +170,10 @@ impl PipeHookClient {
                              process::id());
 
         // Start instance of powershell to host named pipe server for this client
-        let child = Child::spawn("pwsh.exe",
-                                 &util::pwsh_args(ps_cmd.as_str()),
-                                 &pkg.env.to_hash_map(),
-                                 &pkg.svc_user,
-                                 svc_encrypted_password)?;
+        let child = util::spawn_pwsh(&ps_cmd,
+                                     &pkg.env.to_hash_map(),
+                                     &pkg.svc_user,
+                                     svc_encrypted_password)?;
         debug!("spawned powershell server for {} {} hook on pipe: {}",
                service_group, self.hook_name, self.pipe_name);
 

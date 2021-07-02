@@ -233,11 +233,10 @@ pub trait Hook: fmt::Debug + Sized + Send {
         use habitat_core::util;
 
         let ps_cmd = format!("iex $(gc {} | out-string)", path.as_ref().to_string_lossy());
-        Ok(Child::spawn("pwsh.exe",
-                        &util::pwsh_args(ps_cmd.as_str()),
-                        &pkg.env.to_hash_map(),
-                        &pkg.svc_user,
-                        svc_encrypted_password)?)
+        Ok(util::spawn_pwsh(&ps_cmd,
+                            &pkg.env.to_hash_map(),
+                            &pkg.svc_user,
+                            svc_encrypted_password)?)
     }
 
     #[cfg(unix)]
