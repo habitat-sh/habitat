@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.350 -->
-## [1.6.350](https://github.com/habitat-sh/habitat/tree/1.6.350) (2021-07-06)
+<!-- latest_release 1.6.351 -->
+## [1.6.351](https://github.com/habitat-sh/habitat/tree/1.6.351) (2021-07-06)
 
 #### Merged Pull Requests
-- opt out of pwsh telemetry to avoid shell startup issues [#8233](https://github.com/habitat-sh/habitat/pull/8233) ([mwrock](https://github.com/mwrock))
+- bump powershell to 7.1.3 [#8237](https://github.com/habitat-sh/habitat/pull/8237) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.319 -->
 ### Changes since 1.6.319 release
 
 #### Merged Pull Requests
+- bump powershell to 7.1.3 [#8237](https://github.com/habitat-sh/habitat/pull/8237) ([mwrock](https://github.com/mwrock)) <!-- 1.6.351 -->
 - opt out of pwsh telemetry to avoid shell startup issues [#8233](https://github.com/habitat-sh/habitat/pull/8233) ([mwrock](https://github.com/mwrock)) <!-- 1.6.350 -->
 - Bump petgraph from 0.5.1 to 0.6.0 [#8234](https://github.com/habitat-sh/habitat/pull/8234) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.349 -->
 - Bump thiserror from 1.0.25 to 1.0.26 [#8235](https://github.com/habitat-sh/habitat/pull/8235) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.348 -->
