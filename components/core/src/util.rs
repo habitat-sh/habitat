@@ -7,6 +7,13 @@ pub mod text_render;
 #[cfg(windows)]
 pub mod win_perm;
 
+#[cfg(windows)]
+use crate::{error::Result,
+            os::process::windows_child::Child};
+
+#[cfg(windows)]
+use std::collections::HashMap;
+
 use std::{io::{self,
                BufRead},
           mem};
@@ -92,22 +99,39 @@ macro_rules! impl_try_from_str_and_into_string {
     };
 }
 
-/// returns the common arguments to pass to pwsh.exe when spawning a powershell instance.
-/// These arguments are optimized for a background powershell process running hooks.
-/// The NonInteractive flag specifies that the console is not intended to interact with
-/// human input and allows ctrl+break signals to trigger a graceful termination similar to
-/// a SIGTERM on linux rather than an interactive debugging prompt. The ExecutionPolicy
-/// ensures that if a more strict policy exists in the Windows Registry (ex "AllSigned"),
-/// hook execution will not fail because hook scripts are never signed. RemoteSigned is the
-/// default policy and just requires remote scripts to be signeed. Supervisor hooks are
-/// always local so "RemoteSigned" does not interfere with supervisor behavior.
+/// Spawns a background powershell process optimized for running hooks.
 #[cfg(windows)]
-pub fn pwsh_args(command: &str) -> Vec<&str> {
-    vec!["-NonInteractive",
-         "-ExecutionPolicy",
-         "RemoteSigned",
-         "-Command",
-         command]
+pub fn spawn_pwsh<U, P>(command: &str,
+                        env: &HashMap<String, String>,
+                        svc_user: U,
+                        svc_encrypted_password: Option<P>)
+                        -> Result<Child>
+    where U: ToString,
+          P: ToString
+{
+    // The NonInteractive flag specifies that the console is not intended to interact with
+    // human input and allows ctrl+break signals to trigger a graceful termination similar to
+    // a SIGTERM on linux rather than an interactive debugging prompt. The ExecutionPolicy
+    // ensures that if a more strict policy exists in the Windows Registry (ex "AllSigned"),
+    // hook execution will not fail because hook scripts are never signed. RemoteSigned is the
+    // default policy and just requires remote scripts to be signeed. Supervisor hooks are
+    // always local so "RemoteSigned" does not interfere with supervisor behavior.
+    let args = vec!["-NonInteractive",
+                    "-ExecutionPolicy",
+                    "RemoteSigned",
+                    "-Command",
+                    command];
+
+    let mut new_env = HashMap::new();
+    // Opts out of powershell application insights telemetry code on shell startup
+    new_env.insert("POWERSHELL_TELEMETRY_OPTOUT".to_string(), "1".to_string());
+    new_env.extend(env.iter().map(|(k, v)| (k.clone(), v.clone())));
+
+    Child::spawn("pwsh.exe",
+                 &args,
+                 &new_env,
+                 svc_user,
+                 svc_encrypted_password)
 }
 
 // This is copied from [here](https://github.com/rust-lang/rust/blob/d3cba254e464303a6495942f3a831c2bbd7f1768/src/libstd/io/mod.rs#L2495),
