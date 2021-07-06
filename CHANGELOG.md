@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.348 -->
-## [1.6.348](https://github.com/habitat-sh/habitat/tree/1.6.348) (2021-07-06)
+<!-- latest_release 1.6.349 -->
+## [1.6.349](https://github.com/habitat-sh/habitat/tree/1.6.349) (2021-07-06)
 
 #### Merged Pull Requests
-- Bump thiserror from 1.0.25 to 1.0.26 [#8235](https://github.com/habitat-sh/habitat/pull/8235) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump petgraph from 0.5.1 to 0.6.0 [#8234](https://github.com/habitat-sh/habitat/pull/8234) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.319 -->
 ### Changes since 1.6.319 release
 
 #### Merged Pull Requests
+- Bump petgraph from 0.5.1 to 0.6.0 [#8234](https://github.com/habitat-sh/habitat/pull/8234) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.349 -->
 - Bump thiserror from 1.0.25 to 1.0.26 [#8235](https://github.com/habitat-sh/habitat/pull/8235) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.348 -->
 - Updating expeditor configuration [#8232](https://github.com/habitat-sh/habitat/pull/8232) ([jayashrig158](https://github.com/jayashrig158)) <!-- 1.6.347 -->
 - Bump sodiumoxide from 0.2.6 to 0.2.7 [#8231](https://github.com/habitat-sh/habitat/pull/8231) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.346 -->
