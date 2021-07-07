@@ -1,5 +1,5 @@
 +++
-title = "Get Chef Habitat"
+title = "Download and Install the Chef Habitat CLI Tool"
 description = "Install the Chef Habitat CLI and configure your workstation for Chef Habitat development"
 aliases = ["/habitat/install-habitat/"]
 gh_repo = "habitat"
@@ -14,12 +14,10 @@ gh_repo = "habitat"
 
 Below you'll find installation instructions for each platform and their requirements. The Chef Habitat CLI is currently supported on Linux, Mac, and Windows.
 
-## Download and Install the Chef Habitat CLI Tool
-
 From building packages to running services, everything in Chef Habitat is done through the hab command-line interface (CLI) tool. To get started using Chef Habitat, you need to download and install the hab CLI tool that corresponds to your workstation OS.
 hr
 
-### Chef Habitat for Linux
+## Chef Habitat for Linux
 
 Chef Habitat for Linux requires a 64-bit processor with kernel 2.6.32 or later. On Linux, exporting your Chef Habitat artifact to a Docker image requires the Docker Engine supplied by Docker. Packages from distribution-specific or otherwise alternative providers are currently not supported.
 
@@ -27,7 +25,7 @@ Once you have downloaded the package, extract the hab binary with tar to `/usr/l
 
 [Download Chef Habitat for Linux](https://downloads.chef.io/products/habitat)
 
-#### Install Chef Habitat from the Command Line
+### Install Chef Habitat from the Command Line
 
 Alternatively, you can install Chef Habitat via the command line by downloading and running the installation script:
 
@@ -35,7 +33,7 @@ Alternatively, you can install Chef Habitat via the command line by downloading 
 curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
 ```
 
-#### Install Chef Habitat for Linux Kernel 2.x from the Command Line
+### Install Chef Habitat for Linux Kernel 2.x from the Command Line
 
 Please note that support for Linux Kernel 2.x is limited. Not all core plans are available for Kernel 2.x, nor are there plans to backport all of the existing core plans to Kernel 2.x.  Kernel 2.x is legacy technology by definition, and its use should be viewed as a stop-gap to provide interim solutions for old systems, as they are upgraded to more recent versions of the Linux kernel.
 
@@ -53,7 +51,7 @@ Once you have downloaded the `hab` CLI, unzip it onto your machine. Unzipping to
 
 [Download Docker for Mac](https://store.docker.com/editions/community/docker-ce-desktop-mac)
 
-#### Install Chef Habitat Using Homebrew
+### Install Chef Habitat Using Homebrew
 
 Chef Habitat can also be installed with Homebrew, by running the following commands:
 
@@ -62,7 +60,7 @@ brew tap habitat-sh/habitat
 brew install hab
 ```
 
-### Chef Habitat for Windows
+## Chef Habitat for Windows
 
 Minimum Windows version supported: Windows Server 2012  or Windows 8 64-bit
 
@@ -74,7 +72,7 @@ Install Chef Habitat with Chocolatey, by running the following command:
 choco install habitat
 ```
 
-#### Install Chef Habitat using a Powershell install script
+### Install Chef Habitat using a Powershell install script
 
 Alternatively, you can install Chef Habitat by downloading and running the installation script:
 
@@ -83,7 +81,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1'))
 ```
 
-#### Installing Habitat for Windows using the dowloaded Chef Habitat package.
+### Installing Habitat for Windows using the dowloaded Chef Habitat package.
 
 Downloaded the `hab` CLI, unzip it onto your machine. We suggest unzipping to `C:\habitat`, so that the full path to Chef Habitat is similar to `C:\habitat\hab-0.79.1-20190410221450-x86_64-windows`. If you've downloaded a more recent version of Chef Habitat, you'll see a different set of numbers following `hab-`. Replace the package name used in these examples with the filename you see on your computer. Next, add that folder to your `PATH` variable so your computer will know where to find it. Here's how to do that with Powershell:
 
