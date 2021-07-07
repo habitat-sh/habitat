@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.352 -->
-## [1.6.352](https://github.com/habitat-sh/habitat/tree/1.6.352) (2021-07-07)
+<!-- latest_release 1.6.353 -->
+## [1.6.353](https://github.com/habitat-sh/habitat/tree/1.6.353) (2021-07-07)
 
 #### Merged Pull Requests
-- Fix headings in install CLI page [#8236](https://github.com/habitat-sh/habitat/pull/8236) ([IanMadd](https://github.com/IanMadd))
+- minor docs fix [#8238](https://github.com/habitat-sh/habitat/pull/8238) ([IanMadd](https://github.com/IanMadd))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.319 -->
 ### Changes since 1.6.319 release
 
 #### Merged Pull Requests
+- minor docs fix [#8238](https://github.com/habitat-sh/habitat/pull/8238) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.353 -->
 - Fix headings in install CLI page [#8236](https://github.com/habitat-sh/habitat/pull/8236) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.352 -->
 - bump powershell to 7.1.3 [#8237](https://github.com/habitat-sh/habitat/pull/8237) ([mwrock](https://github.com/mwrock)) <!-- 1.6.351 -->
 - opt out of pwsh telemetry to avoid shell startup issues [#8233](https://github.com/habitat-sh/habitat/pull/8233) ([mwrock](https://github.com/mwrock)) <!-- 1.6.350 -->
