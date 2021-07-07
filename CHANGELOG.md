@@ -1,19 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.353 -->
-## [1.6.353](https://github.com/habitat-sh/habitat/tree/1.6.353) (2021-07-07)
+<!-- latest_release 1.6.354 -->
+## [1.6.354](https://github.com/habitat-sh/habitat/tree/1.6.354) (2021-07-07)
 
 #### Merged Pull Requests
-- minor docs fix [#8238](https://github.com/habitat-sh/habitat/pull/8238) ([IanMadd](https://github.com/IanMadd))
+- update changelog for 1.6.351 [#8240](https://github.com/habitat-sh/habitat/pull/8240) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- update changelog for 1.6.351 [#8240](https://github.com/habitat-sh/habitat/pull/8240) ([mwrock](https://github.com/mwrock)) <!-- 1.6.354 -->
 - minor docs fix [#8238](https://github.com/habitat-sh/habitat/pull/8238) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.353 -->
 - Fix headings in install CLI page [#8236](https://github.com/habitat-sh/habitat/pull/8236) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.352 -->
-
 <!-- release_rollup -->
 
 <!-- latest_stable_release 1.6.351 -->
