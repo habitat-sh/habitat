@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.354 -->
-## [1.6.354](https://github.com/habitat-sh/habitat/tree/1.6.354) (2021-07-07)
+<!-- latest_release 1.6.355 -->
+## [1.6.355](https://github.com/habitat-sh/habitat/tree/1.6.355) (2021-07-08)
 
 #### Merged Pull Requests
-- update changelog for 1.6.351 [#8240](https://github.com/habitat-sh/habitat/pull/8240) ([mwrock](https://github.com/mwrock))
+- Rustfmt and Nightly Rust Bump to nightly-2021-07-07 [#8239](https://github.com/habitat-sh/habitat/pull/8239) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- Rustfmt and Nightly Rust Bump to nightly-2021-07-07 [#8239](https://github.com/habitat-sh/habitat/pull/8239) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.355 -->
 - update changelog for 1.6.351 [#8240](https://github.com/habitat-sh/habitat/pull/8240) ([mwrock](https://github.com/mwrock)) <!-- 1.6.354 -->
 - minor docs fix [#8238](https://github.com/habitat-sh/habitat/pull/8238) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.353 -->
 - Fix headings in install CLI page [#8236](https://github.com/habitat-sh/habitat/pull/8236) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.352 -->
