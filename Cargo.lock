@@ -1390,7 +1390,7 @@ dependencies = [
  "bytes 0.5.6",
  "prost",
  "prost-build",
- "prost-derive",
+ "prost-derive 0.8.0",
  "serde",
  "serde_derive",
 ]
@@ -1432,7 +1432,7 @@ dependencies = [
  "log 0.4.14",
  "prost",
  "prost-build",
- "prost-derive",
+ "prost-derive 0.8.0",
  "rand 0.8.4",
  "serde",
  "serde_derive",
@@ -1484,7 +1484,7 @@ dependencies = [
  "prometheus",
  "prost",
  "prost-build",
- "prost-derive",
+ "prost-derive 0.8.0",
  "rand 0.8.4",
  "serde",
  "serde_derive",
@@ -1703,7 +1703,7 @@ dependencies = [
  "prometheus",
  "prost",
  "prost-build",
- "prost-derive",
+ "prost-derive 0.8.0",
  "prost-types",
  "rand 0.8.4",
  "rants",
@@ -2038,6 +2038,15 @@ name = "itertools"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f56a2d0bc861f9165be4eb3442afd3c236d8a98afd426f65d92324ae1091a484"
+dependencies = [
+ "either",
+]
+
+[[package]]
+name = "itertools"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69ddb889f9d0d08a67338271fa9b62996bc788c7796a5c18cf057420aaed5eaf"
 dependencies = [
  "either",
 ]
@@ -2967,7 +2976,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce49aefe0a6144a45de32927c77bd2859a5f7677b55f220ae5b744e87389c212"
 dependencies = [
  "bytes 0.5.6",
- "prost-derive",
+ "prost-derive 0.6.1",
 ]
 
 [[package]]
@@ -2978,7 +2987,7 @@ checksum = "02b10678c913ecbd69350e8535c3aef91a8676c0773fc1d7b95cdd196d7f2f26"
 dependencies = [
  "bytes 0.5.6",
  "heck",
- "itertools",
+ "itertools 0.8.2",
  "log 0.4.14",
  "multimap",
  "petgraph 0.5.1",
@@ -2995,7 +3004,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "537aa19b95acde10a12fec4301466386f757403de4cd4e5b4fa78fb5ecb18f72"
 dependencies = [
  "anyhow",
- "itertools",
+ "itertools 0.8.2",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "prost-derive"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "600d2f334aa05acb02a755e217ef1ab6dea4d51b58b7846588b747edec04efba"
+dependencies = [
+ "anyhow",
+ "itertools 0.10.1",
  "proc-macro2",
  "quote",
  "syn",
