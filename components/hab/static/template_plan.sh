@@ -71,6 +71,12 @@ pkg_scaffolding="{{ scaffolding_ident }}"
 # pkg_scaffolding="some/scaffolding"
 {{~ /if}}
 
+{{~ #unless minimal}}
+
+# Optional.
+# The plugins for this plan.
+pkg_plugins=()
+{{~ /unless}}
 
 {{~ #unless minimal}}
 

@@ -375,6 +375,8 @@ pkg_target='@@pkg_target@@'
 pkg_origin=""
 # Each release is a timestamp - `YYYYMMDDhhmmss`
 pkg_release=$(date -u +%Y%m%d%H%M%S)
+# The default plugins setting - an empty array
+pkg_plugins=()
 # The default build deps setting - an empty array
 pkg_build_deps=()
 # The default runtime deps setting - an empty array
@@ -1050,6 +1052,66 @@ _resolve_scaffolding_dependencies() {
   _set_build_tdeps_resolved
 }
 
+# **Internal** Install the plugins dependencies and for each plugin package
+# add itself and each direct run dependency to the start of `${pkg_build_deps[@]}`,
+_resolve_plugins_dependencies() {
+  if [[ -z "${pkg_plugins[*]}" ]]; then
+    return 0
+  fi
+
+  build_line "Resolving plugins dependencies"
+  local resolved
+  local dep
+  local tdep
+  local tdeps
+  local pdep
+  local pdeps
+
+  local plugin
+  local plugins_build_deps
+  local plugins_build_deps_resolved
+
+  plugins_build_deps=()
+  plugins_build_deps_resolved=()
+
+
+  for plugin in "${pkg_plugins[@]}"; do
+    _install_dependency "$plugin"
+    # Add plugin package to the list of plugins build deps
+    plugins_build_deps+=("$plugin")
+    if resolved="$(_resolve_dependency "$plugin")"; then
+      build_line "Resolved plugin dependency '$plugin' to $resolved"
+      plugins_build_deps_resolved+=("$resolved")
+      # Add each (fully qualified) direct run dependency of the scaffolding
+      # package.
+      mapfile -t pdeps < <(_get_deps_for "$resolved") # See syntax note @ _get_deps_for
+      for pdep in "${pdeps[@]}"; do
+        plugins_build_deps+=("$pdep")
+        plugins_build_deps_resolved+=("$HAB_PKG_PATH/$pdep")
+      done
+    else
+      exit_with "Resolving '$plugin' failed, should this be built first?" 1
+    fi
+  done
+
+  # Add all of the ordered plugin dependencies to the start of
+  # `${pkg_build_deps[@]}` to make sure they could be overridden by a Plan
+  # author if required.
+  pkg_build_deps=("${plugins_build_deps[@]}" "${pkg_build_deps[@]}")
+  debug "Updating pkg_build_deps=(${pkg_build_deps[*]}) from Plugins deps"
+
+  # Set `pkg_build_deps_resolved[@]}` to all resolved plugins dependencies.
+  # This will be used for early plugins package loading to mimic the state
+  # where all dependencies are known for helpers such as `pkg_path_for` and
+  # will be re-set later when the full build dependency set is known.
+  pkg_build_deps_resolved=("${plugins_build_deps_resolved[@]}")
+  # Set `${pkg_build_tdeps_resolved[@]}` to all the direct plugins
+  # dependencies, and the run dependencies for each direct plugins
+  # dependency. As above, this will be re-set later when the full dependency
+  # set is known.
+  _set_build_tdeps_resolved
+}
+
 # **Internal** Determines suitable package identifiers for each build
 # dependency and populates several package-related arrays for use throughout
 # this program.
@@ -1130,6 +1192,34 @@ _load_scaffolding() {
   if [[ "$(type -t scaffolding_load)" == "function" ]]; then
     scaffolding_load
   fi
+}
+
+# **Internal** Loads al plugin from `$pkg_plugins` preserving order
+# Note it does not do plugin_load because it is pointless
+# Any code you want run on load just can be written directly
+# in lib/plugin.sh outside functions
+_load_plugins() {
+  local plugin
+  local lib
+
+  if [[ -z "${pkg_plugins[*]}" ]]; then
+    return 0
+  fi
+
+  for plugin in "${pkg_plugins[@]}"; do
+    lib="$(_pkg_path_for_build_deps "$plugin")/lib/plugin.sh"
+    build_line "Loading Plugin $lib"
+    if ! source "$lib"; then
+      exit_with "Failed to load plugin from $lib" 18
+    fi
+
+    if [[ "$(type -t plugin_load)" == "function" ]]; then
+      plugin_load
+      # There are many plugins possible so after load
+      # unset function for next plugin
+      unset -f plugin_load
+    fi
+  done
 }
 
 # **Internal** Determines suitable package identifiers for each run
@@ -1498,12 +1588,18 @@ _resolve_dependencies() {
   # Inject, download, and resolve the scaffolding dependencies
   _resolve_scaffolding_dependencies
 
+  # Inject, download, and resolve the plugins dependencies
+  _resolve_plugins_dependencies
+
   # Populate package arrays to enable helper functions for early scaffolding
   # load hooks
   _populate_dependency_arrays
 
   # Load scaffolding packages if they are being used.
   _load_scaffolding
+
+  # Load plugins if they are being used.
+  _load_plugins
 
   # Download and resolve the build dependencies
   _resolve_build_dependencies
