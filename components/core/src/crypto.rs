@@ -255,7 +255,7 @@ pub fn secure_eq<T, U>(t: T, u: U) -> bool
     where T: AsRef<[u8]>,
           U: AsRef<[u8]>
 {
-    crypto::util::fixed_time_eq(t.as_ref(), u.as_ref())
+    sodiumoxide::utils::memcmp(t.as_ref(), u.as_ref())
 }
 
 #[cfg(test)]
