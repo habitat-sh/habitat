@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.357 -->
-## [1.6.357](https://github.com/habitat-sh/habitat/tree/1.6.357) (2021-07-14)
+<!-- latest_release 1.6.358 -->
+## [1.6.358](https://github.com/habitat-sh/habitat/tree/1.6.358) (2021-07-14)
 
 #### Merged Pull Requests
-- remove dependency on rust-crypto [#8249](https://github.com/habitat-sh/habitat/pull/8249) ([sajjaphani](https://github.com/sajjaphani))
+- Bump cc from 1.0.68 to 1.0.69 [#8248](https://github.com/habitat-sh/habitat/pull/8248) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- Bump cc from 1.0.68 to 1.0.69 [#8248](https://github.com/habitat-sh/habitat/pull/8248) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.358 -->
+- Bump nix from 0.21.0 to 0.22.0 [#8247](https://github.com/habitat-sh/habitat/pull/8247) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.358 -->
+- Bump serde-transcode from 1.1.0 to 1.1.1 [#8246](https://github.com/habitat-sh/habitat/pull/8246) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.358 -->
 - remove dependency on rust-crypto [#8249](https://github.com/habitat-sh/habitat/pull/8249) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.357 -->
 - Bump libc from 0.2.97 to 0.2.98 [#8241](https://github.com/habitat-sh/habitat/pull/8241) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.356 -->
 - Rustfmt and Nightly Rust Bump to nightly-2021-07-07 [#8239](https://github.com/habitat-sh/habitat/pull/8239) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.355 -->
