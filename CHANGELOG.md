@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.356 -->
-## [1.6.356](https://github.com/habitat-sh/habitat/tree/1.6.356) (2021-07-09)
+<!-- latest_release 1.6.357 -->
+## [1.6.357](https://github.com/habitat-sh/habitat/tree/1.6.357) (2021-07-14)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.97 to 0.2.98 [#8241](https://github.com/habitat-sh/habitat/pull/8241) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- remove dependency on rust-crypto [#8249](https://github.com/habitat-sh/habitat/pull/8249) ([sajjaphani](https://github.com/sajjaphani))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- remove dependency on rust-crypto [#8249](https://github.com/habitat-sh/habitat/pull/8249) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.357 -->
 - Bump libc from 0.2.97 to 0.2.98 [#8241](https://github.com/habitat-sh/habitat/pull/8241) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.356 -->
 - Rustfmt and Nightly Rust Bump to nightly-2021-07-07 [#8239](https://github.com/habitat-sh/habitat/pull/8239) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.355 -->
 - update changelog for 1.6.351 [#8240](https://github.com/habitat-sh/habitat/pull/8240) ([mwrock](https://github.com/mwrock)) <!-- 1.6.354 -->
