@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.358 -->
-## [1.6.358](https://github.com/habitat-sh/habitat/tree/1.6.358) (2021-07-14)
+<!-- latest_release 1.6.359 -->
+## [1.6.359](https://github.com/habitat-sh/habitat/tree/1.6.359) (2021-07-15)
 
 #### Merged Pull Requests
-- Bump cc from 1.0.68 to 1.0.69 [#8248](https://github.com/habitat-sh/habitat/pull/8248) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump env_logger from 0.8.4 to 0.9.0 [#8250](https://github.com/habitat-sh/habitat/pull/8250) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- Bump env_logger from 0.8.4 to 0.9.0 [#8250](https://github.com/habitat-sh/habitat/pull/8250) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.359 -->
 - Bump cc from 1.0.68 to 1.0.69 [#8248](https://github.com/habitat-sh/habitat/pull/8248) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.358 -->
 - Bump nix from 0.21.0 to 0.22.0 [#8247](https://github.com/habitat-sh/habitat/pull/8247) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.358 -->
 - Bump serde-transcode from 1.1.0 to 1.1.1 [#8246](https://github.com/habitat-sh/habitat/pull/8246) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.358 -->
