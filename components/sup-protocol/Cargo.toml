@@ -8,7 +8,7 @@ workspace = "../../"
 
 [dependencies]
 base64 = "*"
-bytes = "^0.5"
+bytes = "*"
 habitat_core = { path = "../core" }
 lazy_static = "^1.4.0"
 log = "^0.4.14"
@@ -17,8 +17,8 @@ prost-derive = "*"
 rand = "*"
 serde = "*"
 serde_derive = "*"
-tokio = { version = "^0.2", features = ["full"] }
-tokio-util = { version = "^0.3", features = ["full"] }
+tokio = { version = "*", features = ["full"] }
+tokio-util = { version = "*", features = ["full"] }
 
 [build-dependencies]
 prost-build = "*"

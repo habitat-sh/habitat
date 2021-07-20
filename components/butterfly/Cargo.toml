@@ -13,7 +13,7 @@ doc = false
 
 [dependencies]
 byteorder = "*"
-bytes = "^0.5"
+bytes = "*"
 env_logger = "*"
 habitat_core = { path = "../core" }
 habitat_common = { path = "../common" }

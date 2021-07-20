@@ -43,10 +43,10 @@ serde-transcode = "*"
 serde_yaml = "*"
 tempfile = "*"
 thiserror = "*"
-retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
+retry = { git = "https://github.com/habitat-sh/retry", branch = "latest_crates", features = ["asynchronous"] }
 rustls = "*"
 termcolor = "*"
-tokio = { version = "^0.2", features = ["full"] }
+tokio = { version = "*", features = ["full"] }
 toml = { version = "*", features = ["preserve_order"] }
 uuid = { version = "*", features = ["v4"] }
 valico = "*"

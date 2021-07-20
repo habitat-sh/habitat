@@ -39,8 +39,8 @@ tabwriter = "*"
 tar = "*"
 tempfile = "*"
 thiserror = "*"
-tokio = { version = "^0.2", features = ["full"] }
-tokio-rustls = "^0.14" # Tokio 0.2
+tokio = { version = "*", features = ["full"] }
+tokio-rustls = "*"
 toml = { version = "0.5.8", features = [ "preserve_order" ] }
 typemap = "*"
 url = "*"

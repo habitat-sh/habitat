@@ -15,8 +15,8 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-bytes = "^0.5"
-actix-web = { version = "*", default-features = false, features = [ "rustls" ] }
+bytes = "*"
+actix-web = { version = "4.0.0-beta.8", default-features = false, features = [ "rustls" ] }
 actix-rt = "*"
 byteorder = "*"
 clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
@@ -24,7 +24,7 @@ configopt = { git = "https://github.com/davidMcneil/configopt.git" }
 cpu-time = "*"
 derivative = "*"
 fs2 = "*"
-futures = { version = "0.3.8" }
+futures = "*"
 glob = "*"
 hab = { path = "../hab" }
 habitat_butterfly = { path = "../butterfly", default-features = false }
@@ -61,9 +61,9 @@ tempfile = "*"
 termcolor = "*"
 thiserror = "*"
 toml = { version = "*", features = ["preserve_order"]}
-tokio = { version = "^0.2", features = ["full"] }
-tokio-rustls = "^0.14" # Tokio 0.2
-tokio-util = { version = "^0.3", features = ["full"] }
+tokio = { version = "*", features = ["full"] }
+tokio-rustls = "*"
+tokio-util = { version = "*", features = ["full"] }
 url = "*"
 valico = "*"
 
