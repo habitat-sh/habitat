@@ -79,7 +79,7 @@ ctrlc = "*"
 habitat-launcher-protocol = { path = "../launcher-protocol" }
 mio = { version = "*", features = ["os-ext"] }
 uuid = { version = "*", features = ["v4"] }
-winapi = { version = "^0.3.9", features = ["namedpipeapi", "tlhelp32"] }
+winapi = { version = "*", features = ["namedpipeapi", "tlhelp32"] }
 
 [dev-dependencies]
 habitat_core = { path = "../core" }
