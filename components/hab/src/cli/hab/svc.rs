@@ -366,7 +366,6 @@ pub fn shared_load_cli_to_ctl(ident: PackageIdent,
     let svc_encrypted_password = None;
 
     Ok(SvcLoad { ident: Some(ident.into()),
-                 application_environment: None,
                  binds,
                  binding_mode: Some(shared_load.binding_mode as i32),
                  bldr_url: Some(habitat_core::url::bldr_url(shared_load.bldr_url)),

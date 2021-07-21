@@ -152,7 +152,7 @@ impl RollingUpdateWorker {
                             }
                         }
                     }
-                    time::delay_for(DELAY).await;
+                    time::sleep(DELAY).await;
                 }
             }
         }
@@ -184,7 +184,7 @@ impl RollingUpdateWorker {
                     }
                 }
             }
-            time::delay_for(DELAY).await;
+            time::sleep(DELAY).await;
         }
     }
 
@@ -222,7 +222,7 @@ impl RollingUpdateWorker {
                     }
                 }
             }
-            time::delay_for(DELAY).await;
+            time::sleep(DELAY).await;
         }
     }
 
@@ -283,7 +283,7 @@ impl RollingUpdateWorker {
                     }
                 }
             }
-            time::delay_for(DELAY).await;
+            time::sleep(DELAY).await;
         }
     }
 
@@ -304,7 +304,7 @@ impl RollingUpdateWorker {
                           self.service_group);
                 }
             }
-            time::delay_for(DELAY).await;
+            time::sleep(DELAY).await;
         }
     }
 }

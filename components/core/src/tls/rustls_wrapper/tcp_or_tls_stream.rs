@@ -7,7 +7,8 @@ use std::{pin::Pin,
                  Poll}};
 use tokio::{io::{self,
                  AsyncRead,
-                 AsyncWrite},
+                 AsyncWrite,
+                 ReadBuf},
             net::TcpStream};
 use tokio_rustls::{webpki::DNSNameRef,
                    TlsAcceptor,
@@ -89,8 +90,8 @@ impl TcpOrTlsStream {
 impl AsyncRead for TcpOrTlsStream {
     fn poll_read(self: Pin<&mut Self>,
                  cx: &mut Context,
-                 buf: &mut [u8])
-                 -> Poll<io::Result<usize>> {
+                 buf: &mut ReadBuf<'_>)
+                 -> Poll<io::Result<()>> {
         match self.project() {
             TcpOrTlsStreamProj::TcpStream(stream) => stream.poll_read(cx, buf),
             TcpOrTlsStreamProj::TlsStream(stream) => stream.poll_read(cx, buf),

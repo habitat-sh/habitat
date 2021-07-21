@@ -13,12 +13,12 @@ doc = false
 
 [dependencies]
 byteorder = "*"
-bytes = "^0.5"
+bytes = "*"
 env_logger = "*"
 habitat_core = { path = "../core" }
 habitat_common = { path = "../common" }
-log = "^0.4.14"
-lazy_static = "^1.4.0"
+log = "*"
+lazy_static = "*"
 prometheus = "*"
 parking_lot = "*"
 prost = "*"
@@ -34,7 +34,7 @@ uuid = { version = "*", features = ["v4"] }
 zmq = { git = "https://github.com/habitat-sh/rust-zmq", branch = "v0.8-symlinks-removed" }
 
 [target.'cfg(windows)'.dependencies]
-winapi = { version = "^0.3.9", features = ["handleapi", "winbase"] }
+winapi = { version = "*", features = ["handleapi", "winbase"] }
 
 [dev-dependencies]
 mktemp = "*"

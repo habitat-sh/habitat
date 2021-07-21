@@ -17,7 +17,7 @@ habitat_core = { path = "../core" }
 habitat-launcher-protocol = { path = "../launcher-protocol" }
 ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }
 libc = "*"
-log = "^0.4.14"
+log = "*"
 prost = "*"
 semver = "*"
 
@@ -25,4 +25,4 @@ semver = "*"
 nix = "*"
 
 [target.'cfg(windows)'.dependencies]
-winapi =  { version = "^0.3.9", features = ["tlhelp32"] }
+winapi =  { version = "*", features = ["tlhelp32"] }
