@@ -229,7 +229,7 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
                    service_group,
                    result,
                    interval);
-            time::delay_for(interval.into()).await;
+            time::sleep(interval.into()).await;
         }
         outputln!(preamble service_group_clone, "Health checking has been stopped");
     });

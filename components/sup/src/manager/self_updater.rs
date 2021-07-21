@@ -101,7 +101,7 @@ impl SelfUpdater {
         debug!("Starting self updater with current package {} in {}s",
                current,
                splay.as_secs());
-        tokiotime::delay_for(splay).await;
+        tokiotime::sleep(splay).await;
         loop {
             match util::pkg::install_no_ui(&update_url, &install_source, &update_channel).await {
                 Ok(package) => {
@@ -119,7 +119,7 @@ impl SelfUpdater {
                 }
             }
             trace!("Self updater delaying for {}s", period.as_secs());
-            tokiotime::delay_for(period).await;
+            tokiotime::sleep(period).await;
         }
     }
 

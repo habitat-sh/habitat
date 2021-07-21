@@ -16,7 +16,8 @@ use std::{fmt,
           pin::Pin};
 use tokio::io::{AsyncBufRead,
                 AsyncRead,
-                AsyncWrite};
+                AsyncWrite,
+                ReadBuf};
 
 /// A simple wrapper type which allows types which implement only
 /// implement `std::io::Read` or `std::io::Write`
@@ -121,9 +122,10 @@ impl<T> AsyncRead for AllowStdIo<T> where T: io::Read
 {
     fn poll_read(mut self: Pin<&mut Self>,
                  _: &mut Context<'_>,
-                 buf: &mut [u8])
-                 -> Poll<io::Result<usize>> {
-        Poll::Ready(Ok(try_with_interrupt!(self.0.read(buf))))
+                 buf: &mut ReadBuf<'_>)
+                 -> Poll<io::Result<()>> {
+        let _ = try_with_interrupt!(self.0.read(buf.filled_mut()));
+        Poll::Ready(Ok(()))
     }
 }
 

@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate serde_derive;
-use actix_web::{web,
+use actix_web::{web::{self,
+                      Data},
                 App as ActixApp,
                 HttpServer};
 use clap::{App,
@@ -24,7 +25,7 @@ async fn main() -> std::io::Result<()> {
     let config = config::from_matches(&matches).expect("Could not create application");
     let bind_addr = format!("{}:{}", config.host, config.port);
     let server = HttpServer::new(move || {
-                     ActixApp::new().data(config.clone())
+                     ActixApp::new().app_data(Data::new(config.clone()))
                                     .route("context", web::get().to(context::show))
                                     .route("context/{path:.*}", web::get().to(context::show))
                  }).workers(1)

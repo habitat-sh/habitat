@@ -80,9 +80,9 @@ fn main() {
     signals::init();
     logger::init();
 
-    let mut runtime =
-        RuntimeBuilder::new().threaded_scheduler()
-                             .core_threads(TokioThreadCount::configured_value().into())
+    let runtime =
+        RuntimeBuilder::new_multi_thread()
+                             .worker_threads(TokioThreadCount::configured_value().into())
                              .enable_all()
                              .build()
                              .expect("Couldn't build Tokio Runtime!");
@@ -1000,26 +1000,25 @@ gpoVMSncu2jMIDZX63IkQII=
                                                      Some("core/redis".parse::<PackageIdent>()
                                                                       .unwrap()
                                                                       .into()),
-                                                 application_environment: None,
-                                                 binds:                   Some(binds),
-                                                 binding_mode:            Some(0),
+                                                 binds:                  Some(binds),
+                                                 binding_mode:           Some(0),
                                                  bldr_url:
                                                      Some(String::from("http://my_url.com/")),
                                                  bldr_channel:
                                                      Some(String::from("my_channel")),
                                                  config_from:
                                                      Some(String::from(temp_dir_str)),
-                                                 force:                   Some(true),
+                                                 force:                  Some(true),
                                                  group:
                                                      Some(String::from("MyGroup")),
-                                                 svc_encrypted_password:  None,
+                                                 svc_encrypted_password: None,
                                                  topology:
                                                      Some(Topology::Leader.into()),
                                                  update_strategy:
                                                      Some(UpdateStrategy::Rolling.into()),
                                                  health_check_interval:
                                                      Some(health_check_interval),
-                                                 shutdown_timeout:        Some(12),
+                                                 shutdown_timeout:       Some(12),
                                                  update_condition:
                                                      Some(UpdateCondition::TrackChannel.into()), },
                        service_load);
@@ -1403,26 +1402,25 @@ pkg_ident_or_artifact = "core/redis"
                                                      Some("core/redis".parse::<PackageIdent>()
                                                                       .unwrap()
                                                                       .into()),
-                                                 application_environment: None,
-                                                 binds:                   Some(binds),
-                                                 binding_mode:            Some(0),
+                                                 binds:                  Some(binds),
+                                                 binding_mode:           Some(0),
                                                  bldr_url:
                                                      Some(String::from("http://my_url.com/")),
                                                  bldr_channel:
                                                      Some(String::from("my_channel")),
                                                  config_from:
                                                      Some(temp_dir_str.replace("\\", "/")),
-                                                 force:                   Some(true),
+                                                 force:                  Some(true),
                                                  group:
                                                      Some(String::from("MyGroup")),
-                                                 svc_encrypted_password:  None,
+                                                 svc_encrypted_password: None,
                                                  topology:
                                                      Some(Topology::Standalone.into()),
                                                  update_strategy:
                                                      Some(UpdateStrategy::AtOnce.into()),
                                                  health_check_interval:
                                                      Some(health_check_interval),
-                                                 shutdown_timeout:        Some(12),
+                                                 shutdown_timeout:       Some(12),
                                                  update_condition:
                                                      Some(UpdateCondition::TrackChannel.into()), },
                        service_load);

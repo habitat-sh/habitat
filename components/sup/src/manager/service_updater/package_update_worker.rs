@@ -83,7 +83,7 @@ impl PackageUpdateWorker {
         debug!("Starting package update worker for {} in {}s",
                ident,
                splay.as_secs());
-        time::delay_for(splay).await;
+        time::sleep(splay).await;
         loop {
             let package_result = match self.update_condition {
                 UpdateCondition::Latest => {
@@ -124,7 +124,7 @@ impl PackageUpdateWorker {
             trace!("Package update worker for {} delaying for {}s",
                    ident,
                    period.as_secs());
-            time::delay_for(period).await;
+            time::sleep(period).await;
         }
     }
 
