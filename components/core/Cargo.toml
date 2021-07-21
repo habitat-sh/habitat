@@ -41,7 +41,7 @@ tempfile = "*"
 thiserror = "*"
 tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
-toml = { version = "0.5.8", features = [ "preserve_order" ] }
+toml = { version = "*", features = [ "preserve_order" ] }
 typemap = "*"
 url = "*"
 webpki = "*"

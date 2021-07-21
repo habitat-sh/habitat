@@ -37,7 +37,7 @@ log = "*"
 pbr = "*"
 rants = { version = "*", features = ["native-tls"] }
 reqwest = { version = "*", features = ["blocking", "json", "stream"] }
-retry = { git = "https://github.com/habitat-sh/retry", branch = "latest_crates", features = ["asynchronous"] }
+retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
 rustls = "*"
 same-file = "*"
 serde = "*"
