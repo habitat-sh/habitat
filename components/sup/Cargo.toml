@@ -34,14 +34,14 @@ habitat_api_client = { path = "../builder-api-client" }
 habitat_http_client = { path = "../http-client" }
 habitat-launcher-client = { path = "../launcher-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
-lazy_static = "^1.4.0"
+lazy_static = "*"
 libc = "*"
 log = "*"
 log4rs = "*"
 notify = "*"
 num_cpus = "*"
 parking_lot = "*"
-pin-project = "^0.4.23"
+pin-project = "*"
 prometheus = "*"
 prost = "*"
 prost-derive = "*"

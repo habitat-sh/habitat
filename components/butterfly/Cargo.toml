@@ -18,7 +18,7 @@ env_logger = "*"
 habitat_core = { path = "../core" }
 habitat_common = { path = "../common" }
 log = "*"
-lazy_static = "^1.4.0"
+lazy_static = "*"
 prometheus = "*"
 parking_lot = "*"
 prost = "*"

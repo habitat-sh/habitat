@@ -10,7 +10,7 @@ workspace = "../../"
 base64 = "*"
 bytes = "*"
 habitat_core = { path = "../core" }
-lazy_static = "^1.4.0"
+lazy_static = "*"
 log = "*"
 prost = "*"
 prost-derive = "*"
