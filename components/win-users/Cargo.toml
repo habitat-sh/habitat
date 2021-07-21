@@ -11,7 +11,7 @@ build = "build.rs"
 cc = "*"
 
 [dependencies]
-log = "^0.4.14"
+log = "*"
 
 [target.'cfg(windows)'.dependencies]
 widestring = "*"

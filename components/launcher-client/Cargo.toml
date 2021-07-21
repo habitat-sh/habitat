@@ -13,6 +13,6 @@ habitat-launcher-protocol = { path = "../launcher-protocol" }
 habitat_common = { path = "../common" }
 ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }
 libc = "*"
-log = "^0.4.14"
+log = "*"
 prost = "*"
 serde = "*"

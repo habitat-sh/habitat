@@ -11,7 +11,7 @@ base64 = "*"
 bytes = "*"
 habitat_core = { path = "../core" }
 lazy_static = "^1.4.0"
-log = "^0.4.14"
+log = "*"
 prost = "*"
 prost-derive = "*"
 rand = "*"
