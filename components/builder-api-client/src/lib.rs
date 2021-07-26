@@ -14,7 +14,6 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 
-mod allow_std_io;
 pub mod builder;
 pub mod error;
 pub mod response;
