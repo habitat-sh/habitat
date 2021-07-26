@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.362 -->
-## [1.6.362](https://github.com/habitat-sh/habitat/tree/1.6.362) (2021-07-22)
+<!-- latest_release 1.6.363 -->
+## [1.6.363](https://github.com/habitat-sh/habitat/tree/1.6.363) (2021-07-26)
 
 #### Merged Pull Requests
-- adding whitespace to readme so i can trigger a release build [#8253](https://github.com/habitat-sh/habitat/pull/8253) ([mwrock](https://github.com/mwrock))
+- fix builder uploads with FuturesAsyncReadCompatExt and AllowStdIo from futures [#8255](https://github.com/habitat-sh/habitat/pull/8255) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- fix builder uploads with FuturesAsyncReadCompatExt and AllowStdIo from futures [#8255](https://github.com/habitat-sh/habitat/pull/8255) ([mwrock](https://github.com/mwrock)) <!-- 1.6.363 -->
 - adding whitespace to readme so i can trigger a release build [#8253](https://github.com/habitat-sh/habitat/pull/8253) ([mwrock](https://github.com/mwrock)) <!-- 1.6.362 -->
 - Cargo update [#8252](https://github.com/habitat-sh/habitat/pull/8252) ([mwrock](https://github.com/mwrock)) <!-- 1.6.361 -->
 - Bump dns-lookup from 1.0.7 to 1.0.8 [#8251](https://github.com/habitat-sh/habitat/pull/8251) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.360 -->
