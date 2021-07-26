@@ -1,5 +1,4 @@
-use crate::{allow_std_io::AllowStdIo,
-            error::{Error,
+use crate::{error::{Error,
                     Result},
             hab_http::ApiClient,
             response,
@@ -16,7 +15,8 @@ use crate::{allow_std_io::AllowStdIo,
             UserOriginInvitationsResponse};
 use broadcast::BroadcastWriter;
 use bytes::BytesMut;
-use futures::stream::TryStreamExt;
+use futures::{io::AllowStdIo,
+              stream::TryStreamExt};
 use habitat_core::{crypto::keys::AnonymousBox,
                    fs::{AtomicWriter,
                         Permissions,
@@ -50,8 +50,9 @@ use std::{fs::{self,
           time::Duration};
 use tee::TeeReader;
 use tokio::task;
-use tokio_util::codec::{BytesCodec,
-                        FramedRead};
+use tokio_util::{codec::{BytesCodec,
+                         FramedRead},
+                 compat::FuturesAsyncReadCompatExt};
 use url::Url;
 
 const X_FILENAME: &str = "x-filename";
@@ -213,11 +214,11 @@ impl BuilderAPIClient {
         task::spawn_blocking(move || {
             Ok(if let Some(mut progress) = progress {
                 progress.size(file_size);
-                let reader = AllowStdIo::new(TeeReader::new(file, progress));
+                let reader = AllowStdIo::new(TeeReader::new(file, progress)).compat();
                 let reader = FramedRead::new(reader, BytesCodec::new()).map_ok(BytesMut::freeze);
                 Body::wrap_stream(reader)
             } else {
-                let reader = AllowStdIo::new(file);
+                let reader = AllowStdIo::new(file).compat();
                 let reader = FramedRead::new(reader, BytesCodec::new()).map_ok(BytesMut::freeze);
                 Body::wrap_stream(reader)
             })
