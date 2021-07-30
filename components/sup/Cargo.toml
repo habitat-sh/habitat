@@ -47,7 +47,7 @@ prost = "*"
 prost-derive = "*"
 prost-types = "*"
 rand = "*"
-rants = { version = "*", features = ["native-tls"] }
+rants = { git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
 regex = "*"
 rustls = "*"
 serde = { version = "*", features = ["rc"] }
