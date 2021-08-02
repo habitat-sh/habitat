@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.364 -->
-## [1.6.364](https://github.com/habitat-sh/habitat/tree/1.6.364) (2021-07-30)
+<!-- latest_release 1.6.365 -->
+## [1.6.365](https://github.com/habitat-sh/habitat/tree/1.6.365) (2021-08-02)
 
 #### Merged Pull Requests
-- fork rants with updated crate deps [#8261](https://github.com/habitat-sh/habitat/pull/8261) ([mwrock](https://github.com/mwrock))
+- Bump serde_test from 1.0.126 to 1.0.127 [#8263](https://github.com/habitat-sh/habitat/pull/8263) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- Bump serde_test from 1.0.126 to 1.0.127 [#8263](https://github.com/habitat-sh/habitat/pull/8263) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.365 -->
 - fork rants with updated crate deps [#8261](https://github.com/habitat-sh/habitat/pull/8261) ([mwrock](https://github.com/mwrock)) <!-- 1.6.364 -->
 - fix builder uploads with FuturesAsyncReadCompatExt and AllowStdIo from futures [#8255](https://github.com/habitat-sh/habitat/pull/8255) ([mwrock](https://github.com/mwrock)) <!-- 1.6.363 -->
 - adding whitespace to readme so i can trigger a release build [#8253](https://github.com/habitat-sh/habitat/pull/8253) ([mwrock](https://github.com/mwrock)) <!-- 1.6.362 -->
