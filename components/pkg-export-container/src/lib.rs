@@ -195,7 +195,7 @@ fn remove_image(ui: &mut UI, engine: &dyn Engine, image: &ContainerImage) -> Res
 
     for identifier in image.expanded_identifiers() {
         ui.status(Status::Deleting, format!("local image '{}'", identifier))?;
-        engine.remove_image(&identifier)?;
+        engine.remove_image(identifier)?;
     }
 
     ui.end(format!("Local Docker image '{}' with tags: {} cleaned up",
@@ -223,7 +223,7 @@ fn push_image(ui: &mut UI,
     for image_tag in image.expanded_identifiers() {
         ui.status(Status::Uploading,
                   format!("image '{}' to remote registry", image_tag))?;
-        engine.push_image(&image_tag, workdir)?;
+        engine.push_image(image_tag, workdir)?;
         ui.status(Status::Uploaded, format!("image '{}'", image_tag))?;
     }
 

@@ -500,10 +500,10 @@ mod test {
         #[test]
         fn auto_update_should_be_set() {
             let config = config_from_cmd_str("hab-sup run --auto-update");
-            assert_eq!(config.auto_update, true);
+            assert!(config.auto_update);
 
             let config = config_from_cmd_str("hab-sup run");
-            assert_eq!(config.auto_update, false);
+            assert!(!config.auto_update);
         }
 
         #[test]
@@ -565,10 +565,10 @@ mod test {
         #[test]
         fn http_disable_should_be_set() {
             let config = config_from_cmd_str("hab-sup run --http-disable");
-            assert_eq!(config.http_disable, true);
+            assert!(config.http_disable);
 
             let config = config_from_cmd_str("hab-sup run");
-            assert_eq!(config.http_disable, false);
+            assert!(!config.http_disable);
         }
 
         #[test]
@@ -595,10 +595,10 @@ mod test {
         #[test]
         fn gossip_permanent_should_be_set() {
             let config = config_from_cmd_str("hab-sup run --permanent-peer");
-            assert_eq!(config.gossip_permanent, true);
+            assert!(config.gossip_permanent);
 
             let config = config_from_cmd_str("hab-sup run");
-            assert_eq!(config.gossip_permanent, false);
+            assert!(!config.gossip_permanent);
         }
 
         #[test]
@@ -1048,7 +1048,7 @@ gpoVMSncu2jMIDZX63IkQII=
         #[test]
         fn test_hab_sup_run_cli_password() {
             let args = "hab-sup run --password keep_it_secret_keep_it_safe core/redis";
-            let service_load = service_load_from_cmd_str(&args);
+            let service_load = service_load_from_cmd_str(args);
             assert_eq!(decrypt(&service_load.svc_encrypted_password.unwrap()).unwrap(),
                        "keep_it_secret_keep_it_safe");
         }
@@ -1546,7 +1546,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
         fn test_hab_sup_run_all_possible_values() {
             let args = "hab-sup run --topology standalone --strategy none --update-condition \
                         latest --binding-mode strict core/redis";
-            let svc_load = service_load_from_cmd_str(&args);
+            let svc_load = service_load_from_cmd_str(args);
             assert_eq!(i32::from(Topology::Standalone), svc_load.topology.unwrap());
             assert_eq!(i32::from(UpdateStrategy::None),
                        svc_load.update_strategy.unwrap());
@@ -1557,7 +1557,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
 
             let args = "hab-sup run --topology leader --strategy at-once --update-condition \
                         track-channel --binding-mode relaxed core/redis";
-            let svc_load = service_load_from_cmd_str(&args);
+            let svc_load = service_load_from_cmd_str(args);
             assert_eq!(i32::from(Topology::Leader), svc_load.topology.unwrap());
             assert_eq!(i32::from(UpdateStrategy::AtOnce),
                        svc_load.update_strategy.unwrap());
@@ -1567,7 +1567,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
                        svc_load.binding_mode.unwrap());
 
             let args = "hab-sup run --strategy rolling core/redis";
-            let svc_load = service_load_from_cmd_str(&args);
+            let svc_load = service_load_from_cmd_str(args);
             assert_eq!(i32::from(UpdateStrategy::Rolling),
                        svc_load.update_strategy.unwrap());
         }

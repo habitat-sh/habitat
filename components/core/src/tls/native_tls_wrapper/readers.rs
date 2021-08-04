@@ -104,7 +104,7 @@ fn process_cache_dir(cache_path: &Path, mut certificates: &mut Vec<Certificate>)
 
 fn process_cert_file(certificates: &mut Vec<Certificate>, file_path: &Path) {
     debug!("Processing cert file: {}", file_path.display());
-    match certs_from_file(&file_path) {
+    match certs_from_file(file_path) {
         Ok(mut certs) => {
             debug!("Found {} certs in: {}", certs.len(), file_path.display());
             certificates.append(&mut certs)

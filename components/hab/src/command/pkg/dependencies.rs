@@ -23,14 +23,14 @@ pub fn start(ident: &PackageIdent,
     let deps = match &direction {
         DependencyRelation::Requires => {
             match &scope {
-                Scope::Package => graph.deps(&pkg_install.ident()),
-                Scope::PackageAndDependencies => graph.ordered_deps(&pkg_install.ident()),
+                Scope::Package => graph.deps(pkg_install.ident()),
+                Scope::PackageAndDependencies => graph.ordered_deps(pkg_install.ident()),
             }
         }
         DependencyRelation::Supports => {
             match &scope {
-                Scope::Package => graph.rdeps(&pkg_install.ident()),
-                Scope::PackageAndDependencies => graph.ordered_reverse_deps(&pkg_install.ident()),
+                Scope::Package => graph.rdeps(pkg_install.ident()),
+                Scope::PackageAndDependencies => graph.ordered_reverse_deps(pkg_install.ident()),
             }
         }
     };

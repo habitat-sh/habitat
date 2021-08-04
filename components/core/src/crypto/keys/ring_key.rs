@@ -51,11 +51,11 @@ impl RingKey {
     ///
     /// The returns the original unencrypted bytes.
     pub fn decrypt(&self, nonce: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
-        let nonce = primitives::Nonce::from_slice(&nonce).ok_or_else(|| {
-                                                             Error::CryptoError("Invalid size of \
-                                                                                 nonce"
-                                                                                       .to_string())
-                                                         })?;
+        let nonce = primitives::Nonce::from_slice(nonce).ok_or_else(|| {
+                                                            Error::CryptoError("Invalid size of \
+                                                                                nonce"
+                                                                                      .to_string())
+                                                        })?;
 
         primitives::open(ciphertext, &nonce, &self.key).map_err(|_| {
             Error::CryptoError("Secret key and nonce could not decrypt ciphertext".to_string())
@@ -112,7 +112,7 @@ mod tests {
     #[test]
     fn encryption_roundtrip() {
         let key = RingKey::new("beyonce");
-        let original_message = "Ringonit".to_string().into_bytes();
+        let original_message = b"Ringonit".to_vec();
         let (nonce, ciphertext) = key.encrypt(&original_message);
         let decrypted_message = key.decrypt(&nonce, &ciphertext).unwrap();
         let decrypted_message = std::str::from_utf8(&decrypted_message).unwrap();

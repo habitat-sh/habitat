@@ -68,11 +68,11 @@ impl<'a> BuildSpec<'a> {
                     hab_launcher:      m.value_of("HAB_LAUNCHER_PKG")
                                         .unwrap_or(DEFAULT_LAUNCHER_IDENT),
                     hab_sup:           m.value_of("HAB_SUP_PKG").unwrap_or(DEFAULT_SUP_IDENT),
-                    url:               m.value_of("BLDR_URL").unwrap_or(&default_url),
+                    url:               m.value_of("BLDR_URL").unwrap_or(default_url),
                     channel:           m.value_of("CHANNEL")
                                         .map(ChannelIdent::from)
                                         .unwrap_or_default(),
-                    base_pkgs_url:     m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(&default_url),
+                    base_pkgs_url:     m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(default_url),
                     base_pkgs_channel: m.value_of("BASE_PKGS_CHANNEL")
                                         .map(ChannelIdent::from)
                                         .unwrap_or_default(),
@@ -104,7 +104,7 @@ impl<'a> BuildSpec<'a> {
         rootfs::create(&rootfs)?;
         self.create_symlink_to_artifact_cache(ui, &rootfs)?;
         self.create_symlink_to_key_cache(ui, &rootfs)?;
-        self.install_base_pkgs(ui, &rootfs).await?;
+        self.install_base_pkgs(ui, rootfs).await?;
         let ident = self.install_user_pkg(ui, self.ident_or_archive, rootfs)
                         .await?;
         self.remove_symlink_to_key_cache(ui, &rootfs)?;
@@ -183,7 +183,7 @@ impl<'a> BuildSpec<'a> {
                                 -> Result<PackageIdent> {
         self.install(ui,
                      ident_or_archive,
-                     &self.base_pkgs_url,
+                     self.base_pkgs_url,
                      &ChannelIdent::stable(),
                      fs_root_path,
                      None)

@@ -209,7 +209,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
                    -> Result<Self::ExitValue>
         where T: ToString
     {
-        let mut child = Self::exec(self.path(), &pkg, svc_encrypted_password).map_err(|err| {
+        let mut child = Self::exec(self.path(), pkg, svc_encrypted_password).map_err(|err| {
                             outputln!(preamble service_group,
                                       "Hook failed to run, {}, {}", Self::FILE_NAME, err);
                             err
@@ -501,7 +501,7 @@ fn write_hook<T>(content: &str, path: T) -> Result<bool>
     }
 
     let mut file = File::create(path.as_ref())?;
-    file.write_all(&content.as_bytes())?;
+    file.write_all(content.as_bytes())?;
     Ok(true)
 }
 
@@ -516,7 +516,7 @@ impl RenderPair {
               T: AsRef<Path>
     {
         let mut renderer = TemplateRenderer::new();
-        renderer.register_template_file(&name, template_path.as_ref())?;
+        renderer.register_template_file(name, template_path.as_ref())?;
         Ok(RenderPair { path: concrete_path.into(),
                         renderer })
     }
@@ -580,10 +580,10 @@ impl<'a> HookOutput<'a> {
     fn output_standard_streams<H: Hook>(&mut self, service_group: &str, process: &mut Child) {
         let preamble_str = Self::stream_preamble::<H>(service_group);
         if let Some(stdout) = &mut process.stdout {
-            Self::tee_standard_stream(&preamble_str, stdout, &self.stdout_log_file);
+            Self::tee_standard_stream(&preamble_str, stdout, self.stdout_log_file);
         }
         if let Some(stderr) = &mut process.stderr {
-            Self::tee_standard_stream(&preamble_str, stderr, &self.stderr_log_file);
+            Self::tee_standard_stream(&preamble_str, stderr, self.stderr_log_file);
         }
     }
 
@@ -742,7 +742,7 @@ echo "The message is Hello World"
         // content, but for the purposes of detecting changes, feeding
         // it the final text works well enough, and doesn't tie this
         // test to the templating machinery.
-        assert_eq!(write_hook(&content, hook.path()).unwrap(), false);
+        assert!(!write_hook(content, hook.path()).unwrap());
 
         let post_change_content = file_content(&hook);
         assert_eq!(post_change_content, pre_change_content);
@@ -761,7 +761,7 @@ echo "The message is Hello World"
                                                                    install hook");
 
         // In this test, we'll start with *no* rendered content.
-        assert_eq!(hook.as_ref().exists(), false);
+        assert!(!hook.as_ref().exists());
 
         let updated_content = r#"
 #!/bin/bash
@@ -770,7 +770,7 @@ echo "The message is Hello World"
 "#;
         // Since there was no compiled hook file before, this should
         // create it, returning `true` to reflect that
-        assert_eq!(write_hook(&updated_content, hook.path()).unwrap(), true);
+        assert!(write_hook(updated_content, hook.path()).unwrap());
 
         // The content of the file should now be what we just changed
         // it to.
@@ -805,7 +805,7 @@ echo "The message is Hello World"
 
 echo "The message is Hola Mundo"
 "#;
-        assert_eq!(write_hook(&updated_content, hook.path()).unwrap(), true);
+        assert!(write_hook(updated_content, hook.path()).unwrap());
 
         let post_change_content = file_content(&hook);
         assert_ne!(post_change_content, initial_content);
@@ -855,7 +855,7 @@ echo "The message is Hola Mundo"
         // (See comment above)
 
         let pg_id = PackageIdent::new("testing",
-                                      &service_group.service(),
+                                      service_group.service(),
                                       Some("1.0.0"),
                                       Some("20170712000000"));
 
@@ -879,7 +879,7 @@ echo "The message is Hola Mundo"
         // END RENDER CONTEXT SETUP
         ////////////////////////////////////////////////////////////////////////
 
-        assert_eq!(hook.compile(&service_group, &ctx).unwrap(), true);
+        assert!(hook.compile(&service_group, &ctx).unwrap());
 
         let post_change_content = file_content(&hook);
         let expected = r#"#!/bin/bash
@@ -889,7 +889,7 @@ echo "The message is Hello"
         assert_eq!(post_change_content, expected);
 
         // Compiling again should result in no changes
-        assert_eq!(hook.compile(&service_group, &ctx).unwrap(), false);
+        assert!(!hook.compile(&service_group, &ctx).unwrap());
         let post_second_change_content = file_content(&hook);
         assert_eq!(post_second_change_content, post_change_content);
 

@@ -109,7 +109,7 @@ pub fn start(ui: &mut UI,
 
     if render {
         // Render our template file
-        create_with_template(ui, &render_dir, &file_name, &rendered_template, quiet)?;
+        create_with_template(ui, render_dir, file_name, &rendered_template, quiet)?;
     }
 
     if !quiet {

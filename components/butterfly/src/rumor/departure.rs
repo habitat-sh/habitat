@@ -135,7 +135,7 @@ mod tests {
         let mut s1 = create_departure("mastodon");
         let s1_check = s1.clone();
         let s2 = create_departure("mastodon");
-        assert_eq!(s1.merge(s2), false);
+        assert!(!s1.merge(s2));
         assert_eq!(s1, s1_check);
     }
 }

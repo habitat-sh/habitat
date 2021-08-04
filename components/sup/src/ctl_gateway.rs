@@ -260,11 +260,9 @@ pub fn readgen_secret_key<T>(sup_root: T) -> Result<String>
     fs::create_dir_all(&sup_root).map_err(|e| {
                                      Error::CtlSecretIo(sup_root.as_ref().to_path_buf(), e)
                                  })?;
-    if habitat_sup_protocol::read_secret_key(&sup_root, &mut out).ok()
-                                                                 .unwrap_or(false)
+    if !habitat_sup_protocol::read_secret_key(&sup_root, &mut out).ok()
+                                                                  .unwrap_or(false)
     {
-        Ok(out)
-    } else {
         let secret_key_path = habitat_sup_protocol::secret_key_path(sup_root);
         {
             let mut f = File::create(&secret_key_path)?;
@@ -273,8 +271,8 @@ pub fn readgen_secret_key<T>(sup_root: T) -> Result<String>
             f.sync_all()?;
         }
         set_permissions(&secret_key_path)?;
-        Ok(out)
     }
+    Ok(out)
 }
 
 #[cfg(not(windows))]

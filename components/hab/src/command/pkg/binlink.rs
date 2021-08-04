@@ -26,7 +26,7 @@ struct Binlink {
 
 impl Binlink {
     pub fn new(target: &Path, link: &Path) -> Result<Self> {
-        Ok(Self { link:   Self::binstub_path(&target, link)?,
+        Ok(Self { link:   Self::binstub_path(target, link)?,
                   target: target.to_path_buf(), })
     }
 
@@ -289,7 +289,7 @@ mod test {
         start(&mut ui,
               &ident,
               "magicate.exe",
-              &dst_path,
+              dst_path,
               rootfs.path(),
               force).unwrap();
         #[cfg(windows)]
@@ -310,7 +310,7 @@ mod test {
         start(&mut ui,
               &ident,
               "hypnoanalyze.exe",
-              &dst_path,
+              dst_path,
               rootfs.path(),
               force).unwrap();
         #[cfg(windows)]
@@ -360,7 +360,7 @@ mod test {
         let securitize_link = "securitize.bat";
 
         let mut ui = UI::with_sinks();
-        binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
+        binlink_all_in_pkg(&mut ui, &ident, dst_path, rootfs.path(), force).unwrap();
 
         assert_eq!(rootfs_src_dir.join("bin/magicate.exe"),
                    Binlink::from_file(&rootfs_bin_dir.join(magicate_link)).unwrap()
@@ -390,7 +390,7 @@ mod test {
         let force = true;
 
         let mut ui = UI::with_sinks();
-        binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
+        binlink_all_in_pkg(&mut ui, &ident, dst_path, rootfs.path(), force).unwrap();
 
         assert_eq!(rootfs_src_dir.join("bin/magicate.exe"),
                    Binlink::from_file(&rootfs_bin_dir.join("magicate.bat")).unwrap()
@@ -432,7 +432,7 @@ mod test {
         let bonus_round_link = "bonus-round.bat";
 
         let mut ui = UI::with_sinks();
-        binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
+        binlink_all_in_pkg(&mut ui, &ident, dst_path, rootfs.path(), force).unwrap();
 
         assert_eq!(rootfs_src_dir.join("bin/magicate.exe"),
                    Binlink::from_file(&rootfs_bin_dir.join(magicate_link)).unwrap()

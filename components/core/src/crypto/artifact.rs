@@ -189,7 +189,7 @@ mod test {
                 *};
 
     #[test]
-    #[should_panic(expected = "Corrupt payload, can\\'t read format version")]
+    #[should_panic(expected = "Corrupt payload, can't read format version")]
     fn verify_empty_format_version() {
         let (cache, dir) = new_cache();
 
@@ -213,7 +213,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "Cannot parse named revision \\'\\'")]
+    #[should_panic(expected = "Cannot parse named revision ''")]
     fn verify_empty_key_name() {
         let (cache, dir) = new_cache();
 
@@ -225,7 +225,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "Cannot parse named revision \\'nope-nope\\'")]
+    #[should_panic(expected = "Cannot parse named revision 'nope-nope'")]
     fn verify_invalid_key_name() {
         let (cache, dir) = new_cache();
 
@@ -237,7 +237,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "Corrupt payload, can\\'t read hash type")]
+    #[should_panic(expected = "Corrupt payload, can't read hash type")]
     fn verify_empty_hash_type() {
         let (cache, dir) = new_cache();
         let origin = "unicorn".parse().unwrap();
@@ -267,7 +267,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "Corrupt payload, can\\'t read signature")]
+    #[should_panic(expected = "Corrupt payload, can't read signature")]
     fn verify_empty_signature() {
         let (cache, dir) = new_cache();
         let origin = "unicorn".parse().unwrap();
@@ -282,7 +282,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "Can\\'t decode signature")]
+    #[should_panic(expected = "Can't decode signature")]
     fn verify_invalid_signature_decode() {
         let (cache, dir) = new_cache();
         let origin = "unicorn".parse().unwrap();
@@ -298,7 +298,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "Corrupt payload, can\\'t find end of header")]
+    #[should_panic(expected = "Corrupt payload, can't find end of header")]
     fn verify_missing_end_of_header() {
         let (cache, dir) = new_cache();
         let origin = "unicorn".parse().unwrap();

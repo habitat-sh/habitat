@@ -119,8 +119,8 @@ impl TemplateRenderer {
             // instance.
             template_string.lines()
                 .enumerate()
-                .filter(|(_i, line)| RE.is_match(&line))
-                .map(|(i, line)| (i, line, fix_handlebars_syntax(&line)))
+                .filter(|(_i, line)| RE.is_match(line))
+                .map(|(i, line)| (i, line, fix_handlebars_syntax(line)))
                 .for_each(|(i, old_line, new_line)| {
                     println!("\n\n***************************************************\n\
                               warning: Deprecated object access syntax in handlebars template\n\

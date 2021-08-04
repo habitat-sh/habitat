@@ -265,8 +265,7 @@ impl BuildContext {
         // since this error would be based on user input errors
         let ImageIdentifiers { name,
                                tags,
-                               expanded_identifiers, } =
-            naming.image_identifiers(&ident, &channel)?;
+                               expanded_identifiers, } = naming.image_identifiers(&ident, channel)?;
 
         let id = engine.build(self.0.workdir(), &expanded_identifiers, memory)?;
 

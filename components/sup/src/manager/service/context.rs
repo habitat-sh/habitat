@@ -97,7 +97,7 @@ impl<'a> RenderContext<'a> {
                   -> RenderContext<'a>
         where T: Iterator<Item = &'a ServiceBind>
     {
-        let census_group = census.census_group_for(&service_group)
+        let census_group = census.census_group_for(service_group)
                                  .expect("Census Group missing from list!");
         RenderContext { sys:  SystemInfo::from_sys(sys),
                         pkg:  Package::from_pkg(pkg),
@@ -334,7 +334,7 @@ impl<'a> Binds<'a> {
     {
         let mut map = BTreeMap::default();
         for bind in bindings {
-            if let Some(group) = census.census_group_for(&bind.service_group()) {
+            if let Some(group) = census.census_group_for(bind.service_group()) {
                 map.insert(bind.name().to_string(), BindGroup::new(group));
             }
         }

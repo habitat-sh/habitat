@@ -95,7 +95,7 @@ pub struct Pkg {
 impl Pkg {
     pub async fn from_install(package: &PackageInstall) -> Result<Self> {
         let ident = FullyQualifiedPackageIdent::try_from(&package.ident)?;
-        let (svc_user, svc_group) = get_user_and_group(&package)?;
+        let (svc_user, svc_group) = get_user_and_group(package)?;
         let pkg = Pkg { svc_path: fs::svc_path(&package.ident.name),
                         svc_config_path: fs::svc_config_path(&package.ident.name),
                         svc_config_install_path: fs::svc_config_install_path(&package.ident
@@ -108,7 +108,7 @@ impl Pkg {
                         svc_pid_file: fs::svc_pid_file(&package.ident.name),
                         svc_user,
                         svc_group,
-                        env: Env::new(&package).await?,
+                        env: Env::new(package).await?,
                         deps: package.tdeps()?,
                         exposes: package.exposes()?,
                         exports: package.exports()?,
@@ -131,7 +131,7 @@ pub struct PkgProxy<'a> {
 }
 
 impl<'a> PkgProxy<'a> {
-    pub fn new(p: &'a Pkg) -> Self { PkgProxy { pkg: &p } }
+    pub fn new(p: &'a Pkg) -> Self { PkgProxy { pkg: p } }
 
     pub fn dependencies(&self) -> Vec<String> {
         self.pkg.deps.iter().map(PackageIdent::to_string).collect()
@@ -178,7 +178,7 @@ impl<'a> Serialize for PkgProxy<'a> {
 /// If that doesn't work, then give up.
 #[cfg(unix)]
 fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> {
-    if let Some((user, group)) = get_pkg_user_and_group(&pkg_install)? {
+    if let Some((user, group)) = get_pkg_user_and_group(pkg_install)? {
         Ok((user, group))
     } else {
         let defaults = default_user_and_group()?;
@@ -198,7 +198,7 @@ fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> 
 /// that was not intended to run habitat services.
 #[cfg(windows)]
 fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> {
-    match get_pkg_user_and_group(&pkg_install)? {
+    match get_pkg_user_and_group(pkg_install)? {
         Some((ref user, ref _group)) if user == DEFAULT_USER => Ok(default_user_and_group()?),
         Some((user, group)) => Ok((user, group)),
         _ => Ok(current_user_and_group()?),

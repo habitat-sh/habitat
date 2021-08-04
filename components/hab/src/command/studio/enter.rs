@@ -151,8 +151,8 @@ mod inner {
     const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
 
     pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
-        rerun_with_sudo_if_needed(ui, &args)?;
-        if is_docker_studio(&args) {
+        rerun_with_sudo_if_needed(ui, args)?;
+        if is_docker_studio(args) {
             docker::start_docker_studio(ui, args)
         } else {
             let command = match henv::var(STUDIO_CMD_ENVVAR) {
@@ -258,7 +258,7 @@ mod inner {
               str::FromStr};
 
     pub async fn start(_ui: &mut UI, args: &[OsString]) -> Result<()> {
-        if is_windows_studio(&args) {
+        if is_windows_studio(args) {
             start_windows_studio(_ui, args).await
         } else {
             docker::start_docker_studio(_ui, args)
@@ -330,7 +330,7 @@ mod tests {
         let ssl_cert_filepath = ssl_cert_dir.path().join(cert_name);
         File::create(&ssl_cert_filepath)?;
 
-        cache_ssl_cert_file(&ssl_cert_filepath.to_str().unwrap(), &cert_cache_dir).unwrap();
+        cache_ssl_cert_file(ssl_cert_filepath.to_str().unwrap(), &cert_cache_dir).unwrap();
         assert!(cert_cache_dir.join(cert_name).exists());
 
         Ok(())
@@ -348,7 +348,7 @@ mod tests {
         let ssl_cert_filepath = ssl_cert_dir.path().join(&cert_name);
         std::fs::write(&ssl_cert_filepath, "new cert from environment")?;
 
-        cache_ssl_cert_file(&ssl_cert_filepath.to_str().unwrap(), &cert_cache_dir).unwrap();
+        cache_ssl_cert_file(ssl_cert_filepath.to_str().unwrap(), &cert_cache_dir).unwrap();
 
         let contents = std::fs::read_to_string(&cached_cert)?;
 

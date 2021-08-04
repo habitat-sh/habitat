@@ -38,7 +38,7 @@ const BUSYBOX_IDENT: &str = "core/busybox-static";
 
 pub async fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches<'_>) -> Result<()> {
     let default_url = hurl::default_bldr_url();
-    let spec = BuildSpec::new_from_cli_matches(&matches, &default_url);
+    let spec = BuildSpec::new_from_cli_matches(matches, &default_url);
     export(ui, spec).await?;
 
     Ok(())
@@ -96,6 +96,6 @@ fn hab_package_ident(hab_pkg: &str) -> PackageIdent { PackageIdent::from_str(hab
 
 fn hab_install_path(hab_ident: &PackageIdent, root_fs_path: &Path) -> PathBuf {
     let root_fs_path = Path::new(&root_fs_path);
-    PackageInstall::load(&hab_ident, Some(root_fs_path)).unwrap()
-                                                        .installed_path
+    PackageInstall::load(hab_ident, Some(root_fs_path)).unwrap()
+                                                       .installed_path
 }

@@ -19,6 +19,7 @@ pub struct ShutdownInput {
 // TODO (CM): More actions will be added to this with future
 // refactorings
 #[derive(Clone, Debug)]
+#[allow(clippy::enum_variant_names)]
 pub enum SupervisorAction {
     StopService {
         service_spec:   ServiceSpec,

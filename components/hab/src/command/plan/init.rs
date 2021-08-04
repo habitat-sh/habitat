@@ -136,7 +136,7 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
     let expanded = canonicalize(&parent)?;
     let current_path = Path::new(&expanded);
 
-    if is_git_managed(&current_path) {
+    if is_git_managed(current_path) {
         let target = format!("{}/.gitignore", parent);
         let target_path = Path::new(&target);
 
@@ -146,7 +146,7 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
             let file = OpenOptions::new().read(true)
                                          .append(true)
                                          .open(target_path)?;
-
+            #[allow(clippy::needless_collect)]
             let entries: Vec<String> =
                 BufReader::new(&file).lines()
                                      .map(|l| l.expect("Failed to parse line"))
@@ -171,9 +171,7 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
 }
 
 fn is_git_managed(path: &Path) -> bool {
-    path.join(".git").is_dir()
-    || path.parent()
-           .map_or(false, |parent| is_git_managed(&parent))
+    path.join(".git").is_dir() || path.parent().map_or(false, |parent| is_git_managed(parent))
 }
 
 fn create_with_template(ui: &mut UI, location: &str, template: &str) -> Result<()> {

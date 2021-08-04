@@ -93,7 +93,7 @@ async fn handle_secret(ui: &mut UI,
     }
 
     ui.begin(format!("Downloading secret origin keys for {}", origin))?;
-    download_secret_key(ui, &api_client, origin, token.unwrap(), key_cache).await?; // unwrap is safe because we already checked it above
+    download_secret_key(ui, api_client, origin, token.unwrap(), key_cache).await?; // unwrap is safe because we already checked it above
     ui.end(format!("Download of {} secret origin keys completed.", origin))?;
     Ok(())
 }
@@ -110,7 +110,7 @@ async fn handle_encryption(ui: &mut UI,
     }
 
     ui.begin(format!("Downloading public encryption origin key for {}", origin))?;
-    download_public_encryption_key(ui, &api_client, origin, token.unwrap(), key_cache).await?; // unwrap is safe because we already checked it above
+    download_public_encryption_key(ui, api_client, origin, token.unwrap(), key_cache).await?; // unwrap is safe because we already checked it above
     ui.end(format!("Download of {} public encryption keys completed.", &origin))?;
     Ok(())
 }

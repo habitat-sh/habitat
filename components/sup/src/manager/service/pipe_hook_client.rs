@@ -321,7 +321,7 @@ mod test {
     async fn pkg() -> Pkg {
         let service_group = ServiceGroup::new("test_service", "test_group", None).unwrap();
         let pg_id = PackageIdent::new("testing",
-                                      &service_group.service(),
+                                      service_group.service(),
                                       Some("1.0.0"),
                                       Some("20170712000000"));
         let pkg_install = PackageInstall::new_from_parts(pg_id.clone(),

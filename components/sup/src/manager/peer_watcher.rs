@@ -147,7 +147,7 @@ mod tests {
         let path = tmpdir.path().join("no_such_file");
         let watcher = PeerWatcher::run(path).unwrap();
 
-        assert_eq!(false, watcher.has_fs_events());
+        assert!(!watcher.has_fs_events());
         assert_eq!(watcher.get_members().unwrap(), vec![]);
     }
 
