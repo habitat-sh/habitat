@@ -264,7 +264,7 @@ impl PackageArchive {
 
     pub fn ident(&mut self) -> Result<PackageIdent> {
         if let Some(data) = self.read_metadata(MetaFile::Ident) {
-            PackageIdent::from_str(&data)
+            PackageIdent::from_str(data)
         } else {
             Err(Error::MetaFileNotFound(MetaFile::Ident))
         }
@@ -288,7 +288,7 @@ impl PackageArchive {
 
     pub fn package_type(&mut self) -> Result<PackageType> {
         if let Some(data) = self.read_metadata(MetaFile::Type) {
-            PackageType::from_str(&data)
+            PackageType::from_str(data)
         } else {
             Ok(PackageType::Standalone)
         }
@@ -306,7 +306,7 @@ impl PackageArchive {
 
     pub fn target(&mut self) -> Result<PackageTarget> {
         if let Some(data) = self.read_metadata(MetaFile::Target) {
-            PackageTarget::from_str(&data)
+            PackageTarget::from_str(data)
         } else {
             Err(Error::MetaFileNotFound(MetaFile::Target))
         }

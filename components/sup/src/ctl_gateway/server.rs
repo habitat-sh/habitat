@@ -362,7 +362,7 @@ impl Future for SrvHandler {
                             break;
                         }
                         Some(Ok(msg)) => {
-                            self.start_timer(&msg.message_id());
+                            self.start_timer(msg.message_id());
                             trace!("OnMessage, {}", msg.message_id());
 
                             let fut =

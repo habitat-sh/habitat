@@ -172,7 +172,7 @@ impl DatFileReader {
         if let Some(offset) = self.header.offset_for_rumor(T::MESSAGE_ID) {
             self.dat_file
                 .read_and_process(&mut self.reader, offset, |r| {
-                    rumors.push(T::from_bytes(&r)?);
+                    rumors.push(T::from_bytes(r)?);
                     Ok(())
                 })?;
         }
@@ -186,7 +186,7 @@ impl DatFileReader {
         if let Some(offset) = self.header.member_offset() {
             self.dat_file
                 .read_and_process(&mut self.reader, offset, |r| {
-                    members.push(Membership::from_bytes(&r)?);
+                    members.push(Membership::from_bytes(r)?);
                     Ok(())
                 })?;
         }

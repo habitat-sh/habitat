@@ -75,7 +75,7 @@ fn pipe_stdout<T>(out: T, id: &str)
     for line in BufReader::new(out).lines_lossy() {
         match line {
             Ok(line) => {
-                let so = StructuredOutput::succinct(&id, "O", output::get_format(), &line);
+                let so = StructuredOutput::succinct(id, "O", output::get_format(), &line);
                 if let Err(e) = so.println() {
                     println!("printing output: '{}' to stdout resulted in error: {}",
                              &line, e);
@@ -96,7 +96,7 @@ fn pipe_stderr<T>(err: T, id: &str)
     for line in BufReader::new(err).lines_lossy() {
         match line {
             Ok(line) => {
-                let so = StructuredOutput::succinct(&id, "E", output::get_format(), &line);
+                let so = StructuredOutput::succinct(id, "E", output::get_format(), &line);
                 if let Err(e) = so.eprintln() {
                     println!("printing output: '{}' to stderr resulted in error: {}",
                              &line, e);

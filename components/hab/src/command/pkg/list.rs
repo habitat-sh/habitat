@@ -35,7 +35,7 @@ impl<'a> From<&'a ArgMatches<'a>> for ListingType {
         }
 
         let p = m.value_of("PKG_IDENT").unwrap(); // Required by clap
-        match PackageIdent::from_str(&p) {
+        match PackageIdent::from_str(p) {
             Ok(ident) => ListingType::Ident(ident),
             Err(_) => unreachable!("We've already validated PackageIdent {}", &p),
         }
@@ -51,8 +51,8 @@ pub fn package_list(listing: &ListingType) -> Result<Vec<PackageIdent>> {
 
     let mut packages = match listing {
         ListingType::AllPackages => list::all_packages(&package_path)?,
-        ListingType::Origin(origin) => list::package_list_for_origin(&package_path, &origin)?,
-        ListingType::Ident(ident) => list::package_list_for_ident(&package_path, &ident)?,
+        ListingType::Origin(origin) => list::package_list_for_origin(&package_path, origin)?,
+        ListingType::Ident(ident) => list::package_list_for_ident(&package_path, ident)?,
     };
 
     packages.sort_unstable_by(|a, b| a.by_parts_cmp(b));

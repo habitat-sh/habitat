@@ -239,7 +239,7 @@ impl Supervisor {
                  launcher: &LauncherCli,
                  svc_password: Option<&str>)
                  -> Result<()> {
-        let user_info = self.user_info(&pkg, launcher)?;
+        let user_info = self.user_info(pkg, launcher)?;
         outputln!(preamble self.service_group,
                   "Starting service as user={}, group={}",
                   user_info.username.as_ref().map_or("<anonymous>", String::as_str),
@@ -264,7 +264,7 @@ impl Supervisor {
         // Launcher versions on Linux (and current Windows versions)
         // will use these, while newer versions will prefer the UID
         // and GID, ignoring the names.
-        let pid = launcher.spawn(&group,
+        let pid = launcher.spawn(group,
                                  &pkg.svc_run,
                                  user_info,
                                  svc_password, // Windows optional

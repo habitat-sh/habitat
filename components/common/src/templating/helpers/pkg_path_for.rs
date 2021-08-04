@@ -26,7 +26,7 @@ impl HelperDef for PkgPathForHelper {
             deps.iter()
                 .find_map(|ident| {
                     if ident.satisfies(&param) {
-                        Some(fs::pkg_install_path(&ident, Some(&*fs::FS_ROOT_PATH)).to_string_lossy()
+                        Some(fs::pkg_install_path(ident, Some(&*fs::FS_ROOT_PATH)).to_string_lossy()
                                                                                .into_owned())
                     } else {
                         None

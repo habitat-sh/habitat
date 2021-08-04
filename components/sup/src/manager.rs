@@ -1200,7 +1200,7 @@ impl Manager {
                 #[allow(unused_variables)]
                 let service_timer = service_hist.start_timer();
                 if service.tick(&self.census_ring.read(), &self.launcher) {
-                    self.gossip_latest_service_rumor_rsw_mlw_rhw(&service);
+                    self.gossip_latest_service_rumor_rsw_mlw_rhw(service);
                 }
             }
 
@@ -1293,7 +1293,7 @@ impl Manager {
         for (ident, service) in state_services.iter() {
             if let Some(new_ident) = service_updater.has_update(&service.service_group) {
                 outputln!("Restarting {} with package {}", ident, new_ident);
-                event::service_update_started(&service, &new_ident);
+                event::service_update_started(service, &new_ident);
                 // The supervisor always runs the latest package on disk. When we have an update
                 // ensure that the lastest package on disk is the package we updated to.
                 idents_to_restart_and_latest_desired_on_restart.push((ident.clone(),
@@ -1429,6 +1429,8 @@ impl Manager {
         };
 
         let service_map = self.state.services.lock_msr();
+
+        #[allow(clippy::needless_collect)]
         let existing_idents: Vec<PackageIdent> =
             service_map.services().map(Service::spec_ident).collect();
 
@@ -1485,7 +1487,7 @@ impl Manager {
     /// * `GatewayState::inner` (write)
     /// * `ManagerServices::inner` (write)
     fn stop_service_gsw_msw(&mut self, ident: &PackageIdent, shutdown_input: &ShutdownInput) {
-        if let Some(service) = self.remove_service_from_state_msw(&ident) {
+        if let Some(service) = self.remove_service_from_state_msw(ident) {
             let future = self.stop_service_future_gsw(service, None, Some(shutdown_input));
             tokio::spawn(future);
         } else {
@@ -1620,7 +1622,7 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `ManagerServices::inner` (write)
     fn remove_service_from_state_msw(&mut self, ident: &PackageIdent) -> Option<Service> {
-        self.state.services.lock_msw().remove(&ident)
+        self.state.services.lock_msw().remove(ident)
     }
 
     /// Start, stop, or restart services to bring what's running in
@@ -1674,11 +1676,11 @@ impl Manager {
                     // ServiceSpec#reconcile must guarantee.
                     if let Some(s) = services.get_mut(&spec.ident) {
                         s.set_spec(spec);
-                        self.gossip_latest_service_rumor_rsw_mlw_rhw(&s);
+                        self.gossip_latest_service_rumor_rsw_mlw_rhw(s);
                         for op in ops {
                             match op {
                                 RefreshOperation::RestartUpdater => {
-                                    self.service_updater.lock().register(&s);
+                                    self.service_updater.lock().register(s);
                                 }
                             }
                         }

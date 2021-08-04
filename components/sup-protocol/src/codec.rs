@@ -377,7 +377,7 @@ mod test {
         let header = SrvHeader::new(body_value, message_id_value, true);
         assert_eq!(header.body_len(), body_value as usize);
         assert_eq!(header.message_id_len(), message_id_value as usize);
-        assert_eq!(header.is_transaction(), true);
+        assert!(header.is_transaction());
     }
 
     #[test]
@@ -396,24 +396,24 @@ mod test {
     #[test]
     fn test_txn_set_complete() {
         let mut header = SrvHeader::new(0, 0, false);
-        assert_eq!(header.is_transaction(), false);
+        assert!(!header.is_transaction());
         header.set_is_transaction();
-        assert_eq!(header.is_transaction(), true);
+        assert!(header.is_transaction());
     }
 
     #[test]
     fn test_txn_pack_unpack() {
         let mut txn = SrvTxn(TXN_ID_MASK);
-        assert_eq!(txn.is_complete(), false);
-        assert_eq!(txn.is_response(), false);
+        assert!(!txn.is_complete());
+        assert!(!txn.is_response());
 
         txn.set_complete();
-        assert_eq!(txn.is_complete(), true);
-        assert_eq!(txn.is_response(), false);
+        assert!(txn.is_complete());
+        assert!(!txn.is_response());
 
         txn.set_response();
-        assert_eq!(txn.is_complete(), true);
-        assert_eq!(txn.is_response(), true);
+        assert!(txn.is_complete());
+        assert!(txn.is_response());
     }
 
     #[test]

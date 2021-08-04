@@ -615,7 +615,7 @@ fn spawn_supervisor(pipe: &str, args: &[String]) -> Result<Child> {
                                                  .env("RUST_LOG", "error")
                                                  .output()?;
         let sup_version = String::from_utf8_lossy(&version_check.stdout);
-        if !is_supported_supervisor_version(&sup_version.trim()) {
+        if !is_supported_supervisor_version(sup_version.trim()) {
             error!("This Launcher requires Habitat version {}", SUP_VERSION_REQ);
             error!("This check can be disabled by setting the {} environment variable to a \
                     non-empty string when starting the supervisor",

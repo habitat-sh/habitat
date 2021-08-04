@@ -424,7 +424,7 @@ impl<'a> SvcDir<'a> {
             // because our `set_owner` calls will fail if they
             // don't. If we don't have the ability to to change
             // ownership, however, it doesn't really matter!
-            assert_pkg_user_and_group(&self.svc_user, &self.svc_group)?;
+            assert_pkg_user_and_group(self.svc_user, self.svc_group)?;
         }
 
         self.create_svc_root()?;
@@ -722,7 +722,7 @@ pub fn am_i_root() -> bool { *EUID == 0u32 }
 /// take a directory.
 fn parent(p: &Path) -> io::Result<&Path> {
     match p.parent() {
-        Some(parent_path) if parent_path.as_os_str().is_empty() => Ok(&Path::new(".")),
+        Some(parent_path) if parent_path.as_os_str().is_empty() => Ok(Path::new(".")),
         Some(nonempty_parent_path) => Ok(nonempty_parent_path),
         None => Err(io::Error::new(io::ErrorKind::InvalidInput, "path has no parent")),
     }
@@ -925,7 +925,7 @@ mod tests {
             assert!(sub_file_1.exists());
             assert!(sub_file_2.exists());
 
-            SvcDir::purge_directory_content(&root.path()).expect("Couldn't purge!");
+            SvcDir::purge_directory_content(root.path()).expect("Couldn't purge!");
 
             assert!(root.as_ref().exists());
             assert!(!file_1.exists());
@@ -981,7 +981,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("bin_with_no_extension");
-                assert_eq!(result.is_some(), true);
+                assert!(result.is_some());
             }
 
             #[test]
@@ -990,7 +990,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("missing");
-                assert_eq!(result.is_some(), false);
+                assert!(!result.is_some());
             }
 
             #[test]
@@ -999,7 +999,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("win95_dominator");
-                assert_eq!(result.is_some(), false);
+                assert!(!result.is_some());
             }
         }
 
@@ -1015,7 +1015,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("bin_with_extension.exe");
-                assert_eq!(result.is_some(), true);
+                assert!(result.is_some());
             }
 
             #[test]
@@ -1024,7 +1024,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("missing.com");
-                assert_eq!(result.is_some(), false);
+                assert!(!result.is_some());
             }
 
             #[test]
@@ -1033,7 +1033,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("bin_with_extension.com");
-                assert_eq!(result.is_some(), false);
+                assert!(!result.is_some());
             }
 
             #[test]
@@ -1067,7 +1067,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("bin_with_no_extension");
-                assert_eq!(result.is_some(), true);
+                assert!(result.is_some());
             }
 
             #[test]
@@ -1076,7 +1076,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("missing");
-                assert_eq!(result.is_some(), false);
+                assert!(!result.is_some());
             }
 
             #[test]
@@ -1086,7 +1086,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("bin_with_extension");
-                assert_eq!(result.is_some(), true);
+                assert!(result.is_some());
             }
 
             #[test]
@@ -1096,7 +1096,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("win95_dominator");
-                assert_eq!(result.is_some(), false);
+                assert!(!result.is_some());
             }
 
             #[test]
@@ -1123,7 +1123,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("bin_with_extension.exe");
-                assert_eq!(result.is_some(), true);
+                assert!(result.is_some(), "{}", true);
             }
 
             #[test]
@@ -1132,7 +1132,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("missing.com");
-                assert_eq!(result.is_some(), false);
+                assert!(result.is_some(), "{}", false);
             }
 
             #[test]
@@ -1141,7 +1141,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("bin_with_extension.com");
-                assert_eq!(result.is_some(), false);
+                assert!(result.is_some(), "{}", false);
             }
 
             #[test]

@@ -681,7 +681,7 @@ impl BuilderAPIClient {
                                        -> Result<UserOriginInvitationsResponse> {
         let path = "user/invitations";
 
-        let resp = self.0.get(&path).bearer_auth(token).send().await?;
+        let resp = self.0.get(path).bearer_auth(token).send().await?;
         let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
 
         Ok(resp.json().await?)

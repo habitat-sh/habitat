@@ -235,7 +235,7 @@ impl Child {
         si.dwFlags = STARTF_USESTDHANDLES;
 
         let program_path = program_path.unwrap_or_else(|| OsStr::new(program).to_os_string());
-        let mut cmd_str = make_command_line(&program_path, &args)?;
+        let mut cmd_str = make_command_line(&program_path, args)?;
         cmd_str.push(0); // add null terminator
 
         let mut pi = zeroed_process_information();
@@ -522,6 +522,7 @@ impl AnonPipe {
 }
 
 struct StdioPipes {
+    #[allow(dead_code)]
     pub stdin:  Option<AnonPipe>,
     pub stdout: Option<AnonPipe>,
     pub stderr: Option<AnonPipe>,
@@ -875,7 +876,7 @@ fn create_process(command: LPWSTR,
                   si: LPSTARTUPINFOW,
                   pi: LPPROCESS_INFORMATION)
                   -> io::Result<i32> {
-    let (envp, _data) = make_envp(&env)?;
+    let (envp, _data) = make_envp(env)?;
 
     unsafe {
         cvt(processthreadsapi::CreateProcessW(ptr::null(),

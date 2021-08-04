@@ -906,7 +906,7 @@ mod tests {
         let concrete_path = hooks_path.clone();
         let template_path = hook_templates_path();
 
-        let hook = HealthCheckHook::load(&service_group.service(),
+        let hook = HealthCheckHook::load(service_group.service(),
                                          &concrete_path,
                                          &template_path,
                                          FeatureFlag::empty()).expect("Could not create testing \
@@ -954,7 +954,7 @@ mod tests {
         let mut flags = FeatureFlag::empty();
         flags.insert(FeatureFlag::NO_NAMED_PIPE_HEALTH_CHECK);
 
-        let hook = HealthCheckHook::load(&service_group.service(),
+        let hook = HealthCheckHook::load(service_group.service(),
                                          &concrete_path,
                                          &template_path,
                                          flags).expect("Could not create testing healch-check \

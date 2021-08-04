@@ -104,16 +104,16 @@ pub async fn start(ui: &mut UI,
             };
         };
         for origin_to_create in origins_to_create {
-            command::origin::create::start(ui, &bldr_url, &token, &origin_to_create).await?;
+            command::origin::create::start(ui, bldr_url, token, &origin_to_create).await?;
         }
     };
 
     for artifact_path in &artifact_paths {
         command::pkg::upload::start(ui,
-                                    &bldr_url,
-                                    &additional_release_channel,
-                                    &token,
-                                    &artifact_path,
+                                    bldr_url,
+                                    additional_release_channel,
+                                    token,
+                                    artifact_path,
                                     force_upload,
                                     auto_build,
                                     key_cache).await?

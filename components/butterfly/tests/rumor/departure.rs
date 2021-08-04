@@ -22,7 +22,7 @@ fn departure_via_client() {
     let mut client =
         Client::new(&net[0].gossip_addr().to_string(), None).expect("Cannot create Butterfly \
                                                                      Client");
-    client.send_departure(&net[1].member_id())
+    client.send_departure(net[1].member_id())
           .expect("Cannot send the departure");
     net.wait_for_gossip_rounds(1);
     assert!(net[2].departure_store

@@ -59,8 +59,8 @@ pub async fn start(ui: &mut UI,
         let secret_keyfile = key_cache.path_in_cache(&secret_key);
 
         ui.status(Status::Uploading, secret_keyfile.display())?;
-        match api_client.put_origin_secret_key(&secret_key.named_revision().name(),
-                                               &secret_key.named_revision().revision(),
+        match api_client.put_origin_secret_key(secret_key.named_revision().name(),
+                                               secret_key.named_revision().revision(),
                                                &secret_keyfile,
                                                token,
                                                ui.progress())

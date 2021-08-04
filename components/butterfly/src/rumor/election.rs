@@ -351,7 +351,7 @@ mod tests {
     fn merge_two_identical_elections_returns_false() {
         let mut e1 = create_election("a", 0);
         let e2 = e1.clone();
-        assert_eq!(e1.merge(e2), false);
+        assert!(!e1.merge(e2));
     }
 
     #[test]
@@ -360,9 +360,9 @@ mod tests {
         let e2 = create_election("b", 0);
         let e3 = create_election("c", 1);
         let e4 = create_election("d", 0);
-        assert_eq!(e1.merge(e2), true);
-        assert_eq!(e1.merge(e3), true);
-        assert_eq!(e1.merge(e4), true);
+        assert!(e1.merge(e2));
+        assert!(e1.merge(e3));
+        assert!(e1.merge(e4));
         assert_eq!(e1.member_id, "c");
         assert_eq!(e1.votes.len(), 4);
     }
@@ -373,9 +373,9 @@ mod tests {
         let e2 = create_election("b", 0);
         let e3 = create_election("c", 0);
         let e4 = create_election("d", 0);
-        assert_eq!(e1.merge(e2), true);
-        assert_eq!(e1.merge(e3), true);
-        assert_eq!(e1.merge(e4), true);
+        assert!(e1.merge(e2));
+        assert!(e1.merge(e3));
+        assert!(e1.merge(e4));
         assert_eq!(e1.member_id, "d");
         assert_eq!(e1.votes.len(), 4);
     }

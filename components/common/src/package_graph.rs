@@ -103,7 +103,7 @@ impl PackageGraph {
     /// allows you to modify the underlying graph (via `PackageGraph::remove`) while traversing the
     /// dependencies
     pub fn owned_ordered_deps(&self, package: &PackageIdent) -> Vec<PackageIdent> {
-        self.ordered_deps(&package)
+        self.ordered_deps(package)
             .iter()
             .map(|&p| p.clone())
             .collect()
@@ -431,7 +431,7 @@ mod test {
 
         assert!(graph.remove(&d));
         // package count decremented on remove
-        assert_eq!(graph.has_package(&d), false);
+        assert!(!graph.has_package(&d));
         assert_eq!(graph.node_count(), 3);
 
         // rdeps of dependencies should have decreased too
@@ -451,7 +451,7 @@ mod test {
 
         assert_eq!(graph.count_rdeps(&a).unwrap(), 1);
 
-        assert_eq!(graph.remove(&a), false);
+        assert!(!graph.remove(&a));
         assert_eq!(graph.node_count(), 2);
     }
 

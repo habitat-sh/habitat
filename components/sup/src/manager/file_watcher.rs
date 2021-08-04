@@ -1378,11 +1378,11 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         };
         let mut dirs = vec![];
         for path in paths {
-            if let Some(wf) = self.paths.get_watched_file(&path) {
+            if let Some(wf) = self.paths.get_watched_file(path) {
                 dirs.push(wf.get_common().dir_file_name.directory.clone());
-            } else if self.paths.get_directory(&path).is_some() {
+            } else if self.paths.get_directory(path).is_some() {
                 dirs.push(path.clone());
-            } else if let Some(df) = DirFileName::split_path(&path) {
+            } else if let Some(df) = DirFileName::split_path(path) {
                 if self.paths.get_directory(&df.directory).is_some() {
                     dirs.push(df.directory.clone());
                 }

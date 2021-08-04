@@ -117,7 +117,7 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
 
     // When a user sets SSL_CERT_FILE, we need to modify the absolute
     // path to the file to reflect the location of the file inside the studio
-    update_ssl_cert_file_envvar(&mnt_prefix);
+    update_ssl_cert_file_envvar(mnt_prefix);
 
     // Windows containers do not use filesystem sharing for
     // local mounts

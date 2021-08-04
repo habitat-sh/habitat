@@ -302,7 +302,7 @@ mod tests {
         let mut s2 = create_service("adam");
         s2.incarnation = 1;
         let s2_check = s2.clone();
-        assert_eq!(s1.merge(s2), true);
+        assert!(s1.merge(s2));
         assert_eq!(s1, s2_check);
     }
 
@@ -312,7 +312,7 @@ mod tests {
         s1.incarnation = 1;
         let s1_check = s1.clone();
         let s2 = create_service("adam");
-        assert_eq!(s1.merge(s2), false);
+        assert!(!s1.merge(s2));
         assert_eq!(s1, s1_check);
     }
 

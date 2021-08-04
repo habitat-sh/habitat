@@ -168,10 +168,10 @@ pub async fn uninstall_many<U>(ui: &mut U,
         ui.begin(format!("Uninstalling {}", &ident))?;
 
         // 3.
-        let deps = graph.owned_ordered_deps(&ident);
+        let deps = graph.owned_ordered_deps(ident);
 
         // 4.
-        match graph.count_rdeps(&ident) {
+        match graph.count_rdeps(ident) {
             None => {
                 // package not in graph - this shouldn't happen but could be a race condition in
                 // Step 2 with another hab uninstall. We can continue as what we
@@ -185,13 +185,13 @@ pub async fn uninstall_many<U>(ui: &mut U,
             }
             Some(0) => {
                 maybe_delete(ui,
-                             &fs_root_path,
+                             fs_root_path,
                              &pkg_install,
                              execution_strategy,
-                             &excludes,
+                             excludes,
                              uninstall_hook_mode,
                              safety).await?;
-                graph.remove(&ident);
+                graph.remove(ident);
             }
             Some(c) => {
                 return Err(Error::CannotRemovePackage(ident.clone(), c));
@@ -206,7 +206,7 @@ pub async fn uninstall_many<U>(ui: &mut U,
             }
             Scope::PackageAndDependencies => {
                 for p in &deps {
-                    match graph.count_rdeps(&p) {
+                    match graph.count_rdeps(p) {
                         None => {
                             // package not in graph - this shouldn't happen but could be a race
                             // condition in Step 2 with another hab uninstall. We can
@@ -220,16 +220,16 @@ pub async fn uninstall_many<U>(ui: &mut U,
                                             &p))?;
                         }
                         Some(0) => {
-                            let install = PackageInstall::load(&p, Some(fs_root_path))?;
+                            let install = PackageInstall::load(p, Some(fs_root_path))?;
                             maybe_delete(ui,
-                                         &fs_root_path,
+                                         fs_root_path,
                                          &install,
                                          execution_strategy,
-                                         &excludes,
+                                         excludes,
                                          uninstall_hook_mode,
                                          dependency_safety).await?;
 
-                            graph.remove(&p);
+                            graph.remove(p);
                             count += 1;
                         }
                         Some(c) => {
@@ -360,10 +360,10 @@ async fn maybe_delete<U>(ui: &mut U,
         ExecutionStrategy::Run => {
             ui.status(Status::Deleting, &ident)?;
             if uninstall_hook_mode == UninstallHookMode::Run {
-                maybe_run_uninstall_hook(ui, &install).await?;
+                maybe_run_uninstall_hook(ui, install).await?;
             }
             let pkg_dir = install.installed_path();
-            do_clean_delete(&pkg_root_path, &pkg_dir)
+            do_clean_delete(&pkg_root_path, pkg_dir)
         }
     }
 }

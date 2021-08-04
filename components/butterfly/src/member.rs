@@ -809,7 +809,7 @@ impl MemberList {
 pub struct MemberListProxy<'a>(&'a MemberList);
 
 impl<'a> MemberListProxy<'a> {
-    pub fn new(m: &'a MemberList) -> Self { MemberListProxy(&m) }
+    pub fn new(m: &'a MemberList) -> Self { MemberListProxy(m) }
 }
 
 impl<'a> Serialize for MemberListProxy<'a> {
@@ -835,7 +835,7 @@ impl<'a> Serialize for MemberListProxy<'a> {
 pub struct MemberProxy<'a>(&'a Member, &'a Health);
 
 impl<'a> MemberProxy<'a> {
-    pub fn new(m: &'a Member, h: &'a Health) -> Self { MemberProxy(&m, &h) }
+    pub fn new(m: &'a Member, h: &'a Health) -> Self { MemberProxy(m, h) }
 }
 
 impl<'a> Serialize for MemberProxy<'a> {
@@ -989,7 +989,7 @@ mod tests {
                             excluded_appears = true
                         }
                     });
-                  assert_eq!(excluded_appears, false);
+                  assert!(!excluded_appears);
               });
         }
 
@@ -1005,7 +1005,7 @@ mod tests {
                             excluded_appears = true
                         }
                     });
-                  assert_eq!(excluded_appears, false);
+                  assert!(!excluded_appears);
               });
         }
 
@@ -1026,7 +1026,7 @@ mod tests {
             let ml = MemberList::new();
             let member = Member::default();
             let mcheck = member.clone();
-            assert_eq!(ml.insert_mlw(member, Health::Alive), true);
+            assert!(ml.insert_mlw(member, Health::Alive));
             assert_eq!(ml.health_of_mlr(&mcheck), Some(Health::Alive));
         }
 

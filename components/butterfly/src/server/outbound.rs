@@ -97,9 +97,9 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
                     have_members = true;
                 } else {
                     server.member_list.with_initial_members_imlr(|member| {
-                                          ping_mlr_smr_rhw(&server,
-                                                           &socket,
-                                                           &member,
+                                          ping_mlr_smr_rhw(server,
+                                                           socket,
+                                                           member,
                                                            member.swim_socket_address(),
                                                            None);
                                       });
@@ -122,7 +122,7 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
                 // If we complete the probe faster than our protocol
                 // period, we'll want to wait after we finish.
                 let probe_start = Instant::now();
-                probe_mlw_smr_rhw(&server, &socket, &rx_inbound, &timing, member);
+                probe_mlw_smr_rhw(server, socket, rx_inbound, timing, member);
                 timing.sleep_for_remaining_swim_protocol_interval(probe_start);
             }
         }
@@ -239,6 +239,7 @@ fn recv_ack_mlw_rhw(server: &Server,
                 if ack.forward_to.is_none() {
                     ack.from.address = real_addr.ip().to_string();
                 }
+                #[allow(clippy::branches_sharing_code)]
                 if member.id != ack.from.id {
                     if ack.from.departed {
                         server.insert_member_mlw_rhw(ack.from, Health::Departed);
@@ -298,7 +299,7 @@ pub fn populate_membership_rumors_mlr_rhw(server: &Server,
         .lock_rhr()
         .currently_hot_rumors(&target.id)
         .into_iter()
-        .filter(|ref r| r.kind == RumorType::Member)
+        .filter(|r| r.kind == RumorType::Member)
         .take(5) // TODO (CM): magic number!
         .collect();
 

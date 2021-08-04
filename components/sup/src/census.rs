@@ -224,7 +224,7 @@ impl CensusRing {
 pub struct CensusRingProxy<'a>(&'a CensusRing);
 
 impl<'a> CensusRingProxy<'a> {
-    pub fn new(c: &'a CensusRing) -> Self { CensusRingProxy(&c) }
+    pub fn new(c: &'a CensusRing) -> Self { CensusRingProxy(c) }
 }
 
 impl<'a> Serialize for CensusRingProxy<'a> {
@@ -675,7 +675,7 @@ impl CensusMember {
 pub struct CensusMemberProxy<'a>(Cow<'a, CensusMember>);
 
 impl<'a> CensusMemberProxy<'a> {
-    pub fn new(c: &'a CensusMember) -> Self { CensusMemberProxy(Cow::Borrowed(&c)) }
+    pub fn new(c: &'a CensusMember) -> Self { CensusMemberProxy(Cow::Borrowed(c)) }
 
     #[cfg(test)]
     pub fn new_owned(c: CensusMember) -> Self { CensusMemberProxy(Cow::Owned(c)) }

@@ -52,8 +52,8 @@ pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
          you do not set a builder URL now, the `hab` CLI will default to using \
          the public builder instance. This can be overridden at any time after setup.",
     )?;
+    ui.br()?;
     if ask_default_builder_instance(ui)? {
-        ui.br()?;
         ui.para("Enter the url of your builder instance. The default is \
                  https://bldr.habitat.sh. The configured endpoint can be overridden any time \
                  with a `HAB_BLDR_URL` environment variable or a --url flag on the cli.")?;
@@ -69,7 +69,6 @@ pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
 
         write_cli_config_bldr_url(&url)?;
     } else {
-        ui.br()?;
         ui.para("Alright, maybe another time. You can also set a `HAB_BLDR_URL` environment \
                  variable or pass the `--url` flag to the cli.")?;
     }
@@ -320,7 +319,7 @@ fn prompt_ctl_secret(ui: &mut UI) -> Result<String> {
 }
 
 fn valid_url(val: &str) -> result::Result<(), String> {
-    match Url::parse(&val) {
+    match Url::parse(val) {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("URL: '{}' is not valid", &val)),
     }

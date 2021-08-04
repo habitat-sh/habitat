@@ -144,7 +144,7 @@ impl Naming {
         where S: Serialize
     {
         let image_name = if let Some(ref template) = self.custom_image_name_template {
-            Self::render(&template, &context)?
+            Self::render(template, &context)?
         } else {
             safe!(Self::render(DEFAULT_IMAGE_NAME_TEMPLATE, &context))
         };
