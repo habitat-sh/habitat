@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.366 -->
-## [1.6.366](https://github.com/habitat-sh/habitat/tree/1.6.366) (2021-08-02)
+<!-- latest_release 1.6.367 -->
+## [1.6.367](https://github.com/habitat-sh/habitat/tree/1.6.367) (2021-08-04)
 
 #### Merged Pull Requests
-- Bump serde from 1.0.126 to 1.0.127 [#8262](https://github.com/habitat-sh/habitat/pull/8262) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Rust54 [#8265](https://github.com/habitat-sh/habitat/pull/8265) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- Rust54 [#8265](https://github.com/habitat-sh/habitat/pull/8265) ([mwrock](https://github.com/mwrock)) <!-- 1.6.367 -->
 - Bump serde from 1.0.126 to 1.0.127 [#8262](https://github.com/habitat-sh/habitat/pull/8262) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.366 -->
 - Bump serde_test from 1.0.126 to 1.0.127 [#8263](https://github.com/habitat-sh/habitat/pull/8263) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.365 -->
 - fork rants with updated crate deps [#8261](https://github.com/habitat-sh/habitat/pull/8261) ([mwrock](https://github.com/mwrock)) <!-- 1.6.364 -->
