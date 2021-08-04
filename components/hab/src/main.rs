@@ -630,13 +630,7 @@ async fn sub_origin_secret_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()>
     let key = required_value_of(m, "KEY_NAME");
     let secret = required_value_of(m, "SECRET");
     let key_cache = key_cache_from_matches(m)?;
-    command::origin::secret::upload::start(ui,
-                                           &url,
-                                           &token,
-                                           &origin,
-                                           key,
-                                           secret,
-                                           &key_cache).await
+    command::origin::secret::upload::start(ui, &url, &token, &origin, key, secret, &key_cache).await
 }
 
 async fn sub_origin_secret_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {

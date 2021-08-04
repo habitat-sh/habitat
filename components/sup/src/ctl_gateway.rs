@@ -261,7 +261,7 @@ pub fn readgen_secret_key<T>(sup_root: T) -> Result<String>
                                      Error::CtlSecretIo(sup_root.as_ref().to_path_buf(), e)
                                  })?;
     if !habitat_sup_protocol::read_secret_key(&sup_root, &mut out).ok()
-                                                                 .unwrap_or(false)
+                                                                  .unwrap_or(false)
     {
         let secret_key_path = habitat_sup_protocol::secret_key_path(sup_root);
         {

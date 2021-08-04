@@ -82,9 +82,7 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
     let group_id = if let Some(sgid) = msg.svc_group_id {
         sgid
     } else if let Some(sgroup) = &msg.svc_group {
-        os::users::get_gid_by_name(sgroup)?.ok_or_else(|| {
-                                                Error::GroupNotFound(sgroup.to_string())
-                                            })?
+        os::users::get_gid_by_name(sgroup)?.ok_or_else(|| Error::GroupNotFound(sgroup.to_string()))?
     } else {
         return Err(Error::GroupNotFound(String::from("")));
     };

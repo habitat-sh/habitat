@@ -52,10 +52,10 @@ impl RingKey {
     /// The returns the original unencrypted bytes.
     pub fn decrypt(&self, nonce: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
         let nonce = primitives::Nonce::from_slice(nonce).ok_or_else(|| {
-                                                             Error::CryptoError("Invalid size of \
-                                                                                 nonce"
-                                                                                       .to_string())
-                                                         })?;
+                                                            Error::CryptoError("Invalid size of \
+                                                                                nonce"
+                                                                                      .to_string())
+                                                        })?;
 
         primitives::open(ciphertext, &nonce, &self.key).map_err(|_| {
             Error::CryptoError("Secret key and nonce could not decrypt ciphertext".to_string())

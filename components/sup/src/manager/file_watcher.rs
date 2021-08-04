@@ -3109,8 +3109,7 @@ mod tests {
                                 init_path: &Path)
                                 -> HashMap<PathBuf, PathState> {
             let expected_paths = self.get_initial_expected_paths(paths);
-            let real_first_expected =
-                self.get_real_first_expected_path(init_path, &expected_paths);
+            let real_first_expected = self.get_real_first_expected_path(init_path, &expected_paths);
             let additional_paths = self.get_additional_paths(&real_first_expected,
                                                              // The existence of this path in the
                                                              // map is checked in

@@ -183,9 +183,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn real_account_returns_some() {
-        assert!(Account::from_name("Administrator").is_some())
-    }
+    fn real_account_returns_some() { assert!(Account::from_name("Administrator").is_some()) }
 
     #[test]
     fn bogus_account_returns_none() { assert!(Account::from_name("bogus").is_none()) }

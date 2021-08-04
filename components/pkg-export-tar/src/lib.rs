@@ -97,5 +97,5 @@ fn hab_package_ident(hab_pkg: &str) -> PackageIdent { PackageIdent::from_str(hab
 fn hab_install_path(hab_ident: &PackageIdent, root_fs_path: &Path) -> PathBuf {
     let root_fs_path = Path::new(&root_fs_path);
     PackageInstall::load(hab_ident, Some(root_fs_path)).unwrap()
-                                                        .installed_path
+                                                       .installed_path
 }

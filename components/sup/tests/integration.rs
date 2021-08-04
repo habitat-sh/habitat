@@ -30,10 +30,8 @@ fn config_only_packages_restart_on_config_application() {
                                &FIXTURE_ROOT,
                                &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-                                                             origin_name,
-                                                             package_name,
-                                                             service_group);
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root, origin_name, package_name, service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -66,10 +64,8 @@ fn hook_only_packages_restart_on_config_application() {
                                &FIXTURE_ROOT,
                                &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-                                                             origin_name,
-                                                             package_name,
-                                                             service_group);
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root, origin_name, package_name, service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -102,10 +98,8 @@ fn config_files_change_but_hooks_do_not_still_restarts() {
                                &FIXTURE_ROOT,
                                &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-                                                             origin_name,
-                                                             package_name,
-                                                             service_group);
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root, origin_name, package_name, service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -146,10 +140,8 @@ fn hooks_change_but_config_files_do_not_still_restarts() {
                                &FIXTURE_ROOT,
                                &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-                                                             origin_name,
-                                                             package_name,
-                                                             service_group);
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root, origin_name, package_name, service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -192,10 +184,8 @@ fn applying_identical_configuration_results_in_no_changes_and_no_restart() {
                                &FIXTURE_ROOT,
                                &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-                                                             origin_name,
-                                                             package_name,
-                                                             service_group);
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root, origin_name, package_name, service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -236,10 +226,8 @@ fn install_hook_success() {
                                &FIXTURE_ROOT,
                                &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-                                                             origin_name,
-                                                             package_name,
-                                                             service_group);
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root, origin_name, package_name, service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -276,10 +264,8 @@ fn package_with_successful_install_hook_in_dependency_is_loaded() {
                                &FIXTURE_ROOT,
                                &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-                                                             origin_name,
-                                                             package_name,
-                                                             service_group);
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root, origin_name, package_name, service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -314,10 +300,8 @@ fn install_hook_fails() {
                                &FIXTURE_ROOT,
                                &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-                                                             origin_name,
-                                                             package_name,
-                                                             service_group);
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root, origin_name, package_name, service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -355,10 +339,8 @@ fn package_with_failing_install_hook_in_dependency_is_not_loaded() {
                                &FIXTURE_ROOT,
                                &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-                                                             origin_name,
-                                                             package_name,
-                                                             service_group);
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root, origin_name, package_name, service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
