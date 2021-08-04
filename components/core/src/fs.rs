@@ -1123,7 +1123,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("bin_with_extension.exe");
-                assert!(result.is_some(), "{}", true);
+                assert!(result.is_some());
             }
 
             #[test]
@@ -1132,7 +1132,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("missing.com");
-                assert!(result.is_some(), "{}", false);
+                assert!(!result.is_some());
             }
 
             #[test]
@@ -1141,7 +1141,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("bin_with_extension.com");
-                assert!(result.is_some(), "{}", false);
+                assert!(!result.is_some());
             }
 
             #[test]
