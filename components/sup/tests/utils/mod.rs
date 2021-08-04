@@ -54,7 +54,7 @@ pub fn setup_package_files(origin_name: &str,
     let expanded_fixture_dir = fixture_root.expanded_package_dir(&package_name);
     let hab_pkg_path = hab_root.pkg_path(&origin_name, &package_name);
     copy_dir(&expanded_fixture_dir, &hab_pkg_path);
-    write_default_svc_user_and_group_metafiles(&hab_root, &origin_name, &package_name);
+    write_default_svc_user_and_group_metafiles(hab_root, &origin_name, &package_name);
 
     let install =
         PackageInstall::load(&hab_root.pkg_ident(&origin_name, &package_name),

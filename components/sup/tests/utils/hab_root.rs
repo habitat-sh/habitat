@@ -202,5 +202,5 @@ impl HabRoot {
 }
 
 impl AsRef<Path> for HabRoot {
-    fn as_ref(&self) -> &Path { &self.0.path() }
+    fn as_ref(&self) -> &Path { self.0.path() }
 }

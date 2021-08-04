@@ -1070,9 +1070,9 @@ mod test {
         let file = template_dir.join("config.cfg");
         let contents = "foo\nbar\n";
 
-        assert_eq!(file.exists(), false);
+        assert!(!file.exists());
         assert!(
-            write_templated_file(&file, &contents, &curr_username(), &curr_groupname()).is_err()
+            write_templated_file(&file, contents, &curr_username(), &curr_groupname()).is_err()
         );
     }
 

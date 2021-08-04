@@ -333,7 +333,7 @@ impl Service {
 
     #[cfg(unix)]
     async fn resolve_pkg(package: &PackageInstall, _spec: &ServiceSpec) -> Result<Pkg> {
-        Ok(Pkg::from_install(&package).await?)
+        Ok(Pkg::from_install(package).await?)
     }
 
     /// Returns the config root given the package and optional config-from path.

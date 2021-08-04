@@ -151,8 +151,8 @@ mod inner {
     const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
 
     pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
-        rerun_with_sudo_if_needed(ui, &args)?;
-        if is_docker_studio(&args) {
+        rerun_with_sudo_if_needed(ui, args)?;
+        if is_docker_studio(args) {
             docker::start_docker_studio(ui, args)
         } else {
             let command = match henv::var(STUDIO_CMD_ENVVAR) {

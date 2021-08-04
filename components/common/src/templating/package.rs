@@ -178,7 +178,7 @@ impl<'a> Serialize for PkgProxy<'a> {
 /// If that doesn't work, then give up.
 #[cfg(unix)]
 fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> {
-    if let Some((user, group)) = get_pkg_user_and_group(&pkg_install)? {
+    if let Some((user, group)) = get_pkg_user_and_group(pkg_install)? {
         Ok((user, group))
     } else {
         let defaults = default_user_and_group()?;

@@ -2670,9 +2670,9 @@ mod tests {
 
     impl<'a> FsOps<'a> {
         fn ln_s(&self, target: &Path, path: &Path) -> u32 {
-            let pp = self.prepend_root(&path);
+            let pp = self.prepend_root(path);
             let tt = if target.is_absolute() {
-                self.prepend_root(&target)
+                self.prepend_root(target)
             } else {
                 target.to_path_buf()
             };
@@ -2693,7 +2693,7 @@ mod tests {
         }
 
         fn mkdir_p(&self, path: &Path) -> u32 {
-            let full_path = self.prepend_root(&path);
+            let full_path = self.prepend_root(path);
             match self.watched_dirs {
                 Some(wd) => {
                     let mut test_path = full_path.clone();
@@ -2726,7 +2726,7 @@ mod tests {
         }
 
         fn touch(&self, path: &Path) -> u32 {
-            let pp = self.prepend_root(&path);
+            let pp = self.prepend_root(path);
             File::create(&pp).unwrap_or_else(|_| {
                                  panic!("could not create file {}, debug info:\n{}",
                                         pp.display(),
@@ -2742,8 +2742,8 @@ mod tests {
         }
 
         fn mv(&self, from: &Path, to: &Path) -> u32 {
-            let ff = self.prepend_root(&from);
-            let tt = self.prepend_root(&to);
+            let ff = self.prepend_root(from);
+            let tt = self.prepend_root(to);
             fs::rename(&ff, &tt).unwrap_or_else(|_| {
                                     panic!("could not move from {} to {}, debug info:\n{}",
                                            ff.display(),
@@ -2776,7 +2776,7 @@ mod tests {
         }
 
         fn rm_rf(&mut self, path: &Path) -> u32 {
-            let pp = self.prepend_root(&path);
+            let pp = self.prepend_root(path);
             let metadata = match pp.symlink_metadata() {
                 Ok(m) => m,
                 Err(e) => {
@@ -2859,7 +2859,7 @@ mod tests {
         }
 
         fn parent_is_watched(&self, path: &Path) -> bool {
-            self.path_is_watched(&self.get_parent(&path))
+            self.path_is_watched(&self.get_parent(path))
         }
 
         fn path_is_watched(&self, path: &Path) -> bool {
@@ -3012,7 +3012,7 @@ mod tests {
                       step_paths: &HashMap<PathBuf, PathState>,
                       init_path: &Path,
                       actual_paths: &HashMap<PathBuf, WatchedFile>) {
-            let expected_paths = self.fixup_expected_paths(&step_paths, &init_path);
+            let expected_paths = self.fixup_expected_paths(step_paths, init_path);
             self.debug_info
                 .add(format!("fixed up expected paths:\n{}", dits!(expected_paths),));
             self.compare_paths(expected_paths, actual_paths);
@@ -3042,7 +3042,7 @@ mod tests {
                        real_initial_file: Option<PathBuf>,
                        step_events: &[NotifyEvent],
                        actual_events: &mut Vec<NotifyEvent>) {
-            let expected_events = self.fixup_expected_events(&step_events, real_initial_file);
+            let expected_events = self.fixup_expected_events(step_events, real_initial_file);
             self.debug_info
                 .add(format!("fixed up expected events: {:?}", expected_events));
             assert_eq!(&expected_events, actual_events,
@@ -3065,7 +3065,7 @@ mod tests {
 
         fn fixup_expected_dirs(&self, dirs: &HashMap<PathBuf, u32>) -> HashMap<PathBuf, u32> {
             let mut expected_dirs = dirs.iter()
-                                        .map(|(p, c)| (self.prepend_root(&p), *c))
+                                        .map(|(p, c)| (self.prepend_root(p), *c))
                                         .collect::<HashMap<_, _>>();
             let additional_dirs = self.get_additional_directories_from_root();
             expected_dirs.extend(additional_dirs.iter().cloned().map(|d| (d, 1)));
@@ -3110,7 +3110,7 @@ mod tests {
                                 -> HashMap<PathBuf, PathState> {
             let expected_paths = self.get_initial_expected_paths(paths);
             let real_first_expected =
-                self.get_real_first_expected_path(&init_path, &expected_paths);
+                self.get_real_first_expected_path(init_path, &expected_paths);
             let additional_paths = self.get_additional_paths(&real_first_expected,
                                                              // The existence of this path in the
                                                              // map is checked in
@@ -3125,7 +3125,7 @@ mod tests {
         fn compare_paths(&mut self,
                          expected_paths: HashMap<PathBuf, PathState>,
                          actual_paths: &HashMap<PathBuf, WatchedFile>) {
-            self.compare_path_keys(&expected_paths, &actual_paths);
+            self.compare_path_keys(&expected_paths, actual_paths);
 
             for (path, path_state) in expected_paths {
                 // This should not panic - we tested the equality of
@@ -3138,7 +3138,7 @@ mod tests {
                     .add(format!("watched file:\n{}", dits!(watched_file)));
                 self.debug_info
                     .add(format!("path state:\n{}", dits!(path_state)));
-                self.compare_path_state_with_watched_file(&path_state, &watched_file);
+                self.compare_path_state_with_watched_file(&path_state, watched_file);
                 self.debug_info.pop_level();
             }
         }
@@ -3163,11 +3163,11 @@ mod tests {
                                       -> HashMap<PathBuf, PathState> {
             paths.iter()
                  .map(|(p, s)| {
-                     (self.prepend_root(&p),
+                     (self.prepend_root(p),
                       PathState { kind:      s.kind,
                                   path_rest: s.path_rest.clone(),
-                                  prev:      s.prev.as_ref().map(|p| self.prepend_root(&p)),
-                                  next:      s.next.as_ref().map(|p| self.prepend_root(&p)), })
+                                  prev:      s.prev.as_ref().map(|p| self.prepend_root(p)),
+                                  next:      s.next.as_ref().map(|p| self.prepend_root(p)), })
                  })
                  .collect()
         }
@@ -3176,7 +3176,7 @@ mod tests {
                                         init_path: &Path,
                                         expected_paths: &HashMap<PathBuf, PathState>)
                                         -> PathBuf {
-            let first_expected = get_first_item(&init_path);
+            let first_expected = get_first_item(init_path);
             let real_first_expected = self.prepend_root(&first_expected);
             let first_item = expected_paths.get(&real_first_expected).unwrap_or_else(|| {
                                                                          panic!(
@@ -3222,7 +3222,7 @@ mod tests {
                 ap_vec[ap_len - 1 - idx].1.next = Some(ap_vec[ap_len - idx].0.clone())
             }
             // Fill path rests in additional path states.
-            let real_first_expected_path_rest = to_path_rest(&real_first_expected);
+            let real_first_expected_path_rest = to_path_rest(real_first_expected);
             for (idx, ap_vec_item) in ap_vec.iter_mut().enumerate() {
                 let path_rest = &mut ap_vec_item.1.path_rest;
                 // If root/temporary directory is `/tmp/foo/bar` then
