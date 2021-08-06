@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.368 -->
-## [1.6.368](https://github.com/habitat-sh/habitat/tree/1.6.368) (2021-08-05)
+<!-- latest_release 1.6.369 -->
+## [1.6.369](https://github.com/habitat-sh/habitat/tree/1.6.369) (2021-08-06)
 
 #### Merged Pull Requests
-- fix the days until close to be number of days since stale [#8266](https://github.com/habitat-sh/habitat/pull/8266) ([mwrock](https://github.com/mwrock))
+- adding some pins to core so that crates in builder resolve correctly [#8267](https://github.com/habitat-sh/habitat/pull/8267) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- adding some pins to core so that crates in builder resolve correctly [#8267](https://github.com/habitat-sh/habitat/pull/8267) ([mwrock](https://github.com/mwrock)) <!-- 1.6.369 -->
 - fix the days until close to be number of days since stale [#8266](https://github.com/habitat-sh/habitat/pull/8266) ([mwrock](https://github.com/mwrock)) <!-- 1.6.368 -->
 - Rust54 [#8265](https://github.com/habitat-sh/habitat/pull/8265) ([mwrock](https://github.com/mwrock)) <!-- 1.6.367 -->
 - Bump serde from 1.0.126 to 1.0.127 [#8262](https://github.com/habitat-sh/habitat/pull/8262) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.366 -->
