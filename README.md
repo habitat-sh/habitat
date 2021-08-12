@@ -1,5 +1,3 @@
-<img src="images/chef-logo.svg">
-
 [![Build Status](https://badge.buildkite.com/f527cd3d7851756ed1a5f6ec463dd41e7145f7941fd932672a.svg)](https://buildkite.com/chef/habitat-sh-habitat-master-verify?branch=master)
 [![Discourse status](https://img.shields.io/discourse/https/meta.discourse.org/status.svg?style=flat)](https://forums.habitat.sh)
 [![Open Source Helpers](https://www.codetriage.com/habitat-sh/habitat/badges/users.svg)](https://www.codetriage.com/habitat-sh/habitat)
@@ -39,20 +37,20 @@ See a quick demo of how to build, deploy and manage an application with Habitat:
 Graphics that will help you and your team better understand the concepts and how they fit together into the larger Habitat ecosystem.
 ### Where Habitat Fits
 
-[![Habitat Flow Infographic](images/habitat-flow-infographic.png)](http://habitat.sh#reference-diagram)
+[![Habitat Flow Infographic](https://github.com/habitat-sh/habitat/raw/master/images/habitat-flow-infographic.png)](http://habitat.sh#reference-diagram)
 
 Try the interactive infographics on the [website](http://habitat.sh#reference-diagram)!
 
 ### How Habitat Works
-* [Architecture Overview](images/habitat-architecture-overview.png)
-* [Initial Package Build Flow](images/habitat-initial-package-build-flow.png)
-* [Application Rebuild Flow](images/habitat-application-rebuild-flow.png)
-* [Dependency Update Flow](images/habitat-dependency-update-flow.png)
-* [Promote Packages Through Channels](images/habitat-promote-packages-through-channels.png)
+* [Architecture Overview](https://github.com/habitat-sh/habitat/raw/master/images/habitat-architecture-overview.png)
+* [Initial Package Build Flow](https://github.com/habitat-sh/habitat/raw/master/images/habitat-initial-package-build-flow.png)
+* [Application Rebuild Flow](https://github.com/habitat-sh/habitat/raw/master/images/habitat-application-rebuild-flow.png)
+* [Dependency Update Flow](https://github.com/habitat-sh/habitat/raw/master/images/habitat-dependency-update-flow.png)
+* [Promote Packages Through Channels](https://github.com/habitat-sh/habitat/raw/master/images/habitat-promote-packages-through-channels.png)
 
 ### Habitat and **Docker**
-* [Initial Docker Container Publishing Flow](images/habitat-initial-docker-container-publishing-flow.png)
-* [Automated Docker Container Publishing Flow](images/habitat-automated-docker-container-publishing-flow.png)
+* [Initial Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/images/habitat-initial-docker-container-publishing-flow.png)
+* [Automated Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/images/habitat-automated-docker-container-publishing-flow.png)
 
 *View all diagrams in [Docs](https://www.habitat.sh/docs/diagrams/)*
 
@@ -122,7 +120,7 @@ The Habitat core team's project tracker is also public and on [Github.](https://
 
 * [Chef Community Slack](https://community-slack.chef.io/)
 * [Forums](https://forums.habitat.sh)
-* Community triage is every Thursday at 9am Pacific.  More information can be found in the Connect section of [Chef Community](https://community.chef.io/)
+* The Chef Community meeting is every Thursday at 9am Pacific.  More information can be found in the Connect section of [Chef Community](https://community.chef.io/)
 
 ## Building
 See [BUILDING.md](BUILDING.md) for platform specific info on building Habitat from source.
