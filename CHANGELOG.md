@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.370 -->
-## [1.6.370](https://github.com/habitat-sh/habitat/tree/1.6.370) (2021-08-10)
+<!-- latest_release 1.6.371 -->
+## [1.6.371](https://github.com/habitat-sh/habitat/tree/1.6.371) (2021-08-16)
 
 #### Merged Pull Requests
-- bump cargo deps [#8273](https://github.com/habitat-sh/habitat/pull/8273) ([mwrock](https://github.com/mwrock))
+- Bump bitflags from 1.2.1 to 1.3.1 [#8274](https://github.com/habitat-sh/habitat/pull/8274) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- Bump bitflags from 1.2.1 to 1.3.1 [#8274](https://github.com/habitat-sh/habitat/pull/8274) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.371 -->
+- add referenced images to repo [#8269](https://github.com/habitat-sh/habitat/pull/8269) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.371 -->
+- Update readme to fix or remove invalid links [#8268](https://github.com/habitat-sh/habitat/pull/8268) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.371 -->
 - bump cargo deps [#8273](https://github.com/habitat-sh/habitat/pull/8273) ([mwrock](https://github.com/mwrock)) <!-- 1.6.370 -->
 - adding some pins to core so that crates in builder resolve correctly [#8267](https://github.com/habitat-sh/habitat/pull/8267) ([mwrock](https://github.com/mwrock)) <!-- 1.6.369 -->
 - fix the days until close to be number of days since stale [#8266](https://github.com/habitat-sh/habitat/pull/8266) ([mwrock](https://github.com/mwrock)) <!-- 1.6.368 -->
