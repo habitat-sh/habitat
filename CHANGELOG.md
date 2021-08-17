@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.371 -->
-## [1.6.371](https://github.com/habitat-sh/habitat/tree/1.6.371) (2021-08-16)
+<!-- latest_release 1.6.372 -->
+## [1.6.372](https://github.com/habitat-sh/habitat/tree/1.6.372) (2021-08-17)
 
 #### Merged Pull Requests
-- Bump bitflags from 1.2.1 to 1.3.1 [#8274](https://github.com/habitat-sh/habitat/pull/8274) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump nix from 0.22.0 to 0.22.1 [#8275](https://github.com/habitat-sh/habitat/pull/8275) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- Bump nix from 0.22.0 to 0.22.1 [#8275](https://github.com/habitat-sh/habitat/pull/8275) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.372 -->
 - Bump bitflags from 1.2.1 to 1.3.1 [#8274](https://github.com/habitat-sh/habitat/pull/8274) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.371 -->
 - add referenced images to repo [#8269](https://github.com/habitat-sh/habitat/pull/8269) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.371 -->
 - Update readme to fix or remove invalid links [#8268](https://github.com/habitat-sh/habitat/pull/8268) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.371 -->
