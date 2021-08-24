@@ -20,7 +20,7 @@ curlbash_hab() {
       sudo rm -rf /hab/pkgs/core/hab/0.82.0 || \
            rm -rf /hab/pkgs/core/hab/0.82.0
     fi
-    curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
+    curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
     case "${pkg_target}" in
         x86_64-linux | x86_64-linux-kernel2)
             hab_binary="/bin/hab"
@@ -364,8 +364,8 @@ push_current_branch() {
   repo=$(git remote get-url origin | sed -rn  's/.+github\.com[\/\:](.*)\.git/\1/p')
   head=$(git rev-parse --abbrev-ref HEAD)
 
-  if [ "$head" == "master" ]; then 
-    echo "Error: Attempting to push to master!"
+  if [ "$head" == "main" ]; then 
+    echo "Error: Attempting to push to main!"
     exit 1
   fi
 
