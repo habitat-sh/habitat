@@ -20,7 +20,7 @@ set -euo pipefail
 source .expeditor/scripts/release_habitat/shared.sh
 
 version=$(get_version_from_repo)
-channel=$(get_release_channel)
+channel=refresh2021q2
 target="${BUILD_PKG_TARGET}"
 image_name="habitat/default-studio-${target}"
 image_name_with_tag="${image_name}:${version}"
