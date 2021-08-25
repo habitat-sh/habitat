@@ -1,2 +1,2 @@
 [params.habitat]
-gh_path = "https://github.com/habitat-sh/habitat/tree/master/components/docs-chef-io/content/"
+gh_path = "https://github.com/habitat-sh/habitat/tree/main/components/docs-chef-io/content/"
