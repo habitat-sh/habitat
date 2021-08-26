@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.379 -->
-## [1.6.379](https://github.com/habitat-sh/habitat/tree/1.6.379) (2021-08-26)
+<!-- latest_release 1.6.380 -->
+## [1.6.380](https://github.com/habitat-sh/habitat/tree/1.6.380) (2021-08-26)
 
 #### Merged Pull Requests
-- Bump serde_test from 1.0.127 to 1.0.129 [#8285](https://github.com/habitat-sh/habitat/pull/8285) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- fix windows download url typo [#8290](https://github.com/habitat-sh/habitat/pull/8290) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- fix windows download url typo [#8290](https://github.com/habitat-sh/habitat/pull/8290) ([mwrock](https://github.com/mwrock)) <!-- 1.6.380 -->
 - Bump serde_test from 1.0.127 to 1.0.129 [#8285](https://github.com/habitat-sh/habitat/pull/8285) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.379 -->
 - Bump serde from 1.0.127 to 1.0.129 [#8286](https://github.com/habitat-sh/habitat/pull/8286) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.378 -->
 - Bump libc from 0.2.99 to 0.2.100 [#8284](https://github.com/habitat-sh/habitat/pull/8284) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.377 -->
