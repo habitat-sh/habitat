@@ -38,6 +38,7 @@ lazy_static = "*"
 libc = "*"
 log = "*"
 log4rs = "*"
+nats = { git="https://github.com/nats-io/nats.rs", branch="main"}
 notify = "*"
 num_cpus = "*"
 parking_lot = "*"
