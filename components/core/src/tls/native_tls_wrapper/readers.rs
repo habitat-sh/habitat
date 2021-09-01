@@ -52,6 +52,24 @@ pub fn certificates(fs_root_path: Option<&Path>) -> Result<Vec<Certificate>> {
     Ok(certificates)
 }
 
+pub fn certificates_pathbuf(fs_root_path: Option<&Path>) -> Result<Vec<PathBuf>> {
+    let mut certificates = Vec::new();
+
+    // MacOS is not yet fully consistent with other platforms,
+    // as it cannot handle PEM files with multiple certs.
+    // We can enable this when the following issue is resolved:
+    // https://github.com/sfackler/rust-native-tls/issues/132
+    #[cfg(not(target_os = "macos"))]
+    {
+        match installed_cacerts(fs_root_path)? {
+            Some(cert_path) => process_cert_file_path(&mut certificates, &cert_path),
+            None => (),
+        }
+    }
+
+    Ok(certificates)
+}
+
 pub fn certificates_as_der(fs_root_path: Option<&Path>) -> Result<Vec<Vec<u8>>> {
     Ok(certificates(fs_root_path)?.iter()
                                   .map(Certificate::to_der)
@@ -108,6 +126,20 @@ fn process_cert_file(certificates: &mut Vec<Certificate>, file_path: &Path) {
         Ok(mut certs) => {
             debug!("Found {} certs in: {}", certs.len(), file_path.display());
             certificates.append(&mut certs)
+        }
+        Err(err) => {
+            debug!("Unable to process cert file: {}, err={}",
+                   file_path.display(),
+                   err)
+        }
+    }
+}
+
+fn process_cert_file_path(certificates: &mut Vec<PathBuf>, file_path: &Path) {
+    match certs_from_file(file_path) {
+        Ok(_certs) => {
+            let path: PathBuf = PathBuf::from(file_path);
+            certificates.push(path)
         }
         Err(err) => {
             debug!("Unable to process cert file: {}, err={}",

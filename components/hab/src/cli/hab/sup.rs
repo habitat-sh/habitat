@@ -32,7 +32,7 @@ use habitat_core::{env::Config,
                    fs::HAB_CTL_KEYS_CACHE,
                    package::PackageIdent,
                    util as core_util};
-use rants::{error::Error as RantsError,
+use rants::{error::Error as NatsError,
             Address as NatsAddress};
 use std::{fmt,
           net::{IpAddr,
@@ -118,7 +118,7 @@ impl fmt::Display for EventStreamAddress {
 }
 
 impl FromStr for EventStreamAddress {
-    type Err = RantsError;
+    type Err = NatsError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(EventStreamAddress(s.parse()?)) }
 }

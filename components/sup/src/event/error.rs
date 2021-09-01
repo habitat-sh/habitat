@@ -2,6 +2,8 @@
 
 use rants::{error::Error as RantsError,
             native_tls};
+use std::io::Error as NatsError;
+
 use std::{error,
           fmt,
           result};
@@ -14,6 +16,7 @@ pub enum Error {
     HabitatCore(habitat_core::Error),
     NativeTls(native_tls::Error),
     Rants(RantsError),
+    Nats(NatsError)
 }
 
 // TODO (CM): I would have like to have derived Fail on our Error
@@ -31,6 +34,7 @@ impl fmt::Display for Error {
             Error::HabitatCore(_) => "{}".fmt(f),
             Error::NativeTls(e) => format!("{}", e).fmt(f),
             Error::Rants(e) => format!("{}", e).fmt(f),
+            Error::Nats(e) => format!("{}", e).fmt(f),
         }
     }
 }
@@ -42,12 +46,17 @@ impl error::Error for Error {
             Error::HabitatCore(ref e) => Some(e),
             Error::Rants(ref e) => Some(e),
             Error::NativeTls(ref e) => Some(e),
+            Error::Nats(ref e) => Some(e),
         }
     }
 }
 
 impl From<habitat_core::Error> for Error {
     fn from(error: habitat_core::Error) -> Self { Error::HabitatCore(error) }
+}
+
+impl From<NatsError> for Error {
+    fn from(error: NatsError) -> Self { Error::Nats(error) }
 }
 
 impl From<RantsError> for Error {
