@@ -75,7 +75,7 @@ pub async fn init(sys: &Sys, fqdn: String, config: EventStreamConfig) -> Result<
         let supervisor_id = sys.member_id.clone();
         let ip_address = sys.gossip_listen();
         let event_core = EventCore::new(&supervisor_id, ip_address, &fqdn, &config);
-        let stream = NatsMessageStream::new(&supervisor_id, config).await?;
+        let stream = NatsMessageStream::new(supervisor_id, config).await?;
         NATS_MESSAGE_STREAM.set(stream);
         EVENT_CORE.set(event_core);
     }

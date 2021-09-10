@@ -282,6 +282,11 @@ impl Into<PathBuf> for EventStreamServerCertificate {
     fn into(self) -> PathBuf { self.path }
 }
 
+#[allow(clippy::from_over_into)]
+impl Into<PathBuf> for &EventStreamServerCertificate {
+    fn into(self) -> PathBuf { self.path.clone() }
+}
+
 impl fmt::Debug for EventStreamServerCertificate {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f,
