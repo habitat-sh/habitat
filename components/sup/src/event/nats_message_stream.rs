@@ -36,35 +36,7 @@ impl NatsMessage {
 pub struct NatsClient(Option<Connection>);
 
 impl NatsClient {
-    pub async fn connect(&mut self, supervisor_id: &str, config: &EventStreamConfig, url: &str) {        
-        while self.0.is_none() {
-            match Self::options_from_config(supervisor_id, config).connect(url).await {
-                Ok(conn) => self.0 = Some(conn),
-                Err(e) => {
-                    error!("Failed to connect to NATS server: {}", e);
-                    thread::sleep(Duration::from_millis(1000));
-                }
-            }
-       }
-    }
-
-    // pub async fn connect(self: &Arc<Self>, supervisor_id: &str, config: &EventStreamConfig, url: &str) {        
-    //     match config.connect_method.into() {
-    //         Some(timeout) => {
-    //             println!("Timeout used -> {:?}", timeout);
-    //             time::timeout(timeout, self.connect_impl(supervisor_id, config, &config.url.to_string()))
-    //                 .await
-    //                 .map_err(|_| Error::ConnectNatsServer).unwrap()
-    //         } 
-    //         None => {
-    //             println!("Timeout not used");
-    //             let cloned = self.clone();
-    //             tokio::spawn(async move { cloned.connect_impl(supervisor_id, config, &config.url.to_string()).await });
-    //         }
-    //     };
-    // }
-
-    // async fn connect_impl(&mut self, supervisor_id: &str, config: &EventStreamConfig, url: &str) {        
+    // pub async fn connect(&mut self, supervisor_id: &str, config: &EventStreamConfig, url: &str) {        
     //     while self.0.is_none() {
     //         match Self::options_from_config(supervisor_id, config).connect(url).await {
     //             Ok(conn) => self.0 = Some(conn),
@@ -76,8 +48,36 @@ impl NatsClient {
     //    }
     // }
 
+    pub async fn connect(&self, supervisor_id: String, config: &EventStreamConfig, url: &str) {        
+        match config.connect_method.into() {
+            Some(timeout) => {
+                println!("Timeout used -> {:?}", timeout);
+                time::timeout(timeout, self.connect_impl(supervisor_id, config, &config.url.to_string()))
+                    .await
+                    .map_err(|_| Error::ConnectNatsServer).unwrap()
+            } 
+            None => {
+                println!("Timeout not used");
+                let cloned = self.clone();
+                tokio::spawn(async move { cloned.connect_impl(supervisor_id, config, &config.url.to_string()).await });
+            }
+        };
+    }
+
+    async fn connect_impl(&mut self, supervisor_id: String, config: &EventStreamConfig, url: &str) {        
+        while self.0.is_none() {
+            match Self::options_from_config(&supervisor_id, config).connect(url).await {
+                Ok(conn) => self.0 = Some(conn),
+                Err(e) => {
+                    error!("Failed to connect to NATS server: {}", e);
+                    thread::sleep(Duration::from_millis(1000));
+                }
+            }
+       }
+    }
+
     fn options_from_config(supervisor_id: &str, config: &EventStreamConfig) -> Options {
-        let name = format!("hab_client_{}", supervisor_id); 
+        let name = format!("hab_client_{}", supervisor_id);
  
         //  Not sure how to add a vector into the nats_options object below (in Options::with_token(...))
         //  when the interface is add_root_certificate
@@ -125,22 +125,22 @@ impl NatsMessageStream {
         // If we do not have a timeout, we dont care if we can immediately connect. Instead we spawn
         // a future that will resolve when a connection is possible. Once we establish a
         // connection, the client will handle reconnecting if necessary.
-        let mut client = NatsClient(None);
-        // client.connect(supervisor_id, &config, &config.url.to_string());
+        let client = NatsClient(None);
+        client.connect(supervisor_id, &config, &config.url.to_string());
 
-        match config.connect_method.into() {
-            Some(timeout) => {
-                println!("Timeout used -> {:?}", timeout);
-                time::timeout(timeout, client.connect(&supervisor_id, &config, &config.url.to_string()))
-                    .await
-                    .map_err(|_| Error::ConnectNatsServer)?
-            } 
-            None => {
-                println!("Timeout not used");
-                let mut client = NatsClient::clone(&client);
-                tokio::spawn(async move { client.connect(&supervisor_id, &config, &config.url.to_string()).await });
-            }
-        };
+        // match config.connect_method.into() {
+        //     Some(timeout) => {
+        //         println!("Timeout used -> {:?}", timeout);
+        //         time::timeout(timeout, client.connect(&supervisor_id, &config, &config.url.to_string()))
+        //             .await
+        //             .map_err(|_| Error::ConnectNatsServer)?
+        //     } 
+        //     None => {
+        //         println!("Timeout not used");
+        //         client = NatsClient::clone(&client);
+        //         tokio::spawn(async move { client.connect(&supervisor_id, &config, &config.url.to_string()).await });
+        //     }
+        // };
    
         let (tx, mut rx) = futures_mpsc::unbounded::<NatsMessage>();
 
