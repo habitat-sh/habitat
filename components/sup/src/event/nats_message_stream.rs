@@ -8,9 +8,9 @@ use futures::{channel::{mpsc as futures_mpsc,
 use rants::Subject;
 use nats;
 use nats::asynk::{Options, Connection};
-use tokio::time;
-use std::io::Result as IOResult;
+use tokio::{time, sync::Mutex};
 use std::{
+    io,
     path::PathBuf,
     sync::Arc,
     thread,
@@ -36,37 +36,24 @@ impl NatsMessage {
 pub struct NatsClient(Option<Connection>);
 
 impl NatsClient {
-    // pub async fn connect(&mut self, supervisor_id: &str, config: &EventStreamConfig, url: &str) {        
-    //     while self.0.is_none() {
-    //         match Self::options_from_config(supervisor_id, config).connect(url).await {
-    //             Ok(conn) => self.0 = Some(conn),
-    //             Err(e) => {
-    //                 error!("Failed to connect to NATS server: {}", e);
-    //                 thread::sleep(Duration::from_millis(1000));
-    //             }
-    //         }
-    //    }
-    // }
-
-    pub async fn connect(&self, supervisor_id: String, config: &EventStreamConfig, url: &str) {        
+    pub async fn connect(this: Arc<Mutex<Self>>, supervisor_id: String, config: EventStreamConfig) {        
         match config.connect_method.into() {
             Some(timeout) => {
                 println!("Timeout used -> {:?}", timeout);
-                time::timeout(timeout, self.connect_impl(supervisor_id, config, &config.url.to_string()))
+                time::timeout(timeout, this.lock().await.connect_impl(supervisor_id, &config))
                     .await
                     .map_err(|_| Error::ConnectNatsServer).unwrap()
             } 
             None => {
                 println!("Timeout not used");
-                let cloned = self.clone();
-                tokio::spawn(async move { cloned.connect_impl(supervisor_id, config, &config.url.to_string()).await });
+                tokio::spawn(async move { this.lock().await.connect_impl(supervisor_id, &config).await });
             }
         };
     }
 
-    async fn connect_impl(&mut self, supervisor_id: String, config: &EventStreamConfig, url: &str) {        
+    async fn connect_impl(&mut self, supervisor_id: String, config: &EventStreamConfig) {        
         while self.0.is_none() {
-            match Self::options_from_config(&supervisor_id, config).connect(url).await {
+            match Self::options_from_config(&supervisor_id, config).connect(&config.url.to_string()).await {
                 Ok(conn) => self.0 = Some(conn),
                 Err(e) => {
                     error!("Failed to connect to NATS server: {}", e);
@@ -78,14 +65,6 @@ impl NatsClient {
 
     fn options_from_config(supervisor_id: &str, config: &EventStreamConfig) -> Options {
         let name = format!("hab_client_{}", supervisor_id);
- 
-        //  Not sure how to add a vector into the nats_options object below (in Options::with_token(...))
-        //  when the interface is add_root_certificate
-        // let mut hab_certs: Vec<PathBuf> = Vec::new();
-        // for certificate in habitat_core::tls::native_tls_wrapper::certificates_pathbuf(None)? {
-        //     hab_certs.push(certificate);
-        // }
-
         match &config.server_certificate {
             Some(nats_options) => {
                 let cert_path: PathBuf = nats_options.into(); 
@@ -100,13 +79,11 @@ impl NatsClient {
         }
     }
 
-    pub fn is_connected(&self) -> bool { self.0.is_some() }
-
-    pub async fn publish(&self, subject: &str, msg: impl AsRef<[u8]>) -> IOResult<()> {
+    pub async fn publish(&self, subject: &str, msg: impl AsRef<[u8]>) -> io::Result<()> {
         if let Some(conn) = &self.0 {
             conn.publish(subject, msg).await
         } else {
-            Err(std::io::Error::from(std::io::ErrorKind::Other))
+            Err(io::Error::new(io::ErrorKind::Other, "Not connected to NATS server!"))
         }
     }
 }
@@ -125,35 +102,19 @@ impl NatsMessageStream {
         // If we do not have a timeout, we dont care if we can immediately connect. Instead we spawn
         // a future that will resolve when a connection is possible. Once we establish a
         // connection, the client will handle reconnecting if necessary.
-        let client = NatsClient(None);
-        client.connect(supervisor_id, &config, &config.url.to_string());
+        let client = Arc::new(Mutex::new(NatsClient(None)));
+        NatsClient::connect(client.clone(), supervisor_id, config).await;
+        // let client = NatsClient(None);
+        // NatsClient::connect(Arc::new(Mutex::new(client)).clone(), supervisor_id, config).await;
 
-        // match config.connect_method.into() {
-        //     Some(timeout) => {
-        //         println!("Timeout used -> {:?}", timeout);
-        //         time::timeout(timeout, client.connect(&supervisor_id, &config, &config.url.to_string()))
-        //             .await
-        //             .map_err(|_| Error::ConnectNatsServer)?
-        //     } 
-        //     None => {
-        //         println!("Timeout not used");
-        //         client = NatsClient::clone(&client);
-        //         tokio::spawn(async move { client.connect(&supervisor_id, &config, &config.url.to_string()).await });
-        //     }
-        // };
-   
         let (tx, mut rx) = futures_mpsc::unbounded::<NatsMessage>();
 
         // Spawn a task to handle publishing received messages
         tokio::spawn(async move {
             while let Some(packet) = rx.next().await {
                 let subj = format!("{}", packet.subject);
-                if client.is_connected() {
-                    let res = client.publish(&subj, packet.payload()).await;
-                    println!("publish result: {:?}", res);
-                } else {
-                    println!("client not connected");
-                }
+                let res = client.lock().await.publish(&subj, packet.payload()).await;
+                println!("publish result: {:?}", res);
             }
         });
 
