@@ -243,7 +243,7 @@ async fn attempt_upload_dep(ui: &mut UI,
         ui.status(Status::Missing,
                   format!("artifact {}. It was not found in {}. Please make sure that all the \
                            dependent artifacts are present in the same directory as the \
-                           original artifact that you are attemping to upload.",
+                           original artifact that you are attempting to upload.",
                           archive_name,
                           archives_dir.display()))?;
         Err(Error::FileNotFound(archives_dir.to_string_lossy().into_owned()))
