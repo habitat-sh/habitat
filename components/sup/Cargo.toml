@@ -14,7 +14,6 @@ name = "hab-sup"
 path = "src/main.rs"
 doc = false
 
-#nats = { git="https://github.com/nats-io/nats.rs", branch="main"}
 [dependencies]
 bytes = "*"
 actix-web = { version = "4.0.0-beta.8", default-features = false, features = [ "rustls" ] }
@@ -39,7 +38,8 @@ lazy_static = "*"
 libc = "*"
 log = "*"
 log4rs = "*"
-nats = "*"
+native-tls = "*"
+nats = { path = "../../../nats.rs" }
 notify = "*"
 num_cpus = "*"
 parking_lot = "*"

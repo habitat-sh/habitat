@@ -39,8 +39,6 @@ use habitat_core::{package::ident::PackageIdent,
 use nats_message_stream::{NatsMessage,
                           NatsMessageStream};
 use prost_types::Duration as ProstDuration;
-use rants::{Address,
-            Subject};
 use state::Storage;
 use std::{net::SocketAddr,
           time::Duration};
@@ -50,14 +48,14 @@ lazy_static! {
     // this lazy_static call.
 
     // NATS subject names
-    static ref SERVICE_STARTED_SUBJECT: Subject =
-        "habitat.event.service_started".parse().expect("valid NATS subject");
-    static ref SERVICE_STOPPED_SUBJECT: Subject =
-        "habitat.event.service_stopped".parse().expect("valid NATS subject");
-    static ref SERVICE_UPDATE_STARTED_SUBJECT: Subject =
-        "habitat.event.service_update_started".parse().expect("valid NATS subject");
-    static ref HEALTHCHECK_SUBJECT: Subject =
-        "habitat.event.healthcheck".parse().expect("valid NATS subject");
+    static ref SERVICE_STARTED_SUBJECT: String =
+        "habitat.event.service_started".to_string();
+    static ref SERVICE_STOPPED_SUBJECT: String =
+        "habitat.event.service_stopped".to_string();
+    static ref SERVICE_UPDATE_STARTED_SUBJECT: String =
+        "habitat.event.service_update_started".to_string();
+    static ref HEALTHCHECK_SUBJECT: String =
+        "habitat.event.healthcheck".to_string();
 
     /// Reference to the event stream.
     static ref NATS_MESSAGE_STREAM: Storage<NatsMessageStream> = Storage::new();
@@ -93,7 +91,7 @@ pub struct EventStreamConfig {
     pub site:               Option<String>,
     pub meta:               EventStreamMetadata,
     pub token:              EventStreamToken,
-    pub url:                Address,
+    pub url:                SocketAddr,
     pub connect_method:     EventStreamConnectMethod,
     pub server_certificate: Option<EventStreamServerCertificate>,
 }
@@ -207,7 +205,7 @@ fn initialized() -> bool { NATS_MESSAGE_STREAM.try_get().is_some() }
 ///
 /// If `init_stream` has not been called already, this function will
 /// be a no-op.
-fn publish(subject: &'static Subject, mut event: impl EventMessage) {
+fn publish(subject: &'static str, mut event: impl EventMessage) {
     if let Some(stream) = NATS_MESSAGE_STREAM.try_get() {
         // TODO (CM): Yeah... this is looking pretty gross. The
         // intention is to be able to timestamp the events right as

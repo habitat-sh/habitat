@@ -1,11 +1,10 @@
 //! Event subsystem-specific error handling
 
-use rants::{error::Error as RantsError,
-            native_tls};
-use std::io::Error as NatsError;
-
+use native_tls;
+use tokio::time::error::Elapsed;
 use std::{error,
           fmt,
+          io:: Error as NatsError,
           result};
 
 pub type Result<T> = result::Result<T, Error>;
@@ -15,8 +14,8 @@ pub enum Error {
     ConnectNatsServer,
     HabitatCore(habitat_core::Error),
     NativeTls(native_tls::Error),
-    Rants(RantsError),
-    Nats(NatsError)
+    Nats(NatsError),
+    NatsTimeout(Elapsed),
 }
 
 // TODO (CM): I would have like to have derived Fail on our Error
@@ -33,8 +32,8 @@ impl fmt::Display for Error {
             Error::ConnectNatsServer => "Could not establish connection to NATS server".fmt(f),
             Error::HabitatCore(_) => "{}".fmt(f),
             Error::NativeTls(e) => format!("{}", e).fmt(f),
-            Error::Rants(e) => format!("{}", e).fmt(f),
             Error::Nats(e) => format!("{}", e).fmt(f),
+            Error::NatsTimeout(e) => format!("{:?}", e).fmt(f),
         }
     }
 }
@@ -44,9 +43,9 @@ impl error::Error for Error {
         match self {
             Error::ConnectNatsServer => None,
             Error::HabitatCore(ref e) => Some(e),
-            Error::Rants(ref e) => Some(e),
             Error::NativeTls(ref e) => Some(e),
             Error::Nats(ref e) => Some(e),
+            Error::NatsTimeout(ref e) => Some(e),
         }
     }
 }
@@ -59,8 +58,8 @@ impl From<NatsError> for Error {
     fn from(error: NatsError) -> Self { Error::Nats(error) }
 }
 
-impl From<RantsError> for Error {
-    fn from(error: RantsError) -> Self { Error::Rants(error) }
+impl From<Elapsed> for Error {
+    fn from(error: Elapsed) -> Self { println!("TIME ELAPSED!"); Error::NatsTimeout(error) }
 }
 
 impl From<native_tls::Error> for Error {
