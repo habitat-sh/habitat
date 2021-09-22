@@ -67,7 +67,7 @@ Describe "reading from supervisor and service config files" {
     }
 
     It "service does start with ident" {
-        ((Get-Content -path $svcConfig -Raw) -replace "# pkg_ident =", "pkg_ident = '$pkgName'") | Set-Content -Path $svcConfig
+        ((Get-Content -Path $svcConfig -Raw) -replace "# pkg_ident =", "pkg_ident = '$pkgName'") | Set-Content -Path $svcConfig
 
         Invoke-NativeCommand hab svc load
         Wait-SupervisorService $svcName

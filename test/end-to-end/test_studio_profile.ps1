@@ -5,7 +5,7 @@ function Stop-ProcessTree($Id) {
 
 Describe "hab studio enter with studio_profile.ps1" {
     BeforeAll {
-        Set-Content studio_profile.ps1 -value "write-host 'hohoho';kill `$PID"
+        Set-Content studio_profile.ps1 -Value "write-host 'hohoho';kill `$PID"
         hab origin key generate $env:HAB_ORIGIN
     }
     Context "No HAB_STUDIO_NOPROFILE set" {

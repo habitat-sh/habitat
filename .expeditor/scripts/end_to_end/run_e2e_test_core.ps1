@@ -1,8 +1,7 @@
 # This script expects `setup_environment.sh` or `setup_environment.ps1` to be sourced before execution
 [Diagnostics.CodeAnalysis.SuppressMessage("PSUseApprovedVerbs", '', Scope="function", Target="*Load-SupervisorService")]
 param (
-    [string]$TestName,
-    [string]$BuilderUrl = $env:HAB_BLDR_URL
+    [string]$TestName
 )
 
 . $PSScriptroot/../shared.ps1
@@ -77,7 +76,7 @@ function Wait-PathHasContentUpdatedAfter($Path, $Time, $Timeout) {
 
 function Wait-Supervisor($Timeout = 1, $port = 9631) {
     Write-Host "Waiting up to $Timeout seconds for Supervisor to start..."
-    $testScript = { Test-Connection -ComputerName 127.0.0.1 -TCPPort $port }
+    $testScript = { Test-Connection -ComputerName 127.0.0.1 -TcpPort $port }
     $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for Supervisor to start on port $port" }
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
     Write-Host "Supervisor is now running."
@@ -85,7 +84,7 @@ function Wait-Supervisor($Timeout = 1, $port = 9631) {
 
 function Wait-StopSupervisor($Timeout = 10, $port = 9631) {
     Write-Host "Waiting up to $Timeout seconds for Supervisor to stop..."
-    $testScript = { -Not (Test-Connection -ComputerName 127.0.0.1 -TCPPort $port) }
+    $testScript = { -Not (Test-Connection -ComputerName 127.0.0.1 -TcpPort $port) }
     $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for Supervisor to stop on port $port" }
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
     Write-Host "Supervisor is now stopped."
@@ -148,9 +147,6 @@ function Load-SupervisorService($PackageName, $Timeout = ($DefaultServiceTimeout
     if($Force) {
         $commandArgs += @("--force")
     }
-    if($BuilderUrl) {
-        $commandArgs += @("--url", $BuilderUrl)
-    }
     if($Remote) {
         $commandArgs += @("--remote-sup", $Remote)
     }
@@ -172,7 +168,7 @@ function Load-SupervisorService($PackageName, $Timeout = ($DefaultServiceTimeout
     if($HealthCheckInterval) {
         $commandArgs += @("--health-check-interval", $HealthCheckInterval)
     }
-    $_ = Invoke-NativeCommand @commandArgs
+    Invoke-NativeCommand @commandArgs | Out-Null
     Wait-SupervisorService $svcName -Timeout $Timeout -Remote $Remote $Org
     $svcName
 }
@@ -181,7 +177,7 @@ function Wait-SupervisorServiceUnload($ServiceName, $Timeout = 1) {
     Write-Host "Waiting up to $Timeout seconds for Supervisor to unload $ServiceName ..."
     $testScript = {
         try {
-            $_ = Invoke-WebRequest "http://localhost:9631/services/$ServiceName/default"
+            Invoke-WebRequest "http://localhost:9631/services/$ServiceName/default" | Out-Null
             $false
         } catch {
             $statusCode = $_.Exception.Response.StatusCode.value__
@@ -195,7 +191,7 @@ function Wait-SupervisorServiceUnload($ServiceName, $Timeout = 1) {
 
 function Unload-SupervisorService($PackageName, $Timeout = 5) {
     $svcName = ($PackageName -split "/")[1]
-    $_ = Invoke-NativeCommand hab svc unload $PackageName
+    Invoke-NativeCommand hab svc unload $PackageName | Out-Null
     Wait-SupervisorServiceUnload $svcName -Timeout $Timeout
 }
 
@@ -228,7 +224,7 @@ function Stop-Supervisor {
     Wait-StopSupervisor
 }
 
-function Wait-Process($ProcessName, $Timeout = 1) {
+function Wait-ProcessStart($ProcessName, $Timeout = 1) {
     $testScript =  { Get-Process $ProcessName* -ErrorAction SilentlyContinue }
     $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for $ProcessName to start" }
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout

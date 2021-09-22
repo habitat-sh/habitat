@@ -569,7 +569,7 @@ function Assert-DepsAreValid {
     # `ORIGIN/NAME` token duplicates.
     $uniques = $pkgNames | Select-Object -Unique
     if(!($uniques)) { $uniques = @() }
-    $dupes = Compare-Object -referenceobject $uniques -differenceobject $pkgNames | Select-Object -Unique
+    $dupes = Compare-Object -ReferenceObject $uniques -DifferenceObject $pkgNames | Select-Object -Unique
 
     if($dupes) {
         # Build a list of all fully qualified package identifiers that are members

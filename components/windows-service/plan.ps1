@@ -12,7 +12,7 @@ $pkg_build_deps=@("core/dotnet-core-sdk")
 $pkg_bin_dirs=@("bin")
 
 function Invoke-Build {
-    Copy-Item $PLAN_CONTEXT/* $HAB_CACHE_SRC_PATH/$pkg_dirname -force
+    Copy-Item $PLAN_CONTEXT/* $HAB_CACHE_SRC_PATH/$pkg_dirname -Force
     dotnet restore $HAB_CACHE_SRC_PATH/$pkg_dirname/WindowsService.csproj
     dotnet build $HAB_CACHE_SRC_PATH/$pkg_dirname/WindowsService.csproj -r win-x64 -p:Version=$pkg_version
     if($LASTEXITCODE -ne 0) {
