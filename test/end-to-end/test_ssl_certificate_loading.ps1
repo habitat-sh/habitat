@@ -35,7 +35,7 @@ Context "Habitat SSL Cache" {
             hab pkg exec core/openssl openssl req -newkey rsa:2048 -batch -nodes -keyout key.pem -x509 -days 365 -out c:\hab\cache\ssl\custom-certificate.pem
 
             $env:RUST_LOG="debug"
-            Start-Process hab -ArgumentList "pkg search core/lessmsi" -RedirectStandardError err.log -wait
+            Start-Process hab -ArgumentList "pkg search core/lessmsi" -RedirectStandardError err.log -Wait
             $env:RUST_LOG="info"
             Get-Content -Raw -Path err.log | Should -Match "Processing cert file: C:\\hab/cache/ssl\\custom-certificate.pem"
         }

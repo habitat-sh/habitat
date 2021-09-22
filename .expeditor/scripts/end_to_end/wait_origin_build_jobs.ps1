@@ -23,7 +23,7 @@ param (
 
     [int]
     # The amount of time in seconds to wait between iterations of the loop
-    $Sleep = 10,
+    $Sleep = 5,
 
     [int]
     # The amount of time in seconds before the script fails due to timeout
@@ -56,7 +56,7 @@ do {
     $statusTable = ConvertFrom-Csv $output
 
     # Check if we have any not completed statuses
-    $notCompleted = ($statusTable | Where-Object -Property "STATUS" -ne "Complete").Length
+    $notCompleted = ($statusTable | Where-Object -Property "STATUS" -NE "Complete").Length
     if ($notCompleted -eq 0) {
         break
     }
@@ -70,5 +70,5 @@ do {
 
     Write-Output "Waiting for $notCompleted jobs to complete"
 
-    Start-Sleep 5
+    Start-Sleep $Sleep
 } while ($true)

@@ -10,7 +10,7 @@ Describe "Using a Launcher that cannot provide service PIDs" {
     $supLog = New-SupervisorLogFile("using_a_launcher_that_cannot_provide_service_pids")
     Start-Supervisor -LogFile $supLog -Timeout 20
     Load-SupervisorService -PackageName "core/redis"
-    Wait-Process redis-server -Timeout 10
+    Wait-ProcessStart redis-server -Timeout 10
 
     It "should create PID file" {
         Test-Path "/hab/svc/redis/PID" | Should -Be $true
@@ -20,7 +20,7 @@ Describe "Using a Launcher that cannot provide service PIDs" {
         $supProc = Get-Process hab-sup
         $redisProc = Get-Process "redis-server *:6379"
         Restart-Supervisor
-        Wait-Process redis-server -Timeout 10
+        Wait-ProcessStart redis-server -Timeout 10
         $newSupProc = Get-Process hab-sup
         $newRedisProc = Get-Process "redis-server *:6379"
 
