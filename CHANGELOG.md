@@ -1,16 +1,20 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.390 -->
-## [1.6.390](https://github.com/habitat-sh/habitat/tree/1.6.390) (2021-09-22)
+<!-- latest_release 1.6.391 -->
+## [1.6.391](https://github.com/habitat-sh/habitat/tree/1.6.391) (2021-09-23)
 
 #### Merged Pull Requests
-- fix verify pipeline [#8305](https://github.com/habitat-sh/habitat/pull/8305) ([mwrock](https://github.com/mwrock))
+- temporarily removing 2016 studio from release [#8311](https://github.com/habitat-sh/habitat/pull/8311) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- temporarily removing 2016 studio from release [#8311](https://github.com/habitat-sh/habitat/pull/8311) ([mwrock](https://github.com/mwrock)) <!-- 1.6.391 -->
+- Bump flate2 from 1.0.21 to 1.0.22 [#8304](https://github.com/habitat-sh/habitat/pull/8304) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.391 -->
+- Bump libc from 0.2.101 to 0.2.102 [#8308](https://github.com/habitat-sh/habitat/pull/8308) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.391 -->
+- Bump serde_json from 1.0.67 to 1.0.68 [#8306](https://github.com/habitat-sh/habitat/pull/8306) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.391 -->
 - fix verify pipeline [#8305](https://github.com/habitat-sh/habitat/pull/8305) ([mwrock](https://github.com/mwrock)) <!-- 1.6.390 -->
 - Fixed a typographical error in upload. [#8307](https://github.com/habitat-sh/habitat/pull/8307) ([TheDarkula](https://github.com/TheDarkula)) <!-- 1.6.389 -->
 - Bump serde_yaml from 0.8.20 to 0.8.21 [#8303](https://github.com/habitat-sh/habitat/pull/8303) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.388 -->
