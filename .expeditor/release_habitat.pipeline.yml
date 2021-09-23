@@ -418,13 +418,16 @@ steps:
         linux:
           privileged: true
 
-  - label: ":docker: :windows: Upload windows 2016 container to Docker Hub"
-    if: build.creator.name == 'Chef Expeditor'
-    command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
-    expeditor:
-      executor:
-        windows:
-          os_version: 2016
+  # Buildkite does not seem to be running 2016 agents. Temporarily removing 2016
+  # studio until https://github.com/chef/release-engineering/issues/1634 is
+  # resolved.
+  # - label: ":docker: :windows: Upload windows 2016 container to Docker Hub"
+  #   if: build.creator.name == 'Chef Expeditor'
+  #   command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
+  #   expeditor:
+  #     executor:
+  #       windows:
+  #         os_version: 2016
 
   - label: ":docker: :windows: Upload windows 2019 container to Docker Hub"
     if: build.creator.name == 'Chef Expeditor'
