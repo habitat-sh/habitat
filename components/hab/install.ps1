@@ -23,7 +23,7 @@ param (
 
 $ErrorActionPreference="stop"
 
-Set-Variable packagesChefioRootUrl -Option ReadOnly -value "https://packages.chef.io/files"
+Set-Variable packagesChefioRootUrl -Option ReadOnly -Value "https://packages.chef.io/files"
 
 Function Get-File($url, $dst) {
     Write-Host "Downloading $url"

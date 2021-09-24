@@ -70,8 +70,8 @@ Describe "hab pkg bulkupload" {
         # origin create will exit 0 if the origin already exists
         hab origin create --url $env:HAB_BLDR_URL $env:HAB_ORIGIN
         if(Test-Path $cacheDir) { Remove-Item $cacheDir -Recurse -Force }
-        New-Item (Join-Path $cacheDir "artifacts") -Itemtype directory
-        New-Item (Join-Path $cacheDir "keys") -Itemtype directory
+        New-Item (Join-Path $cacheDir "artifacts") -ItemType directory
+        New-Item (Join-Path $cacheDir "keys") -ItemType directory
         # We always attempt to re-use the same package versions so we are not cluttering up Builder needlessly.
         # The packages may not exist yet in Builder, therefore we allow for failure on the download.
         hab pkg download --url $env:HAB_BLDR_URL --download-directory $cacheDir --channel unstable $testPkg1Ident $testPkg2Ident

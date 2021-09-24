@@ -11,7 +11,7 @@ Describe "Self signed cert"  {
 
     It "should be used by bldr client" {
         $env:RUST_LOG="debug"
-        Start-Process hab -ArgumentList "pkg search core/redis" -RedirectStandardError err.log -wait
+        Start-Process hab -ArgumentList "pkg search core/redis" -RedirectStandardError err.log -Wait
         "err.log" | Should -FileContentMatch "Processing cert file: ${e2e_cert}"
     }
 }

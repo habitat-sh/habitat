@@ -66,8 +66,8 @@ function Invoke-Configure {
 }
 
 function Get-Component($path) {
-    $leaf = Split-Path $path -leaf
-    $parent = Split-Path (Split-Path $path -Parent) -leaf
+    $leaf = Split-Path $path -Leaf
+    $parent = Split-Path (Split-Path $path -Parent) -Leaf
     if($parent -eq "components") { $leaf } else { Write-Error "The specified path is not a component" }
 }
 

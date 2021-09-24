@@ -414,7 +414,7 @@ function Enter-Studio {
     Write-HabInfo "Entering Studio at $HAB_STUDIO_ROOT"
     & "$PSScriptRoot\powershell\pwsh.exe" -NoProfile -ExecutionPolicy bypass -NoLogo -NoExit -Command {
         function prompt {
-            Write-Host "[HAB-STUDIO]" -NoNewLine -ForegroundColor Green
+            Write-Host "[HAB-STUDIO]" -NoNewline -ForegroundColor Green
             " $($executionContext.SessionState.Path.CurrentLocation)$('>' * ($nestedPromptLevel +1)) "
         }
         function build {
