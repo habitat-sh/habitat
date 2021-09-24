@@ -1656,7 +1656,7 @@ dependencies = [
  "log4rs",
  "mio 0.7.13",
  "native-tls",
- "nats 0.15.1",
+ "nats 0.15.2",
  "notify",
  "num_cpus",
  "parking_lot",
@@ -2373,7 +2373,7 @@ dependencies = [
 
 [[package]]
 name = "nats"
-version = "0.15.1"
+version = "0.15.2"
 dependencies = [
  "base64",
  "base64-url",
