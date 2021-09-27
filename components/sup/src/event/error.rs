@@ -3,13 +3,14 @@
 use native_tls;
 use std::{error,
           fmt,
+          io::Error as IOError,
           result};
 
 pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
-    ConnectNatsServer(std::io::Error),
+    ConnectNatsServer(IOError),
     HabitatCore(habitat_core::Error),
     NativeTls(native_tls::Error),
 }
@@ -25,7 +26,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::ConnectNatsServer(_) => format!("Could not establish connection to NATS server").fmt(f),
+            Error::ConnectNatsServer(_) => "Could not establish connection to NATS server".fmt(f),
             Error::HabitatCore(_) => "{}".fmt(f),
             Error::NativeTls(e) => format!("{}", e).fmt(f),
         }
@@ -46,8 +47,8 @@ impl From<habitat_core::Error> for Error {
     fn from(error: habitat_core::Error) -> Self { Error::HabitatCore(error) }
 }
 
-impl From<std::io::Error> for Error {
-    fn from(error: std::io::Error) -> Self { Error::ConnectNatsServer(error) }
+impl From<IOError> for Error {
+    fn from(error: IOError) -> Self { Error::ConnectNatsServer(error) }
 }
 
 impl From<native_tls::Error> for Error {

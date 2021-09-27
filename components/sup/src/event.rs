@@ -43,20 +43,14 @@ use state::Storage;
 use std::{net::SocketAddr,
           time::Duration};
 
+
+// NATS subject names
+const SERVICE_STARTED_SUBJECT: &str = "habitat.event.service_started";
+const SERVICE_STOPPED_SUBJECT: &str = "habitat.event.service_stopped";
+const SERVICE_UPDATE_STARTED_SUBJECT: &str = "habitat.event.service_update_started";
+const HEALTHCHECK_SUBJECT: &str = "habitat.event.healthcheck";
+
 lazy_static! {
-    // TODO (CM): When const fn support lands in stable, we can ditch
-    // this lazy_static call.
-
-    // NATS subject names
-    static ref SERVICE_STARTED_SUBJECT: String =
-        "habitat.event.service_started".to_string();
-    static ref SERVICE_STOPPED_SUBJECT: String =
-        "habitat.event.service_stopped".to_string();
-    static ref SERVICE_UPDATE_STARTED_SUBJECT: String =
-        "habitat.event.service_update_started".to_string();
-    static ref HEALTHCHECK_SUBJECT: String =
-        "habitat.event.healthcheck".to_string();
-
     /// Reference to the event stream.
     static ref NATS_MESSAGE_STREAM: Storage<NatsMessageStream> = Storage::new();
     /// Core information that is shared between all events.

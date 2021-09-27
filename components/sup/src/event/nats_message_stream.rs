@@ -31,7 +31,7 @@ impl NatsMessage {
 
 #[derive(Clone)]
 struct NatsClientImpl {
-    connection: Option<Arc<Mutex<Option<Connection>>>>,
+    connection: Option<Arc<Mutex<Connection>>>,
 }
 
 ///  NatsClientImpl contains the implementation details for the NatsClient.
@@ -44,11 +44,10 @@ impl NatsClientImpl {
     async fn connect(&mut self, supervisor_id: String, config: &EventStreamConfig) -> io::Result<()> {        
         if self.connection.is_none() {
             match Self::options_from_config(&supervisor_id, config) 
-                .with_retry_on_failed_connect()
                 .connect(&config.url.to_string())
                 .await {
                     Ok(conn) => {
-                        self.connection = Some(Arc::new(Mutex::new(Some(conn))));
+                        self.connection = Some(Arc::new(Mutex::new(conn)));
                     }
                     Err(e) => {
                         Error::ConnectNatsServer(e);
@@ -71,26 +70,20 @@ impl NatsClientImpl {
                     .with_name(&name)
                     .add_root_certificate(cert_path)
                     .add_root_certificate(ca_certs.unwrap())
+                    .with_retry_on_failed_connect()
             }
             None => {
                 Options::with_token(&config.token.to_string()) 
                     .with_name(&name)
                     .add_root_certificate(ca_certs.unwrap())
+                    .with_retry_on_failed_connect()
             }
         }
     }
 
     async fn publish(&mut self, subject: &str, msg: impl AsRef<[u8]>) -> io::Result<()> {
-        if let Some(arc) = &self.connection {
-            //let conn_guard = arc.lock().await;
-            //if let Some(conn) = &*conn_guard {
-            //let conn_guard = arc.lock().await;
-            if let Some(conn) = &*arc.lock().await {
-                conn.publish(subject, msg).await
-            }
-            else {
-                Err(io::Error::new(io::ErrorKind::Other, "Not connected to NATS server!"))
-            }
+        if let Some(conn) = &self.connection {
+            conn.lock().await.publish(subject, msg).await
         }
         else {
             Err(io::Error::new(io::ErrorKind::Other, "Not connected to NATS server!"))
