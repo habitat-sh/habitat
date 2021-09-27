@@ -2374,6 +2374,7 @@ dependencies = [
 [[package]]
 name = "nats"
 version = "0.15.2"
+source = "git+https://github.com/pozsgaic/nats.rs.git?branch=main#e693aaf07a214104003e30931d6ad4e897fe7983"
 dependencies = [
  "base64",
  "base64-url",

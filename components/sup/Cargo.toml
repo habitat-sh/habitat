@@ -39,7 +39,7 @@ libc = "*"
 log = "*"
 log4rs = "*"
 native-tls = "*"
-nats = { path = "../../../nats.rs" }
+nats = { git = "https://github.com/pozsgaic/nats.rs.git", branch = "main" }
 notify = "*"
 num_cpus = "*"
 parking_lot = "*"
