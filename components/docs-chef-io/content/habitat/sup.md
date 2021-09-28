@@ -14,7 +14,7 @@ draft = false
     weight = 10
 +++
 
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/sup.md)
 
 The Supervisor is a process manager that has two primary responsibilities. First, it starts and monitors child services defined in the plan it is running. Second, it receives and acts upon information from the other Supervisors to which it is connected. A service will be reconfigured through application lifecycle hooks if its configuration has changed.
 

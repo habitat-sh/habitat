@@ -10,7 +10,7 @@ description = "Supervisor log code key reference"
 
 +++
 
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_log_keys.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/sup_log_keys.md)
 
 When running services with the Chef Habitat Supervisor you'll see log output similar to this:
 

@@ -10,7 +10,7 @@ description = "Export Chef Habitat packages to Docker, Kubernetes, Helm, Mesos, 
     weight = 40
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pkg_exports.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/pkg_exports.md)
 
 Chef Habitat Artifacts--`.hart` files--can be exported in a number of different formats depending on what you need and where you need it. This is powerful because you can use the same immutable Chef Habitat artifact by exporting it into a format that you need for a specific job.
 

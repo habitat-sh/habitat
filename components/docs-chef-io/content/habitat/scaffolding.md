@@ -10,7 +10,7 @@ description = "Scaffolding"
     weight = 95
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/scaffolding.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/scaffolding.md)
 
 Chef Habitat scaffoldings are standardized plans for automated building and running your application. Each scaffolding is tuned to the way your application was built, which allows it to create the appropriate [application lifecycle hooks]({{< relref "application_lifecycle_hooks" >}}) and add in the correct runtime dependencies when building the package for your application. Scaffoldings also provide some default health check hooks where appropriate to ensure your application is functioning reliably. Customized Scaffolding can be created to facilitate re-usability of common patterns in your organization for developing, building, and running your applications.
 
@@ -18,9 +18,9 @@ Chef Habitat scaffoldings are standardized plans for automated building and runn
 
 While we are targeting many platforms for automated scaffolding we currently support Ruby, Node.js and Gradle.
 
-* [core/scaffolding-ruby](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-ruby/doc/reference.md)
-* [core/scaffolding-node](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-node)
-* [core/scaffolding-gradle](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-gradle)
+* [core/scaffolding-ruby](https://github.com/habitat-sh/core-plans/blob/main/scaffolding-ruby/doc/reference.md)
+* [core/scaffolding-node](https://github.com/habitat-sh/core-plans/tree/main/scaffolding-node)
+* [core/scaffolding-gradle](https://github.com/habitat-sh/core-plans/blob/main/scaffolding-gradle)
 
 ## Variables
 

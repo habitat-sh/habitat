@@ -12,9 +12,9 @@ aliases = ["/habitat/habitat-cli/"]
     weight = 10
 +++
 
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/habitat_cli.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/habitat_cli.md)
 
-<!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
+<!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/main/www/scripts/generate-cli-docs.js -->
 
 Chef Habitat Command-Line Interface (CLI) Reference
 

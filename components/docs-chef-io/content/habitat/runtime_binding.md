@@ -10,6 +10,6 @@ description = "Runtime Services Group Binding"
     weight = 80
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/runtime_binding.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/runtime_binding.md)
 
 ![Chef Habitat Runtime Services Group Binding Diagram](/images/habitat/habitat-runtime-service-group-binding.png)

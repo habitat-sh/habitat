@@ -8,7 +8,7 @@ description = "Define basic metadata about your artifact with plan settings"
     identifier = "habitat/reference/plan-settings"
     parent = "habitat/reference"
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/plan_settings.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/plan_settings.md)
 
 Habitat reserves some names for internal use. You can set all of these values in your plan and use them as variables in your Habitat code.
 

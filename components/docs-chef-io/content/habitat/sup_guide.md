@@ -12,7 +12,7 @@ draft = false
     weight = 120
 +++
 
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_guide.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/sup_guide.md)
 
 This document provides developer documentation on how the Chef Habitat system becomes self-sustaining. It is built upon the work from the [Linux from Scratch](http://www.linuxfromscratch.org/lfs/) project.
 
@@ -121,7 +121,7 @@ $ mv ${tarxz/.xz/} ${dst/.xz/}
 $ xz --compress -9 --threads=0 --verbose ${dst/.xz/}
 ```
 
-If you upload a new version of this tarball for broader use with the Studio software, it is worth updating the source location in the Studio's [hab-studio-type-stage1.sh](https://github.com/habitat-sh/habitat/blob/master/components/studio/libexec/hab-studio-type-stage1.sh) code (the line with `${STAGE1_TOOLS_URL}`). Note that simply to use or test a new tarball with Studio, you should only need to set the following before using `hab studio` commands:
+If you upload a new version of this tarball for broader use with the Studio software, it is worth updating the source location in the Studio's [hab-studio-type-stage1.sh](https://github.com/habitat-sh/habitat/blob/main/components/studio/libexec/hab-studio-type-stage1.sh) code (the line with `${STAGE1_TOOLS_URL}`). Note that simply to use or test a new tarball with Studio, you should only need to set the following before using `hab studio` commands:
 
 * `export STAGE1_TOOLS_URL=habitat-studio-stage1-20160612022150.tar.xz`
 
@@ -162,7 +162,7 @@ $ sudo rm -rf ./results ./tmp/*.db
 
 ## Part IV: Stage 1
 
-To simplify the process of setting up and entering a `stage1` Studio, use this [stage1 Studio](https://github.com/habitat-sh/core-plans/blob/master/bin/bootstrap/stage1-studio.sh) wrapper:
+To simplify the process of setting up and entering a `stage1` Studio, use this [stage1 Studio](https://github.com/habitat-sh/core-plans/blob/main/bin/bootstrap/stage1-studio.sh) wrapper:
 
 ```bash
 $ ./core-plans/bin/bootstrap/stage1-studio.sh enter
@@ -202,7 +202,7 @@ To make this work, we need to get the fully-qualified package identifier of the 
 
 Has a package identifier of `core/hab-backline/0.56.0/20180322160653`. In general, the `/` characters in a package identifier become `-` characters in an artifact name, and you drop the target info (i.e. `x86_64`) and file extension. For the remainder of this guide, let's assume that your fully-qualified package identifier is `core/hab-backline/0.56.0/20180322160653`.
 
-Finally, to help set up environment variables for the Studio, we're going to use a [stage2 Studio](https://github.com/habitat-sh/core-plans/blob/master/bin/bootstrap/stage2-studio.sh) wrapper:
+Finally, to help set up environment variables for the Studio, we're going to use a [stage2 Studio](https://github.com/habitat-sh/core-plans/blob/main/bin/bootstrap/stage2-studio.sh) wrapper:
 
 ```bash
 # Install only stage1 packages when setting up this Studio--that's why we're
@@ -261,7 +261,7 @@ $ cp stage3_world_order stage3_world_order.working
 
 As in the stage2 build, we need to get the fully-qualified package identifier of the `core/hab-backline` package we just built in stage2. You can use `ls -1 ./results-stage2/core-hab-backline-*.hart` to list the artifact. The naming of this file will help you to figure out the package identifier. For now, let's assume that the identifier corresponding to the artifact was `core/hab-backline/0.56.0/20180322181801`.
 
-As before, to help set up environment variables for the Studio, we're going to use a [stage3 Studio](https://github.com/habitat-sh/core-plans/blob/master/bin/bootstrap/stage3-studio.sh) wrapper:
+As before, to help set up environment variables for the Studio, we're going to use a [stage3 Studio](https://github.com/habitat-sh/core-plans/blob/main/bin/bootstrap/stage3-studio.sh) wrapper:
 
 ```bash
 # Install only stage2 packages when setting up this Studio--that's why we're

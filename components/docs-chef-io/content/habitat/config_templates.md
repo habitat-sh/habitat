@@ -9,7 +9,7 @@ description = "Using templates and tags to tune your application configuration f
     parent = "habitat/reference"
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/config_templates.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/config_templates.md)
 
 Chef Habitat allows you to templatize your application's native configuration files using [Handlebars](https://handlebarsjs.com/) syntax. The following sections describe how to create tunable configuration elements for your application or service.
 

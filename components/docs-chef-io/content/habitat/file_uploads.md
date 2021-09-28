@@ -10,7 +10,7 @@ description = "Update Services with File Uploads"
     weight = 60
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/file_uploads.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/file_uploads.md)
 
 In addition to [updating single services]({{< relref "config_updates" >}}), you can upload files to a service group. Keep these small - we recommend 4k or less per file, and keep the count of files to a minimum.
 

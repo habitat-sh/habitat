@@ -12,7 +12,7 @@ draft = false
     weight = 85
 +++
 
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_config.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/sup_config.md)
 
 Generate a Supervisor configuration file and use it to set any of the 40+ Supervisor configuration settings instead of configuring them on the command line.
 

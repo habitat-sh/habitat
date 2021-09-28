@@ -11,7 +11,7 @@ aliases = ["/habitat/pattern-library/"]
     parent = "habitat/reference"
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pattern_library.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/pattern_library.md)
 
 ## Chef Habitat Pattern Library
 

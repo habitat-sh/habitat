@@ -11,9 +11,9 @@ draft = false
     parent = "habitat/reference"
 +++
 
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/service_templates.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/service_templates.md)
 
-<!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-template-reference.js -->
+<!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/main/www/scripts/generate-template-reference.js -->
 
 The following settings can be used during a Chef Habitat service's lifecycle. This means that you can use these settings in any of the plan hooks, such as `init`, or `run`, and also in any templatized configuration file for your application or service.
 

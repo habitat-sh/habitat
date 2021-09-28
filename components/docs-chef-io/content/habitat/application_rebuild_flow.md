@@ -10,7 +10,7 @@ description = "Application Rebuild Flow"
     weight = 40
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/application_rebuild_flow.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/application_rebuild_flow.md)
 
 ![Chef Habitat Application Rebuild Flow Diagram](/images/habitat/habitat-application-rebuild-flow.png)
 
