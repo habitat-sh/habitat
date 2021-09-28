@@ -1,8 +1,8 @@
 +++
-
 title = "Studio"
 description = "About the Chef Habitat Studio"
 draft = true
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -12,8 +12,6 @@ draft = true
     weight = 80
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/studio.md)
-
 ## Customizing Studio
 
 When you enter a Studio, Chef Habitat will attempt to locate `/src/.studiorc` and

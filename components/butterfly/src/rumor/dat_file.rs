@@ -172,7 +172,7 @@ impl DatFileReader {
         if let Some(offset) = self.header.offset_for_rumor(T::MESSAGE_ID) {
             self.dat_file
                 .read_and_process(&mut self.reader, offset, |r| {
-                    rumors.push(T::from_bytes(&r)?);
+                    rumors.push(T::from_bytes(r)?);
                     Ok(())
                 })?;
         }
@@ -186,7 +186,7 @@ impl DatFileReader {
         if let Some(offset) = self.header.member_offset() {
             self.dat_file
                 .read_and_process(&mut self.reader, offset, |r| {
-                    members.push(Membership::from_bytes(&r)?);
+                    members.push(Membership::from_bytes(r)?);
                     Ok(())
                 })?;
         }
@@ -452,8 +452,8 @@ impl Header {
                                LittleEndian::read_u64(&bytes[40..48]));
                 offsets.insert(Departure::MESSAGE_ID.to_string(), 0);
                 Header { offsets,
-                         version,
-                         size }
+                         size,
+                         version }
             }
             // This should be the latest version of the header. As we deprecate
             // header versions, just roll this code up, and match it, then add
@@ -481,8 +481,8 @@ impl Header {
                 offsets.insert(Departure::MESSAGE_ID.to_string(),
                                LittleEndian::read_u64(&bytes[56..64]));
                 Header { offsets,
-                         version,
-                         size }
+                         size,
+                         version }
             }
         }
     }
@@ -523,8 +523,8 @@ mod tests {
 
     #[test]
     fn read_write_header() {
-        let mut original = Header::default();
-        original.version = 2;
+        let mut original = Header { version: 2,
+                                    ..Default::default() };
         original.insert_member_offset(rand::random::<u64>());
         original.insert_offset_for_rumor(Service::MESSAGE_ID, rand::random::<u64>());
         original.insert_offset_for_rumor(ServiceConfig::MESSAGE_ID, rand::random::<u64>());

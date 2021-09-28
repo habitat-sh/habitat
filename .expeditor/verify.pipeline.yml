@@ -45,6 +45,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 10
 
   - label: "[lint] :windows: :paperclip: clippy!"
@@ -83,12 +84,18 @@ steps:
   # Tests can be tagged with `#[ignore]` for a variety of reasons; see the individual tests for
   # annotations explaining why. There shouldn't be many of these tests, and to make sure they
   # continue to function, run all such tests for the workspace at once.
+
+  # Note that until buildkite instances update their docker engine to one that includes
+  # runc v1.0.0-rc93 or greater, we must run run_cargo_test.sh with --privileged. This is
+  # because the older runc does not honor system calls from GLIBC 2.33 which was in the
+  # latest refresh.
   - label: "[unit] :linux: ignored"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh -- --ignored
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -100,6 +107,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -107,19 +115,21 @@ steps:
 
   - label: "[unit] :linux: butterfly lock_as_mutex"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh butterfly --nightly --features "lock_as_mutex deadlock_detection" -- --test-threads=1 --format=pretty
+      - .expeditor/scripts/verify/run_cargo_test.sh butterfly --features "lock_as_mutex deadlock_detection" -- --test-threads=1 --format=pretty
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 20
     soft_fail: true
 
   - label: "[unit] :linux: butterfly lock_as_rwlock"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh butterfly --nightly --features "lock_as_rwlock deadlock_detection" -- --test-threads=1 --format=pretty
+      - .expeditor/scripts/verify/run_cargo_test.sh butterfly --features "lock_as_rwlock deadlock_detection" -- --test-threads=1 --format=pretty
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -136,12 +146,7 @@ steps:
         user: "buildkite-agent"
         group: "buildkite-agent"
         image: "chefes/buildkite"
-    # FIXME - using the correct executor format as shown below, this fails with a disk error as as follows:
-    # https://buildkite.com/chef/habitat-sh-habitat-master-verify/builds/3666#ae448100-387f-4f4c-a62f-c8e3973a1f02
-    # Issue: https://github.com/habitat-sh/habitat/issues/7000
-    # expeditor:
-    #   executor:
-    #     docker:
+        privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -153,6 +158,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -164,6 +170,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 20
 
   - label: "[unit] :linux: http-client"
@@ -172,6 +179,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -183,6 +191,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -194,6 +203,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -205,6 +215,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -216,6 +227,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -227,6 +239,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -238,6 +251,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -249,6 +263,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 40
     soft_fail: true
 
@@ -258,6 +273,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -269,6 +285,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -964,10 +981,11 @@ steps:
       HAB_LICENSE: "accept-no-persist"
       BUILD_PKG_TARGET: "x86_64-darwin"
       HOMEBREW_NO_INSTALL_CLEANUP: 1
+      HOMEBREW_NO_AUTO_UPDATE: 1
     expeditor:
       executor:
         macos:
-          os-version: "10.13"
+          os-version: "10.14"
           inherit-environment-vars: true
     timeout_in_minutes: 60
     retry:

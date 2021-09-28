@@ -20,14 +20,15 @@ use std::{ffi::OsString,
           fmt,
           num::ParseIntError,
           path::PathBuf,
+          result,
           str::FromStr,
           time::Duration};
 use structopt::{clap::AppSettings,
                 StructOpt};
 use url::{ParseError,
           Url};
-use webpki::{DNSName,
-             DNSNameRef};
+use webpki::{DnsName,
+             DnsNameRef};
 
 #[derive(ConfigOpt, StructOpt)]
 #[configopt(derive(Serialize))]
@@ -108,6 +109,15 @@ pub fn maybe_bldr_auth_token_from_args_or_load(opt: Option<String>) -> Option<St
     bldr_auth_token_from_args_env_or_load(opt).ok()
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
+pub fn non_empty(val: String) -> result::Result<(), String> {
+    if val.is_empty() {
+        Err("must not be empty (check env overrides)".to_string())
+    } else {
+        Ok(())
+    }
+}
+
 lazy_static! {
     pub static ref CACHE_KEY_PATH_DEFAULT: String =
         hab_core_fs::CACHE_KEY_PATH.to_string_lossy().to_string();
@@ -165,6 +175,7 @@ impl PkgIdent {
 
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
+#[configopt(derive(Serialize))]
 #[allow(dead_code)]
 pub struct FullyQualifiedPkgIdent {
     /// A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
@@ -264,13 +275,13 @@ pub struct ExternalCommandArgsWithHelpAndVersion {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(try_from = "&str", into = "String")]
-pub struct SubjectAlternativeName(DNSName);
+pub struct SubjectAlternativeName(DnsName);
 
 impl FromStr for SubjectAlternativeName {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(SubjectAlternativeName(DNSNameRef::try_from_ascii_str(s).map_err(|_| Error::InvalidDnsName(s.to_string()))?.to_owned()))
+        Ok(SubjectAlternativeName(DnsNameRef::try_from_ascii_str(s).map_err(|_| Error::InvalidDnsName(s.to_string()))?.to_owned()))
     }
 }
 
@@ -281,7 +292,7 @@ impl std::fmt::Display for SubjectAlternativeName {
 }
 
 impl SubjectAlternativeName {
-    pub fn inner(&self) -> DNSNameRef { self.0.as_ref() }
+    pub fn inner(&self) -> DnsNameRef { self.0.as_ref() }
 }
 
 habitat_core::impl_try_from_str_and_into_string!(SubjectAlternativeName);

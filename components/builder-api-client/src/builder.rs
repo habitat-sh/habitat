@@ -1,5 +1,4 @@
-use crate::{allow_std_io::AllowStdIo,
-            error::{Error,
+use crate::{error::{Error,
                     Result},
             hab_http::ApiClient,
             response,
@@ -16,7 +15,8 @@ use crate::{allow_std_io::AllowStdIo,
             UserOriginInvitationsResponse};
 use broadcast::BroadcastWriter;
 use bytes::BytesMut;
-use futures::stream::TryStreamExt;
+use futures::{io::AllowStdIo,
+              stream::TryStreamExt};
 use habitat_core::{crypto::keys::AnonymousBox,
                    fs::{AtomicWriter,
                         Permissions,
@@ -50,8 +50,9 @@ use std::{fs::{self,
           time::Duration};
 use tee::TeeReader;
 use tokio::task;
-use tokio_util::codec::{BytesCodec,
-                        FramedRead};
+use tokio_util::{codec::{BytesCodec,
+                         FramedRead},
+                 compat::FuturesAsyncReadCompatExt};
 use url::Url;
 
 const X_FILENAME: &str = "x-filename";
@@ -213,22 +214,22 @@ impl BuilderAPIClient {
         task::spawn_blocking(move || {
             Ok(if let Some(mut progress) = progress {
                 progress.size(file_size);
-                let reader = AllowStdIo::new(TeeReader::new(file, progress));
+                let reader = AllowStdIo::new(TeeReader::new(file, progress)).compat();
                 let reader = FramedRead::new(reader, BytesCodec::new()).map_ok(BytesMut::freeze);
                 Body::wrap_stream(reader)
             } else {
-                let reader = AllowStdIo::new(file);
+                let reader = AllowStdIo::new(file).compat();
                 let reader = FramedRead::new(reader, BytesCodec::new()).map_ok(BytesMut::freeze);
                 Body::wrap_stream(reader)
             })
         }).await?
     }
 
-    async fn seach_package_with_range(&self,
-                                      search_term: &str,
-                                      token: Option<&str>,
-                                      range: usize)
-                                      -> Result<(PackageResults<PackageIdent>, bool)> {
+    async fn search_package_with_range(&self,
+                                       search_term: &str,
+                                       token: Option<&str>,
+                                       range: usize)
+                                       -> Result<(PackageResults<PackageIdent>, bool)> {
         debug!("Searching for package {} with range {}", search_term, range);
         let req = self.0
                       .get_with_custom_url(&package_search(search_term), |url| {
@@ -680,7 +681,7 @@ impl BuilderAPIClient {
                                        -> Result<UserOriginInvitationsResponse> {
         let path = "user/invitations";
 
-        let resp = self.0.get(&path).bearer_auth(token).send().await?;
+        let resp = self.0.get(path).bearer_auth(token).send().await?;
         let resp = response::ok_if(resp, &[StatusCode::OK]).await?;
 
         Ok(resp.json().await?)
@@ -1351,7 +1352,7 @@ impl BuilderAPIClient {
                                 limit: usize,
                                 token: Option<&str>)
                                 -> Result<(Vec<PackageIdent>, usize)> {
-        self.search_package_impl(search_term, limit, token, Self::seach_package_with_range)
+        self.search_package_impl(search_term, limit, token, Self::search_package_with_range)
             .await
     }
 
@@ -1490,10 +1491,10 @@ fn channel_package_path(channel: &ChannelIdent, package: &PackageIdent) -> Strin
                            channel,
                            package.name());
     if let Some(version) = package.version() {
-        path.push_str("/");
+        path.push('/');
         path.push_str(version);
         if let Some(release) = package.release() {
-            path.push_str("/");
+            path.push('/');
             path.push_str(release);
         }
     }

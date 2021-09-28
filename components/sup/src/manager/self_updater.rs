@@ -97,11 +97,11 @@ impl SelfUpdater {
                      update_channel,
                      period, } = runner;
         let period = SelfUpdatePeriod::get().unwrap_or(period);
-        let splay = Duration::from_secs(rand::thread_rng().gen_range(0, period.as_secs()));
+        let splay = Duration::from_secs(rand::thread_rng().gen_range(0..period.as_secs()));
         debug!("Starting self updater with current package {} in {}s",
                current,
                splay.as_secs());
-        tokiotime::delay_for(splay).await;
+        tokiotime::sleep(splay).await;
         loop {
             match util::pkg::install_no_ui(&update_url, &install_source, &update_channel).await {
                 Ok(package) => {
@@ -119,7 +119,7 @@ impl SelfUpdater {
                 }
             }
             trace!("Self updater delaying for {}s", period.as_secs());
-            tokiotime::delay_for(period).await;
+            tokiotime::sleep(period).await;
         }
     }
 

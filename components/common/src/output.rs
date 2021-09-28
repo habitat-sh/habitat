@@ -146,8 +146,8 @@ impl<'a> StructuredOutput<'a> {
     fn format(&self, writer: &mut impl WriteColor) -> io::Result<()> {
         writer.reset()?;
         match self.format {
-            OutputFormat::JSON => {
-                // Our JSON serialization handles verbosity itself, and
+            OutputFormat::Json => {
+                // Our Json serialization handles verbosity itself, and
                 // color is ignored anyway, so there's no reason to check
                 // those settings here.
 
@@ -236,21 +236,21 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
 pub enum OutputFormat {
     Color(ColorSpec),
     NoColor,
-    JSON,
+    Json,
 }
 
 impl OutputFormat {
     pub fn color_choice(&self) -> ColorChoice {
         match self {
             OutputFormat::Color(_) => ColorChoice::Auto,
-            OutputFormat::NoColor | OutputFormat::JSON => ColorChoice::Never,
+            OutputFormat::NoColor | OutputFormat::Json => ColorChoice::Never,
         }
     }
 
     pub fn is_color(&self) -> bool {
         match self {
             OutputFormat::Color(_) => true,
-            OutputFormat::NoColor | OutputFormat::JSON => false,
+            OutputFormat::NoColor | OutputFormat::Json => false,
         }
     }
 }
@@ -426,7 +426,7 @@ mod tests {
     fn json_formatting() {
         let so = so("monkeys",
                     "I love monkeys",
-                    OutputFormat::JSON,
+                    OutputFormat::Json,
                     OutputVerbosity::Normal);
 
         let actual: serde_json::Value =
@@ -444,7 +444,7 @@ mod tests {
     fn verbose_json_formatting() {
         let so = so("monkeys",
                     "I love verbose monkeys",
-                    OutputFormat::JSON,
+                    OutputFormat::Json,
                     OutputVerbosity::Verbose);
 
         let actual: serde_json::Value =
@@ -465,7 +465,7 @@ mod tests {
     fn json_formatting_ignores_color() {
         let with_color = so("monkeys",
                             "I love drab monkeys",
-                            OutputFormat::JSON,
+                            OutputFormat::Json,
                             OutputVerbosity::Normal);
 
         let actual: serde_json::Value =

@@ -238,8 +238,8 @@ mod tests {
                                           1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8], };
 
         assert_ne!(zeroes, ones);
-        assert_eq!(zeroes, zeroes);
-        assert_eq!(ones, ones);
+        assert!(zeroes.eq(&zeroes));
+        assert!(ones.eq(&ones));
     }
 
     #[test]

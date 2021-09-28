@@ -3,8 +3,7 @@ use crate::error::{Error,
 use habitat_core::{env,
                    package::PackageTarget,
                    util::sys};
-use reqwest::{header::{HeaderMap,
-                       HeaderValue,
+use reqwest::{header::{HeaderValue,
                        CONNECTION,
                        USER_AGENT},
               Certificate as ReqwestCertificate,
@@ -13,8 +12,7 @@ use reqwest::{header::{HeaderMap,
               Proxy,
               RequestBuilder,
               Url};
-use std::{iter::FromIterator,
-          path::Path,
+use std::{path::Path,
           time::Duration};
 
 // Read and write TCP socket timeout for Hyper/HTTP client calls.
@@ -76,13 +74,13 @@ impl ApiClient {
         // remain in CLOSE_WAIT. Since this ApiClient is created fresh from CLI
         // commands, we are not taking advantage of keep-alive anyways so setting
         // the Connection header to close should not have adverse effects.
-        let headers = HeaderMap::from_iter(vec![
+        let headers = vec![
             (USER_AGENT, user_agent(product, version)?),
             (
                 CONNECTION,
                 HeaderValue::from_str("close").expect("Valid Connection header"),
             ),
-        ].into_iter());
+        ].into_iter().collect();
 
         let mut client = ReqwestClient::builder().proxy(proxy_for(&endpoint)?)
                                                  .default_headers(headers)

@@ -14,18 +14,12 @@ use structopt::StructOpt;
 /// Commands relating to a Service's runtime config
 pub enum ServiceConfig {
     Apply(ServiceConfigApply),
-    /// Displays the default configuration options for a service
-    Show {
-        #[structopt(flatten)]
-        pkg_ident:  PkgIdent,
-        #[structopt(flatten)]
-        remote_sup: RemoteSup,
-    },
+    Show(ServiceConfigShow),
 }
 
 /// Sets a configuration to be shared by members of a Service Group
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(no_version, rename_all = "screamingsnake")]
+#[structopt(name = "apply", no_version, rename_all = "screamingsnake")]
 pub struct ServiceConfigApply {
     /// Target service group service.group[@organization] (ex: redis.default or
     /// foo.default@bazcorp)
@@ -44,4 +38,14 @@ pub struct ServiceConfigApply {
     remote_sup:     RemoteSup,
     #[structopt(flatten)]
     cache_key_path: CacheKeyPath,
+}
+
+/// Displays the default configuration options for a service
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "show", no_version, rename_all = "screamingsnake")]
+pub struct ServiceConfigShow {
+    #[structopt(flatten)]
+    pkg_ident:  PkgIdent,
+    #[structopt(flatten)]
+    remote_sup: RemoteSup,
 }

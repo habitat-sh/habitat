@@ -1,6 +1,7 @@
 +++
 title = "Upload and Promote Packages"
 description = "Upload and Promote packages on Chef Habitat Builder enables automated package rebuilds and increases collaboration"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -8,10 +9,7 @@ description = "Upload and Promote packages on Chef Habitat Builder enables autom
     identifier = "habitat/builder/origin-packages"
     parent = "habitat/builder"
     weight = 40
-
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/builder_origin_packages.md)
 
 While you can build and run Chef Habitat packages without sharing them on [Chef Habitat Builder](https://bldr.habitat.sh), uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated.
 
@@ -62,8 +60,6 @@ You can upload keys for the origin through the web interface for Builder, or by 
 As long as you are already a member of the Habitat origin, once Builder possesses at least the public origin key, then you may upload one or more artifacts to that origin with the `hab pkg upload` command. After Habitat validates the cryptographic integrity of the artifact, it is then uploaded and stored on Builder. Uploading artifacts is a privileged operation for which you must have the access token.
 
 ## Promote Packages
-
-<%= partial "/partials/global/channel-overview" %>
 
 By default, newly uploaded packages are placed in the `unstable` channel. However, the default package that is downloaded is the latest `stable` version of a package, unless overridden in commands such as `hab sup run`, `hab svc load`, and `hab pkg install`. If you want to promote your package to the `stable` channel, run the `hab pkg promote` command as follows:
 

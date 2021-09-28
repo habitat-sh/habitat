@@ -1,6 +1,7 @@
 +++
 title = "Environment Variables"
 description = "Customize and configure your Chef Habitat Studio and Supervisor environments"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -9,7 +10,6 @@ description = "Customize and configure your Chef Habitat Studio and Supervisor e
     parent = "habitat/reference"
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/environment_variables.md)
 
 This is a list of all environment variables that can be used to modify the operation of the Chef Habitat Studio and Supervisor.
 
@@ -41,8 +41,8 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_STUDIO_NOSTUDIORC` | build system | no default | When set to a non-empty value, a `.studiorc` will not be sourced when entering an interactive Studio via `hab studio enter`. |
 | `HAB_STUDIO_SUP` | build system | no default | Used to customize the arguments passed to an automatically launched Supervisor, or to disable the automatic launching by setting it to `false`, `no`, or `0`. |
 | `HAB_GLYPH_STYLE` | build system | `full` (`limited` on Windows) | Used to customize the rendering of unicode glyphs in UI messages. Valid values are `full`, `limited`, or `ascii`. |
-| `HAB_SUP_UPDATE_MS` | Supervisor | 60000 | Interval in milliseconds governing how often to check for Supervisor updates when running with the [--auto-update]({{< relref "habitat_cli/#hab-sup-run" >}}) flag. Note: This variable has been deprecated. Users should instead utilize the [--auto-update-period]({{< relref "habitat_cli/#hab-sup-run" >}}) flag. |
-| `HAB_UPDATE_STRATEGY_FREQUENCY_MS` | Supervisor | 60000 | Interval in milliseconds governing how often to check for service updates when running with an [update strategy]({{< relref "service_updates" >}}). Note: This variable has been deprecated. Users should instead utilize the [--service-update-period]({{< relref "habitat_cli/#hab-sup-run" >}}) flag. |
+| `HAB_SUP_UPDATE_MS` | Supervisor | 60000 | Interval in milliseconds governing how often to check for Supervisor updates when running with the [--auto-update]({{< relref "habitat_cli/#hab-sup-run" >}}) flag. Note: This variable has been deprecated. Users should instead use the [--auto-update-period]({{< relref "habitat_cli/#hab-sup-run" >}}) flag. |
+| `HAB_UPDATE_STRATEGY_FREQUENCY_MS` | Supervisor | 60000 | Interval in milliseconds governing how often to check for service updates when running with an [update strategy]({{< relref "service_updates" >}}). Note: This variable has been deprecated. Users should instead use the [--service-update-period]({{< relref "habitat_cli/#hab-sup-run" >}}) flag. |
 | `HAB_USER` | Supervisor | no default | User key to use when running with [service group encryption]({{< relref "sup_secure" >}}) |
 | `http_proxy` | build system, Supervisor | no default | A URL for a local HTTP proxy server optionally supporting basic authentication |
 | `https_proxy` | build system, Supervisor | no default | A URL for a local HTTPS proxy server optionally supporting basic authentication |

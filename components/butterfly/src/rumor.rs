@@ -695,7 +695,7 @@ mod tests {
             let f1 = FakeRumor::default();
             let f2 = f1.clone();
             assert!(rs.insert_rsw(f1));
-            assert_eq!(rs.insert_rsw(f2), false);
+            assert!(!rs.insert_rsw(f2));
         }
 
         #[test]

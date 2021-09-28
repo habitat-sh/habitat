@@ -1,6 +1,7 @@
 +++
 title = "Build Helpers"
 description = "Define package buildtime actions with helper functions."
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -9,8 +10,6 @@ description = "Define package buildtime actions with helper functions."
     parent = "habitat/reference"
 
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/build_helpers.md)
 
 The following helper functions can be useful in your plan to help you build your package correctly. `Attach()` specifically is to help with debugging - the other helper functions are to help you in building your package.
 

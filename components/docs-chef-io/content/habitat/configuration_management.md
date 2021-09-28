@@ -2,6 +2,7 @@
 title = "Configuration Management"
 description = "Configuration Management"
 draft = false
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -10,8 +11,6 @@ draft = false
     parent = "habitat/reference"
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/configuration_management.md)
-
 **Examples: [Ansible](https://www.ansible.com/), [Chef](https://www.chef.io/chef/), [Puppet](https://puppet.com/), and [Salt](https://saltstack.com/)**
 
 Configuration management tools allow you write configuration files, using a declarative language to manage a server. These tools focus on building working servers by installing and configuring system settings, system libraries, and application libraries before an application is installed on the server. Chef Habitat focuses on the application first instead of the server. Chef Habitat builds and packages your application's entire binary toolchain, including the system libraries, application libraries, and runtime dependencies necessary for your application to function. As a result, Chef Habitat can replace many use-cases that configuration management tools perform related to installing system binaries, application dependent libraries, or templating configuration files.

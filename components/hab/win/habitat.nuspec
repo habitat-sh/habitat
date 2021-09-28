@@ -23,7 +23,7 @@ Habitat can be deployed and run on various infrastructure environments including
     <bugTrackerUrl>https://github.com/habitat-sh/habitat/issues</bugTrackerUrl>
     <tags>habitat</tags>
     <copyright>Copyright (c) 2016-2019 Chef Software Inc. and/or applicable contributors</copyright>
-    <licenseUrl>https://github.com/habitat-sh/habitat/blob/master/LICENSE</licenseUrl>
+    <licenseUrl>https://github.com/habitat-sh/habitat/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
   </metadata>
 </package>

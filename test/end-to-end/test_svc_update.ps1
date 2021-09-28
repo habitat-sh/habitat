@@ -139,8 +139,12 @@ Describe "hab svc update" {
 
         $proc = Get-Process "nginx"
 
-        It "starts updating from the first channel" {
+        It "reflects channel in spec file" {
             '/hab/sup/default/specs/nginx.spec' | Should -FileContentMatchExactly "channel = `"$testChannelOne`""
+        }
+
+        It "reflects channel in api" {
+            ((Invoke-WebRequest "http://localhost:9631/services/nginx/default" -UseBasicParsing).content | ConvertFrom-Json).channel | Should -Be $testChannelOne
         }
 
         hab svc update $nginx_pkg --channel $testChannelTwo
@@ -153,6 +157,10 @@ Describe "hab svc update" {
         It "has the new channel in the spec file" {
             '/hab/sup/default/specs/nginx.spec' | Should -FileContentMatchExactly "channel = `"$testChannelTwo`""
             '/hab/sup/default/specs/nginx.spec' | Should -FileContentMatchExactly 'update_strategy = "at-once"'
+        }
+
+        It "reflects updated channel in api" {
+            ((Invoke-WebRequest "http://localhost:9631/services/nginx/default" -UseBasicParsing).content | ConvertFrom-Json).channel | Should -Be $testChannelTwo
         }
 
         It "does not restart the service process" {

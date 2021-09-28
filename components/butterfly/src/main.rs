@@ -28,9 +28,9 @@ fn main() {
     let gport = bind_port + 1;
     gossip_bind_addr.set_port(gport);
 
-    let mut member = member::Member::default();
-    member.swim_port = bind_port;
-    member.gossip_port = gport;
+    let member = member::Member { swim_port: bind_port,
+                                  gossip_port: gport,
+                                  ..Default::default() };
 
     let mut server = server::Server::new(bind_to_addr,
                                          gossip_bind_addr,
@@ -44,10 +44,10 @@ fn main() {
     let targets: Vec<String> = args.collect();
     for target in &targets {
         let addr: SocketAddr = target.parse().unwrap();
-        let mut member = member::Member::default();
-        member.address = format!("{}", addr.ip());
-        member.swim_port = addr.port();
-        member.gossip_port = addr.port();
+        let member = member::Member { address: format!("{}", addr.ip()),
+                                      swim_port: addr.port(),
+                                      gossip_port: addr.port(),
+                                      ..Default::default() };
         server.member_list.add_initial_member_imlw(member);
     }
 

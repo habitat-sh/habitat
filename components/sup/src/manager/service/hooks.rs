@@ -762,13 +762,13 @@ mod tests {
                ring: &'a mut CensusRing)
                -> RenderContext<'a> {
         // SysInfo is basic Swim infrastructure information
-        let mut sys_info = SysInfo::default();
-        sys_info.ip = "1.2.3.4".to_string();
-        sys_info.hostname = "hostname".to_string();
-        sys_info.gossip_ip = "0.0.0.0".to_string();
-        sys_info.gossip_port = 7777;
-        sys_info.http_gateway_ip = "0.0.0.0".to_string();
-        sys_info.http_gateway_port = 9631;
+        let sys_info = SysInfo { ip: "1.2.3.4".to_string(),
+                                 hostname: "hostname".to_string(),
+                                 gossip_ip: "0.0.0.0".to_string(),
+                                 gossip_port: 7777,
+                                 http_gateway_ip: "0.0.0.0".to_string(),
+                                 http_gateway_port: 9631,
+                                 ..Default::default() };
 
         let sg_one = service_group.clone(); // ServiceGroup::new("shield", "one", None).unwrap();
 
@@ -906,7 +906,7 @@ mod tests {
         let concrete_path = hooks_path.clone();
         let template_path = hook_templates_path();
 
-        let hook = HealthCheckHook::load(&service_group.service(),
+        let hook = HealthCheckHook::load(service_group.service(),
                                          &concrete_path,
                                          &template_path,
                                          FeatureFlag::empty()).expect("Could not create testing \
@@ -954,7 +954,7 @@ mod tests {
         let mut flags = FeatureFlag::empty();
         flags.insert(FeatureFlag::NO_NAMED_PIPE_HEALTH_CHECK);
 
-        let hook = HealthCheckHook::load(&service_group.service(),
+        let hook = HealthCheckHook::load(service_group.service(),
                                          &concrete_path,
                                          &template_path,
                                          flags).expect("Could not create testing healch-check \

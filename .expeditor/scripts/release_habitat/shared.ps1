@@ -15,7 +15,7 @@ function Install-LatestHabitat() {
     $env:HAB_LICENSE = "accept-no-persist"
     Write-Host "--- :habicat: Installing latest hab binary for $Env:HAB_PACKAGE_TARGET using install.ps1"
     Set-ExecutionPolicy Bypass -Scope Process -Force
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1')) | Out-Null
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.ps1')) | Out-Null
     $baseHabExe="$Env:ProgramData\Habitat\hab.exe"
 
     $HabVersion=GetLatestPkgVersionFromChannel("hab")

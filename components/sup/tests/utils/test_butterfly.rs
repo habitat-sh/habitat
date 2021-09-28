@@ -40,7 +40,7 @@ impl Client {
         let config = config.as_bytes();
 
         // Validate the TOML, to save you from typos in your tests
-        if let Err(err) = toml::de::from_slice::<toml::value::Value>(&config) {
+        if let Err(err) = toml::de::from_slice::<toml::value::Value>(config) {
             panic!("Invalid TOML! {:?} ==> {:?}", config, err);
         }
 

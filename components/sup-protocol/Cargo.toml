@@ -15,7 +15,7 @@ log = "*"
 prost = "*"
 prost-derive = "*"
 rand = "*"
-serde = "*"
+serde = {version = "*", features = ["derive"] }
 serde_derive = "*"
 tokio = { version = "*", features = ["full"] }
 tokio-util = { version = "*", features = ["full"] }

@@ -144,7 +144,7 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
 
     let mut sid: Vec<u8> = Vec::with_capacity(sid_size as usize);
     let mut domain: Vec<u16> = Vec::with_capacity(domain_size as usize);
-    let mut sid_type: SID_NAME_USE = 0 as SID_NAME_USE;
+    let mut sid_type: SID_NAME_USE = 0;
 
     let ret = unsafe {
         LookupAccountNameW(null_mut(),
@@ -183,12 +183,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn real_account_returns_some() {
-        assert_eq!(Account::from_name("Administrator").is_some(), true)
-    }
+    fn real_account_returns_some() { assert!(Account::from_name("Administrator").is_some()) }
 
     #[test]
-    fn bogus_account_returns_none() { assert_eq!(Account::from_name("bogus").is_none(), true) }
+    fn bogus_account_returns_none() { assert!(Account::from_name("bogus").is_none()) }
 
     #[test]
     fn user_account_returns_user_type() {

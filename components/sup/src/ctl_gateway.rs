@@ -160,10 +160,12 @@ impl Write for CtlRequest {
         // at least), we'll apply colored output.
         //
         // `line` will also have a newline character at the end, FYI.
-        let mut msg = habitat_sup_protocol::ctl::ConsoleLine::default();
-        msg.line = line.to_string();
-        msg.color = color_to_string(self.current_color_spec.fg());
-        msg.bold = self.current_color_spec.bold();
+        let msg =
+            habitat_sup_protocol::ctl::ConsoleLine { line:  line.to_string(),
+                                                     color:
+                                                         color_to_string(self.current_color_spec
+                                                                             .fg()),
+                                                     bold:  self.current_color_spec.bold(), };
         self.reply_partial(msg);
 
         // Down here, however, we're doing double-duty by *also*
@@ -181,7 +183,7 @@ impl Write for CtlRequest {
         // usually be the case when styling changes) of a line, then
         // non-json content should just be printed as-is.
         let is_line_ending = line.ends_with('\n');
-        if self.is_new_line || output::get_format() == OutputFormat::JSON {
+        if self.is_new_line || output::get_format() == OutputFormat::Json {
             let output_format =
                 if !self.current_color_spec.is_none() && output::get_format().is_color() {
                     OutputFormat::Color(self.current_color_spec.clone())
@@ -216,12 +218,7 @@ impl Write for CtlRequest {
     }
 }
 
-fn color_to_string(color: Option<&Color>) -> Option<String> {
-    match color {
-        Some(c) => Some(format!("{:?}", c)),
-        None => None,
-    }
-}
+fn color_to_string(color: Option<&Color>) -> Option<String> { color.map(|c| format!("{:?}", c)) }
 
 /// A wrapper around a [`protocol.ctl.NetProgress`] and [`CtlRequest`]. This type implements
 /// traits for writing it's progress to the console.
@@ -263,11 +260,9 @@ pub fn readgen_secret_key<T>(sup_root: T) -> Result<String>
     fs::create_dir_all(&sup_root).map_err(|e| {
                                      Error::CtlSecretIo(sup_root.as_ref().to_path_buf(), e)
                                  })?;
-    if habitat_sup_protocol::read_secret_key(&sup_root, &mut out).ok()
-                                                                 .unwrap_or(false)
+    if !habitat_sup_protocol::read_secret_key(&sup_root, &mut out).ok()
+                                                                  .unwrap_or(false)
     {
-        Ok(out)
-    } else {
         let secret_key_path = habitat_sup_protocol::secret_key_path(sup_root);
         {
             let mut f = File::create(&secret_key_path)?;
@@ -276,8 +271,8 @@ pub fn readgen_secret_key<T>(sup_root: T) -> Result<String>
             f.sync_all()?;
         }
         set_permissions(&secret_key_path)?;
-        Ok(out)
     }
+    Ok(out)
 }
 
 #[cfg(not(windows))]

@@ -362,7 +362,7 @@ impl Future for SrvHandler {
                             break;
                         }
                         Some(Ok(msg)) => {
-                            self.start_timer(&msg.message_id());
+                            self.start_timer(msg.message_id());
                             trace!("OnMessage, {}", msg.message_id());
 
                             let fut =
@@ -485,17 +485,17 @@ impl CtlGatewayServer {
         let state = SrvState { secret_key,
                                mgr_sender };
         let state = Arc::new(Mutex::new(state));
-        let mut listener =
+        let listener =
             TcpListener::bind(&listen_addr).await
                                            .expect("Could not bind ctl gateway listen address!");
 
         let maybe_tls_config = Self::maybe_tls_config(server_certificates,
                                                       server_key,
                                                       client_certificates).map(Arc::new);
-        let mut incoming = listener.incoming();
-        while let Some(tcp_stream) = incoming.next().await {
+        loop {
+            let tcp_stream = listener.accept().await;
             match tcp_stream {
-                Ok(tcp_stream) => {
+                Ok((tcp_stream, _)) => {
                     let addr = match tcp_stream.peer_addr() {
                         Ok(addr) => addr,
                         Err(e) => {

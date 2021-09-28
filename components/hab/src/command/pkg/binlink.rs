@@ -26,7 +26,7 @@ struct Binlink {
 
 impl Binlink {
     pub fn new(target: &Path, link: &Path) -> Result<Self> {
-        Ok(Self { link:   Self::binstub_path(&target, link)?,
+        Ok(Self { link:   Self::binstub_path(target, link)?,
                   target: target.to_path_buf(), })
     }
 
@@ -77,7 +77,7 @@ impl Binlink {
 
     #[cfg(windows)]
     pub fn link(&self, env: BTreeMap<String, String>) -> Result<()> {
-        fs::write(&self.link, self.stub_template(env)?.as_bytes())?;
+        fs::write(&self.link, self.stub_template(env).as_bytes())?;
         Ok(())
     }
 
@@ -101,7 +101,7 @@ impl Binlink {
     }
 
     #[cfg(windows)]
-    fn stub_template(&self, env: BTreeMap<String, String>) -> Result<String> {
+    fn stub_template(&self, env: BTreeMap<String, String>) -> String {
         let mut exports = String::new();
         for (key, mut value) in env.into_iter() {
             if key == "PATH" {
@@ -110,10 +110,9 @@ impl Binlink {
             exports.push_str(&format!("SET {}={}\n", key, value));
         }
 
-        Ok(format!(include_str!("../../../static/template_binstub.\
-                                 bat"),
-                   target = self.target.display(),
-                   env = exports))
+        format!(include_str!("../../../static/template_binstub.bat"),
+                target = self.target.display(),
+                env = exports)
     }
 }
 
@@ -290,7 +289,7 @@ mod test {
         start(&mut ui,
               &ident,
               "magicate.exe",
-              &dst_path,
+              dst_path,
               rootfs.path(),
               force).unwrap();
         #[cfg(windows)]
@@ -311,7 +310,7 @@ mod test {
         start(&mut ui,
               &ident,
               "hypnoanalyze.exe",
-              &dst_path,
+              dst_path,
               rootfs.path(),
               force).unwrap();
         #[cfg(windows)]
@@ -361,7 +360,7 @@ mod test {
         let securitize_link = "securitize.bat";
 
         let mut ui = UI::with_sinks();
-        binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
+        binlink_all_in_pkg(&mut ui, &ident, dst_path, rootfs.path(), force).unwrap();
 
         assert_eq!(rootfs_src_dir.join("bin/magicate.exe"),
                    Binlink::from_file(&rootfs_bin_dir.join(magicate_link)).unwrap()
@@ -391,7 +390,7 @@ mod test {
         let force = true;
 
         let mut ui = UI::with_sinks();
-        binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
+        binlink_all_in_pkg(&mut ui, &ident, dst_path, rootfs.path(), force).unwrap();
 
         assert_eq!(rootfs_src_dir.join("bin/magicate.exe"),
                    Binlink::from_file(&rootfs_bin_dir.join("magicate.bat")).unwrap()
@@ -433,7 +432,7 @@ mod test {
         let bonus_round_link = "bonus-round.bat";
 
         let mut ui = UI::with_sinks();
-        binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
+        binlink_all_in_pkg(&mut ui, &ident, dst_path, rootfs.path(), force).unwrap();
 
         assert_eq!(rootfs_src_dir.join("bin/magicate.exe"),
                    Binlink::from_file(&rootfs_bin_dir.join(magicate_link)).unwrap()

@@ -20,8 +20,7 @@ use crate::sup::{cli::cli,
                  logger,
                  manager::{Manager,
                            ManagerConfig,
-                           TLSConfig,
-                           PROC_LOCK_FILE},
+                           TLSConfig},
                  util};
 use configopt::ConfigOpt;
 use hab::cli::hab::{sup::SupRun,
@@ -81,9 +80,9 @@ fn main() {
     signals::init();
     logger::init();
 
-    let mut runtime =
-        RuntimeBuilder::new().threaded_scheduler()
-                             .core_threads(TokioThreadCount::configured_value().into())
+    let runtime =
+        RuntimeBuilder::new_multi_thread()
+                             .worker_threads(TokioThreadCount::configured_value().into())
                              .enable_all()
                              .build()
                              .expect("Couldn't build Tokio Runtime!");
@@ -226,13 +225,9 @@ async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run: SupRun,
 async fn sub_sh() -> Result<()> { command::shell::sh().await }
 
 fn sub_term() -> Result<()> {
-    // We were generating a ManagerConfig from matches here, but 'hab sup term' takes no options.
-    // This means that we were implicitly getting the default ManagerConfig here. Instead of calling
-    // a function to generate said config, we can just explicitly pass the default.
-    let proc_lock_file = habitat_sup_protocol::sup_root(None).join(PROC_LOCK_FILE);
-    match Manager::term(&proc_lock_file) {
-        Err(Error::ProcessLockIO(..)) => {
-            println!("Supervisor not started.");
+    match Manager::term() {
+        Err(e @ Error::LockFileError(..)) => {
+            println!("Supervisor not terminated: {}", e);
             Ok(())
         }
         result => result,
@@ -393,7 +388,7 @@ fn set_supervisor_logging_options(sup_run: &SupRun) {
         output::set_format(OutputFormat::NoColor)
     }
     if sup_run.json_logging {
-        output::set_format(OutputFormat::JSON)
+        output::set_format(OutputFormat::Json)
     }
 }
 
@@ -455,14 +450,13 @@ mod test {
         use std::{collections::HashMap,
                   fs::File,
                   io::Write,
-                  iter::FromIterator,
                   path::PathBuf,
                   str::FromStr,
                   time::Duration};
 
         locked_env_var!(HAB_CACHE_KEY_PATH, lock_var);
 
-        fn cmd_vec_from_cmd_str(cmd: &str) -> Vec<&str> { Vec::from_iter(cmd.split_whitespace()) }
+        fn cmd_vec_from_cmd_str(cmd: &str) -> Vec<&str> { cmd.split_whitespace().collect() }
 
         fn sup_run_from_cmd_vec(cmd_vec: Vec<&str>) -> SupRun {
             let sup =
@@ -506,10 +500,10 @@ mod test {
         #[test]
         fn auto_update_should_be_set() {
             let config = config_from_cmd_str("hab-sup run --auto-update");
-            assert_eq!(config.auto_update, true);
+            assert!(config.auto_update);
 
             let config = config_from_cmd_str("hab-sup run");
-            assert_eq!(config.auto_update, false);
+            assert!(!config.auto_update);
         }
 
         #[test]
@@ -571,10 +565,10 @@ mod test {
         #[test]
         fn http_disable_should_be_set() {
             let config = config_from_cmd_str("hab-sup run --http-disable");
-            assert_eq!(config.http_disable, true);
+            assert!(config.http_disable);
 
             let config = config_from_cmd_str("hab-sup run");
-            assert_eq!(config.http_disable, false);
+            assert!(!config.http_disable);
         }
 
         #[test]
@@ -601,10 +595,10 @@ mod test {
         #[test]
         fn gossip_permanent_should_be_set() {
             let config = config_from_cmd_str("hab-sup run --permanent-peer");
-            assert_eq!(config.gossip_permanent, true);
+            assert!(config.gossip_permanent);
 
             let config = config_from_cmd_str("hab-sup run");
-            assert_eq!(config.gossip_permanent, false);
+            assert!(!config.gossip_permanent);
         }
 
         #[test]
@@ -1006,26 +1000,25 @@ gpoVMSncu2jMIDZX63IkQII=
                                                      Some("core/redis".parse::<PackageIdent>()
                                                                       .unwrap()
                                                                       .into()),
-                                                 application_environment: None,
-                                                 binds:                   Some(binds),
-                                                 binding_mode:            Some(0),
+                                                 binds:                  Some(binds),
+                                                 binding_mode:           Some(0),
                                                  bldr_url:
                                                      Some(String::from("http://my_url.com/")),
                                                  bldr_channel:
                                                      Some(String::from("my_channel")),
                                                  config_from:
                                                      Some(String::from(temp_dir_str)),
-                                                 force:                   Some(true),
+                                                 force:                  Some(true),
                                                  group:
                                                      Some(String::from("MyGroup")),
-                                                 svc_encrypted_password:  None,
+                                                 svc_encrypted_password: None,
                                                  topology:
                                                      Some(Topology::Leader.into()),
                                                  update_strategy:
                                                      Some(UpdateStrategy::Rolling.into()),
                                                  health_check_interval:
                                                      Some(health_check_interval),
-                                                 shutdown_timeout:        Some(12),
+                                                 shutdown_timeout:       Some(12),
                                                  update_condition:
                                                      Some(UpdateCondition::TrackChannel.into()), },
                        service_load);
@@ -1055,7 +1048,7 @@ gpoVMSncu2jMIDZX63IkQII=
         #[test]
         fn test_hab_sup_run_cli_password() {
             let args = "hab-sup run --password keep_it_secret_keep_it_safe core/redis";
-            let service_load = service_load_from_cmd_str(&args);
+            let service_load = service_load_from_cmd_str(args);
             assert_eq!(decrypt(&service_load.svc_encrypted_password.unwrap()).unwrap(),
                        "keep_it_secret_keep_it_safe");
         }
@@ -1409,26 +1402,25 @@ pkg_ident_or_artifact = "core/redis"
                                                      Some("core/redis".parse::<PackageIdent>()
                                                                       .unwrap()
                                                                       .into()),
-                                                 application_environment: None,
-                                                 binds:                   Some(binds),
-                                                 binding_mode:            Some(0),
+                                                 binds:                  Some(binds),
+                                                 binding_mode:           Some(0),
                                                  bldr_url:
                                                      Some(String::from("http://my_url.com/")),
                                                  bldr_channel:
                                                      Some(String::from("my_channel")),
                                                  config_from:
                                                      Some(temp_dir_str.replace("\\", "/")),
-                                                 force:                   Some(true),
+                                                 force:                  Some(true),
                                                  group:
                                                      Some(String::from("MyGroup")),
-                                                 svc_encrypted_password:  None,
+                                                 svc_encrypted_password: None,
                                                  topology:
                                                      Some(Topology::Standalone.into()),
                                                  update_strategy:
                                                      Some(UpdateStrategy::AtOnce.into()),
                                                  health_check_interval:
                                                      Some(health_check_interval),
-                                                 shutdown_timeout:        Some(12),
+                                                 shutdown_timeout:       Some(12),
                                                  update_condition:
                                                      Some(UpdateCondition::TrackChannel.into()), },
                        service_load);
@@ -1554,7 +1546,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
         fn test_hab_sup_run_all_possible_values() {
             let args = "hab-sup run --topology standalone --strategy none --update-condition \
                         latest --binding-mode strict core/redis";
-            let svc_load = service_load_from_cmd_str(&args);
+            let svc_load = service_load_from_cmd_str(args);
             assert_eq!(i32::from(Topology::Standalone), svc_load.topology.unwrap());
             assert_eq!(i32::from(UpdateStrategy::None),
                        svc_load.update_strategy.unwrap());
@@ -1565,7 +1557,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
 
             let args = "hab-sup run --topology leader --strategy at-once --update-condition \
                         track-channel --binding-mode relaxed core/redis";
-            let svc_load = service_load_from_cmd_str(&args);
+            let svc_load = service_load_from_cmd_str(args);
             assert_eq!(i32::from(Topology::Leader), svc_load.topology.unwrap());
             assert_eq!(i32::from(UpdateStrategy::AtOnce),
                        svc_load.update_strategy.unwrap());
@@ -1575,7 +1567,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
                        svc_load.binding_mode.unwrap());
 
             let args = "hab-sup run --strategy rolling core/redis";
-            let svc_load = service_load_from_cmd_str(&args);
+            let svc_load = service_load_from_cmd_str(args);
             assert_eq!(i32::from(UpdateStrategy::Rolling),
                        svc_load.update_strategy.unwrap());
         }

@@ -56,7 +56,7 @@ pub fn assert_pkg_user_and_group(user: &str, group: &str) -> Result<()> {
                                                     doesn't",
                                                    user)));
     }
-    if get_gid_by_name(&group)?.is_none() {
+    if get_gid_by_name(group)?.is_none() {
         return Err(Error::PermissionFailed(format!("Package requires group \
                                                     {} to exist, but it \
                                                     doesn't",

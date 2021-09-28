@@ -269,9 +269,12 @@ impl Service {
                           pid_source: ServicePidSource,
                           feature_flags: FeatureFlag)
                           -> Result<Service> {
-        spec.validate(&package)?;
+        spec.validate(package)?;
         let all_pkg_binds = package.all_binds()?;
-        let pkg = Self::resolve_pkg(&package, &spec).await?;
+        let mut pkg = Self::resolve_pkg(package, &spec).await?;
+        if let Some(timeout) = spec.shutdown_timeout {
+            pkg.shutdown_timeout = timeout;
+        }
         let spec_file = manager_fs_cfg.specs_path.join(spec.file());
         let service_group = ServiceGroup::new(&pkg.name, &spec.group, organization)?;
         let config_root = Self::config_root(&pkg, spec.config_from.as_ref());
@@ -319,7 +322,7 @@ impl Service {
     // the current user.
     #[cfg(windows)]
     async fn resolve_pkg(package: &PackageInstall, spec: &ServiceSpec) -> Result<Pkg> {
-        let mut pkg = Pkg::from_install(&package).await?;
+        let mut pkg = Pkg::from_install(package).await?;
         if spec.svc_encrypted_password.is_none() && pkg.svc_user == DEFAULT_USER {
             if let Some(user) = users::get_current_username()? {
                 pkg.svc_user = user;
@@ -330,7 +333,7 @@ impl Service {
 
     #[cfg(unix)]
     async fn resolve_pkg(package: &PackageInstall, _spec: &ServiceSpec) -> Result<Pkg> {
-        Ok(Pkg::from_install(&package).await?)
+        Ok(Pkg::from_install(package).await?)
     }
 
     /// Returns the config root given the package and optional config-from path.
@@ -826,7 +829,7 @@ impl Service {
         outputln!(preamble self.service_group, "Initializing");
         *self.initialization_state.write() = InitializationState::Initializing;
         if let Some(ref hook) = self.hooks.init {
-            let hook_runner = HookRunner::new(Arc::clone(&hook),
+            let hook_runner = HookRunner::new(Arc::clone(hook),
                                               self.service_group.clone(),
                                               self.pkg.clone(),
                                               self.spec.svc_encrypted_password.clone());
@@ -888,7 +891,7 @@ impl Service {
 
     fn post_run(&mut self) {
         if let Some(ref hook) = self.hooks.post_run {
-            let hook_runner = HookRunner::new(Arc::clone(&hook),
+            let hook_runner = HookRunner::new(Arc::clone(hook),
                                               self.service_group.clone(),
                                               self.pkg.clone(),
                                               self.spec.svc_encrypted_password.clone());
@@ -909,7 +912,7 @@ impl Service {
 
     fn post_stop(&self) -> Option<HookRunner<hooks::PostStopHook>> {
         self.hooks.post_stop.as_ref().map(|hook| {
-                                         HookRunner::new(Arc::clone(&hook),
+                                         HookRunner::new(Arc::clone(hook),
                                                          self.service_group.clone(),
                                                          self.pkg.clone(),
                                                          self.spec.svc_encrypted_password.clone())
@@ -1115,7 +1118,7 @@ impl Service {
     {
         let mut updated = false;
         for service_file in file_fn(census_group) {
-            if self.cache_service_file(&service_file) {
+            if self.cache_service_file(service_file) {
                 outputln!(preamble self.service_group, "Service file updated, {}",
                           service_file.filename);
                 updated = true;
@@ -1254,7 +1257,7 @@ pub struct ServiceProxy<'a> {
 
 impl<'a> ServiceProxy<'a> {
     pub fn new(s: &'a Service, c: ConfigRendering) -> Self {
-        ServiceProxy { service:          &s,
+        ServiceProxy { service:          s,
                        config_rendering: c, }
     }
 }

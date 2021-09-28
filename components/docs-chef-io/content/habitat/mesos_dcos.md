@@ -1,6 +1,7 @@
 +++
 title = "Apache Mesos and DC/OS"
 description = "Apache Mesos and DC/OS"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -8,10 +9,7 @@ description = "Apache Mesos and DC/OS"
     identifier = "habitat/containers/mesos-dcos"
     parent = "habitat/containers"
     weight = 70
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/mesos_dcos.md)
-
 [Apache Mesos](https://mesos.apache.org/) is an open source distributed systems kernel and the distributed systems kernel for [Mesosphere's DC/OS](https://dcos.io) distributed platform.
 
 ## Mesos Containerizers

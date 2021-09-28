@@ -215,7 +215,7 @@ impl<'a> DownloadTask<'a> {
                 if let Some(package) = self.determine_latest_from_ident(ui,
                                                                         &package_set.channel,
                                                                         package_set.target,
-                                                                        &ident)
+                                                                        ident)
                                            .await?
                 {
                     expanded_packages.push((package, package_set.target));
@@ -289,7 +289,7 @@ impl<'a> DownloadTask<'a> {
         };
 
         ui.status(Status::Determining, format!("latest version of {}", ident))?;
-        match self.fetch_latest_package_in_channel_for(ident, target, &channel, self.token)
+        match self.fetch_latest_package_in_channel_for(ident, target, channel, self.token)
                   .await
         {
             Ok(latest_package) => {
@@ -440,7 +440,7 @@ impl<'a> DownloadTask<'a> {
                                                  token: Option<&str>)
                                                  -> Result<Package> {
         self.api_client
-            .show_package_metadata((&ident, target), channel, token)
+            .show_package_metadata((ident, target), channel, token)
             .await
             .map_err(Error::from)
     }

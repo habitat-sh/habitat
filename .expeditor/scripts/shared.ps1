@@ -99,8 +99,8 @@ function Install-Rustup($Toolchain) {
                 # Dig into the exception to get the Response details.
                 Write-Host "StatusCode:" $_.Exception.Response.StatusCode.value__
                 Write-Host "StatusDescription:" $_.Exception.Response.StatusDescription
-                Write-Host "$($_ | Format-List * -force | Out-String)"
-                Start-Sleep -seconds 5
+                Write-Host "$($_ | Format-List * -Force | Out-String)"
+                Start-Sleep -Seconds 5
             }
         }
         if( $RetryCount -ge 5) {

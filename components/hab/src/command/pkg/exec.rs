@@ -16,7 +16,7 @@ pub fn start<T>(ident: &PackageIdent, command: T, args: &[OsString]) -> Result<(
     where T: Into<PathBuf>
 {
     let command = command.into();
-    let pkg_install = PackageInstall::load(&ident, Some(&*FS_ROOT_PATH))?;
+    let pkg_install = PackageInstall::load(ident, Some(&*FS_ROOT_PATH))?;
     let mut cmd_env = pkg_install.environment_for_command()?;
 
     if let Some(path) = cmd_env.get(PATH_KEY) {

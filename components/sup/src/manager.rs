@@ -42,6 +42,7 @@ use crate::{census::{CensusRing,
             event::{self,
                     EventStreamConfig},
             http_gateway,
+            lock_file::LockFile,
             util::pkg,
             VERSION};
 use cpu_time::ProcessTime;
@@ -71,7 +72,6 @@ use habitat_core::{crypto::keys::{KeyCache,
                    env::Config,
                    fs::FS_ROOT_PATH,
                    os::process::{self,
-                                 Pid,
                                  ShutdownTimeout},
                    package::{Identifiable,
                              PackageIdent,
@@ -79,9 +79,7 @@ use habitat_core::{crypto::keys::{KeyCache,
                    service::ServiceGroup,
                    util::ToI64,
                    ChannelIdent};
-use habitat_launcher_client::{LauncherCli,
-                              LAUNCHER_LOCK_CLEAN_ENV,
-                              LAUNCHER_PID_ENV};
+use habitat_launcher_client::LauncherCli;
 use habitat_sup_protocol::{self};
 use parking_lot::{Mutex,
                   RwLock};
@@ -99,10 +97,8 @@ use std::{collections::{HashMap,
                         HashSet},
           ffi::OsStr,
           fs::{self,
-               File,
-               OpenOptions},
-          io::{BufRead,
-               BufReader,
+               File},
+          io::{BufReader,
                Read,
                Write},
           iter::{FromIterator,
@@ -382,7 +378,11 @@ impl ReconciliationFlag {
     /// one place seemed the prudent choice. In the long-term, we
     /// should be able to dispense with this altogether once we're all
     /// asynchronous.
-    fn toggle_if_set(&self) -> bool { self.0.compare_and_swap(true, false, Ordering::Relaxed) }
+    fn toggle_if_set(&self) -> bool {
+        self.0
+            .compare_exchange(true, false, Ordering::Relaxed, Ordering::Relaxed)
+            .unwrap_or_else(core::convert::identity)
+    }
 }
 
 /// This struct encapsulates the shared state for the supervisor. It's worth noting that if there's
@@ -592,6 +592,11 @@ pub struct Manager {
 
     feature_flags: FeatureFlag,
     pid_source:    ServicePidSource,
+
+    /// Open file handle to the Launcher's lock file. As long as we hold this,
+    /// we are the only Supervisor process that may run on this host. We don't
+    /// actually use this; we just keep it open.
+    _lock_file: LockFile,
 }
 
 impl Manager {
@@ -606,31 +611,35 @@ impl Manager {
         let state_path = cfg.sup_root();
         let fs_cfg = FsCfg::new(state_path);
         Self::create_state_path_dirs(&fs_cfg)?;
+        // The lock file exists within the state directory, so we have to create
+        // it first!
+        let lock_file = LockFile::acquire()?;
         Self::clean_dirty_state(&fs_cfg)?;
-        if env::var(LAUNCHER_LOCK_CLEAN_ENV).is_ok() {
-            release_process_lock(&fs_cfg);
-        }
-        obtain_process_lock(&fs_cfg)?;
-
-        Self::new_imlw(cfg, fs_cfg, launcher).await
+        Self::new_imlw(cfg, fs_cfg, lock_file, launcher).await
     }
 
-    pub fn term(proc_lock_file: &Path) -> Result<()> {
-        match read_process_lock(proc_lock_file) {
-            Ok(pid) => {
-                #[cfg(unix)]
-                process::signal(pid, Signal::TERM).map_err(|_| Error::SignalFailed)?;
-                #[cfg(windows)]
-                process::terminate(pid)?;
-                Ok(())
-            }
-            Err(err) => Err(err),
-        }
+    /// Terminate the locally-running Supervisor/Launcher (assuming it is
+    /// running, of course).
+    ///
+    /// If the lock file can be read successfully, the PID being returned is
+    /// implicitly assumed to be that of a running Launcher process. That
+    /// PID is then told to terminate.
+    pub fn term() -> Result<()> {
+        let pid = crate::lock_file::read_lock_file()?;
+        #[cfg(unix)]
+        process::signal(pid, Signal::TERM).map_err(|_| Error::SignalFailed)?;
+        #[cfg(windows)]
+        process::terminate(pid)?;
+        Ok(())
     }
 
     /// # Locking (see locking.md)
     /// * `MemberList::initial_members` (write)
-    async fn new_imlw(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
+    async fn new_imlw(cfg: ManagerConfig,
+                      fs_cfg: FsCfg,
+                      lock_file: LockFile,
+                      launcher: LauncherCli)
+                      -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
         outputln!("{} ({})", SUP_PKG_IDENT, *THIS_SUPERVISOR_IDENT);
         let cfg_static = cfg.clone();
@@ -665,10 +674,10 @@ impl Manager {
                                                     suitability_lookup)?;
         outputln!("Supervisor Member-ID {}", sys.member_id);
         for peer_addr in &cfg.gossip_peers {
-            let mut peer = Member::default();
-            peer.address = format!("{}", peer_addr.ip());
-            peer.swim_port = peer_addr.port();
-            peer.gossip_port = peer_addr.port();
+            let peer = Member { address: format!("{}", peer_addr.ip()),
+                                swim_port: peer_addr.port(),
+                                gossip_port: peer_addr.port(),
+                                ..Default::default() };
             server.member_list.add_initial_member_imlw(peer);
         }
 
@@ -718,7 +727,8 @@ impl Manager {
                      busy_services: Arc::default(),
                      services_need_reconciliation: ReconciliationFlag::new(false),
                      feature_flags: cfg.feature_flags,
-                     pid_source })
+                     pid_source,
+                     _lock_file: lock_file })
     }
 
     /// Load the initial Butterly Member which is used in initializing the Butterfly server. This
@@ -766,16 +776,15 @@ impl Manager {
         debug!("Cleaning cached health checks");
         match fs::read_dir(&data_path) {
             Ok(entries) => {
-                for entry in entries {
-                    if let Ok(entry) = entry {
-                        match entry.path().extension().and_then(OsStr::to_str) {
-                            Some("tmp") | Some("health") => {
-                                fs::remove_file(&entry.path()).map_err(|err| {
-                                    Error::BadDataPath(data_path.clone(), err)
-                                })?;
-                            }
-                            _ => continue,
+                for entry in entries.flatten() {
+                    match entry.path().extension().and_then(OsStr::to_str) {
+                        Some("tmp") | Some("health") => {
+                            fs::remove_file(&entry.path()).map_err(|err| {
+                                                              Error::BadDataPath(data_path.clone(),
+                                                                                 err)
+                                                          })?;
                         }
+                        _ => continue,
                     }
                 }
                 Ok(())
@@ -1191,7 +1200,7 @@ impl Manager {
                 #[allow(unused_variables)]
                 let service_timer = service_hist.start_timer();
                 if service.tick(&self.census_ring.read(), &self.launcher) {
-                    self.gossip_latest_service_rumor_rsw_mlw_rhw(&service);
+                    self.gossip_latest_service_rumor_rsw_mlw_rhw(service);
                 }
             }
 
@@ -1239,6 +1248,7 @@ impl Manager {
                 outputln!("Gracefully departing from butterfly network.");
                 self.butterfly.set_departed_mlw_smw_rhw();
 
+                #[allow(clippy::from_iter_instead_of_collect)]
                 let service_stop_futures =
                     FuturesUnordered::from_iter(self.state
                                                     .services
@@ -1253,7 +1263,6 @@ impl Manager {
             }
         }
 
-        release_process_lock(&self.fs_cfg);
         self.butterfly.persist_data_rsr_mlr();
 
         match shutdown_mode {
@@ -1284,7 +1293,7 @@ impl Manager {
         for (ident, service) in state_services.iter() {
             if let Some(new_ident) = service_updater.has_update(&service.service_group) {
                 outputln!("Restarting {} with package {}", ident, new_ident);
-                event::service_update_started(&service, &new_ident);
+                event::service_update_started(service, &new_ident);
                 // The supervisor always runs the latest package on disk. When we have an update
                 // ensure that the lastest package on disk is the package we updated to.
                 idents_to_restart_and_latest_desired_on_restart.push((ident.clone(),
@@ -1420,6 +1429,8 @@ impl Manager {
         };
 
         let service_map = self.state.services.lock_msr();
+
+        #[allow(clippy::needless_collect)]
         let existing_idents: Vec<PackageIdent> =
             service_map.services().map(Service::spec_ident).collect();
 
@@ -1476,7 +1487,7 @@ impl Manager {
     /// * `GatewayState::inner` (write)
     /// * `ManagerServices::inner` (write)
     fn stop_service_gsw_msw(&mut self, ident: &PackageIdent, shutdown_input: &ShutdownInput) {
-        if let Some(service) = self.remove_service_from_state_msw(&ident) {
+        if let Some(service) = self.remove_service_from_state_msw(ident) {
             let future = self.stop_service_future_gsw(service, None, Some(shutdown_input));
             tokio::spawn(future);
         } else {
@@ -1611,7 +1622,7 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `ManagerServices::inner` (write)
     fn remove_service_from_state_msw(&mut self, ident: &PackageIdent) -> Option<Service> {
-        self.state.services.lock_msw().remove(&ident)
+        self.state.services.lock_msw().remove(ident)
     }
 
     /// Start, stop, or restart services to bring what's running in
@@ -1665,10 +1676,11 @@ impl Manager {
                     // ServiceSpec#reconcile must guarantee.
                     if let Some(s) = services.get_mut(&spec.ident) {
                         s.set_spec(spec);
+                        self.gossip_latest_service_rumor_rsw_mlw_rhw(s);
                         for op in ops {
                             match op {
                                 RefreshOperation::RestartUpdater => {
-                                    self.service_updater.lock().register(&s);
+                                    self.service_updater.lock().register(s);
                                 }
                             }
                         }
@@ -1820,85 +1832,6 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
     Ok(server_config)
 }
 
-fn obtain_process_lock(fs_cfg: &FsCfg) -> Result<()> {
-    match write_process_lock(&fs_cfg.proc_lock_file) {
-        Ok(()) => Ok(()),
-        Err(_) => {
-            match read_process_lock(&fs_cfg.proc_lock_file) {
-                Ok(pid) => {
-                    if process::is_alive(pid) {
-                        return Err(Error::ProcessLocked(pid));
-                    }
-                    release_process_lock(&fs_cfg);
-                    write_process_lock(&fs_cfg.proc_lock_file)
-                }
-                Err(Error::ProcessLockCorrupt) => {
-                    release_process_lock(&fs_cfg);
-                    write_process_lock(&fs_cfg.proc_lock_file)
-                }
-                Err(err) => Err(err),
-            }
-        }
-    }
-}
-
-fn read_process_lock<T>(lock_path: T) -> Result<Pid>
-    where T: AsRef<Path>
-{
-    match File::open(lock_path.as_ref()) {
-        Ok(file) => {
-            let reader = BufReader::new(file);
-            match reader.lines().next() {
-                Some(Ok(line)) => {
-                    match line.parse::<Pid>() {
-                        Ok(pid) if pid == 0 => {
-                            error!(target: "pidfile_tracing", "Read PID of 0 from process lock file {}!",
-                                   lock_path.as_ref().display());
-                            // Treat this the same as a corrupt pid
-                            // file, because that's basically what it
-                            // is.
-                            //
-                            // This *should* be an impossible situation.
-                            Err(Error::ProcessLockCorrupt)
-                        }
-                        Ok(pid) => Ok(pid),
-                        Err(_) => Err(Error::ProcessLockCorrupt),
-                    }
-                }
-                _ => Err(Error::ProcessLockCorrupt),
-            }
-        }
-        Err(err) => Err(Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)),
-    }
-}
-
-fn release_process_lock(fs_cfg: &FsCfg) {
-    if let Err(err) = fs::remove_file(&fs_cfg.proc_lock_file) {
-        debug!("Couldn't cleanup Supervisor process lock, {}", err);
-    }
-}
-
-fn write_process_lock<T>(lock_path: T) -> Result<()>
-    where T: AsRef<Path>
-{
-    match OpenOptions::new().write(true)
-                            .create_new(true)
-                            .open(lock_path.as_ref())
-    {
-        Ok(mut file) => {
-            let pid = match env::var(LAUNCHER_PID_ENV) {
-                Ok(pid) => pid.parse::<Pid>().expect("Unable to parse launcher pid"),
-                Err(_) => process::current_pid(),
-            };
-            match write!(&mut file, "{}", pid) {
-                Ok(()) => Ok(()),
-                Err(err) => Err(Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)),
-            }
-        }
-        Err(err) => Err(Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)),
-    }
-}
-
 #[cfg(windows)]
 fn get_fd_count() -> std::io::Result<usize> {
     let mut count: u32 = 0;
@@ -2038,8 +1971,9 @@ mod test {
 
     #[test]
     fn manager_state_path_custom() {
-        let mut cfg = ManagerConfig::default();
-        cfg.custom_state_path = Some(PathBuf::from("/tmp/peanuts-and-cake"));
+        let cfg = ManagerConfig { custom_state_path:
+                                      Some(PathBuf::from("/tmp/peanuts-and-cake")),
+                                  ..Default::default() };
         let path = cfg.sup_root();
 
         assert_eq!(PathBuf::from("/tmp/peanuts-and-cake"), path);
@@ -2047,8 +1981,8 @@ mod test {
 
     #[test]
     fn manager_state_path_custom_beats_name() {
-        let mut cfg = ManagerConfig::default();
-        cfg.custom_state_path = Some(PathBuf::from("/tmp/partay"));
+        let cfg = ManagerConfig { custom_state_path: Some(PathBuf::from("/tmp/partay")),
+                                  ..Default::default() };
         let path = cfg.sup_root();
 
         assert_eq!(PathBuf::from("/tmp/partay"), path);

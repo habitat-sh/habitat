@@ -44,30 +44,10 @@ pub enum Svc {
     #[structopt(no_version)]
     Update(Update),
     Start(SvcStart),
-    /// Query the status of Habitat services
     #[structopt(aliases = &["stat", "statu"])]
-    Status {
-        /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
-        #[structopt(name = "PKG_IDENT")]
-        pkg_ident:  Option<PackageIdent>,
-        #[structopt(flatten)]
-        remote_sup: RemoteSup,
-    },
+    Status(SvcStatus),
     Stop(SvcStop),
-    /// Unload a service loaded by the Habitat Supervisor. If the service is running it will
-    /// additionally be stopped.
-    Unload {
-        #[structopt(flatten)]
-        pkg_ident:        PkgIdent,
-        #[structopt(flatten)]
-        remote_sup:       RemoteSup,
-        /// The delay in seconds after sending the shutdown signal to wait before killing the
-        /// service process
-        ///
-        /// The default value is set in the packages plan file.
-        #[structopt(name = "SHUTDOWN_TIMEOUT", long = "shutdown-timeout")]
-        shutdown_timeout: Option<ShutdownTimeout>,
-    },
+    Unload(SvcUnload),
 }
 
 #[derive(ConfigOpt, StructOpt)]
@@ -90,7 +70,7 @@ pub struct BulkLoad {
 
 /// Start a loaded, but stopped, Habitat service.
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(no_version, rename_all = "screamingsnake")]
+#[structopt(name = "start", no_version, rename_all = "screamingsnake")]
 pub struct SvcStart {
     #[structopt(flatten)]
     pkg_ident:  PkgIdent,
@@ -98,9 +78,20 @@ pub struct SvcStart {
     remote_sup: RemoteSup,
 }
 
+/// Query the status of Habitat services
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "status", no_version, rename_all = "screamingsnake")]
+pub struct SvcStatus {
+    /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+    #[structopt(name = "PKG_IDENT")]
+    pub pkg_ident:  Option<PackageIdent>,
+    #[structopt(flatten)]
+    pub remote_sup: RemoteSup,
+}
+
 /// Stop a running Habitat service.
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(no_version, rename_all = "screamingsnake")]
+#[structopt(name = "stop", no_version, rename_all = "screamingsnake")]
 pub struct SvcStop {
     #[structopt(flatten)]
     pkg_ident:        PkgIdent,
@@ -118,18 +109,22 @@ pub struct SvcStop {
 #[structopt(no_version)]
 /// Commands relating to Habitat service keys
 pub enum Key {
-    /// Generates a Habitat service key
-    Generate {
-        /// Target service group service.group[@organization] (ex: redis.default or
-        /// foo.default@bazcorp)
-        #[structopt(name = "SERVICE_GROUP")]
-        service_group:  ServiceGroup,
-        /// The service organization
-        #[structopt(name = "ORG")]
-        org:            Option<String>,
-        #[structopt(flatten)]
-        cache_key_path: CacheKeyPath,
-    },
+    Generate(KeyGenerate),
+}
+
+/// Generates a Habitat service key
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "generate", no_version)]
+pub struct KeyGenerate {
+    /// Target service group service.group[@organization] (ex: redis.default or
+    /// foo.default@bazcorp)
+    #[structopt(name = "SERVICE_GROUP")]
+    service_group:  ServiceGroup,
+    /// The service organization
+    #[structopt(name = "ORG")]
+    org:            Option<String>,
+    #[structopt(flatten)]
+    cache_key_path: CacheKeyPath,
 }
 
 lazy_static::lazy_static! {
@@ -270,6 +265,23 @@ pub struct Load {
     pub shared_load: SharedLoad,
 }
 
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "unload", no_version, rename_all = "screamingsnake")]
+/// Unload a service loaded by the Habitat Supervisor. If the service is running it will
+/// additionally be stopped.
+pub struct SvcUnload {
+    #[structopt(flatten)]
+    pkg_ident:        PkgIdent,
+    #[structopt(flatten)]
+    remote_sup:       RemoteSup,
+    /// The delay in seconds after sending the shutdown signal to wait before killing the
+    /// service process
+    ///
+    /// The default value is set in the packages plan file.
+    #[structopt(name = "SHUTDOWN_TIMEOUT", long = "shutdown-timeout")]
+    shutdown_timeout: Option<ShutdownTimeout>,
+}
+
 pub fn svc_loads_from_paths<T: AsRef<Path>>(paths: &[T]) -> Result<Vec<Load>> {
     // If the only path is the default location and the directory does not exist do not report an
     // error. This allows users to run the Supervisor without creating the directory.
@@ -354,7 +366,6 @@ pub fn shared_load_cli_to_ctl(ident: PackageIdent,
     let svc_encrypted_password = None;
 
     Ok(SvcLoad { ident: Some(ident.into()),
-                 application_environment: None,
                  binds,
                  binding_mode: Some(shared_load.binding_mode as i32),
                  bldr_url: Some(habitat_core::url::bldr_url(shared_load.bldr_url)),

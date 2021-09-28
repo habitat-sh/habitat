@@ -473,7 +473,7 @@ impl Server {
                                                                    &self.update_store,
                                                                    &self.departure_store)?;
 
-            match reader.read_into_rsw_mlw_rhw_msr(&self) {
+            match reader.read_into_rsw_mlw_rhw_msr(self) {
                 Ok(_) => {
                     debug!("Successfully ingested rumors from {}",
                            reader.path().display())
@@ -561,7 +561,11 @@ impl Server {
     }
 
     /// Stop the outbound and inbound threads from processing work.
-    pub fn pause(&mut self) { self.pause.compare_and_swap(false, true, Ordering::Relaxed); }
+    pub fn pause(&mut self) {
+        self.pause
+            .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)
+            .unwrap_or_else(core::convert::identity);
+    }
 
     /// Whether this server is currently paused.
     pub fn paused(&self) -> bool { self.pause.load(Ordering::Relaxed) }
@@ -640,7 +644,7 @@ impl Server {
             for member in check_list.iter().take(SELF_DEPARTURE_RUMOR_FANOUT) {
                 let addr = member.swim_socket_address();
                 // Safe because we checked above
-                outbound::ack_mlr_smr_rhw(&self, self.socket.as_ref().unwrap(), member, addr, None);
+                outbound::ack_mlr_smr_rhw(self, self.socket.as_ref().unwrap(), member, addr, None);
             }
         } else {
             debug!("No socket present; server was never started, so nothing to depart");
@@ -730,8 +734,8 @@ impl Server {
                                  })
                                  .min()
                 {
-                    member_list.set_departed_mlw(&member_id_to_depart);
-                    rumor_heat.lock_rhw().purge(&member_id_to_depart);
+                    member_list.set_departed_mlw(member_id_to_depart);
+                    rumor_heat.lock_rhw().purge(member_id_to_depart);
                     rumor_heat.lock_rhw()
                               .start_hot_rumor(RumorKey::new(RumorType::Member,
                                                              &*member_id_to_depart,
@@ -777,7 +781,8 @@ impl Server {
         let rk = RumorKey::from(&departure);
         if *self.member_id == departure.member_id {
             self.departed
-                .compare_and_swap(false, true, Ordering::Relaxed);
+                .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)
+                .unwrap_or_else(core::convert::identity);
         }
 
         self.member_list.set_departed_mlw(&departure.member_id);
@@ -868,7 +873,7 @@ impl Server {
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (read)
     pub fn start_election_rsw_mlr_rhw_msr(&self, service_group: &str, term: u64) {
-        let suitability = self.suitability_lookup.suitability_for_msr(&service_group);
+        let suitability = self.suitability_lookup.suitability_for_msr(service_group);
         let has_quorum = self.check_quorum_mlr(service_group);
         let e = Election::new(self.member_id(),
                               service_group,
@@ -920,7 +925,7 @@ impl Server {
     {
         Self::elections_to_restart_impl(elections,
                                         &self.service_store,
-                                        &self.member_id(),
+                                        self.member_id(),
                                         |k| self.check_quorum_mlr(k),
                                         &self.member_list,
                                         feature_flags,
@@ -941,7 +946,7 @@ impl Server {
 
         for (service_group, rumors) in elections.lock_rsr().iter() {
             if service_store.lock_rsr()
-                            .service_group(&service_group)
+                            .service_group(service_group)
                             .contains_id(myself_member_id)
             {
                 // This is safe; there is only one id for a ConstIdRumor
@@ -951,7 +956,7 @@ impl Server {
                 debug!("elections_to_restart: checking {} -> {:#?}",
                        service_group, election);
 
-                if election_trigger::maybe_trigger(service_group, feature_flags, &data_path) {
+                if election_trigger::maybe_trigger(service_group, feature_flags, data_path) {
                     elections_to_restart.push((String::from(&service_group[..]), election.term()));
                 } else {
                     // We're not manually triggering a new election, so we should check to see if we
@@ -1314,7 +1319,7 @@ fn clone_socket(socket: &UdpSocket) -> std::io::Result<UdpSocket> { socket.try_c
 pub struct ServerProxy<'a>(&'a Server);
 
 impl<'a> ServerProxy<'a> {
-    pub fn new(s: &'a Server) -> Self { ServerProxy(&s) }
+    pub fn new(s: &'a Server) -> Self { ServerProxy(s) }
 }
 
 impl<'a> Serialize for ServerProxy<'a> {
@@ -1711,9 +1716,9 @@ mod tests {
                 *gossip_port_guard += 1;
             }
             let gossip_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), gossip_port);
-            let mut member = Member::default();
-            member.swim_port = swim_port;
-            member.gossip_port = gossip_port;
+            let member = Member { swim_port,
+                                  gossip_port,
+                                  ..Default::default() };
             Server::new(swim_listen,
                         gossip_listen,
                         member,
@@ -1738,9 +1743,9 @@ mod tests {
                 *gossip_port_guard += 1;
             }
             let gossip_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), gossip_port);
-            let mut member = Member::default();
-            member.swim_port = swim_port;
-            member.gossip_port = gossip_port;
+            let member = Member { swim_port,
+                                  gossip_port,
+                                  ..Default::default() };
             let rumor_name = format!("{}{}", member.id, ".rst");
             let file_path = tmpdir.path().to_owned().join(rumor_name);
             let mut rumor_file = File::create(file_path).unwrap();

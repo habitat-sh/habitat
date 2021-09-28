@@ -43,9 +43,6 @@ function Start-Container() {
 # If we can set and get a value from Redis running in the container,
 # then we know we created a container that can actually run.
 function Confirm-ContainerBehavior() {
-    param(
-        [Parameter(Mandatory=$true)][string]$container
-    )
     # Give 10 seconds for the container to come up and for Nginx to start
     Start-Sleep -Seconds 10
 
@@ -97,7 +94,7 @@ Describe "hab pkg export container" {
         }
 
         It "works!" {
-            Confirm-ContainerBehavior $script:container
+            Confirm-ContainerBehavior
         }
     }
     if($IsLinux) {
@@ -111,7 +108,7 @@ Describe "hab pkg export container" {
             }
 
             It "works!" {
-                Confirm-ContainerBehavior $script:container
+                Confirm-ContainerBehavior
             }
         }
     }
@@ -141,7 +138,7 @@ Describe "hab pkg export container --multi-layer" {
         }
 
         It "works!" {
-            Confirm-ContainerBehavior $script:container
+            Confirm-ContainerBehavior
         }
     }
 
@@ -156,7 +153,7 @@ Describe "hab pkg export container --multi-layer" {
             }
 
             It "works!" {
-                Confirm-ContainerBehavior $script:container
+                Confirm-ContainerBehavior
             }
         }
     }

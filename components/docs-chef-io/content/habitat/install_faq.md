@@ -2,6 +2,7 @@
 title = "Download and Install FAQ"
 description = "Download and Install FAQ"
 draft = false
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -9,9 +10,7 @@ draft = false
     identifier = "habitat/get_started/install-faq Install Frequently Asked Questions FAQ"
     parent = "habitat/get_started"
     weight = 30
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/install_faq.md)
 
 This section tracks some questions that are frequently encountered when downloading and installing the `hab` binary.
 

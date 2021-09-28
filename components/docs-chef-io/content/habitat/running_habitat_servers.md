@@ -1,6 +1,7 @@
 +++
 title = "Running Chef Habitat on Servers (Linux and Windows)"
 description = "Running Chef Habitat on Servers (Linux and Windows)"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -8,9 +9,7 @@ description = "Running Chef Habitat on Servers (Linux and Windows)"
     identifier = "habitat/supervisors/running-habitat-servers"
     parent = "habitat/supervisors"
     weight = 25
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/running_habitat_servers.md)
 
 Chef Habitat can be run on bare metal servers, as well as virtual machines. Currently, Chef Habitat can run on Linux and Windows platforms, and in all cases, running a Supervisor boils down to running `hab sup run`. How that happens depends on which platform you choose to use.
 

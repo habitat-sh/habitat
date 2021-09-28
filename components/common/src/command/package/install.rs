@@ -180,6 +180,7 @@ impl std::fmt::Display for InstallSource {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<String> for InstallSource {
     fn into(self) -> String { self.to_string() }
 }
@@ -198,6 +199,7 @@ impl From<PackageIdent> for InstallSource {
     fn from(ident: PackageIdent) -> Self { (ident, PackageTarget::active_target()).into() }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<PackageIdent> for InstallSource {
     fn into(self) -> PackageIdent {
         match self {
@@ -386,7 +388,7 @@ pub async fn check_install_hooks<T, P>(ui: &mut T,
         ).await?;
     }
 
-    run_install_hook_unless_already_successful(ui, &package).await
+    run_install_hook_unless_already_successful(ui, package).await
 }
 
 async fn run_install_hook_unless_already_successful<T>(ui: &mut T,
@@ -665,7 +667,7 @@ impl<'a> InstallTask<'a> {
                                     -> Result<PackageArchive>
         where T: UIWriter
     {
-        if self.is_artifact_cached(&ident) {
+        if self.is_artifact_cached(ident) {
             debug!("Found {} in artifact cache, skipping remote download",
                    ident);
         } else if self.is_offline() {
@@ -728,8 +730,8 @@ impl<'a> InstallTask<'a> {
     fn latest_installed_or_cached(&self,
                                   ident: &PackageIdent)
                                   -> Result<FullyQualifiedPackageIdent> {
-        let latest_installed = self.latest_installed_ident(&ident);
-        let latest_cached = self.latest_cached_ident(&ident);
+        let latest_installed = self.latest_installed_ident(ident);
+        let latest_cached = self.latest_cached_ident(ident);
         debug!("latest installed: {:?}, latest_cached: {:?}",
                &latest_installed, &latest_cached,);
         let latest = match (latest_installed, latest_cached) {
@@ -819,7 +821,7 @@ impl<'a> InstallTask<'a> {
                                         (ident, target): (&PackageIdent, PackageTarget),
                                         token: Option<&str>)
                                         -> Result<FullyQualifiedPackageIdent> {
-        self.fetch_latest_pkg_ident_in_channel_for((ident, target), &self.channel, token)
+        self.fetch_latest_pkg_ident_in_channel_for((ident, target), self.channel, token)
             .await
     }
 
@@ -883,7 +885,7 @@ impl<'a> InstallTask<'a> {
                                   ui.progress())
                 .await?;
 
-            let key = self.key_cache.public_signing_key(&named_revision)?;
+            let key = self.key_cache.public_signing_key(named_revision)?;
             ui.status(Status::Cached,
                       format!("{} public origin key", key.named_revision()))?;
             Ok(key)
@@ -998,7 +1000,7 @@ impl<'a> InstallTask<'a> {
                                    -> Result<()>
         where T: UIWriter
     {
-        if let Ok(recommendations) = self.get_channel_recommendations((&ident, target), token)
+        if let Ok(recommendations) = self.get_channel_recommendations((ident, target), token)
                                          .await
         {
             if !recommendations.is_empty() {

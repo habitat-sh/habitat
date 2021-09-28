@@ -20,7 +20,7 @@ curlbash_hab() {
       sudo rm -rf /hab/pkgs/core/hab/0.82.0 || \
            rm -rf /hab/pkgs/core/hab/0.82.0
     fi
-    curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
+    curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
     case "${pkg_target}" in
         x86_64-linux | x86_64-linux-kernel2)
             hab_binary="/bin/hab"
@@ -41,7 +41,7 @@ install_rustup() {
     echo "--- :rust: rustup is currently installed."
   else
     echo "--- :rust: Installing rustup."
-    curl https://sh.rustup.rs -sSf | sh -s -- --no-modify-path -y --profile=minimal
+    curl https://sh.rustup.rs -sSf | sh -s -- -y --profile=minimal
     # shellcheck disable=SC1090
     source "$HOME"/.cargo/env
   fi
@@ -364,8 +364,8 @@ push_current_branch() {
   repo=$(git remote get-url origin | sed -rn  's/.+github\.com[\/\:](.*)\.git/\1/p')
   head=$(git rev-parse --abbrev-ref HEAD)
 
-  if [ "$head" == "master" ]; then 
-    echo "Error: Attempting to push to master!"
+  if [ "$head" == "main" ]; then 
+    echo "Error: Attempting to push to main!"
     exit 1
   fi
 
@@ -377,8 +377,8 @@ macos_install_bootstrap_package() {
     echo "--- Installing mac bootstrap package"
     # subscribe to releases: https://github.com/habitat-sh/release-engineering/issues/84
     bootstrap_package_version="$(cat MAC_BOOTSTRAPPER_VERSION)"
-    bootstrap_package_name="mac-bootstrapper-${bootstrap_package_version}-1"
-    curl "https://packages.chef.io/files/stable/mac-bootstrapper/${bootstrap_package_version}/mac_os_x/10.13/${bootstrap_package_name}.dmg" -O
+    bootstrap_package_name="mac-bootstrapper-${bootstrap_package_version}-1.x86_64"
+    curl "https://packages.chef.io/files/stable/mac-bootstrapper/${bootstrap_package_version}/mac_os_x/10.15/${bootstrap_package_name}.dmg" -O
     sudo hdiutil attach "${bootstrap_package_name}.dmg"
     sudo installer -verbose -pkg "/Volumes/Habitat macOS Bootstrapper/${bootstrap_package_name}.pkg" -target /
     sudo hdiutil detach "/Volumes/Habitat macOS Bootstrapper"

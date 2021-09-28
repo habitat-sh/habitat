@@ -1,6 +1,7 @@
 +++
 title = "Keys"
 description = "Chef Habitat Security"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -9,7 +10,6 @@ description = "Chef Habitat Security"
     parent = "habitat/reference"
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/keys.md)
 
 Chef Habitat has strong cryptography built into Chef Habitat Builder, the Supervisor, and the `hab` CLI commands. This means there are several different kinds of keys.
 
@@ -41,7 +41,7 @@ User and service group keys are used to set up trust relationships between these
 
 By default, service groups will trust *any* communication, so for a production deployment of Chef Habitat, setting up these relationships is essential.
 
-User and service group keys also utilize asymmetric cryptography. To apply configuration changes to service groups when running in this mode, a user uses their own private key to encrypt configuration information for a service group, using that service group's public key. The service group then uses its private key to decrypt the configuration information, and the user's public key to verify.
+User and service group keys also use asymmetric cryptography. To apply configuration changes to service groups when running in this mode, a user uses their own private key to encrypt configuration information for a service group, using that service group's public key. The service group then uses its private key to decrypt the configuration information, and the user's public key to verify.
 
 ## Ring Encryption Key
 

@@ -1,6 +1,7 @@
 +++
 title = "Create an Origin"
 description = "Create an Origin on Chef Habitat Builder"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -8,9 +9,7 @@ description = "Create an Origin on Chef Habitat Builder"
     identifier = "habitat/origins Create an Origin"
     parent = "habitat/origins"
     weight = 10
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/origins.md)
 
 An origin is a space on Chef Habitat Builder where you can store, share, and build packages. It is a unique namespace within Chef Habitat Builder, and while you can delete or transfer an origin, you can't rename an origin after it is created. One example of an origin is the "core" origin, which is the set of foundational packages managed and versioned by the core Chef Habitat maintainers.
 

@@ -1,6 +1,7 @@
 +++
 title = "Plan Settings"
 description = "Define basic metadata about your artifact with plan settings"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -8,7 +9,6 @@ description = "Define basic metadata about your artifact with plan settings"
     identifier = "habitat/reference/plan-settings"
     parent = "habitat/reference"
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/plan_settings.md)
 
 Habitat reserves some names for internal use. You can set all of these values in your plan and use them as variables in your Habitat code.
 
@@ -99,6 +99,10 @@ pkg_version
   ```
   {{< /foundation_tabs_panel >}}
 {{< /foundation_tabs_panels >}}
+
+{{< note >}}
+Habitat uses the guidelines of the semantic versioning specification to determine version order (see https://semver.org/). Keep in mind that including a hyphen in your version indicates that the package is a pre-release that will be given lower precedence to other versions.
+{{< /note >}}
 
 pkg_maintainer
 : The name and email address of the package maintainer. Type: string._Optional_.

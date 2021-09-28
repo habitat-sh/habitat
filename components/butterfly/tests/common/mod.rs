@@ -53,9 +53,9 @@ pub fn start_server_smw_rhw(name: &str, ring_key: Option<RingKey>, suitability: 
     }
     let listen_swim = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), swim_port);
     let listen_gossip = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), gossip_port);
-    let mut member = Member::default();
-    member.swim_port = swim_port;
-    member.gossip_port = gossip_port;
+    let member = Member { swim_port,
+                          gossip_port,
+                          ..Default::default() };
     let mut server = Server::new(listen_swim,
                                  listen_gossip,
                                  member,

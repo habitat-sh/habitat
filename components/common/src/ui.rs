@@ -111,6 +111,7 @@ pub enum Glyph {
 }
 
 impl Glyph {
+    #[allow(clippy::wrong_self_convention)]
     pub fn to_str(&self) -> &str {
         let style = if let Ok(s) = env::var(GLYPH_STYLE_ENVVAR) {
             match GlyphStyle::from_str(&s) {

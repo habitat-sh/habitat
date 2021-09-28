@@ -4,15 +4,13 @@ use habitat_common::{error::{Error,
                      outputln,
                      templating::package::Pkg};
 use habitat_core::{env as henv,
-                   os::process::windows_child::Child,
                    util::{self,
                           BufReadLossy}};
-use mio::{Events,
+use mio::{windows::NamedPipe,
+          Events,
+          Interest,
           Poll,
-          PollOpt,
-          Ready,
           Token};
-use mio_named_pipes::NamedPipe;
 use std::{self,
           env,
           ffi::OsStr,
@@ -26,13 +24,15 @@ use std::{self,
           os::windows::{ffi::OsStrExt,
                         fs::*,
                         io::*},
-          path::PathBuf,
+          path::{Path,
+                 PathBuf},
           process,
           thread,
           time::{Duration,
                  Instant}};
 use uuid::Uuid;
-use winapi::um::{namedpipeapi,
+use winapi::um::{handleapi,
+                 namedpipeapi,
                  processthreadsapi,
                  winbase};
 
@@ -89,30 +89,40 @@ impl PipeHookClient {
         File::create(&self.stdout_log_file)?;
         File::create(&self.stderr_log_file)?;
 
-        let (mut pipe, poll) = self.connect()?;
+        let (mut pipe, mut poll) = self.connect()?;
         debug!("connected to {} {} hook pipe",
                service_group, self.hook_name);
 
         // The powershell server takes a single byte as input which will be either
         // 0 to shut down (see drop below) or 1 to run the hook
-        self.pipe_ready(&poll, Ready::writable())?;
+        self.pipe_ready(&mut poll, Interest::WRITABLE)?;
         pipe.write_all(&SIGNAL_EXEC_HOOK)?;
 
         // Now we wait for the hook to run and the powershell service to
         // send back the hook's exit code over the pipe
-        self.pipe_ready(&poll, Ready::readable())?;
+        self.pipe_ready(&mut poll, Interest::READABLE)?;
         let mut exit_buf = [0; std::mem::size_of::<u32>()];
         pipe.read_exact(&mut exit_buf)?;
+        unsafe {
+            handleapi::CloseHandle(pipe.as_raw_handle());
+        }
         Ok(u32::from_ne_bytes(exit_buf))
     }
 
-    fn pipe_ready(&self, poll: &Poll, readiness: Ready) -> io::Result<bool> {
+    fn pipe_ready(&self, poll: &mut Poll, readiness: Interest) -> io::Result<bool> {
         let mut events = Events::with_capacity(1024);
         let loop_value = loop {
             let checked_thread = liveliness_checker::mark_thread_alive();
-            let result =
-                poll.poll(&mut events, None)
-                    .map(|_| events.iter().any(|e| e.readiness().contains(readiness)));
+            let result = poll.poll(&mut events, None).map(|_| {
+                                                         events.iter().any(|e| {
+                                                                          (e.is_readable()
+                                                                  && readiness
+                                                                     == Interest::READABLE)
+                                                                 || (e.is_writable()
+                                                                     && readiness
+                                                                        == Interest::WRITABLE)
+                                                                      })
+                                                     });
             if let Ok(false) = result {
                 continue;
             } else {
@@ -131,9 +141,10 @@ impl PipeHookClient {
             .custom_flags(winbase::FILE_FLAG_OVERLAPPED);
         let file = opts.open(self.abs_pipe_name())?;
 
-        let pipe = unsafe { NamedPipe::from_raw_handle(file.into_raw_handle()) };
+        let mut pipe = unsafe { NamedPipe::from_raw_handle(file.into_raw_handle()) };
         let poll = Poll::new()?;
-        poll.register(&pipe, Token(0), Ready::all(), PollOpt::edge())?;
+        poll.registry()
+            .register(&mut pipe, Token(0), Interest::WRITABLE | Interest::READABLE)?;
         Ok((pipe, poll))
     }
 
@@ -159,11 +170,10 @@ impl PipeHookClient {
                              process::id());
 
         // Start instance of powershell to host named pipe server for this client
-        let child = Child::spawn("pwsh.exe",
-                                 &util::pwsh_args(ps_cmd.as_str()),
-                                 &pkg.env.to_hash_map(),
-                                 &pkg.svc_user,
-                                 svc_encrypted_password)?;
+        let child = util::spawn_pwsh(&ps_cmd,
+                                     &pkg.env.to_hash_map(),
+                                     &pkg.svc_user,
+                                     svc_encrypted_password)?;
         debug!("spawned powershell server for {} {} hook on pipe: {}",
                service_group, self.hook_name, self.pipe_name);
 
@@ -231,8 +241,8 @@ impl PipeHookClient {
             debug!("error checking if pipe exists: {}", err);
         } else {
             debug!("Telling {} pipe server to quit", self.pipe_name);
-            let (mut pipe, poll) = self.connect()?;
-            self.pipe_ready(&poll, Ready::writable())?;
+            let (mut pipe, mut poll) = self.connect()?;
+            self.pipe_ready(&mut poll, Interest::WRITABLE)?;
             pipe.write_all(&SIGNAL_QUIT)?;
         }
         Ok(())
@@ -256,7 +266,7 @@ impl Drop for PipeHookClient {
     }
 }
 
-fn stream_output<T>(out: T, log_file: &PathBuf, preamble_str: &str)
+fn stream_output<T>(out: T, log_file: &Path, preamble_str: &str)
     where T: Read
 {
     File::create(&log_file).unwrap_or_else(|_| {
@@ -265,25 +275,23 @@ fn stream_output<T>(out: T, log_file: &PathBuf, preamble_str: &str)
                                       &log_file.to_string_lossy())
                            });
 
-    for line in BufReader::new(out).lines_lossy() {
-        if let Ok(ref l) = line {
-            outputln!(preamble preamble_str, l);
-            // we append each line to the log file instead of continuously
-            // streaming to an open file because the parent thread needs to
-            // truncate the log on each hook execution so that the log only
-            // holds the output of the last run. This mimics the behavior of
-            // the HookOutput streaming.
-            match OpenOptions::new().write(true).append(true).open(&log_file) {
-                Ok(mut log) => {
-                    if let Err(e) = writeln!(log, "{}", l) {
-                        outputln!(preamble preamble_str, "couldn't write line. {}", e);
-                    }
+    for line in BufReader::new(out).lines_lossy().flatten() {
+        outputln!(preamble preamble_str, &line);
+        // we append each line to the log file instead of continuously
+        // streaming to an open file because the parent thread needs to
+        // truncate the log on each hook execution so that the log only
+        // holds the output of the last run. This mimics the behavior of
+        // the HookOutput streaming.
+        match OpenOptions::new().write(true).append(true).open(&log_file) {
+            Ok(mut log) => {
+                if let Err(e) = writeln!(log, "{}", line) {
+                    outputln!(preamble preamble_str, "couldn't write line. {}", e);
                 }
-                Err(err) => {
-                    outputln!(preamble preamble_str, "unable to open log {} : {}",
-                            &log_file.to_string_lossy(),
-                            err);
-                }
+            }
+            Err(err) => {
+                outputln!(preamble preamble_str, "unable to open log {} : {}",
+                        &log_file.to_string_lossy(),
+                        err);
             }
         }
     }
@@ -313,7 +321,7 @@ mod test {
     async fn pkg() -> Pkg {
         let service_group = ServiceGroup::new("test_service", "test_group", None).unwrap();
         let pg_id = PackageIdent::new("testing",
-                                      &service_group.service(),
+                                      service_group.service(),
                                       Some("1.0.0"),
                                       Some("20170712000000"));
         let pkg_install = PackageInstall::new_from_parts(pg_id.clone(),

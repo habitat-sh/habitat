@@ -110,7 +110,7 @@ impl CensusRing {
         self.census_groups.get(sg)
     }
 
-    pub fn groups(&self) -> Vec<&CensusGroup> { self.census_groups.values().map(|cg| cg).collect() }
+    pub fn groups(&self) -> Vec<&CensusGroup> { self.census_groups.values().collect() }
 
     /// Populates the census from `ServiceRumor`s and Butterfly-level
     /// membership lists.
@@ -224,7 +224,7 @@ impl CensusRing {
 pub struct CensusRingProxy<'a>(&'a CensusRing);
 
 impl<'a> CensusRingProxy<'a> {
-    pub fn new(c: &'a CensusRing) -> Self { CensusRingProxy(&c) }
+    pub fn new(c: &'a CensusRing) -> Self { CensusRingProxy(c) }
 }
 
 impl<'a> Serialize for CensusRingProxy<'a> {
@@ -417,9 +417,8 @@ impl CensusGroup {
                              .entry(member_id.to_string())
                              .or_insert_with(|| {
                                  // Note: this is where CensusMembers are created
-                                 let mut new_member = CensusMember::default();
-                                 new_member.alive = is_self;
-                                 new_member
+                                 CensusMember { alive: is_self,
+                                                ..Default::default() }
                              });
             member.update_from_service_rumor(&self.service_group, service_rumor);
         }
@@ -527,7 +526,7 @@ impl CensusGroup {
     /// what the group exports. Until that time, the best we can do is
     /// ask an active member what *they* export (if there is a leader,
     /// though, we'll just ask them).
-    pub fn group_exports<'a>(&'a self) -> Result<HashSet<&'a String>, Error> {
+    pub fn group_exports(&self) -> Result<HashSet<&String>, Error> {
         self.leader()
             .or_else(|| self.active_members().next())
             .ok_or_else(|| Error::NoActiveMembers(self.service_group.clone()))
@@ -676,7 +675,7 @@ impl CensusMember {
 pub struct CensusMemberProxy<'a>(Cow<'a, CensusMember>);
 
 impl<'a> CensusMemberProxy<'a> {
-    pub fn new(c: &'a CensusMember) -> Self { CensusMemberProxy(Cow::Borrowed(&c)) }
+    pub fn new(c: &'a CensusMember) -> Self { CensusMemberProxy(Cow::Borrowed(c)) }
 
     #[cfg(test)]
     pub fn new_owned(c: CensusMember) -> Self { CensusMemberProxy(Cow::Owned(c)) }
@@ -782,13 +781,13 @@ mod tests {
     }
 
     fn test_census_ring() -> (CensusRing, ServiceGroup, ServiceGroup) {
-        let mut sys_info = SysInfo::default();
-        sys_info.ip = "1.2.3.4".to_string();
-        sys_info.hostname = "hostname".to_string();
-        sys_info.gossip_ip = "0.0.0.0".to_string();
-        sys_info.gossip_port = 7777;
-        sys_info.http_gateway_ip = "0.0.0.0".to_string();
-        sys_info.http_gateway_port = 9631;
+        let sys_info = SysInfo { ip: "1.2.3.4".to_string(),
+                                 hostname: "hostname".to_string(),
+                                 gossip_ip: "0.0.0.0".to_string(),
+                                 gossip_port: 7777,
+                                 http_gateway_ip: "0.0.0.0".to_string(),
+                                 http_gateway_port: 9631,
+                                 ..Default::default() };
         let pg_id = PackageIdent::new("starkandwayne",
                                       "shield",
                                       Some("0.10.4"),

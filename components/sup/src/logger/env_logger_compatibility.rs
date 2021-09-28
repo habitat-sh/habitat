@@ -84,10 +84,11 @@ impl Default for EnvLogConfig {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<Config> for EnvLogConfig {
     /// Actually create a `log4rs` configuration. This is
     /// infallible because we'll always create something valid.
-    fn into(self: Self) -> Config {
+    fn into(self) -> Config {
         let stdout = ConsoleAppender::builder().encoder(Box::new(PatternEncoder::new(super::DEFAULT_PATTERN)))
                                                .build();
         let loggers = self.module_filters

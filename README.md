@@ -1,7 +1,4 @@
-<img src="https://github.com/habitat-sh/habitat/blob/master/www/source/images/habitat-logo.png" width="200">
-
 [![Build Status](https://badge.buildkite.com/f527cd3d7851756ed1a5f6ec463dd41e7145f7941fd932672a.svg)](https://buildkite.com/chef/habitat-sh-habitat-master-verify?branch=master)
-[![Slack](http://slack.habitat.sh/badge.svg)](http://slack.habitat.sh/)
 [![Discourse status](https://img.shields.io/discourse/https/meta.discourse.org/status.svg?style=flat)](https://forums.habitat.sh)
 [![Open Source Helpers](https://www.codetriage.com/habitat-sh/habitat/badges/users.svg)](https://www.codetriage.com/habitat-sh/habitat)
 
@@ -13,6 +10,7 @@ The goal of Habitat is to allow you to automate your application behavior when y
 
 See a quick demo of how to build, deploy and manage an application with Habitat:
 
+
 **Project State**: [Active](https://github.com/chef/chef-oss-practices/blob/master/repo-management/repo-states.md#active)
 
 **Issues Response Time Max**: 5 business days
@@ -23,7 +21,7 @@ See a quick demo of how to build, deploy and manage an application with Habitat:
 
 # Table of Contents
 * [Diagrams](#diagrams)
-* [Hands-on Demos](#hands-on-demos)
+* [Training](#training)
 * [Install](#install)
 * [Contribute](#contribute)
 * [Documentation](#documentation)
@@ -39,35 +37,30 @@ See a quick demo of how to build, deploy and manage an application with Habitat:
 Graphics that will help you and your team better understand the concepts and how they fit together into the larger Habitat ecosystem.
 ### Where Habitat Fits
 
-[![Habitat Flow Infographic](images/habitat-flow-infographic.png)](http://habitat.sh#reference-diagram)
+[![Habitat Flow Infographic](https://github.com/habitat-sh/habitat/raw/master/images/habitat-flow-infographic.png)](http://habitat.sh#reference-diagram)
 
 Try the interactive infographics on the [website](http://habitat.sh#reference-diagram)!
 
 ### How Habitat Works
-* [Architecture Overview](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-architecture-overview.png)
-* [Initial Package Build Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-initial-package-build-flow.png)
-* [Application Rebuild Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-application-rebuild-flow.png)
-* [Dependency Update Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-dependency-update-flow.png)
-* [Promote Packages Through Channels](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-promote-packages-through-channels.png)
+* [Architecture Overview](https://github.com/habitat-sh/habitat/raw/master/images/habitat-architecture-overview.png)
+* [Initial Package Build Flow](https://github.com/habitat-sh/habitat/raw/master/images/habitat-initial-package-build-flow.png)
+* [Application Rebuild Flow](https://github.com/habitat-sh/habitat/raw/master/images/habitat-application-rebuild-flow.png)
+* [Dependency Update Flow](https://github.com/habitat-sh/habitat/raw/master/images/habitat-dependency-update-flow.png)
+* [Promote Packages Through Channels](https://github.com/habitat-sh/habitat/raw/master/images/habitat-promote-packages-through-channels.png)
 
 ### Habitat and **Docker**
-* [Initial Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-initial-docker-container-publishing-flow.png)
-* [Automated Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/habitat-automated-docker-container-publishing-flow.png)
+* [Initial Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/images/habitat-initial-docker-container-publishing-flow.png)
+* [Automated Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/images/habitat-automated-docker-container-publishing-flow.png)
 
 *View all diagrams in [Docs](https://www.habitat.sh/docs/diagrams/)*
 
-## Hands-on Demos
-Choose any topic to begin learning how Habitat can help your team build, deploy, and manage all of your applications - both new and legacy - in a cloud-native way:
-* [Package a sample application (15 mins)](https://www.habitat.sh/demo/packaging-system/steps/1/)
-* [Set up automated deployments (20 mins)](https://www.habitat.sh/demo/build-system/steps/1/)
-* [Auto-update a running application (15 mins)](https://www.habitat.sh/demo/process-supervisor/steps/1/)
-
+## Training
 *View all demos and tutorials in [Learn](https://www.habitat.sh/learn/)*
 
 
 ## Install
 
-You can download Habitat from the [Habitat downloads page](https://www.habitat.sh/docs/install-habitat/).
+You can download Habitat from the [Habitat downloads page](https://docs.chef.io/habitat/install_habitat).
 
 Once you have downloaded it, follow the instructions on the page for your specific operating system.
 
@@ -125,9 +118,9 @@ The Habitat core team's project tracker is also public and on [Github.](https://
 
 ## Community and support
 
-* [Habitat Slack](http://slack.habitat.sh)
+* [Chef Community Slack](https://community-slack.chef.io/)
 * [Forums](https://forums.habitat.sh)
-* Community triage is every Tuesday at 10am Pacific. The link to participate is shared in the [Habitat Slack channel](http://slack.habitat.sh), and videos are posted on the [Habitat YouTube channel](https://youtube.com/channel/UC0wJZeP2dfPZaDUPgvpVpSg).
+* The Chef Community meeting is every Thursday at 9am Pacific.  More information can be found in the Connect section of [Chef Community](https://community.chef.io/)
 
 ## Building
 See [BUILDING.md](BUILDING.md) for platform specific info on building Habitat from source.

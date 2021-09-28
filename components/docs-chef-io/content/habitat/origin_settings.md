@@ -1,8 +1,8 @@
 +++
 title = "Origin Settings"
-
 date = 2020-10-12T14:02:01-07:00
 draft = false
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -11,8 +11,6 @@ draft = false
     parent = "habitat/origins"
     weight = 40
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/origin_settings.md)
 
 The _Origin Settings_ tab contains:
 

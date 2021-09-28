@@ -75,5 +75,5 @@ impl FixtureRoot {
 }
 
 impl AsRef<Path> for FixtureRoot {
-    fn as_ref(&self) -> &Path { &self.0.as_path() }
+    fn as_ref(&self) -> &Path { self.0.as_path() }
 }

@@ -194,7 +194,7 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
                 if !first_ok_health_check_recorded {
                     // If this was the first successful check, splay future health check runs across
                     // the nominal interval
-                    let splay = rand::thread_rng().gen_range(0, u64::from(nominal_interval));
+                    let splay = rand::thread_rng().gen_range(0..u64::from(nominal_interval));
                     let splay = Duration::from_secs(splay);
                     debug!("Following `{}`'s first `ok` health-check, delaying a randomly chosen \
                             {}s to introduce health-check splay",
@@ -229,7 +229,7 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
                    service_group,
                    result,
                    interval);
-            time::delay_for(interval.into()).await;
+            time::sleep(interval.into()).await;
         }
         outputln!(preamble service_group_clone, "Health checking has been stopped");
     });

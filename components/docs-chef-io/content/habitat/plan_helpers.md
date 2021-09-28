@@ -1,15 +1,14 @@
 +++
 title = "Configuration Helpers"
 description = "Define dynamic plan configuration settings with plan helpers"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
     title = "Plan Configuration Helpers"
     identifier = "habitat/reference/plan-helpers Plan Tuning"
     parent = "habitat/reference"
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/plan_helpers.md)
 
 Chef Habitat allows you to use [Handlebars-based](http://handlebarsjs.com) tuneables in your plan, and you can also use both built-in Handlebars helpers and Chef Habitat-specific helpers in defining your configuration logic.
 
@@ -85,7 +84,7 @@ When writing your template, you can use the `with` helper to reduce duplication:
 {{/with ~}}
 ```
 
-Helpers can also be nested and used together in block expressions. Here is another example from the redis.config file where the `if` and `with` helpers are used together to set up `core/redis` Chef Habitat services  in a leader-follower topology.
+Helpers can also be nested and used together in block expressions. Here is another example from the redis.config file where the `if` and `with` helpers are used together to set up `core/redis` Chef Habitat services in a leader-follower topology.
 
     {{#if svc.me.follower ~}}
       replicaof {{svc.leader.sys.ip}} {{svc.leader.cfg.port}}

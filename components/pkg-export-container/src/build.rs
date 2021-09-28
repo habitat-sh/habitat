@@ -65,6 +65,7 @@ const DEFAULT_USER_AND_GROUP_ID: u32 = 42;
 const DEFAULT_HAB_UID: u32 = 84;
 const DEFAULT_HAB_GID: u32 = 84;
 
+#[allow(clippy::unnecessary_wraps)]
 fn default_base_image() -> Result<String> {
     #[cfg(unix)]
     {
@@ -189,7 +190,7 @@ impl BuildSpec {
         self.remove_symlink_to_key_cache(ui, rootfs)?;
         self.remove_symlink_to_artifact_cache(ui, rootfs)?;
 
-        let graph = Graph::from_packages(base_pkgs, user_pkgs, &rootfs)?;
+        let graph = Graph::from_packages(base_pkgs, user_pkgs, rootfs)?;
 
         Ok(graph)
     }
@@ -204,7 +205,7 @@ impl BuildSpec {
         self.remove_symlink_to_key_cache(ui, rootfs)?;
         self.remove_symlink_to_artifact_cache(ui, rootfs)?;
 
-        let graph = Graph::from_packages(base_pkgs, user_pkgs, &rootfs)?;
+        let graph = Graph::from_packages(base_pkgs, user_pkgs, rootfs)?;
 
         Ok(graph)
     }
@@ -279,7 +280,7 @@ impl BuildSpec {
                       -> Result<()> {
         let dst = util::bin_path();
         for pkg in user_pkgs.iter() {
-            hab::command::pkg::binlink::binlink_all_in_pkg(ui, pkg.as_ref(), &dst, rootfs, true)
+            hab::command::pkg::binlink::binlink_all_in_pkg(ui, pkg.as_ref(), dst, rootfs, true)
                 .map_err(SyncFailure::new)?;
         }
         Ok(())
@@ -294,10 +295,10 @@ impl BuildSpec {
                                                                 .as_ref()
                                                                 .expect("No busybox in idents")
                                                                 .as_ref(),
-                                                       &dst,
+                                                       dst,
                                                        rootfs,
                                                        true).map_err(SyncFailure::new)?;
-        hab::command::pkg::binlink::start(ui, base_pkgs.hab.as_ref(), "hab", &dst, rootfs, true)
+        hab::command::pkg::binlink::start(ui, base_pkgs.hab.as_ref(), "hab", dst, rootfs, true)
             .map_err(SyncFailure::new)?;
         Ok(())
     }
@@ -802,7 +803,7 @@ impl PkgIdentType {
     pub fn ident(&self) -> &PackageIdent {
         match *self {
             PkgIdentType::Svc(ref svc) => &svc.ident,
-            PkgIdentType::Lib(ref ident) => &ident,
+            PkgIdentType::Lib(ref ident) => ident,
         }
     }
 }

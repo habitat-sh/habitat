@@ -1,6 +1,7 @@
 +++
 title = "Supervisor Networks"
 description = "Robust Supervisor Networks"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -8,10 +9,7 @@ description = "Robust Supervisor Networks"
     identifier = "habitat/supervisors/sup-networks Supervisor Networks Explained"
     parent = "habitat/supervisors"
     weight = 60
-
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_networks.md)
 
 Chef Habitat Supervisors communicate amongst each other using "gossip" algorithms, which underpin the membership management, leadership election, and service discovery mechanics of Chef Habitat. By simply being "peered" to a single existing Supervisor, a new Supervisor will gradually come to know about _all_ the Supervisors in a Chef Habitat network. The gossip algorithm has built-in features to counteract brief network splits, but care must be taken to set up a robust Supervisor network.
 

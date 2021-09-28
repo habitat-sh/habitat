@@ -2,9 +2,9 @@ use log::LevelFilter;
 use log4rs::{append::console::ConsoleAppender,
              config::{Appender,
                       Config,
+                      Deserializers,
                       Root},
-             encode::pattern::PatternEncoder,
-             file::Deserializers};
+             encode::pattern::PatternEncoder};
 use std::path::PathBuf;
 
 mod env_logger_compatibility;

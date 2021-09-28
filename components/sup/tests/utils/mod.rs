@@ -43,7 +43,8 @@ pub fn setup_package_files(origin_name: &str,
     let spec_source = fixture_root.spec_path(&package_name);
     let spec_destination = hab_root.spec_path(&package_name, &service_group);
     assert!(spec_source.exists(),
-            format!("Missing a spec file at {:?}", spec_source));
+            "Missing a spec file at {:?}",
+            spec_source);
     fs::copy(&spec_source, &spec_destination).unwrap_or_else(|_| {
                                                  panic!("Could not copy {:?} to {:?}",
                                                         spec_source, spec_destination)
@@ -53,7 +54,7 @@ pub fn setup_package_files(origin_name: &str,
     let expanded_fixture_dir = fixture_root.expanded_package_dir(&package_name);
     let hab_pkg_path = hab_root.pkg_path(&origin_name, &package_name);
     copy_dir(&expanded_fixture_dir, &hab_pkg_path);
-    write_default_svc_user_and_group_metafiles(&hab_root, &origin_name, &package_name);
+    write_default_svc_user_and_group_metafiles(hab_root, &origin_name, &package_name);
 
     let install =
         PackageInstall::load(&hab_root.pkg_ident(&origin_name, &package_name),
@@ -77,9 +78,11 @@ pub fn copy_dir<S, D>(source_dir: S, dest_dir: D)
 {
     let source_dir = source_dir.as_ref().to_path_buf();
     assert!(source_dir.exists(),
-            format!("Source directory {:?} does not exist", source_dir));
+            "Source directory {:?} does not exist",
+            source_dir);
     assert!(source_dir.is_dir(),
-            format!("Source directory {:?} is not a directory", source_dir));
+            "Source directory {:?} is not a directory",
+            source_dir);
     let dest_dir = dest_dir.as_ref().to_path_buf();
 
     fs::create_dir_all(&dest_dir).unwrap_or_else(|_| {

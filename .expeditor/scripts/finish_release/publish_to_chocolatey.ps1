@@ -4,7 +4,7 @@ Write-Host "--- Fetching manifest"
 $baseUrl = "https://packages.chef.io/files/stable/habitat/latest"
 $manifestUrl = "$baseUrl/manifest.json"
 Write-Host "Fetching $manifestUrl"
-$manifest = (Invoke-WebRequest -URI "$manifestUrl" -ErrorAction Stop -UseBasicParsing).Content | ConvertFrom-Json
+$manifest = (Invoke-WebRequest -Uri "$manifestUrl" -ErrorAction Stop -UseBasicParsing).Content | ConvertFrom-Json
 
 Write-Host "--- :thinking_face: Determining version and release to publish"
 $Version = ($manifest.version).Trim()

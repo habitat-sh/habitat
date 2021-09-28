@@ -19,6 +19,7 @@ pub struct ShutdownInput {
 // TODO (CM): More actions will be added to this with future
 // refactorings
 #[derive(Clone, Debug)]
+#[allow(clippy::enum_variant_names)]
 pub enum SupervisorAction {
     StopService {
         service_spec:   ServiceSpec,
@@ -35,12 +36,14 @@ pub enum SupervisorAction {
 
 pub type ActionSender = mpsc::Sender<SupervisorAction>;
 
+#[allow(clippy::from_over_into)]
 impl Into<ShutdownInput> for habitat_sup_protocol::ctl::SvcUnload {
     fn into(self) -> ShutdownInput {
         ShutdownInput { timeout: self.timeout_in_seconds.map(ShutdownTimeout::from), }
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<ShutdownInput> for habitat_sup_protocol::ctl::SvcStop {
     fn into(self) -> ShutdownInput {
         ShutdownInput { timeout: self.timeout_in_seconds.map(ShutdownTimeout::from), }

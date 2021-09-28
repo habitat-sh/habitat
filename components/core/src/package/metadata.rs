@@ -8,8 +8,7 @@ use std::{self,
           fmt,
           fs::File,
           io::Read,
-          iter::{FromIterator,
-                 IntoIterator},
+          iter::IntoIterator,
           path::{Path,
                  PathBuf},
           str::FromStr,
@@ -23,11 +22,10 @@ const ENV_PATH_SEPARATOR: char = ':';
 const ENV_PATH_SEPARATOR: char = ';';
 
 pub fn parse_key_value(s: &str) -> Result<BTreeMap<String, String>> {
-    Ok(BTreeMap::from_iter(s.lines()
-                            .map(|l| l.splitn(2, '=').collect::<Vec<_>>())
-                            .map(|kv| {
-                                (kv[0].to_string(), kv[1].to_string())
-                            })))
+    Ok(s.lines()
+        .map(|l| l.splitn(2, '=').collect::<Vec<_>>())
+        .map(|kv| (kv[0].to_string(), kv[1].to_string()))
+        .collect())
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -291,7 +289,7 @@ port=front-end.port
 
     #[test]
     #[should_panic]
-    fn malformed_file() { parse_key_value(&"PATH").unwrap(); }
+    fn malformed_file() { parse_key_value("PATH").unwrap(); }
 
     #[test]
     fn can_parse_environment_file() {
@@ -304,7 +302,7 @@ port=front-end.port
                 .to_string(),
         );
 
-        assert_eq!(parse_key_value(&ENVIRONMENT).unwrap(), m);
+        assert_eq!(parse_key_value(ENVIRONMENT).unwrap(), m);
     }
 
     #[test]
@@ -313,7 +311,7 @@ port=front-end.port
         m.insert("PATH".to_string(), ":".to_string());
         m.insert("PYTHONPATH".to_string(), ":".to_string());
 
-        assert_eq!(parse_key_value(&ENVIRONMENT_SEP).unwrap(), m);
+        assert_eq!(parse_key_value(ENVIRONMENT_SEP).unwrap(), m);
     }
 
     #[test]
@@ -322,15 +320,15 @@ port=front-end.port
         m.insert("status-port".to_string(), "status.port".to_string());
         m.insert("port".to_string(), "front-end.port".to_string());
 
-        assert_eq!(parse_key_value(&EXPORTS).unwrap(), m);
+        assert_eq!(parse_key_value(EXPORTS).unwrap(), m);
     }
 
     #[test]
     fn build_pkg_env() {
         let mut result =
-            PkgEnv::new(parse_key_value(&ENVIRONMENT).unwrap(),
-                        &parse_key_value(&ENVIRONMENT_SEP).unwrap()).into_iter()
-                                                                    .collect::<Vec<_>>();
+            PkgEnv::new(parse_key_value(ENVIRONMENT).unwrap(),
+                        &parse_key_value(ENVIRONMENT_SEP).unwrap()).into_iter()
+                                                                   .collect::<Vec<_>>();
         // Sort the result by key, so we have a guarantee of order
         result.sort_by_key(|v| v.key.to_owned());
 

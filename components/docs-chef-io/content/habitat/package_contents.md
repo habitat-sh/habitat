@@ -1,15 +1,14 @@
 +++
 title = "Package Contents"
 description = "Package Contents"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
     title = "Package Contents"
     identifier = "habitat/reference/package-contents"
     parent = "habitat/reference"
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/package_contents.md)
 
 During the build process, the hab-plan-build script creates several files that specify dependency, build, and configuration information. When packages are unpacked (extracted) and installed during the initialization phase of a Chef Habitat service, these files define what those packages need to run.
 
@@ -78,7 +77,7 @@ SVC_USER
 : The value of `pkg_svc_user` from a plan. The Chef Habitat Supervisor will try to start a service with this user if it exists.
 
 default.toml
-: If you have defined a `default.toml` file in the root of your plan, then it will be included in the same relative location within the installed package directory. For more information on configuration and the default.toml file, see [Configuration Updates]({{< relref "config_updates" >}}).
+: If you have defined a `default.toml` file in the root of your plan, then it will be included in the same relative location within the installed package directory. For more information on configuration and the default.toml file, see [Configuration Updates]({{< relref "service_updates" >}}).
 
 config directory
 : If you have defined a `config` subdirectory with a templatized configuration file in your plan, then they will be included in the same relative location within the installed package directory. For more information on templatized configuration files, see [Add configuration to plans]({{< relref "config_templates" >}}).

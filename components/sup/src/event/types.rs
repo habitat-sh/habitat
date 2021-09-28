@@ -12,6 +12,7 @@ include!(concat!(env!("OUT_DIR"), "/chef.habitat.supervisor.event.rs"));
 // Note: `HealthCheckResult` here is the protobuf-generated type for
 // the event we're sending out; `DomainHealthCheckResult` is the one we use
 // elsewhere in the Supervisor.
+#[allow(clippy::from_over_into)]
 impl Into<HealthCheckResult> for DomainHealthCheckResult {
     fn into(self) -> HealthCheckResult {
         match self {

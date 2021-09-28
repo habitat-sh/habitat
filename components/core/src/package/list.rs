@@ -56,7 +56,7 @@ pub fn temp_package_directory(path: &Path) -> Result<TempDir> {
 pub fn all_packages(path: &Path) -> Result<Vec<PackageIdent>> {
     let mut package_list: Vec<PackageIdent> = vec![];
     if fs::metadata(path)?.is_dir() {
-        walk_origins(&path, &mut package_list)?;
+        walk_origins(path, &mut package_list)?;
     }
     Ok(package_list)
 }
@@ -78,7 +78,7 @@ pub fn package_list_for_origin(base_pkg_path: &Path, origin: &str) -> Result<Vec
         return Ok(package_list);
     };
 
-    walk_names(&origin, &package_path, &mut package_list)?;
+    walk_names(origin, &package_path, &mut package_list)?;
     Ok(package_list)
 }
 
@@ -113,7 +113,7 @@ pub fn package_list_for_ident(base_pkg_path: &Path,
             }
             walk_releases(&ident.origin,
                           &ident.name,
-                          &version,
+                          version,
                           &package_path,
                           &mut package_list)?
         }
@@ -128,7 +128,7 @@ pub fn package_list_for_ident(base_pkg_path: &Path,
             let active_target = PackageTarget::active_target();
             if let Some(new_ident) = package_ident_from_dir(&ident.origin,
                                                             &ident.name,
-                                                            &version,
+                                                            version,
                                                             active_target,
                                                             &package_path)
             {
@@ -163,7 +163,7 @@ fn walk_names(origin: &str, dir: &Path, packages: &mut Vec<PackageIdent>) -> Res
         let name_path = name_dir.path();
         if fs::metadata(&name_path)?.is_dir() {
             let name = filename_from_entry(&name_dir);
-            walk_versions(&origin, &name, &name_path, packages)?;
+            walk_versions(origin, &name, &name_path, packages)?;
         }
     }
     Ok(())
@@ -306,7 +306,7 @@ mod test {
     #[test]
     fn empty_dir_gives_empty_list() {
         let package_root = Builder::new().prefix("fs-root").tempdir().unwrap();
-        let packages = all_packages(&package_root.path()).unwrap();
+        let packages = all_packages(package_root.path()).unwrap();
 
         assert_eq!(0, packages.len());
     }

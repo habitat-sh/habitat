@@ -1,8 +1,8 @@
 +++
 title = "Origin Membership & RBAC"
-
 date = 2020-10-12T13:53:50-07:00
 draft = false
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -11,8 +11,6 @@ draft = false
     parent = "habitat/origins"
     weight = 30
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/origin_rbac.md)
 
 Prerequisites:
 

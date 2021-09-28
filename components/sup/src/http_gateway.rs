@@ -85,6 +85,7 @@ struct HealthCheckBody {
     stderr: String,
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<StatusCode> for HealthCheckResult {
     fn into(self) -> StatusCode {
         match self {
@@ -119,9 +120,9 @@ impl AppState {
 // Begin middleware
 
 fn authentication_middleware<S>(req: ServiceRequest,
-                                srv: &mut S)
+                                srv: &S)
                                 -> impl Future<Output = Result<ServiceResponse<Body>, Error>>
-    where S: Service<Request = ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
+    where S: Service<ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
 {
     let current_token = &req.app_data::<Data<AppState>>()
                             .expect("app data")
@@ -162,9 +163,9 @@ fn authentication_middleware<S>(req: ServiceRequest,
 }
 
 fn metrics_middleware<S>(req: ServiceRequest,
-                         srv: &mut S)
+                         srv: &S)
                          -> impl Future<Output = Result<ServiceResponse<Body>, Error>>
-    where S: Service<Request = ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
+    where S: Service<ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
 {
     let label_values = &[req.path()];
 
@@ -192,9 +193,9 @@ fn metrics_middleware<S>(req: ServiceRequest,
 }
 
 fn redact_http_middleware<S>(req: ServiceRequest,
-                             srv: &mut S)
+                             srv: &S)
                              -> impl Future<Output = Result<ServiceResponse<Body>, Error>>
-    where S: Service<Request = ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
+    where S: Service<ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
 {
     if req.app_data::<Data<AppState>>()
           .expect("app data")
@@ -271,9 +272,9 @@ impl Server {
             if let Ok(b) = bind {
                 // Starting the server could be simplified
                 // See https://github.com/habitat-sh/habitat/issues/7352
-                System::new("actix-rt").block_on(async move {
-                                           b.run().await.expect("to start http server");
-                                       })
+                System::new().block_on(async move {
+                                 b.run().await.expect("to start http server");
+                             })
             }
         });
     }
@@ -398,8 +399,8 @@ fn health_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) -
 
     if let Some(health_check) = state.gateway_state.lock_gsr().health_of(&service_group) {
         let mut body = HealthCheckBody::default();
-        let stdout_path = hooks::stdout_log_path::<HealthCheckHook>(&service_group);
-        let stderr_path = hooks::stderr_log_path::<HealthCheckHook>(&service_group);
+        let stdout_path = hooks::stdout_log_path::<HealthCheckHook>(service_group.service());
+        let stderr_path = hooks::stderr_log_path::<HealthCheckHook>(service_group.service());
         let http_status: StatusCode = health_check.into();
 
         body.status = health_check.to_string();
@@ -571,9 +572,9 @@ mod tests {
                 *gossip_port_guard += 1;
             }
             let gossip_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), gossip_port);
-            let mut member = Member::default();
-            member.swim_port = swim_port;
-            member.gossip_port = gossip_port;
+            let member = Member { swim_port,
+                                  gossip_port,
+                                  ..Default::default() };
             Server::new(swim_listen,
                         gossip_listen,
                         member,

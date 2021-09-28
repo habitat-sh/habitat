@@ -16,14 +16,15 @@ doc = false
 
 [dependencies]
 bytes = "*"
-actix-web = { version = "*", default-features = false, features = [ "rustls" ] }
+actix-web = { version = "4.0.0-beta.8", default-features = false, features = [ "rustls" ] }
 actix-rt = "*"
 byteorder = "*"
 clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
 configopt = { git = "https://github.com/davidMcneil/configopt.git" }
 cpu-time = "*"
 derivative = "*"
-futures = { version = "0.3.1" }
+fs2 = "*"
+futures = "*"
 glob = "*"
 hab = { path = "../hab" }
 habitat_butterfly = { path = "../butterfly", default-features = false }
@@ -46,7 +47,7 @@ prost = "*"
 prost-derive = "*"
 prost-types = "*"
 rand = "*"
-rants = { version = "*", features = ["native-tls"] }
+rants = { git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
 regex = "*"
 rustls = "*"
 serde = { version = "*", features = ["rc"] }
@@ -58,6 +59,7 @@ state = "*"
 structopt = { git = "https://github.com/habitat-sh/structopt.git" }
 tempfile = "*"
 termcolor = "*"
+thiserror = "*"
 toml = { version = "*", features = ["preserve_order"]}
 tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
@@ -75,12 +77,9 @@ jemalloc-ctl = "*"
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
 habitat-launcher-protocol = { path = "../launcher-protocol" }
-mio-named-pipes = "*"
-# Pinning for now. Since upgrading to 0.7.0 results in conflicts with other crates
-# See https://github.com/habitat-sh/habitat/issues/7522
-mio = "0.6.21"
+mio = { version = "*", features = ["os-ext"] }
 uuid = { version = "*", features = ["v4"] }
-winapi =  { version = "*", features = ["namedpipeapi", "tlhelp32"] }
+winapi = { version = "*", features = ["namedpipeapi", "tlhelp32"] }
 
 [dev-dependencies]
 habitat_core = { path = "../core" }

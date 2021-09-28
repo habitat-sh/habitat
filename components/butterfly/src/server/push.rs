@@ -173,7 +173,7 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
     'rumorlist: for rumor_key in rumors.iter() {
         let rumor_as_bytes = match rumor_key.kind {
             RumorType::Member => {
-                let send_rumor = match create_member_rumor_mlr(&server, &rumor_key) {
+                let send_rumor = match create_member_rumor_mlr(server, rumor_key) {
                     Some(rumor) => rumor,
                     None => continue 'rumorlist,
                 };
@@ -191,7 +191,7 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
                 }
             }
             RumorType::Service => {
-                match server.service_store.lock_rsr().encode_rumor_for(&rumor_key) {
+                match server.service_store.lock_rsr().encode_rumor_for(rumor_key) {
                     Ok(bytes) => bytes,
                     Err(e) => {
                         error!("Could not write our own rumor to bytes; abandoning sending \
@@ -207,7 +207,7 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
             RumorType::ServiceConfig => {
                 match server.service_config_store
                             .lock_rsr()
-                            .encode_rumor_for(&rumor_key)
+                            .encode_rumor_for(rumor_key)
                 {
                     Ok(bytes) => bytes,
                     Err(e) => {
@@ -224,7 +224,7 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
             RumorType::ServiceFile => {
                 match server.service_file_store
                             .lock_rsr()
-                            .encode_rumor_for(&rumor_key)
+                            .encode_rumor_for(rumor_key)
                 {
                     Ok(bytes) => bytes,
                     Err(e) => {
@@ -241,7 +241,7 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
             RumorType::Departure => {
                 match server.departure_store
                             .lock_rsr()
-                            .encode_rumor_for(&rumor_key)
+                            .encode_rumor_for(rumor_key)
                 {
                     Ok(bytes) => bytes,
                     Err(e) => {
@@ -256,10 +256,7 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
                 }
             }
             RumorType::Election => {
-                match server.election_store
-                            .lock_rsr()
-                            .encode_rumor_for(&rumor_key)
-                {
+                match server.election_store.lock_rsr().encode_rumor_for(rumor_key) {
                     Ok(bytes) => bytes,
                     Err(e) => {
                         error!("Could not write our own rumor to bytes; abandoning sending \
@@ -273,7 +270,7 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
                 }
             }
             RumorType::ElectionUpdate => {
-                match server.update_store.lock_rsr().encode_rumor_for(&rumor_key) {
+                match server.update_store.lock_rsr().encode_rumor_for(rumor_key) {
                     Ok(bytes) => bytes,
                     Err(e) => {
                         error!("Could not write our own rumor to bytes; abandoning sending \
@@ -318,9 +315,7 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
         }
     }
 
-    server.rumor_heat
-          .lock_rhw()
-          .cool_rumors(&member.id, &rumors);
+    server.rumor_heat.lock_rhw().cool_rumors(&member.id, rumors);
 }
 
 /// Given a rumorkey, creates a protobuf rumor for sharing.

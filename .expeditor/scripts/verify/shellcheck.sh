@@ -16,6 +16,8 @@ shellcheck --version
 #
 # Exclude the bats submodules since we don't own that code.
 #
+# Exclude the chef-web-docs submodule since we don't own that code either.
+#
 # Exclude the following shellcheck issues since they're pervasive and innocuous:
 # https://github.com/koalaman/shellcheck/wiki/SC1090
 # https://github.com/koalaman/shellcheck/wiki/SC1091
@@ -35,6 +37,7 @@ find . -type f \
   -and \! -path "./test/integration/test_helper/bats-support/*" \
   -and \! -path "./test/fixtures/render/consul/hooks/run" \
   -and \! -path "./test/fixtures/render/error/*" \
+  -and \! -path "./components/docs-chef-io/chef-web-docs/*" \
   -print \
   | xargs shellcheck --external-sources --exclude=1090,1091,1117,2148,2034
 

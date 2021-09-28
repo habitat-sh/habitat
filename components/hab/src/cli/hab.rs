@@ -1,42 +1,45 @@
-mod bldr;
-mod cli;
-mod config;
-mod file;
+pub mod bldr;
+pub mod cli;
+pub mod config;
+pub mod file;
 pub mod license;
 pub mod origin;
 pub mod pkg;
-mod plan;
-mod ring;
+pub mod plan;
+pub mod ring;
 pub mod studio;
 pub mod sup;
 pub mod svc;
 #[cfg(test)]
 mod tests;
-mod user;
+pub mod user;
 pub mod util;
 
-use self::{bldr::{Bldr,
-                  ConfigOptBldr},
-           cli::{Cli,
-                 ConfigOptCli},
-           config::{ConfigOptServiceConfig,
-                    ConfigOptServiceConfigApply,
-                    ServiceConfig,
-                    ServiceConfigApply},
-           file::{ConfigOptFile,
-                  File},
+use self::{bldr::*,
+           cli::{CliCompleters,
+                 CliSetup,
+                 ConfigOptCliCompleters,
+                 ConfigOptCliSetup},
+           config::{ConfigOptServiceConfigApply,
+                    ConfigOptServiceConfigShow,
+                    ServiceConfigApply,
+                    ServiceConfigShow},
+           file::{ConfigOptFileUpload,
+                  FileUpload},
            license::{ConfigOptLicense,
                      License},
-           origin::{ConfigOptOrigin,
-                    Origin},
-           pkg::{ConfigOptPkg,
-                 ConfigOptPkgInstall,
-                 Pkg,
-                 PkgInstall},
-           plan::{ConfigOptPlan,
-                  Plan},
-           ring::{ConfigOptRing,
-                  Ring},
+           origin::*,
+           pkg::*,
+           plan::{ConfigOptPlanInit,
+                  ConfigOptPlanRender,
+                  PlanInit,
+                  PlanRender},
+           ring::{ConfigOptRingKeyExport,
+                  ConfigOptRingKeyGenerate,
+                  ConfigOptRingKeyImport,
+                  RingKeyExport,
+                  RingKeyGenerate,
+                  RingKeyImport},
            studio::{ConfigOptStudio,
                     Studio},
            sup::{ConfigOptHabSup,
@@ -49,8 +52,8 @@ use self::{bldr::{Bldr,
                  Svc,
                  SvcStart,
                  SvcStop},
-           user::{ConfigOptUser,
-                  User},
+           user::{ConfigOptUserKeyGenerate,
+                  UserKeyGenerate},
            util::{CacheKeyPath,
                   ConfigOptCacheKeyPath}};
 use crate::{cli::AFTER_HELP,
@@ -77,7 +80,7 @@ pub enum Hab {
     Config(ServiceConfig),
     #[structopt(no_version)]
     File(File),
-    #[structopt(no_version)]
+    #[structopt(no_version, settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
     License(License),
     #[structopt(no_version)]
     Origin(Origin),
@@ -103,23 +106,244 @@ pub enum Hab {
     #[structopt(no_version, settings = &[AppSettings::Hidden])]
     Apply(ServiceConfigApply),
     /// Alias for 'pkg install'
-    #[structopt(no_version, settings = &[AppSettings::Hidden])]
+    #[structopt(no_version, settings = &[AppSettings::Hidden], aliases = &["i", "in", "ins", "inst", "insta", "instal"])]
     Install(PkgInstall),
     #[cfg(not(target_os = "macos"))]
     /// Alias for 'sup run'
     #[structopt(no_version, settings = &[AppSettings::Hidden])]
     Run(SupRun),
     /// Alias for 'cli setup'
-    #[structopt(no_version, settings = &[AppSettings::Hidden])]
+    #[structopt(no_version, settings = &[AppSettings::Hidden], aliases = &["set", "setu"])]
     Setup(CacheKeyPath),
     /// Alias for 'svc start'
-    #[structopt(no_version, settings = &[AppSettings::Hidden])]
+    #[structopt(no_version, settings = &[AppSettings::Hidden], aliases = &["sta", "star"])]
     Start(SvcStart),
     /// Alias for 'svc stop'
-    #[structopt(no_version, settings = &[AppSettings::Hidden])]
+    #[structopt(no_version, settings = &[AppSettings::Hidden], aliases = &["sto"])]
     Stop(SvcStop),
     #[cfg(not(target_os = "macos"))]
     /// Alias for 'sup term'
     #[structopt(no_version, settings = &[AppSettings::Hidden])]
     Term,
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["b", "bl", "bld"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat Builder
+pub enum Bldr {
+    #[structopt(no_version)]
+    Channel(Channel),
+    #[structopt(no_version)]
+    Job(Job),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["c", "ch", "cha", "chan", "chann", "channe"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat Builder channels
+pub enum Channel {
+    #[structopt(no_version, aliases = &["c", "cr", "cre", "crea", "creat"])]
+    Create(ChannelCreate),
+    Demote(ChannelDemote),
+    #[structopt(no_version, aliases = &["d", "de", "des", "dest", "destr", "destro"])]
+    Destroy(ChannelDestroy),
+    #[structopt(no_version, aliases = &["l", "li", "lis"])]
+    List(ChannelList),
+    Promote(ChannelPromote),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["j", "jo"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat Builder jobs
+pub enum Job {
+    #[structopt(no_version, aliases = &["c", "ca", "can", "cance"])]
+    Cancel(JobCancel),
+    #[structopt(no_version, aliases = &["d", "de", "dem", "demo", "demot"])]
+    Demote(JobDemote),
+    #[structopt(no_version, aliases = &["p", "pr", "pro", "prom", "promo", "promot"])]
+    Promote(JobPromote),
+    #[structopt(no_version, aliases = &["s", "st", "sta", "star"])]
+    Start(JobStart),
+    #[structopt(no_version, aliases = &["stat", "statu"])]
+    Status(JobStatus),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["cl"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat runtime config
+pub enum Cli {
+    #[structopt(no_version, aliases = &["s", "se", "set", "setu"])]
+    /// Sets up the CLI with reasonable defaults
+    Setup(CliSetup),
+    #[structopt(no_version, aliases = &["c", "co", "com", "comp"])]
+    /// Creates command-line completers for your shell
+    Completers(CliCompleters),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["co", "con", "conf", "confi"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to a Service's runtime config
+pub enum ServiceConfig {
+    #[structopt(no_version, aliases = &["ap", "app", "appl"])]
+    Apply(ServiceConfigApply),
+    #[structopt(no_version, aliases = &["sh", "sho"])]
+    Show(ServiceConfigShow),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["f", "fi", "fil"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat files
+pub enum File {
+    #[structopt(no_version, aliases = &["u", "up", "upl", "uplo", "uploa"])]
+    /// Uploads a file to be shared between members of a Service Group
+    Upload(FileUpload),
+}
+
+/// Commands relating to Habitat users
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "user", no_version, aliases = &["u", "us", "use"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+pub enum User {
+    Key(UserKey),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "key", no_version, aliases = &["k", "ke"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat user keys
+pub enum UserKey {
+    #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
+    Generate(UserKeyGenerate),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["o", "or", "ori", "orig", "origi"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat Builder origins
+pub enum Origin {
+    #[structopt(no_version, aliases = &["cre", "crea"])]
+    Create(OriginCreate),
+    #[structopt(no_version, aliases = &["del", "dele"])]
+    Delete(OriginDelete),
+    Depart(OriginDepart),
+    Info(OriginInfo),
+    Invitations(OriginInvitations),
+    Key(OriginKey),
+    /// Role Based Access Control for origin members
+    Rbac(Rbac),
+    Secret(OriginSecret),
+    Transfer(OriginTransfer),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Manage origin member invitations
+pub enum OriginInvitations {
+    Accept(InvitationsAccept),
+    Ignore(InvitationsIgnore),
+    List(InvitationsList),
+    Pending(InvitationsPending),
+    Rescind(InvitationsRescind),
+    Send(InvitationsSend),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "key", no_version, aliases = &["k", "ke"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat origin key maintenance
+pub enum OriginKey {
+    #[structopt(no_version, aliases = &["d", "do", "dow", "down", "downl", "downlo", "downloa"])]
+    Download(OriginKeyDownload),
+    #[structopt(no_version, aliases = &["e", "ex", "exp", "expo", "expor"])]
+    Export(OriginKeyExport),
+    #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
+    Generate(OriginKeyGenerate),
+    #[structopt(no_version, aliases = &["i", "im", "imp", "impo", "impor"])]
+    Import(OriginKeyImport),
+    #[structopt(no_version, aliases = &["u", "up", "upl", "uplo", "uploa"])]
+    Upload(OriginKeyUpload),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "secret", no_version, settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands related to secret management
+pub enum OriginSecret {
+    Delete(SecretDelete),
+    List(SecretList),
+    Upload(SecretUpload),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["p", "pk", "package"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat packages
+pub enum Pkg {
+    Binds(PkgBinds),
+    #[structopt(no_version, aliases = &["bi", "bin", "binl", "binli", "binlin"])]
+    Binlink(PkgBinlink),
+    #[structopt(no_version)]
+    Build(PkgBuild),
+    #[structopt(no_version, aliases = &["conf", "cfg"])]
+    Config(PkgConfig),
+    Download(PkgDownload),
+    Env(PkgEnv),
+    Exec(PkgExec),
+    Export(ExportCommand),
+    #[structopt(no_version, aliases = &["ha", "has"])]
+    Hash(PkgHash),
+    #[structopt(no_version, aliases = &["i", "in", "ins", "inst", "insta", "instal"])]
+    Install(PkgInstall),
+    #[structopt(no_version, aliases = &["p", "pa", "pat"])]
+    Path(PkgPath),
+    #[structopt(no_version, aliases = &["li"])]
+    List(PkgList),
+    Provides(PkgProvides),
+    Search(PkgSearch),
+    #[structopt(no_version, aliases = &["s", "si", "sig"])]
+    Sign(PkgSign),
+    #[structopt(no_version, aliases = &["un", "unin"])]
+    Uninstall(PkgUninstall),
+    #[structopt(no_version, aliases = &["bul", "bulk"])]
+    Bulkupload(PkgBulkupload),
+    #[structopt(no_version, aliases = &["u", "up", "upl", "uplo", "uploa"])]
+    Upload(PkgUpload),
+    #[structopt(no_version, aliases = &["del", "dele"])]
+    Delete(PkgDelete),
+    #[structopt(no_version, aliases = &["pr", "pro", "promo", "promot"])]
+    Promote(PkgPromote),
+    #[structopt(no_version, aliases = &["de", "dem", "demo", "demot"])]
+    Demote(PkgDemote),
+    #[structopt(no_version, aliases = &["ch", "cha", "chan", "chann", "channe", "channel"])]
+    Channels(PkgChannels),
+    #[structopt(no_version, aliases = &["v", "ve", "ver", "veri", "verif"])]
+    Verify(PkgVerify),
+    #[structopt(no_version, aliases = &["hea", "head", "heade"])]
+    Header(PkgHeader),
+    #[structopt(no_version, aliases = &["inf"])]
+    Info(PkgInfo),
+    #[structopt(no_version, aliases = &["dep", "deps"])]
+    Dependencies(PkgDependencies),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["pl", "pla"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to plans and other app-specific configuration
+pub enum Plan {
+    #[structopt(no_version, aliases = &["i", "in", "ini"])]
+    Init(PlanInit),
+    #[structopt(no_version, aliases = &["r", "re", "ren", "rend", "rende"])]
+    Render(PlanRender),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(no_version, aliases = &["r", "ri", "rin"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat rings
+pub enum Ring {
+    Key(RingKey),
+}
+
+#[derive(ConfigOpt, StructOpt)]
+#[structopt(name = "key", no_version, aliases = &["k", "ke"], settings = &[AppSettings::ArgRequiredElseHelp, AppSettings::SubcommandRequiredElseHelp])]
+/// Commands relating to Habitat ring keys
+pub enum RingKey {
+    #[structopt(no_version, aliases = &["e", "ex", "exp", "expo", "expor"])]
+    Export(RingKeyExport),
+    #[structopt(no_version, aliases = &["i", "im", "imp", "impo", "impor"])]
+    Import(RingKeyImport),
+    #[structopt(no_version, aliases = &["g", "ge", "gen", "gene", "gener", "genera", "generat"])]
+    Generate(RingKeyGenerate),
 }

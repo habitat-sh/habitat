@@ -3,6 +3,10 @@
 This document contains step-by-step details for how to release Habitat. All components are released
 from the master branch on a bi-weekly schedule occurring every other Monday.
 
+Note: this document covers what to do once you decide you want to make
+an official release. If you would like further details on how the
+overall pipeline, please go [here](./.expeditor/README.md).
+
 ## Promote a Candidate for Manual Testing
 
 In Slack, execute the following command:
@@ -229,7 +233,7 @@ The Buildkite release is fairly-well automated at this point, but once it is com
 
 ## Update Homebrew
 
-The [Habitat Homebrew](https://github.com/habitat-sh/homebrew-habitat) repository will automatically generate a PR to update the Homebrew tap after a release is promoted to stable. This PR will be tested to ensure the updated version is able to install.  If the PR checks are green, it is safe to merge and this will update our `brew install`ed version to the current stable release. 
+The [Habitat Homebrew](https://github.com/habitat-sh/homebrew-habitat) repository will automatically generate a PR to update the Homebrew tap after a release is promoted to stable. This PR will be tested to ensure the updated version is able to install.  If the PR checks are green, it is safe to merge and this will update our `brew install`ed version to the current stable release.
 
 ## The Builder Worker
 
@@ -272,16 +276,8 @@ for additional details.
 
 # Release Notification
 
-1. Create new posts in [Chef Release Announcements](https://discourse.chef.io/c/chef-release) on the Chef Discourse as well as [Announcements](https://forums.habitat.sh/c/announcements) in the Habitat forums.
+1. Create new posts in the [Chef Release Announcements](https://discourse.chef.io/c/chef-release) category on the [Chef Discourse server](https://discourse.chef.io).
 1. Tweet a release announcement from `@habitatsh`.
-1. Link forum posts to the github release
-
-# Update Cargo.lock
-
-1. In the [habitat](https://github.com/habitat-sh/habitat) repo, run `cargo update`, `cargo check --all --tests`.
-1. If there are warnings or errors that are simple, fix them. Otherwise, lock the appropriate versions in `Cargo.toml` files that lets the build succeed and file an issue to resolve the failure and relax the version lock.
-1. Open a PR for the `Cargo.lock` updates and any accompanying fixes which are necessary.
-1. Repeat with the [builder](https://github.com/habitat-sh/builder) repo (omit the `habitat-launcher` build).
 
 # Release postmortem
 

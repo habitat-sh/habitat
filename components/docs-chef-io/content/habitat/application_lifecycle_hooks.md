@@ -1,6 +1,7 @@
 +++
 title = "Application Lifecycle Hooks"
 description = "Control service runtime actions with application lifecycle hooks"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -9,8 +10,6 @@ description = "Control service runtime actions with application lifecycle hooks"
     parent = "habitat/reference"
 
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/application_lifecycle_hooks.md)
 
 Each plan can specify lifecycle event handlers, or hooks, to perform certain actions during a service's runtime. Each hook is a script with a [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) defined at the top to specify the interpreter to be used. On Windows, Powershell Core is the only interpreter ever used.
 
@@ -85,7 +84,7 @@ An `install` hook may be triggered by `hab pkg install` or by a Supervisor loadi
 
 The exit code returned from an `install` hook will be "remembered". If a previously installed package is either installed again via `hab pkg install` or loaded into a Supervisor, its `install` hook will be rerun if it previously failed (exited with a non `0` result) or has not been previously run (perhaps because `--ignore-install-hook` was passed to `hab pkg install`).
 
-An `install` hook, unlike other hooks, will not have access to any census data exposed via binds or the `svc` namespace. Also, configuration in `svc_config_path` is not accessible to an `install` hook. If an `install` hook needs to utilize templated configuration files, templates located in the `svc_config_install_path` may be referenced. This location will contain rendered templates in a package's `config_install` folder. Finally, any configuration updates made during a service's runtime that would alter an `install` hook or any configuration template in `svc_config_install_path` will not cause a service to reload.
+An `install` hook, unlike other hooks, will not have access to any census data exposed via binds or the `svc` namespace. Also, configuration in `svc_config_path` is not accessible to an `install` hook. If an `install` hook needs to use templated configuration files, templates located in the `svc_config_install_path` may be referenced. This location will contain rendered templates in a package's `config_install` folder. Finally, any configuration updates made during a service's runtime that would alter an `install` hook or any configuration template in `svc_config_install_path` will not cause a service to reload.
 
 ### reload
 
@@ -143,3 +142,11 @@ File location: `<plan>/hooks/post-run`. The post run hook will get executed afte
 ### post-stop
 
 File location: `<plan>/hooks/post-stop`. The post-stop hook will get executed after service has been stopped successfully. You may use this hook to undo what the `init` hook has done.
+
+### uninstall
+
+File location: `<plan>/hooks/uninstall`. This hook is run when a package is uninstalled.
+
+The `uninstall` hook runs when the last package of an `origin/package` is uninstalled. If there are other versions or revisions installed for the package, the `uninstall` hook is skipped. When more than one revision of an origin are uninstalled at the same time, the process removes them from oldest to newest. This ensures that the uninstall hook of the latest revision is the version that runs.
+
+Like the `install` hook, the `uninstall` hook is not limited to packages that are loaded as services into a Supervisor. Also like the `install` hook, configuration in `svc_config_path` is not accessible to an `uninstall` hook. If an `uninstall` hook needs to use templated configuration files, templates located in the `svc_config_install_path` may be referenced. This location will contain rendered templates in a package's `config_install` folder. Finally, any configuration updates made during a service's runtime that would alter an `uninstall` hook or any configuration template in `svc_config_install_path` will not cause a service to reload.

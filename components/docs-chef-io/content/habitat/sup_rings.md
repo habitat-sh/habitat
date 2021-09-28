@@ -1,6 +1,7 @@
 +++
 title = "Setting Up a Ring"
 description = "Setting Up a Ring"
+gh_repo = "habitat"
 
 [menu]
   [menu.habitat]
@@ -9,8 +10,6 @@ description = "Setting Up a Ring"
     parent = "habitat/supervisors"
     weight = 50
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_rings.md)
 
 ## Bastion Ring / Permanent Peers
 

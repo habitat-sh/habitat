@@ -621,10 +621,8 @@ impl MemberList {
         if member.persistent {
             return true;
         }
-        match self.health_of_mlr(member) {
-            Some(Health::Alive) | Some(Health::Suspect) => true,
-            _ => false,
-        }
+        matches!(self.health_of_mlr(member),
+                 Some(Health::Alive) | Some(Health::Suspect))
     }
 
     /// Returns true if we are pinging this member because they are persistent, but we think they
@@ -811,7 +809,7 @@ impl MemberList {
 pub struct MemberListProxy<'a>(&'a MemberList);
 
 impl<'a> MemberListProxy<'a> {
-    pub fn new(m: &'a MemberList) -> Self { MemberListProxy(&m) }
+    pub fn new(m: &'a MemberList) -> Self { MemberListProxy(m) }
 }
 
 impl<'a> Serialize for MemberListProxy<'a> {
@@ -837,7 +835,7 @@ impl<'a> Serialize for MemberListProxy<'a> {
 pub struct MemberProxy<'a>(&'a Member, &'a Health);
 
 impl<'a> MemberProxy<'a> {
-    pub fn new(m: &'a Member, h: &'a Health) -> Self { MemberProxy(&m, &h) }
+    pub fn new(m: &'a Member, h: &'a Health) -> Self { MemberProxy(m, h) }
 }
 
 impl<'a> Serialize for MemberProxy<'a> {
@@ -991,7 +989,7 @@ mod tests {
                             excluded_appears = true
                         }
                     });
-                  assert_eq!(excluded_appears, false);
+                  assert!(!excluded_appears);
               });
         }
 
@@ -1007,7 +1005,7 @@ mod tests {
                             excluded_appears = true
                         }
                     });
-                  assert_eq!(excluded_appears, false);
+                  assert!(!excluded_appears);
               });
         }
 
@@ -1028,7 +1026,7 @@ mod tests {
             let ml = MemberList::new();
             let member = Member::default();
             let mcheck = member.clone();
-            assert_eq!(ml.insert_mlw(member, Health::Alive), true);
+            assert!(ml.insert_mlw(member, Health::Alive));
             assert_eq!(ml.health_of_mlr(&mcheck), Some(Health::Alive));
         }
 
@@ -1048,9 +1046,8 @@ mod tests {
                 let initial_incarnation = Incarnation::from(10); // just to pick a number
 
                 let member = {
-                    let mut m = Member::default();
-                    m.incarnation = initial_incarnation;
-                    m
+                    Member { incarnation: initial_incarnation,
+                             ..Default::default() }
                 };
 
                 assert!(ml.insert_mlw(member.clone(), from_health),
@@ -1127,9 +1124,8 @@ mod tests {
                 let initial_incarnation = Incarnation::from(10); // just to pick a number
 
                 let member = {
-                    let mut m = Member::default();
-                    m.incarnation = initial_incarnation;
-                    m
+                    Member { incarnation: initial_incarnation,
+                             ..Default::default() }
                 };
 
                 assert!(ml.insert_mlw(member.clone(), from_health),
@@ -1206,9 +1202,8 @@ mod tests {
                 let initial_incarnation = Incarnation::from(10); // just to pick a number
 
                 let member = {
-                    let mut m = Member::default();
-                    m.incarnation = initial_incarnation;
-                    m
+                    Member { incarnation: initial_incarnation,
+                             ..Default::default() }
                 };
 
                 assert!(ml.insert_mlw(member.clone(), from_health),

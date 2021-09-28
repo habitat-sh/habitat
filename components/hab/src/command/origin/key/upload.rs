@@ -34,7 +34,7 @@ pub async fn start(ui: &mut UI,
     {
         retry_builder_api!(async {
             ui.status(Status::Uploading, public_keyfile.display())?;
-            match api_client.put_origin_key(&name, &rev, public_keyfile, token, ui.progress())
+            match api_client.put_origin_key(name, rev, public_keyfile, token, ui.progress())
                             .await
             {
                 Ok(()) => ui.status(Status::Uploaded, public_key.named_revision())?,
@@ -63,7 +63,7 @@ pub async fn start(ui: &mut UI,
         let rev = secret_key.named_revision().name();
         retry_builder_api!(async {
             ui.status(Status::Uploading, secret_keyfile.display())?;
-            api_client.put_origin_secret_key(&name, &rev, secret_keyfile, token, ui.progress())
+            api_client.put_origin_secret_key(name, rev, secret_keyfile, token, ui.progress())
                       .await
         }).await
           .map_err(|e| {

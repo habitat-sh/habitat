@@ -295,7 +295,7 @@ pub fn pkg_install_path<T>(ident: &PackageIdent, fs_root: Option<T>) -> PathBuf
 /// this will "re-root" the path just under the fs_root. Otherwise returns
 /// the given path unchanged. Non-Windows platforms will always return the
 /// unchanged path.
-pub fn fs_rooted_path(path: &PathBuf, fs_root: &Path) -> PathBuf {
+pub fn fs_rooted_path(path: &Path, fs_root: &Path) -> PathBuf {
     if path.starts_with("/") && cfg!(windows) {
         fs_root.join(path.strip_prefix("/").unwrap())
     } else {
@@ -424,7 +424,7 @@ impl<'a> SvcDir<'a> {
             // because our `set_owner` calls will fail if they
             // don't. If we don't have the ability to to change
             // ownership, however, it doesn't really matter!
-            assert_pkg_user_and_group(&self.svc_user, &self.svc_group)?;
+            assert_pkg_user_and_group(self.svc_user, self.svc_group)?;
         }
 
         self.create_svc_root()?;
@@ -659,21 +659,21 @@ pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
             match find_command_in_pkg(program, pkg_install, Path::new(&*FS_ROOT_PATH)) {
                 Ok(Some(p)) => p,
                 Ok(None) => {
-                    panic!(format!("Could not find '{}' in the '{}' package! This is required \
-                                    for the proper operation of this program.",
-                                   program, &ident))
+                    panic!("Could not find '{}' in the '{}' package! This is required for the \
+                            proper operation of this program.",
+                           program, &ident)
                 }
                 Err(err) => {
-                    panic!(format!("Error finding '{}' in the '{}' package! This is required for \
-                                    the proper operation of this program. (Err: {:?})",
-                                   program, &ident, err))
+                    panic!("Error finding '{}' in the '{}' package! This is required for the \
+                            proper operation of this program. (Err: {:?})",
+                           program, &ident, err)
                 }
             }
         }
         Err(err) => {
-            panic!(format!("Package installation for '{}' not found on disk! This is required \
-                            for the proper operation of this program (Err: {:?})",
-                           &ident, err))
+            panic!("Package installation for '{}' not found on disk! This is required for the \
+                    proper operation of this program (Err: {:?})",
+                   &ident, err)
         }
     };
     debug!("resolved absolute path to program, program={}, ident={}, abs_path={}",
@@ -686,7 +686,7 @@ pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
 // Windows relies on path extensions to resolve commands like `docker` to `docker.exe`
 // Path extensions are found in the PATHEXT environment variable.
 // We should only search with PATHEXT if the file does not already have an extension.
-fn find_command_with_pathext(candidate: &PathBuf) -> Option<PathBuf> {
+fn find_command_with_pathext(candidate: &Path) -> Option<PathBuf> {
     if candidate.extension().is_none() {
         if let Some(pathexts) = henv::var_os("PATHEXT") {
             for pathext in env::split_paths(&pathexts) {
@@ -722,7 +722,7 @@ pub fn am_i_root() -> bool { *EUID == 0u32 }
 /// take a directory.
 fn parent(p: &Path) -> io::Result<&Path> {
     match p.parent() {
-        Some(parent_path) if parent_path.as_os_str().is_empty() => Ok(&Path::new(".")),
+        Some(parent_path) if parent_path.as_os_str().is_empty() => Ok(Path::new(".")),
         Some(nonempty_parent_path) => Ok(nonempty_parent_path),
         None => Err(io::Error::new(io::ErrorKind::InvalidInput, "path has no parent")),
     }
@@ -808,7 +808,7 @@ impl AtomicWriter {
     /// ensures the durability of AtomicWriter but is not required for
     /// the atomocity guarantee.
     #[cfg(unix)]
-    fn sync_parent(dest: &PathBuf) -> io::Result<()> {
+    fn sync_parent(dest: &Path) -> io::Result<()> {
         let parent = parent(dest)?;
         let f = fs::File::open(parent)?;
         if let Err(e) = f.sync_all() {
@@ -925,7 +925,7 @@ mod tests {
             assert!(sub_file_1.exists());
             assert!(sub_file_2.exists());
 
-            SvcDir::purge_directory_content(&root.path()).expect("Couldn't purge!");
+            SvcDir::purge_directory_content(root.path()).expect("Couldn't purge!");
 
             assert!(root.as_ref().exists());
             assert!(!file_1.exists());
@@ -981,7 +981,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("bin_with_no_extension");
-                assert_eq!(result.is_some(), true);
+                assert!(result.is_some());
             }
 
             #[test]
@@ -990,7 +990,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("missing");
-                assert_eq!(result.is_some(), false);
+                assert!(!result.is_some());
             }
 
             #[test]
@@ -999,7 +999,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("win95_dominator");
-                assert_eq!(result.is_some(), false);
+                assert!(!result.is_some());
             }
         }
 
@@ -1015,7 +1015,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("bin_with_extension.exe");
-                assert_eq!(result.is_some(), true);
+                assert!(result.is_some());
             }
 
             #[test]
@@ -1024,7 +1024,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("missing.com");
-                assert_eq!(result.is_some(), false);
+                assert!(!result.is_some());
             }
 
             #[test]
@@ -1033,7 +1033,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("bin_with_extension.com");
-                assert_eq!(result.is_some(), false);
+                assert!(!result.is_some());
             }
 
             #[test]
@@ -1067,7 +1067,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("bin_with_no_extension");
-                assert_eq!(result.is_some(), true);
+                assert!(result.is_some());
             }
 
             #[test]
@@ -1076,7 +1076,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("missing");
-                assert_eq!(result.is_some(), false);
+                assert!(!result.is_some());
             }
 
             #[test]
@@ -1086,7 +1086,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("bin_with_extension");
-                assert_eq!(result.is_some(), true);
+                assert!(result.is_some());
             }
 
             #[test]
@@ -1096,7 +1096,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("win95_dominator");
-                assert_eq!(result.is_some(), false);
+                assert!(!result.is_some());
             }
 
             #[test]
@@ -1123,7 +1123,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("bin_with_extension.exe");
-                assert_eq!(result.is_some(), true);
+                assert!(result.is_some());
             }
 
             #[test]
@@ -1132,7 +1132,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("missing.com");
-                assert_eq!(result.is_some(), false);
+                assert!(!result.is_some());
             }
 
             #[test]
@@ -1141,7 +1141,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 setup_pathext(&lock);
                 let result = find_command("bin_with_extension.com");
-                assert_eq!(result.is_some(), false);
+                assert!(!result.is_some());
             }
 
             #[test]
@@ -1176,8 +1176,7 @@ mod test_atomic_writer {
               io::{Read,
                    Seek,
                    SeekFrom,
-                   Write},
-              panic};
+                   Write}};
 
     const EXPECTED_CONTENT: &str = "A very good file format";
 

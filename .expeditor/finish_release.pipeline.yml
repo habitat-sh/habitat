@@ -13,6 +13,10 @@ steps:
   - label: ":github: Create GitHub Release"
     command:
       - .expeditor/scripts/finish_release/create_github_release.sh
+    # Allow this to fail for now, because we don't have sufficient
+    # privileges yet. See
+    # https://github.com/habitat-sh/habitat/issues/8063
+    soft_fail: true
     expeditor:
       secrets:
         GITHUB_TOKEN:
@@ -51,38 +55,6 @@ steps:
           environment:
             - GITHUB_USER
 
-    soft_fail: true
-
-  - label: ":rust: Cargo update"
-    command:
-      - .expeditor/scripts/finish_release/cargo_update.sh
-    expeditor:
-      account:
-        - github
-      secrets:
-        GITHUB_TOKEN:
-          account: github/habitat-sh
-          field: token
-      executor:
-        docker:
-          environment:
-            - GITHUB_USER
-    soft_fail: true
-
-  - label: "Update Habitat Documentation"
-    command:
-      - .expeditor/scripts/finish_release/update_documentation.sh
-    expeditor:
-      account:
-        - github
-      secrets:
-        GITHUB_TOKEN:
-          account: github/habitat-sh
-          field: token
-      executor:
-        docker:
-          environment:
-            - GITHUB_USER
     soft_fail: true
 
   - label: "Sync acceptance packages from prod"

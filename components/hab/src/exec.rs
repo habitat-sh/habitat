@@ -115,7 +115,7 @@ async fn command_from_min_pkg_with_optional_channel(ui: &mut UI,
         Err(e) => return Err(Error::from(e)),
     };
 
-    fs::find_command_in_pkg(&command, &pi, fs_root_path)?.ok_or_else(|| {
+    fs::find_command_in_pkg(&command, &pi, fs_root_path)?.ok_or({
                                                              Error::ExecCommandNotFound(command)
                                                          })
 }

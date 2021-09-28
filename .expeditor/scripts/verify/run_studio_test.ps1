@@ -1,9 +1,5 @@
 #Requires -Version 5
 
-param (
-    [string]$studio_type
-)
-
 $ErrorActionPreference="stop"
 
 . $PSScriptRoot\shared.ps1

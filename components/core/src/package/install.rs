@@ -44,6 +44,7 @@ pub struct PackageInstall {
 
 // The docs recommend implementing `From` instead, but that feels a
 // bit odd here.
+#[allow(clippy::from_over_into)]
 impl Into<PackageIdent> for PackageInstall {
     fn into(self) -> PackageIdent { self.ident }
 }
@@ -88,8 +89,8 @@ impl PackageInstall {
 
         let pl = package_list_for_ident(&package_root_path, ident)?;
         if ident.fully_qualified() {
-            if pl.iter().any(|ref p| p.satisfies(ident)) {
-                Ok(PackageInstall { installed_path: fs::pkg_install_path(&ident,
+            if pl.iter().any(|p| p.satisfies(ident)) {
+                Ok(PackageInstall { installed_path: fs::pkg_install_path(ident,
                                                                          Some(&fs_root_path)),
                                     fs_root_path,
                                     package_root_path,
@@ -104,7 +105,7 @@ impl PackageInstall {
                   .fold(None, |winner, b| {
                       match winner {
                           Some(a) => {
-                              match a.partial_cmp(&b) {
+                              match a.partial_cmp(b) {
                                   Some(Ordering::Greater) => Some(a),
                                   Some(Ordering::Equal) => Some(a),
                                   Some(Ordering::Less) => Some(b.clone()),
@@ -149,14 +150,14 @@ impl PackageInstall {
             return Err(Error::PackageNotFound(original_ident.clone()));
         }
 
-        let pl = package_list_for_ident(&package_root_path, &original_ident)?;
+        let pl = package_list_for_ident(&package_root_path, original_ident)?;
         let latest: Option<PackageIdent> =
             pl.iter()
-              .filter(|ref p| p.origin == ident.origin && p.name == ident.name)
+              .filter(|p| p.origin == ident.origin && p.name == ident.name)
               .fold(None, |winner, b| {
                   match winner {
                       Some(a) => {
-                          match a.cmp(&b) {
+                          match a.cmp(b) {
                               Ordering::Greater | Ordering::Equal => Some(a),
                               Ordering::Less => Some(b.clone()),
                           }
@@ -454,7 +455,7 @@ impl PackageInstall {
 
     fn root_paths(&self, paths: &mut Vec<PathBuf>) -> Result<String> {
         for path in &mut paths.iter_mut() {
-            *path = fs::fs_rooted_path(&path, &self.fs_root_path);
+            *path = fs::fs_rooted_path(path, &self.fs_root_path);
         }
         env::join_paths(paths)?.into_string()
                                .map_err(Error::InvalidPathString)
@@ -703,7 +704,7 @@ mod test {
     /// Creates a `PATH` metafile with path entries all prefixed with the package's `pkg_prefix`.
     fn set_path_for(pkg_install: &PackageInstall, paths: &[&str]) {
         write_metafile(
-            &pkg_install,
+            pkg_install,
             MetaFile::Path,
             env::join_paths(paths.iter().map(|p| pkg_prefix_for(pkg_install).join(p)))
                 .unwrap()
@@ -725,7 +726,7 @@ mod test {
             }
         }
 
-        write_metafile(&pkg_install,
+        write_metafile(pkg_install,
                        MetaFile::RuntimePath,
                        env::join_paths(paths).unwrap().to_string_lossy().as_ref());
     }
@@ -736,7 +737,7 @@ mod test {
         for dep in deps.iter().map(|d| d.ident()) {
             content.push_str(&format!("{}\n", dep));
         }
-        write_metafile(&pkg_install, MetaFile::Deps, &content);
+        write_metafile(pkg_install, MetaFile::Deps, &content);
     }
 
     /// Creates a `TDEPS` metafile for the given `PackageInstall` populated with the provided
@@ -746,7 +747,7 @@ mod test {
         for tdep in tdeps.iter().map(|d| d.ident()) {
             content.push_str(&format!("{}\n", tdep));
         }
-        write_metafile(&pkg_install, MetaFile::TDeps, &content);
+        write_metafile(pkg_install, MetaFile::TDeps, &content);
     }
 
     /// Returns the prefix path for a `PackageInstall`, making sure to not include any `FS_ROOT`.
@@ -775,7 +776,7 @@ mod test {
         let cfg = package_install.default_cfg().unwrap();
 
         if let Err(e) = toml::ser::to_string(&cfg) {
-            panic!(format!("{:?}", e));
+            panic!("{:?}", e);
         }
     }
 
@@ -854,7 +855,7 @@ core/bar=pub:core/publish sub:core/subscribe
         let active_target = PackageTarget::active_target();
         let wrong_target = wrong_package_target();
         let pkg_install = testing_package_install(ident_s, fs_root.path());
-        write_metafile(&pkg_install, MetaFile::Target, &wrong_target);
+        write_metafile(&pkg_install, MetaFile::Target, wrong_target);
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load(&ident, Some(fs_root.path())) {
@@ -894,7 +895,7 @@ core/bar=pub:core/publish sub:core/subscribe
         let active_target = PackageTarget::active_target();
         let wrong_target = wrong_package_target();
         let pkg_install = testing_package_install(ident_s, fs_root.path());
-        write_metafile(&pkg_install, MetaFile::Target, &wrong_target);
+        write_metafile(&pkg_install, MetaFile::Target, wrong_target);
         let ident = PackageIdent::from_str("dream-theater/systematic-chaos").unwrap();
 
         match PackageInstall::load(&ident, Some(fs_root.path())) {
@@ -997,7 +998,7 @@ core/bar=pub:core/publish sub:core/subscribe
         let active_target = PackageTarget::active_target();
         let wrong_target = wrong_package_target();
         let pkg_install = testing_package_install(ident_s, fs_root.path());
-        write_metafile(&pkg_install, MetaFile::Target, &wrong_target);
+        write_metafile(&pkg_install, MetaFile::Target, wrong_target);
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
@@ -1038,7 +1039,7 @@ core/bar=pub:core/publish sub:core/subscribe
         let active_target = PackageTarget::active_target();
         let wrong_target = wrong_package_target();
         let pkg_install = testing_package_install(ident_s, fs_root.path());
-        write_metafile(&pkg_install, MetaFile::Target, &wrong_target);
+        write_metafile(&pkg_install, MetaFile::Target, wrong_target);
         let ident = PackageIdent::from_str("dream-theater/systematic-chaos").unwrap();
 
         match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {

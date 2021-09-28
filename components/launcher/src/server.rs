@@ -90,7 +90,7 @@ impl Server {
         let mut pid_file = fs::File::create(&pid_file_path)?;
         write!(&mut pid_file, "{}", process::current_pid())?;
 
-        let ((rx, tx), supervisor, pipe) = Self::init(&args, false)?;
+        let ((rx, tx), supervisor, pipe) = Self::init(&args)?;
         Ok(Server { pid_file_path,
                     services: ServiceTable::default(),
                     tx,
@@ -105,9 +105,9 @@ impl Server {
     /// Passing a value of true to the `clean` argument will force the Supervisor to clean the
     /// Launcher's process LOCK before starting. This is useful when restarting a Supervisor
     /// that terminated gracefully.
-    fn init(args: &[String], clean: bool) -> Result<((Receiver, Sender), Child, String)> {
+    fn init(args: &[String]) -> Result<((Receiver, Sender), Child, String)> {
         let (server, pipe) = IpcOneShotServer::new().map_err(Error::OpenPipe)?;
-        let supervisor = spawn_supervisor(&pipe, args, clean)?;
+        let supervisor = spawn_supervisor(&pipe, args)?;
         let ipc_channel = setup_connection(server)?;
         Ok((ipc_channel, supervisor, pipe))
     }
@@ -125,7 +125,7 @@ impl Server {
     fn reload(&mut self) -> Result<()> {
         self.supervisor.kill();
         self.supervisor.wait();
-        let ((rx, tx), supervisor, pipe) = Self::init(&self.args, true)?;
+        let ((rx, tx), supervisor, pipe) = Self::init(&self.args)?;
         self.tx = tx;
         self.rx = rx;
         self.supervisor = supervisor;
@@ -301,7 +301,7 @@ impl Server {
         // process being reaped; our ultimate response is dependent on
         // this.
         let mut reaped_sup_status: Option<ExitStatus> = None;
-        let mut waitpid_status = 0 as libc::c_int;
+        let mut waitpid_status = 0;
 
         // We reap as many child processes as need reaping.
         loop {
@@ -588,6 +588,7 @@ fn is_supported_supervisor_version(version_output: &str) -> bool {
             }
             Err(e) => {
                 error!("{}: {}", e, version_str);
+                debug!("Original version command output: {}", version_output);
                 false
             }
         }
@@ -603,16 +604,18 @@ fn is_supported_supervisor_version(version_output: &str) -> bool {
 /// Passing a value of true to the `clean` argument will force the Supervisor to clean the
 /// Launcher's process LOCK before starting. This is useful when restarting a Supervisor
 /// that terminated gracefully.
-fn spawn_supervisor(pipe: &str, args: &[String], clean: bool) -> Result<Child> {
+fn spawn_supervisor(pipe: &str, args: &[String]) -> Result<Child> {
     let binary = supervisor_cmd()?;
 
     if core::env::var(SUP_VERSION_CHECK_DISABLE).is_ok() {
         warn!("Launching Supervisor {:?} without version checking", binary);
     } else {
         debug!("Checking Supervisor {:?} version", binary);
-        let version_check = Command::new(&binary).arg("--version").output()?;
+        let version_check = Command::new(&binary).arg("--version")
+                                                 .env("RUST_LOG", "error")
+                                                 .output()?;
         let sup_version = String::from_utf8_lossy(&version_check.stdout);
-        if !is_supported_supervisor_version(&sup_version.trim()) {
+        if !is_supported_supervisor_version(sup_version.trim()) {
             error!("This Launcher requires Habitat version {}", SUP_VERSION_REQ);
             error!("This check can be disabled by setting the {} environment variable to a \
                     non-empty string when starting the supervisor",
@@ -625,9 +628,7 @@ fn spawn_supervisor(pipe: &str, args: &[String], clean: bool) -> Result<Child> {
     }
 
     let mut command = Command::new(&binary);
-    if clean {
-        command.env(protocol::LAUNCHER_LOCK_CLEAN_ENV, clean.to_string());
-    }
+
     debug!("Starting Supervisor {:?} with args {:?}, {}={}...",
            binary,
            args,

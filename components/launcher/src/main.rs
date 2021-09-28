@@ -50,7 +50,7 @@ fn set_global_logging_options(args: &[String]) {
         output::set_format(OutputFormat::NoColor)
     }
     if args.contains(&String::from("--json-logging")) {
-        output::set_format(OutputFormat::JSON)
+        output::set_format(OutputFormat::Json)
     }
     if args.contains(&String::from("-v")) {
         output::set_verbosity(OutputVerbosity::Verbose);

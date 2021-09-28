@@ -424,7 +424,7 @@ impl CfgRenderer {
 
         let mut changed = false;
         for template in self.0.get_templates().keys() {
-            let compiled = self.0.render(&template, ctx)?;
+            let compiled = self.0.render(template, ctx)?;
             let compiled_hash = Blake2bHash::from_bytes(&compiled);
             let cfg_dest = render_path.as_ref().join(&template);
             let file_hash = match Blake2bHash::from_file(&cfg_dest) {
@@ -589,7 +589,7 @@ fn ensure_directory_structure(root: &Path, file: &Path, user: &str, group: &str)
     if !dir.exists() {
         std::fs::create_dir_all(&dir)?;
         for anc in dir.ancestors().take_while(|&d| d != root) {
-            set_permissions(&anc, &user, &group)?;
+            set_permissions(anc, user, group)?;
         }
     }
     Ok(())
@@ -598,7 +598,7 @@ fn ensure_directory_structure(root: &Path, file: &Path, user: &str, group: &str)
 fn write_templated_file(path: &Path, compiled: &str, user: &str, group: &str) -> Result<()> {
     File::create(path).and_then(|mut file| file.write_all(compiled.as_bytes()))?;
 
-    set_permissions(&path, &user, &group)?;
+    set_permissions(path, user, group)?;
     Ok(())
 }
 
@@ -1031,8 +1031,8 @@ mod test {
         let file = template_dir.join("config.cfg");
         let contents = "foo\nbar\n";
 
-        assert_eq!(file.exists(), false);
-        write_templated_file(&file, &contents, &curr_username(), &curr_groupname())
+        assert!(!file.exists());
+        write_templated_file(&file, contents, &curr_username(), &curr_groupname())
             .expect("writes file");
         assert!(file.exists());
     }
@@ -1046,11 +1046,11 @@ mod test {
         let file = template_dir.join("foo/config.cfg");
         let contents = "foo\nbar\n";
 
-        assert_eq!(file.exists(), false);
+        assert!(!file.exists());
 
         ensure_directory_structure(&template_dir, &file, &curr_username(), &curr_groupname())
             .expect("create output dir structure");
-        write_templated_file(&file, &contents, &curr_username(), &curr_groupname())
+        write_templated_file(&file, contents, &curr_username(), &curr_groupname())
             .expect("writes file");
         assert!(file.exists());
         assert_eq!(file_content(file), contents);
@@ -1070,9 +1070,9 @@ mod test {
         let file = template_dir.join("config.cfg");
         let contents = "foo\nbar\n";
 
-        assert_eq!(file.exists(), false);
+        assert!(!file.exists());
         assert!(
-            write_templated_file(&file, &contents, &curr_username(), &curr_groupname()).is_err()
+            write_templated_file(&file, contents, &curr_username(), &curr_groupname()).is_err()
         );
     }
 

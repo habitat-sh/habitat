@@ -156,7 +156,7 @@ mod tests {
 
     /// Create a Graph manually, bypassing the need to generate one
     /// based on the package contents of a local directory.
-    fn test_graph() -> Result<Graph> {
+    fn test_graph() -> Graph {
         let mut graph = PackageGraph::default();
 
         // hab, busybox, and cacerts have no dependencies
@@ -184,14 +184,14 @@ mod tests {
 
         let user = vec![fqpi!(redis())];
 
-        Ok(Graph { base,
-                   user,
-                   g: graph })
+        Graph { base,
+                user,
+                g: graph }
     }
 
     #[test]
     fn reverse_topological_sort_produces_the_correct_ordering() {
-        let g = test_graph().unwrap();
+        let g = test_graph();
 
         let actual_deps = g.reverse_topological_sort();
         let expected_deps = [// busybox
