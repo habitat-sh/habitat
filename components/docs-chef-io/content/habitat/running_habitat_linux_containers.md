@@ -10,7 +10,7 @@ description = "Running Chef Habitat Linux Containers"
     weight = 70
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/running_habitat_linux_containers.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/running_habitat_linux_containers.md)
 
 When you run `hab pkg export docker`, you'll get a Docker container that provides a few things. First, a minimal Linux OS filesystem is provided, with just enough configuration (e.g., `/etc/passwd`, `/etc/resolv.conf`, etc.) to run. Second, the contents of the exported Chef Habitat package, along with its complete dependency tree, as well as a complete Chef Habitat Supervisor installation, are provided, unpacked, in the `/hab/pkgs` directory. Finally, an entry-point script that will start the Supervisor, running the exported Chef Habitat package, is provided, allowing the container itself to behave as though it were the Supervisor.
 

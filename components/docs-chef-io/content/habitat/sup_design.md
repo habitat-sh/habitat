@@ -14,7 +14,7 @@ draft = false
     weight = 30
 +++
 
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/sup_design.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_design.md)
 
 This section will dive into the implementation details of important Chef Habitat components. These topics are for advanced users. It is not necessary to learn these concepts in order to use Chef Habitat.
 

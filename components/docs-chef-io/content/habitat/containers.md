@@ -10,7 +10,7 @@ description = "Chef Habitat and Containers"
     weight = 10
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/containers.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/containers.md)
 
 **Examples: [Docker](https://www.docker.com/) and [CoreOS](https://coreos.com/)**
 

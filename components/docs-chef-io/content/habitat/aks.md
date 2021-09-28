@@ -10,7 +10,7 @@ description = "Azure and Kubernetes K8"
     weight = 40
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/aks.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/aks.md)
 
 [Azure Container Services (AKS)](https://azure.microsoft.com/services/container-service/)
 is a fully managed Kubernetes service running on the Azure platform.

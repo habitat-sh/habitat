@@ -10,7 +10,7 @@ description = "Building Packages in the Studio"
     weight = 10
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/pkg_build.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pkg_build.md)
 
 When you have finished creating your plan and call `build` in Chef Habitat Studio, the build script does following steps:
 

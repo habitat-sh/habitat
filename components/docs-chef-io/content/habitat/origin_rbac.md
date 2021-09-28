@@ -12,7 +12,7 @@ draft = false
     weight = 30
 +++
 
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/origin_rbac.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/origin_rbac.md)
 
 Prerequisites:
 

@@ -14,7 +14,7 @@ draft = false
     weight = 10
 +++
 
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/services.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/services.md)
 
 A service in Chef Habitat is defined as a Chef Habitat package running under a Chef Habitat Supervisor.
 

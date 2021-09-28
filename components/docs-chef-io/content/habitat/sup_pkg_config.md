@@ -10,7 +10,7 @@ description = "Configure the Supervisor for faster package development"
     weight = 100
 +++
 
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/sup_pkg_config.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_pkg_config.md)
 
 To assist in creating new packages, or modifying existing ones, the Supervisor has an option to allow you to use the configuration directly from a specific directory, rather than the one it includes in the compiled artifact. This can significantly shorten the cycle time when working on configuration and application lifecycle hooks.
 

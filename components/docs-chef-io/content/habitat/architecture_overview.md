@@ -11,6 +11,6 @@ description = "Chef Habitat Architecture Overview"
 
 +++
 
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/architecture_overview.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/architecture_overview.md)
 
 ![Chef Habitat Architecture Overview Diagram](/images/habitat/habitat-architecture-overview.png)

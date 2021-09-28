@@ -11,7 +11,7 @@ description = "Launcher"
 
 +++
 
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/sup_launcher.md)
+[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_launcher.md)
 
 Chef Habitat's Launcher is a sidecar process for the Supervisor which provides a mechanism for launching processes on behalf of the Supervisor. It is the entry point for running the Supervisor and is the Supervisor for the Supervisor. Whereas the Supervisor is able to automatically update itself, the Launcher is currently released a bit differently, by design; it should be rare that the Launcher ever needs to change.
 
