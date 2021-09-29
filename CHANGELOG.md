@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.392 -->
-## [1.6.392](https://github.com/habitat-sh/habitat/tree/1.6.392) (2021-09-29)
+<!-- latest_release 1.6.393 -->
+## [1.6.393](https://github.com/habitat-sh/habitat/tree/1.6.393) (2021-09-29)
 
 #### Merged Pull Requests
-- Update /main/ from /master/ [#8314](https://github.com/habitat-sh/habitat/pull/8314) ([dishanktiwari2501](https://github.com/dishanktiwari2501))
+- Bump nix from 0.22.1 to 0.23.0 [#8315](https://github.com/habitat-sh/habitat/pull/8315) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- Bump nix from 0.22.1 to 0.23.0 [#8315](https://github.com/habitat-sh/habitat/pull/8315) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.393 -->
 - Update /main/ from /master/ [#8314](https://github.com/habitat-sh/habitat/pull/8314) ([dishanktiwari2501](https://github.com/dishanktiwari2501)) <!-- 1.6.392 -->
 - temporarily removing 2016 studio from release [#8311](https://github.com/habitat-sh/habitat/pull/8311) ([mwrock](https://github.com/mwrock)) <!-- 1.6.391 -->
 - Bump flate2 from 1.0.21 to 1.0.22 [#8304](https://github.com/habitat-sh/habitat/pull/8304) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.391 -->
