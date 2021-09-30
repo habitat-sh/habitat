@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.394 -->
-## [1.6.394](https://github.com/habitat-sh/habitat/tree/1.6.394) (2021-09-29)
+<!-- latest_release 1.6.395 -->
+## [1.6.395](https://github.com/habitat-sh/habitat/tree/1.6.395) (2021-09-30)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.102 to 0.2.103 [#8313](https://github.com/habitat-sh/habitat/pull/8313) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- restore windows 2016 studio image in release pipeline [#8316](https://github.com/habitat-sh/habitat/pull/8316) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- restore windows 2016 studio image in release pipeline [#8316](https://github.com/habitat-sh/habitat/pull/8316) ([mwrock](https://github.com/mwrock)) <!-- 1.6.395 -->
 - Bump libc from 0.2.102 to 0.2.103 [#8313](https://github.com/habitat-sh/habitat/pull/8313) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.394 -->
 - Bump nix from 0.22.1 to 0.23.0 [#8315](https://github.com/habitat-sh/habitat/pull/8315) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.393 -->
 - Update /main/ from /master/ [#8314](https://github.com/habitat-sh/habitat/pull/8314) ([dishanktiwari2501](https://github.com/dishanktiwari2501)) <!-- 1.6.392 -->
