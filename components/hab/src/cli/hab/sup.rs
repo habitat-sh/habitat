@@ -34,9 +34,9 @@ use habitat_core::{env::Config,
                    util as core_util};
 
 use std::{fmt,
-          net::{IpAddr,
-                SocketAddr,
-                AddrParseError},
+          net::{AddrParseError,
+                IpAddr,
+                SocketAddr},
           path::PathBuf,
           str::FromStr};
 use structopt::{clap::AppSettings,

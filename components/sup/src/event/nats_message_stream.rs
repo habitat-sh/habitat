@@ -1,18 +1,16 @@
-use crate::event::{Error,
-                   EventStreamConfig,
+use crate::event::{EventStreamConfig,
                    Result};
 use futures::{channel::{mpsc as futures_mpsc,
                         mpsc::UnboundedSender},
               stream::StreamExt};
 use nats::{self,
-           asynk::{Options, Connection}};
-use tokio::{
-    time, 
-    sync::Mutex};
-use std::{
-    io,
-    path::PathBuf,
-    sync::Arc};
+           asynk::{Connection,
+                   Options}};
+use std::{io,
+          path::PathBuf,
+          sync::Arc};
+use tokio::{sync::Mutex,
+            time};
 
 /// The subject and payload of a NATS message.
 #[derive(Debug)]
@@ -22,35 +20,51 @@ pub struct NatsMessage {
 }
 
 impl NatsMessage {
-    pub fn new(subject: &'static str, payload: Vec<u8>) -> Self {
-        NatsMessage { subject, payload }
-    }
+    pub fn new(subject: &'static str, payload: Vec<u8>) -> Self { NatsMessage { subject, payload } }
 
     pub fn payload(&self) -> &[u8] { self.payload.as_slice() }
 }
 
+/// NatsClient is main accessor to connect to NATS Server and
+/// to publish messages to NATS.
 #[derive(Clone)]
-struct NatsClientImpl {
-    connection: Option<Arc<Mutex<Connection>>>,
+struct NatsClient {
+    connection: Arc<Mutex<Option<Connection>>>,
 }
 
-///  NatsClientImpl contains the implementation details for the NatsClient.
-///  It is not intended for public access.
-impl NatsClientImpl {
-    fn new() -> NatsClientImpl {
-         NatsClientImpl { connection: None }
+impl NatsClient {
+    fn new() -> NatsClient {
+        NatsClient { connection: Arc::new(Mutex::new(None)), }
     }
 
-    async fn connect(&mut self, supervisor_id: String, config: &EventStreamConfig) -> io::Result<()> {        
-        if self.connection.is_none() {
+    async fn connect(self, supervisor_id: String, config: EventStreamConfig) -> io::Result<()> {        
+        match config.connect_method.into() {
+            Some(timeout) => {
+                trace!("Timeout used -> {:?}", timeout);
+                time::timeout(timeout, 
+                              self.connect_impl(supervisor_id, &config)).await??;
+            } 
+            None => {
+                trace!("Timeout not used");
+                tokio::spawn(async move { 
+                    self.connect_impl(supervisor_id, &config)
+                        .await
+                });
+            }
+        }
+        Ok(())
+    }
+
+    async fn connect_impl(self, supervisor_id: String, config: &EventStreamConfig) -> io::Result<()> {
+        if self.connection.lock().await.is_none() {
             match Self::options_from_config(&supervisor_id, config) 
                 .connect(&config.url.to_string())
                 .await {
                     Ok(conn) => {
-                        self.connection = Some(Arc::new(Mutex::new(conn)));
+                        *self.connection.lock().await = Some(conn);
                     }
                     Err(e) => {
-                        Error::ConnectNatsServer(e);
+                        return Err(e);
                     }
                 }
         }
@@ -81,47 +95,13 @@ impl NatsClientImpl {
         }
     }
 
-    async fn publish(&mut self, subject: &str, msg: impl AsRef<[u8]>) -> io::Result<()> {
-        if let Some(conn) = &self.connection {
-            conn.lock().await.publish(subject, msg).await
+    async fn publish(&self, subject: &str, msg: impl AsRef<[u8]>) -> io::Result<()> {
+        if let Some(conn) = &*self.connection.lock().await {
+            conn.publish(subject, msg).await
         }
         else {
             Err(io::Error::new(io::ErrorKind::Other, "Not connected to NATS server!"))
         }
-    }
-}
-
-/// NatsClient is main accessor to connect to NATS Server and
-/// to publish messages to NATS.
-#[derive(Clone)]
-struct NatsClient {
-    client: Arc<Mutex<NatsClientImpl>>,
-}
-
-impl NatsClient {
-    fn new() -> NatsClient {
-        let nats_client = NatsClientImpl::new();
-        NatsClient { client: Arc::new(Mutex::new(nats_client)) }
-    }
-
-    async fn connect(self, supervisor_id: String, config: EventStreamConfig) -> io::Result<()> {        
-        match config.connect_method.into() {
-            Some(timeout) => {
-                trace!("Timeout used -> {:?}", timeout);
-                
-                time::timeout(timeout, self.client.lock().await.connect(supervisor_id, &config))
-                    .await??;
-            } 
-            None => {
-                trace!("Timeout not used");
-                tokio::spawn(async move { self.client.lock().await.connect(supervisor_id, &config).await });
-            }
-        }
-        Ok(())
-    }
-
-    async fn publish(&mut self, subject: &str, msg: impl AsRef<[u8]>) -> io::Result<()> {
-        self.client.lock().await.publish(subject, msg).await
     }
 }
 
@@ -139,8 +119,11 @@ impl NatsMessageStream {
         // If we do not have a timeout, we dont care if we can immediately connect. Instead we spawn
         // a future that will resolve when a connection is possible. Once we establish a
         // connection, the client will handle reconnecting if necessary.
-        let mut client = NatsClient::new();
-        client.clone().connect(supervisor_id.to_string(), config).await?;
+        //let mut client = NatsClient::new();
+        let client = NatsClient::new();
+        client.clone()
+            .connect(supervisor_id.to_string(), config)
+            .await?;
 
         let (tx, mut rx) = futures_mpsc::unbounded::<NatsMessage>();
 

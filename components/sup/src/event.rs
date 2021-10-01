@@ -93,7 +93,7 @@ pub struct EventStreamConfig {
 /// Send an event for the start of a Service.
 pub fn service_started(service: &Service) {
     if initialized() {
-        publish(&SERVICE_STARTED_SUBJECT,
+        publish(SERVICE_STARTED_SUBJECT,
                 ServiceStartedEvent { service_metadata: Some(service.to_service_metadata()),
                                       event_metadata:   None, });
     }
@@ -102,7 +102,7 @@ pub fn service_started(service: &Service) {
 /// Send an event for the stop of a Service.
 pub fn service_stopped(service: &Service) {
     if initialized() {
-        publish(&SERVICE_STOPPED_SUBJECT,
+        publish(SERVICE_STOPPED_SUBJECT,
                 ServiceStoppedEvent { service_metadata: Some(service.to_service_metadata()),
                                       event_metadata:   None, });
     }
@@ -111,7 +111,7 @@ pub fn service_stopped(service: &Service) {
 /// Send an event at the start of a Service update.
 pub fn service_update_started(service: &Service, update: &PackageIdent) {
     if initialized() {
-        publish(&SERVICE_UPDATE_STARTED_SUBJECT,
+        publish(SERVICE_UPDATE_STARTED_SUBJECT,
                 ServiceUpdateStartedEvent { event_metadata:       None,
                                             service_metadata:
                                                 Some(service.to_service_metadata()),
