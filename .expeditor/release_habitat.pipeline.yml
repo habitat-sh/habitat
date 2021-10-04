@@ -380,7 +380,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  # It is  VERY IMPORTANT that Docker container uploads ARE NOT active
+  # It is VERY IMPORTANT that Docker container uploads ARE NOT active
   # in manually-triggered pipeline runs (at least, not without GREAT
   # CARE and knowledge of *exactly* what you are doing.)
   #
