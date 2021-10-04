@@ -63,9 +63,9 @@ steps:
     expeditor:
       executor:
         macos:
-          os-version: "10.14"
+          os-version: "10.15"
           inherit-environment-vars: true
-    timeout_in_minutes: 60
+    timeout_in_minutes: 120
     retry:
       automatic:
         limit: 10 # Addressing current Anka system timeouts due to oversubscription
