@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.396 -->
-## [1.6.396](https://github.com/habitat-sh/habitat/tree/1.6.396) (2021-10-04)
+<!-- latest_release 1.6.397 -->
+## [1.6.397](https://github.com/habitat-sh/habitat/tree/1.6.397) (2021-10-04)
 
 #### Merged Pull Requests
-- whitespace change to force release [#8320](https://github.com/habitat-sh/habitat/pull/8320) ([mwrock](https://github.com/mwrock))
+- another whitespace change to force release [#8321](https://github.com/habitat-sh/habitat/pull/8321) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- another whitespace change to force release [#8321](https://github.com/habitat-sh/habitat/pull/8321) ([mwrock](https://github.com/mwrock)) <!-- 1.6.397 -->
 - whitespace change to force release [#8320](https://github.com/habitat-sh/habitat/pull/8320) ([mwrock](https://github.com/mwrock)) <!-- 1.6.396 -->
 - restore windows 2016 studio image in release pipeline [#8316](https://github.com/habitat-sh/habitat/pull/8316) ([mwrock](https://github.com/mwrock)) <!-- 1.6.395 -->
 - Bump libc from 0.2.102 to 0.2.103 [#8313](https://github.com/habitat-sh/habitat/pull/8313) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.394 -->
