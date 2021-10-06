@@ -78,7 +78,8 @@ impl NatsClient {
         let ca_certs = habitat_core::tls::native_tls_wrapper::installed_cacerts(None)?;
         let mut options = Options::with_token(&config.token.to_string())
             .with_name(&name)
-            .add_root_certificate(ca_certs.expect("No core/cacerts installed"));
+            .add_root_certificate(ca_certs.expect("No core/cacerts installed"))
+            .max_reconnects(None);
         
         if let Some(ref cert_path) = config.server_certificate {
             let cert_path: PathBuf = cert_path.clone().into(); 
