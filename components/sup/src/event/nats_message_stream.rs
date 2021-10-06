@@ -11,6 +11,8 @@ use std::{path::PathBuf,
           sync::Arc};
 use tokio::{sync::Mutex,
             time};
+use std::time::Duration;
+use std::thread;
 
 /// The subject and payload of a NATS message.
 #[derive(Debug)]
@@ -57,17 +59,18 @@ impl NatsClient {
     }
 
     async fn connect_impl(self, supervisor_id: String, config: &EventStreamConfig) -> Result<()> {
-        if self.0.lock().await.is_none() {
-            let options = Self::options_from_config(&supervisor_id, config)?;
-            let conn = options
-                       .connect(&config.url.to_string())
-                       .await.
-                       map_err(|_| Error::NotConnected)?;
-            *self.0.lock().await = Some(conn);
-            Ok(())
-        } else {
-            Ok(())
+        while self.0.lock().await.is_none() {
+            match Self::options_from_config(&supervisor_id, config)?
+                .connect(&config.url.to_string())
+                .await {
+                    Ok(conn) => *self.0.lock().await = Some(conn),
+                    Err(e) => {
+                        trace!("Failed to connect to NATS server: {}", e);
+                        thread::sleep(Duration::from_millis(1000));
+                    }
+                }
         }
+        Ok(())
     }
 
     fn options_from_config(supervisor_id: &str, config: &EventStreamConfig) -> Result<Options> {
@@ -75,8 +78,7 @@ impl NatsClient {
         let ca_certs = habitat_core::tls::native_tls_wrapper::installed_cacerts(None)?;
         let mut options = Options::with_token(&config.token.to_string())
             .with_name(&name)
-            .add_root_certificate(ca_certs.expect("No core/cacerts installed"))
-            .with_retry_on_failed_connect();
+            .add_root_certificate(ca_certs.expect("No core/cacerts installed"));
         
         if let Some(ref cert_path) = config.server_certificate {
             let cert_path: PathBuf = cert_path.clone().into(); 
@@ -118,7 +120,7 @@ impl NatsMessageStream {
         tokio::spawn(async move {
             while let Some(packet) = rx.next().await {
                 if let Err(e) = client.publish(packet.subject, packet.payload()).await {
-                    error!("{:?}", e);
+                    error!("Failed to publish message to subject '{}', err: {}", packet.subject, e);
                 }
             }
         });

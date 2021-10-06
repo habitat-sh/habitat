@@ -1283,7 +1283,7 @@ dependencies = [
  "lazy_static 1.4.0",
  "libc",
  "log 0.4.14",
- "nats 0.13.0",
+ "nats",
  "pbr",
  "reqwest",
  "retry",
@@ -1656,7 +1656,7 @@ dependencies = [
  "log4rs",
  "mio 0.7.13",
  "native-tls",
- "nats 0.15.2",
+ "nats",
  "notify",
  "num_cpus",
  "parking_lot",
@@ -2346,35 +2346,6 @@ name = "nats"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dddb0090aca6f217f525c1e20422b20881fc40baedfcd9f211fa3b08c3a1e1bb"
-dependencies = [
- "base64",
- "base64-url",
- "blocking",
- "chrono",
- "crossbeam-channel",
- "fastrand",
- "itoa",
- "json",
- "libc",
- "log 0.4.14",
- "memchr",
- "nkeys",
- "nuid",
- "once_cell",
- "parking_lot",
- "regex 1.5.4",
- "rustls",
- "rustls-native-certs",
- "serde",
- "serde_json",
- "webpki 0.21.4",
- "winapi 0.3.9",
-]
-
-[[package]]
-name = "nats"
-version = "0.15.2"
-source = "git+https://github.com/pozsgaic/nats.rs.git?branch=main#e693aaf07a214104003e30931d6ad4e897fe7983"
 dependencies = [
  "base64",
  "base64-url",
