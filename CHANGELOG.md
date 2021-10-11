@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.398 -->
-## [1.6.398](https://github.com/habitat-sh/habitat/tree/1.6.398) (2021-10-07)
+<!-- latest_release 1.6.399 -->
+## [1.6.399](https://github.com/habitat-sh/habitat/tree/1.6.399) (2021-10-11)
 
 #### Merged Pull Requests
-- Bump cc from 1.0.70 to 1.0.71 [#8322](https://github.com/habitat-sh/habitat/pull/8322) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump thiserror from 1.0.29 to 1.0.30 [#8325](https://github.com/habitat-sh/habitat/pull/8325) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- Bump thiserror from 1.0.29 to 1.0.30 [#8325](https://github.com/habitat-sh/habitat/pull/8325) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.399 -->
 - Bump cc from 1.0.70 to 1.0.71 [#8322](https://github.com/habitat-sh/habitat/pull/8322) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.398 -->
 - another whitespace change to force release [#8321](https://github.com/habitat-sh/habitat/pull/8321) ([mwrock](https://github.com/mwrock)) <!-- 1.6.397 -->
 - whitespace change to force release [#8320](https://github.com/habitat-sh/habitat/pull/8320) ([mwrock](https://github.com/mwrock)) <!-- 1.6.396 -->
