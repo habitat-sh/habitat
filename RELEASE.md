@@ -7,6 +7,7 @@ Note: this document covers what to do once you decide you want to make
 an official release. If you would like further details on how the
 overall pipeline, please go [here](./.expeditor/README.md).
 
+
 ## Promote a Candidate for Manual Testing
 
 In Slack, execute the following command:
