@@ -138,7 +138,7 @@ pub fn health_check(metadata: ServiceMetadata,
 
         let prost_interval = ProstDuration::from(Duration::from(health_check_interval));
 
-        publish(&HEALTHCHECK_SUBJECT,
+        publish(HEALTHCHECK_SUBJECT,
                 HealthCheckEvent { service_metadata: Some(metadata),
                                    event_metadata: None,
                                    result: i32::from(health_check_result),

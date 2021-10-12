@@ -8,11 +8,11 @@ use nats::{self,
            asynk::{Connection,
                    Options}};
 use std::{path::PathBuf,
-          sync::Arc};
+          sync::Arc,
+          thread,
+          time::Duration};
 use tokio::{sync::Mutex,
             time};
-use std::time::Duration;
-use std::thread;
 
 /// The subject and payload of a NATS message.
 #[derive(Debug)]
@@ -33,26 +33,20 @@ impl NatsMessage {
 struct NatsClient(Arc<Mutex<Option<Connection>>>);
 
 impl NatsClient {
-    fn new() -> NatsClient {
-        NatsClient(Arc::new(Mutex::new(None)))
-    }
+    fn new() -> NatsClient { NatsClient(Arc::new(Mutex::new(None))) }
 
     // Connect to the server. If a timeout was set, we want to ensure we establish a connection
     // before exiting the function. If we do not connect within the timeout we return an error.
     // If we do not have a timeout, we don't care if we can immediately connect. Instead we spawn
     // a future that will resolve when a connection is possible. Once we establish a
     // connection, this client will handle reconnecting if necessary.
-    async fn connect(self, supervisor_id: String, config: EventStreamConfig) -> Result<()> {        
+    async fn connect(self, supervisor_id: String, config: EventStreamConfig) -> Result<()> {
         match config.connect_method.into() {
             Some(timeout) => {
-                time::timeout(timeout, 
-                              self.connect_impl(supervisor_id, &config)).await??;
+                time::timeout(timeout, self.connect_impl(supervisor_id, &config)).await??;
             } 
             None => {
-                tokio::spawn(async move { 
-                    self.connect_impl(supervisor_id, &config)
-                        .await
-                });
+                tokio::spawn(async move { self.connect_impl(supervisor_id, &config).await });
             }
         }
         Ok(())
@@ -60,15 +54,16 @@ impl NatsClient {
 
     async fn connect_impl(self, supervisor_id: String, config: &EventStreamConfig) -> Result<()> {
         while self.0.lock().await.is_none() {
-            match Self::options_from_config(&supervisor_id, config)?
-                .connect(&config.url.to_string())
-                .await {
+            match Self::options_from_config(&supervisor_id, config)?.connect(&config.url
+                                                                                    .to_string())
+                                                                    .await
+            {
                     Ok(conn) => *self.0.lock().await = Some(conn),
                     Err(e) => {
                         trace!("Failed to connect to NATS server: {}", e);
                         thread::sleep(Duration::from_millis(1000));
                     }
-                }
+            }
         }
         Ok(())
     }
@@ -82,7 +77,7 @@ impl NatsClient {
             .max_reconnects(None);
         
         if let Some(ref cert_path) = config.server_certificate {
-            let cert_path: PathBuf = cert_path.clone().into(); 
+            let cert_path: PathBuf = cert_path.clone().into();
             options = options.add_root_certificate(cert_path);
         }
         Ok(options)
@@ -92,9 +87,8 @@ impl NatsClient {
         if let Some(conn) = &*self.0.lock().await {
             conn.publish(subject, msg)
                 .await
-                .map_err(|_| Error::NotConnected)
-        }
-        else {
+                .map_err(|e| Error::PublishFailed(e))
+        } else {
             Err(Error::NotConnected)
         }
     }
@@ -112,8 +106,8 @@ impl NatsMessageStream {
 
         let client = NatsClient::new();
         client.clone()
-            .connect(supervisor_id.to_string(), config)
-            .await?;
+              .connect(supervisor_id.to_string(), config)
+              .await?;
 
         let (tx, mut rx) = futures_mpsc::unbounded::<NatsMessage>();
 
@@ -121,7 +115,19 @@ impl NatsMessageStream {
         tokio::spawn(async move {
             while let Some(packet) = rx.next().await {
                 if let Err(e) = client.publish(packet.subject, packet.payload()).await {
-                    error!("Failed to publish message to subject '{}', err: {}", packet.subject, e);
+                    // We do not retry any messages. If we are not connected when the message is
+                    // processed or there is an error in publishing the message, the message will
+                    // never be sent.
+                    if let Error::NotConnected = e {
+                        trace!(
+                            "Failed to publish message to subject '{}' because the client is \
+                                not connected",
+                            packet.subject);
+                    } else {
+                        error!(
+                            "Failed to publish message to subject '{}', err: {}",
+                            packet.subject, e);
+                    }
                 }
             }
         });
