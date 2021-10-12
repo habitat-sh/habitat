@@ -7,8 +7,12 @@
 - whitespace change to force pipeline [#8326](https://github.com/habitat-sh/habitat/pull/8326) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.351 -->
-### Changes since 1.6.351 release
+<!-- release_rollup since=1.6.400 -->
+### Changes since 1.6.400 release
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.400 -->
+## [1.6.400](https://github.com/habitat-sh/habitat/tree/1.6.400) (2021-10-12)
 
 #### Merged Pull Requests
 - whitespace change to force pipeline [#8326](https://github.com/habitat-sh/habitat/pull/8326) ([mwrock](https://github.com/mwrock)) <!-- 1.6.400 -->
@@ -71,9 +75,6 @@
 - update changelog for 1.6.351 [#8240](https://github.com/habitat-sh/habitat/pull/8240) ([mwrock](https://github.com/mwrock)) <!-- 1.6.354 -->
 - minor docs fix [#8238](https://github.com/habitat-sh/habitat/pull/8238) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.353 -->
 - Fix headings in install CLI page [#8236](https://github.com/habitat-sh/habitat/pull/8236) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.352 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 1.6.351 -->
 ## [1.6.351](https://github.com/habitat-sh/habitat/tree/1.6.351) (2021-07-07)
 
 - bump powershell to 7.1.3 [#8237](https://github.com/habitat-sh/habitat/pull/8237) ([mwrock](https://github.com/mwrock)) <!-- 1.6.351 -->
