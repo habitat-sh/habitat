@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.400 -->
-## [1.6.400](https://github.com/habitat-sh/habitat/tree/1.6.400) (2021-10-11)
+<!-- latest_release 1.6.401 -->
+## [1.6.401](https://github.com/habitat-sh/habitat/tree/1.6.401) (2021-10-12)
 
 #### Merged Pull Requests
-- whitespace change to force pipeline [#8326](https://github.com/habitat-sh/habitat/pull/8326) ([mwrock](https://github.com/mwrock))
+- update changelog for 1.6.400 [#8328](https://github.com/habitat-sh/habitat/pull/8328) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.400 -->
 ### Changes since 1.6.400 release
+
+#### Merged Pull Requests
+- update changelog for 1.6.400 [#8328](https://github.com/habitat-sh/habitat/pull/8328) ([mwrock](https://github.com/mwrock)) <!-- 1.6.401 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release 1.6.400 -->
