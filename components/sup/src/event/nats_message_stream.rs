@@ -44,7 +44,7 @@ impl NatsClient {
         match config.connect_method.into() {
             Some(timeout) => {
                 time::timeout(timeout, self.connect_impl(supervisor_id, &config)).await??;
-            } 
+            }
             None => {
                 tokio::spawn(async move { self.connect_impl(supervisor_id, &config).await });
             }
@@ -58,11 +58,11 @@ impl NatsClient {
                                                                                     .to_string())
                                                                     .await
             {
-                    Ok(conn) => *self.0.lock().await = Some(conn),
-                    Err(e) => {
-                        trace!("Failed to connect to NATS server: {}", e);
-                        thread::sleep(Duration::from_millis(1000));
-                    }
+                Ok(conn) => *self.0.lock().await = Some(conn),
+                Err(e) => {
+                    trace!("Failed to connect to NATS server: {}", e);
+                    thread::sleep(Duration::from_millis(1000));
+                }
             }
         }
         Ok(())
@@ -75,7 +75,7 @@ impl NatsClient {
             .with_name(&name)
             .add_root_certificate(ca_certs.expect("No core/cacerts installed"))
             .max_reconnects(None);
-        
+
         if let Some(ref cert_path) = config.server_certificate {
             let cert_path: PathBuf = cert_path.clone().into();
             options = options.add_root_certificate(cert_path);
@@ -103,7 +103,6 @@ pub struct NatsMessageStream(pub(super) UnboundedSender<NatsMessage>);
 
 impl NatsMessageStream {
     pub async fn new(supervisor_id: &str, config: EventStreamConfig) -> Result<NatsMessageStream> {
-
         let client = NatsClient::new();
         client.clone()
               .connect(supervisor_id.to_string(), config)
@@ -119,14 +118,12 @@ impl NatsMessageStream {
                     // processed or there is an error in publishing the message, the message will
                     // never be sent.
                     if let Error::NotConnected = e {
-                        trace!(
-                            "Failed to publish message to subject '{}' because the client is \
+                        trace!("Failed to publish message to subject '{}' because the client is \
                                 not connected",
-                            packet.subject);
+                               packet.subject);
                     } else {
-                        error!(
-                            "Failed to publish message to subject '{}', err: {}",
-                            packet.subject, e);
+                        error!("Failed to publish message to subject '{}', err: {}",
+                               packet.subject, e);
                     }
                 }
             }
@@ -143,4 +140,3 @@ impl NatsMessageStream {
         }
     }
 }
-

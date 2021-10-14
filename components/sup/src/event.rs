@@ -43,7 +43,6 @@ use state::Storage;
 use std::{net::SocketAddr,
           time::Duration};
 
-
 // NATS subject names
 const SERVICE_STARTED_SUBJECT: &str = "habitat.event.service_started";
 const SERVICE_STOPPED_SUBJECT: &str = "habitat.event.service_stopped";
