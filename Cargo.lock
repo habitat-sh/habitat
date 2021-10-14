@@ -1401,7 +1401,7 @@ dependencies = [
  "num_cpus",
  "os_info",
  "paste 1.0.5",
- "pem",
+ "pem 1.0.0",
  "pin-project",
  "rand 0.8.4",
  "rcgen",
@@ -1439,7 +1439,7 @@ dependencies = [
  "httparse",
  "log 0.4.14",
  "native-tls",
- "pem",
+ "pem 1.0.0",
  "reqwest",
  "serde",
  "serde_json",
@@ -2492,6 +2492,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "pem"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f2373df5233932a893d3bc2c78a0bf3f6d12590a1edd546b4fbefcac32c5c0f"
+dependencies = [
+ "base64",
+ "once_cell",
+ "regex 1.5.4",
+]
+
+[[package]]
 name = "percent-encoding"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2931,7 +2942,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48b4fc1b81d685fcd442a86da2e2c829d9e353142633a8159f42bf28e7e94428"
 dependencies = [
  "chrono",
- "pem",
+ "pem 0.8.3",
  "ring",
  "yasna",
 ]
