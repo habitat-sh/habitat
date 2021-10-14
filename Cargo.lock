@@ -1228,7 +1228,7 @@ dependencies = [
  "bytes",
  "prost",
  "prost-build",
- "prost-derive",
+ "prost-derive 0.9.0",
  "serde",
  "serde_derive",
 ]
@@ -1270,7 +1270,7 @@ dependencies = [
  "log 0.4.14",
  "prost",
  "prost-build",
- "prost-derive",
+ "prost-derive 0.9.0",
  "rand 0.8.4",
  "serde",
  "serde_derive",
@@ -1322,7 +1322,7 @@ dependencies = [
  "prometheus",
  "prost",
  "prost-build",
- "prost-derive",
+ "prost-derive 0.9.0",
  "rand 0.8.4",
  "serde",
  "serde_derive",
@@ -1540,7 +1540,7 @@ dependencies = [
  "prometheus",
  "prost",
  "prost-build",
- "prost-derive",
+ "prost-derive 0.9.0",
  "prost-types",
  "rand 0.8.4",
  "rants",
@@ -2692,7 +2692,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "de5e2533f59d08fcf364fd374ebda0692a70bd6d7e66ef97f306f45c6c5d8020"
 dependencies = [
  "bytes",
- "prost-derive",
+ "prost-derive 0.8.0",
 ]
 
 [[package]]
@@ -2718,6 +2718,19 @@ name = "prost-derive"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "600d2f334aa05acb02a755e217ef1ab6dea4d51b58b7846588b747edec04efba"
+dependencies = [
+ "anyhow",
+ "itertools",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "prost-derive"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f9cc1a3263e07e0bf68e96268f37665207b49560d98739662cdfaae215c720fe"
 dependencies = [
  "anyhow",
  "itertools",
