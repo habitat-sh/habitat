@@ -94,10 +94,10 @@ impl Account {
             name.set_len(name_size as usize);
             domain.set_len(domain_size as usize);
         }
-        let name = WideCString::new(name).expect("valid name widestring")
-                                         .to_string_lossy();
-        let domain = WideCString::new(domain).expect("valid domain widestring")
-                                             .to_string_lossy();
+        let name = WideCString::from_vec(name).expect("valid name widestring")
+                                              .to_string_lossy();
+        let domain = WideCString::from_vec(domain).expect("valid domain widestring")
+                                                  .to_string_lossy();
         Some(Account { name,
                        system_name: None,
                        domain,
@@ -165,7 +165,7 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
         domain.set_len(domain_size as usize);
         sid.set_len(sid_size as usize);
     }
-    let domain_str = WideCString::new(domain).unwrap().to_string_lossy();
+    let domain_str = WideCString::from_vec(domain).unwrap().to_string_lossy();
     Some(Account { name: name.to_string(),
                    system_name,
                    domain: domain_str,
