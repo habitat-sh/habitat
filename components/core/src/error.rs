@@ -2,6 +2,7 @@ use crate::{package::{self,
                       Identifiable},
             tls::{ctl_gateway::Error as CtlGatewayTls,
                   rustls_wrapper::Error as RustlsReaderError}};
+use pem;
 use std::{env,
           error,
           ffi,
@@ -127,6 +128,8 @@ pub enum Error {
     PackageUnpackFailed(String),
     /// When an error occurs parsing an integer.
     ParseIntError(num::ParseIntError),
+    /// When an error occurs in parsing a pem
+    ParsePemError(pem::PemError),
     /// When parsing a string as an OS signal fails
     ParseSignalError(String),
     /// Occurs upon errors related to file or directory permissions.
@@ -331,6 +334,7 @@ impl fmt::Display for Error {
             }
             Error::PackageUnpackFailed(ref e) => format!("Package could not be unpacked. {}", e),
             Error::ParseIntError(ref e) => format!("{}", e),
+            Error::ParsePemError(ref e) => format!("{}", e),
             Error::ParseSignalError(ref s) => format!("Failed to parse '{}' as a signal", s),
             Error::PlanMalformed => "Failed to read or parse contents of Plan file".to_string(),
             Error::PermissionFailed(ref e) => e.to_string(),
@@ -404,6 +408,10 @@ impl From<native_tls::Error> for Error {
 
 impl From<num::ParseIntError> for Error {
     fn from(err: num::ParseIntError) -> Self { Error::ParseIntError(err) }
+}
+
+impl From<pem::PemError> for Error {
+    fn from(err: pem::PemError) -> Self { Error::ParsePemError(err) }
 }
 
 impl From<regex::Error> for Error {

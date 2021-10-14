@@ -125,9 +125,9 @@ fn certs_from_pem_file(buf: &[u8]) -> Result<Vec<Certificate>> {
     // `pem::parse_many` does not return an error. It simply parses what it can and ignores the
     // rest.
     Certificate::from_pem(buf)?;
-    pem::parse_many(buf).iter()
-                        .map(|cert| Ok(Certificate::from_der(&cert.contents)?))
-                        .collect()
+    pem::parse_many(buf)?.iter()
+                         .map(|cert| Ok(Certificate::from_der(&cert.contents)?))
+                         .collect()
 }
 
 fn certs_from_file(file_path: &Path) -> Result<Vec<Certificate>> {

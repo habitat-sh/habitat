@@ -17,9 +17,9 @@ Chef Habitat scaffoldings are standardized plans for automated building and runn
 
 While we are targeting many platforms for automated scaffolding we currently support Ruby, Node.js and Gradle.
 
-* [core/scaffolding-ruby](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-ruby/doc/reference.md)
-* [core/scaffolding-node](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-node)
-* [core/scaffolding-gradle](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-gradle)
+* [core/scaffolding-ruby](https://github.com/habitat-sh/core-plans/blob/main/scaffolding-ruby/doc/reference.md)
+* [core/scaffolding-node](https://github.com/habitat-sh/core-plans/tree/main/scaffolding-node)
+* [core/scaffolding-gradle](https://github.com/habitat-sh/core-plans/blob/main/scaffolding-gradle)
 
 ## Variables
 
