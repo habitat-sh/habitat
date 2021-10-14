@@ -1200,7 +1200,7 @@ dependencies = [
  "libc",
  "log 0.4.14",
  "nix 0.23.0",
- "prost",
+ "prost 0.9.0",
  "semver 1.0.4",
  "winapi 0.3.9",
 ]
@@ -1217,7 +1217,7 @@ dependencies = [
  "ipc-channel",
  "libc",
  "log 0.4.14",
- "prost",
+ "prost 0.9.0",
  "serde",
 ]
 
@@ -1226,7 +1226,7 @@ name = "habitat-launcher-protocol"
 version = "0.0.0"
 dependencies = [
  "bytes",
- "prost",
+ "prost 0.9.0",
  "prost-build",
  "prost-derive 0.9.0",
  "serde",
@@ -1252,7 +1252,7 @@ dependencies = [
  "habitat_common",
  "habitat_core",
  "log 0.4.14",
- "prost",
+ "prost 0.9.0",
  "rustls",
  "termcolor",
  "tokio",
@@ -1268,7 +1268,7 @@ dependencies = [
  "habitat_core",
  "lazy_static 1.4.0",
  "log 0.4.14",
- "prost",
+ "prost 0.9.0",
  "prost-build",
  "prost-derive 0.9.0",
  "rand 0.8.4",
@@ -1320,7 +1320,7 @@ dependencies = [
  "mktemp",
  "parking_lot",
  "prometheus",
- "prost",
+ "prost 0.9.0",
  "prost-build",
  "prost-derive 0.9.0",
  "rand 0.8.4",
@@ -1538,7 +1538,7 @@ dependencies = [
  "parking_lot",
  "pin-project",
  "prometheus",
- "prost",
+ "prost 0.9.0",
  "prost-build",
  "prost-derive 0.9.0",
  "prost-types",
@@ -2707,6 +2707,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "prost"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "444879275cb4fd84958b1a1d5420d15e6fcf7c235fe47f053c9c2a80aceb6001"
+dependencies = [
+ "bytes",
+ "prost-derive 0.9.0",
+]
+
+[[package]]
 name = "prost-build"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2718,7 +2728,7 @@ dependencies = [
  "log 0.4.14",
  "multimap",
  "petgraph 0.5.1",
- "prost",
+ "prost 0.8.0",
  "prost-types",
  "tempfile",
  "which",
@@ -2757,7 +2767,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "603bbd6394701d13f3f25aada59c7de9d35a6a5887cfc156181234a44002771b"
 dependencies = [
  "bytes",
- "prost",
+ "prost 0.8.0",
 ]
 
 [[package]]
