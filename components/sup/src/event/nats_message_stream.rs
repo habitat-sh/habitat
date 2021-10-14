@@ -87,7 +87,7 @@ impl NatsClient {
         if let Some(conn) = &*self.0.lock().await {
             conn.publish(subject, msg)
                 .await
-                .map_err(|e| Error::PublishFailed(e))
+                .map_err(Error::PublishFailed)
         } else {
             Err(Error::NotConnected)
         }
