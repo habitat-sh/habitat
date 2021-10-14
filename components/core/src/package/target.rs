@@ -310,6 +310,16 @@ package_targets! {
     /// [Linux kernel]: https://en.wikipedia.org/wiki/Linux_kernel
     /// [arm-arch]: https://en.wikipedia.org/wiki/ARM_architecture
     ("aarch64-linux", AARCH64_Linux, AARCH64_LINUX, "aarch64", "linux");
+
+    /// **UNSUPPORTED TARGET** Represents a [XNU kernel]-based system 
+    /// (more commonly referred to as [Darwin] or [macOS])
+    /// [ARM Architecture processor][arm-arch].
+    ///
+    /// [XNU kernel]: https://en.wikipedia.org/wiki/XNU
+    /// [Darwin]: https://en.wikipedia.org/wiki/Darwin_(operating_system)
+    /// [macOS]: https://en.wikipedia.org/wiki/MacOS
+    /// [arm-arch]: https://en.wikipedia.org/wiki/ARM_architecture
+    ("aarch64-darwin", AARCH64_Darwin, AARCH64_DARWIN, "aarch64", "macos");
 }
 
 lazy_static::lazy_static! {
