@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.404 -->
-## [1.6.404](https://github.com/habitat-sh/habitat/tree/1.6.404) (2021-10-14)
+<!-- latest_release 1.6.405 -->
+## [1.6.405](https://github.com/habitat-sh/habitat/tree/1.6.405) (2021-10-14)
 
 #### Merged Pull Requests
-- Bump prost-derive from 0.8.0 to 0.9.0 [#8330](https://github.com/habitat-sh/habitat/pull/8330) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- bump prost and friends [#8333](https://github.com/habitat-sh/habitat/pull/8333) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.400 -->
 ### Changes since 1.6.400 release
 
 #### Merged Pull Requests
+- bump prost and friends [#8333](https://github.com/habitat-sh/habitat/pull/8333) ([mwrock](https://github.com/mwrock)) <!-- 1.6.405 -->
 - Bump prost-derive from 0.8.0 to 0.9.0 [#8330](https://github.com/habitat-sh/habitat/pull/8330) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.404 -->
 - Bump pem from 0.8.3 to 1.0.0 [#8318](https://github.com/habitat-sh/habitat/pull/8318) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.404 -->
 - Bump widestring from 0.4.3 to 0.5.0 [#8329](https://github.com/habitat-sh/habitat/pull/8329) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.403 -->
