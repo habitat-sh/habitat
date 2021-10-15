@@ -32,10 +32,10 @@ use habitat_core::{env::Config,
                    fs::HAB_CTL_KEYS_CACHE,
                    package::PackageIdent,
                    util as core_util};
-use rants::{error::Error as RantsError,
-            Address as NatsAddress};
+
 use std::{fmt,
-          net::{IpAddr,
+          net::{AddrParseError,
+                IpAddr,
                 SocketAddr},
           path::PathBuf,
           str::FromStr};
@@ -111,19 +111,19 @@ pub struct SupTerm {}
 // https://github.com/serde-rs/serde/issues/723. The easiest way to get around the issue is by
 // using a wrapper type since NatsAddress is not defined in this crate.
 #[derive(Deserialize, Serialize, Debug)]
-pub struct EventStreamAddress(#[serde(with = "core_util::serde::string")] NatsAddress);
+pub struct EventStreamAddress(#[serde(with = "core_util::serde::string")] SocketAddr);
 
 impl fmt::Display for EventStreamAddress {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.0) }
 }
 
 impl FromStr for EventStreamAddress {
-    type Err = RantsError;
+    type Err = AddrParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(EventStreamAddress(s.parse()?)) }
 }
 
-impl From<EventStreamAddress> for NatsAddress {
+impl From<EventStreamAddress> for SocketAddr {
     fn from(address: EventStreamAddress) -> Self { address.0 }
 }
 

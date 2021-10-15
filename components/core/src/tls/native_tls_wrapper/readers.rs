@@ -58,7 +58,7 @@ pub fn certificates_as_der(fs_root_path: Option<&Path>) -> Result<Vec<Vec<u8>>> 
                                   .collect::<StdResult<_, _>>()?)
 }
 
-fn installed_cacerts(fs_root_path: Option<&Path>) -> Result<Option<PathBuf>> {
+pub fn installed_cacerts(fs_root_path: Option<&Path>) -> Result<Option<PathBuf>> {
     let cacerts_ident = PackageIdent::from_str(CACERTS_PKG_IDENT)?;
 
     if let Ok(pkg_install) = PackageInstall::load(&cacerts_ident, fs_root_path) {
@@ -125,9 +125,9 @@ fn certs_from_pem_file(buf: &[u8]) -> Result<Vec<Certificate>> {
     // `pem::parse_many` does not return an error. It simply parses what it can and ignores the
     // rest.
     Certificate::from_pem(buf)?;
-    pem::parse_many(buf).iter()
-                        .map(|cert| Ok(Certificate::from_der(&cert.contents)?))
-                        .collect()
+    pem::parse_many(buf)?.iter()
+                         .map(|cert| Ok(Certificate::from_der(&cert.contents)?))
+                         .collect()
 }
 
 fn certs_from_file(file_path: &Path) -> Result<Vec<Certificate>> {
