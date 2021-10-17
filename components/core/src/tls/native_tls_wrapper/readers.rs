@@ -58,7 +58,7 @@ pub fn certificates_as_der(fs_root_path: Option<&Path>) -> Result<Vec<Vec<u8>>> 
                                   .collect::<StdResult<_, _>>()?)
 }
 
-fn installed_cacerts(fs_root_path: Option<&Path>) -> Result<Option<PathBuf>> {
+pub fn installed_cacerts(fs_root_path: Option<&Path>) -> Result<Option<PathBuf>> {
     let cacerts_ident = PackageIdent::from_str(CACERTS_PKG_IDENT)?;
 
     if let Ok(pkg_install) = PackageInstall::load(&cacerts_ident, fs_root_path) {

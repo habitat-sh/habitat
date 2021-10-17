@@ -1,19 +1,21 @@
 //! Event subsystem-specific error handling
 
-use rants::{error::Error as RantsError,
-            native_tls};
+use native_tls;
 use std::{error,
           fmt,
+          io,
           result};
+use tokio::time::error::Elapsed;
 
 pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
-    ConnectNatsServer,
+    NotConnected,
+    PublishFailed(io::Error),
+    ConnectTimeout(Elapsed),
     HabitatCore(habitat_core::Error),
     NativeTls(native_tls::Error),
-    Rants(RantsError),
 }
 
 // TODO (CM): I would have like to have derived Fail on our Error
@@ -27,10 +29,11 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::ConnectNatsServer => "Could not establish connection to NATS server".fmt(f),
+            Error::NotConnected => "Could not establish connection to NATS server".fmt(f),
+            Error::PublishFailed(e) => format!("{}", e).fmt(f),
+            Error::ConnectTimeout(e) => format!("{}", e).fmt(f),
             Error::HabitatCore(_) => "{}".fmt(f),
             Error::NativeTls(e) => format!("{}", e).fmt(f),
-            Error::Rants(e) => format!("{}", e).fmt(f),
         }
     }
 }
@@ -38,20 +41,21 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Error::ConnectNatsServer => None,
+            Error::NotConnected => None,
+            Error::PublishFailed(ref e) => Some(e),
+            Error::ConnectTimeout(ref e) => Some(e),
             Error::HabitatCore(ref e) => Some(e),
-            Error::Rants(ref e) => Some(e),
             Error::NativeTls(ref e) => Some(e),
         }
     }
 }
 
-impl From<habitat_core::Error> for Error {
-    fn from(error: habitat_core::Error) -> Self { Error::HabitatCore(error) }
+impl From<Elapsed> for Error {
+    fn from(error: Elapsed) -> Self { Error::ConnectTimeout(error) }
 }
 
-impl From<RantsError> for Error {
-    fn from(error: RantsError) -> Self { Error::Rants(error) }
+impl From<habitat_core::Error> for Error {
+    fn from(error: habitat_core::Error) -> Self { Error::HabitatCore(error) }
 }
 
 impl From<native_tls::Error> for Error {
