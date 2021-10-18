@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.406 -->
-## [1.6.406](https://github.com/habitat-sh/habitat/tree/1.6.406) (2021-10-17)
+<!-- latest_release 1.6.407 -->
+## [1.6.407](https://github.com/habitat-sh/habitat/tree/1.6.407) (2021-10-18)
 
 #### Merged Pull Requests
-- replace rants dependency with nats.io crate [#8293](https://github.com/habitat-sh/habitat/pull/8293) ([pozsgaic](https://github.com/pozsgaic))
+- Bump libc from 0.2.103 to 0.2.104 [#8336](https://github.com/habitat-sh/habitat/pull/8336) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.400 -->
 ### Changes since 1.6.400 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.103 to 0.2.104 [#8336](https://github.com/habitat-sh/habitat/pull/8336) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.407 -->
 - replace rants dependency with nats.io crate [#8293](https://github.com/habitat-sh/habitat/pull/8293) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.406 -->
 - bump prost and friends [#8333](https://github.com/habitat-sh/habitat/pull/8333) ([mwrock](https://github.com/mwrock)) <!-- 1.6.405 -->
 - Bump prost-derive from 0.8.0 to 0.9.0 [#8330](https://github.com/habitat-sh/habitat/pull/8330) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.404 -->
