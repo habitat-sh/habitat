@@ -45,7 +45,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 10
 
   - label: "[lint] :windows: :paperclip: clippy!"
@@ -75,7 +75,7 @@ steps:
         # helpers this expects. For now, though, try running the
         # test in Docker "manually".
         linux:
-          privileged: true
+          # privileged: true
 
 #######################################################################
 # Unit Tests - Linux!
@@ -95,7 +95,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -107,7 +107,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -119,7 +119,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 20
     soft_fail: true
 
@@ -129,7 +129,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -146,7 +146,7 @@ steps:
         user: "buildkite-agent"
         group: "buildkite-agent"
         image: "chefes/buildkite"
-        privileged: true
+        # privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -158,7 +158,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -170,7 +170,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 20
 
   - label: "[unit] :linux: http-client"
@@ -179,7 +179,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -191,7 +191,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -203,7 +203,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -215,7 +215,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -227,7 +227,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -239,7 +239,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -251,7 +251,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -263,7 +263,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 40
     soft_fail: true
 
@@ -273,7 +273,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -285,7 +285,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -297,7 +297,7 @@ steps:
     expeditor:
       executor:
         linux:
-          privileged: true
+          # privileged: true
           single-use: true
     timeout_in_minutes: 5
     retry:
@@ -607,7 +607,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     retry:
       automatic:
         limit: 1
@@ -621,7 +621,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     retry:
       automatic:
         limit: 1
@@ -635,7 +635,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     retry:
       automatic:
         limit: 1
@@ -649,7 +649,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     retry:
       automatic:
         limit: 1
@@ -663,7 +663,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     retry:
       automatic:
         limit: 1
@@ -677,7 +677,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     retry:
       automatic:
         limit: 1
@@ -691,7 +691,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     retry:
       automatic:
         limit: 1
@@ -705,7 +705,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     retry:
       automatic:
         limit: 1
@@ -719,7 +719,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     retry:
       automatic:
         limit: 1
@@ -733,7 +733,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     retry:
       automatic:
         limit: 1
@@ -747,7 +747,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
     retry:
       automatic:
         limit: 1
@@ -766,7 +766,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
 
   - label: "[build] :linux: :two: build hab-plan-build"
     command:
@@ -777,7 +777,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
 
   - label: "[build] :linux: :two: build hab-backline"
     command:
@@ -788,7 +788,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
 
   - label: "[build] :linux: :two: build hab-studio"
     command:
@@ -799,7 +799,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
 
   - label: "[build] :linux: :two: build launcher"
     command:
@@ -810,7 +810,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
 
   - label: "[build] :linux: :two: build hab-sup"
     command:
@@ -821,7 +821,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
 
   - label: "[build] :linux: :two: build hab-pkg-export-tar"
     command:
@@ -832,7 +832,7 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true
+          # privileged: true
 
 #######################################################################
 # Things that have no tests but should be built to make sure they
