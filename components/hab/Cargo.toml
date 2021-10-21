@@ -68,8 +68,7 @@ winreg = "*"
 tempfile = "*"
 
 [features]
-default = ["supported_targets", "aarch64-darwin"]
+default = ["supported_targets"]
 functional = []
 supported_targets = ["habitat_core/supported_targets"]
 aarch64-linux = ["habitat_core/aarch64-linux"]
-aarch64-darwin = ["habitat_core/aarch64-darwin"]

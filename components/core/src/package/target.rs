@@ -304,14 +304,7 @@ package_targets! {
     /// [x86_64]: https://en.wikipedia.org/wiki/X86-64
     ("x86_64-windows", X86_64_Windows, X86_64_WINDOWS, "x86_64", "windows");
 
-    /// **UNSUPPORTED TARGET** Represents a [Linux kernel]-based system running on an
-    /// [ARM Architecture processor][arm-arch].
-    ///
-    /// [Linux kernel]: https://en.wikipedia.org/wiki/Linux_kernel
-    /// [arm-arch]: https://en.wikipedia.org/wiki/ARM_architecture
-    ("aarch64-linux", AARCH64_Linux, AARCH64_LINUX, "aarch64", "linux");
-
-    /// **UNSUPPORTED TARGET** Represents a [XNU kernel]-based system 
+    /// Represents a [XNU kernel]-based system
     /// (more commonly referred to as [Darwin] or [macOS])
     /// [ARM Architecture processor][arm-arch].
     ///
@@ -320,6 +313,13 @@ package_targets! {
     /// [macOS]: https://en.wikipedia.org/wiki/MacOS
     /// [arm-arch]: https://en.wikipedia.org/wiki/ARM_architecture
     ("aarch64-darwin", AARCH64_Darwin, AARCH64_DARWIN, "aarch64", "macos");
+
+    /// **UNSUPPORTED TARGET** Represents a [Linux kernel]-based system running on an
+    /// [ARM Architecture processor][arm-arch].
+    ///
+    /// [Linux kernel]: https://en.wikipedia.org/wiki/Linux_kernel
+    /// [arm-arch]: https://en.wikipedia.org/wiki/ARM_architecture
+    ("aarch64-linux", AARCH64_Linux, AARCH64_LINUX, "aarch64", "linux");
 }
 
 lazy_static::lazy_static! {

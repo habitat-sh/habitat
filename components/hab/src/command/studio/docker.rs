@@ -351,7 +351,7 @@ fn studio_target(windows: bool, target: target::PackageTarget) -> target::Packag
         target::X86_64_LINUX_KERNEL2 => target::X86_64_LINUX_KERNEL2,
         #[cfg(feature = "supported_targets")]
         target::X86_64_WINDOWS => target::X86_64_LINUX,
-        #[cfg(feature = "aarch64-darwin")]
+        #[cfg(feature = "supported_targets")]
         target::AARCH64_DARWIN => target::X86_64_LINUX,
         #[cfg(feature = "aarch64-linux")]
         target::AARCH64_LINUX => panic!("{} studios are not supported", target::AARCH64_LINUX),
