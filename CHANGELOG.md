@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.408 -->
-## [1.6.408](https://github.com/habitat-sh/habitat/tree/1.6.408) (2021-10-25)
+<!-- latest_release 1.6.409 -->
+## [1.6.409](https://github.com/habitat-sh/habitat/tree/1.6.409) (2021-10-25)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.104 to 0.2.105 [#8340](https://github.com/habitat-sh/habitat/pull/8340) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Enabling macos M1 hab cli build [#8334](https://github.com/habitat-sh/habitat/pull/8334) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.400 -->
 ### Changes since 1.6.400 release
 
 #### Merged Pull Requests
+- Enabling macos M1 hab cli build [#8334](https://github.com/habitat-sh/habitat/pull/8334) ([mwrock](https://github.com/mwrock)) <!-- 1.6.409 -->
 - Bump libc from 0.2.104 to 0.2.105 [#8340](https://github.com/habitat-sh/habitat/pull/8340) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.408 -->
 - Bump libc from 0.2.103 to 0.2.104 [#8336](https://github.com/habitat-sh/habitat/pull/8336) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.407 -->
 - replace rants dependency with nats.io crate [#8293](https://github.com/habitat-sh/habitat/pull/8293) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.406 -->
