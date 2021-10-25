@@ -1287,7 +1287,7 @@ dependencies = [
  "uuid 0.8.2",
  "walkdir",
  "webpki 0.22.0",
- "widestring 0.5.0",
+ "widestring 0.5.1",
  "winapi 0.3.9",
  "winreg 0.9.0",
 ]
@@ -1527,7 +1527,7 @@ dependencies = [
  "typemap",
  "url",
  "webpki 0.22.0",
- "widestring 0.5.0",
+ "widestring 0.5.1",
  "winapi 0.3.9",
  "windows-acl",
  "xz2",
@@ -1677,7 +1677,7 @@ version = "0.0.0"
 dependencies = [
  "cc",
  "log 0.4.14",
- "widestring 0.5.0",
+ "widestring 0.5.1",
  "winapi 0.3.9",
 ]
 
@@ -4425,9 +4425,9 @@ checksum = "c168940144dd21fd8046987c16a46a33d5fc84eec29ef9dcddc2ac9e31526b7c"
 
 [[package]]
 name = "widestring"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15be6395051be4e41efeee975b7561b8c602ba30204bfa35fefa0f85582075b6"
+checksum = "17882f045410753661207383517a6f62ec3dbeb6a4ed2acce01f0728238d1983"
 
 [[package]]
 name = "winapi"
