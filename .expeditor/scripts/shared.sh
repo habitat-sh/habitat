@@ -427,8 +427,8 @@ macos_use_cert_file_from_linux_cacerts_package() {
 macos_sync_cache_signing_keys() {
     # We invoke hab-plan-build.sh directly via sudo, so we don't get the key management that studio provides.
     # Copy keys from the user account Habitat cache to the system Habitat cache so that they are present for root.
-    sudo mkdir -p /hab/cache/keys
-    sudo cp -r ~/.hab/cache/keys/* /hab/cache/keys/
+    sudo mkdir -p "$HAB_ROOT_PATH"/cache/keys
+    sudo cp -r ~/.hab/cache/keys/* "$HAB_ROOT_PATH"/cache/keys/
 
 }
 

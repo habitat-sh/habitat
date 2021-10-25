@@ -304,6 +304,16 @@ package_targets! {
     /// [x86_64]: https://en.wikipedia.org/wiki/X86-64
     ("x86_64-windows", X86_64_Windows, X86_64_WINDOWS, "x86_64", "windows");
 
+    /// Represents a [XNU kernel]-based system
+    /// (more commonly referred to as [Darwin] or [macOS])
+    /// [ARM Architecture processor][arm-arch].
+    ///
+    /// [XNU kernel]: https://en.wikipedia.org/wiki/XNU
+    /// [Darwin]: https://en.wikipedia.org/wiki/Darwin_(operating_system)
+    /// [macOS]: https://en.wikipedia.org/wiki/MacOS
+    /// [arm-arch]: https://en.wikipedia.org/wiki/ARM_architecture
+    ("aarch64-darwin", AARCH64_Darwin, AARCH64_DARWIN, "aarch64", "macos");
+
     /// **UNSUPPORTED TARGET** Represents a [Linux kernel]-based system running on an
     /// [ARM Architecture processor][arm-arch].
     ///
