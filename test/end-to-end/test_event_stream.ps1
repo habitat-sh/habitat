@@ -5,7 +5,7 @@ $natsPkg = "$(Get-EndToEndTestingOrigin)/nats-event-stream-test"
 $authToken = "my_token="
 
 Describe "event stream connection to nats" {
-    $env:RUST_LOG = "rants=trace"
+    $env:RUST_LOG = "nats=trace"
 
     It "fails to start with no NATS server and --event-stream-connect-timeout set" {
         {
@@ -40,7 +40,7 @@ Describe "event stream connection to nats" {
 
         # Check that the output contains a connect message and that the server received a health check message
         $out = (Get-Content $supLog) -join "`r`n"
-        $out | Should -BeLike "*INFO rants] Transitioned to state 'Connecting(127.0.0.1:4222)' from 'Connecting(127.0.0.1:4222)'*"
+        $out | Should -BeLike "*Client connection created*"
         $out | Should -BeLike "*NATS server is healthy*"
     }
 
