@@ -137,7 +137,7 @@ Describe "hab svc update" {
         Load-SupervisorService $nginx_pkg -Force -Strategy "at-once" -Channel $testChannelOne
         Start-Sleep 10
 
-        $proc = Get-Process "nginx"
+        $proc = Get-Process "nginx*"
 
         It "reflects channel in spec file" {
             '/hab/sup/default/specs/nginx.spec' | Should -FileContentMatchExactly "channel = `"$testChannelOne`""
@@ -164,7 +164,7 @@ Describe "hab svc update" {
         }
 
         It "does not restart the service process" {
-            $currentProc = Get-Process "nginx"
+            $currentProc = Get-Process "nginx*"
             $proc.Id | Should -Be $currentProc.Id
         }
     }
