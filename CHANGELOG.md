@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.410 -->
-## [1.6.410](https://github.com/habitat-sh/habitat/tree/1.6.410) (2021-10-26)
+<!-- latest_release 1.6.411 -->
+## [1.6.411](https://github.com/habitat-sh/habitat/tree/1.6.411) (2021-10-26)
 
 #### Merged Pull Requests
-- Bump widestring from 0.5.0 to 0.5.1 [#8339](https://github.com/habitat-sh/habitat/pull/8339) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- update e2e test to fix text mismatch [#8341](https://github.com/habitat-sh/habitat/pull/8341) ([pozsgaic](https://github.com/pozsgaic))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.400 -->
 ### Changes since 1.6.400 release
 
 #### Merged Pull Requests
+- update e2e test to fix text mismatch [#8341](https://github.com/habitat-sh/habitat/pull/8341) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.411 -->
 - Bump widestring from 0.5.0 to 0.5.1 [#8339](https://github.com/habitat-sh/habitat/pull/8339) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.410 -->
 - Enabling macos M1 hab cli build [#8334](https://github.com/habitat-sh/habitat/pull/8334) ([mwrock](https://github.com/mwrock)) <!-- 1.6.409 -->
 - Bump libc from 0.2.104 to 0.2.105 [#8340](https://github.com/habitat-sh/habitat/pull/8340) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.408 -->
