@@ -14,7 +14,7 @@ curlbash_hab() {
     # are the same. let's just delete it
     #
     # This command is potentially executed on different queues, under different users
-    # with varying levels of permissions.  Attempt to sudo-remove it first, for the linux-privileged
+    # with varying levels of permissions. Attempt to sudo-remove it first, for the linux-privileged
     # use case, and if that fails, try to remove it directly for the docker use case.
     if [ -d /hab/pkgs/core/hab/0.82.0 ]; then
       sudo rm -rf /hab/pkgs/core/hab/0.82.0 || \
