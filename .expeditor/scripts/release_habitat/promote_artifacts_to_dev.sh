@@ -56,7 +56,8 @@ manifest_input_file="manifest_input.txt"
 targets=("x86_64-linux"
          "x86_64-linux-kernel2"
          "x86_64-windows"
-         "x86_64-darwin")
+         "x86_64-darwin"
+         "aarch64-darwin")
 
 for pkg in "${packages_to_promote[@]}"; do
     for pkg_target in "${targets[@]}"; do
