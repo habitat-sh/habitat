@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.415 -->
-## [1.6.415](https://github.com/habitat-sh/habitat/tree/1.6.415) (2021-10-27)
+<!-- latest_release 1.6.416 -->
+## [1.6.416](https://github.com/habitat-sh/habitat/tree/1.6.416) (2021-10-28)
 
 #### Merged Pull Requests
-- whitespace change to force release [#8345](https://github.com/habitat-sh/habitat/pull/8345) ([mwrock](https://github.com/mwrock))
+- add aarch64-darwin (M1) to release pipeline and curlbash install [#8346](https://github.com/habitat-sh/habitat/pull/8346) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.400 -->
 ### Changes since 1.6.400 release
 
 #### Merged Pull Requests
+- add aarch64-darwin (M1) to release pipeline and curlbash install [#8346](https://github.com/habitat-sh/habitat/pull/8346) ([mwrock](https://github.com/mwrock)) <!-- 1.6.416 -->
 - whitespace change to force release [#8345](https://github.com/habitat-sh/habitat/pull/8345) ([mwrock](https://github.com/mwrock)) <!-- 1.6.415 -->
 - mac release root path should fall back to /hab [#8344](https://github.com/habitat-sh/habitat/pull/8344) ([mwrock](https://github.com/mwrock)) <!-- 1.6.414 -->
 - search for nginx* process in e2e [#8343](https://github.com/habitat-sh/habitat/pull/8343) ([mwrock](https://github.com/mwrock)) <!-- 1.6.413 -->
