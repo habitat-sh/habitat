@@ -14,9 +14,8 @@ source .expeditor/scripts/shared.sh
 source_environment="${EXPEDITOR_PROMOTABLE}"
 destination_channel="${EXPEDITOR_TARGET_CHANNEL}"
 
-# Just use the hab that's on the box
 declare -g hab_binary
-hab_binary="hab"
+curlbash_hab "x86_64-linux"
 
 export HAB_AUTH_TOKEN
 HAB_AUTH_TOKEN=$(hab_auth_token)
