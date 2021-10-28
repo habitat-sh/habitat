@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.417 -->
-## [1.6.417](https://github.com/habitat-sh/habitat/tree/1.6.417) (2021-10-28)
+<!-- latest_release 1.6.418 -->
+## [1.6.418](https://github.com/habitat-sh/habitat/tree/1.6.418) (2021-10-28)
 
 #### Merged Pull Requests
-- expeditor promotion needs an updated hab [#8349](https://github.com/habitat-sh/habitat/pull/8349) ([mwrock](https://github.com/mwrock))
+- updated 1.6.416 changelog [#8350](https://github.com/habitat-sh/habitat/pull/8350) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.416 -->
 ### Changes since 1.6.416 release
+
+#### Merged Pull Requests
+- updated 1.6.416 changelog [#8350](https://github.com/habitat-sh/habitat/pull/8350) ([mwrock](https://github.com/mwrock)) <!-- 1.6.418 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release 1.6.416 -->
