@@ -49,9 +49,9 @@ source results/last_build.env
 # This is a hack to rebuild the hart with corrected directory structure
 # changing the root from /tmp to /hab
 rm -f results/"$pkg_artifact"
-tar -cf temp.tar $HAB_ROOT_PATH/pkgs --transform="s,"${HAB_ROOT_PATH:1}",hab," --transform="s,tmp,hab,"
+tar -cf temp.tar "$HAB_ROOT_PATH"/pkgs --transform="s,""${HAB_ROOT_PATH:1}"",hab," --transform="s,tmp,hab,"
 xz --compress -6 --threads=0 temp.tar
-hab pkg sign --origin $HAB_ORIGIN temp.tar.xz results/"$pkg_artifact"
+hab pkg sign --origin "$HAB_ORIGIN" temp.tar.xz results/"$pkg_artifact"
 
 echo "--- :habicat: Uploading ${pkg_ident:?} to ${HAB_BLDR_URL} in the '${channel}' channel"
 ${hab_binary} pkg upload \
