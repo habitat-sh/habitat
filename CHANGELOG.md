@@ -7,11 +7,14 @@
 - expeditor promotion needs an updated hab [#8349](https://github.com/habitat-sh/habitat/pull/8349) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.400 -->
-### Changes since 1.6.400 release
+<!-- release_rollup since=1.6.416 -->
+### Changes since 1.6.416 release
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.416 -->
+## [1.6.416](https://github.com/habitat-sh/habitat/tree/1.6.416) (2021-10-28)
 
 #### Merged Pull Requests
-- expeditor promotion needs an updated hab [#8349](https://github.com/habitat-sh/habitat/pull/8349) ([mwrock](https://github.com/mwrock)) <!-- 1.6.417 -->
 - add aarch64-darwin (M1) to release pipeline and curlbash install [#8346](https://github.com/habitat-sh/habitat/pull/8346) ([mwrock](https://github.com/mwrock)) <!-- 1.6.416 -->
 - whitespace change to force release [#8345](https://github.com/habitat-sh/habitat/pull/8345) ([mwrock](https://github.com/mwrock)) <!-- 1.6.415 -->
 - mac release root path should fall back to /hab [#8344](https://github.com/habitat-sh/habitat/pull/8344) ([mwrock](https://github.com/mwrock)) <!-- 1.6.414 -->
@@ -29,9 +32,7 @@
 - Bump widestring from 0.4.3 to 0.5.0 [#8329](https://github.com/habitat-sh/habitat/pull/8329) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.403 -->
 - Rustfmt and Nightly Rust Bump to nightly-2021-10-12 [#8327](https://github.com/habitat-sh/habitat/pull/8327) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.402 -->
 - update changelog for 1.6.400 [#8328](https://github.com/habitat-sh/habitat/pull/8328) ([mwrock](https://github.com/mwrock)) <!-- 1.6.401 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release 1.6.400 -->
 ## [1.6.400](https://github.com/habitat-sh/habitat/tree/1.6.400) (2021-10-12)
 
 #### Merged Pull Requests
