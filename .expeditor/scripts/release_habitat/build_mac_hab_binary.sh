@@ -18,13 +18,23 @@ echo "--- Channel: $channel - bldr url: $HAB_BLDR_URL"
 macos_install_bootstrap_package
 
 declare -g hab_binary
-curlbash_hab "$BUILD_PKG_TARGET"
+curlbash_hab "x86_64-darwin"
 import_keys
 
 macos_use_cert_file_from_linux_cacerts_package
+
+# the macos 11 anka image does not allow us to create a /hab
+# directory so we mount off /tmp
+export HAB_ROOT_PATH
+HAB_ROOT_PATH=$(mktemp -d /tmp/fs-root-XXXXXX)
+
 macos_sync_cache_signing_keys
 
 install_rustup
+
+if [ "$BUILD_PKG_TARGET" == "aarch64-darwin" ]; then
+    rustup target add aarch64-apple-darwin
+fi
 
 # set the rust toolchain
 rust_toolchain="$(cat rust-toolchain)"
@@ -35,6 +45,13 @@ echo "--- :habicat: Building components/hab"
 
 HAB_BLDR_CHANNEL="${channel}" macos_build components/hab
 source results/last_build.env
+
+# This is a hack to rebuild the hart with corrected directory structure
+# changing the root from /tmp to /hab
+rm -f results/"$pkg_artifact"
+tar -cf temp.tar "$HAB_ROOT_PATH"/pkgs --transform="s,""${HAB_ROOT_PATH:1}"",hab," --transform="s,tmp,hab,"
+xz --compress -6 --threads=0 temp.tar
+hab pkg sign --origin "$HAB_ORIGIN" temp.tar.xz results/"$pkg_artifact"
 
 echo "--- :habicat: Uploading ${pkg_ident:?} to ${HAB_BLDR_URL} in the '${channel}' channel"
 ${hab_binary} pkg upload \
