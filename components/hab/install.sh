@@ -112,6 +112,7 @@ get_platform() {
     Darwin|Linux)
       sys="$(uname -s | tr '[:upper:]' '[:lower:]')"
       arch="$(uname -m | tr '[:upper:]' '[:lower:]')"
+      arch=${arch/arm64/aarch64}
       ;;
     *)
       exit_with "Unrecognized OS type when determining platform: ${_ostype}" 2
