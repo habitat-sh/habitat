@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.420 -->
-## [1.6.420](https://github.com/habitat-sh/habitat/tree/1.6.420) (2021-11-01)
+<!-- latest_release 1.6.421 -->
+## [1.6.421](https://github.com/habitat-sh/habitat/tree/1.6.421) (2021-11-01)
 
 #### Merged Pull Requests
-- Revert &quot;replace rants dependency with nats.io crate&quot; [#8353](https://github.com/habitat-sh/habitat/pull/8353) ([mwrock](https://github.com/mwrock))
+- updating changelog for 1.6.420 [#8356](https://github.com/habitat-sh/habitat/pull/8356) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
+
+#### Merged Pull Requests
+- updating changelog for 1.6.420 [#8356](https://github.com/habitat-sh/habitat/pull/8356) ([mwrock](https://github.com/mwrock)) <!-- 1.6.421 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release 1.6.420 -->
