@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.421 -->
-## [1.6.421](https://github.com/habitat-sh/habitat/tree/1.6.421) (2021-11-01)
+<!-- latest_release 1.6.422 -->
+## [1.6.422](https://github.com/habitat-sh/habitat/tree/1.6.422) (2021-11-01)
 
 #### Merged Pull Requests
-- updating changelog for 1.6.420 [#8356](https://github.com/habitat-sh/habitat/pull/8356) ([mwrock](https://github.com/mwrock))
+- Bump libc from 0.2.105 to 0.2.106 [#8352](https://github.com/habitat-sh/habitat/pull/8352) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.105 to 0.2.106 [#8352](https://github.com/habitat-sh/habitat/pull/8352) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.422 -->
+- revert rants e2e test change [#8355](https://github.com/habitat-sh/habitat/pull/8355) ([mwrock](https://github.com/mwrock)) <!-- 1.6.422 -->
+- Rustfmt and Nightly Rust Bump to nightly-2021-11-01 [#8354](https://github.com/habitat-sh/habitat/pull/8354) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.422 -->
 - updating changelog for 1.6.420 [#8356](https://github.com/habitat-sh/habitat/pull/8356) ([mwrock](https://github.com/mwrock)) <!-- 1.6.421 -->
 <!-- release_rollup -->
 
