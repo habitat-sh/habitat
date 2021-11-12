@@ -42,7 +42,6 @@ use structopt::{clap::AppSettings,
 
 const NATS_DEFAULT_PORT: u16 = 4222;
 
-
 // All commands relating to the Supervisor (ie commands handled by both the `hab` and `hab-sup`
 // binary)
 #[derive(ConfigOpt, StructOpt)]
@@ -362,7 +361,7 @@ mod tests {
                 println!("{}", e);
                 false
             }
-        };  
+        };
         assert_eq!(event_stream_url_ok, true);
         println!("passed for {}", &easy_url);
 
@@ -373,7 +372,7 @@ mod tests {
                 println!("{}", e);
                 false
             }
-        };  
+        };
         assert_eq!(event_stream_url_ok, true);
 
         let url_with_bad_port: &str = "127.0.0.1:abcdefg";
@@ -383,7 +382,7 @@ mod tests {
                 println!("{}", e);
                 false
             }
-        };  
+        };
         assert_eq!(event_stream_url_ok, false);
 
         let url_with_bad_port_num: &str = "127.0.0.1:99999";
@@ -393,7 +392,7 @@ mod tests {
                 println!("{}", e);
                 false
             }
-        };  
+        };
         assert_eq!(event_stream_url_ok, false);
 
         let url_with_localhost_name = format!("localhost:4222");
@@ -403,18 +402,18 @@ mod tests {
                 println!("Caught error {}", e);
                 false
             }
-        };  
+        };
         assert_eq!(event_stream_url_ok, true);
 
-        let url_with_unknown_hostname = format!("ec2-255-255-255-255.us-west-2.compute.amazonaws.com:4222");
+        let url_with_unknown_hostname = 
+            format!("ec2-255-255-255-255.us-west-2.compute.amazonaws.com:4222");
         let event_stream_url_ok = match url_with_unknown_hostname.parse::<EventStreamAddress>() {
             Ok(_url) => true,
             Err(e) => {
                 println!("{}", e);
                 false
             }
-        };  
+        };
         assert_eq!(event_stream_url_ok, false);
-
-    }   
+    }
 }
