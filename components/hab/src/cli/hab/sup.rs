@@ -32,15 +32,16 @@ use habitat_core::{env::Config,
                    fs::HAB_CTL_KEYS_CACHE,
                    package::PackageIdent,
                    util as core_util};
-
 use std::{fmt,
-          net::{AddrParseError,
-                IpAddr,
+          net::{IpAddr,
                 SocketAddr},
           path::PathBuf,
           str::FromStr};
 use structopt::{clap::AppSettings,
                 StructOpt};
+
+const NATS_DEFAULT_PORT: u16 = 4222;
+
 
 // All commands relating to the Supervisor (ie commands handled by both the `hab` and `hab-sup`
 // binary)
@@ -118,9 +119,11 @@ impl fmt::Display for EventStreamAddress {
 }
 
 impl FromStr for EventStreamAddress {
-    type Err = AddrParseError;
+    type Err = Error;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(EventStreamAddress(s.parse()?)) }
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(EventStreamAddress(habitat_common::util::resolve_socket_addr_with_default_port(s, NATS_DEFAULT_PORT)?.1))
+    }
 }
 
 impl From<EventStreamAddress> for SocketAddr {
@@ -343,4 +346,165 @@ pub enum Secret {
         #[structopt(long = "path", default_value = HAB_CTL_KEYS_CACHE)]
         path:                     PathBuf,
     },
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::cli::hab::sup::EventStreamAddress;
+
+    #[tokio::test]
+    #[cfg(any(unix, windows))]
+    async fn nats_url_tests() {
+        let easy_url: &str = "127.0.0.1:4222";
+        assert_eq!(0, 0); 
+        let event_stream_url_ok = match easy_url.parse::<EventStreamAddress>() {
+            Ok(_url) => true,
+            Err(e)  => {
+                println!("{}", e);
+                false
+            }
+        };  
+        assert_eq!(event_stream_url_ok, true);
+        println!("passed for {}", &easy_url);
+
+        let simple_url: &str = "127.0.0.1";
+        let event_stream_url_ok = match simple_url.parse::<EventStreamAddress>() {
+            Ok(_url) => true,
+            Err(e)  => {
+                println!("{}", e);
+                false
+            }
+        };  
+        assert_eq!(event_stream_url_ok, true);
+
+        let easy_url_with_correct_protocol: &str = "nats://127.0.0.1:4222";
+        let event_stream_url_ok = match easy_url_with_correct_protocol.parse::<EventStreamAddress>() {
+            Ok(_url) => true,
+            Err(e)  => {
+                println!("{}", e);
+                false
+            }
+        };  
+        assert_eq!(event_stream_url_ok, true);
+
+        let easy_url_with_no_port: &str = "nats://127.0.0.1";
+        let event_stream_url_ok = match easy_url_with_no_port.parse::<EventStreamAddress>() {
+            Ok(_url) => true,
+            Err(e)  => {
+                println!("{}", e);
+                false
+            }
+        };  
+        assert_eq!(event_stream_url_ok, true);
+
+        let easy_url_with_bad_domain_port: &str = "nats://127.0.0.1:4222:4222";
+        let event_stream_url_ok = match easy_url_with_bad_domain_port.parse::<EventStreamAddress>() {
+            Ok(_url) => true,
+            Err(e)  => {
+                println!("{}", e);
+                false
+            }
+        };  
+        assert_eq!(event_stream_url_ok, false);
+
+        let easy_url_with_incorrect_protocol: &str = "rats://127.0.0.1:4222";
+        let event_stream_url_ok = match easy_url_with_incorrect_protocol.parse::<EventStreamAddress>() {
+            Ok(_url) => true,
+            Err(e)  => {
+                println!("{}", e);
+                false
+            }
+        };  
+        assert_eq!(event_stream_url_ok, false);
+
+        let url_with_bad_port: &str = "nats://127.0.0.1:abcdefg";
+        let event_stream_url_ok = match url_with_bad_port.parse::<EventStreamAddress>() {
+            Ok(_url) => true,
+            Err(e)  => {
+                println!("{}", e);
+                false
+            }
+        };  
+        assert_eq!(event_stream_url_ok, false);
+
+        let url_with_bad_port_num: &str = "nats://127.0.0.1:99999";
+        let event_stream_url_ok = match url_with_bad_port_num.parse::<EventStreamAddress>() {
+            Ok(_url) => true,
+            Err(e)  => {
+                println!("{}", e);
+                false
+            }
+        };  
+        assert_eq!(event_stream_url_ok, false);
+
+        let url_with_localhost_name = format!("nats://localhost:4222");
+        let event_stream_url_ok = match url_with_localhost_name.parse::<EventStreamAddress>() {
+            Ok(_url) => true,
+            Err(e)  => {
+                println!("Caught error {}", e);
+                false
+            }
+        };  
+        assert_eq!(event_stream_url_ok, true);
+
+        let url_with_valid_hostname = format!("ec2-255-255-255-255.us-west-2.compute.amazonaws.com:4222");
+        let event_stream_url_ok = match url_with_valid_hostname.parse::<EventStreamAddress>() {
+            Ok(_url) => true,
+            Err(e)  => {
+                println!("{}", e);
+                false
+            }
+        };  
+        assert_eq!(event_stream_url_ok, false);
+
+        let url_with_valid_token = format!("nats://MYTOKEN@localhost:4222");
+        let event_stream_url_ok = match url_with_valid_token.parse::<EventStreamAddress>() {
+            Ok(_url) => true,
+            Err(e)  => {
+                println!("{}", e);
+                false
+            }
+        };  
+        assert_eq!(event_stream_url_ok, true);
+
+        let url_with_invalid_token = format!("nats://@localhost:4222");
+        let event_stream_url_ok = match url_with_invalid_token.parse::<EventStreamAddress>() {
+            Ok(_url) => true,
+            Err(e)  => {
+                println!("{}", e);
+                false
+            }
+        };  
+        assert_eq!(event_stream_url_ok, false);
+
+        let url_with_valid_user_password = format!("nats://user:password@localhost:4222");
+        let event_stream_url_ok = match url_with_valid_user_password.parse::<EventStreamAddress>() {
+            Ok(_url) => true,
+            Err(e)  => {
+                println!("{}", e);
+                false
+            }
+        };  
+        assert_eq!(event_stream_url_ok, true);
+
+        let url_with_invalid_password = format!("nats://user:@localhost:4222");
+        let event_stream_url_ok = match url_with_invalid_password.parse::<EventStreamAddress>() {
+            Ok(_url) => true,
+            Err(e)  => {
+                println!("{}", e);
+                false
+            }
+        };  
+        assert_eq!(event_stream_url_ok, false);
+
+        let url_with_invalid_password = format!("nats://:password@localhost:4222");
+        let event_stream_url_ok = match url_with_invalid_password.parse::<EventStreamAddress>() {
+            Ok(_url) => true,
+            Err(e)  => {
+                println!("{}", e);
+                false
+            }
+        };  
+        assert_eq!(event_stream_url_ok, false);
+    }   
 }
