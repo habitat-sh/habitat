@@ -405,7 +405,7 @@ mod tests {
         };
         assert_eq!(event_stream_url_ok, true);
 
-        let url_with_unknown_hostname = 
+        let url_with_unknown_hostname =
             format!("ec2-255-255-255-255.us-west-2.compute.amazonaws.com:4222");
         let event_stream_url_ok = match url_with_unknown_hostname.parse::<EventStreamAddress>() {
             Ok(_url) => true,
