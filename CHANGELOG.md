@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.423 -->
-## [1.6.423](https://github.com/habitat-sh/habitat/tree/1.6.423) (2021-11-02)
+<!-- latest_release 1.6.424 -->
+## [1.6.424](https://github.com/habitat-sh/habitat/tree/1.6.424) (2021-11-19)
 
 #### Merged Pull Requests
-- use macos 10.15 when verifying the install [#8357](https://github.com/habitat-sh/habitat/pull/8357) ([mwrock](https://github.com/mwrock))
+- Bump serde_json from 1.0.69 to 1.0.71 [#8369](https://github.com/habitat-sh/habitat/pull/8369) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.69 to 1.0.71 [#8369](https://github.com/habitat-sh/habitat/pull/8369) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.424 -->
 - use macos 10.15 when verifying the install [#8357](https://github.com/habitat-sh/habitat/pull/8357) ([mwrock](https://github.com/mwrock)) <!-- 1.6.423 -->
 - Bump libc from 0.2.105 to 0.2.106 [#8352](https://github.com/habitat-sh/habitat/pull/8352) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.422 -->
 - revert rants e2e test change [#8355](https://github.com/habitat-sh/habitat/pull/8355) ([mwrock](https://github.com/mwrock)) <!-- 1.6.422 -->
