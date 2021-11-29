@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.428 -->
-## [1.6.428](https://github.com/habitat-sh/habitat/tree/1.6.428) (2021-11-23)
+<!-- latest_release 1.6.429 -->
+## [1.6.429](https://github.com/habitat-sh/habitat/tree/1.6.429) (2021-11-29)
 
 #### Merged Pull Requests
-- Bump futures from 0.3.17 to 0.3.18 [#8375](https://github.com/habitat-sh/habitat/pull/8375) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_json from 1.0.71 to 1.0.72 [#8379](https://github.com/habitat-sh/habitat/pull/8379) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.71 to 1.0.72 [#8379](https://github.com/habitat-sh/habitat/pull/8379) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.429 -->
 - Bump futures from 0.3.17 to 0.3.18 [#8375](https://github.com/habitat-sh/habitat/pull/8375) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.428 -->
 - Docs Labeler [#8372](https://github.com/habitat-sh/habitat/pull/8372) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.427 -->
 - Bump blake2b_simd from 0.5.11 to 1.0.0 [#8374](https://github.com/habitat-sh/habitat/pull/8374) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.426 -->
