@@ -17,7 +17,7 @@ base64 = "*"
 bitflags = "*"
 chrono = {version = "*", features = ["serde"]}
 clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
-configopt = { git = "https://github.com/davidMcneil/configopt.git" }
+configopt = { git = "https://github.com/habitat-sh/configopt.git" }
 ctrlc = "*"
 dirs = "*"
 env_logger = "*"

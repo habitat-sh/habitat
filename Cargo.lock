@@ -502,7 +502,7 @@ checksum = "370c83b49aedf022ee27942e8ae1d9de1cf40dc9653ee6550e4455d08f6406f9"
 [[package]]
 name = "configopt"
 version = "0.1.0"
-source = "git+https://github.com/davidMcneil/configopt.git#8f08f3ec6a6a5c12fbd1e3cdbcaf8db7139bba48"
+source = "git+https://github.com/habitat-sh/configopt.git#37990579c24c35b18e0e6dadd4f01ab021df7616"
 dependencies = [
  "colosseum",
  "configopt-derive",
@@ -515,7 +515,7 @@ dependencies = [
 [[package]]
 name = "configopt-derive"
 version = "0.1.0"
-source = "git+https://github.com/davidMcneil/configopt.git#8f08f3ec6a6a5c12fbd1e3cdbcaf8db7139bba48"
+source = "git+https://github.com/habitat-sh/configopt.git#37990579c24c35b18e0e6dadd4f01ab021df7616"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -3370,9 +3370,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.71"
+version = "1.0.72"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "063bf466a64011ac24040a49009724ee60a57da1b437617ceb32e53ad61bfb19"
+checksum = "d0ffa0837f2dfa6fb90868c2b5468cad482e175f7dad97e7421951e663f2b527"
 dependencies = [
  "indexmap",
  "itoa",
