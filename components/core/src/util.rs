@@ -8,11 +8,14 @@ pub mod text_render;
 pub mod win_perm;
 
 #[cfg(windows)]
-use crate::{error::Result,
+use crate::{env as henv,
+            error::Result,
             os::process::windows_child::Child};
 
 #[cfg(windows)]
-use std::collections::HashMap;
+use std::{collections::HashMap,
+          env,
+          path::PathBuf};
 
 use std::{io::{self,
                BufRead},
@@ -127,11 +130,55 @@ pub fn spawn_pwsh<U, P>(command: &str,
     new_env.insert("POWERSHELL_TELEMETRY_OPTOUT".to_string(), "1".to_string());
     new_env.extend(env.iter().map(|(k, v)| (k.clone(), v.clone())));
 
+    with_ps_module_path(&mut new_env);
+
     Child::spawn("pwsh.exe",
                  &args,
                  &new_env,
                  svc_user,
                  svc_encrypted_password)
+}
+
+/// Makes sure the modules path inside the same package as pwsh.exe
+/// is at the head of PSModulePath to eliminate the possibility that
+/// the windows powershell modues might appear first and be preferred
+#[cfg(windows)]
+fn with_ps_module_path(env: &mut HashMap<String, String>) {
+    if let Some(path) = env.get("PATH") {
+        let mut pwsh_path = None;
+        for path in env::split_paths(&path) {
+            let candidate = PathBuf::from(&path).join("pwsh.exe");
+            if candidate.is_file() {
+                pwsh_path = Some(candidate);
+                break;
+            }
+        }
+
+        if let Some(pwsh_path) = pwsh_path {
+            if let Some(pwsh_parent) = pwsh_path.parent() {
+                let psmodulepath = pwsh_parent.join("Modules");
+                let mut new_psmodulepath = psmodulepath.clone().into_os_string();
+                let path_to_inherit = if let Some(path) = env.remove("PSModulePath") {
+                    Some(path)
+                } else {
+                    henv::var_os("PSModulePath").map(|path| path.to_string_lossy().to_string())
+                };
+
+                if let Some(path) = path_to_inherit {
+                    let mut paths = vec![psmodulepath.clone()];
+                    for entry in env::split_paths(&path) {
+                        if entry != psmodulepath {
+                            paths.push(entry);
+                        }
+                    }
+                    new_psmodulepath = env::join_paths(paths).unwrap();
+                }
+
+                env.insert("PSModulePath".to_string(),
+                           new_psmodulepath.to_string_lossy().to_string());
+            }
+        }
+    }
 }
 
 // This is copied from [here](https://github.com/rust-lang/rust/blob/d3cba254e464303a6495942f3a831c2bbd7f1768/src/libstd/io/mod.rs#L2495),
@@ -224,7 +271,14 @@ impl ToI64 for u64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(windows)]
+    use std::fs::File;
     use std::io::BufReader;
+    #[cfg(windows)]
+    use tempfile::tempdir;
+
+    #[cfg(windows)]
+    crate::locked_env_var!(PSMODULEPATH, lock_psmodulepath);
 
     #[test]
     fn conversion_of_usize_to_i64() {
@@ -296,5 +350,97 @@ mod tests {
         assert_eq!(str_vec[0], "line 1");
         assert_eq!(str_vec[1], "line � 2");
         assert_eq!(str_vec[2], "line 3");
+    }
+
+    #[test]
+    #[cfg(windows)]
+    fn ps_module_path_will_use_first_ps_path_on_path() {
+        let l = lock_psmodulepath();
+        l.unset();
+        let mut env = HashMap::new();
+        let ps_temp = tempdir().expect("couldn't create tempdir");
+        let ps_temp2 = tempdir().expect("couldn't create tempdir2");
+        let ps_path = ps_temp.path();
+        File::create(ps_path.join("pwsh.exe")).expect("couldn't create pwsh");
+        File::create(ps_temp2.path().join("pwsh.exe")).expect("couldn't create pwsh");
+        env.insert("PATH".to_string(),
+                   format!("{};{}",
+                           ps_path.to_string_lossy(),
+                           ps_temp2.path().to_string_lossy()));
+
+        with_ps_module_path(&mut env);
+
+        assert_eq!(env["PSModulePath"],
+                   ps_path.join("Modules").to_string_lossy())
+    }
+
+    #[test]
+    #[cfg(windows)]
+    fn ps_module_path_with_none_already_in_env() {
+        let l = lock_psmodulepath();
+        l.unset();
+        let mut env = HashMap::new();
+        let ps_temp = tempdir().expect("couldn't create tempdir");
+        let ps_path = ps_temp.path();
+        File::create(ps_path.join("pwsh.exe")).expect("couldn't create pwsh");
+        env.insert("PATH".to_string(), ps_path.to_string_lossy().to_string());
+
+        with_ps_module_path(&mut env);
+
+        assert_eq!(env["PSModulePath"],
+                   ps_path.join("Modules").to_string_lossy())
+    }
+
+    #[test]
+    #[cfg(windows)]
+    fn ps_module_path_with_none_in_env_will_append_and_dedupe_from_current_process() {
+        let mut env = HashMap::new();
+        let ps_temp = tempdir().expect("couldn't create tempdir");
+        let ps_path = ps_temp.path();
+        let ps_str = ps_path.to_string_lossy();
+        File::create(ps_path.join("pwsh.exe")).expect("couldn't create pwsh");
+        env.insert("PATH".to_string(), ps_str.to_string());
+        let l = lock_psmodulepath();
+        l.set(format!("path1;{}\\Modules;path2", ps_str));
+
+        with_ps_module_path(&mut env);
+
+        assert_eq!(env["PSModulePath"],
+                   format!("{}\\Modules;path1;path2", ps_str))
+    }
+
+    #[test]
+    #[cfg(windows)]
+    fn ps_module_path_already_in_env_is_appended() {
+        let mut env = HashMap::new();
+        env.insert("PSModulePath".to_string(), "provided_path".to_string());
+        let ps_temp = tempdir().expect("couldn't create tempdir");
+        let ps_path = ps_temp.path();
+        let ps_str = ps_path.to_string_lossy();
+        File::create(ps_path.join("pwsh.exe")).expect("couldn't create pwsh");
+        env.insert("PATH".to_string(), ps_str.to_string());
+
+        with_ps_module_path(&mut env);
+
+        assert_eq!(env["PSModulePath"],
+                   format!("{}\\Modules;provided_path", ps_str))
+    }
+
+    #[test]
+    #[cfg(windows)]
+    fn ps_module_path_already_in_env_is_appended_and_deduped() {
+        let mut env = HashMap::new();
+        let ps_temp = tempdir().expect("couldn't create tempdir");
+        let ps_path = ps_temp.path();
+        let ps_str = ps_path.to_string_lossy();
+        env.insert("PSModulePath".to_string(),
+                   format!("provided_path1;{}\\Modules;provided_path2", ps_str));
+        File::create(ps_path.join("pwsh.exe")).expect("couldn't create pwsh");
+        env.insert("PATH".to_string(), ps_str.to_string());
+
+        with_ps_module_path(&mut env);
+
+        assert_eq!(env["PSModulePath"],
+                   format!("{}\\Modules;provided_path1;provided_path2", ps_str))
     }
 }
