@@ -986,7 +986,7 @@ steps:
     expeditor:
       executor:
         macos:
-          os-version: "10.14"
+          os-version: "10.15"
           inherit-environment-vars: true
     timeout_in_minutes: 60
     retry:
