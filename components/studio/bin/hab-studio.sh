@@ -396,10 +396,15 @@ new_studio() {
 
   # Mount filesystems
 
+  # shellcheck disable=2086
   $bb mkdir -p $v "$HAB_STUDIO_ROOT"/dev
+  # shellcheck disable=2086
   $bb mkdir -p $v "$HAB_STUDIO_ROOT"/proc
+  # shellcheck disable=2086
   $bb mkdir -p $v "$HAB_STUDIO_ROOT"/sys
+  # shellcheck disable=2086
   $bb mkdir -p $v "$HAB_STUDIO_ROOT"/run
+  # shellcheck disable=2086
   $bb mkdir -p $v "$HAB_STUDIO_ROOT"/var/run
 
   # Unless `$NO_MOUNT` is set, mount filesystems such as `/dev`, `/proc`, and
@@ -408,36 +413,45 @@ new_studio() {
   if [ -z "${NO_MOUNT}" ]; then
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev type"; then
       if [ -z "${KRANGSCHNAK+x}" ]; then
+        # shellcheck disable=2086
         $bb mount $v --bind /dev "$HAB_STUDIO_ROOT"/dev
       else
+        # shellcheck disable=2086
         $bb mount $v --rbind /dev "$HAB_STUDIO_ROOT"/dev
       fi
     fi
 
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev/pts type"; then
+      # shellcheck disable=2086
       $bb mount $v -t devpts devpts "$HAB_STUDIO_ROOT"/dev/pts -o gid=5,mode=620
     fi
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/proc type"; then
+      # shellcheck disable=2086
       $bb mount $v -t proc proc "$HAB_STUDIO_ROOT"/proc
     fi
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/sys type"; then
       if [ -z "${KRANGSCHNAK+x}" ]; then
+        # shellcheck disable=2086
         $bb mount $v -t sysfs sysfs "$HAB_STUDIO_ROOT"/sys
       else
+        # shellcheck disable=2086
         $bb mount $v --rbind /sys "$HAB_STUDIO_ROOT"/sys
       fi
     fi
     if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/run type"; then
+      # shellcheck disable=2086
       $bb mount $v -t tmpfs tmpfs "$HAB_STUDIO_ROOT"/run
     fi
     if [ -e /var/run/docker.sock ]; then
       if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/var/run/docker.sock type"; then
         $bb touch "$HAB_STUDIO_ROOT"/var/run/docker.sock
+        # shellcheck disable=2086
         $bb mount $v --bind /var/run/docker.sock "$HAB_STUDIO_ROOT"/var/run/docker.sock
       fi
     fi
 
     if [ -h "$HAB_STUDIO_ROOT/dev/shm" ]; then
+      # shellcheck disable=2086
       $bb mkdir -p $v "$HAB_STUDIO_ROOT/$($bb readlink "$HAB_STUDIO_ROOT"/dev/shm)"
     fi
 
@@ -446,8 +460,11 @@ new_studio() {
     if [ -z "${NO_ARTIFACT_PATH}" ]; then
       studio_artifact_path="${HAB_STUDIO_ROOT}${HAB_CACHE_ARTIFACT_PATH}"
       if ! $bb mount | $bb grep -q "on $studio_artifact_path type"; then
+        # shellcheck disable=2086
         $bb mkdir -p $v "$ARTIFACT_PATH"
+        # shellcheck disable=2086
         $bb mkdir -p $v "$studio_artifact_path"
+        # shellcheck disable=2086
         $bb mount $v --bind "$ARTIFACT_PATH" "$studio_artifact_path"
       fi
     fi
@@ -457,8 +474,11 @@ new_studio() {
     if [ -z "${NO_CERT_PATH}" ]; then
       studio_cert_path="${HAB_STUDIO_ROOT}${HAB_CACHE_CERT_PATH}"
       if ! $bb mount | $bb grep -q "on $studio_cert_path type"; then
+        # shellcheck disable=2086
         $bb mkdir -p $v "$CERT_PATH"
+        # shellcheck disable=2086
         $bb mkdir -p $v "$studio_cert_path"
+        # shellcheck disable=2086
         $bb mount $v --bind "$CERT_PATH" "$studio_cert_path"
       fi
     fi
@@ -467,41 +487,55 @@ new_studio() {
   # Create root filesystem
 
   for top_level_dir in bin etc home lib mnt opt sbin var; do
+    # shellcheck disable=2086
     $bb mkdir -p $v "$HAB_STUDIO_ROOT/$top_level_dir"
   done
 
+  # shellcheck disable=2086
   $bb install -d $v -m 0750 "$HAB_STUDIO_ROOT/root"
+  # shellcheck disable=2086
   $bb install -d $v -m 1777 "$HAB_STUDIO_ROOT/tmp" "$HAB_STUDIO_ROOT/var/tmp"
 
   for usr_dir in bin include lib libexec sbin; do
+    # shellcheck disable=2086
     $bb mkdir -p $v "$HAB_STUDIO_ROOT/usr/$usr_dir"
   done
 
   for usr_share_dir in doc info locale man misc terminfo zoneinfo; do
+    # shellcheck disable=2086
     $bb mkdir -p $v "$HAB_STUDIO_ROOT/usr/share/$usr_share_dir"
   done
 
   for usr_share_man_dir_num in 1 2 3 4 5 6 7 8; do
+    # shellcheck disable=2086
     $bb mkdir -p $v "$HAB_STUDIO_ROOT/usr/share/man/man$usr_share_man_dir_num"
   done
   # If the system is 64-bit, a few symlinks will be required
   case $($bb uname -m) in
   x86_64)
+    # shellcheck disable=2086
     $bb ln -sf $v lib "$HAB_STUDIO_ROOT/lib64"
+    # shellcheck disable=2086
     $bb ln -sf $v lib "$HAB_STUDIO_ROOT/usr/lib64"
     ;;
   esac
 
   for var_dir in log mail spool opt cache local; do
+    # shellcheck disable=2086
     $bb mkdir -p $v "$HAB_STUDIO_ROOT/var/$var_dir"
   done
 
+  # shellcheck disable=2086
   $bb ln -sf $v /run/lock "$HAB_STUDIO_ROOT/var/lock"
 
+  # shellcheck disable=2086
   $bb mkdir -p $v "$HAB_STUDIO_ROOT/var/lib/color"
+  # shellcheck disable=2086
   $bb mkdir -p $v "$HAB_STUDIO_ROOT/var/lib/misc"
+  # shellcheck disable=2086
   $bb mkdir -p $v "$HAB_STUDIO_ROOT/var/lib/locate"
 
+  # shellcheck disable=2086
   $bb ln -sf $v /proc/self/mounts "$HAB_STUDIO_ROOT/etc/mtab"
 
   # Load the appropriate type strategy to complete the setup
@@ -538,6 +572,7 @@ new_studio() {
   copy_minimal_default_file "/etc/nsswitch.conf"
   for f in /etc/hosts /etc/resolv.conf; do
     # Note: These files are copied **from the host**
+    # shellcheck disable=2086
     $bb cp $v $f "$HAB_STUDIO_ROOT$f"
   done
 
@@ -574,11 +609,13 @@ EOF
 
     fi
 
+    # shellcheck disable=2086
     $bb mkdir -p $v "$HAB_STUDIO_ROOT/src"
     # Mount the `$SRC_PATH` under `/src` in the Studio, unless either `$NO_MOUNT`
     # or `$NO_SRC_PATH` are set
     if [ -z "${NO_MOUNT}" ] && [ -z "${NO_SRC_PATH}" ]; then
       if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/src type"; then
+        # shellcheck disable=2086
         $bb mount $v --bind "$SRC_PATH" "$HAB_STUDIO_ROOT/src"
       fi
     fi
@@ -679,6 +716,7 @@ the last command."
       "$ERR_REMAINING_MOUNTS"
   else
     # No remaining mounted filesystems, so remove remaining files and dirs
+    # shellcheck disable=2086
     $bb rm -rf $v "$HAB_STUDIO_ROOT"
   fi
 }
@@ -1064,28 +1102,38 @@ is_fs_mounted() {
 # convergent on success and fast fail on failures, this can be safely run
 # multiple times across differnt program invocations.
 unmount_filesystems() {
+  # shellcheck disable=2086
   umount_fs $v -l "$HAB_STUDIO_ROOT/src"
 
   studio_artifact_path="${HAB_STUDIO_ROOT}${HAB_CACHE_ARTIFACT_PATH}"
+  # shellcheck disable=2086
   umount_fs $v -l "$studio_artifact_path"
 
   studio_cert_path="${HAB_STUDIO_ROOT}${HAB_CACHE_CERT_PATH}"
+  # shellcheck disable=2086
   umount_fs $v -l "$studio_cert_path"
 
+  # shellcheck disable=2086
   umount_fs $v "$HAB_STUDIO_ROOT/run"
 
   if [ -z "${KRANGSCHNAK+x}" ]; then
+    # shellcheck disable=2086
     umount_fs $v "$HAB_STUDIO_ROOT/sys"
   else
+    # shellcheck disable=2086
     umount_fs $v -l "$HAB_STUDIO_ROOT/sys"
   fi
 
+  # shellcheck disable=2086
   umount_fs $v "$HAB_STUDIO_ROOT/proc"
 
+  # shellcheck disable=2086
   umount_fs $v "$HAB_STUDIO_ROOT/dev/pts"
 
+  # shellcheck disable=2086
   umount_fs $v -l "$HAB_STUDIO_ROOT/dev"
 
+  # shellcheck disable=2086
   umount_fs $v -l "$HAB_STUDIO_ROOT/var/run/docker.sock"
 }
 
@@ -1332,7 +1380,7 @@ studio_config="$HAB_STUDIO_ROOT/.studio"
 : "${NO_MOUNT:=}"
 # Whether or not more verbose output has been requested. An unset or empty
 # value means it is set to false and any other value is considered set or true.
-: ${VERBOSE:=}
+: "${VERBOSE:=}"
 set_v_flag
 # Whether or not less output has been requested. An unset or empty value means
 # it is set to false and any other value is considered set or true.

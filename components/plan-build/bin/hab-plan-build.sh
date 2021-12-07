@@ -2280,7 +2280,7 @@ _generate_artifact() {
   rm -fv "$tarf" "$xzf" "$pkg_artifact"
   $_tar_cmd -cf "$tarf" "$pkg_prefix"
   $_xz_cmd --compress -${HAB_HART_COMPRESSION_LEVEL} --threads=0 "$tarf"
-  $HAB_BIN pkg sign --origin $pkg_origin "$xzf" "$pkg_artifact"
+  $HAB_BIN pkg sign --origin "$pkg_origin" "$xzf" "$pkg_artifact"
   rm -f "$tarf" "$xzf"
 }
 
@@ -2558,7 +2558,7 @@ done
 # from prior pkg_svc_* variables that were set before the Plan was loaded.
 if [[ -n "${pkg_svc_run+xxx}" ]]; then
     # shellcheck disable=2001
-    pkg_svc_run="$(echo $pkg_svc_run | sed "s|@__pkg_name__@|$pkg_name|g")"
+    pkg_svc_run="$(echo "$pkg_svc_run" | sed "s|@__pkg_name__@|$pkg_name|g")"
 fi
 
 # Ensure that the version is set (or can be set!) properly
