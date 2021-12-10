@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.432 -->
-## [1.6.432](https://github.com/habitat-sh/habitat/tree/1.6.432) (2021-12-07)
+<!-- latest_release 1.6.433 -->
+## [1.6.433](https://github.com/habitat-sh/habitat/tree/1.6.433) (2021-12-10)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.108 to 0.2.109 [#8381](https://github.com/habitat-sh/habitat/pull/8381) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- ensure hook interpreter ps module path is always before windows ps module path [#8380](https://github.com/habitat-sh/habitat/pull/8380) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- ensure hook interpreter ps module path is always before windows ps module path [#8380](https://github.com/habitat-sh/habitat/pull/8380) ([mwrock](https://github.com/mwrock)) <!-- 1.6.433 -->
 - Bump libc from 0.2.108 to 0.2.109 [#8381](https://github.com/habitat-sh/habitat/pull/8381) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.432 -->
 - bump macos 10.14 to 10.15 [#8382](https://github.com/habitat-sh/habitat/pull/8382) ([mwrock](https://github.com/mwrock)) <!-- 1.6.431 -->
 - bump rust to 1.56.1 [#8378](https://github.com/habitat-sh/habitat/pull/8378) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.430 -->
