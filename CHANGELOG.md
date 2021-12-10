@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.434 -->
-## [1.6.434](https://github.com/habitat-sh/habitat/tree/1.6.434) (2021-12-10)
+<!-- latest_release 1.6.435 -->
+## [1.6.435](https://github.com/habitat-sh/habitat/tree/1.6.435) (2021-12-10)
 
 #### Merged Pull Requests
-- Bump serde_test from 1.0.130 to 1.0.131 [#8384](https://github.com/habitat-sh/habitat/pull/8384) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde from 1.0.130 to 1.0.131 [#8383](https://github.com/habitat-sh/habitat/pull/8383) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- Bump serde from 1.0.130 to 1.0.131 [#8383](https://github.com/habitat-sh/habitat/pull/8383) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.435 -->
 - Bump serde_test from 1.0.130 to 1.0.131 [#8384](https://github.com/habitat-sh/habitat/pull/8384) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.434 -->
 - ensure hook interpreter ps module path is always before windows ps module path [#8380](https://github.com/habitat-sh/habitat/pull/8380) ([mwrock](https://github.com/mwrock)) <!-- 1.6.433 -->
 - Bump libc from 0.2.108 to 0.2.109 [#8381](https://github.com/habitat-sh/habitat/pull/8381) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.432 -->
