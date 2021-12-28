@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.442 -->
-## [1.6.442](https://github.com/habitat-sh/habitat/tree/1.6.442) (2021-12-22)
+<!-- latest_release 1.6.443 -->
+## [1.6.443](https://github.com/habitat-sh/habitat/tree/1.6.443) (2021-12-28)
 
 #### Merged Pull Requests
-- Bump num_cpus from 1.13.0 to 1.13.1 [#8396](https://github.com/habitat-sh/habitat/pull/8396) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump pin-project from 1.0.8 to 1.0.9 [#8397](https://github.com/habitat-sh/habitat/pull/8397) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- Bump pin-project from 1.0.8 to 1.0.9 [#8397](https://github.com/habitat-sh/habitat/pull/8397) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.443 -->
 - Bump num_cpus from 1.13.0 to 1.13.1 [#8396](https://github.com/habitat-sh/habitat/pull/8396) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.442 -->
 - Bump futures from 0.3.18 to 0.3.19 [#8395](https://github.com/habitat-sh/habitat/pull/8395) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.441 -->
 - Bump serde from 1.0.131 to 1.0.132 [#8394](https://github.com/habitat-sh/habitat/pull/8394) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.440 -->
