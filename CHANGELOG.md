@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.444 -->
-## [1.6.444](https://github.com/habitat-sh/habitat/tree/1.6.444) (2021-12-28)
+<!-- latest_release 1.6.445 -->
+## [1.6.445](https://github.com/habitat-sh/habitat/tree/1.6.445) (2022-01-04)
 
 #### Merged Pull Requests
-- Bump hugo to 0.91.2 [#8398](https://github.com/habitat-sh/habitat/pull/8398) ([IanMadd](https://github.com/IanMadd))
+- Bump pem from 1.0.1 to 1.0.2 [#8404](https://github.com/habitat-sh/habitat/pull/8404) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- Bump pem from 1.0.1 to 1.0.2 [#8404](https://github.com/habitat-sh/habitat/pull/8404) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.445 -->
 - Bump hugo to 0.91.2 [#8398](https://github.com/habitat-sh/habitat/pull/8398) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.444 -->
 - Bump pin-project from 1.0.8 to 1.0.9 [#8397](https://github.com/habitat-sh/habitat/pull/8397) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.443 -->
 - Bump num_cpus from 1.13.0 to 1.13.1 [#8396](https://github.com/habitat-sh/habitat/pull/8396) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.442 -->
