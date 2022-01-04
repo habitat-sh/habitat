@@ -1396,7 +1396,7 @@ dependencies = [
  "num_cpus",
  "os_info",
  "paste 1.0.6",
- "pem 1.0.1",
+ "pem 1.0.2",
  "pin-project",
  "rand 0.8.4",
  "rcgen",
@@ -1434,7 +1434,7 @@ dependencies = [
  "httparse",
  "log 0.4.14",
  "native-tls",
- "pem 1.0.1",
+ "pem 1.0.2",
  "reqwest",
  "serde",
  "serde_json",
@@ -2494,13 +2494,11 @@ dependencies = [
 
 [[package]]
 name = "pem"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "06673860db84d02a63942fa69cd9543f2624a5df3aea7f33173048fa7ad5cf1a"
+checksum = "e9a3b09a20e374558580a4914d3b7d89bd61b954a5a5e1dcbea98753addb1947"
 dependencies = [
  "base64",
- "once_cell",
- "regex 1.5.4",
 ]
 
 [[package]]
