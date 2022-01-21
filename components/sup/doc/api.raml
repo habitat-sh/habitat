@@ -211,6 +211,13 @@ types:
             200:
                 body:
                     application/json:
+/metrics:
+    get:
+        description: metrics output
+        responses:
+            200:
+                body:
+                    text/plain:
 /services:
     get:
         description: List information of all loaded services
@@ -221,7 +228,7 @@ types:
                         type: service[]
             503:
                 description: Supervisor hasn't fully started. Try again later.
-    /{name}/{group}:
+    /{svc}/{group}:
         get:
             description: Show information of a single loaded service
             responses:
@@ -233,7 +240,7 @@ types:
                     description: Service not loaded
                 503:
                     description: Supervisor hasn't fully started. Try again later.
-    /{name}/{group}/config:
+    /{svc}/{group}/config:
         get:
             description: Get last configuration for the given service group
             responses:
@@ -245,7 +252,7 @@ types:
                     description: Service not loaded
                 503:
                     description: Supervisor hasn't fully started. Try again later.
-    /{name}/{group}/health:
+    /{svc}/{group}/health:
         get:
             description: Health check status and output for the given service group
             responses:
@@ -260,7 +267,7 @@ types:
                     description: Health Check - Unknown
                 503:
                     description: Health Check - Critical
-    /{name}/{group}/{organization}:
+    /{svc}/{group}/{org}:
         get:
             description: Show information of a single loaded service scoped to an organization
             responses:
@@ -272,7 +279,7 @@ types:
                     description: Service not loaded
                 503:
                     description: Supervisor hasn't fully started. Try again later.
-    /{name}/{group}/{organization}/config:
+    /{svc}/{group}/{org}/config:
         get:
             description: Get last configuration for the given service group
             responses:
@@ -284,7 +291,7 @@ types:
                     description: Service not loaded
                 503:
                     description: Temporarily couldn't load configuration
-    /{name}/{group}/{organization}/health:
+    /{svc}/{group}/{org}/health:
         get:
             description: Health check status and output for the given service group
             responses:
