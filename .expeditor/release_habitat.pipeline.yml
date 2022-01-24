@@ -410,6 +410,17 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
+  - label: "Update Habitat API Docs"
+    command:
+      - .expeditor/scripts/release_habitat/update_api_docs.sh
+    if: build.creator.name == 'Chef Expeditor'
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
   # It is VERY IMPORTANT that Docker container uploads ARE NOT active
   # in manually-triggered pipeline runs (at least, not without GREAT
   # CARE and knowledge of *exactly* what you are doing.)
