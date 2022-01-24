@@ -7,40 +7,39 @@ component=sup
 # shellcheck source=.expeditor/scripts/release_habitat/shared.sh
 source .expeditor/scripts/release_habitat/shared.sh
 
-#install_hub
+#  Check if hub is installed and install if not
+hub_check=$(which hub)
+if [ -z "$hub_check" ]; then
+  install_hub
+fi
 
 echo "--- :hammer_and_pick: Generating Habitat Supervisor API docs"
 
 # Check if node is installed and install if not
-node_version=`node -v`
-
+node_version=$(node -v)
 if [ -z "$node_version" ]; then
   sudo apt-get install -y nodejs
 fi
 
-webapi_installed=`npm ls webapi-parser`
-if [[ $? -eq 0 ]]; then
-  echo "webapi installed: $webapi_installed"
-else
+if [ -z "$(npm ls webapi-parser)" ]; then
   echo "webapi not installed"
   npm install webapi-parser@0.5.0
+else
+  echo "webapi installed"
 fi
 
-minimist_installed=`npm ls minimist`
-if [[ $? -eq 0 ]]; then
-  echo "minimist installed: $minimist_installed"
-else
+if [ -z "$(npm ls minimist)" ]; then
   echo "minimist not installed"
   npm install minimist@1.2.5
+else
+  echo "minimist installed"
 fi
 
 tempdir="$(mktemp --directory --tmpdir="$(pwd)" -t "docs-XXXX")"
 
-#  TESTING ONLY
 cd "${tempdir}"
 git clone "https://github.com/habitat-sh/habitat.git"
 cd ..
-#  END TESTING ONLY
 
 #  Generate the api docs file in this repository. 
 input_file=components/${component}/doc/api.raml
@@ -59,9 +58,7 @@ else
   echo "--- Habitat API docs generation is necessary"
 fi
 
-#  TESTING ONLY
 cd "${tempdir}/habitat"
-#  TESTING ONLY
 
 echo "Updating repo file ${repo_file}"
 cp "${output_file}" "${repo_file}"
@@ -79,4 +76,4 @@ echo "--- :github: Creating PR"
 hub pull-request --force --no-edit --draft --message "Update Habitat Supervisor API Docs - ${TIMESTAMP}"
 
 echo "Removing temp directory"
-#rm -rf "${tempdir}"
+rm -rf "${tempdir}"

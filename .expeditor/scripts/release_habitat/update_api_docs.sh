@@ -7,31 +7,32 @@ component=sup
 # shellcheck source=.expeditor/scripts/release_habitat/shared.sh
 source .expeditor/scripts/release_habitat/shared.sh
 
-#install_hub
-
 echo "--- :hammer_and_pick: Generating Habitat Supervisor API docs"
 
-# Check if node is installed and install if not
-node_version=`node -v`
+#  Check if hub is installed and install if not
+hub_check=$(which hub)
+if [ -z "$hub_check" ]; then
+  install_hub
+fi
 
+# Check if node is installed and install if not
+node_version=$(node -v)
 if [ -z "$node_version" ]; then
   sudo apt-get install -y nodejs
 fi
 
-webapi_installed=`npm ls webapi-parser`
-if [[ $? -eq 0 ]]; then
-  echo "webapi installed: $webapi_installed"
-else
+if [ -z "$(npm ls webapi-parser)" ]; then
   echo "webapi not installed"
   npm install webapi-parser@0.5.0
+else
+  echo "webapi installed"
 fi
 
-minimist_installed=`npm ls minimist`
-if [[ $? -eq 0 ]]; then
-  echo "minimist installed: $minimist_installed"
-else
+if [ -z "$(npm ls minimist)" ]; then
   echo "minimist not installed"
   npm install minimist@1.2.5
+else
+  echo "minimist installed"
 fi
 
 tempdir="$(mktemp --directory --tmpdir="$(pwd)" -t "docs-XXXX")"
