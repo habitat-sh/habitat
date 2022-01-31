@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.449 -->
-## [1.6.449](https://github.com/habitat-sh/habitat/tree/1.6.449) (2022-01-19)
+<!-- latest_release 1.6.450 -->
+## [1.6.450](https://github.com/habitat-sh/habitat/tree/1.6.450) (2022-01-31)
 
 #### Merged Pull Requests
-- Add a data directory for docs [#8410](https://github.com/habitat-sh/habitat/pull/8410) ([kagarmoe](https://github.com/kagarmoe))
+- Bump libc from 0.2.112 to 0.2.116 [#8425](https://github.com/habitat-sh/habitat/pull/8425) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.112 to 0.2.116 [#8425](https://github.com/habitat-sh/habitat/pull/8425) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.450 -->
 - Add a data directory for docs [#8410](https://github.com/habitat-sh/habitat/pull/8410) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.449 -->
 - Bump serde_json from 1.0.74 to 1.0.75 [#8409](https://github.com/habitat-sh/habitat/pull/8409) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.448 -->
 - clarify habitat configuration templates docs #8407 [#8408](https://github.com/habitat-sh/habitat/pull/8408) ([moutons](https://github.com/moutons)) <!-- 1.6.447 -->
