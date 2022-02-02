@@ -19,6 +19,7 @@ hab pkg install core/node --binlink
 
 if [ -z "$(npm list webapi-parser | grep webapi-parser)" ]; then
   echo "webapi installed"
+  npm install webapi-parser@0.5.0
 else
   echo "webapi not installed"
   npm install webapi-parser@0.5.0
@@ -26,6 +27,7 @@ fi
 
 if [ -z "$(npm list minimist | grep minimist)" ]; then
   echo "minimist installed"
+  npm install minimist@1.2.5
 else
   echo "minimist not installed"
   npm install minimist@1.2.5
