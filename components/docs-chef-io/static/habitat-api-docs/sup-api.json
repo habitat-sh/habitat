@@ -1,57 +1,62 @@
 {
-  "openapi": "3.0",
+  "openapi": "3.0.0",
   "info": {
-    "title": "Chef Habitat API Documentation",
-    "version": "",
-    "termsOfService": "https://www.chef.io/terms-and-conditions-of-use/",
-    "contact": {
-      "email": "support@chef.io",
-      "url": "https://www.chef.io/support/"
-    },
-    "x-logo": {
-      "url": "/images/habitat-logo.svg",
-      "altText": "Chef Habitat logo"
-    },
-    "license": {
-      "name": "Apache 2.0",
-      "url": "https://github.com/chef/automate/blob/master/LICENSE"
-    }
+    "title": "Habitat Supervisor",
+    "version": "1.0"
   },
   "servers": [
     {
-      "url": "http://{rootUri}/",
+      "url": "http://{rootUri}",
       "variables": {
         "rootUri": {
-          "default": "rootUri"
+          "description": "The root URI for the Habitat Supervisor",
+          "default": ""
+        }
+      },
+      "x-amf-parameters": {
+        "rootUri": {
+          "description": "The root URI for the Habitat Supervisor",
+          "example": "localhost:9631"
         }
       }
     }
   ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
   "paths": {
     "/butterfly": {
       "get": {
+        "description": "Butterfly debug output",
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {}
+            }
           }
-        },
-        "description": "Butterfly debug output",
-        "operationId": "GET_butterfly"
+        }
       }
     },
     "/census": {
       "get": {
+        "description": "Census debug output",
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {}
+            }
           }
-        },
-        "description": "Census debug output",
-        "operationId": "GET_census"
+        }
       }
     },
     "/services": {
       "get": {
+        "description": "List information of all loaded services",
         "responses": {
           "200": {
             "description": "",
@@ -59,9 +64,14 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/service"
-                  }
+                  "x-amf-merge": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/service"
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -69,20 +79,42 @@
           "503": {
             "description": "Supervisor hasn't fully started. Try again later."
           }
-        },
-        "description": "List information of all loaded services",
-        "operationId": "GET_services"
+        }
       }
     },
     "/services/{name}/{group}": {
+      "parameters": [
+        {
+          "name": "name",
+          "required": true,
+          "in": "path",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "group",
+          "required": true,
+          "in": "path",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
       "get": {
+        "description": "Show information of a single loaded service",
         "responses": {
           "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/service"
+                  "type": "object",
+                  "x-amf-merge": [
+                    {
+                      "$ref": "#/components/schemas/service"
+                    }
+                  ]
                 }
               }
             }
@@ -93,31 +125,30 @@
           "503": {
             "description": "Supervisor hasn't fully started. Try again later."
           }
-        },
-        "description": "Show information of a single loaded service",
-        "operationId": "GET_services-name-group"
-      },
+        }
+      }
+    },
+    "/services/{name}/{group}/config": {
       "parameters": [
         {
           "name": "name",
-          "in": "path",
           "required": true,
+          "in": "path",
           "schema": {
             "type": "string"
           }
         },
         {
           "name": "group",
-          "in": "path",
           "required": true,
+          "in": "path",
           "schema": {
             "type": "string"
           }
         }
-      ]
-    },
-    "/services/{name}/{group}/config": {
+      ],
       "get": {
+        "description": "Get last configuration for the given service group",
         "responses": {
           "200": {
             "description": "",
@@ -135,38 +166,42 @@
           "503": {
             "description": "Supervisor hasn't fully started. Try again later."
           }
-        },
-        "description": "Get last configuration for the given service group",
-        "operationId": "GET_services-name-group-config"
-      },
+        }
+      }
+    },
+    "/services/{name}/{group}/health": {
       "parameters": [
         {
           "name": "name",
-          "in": "path",
           "required": true,
+          "in": "path",
           "schema": {
             "type": "string"
           }
         },
         {
           "name": "group",
-          "in": "path",
           "required": true,
+          "in": "path",
           "schema": {
             "type": "string"
           }
         }
-      ]
-    },
-    "/services/{name}/{group}/health": {
+      ],
       "get": {
+        "description": "Health check status and output for the given service group",
         "responses": {
           "200": {
             "description": "Health Check - Ok / Warning",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/healthCheckOutput"
+                  "type": "object",
+                  "x-amf-merge": [
+                    {
+                      "$ref": "#/components/schemas/healthCheckOutput"
+                    }
+                  ]
                 }
               }
             }
@@ -180,38 +215,50 @@
           "503": {
             "description": "Health Check - Critical"
           }
-        },
-        "description": "Health check status and output for the given service group",
-        "operationId": "GET_services-name-group-health"
-      },
+        }
+      }
+    },
+    "/services/{name}/{group}/{organization}": {
       "parameters": [
         {
           "name": "name",
-          "in": "path",
           "required": true,
+          "in": "path",
           "schema": {
             "type": "string"
           }
         },
         {
           "name": "group",
-          "in": "path",
           "required": true,
+          "in": "path",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "organization",
+          "required": true,
+          "in": "path",
           "schema": {
             "type": "string"
           }
         }
-      ]
-    },
-    "/services/{name}/{group}/{organization}": {
+      ],
       "get": {
+        "description": "Show information of a single loaded service scoped to an organization",
         "responses": {
           "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/service"
+                  "type": "object",
+                  "x-amf-merge": [
+                    {
+                      "$ref": "#/components/schemas/service"
+                    }
+                  ]
                 }
               }
             }
@@ -222,39 +269,38 @@
           "503": {
             "description": "Supervisor hasn't fully started. Try again later."
           }
-        },
-        "description": "Show information of a single loaded service scoped to an organization",
-        "operationId": "GET_services-name-group-organization"
-      },
+        }
+      }
+    },
+    "/services/{name}/{group}/{organization}/config": {
       "parameters": [
         {
           "name": "name",
-          "in": "path",
           "required": true,
+          "in": "path",
           "schema": {
             "type": "string"
           }
         },
         {
           "name": "group",
-          "in": "path",
           "required": true,
+          "in": "path",
           "schema": {
             "type": "string"
           }
         },
         {
           "name": "organization",
-          "in": "path",
           "required": true,
+          "in": "path",
           "schema": {
             "type": "string"
           }
         }
-      ]
-    },
-    "/services/{name}/{group}/{organization}/config": {
+      ],
       "get": {
+        "description": "Get last configuration for the given service group",
         "responses": {
           "200": {
             "description": "",
@@ -272,46 +318,50 @@
           "503": {
             "description": "Temporarily couldn't load configuration"
           }
-        },
-        "description": "Get last configuration for the given service group",
-        "operationId": "GET_services-name-group-organization-config"
-      },
+        }
+      }
+    },
+    "/services/{name}/{group}/{organization}/health": {
       "parameters": [
         {
           "name": "name",
-          "in": "path",
           "required": true,
+          "in": "path",
           "schema": {
             "type": "string"
           }
         },
         {
           "name": "group",
-          "in": "path",
           "required": true,
+          "in": "path",
           "schema": {
             "type": "string"
           }
         },
         {
           "name": "organization",
-          "in": "path",
           "required": true,
+          "in": "path",
           "schema": {
             "type": "string"
           }
         }
-      ]
-    },
-    "/services/{name}/{group}/{organization}/health": {
+      ],
       "get": {
+        "description": "Health check status and output for the given service group",
         "responses": {
           "200": {
             "description": "Health Check - Ok / Warning",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/healthCheckOutput"
+                  "type": "object",
+                  "x-amf-merge": [
+                    {
+                      "$ref": "#/components/schemas/healthCheckOutput"
+                    }
+                  ]
                 }
               }
             }
@@ -325,138 +375,105 @@
           "503": {
             "description": "Health Check - Critical"
           }
-        },
-        "description": "Health check status and output for the given service group",
-        "operationId": "GET_services-name-group-organization-health"
-      },
-      "parameters": [
-        {
-          "name": "name",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string"
-          }
-        },
-        {
-          "name": "group",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string"
-          }
-        },
-        {
-          "name": "organization",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string"
-          }
         }
-      ]
+      }
     }
   },
   "components": {
     "schemas": {
-      "healthCheckOutput": {
-        "type": "object",
-        "properties": {
-          "stdout": {
-            "type": "string"
-          },
-          "stderr": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "stdout",
-          "stderr"
-        ]
-      },
-      "hookInfo": {
-        "type": "object",
-        "properties": {
-          "render_pair": {
-            "type": "string"
-          },
-          "stdout_log_path": {
-            "type": "string"
-          },
-          "stderr_log_path": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "render_pair",
-          "stdout_log_path",
-          "stderr_log_path"
-        ]
-      },
       "hookTable": {
         "type": "object",
         "properties": {
           "health_check": {
-            "$ref": "#/components/schemas/hookInfo"
+            "type": "object",
+            "x-amf-merge": [
+              {
+                "$ref": "#/components/schemas/hookInfo"
+              }
+            ]
           },
           "init": {
-            "$ref": "#/components/schemas/hookInfo"
+            "type": "object",
+            "x-amf-merge": [
+              {
+                "$ref": "#/components/schemas/hookInfo"
+              }
+            ]
           },
           "file_updated": {
-            "$ref": "#/components/schemas/hookInfo"
+            "type": "object",
+            "x-amf-merge": [
+              {
+                "$ref": "#/components/schemas/hookInfo"
+              }
+            ]
           },
           "reload": {
-            "$ref": "#/components/schemas/hookInfo"
+            "type": "object",
+            "x-amf-merge": [
+              {
+                "$ref": "#/components/schemas/hookInfo"
+              }
+            ]
           },
           "reconfigure": {
-            "$ref": "#/components/schemas/hookInfo"
+            "type": "object",
+            "x-amf-merge": [
+              {
+                "$ref": "#/components/schemas/hookInfo"
+              }
+            ]
           },
           "suitability": {
-            "$ref": "#/components/schemas/hookInfo"
+            "type": "object",
+            "x-amf-merge": [
+              {
+                "$ref": "#/components/schemas/hookInfo"
+              }
+            ]
           },
           "run": {
-            "$ref": "#/components/schemas/hookInfo"
+            "type": "object",
+            "x-amf-merge": [
+              {
+                "$ref": "#/components/schemas/hookInfo"
+              }
+            ]
           },
           "post_run": {
-            "$ref": "#/components/schemas/hookInfo"
+            "type": "object",
+            "x-amf-merge": [
+              {
+                "$ref": "#/components/schemas/hookInfo"
+              }
+            ]
           }
         }
       },
-      "processInfo": {
-        "type": "object",
-        "properties": {
-          "pid": {
-            "type": "integer"
-          },
-          "preamble": {
-            "type": "string"
-          },
-          "state": {
-            "enum": [
-              "Up",
-              "Down",
-              "Start",
-              "Restart"
-            ],
-            "type": "string"
-          },
-          "state_entered": {
-            "type": "integer"
-          },
-          "started": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "pid",
-          "preamble",
-          "state",
-          "state_entered",
-          "started"
-        ]
-      },
       "pkg": {
         "type": "object",
+        "required": [
+          "ident",
+          "origin",
+          "name",
+          "version",
+          "release",
+          "deps",
+          "env",
+          "exposes",
+          "exports",
+          "path",
+          "svc_path",
+          "svc_config_path",
+          "svc_data_path",
+          "svc_files_path",
+          "svc_static_path",
+          "svc_var_path",
+          "svc_pid_file",
+          "svc_run",
+          "svc_user",
+          "svc_group"
+        ],
         "properties": {
           "ident": {
             "type": "string"
@@ -475,18 +492,28 @@
           },
           "deps": {
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/pkgIdent"
-            }
+            "x-amf-merge": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/pkgIdent"
+                }
+              }
+            ]
           },
           "env": {
             "type": "object"
           },
           "exposes": {
             "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "x-amf-merge": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
           },
           "exports": {
             "type": "object"
@@ -524,53 +551,61 @@
           "svc_group": {
             "type": "string"
           }
-        },
-        "required": [
-          "ident",
-          "origin",
-          "name",
-          "version",
-          "release",
-          "deps",
-          "env",
-          "exposes",
-          "exports",
-          "path",
-          "svc_path",
-          "svc_config_path",
-          "svc_data_path",
-          "svc_files_path",
-          "svc_static_path",
-          "svc_var_path",
-          "svc_pid_file",
-          "svc_run",
-          "svc_user",
-          "svc_group"
-        ]
+        }
       },
-      "pkgIdent": {
+      "processInfo": {
         "type": "object",
-        "properties": {
-          "origin": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "version": {
-            "type": "string"
-          },
-          "release": {
-            "type": "integer"
-          }
-        },
         "required": [
-          "origin",
-          "name"
-        ]
+          "pid",
+          "preamble",
+          "state",
+          "state_entered",
+          "started"
+        ],
+        "properties": {
+          "pid": {
+            "type": "integer"
+          },
+          "preamble": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "Up",
+              "Down",
+              "Start",
+              "Restart"
+            ],
+            "type": "string"
+          },
+          "state_entered": {
+            "type": "integer"
+          },
+          "started": {
+            "type": "boolean"
+          }
+        }
       },
       "service": {
         "type": "object",
+        "required": [
+          "service_group",
+          "bldr_url",
+          "spec_file",
+          "spec_ident",
+          "topology",
+          "update_strategy",
+          "cfg",
+          "pkg",
+          "sys",
+          "health_check",
+          "initialized",
+          "last_election_status",
+          "needs_reload",
+          "needs_reconfiguration",
+          "hooks",
+          "process"
+        ],
         "properties": {
           "service_group": {
             "type": "string"
@@ -582,7 +617,12 @@
             "type": "string"
           },
           "spec_ident": {
-            "$ref": "#/components/schemas/pkgIdent"
+            "type": "object",
+            "x-amf-merge": [
+              {
+                "$ref": "#/components/schemas/pkgIdent"
+              }
+            ]
           },
           "topology": {
             "enum": [
@@ -603,11 +643,14 @@
             "type": "object"
           },
           "pkg": {
-            "$ref": "#/components/schemas/pkg"
+            "type": "object",
+            "x-amf-merge": [
+              {
+                "$ref": "#/components/schemas/pkg"
+              }
+            ]
           },
-          "sys": {
-            "$ref": "#/components/schemas/systemInfo"
-          },
+          "sys": {},
           "health_check": {
             "enum": [
               "Ok",
@@ -630,36 +673,39 @@
             "type": "boolean"
           },
           "hooks": {
-            "$ref": "#/components/schemas/hookTable"
+            "type": "object",
+            "x-amf-merge": [
+              {
+                "$ref": "#/components/schemas/hookTable"
+              }
+            ]
           },
           "config_from": {
             "type": "string"
           },
           "process": {
-            "$ref": "#/components/schemas/processInfo"
+            "type": "object",
+            "x-amf-merge": [
+              {
+                "$ref": "#/components/schemas/processInfo"
+              }
+            ]
           }
-        },
-        "required": [
-          "service_group",
-          "bldr_url",
-          "spec_file",
-          "spec_ident",
-          "topology",
-          "update_strategy",
-          "cfg",
-          "pkg",
-          "sys",
-          "health_check",
-          "initialized",
-          "last_election_status",
-          "needs_reload",
-          "needs_reconfiguration",
-          "hooks",
-          "process"
-        ]
+        }
       },
       "systemInfo": {
         "type": "object",
+        "required": [
+          "version",
+          "member_id",
+          "ip",
+          "hostname",
+          "gossip_ip",
+          "gossip_port",
+          "http_gateway_ip",
+          "http_gateway_port",
+          "permanent"
+        ],
         "properties": {
           "version": {
             "type": "string"
@@ -688,27 +734,63 @@
           "permanent": {
             "type": "boolean"
           }
-        },
+        }
+      },
+      "hookInfo": {
+        "type": "object",
         "required": [
-          "version",
-          "member_id",
-          "ip",
-          "hostname",
-          "gossip_ip",
-          "gossip_port",
-          "http_gateway_ip",
-          "http_gateway_port",
-          "permanent"
-        ]
+          "render_pair",
+          "stdout_log_path",
+          "stderr_log_path"
+        ],
+        "properties": {
+          "render_pair": {
+            "type": "string"
+          },
+          "stdout_log_path": {
+            "type": "string"
+          },
+          "stderr_log_path": {
+            "type": "string"
+          }
+        }
+      },
+      "pkgIdent": {
+        "type": "object",
+        "required": [
+          "origin",
+          "name"
+        ],
+        "properties": {
+          "origin": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "release": {
+            "type": "integer"
+          }
+        }
+      },
+      "healthCheckOutput": {
+        "type": "object",
+        "required": [
+          "stdout",
+          "stderr"
+        ],
+        "properties": {
+          "stdout": {
+            "type": "string"
+          },
+          "stderr": {
+            "type": "string"
+          }
+        }
       }
-    },
-    "responses": {},
-    "parameters": {},
-    "examples": {},
-    "requestBodies": {},
-    "headers": {},
-    "securitySchemes": {},
-    "links": {},
-    "callbacks": {}
+    }
   }
 }
