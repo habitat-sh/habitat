@@ -26,13 +26,6 @@ changelog:
 pipelines:
   - verify:
       description: Pull Request validation tests
-  - website:
-      description: Deploy the website to production
-  - website-acceptance:
-      # This is NOT intended for automated runs... it just
-      # encapsulates the parameters and execution environment to
-      # deploy a given branch to the acceptance environment website.
-      description: Deploy the website on-demand to the acceptance environment
   - release_habitat:
       description: Habitat release process
   - end_to_end:
