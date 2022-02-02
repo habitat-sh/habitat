@@ -8,11 +8,11 @@ gh_repo = "habitat"
   [menu.habitat]
     title = "Rotate Builder SSL Certs"
     identifier = "habitat/guides/rotate-builder-certs"
-    parent = "habitat/guids"
+    parent = "habitat/guides"
     weight = 50
 +++
 
-A short guide to SSL certs used by Builder's web interface.
+A short guide to updating the SSL certs used by Builder's web interface.
 
 ## Understanding where the Builder certs live
 
