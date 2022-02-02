@@ -15,20 +15,16 @@ if [ -z "$hub_check" ]; then
   install_hub
 fi
 
-# Check if node is installed and install if not
-node_version=$(node -v)
-if [ -z "$node_version" ]; then
-  sudo apt-get install -y nodejs
-fi
+hab pkg install core/node --binlink
 
-if [ -z "$(npm ls webapi-parser)" ]; then
+if [ -z "$(npm list webapi-parser | grep webapi-parser)" ]; then
   echo "webapi not installed"
   npm install webapi-parser@0.5.0
 else
   echo "webapi installed"
 fi
 
-if [ -z "$(npm ls minimist)" ]; then
+if [ -z "$(npm list minimist | grep minimist)" ]; then
   echo "minimist not installed"
   npm install minimist@1.2.5
 else
