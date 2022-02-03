@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.452 -->
-## [1.6.452](https://github.com/habitat-sh/habitat/tree/1.6.452) (2022-01-31)
+<!-- latest_release 1.6.453 -->
+## [1.6.453](https://github.com/habitat-sh/habitat/tree/1.6.453) (2022-02-03)
 
 #### Merged Pull Requests
-- Bump serde from 1.0.133 to 1.0.136 [#8421](https://github.com/habitat-sh/habitat/pull/8421) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump libc from 0.2.116 to 0.2.117 [#8431](https://github.com/habitat-sh/habitat/pull/8431) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.116 to 0.2.117 [#8431](https://github.com/habitat-sh/habitat/pull/8431) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.453 -->
 - Bump serde from 1.0.133 to 1.0.136 [#8421](https://github.com/habitat-sh/habitat/pull/8421) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.452 -->
 - Bump serde_test from 1.0.133 to 1.0.136 [#8422](https://github.com/habitat-sh/habitat/pull/8422) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.452 -->
 - Bump serde_json from 1.0.75 to 1.0.78 [#8415](https://github.com/habitat-sh/habitat/pull/8415) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.451 -->
