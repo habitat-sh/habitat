@@ -71,3 +71,13 @@ steps:
           path: account/static/habitat/chef-ci
           field: acceptance_auth_token
     soft_fail: true
+
+  - label: "Update Habitat API Docs"
+    command:
+      - .expeditor/scripts/finish_release/update_api_docs.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
