@@ -15,7 +15,7 @@ An origin is a place on Chef Habitat Builder where you can store, share, and bui
 You can join existing origins by invitation and you can create your own origins.
 For more on invitations, see [origin membership and RBAC]({{< relref "#origin-membership" >}}).
 
-### Create an Origin
+## Create an Origin
 
 ![Chef Habitat Builder without origins](/images/habitat/create-origin.png)
 
@@ -38,7 +38,7 @@ When you select **Save and Continue**, Chef Habitat Builder:
 
 ![Origin successfully created](/images/habitat/create-origin-done.png)
 
-#### Create an Origin with the Chef Habitat CLI
+### Create an Origin with the Chef Habitat CLI
 
 Use the [hab origin]({{< relref "habitat_cli/#hab-origin" >}}) commands to manage your origins from the command line.
 
