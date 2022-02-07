@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.456 -->
-## [1.6.456](https://github.com/habitat-sh/habitat/tree/1.6.456) (2022-02-07)
+<!-- latest_release 1.6.457 -->
+## [1.6.457](https://github.com/habitat-sh/habitat/tree/1.6.457) (2022-02-07)
 
 #### Merged Pull Requests
-- Bump futures from 0.3.19 to 0.3.21 [#8435](https://github.com/habitat-sh/habitat/pull/8435) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump semver from 1.0.4 to 1.0.5 [#8436](https://github.com/habitat-sh/habitat/pull/8436) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- Bump semver from 1.0.4 to 1.0.5 [#8436](https://github.com/habitat-sh/habitat/pull/8436) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.457 -->
 - Bump futures from 0.3.19 to 0.3.21 [#8435](https://github.com/habitat-sh/habitat/pull/8435) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.456 -->
 - Update Dockerfile to fix wget problem [#8433](https://github.com/habitat-sh/habitat/pull/8433) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.455 -->
 - Update release pipeline to generate API docs [#8418](https://github.com/habitat-sh/habitat/pull/8418) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.454 -->
