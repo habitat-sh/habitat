@@ -95,8 +95,8 @@ To aid the user in the visual identification of the many varieties of keys in us
 | Private origin signing key | SIG-SEC-1 | originname-YYYYMMDDRRRRRR.sig.key |
 | Public origin signing key | SIG-PUB-1 | originname-YYYYMMDDRRRRRR.pub.key |
 | Ring wire encryption key | SYM-SEC-1 | ringname-YYYYMMDDRRRRRR.sym.key |
-| Private service group key | BOX-SEC-1 | service-group.env@org-YYYYMMDDRRRRRR.box.key |
-| Public service group key | BOX-PUB-1 | service-group.env@org-YYYYMMDDRRRRRR.pub |
+| Private service group key | BOX-SEC-1 | service-group.env @org-YYYYMMDDRRRRRR.box.key |
+| Public service group key | BOX-PUB-1 | service-group.env @org-YYYYMMDDRRRRRR.pub |
 | Private user key | BOX-SEC-1 | username-YYYYMMDDRRRRRR.box.key |
 | Public user key | BOX-PUB-1 | username-YYYYMMDDRRRRRR.pub |
 
