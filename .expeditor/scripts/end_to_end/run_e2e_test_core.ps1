@@ -34,7 +34,7 @@ function Wait-True([ScriptBlock]$TestScript, [ScriptBlock]$TimeoutScript, [int]$
             $TimeoutScript.Invoke()
             break
         }
-        Start-Sleep -Seconds 1
+        Start-Sleep -MilliSeconds 100
     }
 }
 

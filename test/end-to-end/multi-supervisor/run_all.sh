@@ -19,7 +19,7 @@ make supervisor_image CHANNEL="${channel}" IMAGE_NAME="${image_name}"
 # to non-zero.
 exit_code=0
 
-for testcase in testcases/*; do
+testcase=rolling_update_remove_leader_keep_quorum
     # We just want the test case name here, not the path to it.
     # (the `testcases/*` glob above gets us things like
     # "testcases/foo", and we just want "foo")
@@ -34,7 +34,6 @@ for testcase in testcases/*; do
         exit_code=1
     fi
     # TODO (CM): possible to hijack something like TAP to run these instead?
-done
 
 echo "Done; output can be found in ${output_dir}"
 exit ${exit_code}
