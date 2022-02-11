@@ -15,11 +15,13 @@ services:
     environment:
       HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
       HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+      RUST_LOG: habitat_sup::manager::service_updater=debug
 
   beta:
     environment:
       HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
       HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+      RUST_LOG: habitat_sup::manager::service_updater=debug
 
   gamma:
     extends:
@@ -28,6 +30,7 @@ services:
     environment:
       HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
       HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+      RUST_LOG: habitat_sup::manager::service_updater=debug
     networks:
       default:
         aliases:
