@@ -28,8 +28,10 @@ Describe "Rolling Update after leader is removed and quorum is not lost" {
 
     Context "Remove leader" {
         $leader = Get-Leader "bastion" "nginx.default"
-        Stop-ComposeSupervisor $leader.Name
         hab pkg promote $release2 $testChannel
+
+        Wait-Release -Ident $release2 -Remote $leader.Name
+        Stop-ComposeSupervisor $leader.Name
 
         @("alpha", "beta", "gamma") | Where-Object { $_ -ne $leader.Name } | ForEach-Object {
             It "updates to $release2 on $_" {
