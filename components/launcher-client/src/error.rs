@@ -1,4 +1,5 @@
 use habitat_launcher_protocol as protocol;
+use ipc_channel::ipc::IpcError;
 use std::{error,
           fmt,
           io,
@@ -11,7 +12,7 @@ pub enum Error {
     BadPipe(io::Error),
     Connect(io::Error),
     IPCBincode(String),
-    IPCIO(io::ErrorKind),
+    IPCIO(IpcError),
     Protocol(protocol::Error),
     Send(ipc_channel::Error),
     Timeout,
@@ -39,11 +40,11 @@ impl fmt::Display for Error {
 
 impl error::Error for Error {}
 
-impl From<ipc_channel::ErrorKind> for Error {
-    fn from(err: ipc_channel::ErrorKind) -> Error {
+impl From<IpcError> for Error {
+    fn from(err: IpcError) -> Error {
         match err {
-            ipc_channel::ErrorKind::Io(io) => Error::IPCIO(io.kind()),
-            _ => Error::IPCBincode(err.to_string()),
+            IpcError::Bincode(err) => Error::IPCBincode(err.to_string()),
+            _ => Error::IPCIO(err)
         }
     }
 }

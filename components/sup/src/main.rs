@@ -1,8 +1,8 @@
 extern crate clap;
 extern crate habitat_sup as sup;
-#[cfg(unix)]
+#[cfg(all(unix, target_arch="x86_64"))]
 extern crate jemalloc_ctl;
-#[cfg(unix)]
+#[cfg(all(unix, target_arch="x86_64"))]
 extern crate jemallocator;
 #[macro_use]
 extern crate log;
@@ -61,7 +61,7 @@ use tokio::{self,
 /// Our output key
 static LOGKEY: &str = "MN";
 
-#[cfg(unix)]
+#[cfg(all(unix, target_arch="x86_64"))]
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
@@ -212,7 +212,7 @@ async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run: SupRun,
     } else {
         vec![]
     };
-
+    
     let (manager_cfg, maybe_svc_load_msg) = split_apart_sup_run(sup_run, feature_flags).await?;
     if let Some(svc_load_msg) = maybe_svc_load_msg {
         svc_load_msgs.push(svc_load_msg);

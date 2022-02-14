@@ -15,7 +15,8 @@ env_logger = "*"
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
 habitat-launcher-protocol = { path = "../launcher-protocol" }
-ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }
+# ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }
+ipc-channel = { version = "0.15.0" }
 libc = "*"
 log = "*"
 prost = "*"

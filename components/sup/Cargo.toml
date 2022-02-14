@@ -70,7 +70,7 @@ valico = "*"
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
 
-[target.'cfg(target_family = "unix")'.dependencies]
+[target.'cfg(all(target_family = "unix", target_arch="x86_64"))'.dependencies]
 jemallocator = "*"
 jemalloc-ctl = "*"
 

@@ -1862,7 +1862,12 @@ fn get_fd_count() -> std::io::Result<usize> {
     Ok(fs::read_dir(FD_DIR)?.count())
 }
 
-#[cfg(unix)]
+#[cfg(all(unix, not(target_arch = "x86_64")))]
+fn track_memory_stats() {
+    // TODO: Implement this
+}
+
+#[cfg(all(unix, target_arch="x86_64"))]
 fn track_memory_stats() {
     // We'd like to track some memory stats, but these stats are cached and only refreshed
     // when the epoch is advanced. We manually advance it here to ensure our stats are

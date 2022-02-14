@@ -1,18 +1,14 @@
-use crate::error::{Error,
-                   Result};
+use crate::error::{Error, Result};
 use habitat_common::types::UserInfo;
 use habitat_core::os::process::Pid;
-use habitat_launcher_protocol::{self as protocol,
-                                Error as ProtocolError};
-use ipc_channel::ipc::{IpcOneShotServer,
-                       IpcReceiver,
-                       IpcSender};
-use std::{collections::BTreeMap,
-          io,
-          path::Path,
-          thread,
-          time::{Duration,
-                 Instant}};
+use habitat_launcher_protocol::{self as protocol, Error as ProtocolError};
+use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender, TryRecvError};
+use std::{
+    collections::BTreeMap,
+    path::Path,
+    thread,
+    time::{Duration, Instant},
+};
 
 type Env = BTreeMap<String, String>;
 type IpcServer = IpcOneShotServer<Vec<u8>>;
@@ -28,8 +24,8 @@ habitat_core::env_config_duration!(LauncherInteractionTimeout,
                                    HAB_LAUNCHER_INTERACTION_TIMEOUT_MS => from_millis,
                                    Duration::from_millis(1000));
 pub struct LauncherCli {
-    tx:   IpcSender<Vec<u8>>,
-    rx:   IpcReceiver<Vec<u8>>,
+    tx: IpcSender<Vec<u8>>,
+    rx: IpcReceiver<Vec<u8>>,
     // We persist the pipe identifier so we can delete the file on drop.
     // This is not necessary on Windows because named pipes are removed
     // upon releasing the last handle to the pipe. The ipc-channel crate
@@ -58,26 +54,31 @@ impl LauncherCli {
         let tx = IpcSender::connect(pipe_to_launcher).map_err(Error::Connect)?;
         let (ipc_srv, pipe_to_sup) = IpcServer::new().map_err(Error::BadPipe)?;
         debug!("IpcServer::new() returned pipe_to_sup: {}", pipe_to_sup);
-        let cmd = protocol::Register { #[cfg(windows)]
-                                       pipe:                      pipe_to_sup,
-                                       #[cfg(not(windows))]
-                                       pipe:                      pipe_to_sup.clone(), };
+        let cmd = protocol::Register {
+            #[cfg(windows)]
+            pipe: pipe_to_sup,
+            #[cfg(not(windows))]
+            pipe: pipe_to_sup.clone(),
+        };
         Self::send(&tx, &cmd)?;
         let (rx, raw) = ipc_srv.accept().map_err(|_| Error::AcceptConn)?;
         Self::read::<protocol::NetOk>(&raw)?;
 
         let timeout = LauncherInteractionTimeout::configured_value().into();
 
-        Ok(LauncherCli { tx,
-                         rx,
-                         #[cfg(not(windows))]
-                         pipe: pipe_to_sup,
-                         timeout })
+        Ok(LauncherCli {
+            tx,
+            rx,
+            #[cfg(not(windows))]
+            pipe: pipe_to_sup,
+            timeout,
+        })
     }
 
     /// Read a launcher protocol message from a byte array
     fn read<T>(bytes: &[u8]) -> Result<T>
-        where T: protocol::LauncherMessage
+    where
+        T: protocol::LauncherMessage,
     {
         let txn = protocol::NetTxn::from_bytes(bytes)?;
         if txn.message_id() == "NetErr" {
@@ -90,11 +91,12 @@ impl LauncherCli {
 
     /// Receive and read protocol message from an IpcReceiver
     fn recv<T>(rx: &IpcReceiver<Vec<u8>>) -> Result<T>
-        where T: protocol::LauncherMessage
+    where
+        T: protocol::LauncherMessage,
     {
         match rx.recv() {
             Ok(bytes) => Self::read(&bytes),
-            Err(err) => Err(Error::from(*err)),
+            Err(err) => Err(Error::from(err)),
         }
     }
 
@@ -116,21 +118,20 @@ impl LauncherCli {
     ///
     /// As such, use this with caution and intention.
     fn recv_timeout<T>(rx: &IpcReceiver<Vec<u8>>, timeout: Duration) -> Result<T>
-        where T: protocol::LauncherMessage
+    where
+        T: protocol::LauncherMessage,
     {
         // If ipc_channel implemented this directly, we wouldn't have
         // to do this :(
         let start_time = Instant::now();
         loop {
-            match rx.try_recv().map_err(|e| Error::from(*e)) {
+            match rx.try_recv() {
                 Ok(bytes) => return Self::read(&bytes),
-                Err(Error::IPCIO(io::ErrorKind::WouldBlock)) => {
+                Err(TryRecvError::Empty) => {
                     trace!("try_recv would block; waiting 5ms");
                     thread::sleep(Duration::from_millis(5));
                 }
-                Err(err) => {
-                    return Err(err);
-                }
+                Err(TryRecvError::IpcError(err)) => return Err(Error::IPCIO(err)),
             }
             if start_time.elapsed() > timeout {
                 return Err(Error::Timeout);
@@ -140,7 +141,8 @@ impl LauncherCli {
 
     /// Send a command to a Launcher
     fn send<T>(tx: &IpcSender<Vec<u8>>, message: &T) -> Result<()>
-        where T: protocol::LauncherMessage
+    where
+        T: protocol::LauncherMessage,
     {
         let txn = protocol::NetTxn::build(message)?;
         let bytes = txn.to_bytes()?;
@@ -150,21 +152,26 @@ impl LauncherCli {
 
     /// Receive and read protocol message from an IpcReceiver
     fn try_recv<T>(rx: &IpcReceiver<Vec<u8>>) -> Result<Option<T>>
-        where T: protocol::LauncherMessage
+    where
+        T: protocol::LauncherMessage,
     {
-        match rx.try_recv().map_err(|err| Error::from(*err)) {
+        match rx.try_recv() {
             Ok(bytes) => {
                 let msg = Self::read::<T>(&bytes)?;
                 Ok(Some(msg))
             }
-            Err(Error::IPCIO(io::ErrorKind::WouldBlock)) => Ok(None),
-            Err(err) => Err(err),
+            Err(TryRecvError::Empty) => Ok(None),
+            Err(TryRecvError::IpcError(err)) => Err(Error::IPCIO(err)),
         }
     }
 
     pub fn is_stopping(&self) -> bool {
         match Self::try_recv::<protocol::Shutdown>(&self.rx) {
-            Ok(Some(_)) | Err(Error::IPCIO(_)) => true,
+            Ok(Some(_)) => true,
+            Err(err @ Error::IPCIO(_)) => {
+                error!("Launcher encountered an IPC error: {:?}", err);
+                true
+            }
             Ok(None) => false,
             Err(err) => panic!("Unexpected error checking for shutdown request, {}", err),
         }
@@ -183,30 +190,35 @@ impl LauncherCli {
     /// `username` and `groupname` are string names, while `uid` and
     /// `gid` are numeric IDs. Newer versions of the Launcher can
     /// accept either, but prefer numeric IDs.
-    pub fn spawn(&self,
-                 id: &str,
-                 bin: &Path,
-                 UserInfo { username,
-                            uid,
-                            groupname,
-                            gid, }: UserInfo,
-                 password: Option<&str>,
-                 env: Env)
-                 -> Result<Pid> {
+    pub fn spawn(
+        &self,
+        id: &str,
+        bin: &Path,
+        UserInfo {
+            username,
+            uid,
+            groupname,
+            gid,
+        }: UserInfo,
+        password: Option<&str>,
+        env: Env,
+    ) -> Result<Pid> {
         // On Windows, we only expect user to be Some.
         //
         // On Linux, we expect uid and gid to be Some, while
         // user and groupname may be either Some or None. Only the IDs are
         // used; names are only for backward compatibility with older
         // Launchers.
-        let msg = protocol::Spawn { binary: bin.to_string_lossy().into_owned(),
-                                    svc_user: username,
-                                    svc_group: groupname,
-                                    svc_user_id: uid,
-                                    svc_group_id: gid,
-                                    svc_password: password.map(str::to_string),
-                                    env,
-                                    id: id.to_string() };
+        let msg = protocol::Spawn {
+            binary: bin.to_string_lossy().into_owned(),
+            svc_user: username,
+            svc_group: groupname,
+            svc_user_id: uid,
+            svc_group_id: gid,
+            svc_password: password.map(str::to_string),
+            env,
+            id: id.to_string(),
+        };
 
         Self::send(&self.tx, &msg)?;
         let reply = Self::recv::<protocol::SpawnOk>(&self.rx)?;
@@ -221,7 +233,9 @@ impl LauncherCli {
     /// Query the launcher for the PID of the named service. If the
     /// Launcher is aware of it, you'll get `Ok(Some(Pid))`
     pub fn pid_of(&self, service_name: &str) -> Result<Option<Pid>> {
-        let msg = protocol::PidOf { service_name: service_name.to_string(), };
+        let msg = protocol::PidOf {
+            service_name: service_name.to_string(),
+        };
         Self::send(&self.tx, &msg)?;
         // This should be a recv_timeout until pidfile-less
         // supervisors are the norm. We only expect to not receive a
