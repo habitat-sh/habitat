@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.460 -->
-## [1.6.460](https://github.com/habitat-sh/habitat/tree/1.6.460) (2022-02-10)
+<!-- latest_release 1.6.461 -->
+## [1.6.461](https://github.com/habitat-sh/habitat/tree/1.6.461) (2022-02-14)
 
 #### Merged Pull Requests
-- Fix headings in builder_origins.md [#8438](https://github.com/habitat-sh/habitat/pull/8438) ([IanMadd](https://github.com/IanMadd))
+- Bump serde_json from 1.0.78 to 1.0.79 [#8444](https://github.com/habitat-sh/habitat/pull/8444) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.78 to 1.0.79 [#8444](https://github.com/habitat-sh/habitat/pull/8444) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.461 -->
 - Fix headings in builder_origins.md [#8438](https://github.com/habitat-sh/habitat/pull/8438) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.460 -->
 - Update Habitat Builder API Docs - 20220210140148 [#8443](https://github.com/habitat-sh/habitat/pull/8443) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.459 -->
 - Bump httparse from 1.5.1 to 1.6.0 [#8439](https://github.com/habitat-sh/habitat/pull/8439) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.458 -->
