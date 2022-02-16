@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.463 -->
-## [1.6.463](https://github.com/habitat-sh/habitat/tree/1.6.463) (2022-02-16)
+<!-- latest_release 1.6.464 -->
+## [1.6.464](https://github.com/habitat-sh/habitat/tree/1.6.464) (2022-02-16)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.117 to 0.2.118 [#8446](https://github.com/habitat-sh/habitat/pull/8446) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Added support for rust version 1.58.1 [#8437](https://github.com/habitat-sh/habitat/pull/8437) ([dikshagupta1](https://github.com/dikshagupta1))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- Added support for rust version 1.58.1 [#8437](https://github.com/habitat-sh/habitat/pull/8437) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 1.6.464 -->
 - Bump libc from 0.2.117 to 0.2.118 [#8446](https://github.com/habitat-sh/habitat/pull/8446) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.463 -->
 - Bump rand from 0.8.4 to 0.8.5 [#8445](https://github.com/habitat-sh/habitat/pull/8445) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.462 -->
 - Bump serde_json from 1.0.78 to 1.0.79 [#8444](https://github.com/habitat-sh/habitat/pull/8444) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.461 -->
