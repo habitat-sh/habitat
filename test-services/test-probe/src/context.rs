@@ -38,5 +38,5 @@ fn read_json<P>(path: P) -> Result<serde_json::Value>
     where P: AsRef<Path>
 {
     let contents = fs::read_to_string(path)?;
-    serde_json::from_str(&contents).map_err(|e| e.into())
+    serde_json::from_str(&contents).map_err(std::convert::Into::into)
 }

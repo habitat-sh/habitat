@@ -493,7 +493,7 @@ fn toml_merge_recurse(me: &mut toml::value::Table,
 
     for (key, other_value) in other.iter() {
         if is_toml_value_a_table(key, me) && is_toml_value_a_table(key, other) {
-            let mut me_at_key = match *(me.get_mut(key).expect("Key should exist in Table")) {
+            let me_at_key = match *(me.get_mut(key).expect("Key should exist in Table")) {
                 toml::Value::Table(ref mut t) => t,
                 _ => {
                     return Err(Error::TomlMergeError(format!("Value at key {} should be \
@@ -501,7 +501,7 @@ fn toml_merge_recurse(me: &mut toml::value::Table,
                                                              &key)));
                 }
             };
-            toml_merge_recurse(&mut me_at_key,
+            toml_merge_recurse(me_at_key,
                                other_value.as_table()
                                           .expect("TOML Value should be a Table"),
                                depth + 1)?;

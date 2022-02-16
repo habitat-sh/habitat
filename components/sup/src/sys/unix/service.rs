@@ -64,6 +64,7 @@ impl Process {
         trace!("Sending {:?} signal to process {}",
                shutdown_signal,
                pid_to_kill);
+        #[allow(clippy::question_mark)]
         if signal(pid_to_kill, shutdown_signal).is_err() {
             return ShutdownMethod::AlreadyExited;
         }

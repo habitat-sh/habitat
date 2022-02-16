@@ -169,7 +169,8 @@ impl Sid {
                 }
             }
 
-            let mut buffer = Vec::<u8>::with_capacity(dw_buffer_size as usize);
+            let mut buffer =
+                Vec::<std::mem::MaybeUninit<u8>>::with_capacity(dw_buffer_size as usize);
             buffer.set_len(dw_buffer_size as usize);
             let p_token_user: PTOKEN_USER = std::mem::transmute_copy(&buffer);
 

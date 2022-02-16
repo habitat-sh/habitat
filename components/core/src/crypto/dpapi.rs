@@ -38,7 +38,7 @@ pub fn decrypt(secret: &str) -> Result<String> {
             )));
         }
         let sz = out_blob.cbData as usize;
-        let mut dst: Vec<u8> = Vec::with_capacity(sz);
+        let mut dst: Vec<u8> = vec![0; sz];
         dst.set_len(sz);
         ptr::copy(out_blob.pbData, dst.as_mut_ptr(), sz);
         Ok(String::from_utf8(dst)?)
@@ -74,7 +74,7 @@ pub fn encrypt(secret: String) -> Result<String> {
             )));
         }
         let sz = out_blob.cbData as usize;
-        let mut dst: Vec<u8> = Vec::with_capacity(sz);
+        let mut dst: Vec<u8> = vec![0; sz];
         dst.set_len(sz);
         ptr::copy(out_blob.pbData, dst.as_mut_ptr(), sz);
         Ok(base64::encode(&dst))

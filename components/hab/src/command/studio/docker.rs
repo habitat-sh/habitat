@@ -256,7 +256,7 @@ fn run_container<I, J, S, T>(docker_cmd: PathBuf,
     if let Ok(opts) = henv::var(DOCKER_OPTS_ENVVAR) {
         let opts = opts
             .split_whitespace()
-            .map(|v| v.into())
+            .map(std::convert::Into::into)
             // Ensure we're not passing something like `--tty` again here.
             .filter(|v| !cmd_args.contains(v))
             .collect::<Vec<_>>();

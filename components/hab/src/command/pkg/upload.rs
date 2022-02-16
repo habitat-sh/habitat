@@ -149,11 +149,11 @@ async fn upload_into_depot(ui: &mut UI,
                            additional_release_channel: &Option<ChannelIdent>,
                            force_upload: bool,
                            auto_build: BuildOnUpload,
-                           mut archive: &mut PackageArchive)
+                           archive: &mut PackageArchive)
                            -> Result<()> {
     ui.status(Status::Uploading, archive.path.display())?;
     let package_exists_in_target =
-        match api_client.put_package(&mut archive, token, force_upload, auto_build, ui.progress())
+        match api_client.put_package(archive, token, force_upload, auto_build, ui.progress())
                         .await
         {
             Ok(_) => true,

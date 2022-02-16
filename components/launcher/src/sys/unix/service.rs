@@ -40,6 +40,7 @@ impl Process {
 
         // JW TODO: Determine if the error represents a case where the process was already
         // exited before we return out and assume so.
+        #[allow(clippy::question_mark)]
         if signal(pid_to_kill, Signal::TERM).is_err() {
             return ShutdownMethod::AlreadyExited;
         }
@@ -54,6 +55,7 @@ impl Process {
             }
             // JW TODO: Determine if the error represents a case where the process was already
             // exited before we return out and assume so.
+            #[allow(clippy::question_mark)]
             if signal(pid_to_kill, Signal::KILL).is_err() {
                 return ShutdownMethod::GracefulTermination;
             }

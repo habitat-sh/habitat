@@ -268,15 +268,15 @@ impl<'a> Svc<'a> {
               election_status:        Cow::Borrowed(&census_group.election_status),
               update_election_status: Cow::Borrowed(&census_group.update_election_status),
               members:                census_group.active_members()
-                                                             .map(|m| SvcMember::new(m))
+                                                             .map(SvcMember::new)
                                                              .collect(),
               me:                     census_group.me()
-                                                             .map(|m| SvcMember::new(m))
+                                                             .map(SvcMember::new)
                                                              .expect("Missing 'me'"),
               leader:                 census_group.leader()
-                                                             .map(|m| SvcMember::new(m)),
+                                                             .map(SvcMember::new),
               update_leader:          census_group.update_leader()
-                                                             .map(|m| SvcMember::new(m)),
+                                                             .map(SvcMember::new),
               first:
                   select_first(census_group).expect("First should always be present \
                                                                 on svc" /* i.e. `me` will
@@ -352,8 +352,8 @@ struct BindGroup<'a> {
 impl<'a> BindGroup<'a> {
     fn new(group: &'a CensusGroup) -> Self {
         BindGroup { first:   select_first(group),
-                    leader:  group.leader().map(|m| SvcMember::new(m)),
-                    members: group.active_members().map(|m| SvcMember::new(m)).collect(), }
+                    leader:  group.leader().map(SvcMember::new),
+                    members: group.active_members().map(SvcMember::new).collect(), }
     }
 }
 

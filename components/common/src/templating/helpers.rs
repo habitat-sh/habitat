@@ -33,7 +33,7 @@ impl JsonTruthy for Json {
     fn is_truthy(&self) -> bool {
         match *self {
             Json::Bool(ref i) => *i,
-            Json::Number(ref n) => n.as_f64().map(|f| f.is_normal()).unwrap_or(false),
+            Json::Number(ref n) => n.as_f64().map(f64::is_normal).unwrap_or(false),
             Json::Null => false,
             Json::String(ref i) => !i.is_empty(),
             Json::Array(ref i) => !i.is_empty(),

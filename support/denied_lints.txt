@@ -16,7 +16,7 @@ clippy::for_kv_map
 clippy::get_last_with_len
 clippy::get_unwrap
 clippy::useless_conversion
-clippy::if_let_some_result
+clippy::match_result_ok
 clippy::inherent_to_string
 clippy::inherent_to_string_shadow_display
 clippy::integer_division

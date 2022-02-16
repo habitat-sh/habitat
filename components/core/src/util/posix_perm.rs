@@ -100,7 +100,7 @@ fn chown(path: &str, uid: u32, gid: u32) -> Result<c_int> {
 
     unsafe {
         let res = libc::chown(r_path, uid, gid);
-        CString::from_raw(r_path); // necessary to prevent leaks
+        let _ = CString::from_raw(r_path); // necessary to prevent leaks
         Ok(res)
     }
 }
@@ -118,7 +118,7 @@ fn chmod(path: &str, mode: u32) -> Result<c_int> {
 
     unsafe {
         let res = libc::chmod(r_path, mode as mode_t);
-        CString::from_raw(r_path); // necessary to prevent leaks
+        let _ = CString::from_raw(r_path); // necessary to prevent leaks
         Ok(res)
     }
 }

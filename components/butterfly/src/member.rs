@@ -54,12 +54,8 @@ lazy_static! {
 ///
 /// Note: we're intentionally deriving `Copy` to be able to treat this
 /// like a "normal" numeric type.
-#[derive(Clone, Debug, Ord, PartialEq, PartialOrd, Eq, Copy)]
+#[derive(Clone, Debug, Ord, PartialEq, PartialOrd, Eq, Copy, Default)]
 pub struct Incarnation(u64);
-
-impl Default for Incarnation {
-    fn default() -> Self { Incarnation(0) }
-}
 
 impl From<u64> for Incarnation {
     fn from(num: u64) -> Self { Incarnation(num) }
