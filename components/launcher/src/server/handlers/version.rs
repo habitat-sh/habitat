@@ -21,7 +21,7 @@ impl Handler for VersionHandler {
                 Ok(reply)
             }
             Err(err) => {
-                let err_msg = format!("Unable to parse version {}: {}", version, err.to_string());
+                let err_msg = format!("Unable to parse version {}: {}", version, err);
                 let reply = protocol::NetErr { code: protocol::ErrCode::InvalidVersionNumber,
                                                msg:  err_msg, };
                 Err(reply)

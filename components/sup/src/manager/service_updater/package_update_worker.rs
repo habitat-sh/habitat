@@ -30,6 +30,7 @@ impl PackageUpdateWorkerPeriod {
     const MIN_ALLOWED: Duration = Duration::from_secs(60);
 
     fn get() -> Option<Duration> {
+        #[allow(clippy::question_mark)]
         if habitat_core::env::var(PackageUpdateWorkerPeriod::ENVVAR).is_err() {
             return None;
         }

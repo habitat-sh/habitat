@@ -378,7 +378,7 @@ impl Server {
                             swim_addr: swim_socket_addr,
                             gossip_addr: gossip_socket_addr,
                             suitability_lookup,
-                            data_path: data_path.as_ref().map(|p| p.into()),
+                            data_path: data_path.as_ref().map(std::convert::Into::into),
                             dat_file: None,
                             departed: Arc::new(AtomicBool::new(false)),
                             pause: Arc::new(AtomicBool::new(false)),

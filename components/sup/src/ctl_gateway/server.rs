@@ -515,6 +515,7 @@ impl CtlGatewayServer {
                             // they did not upgrade to TLS. In this case send back an error response.
                             // We do not always send back an error response because it can lead to
                             // confusing error messages on the client.
+                            #[allow(clippy::redundant_closure_for_method_calls)]
                             if let Some(&rustls::TLSError::CorruptMessage) = e.get_ref().and_then(|e| e.downcast_ref()) {
                                 let mut srv_codec = SrvCodec::new().framed(tcp_stream);
                                 let net_err = net::err(ErrCode::TlsHandshakeFailed, format!("TLS handshake failed, err: {}", e));

@@ -107,7 +107,7 @@ impl HabRoot {
         where S: AsRef<Path>
     {
         self.spec_dir(service_group)
-            .join(format!("{}.spec", pkg_name.to_string()))
+            .join(format!("{}.spec", pkg_name))
     }
 
     /// Return the contents of a hook

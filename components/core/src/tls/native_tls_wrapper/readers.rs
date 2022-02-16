@@ -83,7 +83,7 @@ fn populate_cache(cache_path: &Path) -> Result<()> {
     Ok(())
 }
 
-fn process_cache_dir(cache_path: &Path, mut certificates: &mut Vec<Certificate>) {
+fn process_cache_dir(cache_path: &Path, certificates: &mut Vec<Certificate>) {
     match fs::read_dir(cache_path) {
         Ok(entries) => {
             for entry in entries {
@@ -91,7 +91,7 @@ fn process_cache_dir(cache_path: &Path, mut certificates: &mut Vec<Certificate>)
                     Ok(entry) => {
                         let path = entry.path();
                         if path.is_file() {
-                            process_cert_file(&mut certificates, &path);
+                            process_cert_file(certificates, &path);
                         }
                     }
                     Err(err) => debug!("Unable to read cache entry, err = {}", err),

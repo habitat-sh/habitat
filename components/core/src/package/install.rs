@@ -334,10 +334,10 @@ impl PackageInstall {
         match File::open(self.installed_path.join(DEFAULT_CFG_FILE)) {
             Ok(mut file) => {
                 let mut raw = String::new();
+                #[allow(clippy::question_mark)]
                 if file.read_to_string(&mut raw).is_err() {
                     return None;
                 };
-
                 match raw.parse::<Value>() {
                     Ok(v) => Some(v),
                     Err(e) => {

@@ -252,6 +252,7 @@ impl<'a> BuildSpec<'a> {
 
 /// The package identifiers for installed base packages.
 #[derive(Debug)]
+#[allow(dead_code)]
 struct BasePkgIdents {
     /// Installed package identifer for the Habitat CLI package.
     pub hab:      PackageIdent,

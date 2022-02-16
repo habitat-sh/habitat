@@ -57,7 +57,7 @@ Command Parse error:
 {}
 ****************************************
 "#,
-                        err.to_string()
+                        err
                 )
             }
         };

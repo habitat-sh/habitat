@@ -42,6 +42,7 @@ impl Account {
     }
 
     pub fn from_sid(sid: &str) -> Option<Account> {
+        #[allow(clippy::question_mark)]
         let sid = if let Ok(sid) = Sid::from_str(sid) {
             sid
         } else {

@@ -774,7 +774,7 @@ impl AtomicWriter {
         where F: FnOnce(&mut std::fs::File) -> std::result::Result<T, E>,
               E: From<std::io::Error>
     {
-        let r = op(&mut self.tempfile.as_file_mut())?;
+        let r = op(self.tempfile.as_file_mut())?;
         self.finish()?;
         Ok(r)
     }

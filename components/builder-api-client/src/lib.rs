@@ -99,7 +99,7 @@ impl fmt::Display for SchedulerResponse {
                             self.id, self.project_name, self.state));
 
         if let Ok(c) = DateTime::parse_from_rfc3339(&self.created_at) {
-            output.push(format!("Created at: {}", c.to_string()));
+            output.push(format!("Created at: {}", c));
         }
 
         if !self.projects.is_empty() {

@@ -28,6 +28,7 @@ habitat_core::env_config_duration!(
 
 impl SelfUpdatePeriod {
     fn get() -> Option<Duration> {
+        #[allow(clippy::question_mark)]
         if habitat_core::env::var(SelfUpdatePeriod::ENVVAR).is_err() {
             return None;
         }

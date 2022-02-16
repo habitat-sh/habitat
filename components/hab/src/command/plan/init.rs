@@ -171,7 +171,7 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
 }
 
 fn is_git_managed(path: &Path) -> bool {
-    path.join(".git").is_dir() || path.parent().map_or(false, |parent| is_git_managed(parent))
+    path.join(".git").is_dir() || path.parent().map_or(false, is_git_managed)
 }
 
 fn create_with_template(ui: &mut UI, location: &str, template: &str) -> Result<()> {

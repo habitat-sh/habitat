@@ -55,7 +55,7 @@ pub fn package_list(listing: &ListingType) -> Result<Vec<PackageIdent>> {
         ListingType::Ident(ident) => list::package_list_for_ident(&package_path, ident)?,
     };
 
-    packages.sort_unstable_by(|a, b| a.by_parts_cmp(b));
+    packages.sort_unstable_by(habitat_core::package::PackageIdent::by_parts_cmp);
     Ok(packages)
 }
 
