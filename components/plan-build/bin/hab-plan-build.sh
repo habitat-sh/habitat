@@ -305,7 +305,8 @@
 # is but a click away.](#build-phases)
 #
 # # Internals
-source_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+source_dir=$( cd "$( dirname "$(readlink -f ${BASH_SOURCE[0]})" )" && pwd )
+
 source "${source_dir}/public.bash"
 source "${source_dir}/shared.bash"
 source "${source_dir}/environment.bash"
