@@ -691,6 +691,7 @@ impl Manager {
         spec_dir.migrate_specs();
 
         let spec_watcher = SpecWatcher::run(&spec_dir)?;
+        trace!("Created SpecWatcher");
 
         if let Some(config) = cfg.event_stream_config {
             // Collect the FQDN of the running machine

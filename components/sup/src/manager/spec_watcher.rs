@@ -6,10 +6,14 @@ use super::spec_dir::SpecDir;
 use crate::error::{Error,
                    Result};
 use notify::{DebouncedEvent,
+             poll::PollWatcher,
              RecommendedWatcher,
              RecursiveMode,
              Watcher};
-use std::{sync::mpsc,
+use std::{sync::mpsc::{self,
+          Receiver,
+          Sender},
+          env,
           thread::Builder,
           time::Duration};
 
@@ -35,14 +39,24 @@ habitat_core::env_config_duration!(
 // TODO (CM): A strong argument could be made for folding the
 // SpecWatcher functionality into SpecDir itself.
 
+/// Spec watcher type class encapsulation to select watcher
+/// type.  NotifyWatcherType is the default and preferred type
+/// PollWatcherType is less efficient but works on all platforms
+/// as it is agnostic.
+enum SpecWatcherType {
+    NotifyWatcherType,
+    PollWatcherType,
+}
+
 /// Provides an abstraction layer over filesystem notifications for
 /// spec files.
 pub struct SpecWatcher {
     // Not actually used; only holding onto it for lifetime / Drop
     // purposes (`Drop` kills the threads that the watcher spawns to do
     // its work).
-    _watcher: RecommendedWatcher,
-    channel:  mpsc::Receiver<DebouncedEvent>,
+    _watcher: Option<RecommendedWatcher>,
+    _poll_watcher: Option<PollWatcher>,
+    channel:  Receiver<DebouncedEvent>,
 }
 
 impl SpecWatcher {
@@ -84,12 +98,48 @@ impl SpecWatcher {
     /// didn't care what the resulting watcher threads were named,
     /// we'd just use this directly.
     fn new(spec_dir: &SpecDir) -> Result<SpecWatcher> {
-        let (tx, rx) = mpsc::channel();
+        let (tx, rx): (Sender<DebouncedEvent>, Receiver<DebouncedEvent>) = mpsc::channel();
         let delay = SpecWatcherDelay::configured_value();
-        let mut watcher = RecommendedWatcher::new(tx, delay.0)?;
-        watcher.watch(spec_dir, RecursiveMode::NonRecursive)?;
-        Ok(SpecWatcher { _watcher: watcher,
-                         channel:  rx, })
+
+        let mut watcher_type: Option<SpecWatcherType> = None;
+        if let Ok(arch_type) = env::var("HAB_STUDIO_HOST_ARCH") {
+            watcher_type = match arch_type.as_str() {
+                "aarch64-macos" => {
+                    Some(SpecWatcherType::PollWatcherType)
+                },
+                _ => {
+                    Some(SpecWatcherType::NotifyWatcherType)
+                }
+            };
+        } else {
+            trace!("HAB_STUDIO_HOST_ARCH was not set - default is NotifyWatcher");
+        }
+        match watcher_type {
+            Some(SpecWatcherType::PollWatcherType) => {
+                debug!("SpecWatcher - using PollWatcher");
+                let mut watcher = PollWatcher::new(tx, delay.0)?;
+                watcher.watch(spec_dir, RecursiveMode::NonRecursive)?;
+                return Ok(SpecWatcher { _watcher: None,
+                         _poll_watcher: Some(watcher),
+                         channel:  rx, });
+            },
+            Some(SpecWatcherType::NotifyWatcherType) => {
+                debug!("SpecWatcher - using NotifyWatcher");
+                let mut watcher  = RecommendedWatcher::new(tx, delay.0)?;
+                watcher.watch(spec_dir, RecursiveMode::NonRecursive)?;
+                return Ok(SpecWatcher { _watcher: Some(watcher),
+                         _poll_watcher: None,
+                         channel:  rx, });
+            },
+            None => {
+                debug!("SpecWatcher - using NotifyWatcher");
+                let mut watcher  = RecommendedWatcher::new(tx, delay.0)?;
+                watcher.watch(spec_dir, RecursiveMode::NonRecursive)?;
+                return Ok(SpecWatcher { _watcher: Some(watcher),
+                         _poll_watcher: None,
+                         channel:  rx, });
+            }
+        };
     }
 
     /// Returns `true` if _any_ filesystem events were detected in the
