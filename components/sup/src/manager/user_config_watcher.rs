@@ -207,7 +207,7 @@ impl Worker {
                                                  have_events,
                                                  stop_running,
                                                  started_watching)?;
-            },
+            }
             _ => {
                 Worker::worker_loop_default_watcher(path,
                                                     have_events,
@@ -291,7 +291,7 @@ impl Worker {
                                 have_events: SyncSender<()>,
                                 stop_running: Receiver<()>,
                                 started_watching: SyncSender<()>)
-               -> io::Result<()> {
+                                -> io::Result<()> {
         ThreadBuilder::new().name(format!("user-config-watcher-{}", path.display()))
                             .spawn(move || -> liveliness_checker::ThreadUnregistered<(), String> {
                                 let checked_thread = liveliness_checker::mark_thread_alive();

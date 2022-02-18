@@ -90,7 +90,7 @@ impl PeerWatcher {
                                       err);
                             return false;
                         }
-                    },
+                    }
                     Err(e) => {
                         match e {
                             Error::NotifyError(err) => {
@@ -107,7 +107,7 @@ impl PeerWatcher {
                         }
                     }
                 }
-            } 
+            }
             _ => {
                 match default_file_watcher(&path, callbacks) {
                     Ok(mut watcher) => {
@@ -117,7 +117,7 @@ impl PeerWatcher {
                                       err);
                             return false;
                         }
-                    },
+                    }
                     Err(e) => {
                         match e {
                             Error::NotifyError(err) => {
@@ -126,9 +126,9 @@ impl PeerWatcher {
                                           path.display(),
                                           err,
                                           "will try again",);
-                                return false;                                                            
-                            }                                                                            
-                            _ => {                                                                       
+                                return false;
+                            }
+                            _ => {
                                 outputln!("PeerWatcher({}) could not create file watcher, ending \
                                            thread ({})",
                                           path.display(),

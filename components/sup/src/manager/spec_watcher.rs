@@ -115,25 +115,25 @@ impl SpecWatcher {
                 debug!("SpecWatcher - using PollWatcher");
                 let mut watcher = PollWatcher::new(tx, delay.0)?;
                 watcher.watch(spec_dir, RecursiveMode::NonRecursive)?;
-                Ok(SpecWatcher { _watcher: None,
+                Ok(SpecWatcher { _watcher:      None,
                                  _poll_watcher: Some(watcher),
-                                 channel:  rx, })
+                                 channel:       rx, })
             },
             Some(SpecWatcherType::NotifyWatcherType) => {
                 debug!("SpecWatcher - using NotifyWatcher");
                 let mut watcher = RecommendedWatcher::new(tx, delay.0)?;
                 watcher.watch(spec_dir, RecursiveMode::NonRecursive)?;
-                Ok(SpecWatcher { _watcher: Some(watcher),
+                Ok(SpecWatcher { _watcher:      Some(watcher),
                                  _poll_watcher: None,
-                                 channel:  rx, })
+                                 channel:       rx, })
             },
             None => {
                 debug!("SpecWatcher - using NotifyWatcher");
                 let mut watcher = RecommendedWatcher::new(tx, delay.0)?;
                 watcher.watch(spec_dir, RecursiveMode::NonRecursive)?;
-                Ok(SpecWatcher { _watcher: Some(watcher),
+                Ok(SpecWatcher { _watcher:      Some(watcher),
                                  _poll_watcher: None,
-                                 channel:  rx, })
+                                 channel:       rx, })
             }
         }
     }
