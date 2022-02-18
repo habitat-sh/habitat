@@ -5,6 +5,7 @@ use crate::{error::{Error,
 use habitat_common::liveliness_checker;
 use notify::{self,
              DebouncedEvent,
+             PollWatcher,
              RecommendedWatcher,
              RecursiveMode,
              Watcher};
@@ -1115,6 +1116,11 @@ impl Paths {
     }
 }
 
+pub enum FileWatcherType {                    
+    NotifyWatcherType,
+    PollWatcherType,                                     
+}                
+
 /// A regular file watcher.
 ///
 /// This type watches for a regular file at any path. The file does
@@ -1150,6 +1156,16 @@ pub fn default_file_watcher<P, C>(path: P,
     FileWatcher::<C, RecommendedWatcher>::create(path, callbacks)
 }
 
+pub fn poll_file_watcher<P, C>(path: P,
+                                  callbacks: C)
+                                  -> Result<FileWatcher<C, PollWatcher>>
+    where P: Into<PathBuf>,
+          C: Callbacks
+{
+    FileWatcher::<C, PollWatcher>::create(path, callbacks)
+}
+
+
 pub fn default_file_watcher_with_no_initial_event<P, C>(
     path: P,
     callbacks: C)
@@ -1158,6 +1174,17 @@ pub fn default_file_watcher_with_no_initial_event<P, C>(
           C: Callbacks
 {
     FileWatcher::<C, RecommendedWatcher>::create_with_no_initial_event(path, callbacks)
+}
+
+
+pub fn poll_file_watcher_with_no_initial_event<P, C>(
+    path: P,
+    callbacks: C)
+    -> Result<FileWatcher<C, PollWatcher>>
+    where P: Into<PathBuf>,
+          C: Callbacks
+{
+    FileWatcher::<C, PollWatcher>::create_with_no_initial_event(path, callbacks)
 }
 
 impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
