@@ -12,8 +12,8 @@ use notify::{poll::PollWatcher,
              Watcher};
 use std::{env,
           sync::mpsc::{self,
-          Receiver,
-          Sender},
+                       Receiver,
+                       Sender},
           thread::Builder,
           time::Duration};
 
@@ -118,7 +118,7 @@ impl SpecWatcher {
                 Ok(SpecWatcher { _watcher:      None,
                                  _poll_watcher: Some(watcher),
                                  channel:       rx, })
-            },
+            }
             Some(SpecWatcherType::NotifyWatcherType) => {
                 debug!("SpecWatcher - using NotifyWatcher");
                 let mut watcher = RecommendedWatcher::new(tx, delay.0)?;
@@ -126,7 +126,7 @@ impl SpecWatcher {
                 Ok(SpecWatcher { _watcher:      Some(watcher),
                                  _poll_watcher: None,
                                  channel:       rx, })
-            },
+            }
             None => {
                 debug!("SpecWatcher - using NotifyWatcher");
                 let mut watcher = RecommendedWatcher::new(tx, delay.0)?;

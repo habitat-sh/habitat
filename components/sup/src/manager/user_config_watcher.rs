@@ -286,7 +286,7 @@ impl Worker {
 
         Ok(())
     }
- 
+
     fn worker_loop_poll_watcher(path: PathBuf,
                                 have_events: SyncSender<()>,
                                 stop_running: Receiver<()>,
