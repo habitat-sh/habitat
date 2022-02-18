@@ -192,41 +192,37 @@ impl Worker {
                stop_running: Receiver<()>,
                started_watching: SyncSender<()>)
                -> io::Result<()> {
-        let mut watcher_type: Option<FileWatcherType> = None;                                      
-        if let Ok(arch_type) = env::var("HAB_STUDIO_HOST_ARCH") {                                  
-            watcher_type = match arch_type.as_str() {                                              
-                "aarch64-macos" => {                                                               
-                    Some(FileWatcherType::PollWatcherType)                                         
-                },                                                                                 
-                _ => {                                                                             
-                    Some(FileWatcherType::NotifyWatcherType)                                       
-                }                                                                                  
-            };                                                                                     
-        } else {                                                                                  
+        let mut watcher_type: Option<FileWatcherType> = None;
+        if let Ok(arch_type) = env::var("HAB_STUDIO_HOST_ARCH") {
+            watcher_type = match arch_type.as_str() {
+                "aarch64-macos" => Some(FileWatcherType::PollWatcherType),
+                _ => Some(FileWatcherType::NotifyWatcherType),
+            };
+        } else {
             trace!("HAB_STUDIO_HOST_ARCH was not set - default is RecommendedWatcher");
-        }                                                   
+        }
         match watcher_type {
             Some(FileWatcherType::PollWatcherType) => {
                 Worker::worker_loop_poll_watcher(path,
-                    have_events,
-                    stop_running,
-                    started_watching)?;
+                                                 have_events,
+                                                 stop_running,
+                                                 started_watching)?;
             },
             _ => {
                 Worker::worker_loop_default_watcher(path,
-                    have_events,
-                    stop_running,
-                    started_watching)?;
+                                                    have_events,
+                                                    stop_running,
+                                                    started_watching)?;
             }
         }
         Ok(())
     }
 
     fn worker_loop_default_watcher(path: PathBuf,
-               have_events: SyncSender<()>,
-               stop_running: Receiver<()>,
-               started_watching: SyncSender<()>) 
-               -> io::Result<()> {
+                                   have_events: SyncSender<()>,
+                                   stop_running: Receiver<()>,
+                                   started_watching: SyncSender<()>)
+                                   -> io::Result<()> {
         ThreadBuilder::new().name(format!("user-config-watcher-{}", path.display()))
                             .spawn(move || -> liveliness_checker::ThreadUnregistered<(), String> {
                                 let checked_thread = liveliness_checker::mark_thread_alive();
@@ -292,9 +288,9 @@ impl Worker {
     }
  
     fn worker_loop_poll_watcher(path: PathBuf,
-               have_events: SyncSender<()>,
-               stop_running: Receiver<()>,
-               started_watching: SyncSender<()>) 
+                                have_events: SyncSender<()>,
+                                stop_running: Receiver<()>,
+                                started_watching: SyncSender<()>)
                -> io::Result<()> {
         ThreadBuilder::new().name(format!("user-config-watcher-{}", path.display()))
                             .spawn(move || -> liveliness_checker::ThreadUnregistered<(), String> {

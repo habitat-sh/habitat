@@ -1116,9 +1116,9 @@ impl Paths {
     }
 }
 
-pub enum FileWatcherType {                    
+pub enum FileWatcherType {
     NotifyWatcherType,
-    PollWatcherType,                                     
+    PollWatcherType,
 }                
 
 /// A regular file watcher.
@@ -1156,31 +1156,25 @@ pub fn default_file_watcher<P, C>(path: P,
     FileWatcher::<C, RecommendedWatcher>::create(path, callbacks)
 }
 
-pub fn poll_file_watcher<P, C>(path: P,
-                                  callbacks: C)
-                                  -> Result<FileWatcher<C, PollWatcher>>
+pub fn poll_file_watcher<P, C>(path: P, callbacks: C) -> Result<FileWatcher<C, PollWatcher>>
     where P: Into<PathBuf>,
           C: Callbacks
 {
     FileWatcher::<C, PollWatcher>::create(path, callbacks)
 }
 
-
-pub fn default_file_watcher_with_no_initial_event<P, C>(
-    path: P,
-    callbacks: C)
-    -> Result<FileWatcher<C, RecommendedWatcher>>
+pub fn default_file_watcher_with_no_initial_event<P, C>(path: P,
+                                                        callbacks: C)
+                                                        -> Result<FileWatcher<C, RecommendedWatcher>>
     where P: Into<PathBuf>,
           C: Callbacks
 {
     FileWatcher::<C, RecommendedWatcher>::create_with_no_initial_event(path, callbacks)
 }
 
-
-pub fn poll_file_watcher_with_no_initial_event<P, C>(
-    path: P,
-    callbacks: C)
-    -> Result<FileWatcher<C, PollWatcher>>
+pub fn poll_file_watcher_with_no_initial_event<P, C>(path: P,
+                                                     callbacks: C)
+                                                     -> Result<FileWatcher<C, PollWatcher>>
     where P: Into<PathBuf>,
           C: Callbacks
 {

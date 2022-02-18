@@ -65,7 +65,7 @@ fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
 }
 
 #[cfg(all(target_arch = "aarch64", target_os = "macos"))]
-fn set_arch_env_var()  {
+fn set_arch_env_var() {
     env::set_var(STUDIO_HOST_ARCH_ENVVAR, "aarch64-macos".to_string());
     match env::var(STUDIO_HOST_ARCH_ENVVAR) {
         Ok(val) => {
@@ -78,7 +78,7 @@ fn set_arch_env_var()  {
 }
 
 #[cfg(not(target_arch = "aarch64"))]
-fn set_arch_env_var()  {
+fn set_arch_env_var() {
     env::set_var(STUDIO_HOST_ARCH_ENVVAR, "x86_64".to_string());
     match env::var(STUDIO_HOST_ARCH_ENVVAR) {
         Ok(val) => {

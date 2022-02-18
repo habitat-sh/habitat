@@ -5,15 +5,15 @@
 use super::spec_dir::SpecDir;
 use crate::error::{Error,
                    Result};
-use notify::{DebouncedEvent,
-             poll::PollWatcher,
+use notify::{poll::PollWatcher,
+             DebouncedEvent,
              RecommendedWatcher,
              RecursiveMode,
              Watcher};
-use std::{sync::mpsc::{self,
+use std::{env,
+          sync::mpsc::{self,
           Receiver,
           Sender},
-          env,
           thread::Builder,
           time::Duration};
 
@@ -54,9 +54,9 @@ pub struct SpecWatcher {
     // Not actually used; only holding onto it for lifetime / Drop
     // purposes (`Drop` kills the threads that the watcher spawns to do
     // its work).
-    _watcher: Option<RecommendedWatcher>,
+    _watcher:      Option<RecommendedWatcher>,
     _poll_watcher: Option<PollWatcher>,
-    channel:  Receiver<DebouncedEvent>,
+    channel:       Receiver<DebouncedEvent>,
 }
 
 impl SpecWatcher {
@@ -104,12 +104,8 @@ impl SpecWatcher {
         let mut watcher_type: Option<SpecWatcherType> = None;
         if let Ok(arch_type) = env::var("HAB_STUDIO_HOST_ARCH") {
             watcher_type = match arch_type.as_str() {
-                "aarch64-macos" => {
-                    Some(SpecWatcherType::PollWatcherType)
-                },
-                _ => {
-                    Some(SpecWatcherType::NotifyWatcherType)
-                }
+                "aarch64-macos" => Some(SpecWatcherType::PollWatcherType),
+                _ => Some(SpecWatcherType::NotifyWatcherType),
             };
         } else {
             trace!("HAB_STUDIO_HOST_ARCH was not set - default is NotifyWatcher");
@@ -119,27 +115,27 @@ impl SpecWatcher {
                 debug!("SpecWatcher - using PollWatcher");
                 let mut watcher = PollWatcher::new(tx, delay.0)?;
                 watcher.watch(spec_dir, RecursiveMode::NonRecursive)?;
-                return Ok(SpecWatcher { _watcher: None,
-                         _poll_watcher: Some(watcher),
-                         channel:  rx, });
+                Ok(SpecWatcher { _watcher: None,
+                                 _poll_watcher: Some(watcher),
+                                 channel:  rx, })
             },
             Some(SpecWatcherType::NotifyWatcherType) => {
                 debug!("SpecWatcher - using NotifyWatcher");
-                let mut watcher  = RecommendedWatcher::new(tx, delay.0)?;
+                let mut watcher = RecommendedWatcher::new(tx, delay.0)?;
                 watcher.watch(spec_dir, RecursiveMode::NonRecursive)?;
-                return Ok(SpecWatcher { _watcher: Some(watcher),
-                         _poll_watcher: None,
-                         channel:  rx, });
+                Ok(SpecWatcher { _watcher: Some(watcher),
+                                 _poll_watcher: None,
+                                 channel:  rx, })
             },
             None => {
                 debug!("SpecWatcher - using NotifyWatcher");
-                let mut watcher  = RecommendedWatcher::new(tx, delay.0)?;
+                let mut watcher = RecommendedWatcher::new(tx, delay.0)?;
                 watcher.watch(spec_dir, RecursiveMode::NonRecursive)?;
-                return Ok(SpecWatcher { _watcher: Some(watcher),
-                         _poll_watcher: None,
-                         channel:  rx, });
+                Ok(SpecWatcher { _watcher: Some(watcher),
+                                 _poll_watcher: None,
+                                 channel:  rx, })
             }
-        };
+        }
     }
 
     /// Returns `true` if _any_ filesystem events were detected in the
