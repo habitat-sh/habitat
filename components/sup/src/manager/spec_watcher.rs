@@ -2,8 +2,8 @@
 //! on disk. This is how we know when to start, stop, or restart
 //! services in response to the various `hab svc` commands.
 
-use super::{spec_dir::SpecDir,
-            super::sup_watcher::SupWatcher};
+use super::{super::sup_watcher::SupWatcher,
+            spec_dir::SpecDir};
 use crate::error::{Error,
                    Result};
 use notify::{DebouncedEvent,

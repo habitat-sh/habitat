@@ -1144,7 +1144,7 @@ pub struct FileWatcher<C: Callbacks, W: Watcher> {
 pub fn create_file_watcher<P, C>(path: P,
                                  callbacks: C,
                                  ignore_initial: Option<bool>)
-                                  -> Result<FileWatcher<C, SupWatcher>>
+                                 -> Result<FileWatcher<C, SupWatcher>>
     where P: Into<PathBuf>,
           C: Callbacks
 {
@@ -1161,8 +1161,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
     /// Will return `Error::NotifyCreateError` if creating the watcher
     /// fails. In case of watching errors, it returns
     /// `Error::NotifyError`.
-    pub fn create<P>(path: P, callbacks: C, 
-        ignore_initial: Option<bool>) -> Result<Self>
+    pub fn create<P>(path: P, callbacks: C, ignore_initial: Option<bool>) -> Result<Self>
         where P: Into<PathBuf>
     {
         match ignore_initial {
