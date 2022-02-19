@@ -5,7 +5,8 @@
 use crate::{error::{Error,
                     Result},
             manager::{spec_dir::SpecDir,
-                      sup_watcher::SupWatcher}};
+                      sup_watcher::SupWatcher},
+            notify::Watcher};
 use notify::{DebouncedEvent,
              RecursiveMode};
 use std::{sync::mpsc::{self,
