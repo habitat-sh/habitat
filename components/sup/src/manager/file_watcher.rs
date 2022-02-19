@@ -1,3 +1,4 @@
+use super::sup_watcher::SupWatcher;
 use crate::{error::{Error,
                     Result},
             manager::debug::{IndentedStructFormatter,
@@ -22,7 +23,6 @@ use std::{collections::{hash_map::Entry,
                        TryRecvError},
           thread,
           time::Duration};
-use super::sup_watcher::SupWatcher;
 
 pub const WATCHER_DELAY_MS: u64 = 2_000;
 
@@ -1143,7 +1143,7 @@ pub struct FileWatcher<C: Callbacks, W: Watcher> {
 /// the platform.
 pub fn create_file_watcher<P, C>(path: P,
                                  callbacks: C,
-                                 ignore_initial: Option<bool> )
+                                 ignore_initial: Option<bool>)
                                   -> Result<FileWatcher<C, SupWatcher>>
     where P: Into<PathBuf>,
           C: Callbacks
@@ -1156,7 +1156,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
     ///
     /// This will create an instance of `W` and start watching the
     /// paths. When looping the file watcher, it will emit an initial
-    /// "file appeared" event if ignore_initial is Some(false) and the 
+    /// "file appeared" event if ignore_initial is Some(false) and the
     /// watched file existed when the file watcher was created.
     /// Will return `Error::NotifyCreateError` if creating the watcher
     /// fails. In case of watching errors, it returns
@@ -1167,7 +1167,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
     {
         match ignore_initial {
             Some(true) | None => Self::create_instance(path, callbacks, true),
-            Some(false) => Self::create_instance(path, callbacks, false)
+            Some(false) => Self::create_instance(path, callbacks, false),
         }
     }
 
@@ -2903,7 +2903,8 @@ mod tests {
             let additional_dirs = self.get_additional_directories_from_root();
             let callbacks = TestCallbacks::new(&additional_dirs);
             let watcher = FileWatcher::<_, TestWatcher>::create(self.prepend_root(&init_path),
-                                                                callbacks).unwrap_or_else(|_| {
+                                                                callbacks,
+                                                                Some(true)).unwrap_or_else(|_| {
                               panic!("failed to create watcher, debug info:\n{}", self.debug_info,)
                           });
             WatcherSetup { init_path, watcher }

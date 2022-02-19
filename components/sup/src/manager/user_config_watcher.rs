@@ -250,7 +250,7 @@ impl Worker {
                                     thread::sleep(Duration::from_secs(1));
                                 }
                             })?;
-                   
+
         Ok(())
     }
 }

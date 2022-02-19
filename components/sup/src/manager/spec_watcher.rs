@@ -2,8 +2,8 @@
 //! on disk. This is how we know when to start, stop, or restart
 //! services in response to the various `hab svc` commands.
 
-use super::spec_dir::SpecDir;
-use super::sup_watcher::SupWatcher;
+use super::{spec_dir::SpecDir,
+            super::sup_watcher::SupWatcher};
 use crate::error::{Error,
                    Result};
 use notify::{DebouncedEvent,
@@ -42,8 +42,8 @@ pub struct SpecWatcher {
     // Not actually used; only holding onto it for lifetime / Drop
     // purposes (`Drop` kills the threads that the watcher spawns to do
     // its work).
-    _watcher:      SupWatcher,
-    channel:       Receiver<DebouncedEvent>,
+    _watcher: SupWatcher,
+    channel:  Receiver<DebouncedEvent>,
 }
 
 impl SpecWatcher {
@@ -87,7 +87,6 @@ impl SpecWatcher {
     fn new(spec_dir: &SpecDir) -> Result<SpecWatcher> {
         let (tx, rx) = mpsc::channel();
         let delay = SpecWatcherDelay::configured_value();
-    
         let mut watcher = SupWatcher::new(tx, delay.0)?;
         watcher.watch(spec_dir, RecursiveMode::NonRecursive)?;
         Ok(SpecWatcher { _watcher: watcher,

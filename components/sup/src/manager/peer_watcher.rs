@@ -67,21 +67,20 @@ impl PeerWatcher {
 
     fn file_watcher_loop_body(path: &Path, have_events: Arc<AtomicBool>) -> bool {
         let callbacks = PeerCallbacks { have_events };
-        let mut file_watcher = match create_file_watcher(&path, callbacks, Some(true))
-        {
+        let mut file_watcher = match create_file_watcher(&path, callbacks, Some(true)) {
             Ok(watcher) => watcher,
             Err(e) => {
                 match e {
                     Error::NotifyError(err) => {
-                        outputln!("PeerWatcher({}) failed to start watching the \
-                                   directories ({}), {}",
+                        outputln!("PeerWatcher({}) failed to start watching the directories \
+                                   ({}), {}",
                                   path.display(),
                                   err,
                                   "will try again");
                         return false;
                     }
                     _ => {
-                            outputln!("PeerWatcher({}) could not create file watcher, ending thread \
+                        outputln!("PeerWatcher({}) could not create file watcher, ending thread \
                                    ({})",
                                   path.display(),
                                   e);

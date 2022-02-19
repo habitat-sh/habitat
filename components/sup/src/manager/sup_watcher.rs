@@ -7,13 +7,13 @@ use notify::{poll::PollWatcher,
              Result,
              Watcher};
 use std::{env,
-          sync::mpsc::Sender,
           path::Path,
+          sync::mpsc::Sender,
           time::Duration};
 
 pub enum SupWatcher {
     Native(RecommendedWatcher),
-    Fallback(PollWatcher)
+    Fallback(PollWatcher),
 }
 
 impl Watcher for SupWatcher {
@@ -21,19 +21,18 @@ impl Watcher for SupWatcher {
         if let Ok(arch_type) = env::var("HAB_STUDIO_HOST_ARCH") {
             match arch_type.as_str() {
                 "aarch64-macos" => Ok(SupWatcher::Fallback(PollWatcher::new_raw(tx).unwrap())),
-                _ => Ok(SupWatcher::Native(RecommendedWatcher::new_raw(tx).unwrap()))
+                _ => Ok(SupWatcher::Native(RecommendedWatcher::new_raw(tx).unwrap())),
             }
         } else {
             Ok(SupWatcher::Native(RecommendedWatcher::new_raw(tx).unwrap()))
         }
-
     }
 
     fn new(tx: Sender<DebouncedEvent>, delay: Duration) -> Result<Self> {
         if let Ok(arch_type) = env::var("HAB_STUDIO_HOST_ARCH") {
             match arch_type.as_str() {
                 "aarch64-macos" => Ok(SupWatcher::Fallback(PollWatcher::new(tx, delay).unwrap())),
-                _ => Ok(SupWatcher::Native(RecommendedWatcher::new(tx, delay).unwrap()))
+                _ => Ok(SupWatcher::Native(RecommendedWatcher::new(tx, delay).unwrap())),
             }
         } else {
             Ok(SupWatcher::Native(RecommendedWatcher::new(tx, delay).unwrap()))
