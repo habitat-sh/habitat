@@ -1,15 +1,12 @@
 use crate::{error::{Error,
                     Result},
-            manager::file_watcher::{default_file_watcher,
-                                    poll_file_watcher,
-                                    Callbacks,
-                                    FileWatcherType}};
+            manager::file_watcher::{create_file_watcher,
+                                    Callbacks}};
 use habitat_butterfly::member::Member;
 use habitat_common::{liveliness_checker,
                      outputln,
                      types::GossipListenAddr};
-use std::{env,
-          fs::File,
+use std::{fs::File,
           io::{BufRead,
                BufReader},
           net::{SocketAddr,
@@ -70,76 +67,34 @@ impl PeerWatcher {
 
     fn file_watcher_loop_body(path: &Path, have_events: Arc<AtomicBool>) -> bool {
         let callbacks = PeerCallbacks { have_events };
-        let mut watcher_type: Option<FileWatcherType> = None;
-        if let Ok(arch_type) = env::var("HAB_STUDIO_HOST_ARCH") {
-            watcher_type = match arch_type.as_str() {
-                "aarch64-macos" => Some(FileWatcherType::PollWatcherType),
-                _ => Some(FileWatcherType::NotifyWatcherType),
-            };
-        } else {
-            trace!("HAB_STUDIO_HOST_ARCH was not set - default is RecommendedWatcher");
-        }
-
-        match watcher_type {
-            Some(FileWatcherType::PollWatcherType) => {
-                match poll_file_watcher(&path, callbacks) {
-                    Ok(mut watcher) => {
-                        if let Err(err) = watcher.run() {
-                            outputln!("PeerWatcher({}) error during watching ({}), restarting",
-                                      path.display(),
-                                      err);
-                            return false;
-                        }
+        let mut file_watcher = match create_file_watcher(&path, callbacks, Some(true))
+        {
+            Ok(watcher) => watcher,
+            Err(e) => {
+                match e {
+                    Error::NotifyError(err) => {
+                        outputln!("PeerWatcher({}) failed to start watching the \
+                                   directories ({}), {}",
+                                  path.display(),
+                                  err,
+                                  "will try again");
+                        return false;
                     }
-                    Err(e) => {
-                        match e {
-                            Error::NotifyError(err) => {
-                                outputln!("PeerWatcher({}) failed to start watching the \
-                                           directories ({}), {}",
-                                          path.display(),
-                                          err,
-                                          "will try again");
-                                return false;
-                            }
-                            _ => {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-            _ => {
-                match default_file_watcher(&path, callbacks) {
-                    Ok(mut watcher) => {
-                        if let Err(err) = watcher.run() {
-                            outputln!("PeerWatcher({}) error during watching ({}), restarting",
-                                      path.display(),
-                                      err);
-                            return false;
-                        }
-                    }
-                    Err(e) => {
-                        match e {
-                            Error::NotifyError(err) => {
-                                outputln!("PeerWatcher({}) failed to start watching the \
-                                           directories ({}), {}",
-                                          path.display(),
-                                          err,
-                                          "will try again",);
-                                return false;
-                            }
-                            _ => {
-                                outputln!("PeerWatcher({}) could not create file watcher, ending \
-                                           thread ({})",
-                                          path.display(),
-                                          e);
-                                return true;
-                            }
-                        }
+                    _ => {
+                            outputln!("PeerWatcher({}) could not create file watcher, ending thread \
+                                   ({})",
+                                  path.display(),
+                                  e);
+                        return true;
                     }
                 }
             }
         };
+        if let Err(err) = file_watcher.run() {
+            outputln!("PeerWatcher({}) error during watching ({}), restarting",
+                      path.display(),
+                      err);
+        }
         false
     }
 

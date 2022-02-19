@@ -5,8 +5,6 @@ use crate::{error::{Error,
 use habitat_common::liveliness_checker;
 use notify::{self,
              DebouncedEvent,
-             PollWatcher,
-             RecommendedWatcher,
              RecursiveMode,
              Watcher};
 use std::{collections::{hash_map::Entry,
@@ -24,6 +22,7 @@ use std::{collections::{hash_map::Entry,
                        TryRecvError},
           thread,
           time::Duration};
+use super::sup_watcher::SupWatcher;
 
 pub const WATCHER_DELAY_MS: u64 = 2_000;
 
@@ -1116,11 +1115,6 @@ impl Paths {
     }
 }
 
-pub enum FileWatcherType {
-    NotifyWatcherType,
-    PollWatcherType,
-}
-
 /// A regular file watcher.
 ///
 /// This type watches for a regular file at any path. The file does
@@ -1147,39 +1141,14 @@ pub struct FileWatcher<C: Callbacks, W: Watcher> {
 
 /// Convenience function for returning a new file watcher that matches
 /// the platform.
-pub fn default_file_watcher<P, C>(path: P,
-                                  callbacks: C)
-                                  -> Result<FileWatcher<C, RecommendedWatcher>>
+pub fn create_file_watcher<P, C>(path: P,
+                                 callbacks: C,
+                                 ignore_initial: Option<bool> )
+                                  -> Result<FileWatcher<C, SupWatcher>>
     where P: Into<PathBuf>,
           C: Callbacks
 {
-    FileWatcher::<C, RecommendedWatcher>::create(path, callbacks)
-}
-
-pub fn poll_file_watcher<P, C>(path: P, callbacks: C) -> Result<FileWatcher<C, PollWatcher>>
-    where P: Into<PathBuf>,
-          C: Callbacks
-{
-    FileWatcher::<C, PollWatcher>::create(path, callbacks)
-}
-
-pub fn default_file_watcher_with_no_initial_event<P, C>(
-    path: P,
-    callbacks: C)
-    -> Result<FileWatcher<C, RecommendedWatcher>>
-    where P: Into<PathBuf>,
-          C: Callbacks
-{
-    FileWatcher::<C, RecommendedWatcher>::create_with_no_initial_event(path, callbacks)
-}
-
-pub fn poll_file_watcher_with_no_initial_event<P, C>(path: P,
-                                                     callbacks: C)
-                                                     -> Result<FileWatcher<C, PollWatcher>>
-    where P: Into<PathBuf>,
-          C: Callbacks
-{
-    FileWatcher::<C, PollWatcher>::create_with_no_initial_event(path, callbacks)
+    FileWatcher::<C, SupWatcher>::create(path, callbacks, ignore_initial)
 }
 
 impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
@@ -1187,32 +1156,19 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
     ///
     /// This will create an instance of `W` and start watching the
     /// paths. When looping the file watcher, it will emit an initial
-    /// "file appeared" event if the watched file existed when the
-    /// file watcher was created.
-    ///
+    /// "file appeared" event if ignore_initial is Some(false) and the 
+    /// watched file existed when the file watcher was created.
     /// Will return `Error::NotifyCreateError` if creating the watcher
     /// fails. In case of watching errors, it returns
     /// `Error::NotifyError`.
-    pub fn create<P>(path: P, callbacks: C) -> Result<Self>
+    pub fn create<P>(path: P, callbacks: C, 
+        ignore_initial: Option<bool>) -> Result<Self>
         where P: Into<PathBuf>
     {
-        Self::create_instance(path, callbacks, true)
-    }
-
-    /// Creates a new `FileWatcher`.
-    ///
-    /// This will create an instance of `W` and start watching the
-    /// paths. When looping the file watcher, it will not emit any
-    /// initial "file appeared" event even if the watched file existed
-    /// when the file watcher was created.
-    ///
-    /// Will return `Error::NotifyCreateError` if creating the watcher
-    /// fails. In case of watching errors, it returns
-    /// `Error::NotifyError`.
-    pub fn create_with_no_initial_event<P>(path: P, callbacks: C) -> Result<Self>
-        where P: Into<PathBuf>
-    {
-        Self::create_instance(path, callbacks, false)
+        match ignore_initial {
+            Some(true) | None => Self::create_instance(path, callbacks, true),
+            Some(false) => Self::create_instance(path, callbacks, false)
+        }
     }
 
     // Creates an instance of the FileWatcher.

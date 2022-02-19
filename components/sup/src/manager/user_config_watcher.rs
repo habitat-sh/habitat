@@ -1,7 +1,5 @@
-use super::file_watcher::{default_file_watcher_with_no_initial_event,
-                          poll_file_watcher_with_no_initial_event,
-                          Callbacks,
-                          FileWatcherType};
+use super::file_watcher::{create_file_watcher,
+                          Callbacks};
 use crate::manager::service::Service;
 use habitat_common::{liveliness_checker,
                      outputln,
@@ -9,7 +7,6 @@ use habitat_common::{liveliness_checker,
 use habitat_core::{fs::USER_CONFIG_FILE,
                    service::ServiceGroup};
 use std::{collections::HashMap,
-          env,
           io,
           path::{Path,
                  PathBuf},
@@ -192,37 +189,6 @@ impl Worker {
                stop_running: Receiver<()>,
                started_watching: SyncSender<()>)
                -> io::Result<()> {
-        let mut watcher_type: Option<FileWatcherType> = None;
-        if let Ok(arch_type) = env::var("HAB_STUDIO_HOST_ARCH") {
-            watcher_type = match arch_type.as_str() {
-                "aarch64-macos" => Some(FileWatcherType::PollWatcherType),
-                _ => Some(FileWatcherType::NotifyWatcherType),
-            };
-        } else {
-            trace!("HAB_STUDIO_HOST_ARCH was not set - default is RecommendedWatcher");
-        }
-        match watcher_type {
-            Some(FileWatcherType::PollWatcherType) => {
-                Worker::worker_loop_poll_watcher(path,
-                                                 have_events,
-                                                 stop_running,
-                                                 started_watching)?;
-            }
-            _ => {
-                Worker::worker_loop_default_watcher(path,
-                                                    have_events,
-                                                    stop_running,
-                                                    started_watching)?;
-            }
-        }
-        Ok(())
-    }
-
-    fn worker_loop_default_watcher(path: PathBuf,
-                                   have_events: SyncSender<()>,
-                                   stop_running: Receiver<()>,
-                                   started_watching: SyncSender<()>)
-                                   -> io::Result<()> {
         ThreadBuilder::new().name(format!("user-config-watcher-{}", path.display()))
                             .spawn(move || -> liveliness_checker::ThreadUnregistered<(), String> {
                                 let checked_thread = liveliness_checker::mark_thread_alive();
@@ -231,8 +197,9 @@ impl Worker {
                                        path.display(),);
                                 let callbacks = UserConfigCallbacks { have_events };
                                 let mut file_watcher =
-                                    match default_file_watcher_with_no_initial_event(&path,
-                                                                                     callbacks)
+                                    match create_file_watcher(&path,
+                                                               callbacks,
+                                                               Some(false))
                                     {
                                         Ok(w) => w,
                                         Err(e) => {
@@ -283,75 +250,7 @@ impl Worker {
                                     thread::sleep(Duration::from_secs(1));
                                 }
                             })?;
-
-        Ok(())
-    }
-
-    fn worker_loop_poll_watcher(path: PathBuf,
-                                have_events: SyncSender<()>,
-                                stop_running: Receiver<()>,
-                                started_watching: SyncSender<()>)
-                                -> io::Result<()> {
-        ThreadBuilder::new().name(format!("user-config-watcher-{}", path.display()))
-                            .spawn(move || -> liveliness_checker::ThreadUnregistered<(), String> {
-                                let checked_thread = liveliness_checker::mark_thread_alive();
-
-                                debug!("UserConfigWatcher({}) worker thread starting",
-                                       path.display(),);
-                                let callbacks = UserConfigCallbacks { have_events };
-                                let mut file_watcher =
-                                    match poll_file_watcher_with_no_initial_event(&path,
-                                                                                     callbacks)
-                                    {
-                                        Ok(w) => w,
-                                        Err(e) => {
-                                            let msg = format!("UserConfigWatcher({}) could not \
-                                                               start notifier, ending thread ({})",
-                                                              path.display(),
-                                                              e,);
-                                            outputln!("{}", msg);
-                                            return checked_thread.unregister(Err(msg));
-                                        }
-                                    };
-
-                                let _ = started_watching.try_send(());
-
-                                loop {
-                                    let checked_thread = liveliness_checker::mark_thread_alive();
-
-                                    match stop_running.try_recv() {
-                                        // As long as the `stop_running` channel is
-                                        // empty, this branch will execute on every
-                                        // iteration.
-                                        Err(TryRecvError::Empty) => {
-                                            if let Err(e) = file_watcher.single_iteration() {
-                                                let msg = format!("UserConfigWatcher({}) could \
-                                                                   not run notifier, ending \
-                                                                   thread ({})",
-                                                                  path.display(),
-                                                                  e,);
-                                                outputln!("{}", msg);
-                                                break checked_thread.unregister(Err(msg));
-                                            };
-                                        }
-
-                                        // If we receive a message on the channel, we stop.
-                                        Ok(_) => break checked_thread.unregister(Ok(())),
-
-                                        // If the channel is disconnected, we stop as well.
-                                        Err(TryRecvError::Disconnected) => {
-                                            let msg = format!("UserConfigWatcher({}) worker \
-                                                               thread failed to receive on \
-                                                               channel",
-                                                              path.display(),);
-                                            debug!("{}", msg);
-                                            break checked_thread.unregister(Err(msg));
-                                        }
-                                    }
-
-                                    thread::sleep(Duration::from_secs(1));
-                                }
-                            })?;
+                   
         Ok(())
     }
 }
