@@ -2,13 +2,16 @@
 //! on disk. This is how we know when to start, stop, or restart
 //! services in response to the various `hab svc` commands.
 
-use super::{super::sup_watcher::SupWatcher,
-            spec_dir::SpecDir};
-use crate::error::{Error,
-                   Result};
+//use super::{super::sup_watcher::SupWatcher,
+//            spec_dir::SpecDir};
+//use crate::error::{Error,
+//                   Result};
+use crate::{error::{Error,
+                    Result},
+            manager::{sup_watcher::SupWatcher,
+                      spec_dir::SpecDir}};
 use notify::{DebouncedEvent,
-             RecursiveMode,
-             Watcher};
+             RecursiveMode};
 use std::{sync::mpsc::{self,
                        Receiver},
           thread::Builder,
