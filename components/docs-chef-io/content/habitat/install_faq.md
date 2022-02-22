@@ -39,4 +39,4 @@ If you're staunchly in the anti-curl-bash camp, you can get the latest packages 
 
 **Q: How do I install `hab` across my server fleet?**
 
-A: For the most part, we leave that up to you. You could just use the aforementioned curl-bash with your provisioner of choice. If your app was dockerized with Chef Habitat then you won't even need to ask this question, because you'll have everything you need inside your container. We are working on first class Mesosphere DC/OS, and Cloud Foundry integrations - which you can keep up to date on in our [Apache Mesos and DC/OS documentation]({{< relref "mesos_dcos" >}}) and [blog](https://blog.chef.io/).
+A: For the most part, we leave that up to you. You could just use the aforementioned curl-bash with your provisioner of choice. If your app was dockerized with Chef Habitat then you won't even need to ask this question, because you'll have everything you need inside your container. We are working on first class Mesosphere DC/OS, and Cloud Foundry integrations - which you can keep up to date on in our [Apache Mesos and DC/OS documentation]({{< relref "mesos_dcos" >}}) and [blog](https://www.chef.io/blog).
