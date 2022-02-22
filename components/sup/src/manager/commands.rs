@@ -42,7 +42,7 @@ pub fn service_cfg_msr(mgr: &ManagerState,
                                                     Some(protocol::types::service_cfg::Format::Toml
                                                          as i32),
                                                 default: None, };
-    for service in mgr.services.lock_msr().services() {
+    for service in mgr.services.lock_msr().running_services() {
         if service.pkg.ident.satisfies(&ident) {
             if let Some(ref cfg) = service.cfg.default {
                 msg.default =

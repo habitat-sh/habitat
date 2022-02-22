@@ -70,6 +70,7 @@ use habitat_core::{crypto::Blake2bHash,
                              PackageInstall},
                    service::{ServiceBind,
                              ServiceGroup},
+                   util::retry::Retry,
                    ChannelIdent};
 use habitat_launcher_client::LauncherCli;
 use habitat_sup_protocol::types::BindingMode;
@@ -93,7 +94,8 @@ use std::{self,
           result,
           sync::{Arc,
                  Mutex},
-          time::SystemTime};
+          time::{Duration,
+                 SystemTime}};
 
 static LOGKEY: &str = "SR";
 
@@ -170,6 +172,50 @@ enum InitializationState {
     Initializing,
     InitializerFinished,
     Initialized,
+}
+
+#[derive(Debug)]
+pub struct PersistentServiceWrapper {
+    run_state: ServiceRunState,
+    inner:     Option<Service>,
+}
+
+#[derive(Debug, Default)]
+struct ServiceRunState {
+    ticks:                     u64,
+    restart_attempts:          u64,
+    last_initialization_state: Option<InitializationState>,
+    last_retry:                Option<Retry>,
+}
+
+impl PersistentServiceWrapper {
+    pub fn new(service: Service) -> PersistentServiceWrapper {
+        PersistentServiceWrapper { run_state: ServiceRunState::default(),
+                                 inner:     Some(service), }
+    }
+
+    pub fn service(&self) -> Option<&Service> { self.inner.as_ref() }
+
+    pub fn service_mut(&mut self) -> Option<&mut Service> { self.inner.as_mut() }
+
+    pub fn start(&mut self, service: Service) { self.inner = Some(service) }
+
+    pub fn shutdown(&mut self) -> Option<Service> { self.inner.take() }
+
+    pub fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> Option<&Service> {
+        match &mut self.inner {
+            Some(ref mut service) => {
+                debug!("Starting service tick with persistent state: {:?}",
+                       self.run_state);
+                if service.tick(&mut self.run_state, census_ring, launcher) {
+                    self.inner.as_ref()
+                } else {
+                    None
+                }
+            }
+            None => None,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -491,7 +537,7 @@ impl Service {
     /// See also `Service::reattach`, as these methods should
     /// generally be mirror images of each other.
     pub fn detach(&mut self) {
-        debug!("Detatching service {}", self.pkg.ident);
+        debug!("Detaching service {}", self.pkg.ident);
         self.stop_initialize();
         self.stop_post_run();
         self.stop_health_checks();
@@ -533,7 +579,12 @@ impl Service {
     /// Performs updates and executes hooks.
     ///
     /// Returns `true` if the service was marked to be restarted or reconfigured.
-    pub fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> bool {
+    fn tick(&mut self,
+            run_state: &mut ServiceRunState,
+            census_ring: &CensusRing,
+            launcher: &LauncherCli)
+            -> bool {
+        run_state.ticks += 1;
         // We may need to block the service from starting until all
         // its binds are satisfied
         if !self.initialized() {
@@ -566,7 +617,7 @@ impl Service {
 
         match self.spec.topology {
             Topology::Standalone => {
-                self.execute_hooks(launcher, &template_update);
+                self.execute_hooks(run_state, launcher, &template_update);
             }
             Topology::Leader => {
                 let census_group =
@@ -606,7 +657,7 @@ impl Service {
                                       leader_id.to_string());
                             self.last_election_status = census_group.election_status;
                         }
-                        self.execute_hooks(launcher, &template_update);
+                        self.execute_hooks(run_state, launcher, &template_update);
                     }
                 }
             }
@@ -1012,7 +1063,10 @@ impl Service {
     }
 
     /// Returns `true` if the service was marked to be restarted or reconfigured.
-    fn execute_hooks(&mut self, launcher: &LauncherCli, template_update: &TemplateUpdate) -> bool {
+    fn execute_hooks(&mut self,
+                     run_state: &mut ServiceRunState,
+                     launcher: &LauncherCli,
+                     template_update: &TemplateUpdate) {
         let up = self.check_process(launcher);
         // It is ok that we do not hold this lock while we are performing the match. If we
         // transistion states while we are matching, we will catch the new state on the next tick.
@@ -1045,15 +1099,13 @@ impl Service {
                     // the `stop` future with additional functionality. Can we
                     // refactor to make this flag unnecessary?
                     self.needs_restart = true;
-                    return true;
+                    run_state.restart_attempts += 1;
                 } else if template_update.needs_reconfigure() {
                     // Only reconfigure if we did NOT restart the service
                     self.reconfigure();
-                    return true;
                 }
             }
         };
-        false
     }
 
     /// Run file-updated hook if present.
