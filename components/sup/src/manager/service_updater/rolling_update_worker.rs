@@ -52,6 +52,7 @@ enum FollowerUpdateTurnEvent {
 /// When an update is detected, the leader is updated and each follower takes a turn to update.
 pub struct RollingUpdateWorker {
     service_group:         ServiceGroup,
+    ident:                 PackageIdent,
     topology:              Topology,
     package_update_worker: PackageUpdateWorker,
     census_ring:           Arc<RwLock<CensusRing>>,
@@ -65,6 +66,7 @@ impl RollingUpdateWorker {
                period: Duration)
                -> Self {
         Self { service_group: service.service_group.clone(),
+               ident: service.spec_ident(),
                topology: service.topology(),
                package_update_worker: PackageUpdateWorker::new(service, period),
                census_ring,
@@ -203,10 +205,10 @@ impl RollingUpdateWorker {
                                    self.service_group);
                             break FollowerUpdateStartEvent::PromotedToLeader;
                         }
-                        if leader.pkg != me.pkg {
+                        if leader.pkg != self.ident {
                             // The leader has a new package starting a rolling update
                             debug!("'{}' started a rolling update: leader='{}' follower='{}'",
-                                   self.service_group, leader.pkg, me.pkg);
+                                   self.service_group, leader.pkg, self.ident);
                             break FollowerUpdateStartEvent::UpdateTo(leader.pkg.clone());
                         } else {
                             // The leader still has the same package as this follower so an update
@@ -255,7 +257,7 @@ impl RollingUpdateWorker {
                             debug!("'{}' is in a rolling update but its leader died. Waiting for \
                                     new leader to finish updating: leader='{}' peer='{}' \
                                     follower='{}' update_to='{}'",
-                                   self.service_group, leader.pkg, peer.pkg, me.pkg, update_to);
+                                   self.service_group, leader.pkg, peer.pkg, self.ident, update_to);
                         } else if peer.pkg == update_to {
                             // It is now this followers turn. The previous peer is done updating.
                             // The first time this condition is true the previous peer is the
@@ -264,7 +266,7 @@ impl RollingUpdateWorker {
                             // another.
                             debug!("'{}' is in a rolling update and it is this followers turn to \
                                     update: leader='{}' peer='{}' follower='{}' update_to='{}'",
-                                   self.service_group, leader.pkg, peer.pkg, me.pkg, update_to);
+                                   self.service_group, leader.pkg, peer.pkg, self.ident, update_to);
                             break FollowerUpdateTurnEvent::UpdateTo(update_to);
                         } else {
                             // It is not this followers turn to update. The previous peer has not
@@ -272,7 +274,7 @@ impl RollingUpdateWorker {
                             debug!("'{}' is in a rolling update but it is not this followers \
                                     turn to update: leader='{}' peer='{}' follower='{}' \
                                     update_to='{}'",
-                                   self.service_group, leader.pkg, peer.pkg, me.pkg, update_to);
+                                   self.service_group, leader.pkg, peer.pkg, self.ident, update_to);
                         }
                     }
                     _ => {
