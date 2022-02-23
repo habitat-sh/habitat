@@ -10,7 +10,7 @@ gh_repo = "habitat"
     parent = "habitat/reference"
 +++
 
-Chef Habitat allows you to use [Handlebars-based](http://handlebarsjs.com) tuneables in your plan, and you can also use both built-in Handlebars helpers and Chef Habitat-specific helpers in defining your configuration logic.
+Chef Habitat allows you to use [Handlebars-based](https://handlebarsjs.com/) tuneables in your plan, and you can also use both built-in Handlebars helpers and Chef Habitat-specific helpers in defining your configuration logic.
 
 ## Built-in Helpers
 
@@ -25,7 +25,7 @@ The syntax is the same for all block expressions and looks like this:
 {{/helper}}
 ```
 
-Chef Habitat supports the standard [built-in helpers](https://handlebarsjs.com/builtin_helpers.html):
+Chef Habitat supports the standard [built-in helpers](https://handlebarsjs.com/guide/#built-in-helpers):
 
 - `if`
 - `unless`

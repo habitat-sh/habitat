@@ -10,11 +10,12 @@ gh_repo = "habitat"
     parent = "habitat/containers"
     weight = 70
 +++
+
 [Apache Mesos](https://mesos.apache.org/) is an open source distributed systems kernel and the distributed systems kernel for [Mesosphere's DC/OS](https://dcos.io) distributed platform.
 
 ## Mesos Containerizers
 
-Mesos has support for [containerizers](https://mesos.apache.org/documentation/latest/containerizer/) for running commands and applications within isolated containers. Mesos supports Docker and its own [Mesos containerizer](https://mesos.apache.org/documentation/latest/mesos-containerizer/) format. The Mesos containerizer provides lightweight containerization with `cgroups/namespaces` isolation without actual isolation. The `hab pkg export mesos` command creates a mostly empty base filesystem with the application and the Chef Habitat Supervisor and packages it into a compressed tarball.
+Mesos has support for [containerizers](https://mesos.apache.org/documentation/latest/containerizers/) for running commands and applications within isolated containers. Mesos supports Docker and its own [Mesos containerizer](https://mesos.apache.org/documentation/latest/mesos-containerizer/) format. The Mesos containerizer provides lightweight containerization with `cgroups/namespaces` isolation without actual isolation. The `hab pkg export mesos` command creates a mostly empty base filesystem with the application and the Chef Habitat Supervisor and packages it into a compressed tarball.
 
 ## Marathon Applications
 
@@ -82,6 +83,6 @@ This is a basic integration, there are many improvements yet to be made. Here ar
  * Marathon environment variables are not passed into the Chef Habitat package "cmd" yet.
  * Networking ports exposed by Chef Habitat need to be added to the JSON.
  * The Chef Habitat gossip protocol needs to be included as a default exposed port.
- * If Marathon is running the [artifact store](https://mesosphere.github.io/marathon/docs/artifact-store.html), support uploading the tarball directly into it.
+ * If Marathon is running the [artifact store](https://mesosphere.github.io/marathon/docs/), support uploading the tarball directly into it.
  * Upload applications directly to the [Marathon application API](https://mesosphere.github.io/marathon/docs/application-basics.html).
  * Marathon supports unpacking several archive formats. Native `.hart` support could be added directly to Marathon.
