@@ -1,7 +1,6 @@
 pub mod docker;
 #[cfg(not(windows))]
 pub mod posix_perm;
-pub mod retry;
 pub mod serde;
 pub mod sys;
 pub mod text_render;

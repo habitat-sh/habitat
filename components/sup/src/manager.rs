@@ -44,6 +44,7 @@ use crate::{census::{CensusRing,
                     EventStreamConfig},
             http_gateway,
             lock_file::LockFile,
+            manager::service::RestartState,
             util::pkg,
             VERSION};
 use cpu_time::ProcessTime;
@@ -476,7 +477,13 @@ pub(crate) mod sync {
     impl<'a> ManagerServicesReadGuard<'a> {
         fn new(lock: &'a Lock<ManagerServicesInner>) -> Self { Self(lock.read()) }
 
-        pub fn services(&self) -> impl Iterator<Item = &PersistentServiceWrapper> { self.0.values() }
+        pub fn services(&self) -> impl Iterator<Item = &PersistentServiceWrapper> {
+            self.0.values()
+        }
+
+        pub fn get(&self, key: &PackageIdent) -> Option<&PersistentServiceWrapper> {
+            self.0.get(key)
+        }
 
         pub fn running_services(&self) -> impl Iterator<Item = &Service> {
             self.0.values().filter_map(|state| state.service())
@@ -492,7 +499,7 @@ pub(crate) mod sync {
             self.0.iter()
         }
 
-        pub fn start(&mut self, key: PackageIdent, value: Service) {
+        pub fn insert(&mut self, key: PackageIdent, value: Service) {
             if let Some(state) = self.0.get_mut(&key) {
                 state.start(value);
             } else {
@@ -502,10 +509,6 @@ pub(crate) mod sync {
 
         pub fn remove(&mut self, key: &PackageIdent) -> Option<PersistentServiceWrapper> {
             self.0.remove(key)
-        }
-
-        pub fn stop_for_restart(&mut self, key: &PackageIdent) -> Option<Service> {
-            self.0.get_mut(key).and_then(|state| state.shutdown())
         }
 
         pub fn get_mut(&mut self, key: &PackageIdent) -> Option<&mut PersistentServiceWrapper> {
@@ -521,7 +524,9 @@ pub(crate) mod sync {
         }
 
         pub fn drain_services(&mut self) -> impl Iterator<Item = Service> + '_ {
-            self.0.drain().filter_map(|(_, mut state)| state.shutdown())
+            self.0
+                .drain()
+                .filter_map(|(_, mut state)| state.shutdown(false))
         }
     }
 
@@ -921,7 +926,7 @@ impl Manager {
         self.state
             .services
             .lock_msw()
-            .start(service.spec_ident(), service);
+            .insert(service.spec_ident(), service);
     }
 
     // If we ever need to modify this function, it would be an excellent opportunity to
@@ -1219,9 +1224,12 @@ impl Manager {
                 // this var goes out of scope
                 #[allow(unused_variables)]
                 let service_timer = service_hist.start_timer();
-                if let Some(service) = service_state.tick(&self.census_ring.read(), &self.launcher)
-                {
-                    self.gossip_latest_service_rumor_rsw_mlw_rhw(service);
+                if service_state.tick(&self.census_ring.read(), &self.launcher) {
+                    self.gossip_latest_service_rumor_rsw_mlw_rhw(service_state.service().expect("Service missing in PersistentServiceWrapper"));
+                }
+                if service_state.is_ready_for_restart() {
+                    debug!("Service ready to restart, setting reconciliation flag");
+                    self.services_need_reconciliation.set()
                 }
             }
 
@@ -1311,29 +1319,31 @@ impl Manager {
 
         let mut state_services = self.state.services.lock_msw();
         let mut idents_to_restart_and_latest_desired_on_restart = Vec::new();
-        let running_services =
-            state_services.iter().filter_map(|(ident, service_state)| {
-                                     service_state.service().map(|service| (ident, service))
-                                 });
-        for (ident, service) in running_services {
-            if let Some(new_ident) = service_updater.has_update(&service.service_group) {
-                outputln!("Restarting {} with package {}", ident, new_ident);
-                event::service_update_started(service, &new_ident);
-                // The supervisor always runs the latest package on disk. When we have an update
-                // ensure that the lastest package on disk is the package we updated to.
-                idents_to_restart_and_latest_desired_on_restart.push((ident.clone(),
-                                                                      Some(new_ident)));
-            } else if service.needs_restart {
-                idents_to_restart_and_latest_desired_on_restart.push((ident.clone(), None));
+        for (ident, service_state) in state_services.iter() {
+            if let Some(service) = service_state.service() {
+                if let Some(new_ident) = service_updater.has_update(&service.service_group) {
+                    outputln!("Restarting {} with package {}", ident, new_ident);
+                    event::service_update_started(service, &new_ident);
+                    // The supervisor always runs the latest package on disk. When we have an update
+                    // ensure that the lastest package on disk is the package we updated to.
+                    idents_to_restart_and_latest_desired_on_restart.push((ident.clone(),
+                                                                          Some(new_ident)));
+                } else if service_state.restart_state() == RestartState::NeedsRestart {
+                    idents_to_restart_and_latest_desired_on_restart.push((ident.clone(), None));
+                } else {
+                    trace!("No restart required for {}", ident);
+                };
             } else {
-                trace!("No restart required for {}", ident);
-            };
+                trace!("Restart in progress for {}", ident);
+            }
         }
 
         for (ident, latest_desired_on_restart) in idents_to_restart_and_latest_desired_on_restart {
             // unwrap is safe because we've to the write lock, and we
             // know there's a value present at this key.
-            let service = state_services.stop_for_restart(&ident).unwrap();
+            let service = state_services.get_mut(&ident)
+                                        .and_then(|service_state| service_state.shutdown(true))
+                                        .unwrap();
             // TODO (CM): In the future, when service start up is
             // future-based, we'll want to have an actual "restart"
             // future, that queues up the start future after the stop
@@ -1514,7 +1524,7 @@ impl Manager {
     /// * `ManagerServices::inner` (write)
     fn stop_service_gsw_msw(&mut self, ident: &PackageIdent, shutdown_input: &ShutdownInput) {
         if let Some(mut service_state) = self.remove_service_from_state_msw(ident) {
-            if let Some(service) = service_state.shutdown() {
+            if let Some(service) = service_state.shutdown(false) {
                 let future = self.stop_service_future_gsw(service, None, Some(shutdown_input));
                 tokio::spawn(future);
             }
@@ -1655,12 +1665,6 @@ impl Manager {
         self.state.services.lock_msw().remove(ident)
     }
 
-    /// # Locking (see locking.md)
-    /// * `ManagerServices::inner` (write)
-    fn stop_service_for_restart_msw(&mut self, ident: &PackageIdent) -> Option<Service> {
-        self.state.services.lock_msw().stop_for_restart(ident)
-    }
-
     /// Start, stop, or restart services to bring what's running in
     /// line with what our spec files say.
     ///
@@ -1681,17 +1685,7 @@ impl Manager {
     {
         for op in ops.into_iter() {
             match op {
-                ServiceOperation::Restart { to_stop: spec, .. } => {
-                    if let Some(service) = self.stop_service_for_restart_msw(&spec.ident) {
-                        tokio::spawn(self.stop_service_future_gsw(service, None, None));
-                    } else {
-                        // We really don't expect this to happen....
-                        outputln!("Tried to restart service for {} but could not find it \
-                                   running, skipping",
-                                  &spec.ident);
-                    }
-                }
-                ServiceOperation::Stop(spec) => {
+                ServiceOperation::Restart { to_stop: spec, .. } | ServiceOperation::Stop(spec) => {
                     // Yes, Stop and Restart both turn into
                     // "stop"... Once we've finished stopping, we'll
                     // end up re-examining the spec file on disk; if
@@ -1704,7 +1698,7 @@ impl Manager {
                     // restart future.
                     if let Some(service) =
                         self.remove_service_from_state_msw(&spec.ident)
-                            .and_then(|mut service_state| service_state.shutdown())
+                            .and_then(|mut service_state| service_state.shutdown(false))
                     {
                         tokio::spawn(self.stop_service_future_gsw(service, None, None));
                     } else {
@@ -1716,7 +1710,14 @@ impl Manager {
                 }
                 ServiceOperation::Start(spec) => {
                     // Execute the future synchronously
-                    self.add_service_rsw_mlw_rhw_msr(spec).await;
+                    if self.state
+                           .services
+                           .lock_msr()
+                           .get(&spec.ident)
+                           .map_or(true, |service_state| service_state.is_ready_for_restart())
+                    {
+                        self.add_service_rsw_mlw_rhw_msr(spec).await;
+                    }
                 }
                 ServiceOperation::Update(spec, ops) => {
                     trace!("ServiceOperation::Update! {:?}", spec);

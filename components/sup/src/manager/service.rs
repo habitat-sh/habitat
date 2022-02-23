@@ -60,6 +60,7 @@ use habitat_common::{outputln,
 #[cfg(windows)]
 use habitat_core::os::users;
 use habitat_core::{crypto::Blake2bHash,
+                   flowcontrol::Backoff,
                    fs::{atomic_write,
                         svc_hooks_path,
                         SvcDir,
@@ -70,7 +71,6 @@ use habitat_core::{crypto::Blake2bHash,
                              PackageInstall},
                    service::{ServiceBind,
                              ServiceGroup},
-                   util::retry::Retry,
                    ChannelIdent};
 use habitat_launcher_client::LauncherCli;
 use habitat_sup_protocol::types::BindingMode;
@@ -94,8 +94,7 @@ use std::{self,
           result,
           sync::{Arc,
                  Mutex},
-          time::{Duration,
-                 SystemTime}};
+          time::SystemTime};
 
 static LOGKEY: &str = "SR";
 
@@ -170,6 +169,7 @@ impl TemplateUpdate {
 enum InitializationState {
     Uninitialized,
     Initializing,
+    InitializerFailed,
     InitializerFinished,
     Initialized,
 }
@@ -180,40 +180,95 @@ pub struct PersistentServiceWrapper {
     inner:     Option<Service>,
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum RestartState {
+    None,
+    NeedsRestart,
+    Restarting,
+    Restarted,
+}
+
+impl Default for RestartState {
+    fn default() -> Self { RestartState::None }
+}
+
 #[derive(Debug, Default)]
 struct ServiceRunState {
-    ticks:                     u64,
-    restart_attempts:          u64,
-    last_initialization_state: Option<InitializationState>,
-    last_retry:                Option<Retry>,
+    ticks:            u64,
+    restart_attempts: u64,
+    restart_state:    RestartState,
+    restart_backoff:  Backoff,
 }
 
 impl PersistentServiceWrapper {
     pub fn new(service: Service) -> PersistentServiceWrapper {
         PersistentServiceWrapper { run_state: ServiceRunState::default(),
-                                 inner:     Some(service), }
+                                   inner:     Some(service), }
     }
 
     pub fn service(&self) -> Option<&Service> { self.inner.as_ref() }
 
     pub fn service_mut(&mut self) -> Option<&mut Service> { self.inner.as_mut() }
 
-    pub fn start(&mut self, service: Service) { self.inner = Some(service) }
+    pub fn start(&mut self, service: Service) {
+        self.run_state.restart_state = match self.run_state.restart_state {
+            RestartState::None => RestartState::None,
+            RestartState::NeedsRestart => {
+                panic!("Start called on service which was not ready to be restarted");
+            }
+            RestartState::Restarting => {
+                outputln!(preamble service.service_group, "Restarted");
+                RestartState::Restarted
+            }
+            RestartState::Restarted => {
+                panic!("Start called on service which was already restarted")
+            }
+        };
+        self.inner = Some(service);
+    }
 
-    pub fn shutdown(&mut self) -> Option<Service> { self.inner.take() }
+    pub fn shutdown(&mut self, is_restart: bool) -> Option<Service> {
+        if let Some(service) = &self.inner {
+            if is_restart {
+                let restart_duration = self.run_state
+                                           .restart_backoff
+                                           .record_attempt()
+                                           .unwrap_or_default();
+                self.run_state.restart_attempts += 1;
+                self.run_state.restart_state = match self.run_state.restart_state {
+                    RestartState::None => RestartState::Restarting,
+                    RestartState::NeedsRestart => RestartState::Restarting,
+                    RestartState::Restarting => {
+                        panic!("Shutdown called on service which was already restarting")
+                    }
+                    RestartState::Restarted => RestartState::Restarting,
+                };
+                outputln!(preamble service.service_group, "Stopping service, will restart after {:.2} secs", restart_duration.as_secs_f32());
+            }
+            self.inner.take()
+        } else {
+            None
+        }
+    }
 
-    pub fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> Option<&Service> {
+    pub fn restart_state(&self) -> RestartState { self.run_state.restart_state }
+
+    pub fn is_ready_for_restart(&self) -> bool {
+        self.run_state.restart_state == RestartState::Restarting
+        && self.run_state
+               .restart_backoff
+               .duration_until_next_attempt()
+               .is_none()
+    }
+
+    pub fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> bool {
         match &mut self.inner {
             Some(ref mut service) => {
                 debug!("Starting service tick with persistent state: {:?}",
                        self.run_state);
-                if service.tick(&mut self.run_state, census_ring, launcher) {
-                    self.inner.as_ref()
-                } else {
-                    None
-                }
+                service.tick(&mut self.run_state, census_ring, launcher)
             }
-            None => None,
+            None => false,
         }
     }
 }
@@ -230,9 +285,6 @@ pub struct Service {
     pub pkg:                 Pkg,
     pub sys:                 Arc<Sys>,
     pub user_config_updated: bool,
-    // TODO (DM): This flag is a temporary hack to signal to the `Manager` that this service needs
-    // to be restarted. As we continue refactoring lifecycle hooks this flag should be removed.
-    pub needs_restart:       bool,
     // TODO (DM): The need to track initialization state across ticks would be removed if we
     // migrated away from the event loop architecture to an architecture that had a top level
     // `Service` future. See https://github.com/habitat-sh/habitat/issues/7112
@@ -337,7 +389,6 @@ impl Service {
                                             feature_flags),
                      last_election_status: ElectionStatus::None,
                      user_config_updated: false,
-                     needs_restart: false,
                      initialization_state:
                          Arc::new(RwLock::new(InitializationState::Uninitialized)),
                      manager_fs_cfg,
@@ -435,7 +486,6 @@ impl Service {
                                 self.spec.svc_encrypted_password.as_deref());
         match result {
             Ok(_) => {
-                self.needs_restart = false;
                 self.start_health_checks();
             }
             Err(e) => {
@@ -615,10 +665,8 @@ impl Service {
             self.file_updated();
         }
 
-        match self.spec.topology {
-            Topology::Standalone => {
-                self.execute_hooks(run_state, launcher, &template_update);
-            }
+        let restarted_or_reconfigured = match self.spec.topology {
+            Topology::Standalone => self.execute_hooks(run_state, launcher, &template_update),
             Topology::Leader => {
                 let census_group =
                     census_ring.census_group_for(&self.service_group)
@@ -630,6 +678,7 @@ impl Service {
                                       "Waiting to execute hooks; election hasn't started");
                             self.last_election_status = census_group.election_status;
                         }
+                        false
                     }
                     ElectionStatus::ElectionInProgress => {
                         if self.last_election_status != census_group.election_status {
@@ -637,6 +686,7 @@ impl Service {
                                       "Waiting to execute hooks; election in progress.");
                             self.last_election_status = census_group.election_status;
                         }
+                        false
                     }
                     ElectionStatus::ElectionNoQuorum => {
                         if self.last_election_status != census_group.election_status {
@@ -646,6 +696,7 @@ impl Service {
 
                             self.last_election_status = census_group.election_status;
                         }
+                        false
                     }
                     ElectionStatus::ElectionFinished => {
                         let leader_id = census_group.leader_id
@@ -657,12 +708,12 @@ impl Service {
                                       leader_id.to_string());
                             self.last_election_status = census_group.election_status;
                         }
-                        self.execute_hooks(run_state, launcher, &template_update);
+                        self.execute_hooks(run_state, launcher, &template_update)
                     }
                 }
             }
-        }
-        template_data_changed
+        };
+        template_data_changed || restarted_or_reconfigured
     }
 
     /// Iterate through all the service binds, marking any that are
@@ -894,12 +945,13 @@ impl Service {
                         *initialization_state.write() = if exit_value {
                             InitializationState::InitializerFinished
                         } else {
-                            InitializationState::Uninitialized
+                            InitializationState::InitializerFailed
                         };
                     }
                     Err(e) => {
                         outputln!(preamble service_group, "Service initialization failed: {}", e);
-                        *initialization_state_for_err.write() = InitializationState::Uninitialized;
+                        *initialization_state_for_err.write() =
+                            InitializationState::InitializerFailed;
                     }
                 }
             };
@@ -913,6 +965,7 @@ impl Service {
 
     fn stop_initialize(&mut self) {
         if let Some(h) = self.initialize_handle.take() {
+            info!("Aborting initialize");
             h.abort();
         }
     }
@@ -1066,7 +1119,8 @@ impl Service {
     fn execute_hooks(&mut self,
                      run_state: &mut ServiceRunState,
                      launcher: &LauncherCli,
-                     template_update: &TemplateUpdate) {
+                     template_update: &TemplateUpdate)
+                     -> bool {
         let up = self.check_process(launcher);
         // It is ok that we do not hold this lock while we are performing the match. If we
         // transistion states while we are matching, we will catch the new state on the next tick.
@@ -1081,6 +1135,9 @@ impl Service {
                 } else {
                     self.initialize();
                 }
+            }
+            InitializationState::InitializerFailed => {
+                run_state.restart_state = RestartState::NeedsRestart;
             }
             InitializationState::Initializing => {
                 // Wait until the initializer finishes running
@@ -1098,14 +1155,21 @@ impl Service {
                     // just schedule the `stop` future, but the `Manager` wraps
                     // the `stop` future with additional functionality. Can we
                     // refactor to make this flag unnecessary?
-                    self.needs_restart = true;
-                    run_state.restart_attempts += 1;
+                    run_state.restart_state = RestartState::NeedsRestart;
+                    return true;
                 } else if template_update.needs_reconfigure() {
                     // Only reconfigure if we did NOT restart the service
                     self.reconfigure();
+                    return true;
+                } else if run_state.restart_state == RestartState::Restarted {
+                    // If the service was restarted and initialized successfully reset the state
+                    // associated with restarting
+                    run_state.restart_attempts = 0;
+                    run_state.restart_backoff = Backoff::default();
                 }
             }
         };
+        false
     }
 
     /// Run file-updated hook if present.

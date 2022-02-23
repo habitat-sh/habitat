@@ -11,6 +11,7 @@ pub mod binlink;
 pub mod crypto;
 pub mod env;
 pub mod error;
+pub mod flowcontrol;
 pub mod fs;
 pub mod locked_env_var;
 pub mod origin;
