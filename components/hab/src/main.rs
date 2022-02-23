@@ -944,7 +944,8 @@ async fn sub_bldr_channel_destroy(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()>
 async fn sub_bldr_channel_list(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(m)?;
     let origin = origin_param_or_env(m)?;
-    command::bldr::channel::list::start(ui, &url, &origin).await
+    let include_sandbox_channels = m.is_present("SANDBOX");
+    command::bldr::channel::list::start(ui, &url, &origin, include_sandbox_channels).await
 }
 
 async fn sub_bldr_channel_promote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
