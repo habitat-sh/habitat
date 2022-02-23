@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.468 -->
-## [1.6.468](https://github.com/habitat-sh/habitat/tree/1.6.468) (2022-02-23)
+<!-- latest_release 1.6.469 -->
+## [1.6.469](https://github.com/habitat-sh/habitat/tree/1.6.469) (2022-02-23)
 
 #### Merged Pull Requests
-- Add Sandbox flag to hab bldr channel list command [#8452](https://github.com/habitat-sh/habitat/pull/8452) ([dikshagupta1](https://github.com/dikshagupta1))
+- Fixed Broken Links [#8442](https://github.com/habitat-sh/habitat/pull/8442) ([dishanktiwari2501](https://github.com/dishanktiwari2501))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- Fixed Broken Links [#8442](https://github.com/habitat-sh/habitat/pull/8442) ([dishanktiwari2501](https://github.com/dishanktiwari2501)) <!-- 1.6.469 -->
 - Add Sandbox flag to hab bldr channel list command [#8452](https://github.com/habitat-sh/habitat/pull/8452) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 1.6.468 -->
 - Bump semver from 1.0.5 to 1.0.6 [#8451](https://github.com/habitat-sh/habitat/pull/8451) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.467 -->
 - Bump libc from 0.2.118 to 0.2.119 [#8450](https://github.com/habitat-sh/habitat/pull/8450) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.466 -->
