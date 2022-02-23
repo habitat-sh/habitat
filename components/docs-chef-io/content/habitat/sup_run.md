@@ -20,7 +20,7 @@ Information about [installing Chef Habitat]({{< relref "install_habitat" >}}) an
 
 ## Starting the Supervisor
 
-In order to run a Chef Habitat-packaged service, you must first run a Chef Habitat Supervisor. There are two ways to start up a Supervisor, and it is important to know the implications of each, and which method is appropriate for your circumstances. These instructions describe the behavior of the 0.56.0 Supervisor and later, which dramatically simplified how Supervisors start up. These instructions also deal with the Supervisor "by itself"; later on, we'll see how to integrate it into different operational scenarios (e.g., SystemD, Windows Services, etc.). It is useful to understand the underlying concepts first.
+In order to run a Chef Habitat-packaged service, you must first run a Chef Habitat Supervisor. There are two ways to start up a Supervisor, and it is important to know the implications of each, and which method is appropriate for your circumstances. These instructions describe the behavior of the 0.56.0 Supervisor and later, which dramatically simplified how Supervisors start up. These instructions also deal with the Supervisor "by itself"; later on, we'll see how to integrate it into different operational scenarios (e.g., systemd, Windows Services, etc.). It is useful to understand the underlying concepts first.
 
 For further details about these commands, including all the arguments and options they take, please consult [the hab documentation]({{< relref "habitat_cli" >}}).
 
