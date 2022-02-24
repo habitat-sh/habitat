@@ -67,7 +67,7 @@ impl PeerWatcher {
 
     fn file_watcher_loop_body(path: &Path, have_events: Arc<AtomicBool>) -> bool {
         let callbacks = PeerCallbacks { have_events };
-        let mut file_watcher = match create_file_watcher(&path, callbacks, Some(true)) {
+        let mut file_watcher = match create_file_watcher(&path, callbacks, true) {
             Ok(watcher) => watcher,
             Err(e) => {
                 match e {
