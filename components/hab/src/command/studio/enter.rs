@@ -43,6 +43,13 @@ fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive:
     }
 }
 
+//  Set the environment variable for the host architecture to be used in
+//  hab studio.  It must be set outside of studio and passed in through
+//  the environment variable defined in STUDIO_HOST_ARCH_ENVVAR.
+fn set_arch_env_var() {
+    env::set_var(STUDIO_HOST_ARCH_ENVVAR, format!("{}-{}", std::env::consts::ARCH, std::env::consts::OS));
+}
+
 fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
     let cert_path = Path::new(&cert_file);
 
@@ -64,31 +71,6 @@ fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-#[cfg(all(target_arch = "aarch64", target_os = "macos"))]
-fn set_arch_env_var() {
-    env::set_var(STUDIO_HOST_ARCH_ENVVAR, "aarch64-macos".to_string());
-    match env::var(STUDIO_HOST_ARCH_ENVVAR) {
-        Ok(val) => {
-            debug!("Setting {}={}", STUDIO_HOST_ARCH_ENVVAR, val);
-        }
-        Err(_) => {
-            debug!("ERROR {} not set", STUDIO_HOST_ARCH_ENVVAR);
-        }
-    }
-}
-
-#[cfg(not(all(target_arch = "aarch64", target_os = "macos")))]
-fn set_arch_env_var() {
-    env::set_var(STUDIO_HOST_ARCH_ENVVAR, "x86_64".to_string());
-    match env::var(STUDIO_HOST_ARCH_ENVVAR) {
-        Ok(val) => {
-            debug!("Setting {}={}", STUDIO_HOST_ARCH_ENVVAR, val);
-        }
-        Err(_) => {
-            debug!("ERROR {} not set", STUDIO_HOST_ARCH_ENVVAR);
-        }
-    }
-}
 
 pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     let config = CliConfig::load()?;

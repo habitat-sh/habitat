@@ -199,7 +199,7 @@ impl Worker {
                                 let mut file_watcher =
                                     match create_file_watcher(&path,
                                                                callbacks,
-                                                               Some(false))
+                                                               false)
                                     {
                                         Ok(w) => w,
                                         Err(e) => {
