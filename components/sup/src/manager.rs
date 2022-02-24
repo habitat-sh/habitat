@@ -9,6 +9,7 @@ mod self_updater;
 mod service_updater;
 mod spec_dir;
 mod spec_watcher;
+mod sup_watcher;
 pub(crate) mod sys;
 mod user_config_watcher;
 
@@ -691,6 +692,7 @@ impl Manager {
         spec_dir.migrate_specs();
 
         let spec_watcher = SpecWatcher::run(&spec_dir)?;
+        trace!("Created SpecWatcher");
 
         if let Some(config) = cfg.event_stream_config {
             // Collect the FQDN of the running machine
