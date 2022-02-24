@@ -19,6 +19,7 @@ use std::{env,
 pub const ARTIFACT_PATH_ENVVAR: &str = "ARTIFACT_PATH";
 pub const CERT_PATH_ENVVAR: &str = "CERT_PATH";
 pub const SSL_CERT_FILE_ENVVAR: &str = "SSL_CERT_FILE";
+pub const STUDIO_HOST_ARCH_ENVVAR: &str = "HAB_STUDIO_SECRET_HAB_STUDIO_HOST_ARCH";
 
 const STUDIO_PACKAGE_IDENT: &str = "core/hab-studio";
 
@@ -63,6 +64,32 @@ fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
     Ok(())
 }
 
+#[cfg(all(target_arch = "aarch64", target_os = "macos"))]
+fn set_arch_env_var() {
+    env::set_var(STUDIO_HOST_ARCH_ENVVAR, "aarch64-macos".to_string());
+    match env::var(STUDIO_HOST_ARCH_ENVVAR) {
+        Ok(val) => {
+            debug!("Setting {}={}", STUDIO_HOST_ARCH_ENVVAR, val);
+        }
+        Err(_) => {
+            debug!("ERROR {} not set", STUDIO_HOST_ARCH_ENVVAR);
+        }
+    }
+}
+
+#[cfg(not(all(target_arch = "aarch64", target_os = "macos")))]
+fn set_arch_env_var() {
+    env::set_var(STUDIO_HOST_ARCH_ENVVAR, "x86_64".to_string());
+    match env::var(STUDIO_HOST_ARCH_ENVVAR) {
+        Ok(val) => {
+            debug!("Setting {}={}", STUDIO_HOST_ARCH_ENVVAR, val);
+        }
+        Err(_) => {
+            debug!("ERROR {} not set", STUDIO_HOST_ARCH_ENVVAR);
+        }
+    }
+}
+
 pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     let config = CliConfig::load()?;
 
@@ -73,6 +100,8 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     set_env_var_from_config(ORIGIN_ENVVAR,
                             config.origin.map(|o| o.to_string()),
                             Sensitivity::PrintValue);
+
+    set_arch_env_var();
 
     if config.ctl_secret.is_some() {
         ui.warn("Your Supervisor CtlGateway secret is not being copied to the Studio \

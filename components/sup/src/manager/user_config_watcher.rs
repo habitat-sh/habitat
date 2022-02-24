@@ -1,4 +1,4 @@
-use super::file_watcher::{default_file_watcher_with_no_initial_event,
+use super::file_watcher::{create_file_watcher,
                           Callbacks};
 use crate::manager::service::Service;
 use habitat_common::{liveliness_checker,
@@ -197,8 +197,9 @@ impl Worker {
                                        path.display(),);
                                 let callbacks = UserConfigCallbacks { have_events };
                                 let mut file_watcher =
-                                    match default_file_watcher_with_no_initial_event(&path,
-                                                                                     callbacks)
+                                    match create_file_watcher(&path,
+                                                               callbacks,
+                                                               Some(false))
                                     {
                                         Ok(w) => w,
                                         Err(e) => {
