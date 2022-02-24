@@ -20,7 +20,8 @@ rm -Rf /hab/pkgs/core/hab
 # etc.
 component=${1:?You must specify a component value}
 
-channel=$(get_release_channel)
+#channel=$(get_release_channel)
+channel=mac_m1_hab
 
 echo "--- Channel: $channel - bldr url: $HAB_BLDR_URL"
 

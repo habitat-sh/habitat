@@ -11,7 +11,8 @@ eval "$(vault-util fetch-secret-env)"
 export HAB_AUTH_TOKEN="${PIPELINE_HAB_AUTH_TOKEN}"
 export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 
-channel=$(get_release_channel)
+#channel=$(get_release_channel)
+channel=mac_m1_hab
 
 echo "--- Channel: $channel - bldr url: $HAB_BLDR_URL"
 

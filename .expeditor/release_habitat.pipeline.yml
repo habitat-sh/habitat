@@ -14,6 +14,7 @@ expeditor:
         PIPELINE_HAB_BLDR_URL: "https://bldr.habitat.sh"
         # Necessary to prevent old studios from poisoning builds after core plans refreshes
         HAB_STUDIO_SECRET_HAB_FEAT_IGNORE_LOCAL: "true"
+        
 
 steps:
 #######################################################################
@@ -396,19 +397,6 @@ steps:
           environment:
             - BUILD_PKG_TARGET=aarch64-darwin
 
-  - label: "Update Habitat Documentation"
-    command:
-      - .expeditor/scripts/release_habitat/update_documentation.sh
-    if: build.creator.name == 'Chef Expeditor'
-    artifact_paths:
-      # See update_documentation.sh script for the naming of this path.
-      - "generated-documentation/**"
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
 
   # It is VERY IMPORTANT that Docker container uploads ARE NOT active
   # in manually-triggered pipeline runs (at least, not without GREAT
