@@ -2900,7 +2900,7 @@ mod tests {
             let callbacks = TestCallbacks::new(&additional_dirs);
             let watcher = FileWatcher::<_, TestWatcher>::create(self.prepend_root(&init_path),
                                                                 callbacks,
-                                                                Some(true)).unwrap_or_else(|_| {
+                                                                true).unwrap_or_else(|_| {
                               panic!("failed to create watcher, debug info:\n{}", self.debug_info,)
                           });
             WatcherSetup { init_path, watcher }
