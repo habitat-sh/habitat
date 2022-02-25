@@ -1,6 +1,6 @@
 //! Watcher interface implementation for Habitat Supervisor.
 
-use habitat_core::package::target::{PackageTarget, 
+use habitat_core::package::target::{PackageTarget,
                                     AARCH64_DARWIN};
 use notify::{poll::PollWatcher,
              DebouncedEvent,
