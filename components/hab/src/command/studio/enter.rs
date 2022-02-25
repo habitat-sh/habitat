@@ -8,7 +8,8 @@ use crate::{common::ui::{UIWriter,
             BLDR_URL_ENVVAR,
             ORIGIN_ENVVAR};
 use habitat_common::cli_config::CliConfig;
-use habitat_core::AUTH_TOKEN_ENVVAR;
+use habitat_core::{AUTH_TOKEN_ENVVAR,
+                   package::target::PackageTarget};
 use same_file::is_same_file;
 use std::{env,
           ffi::OsString,
@@ -47,7 +48,7 @@ fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive:
 //  hab studio.  It must be set outside of studio and passed in through
 //  the environment variable defined in STUDIO_HOST_ARCH_ENVVAR.
 fn set_arch_env_var() {
-    env::set_var(STUDIO_HOST_ARCH_ENVVAR, format!("{}-{}", std::env::consts::ARCH, std::env::consts::OS));
+    env::set_var(STUDIO_HOST_ARCH_ENVVAR, format!("{}", PackageTarget::active_target()));
 }
 
 fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {

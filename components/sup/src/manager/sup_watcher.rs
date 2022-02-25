@@ -1,5 +1,6 @@
 //! Watcher interface implementation for Habitat Supervisor.
 
+use habitat_core::package::target::{PackageTarget, AARCH64_DARWIN};
 use notify::{poll::PollWatcher,
              DebouncedEvent,
              RecommendedWatcher,
@@ -8,6 +9,7 @@ use notify::{poll::PollWatcher,
              Watcher};
 use std::{env,
           path::Path,
+          str::FromStr,
           sync::mpsc::Sender,
           time::Duration};
 
@@ -18,23 +20,25 @@ pub enum SupWatcher {
 
 impl Watcher for SupWatcher {
     fn new_raw(tx: Sender<notify::RawEvent>) -> Result<Self> {
-        if let Ok(arch_type) = env::var("HAB_STUDIO_HOST_ARCH") {
-            match arch_type.as_str() {
-                "aarch64-macos" => Ok(SupWatcher::Fallback(PollWatcher::new_raw(tx).unwrap())),
-                _ => Ok(SupWatcher::Native(RecommendedWatcher::new_raw(tx).unwrap())),
-            }
+        let target = PackageTarget::from_str(&env::var("HAB_STUDIO_HOST_ARCH").
+                                             unwrap_or_default()).
+                                             unwrap_or(PackageTarget::active_target());
+        if target == AARCH64_DARWIN {
+            Ok(SupWatcher::Fallback(PollWatcher::new_raw(tx).unwrap()))
         } else {
-            Ok(SupWatcher::Native(RecommendedWatcher::new_raw(tx).unwrap()))
+            Ok(SupWatcher::Native(RecommendedWatcher::new_raw(tx).unwrap()))            
         }
     }
 
     fn new(tx: Sender<DebouncedEvent>, delay: Duration) -> Result<Self> {
-        if let Ok(arch_type) = env::var("HAB_STUDIO_HOST_ARCH") {
-            match arch_type.as_str() {
-                "aarch64-macos" => Ok(SupWatcher::Fallback(PollWatcher::new(tx, delay).unwrap())),
-                _ => Ok(SupWatcher::Native(RecommendedWatcher::new(tx, delay).unwrap())),
-            }
+        let target = PackageTarget::from_str(&env::var("HAB_STUDIO_HOST_ARCH").
+                                             unwrap_or_default()).
+                                             unwrap_or(PackageTarget::active_target());
+        if target == AARCH64_DARWIN {
+            debug!("Using pollwatcher");
+            Ok(SupWatcher::Fallback(PollWatcher::new(tx, delay).unwrap()))
         } else {
+            debug!("Using native watcher");
             Ok(SupWatcher::Native(RecommendedWatcher::new(tx, delay).unwrap()))
         }
     }
