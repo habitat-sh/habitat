@@ -48,7 +48,8 @@ fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive:
 //  hab studio.  It must be set outside of studio and passed in through
 //  the environment variable defined in STUDIO_HOST_ARCH_ENVVAR.
 fn set_arch_env_var() {
-    env::set_var(STUDIO_HOST_ARCH_ENVVAR, format!("{}", PackageTarget::active_target()));
+    env::set_var(STUDIO_HOST_ARCH_ENVVAR, 
+                 format!("{}", PackageTarget::active_target()));
 }
 
 fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
@@ -71,7 +72,6 @@ fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
 
     Ok(())
 }
-
 
 pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     let config = CliConfig::load()?;
