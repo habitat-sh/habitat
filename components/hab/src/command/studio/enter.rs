@@ -8,8 +8,8 @@ use crate::{common::ui::{UIWriter,
             BLDR_URL_ENVVAR,
             ORIGIN_ENVVAR};
 use habitat_common::cli_config::CliConfig;
-use habitat_core::{AUTH_TOKEN_ENVVAR,
-                   package::target::PackageTarget};
+use habitat_core::{package::target::PackageTarget,
+                   AUTH_TOKEN_ENVVAR};
 use same_file::is_same_file;
 use std::{env,
           ffi::OsString,
