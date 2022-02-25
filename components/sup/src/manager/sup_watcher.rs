@@ -23,7 +23,7 @@ impl Watcher for SupWatcher {
     fn new_raw(tx: Sender<notify::RawEvent>) -> Result<Self> {
         let target = PackageTarget::from_str(&env::var("HAB_STUDIO_HOST_ARCH").
                                              unwrap_or_default()).
-                                             unwrap_or(PackageTarget::active_target());
+                                             unwrap_or_else(|_| PackageTarget::active_target());
         if target == AARCH64_DARWIN {
             Ok(SupWatcher::Fallback(PollWatcher::new_raw(tx).unwrap()))
         } else {
@@ -34,7 +34,7 @@ impl Watcher for SupWatcher {
     fn new(tx: Sender<DebouncedEvent>, delay: Duration) -> Result<Self> {
         let target = PackageTarget::from_str(&env::var("HAB_STUDIO_HOST_ARCH").
                                              unwrap_or_default()).
-                                             unwrap_or(PackageTarget::active_target());
+                                             unwrap_or_else(|_| PackageTarget::active_target());
         if target == AARCH64_DARWIN {
             debug!("Using pollwatcher");
             Ok(SupWatcher::Fallback(PollWatcher::new(tx, delay).unwrap()))
