@@ -1,6 +1,7 @@
 //! Watcher interface implementation for Habitat Supervisor.
 
-use habitat_core::package::target::{PackageTarget, AARCH64_DARWIN};
+use habitat_core::package::target::{PackageTarget, 
+                                    AARCH64_DARWIN};
 use notify::{poll::PollWatcher,
              DebouncedEvent,
              RecommendedWatcher,
@@ -26,7 +27,7 @@ impl Watcher for SupWatcher {
         if target == AARCH64_DARWIN {
             Ok(SupWatcher::Fallback(PollWatcher::new_raw(tx).unwrap()))
         } else {
-            Ok(SupWatcher::Native(RecommendedWatcher::new_raw(tx).unwrap()))            
+            Ok(SupWatcher::Native(RecommendedWatcher::new_raw(tx).unwrap()))
         }
     }
 
