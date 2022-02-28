@@ -1709,7 +1709,8 @@ impl Manager {
                     }
                 }
                 ServiceOperation::Start(spec) => {
-                    // Execute the future synchronously
+                    // We need to check if the service is already known, if yes, then is it ready to
+                    // be restarted yet
                     if self.state
                            .services
                            .lock_msr()

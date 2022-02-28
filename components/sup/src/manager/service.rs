@@ -94,7 +94,8 @@ use std::{self,
           result,
           sync::{Arc,
                  Mutex},
-          time::SystemTime};
+          time::{Duration,
+                 SystemTime}};
 
 static LOGKEY: &str = "SR";
 
@@ -196,13 +197,20 @@ impl Default for RestartState {
 struct ServiceRunState {
     ticks:            u64,
     restart_attempts: u64,
+    /// The amount of time that needs to elapse after a service has restarted to reset the backoff
+    /// state. We need this because health checks are not mandatory, so there is no good way to
+    /// know if a service started successfully other than waiting for some time and checking
+    /// that it does not go down.
+    restart_cooloff:  Duration,
     restart_state:    RestartState,
     restart_backoff:  Backoff,
 }
 
 impl PersistentServiceWrapper {
     pub fn new(service: Service) -> PersistentServiceWrapper {
-        PersistentServiceWrapper { run_state: ServiceRunState::default(),
+        PersistentServiceWrapper { run_state: ServiceRunState { restart_cooloff:
+                                                                    Duration::from_secs(60),
+                                                                ..ServiceRunState::default() },
                                    inner:     Some(service), }
     }
 
@@ -218,6 +226,7 @@ impl PersistentServiceWrapper {
             }
             RestartState::Restarting => {
                 outputln!(preamble service.service_group, "Restarted");
+                self.run_state.restart_backoff.record_attempt_end();
                 RestartState::Restarted
             }
             RestartState::Restarted => {
@@ -232,7 +241,7 @@ impl PersistentServiceWrapper {
             if is_restart {
                 let restart_duration = self.run_state
                                            .restart_backoff
-                                           .record_attempt()
+                                           .record_attempt_start()
                                            .unwrap_or_default();
                 self.run_state.restart_attempts += 1;
                 self.run_state.restart_state = match self.run_state.restart_state {
@@ -257,7 +266,7 @@ impl PersistentServiceWrapper {
         self.run_state.restart_state == RestartState::Restarting
         && self.run_state
                .restart_backoff
-               .duration_until_next_attempt()
+               .duration_until_next_attempt_start()
                .is_none()
     }
 
@@ -965,7 +974,6 @@ impl Service {
 
     fn stop_initialize(&mut self) {
         if let Some(h) = self.initialize_handle.take() {
-            info!("Aborting initialize");
             h.abort();
         }
     }
@@ -1161,11 +1169,17 @@ impl Service {
                     // Only reconfigure if we did NOT restart the service
                     self.reconfigure();
                     return true;
-                } else if run_state.restart_state == RestartState::Restarted {
-                    // If the service was restarted and initialized successfully reset the state
-                    // associated with restarting
+                } else if run_state.restart_state == RestartState::Restarted
+                          && up
+                          && run_state.restart_backoff
+                                      .duration_elapsed_since_last_attempt_ended()
+                                      .map(|duration| duration > run_state.restart_cooloff)
+                                      .unwrap_or(false)
+                {
+                    // If the service was not restarted for the duration of the cooloff period
+                    // since the last attempt ended we wipe all state associated with restarting.
                     run_state.restart_attempts = 0;
-                    run_state.restart_backoff = Backoff::default();
+                    run_state.restart_backoff.reset();
                 }
             }
         };
