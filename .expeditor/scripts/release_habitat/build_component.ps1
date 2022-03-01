@@ -31,7 +31,8 @@ Install-BuildkiteAgent
 choco install jq -y | Out-Null
 
 # For viewability
-$Channel = "habitat-release-$Env:BUILDKITE_BUILD_ID"
+#$Channel = "habitat-release-$Env:BUILDKITE_BUILD_ID"
+$Channel = "mac_m1_hab"
 Write-Host "--- Channel: $Channel - bldr url: $Env:HAB_BLDR_URL"
 
 $baseHabExe=Install-LatestHabitat

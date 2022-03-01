@@ -9,7 +9,8 @@ source .expeditor/scripts/release_habitat/shared.sh
 
 export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 
-channel=$(get_release_channel)
+#channel=$(get_release_channel)
+channel=mac_m1_hab
 
 echo "--- Channel: $channel - bldr url: $HAB_BLDR_URL"
 

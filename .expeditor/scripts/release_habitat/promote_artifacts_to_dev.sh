@@ -31,7 +31,8 @@ curlbash_hab "x86_64-linux"
 # artifacts from.
 #
 # e.g. `habitat-release-<build-id>`.
-source_channel=${1:?You must specify a source channel value}
+#source_channel=${1:?You must specify a source channel value}
+source_channel=mac_m1_hab
 
 echo "--- Generating manifest input from $source_channel"
 

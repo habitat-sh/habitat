@@ -5,7 +5,8 @@
 . $PSScriptRoot/shared.ps1
 
 $ErrorActionPreference="stop"
-$ReleaseChannel=Get-ReleaseChannel
+#$ReleaseChannel=Get-ReleaseChannel
+$ReleaseChannel=mac_m1_hab
 
 Write-Host "--- Building the Windows Docker Studio"
 
