@@ -189,7 +189,7 @@
         }
       ],
       "get": {
-        "description": "Retrieves the list of reverse dependencies for this package.\n",
+        "description": "Retrieves the list of reverse dependencies for this package (on-prem setup not supported).\n",
         "responses": {
           "200": {
             "description": "Retrieve reverse dependencies for package",
@@ -236,7 +236,7 @@
         }
       ],
       "get": {
-        "description": "Retrieves the list of reverse dependencies for this package,\ncollated into build groups that can be build in parallel\n",
+        "description": "Retrieves the list of reverse dependencies for this package,\ncollated into build groups that can be build in parallel (on-prem setup not supported)\n",
         "responses": {
           "200": {
             "description": "Retrieved dependencies organized into build groups",
