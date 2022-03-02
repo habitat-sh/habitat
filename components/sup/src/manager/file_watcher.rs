@@ -1574,9 +1574,11 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
 // scenario, that involves symlinks.
 #[cfg(all(unix, test))]
 mod tests {
+    use crate::manager::sup_watcher::SupWatcher;
     use std::{collections::{HashMap,
                             HashSet,
                             VecDeque},
+              env,
               ffi::OsString,
               fmt::{Display,
                     Error,
@@ -1595,7 +1597,6 @@ mod tests {
     use notify::{self,
                  DebouncedEvent,
                  RawEvent,
-                 RecommendedWatcher,
                  RecursiveMode,
                  Watcher};
 
@@ -2376,8 +2377,20 @@ mod tests {
                                            events: vec![NotifyEvent::disappeared(pb!("/a/b/c"))], },], },]
     }
 
+//    #[test]
+//    fn file_watcher() {
+//        for tc in get_test_cases() {
+//            let mut runner = TestCaseRunner::new();
+//            runner.debug_info.add(format!("test case: {}", tc.name));
+//            runner.run_init_commands(&tc.init.commands);
+//            let setup = runner.prepare_watcher(&tc.init.path);
+//            runner.run_steps(setup, &tc.init.initial_file, &tc.steps);
+//        }
+//    }
+
     #[test]
-    fn file_watcher() {
+    fn file_watcher_polling() {
+        env::set_var("HAB_STUDIO_HOST_ARCH", "aarch64-darwin");
         for tc in get_test_cases() {
             let mut runner = TestCaseRunner::new();
             runner.debug_info.add(format!("test case: {}", tc.name));
@@ -2385,6 +2398,7 @@ mod tests {
             let setup = runner.prepare_watcher(&tc.init.path);
             runner.run_steps(setup, &tc.init.initial_file, &tc.steps);
         }
+        env::remove_var("HAB_STUDIO_HOST_ARCH");
     }
 
     // Commands that can be executed at the test case init.
@@ -2561,7 +2575,7 @@ mod tests {
     // purposes.
     struct TestWatcher {
         // The real watcher that does the grunt work.
-        real_watcher: RecommendedWatcher,
+        real_watcher: SupWatcher,
         // A set of watched dirs. We will use these to correctly
         // compute the number of iterations to perform after executing
         // the step action.
@@ -2570,12 +2584,12 @@ mod tests {
 
     impl Watcher for TestWatcher {
         fn new_raw(tx: Sender<RawEvent>) -> notify::Result<Self> {
-            Ok(TestWatcher { real_watcher: RecommendedWatcher::new_raw(tx)?,
+            Ok(TestWatcher { real_watcher: SupWatcher::new_raw(tx)?,
                              watched_dirs: HashSet::new(), })
         }
 
         fn new(tx: Sender<DebouncedEvent>, d: Duration) -> notify::Result<Self> {
-            Ok(TestWatcher { real_watcher: RecommendedWatcher::new(tx, d)?,
+            Ok(TestWatcher { real_watcher: SupWatcher::new(tx, d)?,
                              watched_dirs: HashSet::new(), })
         }
 
@@ -3026,6 +3040,8 @@ mod tests {
             assert_eq!(&expected_events, actual_events,
                        "comparing expected events, debug info:\n{}",
                        self.debug_info,);
+            println!("comparing expected events, debug info:\n{}",
+                       self.debug_info);
             actual_events.clear();
         }
 

@@ -259,7 +259,8 @@ impl Worker {
 mod tests {
     use super::*;
 
-    use std::{fs::{remove_file,
+    use std::{env,
+              fs::{remove_file,
                    File},
               io::Write,
               str::FromStr,
@@ -270,6 +271,17 @@ mod tests {
     use crate::manager::file_watcher::WATCHER_DELAY_MS;
 
     use tempfile::TempDir;
+
+    #[test]
+    fn test_events_with_poll_watcher()
+    {
+        env::set_var("HAB_STUDIO_HOST_ARCH", "aarch64-darwin");
+        no_events_at_first();
+        events_present_after_adding_config();
+        events_present_after_changing_config();
+        events_present_after_removing_config();
+        env::remove_var("HAB_STUDIO_HOST_ARCH");
+    }
 
     #[test]
     fn no_events_at_first() {
