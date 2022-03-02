@@ -66,7 +66,7 @@ impl RollingUpdateWorker {
                period: Duration)
                -> Self {
         Self { service_group: service.service_group.clone(),
-               ident: service.spec_ident(),
+               ident: service.pkg.ident.as_ref().clone(),
                topology: service.topology(),
                package_update_worker: PackageUpdateWorker::new(service, period),
                census_ring,
