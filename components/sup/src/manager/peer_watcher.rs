@@ -136,7 +136,8 @@ impl PeerWatcher {
 mod tests {
     use super::*;
     use habitat_butterfly::member::Member;
-    use std::{fs::{File,
+    use std::{env,
+              fs::{File,
                    OpenOptions},
               io::Write};
     use tempfile::TempDir;
@@ -188,5 +189,37 @@ mod tests {
             member.id = String::new();
         }
         assert_eq!(expected_members, members);
+    }
+
+    #[test]
+    fn with_file_using_poll_watcher() {
+        env::set_var("HAB_STUDIO_HOST_ARCH", "aarch64-darwin");
+        let tmpdir = TempDir::new().unwrap();
+        let path = tmpdir.path().join("some_other_file");
+        let mut file = OpenOptions::new().append(true)
+                                         .create_new(true)
+                                         .open(path.clone())
+                                         .unwrap();
+        let watcher = PeerWatcher::run(path).unwrap();
+        writeln!(file, "1.2.3.5:5").unwrap();
+        writeln!(file, "5.4.3.2").unwrap();
+        let member1 = Member { id: String::new(),
+                               address: String::from("1.2.3.5"),
+                               swim_port: 5,
+                               gossip_port: 5,
+                               ..Default::default() };
+        let member2 = Member { id: String::new(),
+                               address: String::from("5.4.3.2"),
+                               swim_port: GossipListenAddr::DEFAULT_PORT,
+                               gossip_port: GossipListenAddr::DEFAULT_PORT,
+                               ..Default::default() };
+
+        let expected_members = vec![member1, member2];
+        let mut members = watcher.get_members().unwrap();
+        for mut member in &mut members {
+            member.id = String::new();
+        }
+        assert_eq!(expected_members, members);
+        env::remove_var("HAB_STUDIO_HOST_ARCH");
     }
 }
