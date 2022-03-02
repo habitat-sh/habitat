@@ -36,7 +36,7 @@ impl Backoff {
     /// `multiplier` * `previous_backoff_duration` capped at `max_backoff`. This ensures that
     /// once we hit the max backoff duration we still have a good distribution of random waits.
     pub fn new(base_backoff: Duration, max_backoff: Duration, multiplier: f64) -> Backoff {
-        Backoff { base_backoff,
+        Backoff { base_backoff: base_backoff.min(max_backoff),
                   max_backoff,
                   multiplier,
                   last_attempt: None }
@@ -51,7 +51,7 @@ impl Backoff {
                 let mut rng = thread_rng();
                 let new_sleep_duration =
                     self.max_backoff.min(rng.gen_range(self.base_backoff
-                                                       ..sleep_duration.mul_f64(self.multiplier)));
+                                                       ..=sleep_duration.mul_f64(self.multiplier)));
                 self.last_attempt = Some(RetryAttempt { attempt_started_at: Instant::now(),
                                                         attempt_ended_at:   None,
                                                         sleep_duration:     new_sleep_duration, });

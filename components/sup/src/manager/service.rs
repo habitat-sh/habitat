@@ -97,6 +97,8 @@ use std::{self,
           time::{Duration,
                  SystemTime}};
 
+use super::ServiceRestartConfig;
+
 static LOGKEY: &str = "SR";
 
 #[cfg(not(windows))]
@@ -195,45 +197,60 @@ impl Default for RestartState {
 
 #[derive(Debug, Default)]
 struct ServiceRunState {
-    ticks:            u64,
     restart_attempts: u64,
     /// The amount of time that needs to elapse after a service has restarted to reset the backoff
     /// state. We need this because health checks are not mandatory, so there is no good way to
     /// know if a service started successfully other than waiting for some time and checking
     /// that it does not go down.
-    restart_cooloff:  Duration,
+    restart_cooldown: Duration,
     restart_state:    RestartState,
     restart_backoff:  Backoff,
 }
 
+impl ServiceRunState {
+    fn new(restart_config: &ServiceRestartConfig) -> ServiceRunState {
+        ServiceRunState { restart_attempts: 0,
+                          restart_cooldown: restart_config.restart_cooldown_period,
+                          restart_state:    RestartState::None,
+                          restart_backoff:  Backoff::new(restart_config.min_backoff_period,
+                                                         restart_config.max_backoff_period,
+                                                         3f64), }
+    }
+}
+
 impl PersistentServiceWrapper {
-    pub fn new(service: Service) -> PersistentServiceWrapper {
-        PersistentServiceWrapper { run_state: ServiceRunState { restart_cooloff:
-                                                                    Duration::from_secs(60),
-                                                                ..ServiceRunState::default() },
+    pub fn new(service: Service,
+               restart_config: &ServiceRestartConfig)
+               -> PersistentServiceWrapper {
+        PersistentServiceWrapper { run_state: ServiceRunState::new(restart_config),
                                    inner:     Some(service), }
+    }
+
+    pub fn from_existing(&mut self, mut other: PersistentServiceWrapper) {
+        self.inner = other.inner.take();
     }
 
     pub fn service(&self) -> Option<&Service> { self.inner.as_ref() }
 
     pub fn service_mut(&mut self) -> Option<&mut Service> { self.inner.as_mut() }
 
-    pub fn start(&mut self, service: Service) {
-        self.run_state.restart_state = match self.run_state.restart_state {
-            RestartState::None => RestartState::None,
-            RestartState::NeedsRestart => {
-                panic!("Start called on service which was not ready to be restarted");
-            }
-            RestartState::Restarting => {
-                outputln!(preamble service.service_group, "Restarted");
-                self.run_state.restart_backoff.record_attempt_end();
-                RestartState::Restarted
-            }
-            RestartState::Restarted => {
-                panic!("Start called on service which was already restarted")
-            }
-        };
-        self.inner = Some(service);
+    pub fn start(&mut self) {
+        if let Some(service) = self.inner.as_ref() {
+            self.run_state.restart_state = match self.run_state.restart_state {
+                RestartState::None => RestartState::None,
+                RestartState::NeedsRestart => {
+                    panic!("Start called on service which was not ready to be restarted");
+                }
+                RestartState::Restarting => {
+                    outputln!(preamble service.service_group, "Restarted");
+                    self.run_state.restart_backoff.record_attempt_end();
+                    RestartState::Restarted
+                }
+                RestartState::Restarted => {
+                    panic!("Start called on service which was already restarted")
+                }
+            };
+        }
     }
 
     pub fn shutdown(&mut self, is_restart: bool) -> Option<Service> {
@@ -252,7 +269,11 @@ impl PersistentServiceWrapper {
                     }
                     RestartState::Restarted => RestartState::Restarting,
                 };
-                outputln!(preamble service.service_group, "Stopping service, will restart after {:.2} secs", restart_duration.as_secs_f32());
+                if restart_duration == Duration::from_secs(0) { 
+                    outputln!(preamble service.service_group, "Stopping service, will restart immediately");
+                } else {
+                    outputln!(preamble service.service_group, "Stopping service, will restart after {:.2} secs", restart_duration.as_secs_f32());
+                }
             }
             self.inner.take()
         } else {
@@ -643,7 +664,6 @@ impl Service {
             census_ring: &CensusRing,
             launcher: &LauncherCli)
             -> bool {
-        run_state.ticks += 1;
         // We may need to block the service from starting until all
         // its binds are satisfied
         if !self.initialized() {
@@ -1173,10 +1193,10 @@ impl Service {
                           && up
                           && run_state.restart_backoff
                                       .duration_elapsed_since_last_attempt_ended()
-                                      .map(|duration| duration > run_state.restart_cooloff)
+                                      .map(|duration| duration > run_state.restart_cooldown)
                                       .unwrap_or(false)
                 {
-                    // If the service was not restarted for the duration of the cooloff period
+                    // If the service was not restarted for the duration of the cooldown period
                     // since the last attempt ended we wipe all state associated with restarting.
                     run_state.restart_attempts = 0;
                     run_state.restart_backoff.reset();

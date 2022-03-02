@@ -257,12 +257,41 @@ impl FsCfg {
     }
 }
 
+/// Configuration parameters that control the behaviour of restarts for services
+/// that fail to startup successfully
+#[derive(Debug, Clone, PartialEq)]
+pub struct ServiceRestartConfig {
+    pub min_backoff_period:      Duration,
+    pub max_backoff_period:      Duration,
+    pub restart_cooldown_period: Duration,
+}
+
+impl ServiceRestartConfig {
+    pub fn new(min_backoff_period: Duration,
+               max_backoff_period: Duration,
+               restart_cooldown_period: Duration)
+               -> ServiceRestartConfig {
+        ServiceRestartConfig { min_backoff_period,
+                               max_backoff_period,
+                               restart_cooldown_period }
+    }
+}
+
+impl Default for ServiceRestartConfig {
+    fn default() -> Self {
+        Self { min_backoff_period:      Default::default(),
+               max_backoff_period:      Default::default(),
+               restart_cooldown_period: Duration::from_secs(300), }
+    }
+}
+
 #[derive(Clone, Debug, Derivative)]
 #[derivative(PartialEq)]
 pub struct ManagerConfig {
     pub auto_update:                bool,
     pub auto_update_period:         Duration,
     pub service_update_period:      Duration,
+    pub service_restart_config:     ServiceRestartConfig,
     pub custom_state_path:          Option<PathBuf>,
     pub key_cache:                  KeyCache,
     pub update_url:                 String,
@@ -499,11 +528,12 @@ pub(crate) mod sync {
             self.0.iter()
         }
 
-        pub fn insert(&mut self, key: PackageIdent, value: Service) {
+        pub fn insert(&mut self, key: PackageIdent, value: PersistentServiceWrapper) {
             if let Some(state) = self.0.get_mut(&key) {
-                state.start(value);
+                state.from_existing(value);
+                state.start();
             } else {
-                self.0.insert(key, PersistentServiceWrapper::new(value));
+                self.0.insert(key, value);
             }
         }
 
@@ -926,7 +956,8 @@ impl Manager {
         self.state
             .services
             .lock_msw()
-            .insert(service.spec_ident(), service);
+            .insert(service.spec_ident(),
+                    PersistentServiceWrapper::new(service, &self.state.cfg.service_restart_config))
     }
 
     // If we ever need to modify this function, it would be an excellent opportunity to
@@ -1990,6 +2021,7 @@ mod test {
             ManagerConfig { auto_update:                false,
                             auto_update_period:         Duration::from_secs(60),
                             service_update_period:      Duration::from_secs(60),
+                            service_restart_config:     ServiceRestartConfig::default(),
                             custom_state_path:          None,
                             key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                             update_url:                 "".to_string(),
