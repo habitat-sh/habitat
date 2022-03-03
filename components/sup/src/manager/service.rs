@@ -269,7 +269,7 @@ impl PersistentServiceWrapper {
                     }
                     RestartState::Restarted => RestartState::Restarting,
                 };
-                if restart_duration == Duration::from_secs(0) { 
+                if restart_duration == Duration::from_secs(0) {
                     outputln!(preamble service.service_group, "Stopping service, will restart immediately");
                 } else {
                     outputln!(preamble service.service_group, "Stopping service, will restart after {:.2} secs", restart_duration.as_secs_f32());

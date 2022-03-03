@@ -515,7 +515,9 @@ pub(crate) mod sync {
         }
 
         pub fn running_services(&self) -> impl Iterator<Item = &Service> {
-            self.0.values().filter_map(|state| state.service())
+            self.0
+                .values()
+                .filter_map(PersistentServiceWrapper::service)
         }
     }
 
@@ -550,7 +552,9 @@ pub(crate) mod sync {
         }
 
         pub fn running_services(&mut self) -> impl Iterator<Item = &mut Service> {
-            self.0.values_mut().filter_map(|state| state.service_mut())
+            self.0
+                .values_mut()
+                .filter_map(PersistentServiceWrapper::service_mut)
         }
 
         pub fn drain_services(&mut self) -> impl Iterator<Item = Service> + '_ {
@@ -1746,7 +1750,7 @@ impl Manager {
                            .services
                            .lock_msr()
                            .get(&spec.ident)
-                           .map_or(true, |service_state| service_state.is_ready_for_restart())
+                           .map_or(true, PersistentServiceWrapper::is_ready_for_restart)
                     {
                         self.add_service_rsw_mlw_rhw_msr(spec).await;
                     }
@@ -1756,9 +1760,8 @@ impl Manager {
                     let mut services = self.state.services.lock_msw();
                     // Relies on spec.ident not having changed, which
                     // ServiceSpec#reconcile must guarantee.
-                    if let Some(service) =
-                        services.get_mut(&spec.ident)
-                                .and_then(|service_state| service_state.service_mut())
+                    if let Some(service) = services.get_mut(&spec.ident)
+                                                   .and_then(PersistentServiceWrapper::service_mut)
                     {
                         service.set_spec(spec);
                         self.gossip_latest_service_rumor_rsw_mlw_rhw(service);
