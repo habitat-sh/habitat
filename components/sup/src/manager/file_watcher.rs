@@ -3010,7 +3010,7 @@ mod tests {
                         self.test_events(real_initial_file,
                                          &step.events,
                                          &mut setup.watcher.get_mut_callbacks().events)
-                    },
+                    } 
                     SupWatcher::Fallback(_watcher) => {
                         self.test_events_polling(real_initial_file,
                                                  &step.events,
@@ -3153,9 +3153,9 @@ mod tests {
 
         //  For running watcher tests, this requires a WatcherType so we can
         //  delineate between the NotifyWatcher and PollWatcher specific behaviors.
-        fn get_fs_ops_with_dirs<'a>(&'a mut self, 
+        fn get_fs_ops_with_dirs<'a>(&'a mut self,
                                     watched_dirs: &'a HashSet<PathBuf>,
-                                    watcher_type: WatcherType) 
+                                    watcher_type: WatcherType)
                                     -> FsOps<'a> {
             let mut fs_ops = self.get_fs_ops_init();
             fs_ops.watched_dirs = Some(watched_dirs);
