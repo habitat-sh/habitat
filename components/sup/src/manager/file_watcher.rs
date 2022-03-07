@@ -2845,12 +2845,10 @@ mod tests {
                                                self.debug_info,)
                                     });
             }
-            if !self.is_poll_watcher() {
-                event_count
-            } else {
+            if self.is_poll_watcher() {
                 event_count *= 5;
-                event_count
             }
+            event_count
         }
 
         fn get_event_count_on_rm_rf(&self, top_path: &Path) -> u32 {
