@@ -273,8 +273,7 @@ mod tests {
     use tempfile::TempDir;
 
     #[test]
-    fn test_events_with_poll_watcher()
-    {
+    fn test_events_with_poll_watcher() {
         env::set_var("HAB_STUDIO_HOST_ARCH", "aarch64-darwin");
         no_events_at_first();
         events_present_after_adding_config();
