@@ -3010,7 +3010,7 @@ mod tests {
                         self.test_events(real_initial_file,
                                          &step.events,
                                          &mut setup.watcher.get_mut_callbacks().events)
-                    } 
+                    }
                     SupWatcher::Fallback(_watcher) => {
                         self.test_events_polling(real_initial_file,
                                                  &step.events,
