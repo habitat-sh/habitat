@@ -1574,9 +1574,11 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
 // scenario, that involves symlinks.
 #[cfg(all(unix, test))]
 mod tests {
+    use crate::manager::sup_watcher::SupWatcher;
     use std::{collections::{HashMap,
                             HashSet,
                             VecDeque},
+              env,
               ffi::OsString,
               fmt::{Display,
                     Error,
@@ -1595,7 +1597,6 @@ mod tests {
     use notify::{self,
                  DebouncedEvent,
                  RawEvent,
-                 RecommendedWatcher,
                  RecursiveMode,
                  Watcher};
 
@@ -2382,9 +2383,35 @@ mod tests {
             let mut runner = TestCaseRunner::new();
             runner.debug_info.add(format!("test case: {}", tc.name));
             runner.run_init_commands(&tc.init.commands);
-            let setup = runner.prepare_watcher(&tc.init.path);
-            runner.run_steps(setup, &tc.init.initial_file, &tc.steps);
+            let mut setup = runner.prepare_watcher(&tc.init.path);
+            runner.run_steps(&mut setup, &tc.init.initial_file, &tc.steps);
         }
+    }
+
+    #[test]
+    fn polling_file_watcher() {
+        env::set_var("HAB_STUDIO_HOST_ARCH", "aarch64-darwin");
+
+        //  When using the PollWatcher variant of SupWatcher, the
+        //  behavior is different than the NotifyWatcher.  The
+        //  first two test cases will pass if the timing is adjusted
+        //  as well as the expected number of iterations.  We only
+        //  run the first two test cases here, and run with separate
+        //  variables as it is failing otherwise.
+        let cases = get_test_cases();
+        let polling_cases = &cases[0..2];
+        for tc in polling_cases {
+            let mut runner = TestCaseRunner::new();
+            runner.debug_info.add(format!("test case: {}", tc.name));
+            runner.run_init_commands(&tc.init.commands);
+            let mut setup = runner.prepare_watcher(&tc.init.path);
+            runner.run_steps(&mut setup, &tc.init.initial_file, &tc.steps);
+
+            //  Polling watcher must be forcibly dropped.
+            setup.drop_watcher();
+        }
+
+        env::remove_var("HAB_STUDIO_HOST_ARCH");
     }
 
     // Commands that can be executed at the test case init.
@@ -2561,7 +2588,7 @@ mod tests {
     // purposes.
     struct TestWatcher {
         // The real watcher that does the grunt work.
-        real_watcher: RecommendedWatcher,
+        real_watcher: SupWatcher,
         // A set of watched dirs. We will use these to correctly
         // compute the number of iterations to perform after executing
         // the step action.
@@ -2570,12 +2597,12 @@ mod tests {
 
     impl Watcher for TestWatcher {
         fn new_raw(tx: Sender<RawEvent>) -> notify::Result<Self> {
-            Ok(TestWatcher { real_watcher: RecommendedWatcher::new_raw(tx)?,
+            Ok(TestWatcher { real_watcher: SupWatcher::new_raw(tx)?,
                              watched_dirs: HashSet::new(), })
         }
 
         fn new(tx: Sender<DebouncedEvent>, d: Duration) -> notify::Result<Self> {
-            Ok(TestWatcher { real_watcher: RecommendedWatcher::new(tx, d)?,
+            Ok(TestWatcher { real_watcher: SupWatcher::new(tx, d)?,
                              watched_dirs: HashSet::new(), })
         }
 
@@ -2629,17 +2656,32 @@ mod tests {
         }
     }
 
+    enum WatcherType {
+        NotifyWatcherType,
+        PollWatcherType,
+    }
+
     struct WatcherSetup {
         init_path: PathBuf,
         watcher:   FileWatcher<TestCallbacks, TestWatcher>,
     }
 
+    impl WatcherSetup {
+        pub fn drop_watcher(&mut self) {
+            match &self.watcher.watcher.real_watcher {
+                SupWatcher::Native(watcher) => drop(watcher),
+                SupWatcher::Fallback(watcher) => drop(watcher),
+            }
+        }
+    }
+    
     // Structure used for executing the initial commands and step
     // actions.
     struct FsOps<'a> {
         debug_info:   &'a mut DebugInfo,
         root:         &'a PathBuf,
         watched_dirs: Option<&'a HashSet<PathBuf>>,
+        watcher_type: WatcherType,
     }
 
     impl<'a> FsOps<'a> {
@@ -2659,7 +2701,11 @@ mod tests {
                                       });
             if self.parent_is_watched(&pp) {
                 // One event - create.
-                1
+                if !self.is_poll_watcher() {
+                    1
+                } else {
+                    5
+                }
             } else {
                 // No events.
                 0
@@ -2677,7 +2723,11 @@ mod tests {
                     self.real_mkdir(&full_path);
                     if wd.contains(&test_path) {
                         // One event - create.
-                        1
+                        if !self.is_poll_watcher() {
+                            1
+                        } else {
+                            5
+                        }
                     } else {
                         // No events.
                         0
@@ -2685,7 +2735,11 @@ mod tests {
                 }
                 None => {
                     self.real_mkdir(&full_path);
-                    0
+                    if !self.is_poll_watcher() {
+                        0
+                    } else {
+                        5
+                    }
                 }
             }
         }
@@ -2708,7 +2762,11 @@ mod tests {
                              });
             if self.parent_is_watched(&pp) {
                 // One event - create.
-                1
+                if !self.is_poll_watcher() {
+                    1
+                } else {
+                    10
+                }
             } else {
                 // No events.
                 0
@@ -2731,16 +2789,28 @@ mod tests {
                         // its parent, we are going to receive double
                         // notice remove event followed by the rename
                         // event.
-                        3
+                        if !self.is_poll_watcher() {
+                            3
+                        } else {
+                            15
+                        }
                     } else {
                         // Two events - notice remove, and rename or
                         // remove.
-                        2
+                        if !self.is_poll_watcher() {
+                            2
+                        } else {
+                            10
+                        }
                     }
                 }
                 (false, true) => {
                     // One event - create.
-                    1
+                    if !self.is_poll_watcher() {
+                        1
+                    } else {
+                        5
+                    }
                 }
                 (false, false) => {
                     // No events.
@@ -2765,7 +2835,7 @@ mod tests {
                     }
                 }
             };
-            let event_count = self.get_event_count_on_rm_rf(&pp);
+            let mut event_count = self.get_event_count_on_rm_rf(&pp);
             if metadata.is_dir() {
                 fs::remove_dir_all(&pp).unwrap_or_else(|err| {
                                            panic!("failed to remove directory {}: {}, debug \
@@ -2781,6 +2851,9 @@ mod tests {
                                                err,
                                                self.debug_info,)
                                     });
+            }
+            if self.is_poll_watcher() {
+                event_count *= 5;
             }
             event_count
         }
@@ -2856,6 +2929,13 @@ mod tests {
         fn prepend_root(&self, p: &Path) -> PathBuf {
             prepend_root_impl(self.root, p, self.debug_info)
         }
+
+        fn is_poll_watcher(&self) -> bool {
+            match &self.watcher_type {
+                WatcherType::NotifyWatcherType => false,
+                WatcherType::PollWatcherType => true,
+            }
+        }
     }
 
     struct TestCaseRunner {
@@ -2878,7 +2958,7 @@ mod tests {
         }
 
         fn run_init_commands(&mut self, commands: &[InitCommand]) {
-            let fs_ops = self.get_fs_ops();
+            let fs_ops = self.get_fs_ops_init();
             for command in commands {
                 match command {
                     InitCommand::MkdirP(ref path) => {
@@ -2910,34 +2990,53 @@ mod tests {
         }
 
         fn run_steps(&mut self,
-                     mut setup: WatcherSetup,
+                     setup: &mut WatcherSetup,
                      tc_initial_file: &Option<PathBuf>,
                      steps: &[Step]) {
             let mut initial_file = tc_initial_file.clone();
             let mut actual_initial_file = setup.watcher.initial_real_file.clone();
+
             for (step_idx, step) in steps.iter().enumerate() {
                 self.debug_info.push_level();
                 self.debug_info
                     .add(format!("step {}:\n{}", step_idx, dits!(step)));
-                let iterations = self.execute_step_action(&mut setup, &step.action);
-                self.spin_watcher(&mut setup, iterations);
+                let iterations = self.execute_step_action(setup, &step.action);
+                self.spin_watcher(setup, iterations);
+                match &setup.watcher.get_mut_underlying_watcher().real_watcher {
+                    SupWatcher::Native(_watcher) => (),
+                    SupWatcher::Fallback(_watcher) => thread::sleep(Duration::from_secs(5)),
+                }
                 self.test_dirs(&step.dirs, &setup.watcher.paths.dirs);
                 self.test_paths(&step.paths, &setup.init_path, &setup.watcher.paths.paths);
                 let real_initial_file =
                     self.test_initial_file(iterations, &mut initial_file, &mut actual_initial_file);
-                self.test_events(real_initial_file,
-                                 &step.events,
-                                 &mut setup.watcher.get_mut_callbacks().events);
+                match &setup.watcher.get_mut_underlying_watcher().real_watcher {
+                    SupWatcher::Native(_watcher) => {
+                        self.test_events(real_initial_file,
+                                         &step.events,
+                                         &mut setup.watcher.get_mut_callbacks().events)
+                    }
+                    SupWatcher::Fallback(_watcher) => {
+                        self.test_events_polling(real_initial_file,
+                                                 &step.events,
+                                                 &mut setup.watcher.get_mut_callbacks().events)
+                    }
+                }
                 self.debug_info.pop_level();
                 debug!("\n\n\n++++++++++++++++\n++++STEP+END++++\n++++++++++++++++\n\n\n");
             }
+
             debug!("\n\n\n================\n=TEST=CASE=ENDS=\n================\n\n\n");
         }
 
         fn execute_step_action(&mut self, setup: &mut WatcherSetup, action: &StepAction) -> u32 {
+            let tw = setup.watcher.get_mut_underlying_watcher();
+            let watcher_type = match &tw.real_watcher {
+                SupWatcher::Native(_watcher) => WatcherType::NotifyWatcherType,
+                SupWatcher::Fallback(_watcher) => WatcherType::PollWatcherType,
+            };
             let iterations = {
-                let tw = setup.watcher.get_mut_underlying_watcher();
-                let mut fs_ops = self.get_fs_ops_with_dirs(&tw.watched_dirs);
+                let mut fs_ops = self.get_fs_ops_with_dirs(&tw.watched_dirs, watcher_type);
                 match action {
                     StepAction::LnS(ref target, ref path) => fs_ops.ln_s(target, path),
                     StepAction::MkdirP(ref path) => fs_ops.mkdir_p(path),
@@ -2955,9 +3054,11 @@ mod tests {
         fn spin_watcher(&self, setup: &mut WatcherSetup, iterations: u32) {
             let mut iteration = 0;
 
-            // After switching single_iteration() from recv() to try_recv(), this sleep is required
-            // for these tests to pass.
-            thread::sleep(Duration::from_secs(3));
+            let tw = setup.watcher.get_mut_underlying_watcher();
+            match &tw.real_watcher {
+                SupWatcher::Fallback(_watcher) => thread::sleep(Duration::from_secs(15)),
+                _ => thread::sleep(Duration::from_secs(3)),
+            }
 
             while iteration < iterations {
                 setup.watcher
@@ -3016,6 +3117,24 @@ mod tests {
             }
         }
 
+        //  For the poll watcher tehre are more than one Debounced event received
+        //  and this test will fail.  Instead we can look at the last event and
+        //  ensure that it is correct, as it will be the last entry that will
+        //  determine the final state of the watched.
+        fn test_events_polling(&mut self,
+                               real_initial_file: Option<PathBuf>,
+                               step_events: &[NotifyEvent],
+                               actual_events: &mut Vec<NotifyEvent>) {
+            let expected_events = self.fixup_expected_events(step_events, real_initial_file);
+            self.debug_info
+                .add(format!("fixed up expected events: {:?}", expected_events));
+            assert_eq!(expected_events.last(),
+                       actual_events.last(),
+                       "comparing expected events, debug info:\n{}",
+                       self.debug_info,);
+            actual_events.clear();
+        }
+
         fn test_events(&mut self,
                        real_initial_file: Option<PathBuf>,
                        step_events: &[NotifyEvent],
@@ -3029,16 +3148,25 @@ mod tests {
             actual_events.clear();
         }
 
-        fn get_fs_ops_with_dirs<'a>(&'a mut self, watched_dirs: &'a HashSet<PathBuf>) -> FsOps<'a> {
-            let mut fs_ops = self.get_fs_ops();
-            fs_ops.watched_dirs = Some(watched_dirs);
-            fs_ops
-        }
-
-        fn get_fs_ops(&mut self) -> FsOps<'_> {
+        //  For performing initial setup of watcher directories.  This occurs
+        //  before creation of the watcher.
+        fn get_fs_ops_init(&mut self) -> FsOps<'_> {
             FsOps { debug_info:   &mut self.debug_info,
                     root:         &self.root,
-                    watched_dirs: None, }
+                    watched_dirs: None,
+                    watcher_type: WatcherType::NotifyWatcherType, }
+        }
+
+        //  For running watcher tests, this requires a WatcherType so we can
+        //  delineate between the NotifyWatcher and PollWatcher specific behaviors.
+        fn get_fs_ops_with_dirs<'a>(&'a mut self,
+                                    watched_dirs: &'a HashSet<PathBuf>,
+                                    watcher_type: WatcherType)
+                                    -> FsOps<'a> {
+            let mut fs_ops = self.get_fs_ops_init();
+            fs_ops.watched_dirs = Some(watched_dirs);
+            fs_ops.watcher_type = watcher_type;
+            fs_ops
         }
 
         fn fixup_expected_dirs(&self, dirs: &HashMap<PathBuf, u32>) -> HashMap<PathBuf, u32> {
