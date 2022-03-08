@@ -2383,8 +2383,8 @@ mod tests {
             let mut runner = TestCaseRunner::new();
             runner.debug_info.add(format!("test case: {}", tc.name));
             runner.run_init_commands(&tc.init.commands);
-            let setup = runner.prepare_watcher(&tc.init.path);
-            runner.run_steps(setup, &tc.init.initial_file, &tc.steps);
+            let mut setup = runner.prepare_watcher(&tc.init.path);
+            runner.run_steps(&mut setup, &tc.init.initial_file, &tc.steps);
         }
     }
 
@@ -2399,19 +2399,17 @@ mod tests {
         //  run the first two test cases here, and run with separate
         //  variables as it is failing otherwise.
         let cases = get_test_cases();
-        let tc = &cases[0];
-        let mut runner = TestCaseRunner::new();
-        runner.debug_info.add(format!("test case: {}", tc.name));
-        runner.run_init_commands(&tc.init.commands);
-        let setup = runner.prepare_watcher(&tc.init.path);
-        runner.run_steps(setup, &tc.init.initial_file, &tc.steps);
+        let polling_cases = &cases[0..2];
+        for tc in polling_cases {
+            let mut runner = TestCaseRunner::new();
+            runner.debug_info.add(format!("test case: {}", tc.name));
+            runner.run_init_commands(&tc.init.commands);
+            let mut setup = runner.prepare_watcher(&tc.init.path);
+            runner.run_steps(&mut setup, &tc.init.initial_file, &tc.steps);
 
-        let tc1 = &cases[1];
-        let mut runner1 = TestCaseRunner::new();
-        runner1.debug_info.add(format!("test case: {}", tc1.name));
-        runner1.run_init_commands(&tc1.init.commands);
-        let setup1 = runner1.prepare_watcher(&tc1.init.path);
-        runner1.run_steps(setup1, &tc1.init.initial_file, &tc1.steps);
+            //  Polling watcher must be forcibly dropped.
+            setup.drop_watcher();
+        }
 
         env::remove_var("HAB_STUDIO_HOST_ARCH");
     }
@@ -2668,6 +2666,15 @@ mod tests {
         watcher:   FileWatcher<TestCallbacks, TestWatcher>,
     }
 
+    impl WatcherSetup {
+        pub fn drop_watcher(&mut self) {
+            match &self.watcher.watcher.real_watcher {
+                SupWatcher::Native(watcher) => drop(watcher),
+                SupWatcher::Fallback(watcher) => drop(watcher),
+            }
+        }
+    }
+    
     // Structure used for executing the initial commands and step
     // actions.
     struct FsOps<'a> {
@@ -2983,7 +2990,7 @@ mod tests {
         }
 
         fn run_steps(&mut self,
-                     mut setup: WatcherSetup,
+                     setup: &mut WatcherSetup,
                      tc_initial_file: &Option<PathBuf>,
                      steps: &[Step]) {
             let mut initial_file = tc_initial_file.clone();
@@ -2993,8 +3000,8 @@ mod tests {
                 self.debug_info.push_level();
                 self.debug_info
                     .add(format!("step {}:\n{}", step_idx, dits!(step)));
-                let iterations = self.execute_step_action(&mut setup, &step.action);
-                self.spin_watcher(&mut setup, iterations);
+                let iterations = self.execute_step_action(setup, &step.action);
+                self.spin_watcher(setup, iterations);
                 match &setup.watcher.get_mut_underlying_watcher().real_watcher {
                     SupWatcher::Native(_watcher) => (),
                     SupWatcher::Fallback(_watcher) => thread::sleep(Duration::from_secs(5)),
@@ -3018,6 +3025,7 @@ mod tests {
                 self.debug_info.pop_level();
                 debug!("\n\n\n++++++++++++++++\n++++STEP+END++++\n++++++++++++++++\n\n\n");
             }
+
             debug!("\n\n\n================\n=TEST=CASE=ENDS=\n================\n\n\n");
         }
 
