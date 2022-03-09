@@ -51,7 +51,7 @@ dependencies = [
  "pin-project",
  "pin-project-lite",
  "rand 0.8.5",
- "regex 1.5.4",
+ "regex 1.5.5",
  "serde",
  "sha-1",
  "smallvec",
@@ -78,7 +78,7 @@ dependencies = [
  "bytestring",
  "http",
  "log 0.4.14",
- "regex 1.5.4",
+ "regex 1.5.5",
  "serde",
 ]
 
@@ -181,7 +181,7 @@ dependencies = [
  "once_cell",
  "paste 1.0.6",
  "pin-project",
- "regex 1.5.4",
+ "regex 1.5.5",
  "serde",
  "serde_json",
  "serde_urlencoded",
@@ -757,7 +757,7 @@ dependencies = [
  "atty",
  "humantime",
  "log 0.4.14",
- "regex 1.5.4",
+ "regex 1.5.5",
  "termcolor",
 ]
 
@@ -1290,7 +1290,7 @@ dependencies = [
  "pbr",
  "percent-encoding",
  "rand 0.8.5",
- "regex 1.5.4",
+ "regex 1.5.5",
  "reqwest",
  "serde",
  "serde_derive",
@@ -1353,7 +1353,7 @@ dependencies = [
  "parking_lot",
  "pbr",
  "petgraph 0.6.0",
- "regex 1.5.4",
+ "regex 1.5.5",
  "reqwest",
  "retry",
  "rustls",
@@ -1400,7 +1400,7 @@ dependencies = [
  "pin-project",
  "rand 0.8.5",
  "rcgen",
- "regex 1.5.4",
+ "regex 1.5.5",
  "reqwest",
  "rustls",
  "serde",
@@ -1539,7 +1539,7 @@ dependencies = [
  "prost-types",
  "rand 0.8.5",
  "rants",
- "regex 1.5.4",
+ "regex 1.5.5",
  "rustls",
  "serde",
  "serde-transcode",
@@ -2026,7 +2026,7 @@ dependencies = [
  "log 0.4.14",
  "log-mdc",
  "parking_lot",
- "regex 1.5.4",
+ "regex 1.5.5",
  "serde",
  "serde-value",
  "serde_json",
@@ -2489,7 +2489,7 @@ checksum = "fd56cbd21fea48d0c440b41cd69c589faacade08c992d9a54e471b79d0fd13eb"
 dependencies = [
  "base64",
  "once_cell",
- "regex 1.5.4",
+ "regex 1.5.5",
 ]
 
 [[package]]
@@ -2714,7 +2714,7 @@ dependencies = [
  "petgraph 0.6.0",
  "prost",
  "prost-types",
- "regex 1.5.4",
+ "regex 1.5.5",
  "tempfile",
  "which",
 ]
@@ -2981,9 +2981,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.5.4"
+version = "1.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d07a8629359eb56f1e2fb1652bb04212c072a87ba68546a04065d525673ac461"
+checksum = "1a11647b6b25ff05a515cb92c365cec08801e83423a235b51e231e1808747286"
 dependencies = [
  "aho-corasick 0.7.18",
  "memchr",
@@ -4043,7 +4043,7 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bcde98d1fc3f528255b1ecb22fb688ee0d23deb672a8c57127df10b98b4bd18c"
 dependencies = [
- "regex 1.5.4",
+ "regex 1.5.5",
 ]
 
 [[package]]
@@ -4097,7 +4097,7 @@ dependencies = [
  "phf",
  "phf_codegen",
  "publicsuffix",
- "regex 1.5.4",
+ "regex 1.5.5",
  "serde",
  "serde_json",
  "uritemplate-next",
