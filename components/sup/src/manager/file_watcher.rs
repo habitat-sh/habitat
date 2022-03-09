@@ -2395,7 +2395,7 @@ mod tests {
         //  When using the PollWatcher variant of SupWatcher, the
         //  behavior is different than the NotifyWatcher.  The
         //  first two test cases will pass if the timing is adjusted
-        //  as well as the expected number of iterations.  
+        //  as well as the expected number of iterations.
         let cases = get_test_cases();
         let polling_cases = &cases[0..2];
         for tc in polling_cases {
