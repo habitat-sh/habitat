@@ -115,7 +115,7 @@ steps:
 
   - label: "[unit] :linux: butterfly lock_as_mutex"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh butterfly --features "lock_as_mutex deadlock_detection" -- --test-threads=1 --format=pretty
+      - .expeditor/scripts/verify/run_cargo_test.sh butterfly --features "lock_as_mutex,deadlock_detection" -- --test-threads=1 --format=pretty
     expeditor:
       executor:
         docker:
@@ -125,7 +125,7 @@ steps:
 
   - label: "[unit] :linux: butterfly lock_as_rwlock"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh butterfly --features "lock_as_rwlock deadlock_detection" -- --test-threads=1 --format=pretty
+      - .expeditor/scripts/verify/run_cargo_test.sh butterfly --features "lock_as_rwlock,deadlock_detection" -- --test-threads=1 --format=pretty
     expeditor:
       executor:
         docker:
@@ -247,7 +247,7 @@ steps:
 
   - label: "[unit] :linux: sup lock_as_rwlock"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh sup --features "ignore_integration_tests lock_as_rwlock"
+      - .expeditor/scripts/verify/run_cargo_test.sh sup --features "ignore_integration_tests,lock_as_rwlock"
     expeditor:
       executor:
         docker:
@@ -259,7 +259,7 @@ steps:
 
   - label: "[unit] :linux: sup lock_as_mutex"
     command:
-      - .expeditor/scripts/verify/run_cargo_test.sh sup --features "ignore_integration_tests lock_as_mutex"
+      - .expeditor/scripts/verify/run_cargo_test.sh sup --features "ignore_integration_tests,lock_as_mutex"
     expeditor:
       executor:
         docker:
