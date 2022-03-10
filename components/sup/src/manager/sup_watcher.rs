@@ -61,8 +61,8 @@ impl Watcher for SupWatcher {
 
 #[cfg(test)]
 mod test {
-    use habitat_core::locked_env_var;
     use super::*;
+    use habitat_core::locked_env_var;
     use std::{sync::mpsc::channel,
               time::Duration};
 
@@ -90,7 +90,6 @@ mod test {
 
     #[test]
     fn sup_watcher_constructor_test_notify() {
-
         let (sender, _) = channel();
         let delay = Duration::from_millis(1000);
 
@@ -107,5 +106,4 @@ mod test {
         lock.unset();
         assert_eq!(watcher_type, "Native");
     }
-
 }

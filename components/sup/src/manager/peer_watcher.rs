@@ -135,8 +135,8 @@ impl PeerWatcher {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use habitat_core::locked_env_var;
     use habitat_butterfly::member::Member;
+    use habitat_core::locked_env_var;
     use std::{fs::{File,
                    OpenOptions},
               io::Write,
@@ -147,8 +147,8 @@ mod tests {
     locked_env_var!(HAB_STUDIO_HOST_ARCH, lock_env_var);
 
     fn peer_watcher_member_load_test(watch_dir: &Path,
-                                peer_data: &Vec<String>) 
-                                -> Result<Vec<Member>> {
+                                     peer_data: &[String]) 
+                                     -> Result<Vec<Member>> {
         let path = PathBuf::from(watch_dir).join("some_file");
         let mut file = OpenOptions::new().append(true)
                                          .create_new(true)
@@ -207,14 +207,11 @@ mod tests {
     fn with_file() {
         let tmpdir = TempDir::new().unwrap();
 
-        let peer_lines = vec!["1.2.3.4:5".to_string(), 
-                              "4.3.2.1".to_string()];
+        let peer_lines = vec!["1.2.3.4:5".to_string(), "4.3.2.1".to_string()];
 
         let lock = lock_env_var();
         lock.set("");
-        let mut members = peer_watcher_member_load_test(tmpdir.path(),
-                                                        &peer_lines).
-                                                        unwrap();
+        let mut members = peer_watcher_member_load_test(tmpdir.path(), &peer_lines).unwrap();
         lock.unset();
 
         for mut member in &mut members {
@@ -237,13 +234,10 @@ mod tests {
     #[test]
     fn with_file_using_poll_watcher() {
         let tmpdir = TempDir::new().unwrap();
-        let peer_lines = vec!["1.2.3.5:5".to_string(), 
-                              "5.4.3.2".to_string()];
+        let peer_lines = vec!["1.2.3.5:5".to_string(), "5.4.3.2".to_string()];
         let lock = lock_env_var();
         lock.set("aarch64-darwin");
-        let mut members = peer_watcher_member_load_test(tmpdir.path(),
-                                                    &peer_lines).
-                                                    unwrap();
+        let mut members = peer_watcher_member_load_test(tmpdir.path(), &peer_lines).unwrap();
         lock.unset();
         for mut member in &mut members {
             member.id = String::new();
