@@ -245,6 +245,18 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :linux: sup NO-ARGS "
+    command:
+      - .expeditor/scripts/verify/run_cargo_test.sh sup
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+    timeout_in_minutes: 50
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[unit] :linux: sup lock_as_rwlock"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh sup --features "ignore_integration_tests,lock_as_rwlock"
