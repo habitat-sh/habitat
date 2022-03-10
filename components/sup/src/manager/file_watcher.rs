@@ -1575,10 +1575,10 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
 #[cfg(all(unix, test))]
 mod tests {
     use crate::manager::sup_watcher::SupWatcher;
+    use habitat_core::locked_env_var;
     use std::{collections::{HashMap,
                             HashSet,
                             VecDeque},
-              env,
               ffi::OsString,
               fmt::{Display,
                     Error,
@@ -1638,6 +1638,8 @@ mod tests {
             OsString::from($str)
         };
     );
+
+    locked_env_var!(HAB_STUDIO_HOST_ARCH, lock_env_var);
 
     // Add new test cases here.
     fn get_test_cases() -> Vec<TestCase> {
@@ -2377,20 +2379,29 @@ mod tests {
                                            events: vec![NotifyEvent::disappeared(pb!("/a/b/c"))], },], },]
     }
 
+    fn run_test_case(tc: &TestCase) {
+        let mut runner = TestCaseRunner::new();
+        runner.debug_info.add(format!("test case: {}", tc.name));
+        runner.run_init_commands(&tc.init.commands);
+        let setup = runner.prepare_watcher(&tc.init.path);
+        runner.run_steps(setup, &tc.init.initial_file, &tc.steps);
+    }
+
     #[test]
     fn file_watcher() {
+        let lock = lock_env_var();
+        lock.set("");
+
         for tc in get_test_cases() {
-            let mut runner = TestCaseRunner::new();
-            runner.debug_info.add(format!("test case: {}", tc.name));
-            runner.run_init_commands(&tc.init.commands);
-            let setup = runner.prepare_watcher(&tc.init.path);
-            runner.run_steps(setup, &tc.init.initial_file, &tc.steps);
+            run_test_case(&tc);
         }
+        lock.unset();
     }
 
     #[test]
     fn polling_file_watcher() {
-        env::set_var("HAB_STUDIO_HOST_ARCH", "aarch64-darwin");
+        let lock = lock_env_var();
+        lock.set("aarch64-darwin");
 
         //  When using the PollWatcher variant of SupWatcher, the
         //  behavior is different than the NotifyWatcher.  The
@@ -2399,14 +2410,9 @@ mod tests {
         let cases = get_test_cases();
         let polling_cases = &cases[0..2];
         for tc in polling_cases {
-            let mut runner = TestCaseRunner::new();
-            runner.debug_info.add(format!("test case: {}", tc.name));
-            runner.run_init_commands(&tc.init.commands);
-            let setup = runner.prepare_watcher(&tc.init.path);
-            runner.run_steps(setup, &tc.init.initial_file, &tc.steps);
+            run_test_case(tc);
         }
-
-        env::remove_var("HAB_STUDIO_HOST_ARCH");
+        lock.unset();
     }
 
     // Commands that can be executed at the test case init.
@@ -2651,11 +2657,6 @@ mod tests {
         }
     }
 
-    enum WatcherType {
-        NotifyWatcherType,
-        PollWatcherType,
-    }
-
     struct WatcherSetup {
         init_path: PathBuf,
         watcher:   FileWatcher<TestCallbacks, TestWatcher>,
@@ -2667,7 +2668,6 @@ mod tests {
         debug_info:   &'a mut DebugInfo,
         root:         &'a PathBuf,
         watched_dirs: Option<&'a HashSet<PathBuf>>,
-        watcher_type: WatcherType,
     }
 
     impl<'a> FsOps<'a> {
@@ -2687,11 +2687,7 @@ mod tests {
                                       });
             if self.parent_is_watched(&pp) {
                 // One event - create.
-                if !self.is_poll_watcher() {
-                    1
-                } else {
-                    5
-                }
+                1
             } else {
                 // No events.
                 0
@@ -2709,11 +2705,7 @@ mod tests {
                     self.real_mkdir(&full_path);
                     if wd.contains(&test_path) {
                         // One event - create.
-                        if !self.is_poll_watcher() {
-                            1
-                        } else {
-                            5
-                        }
+                        1
                     } else {
                         // No events.
                         0
@@ -2721,11 +2713,7 @@ mod tests {
                 }
                 None => {
                     self.real_mkdir(&full_path);
-                    if !self.is_poll_watcher() {
-                        0
-                    } else {
-                        5
-                    }
+                    0
                 }
             }
         }
@@ -2748,11 +2736,7 @@ mod tests {
                              });
             if self.parent_is_watched(&pp) {
                 // One event - create.
-                if !self.is_poll_watcher() {
-                    1
-                } else {
-                    10
-                }
+                1
             } else {
                 // No events.
                 0
@@ -2775,28 +2759,16 @@ mod tests {
                         // its parent, we are going to receive double
                         // notice remove event followed by the rename
                         // event.
-                        if !self.is_poll_watcher() {
-                            3
-                        } else {
-                            15
-                        }
+                        3
                     } else {
                         // Two events - notice remove, and rename or
                         // remove.
-                        if !self.is_poll_watcher() {
-                            2
-                        } else {
-                            10
-                        }
+                        2
                     }
                 }
                 (false, true) => {
                     // One event - create.
-                    if !self.is_poll_watcher() {
-                        1
-                    } else {
-                        5
-                    }
+                    1
                 }
                 (false, false) => {
                     // No events.
@@ -2821,7 +2793,7 @@ mod tests {
                     }
                 }
             };
-            let mut event_count = self.get_event_count_on_rm_rf(&pp);
+            let event_count = self.get_event_count_on_rm_rf(&pp);
             if metadata.is_dir() {
                 fs::remove_dir_all(&pp).unwrap_or_else(|err| {
                                            panic!("failed to remove directory {}: {}, debug \
@@ -2837,9 +2809,6 @@ mod tests {
                                                err,
                                                self.debug_info,)
                                     });
-            }
-            if self.is_poll_watcher() {
-                event_count *= 5;
             }
             event_count
         }
@@ -2915,14 +2884,262 @@ mod tests {
         fn prepend_root(&self, p: &Path) -> PathBuf {
             prepend_root_impl(self.root, p, self.debug_info)
         }
-
-        fn is_poll_watcher(&self) -> bool {
-            match &self.watcher_type {
-                WatcherType::NotifyWatcherType => false,
-                WatcherType::PollWatcherType => true,
-            }
-        }
     }
+
+    // impl<'a> FsOps<'a> {
+    //     fn ln_s(&self, target: &Path, path: &Path) -> u32 {
+    //         let pp = self.prepend_root(path);
+    //         let tt = if target.is_absolute() {
+    //             self.prepend_root(target)
+    //         } else {
+    //             target.to_path_buf()
+    //         };
+    //         unix_fs::symlink(&tt, &pp).unwrap_or_else(|_| {
+    //                                       panic!("could not create symlink at {} pointing to {}, \
+    //                                               debug info:\n{}",
+    //                                              pp.display(),
+    //                                              tt.display(),
+    //                                              self.debug_info,)
+    //                                   });
+    //         if self.parent_is_watched(&pp) {
+    //             // One event - create.
+    //             if !self.is_poll_watcher() {
+    //                 1
+    //             } else {
+    //                 5
+    //             }
+    //         } else {
+    //             // No events.
+    //             0
+    //         }
+    //     }
+
+    //     fn mkdir_p(&self, path: &Path) -> u32 {
+    //         let full_path = self.prepend_root(path);
+    //         match self.watched_dirs {
+    //             Some(wd) => {
+    //                 let mut test_path = full_path.clone();
+    //                 while !test_path.exists() {
+    //                     test_path = self.get_parent(&test_path);
+    //                 }
+    //                 self.real_mkdir(&full_path);
+    //                 if wd.contains(&test_path) {
+    //                     // One event - create.
+    //                     if !self.is_poll_watcher() {
+    //                         1
+    //                     } else {
+    //                         5
+    //                     }
+    //                 } else {
+    //                     // No events.
+    //                     0
+    //                 }
+    //             }
+    //             None => {
+    //                 self.real_mkdir(&full_path);
+    //                 if !self.is_poll_watcher() {
+    //                     0
+    //                 } else {
+    //                     5
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     fn real_mkdir(&self, real_path: &Path) {
+    //         fs::create_dir_all(&real_path).unwrap_or_else(|_| {
+    //                                           panic!("could not create directories up to {}, \
+    //                                                   debug info:\n{}",
+    //                                                  real_path.display(),
+    //                                                  self.debug_info,)
+    //                                       });
+    //     }
+
+    //     fn touch(&self, path: &Path) -> u32 {
+    //         let pp = self.prepend_root(path);
+    //         File::create(&pp).unwrap_or_else(|_| {
+    //                              panic!("could not create file {}, debug info:\n{}",
+    //                                     pp.display(),
+    //                                     self.debug_info,)
+    //                          });
+    //         if self.parent_is_watched(&pp) {
+    //             // One event - create.
+    //             if !self.is_poll_watcher() {
+    //                 1
+    //             } else {
+    //                 10
+    //             }
+    //         } else {
+    //             // No events.
+    //             0
+    //         }
+    //     }
+
+    //     fn mv(&self, from: &Path, to: &Path) -> u32 {
+    //         let ff = self.prepend_root(from);
+    //         let tt = self.prepend_root(to);
+    //         fs::rename(&ff, &tt).unwrap_or_else(|_| {
+    //                                 panic!("could not move from {} to {}, debug info:\n{}",
+    //                                        ff.display(),
+    //                                        tt.display(),
+    //                                        self.debug_info,)
+    //                             });
+    //         match (self.parent_is_watched(&ff), self.parent_is_watched(&tt)) {
+    //             (true, true) | (true, false) => {
+    //                 if self.path_is_watched(&ff) {
+    //                     // Since we are watching both moved path and
+    //                     // its parent, we are going to receive double
+    //                     // notice remove event followed by the rename
+    //                     // event.
+    //                     if !self.is_poll_watcher() {
+    //                         3
+    //                     } else {
+    //                         15
+    //                     }
+    //                 } else {
+    //                     // Two events - notice remove, and rename or
+    //                     // remove.
+    //                     if !self.is_poll_watcher() {
+    //                         2
+    //                     } else {
+    //                         10
+    //                     }
+    //                 }
+    //             }
+    //             (false, true) => {
+    //                 // One event - create.
+    //                 if !self.is_poll_watcher() {
+    //                     1
+    //                 } else {
+    //                     5
+    //                 }
+    //             }
+    //             (false, false) => {
+    //                 // No events.
+    //                 0
+    //             }
+    //         }
+    //     }
+
+    //     fn rm_rf(&mut self, path: &Path) -> u32 {
+    //         let pp = self.prepend_root(path);
+    //         let metadata = match pp.symlink_metadata() {
+    //             Ok(m) => m,
+    //             Err(e) => {
+    //                 match e.kind() {
+    //                     ErrorKind::NotFound => return 0,
+    //                     _ => {
+    //                         panic!("Failed to stat {}: {}, debug info:\n{}",
+    //                                pp.display(),
+    //                                e,
+    //                                self.debug_info,)
+    //                     }
+    //                 }
+    //             }
+    //         };
+    //         let mut event_count = self.get_event_count_on_rm_rf(&pp);
+    //         if metadata.is_dir() {
+    //             fs::remove_dir_all(&pp).unwrap_or_else(|err| {
+    //                                        panic!("failed to remove directory {}: {}, debug \
+    //                                                info:\n{}",
+    //                                               pp.display(),
+    //                                               err,
+    //                                               self.debug_info,)
+    //                                    });
+    //         } else {
+    //             fs::remove_file(&pp).unwrap_or_else(|err| {
+    //                                     panic!("failed to remove file {}: {}, debug info:\n{}",
+    //                                            pp.display(),
+    //                                            err,
+    //                                            self.debug_info,)
+    //                                 });
+    //         }
+    //         if self.is_poll_watcher() {
+    //             event_count *= 5;
+    //         }
+    //         event_count
+    //     }
+
+    //     fn get_event_count_on_rm_rf(&self, top_path: &Path) -> u32 {
+    //         let mut queue = VecDeque::new();
+    //         queue.push_back(top_path.to_path_buf());
+    //         let mut event_count = 0;
+    //         while let Some(path) = queue.pop_front() {
+    //             if !self.parent_is_watched(&path) {
+    //                 continue;
+    //             }
+    //             // Two events for each deletion in the watched path -
+    //             // remove notice and remove.
+    //             event_count += 2;
+    //             let metadata = match path.symlink_metadata() {
+    //                 Ok(m) => m,
+    //                 Err(err) => {
+    //                     panic!("Failed to stat {}: {}, debug info:\n{}",
+    //                            path.display(),
+    //                            err,
+    //                            self.debug_info,)
+    //                 }
+    //             };
+    //             if !metadata.is_dir() {
+    //                 continue;
+    //             }
+    //             queue.extend(self.get_dir_contents(&path));
+    //         }
+    //         event_count
+    //     }
+
+    //     fn get_dir_contents(&self, path: &Path) -> Vec<PathBuf> {
+    //         fs::read_dir(&path).unwrap_or_else(|err| {
+    //                                panic!("failed to read directory {}: {}, debug info:\n{}",
+    //                                       path.display(),
+    //                                       err,
+    //                                       self.debug_info,)
+    //                            })
+    //                            .map(|rde| {
+    //                                rde.unwrap_or_else(|err| {
+    //                                       panic!("failed to get entry for {}: {}, debug info:\n{}",
+    //                                              path.display(),
+    //                                              err,
+    //                                              self.debug_info,)
+    //                                   })
+    //                                   .path()
+    //                            })
+    //                            .collect()
+    //     }
+
+    //     fn parent_is_watched(&self, path: &Path) -> bool {
+    //         self.path_is_watched(&self.get_parent(path))
+    //     }
+
+    //     fn path_is_watched(&self, path: &Path) -> bool {
+    //         match self.watched_dirs {
+    //             Some(wd) => wd.contains(path),
+    //             None => false,
+    //         }
+    //     }
+
+    //     fn get_parent(&self, path: &Path) -> PathBuf {
+    //         path.parent()
+    //             .unwrap_or_else(|| {
+    //                 panic!("path {} has no parent, debug info:\n{}",
+    //                        path.display(),
+    //                        self.debug_info)
+    //             })
+    //             .to_owned()
+    //     }
+
+    //     fn prepend_root(&self, p: &Path) -> PathBuf {
+    //         prepend_root_impl(self.root, p, self.debug_info)
+    //     }
+
+    //     fn is_poll_watcher(&self) -> bool {
+    //         match self.watcher {
+    //             None => false,
+    //             Some(SupWatcher::Native(_sup_watcher)) => false,
+    //             Some(SupWatcher::Fallback(_sup_watcher)) => true,
+    //         }            
+    //     }
+    // }
 
     struct TestCaseRunner {
         debug_info: DebugInfo,
@@ -2982,31 +3199,34 @@ mod tests {
             let mut initial_file = tc_initial_file.clone();
             let mut actual_initial_file = setup.watcher.initial_real_file.clone();
 
+            let is_poll_watcher = match &setup.watcher.get_mut_underlying_watcher().real_watcher {
+                SupWatcher::Native(_watcher) => false,
+                SupWatcher::Fallback(_watcher) => true,
+            };
+
             for (step_idx, step) in steps.iter().enumerate() {
                 self.debug_info.push_level();
                 self.debug_info
                     .add(format!("step {}:\n{}", step_idx, dits!(step)));
-                let iterations = self.execute_step_action(&mut setup, &step.action);
-                self.spin_watcher(&mut setup, iterations);
-                match &setup.watcher.get_mut_underlying_watcher().real_watcher {
-                    SupWatcher::Native(_watcher) => (),
-                    SupWatcher::Fallback(_watcher) => thread::sleep(Duration::from_secs(5)),
-                }
+                let expected_event_count = self.execute_step_action(&mut setup, &step.action);
+                self.spin_watcher(&mut setup, expected_event_count);
+
+                if is_poll_watcher {
+                    thread::sleep(Duration::from_secs(5));
+                };
                 self.test_dirs(&step.dirs, &setup.watcher.paths.dirs);
                 self.test_paths(&step.paths, &setup.init_path, &setup.watcher.paths.paths);
                 let real_initial_file =
-                    self.test_initial_file(iterations, &mut initial_file, &mut actual_initial_file);
-                match &setup.watcher.get_mut_underlying_watcher().real_watcher {
-                    SupWatcher::Native(_watcher) => {
-                        self.test_events(real_initial_file,
-                                         &step.events,
-                                         &mut setup.watcher.get_mut_callbacks().events)
-                    }
-                    SupWatcher::Fallback(_watcher) => {
-                        self.test_events_polling(real_initial_file,
-                                                 &step.events,
-                                                 &mut setup.watcher.get_mut_callbacks().events)
-                    }
+                    self.test_initial_file(expected_event_count, &mut initial_file, &mut actual_initial_file);
+
+                if is_poll_watcher {
+                    self.test_events_polling(real_initial_file,
+                                             &step.events,
+                                             &mut setup.watcher.get_mut_callbacks().events);
+                } else {
+                    self.test_events(real_initial_file,
+                        &step.events,
+                        &mut setup.watcher.get_mut_callbacks().events);
                 }
                 self.debug_info.pop_level();
                 debug!("\n\n\n++++++++++++++++\n++++STEP+END++++\n++++++++++++++++\n\n\n");
@@ -3017,12 +3237,9 @@ mod tests {
 
         fn execute_step_action(&mut self, setup: &mut WatcherSetup, action: &StepAction) -> u32 {
             let tw = setup.watcher.get_mut_underlying_watcher();
-            let watcher_type = match &tw.real_watcher {
-                SupWatcher::Native(_watcher) => WatcherType::NotifyWatcherType,
-                SupWatcher::Fallback(_watcher) => WatcherType::PollWatcherType,
-            };
             let iterations = {
-                let mut fs_ops = self.get_fs_ops_with_dirs(&tw.watched_dirs, watcher_type);
+                let mut fs_ops = self.get_fs_ops_with_dirs(&tw.watched_dirs);
+
                 match action {
                     StepAction::LnS(ref target, ref path) => fs_ops.ln_s(target, path),
                     StepAction::MkdirP(ref path) => fs_ops.mkdir_p(path),
@@ -3037,13 +3254,20 @@ mod tests {
             iterations
         }
 
-        fn spin_watcher(&self, setup: &mut WatcherSetup, iterations: u32) {
+        fn spin_watcher(&self, setup: &mut WatcherSetup, expected_event_count: u32) {
             let mut iteration = 0;
 
-            let tw = setup.watcher.get_mut_underlying_watcher();
-            match &tw.real_watcher {
-                SupWatcher::Fallback(_watcher) => thread::sleep(Duration::from_secs(15)),
-                _ => thread::sleep(Duration::from_secs(3)),
+            let is_poll_watcher = match &setup.watcher.get_mut_underlying_watcher().real_watcher {
+                SupWatcher::Native(_watcher) => false,
+                SupWatcher::Fallback(_watcher) => true,
+            };
+
+            let mut iterations = expected_event_count;
+            if is_poll_watcher {
+                thread::sleep(Duration::from_secs(15));
+                iterations *= 5;
+            } else {
+                thread::sleep(Duration::from_secs(3));
             }
 
             while iteration < iterations {
@@ -3139,19 +3363,16 @@ mod tests {
         fn get_fs_ops_init(&mut self) -> FsOps<'_> {
             FsOps { debug_info:   &mut self.debug_info,
                     root:         &self.root,
-                    watched_dirs: None,
-                    watcher_type: WatcherType::NotifyWatcherType, }
+                    watched_dirs: None, }
         }
 
         //  For running watcher tests, this requires a WatcherType so we can
         //  delineate between the NotifyWatcher and PollWatcher specific behaviors.
         fn get_fs_ops_with_dirs<'a>(&'a mut self,
-                                    watched_dirs: &'a HashSet<PathBuf>,
-                                    watcher_type: WatcherType)
+                                    watched_dirs: &'a HashSet<PathBuf>)
                                     -> FsOps<'a> {
             let mut fs_ops = self.get_fs_ops_init();
             fs_ops.watched_dirs = Some(watched_dirs);
-            fs_ops.watcher_type = watcher_type;
             fs_ops
         }
 

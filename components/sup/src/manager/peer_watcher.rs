@@ -135,18 +135,41 @@ impl PeerWatcher {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use habitat_core::locked_env_var;
     use habitat_butterfly::member::Member;
-    use std::{env,
-              fs::{File,
+    use std::{fs::{File,
                    OpenOptions},
-              io::Write};
+              io::Write,
+              path::{Path,
+                     PathBuf}};
     use tempfile::TempDir;
+
+    locked_env_var!(HAB_STUDIO_HOST_ARCH, lock_env_var);
+
+    fn peer_watcher_member_load_test(watch_dir: &Path,
+                                peer_data: &Vec<String>) 
+                                -> Result<Vec<Member>> {
+        let path = PathBuf::from(watch_dir).join("some_file");
+        let mut file = OpenOptions::new().append(true)
+                                         .create_new(true)
+                                         .open(path.clone())
+                                         .unwrap();
+        let watcher = PeerWatcher::run(path).unwrap();
+        for line in peer_data {
+            writeln!(file, "{}", line).unwrap();
+        }
+        watcher.get_members()
+    }
 
     #[test]
     fn no_file() {
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("no_such_file");
+
+        let lock = lock_env_var();
+        lock.set("");
         let watcher = PeerWatcher::run(path).unwrap();
+        lock.unset();
 
         assert!(!watcher.has_fs_events());
         assert_eq!(watcher.get_members().unwrap(), vec![]);
@@ -157,7 +180,25 @@ mod tests {
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("empty_file");
         File::create(&path).unwrap();
+
+        let lock = lock_env_var();
+        lock.set("");
         let watcher = PeerWatcher::run(path).unwrap();
+        lock.unset();
+
+        assert_eq!(watcher.get_members().unwrap(), vec![]);
+    }
+
+    #[test]
+    fn empty_file_with_poll_watcher() {
+        let tmpdir = TempDir::new().unwrap();
+        let path = tmpdir.path().join("empty_file");
+        File::create(&path).unwrap();
+
+        let lock = lock_env_var();
+        lock.set("aarch64-darwin");
+        let watcher = PeerWatcher::run(path).unwrap();
+        lock.unset();
 
         assert_eq!(watcher.get_members().unwrap(), vec![]);
     }
@@ -165,14 +206,20 @@ mod tests {
     #[test]
     fn with_file() {
         let tmpdir = TempDir::new().unwrap();
-        let path = tmpdir.path().join("some_file");
-        let mut file = OpenOptions::new().append(true)
-                                         .create_new(true)
-                                         .open(path.clone())
-                                         .unwrap();
-        let watcher = PeerWatcher::run(path).unwrap();
-        writeln!(file, "1.2.3.4:5").unwrap();
-        writeln!(file, "4.3.2.1").unwrap();
+
+        let peer_lines = vec!["1.2.3.4:5".to_string(), 
+                              "4.3.2.1".to_string()];
+
+        let lock = lock_env_var();
+        lock.set("");
+        let mut members = peer_watcher_member_load_test(tmpdir.path(),
+                                                        &peer_lines).
+                                                        unwrap();
+        lock.unset();
+
+        for mut member in &mut members {
+            member.id = String::new();
+        }
         let member1 = Member { id: String::new(),
                                address: String::from("1.2.3.4"),
                                swim_port: 5,
@@ -184,25 +231,23 @@ mod tests {
                                gossip_port: GossipListenAddr::DEFAULT_PORT,
                                ..Default::default() };
         let expected_members = vec![member1, member2];
-        let mut members = watcher.get_members().unwrap();
-        for mut member in &mut members {
-            member.id = String::new();
-        }
         assert_eq!(expected_members, members);
     }
 
     #[test]
     fn with_file_using_poll_watcher() {
-        env::set_var("HAB_STUDIO_HOST_ARCH", "aarch64-darwin");
         let tmpdir = TempDir::new().unwrap();
-        let path = tmpdir.path().join("some_other_file");
-        let mut file = OpenOptions::new().append(true)
-                                         .create_new(true)
-                                         .open(path.clone())
-                                         .unwrap();
-        let watcher = PeerWatcher::run(path).unwrap();
-        writeln!(file, "1.2.3.5:5").unwrap();
-        writeln!(file, "5.4.3.2").unwrap();
+        let peer_lines = vec!["1.2.3.5:5".to_string(), 
+                              "5.4.3.2".to_string()];
+        let lock = lock_env_var();
+        lock.set("aarch64-darwin");
+        let mut members = peer_watcher_member_load_test(tmpdir.path(),
+                                                    &peer_lines).
+                                                    unwrap();
+        lock.unset();
+        for mut member in &mut members {
+            member.id = String::new();
+        }
         let member1 = Member { id: String::new(),
                                address: String::from("1.2.3.5"),
                                swim_port: 5,
@@ -213,13 +258,7 @@ mod tests {
                                swim_port: GossipListenAddr::DEFAULT_PORT,
                                gossip_port: GossipListenAddr::DEFAULT_PORT,
                                ..Default::default() };
-
         let expected_members = vec![member1, member2];
-        let mut members = watcher.get_members().unwrap();
-        for mut member in &mut members {
-            member.id = String::new();
-        }
         assert_eq!(expected_members, members);
-        env::remove_var("HAB_STUDIO_HOST_ARCH");
     }
 }

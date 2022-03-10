@@ -61,26 +61,51 @@ impl Watcher for SupWatcher {
 
 #[cfg(test)]
 mod test {
+    use habitat_core::locked_env_var;
     use super::*;
-    use std::{env,
-              sync::mpsc::channel,
+    use std::{sync::mpsc::channel,
               time::Duration};
 
-    pub const TEST_STUDIO_HOST_ARCH_ENVVAR: &str = "HAB_STUDIO_HOST_ARCH";
+    locked_env_var!(HAB_STUDIO_HOST_ARCH, lock_env_var);
 
     #[test]
-    fn set_arch_env_var_test_mac() {
-        env::set_var(TEST_STUDIO_HOST_ARCH_ENVVAR, "aarch64-darwin");
-
+    fn sup_watcher_constructor_test_polling() {
         let (sender, _) = channel();
         let delay = Duration::from_millis(1000);
+
+        let lock = lock_env_var();
+        lock.set("aarch64-darwin");
+
         let _sup_watcher = SupWatcher::new(sender, delay);
         let watcher_type = match _sup_watcher {
             Ok(SupWatcher::Native(_sup_watcher)) => "Native",
             Ok(SupWatcher::Fallback(_sup_watcher)) => "Fallback",
             _ => "Error",
         };
-        env::remove_var(TEST_STUDIO_HOST_ARCH_ENVVAR);
+
+        lock.unset();
+
         assert_eq!(watcher_type, "Fallback");
     }
+
+    #[test]
+    fn sup_watcher_constructor_test_notify() {
+
+        let (sender, _) = channel();
+        let delay = Duration::from_millis(1000);
+
+        let lock = lock_env_var();
+        lock.set("");
+
+        let _sup_watcher = SupWatcher::new(sender, delay);
+        let watcher_type = match _sup_watcher {
+            Ok(SupWatcher::Native(_sup_watcher)) => "Native",
+            Ok(SupWatcher::Fallback(_sup_watcher)) => "Fallback",
+            _ => "Error",
+        };
+
+        lock.unset();
+        assert_eq!(watcher_type, "Native");
+    }
+
 }
