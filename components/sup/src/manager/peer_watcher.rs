@@ -147,7 +147,7 @@ mod tests {
     locked_env_var!(HAB_STUDIO_HOST_ARCH, lock_env_var);
 
     fn peer_watcher_member_load_test(watch_dir: &Path,
-                                     peer_data: &[String]) 
+                                     peer_data: &[String])
                                      -> Result<Vec<Member>> {
         let path = PathBuf::from(watch_dir).join("some_file");
         let mut file = OpenOptions::new().append(true)
