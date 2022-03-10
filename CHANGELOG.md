@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.471 -->
-## [1.6.471](https://github.com/habitat-sh/habitat/tree/1.6.471) (2022-03-02)
+<!-- latest_release 1.6.472 -->
+## [1.6.472](https://github.com/habitat-sh/habitat/tree/1.6.472) (2022-03-10)
 
 #### Merged Pull Requests
-- Update Habitat Builder API Docs - 20220302181210 [#8458](https://github.com/habitat-sh/habitat/pull/8458) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
+- comma separate multiple test features [#8460](https://github.com/habitat-sh/habitat/pull/8460) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- comma separate multiple test features [#8460](https://github.com/habitat-sh/habitat/pull/8460) ([mwrock](https://github.com/mwrock)) <!-- 1.6.472 -->
 - Update Habitat Builder API Docs - 20220302181210 [#8458](https://github.com/habitat-sh/habitat/pull/8458) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.471 -->
 - Minor doc fix: use systemd, not SystemD [#8456](https://github.com/habitat-sh/habitat/pull/8456) ([kenmacleod](https://github.com/kenmacleod)) <!-- 1.6.470 -->
 - Fixed Broken Links [#8442](https://github.com/habitat-sh/habitat/pull/8442) ([dishanktiwari2501](https://github.com/dishanktiwari2501)) <!-- 1.6.469 -->
