@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.473 -->
-## [1.6.473](https://github.com/habitat-sh/habitat/tree/1.6.473) (2022-03-11)
+<!-- latest_release 1.6.474 -->
+## [1.6.474](https://github.com/habitat-sh/habitat/tree/1.6.474) (2022-03-11)
 
 #### Merged Pull Requests
-- remove deadlock detection from linux butterfly tests [#8461](https://github.com/habitat-sh/habitat/pull/8461) ([mwrock](https://github.com/mwrock))
+- Bump regex from 1.5.4 to 1.5.5 [#8459](https://github.com/habitat-sh/habitat/pull/8459) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- Bump regex from 1.5.4 to 1.5.5 [#8459](https://github.com/habitat-sh/habitat/pull/8459) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.474 -->
 - remove deadlock detection from linux butterfly tests [#8461](https://github.com/habitat-sh/habitat/pull/8461) ([mwrock](https://github.com/mwrock)) <!-- 1.6.473 -->
 - comma separate multiple test features [#8460](https://github.com/habitat-sh/habitat/pull/8460) ([mwrock](https://github.com/mwrock)) <!-- 1.6.472 -->
 - Update Habitat Builder API Docs - 20220302181210 [#8458](https://github.com/habitat-sh/habitat/pull/8458) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.471 -->
