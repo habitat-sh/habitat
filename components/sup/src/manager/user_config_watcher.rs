@@ -276,13 +276,11 @@ mod tests {
     #[test]
     fn no_events_at_first() {
         let lock = lock_env_var();
-        lock.set("");
+        lock.unset();
 
         let service = TestService::default();
         let mut ucm = UserConfigWatcher::new();
         ucm.add(&service).expect("adding service");
-
-        lock.unset();
 
         assert!(!ucm.have_events_for(&service));
     }
@@ -304,7 +302,7 @@ mod tests {
     #[test]
     fn events_present_after_adding_config() {
         let lock = lock_env_var();
-        lock.set("");
+        lock.unset();
 
         let service = TestService::default();
         let mut ucm = UserConfigWatcher::new();
@@ -313,8 +311,6 @@ mod tests {
 
         File::create(service.user_config_path().get_path().join(USER_CONFIG_FILE))
             .expect("creating file");
-
-        lock.unset();
 
         assert!(wait_for_events(&ucm, &service));
     }
@@ -340,7 +336,7 @@ mod tests {
     #[test]
     fn events_present_after_changing_config() {
         let lock = lock_env_var();
-        lock.set("");
+        lock.unset();
 
         let service = TestService::default();
         let file_path = service.user_config_path().get_path().join(USER_CONFIG_FILE);
@@ -351,8 +347,6 @@ mod tests {
         let mut file = File::create(&file_path).expect("creating file");
 
         file.write_all(b"42").expect(USER_CONFIG_FILE);
-
-        lock.unset();
 
         assert!(wait_for_events(&ucm, &service));
     }
@@ -380,7 +374,7 @@ mod tests {
     #[test]
     fn events_present_after_removing_config() {
         let lock = lock_env_var();
-        lock.set("");
+        lock.unset();
 
         let service = TestService::default();
         let file_path = service.user_config_path().get_path().join(USER_CONFIG_FILE);
@@ -394,8 +388,6 @@ mod tests {
         wait_for_events(&ucm, &service);
 
         remove_file(&file_path).expect("removing file");
-
-        lock.unset();
 
         assert!(wait_for_events(&ucm, &service));
     }

@@ -94,7 +94,7 @@ mod test {
         let delay = Duration::from_millis(1000);
 
         let lock = lock_env_var();
-        lock.set("");
+        lock.unset();
 
         let _sup_watcher = SupWatcher::new(sender, delay);
         let watcher_type = match _sup_watcher {
@@ -103,7 +103,6 @@ mod test {
             _ => "Error",
         };
 
-        lock.unset();
         assert_eq!(watcher_type, "Native");
     }
 }

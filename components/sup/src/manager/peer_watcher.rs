@@ -167,9 +167,8 @@ mod tests {
         let path = tmpdir.path().join("no_such_file");
 
         let lock = lock_env_var();
-        lock.set("");
-        let watcher = PeerWatcher::run(path).unwrap();
         lock.unset();
+        let watcher = PeerWatcher::run(path).unwrap();
 
         assert!(!watcher.has_fs_events());
         assert_eq!(watcher.get_members().unwrap(), vec![]);
@@ -182,9 +181,8 @@ mod tests {
         File::create(&path).unwrap();
 
         let lock = lock_env_var();
-        lock.set("");
-        let watcher = PeerWatcher::run(path).unwrap();
         lock.unset();
+        let watcher = PeerWatcher::run(path).unwrap();
 
         assert_eq!(watcher.get_members().unwrap(), vec![]);
     }
@@ -210,9 +208,8 @@ mod tests {
         let peer_lines = vec!["1.2.3.4:5".to_string(), "4.3.2.1".to_string()];
 
         let lock = lock_env_var();
-        lock.set("");
-        let mut members = peer_watcher_member_load_test(tmpdir.path(), &peer_lines).unwrap();
         lock.unset();
+        let mut members = peer_watcher_member_load_test(tmpdir.path(), &peer_lines).unwrap();
 
         for mut member in &mut members {
             member.id = String::new();

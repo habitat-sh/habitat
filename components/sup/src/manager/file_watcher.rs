@@ -2390,12 +2390,11 @@ mod tests {
     #[test]
     fn file_watcher() {
         let lock = lock_env_var();
-        lock.set("");
+        lock.unset();
 
         for tc in get_test_cases() {
             run_test_case(&tc);
         }
-        lock.unset();
     }
 
     #[test]
