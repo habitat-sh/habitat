@@ -3015,12 +3015,13 @@ mod tests {
             let mut iterations = expected_event_count;
 
             //  Through experimentation it was determined that the PollWatcher is less responsive
-            //  and emits more events than the NotifyWatcher.  The initial sleep used in NotifyWatcher
-            //  was not adequate to pass the tests and was increased as a result.  Also, the number of
-            //  iterations required is larger for the PollWatcher case as there were intermediate events
-            //  observed that would lead to test case failure with the original iteration count used.  
-            //  The test cases will fail if the desired events are not emitted, so the iteration count 
-            //  was increased to allow for that.
+            // and emits more events than the NotifyWatcher.  The initial sleep used in
+            // NotifyWatcher was not adequate to pass the tests and was increased as a
+            // result.  Also, the number of iterations required is larger for the
+            // PollWatcher case as there were intermediate events observed that would
+            // lead to test case failure with the original iteration count used.
+            //  The test cases will fail if the desired events are not emitted, so the iteration
+            // count was increased to allow for that.
             if is_poll_watcher {
                 thread::sleep(Duration::from_secs(15));
                 iterations *= 5;
