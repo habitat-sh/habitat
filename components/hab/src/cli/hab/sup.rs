@@ -1,6 +1,8 @@
-use super::{svc::{ConfigOptSharedLoad,
-                  SharedLoad,
-                  DEFAULT_SVC_CONFIG_DIR},
+use super::{svc::{SharedLoad,
+                  CHANNEL_IDENT_DEFAULT,
+                  GROUP_DEFAULT,
+                  DEFAULT_SVC_CONFIG_DIR,
+                  health_check_interval_default},
             util::{tls::{CertificateChainCli,
                          PrivateKeyCli,
                          RootCertificateStoreCli},
@@ -28,6 +30,12 @@ use habitat_common::{cli::{RING_ENVVAR,
                              ResolvedListenCtlAddr},
                      FeatureFlag,
                      FEATURE_FLAGS};
+//use crate::cli::hab::svc;
+use habitat_sup_protocol::{types::UpdateCondition};
+use url::Url;
+use habitat_core::{os::process::ShutdownTimeout,
+    service::ServiceBind,
+    ChannelIdent};
 use habitat_core::{env::Config,
                    fs::HAB_CTL_KEYS_CACHE,
                    package::PackageIdent,
@@ -322,10 +330,110 @@ pub struct SupRun {
                 default_value = DEFAULT_SVC_CONFIG_DIR,
                 hidden = !FEATURE_FLAGS.contains(FeatureFlag::SERVICE_CONFIG_FILES))]
     pub svc_config_paths: Vec<PathBuf>,
-    #[structopt(flatten)]
-    #[serde(flatten)]
-    pub shared_load: SharedLoad,
+    /// Receive updates from the specified release channel
+    #[structopt(long = "channel", default_value = &*CHANNEL_IDENT_DEFAULT)]
+    #[serde(default)]
+    pub channel:               ChannelIdent,
+    /// Specify an alternate Builder endpoint. If not specified, the value will be taken from
+    /// the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    #[structopt(short = "u", long = "url")]
+    pub bldr_url:              Option<Url>,
+    /// The service group with shared config and topology
+    #[structopt(long = "group", default_value = &*GROUP_DEFAULT, requires = "pkg_ident_or_artifact")]
+    #[serde(default = "GROUP_DEFAULT::get")]
+    pub group:                 String,
+    /// Service topology
+    #[structopt(long = "topology",
+            short = "t",
+            possible_values = &["standalone", "leader"],
+            requires = "pkg_ident_or_artifact")]
+    pub topology:              Option<habitat_sup_protocol::types::Topology>,
+    /// The update strategy
+    #[structopt(long = "strategy",
+                short = "s",
+                default_value = "none",
+                possible_values = &["none", "at-once", "rolling"],
+                requires = "pkg_ident_or_artifact")]
+    #[serde(default)]
+    pub strategy:              habitat_sup_protocol::types::UpdateStrategy,
+    /// The condition dictating when this service should update
+    #[structopt(long = "update-condition",
+                default_value = UpdateCondition::Latest.as_str(),
+                possible_values = UpdateCondition::VARIANTS,
+                requires = "pkg_ident_or_artifact")]
+    #[serde(default)]
+    pub update_condition:      UpdateCondition,
+    /// One or more service groups to bind to a configuration
+    #[structopt(long = "bind" ,requires = "pkg_ident_or_artifact")]
+    #[serde(default)]
+    pub bind:                  Vec<ServiceBind>,
+    /// Governs how the presence or absence of binds affects service startup
+    #[structopt(long = "binding-mode",
+                default_value = "strict",
+                possible_values = &["strict", "relaxed"],
+                requires = "pkg_ident_or_artifact")]
+    #[serde(default)]
+    pub binding_mode:          habitat_sup_protocol::types::BindingMode,
+    ///The interval in seconds on which to run health checks
+    #[structopt(long = "health-check-interval",
+                short = "i",
+                default_value = "30",
+                requires = "pkg_ident_or_artifact")]
+    #[serde(default = "health_check_interval_default")]
+    pub health_check_interval: u64,
+    /// The delay in seconds after sending the shutdown signal to wait before killing the service
+    /// process
+    #[structopt(long = "shutdown-timeout", requires = "pkg_ident_or_artifact")]
+    pub shutdown_timeout:      Option<ShutdownTimeout>,
+    #[cfg(target_os = "windows")]
+    /// Password of the service user
+    #[structopt(long = "password", requires = "pkg_ident_or_artifact")]
+    pub password:              Option<String>,
+    // TODO (DM): This flag can eventually be removed.
+    // See https://github.com/habitat-sh/habitat/issues/7339
+    /// DEPRECATED
+    #[structopt(long = "application", short = "a", takes_value = false, hidden = true)]
+    #[serde(skip)]
+    pub application:           Vec<String>,
+    // TODO (DM): This flag can eventually be removed.
+    // See https://github.com/habitat-sh/habitat/issues/7339
+    /// DEPRECATED
+    #[structopt(long = "environment", short = "e", takes_value = false, hidden = true)]
+    #[serde(skip)]
+    pub environment:           Vec<String>,
+    /// Use the package config from this path rather than the package itself
+    #[structopt(long = "config-from", requires = "pkg_ident_or_artifact")]
+    pub config_from:           Option<PathBuf>,
 }
+
+impl From<SupRun> for SharedLoad {
+    fn from(sup_run: SupRun) -> Self {
+      Self {
+        channel: sup_run.channel,
+        bldr_url: sup_run.bldr_url,
+        group: sup_run.group,
+        topology: sup_run.topology,
+        strategy: sup_run.strategy,
+        bind: sup_run.bind,
+        update_condition: sup_run.update_condition,
+        binding_mode: sup_run.binding_mode,
+        health_check_interval: sup_run.health_check_interval,
+        shutdown_timeout: sup_run.shutdown_timeout,
+        #[cfg(target_os = "windows")]
+        password: sup_run.password,
+        environment: sup_run.environment,
+        application: sup_run.application,
+        config_from: sup_run.config_from,
+      }
+    }
+}
+
+/*impl Copy for SupRun {}
+impl Clone for SupRun {
+    fn clone(&self) -> SupRun {
+        *self
+    }
+}*/
 
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]

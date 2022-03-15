@@ -128,15 +128,15 @@ pub struct KeyGenerate {
 }
 
 lazy_static::lazy_static! {
-    static ref CHANNEL_IDENT_DEFAULT: String = ChannelIdent::default().to_string();
-    static ref GROUP_DEFAULT: String = String::from("default");
+   pub static ref CHANNEL_IDENT_DEFAULT: String = ChannelIdent::default().to_string();
+   pub static ref GROUP_DEFAULT: String = String::from("default");
 }
 
 impl GROUP_DEFAULT {
-    fn get() -> String { GROUP_DEFAULT.clone() }
+    pub fn get() -> String { GROUP_DEFAULT.clone() }
 }
 
-fn health_check_interval_default() -> u64 { 30 }
+pub fn health_check_interval_default() -> u64 { 30 }
 
 #[derive(ConfigOpt, StructOpt, Deserialize, Debug)]
 #[configopt(attrs(serde), derive(Clone, Debug))]

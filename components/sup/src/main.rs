@@ -241,8 +241,8 @@ async fn split_apart_sup_run(sup_run: SupRun,
                              feature_flags: FeatureFlag)
                              -> Result<(ManagerConfig, Option<sup_proto::ctl::SvcLoad>)> {
     let ring_key = get_ring_key(&sup_run)?;
-
-    let shared_load = sup_run.shared_load;
+    //let shared_load = sup_run.shared_load;
+    let shared_load = hab::cli::hab::svc::SharedLoad::from(sup_run);
 
     let event_stream_config = if sup_run.event_stream_url.is_some() {
         Some(EventStreamConfig { environment:
