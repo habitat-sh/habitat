@@ -2403,9 +2403,14 @@ mod tests {
         lock.set("aarch64-darwin");
 
         //  When using the PollWatcher variant of SupWatcher, the
-        //  behavior is different than the NotifyWatcher.  The
-        //  first two test cases will pass if the timing is adjusted
-        //  as well as the expected number of iterations.
+        //  behavior is different than the NotifyWatcher.  The NotifyWatcher
+        //  receives event callbacks in response to a file or directory change,
+        //  while the PollWatcher must poll and check for changes.
+        //  As such, there were observed differences in the timing and number
+        //  of events that the PollWatcher will handle.  It was determined
+        //  through analyzing the output that the poll watcher as written is not handling
+        //  test cases correctly after the second test case.  It does not receive
+        //  the required events to pass the test case regardless of timing.
         let cases = get_test_cases();
         let polling_cases = &cases[0..2];
         for tc in polling_cases {
@@ -3008,6 +3013,14 @@ mod tests {
             };
 
             let mut iterations = expected_event_count;
+
+            //  Through experimentation it was determined that the PollWatcher is less responsive
+            //  and emits more events than the NotifyWatcher.  The initial sleep used in NotifyWatcher
+            //  was not adequate to pass the tests and was increased as a result.  Also, the number of
+            //  iterations required is larger for the PollWatcher case as there were intermediate events
+            //  observed that would lead to test case failure with the original iteration count used.  
+            //  The test cases will fail if the desired events are not emitted, so the iteration count 
+            //  was increased to allow for that.
             if is_poll_watcher {
                 thread::sleep(Duration::from_secs(15));
                 iterations *= 5;
@@ -3072,7 +3085,7 @@ mod tests {
             }
         }
 
-        //  For the poll watcher tehre are more than one Debounced event received
+        //  For the poll watcher there are more than one Debounced event received
         //  and this test will fail.  Instead we can look at the last event and
         //  ensure that it is correct, as it will be the last entry that will
         //  determine the final state of the watched.
