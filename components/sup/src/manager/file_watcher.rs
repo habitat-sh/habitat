@@ -2413,7 +2413,7 @@ mod tests {
         //  beyond the scope of our watchers, they were skipped for the PollWatcher.
         //  Also note that the criteria for passing was based on the original
         //  NotifyWatcher where these events were generated as expected.
-        
+
         let cases = get_test_cases();
         let polling_cases = &cases[0..2];
         for tc in polling_cases {
