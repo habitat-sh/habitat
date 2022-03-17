@@ -2960,9 +2960,6 @@ mod tests {
                 let expected_event_count = self.execute_step_action(&mut setup, &step.action);
                 self.spin_watcher(&mut setup, expected_event_count);
 
-                if is_poll_watcher {
-                    thread::sleep(Duration::from_secs(5));
-                };
                 self.test_dirs(&step.dirs, &setup.watcher.paths.dirs);
                 self.test_paths(&step.paths, &setup.init_path, &setup.watcher.paths.paths);
                 let real_initial_file = self.test_initial_file(expected_event_count,
@@ -3023,8 +3020,8 @@ mod tests {
             //  The test cases will fail if the desired events are not emitted, so the iteration
             // count was increased to allow for that.
             if is_poll_watcher {
-                thread::sleep(Duration::from_secs(15));
-                iterations *= 5;
+                thread::sleep(Duration::from_secs(5));
+                iterations *= 3;
             } else {
                 thread::sleep(Duration::from_secs(3));
             }
@@ -3097,8 +3094,8 @@ mod tests {
             let expected_events = self.fixup_expected_events(step_events, real_initial_file);
             self.debug_info
                 .add(format!("fixed up expected events: {:?}", expected_events));
-            assert_eq!(expected_events.last(),
-                       actual_events.last(),
+            assert_eq!(&expected_events,
+                       actual_events,
                        "comparing expected events, debug info:\n{}",
                        self.debug_info,);
             actual_events.clear();
