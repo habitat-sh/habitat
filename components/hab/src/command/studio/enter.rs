@@ -8,7 +8,8 @@ use crate::{common::ui::{UIWriter,
             BLDR_URL_ENVVAR,
             ORIGIN_ENVVAR};
 use habitat_common::cli_config::CliConfig;
-use habitat_core::AUTH_TOKEN_ENVVAR;
+use habitat_core::{package::target::PackageTarget,
+                   AUTH_TOKEN_ENVVAR};
 use same_file::is_same_file;
 use std::{env,
           ffi::OsString,
@@ -19,6 +20,7 @@ use std::{env,
 pub const ARTIFACT_PATH_ENVVAR: &str = "ARTIFACT_PATH";
 pub const CERT_PATH_ENVVAR: &str = "CERT_PATH";
 pub const SSL_CERT_FILE_ENVVAR: &str = "SSL_CERT_FILE";
+pub const STUDIO_HOST_ARCH_ENVVAR: &str = "HAB_STUDIO_SECRET_HAB_STUDIO_HOST_ARCH";
 
 const STUDIO_PACKAGE_IDENT: &str = "core/hab-studio";
 
@@ -40,6 +42,14 @@ fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive:
             env::set_var(env_var, val);
         }
     }
+}
+
+//  Set the environment variable for the host architecture to be used in
+//  hab studio.  It must be set outside of studio and passed in through
+//  the environment variable defined in STUDIO_HOST_ARCH_ENVVAR.
+fn set_arch_env_var() {
+    env::set_var(STUDIO_HOST_ARCH_ENVVAR,
+                 format!("{}", PackageTarget::active_target()));
 }
 
 fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
@@ -73,6 +83,8 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     set_env_var_from_config(ORIGIN_ENVVAR,
                             config.origin.map(|o| o.to_string()),
                             Sensitivity::PrintValue);
+
+    set_arch_env_var();
 
     if config.ctl_secret.is_some() {
         ui.warn("Your Supervisor CtlGateway secret is not being copied to the Studio \
