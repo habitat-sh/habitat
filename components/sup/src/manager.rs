@@ -44,7 +44,6 @@ use crate::{census::{CensusRing,
                     EventStreamConfig},
             http_gateway,
             lock_file::LockFile,
-            manager::service::RestartState,
             util::pkg,
             VERSION};
 use cpu_time::ProcessTime;
@@ -1363,7 +1362,7 @@ impl Manager {
                     // ensure that the lastest package on disk is the package we updated to.
                     idents_to_restart_and_latest_desired_on_restart.push((ident.clone(),
                                                                           Some(new_ident)));
-                } else if service_state.restart_state() == RestartState::NeedsRestart {
+                } else if service_state.should_shutdown_for_restart() {
                     idents_to_restart_and_latest_desired_on_restart.push((ident.clone(), None));
                 } else {
                     trace!("No restart required for {}", ident);

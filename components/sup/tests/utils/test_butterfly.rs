@@ -12,21 +12,17 @@ use std::{net::SocketAddr,
 
 pub struct Client {
     butterfly_client:  ButterflyClient,
-    pub package_name:  String,
-    pub service_group: String,
 }
 
 impl Client {
-    pub fn new(package_name: &str, service_group: &str, port: u16) -> Client {
+    pub fn new(port: u16) -> Client {
         let gossip_addr =
             format!("127.0.0.1:{}", port).parse::<SocketAddr>()
                                          .expect("Could not parse Butterfly gossip address!");
         let c = ButterflyClient::new(&gossip_addr.to_string(), None).expect("Could not create \
                                                                              Butterfly Client \
                                                                              for test!");
-        Client { butterfly_client: c,
-                 package_name:     package_name.to_string(),
-                 service_group:    service_group.to_string(), }
+        Client { butterfly_client: c }
     }
 
     /// Apply the given configuration to the Supervisor. It will
@@ -35,7 +31,7 @@ impl Client {
     ///
     /// A time-based incarnation value is automatically used,
     /// resulting in less clutter in your tests.
-    pub fn apply(&mut self, config: &str) {
+    pub fn apply(&mut self, package_name: &str, service_group: &str, config: &str) {
         let config = config.to_string();
         let config = config.as_bytes();
 
@@ -46,8 +42,8 @@ impl Client {
 
         let incarnation = Self::new_incarnation();
         self.butterfly_client
-            .send_service_config(ServiceGroup::new(&self.package_name,
-                                                   &self.service_group,
+            .send_service_config(ServiceGroup::new(package_name,
+                                                   service_group,
                                                    None).unwrap(),
                                  incarnation,
                                  config,

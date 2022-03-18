@@ -10,18 +10,184 @@
 //! (e.g. verifying that templated files are changed when new
 //! configuration values are applied).
 
-use std::{fs::File,
-          io::Read,
-          path::{Path,
-                 PathBuf},
-          string::ToString,
-          time::SystemTime};
-
 use crate::hcore::{fs::PKG_PATH,
                    package::{metadata::MetaFile,
                              PackageIdent}};
+use habitat_core::crypto::Blake2bHash;
+use std::{collections::{BinaryHeap,
+                        VecDeque},
+          fs::{self,
+               File},
+          io::{self,
+               Read},
+          path::{Path,
+                 PathBuf},
+          string::ToString,
+          time::{Duration,
+                 SystemTime}};
 use tempfile::{Builder,
                TempDir};
+use thiserror::Error;
+
+/// A snapshot of the state of the folder.
+/// This is useful for test cases to verify only changes
+/// that are expected and understood have occurred.
+#[derive(Debug)]
+pub struct FileSystemSnapshot {
+    path:  PathBuf,
+    files: Vec<FileSnapshot>,
+}
+
+#[derive(Debug, Error)]
+pub enum FileSystemSnapshotCreateError {
+    #[error("Failed to read directory entry")]
+    DirEntry(#[from] io::Error),
+    #[error("Failed to take a snapshot of the file")]
+    FileSnapshot(#[from] FileSnapshotError),
+}
+
+impl FileSystemSnapshot {
+    pub fn new(path: &Path) -> Result<FileSystemSnapshot, FileSystemSnapshotCreateError> {
+        let mut files = Vec::new();
+        let mut queue = VecDeque::new();
+        queue.push_back(path.to_path_buf());
+        while let Some(root) = queue.pop_front() {
+            if root.is_dir() {
+                match fs::read_dir(&root) {
+                    Ok(dir_entries) => {
+                        for entry in dir_entries {
+                            let entry = entry?;
+                            let entry_path = entry.path();
+
+                            if entry_path.is_file() {
+                                files.push(FileSnapshot::new(entry_path)?);
+                            } else if entry_path.is_dir() {
+                                queue.push_back(entry_path);
+                            }
+                        }
+                    }
+                    Err(_) => continue,
+                }
+            } else if root.is_file() {
+                files.push(FileSnapshot::new(root)?);
+            }
+        }
+        Ok(FileSystemSnapshot { path: path.to_path_buf(),
+                                files })
+    }
+
+    pub fn file(&self, path: &Path) -> Option<&FileSnapshot> {
+        self.files.iter().find(|f| f.path == self.path.join(path))
+    }
+
+    pub fn modifications_since(&self, other: &FileSystemSnapshot) -> FileSystemModifications {
+        if self.path != other.path {
+            panic!("Cannot compare snapshot for different folders");
+        }
+        // Some crazy functional programming magic, just because we can in rust :)
+        // This creates sorted vectors of files that were added, removed or updated
+        FileSystemModifications { added:
+                                      self.files
+                                          .iter()
+                                          .filter(|f| !other.files.iter().any(|o| o.path == f.path))
+                                          .filter_map(|f| {
+                                              f.path
+                                               .strip_prefix(self.path.as_path())
+                                               .unwrap()
+                                               .to_str()
+                                          })
+                                          .map(|x| x.to_owned())
+                                          .collect::<BinaryHeap<String>>()
+                                          .into_sorted_vec(),
+                                  removed:
+                                      other.files
+                                           .iter()
+                                           .filter(|o| !self.files.iter().any(|f| o.path == f.path))
+                                           .filter_map(|f| {
+                                               f.path
+                                                .strip_prefix(self.path.as_path())
+                                                .unwrap()
+                                                .to_str()
+                                           })
+                                           .map(|x| x.to_owned())
+                                           .collect::<BinaryHeap<String>>()
+                                           .into_sorted_vec(),
+                                  updated: self.files
+                                               .iter()
+                                               .filter_map(|f| {
+                                                   if let Some(old) =
+                                                       other.files
+                                                            .iter()
+                                                            .find(|of| of.path == f.path)
+                                                   {
+                                                       if old.hash != f.hash {
+                                                           f.path
+                                                            .strip_prefix(self.path.as_path())
+                                                            .unwrap()
+                                                            .to_str()
+                                                            .map(|x| x.to_owned())
+                                                       } else {
+                                                           None
+                                                       }
+                                                   } else {
+                                                       None
+                                                   }
+                                               })
+                                               .collect::<BinaryHeap<String>>()
+                                               .into_sorted_vec(), }
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum FileSnapshotError {
+    #[error("Failed to read file metadata")]
+    MetaData(#[source] io::Error),
+    #[error("Failed to read file modification time")]
+    Modified(#[source] io::Error),
+    #[error("Failed to hash file contents")]
+    Blake2bHash(#[from] habitat_core::Error),
+}
+#[derive(Debug, PartialEq, Eq)]
+pub struct FileSnapshot {
+    path:             PathBuf,
+    last_modified_at: SystemTime,
+    hash:             Blake2bHash,
+}
+impl FileSnapshot {
+    pub fn new(path: PathBuf) -> Result<FileSnapshot, FileSnapshotError> {
+        Ok(FileSnapshot { last_modified_at: path.metadata()
+                                                .map_err(FileSnapshotError::MetaData)?
+                                                .modified()
+                                                .map_err(FileSnapshotError::Modified)?,
+                          hash: Blake2bHash::from_file(&path)?,
+                          path })
+    }
+
+    pub fn duration_between_modification(&self, other: &FileSnapshot) -> Option<Duration> {
+        if self.path == other.path {
+            Some(self.last_modified_at
+                     .duration_since(other.last_modified_at)
+                     .expect("System clock seems to have gone backwards"))
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct FileSystemModifications {
+    added:   Vec<String>,
+    removed: Vec<String>,
+    updated: Vec<String>,
+}
+
+impl FileSystemModifications {
+    pub fn added(&self) -> Vec<&str> { self.added.iter().map(String::as_str).collect() }
+
+    pub fn removed(&self) -> Vec<&str> { self.removed.iter().map(String::as_str).collect() }
+
+    pub fn updated(&self) -> Vec<&str> { self.updated.iter().map(String::as_str).collect() }
+}
 
 #[derive(Debug)]
 pub struct HabRoot(TempDir);
@@ -164,7 +330,7 @@ impl HabRoot {
     }
 
     /// Path to the service directory for a package
-    fn svc_path<P>(&self, pkg_name: P) -> PathBuf
+    pub fn svc_path<P>(&self, pkg_name: P) -> PathBuf
         where P: AsRef<Path>
     {
         self.0

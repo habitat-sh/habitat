@@ -1,4 +1,4 @@
-ident = "sup-integration-test/hook-changes-config-does-not"
+ident = "sup-integration-test/config-and-hooks-with-reconfigure"
 group = "default"
 bldr_url = "http://hab.sup.test"
 channel = "unstable"

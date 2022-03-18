@@ -187,7 +187,9 @@ pub struct PersistentServiceWrapper {
 pub enum RestartState {
     None,
     NeedsRestart,
+    NeedsImmediateRestart,
     Restarting,
+    RestartingImmediately,
     Restarted,
 }
 
@@ -238,8 +240,12 @@ impl PersistentServiceWrapper {
         if let Some(service) = self.inner.as_ref() {
             self.run_state.restart_state = match self.run_state.restart_state {
                 RestartState::None => RestartState::None,
-                RestartState::NeedsRestart => {
+                RestartState::NeedsRestart | RestartState::NeedsImmediateRestart => {
                     panic!("Start called on service which was not ready to be restarted");
+                }
+                RestartState::RestartingImmediately => {
+                    outputln!(preamble service.service_group, "Restarted");
+                    RestartState::Restarted
                 }
                 RestartState::Restarting => {
                     outputln!(preamble service.service_group, "Restarted");
@@ -256,24 +262,34 @@ impl PersistentServiceWrapper {
     pub fn shutdown(&mut self, is_restart: bool) -> Option<Service> {
         if let Some(service) = &self.inner {
             if is_restart {
-                let restart_duration = self.run_state
-                                           .restart_backoff
-                                           .record_attempt_start()
-                                           .unwrap_or_default();
-                self.run_state.restart_attempts += 1;
                 self.run_state.restart_state = match self.run_state.restart_state {
-                    RestartState::None => RestartState::Restarting,
-                    RestartState::NeedsRestart => RestartState::Restarting,
-                    RestartState::Restarting => {
+                    RestartState::None => {
+                        panic!("Shutdown called on service which did not need restarting")
+                    }
+                    RestartState::NeedsRestart => {
+                        let restart_duration = self.run_state
+                                                   .restart_backoff
+                                                   .record_attempt_start()
+                                                   .unwrap_or_default();
+                        self.run_state.restart_attempts += 1;
+                        if restart_duration == Duration::from_secs(0) {
+                            outputln!(preamble service.service_group, "Stopping service, will restart immediately");
+                        } else {
+                            outputln!(preamble service.service_group, "Stopping service, will restart after {:.2} secs", restart_duration.as_secs_f32());
+                        }
+                        RestartState::Restarting
+                    }
+                    RestartState::NeedsImmediateRestart => {
+                        outputln!(preamble service.service_group, "Stopping service, will restart immediately");
+                        RestartState::RestartingImmediately
+                    }
+                    RestartState::Restarting | RestartState::RestartingImmediately => {
                         panic!("Shutdown called on service which was already restarting")
                     }
-                    RestartState::Restarted => RestartState::Restarting,
+                    RestartState::Restarted => {
+                        panic!("Shutdown called on service not requiring restart")
+                    }
                 };
-                if restart_duration == Duration::from_secs(0) {
-                    outputln!(preamble service.service_group, "Stopping service, will restart immediately");
-                } else {
-                    outputln!(preamble service.service_group, "Stopping service, will restart after {:.2} secs", restart_duration.as_secs_f32());
-                }
             }
             self.inner.take()
         } else {
@@ -281,14 +297,23 @@ impl PersistentServiceWrapper {
         }
     }
 
-    pub fn restart_state(&self) -> RestartState { self.run_state.restart_state }
+    pub fn should_shutdown_for_restart(&self) -> bool {
+        match self.run_state.restart_state {
+            RestartState::NeedsRestart | RestartState::NeedsImmediateRestart => true,
+            RestartState::None
+            | RestartState::Restarting
+            | RestartState::RestartingImmediately
+            | RestartState::Restarted => false,
+        }
+    }
 
     pub fn is_ready_for_restart(&self) -> bool {
-        self.run_state.restart_state == RestartState::Restarting
-        && self.run_state
-               .restart_backoff
-               .duration_until_next_attempt_start()
-               .is_none()
+        self.run_state.restart_state == RestartState::RestartingImmediately
+        || (self.run_state.restart_state == RestartState::Restarting
+            && self.run_state
+                   .restart_backoff
+                   .duration_until_next_attempt_start()
+                   .is_none())
     }
 
     pub fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> bool {
@@ -694,7 +719,7 @@ impl Service {
             self.file_updated();
         }
 
-        let restarted_or_reconfigured = match self.spec.topology {
+        match self.spec.topology {
             Topology::Standalone => self.execute_hooks(run_state, launcher, &template_update),
             Topology::Leader => {
                 let census_group =
@@ -707,7 +732,6 @@ impl Service {
                                       "Waiting to execute hooks; election hasn't started");
                             self.last_election_status = census_group.election_status;
                         }
-                        false
                     }
                     ElectionStatus::ElectionInProgress => {
                         if self.last_election_status != census_group.election_status {
@@ -715,7 +739,6 @@ impl Service {
                                       "Waiting to execute hooks; election in progress.");
                             self.last_election_status = census_group.election_status;
                         }
-                        false
                     }
                     ElectionStatus::ElectionNoQuorum => {
                         if self.last_election_status != census_group.election_status {
@@ -725,7 +748,6 @@ impl Service {
 
                             self.last_election_status = census_group.election_status;
                         }
-                        false
                     }
                     ElectionStatus::ElectionFinished => {
                         let leader_id = census_group.leader_id
@@ -742,7 +764,7 @@ impl Service {
                 }
             }
         };
-        template_data_changed || restarted_or_reconfigured
+        template_data_changed
     }
 
     /// Iterate through all the service binds, marking any that are
@@ -1147,8 +1169,7 @@ impl Service {
     fn execute_hooks(&mut self,
                      run_state: &mut ServiceRunState,
                      launcher: &LauncherCli,
-                     template_update: &TemplateUpdate)
-                     -> bool {
+                     template_update: &TemplateUpdate) {
         let up = self.check_process(launcher);
         // It is ok that we do not hold this lock while we are performing the match. If we
         // transistion states while we are matching, we will catch the new state on the next tick.
@@ -1178,17 +1199,19 @@ impl Service {
             InitializationState::Initialized => {
                 // If the service is initialized and the process is not running, the process
                 // unexpectedly died and needs to be restarted.
-                if !up || template_update.needs_restart() {
+                if !up {
+                    run_state.restart_state = RestartState::NeedsRestart;
+                } else if template_update.needs_restart() {
                     // TODO (DM): This flag is a hack. We have the `TaskExecutor` here. We could
                     // just schedule the `stop` future, but the `Manager` wraps
                     // the `stop` future with additional functionality. Can we
                     // refactor to make this flag unnecessary?
-                    run_state.restart_state = RestartState::NeedsRestart;
-                    return true;
+                    run_state.restart_attempts = 0;
+                    run_state.restart_backoff.reset();
+                    run_state.restart_state = RestartState::NeedsImmediateRestart;
                 } else if template_update.needs_reconfigure() {
                     // Only reconfigure if we did NOT restart the service
                     self.reconfigure();
-                    return true;
                 } else if run_state.restart_state == RestartState::Restarted
                           && up
                           && run_state.restart_backoff
@@ -1203,7 +1226,6 @@ impl Service {
                 }
             }
         };
-        false
     }
 
     /// Run file-updated hook if present.

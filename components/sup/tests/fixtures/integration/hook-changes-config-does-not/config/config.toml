@@ -1,3 +1,0 @@
-# This value is set in the default.toml, and should not be changed in
-# the test.
-message = "{{cfg.config_value}}"

@@ -260,6 +260,9 @@ name = "anyhow"
 version = "1.0.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "595d3cfa7a60d4555cb5067b99f07142a08ea778de5cf993f7b75c7d8fabc486"
+dependencies = [
+ "backtrace",
+]
 
 [[package]]
 name = "arc-swap"
@@ -1499,6 +1502,7 @@ version = "0.0.0"
 dependencies = [
  "actix-rt",
  "actix-web",
+ "anyhow",
  "byteorder",
  "bytes",
  "caps",
@@ -1540,6 +1544,7 @@ dependencies = [
  "rand 0.8.5",
  "rants",
  "regex 1.5.4",
+ "reqwest",
  "rustls",
  "serde",
  "serde-transcode",
