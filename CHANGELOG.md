@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.475 -->
-## [1.6.475](https://github.com/habitat-sh/habitat/tree/1.6.475) (2022-03-18)
+<!-- latest_release 1.6.476 -->
+## [1.6.476](https://github.com/habitat-sh/habitat/tree/1.6.476) (2022-03-18)
 
 #### Merged Pull Requests
-- Add poll watcher support to spec watcher for M1 [#8449](https://github.com/habitat-sh/habitat/pull/8449) ([pozsgaic](https://github.com/pozsgaic))
+- Bump libc from 0.2.119 to 0.2.120 [#8463](https://github.com/habitat-sh/habitat/pull/8463) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.420 -->
 ### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.119 to 0.2.120 [#8463](https://github.com/habitat-sh/habitat/pull/8463) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.476 -->
 - Add poll watcher support to spec watcher for M1 [#8449](https://github.com/habitat-sh/habitat/pull/8449) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.475 -->
 - Bump regex from 1.5.4 to 1.5.5 [#8459](https://github.com/habitat-sh/habitat/pull/8459) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.474 -->
 - remove deadlock detection from linux butterfly tests [#8461](https://github.com/habitat-sh/habitat/pull/8461) ([mwrock](https://github.com/mwrock)) <!-- 1.6.473 -->
