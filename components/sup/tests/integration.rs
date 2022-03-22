@@ -17,28 +17,26 @@ mod utils;
 // suite. By convention, it is the same as the file name.
 lazy_static! {
     static ref FIXTURE_ROOT: utils::FixtureRoot = utils::FixtureRoot::new("integration");
-    static ref EXCLUDED_PATHS: Vec<Pattern> = vec![Pattern::new("logs/*").unwrap()];
 }
 
-/// Tests the scenario where a applying a config parameter causes restarts
-/// immediately due to an update to an application configuration file.
-#[tokio::test]
-#[cfg_attr(feature = "ignore_integration_tests", ignore)]
-async fn templated_config_with_no_reconfigure_hook_restart_on_config_application() -> Result<()> {
-    let hab_root = utils::HabRoot::new("templated_config_with_no_reconfigure_hook_restart_on_config_application");
-
+/// Helper to test the scenarios where a applying a config parameter causes immediate restarts
+async fn test_for_restart_on_config_application(test_name: &str,
+                                                package_name: &str,
+                                                applied_config: &str,
+                                                updated_files: Vec<&str>)
+                                                -> Result<()> {
     let origin_name = "sup-integration-test";
-    let package_name = "config-and-hooks-no-reconfigure";
     let service_group = "default";
 
     let service_min_backoff_period = Duration::from_secs(10);
     let service_max_backoff_period = Duration::from_secs(30);
     let service_restart_cooldown_period = Duration::from_secs(60);
-
-    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-                                                             service_min_backoff_period,
-                                                             service_max_backoff_period,
-                                                             service_restart_cooldown_period).await?;
+    let hab_root = utils::HabRoot::new(test_name);
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root,
+                                              service_min_backoff_period,
+                                              service_max_backoff_period,
+                                              service_restart_cooldown_period).await?;
 
     test_sup.start(Duration::from_secs(10)).await?;
 
@@ -48,503 +46,571 @@ async fn templated_config_with_no_reconfigure_hook_restart_on_config_application
                                &FIXTURE_ROOT,
                                &hab_root).await?;
 
-    let pid =
-        test_sup.wait_for_service_startup(package_name, service_group, Duration::from_secs(10))
-                .await?;
-    let initial_snapshot =
-        FileSystemSnapshot::new(hab_root.svc_path(package_name).as_path()).await?;
-    let initial_pid_snapshot = initial_snapshot.file("PID")?;
-                                                                          
-    test_sup.apply_config(package_name, service_group, r#"app_name = "Test App""#).await;
-    let _pid = test_sup.wait_for_service_restart(pid,
-                                                package_name,
-                                                service_group,
-                                                Duration::from_secs(30))
+    let pid = test_sup.ensure_service_starts(package_name, service_group, Duration::from_secs(10))
                       .await?;
+    let initial_snapshot =
+        FileSystemSnapshot::new(hab_root.svc_dir_path(package_name).as_path()).await?;
+    let initial_pid_snapshot = initial_snapshot.file("PID")?;
+
+    test_sup.apply_config(package_name, service_group, applied_config)
+            .await?;
+    let _pid =
+        test_sup.ensure_service_restarts(pid, package_name, service_group, Duration::from_secs(30))
+                .await?;
 
     let final_snapshot =
-        FileSystemSnapshot::new(hab_root.svc_path(package_name).as_path()).await?;
+        FileSystemSnapshot::new(hab_root.svc_dir_path(package_name).as_path()).await?;
     let final_pid_snapshot = final_snapshot.file("PID")?;
 
-    let delta = final_snapshot.modifications_since(&initial_snapshot, EXCLUDED_PATHS.to_vec());
+    let delta = final_snapshot.modifications_since(&initial_snapshot,
+                                                   vec![Pattern::new("logs/*").unwrap()]);
 
-    let duration_between_restarts = final_pid_snapshot.duration_between_modification(initial_pid_snapshot).unwrap();
-    
+    let duration_between_restarts =
+        final_pid_snapshot.duration_between_modification(initial_pid_snapshot)
+                          .unwrap();
     // Ensure the time between restarts is less than our configured minimum restart duration
     assert!(duration_between_restarts > Duration::ZERO);
     assert!(duration_between_restarts < service_min_backoff_period);
-    assert_eq!(delta.updated(),
-               vec!["PID",
-                    "config/app-config.toml"]);
+    assert_eq!(delta.updated(), updated_files);
     assert_eq!(delta.added(), vec![] as Vec<&str>);
     assert_eq!(delta.removed(), vec![] as Vec<&str>);
-    
+
     test_sup.stop().await?;
     Ok(())
 }
 
-// #[test]
-// #[cfg_attr(feature = "ignore_integration_tests", ignore)]
-// fn templated_run_hook_causes_restart_on_config_application() {
-//     let hab_root = utils::HabRoot::new("hook_only_packages_restart_on_config_application");
-
-//     let origin_name = "sup-integration-test";
-//     let package_name = "config-and-hooks-no-reconfigure";
-//     let service_group = "default";
-
-//     utils::setup_package_files(origin_name,
-//                                package_name,
-//                                service_group,
-//                                &FIXTURE_ROOT,
-//                                &hab_root);
-
-//     let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-//                                                              origin_name,
-//                                                              package_name,
-//                                                              service_group,
-//                                                              10,
-//                                                              30,
-//                                                              60);
-
-//     test_sup.start();
-//     utils::sleep_seconds(3);
-
-//     let pid_before_apply = hab_root.pid_of(package_name);
-//     let hook_before_apply = hab_root.compiled_hook_contents(&package_name, "run");
-
-//     test_sup.apply_config(r#"run_templated_value = "Running V1""#);
-//     utils::sleep_seconds(5);
-
-//     let pid_after_apply = hab_root.pid_of(package_name);
-//     let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "run");
-
-//     assert_ne!(hook_before_apply, hook_after_apply);
-//     assert_ne!(pid_before_apply, pid_after_apply);
-
-//     let pid_before_apply = pid_after_apply;
-//     let hook_before_apply = hook_after_apply;
-
-//     test_sup.apply_config(r#"run_templated_value = "Running V2""#);
-//     utils::sleep_seconds(5);
-
-//     let pid_after_apply = hab_root.pid_of(package_name);
-//     let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "run");
-
-//     assert_ne!(hook_before_apply, hook_after_apply);
-//     assert_ne!(pid_before_apply, pid_after_apply);
-// }
-
-// #[test]
-// #[cfg_attr(feature = "ignore_integration_tests", ignore)]
-// fn templated_post_run_hook_causes_restart_on_config_application() {
-//     let hab_root = utils::HabRoot::new("hook_only_packages_restart_on_config_application");
-
-//     let origin_name = "sup-integration-test";
-//     let package_name = "config-and-hooks-no-reconfigure";
-//     let service_group = "default";
-
-//     utils::setup_package_files(origin_name,
-//                                package_name,
-//                                service_group,
-//                                &FIXTURE_ROOT,
-//                                &hab_root);
-
-//     let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-//                                                              origin_name,
-//                                                              package_name,
-//                                                              service_group,
-//                                                              10,
-//                                                              30,
-//                                                              60);
-
-//     test_sup.start();
-//     utils::sleep_seconds(3);
-
-//     let pid_before_apply = hab_root.pid_of(package_name);
-//     let hook_before_apply = hab_root.compiled_hook_contents(&package_name, "post-run");
-
-//     test_sup.apply_config(r#"post_run_templated_value = "Post Run V1""#);
-//     utils::sleep_seconds(5);
-
-//     let pid_after_apply = hab_root.pid_of(package_name);
-//     let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "post-run");
-
-//     assert_ne!(hook_before_apply, hook_after_apply);
-//     assert_ne!(pid_before_apply, pid_after_apply);
-
-//     let pid_before_apply = pid_after_apply;
-//     let hook_before_apply = hook_after_apply;
-
-//     test_sup.apply_config(r#"post_run_templated_value = "Post Run V2""#);
-//     utils::sleep_seconds(5);
-
-//     let pid_after_apply = hab_root.pid_of(package_name);
-//     let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "post-run");
-
-//     assert_ne!(hook_before_apply, hook_after_apply);
-//     assert_ne!(pid_before_apply, pid_after_apply);
-// }
-
-// #[test]
-// #[cfg_attr(feature = "ignore_integration_tests", ignore)]
-// fn templated_health_check_hook_does_not_cause_restart_on_config_application() {
-//     let hab_root = utils::HabRoot::new("hook_only_packages_restart_on_config_application");
-
-//     let origin_name = "sup-integration-test";
-//     let package_name = "no-configs-only-hooks";
-//     let service_group = "default";
-
-//     utils::setup_package_files(origin_name,
-//                                package_name,
-//                                service_group,
-//                                &FIXTURE_ROOT,
-//                                &hab_root);
-
-//     let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-//                                                              origin_name,
-//                                                              package_name,
-//                                                              service_group,
-//                                                              10,
-//                                                              30,
-//                                                              60);
-
-//     test_sup.start();
-//     utils::sleep_seconds(3);
-
-//     let pid_before_apply = hab_root.pid_of(package_name);
-//     let hook_before_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
-
-//     test_sup.apply_config(r#"health_check_hook_value = "something new and different""#);
-//     utils::sleep_seconds(5);
-
-//     let pid_after_apply = hab_root.pid_of(package_name);
-//     let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
-
-//     assert_ne!(hook_before_apply, hook_after_apply);
-//     assert_eq!(pid_before_apply, pid_after_apply);
-
-//     let pid_before_apply = pid_after_apply;
-//     let hook_before_apply = hook_after_apply;
-
-//     test_sup.apply_config(r#"health_check_hook_value = "something even better""#);
-//     utils::sleep_seconds(5);
-
-//     let pid_after_apply = hab_root.pid_of(package_name);
-//     let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
-
-//     assert_ne!(hook_before_apply, hook_after_apply);
-//     assert_eq!(pid_before_apply, pid_after_apply);
-// }
-
-// #[test]
-// #[cfg_attr(feature = "ignore_integration_tests", ignore)]
-// fn config_files_change_but_hooks_do_not_still_restarts() {
-//     let hab_root = utils::HabRoot::new("config_files_change_but_hooks_do_not_still_restarts");
-
-//     let origin_name = "sup-integration-test";
-//     let package_name = "config-changes-hooks-do-not";
-//     let service_group = "default";
-
-//     utils::setup_package_files(origin_name,
-//                                package_name,
-//                                service_group,
-//                                &FIXTURE_ROOT,
-//                                &hab_root);
-
-//     let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-//                                                              origin_name,
-//                                                              package_name,
-//                                                              service_group,
-//                                                              10,
-//                                                              30,
-//                                                              60);
-
-//     test_sup.start();
-//     utils::sleep_seconds(3);
-
-//     let pid_before_apply = hab_root.pid_of(package_name);
-//     let hook_before_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
-//     let config_before_apply = hab_root.compiled_config_contents(&package_name, "config.toml");
-
-//     test_sup.apply_config(
-//                           r#"
-// config_value = "applied"
-// hook_value = "default"
-// "#,
-//     );
-//     utils::sleep_seconds(2);
-
-//     let pid_after_apply = hab_root.pid_of(package_name);
-//     let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
-//     let config_after_apply = hab_root.compiled_config_contents(&package_name, "config.toml");
-
-//     assert_ne!(config_before_apply, config_after_apply);
-//     assert_eq!(hook_before_apply, hook_after_apply);
-//     assert_ne!(pid_before_apply, pid_after_apply);
-// }
-
-// #[test]
-// #[cfg_attr(feature = "ignore_integration_tests", ignore)]
-// fn hooks_change_but_config_files_do_not_still_restarts() {
-//     let hab_root = utils::HabRoot::new("hooks_change_but_config_files_do_not_still_restarts");
-
-//     let origin_name = "sup-integration-test";
-//     let package_name = "hook-changes-config-does-not";
-//     let service_group = "default";
-
-//     utils::setup_package_files(origin_name,
-//                                package_name,
-//                                service_group,
-//                                &FIXTURE_ROOT,
-//                                &hab_root);
-
-//     let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-//                                                              origin_name,
-//                                                              package_name,
-//                                                              service_group,
-//                                                              10,
-//                                                              30,
-//                                                              60);
-
-//     test_sup.start();
-//     utils::sleep_seconds(3);
-
-//     let pid_before_apply = hab_root.pid_of(package_name);
-//     let hook_before_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
-//     let config_before_apply = hab_root.compiled_config_contents(&package_name, "config.toml");
-
-//     test_sup.apply_config(
-//                           r#"
-// config_value = "default"
-// hook_value = "applied"
-// "#,
-//     );
-//     utils::sleep_seconds(2);
-
-//     let pid_after_apply = hab_root.pid_of(package_name);
-//     let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
-//     let config_after_apply = hab_root.compiled_config_contents(&package_name, "config.toml");
-
-//     assert_eq!(config_before_apply, config_after_apply);
-//     assert_ne!(hook_before_apply, hook_after_apply);
-//     assert_ne!(pid_before_apply, pid_after_apply);
-// }
-
-// #[test]
-// #[cfg_attr(feature = "ignore_integration_tests", ignore)]
-// fn applying_identical_configuration_results_in_no_changes_and_no_restart() {
-//     let hab_root = utils::HabRoot::new(
-//         "applying_identical_configuration_results_in_no_changes_and_no_restart",
-//     );
-
-//     let origin_name = "sup-integration-test";
-//     let package_name = "no-changes-no-restart";
-//     let service_group = "default";
-
-//     utils::setup_package_files(origin_name,
-//                                package_name,
-//                                service_group,
-//                                &FIXTURE_ROOT,
-//                                &hab_root);
-
-//     let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-//                                                              origin_name,
-//                                                              package_name,
-//                                                              service_group,
-//                                                              10,
-//                                                              30,
-//                                                              60);
-
-//     test_sup.start();
-//     utils::sleep_seconds(3);
-
-//     let pid_before_apply = hab_root.pid_of(package_name);
-//     let hook_before_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
-//     let config_before_apply = hab_root.compiled_config_contents(&package_name, "config.toml");
-
-//     test_sup.apply_config(
-//                           r#"
-// config_value = "default"
-// hook_value = "default"
-// "#,
-//     );
-//     utils::sleep_seconds(2);
-
-//     let pid_after_apply = hab_root.pid_of(package_name);
-//     let hook_after_apply = hab_root.compiled_hook_contents(&package_name, "health-check");
-//     let config_after_apply = hab_root.compiled_config_contents(&package_name, "config.toml");
-
-//     assert_eq!(config_before_apply, config_after_apply);
-//     assert_eq!(hook_before_apply, hook_after_apply);
-//     assert_eq!(pid_before_apply, pid_after_apply);
-// }
-
-// #[test]
-// #[cfg_attr(feature = "ignore_integration_tests", ignore)]
-// fn install_hook_success() {
-//     let hab_root = utils::HabRoot::new("install_hook_success");
-
-//     let origin_name = "sup-integration-test";
-//     let package_name = "install-hook-succeeds";
-//     let service_group = "default";
-
-//     utils::setup_package_files(origin_name,
-//                                package_name,
-//                                service_group,
-//                                &FIXTURE_ROOT,
-//                                &hab_root);
-
-//     let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-//                                                              origin_name,
-//                                                              package_name,
-//                                                              service_group,
-//                                                              10,
-//                                                              30,
-//                                                              60);
-
-//     test_sup.start();
-//     utils::sleep_seconds(3);
-
-//     let status_created_before = hab_root.install_status_created(origin_name, package_name);
-
-//     assert_eq!(hab_root.install_status_of(origin_name, package_name), 0);
-//     assert!(hab_root.pid_of(package_name) > 0);
-
-//     test_sup.stop();
-//     utils::sleep_seconds(3);
-//     test_sup.start();
-//     utils::sleep_seconds(3);
-
-//     let status_created_after = hab_root.install_status_created(origin_name, package_name);
-
-//     assert_eq!(status_created_before, status_created_after);
-// }
-
-// #[test]
-// #[cfg_attr(feature = "ignore_integration_tests", ignore)]
-// fn package_with_successful_install_hook_in_dependency_is_loaded() {
-//     let hab_root =
-//         utils::HabRoot::new("package_with_successful_install_hook_in_dependency_is_loaded");
-
-//     let origin_name = "sup-integration-test";
-//     let package_name = "install-hook-succeeds-with-dependency";
-//     let dep = "install-hook-succeeds";
-//     let service_group = "default";
-
-//     utils::setup_package_files(origin_name,
-//                                package_name,
-//                                service_group,
-//                                &FIXTURE_ROOT,
-//                                &hab_root);
-
-//     let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-//                                                              origin_name,
-//                                                              package_name,
-//                                                              service_group,
-//                                                              10,
-//                                                              30,
-//                                                              60);
-
-//     test_sup.start();
-//     utils::sleep_seconds(3);
-
-//     let status_created_before = hab_root.install_status_created(origin_name, dep);
-
-//     assert_eq!(hab_root.install_status_of(origin_name, dep), 0);
-//     assert!(hab_root.pid_of(package_name) > 0);
-
-//     test_sup.stop();
-//     utils::sleep_seconds(3);
-//     test_sup.start();
-//     utils::sleep_seconds(3);
-
-//     let status_created_after = hab_root.install_status_created(origin_name, dep);
-
-//     assert_eq!(status_created_before, status_created_after);
-// }
-
-// #[test]
-// #[cfg_attr(feature = "ignore_integration_tests", ignore)]
-// fn install_hook_fails() {
-//     let hab_root = utils::HabRoot::new("install_hook_fails");
-
-//     let origin_name = "sup-integration-test";
-//     let package_name = "install-hook-fails";
-//     let service_group = "default";
-
-//     utils::setup_package_files(origin_name,
-//                                package_name,
-//                                service_group,
-//                                &FIXTURE_ROOT,
-//                                &hab_root);
-
-//     let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-//                                                              origin_name,
-//                                                              package_name,
-//                                                              service_group,
-//                                                              10,
-//                                                              30,
-//                                                              60);
-
-//     test_sup.start();
-//     utils::sleep_seconds(3);
-
-//     let status_created_before = hab_root.install_status_created(origin_name, package_name);
-//     let result = std::panic::catch_unwind(|| hab_root.pid_of(package_name));
-
-//     assert_eq!(hab_root.install_status_of(origin_name, package_name), 1);
-//     assert!(result.is_err());
-
-//     test_sup.stop();
-//     utils::sleep_seconds(3);
-//     test_sup.start();
-//     utils::sleep_seconds(3);
-
-//     let status_created_after = hab_root.install_status_created(origin_name, package_name);
-
-//     assert_ne!(status_created_before, status_created_after);
-// }
-
-// #[test]
-// #[cfg_attr(feature = "ignore_integration_tests", ignore)]
-// fn package_with_failing_install_hook_in_dependency_is_not_loaded() {
-//     let hab_root =
-//         utils::HabRoot::new("package_with_failing_install_hook_in_dependency_is_not_loaded");
-
-//     let origin_name = "sup-integration-test";
-//     let package_name = "install-hook-fails-with-dependency";
-//     let dep = "install-hook-fails";
-//     let service_group = "default";
-
-//     utils::setup_package_files(origin_name,
-//                                package_name,
-//                                service_group,
-//                                &FIXTURE_ROOT,
-//                                &hab_root);
-
-//     let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
-//                                                              origin_name,
-//                                                              package_name,
-//                                                              service_group,
-//                                                              10,
-//                                                              30,
-//                                                              60);
-
-//     test_sup.start();
-//     utils::sleep_seconds(3);
-
-//     let status_created_before = hab_root.install_status_created(origin_name, dep);
-//     let result = std::panic::catch_unwind(|| hab_root.pid_of(package_name));
-
-//     assert_eq!(hab_root.install_status_of(origin_name, dep), 1);
-//     assert!(result.is_err());
-
-//     test_sup.stop();
-//     utils::sleep_seconds(3);
-//     test_sup.start();
-//     utils::sleep_seconds(3);
-
-//     let status_created_after = hab_root.install_status_created(origin_name, dep);
-
-//     assert_ne!(status_created_before, status_created_after);
-// }
+/// Helper to test the scenarios where a applying a config parameter do not causes restarts
+async fn test_for_no_restart_on_config_application(test_name: &str,
+                                                   package_name: &str,
+                                                   applied_config: &str,
+                                                   updated_files: Vec<&str>)
+                                                   -> Result<()> {
+    let origin_name = "sup-integration-test";
+    let service_group = "default";
+
+    let service_min_backoff_period = Duration::from_secs(5);
+    let service_max_backoff_period = Duration::from_secs(20);
+    let service_restart_cooldown_period = Duration::from_secs(60);
+    let hab_root = utils::HabRoot::new(test_name);
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root,
+                                              service_min_backoff_period,
+                                              service_max_backoff_period,
+                                              service_restart_cooldown_period).await?;
+
+    test_sup.start(Duration::from_secs(10)).await?;
+
+    utils::setup_package_files(origin_name,
+                               package_name,
+                               service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root).await?;
+
+    let pid = test_sup.ensure_service_starts(package_name, service_group, Duration::from_secs(10))
+                      .await?;
+    let initial_snapshot =
+        FileSystemSnapshot::new(hab_root.svc_dir_path(package_name).as_path()).await?;
+    let initial_pid_snapshot = initial_snapshot.file("PID")?;
+
+    test_sup.apply_config(package_name, service_group, applied_config)
+            .await?;
+    let _pid = test_sup.ensure_service_does_not_restart(pid,
+                                                        package_name,
+                                                        service_group,
+                                                        Duration::from_secs(30))
+                       .await?;
+
+    let final_snapshot =
+        FileSystemSnapshot::new(hab_root.svc_dir_path(package_name).as_path()).await?;
+    let final_pid_snapshot = final_snapshot.file("PID")?;
+
+    let delta = final_snapshot.modifications_since(&initial_snapshot,
+                                                   vec![Pattern::new("logs/*").unwrap()]);
+
+    let duration_between_restarts =
+        final_pid_snapshot.duration_between_modification(initial_pid_snapshot)
+                          .unwrap();
+    // Ensure the time between restarts is 0 because the PID file was never modified
+    assert!(duration_between_restarts == Duration::ZERO);
+    assert_eq!(delta.updated(), updated_files);
+    assert_eq!(delta.added(), vec![] as Vec<&str>);
+    assert_eq!(delta.removed(), vec![] as Vec<&str>);
+
+    test_sup.stop().await?;
+    Ok(())
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn restart_for_templated_config_file() -> Result<()> {
+    let test_name = "restart_for_templated_config_file_without_reconfiguration_hook";
+    let package_name = "config-and-hooks-no-reconfigure";
+    let applied_config = r#"app_name = "Test App""#;
+    let updated_files = vec!["PID", "config/app-config.toml"];
+    test_for_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
+
+    // Templated config file changes do not cause a restart if a reconfigure hook is present
+    let test_name = "restart_for_templated_config_file_with_reconfiguration_hook";
+    let package_name = "config-and-hooks-with-reconfigure";
+    let applied_config = r#"app_name = "Test App""#;
+    let updated_files = vec!["config/app-config.toml"];
+    test_for_no_restart_on_config_application(test_name,
+                                              package_name,
+                                              applied_config,
+                                              updated_files).await?;
+
+    Ok(())
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn restart_for_templated_run_hook() -> Result<()> {
+    let test_name = "restart_for_templated_run_hook_without_reconfiguration_hook";
+    let package_name = "config-and-hooks-no-reconfigure";
+    let applied_config = r#"run_templated_value = "Run Hook Value""#;
+    // The run hook gets copied to the main service directory.
+    // TODO(JJ): Find out why and mention it here?
+    let updated_files = vec!["PID", "hooks/run", "run"];
+    test_for_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
+
+    let test_name = "restart_for_templated_run_hook_with_reconfiguration_hook";
+    let package_name = "config-and-hooks-with-reconfigure";
+    let applied_config = r#"run_templated_value = "Run Hook Value""#;
+    let updated_files = vec!["PID", "hooks/run", "run"];
+    test_for_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
+
+    Ok(())
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn restart_for_templated_post_run_hook() -> Result<()> {
+    let test_name = "restart_for_templated_post_run_hook_without_reconfiguration_hook";
+    let package_name = "config-and-hooks-no-reconfigure";
+    let applied_config = r#"post_run_templated_value = "Post Run Hook Value""#;
+    let updated_files = vec!["PID", "hooks/post-run"];
+    test_for_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
+
+    let test_name = "restart_for_templated_post_run_hook_with_reconfiguration_hook";
+    let package_name = "config-and-hooks-with-reconfigure";
+    let applied_config = r#"post_run_templated_value = "Post Run Hook Value""#;
+    let updated_files = vec!["PID", "hooks/post-run"];
+    test_for_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
+    Ok(())
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn no_restart_for_templated_init_hook() -> Result<()> {
+    let test_name = "no_restart_for_templated_init_hook_without_reconfiguration_hook";
+    let package_name = "config-and-hooks-no-reconfigure";
+    let applied_config = r#"init_templated_value = "Init Hook Value""#;
+    let updated_files = vec!["hooks/init"];
+    test_for_no_restart_on_config_application(test_name,
+                                              package_name,
+                                              applied_config,
+                                              updated_files).await?;
+
+    let test_name = "no_restart_for_templated_init_hook_with_reconfiguration_hook";
+    let package_name = "config-and-hooks-with-reconfigure";
+    let applied_config = r#"init_templated_value = "Init Hook Value""#;
+    let updated_files = vec!["hooks/init"];
+    test_for_no_restart_on_config_application(test_name,
+                                              package_name,
+                                              applied_config,
+                                              updated_files).await?;
+
+    Ok(())
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn no_restart_for_templated_health_check_hook() -> Result<()> {
+    let test_name = "no_restart_for_templated_health_check_hook_without_reconfiguration_hook";
+    let package_name = "config-and-hooks-no-reconfigure";
+    let applied_config = r#"health_check_templated_value = "Health Check Hook Value""#;
+    let updated_files = vec!["hooks/health-check"];
+    test_for_no_restart_on_config_application(test_name,
+                                              package_name,
+                                              applied_config,
+                                              updated_files).await?;
+
+    let test_name = "no_restart_for_templated_health_check_hook_with_reconfiguration_hook";
+    let package_name = "config-and-hooks-with-reconfigure";
+    let applied_config = r#"health_check_templated_value = "Health Check Hook Value""#;
+    let updated_files = vec!["hooks/health-check"];
+    test_for_no_restart_on_config_application(test_name,
+                                              package_name,
+                                              applied_config,
+                                              updated_files).await?;
+
+    Ok(())
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn no_restart_for_templated_file_updated_hook() -> Result<()> {
+    let test_name = "no_restart_for_templated_file_updated_hook_without_reconfiguration_hook";
+    let package_name = "config-and-hooks-no-reconfigure";
+    let applied_config = r#"file_updated_templated_value = "File Updated Hook Value""#;
+    let updated_files = vec!["hooks/file-updated"];
+    test_for_no_restart_on_config_application(test_name,
+                                              package_name,
+                                              applied_config,
+                                              updated_files).await?;
+
+    let test_name = "no_restart_for_templated_file_updated_hook_with_reconfiguration_hook";
+    let package_name = "config-and-hooks-with-reconfigure";
+    let applied_config = r#"file_updated_templated_value = "File Updated Hook Value""#;
+    let updated_files = vec!["hooks/file-updated"];
+    test_for_no_restart_on_config_application(test_name,
+                                              package_name,
+                                              applied_config,
+                                              updated_files).await?;
+
+    Ok(())
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn no_restart_for_templated_suitability_hook() -> Result<()> {
+    let test_name = "no_restart_for_templated_suitability_hook_without_reconfiguration_hook";
+    let package_name = "config-and-hooks-no-reconfigure";
+    let applied_config = r#"suitability_templated_value = "Suitability Hook Value""#;
+    let updated_files = vec!["hooks/suitability"];
+    test_for_no_restart_on_config_application(test_name,
+                                              package_name,
+                                              applied_config,
+                                              updated_files).await?;
+
+    let test_name = "no_restart_for_templated_suitability_hook_with_reconfiguration_hook";
+    let package_name = "config-and-hooks-with-reconfigure";
+    let applied_config = r#"suitability_templated_value = "Suitability Hook Value""#;
+    let updated_files = vec!["hooks/suitability"];
+    test_for_no_restart_on_config_application(test_name,
+                                              package_name,
+                                              applied_config,
+                                              updated_files).await?;
+
+    Ok(())
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn no_restart_for_templated_post_stop_hook() -> Result<()> {
+    let test_name = "no_restart_for_templated_post_stop_hook_without_reconfiguration_hook";
+    let package_name = "config-and-hooks-no-reconfigure";
+    let applied_config = r#"post_stop_templated_value = "Post Stop Hook Value""#;
+    let updated_files = vec!["hooks/post-stop"];
+    test_for_no_restart_on_config_application(test_name,
+                                              package_name,
+                                              applied_config,
+                                              updated_files).await?;
+
+    let test_name = "no_restart_for_templated_post_stop_hook_with_reconfiguration_hook";
+    let package_name = "config-and-hooks-with-reconfigure";
+    let applied_config = r#"post_stop_templated_value = "Post Stop Hook Value""#;
+    let updated_files = vec!["hooks/post-stop"];
+    test_for_no_restart_on_config_application(test_name,
+                                              package_name,
+                                              applied_config,
+                                              updated_files).await?;
+
+    Ok(())
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn no_restart_for_templated_reconfigure_hook() -> Result<()> {
+    let test_name = "no_restart_for_templated_reconfigure_hook";
+    let package_name = "config-and-hooks-with-reconfigure";
+    let applied_config = r#"reconfigure_templated_value = "Reconfigure Hook Value""#;
+    let updated_files = vec!["hooks/reconfigure"];
+    test_for_no_restart_on_config_application(test_name,
+                                              package_name,
+                                              applied_config,
+                                              updated_files).await?;
+
+    Ok(())
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn no_restart_if_no_change() -> Result<()> {
+    let test_name = "no_restart_if_no_change_without_reconfiguration_hook";
+    let package_name = "config-and-hooks-no-reconfigure";
+    let applied_config = r#"random_value = "Random Value""#;
+    let updated_files = vec![];
+    test_for_no_restart_on_config_application(test_name,
+                                              package_name,
+                                              applied_config,
+                                              updated_files).await?;
+
+    let test_name = "no_restart_if_no_change_with_reconfiguration_hook";
+    let package_name = "config-and-hooks-with-reconfigure";
+    let applied_config = r#"random_value = "Random Value""#;
+    let updated_files = vec![];
+    test_for_no_restart_on_config_application(test_name,
+                                              package_name,
+                                              applied_config,
+                                              updated_files).await?;
+
+    Ok(())
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn install_hook_success() -> Result<()> {
+    let hab_root = utils::HabRoot::new("install_hook_success");
+
+    let service_min_backoff_period = Duration::from_secs(10);
+    let service_max_backoff_period = Duration::from_secs(30);
+    let service_restart_cooldown_period = Duration::from_secs(60);
+
+    let origin_name = "sup-integration-test";
+    let package_name = "install-hook-succeeds";
+    let service_group = "default";
+
+    utils::setup_package_files(origin_name,
+                               package_name,
+                               service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root).await?;
+
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root,
+                                              service_min_backoff_period,
+                                              service_max_backoff_period,
+                                              service_restart_cooldown_period).await?;
+
+    test_sup.start(Duration::from_secs(10)).await?;
+
+    let pid = test_sup.ensure_service_starts(package_name, service_group, Duration::from_secs(10))
+                      .await?;
+
+    let initial_snapshot =
+        FileSystemSnapshot::new(hab_root.pkg_dir_path(origin_name, package_name).as_path()).await?;
+    let initial_install_hook_status_file = initial_snapshot.file("INSTALL_HOOK_STATUS")?;
+    let initial_install_hook_status = initial_install_hook_status_file.current_file_content()
+                                                                      .await?
+                                                                      .parse::<i32>()?;
+
+    assert_eq!(initial_install_hook_status, 0);
+
+    // Restart the supervisor
+    test_sup.stop().await?;
+    test_sup.start(Duration::from_secs(10)).await?;
+
+    let restarted_pid =
+        test_sup.ensure_service_starts(package_name, service_group, Duration::from_secs(10))
+                .await?;
+
+    let final_snapshot =
+        FileSystemSnapshot::new(hab_root.pkg_dir_path(origin_name, package_name).as_path()).await?;
+    let final_install_hook_status_file = final_snapshot.file("INSTALL_HOOK_STATUS")?;
+
+    // Ensure that the initial and final state of the INSTALL_HOOK_STATUS file is unchanged
+    assert_eq!(initial_install_hook_status_file,
+               final_install_hook_status_file);
+    assert_ne!(pid, restarted_pid);
+
+    test_sup.stop().await?;
+    Ok(())
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn install_hook_fails() -> Result<()> {
+    let hab_root = utils::HabRoot::new("install_hook_fails");
+
+    let service_min_backoff_period = Duration::from_secs(10);
+    let service_max_backoff_period = Duration::from_secs(30);
+    let service_restart_cooldown_period = Duration::from_secs(60);
+
+    let origin_name = "sup-integration-test";
+    let package_name = "install-hook-fails";
+    let service_group = "default";
+
+    utils::setup_package_files(origin_name,
+                               package_name,
+                               service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root).await?;
+
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root,
+                                              service_min_backoff_period,
+                                              service_max_backoff_period,
+                                              service_restart_cooldown_period).await?;
+
+    test_sup.start(Duration::from_secs(10)).await?;
+
+    test_sup.ensure_service_does_not_start(package_name, service_group, Duration::from_secs(10))
+            .await?;
+
+    let initial_snapshot =
+        FileSystemSnapshot::new(hab_root.pkg_dir_path(origin_name, package_name).as_path()).await?;
+    let initial_install_hook_status_file = initial_snapshot.file("INSTALL_HOOK_STATUS")?;
+    let initial_install_hook_status = initial_install_hook_status_file.current_file_content()
+                                                                      .await?
+                                                                      .parse::<i32>()?;
+
+    assert_eq!(initial_install_hook_status, 1);
+
+    // Restart the supervisor
+    test_sup.stop().await?;
+    test_sup.start(Duration::from_secs(10)).await?;
+
+    test_sup.ensure_service_does_not_start(package_name, service_group, Duration::from_secs(10))
+            .await?;
+
+    let final_snapshot =
+        FileSystemSnapshot::new(hab_root.pkg_dir_path(origin_name, package_name).as_path()).await?;
+    let final_install_hook_status_file = final_snapshot.file("INSTALL_HOOK_STATUS")?;
+    let final_install_hook_status = final_install_hook_status_file.current_file_content()
+                                                                  .await?
+                                                                  .parse::<i32>()?;
+
+    // Ensure that the install hook was re-run and the new failure status was written
+    assert!(final_install_hook_status_file.duration_between_modification(initial_install_hook_status_file)? > Duration::ZERO);
+    assert_eq!(initial_install_hook_status, final_install_hook_status);
+
+    test_sup.stop().await?;
+    Ok(())
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn package_with_successful_install_hook_in_dependency_is_loaded() -> Result<()> {
+    let hab_root = utils::HabRoot::new("install_hook_success");
+
+    let service_min_backoff_period = Duration::from_secs(10);
+    let service_max_backoff_period = Duration::from_secs(30);
+    let service_restart_cooldown_period = Duration::from_secs(60);
+
+    let origin_name = "sup-integration-test";
+    let package_name = "install-hook-succeeds-with-dependency";
+    let dependency_name = "install-hook-succeeds";
+    let service_group = "default";
+
+    utils::setup_package_files(origin_name,
+                               package_name,
+                               service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root).await?;
+
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root,
+                                              service_min_backoff_period,
+                                              service_max_backoff_period,
+                                              service_restart_cooldown_period).await?;
+
+    test_sup.start(Duration::from_secs(10)).await?;
+
+    let pid = test_sup.ensure_service_starts(package_name, service_group, Duration::from_secs(10))
+                      .await?;
+
+    let initial_dependency_snapshot =
+        FileSystemSnapshot::new(hab_root.pkg_dir_path(origin_name, dependency_name)
+                                        .as_path()).await?;
+    let initial_dependency_install_hook_status_file =
+        initial_dependency_snapshot.file("INSTALL_HOOK_STATUS")?;
+    let initial_dependency_install_hook_status =
+        initial_dependency_install_hook_status_file.current_file_content()
+                                                   .await?
+                                                   .parse::<i32>()?;
+
+    assert_eq!(initial_dependency_install_hook_status, 0);
+
+    // Restart the supervisor
+    test_sup.stop().await?;
+    test_sup.start(Duration::from_secs(10)).await?;
+
+    let restarted_pid =
+        test_sup.ensure_service_starts(package_name, service_group, Duration::from_secs(10))
+                .await?;
+
+    let final_dependency_snapshot = FileSystemSnapshot::new(hab_root.pkg_dir_path(origin_name,
+                                                                                  dependency_name)
+                                                                    .as_path()).await?;
+    let final_dependency_install_hook_status_file =
+        final_dependency_snapshot.file("INSTALL_HOOK_STATUS")?;
+
+    // Ensure that the initial and final state of the INSTALL_HOOK_STATUS file is unchanged
+    assert_eq!(initial_dependency_install_hook_status_file,
+               final_dependency_install_hook_status_file);
+    assert_ne!(pid, restarted_pid);
+
+    test_sup.stop().await?;
+    Ok(())
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn package_with_failing_install_hook_in_dependency_is_not_loaded() -> Result<()> {
+    let hab_root =
+        utils::HabRoot::new("package_with_failing_install_hook_in_dependency_is_not_loaded");
+
+    let service_min_backoff_period = Duration::from_secs(10);
+    let service_max_backoff_period = Duration::from_secs(30);
+    let service_restart_cooldown_period = Duration::from_secs(60);
+
+    let origin_name = "sup-integration-test";
+    let package_name = "install-hook-fails-with-dependency";
+    let dependency_name = "install-hook-fails";
+    let service_group = "default";
+
+    utils::setup_package_files(origin_name,
+                               package_name,
+                               service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root).await?;
+
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root,
+                                              service_min_backoff_period,
+                                              service_max_backoff_period,
+                                              service_restart_cooldown_period).await?;
+
+    test_sup.start(Duration::from_secs(10)).await?;
+
+    test_sup.ensure_service_does_not_start(package_name, service_group, Duration::from_secs(10))
+            .await?;
+
+    let initial_dependency_snapshot =
+        FileSystemSnapshot::new(hab_root.pkg_dir_path(origin_name, dependency_name)
+                                        .as_path()).await?;
+    let initial_dependency_install_hook_status_file =
+        initial_dependency_snapshot.file("INSTALL_HOOK_STATUS")?;
+    let initial_dependency_install_hook_status =
+        initial_dependency_install_hook_status_file.current_file_content()
+                                                   .await?
+                                                   .parse::<i32>()?;
+
+    assert_eq!(initial_dependency_install_hook_status, 1);
+
+    // Restart the supervisor
+    test_sup.stop().await?;
+    test_sup.start(Duration::from_secs(10)).await?;
+
+    test_sup.ensure_service_does_not_start(package_name, service_group, Duration::from_secs(10))
+            .await?;
+
+    let final_dependency_snapshot = FileSystemSnapshot::new(hab_root.pkg_dir_path(origin_name,
+                                                                                  dependency_name)
+                                                                    .as_path()).await?;
+    let final_dependency_install_hook_status_file =
+        final_dependency_snapshot.file("INSTALL_HOOK_STATUS")?;
+    let final_dependency_install_hook_status =
+        final_dependency_install_hook_status_file.current_file_content()
+                                                 .await?
+                                                 .parse::<i32>()?;
+
+    // Ensure that the install hook was re-run and the new failure status was written
+    assert!(final_dependency_install_hook_status_file.duration_between_modification(initial_dependency_install_hook_status_file)? > Duration::ZERO);
+    assert_eq!(final_dependency_install_hook_status,
+               initial_dependency_install_hook_status);
+
+    test_sup.stop().await?;
+    Ok(())
+}

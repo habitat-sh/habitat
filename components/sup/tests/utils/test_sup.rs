@@ -17,7 +17,6 @@ use std::{collections::HashSet,
           path::{Path,
                  PathBuf},
           process::Stdio,
-          string::ToString,
           time::Duration};
 use tokio::{net::{TcpListener,
                   TcpStream},
@@ -282,7 +281,9 @@ impl TestSup {
         }
         cmd.kill_on_drop(true);
 
-        let bc = test_butterfly::Client::new(butterfly_port);
+        let bc = test_butterfly::Client::new(butterfly_port).context("Failed to create \
+                                                                      butterfly client for test \
+                                                                      supervsior")?;
         let api_client =
             reqwest::ClientBuilder::new().build()
                                          .context("Failed to create reqwest API client for \
@@ -313,30 +314,55 @@ impl TestSup {
     }
 
     /// Stop the Supervisor.
-    pub async fn stop(mut self) -> Result<()> {
-        let mut claimed_ports = CLAIMED_PORTS.lock().await;
-        claimed_ports.remove(&self.http_port);
-        claimed_ports.remove(&self.butterfly_port);
-        claimed_ports.remove(&self.control_port);
+    /// TODO: Move this to a drop implementation of the supervisor
+    /// We need tokio 1.13 or later to make use of the `Mutex::blocking_lock` function to free up
+    /// the ports. We can also synchronously terminate the supervisor when the TestSup struct is
+    /// dropped
+    pub async fn stop(&mut self) -> Result<()> {
+        {
+            let mut claimed_ports = CLAIMED_PORTS.lock().await;
+            claimed_ports.remove(&self.http_port);
+            claimed_ports.remove(&self.butterfly_port);
+            claimed_ports.remove(&self.control_port);
+        }
         if let Some(mut process) = self.process.take() {
-            process.kill()
-                   .await
-                   .context("Failed to kill supervisor process")?;
+            if cfg!(not(windows)) {
+                if let Some(pid) = process.id() {
+                    nix::sys::signal::kill(nix::unistd::Pid::from_raw(pid as i32),
+                                           nix::sys::signal::SIGTERM).context("Failed to send \
+                                                                               SIGTERM to test \
+                                                                               supervisor \
+                                                                               process")?;
+                    process.wait()
+                           .await
+                           .context("Failed to kill supervisor process")?;
+                }
+            } else {
+                process.kill()
+                       .await
+                       .context("Failed to kill supervisor process")?;
+            }
         }
         Ok(())
     }
 
     /// The equivalent of performing `hab apply` with the given
     /// configuration.
-    pub async fn apply_config(&mut self, package_name: &str, service_group: &str, toml_config: &str) {
-        self.butterfly_client.apply(package_name, service_group, toml_config)
+    pub async fn apply_config(&mut self,
+                              package_name: &str,
+                              service_group: &str,
+                              toml_config: &str)
+                              -> Result<()> {
+        Ok(self.butterfly_client
+               .apply(package_name, service_group, toml_config)
+               .context("Failed to apply configuration")?)
     }
 
-    pub async fn wait_for_service_startup(&self,
-                                          package_name: &str,
-                                          service_group: &str,
-                                          timeout: Duration)
-                                          -> Result<u64> {
+    pub async fn ensure_service_starts(&self,
+                                       package_name: &str,
+                                       service_group: &str,
+                                       timeout: Duration)
+                                       -> Result<u64> {
         let started_at = Instant::now();
         loop {
             if started_at.elapsed() > timeout {
@@ -345,7 +371,7 @@ impl TestSup {
                                    package_name,
                                    service_group,
                                    timeout.as_secs_f64()));
-            } 
+            }
 
             let req = self.api_client
                           .request(Method::GET,
@@ -373,26 +399,72 @@ impl TestSup {
                                                          .and_then(|x| x.as_u64()))
             {
                 return Ok(process_id);
-            } 
+            }
             tokio::time::sleep(Duration::from_millis(500)).await;
         }
     }
 
-    pub async fn wait_for_service_restart(&self,
-                                          old_process_id: u64,
-                                          package_name: &str,
-                                          service_group: &str,
-                                          timeout: Duration)
-                                          -> Result<u64> {
+    pub async fn ensure_service_does_not_start(&self,
+                                               package_name: &str,
+                                               service_group: &str,
+                                               timeout: Duration)
+                                               -> Result<()> {
         let started_at = Instant::now();
         loop {
             if started_at.elapsed() > timeout {
-                return Err(anyhow!("Test supervisor failed to restart service '{}.{}' \
-                                    within {:.2}secs",
+                return Ok(());
+            }
+
+            let req = self.api_client
+                          .request(Method::GET,
+                                   format!("http://localhost:{}/services/{}/{}",
+                                           self.http_port, package_name, service_group).as_str())
+                          .build()
+                          .context("Failed to construct API request to supervisor HTTP endpoint")?;
+            let res = self.api_client.execute(req).await.ok();
+
+            let body = if let Some(res) = res {
+                res.json::<Value>().await.ok()
+            } else {
+                continue;
+            };
+            let body = if let Some(body) = body {
+                body
+            } else {
+                continue;
+            };
+            if let (Some("up"), Some(_)) = (body.get("process")
+                                                .and_then(|x| x.get("state"))
+                                                .and_then(|x| x.as_str()),
+                                            body.get("process")
+                                                .and_then(|x| x.get("pid"))
+                                                .and_then(|x| x.as_u64()))
+            {
+                return Err(anyhow!("Test supervisor started service {}.{} within \
+                                    {:.2} secs",
                                    package_name,
                                    service_group,
                                    timeout.as_secs_f64()));
-            } 
+            }
+            tokio::time::sleep(Duration::from_millis(500)).await;
+        }
+    }
+
+    pub async fn ensure_service_restarts(&self,
+                                         old_process_id: u64,
+                                         package_name: &str,
+                                         service_group: &str,
+                                         timeout: Duration)
+                                         -> Result<u64> {
+        let started_at = Instant::now();
+        loop {
+            if started_at.elapsed() > timeout {
+                return Err(anyhow!("Test supervisor failed to restart service \
+                                    '{}.{}' within {:.2} secs",
+                                   package_name,
+                                   service_group,
+                                   timeout.as_secs_f64()));
+            }
             let req = self.api_client
                           .request(Method::GET,
                                    format!("http://localhost:{}/services/{}/{}",
@@ -423,7 +495,55 @@ impl TestSup {
                     return Ok(process_id);
                 }
             }
-            
+            tokio::time::sleep(Duration::from_millis(500)).await;
+        }
+    }
+
+    pub async fn ensure_service_does_not_restart(&self,
+                                                 old_process_id: u64,
+                                                 package_name: &str,
+                                                 service_group: &str,
+                                                 timeout: Duration)
+                                                 -> Result<()> {
+        let started_at = Instant::now();
+        loop {
+            if started_at.elapsed() > timeout {
+                return Ok(());
+            }
+            let req = self.api_client
+                          .request(Method::GET,
+                                   format!("http://localhost:{}/services/{}/{}",
+                                           self.http_port, package_name, service_group).as_str())
+                          .build()
+                          .context("Failed to construct API request to supervisor HTTP endpoint")?;
+            let res = self.api_client.execute(req).await.ok();
+
+            let body = if let Some(res) = res {
+                res.json::<Value>().await.ok()
+            } else {
+                continue;
+            };
+            let body = if let Some(body) = body {
+                body
+            } else {
+                continue;
+            };
+
+            if let (Some("up"), Some(process_id)) = (body.get("process")
+                                                         .and_then(|x| x.get("state"))
+                                                         .and_then(|x| x.as_str()),
+                                                     body.get("process")
+                                                         .and_then(|x| x.get("pid"))
+                                                         .and_then(|x| x.as_u64()))
+            {
+                if process_id != old_process_id {
+                    return Err(anyhow!("Test supervisor restarted service {}.{} within \
+                                        {:.2} secs",
+                                       package_name,
+                                       service_group,
+                                       timeout.as_secs_f64()));
+                }
+            }
             tokio::time::sleep(Duration::from_millis(500)).await;
         }
     }

@@ -1532,6 +1532,7 @@ dependencies = [
  "log 0.4.14",
  "log4rs",
  "mio 0.7.13",
+ "nix 0.20.0",
  "notify",
  "num_cpus",
  "parking_lot",

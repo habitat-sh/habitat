@@ -88,6 +88,9 @@ hyper = "*"
 json = "*"
 reqwest = { version = "*", features = ["json"] }
 
+[target.'cfg(not(windows))'.dev-dependencies]
+nix = "*"
+
 [build-dependencies]
 prost-build = "*"
 

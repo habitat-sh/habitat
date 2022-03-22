@@ -167,6 +167,12 @@ impl FileSnapshot {
                           path })
     }
 
+    /// Reads the current contents of the file into a string
+    pub async fn current_file_content(&self) -> Result<String> {
+        Ok(String::from_utf8(fs::read(&self.path).await.context("Failed to read file contents")?).context("File contains non UTF-8 characters")?)
+    }
+
+    /// Returns the duration between modification of both files
     pub fn duration_between_modification(&self, other: &FileSnapshot) -> Result<Duration> {
         self.last_modified_at
             .duration_since(other.last_modified_at)
@@ -202,7 +208,7 @@ pub async fn setup_package_files(origin_name: &str,
     let service_group = service_group.to_string();
 
     // Ensure the directory for the spec files exists
-    let spec_dir = hab_root.spec_dir(&service_group);
+    let spec_dir = hab_root.spec_dir_path(&service_group);
     fs::create_dir_all(spec_dir).await
                                 .context("Could not create spec directory")?;
 
@@ -221,7 +227,7 @@ pub async fn setup_package_files(origin_name: &str,
 
     // Copy the expanded package directory over
     let expanded_fixture_dir = fixture_root.expanded_package_dir(&package_name);
-    let hab_pkg_path = hab_root.pkg_path(&origin_name, &package_name);
+    let hab_pkg_path = hab_root.pkg_dir_path(&origin_name, &package_name);
     copy_dir(&expanded_fixture_dir, &hab_pkg_path).await
                                                   .with_context(|| {
                                                       format!("Failed to copy fixture directory \
@@ -240,7 +246,7 @@ pub async fn setup_package_files(origin_name: &str,
     if let Ok(tdeps) = install.tdeps() {
         for dependency in tdeps.iter() {
             let fixture_dir = fixture_root.expanded_package_dir(&dependency.name);
-            let pkg_path = hab_root.pkg_path(&dependency.origin, &dependency.name);
+            let pkg_path = hab_root.pkg_dir_path(&dependency.origin, &dependency.name);
             copy_dir(&fixture_dir, &pkg_path).await.with_context(|| {
                                                         format!("Failed to copy transitive \
                                                                  dependency directory '{}' to '{}'",
@@ -309,15 +315,12 @@ pub async fn copy_dir<S, D>(source_dir: S, dest_dir: D) -> Result<()>
 /// In an effort to execute a package when running test suites as a non-root user, the current
 /// username and the user's primary groupname will be used. If a fixture contains one or both of
 /// these metafiles, default values will *not* be used.
-async fn write_default_svc_user_and_group_metafiles<S, T>(hab_root: &HabRoot,
-                                                          pkg_origin: S,
-                                                          pkg_name: T)
-                                                          -> Result<()>
-    where S: AsRef<Path>,
-          T: AsRef<Path>
-{
-    let svc_user_metafile = hab_root.svc_user_path(&pkg_origin, &pkg_name);
-    let svc_group_metafile = hab_root.svc_group_path(&pkg_origin, &pkg_name);
+async fn write_default_svc_user_and_group_metafiles(hab_root: &HabRoot,
+                                                    pkg_origin: &str,
+                                                    pkg_name: &str)
+                                                    -> Result<()> {
+    let svc_user_metafile = hab_root.svc_user_path(pkg_origin, pkg_name);
+    let svc_group_metafile = hab_root.svc_group_path(pkg_origin, pkg_name);
 
     if !svc_user_metafile.is_file() {
         write_metafile(svc_user_metafile,
