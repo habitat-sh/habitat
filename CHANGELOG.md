@@ -1,10 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.477 -->
+<!-- latest_release 1.6.478 -->
+## [1.6.478](https://github.com/habitat-sh/habitat/tree/1.6.478) (2022-03-24)
+
+#### Merged Pull Requests
+- update changelog [#8469](https://github.com/habitat-sh/habitat/pull/8469) ([atrniv](https://github.com/atrniv))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.477 -->
 ### Changes since 1.6.477 release
+
+#### Merged Pull Requests
+- update changelog [#8469](https://github.com/habitat-sh/habitat/pull/8469) ([atrniv](https://github.com/atrniv)) <!-- 1.6.478 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release 1.6.477 -->
