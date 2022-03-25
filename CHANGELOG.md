@@ -1,16 +1,35 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.465 -->
-## [1.6.465](https://github.com/habitat-sh/habitat/tree/1.6.465) (2022-02-18)
+<!-- latest_release 1.6.478 -->
+## [1.6.478](https://github.com/habitat-sh/habitat/tree/1.6.478) (2022-03-24)
 
 #### Merged Pull Requests
-- Bump cc from 1.0.72 to 1.0.73 [#8447](https://github.com/habitat-sh/habitat/pull/8447) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- update changelog [#8469](https://github.com/habitat-sh/habitat/pull/8469) ([atrniv](https://github.com/atrniv))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.420 -->
-### Changes since 1.6.420 release
+<!-- release_rollup since=1.6.477 -->
+### Changes since 1.6.477 release
 
 #### Merged Pull Requests
+- update changelog [#8469](https://github.com/habitat-sh/habitat/pull/8469) ([atrniv](https://github.com/atrniv)) <!-- 1.6.478 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.477 -->
+## [1.6.477](https://github.com/habitat-sh/habitat/tree/1.6.477) (2022-03-21)
+
+#### Merged Pull Requests
+- Bump libc from 0.2.120 to 0.2.121 [#8465](https://github.com/habitat-sh/habitat/pull/8465) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.477 -->
+- Bump libc from 0.2.119 to 0.2.120 [#8463](https://github.com/habitat-sh/habitat/pull/8463) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.476 -->
+- Add poll watcher support to spec watcher for M1 [#8449](https://github.com/habitat-sh/habitat/pull/8449) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.475 -->
+- Bump regex from 1.5.4 to 1.5.5 [#8459](https://github.com/habitat-sh/habitat/pull/8459) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.474 -->
+- remove deadlock detection from linux butterfly tests [#8461](https://github.com/habitat-sh/habitat/pull/8461) ([mwrock](https://github.com/mwrock)) <!-- 1.6.473 -->
+- comma separate multiple test features [#8460](https://github.com/habitat-sh/habitat/pull/8460) ([mwrock](https://github.com/mwrock)) <!-- 1.6.472 -->
+- Update Habitat Builder API Docs - 20220302181210 [#8458](https://github.com/habitat-sh/habitat/pull/8458) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.471 -->
+- Minor doc fix: use systemd, not SystemD [#8456](https://github.com/habitat-sh/habitat/pull/8456) ([kenmacleod](https://github.com/kenmacleod)) <!-- 1.6.470 -->
+- Fixed Broken Links [#8442](https://github.com/habitat-sh/habitat/pull/8442) ([dishanktiwari2501](https://github.com/dishanktiwari2501)) <!-- 1.6.469 -->
+- Add Sandbox flag to hab bldr channel list command [#8452](https://github.com/habitat-sh/habitat/pull/8452) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 1.6.468 -->
+- Bump semver from 1.0.5 to 1.0.6 [#8451](https://github.com/habitat-sh/habitat/pull/8451) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.467 -->
+- Bump libc from 0.2.118 to 0.2.119 [#8450](https://github.com/habitat-sh/habitat/pull/8450) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.466 -->
 - Bump cc from 1.0.72 to 1.0.73 [#8447](https://github.com/habitat-sh/habitat/pull/8447) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.465 -->
 - Added support for rust version 1.58.1 [#8437](https://github.com/habitat-sh/habitat/pull/8437) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 1.6.464 -->
 - Bump libc from 0.2.117 to 0.2.118 [#8446](https://github.com/habitat-sh/habitat/pull/8446) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.463 -->
@@ -66,9 +85,6 @@
 - revert rants e2e test change [#8355](https://github.com/habitat-sh/habitat/pull/8355) ([mwrock](https://github.com/mwrock)) <!-- 1.6.422 -->
 - Rustfmt and Nightly Rust Bump to nightly-2021-11-01 [#8354](https://github.com/habitat-sh/habitat/pull/8354) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.422 -->
 - updating changelog for 1.6.420 [#8356](https://github.com/habitat-sh/habitat/pull/8356) ([mwrock](https://github.com/mwrock)) <!-- 1.6.421 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 1.6.420 -->
 ## [1.6.420](https://github.com/habitat-sh/habitat/tree/1.6.420) (2021-11-01)
 
 #### Merged Pull Requests

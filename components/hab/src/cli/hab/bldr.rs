@@ -186,6 +186,9 @@ pub struct ChannelList {
     /// The origin for which channels will be listed. Default is from 'HAB_ORIGIN' or cli.toml
     #[structopt(name = "ORIGIN", validator = valid_origin)]
     origin:   Option<String>,
+    /// Include sandbox channels for the origin
+    #[structopt(name = "SANDBOX", short = "s", long = "sandbox")]
+    sandbox:  bool,
 }
 
 /// Atomically promotes all packages in channel
