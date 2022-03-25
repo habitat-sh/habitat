@@ -37,14 +37,17 @@ FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
 
 export RUST_BACKTRACE=1
 
+# Build the all the hab binaries so that we can run integration tests
+if [[ "$component" == "sup" ]]; then
+  cargo build
+fi
+
 echo "--- Running cargo test with scope '$scope' and args '$*'"
 
 if [[ -n ${component:-} ]]; then
   cd "components/$component"
 fi
 
-# Build the hab binaries so that we can run integration tests
-cargo build
 # Always add `--quiet` to avoid the noise of compilation in test output.
 # The invocation to this script can add `--format pretty` to the test runner
 # args (that is, after --, like --nocapture and --test-threads) if the names
