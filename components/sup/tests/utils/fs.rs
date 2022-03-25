@@ -70,7 +70,7 @@ impl FileSystemSnapshot {
 
     pub fn modifications_since(&self,
                                other: &FileSystemSnapshot,
-                               exclude: Vec<Pattern>)
+                               exclude: &[Pattern])
                                -> FileSystemModifications {
         if self.path != other.path {
             panic!("Cannot compare snapshot for different folders");

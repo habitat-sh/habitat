@@ -64,8 +64,9 @@ async fn test_for_restart_on_config_application(test_name: &str,
         FileSystemSnapshot::new(hab_root.svc_dir_path(package_name).as_path()).await?;
     let final_pid_snapshot = final_snapshot.file("PID")?;
 
-    let delta = final_snapshot.modifications_since(&initial_snapshot,
-                                                   vec![Pattern::new("logs/*").unwrap()]);
+    let delta =
+        final_snapshot.modifications_since(&initial_snapshot,
+                                           vec![Pattern::new("logs/*").unwrap()].as_slice());
 
     let duration_between_restarts =
         final_pid_snapshot.duration_between_modification(initial_pid_snapshot)
@@ -116,18 +117,19 @@ async fn test_for_no_restart_on_config_application(test_name: &str,
 
     test_sup.apply_config(package_name, service_group, applied_config)
             .await?;
-    let _pid = test_sup.ensure_service_has_not_stopped_or_restarted(pid,
-                                                                    package_name,
-                                                                    service_group,
-                                                                    Duration::from_secs(30))
-                       .await?;
+    test_sup.ensure_service_has_not_stopped_or_restarted(pid,
+                                                         package_name,
+                                                         service_group,
+                                                         Duration::from_secs(30))
+            .await?;
 
     let final_snapshot =
         FileSystemSnapshot::new(hab_root.svc_dir_path(package_name).as_path()).await?;
     let final_pid_snapshot = final_snapshot.file("PID")?;
 
-    let delta = final_snapshot.modifications_since(&initial_snapshot,
-                                                   vec![Pattern::new("logs/*").unwrap()]);
+    let delta =
+        final_snapshot.modifications_since(&initial_snapshot,
+                                           vec![Pattern::new("logs/*").unwrap()].as_slice());
 
     let duration_between_restarts =
         final_pid_snapshot.duration_between_modification(initial_pid_snapshot)

@@ -126,7 +126,7 @@ fn find_exe<B>(binary_name: B) -> Result<PathBuf>
 {
     let exe_root = env::current_exe().context("Failed to find the integration test executable")?
         .parent() // deps
-        .and_then(|p| p.parent())
+        .and_then(Path::parent)
         .ok_or_else(|| anyhow!("Failed to access the parent directories of the current integration test executable"))?
         .to_path_buf();
     let bin = exe_root.join(binary_name.as_ref());
@@ -376,10 +376,10 @@ impl TestSup {
 
     /// Attempt to get state of the service from the API. This does not reattempt to
     /// fetch the state if there is a failure.
-    async fn try_get_service_state(&self,
-                                   package_name: &str,
-                                   service_group: &str)
-                                   -> Result<Option<sup_gateway_api::Service>> {
+    pub async fn try_get_service_state(&self,
+                                       package_name: &str,
+                                       service_group: &str)
+                                       -> Result<Option<sup_gateway_api::Service>> {
         let req = self.api_client
                       .request(Method::GET,
                                format!("http://localhost:{}/services/{}/{}",
@@ -396,11 +396,12 @@ impl TestSup {
 
     /// Attempt to get state of the service from the API. This reattempts
     /// fetching the state if there is a failure until it times out
-    async fn get_service_state(&self,
-                               package_name: &str,
-                               service_group: &str,
-                               timeout: Duration)
-                               -> Result<sup_gateway_api::Service> {
+    #[allow(dead_code)]
+    pub async fn get_service_state(&self,
+                                   package_name: &str,
+                                   service_group: &str,
+                                   timeout: Duration)
+                                   -> Result<sup_gateway_api::Service> {
         let started_at = Instant::now();
         loop {
             if started_at.elapsed() > timeout {
