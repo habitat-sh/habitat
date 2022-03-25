@@ -49,6 +49,8 @@ impl Backoff {
         match &self.last_attempt {
             Some(RetryAttempt { sleep_duration, .. }) => {
                 let mut rng = thread_rng();
+                // We use the decorrelated jitter algorithm mentioned here:
+                // https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
                 let new_sleep_duration =
                     self.max_backoff.min(rng.gen_range(self.base_backoff
                                                        ..=sleep_duration.mul_f64(self.multiplier)));

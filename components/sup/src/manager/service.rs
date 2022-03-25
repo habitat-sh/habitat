@@ -177,12 +177,6 @@ enum InitializationState {
     Initialized,
 }
 
-#[derive(Debug)]
-pub struct PersistentServiceWrapper {
-    run_state: ServiceRunState,
-    inner:     Option<Service>,
-}
-
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum RestartState {
     None,
@@ -218,6 +212,12 @@ impl ServiceRunState {
                                                          restart_config.max_backoff_period,
                                                          3f64), }
     }
+}
+
+#[derive(Debug)]
+pub struct PersistentServiceWrapper {
+    run_state: ServiceRunState,
+    inner:     Option<Service>,
 }
 
 impl PersistentServiceWrapper {

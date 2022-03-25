@@ -13,7 +13,8 @@ use std::{collections::{BinaryHeap,
                  SystemTime}};
 use tokio::{fs::{self,
                  File},
-            io::AsyncWriteExt};
+            io::AsyncWriteExt,
+            time::Instant};
 
 use super::{FixtureRoot,
             HabRoot};
@@ -149,7 +150,7 @@ impl FileSystemSnapshot {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct FileSnapshot {
     path:             PathBuf,
     last_modified_at: SystemTime,
@@ -170,6 +171,24 @@ impl FileSnapshot {
     /// Reads the current contents of the file into a string
     pub async fn current_file_content(&self) -> Result<String> {
         Ok(String::from_utf8(fs::read(&self.path).await.context("Failed to read file contents")?).context("File contains non UTF-8 characters")?)
+    }
+
+    /// Wait for the file to be modified and get the new snapshot
+    pub async fn await_update(&self, timeout: Duration) -> Result<FileSnapshot> {
+        let started_at = Instant::now();
+        loop {
+            if timeout.saturating_sub(started_at.elapsed()) == Duration::ZERO {
+                return Err(anyhow!("Timed out waiting for file '{}' to be updated",
+                                   self.path.display()));
+            }
+            let modified_at = self.path.metadata().ok().and_then(|p| p.modified().ok());
+            if let Some(modified_at) = modified_at {
+                if modified_at != self.last_modified_at {
+                    return FileSnapshot::new(self.path.clone());
+                }
+            }
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
     }
 
     /// Returns the duration between modification of both files

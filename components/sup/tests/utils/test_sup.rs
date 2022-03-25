@@ -8,7 +8,6 @@ use hyper::Method;
 use rand::{self,
            distributions::{Distribution,
                            Uniform}};
-use serde_json::Value;
 use std::{collections::HashSet,
           env,
           io,
@@ -176,6 +175,23 @@ async fn await_local_tcp_port(port: u16, timeout: Duration) -> Result<()> {
             }
             Err(_) => return Err(anyhow!("Timed out waiting for tcp port {} to open up", port)),
         }
+    }
+}
+
+// TODO: Replace these types with the actual serialized types
+// once https://github.com/habitat-sh/habitat/issues/8470 is resolved.
+mod sup_gateway_api {
+    use serde::Deserialize;
+
+    #[derive(Debug, Deserialize)]
+    pub struct Process {
+        pub state: String,
+        pub pid:   Option<u64>,
+    }
+    #[derive(Debug, Deserialize)]
+    pub struct Service {
+        pub desired_state: String,
+        pub process:       Process,
     }
 }
 
@@ -358,11 +374,118 @@ impl TestSup {
                .context("Failed to apply configuration")?)
     }
 
-    pub async fn ensure_service_starts(&self,
-                                       package_name: &str,
-                                       service_group: &str,
-                                       timeout: Duration)
-                                       -> Result<u64> {
+    /// Attempt to get state of the service from the API. This does not reattempt to
+    /// fetch the state if there is a failure.
+    async fn try_get_service_state(&self,
+                                   package_name: &str,
+                                   service_group: &str)
+                                   -> Result<Option<sup_gateway_api::Service>> {
+        let req = self.api_client
+                      .request(Method::GET,
+                               format!("http://localhost:{}/services/{}/{}",
+                                       self.http_port, package_name, service_group).as_str())
+                      .build()
+                      .context("Failed to construct API request to supervisor HTTP endpoint")?;
+        let res = self.api_client.execute(req).await.ok();
+        if let Some(res) = res {
+            Ok(res.json::<sup_gateway_api::Service>().await.ok())
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Attempt to get state of the service from the API. This reattempts
+    /// fetching the state if there is a failure until it times out
+    async fn get_service_state(&self,
+                               package_name: &str,
+                               service_group: &str,
+                               timeout: Duration)
+                               -> Result<sup_gateway_api::Service> {
+        let started_at = Instant::now();
+        loop {
+            if started_at.elapsed() > timeout {
+                return Err(anyhow!("Timed out trying to get state of the service \
+                                    {}.{}",
+                                   package_name,
+                                   service_group));
+            }
+            if let Some(service_state) = self.try_get_service_state(package_name, service_group)
+                                             .await
+                                             .with_context(|| {
+                                                 format!("Failed to get state of the service {}.{}",
+                                                         package_name, service_group)
+                                             })?
+            {
+                return Ok(service_state);
+            }
+        }
+    }
+
+    /// Send command to start a service. This does not wait for the service to be initialized.
+    /// If you wish to ensure the service has started use `ensure_service_started` after calling
+    /// this.
+    pub async fn service_start(&self, origin: &str, package_name: &str) -> Result<()> {
+        let hab_exe = find_exe("hab").context("Failed to find 'hab' executable")?;
+        let mut cmd = Command::new(&hab_exe);
+        cmd.env("FS_ROOT", self.hab_root.display().to_string())
+           .arg("svc")
+           .arg("start")
+           .arg(format!("{}/{}", origin, package_name))
+           .arg("--remote-sup")
+           .arg(format!("localhost:{}", self.control_port))
+           .stdin(Stdio::null());
+        if !nocapture_set() {
+            cmd.stdout(Stdio::null());
+            cmd.stderr(Stdio::null());
+        }
+        cmd.kill_on_drop(true);
+        cmd.spawn()
+           .context("Failed to run hab cli")?
+           .wait()
+           .await
+           .with_context(|| format!("Failed to start service {}/{}", origin, package_name))?;
+        Ok(())
+    }
+
+    /// Send command to stop a service. This does not wait for the service to be stopped.
+    /// If you wish to ensure the service has stopped use `ensure_service_stopped` after calling
+    /// this.
+    pub async fn service_stop(&self, origin: &str, package_name: &str) -> Result<()> {
+        let hab_exe = find_exe("hab").context("Failed to find 'hab' executable")?;
+        let mut cmd = Command::new(&hab_exe);
+        cmd.env("FS_ROOT", self.hab_root.display().to_string())
+           .arg("svc")
+           .arg("stop")
+           .arg(format!("{}/{}", origin, package_name))
+           .arg("--remote-sup")
+           .arg(format!("localhost:{}", self.control_port))
+           .stdin(Stdio::null());
+        if !nocapture_set() {
+            cmd.stdout(Stdio::null());
+            cmd.stderr(Stdio::null());
+        }
+        cmd.kill_on_drop(true);
+        cmd.spawn()
+           .context("Failed to run hab cli")?
+           .wait()
+           .await
+           .with_context(|| format!("Failed to stop service {}/{}", origin, package_name))?;
+        Ok(())
+    }
+
+    /// Ensure that a service that should be up has started.
+    /// The following properties are verified:
+    /// ```
+    /// service.is_some() == true; // must eventually hold
+    /// service.desired_state == "Up"; // must eventually hold
+    /// service.process.state == "up"; // must eventually hold
+    /// service.process.pid == Some(pid); // must eventually hold
+    /// ```
+    pub async fn ensure_service_started(&self,
+                                        package_name: &str,
+                                        service_group: &str,
+                                        timeout: Duration)
+                                        -> Result<u64> {
         let started_at = Instant::now();
         loop {
             if started_at.elapsed() > timeout {
@@ -372,90 +495,128 @@ impl TestSup {
                                    service_group,
                                    timeout.as_secs_f64()));
             }
-
-            let req = self.api_client
-                          .request(Method::GET,
-                                   format!("http://localhost:{}/services/{}/{}",
-                                           self.http_port, package_name, service_group).as_str())
-                          .build()
-                          .context("Failed to construct API request to supervisor HTTP endpoint")?;
-            let res = self.api_client.execute(req).await.ok();
-
-            let body = if let Some(res) = res {
-                res.json::<Value>().await.ok()
-            } else {
-                continue;
-            };
-            let body = if let Some(body) = body {
-                body
-            } else {
-                continue;
-            };
-            if let (Some("up"), Some(process_id)) = (body.get("process")
-                                                         .and_then(|x| x.get("state"))
-                                                         .and_then(|x| x.as_str()),
-                                                     body.get("process")
-                                                         .and_then(|x| x.get("pid"))
-                                                         .and_then(|x| x.as_u64()))
+            if let Some(service) = self.try_get_service_state(package_name, service_group)
+                                       .await
+                                       .with_context(|| {
+                                           format!("Failed to get state of service {}.{}",
+                                                   package_name, service_group)
+                                       })?
             {
-                return Ok(process_id);
+                if let ("up", "Up", Some(process_id)) = (service.process.state.as_str(),
+                                                         service.desired_state.as_str(),
+                                                         service.process.pid)
+                {
+                    return Ok(process_id);
+                }
             }
             tokio::time::sleep(Duration::from_millis(500)).await;
         }
     }
 
-    pub async fn ensure_service_does_not_start(&self,
-                                               package_name: &str,
-                                               service_group: &str,
-                                               timeout: Duration)
-                                               -> Result<()> {
+    /// Ensure the a service that should be down has stopped.
+    /// The following properties are verified:
+    /// ```
+    /// service.is_some() == true; // must always hold
+    /// service.desired_state == "Down"; // must eventually hold
+    /// service.process.state == "down"; // must eventually hold
+    /// service.process.pid == None; // must eventually hold
+    /// ```
+    pub async fn ensure_service_stopped(&self,
+                                        package_name: &str,
+                                        service_group: &str,
+                                        timeout: Duration)
+                                        -> Result<()> {
         let started_at = Instant::now();
         loop {
             if started_at.elapsed() > timeout {
-                return Ok(());
-            }
-
-            let req = self.api_client
-                          .request(Method::GET,
-                                   format!("http://localhost:{}/services/{}/{}",
-                                           self.http_port, package_name, service_group).as_str())
-                          .build()
-                          .context("Failed to construct API request to supervisor HTTP endpoint")?;
-            let res = self.api_client.execute(req).await.ok();
-
-            let body = if let Some(res) = res {
-                res.json::<Value>().await.ok()
-            } else {
-                continue;
-            };
-            let body = if let Some(body) = body {
-                body
-            } else {
-                continue;
-            };
-            if let (Some("up"), Some(_)) = (body.get("process")
-                                                .and_then(|x| x.get("state"))
-                                                .and_then(|x| x.as_str()),
-                                            body.get("process")
-                                                .and_then(|x| x.get("pid"))
-                                                .and_then(|x| x.as_u64()))
-            {
-                return Err(anyhow!("Test supervisor started service {}.{} within \
-                                    {:.2} secs",
+                return Err(anyhow!("Test supervisor failed to stop service {}.{} \
+                                    within {:.2} secs",
                                    package_name,
                                    service_group,
                                    timeout.as_secs_f64()));
             }
+            if let Some(service) = self.try_get_service_state(package_name, service_group)
+                                       .await
+                                       .with_context(|| {
+                                           format!("Failed to get state of service {}.{}",
+                                                   package_name, service_group)
+                                       })?
+            {
+                if let ("down", "Down", None) = (service.process.state.as_str(),
+                                                 service.desired_state.as_str(),
+                                                 service.process.pid)
+                {
+                    return Ok(());
+                }
+            } else {
+                return Err(anyhow!("Test supervisor is not running the service {}.{}",
+                                   package_name,
+                                   service_group));
+            }
             tokio::time::sleep(Duration::from_millis(500)).await;
         }
     }
 
-    pub async fn ensure_service_restarts(&self,
-                                         old_process_id: u64,
-                                         package_name: &str,
-                                         service_group: &str,
-                                         timeout: Duration)
-                                         -> Result<u64> {
+    /// Ensure a service that should be up has failed to start.
+    /// The following properties are verified:
+    /// ```
+    /// service.is_some() == true; // must eventually hold
+    /// service.desired_state == "Up"; // must always hold
+    /// service.process.state == "down"; // must always hold
+    /// service.process.pid == None; // must always hold
+    /// ```
+    pub async fn ensure_service_has_failed_to_start(&self,
+                                                    package_name: &str,
+                                                    service_group: &str,
+                                                    timeout: Duration)
+                                                    -> Result<()> {
+        let started_at = Instant::now();
+        loop {
+            if let Some(service) = self.try_get_service_state(package_name, service_group)
+                                       .await
+                                       .with_context(|| {
+                                           format!("Failed to get state of service {}.{}",
+                                                   package_name, service_group)
+                                       })?
+            {
+                if service.desired_state != "Up" {
+                    return Err(anyhow!("The service {}.{} must have a desired state of \
+                                        'Up'",
+                                       package_name,
+                                       service_group));
+                }
+                if service.process.state == "up" || service.process.pid.is_some() {
+                    return Err(anyhow!("Test supervisor started service {}.{} within \
+                                        {:.2} secs",
+                                       package_name,
+                                       service_group,
+                                       timeout.as_secs_f64()));
+                }
+                if started_at.elapsed() > timeout {
+                    return Ok(());
+                }
+            } else if started_at.elapsed() > timeout {
+                return Err(anyhow!("Test supervisor is not running the service {}.{}",
+                                   package_name,
+                                   service_group));
+            }
+            tokio::time::sleep(Duration::from_millis(500)).await;
+        }
+    }
+
+    /// Ensure a service that should be up has undergone a restart.
+    /// The following properties are verified:
+    /// ```
+    /// service.is_some() == true; // must always hold
+    /// service.desired_state == "Up"; // must always hold
+    /// service.process.state == "up" && service.process.pid != old_process_id; // must eventually hold
+    /// ```
+    pub async fn ensure_service_restarted(&self,
+                                          old_process_id: u64,
+                                          package_name: &str,
+                                          service_group: &str,
+                                          timeout: Duration)
+                                          -> Result<u64> {
         let started_at = Instant::now();
         loop {
             if started_at.elapsed() > timeout {
@@ -465,84 +626,82 @@ impl TestSup {
                                    service_group,
                                    timeout.as_secs_f64()));
             }
-            let req = self.api_client
-                          .request(Method::GET,
-                                   format!("http://localhost:{}/services/{}/{}",
-                                           self.http_port, package_name, service_group).as_str())
-                          .build()
-                          .context("Failed to construct API request to supervisor HTTP endpoint")?;
-            let res = self.api_client.execute(req).await.ok();
-
-            let body = if let Some(res) = res {
-                res.json::<Value>().await.ok()
-            } else {
-                continue;
-            };
-            let body = if let Some(body) = body {
-                body
-            } else {
-                continue;
-            };
-
-            if let (Some("up"), Some(process_id)) = (body.get("process")
-                                                         .and_then(|x| x.get("state"))
-                                                         .and_then(|x| x.as_str()),
-                                                     body.get("process")
-                                                         .and_then(|x| x.get("pid"))
-                                                         .and_then(|x| x.as_u64()))
+            if let Some(service) = self.try_get_service_state(package_name, service_group)
+                                       .await
+                                       .with_context(|| {
+                                           format!("Failed to get state of service {}.{}",
+                                                   package_name, service_group)
+                                       })?
             {
-                if process_id != old_process_id {
-                    return Ok(process_id);
+                if service.desired_state != "Up" {
+                    return Err(anyhow!("The service {}.{} must have a desired state of \
+                                        'Up'",
+                                       package_name,
+                                       service_group));
                 }
+                if let ("up", Some(process_id)) =
+                    (service.process.state.as_str(), service.process.pid)
+                {
+                    if process_id != old_process_id {
+                        return Ok(process_id);
+                    }
+                }
+            } else {
+                return Err(anyhow!("Test supervisor is not running the service {}.{}",
+                                   package_name,
+                                   service_group));
             }
             tokio::time::sleep(Duration::from_millis(500)).await;
         }
     }
 
-    pub async fn ensure_service_does_not_restart(&self,
-                                                 old_process_id: u64,
-                                                 package_name: &str,
-                                                 service_group: &str,
-                                                 timeout: Duration)
-                                                 -> Result<()> {
+    /// Ensure a service has not been stopped or restarted and continues to run.
+    /// The following properties are verified:
+    /// ```
+    /// service.is_some() == true; // must always hold
+    /// service.desired_state == "Up"; // must always hold
+    /// service.process.state == "up" && service.process.pid == old_process_id; // must always hold
+    /// ```
+    pub async fn ensure_service_has_not_stopped_or_restarted(&self,
+                                                             old_process_id: u64,
+                                                             package_name: &str,
+                                                             service_group: &str,
+                                                             timeout: Duration)
+                                                             -> Result<()> {
         let started_at = Instant::now();
         loop {
             if started_at.elapsed() > timeout {
                 return Ok(());
             }
-            let req = self.api_client
-                          .request(Method::GET,
-                                   format!("http://localhost:{}/services/{}/{}",
-                                           self.http_port, package_name, service_group).as_str())
-                          .build()
-                          .context("Failed to construct API request to supervisor HTTP endpoint")?;
-            let res = self.api_client.execute(req).await.ok();
-
-            let body = if let Some(res) = res {
-                res.json::<Value>().await.ok()
-            } else {
-                continue;
-            };
-            let body = if let Some(body) = body {
-                body
-            } else {
-                continue;
-            };
-
-            if let (Some("up"), Some(process_id)) = (body.get("process")
-                                                         .and_then(|x| x.get("state"))
-                                                         .and_then(|x| x.as_str()),
-                                                     body.get("process")
-                                                         .and_then(|x| x.get("pid"))
-                                                         .and_then(|x| x.as_u64()))
+            if let Some(service) = self.try_get_service_state(package_name, service_group)
+                                       .await
+                                       .context("Failed to get state of service")?
             {
-                if process_id != old_process_id {
-                    return Err(anyhow!("Test supervisor restarted service {}.{} within \
-                                        {:.2} secs",
+                if service.desired_state != "Up" {
+                    return Err(anyhow!("The service {}.{} must have a desired state of \
+                                        'Up'",
                                        package_name,
-                                       service_group,
-                                       timeout.as_secs_f64()));
+                                       service_group));
                 }
+                if let ("up", Some(process_id)) =
+                    (service.process.state.as_str(), service.process.pid)
+                {
+                    if process_id != old_process_id {
+                        return Err(anyhow!("Test supervisor restarted service {}.{} within \
+                                            {:.2} secs",
+                                           package_name,
+                                           service_group,
+                                           timeout.as_secs_f64()));
+                    }
+                } else {
+                    return Err(anyhow!("Test supervisor is not running the service {}.{}",
+                                       package_name,
+                                       service_group));
+                }
+            } else {
+                return Err(anyhow!("Test supervisor is not running the service {}.{}",
+                                   package_name,
+                                   service_group));
             }
             tokio::time::sleep(Duration::from_millis(500)).await;
         }

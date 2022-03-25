@@ -365,7 +365,7 @@ impl Serialize for Supervisor {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut strukt = serializer.serialize_struct("supervisor", 5)?;
+        let mut strukt = serializer.serialize_struct("supervisor", 3)?;
         strukt.serialize_field("pid", &self.pid)?;
         strukt.serialize_field("state", &self.state)?;
         strukt.serialize_field("state_entered", &self.since_epoch().as_secs())?;

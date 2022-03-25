@@ -46,7 +46,7 @@ async fn test_for_restart_on_config_application(test_name: &str,
                                &FIXTURE_ROOT,
                                &hab_root).await?;
 
-    let pid = test_sup.ensure_service_starts(package_name, service_group, Duration::from_secs(10))
+    let pid = test_sup.ensure_service_started(package_name, service_group, Duration::from_secs(10))
                       .await?;
     let initial_snapshot =
         FileSystemSnapshot::new(hab_root.svc_dir_path(package_name).as_path()).await?;
@@ -54,9 +54,11 @@ async fn test_for_restart_on_config_application(test_name: &str,
 
     test_sup.apply_config(package_name, service_group, applied_config)
             .await?;
-    let _pid =
-        test_sup.ensure_service_restarts(pid, package_name, service_group, Duration::from_secs(30))
-                .await?;
+    let _pid = test_sup.ensure_service_restarted(pid,
+                                                 package_name,
+                                                 service_group,
+                                                 Duration::from_secs(30))
+                       .await?;
 
     let final_snapshot =
         FileSystemSnapshot::new(hab_root.svc_dir_path(package_name).as_path()).await?;
@@ -106,7 +108,7 @@ async fn test_for_no_restart_on_config_application(test_name: &str,
                                &FIXTURE_ROOT,
                                &hab_root).await?;
 
-    let pid = test_sup.ensure_service_starts(package_name, service_group, Duration::from_secs(10))
+    let pid = test_sup.ensure_service_started(package_name, service_group, Duration::from_secs(10))
                       .await?;
     let initial_snapshot =
         FileSystemSnapshot::new(hab_root.svc_dir_path(package_name).as_path()).await?;
@@ -114,10 +116,10 @@ async fn test_for_no_restart_on_config_application(test_name: &str,
 
     test_sup.apply_config(package_name, service_group, applied_config)
             .await?;
-    let _pid = test_sup.ensure_service_does_not_restart(pid,
-                                                        package_name,
-                                                        service_group,
-                                                        Duration::from_secs(30))
+    let _pid = test_sup.ensure_service_has_not_stopped_or_restarted(pid,
+                                                                    package_name,
+                                                                    service_group,
+                                                                    Duration::from_secs(30))
                        .await?;
 
     let final_snapshot =
@@ -220,6 +222,202 @@ async fn no_restart_for_templated_init_hook() -> Result<()> {
                                               applied_config,
                                               updated_files).await?;
 
+    Ok(())
+}
+
+// TODO: Improve this test case to check for restart cooldown once
+// we expose restart_attempts via the supervisor http gateway
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn restart_backoff_for_failed_init_hook() -> Result<()> {
+    let test_name = "restart_backoff_for_failed_init_hook";
+    let package_name = "config-and-hooks-no-reconfigure";
+    let applied_config = r#"
+    init_exit_code = 1
+    "#;
+    let origin_name = "sup-integration-test";
+    let service_group = "default";
+
+    let service_min_backoff_period = Duration::from_secs(5);
+    let service_max_backoff_period = Duration::from_secs(20);
+    let service_restart_cooldown_period = Duration::from_secs(40);
+    let hab_root = utils::HabRoot::new(test_name);
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root,
+                                              service_min_backoff_period,
+                                              service_max_backoff_period,
+                                              service_restart_cooldown_period).await?;
+
+    test_sup.start(Duration::from_secs(10)).await?;
+
+    utils::setup_package_files(origin_name,
+                               package_name,
+                               service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root).await?;
+
+    let _pid =
+        test_sup.ensure_service_started(package_name, service_group, Duration::from_secs(10))
+                .await?;
+
+    test_sup.service_stop(origin_name, package_name).await?;
+    test_sup.ensure_service_stopped(package_name, service_group, Duration::from_secs(10))
+            .await?;
+
+    test_sup.apply_config(package_name, service_group, applied_config)
+            .await?;
+    // We start the service, but don't wait to ensure it is started, because it never will.
+    test_sup.service_start(origin_name, package_name).await?;
+
+    let initial_snapshot =
+        FileSystemSnapshot::new(hab_root.svc_dir_path(package_name).as_path()).await?;
+    let mut initial_init_log_snapshot = initial_snapshot.file("logs/init.stdout.log")?.clone();
+    let mut attempts = 0;
+
+    // Observe 10 restarts
+    while attempts < 10 {
+        let final_init_log_snapshot =
+            initial_init_log_snapshot.await_update(Duration::from_secs(60))
+                                     .await?;
+        // Ignore the first restart due to it potentially being the manual restart we did above
+        if attempts == 0 {
+            initial_init_log_snapshot = final_init_log_snapshot;
+            attempts += 1;
+            continue;
+        }
+        let duration_between_restarts =
+            final_init_log_snapshot.duration_between_modification(&initial_init_log_snapshot)
+                                   .unwrap();
+        // Ensure the time between restarts is greater than our min backoff period
+        assert!(duration_between_restarts >= service_min_backoff_period);
+        // Ensure the time between restarts is less than our max backoff period with a buffer of 10
+        // secs
+        assert!(duration_between_restarts <= service_max_backoff_period + Duration::from_secs(10));
+        assert_ne!(final_init_log_snapshot, initial_init_log_snapshot);
+        initial_init_log_snapshot = final_init_log_snapshot;
+        attempts += 1;
+    }
+
+    // Reload the service
+    test_sup.service_stop(origin_name, package_name).await?;
+    test_sup.ensure_service_stopped(package_name, service_group, Duration::from_secs(10))
+            .await?;
+    // Make the application succeed again
+    let applied_config = r#"
+    init_exit_code = 0
+    "#;
+    test_sup.apply_config(package_name, service_group, applied_config)
+            .await?;
+    test_sup.service_start(origin_name, package_name).await?;
+
+    // Ensure the service restarts after config applicaiton
+    let pid = test_sup.ensure_service_started(package_name, service_group, Duration::from_secs(30))
+                      .await?;
+
+    // Ensure the service never restarts again
+    test_sup.ensure_service_has_not_stopped_or_restarted(pid,
+                                                         package_name,
+                                                         service_group,
+                                                         Duration::from_secs(60))
+            .await?;
+
+    test_sup.stop().await?;
+    Ok(())
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "ignore_integration_tests", ignore)]
+async fn restart_backoff_for_failed_run_hook() -> Result<()> {
+    let test_name = "restart_backoff_for_failed_run_hook";
+    let package_name = "config-and-hooks-no-reconfigure";
+    let applied_config = r#"
+    run_exit_code = 1
+    run_sleep = 5
+    "#;
+    let origin_name = "sup-integration-test";
+    let service_group = "default";
+
+    let service_min_backoff_period = Duration::from_secs(5);
+    let service_max_backoff_period = Duration::from_secs(20);
+    let service_restart_cooldown_period = Duration::from_secs(40);
+    let hab_root = utils::HabRoot::new(test_name);
+    let mut test_sup =
+        utils::TestSup::new_with_random_ports(&hab_root,
+                                              service_min_backoff_period,
+                                              service_max_backoff_period,
+                                              service_restart_cooldown_period).await?;
+
+    test_sup.start(Duration::from_secs(10)).await?;
+
+    utils::setup_package_files(origin_name,
+                               package_name,
+                               service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root).await?;
+
+    let _pid =
+        test_sup.ensure_service_started(package_name, service_group, Duration::from_secs(10))
+                .await?;
+    let initial_snapshot =
+        FileSystemSnapshot::new(hab_root.svc_dir_path(package_name).as_path()).await?;
+    let mut initial_pid_snapshot = initial_snapshot.file("PID")?.clone();
+    let mut attempts = 0;
+
+    // This config application will cause an immediate restart as it modifies a run hook
+    test_sup.apply_config(package_name, service_group, applied_config)
+            .await?;
+
+    // Observe 10 restarts
+    while attempts < 10 {
+        // We count on the 5 secs run sleep to ensure that we don't miss the first PID.
+        let final_pid_snapshot = initial_pid_snapshot.await_update(Duration::from_secs(60))
+                                                     .await?;
+        // Ignore the first restart due to config application
+        if attempts == 0 {
+            initial_pid_snapshot = final_pid_snapshot;
+            attempts += 1;
+            continue;
+        }
+        let duration_between_restarts =
+            final_pid_snapshot.duration_between_modification(&initial_pid_snapshot)
+                              .unwrap();
+
+        // Ensure the time between restarts is greater than our min backoff period
+        assert!(duration_between_restarts >= service_min_backoff_period);
+        // Ensure the time between restart is less than the max backoff period with a buffer of 15
+        // secs We give 5 secs more to account for the run sleep of 5 secs
+        assert!(duration_between_restarts <= service_max_backoff_period + Duration::from_secs(15));
+        assert_ne!(final_pid_snapshot, initial_pid_snapshot);
+        initial_pid_snapshot = final_pid_snapshot;
+        attempts += 1;
+    }
+
+    // Make the application succeed again
+    let applied_config = r#"
+    run_exit_code = 0
+    run_sleep = 120
+    "#;
+    test_sup.apply_config(package_name, service_group, applied_config)
+            .await?;
+    let pid = initial_pid_snapshot.current_file_content()
+                                  .await?
+                                  .parse::<u64>()?;
+
+    // Ensure the service restarts after config applicaiton
+    let pid = test_sup.ensure_service_restarted(pid,
+                                                package_name,
+                                                service_group,
+                                                Duration::from_secs(30))
+                      .await?;
+
+    // Ensure the service never restarts again
+    test_sup.ensure_service_has_not_stopped_or_restarted(pid,
+                                                         package_name,
+                                                         service_group,
+                                                         Duration::from_secs(60))
+            .await?;
+
+    test_sup.stop().await?;
     Ok(())
 }
 
@@ -385,7 +583,7 @@ async fn install_hook_success() -> Result<()> {
 
     test_sup.start(Duration::from_secs(10)).await?;
 
-    let pid = test_sup.ensure_service_starts(package_name, service_group, Duration::from_secs(10))
+    let pid = test_sup.ensure_service_started(package_name, service_group, Duration::from_secs(10))
                       .await?;
 
     let initial_snapshot =
@@ -402,7 +600,7 @@ async fn install_hook_success() -> Result<()> {
     test_sup.start(Duration::from_secs(10)).await?;
 
     let restarted_pid =
-        test_sup.ensure_service_starts(package_name, service_group, Duration::from_secs(10))
+        test_sup.ensure_service_started(package_name, service_group, Duration::from_secs(10))
                 .await?;
 
     let final_snapshot =
@@ -445,7 +643,9 @@ async fn install_hook_fails() -> Result<()> {
 
     test_sup.start(Duration::from_secs(10)).await?;
 
-    test_sup.ensure_service_does_not_start(package_name, service_group, Duration::from_secs(10))
+    test_sup.ensure_service_has_failed_to_start(package_name,
+                                                service_group,
+                                                Duration::from_secs(10))
             .await?;
 
     let initial_snapshot =
@@ -461,7 +661,9 @@ async fn install_hook_fails() -> Result<()> {
     test_sup.stop().await?;
     test_sup.start(Duration::from_secs(10)).await?;
 
-    test_sup.ensure_service_does_not_start(package_name, service_group, Duration::from_secs(10))
+    test_sup.ensure_service_has_failed_to_start(package_name,
+                                                service_group,
+                                                Duration::from_secs(10))
             .await?;
 
     let final_snapshot =
@@ -507,7 +709,7 @@ async fn package_with_successful_install_hook_in_dependency_is_loaded() -> Resul
 
     test_sup.start(Duration::from_secs(10)).await?;
 
-    let pid = test_sup.ensure_service_starts(package_name, service_group, Duration::from_secs(10))
+    let pid = test_sup.ensure_service_started(package_name, service_group, Duration::from_secs(10))
                       .await?;
 
     let initial_dependency_snapshot =
@@ -527,7 +729,7 @@ async fn package_with_successful_install_hook_in_dependency_is_loaded() -> Resul
     test_sup.start(Duration::from_secs(10)).await?;
 
     let restarted_pid =
-        test_sup.ensure_service_starts(package_name, service_group, Duration::from_secs(10))
+        test_sup.ensure_service_started(package_name, service_group, Duration::from_secs(10))
                 .await?;
 
     let final_dependency_snapshot = FileSystemSnapshot::new(hab_root.pkg_dir_path(origin_name,
@@ -574,7 +776,9 @@ async fn package_with_failing_install_hook_in_dependency_is_not_loaded() -> Resu
 
     test_sup.start(Duration::from_secs(10)).await?;
 
-    test_sup.ensure_service_does_not_start(package_name, service_group, Duration::from_secs(10))
+    test_sup.ensure_service_has_failed_to_start(package_name,
+                                                service_group,
+                                                Duration::from_secs(10))
             .await?;
 
     let initial_dependency_snapshot =
@@ -593,7 +797,9 @@ async fn package_with_failing_install_hook_in_dependency_is_not_loaded() -> Resu
     test_sup.stop().await?;
     test_sup.start(Duration::from_secs(10)).await?;
 
-    test_sup.ensure_service_does_not_start(package_name, service_group, Duration::from_secs(10))
+    test_sup.ensure_service_has_failed_to_start(package_name,
+                                                service_group,
+                                                Duration::from_secs(10))
             .await?;
 
     let final_dependency_snapshot = FileSystemSnapshot::new(hab_root.pkg_dir_path(origin_name,
