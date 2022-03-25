@@ -38,7 +38,7 @@ FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
 export RUST_BACKTRACE=1
 
 # Build the all the hab binaries so that we can run integration tests
-if [[ "$component" == "sup" ]]; then
+if [[ "$scope" == "sup" ]]; then
   cargo build
 fi
 
