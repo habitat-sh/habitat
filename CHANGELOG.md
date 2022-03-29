@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.480 -->
-## [1.6.480](https://github.com/habitat-sh/habitat/tree/1.6.480) (2022-03-28)
+<!-- latest_release 1.6.481 -->
+## [1.6.481](https://github.com/habitat-sh/habitat/tree/1.6.481) (2022-03-29)
 
 #### Merged Pull Requests
-- Bump paste from 1.0.6 to 1.0.7 [#8472](https://github.com/habitat-sh/habitat/pull/8472) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump prost-derive from 0.9.0 to 0.10.0 [#8474](https://github.com/habitat-sh/habitat/pull/8474) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.477 -->
 ### Changes since 1.6.477 release
 
 #### Merged Pull Requests
+- Bump prost-derive from 0.9.0 to 0.10.0 [#8474](https://github.com/habitat-sh/habitat/pull/8474) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.481 -->
 - Bump paste from 1.0.6 to 1.0.7 [#8472](https://github.com/habitat-sh/habitat/pull/8472) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.480 -->
 - Bump semver from 1.0.6 to 1.0.7 [#8473](https://github.com/habitat-sh/habitat/pull/8473) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.480 -->
 - Bump async-trait from 0.1.52 to 0.1.53 [#8471](https://github.com/habitat-sh/habitat/pull/8471) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.479 -->
