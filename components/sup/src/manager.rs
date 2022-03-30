@@ -26,6 +26,7 @@ use self::{action::{ShutdownInput,
                      PersistentServiceWrapper,
                      Service,
                      ServiceProxy,
+                     ServiceRunState,
                      ServiceSpec,
                      Topology},
            service_updater::ServiceUpdater,
@@ -259,11 +260,15 @@ impl FsCfg {
 
 /// Configuration parameters that control the behaviour of restarts for services
 /// that fail to startup successfully
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct ServiceRestartConfig {
-    pub min_backoff_period:      Duration,
-    pub max_backoff_period:      Duration,
-    pub restart_cooldown_period: Duration,
+    pub min_backoff_period: Duration,
+    pub max_backoff_period: Duration,
+    /// The amount of time that needs to elapse after a service has restarted to reset the backoff
+    /// state. We need this because health checks are not mandatory, so there is no good way to
+    /// know if a service started successfully other than waiting for some time and checking
+    /// that it does not go down.
+    pub cooldown_period:    Duration,
 }
 
 impl ServiceRestartConfig {
@@ -273,15 +278,15 @@ impl ServiceRestartConfig {
                -> ServiceRestartConfig {
         ServiceRestartConfig { min_backoff_period,
                                max_backoff_period,
-                               restart_cooldown_period }
+                               cooldown_period: restart_cooldown_period }
     }
 }
 
 impl Default for ServiceRestartConfig {
     fn default() -> Self {
-        Self { min_backoff_period:      Default::default(),
-               max_backoff_period:      Default::default(),
-               restart_cooldown_period: Duration::from_secs(300), }
+        Self { min_backoff_period: Default::default(),
+               max_backoff_period: Default::default(),
+               cooldown_period:    Duration::from_secs(300), }
     }
 }
 
@@ -506,8 +511,8 @@ pub(crate) mod sync {
     impl<'a> ManagerServicesReadGuard<'a> {
         fn new(lock: &'a Lock<ManagerServicesInner>) -> Self { Self(lock.read()) }
 
-        pub fn services(&self) -> impl Iterator<Item = &PersistentServiceWrapper> {
-            self.0.values()
+        pub fn iter(&self) -> impl Iterator<Item = (&PackageIdent, &PersistentServiceWrapper)> {
+            self.0.iter()
         }
 
         pub fn get(&self, key: &PackageIdent) -> Option<&PersistentServiceWrapper> {
@@ -526,13 +531,15 @@ pub(crate) mod sync {
     impl<'a> ManagerServicesWriteGuard<'a> {
         fn new(lock: &'a Lock<ManagerServicesInner>) -> Self { Self(lock.write()) }
 
-        pub fn iter(&self) -> impl Iterator<Item = (&PackageIdent, &PersistentServiceWrapper)> {
-            self.0.iter()
+        pub fn iter_mut(&mut self)
+                        -> impl Iterator<Item = (&PackageIdent, &mut PersistentServiceWrapper)>
+        {
+            self.0.iter_mut()
         }
 
         pub fn insert(&mut self, key: PackageIdent, value: PersistentServiceWrapper) {
             if let Some(state) = self.0.get_mut(&key) {
-                state.from_existing(value);
+                state.take_service(value);
                 state.start();
             } else {
                 self.0.insert(key, value);
@@ -586,8 +593,8 @@ pub(crate) mod sync {
         /// * `ManagerServices::inner` (read)
         fn suitability_for_msr(&self, service_group: &str) -> u64 {
             self.lock_msr()
-                .services()
-                .find_map(|svc_state| {
+                .iter()
+                .find_map(|(_, svc_state)| {
                     svc_state.service()
                              .filter(|svc| svc.service_group.as_ref() == service_group)
                 })
@@ -1355,10 +1362,13 @@ impl Manager {
 
         let mut state_services = self.state.services.lock_msw();
         let mut idents_to_restart_and_latest_desired_on_restart = Vec::new();
-        for (ident, service_state) in state_services.iter() {
+        for (ident, service_state) in state_services.iter_mut() {
+            // We need to use this has_update flag due to the borrow checker rules
+            let mut has_update = false;
             if let Some(service) = service_state.service() {
                 if let Some(new_ident) = service_updater.has_update(&service.service_group) {
                     outputln!("Restarting {} with package {}", ident, new_ident);
+                    has_update = true;
                     event::service_update_started(service, &new_ident);
                     // The supervisor always runs the latest package on disk. When we have an update
                     // ensure that the lastest package on disk is the package we updated to.
@@ -1371,6 +1381,9 @@ impl Manager {
                 };
             } else {
                 trace!("Restart in progress for {}", ident);
+            }
+            if has_update {
+                service_state.mark_for_restart_due_to_update(SystemTime::now());
             }
         }
 
@@ -1429,9 +1442,9 @@ impl Manager {
     fn check_for_changed_services_msr(&mut self) -> bool {
         let mut service_states = HashMap::new();
         let mut active_services = Vec::new();
-        for service in self.state.services.lock_msr().running_services() {
-            service_states.insert(service.spec_ident(), service.last_state_change());
-            active_services.push(service.spec_ident());
+        for (ident, service) in self.state.services.lock_msr().iter() {
+            service_states.insert(ident.clone(), service.last_state_change());
+            active_services.push(ident.clone());
         }
 
         for loaded in self.spec_dir
@@ -1501,39 +1514,70 @@ impl Manager {
 
         let service_map = self.state.services.lock_msr();
 
-        #[allow(clippy::needless_collect)]
-        let existing_idents: Vec<PackageIdent> = service_map.running_services()
-                                                            .map(Service::spec_ident)
-                                                            .collect();
-
         // Services that are not active but are being watched for changes
         // These would include stopped persistent services or other
         // persistent services that failed to load
         // We cannot use `filter_map` here because futures cannot be awaited in a closure.
         let mut watched_services = Vec::new();
         for spec in self.spec_dir.specs() {
-            if !existing_idents.contains(&spec.ident) {
-                let ident = spec.ident.clone();
-                let result = Service::new(self.sys.clone(),
-                                          spec,
-                                          self.fs_cfg.clone(),
-                                          self.organization.as_deref(),
-                                          self.state.gateway_state.clone(),
-                                          self.pid_source,
-                                          self.feature_flags).await;
-                match result {
-                    Ok(result) => watched_services.push(result),
-                    Err(ref e) => warn!("Failed to create service '{}' from spec: {:?}", ident, e),
+            let ident = spec.ident.clone();
+            if let Some((_, svc_state)) =
+                service_map.iter().find(|(ident, _)| **ident == spec.ident)
+            {
+                // If the service wrapper does not contain a service we create one
+                if svc_state.service().is_none() {
+                    match Service::new(self.sys.clone(),
+                                       spec,
+                                       self.fs_cfg.clone(),
+                                       self.organization.as_deref(),
+                                       self.state.gateway_state.clone(),
+                                       self.pid_source,
+                                       self.feature_flags).await
+                    {
+                        Ok(service) => {
+                            watched_services.push((service, svc_state.service_run_state().clone()))
+                        }
+                        Err(err) => {
+                            warn!("Failed to create service '{}' from spec: {:?}", ident, err)
+                        }
+                    };
                 }
+            } else {
+                // If there is no wrapper for the service, we create one
+                match Service::new(self.sys.clone(),
+                                   spec,
+                                   self.fs_cfg.clone(),
+                                   self.organization.as_deref(),
+                                   self.state.gateway_state.clone(),
+                                   self.pid_source,
+                                   self.feature_flags).await
+                {
+                    Ok(service) => {
+                        watched_services.push((service,
+                                               ServiceRunState::new(&self.state
+                                                                         .cfg
+                                                                         .service_restart_config)))
+                    }
+                    Err(err) => warn!("Failed to create service '{}' from spec: {:?}", ident, err),
+                };
             }
         }
         let watched_service_proxies: Vec<ServiceProxy<'_>> =
             watched_services.iter()
-                            .map(|s| ServiceProxy::new(s, config_rendering))
+                            .map(|(service, service_run_state)| {
+                                ServiceProxy::new(service, service_run_state, config_rendering)
+                            })
                             .collect();
         let mut services_to_render: Vec<ServiceProxy<'_>> =
-            service_map.running_services()
-                       .map(|s| ServiceProxy::new(s, config_rendering))
+            service_map.iter()
+                       .filter_map(|(_, svc_state)| {
+                           if let Some(service) = svc_state.service() {
+                               return Some(ServiceProxy::new(service,
+                                                             svc_state.service_run_state(),
+                                                             config_rendering));
+                           }
+                           None
+                       })
                        .collect();
 
         services_to_render.extend(watched_service_proxies);

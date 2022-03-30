@@ -4,6 +4,7 @@ use crate::hcore::url::BLDR_URL_ENVVAR;
 use anyhow::{anyhow,
              Context,
              Result};
+use habitat_core::os::process::Pid;
 use hyper::Method;
 use rand::{self,
            distributions::{Distribution,
@@ -180,18 +181,30 @@ async fn await_local_tcp_port(port: u16, timeout: Duration) -> Result<()> {
 
 // TODO: Replace these types with the actual serialized types
 // once https://github.com/habitat-sh/habitat/issues/8470 is resolved.
-mod sup_gateway_api {
+pub mod sup_gateway_api {
+    use habitat_core::os::process::Pid;
+    use habitat_sup::manager::service::ProcessTerminationReason;
     use serde::Deserialize;
 
-    #[derive(Debug, Deserialize)]
+    #[derive(Debug, Deserialize, PartialEq, Eq)]
     pub struct Process {
         pub state: String,
-        pub pid:   Option<u64>,
+        pub pid:   Option<Pid>,
     }
-    #[derive(Debug, Deserialize)]
+
+    #[derive(Debug, Deserialize, PartialEq, Eq)]
+    pub struct LastProcessState {
+        pub pid:                Option<Pid>,
+        pub termination_reason: ProcessTerminationReason,
+        pub terminated_at:      u64,
+    }
+    #[derive(Debug, Deserialize, PartialEq, Eq)]
     pub struct Service {
-        pub desired_state: String,
-        pub process:       Process,
+        pub desired_state:      String,
+        pub process:            Process,
+        pub last_process_state: Option<LastProcessState>,
+        pub next_restart_at:    Option<u64>,
+        pub restart_count:      u64,
     }
 }
 
@@ -396,7 +409,6 @@ impl TestSup {
 
     /// Attempt to get state of the service from the API. This reattempts
     /// fetching the state if there is a failure until it times out
-    #[allow(dead_code)]
     pub async fn get_service_state(&self,
                                    package_name: &str,
                                    service_group: &str,
@@ -486,7 +498,7 @@ impl TestSup {
                                         package_name: &str,
                                         service_group: &str,
                                         timeout: Duration)
-                                        -> Result<u64> {
+                                        -> Result<sup_gateway_api::Service> {
         let started_at = Instant::now();
         loop {
             if started_at.elapsed() > timeout {
@@ -503,11 +515,11 @@ impl TestSup {
                                                    package_name, service_group)
                                        })?
             {
-                if let ("up", "Up", Some(process_id)) = (service.process.state.as_str(),
-                                                         service.desired_state.as_str(),
-                                                         service.process.pid)
+                if let ("up", "Up", Some(_)) = (service.process.state.as_str(),
+                                                service.desired_state.as_str(),
+                                                service.process.pid)
                 {
-                    return Ok(process_id);
+                    return Ok(service);
                 }
             }
             tokio::time::sleep(Duration::from_millis(500)).await;
@@ -526,7 +538,7 @@ impl TestSup {
                                         package_name: &str,
                                         service_group: &str,
                                         timeout: Duration)
-                                        -> Result<()> {
+                                        -> Result<sup_gateway_api::Service> {
         let started_at = Instant::now();
         loop {
             if started_at.elapsed() > timeout {
@@ -547,7 +559,7 @@ impl TestSup {
                                                  service.desired_state.as_str(),
                                                  service.process.pid)
                 {
-                    return Ok(());
+                    return Ok(service);
                 }
             } else {
                 return Err(anyhow!("Test supervisor is not running the service {}.{}",
@@ -570,7 +582,7 @@ impl TestSup {
                                                     package_name: &str,
                                                     service_group: &str,
                                                     timeout: Duration)
-                                                    -> Result<()> {
+                                                    -> Result<sup_gateway_api::Service> {
         let started_at = Instant::now();
         loop {
             if let Some(service) = self.try_get_service_state(package_name, service_group)
@@ -594,7 +606,7 @@ impl TestSup {
                                        timeout.as_secs_f64()));
                 }
                 if started_at.elapsed() > timeout {
-                    return Ok(());
+                    return Ok(service);
                 }
             } else if started_at.elapsed() > timeout {
                 return Err(anyhow!("Test supervisor is not running the service {}.{}",
@@ -613,11 +625,11 @@ impl TestSup {
     /// service.process.state == "up" && service.process.pid != old_process_id; // must eventually hold
     /// ```
     pub async fn ensure_service_restarted(&self,
-                                          old_process_id: u64,
+                                          old_process_id: Pid,
                                           package_name: &str,
                                           service_group: &str,
                                           timeout: Duration)
-                                          -> Result<u64> {
+                                          -> Result<sup_gateway_api::Service> {
         let started_at = Instant::now();
         loop {
             if started_at.elapsed() > timeout {
@@ -644,7 +656,7 @@ impl TestSup {
                     (service.process.state.as_str(), service.process.pid)
                 {
                     if process_id != old_process_id {
-                        return Ok(process_id);
+                        return Ok(service);
                     }
                 }
             } else {
@@ -663,17 +675,15 @@ impl TestSup {
     /// service.desired_state == "Up"; // must always hold
     /// service.process.state == "up" && service.process.pid == old_process_id; // must always hold
     /// ```
-    pub async fn ensure_service_has_not_stopped_or_restarted(&self,
-                                                             old_process_id: u64,
-                                                             package_name: &str,
-                                                             service_group: &str,
-                                                             timeout: Duration)
-                                                             -> Result<()> {
+    pub async fn ensure_service_has_not_stopped_or_restarted(
+        &self,
+        old_process_id: Pid,
+        package_name: &str,
+        service_group: &str,
+        timeout: Duration)
+        -> Result<sup_gateway_api::Service> {
         let started_at = Instant::now();
         loop {
-            if started_at.elapsed() > timeout {
-                return Ok(());
-            }
             if let Some(service) = self.try_get_service_state(package_name, service_group)
                                        .await
                                        .context("Failed to get state of service")?
@@ -698,6 +708,9 @@ impl TestSup {
                     return Err(anyhow!("Test supervisor is not running the service {}.{}",
                                        package_name,
                                        service_group));
+                }
+                if started_at.elapsed() > timeout {
+                    return Ok(service);
                 }
             } else {
                 return Err(anyhow!("Test supervisor is not running the service {}.{}",

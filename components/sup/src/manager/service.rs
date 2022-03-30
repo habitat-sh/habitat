@@ -22,7 +22,8 @@ use self::{context::RenderContext,
            hook_runner::HookRunner,
            hooks::{HookCompileTable,
                    HookTable},
-           supervisor::Supervisor};
+           supervisor::{PidUpdate,
+                        Supervisor}};
 pub use self::{health::{HealthCheckBundle,
                         HealthCheckHookStatus,
                         HealthCheckResult},
@@ -65,7 +66,8 @@ use habitat_core::{crypto::Blake2bHash,
                         svc_hooks_path,
                         SvcDir,
                         FS_ROOT_PATH},
-                   os::process::ShutdownTimeout,
+                   os::process::{Pid,
+                                 ShutdownTimeout},
                    package::{metadata::Bind,
                              PackageIdent,
                              PackageInstall},
@@ -81,7 +83,8 @@ pub use habitat_sup_protocol::types::{ProcessState,
 use parking_lot::RwLock;
 use prometheus::{HistogramTimer,
                  HistogramVec};
-use serde::{ser::SerializeStruct,
+use serde::{ser::{Error as _,
+                  SerializeStruct},
             Serialize,
             Serializer};
 use std::{self,
@@ -154,10 +157,16 @@ impl TemplateUpdate {
     /// 1. the `run` or `post-run` hooks have changed. A restart is limited to these hooks
     /// because they are the only hooks that can impact the execution of the service.
     /// 2. `/config` changed and there is no `reconfigure` hook
-    fn needs_restart(&self) -> bool {
-        self.hooks.run_changed()
-        || self.hooks.post_run_changed()
-        || (!self.have_reconfigure_hook && self.config_changed)
+    fn needs_restart(&self) -> Option<ProcessTerminationReason> {
+        if self.hooks.run_changed() {
+            Some(ProcessTerminationReason::RunHookUpdated)
+        } else if self.hooks.post_run_changed() {
+            Some(ProcessTerminationReason::PostRunHookUpdated)
+        } else if !self.have_reconfigure_hook && self.config_changed {
+            Some(ProcessTerminationReason::AppConfigUpdated)
+        } else {
+            None
+        }
     }
 
     /// Returns `true` if the service needs to be reconfigured.
@@ -172,7 +181,7 @@ impl TemplateUpdate {
 enum InitializationState {
     Uninitialized,
     Initializing,
-    InitializerFailed,
+    InitializerFailed(SystemTime),
     InitializerFinished,
     Initialized,
 }
@@ -191,26 +200,101 @@ impl Default for RestartState {
     fn default() -> Self { RestartState::None }
 }
 
-#[derive(Debug, Default)]
-struct ServiceRunState {
-    restart_attempts: u64,
-    /// The amount of time that needs to elapse after a service has restarted to reset the backoff
-    /// state. We need this because health checks are not mandatory, so there is no good way to
-    /// know if a service started successfully other than waiting for some time and checking
-    /// that it does not go down.
-    restart_cooldown: Duration,
-    restart_state:    RestartState,
-    restart_backoff:  Backoff,
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+pub enum ProcessTerminationReason {
+    #[serde(rename = "package_updated")]
+    PackageUpdated,
+    #[serde(rename = "init_hook_failed")]
+    InitHookFailed,
+    #[serde(rename = "run_hook_failed")]
+    RunHookFailed,
+    #[serde(rename = "app_config_updated")]
+    AppConfigUpdated,
+    #[serde(rename = "run_hook_updated")]
+    RunHookUpdated,
+    #[serde(rename = "post_run_hook_updated")]
+    PostRunHookUpdated,
+}
+
+#[derive(Debug, Clone)]
+pub struct LastProcessState {
+    pub pid:                Option<Pid>,
+    pub termination_reason: ProcessTerminationReason,
+    // TODO: Create a new type for SystemTime so we don't have to rely on
+    // a custom serialize implementation for the whole type
+    pub terminated_at:      SystemTime,
+}
+
+impl Serialize for LastProcessState {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = serializer.serialize_struct("last_process_state", 3)?;
+        strukt.serialize_field("pid", &self.pid)?;
+        strukt.serialize_field("termination_reason", &self.termination_reason)?;
+        strukt.serialize_field("terminated_at",
+                               &self.terminated_at
+                                    .duration_since(SystemTime::UNIX_EPOCH)
+                                    .map_err(|err| {
+                                        S::Error::custom(format!("System time should ALWAYS be \
+                                                                  after the UNIX Epoch: {:?}",
+                                                                 err))
+                                    })?
+                                    .as_secs())?;
+        strukt.end()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ServiceRunState {
+    pub restart_count:      u64,
+    pub restart_config:     ServiceRestartConfig,
+    pub last_process_state: Option<LastProcessState>,
+    restart_state:          RestartState,
+    restart_backoff:        Backoff,
+    last_updated_at:        SystemTime,
 }
 
 impl ServiceRunState {
-    fn new(restart_config: &ServiceRestartConfig) -> ServiceRunState {
-        ServiceRunState { restart_attempts: 0,
-                          restart_cooldown: restart_config.restart_cooldown_period,
-                          restart_state:    RestartState::None,
-                          restart_backoff:  Backoff::new(restart_config.min_backoff_period,
-                                                         restart_config.max_backoff_period,
-                                                         3f64), }
+    pub fn new(restart_config: &ServiceRestartConfig) -> ServiceRunState {
+        ServiceRunState { restart_count:      0,
+                          restart_config:     restart_config.clone(),
+                          last_process_state: None,
+                          restart_state:      RestartState::None,
+                          restart_backoff:    Backoff::new(restart_config.min_backoff_period,
+                                                           restart_config.max_backoff_period,
+                                                           3f64),
+                          last_updated_at:    SystemTime::now(), }
+    }
+
+    pub fn mark_for_restart(&mut self,
+                            old_pid: Option<Pid>,
+                            reason: ProcessTerminationReason,
+                            timestamp: SystemTime) {
+        self.restart_state = RestartState::NeedsRestart;
+        self.last_process_state = Some(LastProcessState { pid:                old_pid,
+                                                          terminated_at:      timestamp,
+                                                          termination_reason: reason, });
+        self.last_updated_at = timestamp;
+    }
+
+    pub fn mark_for_immediate_restart(&mut self,
+                                      old_pid: Option<Pid>,
+                                      reason: ProcessTerminationReason,
+                                      timestamp: SystemTime) {
+        self.restart_state = RestartState::NeedsImmediateRestart;
+        self.last_process_state = Some(LastProcessState { pid:                old_pid,
+                                                          terminated_at:      timestamp,
+                                                          termination_reason: reason, });
+        // Immediate restarts wipe out the restart out
+        self.restart_count = 0;
+        self.restart_backoff.reset();
+        self.last_updated_at = timestamp;
+    }
+
+    pub fn reset_backoff(&mut self) {
+        self.restart_backoff.reset();
+        self.last_updated_at = SystemTime::now();
     }
 }
 
@@ -228,13 +312,41 @@ impl PersistentServiceWrapper {
                                    inner:     Some(service), }
     }
 
-    pub fn from_existing(&mut self, mut other: PersistentServiceWrapper) {
+    /// Takes ownership of a service from another wrapper
+    pub fn take_service(&mut self, mut other: PersistentServiceWrapper) {
         self.inner = other.inner.take();
+    }
+
+    /// Get the run state of a service
+    pub fn service_run_state(&self) -> &ServiceRunState { &self.run_state }
+
+    pub fn service_run_state_mut(&mut self) -> &ServiceRunState { &mut self.run_state }
+
+    /// Mark this service for an immediate restart
+    pub fn mark_for_restart_due_to_update(&mut self, timestamp: SystemTime) {
+        self.run_state.mark_for_immediate_restart(self.run_state
+                                                      .last_process_state
+                                                      .as_ref()
+                                                      .and_then(|s| s.pid),
+                                                  ProcessTerminationReason::PackageUpdated,
+                                                  timestamp);
     }
 
     pub fn service(&self) -> Option<&Service> { self.inner.as_ref() }
 
     pub fn service_mut(&mut self) -> Option<&mut Service> { self.inner.as_mut() }
+
+    /// Returns the last time the run state or the service's process state
+    /// has changed. This is used to determine when to write the changed state to
+    /// the gateway.
+    pub fn last_state_change(&self) -> SystemTime {
+        if let Some(service) = self.inner.as_ref() {
+            service.last_state_change()
+                   .max(self.run_state.last_updated_at)
+        } else {
+            self.run_state.last_updated_at
+        }
+    }
 
     pub fn start(&mut self) {
         if let Some(service) = self.inner.as_ref() {
@@ -271,7 +383,7 @@ impl PersistentServiceWrapper {
                                                    .restart_backoff
                                                    .record_attempt_start()
                                                    .unwrap_or_default();
-                        self.run_state.restart_attempts += 1;
+                        self.run_state.restart_count += 1;
                         if restart_duration == Duration::from_secs(0) {
                             outputln!(preamble service.service_group, "Stopping service, will restart immediately");
                         } else {
@@ -905,11 +1017,11 @@ impl Service {
     }
 
     /// Updates the process state of the service's supervisor
-    fn check_process(&mut self, launcher: &LauncherCli) -> bool {
+    fn update_process_state(&mut self, launcher: &LauncherCli) -> PidUpdate {
         self.supervisor
             .lock()
             .expect("Couldn't lock supervisor")
-            .check_process(launcher)
+            .update_process_state(launcher)
     }
 
     /// Updates the service configuration with data from a census group if the census group has
@@ -996,13 +1108,13 @@ impl Service {
                         *initialization_state.write() = if exit_value {
                             InitializationState::InitializerFinished
                         } else {
-                            InitializationState::InitializerFailed
+                            InitializationState::InitializerFailed(SystemTime::now())
                         };
                     }
                     Err(e) => {
                         outputln!(preamble service_group, "Service initialization failed: {}", e);
                         *initialization_state_for_err.write() =
-                            InitializationState::InitializerFailed;
+                            InitializationState::InitializerFailed(SystemTime::now());
                     }
                 }
             };
@@ -1170,7 +1282,8 @@ impl Service {
                      run_state: &mut ServiceRunState,
                      launcher: &LauncherCli,
                      template_update: &TemplateUpdate) {
-        let up = self.check_process(launcher);
+        let pid_update = self.update_process_state(launcher);
+
         // It is ok that we do not hold this lock while we are performing the match. If we
         // transistion states while we are matching, we will catch the new state on the next tick.
         let initialization_state = self.initialization_state.read().clone();
@@ -1179,14 +1292,16 @@ impl Service {
                 // If the service is not initialized and the process is still running, the
                 // Supervisor was restarted and we just have to reattach to the
                 // process.
-                if up {
+                if pid_update.is_running() {
                     self.reattach();
                 } else {
                     self.initialize();
                 }
             }
-            InitializationState::InitializerFailed => {
-                run_state.restart_state = RestartState::NeedsRestart;
+            InitializationState::InitializerFailed(failed_at) => {
+                run_state.mark_for_restart(None,
+                                           ProcessTerminationReason::InitHookFailed,
+                                           failed_at);
             }
             InitializationState::Initializing => {
                 // Wait until the initializer finishes running
@@ -1197,32 +1312,34 @@ impl Service {
                 *self.initialization_state.write() = InitializationState::Initialized;
             }
             InitializationState::Initialized => {
+                let restart_cooldown_period_expired =
+                    run_state.restart_backoff
+                             .duration_elapsed_since_last_attempt_ended()
+                             .map(|duration| -> bool {
+                                 duration > run_state.restart_config.cooldown_period
+                             })
+                             .unwrap_or(false);
                 // If the service is initialized and the process is not running, the process
                 // unexpectedly died and needs to be restarted.
-                if !up {
-                    run_state.restart_state = RestartState::NeedsRestart;
-                } else if template_update.needs_restart() {
-                    // TODO (DM): This flag is a hack. We have the `TaskExecutor` here. We could
-                    // just schedule the `stop` future, but the `Manager` wraps
-                    // the `stop` future with additional functionality. Can we
-                    // refactor to make this flag unnecessary?
-                    run_state.restart_attempts = 0;
-                    run_state.restart_backoff.reset();
-                    run_state.restart_state = RestartState::NeedsImmediateRestart;
+                if !pid_update.is_running() {
+                    run_state.mark_for_restart(pid_update.old_pid,
+                                               ProcessTerminationReason::RunHookFailed,
+                                               pid_update.timestamp.expect("Process update time \
+                                                                            should be present"));
+                } else if let Some(termination_reason) = template_update.needs_restart() {
+                    run_state.mark_for_immediate_restart(pid_update.new_pid,
+                                                         termination_reason,
+                                                         SystemTime::now());
                 } else if template_update.needs_reconfigure() {
                     // Only reconfigure if we did NOT restart the service
                     self.reconfigure();
                 } else if run_state.restart_state == RestartState::Restarted
-                          && up
-                          && run_state.restart_backoff
-                                      .duration_elapsed_since_last_attempt_ended()
-                                      .map(|duration| duration > run_state.restart_cooldown)
-                                      .unwrap_or(false)
+                          && pid_update.is_running()
+                          && restart_cooldown_period_expired
                 {
                     // If the service was not restarted for the duration of the cooldown period
                     // since the last attempt ended we wipe all state associated with restarting.
-                    run_state.restart_attempts = 0;
-                    run_state.restart_backoff.reset();
+                    run_state.reset_backoff();
                 }
             }
         };
@@ -1423,14 +1540,19 @@ pub enum ConfigRendering {
 /// actual Service struct, but this will give us something we can refactor against without
 /// worrying about breaking the data returned to users.
 pub struct ServiceProxy<'a> {
-    service:          &'a Service,
-    config_rendering: ConfigRendering,
+    service:           &'a Service,
+    service_run_state: &'a ServiceRunState,
+    config_rendering:  ConfigRendering,
 }
 
 impl<'a> ServiceProxy<'a> {
-    pub fn new(s: &'a Service, c: ConfigRendering) -> Self {
-        ServiceProxy { service:          s,
-                       config_rendering: c, }
+    pub fn new(service: &'a Service,
+               service_run_state: &'a ServiceRunState,
+               config_rendering: ConfigRendering)
+               -> Self {
+        ServiceProxy { service,
+                       service_run_state,
+                       config_rendering }
     }
 }
 
@@ -1439,9 +1561,9 @@ impl<'a> Serialize for ServiceProxy<'a> {
         where S: Serializer
     {
         let num_fields: usize = if self.config_rendering == ConfigRendering::Full {
-            27
+            31
         } else {
-            26
+            30
         };
 
         let s = &self.service;
@@ -1472,6 +1594,19 @@ impl<'a> Serialize for ServiceProxy<'a> {
                                 .lock()
                                 .expect("Couldn't lock supervisor")
                                 .deref())?;
+        strukt.serialize_field("last_process_state",
+                               &self.service_run_state.last_process_state)?;
+        strukt.serialize_field("next_restart_at",
+                               &self.service_run_state
+                                    .restart_backoff
+                                    .duration_until_next_attempt_start()
+                                    .and_then(|duration| SystemTime::now().checked_add(duration))
+                                    .and_then(|timestamp| {
+                                        timestamp.duration_since(SystemTime::UNIX_EPOCH).ok()
+                                    })
+                                    .map(|duration| duration.as_secs()))?;
+        strukt.serialize_field("restart_count", &self.service_run_state.restart_count)?;
+        strukt.serialize_field("restart_config", &self.service_run_state.restart_config)?;
         strukt.serialize_field("service_group", &s.service_group)?;
         strukt.serialize_field("spec_file", &s.spec_file)?;
         // Deprecated field; use spec_identifier instead
@@ -1499,7 +1634,7 @@ mod tests {
                     Ipv4Addr},
               str::FromStr};
 
-    async fn initialize_test_service() -> Service {
+    async fn initialize_test_service() -> PersistentServiceWrapper {
         let listen_ctl_addr =
             ListenCtlAddr::from_str("127.0.0.1:1234").expect("Can't parse IP into SocketAddr");
         let sys = Sys::new(false,
@@ -1530,7 +1665,7 @@ mod tests {
         let afs = Arc::new(fscfg);
 
         let gs = Arc::default();
-        Service::with_package(asys,
+        PersistentServiceWrapper::new(Service::with_package(asys,
                               &install,
                               spec,
                               afs,
@@ -1539,15 +1674,17 @@ mod tests {
                               ServicePidSource::Launcher,
                               FeatureFlag::empty()).await
                                                    .expect("I wanted a service to load, but it \
-                                                            didn't")
+                                                            didn't"), &ServiceRestartConfig::default())
     }
 
     #[tokio::test]
     async fn service_proxy_conforms_to_the_schema() {
-        let service = initialize_test_service().await;
+        let service_wrapper = initialize_test_service().await;
 
         // With config
-        let proxy_with_config = ServiceProxy::new(&service, ConfigRendering::Full);
+        let proxy_with_config = ServiceProxy::new(service_wrapper.service().unwrap(),
+                                                  service_wrapper.service_run_state(),
+                                                  ConfigRendering::Full);
         let proxies_with_config = vec![proxy_with_config];
         let json_with_config =
             serde_json::to_string(&proxies_with_config).expect("Expected to convert \
@@ -1556,7 +1693,9 @@ mod tests {
         assert_valid(&json_with_config, "http_gateway_services_schema.json");
 
         // Without config
-        let proxy_without_config = ServiceProxy::new(&service, ConfigRendering::Redacted);
+        let proxy_without_config = ServiceProxy::new(service_wrapper.service().unwrap(),
+                                                     service_wrapper.service_run_state(),
+                                                     ConfigRendering::Redacted);
         let proxies_without_config = vec![proxy_without_config];
         let json_without_config =
             serde_json::to_string(&proxies_without_config).expect("Expected to convert \
