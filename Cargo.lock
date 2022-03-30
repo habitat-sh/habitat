@@ -494,6 +494,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "cmake"
+version = "0.1.48"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8ad8cef104ac57b68b89df3208164d228503abbdce70f6880ffa3d970e7443a"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "colosseum"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -517,7 +526,7 @@ name = "configopt-derive"
 version = "0.1.0"
 source = "git+https://github.com/habitat-sh/configopt.git#37990579c24c35b18e0e6dadd4f01ab021df7616"
 dependencies = [
- "heck",
+ "heck 0.3.3",
  "proc-macro2",
  "proc_macro_roids",
  "quote",
@@ -1223,7 +1232,7 @@ dependencies = [
  "bytes",
  "prost",
  "prost-build",
- "prost-derive 0.10.0",
+ "prost-derive",
  "serde",
  "serde_derive",
 ]
@@ -1265,7 +1274,7 @@ dependencies = [
  "log 0.4.14",
  "prost",
  "prost-build",
- "prost-derive 0.10.0",
+ "prost-derive",
  "rand 0.8.5",
  "serde",
  "serde_derive",
@@ -1317,7 +1326,7 @@ dependencies = [
  "prometheus",
  "prost",
  "prost-build",
- "prost-derive 0.10.0",
+ "prost-derive",
  "rand 0.8.5",
  "serde",
  "serde_derive",
@@ -1535,7 +1544,7 @@ dependencies = [
  "prometheus",
  "prost",
  "prost-build",
- "prost-derive 0.10.0",
+ "prost-derive",
  "prost-types",
  "rand 0.8.5",
  "rants",
@@ -1615,6 +1624,12 @@ checksum = "6d621efb26863f0e9924c6ac577e8275e5e6b77455db64ffa6c65c904e9e132c"
 dependencies = [
  "unicode-segmentation",
 ]
+
+[[package]]
+name = "heck"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2540771e65fc8cb83cd6e8a237f70c319bd5c29f78ed1084ba5d50eeac86f7f9"
 
 [[package]]
 name = "hermit-abi"
@@ -2691,22 +2706,24 @@ dependencies = [
 
 [[package]]
 name = "prost"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "444879275cb4fd84958b1a1d5420d15e6fcf7c235fe47f053c9c2a80aceb6001"
+checksum = "1bd5316aa8f5c82add416dfbc25116b84b748a21153f512917e8143640a71bbd"
 dependencies = [
  "bytes",
- "prost-derive 0.9.0",
+ "prost-derive",
 ]
 
 [[package]]
 name = "prost-build"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62941722fb675d463659e49c4f3fe1fe792ff24fe5bbaa9c08cd3b98a1c354f5"
+checksum = "328f9f29b82409216decb172d81e936415d21245befa79cd34c3f29d87d1c50b"
 dependencies = [
  "bytes",
- "heck",
+ "cfg-if 1.0.0",
+ "cmake",
+ "heck 0.4.0",
  "itertools",
  "lazy_static 1.4.0",
  "log 0.4.14",
@@ -2717,19 +2734,6 @@ dependencies = [
  "regex 1.5.5",
  "tempfile",
  "which",
-]
-
-[[package]]
-name = "prost-derive"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9cc1a3263e07e0bf68e96268f37665207b49560d98739662cdfaae215c720fe"
-dependencies = [
- "anyhow",
- "itertools",
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -2747,9 +2751,9 @@ dependencies = [
 
 [[package]]
 name = "prost-types"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "534b7a0e836e3c482d2693070f982e39e7611da9695d4d1f5a4b186b51faef0a"
+checksum = "926681c118ae6e512a3ccefd4abbe5521a14f4cc1e207356d4d00c0b7f2006fd"
 dependencies = [
  "bytes",
  "prost",
@@ -3613,7 +3617,7 @@ name = "structopt-derive"
 version = "0.4.8"
 source = "git+https://github.com/habitat-sh/structopt.git#63c56f42ae330b15f44a86c160b0cf6868b90a6f"
 dependencies = [
- "heck",
+ "heck 0.3.3",
  "proc-macro-error",
  "proc-macro2",
  "quote",

@@ -12,7 +12,8 @@ $pkg_build_deps = @(
     "core/visual-cpp-build-tools-2015",
     "core/rust/$(Get-Content "$PLAN_CONTEXT/../../../rust-toolchain")",
     "core/cacerts",
-    "core/raml2html"
+    "core/raml2html",
+    "core/protobuf"
 )
 
 function pkg_version {
@@ -43,6 +44,8 @@ function Invoke-Prepare {
     # Used to set the active package target for the binaries at build time
     $env:PLAN_PACKAGE_TARGET = "$pkg_target"
     Write-BuildLine "Setting env:PLAN_PACKAGE_TARGET=$env:PLAN_PACKAGE_TARGET"
+
+    $env:PROTOC_NO_VENDOR=1
 }
 
 function Invoke-Build {

@@ -33,6 +33,10 @@ export LD_LIBRARY_PATH
 LD_LIBRARY_PATH="$(hab pkg path core/gcc)/lib:$(hab pkg path core/zeromq)/lib"
 eval "$(hab pkg env core/rust/"$toolchain"):$PATH"
 
+export PROTOC_NO_VENDOR=1
+export PROTOC
+PROTOC=$(hab pkg path core/protobuf)/bin/protoc
+
 # Lints we need to work through and decide as a team whether to allow or fix
 mapfile -t unexamined_lints < "$1"
 
