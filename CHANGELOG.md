@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.481 -->
-## [1.6.481](https://github.com/habitat-sh/habitat/tree/1.6.481) (2022-03-29)
+<!-- latest_release 1.6.482 -->
+## [1.6.482](https://github.com/habitat-sh/habitat/tree/1.6.482) (2022-03-30)
 
 #### Merged Pull Requests
-- Bump prost-derive from 0.9.0 to 0.10.0 [#8474](https://github.com/habitat-sh/habitat/pull/8474) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- update prost crates [#8478](https://github.com/habitat-sh/habitat/pull/8478) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.477 -->
 ### Changes since 1.6.477 release
 
 #### Merged Pull Requests
+- update prost crates [#8478](https://github.com/habitat-sh/habitat/pull/8478) ([mwrock](https://github.com/mwrock)) <!-- 1.6.482 -->
 - Bump prost-derive from 0.9.0 to 0.10.0 [#8474](https://github.com/habitat-sh/habitat/pull/8474) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.481 -->
 - Bump paste from 1.0.6 to 1.0.7 [#8472](https://github.com/habitat-sh/habitat/pull/8472) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.480 -->
 - Bump semver from 1.0.6 to 1.0.7 [#8473](https://github.com/habitat-sh/habitat/pull/8473) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.480 -->
