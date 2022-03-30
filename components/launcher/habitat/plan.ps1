@@ -9,7 +9,8 @@ $pkg_build_deps = @(
     "core/visual-cpp-build-tools-2015",
     "core/rust/$(Get-Content "$PLAN_CONTEXT/../../../rust-toolchain")",
     "core/cacerts",
-    "core/git"
+    "core/git",
+    "core/protobuf"
 )
 
 function Invoke-Prepare {
@@ -24,6 +25,7 @@ function Invoke-Prepare {
     Write-BuildLine "Setting env:PLAN_VERSION=$env:PLAN_VERSION"
     $env:LIB                        += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
     $env:INCLUDE                    += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
+    $env:PROTOC_NO_VENDOR           = 1
 }
 
 function pkg_version {
