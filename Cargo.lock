@@ -12,7 +12,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-sink",
- "log 0.4.14",
+ "log 0.4.16",
  "pin-project-lite",
  "tokio",
  "tokio-util",
@@ -44,7 +44,7 @@ dependencies = [
  "itoa 0.4.7",
  "language-tags",
  "local-channel",
- "log 0.4.14",
+ "log 0.4.16",
  "mime",
  "once_cell",
  "percent-encoding",
@@ -77,7 +77,7 @@ checksum = "2ad299af73649e1fc893e333ccf86f377751eb95ff875d095131574c6f43452c"
 dependencies = [
  "bytestring",
  "http",
- "log 0.4.14",
+ "log 0.4.16",
  "regex 1.5.5",
  "serde",
 ]
@@ -103,7 +103,7 @@ dependencies = [
  "actix-service",
  "actix-utils",
  "futures-core",
- "log 0.4.14",
+ "log 0.4.16",
  "mio 0.7.13",
  "num_cpus",
  "slab",
@@ -134,7 +134,7 @@ dependencies = [
  "derive_more",
  "futures-core",
  "http",
- "log 0.4.14",
+ "log 0.4.16",
  "tokio-rustls",
  "tokio-util",
  "webpki-roots",
@@ -176,7 +176,7 @@ dependencies = [
  "futures-util",
  "itoa 0.4.7",
  "language-tags",
- "log 0.4.14",
+ "log 0.4.16",
  "mime",
  "once_cell",
  "paste 1.0.7",
@@ -765,7 +765,7 @@ checksum = "0b2cf0344971ee6c64c31be0d530793fba457d322dfec2810c453d0ef228f9c3"
 dependencies = [
  "atty",
  "humantime",
- "log 0.4.14",
+ "log 0.4.16",
  "regex 1.5.5",
  "termcolor",
 ]
@@ -776,7 +776,7 @@ version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a5019be18538406a43b5419a5501461f0c8b49ea7dfda0cfc32f4e51fc44be1"
 dependencies = [
- "log 0.4.14",
+ "log 0.4.16",
  "url",
 ]
 
@@ -1072,7 +1072,7 @@ checksum = "c1d9279ca822891c1a4dae06d185612cf8fc6acfe5dff37781b41297811b12ee"
 dependencies = [
  "cc",
  "libc",
- "log 0.4.14",
+ "log 0.4.16",
  "rustversion",
  "winapi 0.3.9",
 ]
@@ -1164,7 +1164,7 @@ dependencies = [
  "handlebars 0.29.1",
  "lazy_static 1.4.0",
  "libc",
- "log 0.4.14",
+ "log 0.4.16",
  "pbr",
  "rants",
  "reqwest",
@@ -1202,7 +1202,7 @@ dependencies = [
  "habitat_core",
  "ipc-channel",
  "libc",
- "log 0.4.14",
+ "log 0.4.16",
  "nix 0.23.1",
  "prost",
  "semver 1.0.7",
@@ -1220,7 +1220,7 @@ dependencies = [
  "habitat_core",
  "ipc-channel",
  "libc",
- "log 0.4.14",
+ "log 0.4.16",
  "prost",
  "serde",
 ]
@@ -1244,7 +1244,7 @@ dependencies = [
  "clap",
  "env_logger",
  "habitat_butterfly",
- "log 0.4.14",
+ "log 0.4.16",
 ]
 
 [[package]]
@@ -1255,7 +1255,7 @@ dependencies = [
  "habitat-sup-protocol",
  "habitat_common",
  "habitat_core",
- "log 0.4.14",
+ "log 0.4.16",
  "prost",
  "rustls",
  "termcolor",
@@ -1271,7 +1271,7 @@ dependencies = [
  "bytes",
  "habitat_core",
  "lazy_static 1.4.0",
- "log 0.4.14",
+ "log 0.4.16",
  "prost",
  "prost-build",
  "prost-derive",
@@ -1295,7 +1295,7 @@ dependencies = [
  "futures",
  "habitat_core",
  "habitat_http_client",
- "log 0.4.14",
+ "log 0.4.16",
  "pbr",
  "percent-encoding",
  "rand 0.8.5",
@@ -1320,7 +1320,7 @@ dependencies = [
  "habitat_common",
  "habitat_core",
  "lazy_static 1.4.0",
- "log 0.4.14",
+ "log 0.4.16",
  "mktemp",
  "parking_lot",
  "prometheus",
@@ -1355,7 +1355,7 @@ dependencies = [
  "json",
  "lazy_static 1.4.0",
  "libc",
- "log 0.4.14",
+ "log 0.4.16",
  "native-tls",
  "nix 0.23.1",
  "owning_ref",
@@ -1399,7 +1399,7 @@ dependencies = [
  "hex",
  "lazy_static 1.4.0",
  "libc",
- "log 0.4.14",
+ "log 0.4.16",
  "native-tls",
  "nix 0.23.1",
  "num_cpus",
@@ -1441,7 +1441,7 @@ dependencies = [
  "env_proxy",
  "habitat_core",
  "httparse",
- "log 0.4.14",
+ "log 0.4.16",
  "native-tls",
  "pem 1.0.2",
  "reqwest",
@@ -1466,7 +1466,7 @@ dependencies = [
  "handlebars 0.29.1",
  "lazy_static 1.4.0",
  "linked-hash-map",
- "log 0.4.14",
+ "log 0.4.16",
  "rusoto_core",
  "rusoto_credential",
  "rusoto_ecr",
@@ -1492,7 +1492,7 @@ dependencies = [
  "habitat_core",
  "handlebars 0.29.1",
  "lazy_static 1.4.0",
- "log 0.4.14",
+ "log 0.4.16",
  "mktemp",
  "serde",
  "serde_json",
@@ -1534,7 +1534,7 @@ dependencies = [
  "json",
  "lazy_static 1.4.0",
  "libc",
- "log 0.4.14",
+ "log 0.4.16",
  "log4rs",
  "mio 0.7.13",
  "notify",
@@ -1575,7 +1575,7 @@ name = "habitat_win_users"
 version = "0.0.0"
 dependencies = [
  "cc",
- "log 0.4.14",
+ "log 0.4.16",
  "widestring 0.5.1",
  "winapi 0.3.9",
 ]
@@ -2006,14 +2006,14 @@ version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e19e8d5c34a3e0e2223db8e060f9e8264aeeb5c5fc64a4ee9965c062211c024b"
 dependencies = [
- "log 0.4.14",
+ "log 0.4.16",
 ]
 
 [[package]]
 name = "log"
-version = "0.4.14"
+version = "0.4.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51b9bbe6c47d51fc3e1a9b945965946b4c44142ab8792c50835a980d362c2710"
+checksum = "6389c490849ff5bc16be905ae24bc913a9c8892e19b2341dbc175e14c341c2b8"
 dependencies = [
  "cfg-if 1.0.0",
  "serde",
@@ -2038,7 +2038,7 @@ dependencies = [
  "fnv",
  "humantime",
  "libc",
- "log 0.4.14",
+ "log 0.4.16",
  "log-mdc",
  "parking_lot",
  "regex 1.5.5",
@@ -2147,7 +2147,7 @@ dependencies = [
  "iovec",
  "kernel32-sys",
  "libc",
- "log 0.4.14",
+ "log 0.4.16",
  "miow 0.2.2",
  "net2",
  "slab",
@@ -2161,7 +2161,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8c2bdb6314ec10835cd3293dd268473a835c02b7b352e788be788b3c6ca6bb16"
 dependencies = [
  "libc",
- "log 0.4.14",
+ "log 0.4.16",
  "miow 0.3.7",
  "ntapi",
  "winapi 0.3.9",
@@ -2174,7 +2174,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52403fe290012ce777c4626790c8951324a2b9e3316b3143779c72b029742f19"
 dependencies = [
  "lazycell",
- "log 0.4.14",
+ "log 0.4.16",
  "mio 0.6.23",
  "slab",
 ]
@@ -2223,7 +2223,7 @@ checksum = "b8d96b2e1c8da3957d58100b09f102c6d9cfdfced01b7ec5a8974044bb09dbd4"
 dependencies = [
  "lazy_static 1.4.0",
  "libc",
- "log 0.4.14",
+ "log 0.4.16",
  "openssl",
  "openssl-probe",
  "openssl-sys",
@@ -2417,7 +2417,7 @@ version = "3.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b3d2536ab8ff7605e8dc7044ec2f3eb0d49750cb559af9e5373c4564a3706cdd"
 dependencies = [
- "log 0.4.14",
+ "log 0.4.16",
  "serde",
  "winapi 0.3.9",
 ]
@@ -2726,7 +2726,7 @@ dependencies = [
  "heck 0.4.0",
  "itertools",
  "lazy_static 1.4.0",
- "log 0.4.14",
+ "log 0.4.16",
  "multimap",
  "petgraph 0.6.0",
  "prost",
@@ -2922,7 +2922,7 @@ source = "git+https://github.com/habitat-sh/rants.git#1c2c8674f48aab2166c0016eb1
 dependencies = [
  "bytes",
  "futures",
- "log 0.4.14",
+ "log 0.4.16",
  "native-tls",
  "nom",
  "owning_ref",
@@ -3049,7 +3049,7 @@ dependencies = [
  "ipnet",
  "js-sys",
  "lazy_static 1.4.0",
- "log 0.4.14",
+ "log 0.4.16",
  "mime",
  "native-tls",
  "percent-encoding",
@@ -3105,7 +3105,7 @@ dependencies = [
  "hyper",
  "hyper-tls",
  "lazy_static 1.4.0",
- "log 0.4.14",
+ "log 0.4.16",
  "rusoto_credential",
  "rusoto_signature",
  "rustc_version 0.4.0",
@@ -3162,7 +3162,7 @@ dependencies = [
  "hmac",
  "http",
  "hyper",
- "log 0.4.14",
+ "log 0.4.16",
  "md-5",
  "percent-encoding",
  "pin-project-lite",
@@ -3213,7 +3213,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "35edb675feee39aec9c99fa5ff985081995a06d594114ae14cbe797ad7b7a6d7"
 dependencies = [
  "base64",
- "log 0.4.14",
+ "log 0.4.16",
  "ring",
  "sct",
  "webpki 0.21.4",
@@ -3916,7 +3916,7 @@ dependencies = [
  "futures-core",
  "futures-io",
  "futures-sink",
- "log 0.4.14",
+ "log 0.4.16",
  "pin-project-lite",
  "slab",
  "tokio",
@@ -4157,7 +4157,7 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ce8a968cb1cd110d136ff8b819a556d6fb6d919363c61534f6860c7eb172ba0"
 dependencies = [
- "log 0.4.14",
+ "log 0.4.16",
  "try-lock",
 ]
 
@@ -4193,7 +4193,7 @@ checksum = "580aa3a91a63d23aac5b6b267e2d13cb4f363e31dce6c352fca4752ae12e479f"
 dependencies = [
  "bumpalo",
  "lazy_static 1.4.0",
- "log 0.4.14",
+ "log 0.4.16",
  "proc-macro2",
  "quote",
  "syn",
@@ -4446,7 +4446,7 @@ version = "0.8.3"
 source = "git+https://github.com/habitat-sh/rust-zmq?branch=v0.8-symlinks-removed#20a73b9225b3903778420c3211d8e9439bb73a2a"
 dependencies = [
  "libc",
- "log 0.4.14",
+ "log 0.4.16",
  "zmq-sys",
 ]
 
