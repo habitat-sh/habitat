@@ -2922,7 +2922,7 @@ source = "git+https://github.com/habitat-sh/rants.git#1c2c8674f48aab2166c0016eb1
 dependencies = [
  "bytes",
  "futures",
- "log 0.3.9",
+ "log 0.4.16",
  "native-tls",
  "nom",
  "owning_ref",
