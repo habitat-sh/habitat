@@ -250,6 +250,7 @@ pub struct ServiceRunState {
     pub restart_count:      u64,
     pub restart_config:     ServiceRestartConfig,
     pub last_process_state: Option<LastProcessState>,
+    current_pid:            Option<Pid>,
     restart_state:          RestartState,
     restart_backoff:        Backoff,
     last_updated_at:        SystemTime,
@@ -260,6 +261,7 @@ impl ServiceRunState {
         ServiceRunState { restart_count:      0,
                           restart_config:     restart_config.clone(),
                           last_process_state: None,
+                          current_pid:        None,
                           restart_state:      RestartState::None,
                           restart_backoff:    Backoff::new(restart_config.min_backoff_period,
                                                            restart_config.max_backoff_period,
@@ -324,12 +326,10 @@ impl PersistentServiceWrapper {
 
     /// Mark this service for an immediate restart
     pub fn mark_for_restart_due_to_update(&mut self, timestamp: SystemTime) {
-        self.run_state.mark_for_immediate_restart(self.run_state
-                                                      .last_process_state
-                                                      .as_ref()
-                                                      .and_then(|s| s.pid),
-                                                  ProcessTerminationReason::PackageUpdated,
-                                                  timestamp);
+        self.run_state
+            .mark_for_immediate_restart(self.run_state.current_pid,
+                                        ProcessTerminationReason::PackageUpdated,
+                                        timestamp);
     }
 
     pub fn service(&self) -> Option<&Service> { self.inner.as_ref() }
@@ -1283,6 +1283,9 @@ impl Service {
                      launcher: &LauncherCli,
                      template_update: &TemplateUpdate) {
         let pid_update = self.update_process_state(launcher);
+        // We copy the current process id to the run state to avoid
+        // having to lock the supervisor for this information.
+        run_state.current_pid = pid_update.new_pid;
 
         // It is ok that we do not hold this lock while we are performing the match. If we
         // transistion states while we are matching, we will catch the new state on the next tick.
