@@ -23,13 +23,15 @@ use habitat_sup_protocol::{ctl,
 use std::{convert::TryFrom,
           iter::FromIterator,
           path::{Path,
-                 PathBuf}};
+                 PathBuf},
+          str::FromStr};
 use structopt::StructOpt;
 use url::Url;
 use walkdir::WalkDir;
 
 const DEFAULT_SVC_CONFIG_FILE: &str = "/hab/sup/default/config/svc.toml";
 pub const DEFAULT_SVC_CONFIG_DIR: &str = "/hab/sup/default/config/svc";
+pub const HEALTH_CHECK_INTERVAL_DEFAULT: &str = "30";
 
 /// Commands relating to Habitat services
 #[derive(ConfigOpt, StructOpt)]
@@ -128,15 +130,17 @@ pub struct KeyGenerate {
 }
 
 lazy_static::lazy_static! {
-    static ref CHANNEL_IDENT_DEFAULT: String = ChannelIdent::default().to_string();
-    static ref GROUP_DEFAULT: String = String::from("default");
+   pub static ref CHANNEL_IDENT_DEFAULT: String = ChannelIdent::default().to_string();
+   pub static ref GROUP_DEFAULT: String = String::from("default");
 }
 
 impl GROUP_DEFAULT {
-    fn get() -> String { GROUP_DEFAULT.clone() }
+    pub fn get() -> String { GROUP_DEFAULT.clone() }
 }
 
-fn health_check_interval_default() -> u64 { 30 }
+pub fn health_check_interval_default() -> u64 {
+    u64::from_str(HEALTH_CHECK_INTERVAL_DEFAULT).unwrap()
+}
 
 #[derive(ConfigOpt, StructOpt, Deserialize, Debug)]
 #[configopt(attrs(serde), derive(Clone, Debug))]
@@ -201,7 +205,7 @@ pub struct SharedLoad {
     // serialization format. We want to allow the user to simply specify a `u64` to be consistent
     // with the CLI, but we cannot change the serialization because the spec file depends on the map
     // based format.
-    #[structopt(long = "health-check-interval", short = "i", default_value = "30")]
+    #[structopt(long = "health-check-interval", short = "i", default_value = HEALTH_CHECK_INTERVAL_DEFAULT)]
     #[serde(default = "health_check_interval_default")]
     pub health_check_interval: u64,
     /// The delay in seconds after sending the shutdown signal to wait before killing the service
