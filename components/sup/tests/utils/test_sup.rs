@@ -1,5 +1,4 @@
 //! Encapsulate running the `hab-sup` executable for tests.
-
 use crate::hcore::url::BLDR_URL_ENVVAR;
 use anyhow::{anyhow,
              Context,
@@ -9,6 +8,7 @@ use hyper::Method;
 use rand::{self,
            distributions::{Distribution,
                            Uniform}};
+use serde_json::Value;
 use std::{collections::HashSet,
           env,
           io,
@@ -25,7 +25,8 @@ use tokio::{net::{TcpListener,
             sync::Mutex,
             time::Instant};
 
-use super::test_butterfly;
+use super::{test_butterfly,
+            test_helpers::assert_valid};
 
 lazy_static! {
     /// Keep track of all TCP ports currently being used by TestSup
@@ -401,7 +402,16 @@ impl TestSup {
                       .context("Failed to construct API request to supervisor HTTP endpoint")?;
         let res = self.api_client.execute(req).await.ok();
         if let Some(res) = res {
-            Ok(res.json::<sup_gateway_api::Service>().await.ok())
+            let json = res.json::<Value>().await.ok();
+            if let Some(json) = json {
+                // Validate json response against schema
+                let json_string = serde_json::to_string(&Value::Array(vec![json.clone()]))?;
+                assert_valid(&json_string, "http_gateway_services_schema.json");
+                let service: sup_gateway_api::Service = serde_json::from_value(json)?;
+                Ok(Some(service))
+            } else {
+                Ok(None)
+            }
         } else {
             Ok(None)
         }
