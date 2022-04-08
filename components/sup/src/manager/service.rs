@@ -530,6 +530,7 @@ impl Service {
                           spec: ServiceSpec,
                           manager_fs_cfg: Arc<FsCfg>,
                           organization: Option<&str>,
+                          census_ring: Arc<RwLock<CensusRing>>,
                           gateway_state: Arc<GatewayState>,
                           pid_source: ServicePidSource,
                           feature_flags: FeatureFlag)
@@ -545,31 +546,39 @@ impl Service {
         let config_root = Self::config_root(&pkg, spec.config_from.as_ref());
         let hooks_root = Self::hooks_root(&pkg, spec.config_from.as_ref());
         let cfg = Cfg::new(&pkg, spec.config_from.as_ref())?;
-        Ok(Service { spec,
-                     sys,
-                     cfg,
-                     config_renderer: CfgRenderer::new(&config_root)?,
-                     health_check_result: Arc::new(Mutex::new(HealthCheckResult::Unknown)),
-                     hooks: HookTable::load(&pkg.name,
-                                            &hooks_root,
-                                            svc_hooks_path(&service_group.service()),
-                                            feature_flags),
-                     last_election_status: ElectionStatus::None,
-                     user_config_updated: false,
-                     initialization_state:
-                         Arc::new(RwLock::new(InitializationState::Uninitialized)),
-                     manager_fs_cfg,
-                     supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group,
-                                                                     pid_source))),
-                     pkg,
-                     service_group,
-                     all_pkg_binds,
-                     unsatisfied_binds: HashSet::new(),
-                     spec_file,
-                     gateway_state,
-                     health_check_handle: None,
-                     post_run_handle: None,
-                     initialize_handle: None })
+        let mut service = Service { spec,
+            sys,
+            cfg,
+            config_renderer: CfgRenderer::new(&config_root)?,
+            health_check_result: Arc::new(Mutex::new(HealthCheckResult::Unknown)),
+            hooks: HookTable::load(&pkg.name,
+                                   &hooks_root,
+                                   svc_hooks_path(&service_group.service()),
+                                   feature_flags),
+            last_election_status: ElectionStatus::None,
+            user_config_updated: false,
+            initialization_state:
+                Arc::new(RwLock::new(InitializationState::Uninitialized)),
+            manager_fs_cfg,
+            supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group,
+                                                            pid_source))),
+            pkg,
+            service_group,
+            all_pkg_binds,
+            unsatisfied_binds: HashSet::new(),
+            spec_file,
+            gateway_state,
+            health_check_handle: None,
+            post_run_handle: None,
+            initialize_handle: None };
+        
+        // Update the service gossip from census data. 
+        // We do this to ensure that the data rendered out via the HTTP API through the ServiceProxy class 
+        // always reflects the service configuration data stored within the gossip store.
+        if let Some(census_group) = census_ring.read().census_group_for(&service.service_group) {
+            service.update_gossip(census_group);
+        }
+        Ok(service)
     }
 
     // And now prepare yourself for a little horribleness...Ready?
@@ -613,11 +622,12 @@ impl Service {
                    .unwrap_or(&package.path)
                    .join("hooks")
     }
-
+    #[allow(clippy::too_many_arguments)]
     pub async fn new(sys: Arc<Sys>,
                      spec: ServiceSpec,
                      manager_fs_cfg: Arc<FsCfg>,
                      organization: Option<&str>,
+                     census_ring: Arc<RwLock<CensusRing>>,
                      gateway_state: Arc<GatewayState>,
                      pid_source: ServicePidSource,
                      feature_flags: FeatureFlag)
@@ -630,6 +640,7 @@ impl Service {
                               spec,
                               manager_fs_cfg,
                               organization,
+                              census_ring,
                               gateway_state,
                               pid_source,
                               feature_flags).await?)
@@ -1673,6 +1684,7 @@ mod tests {
                               spec,
                               afs,
                               Some("haha"),
+                              None,
                               gs,
                               ServicePidSource::Launcher,
                               FeatureFlag::empty()).await
