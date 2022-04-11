@@ -570,6 +570,7 @@
                   "init_hook_failed",
                   "run_hook_failed",
                   "app_config_updated",
+                  "init_hook_updated",
                   "run_hook_updated",
                   "post_run_hook_updated"
                 ]

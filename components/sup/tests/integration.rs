@@ -237,24 +237,26 @@ async fn restart_for_templated_post_run_hook() -> Result<()> {
 
 #[tokio::test]
 #[cfg_attr(feature = "ignore_integration_tests", ignore)]
-async fn no_restart_for_templated_init_hook() -> Result<()> {
-    let test_name = "no_restart_for_templated_init_hook_without_reconfiguration_hook";
+async fn restart_for_templated_init_hook() -> Result<()> {
+    let test_name = "restart_for_templated_init_hook_without_reconfiguration_hook";
     let package_name = "config-and-hooks-no-reconfigure";
     let applied_config = r#"init_templated_value = "Init Hook Value""#;
-    let updated_files = vec!["hooks/init"];
-    test_for_no_restart_on_config_application(test_name,
-                                              package_name,
-                                              applied_config,
-                                              updated_files).await?;
+    let updated_files = vec!["PID", "hooks/init"];
+    test_for_restart_on_config_application(test_name,
+                                           package_name,
+                                           applied_config,
+                                           updated_files,
+                                           ProcessTerminationReason::InitHookUpdated).await?;
 
-    let test_name = "no_restart_for_templated_init_hook_with_reconfiguration_hook";
+    let test_name = "restart_for_templated_init_hook_with_reconfiguration_hook";
     let package_name = "config-and-hooks-with-reconfigure";
     let applied_config = r#"init_templated_value = "Init Hook Value""#;
-    let updated_files = vec!["hooks/init"];
-    test_for_no_restart_on_config_application(test_name,
-                                              package_name,
-                                              applied_config,
-                                              updated_files).await?;
+    let updated_files = vec!["PID", "hooks/init"];
+    test_for_restart_on_config_application(test_name,
+                                           package_name,
+                                           applied_config,
+                                           updated_files,
+                                           ProcessTerminationReason::InitHookUpdated).await?;
 
     Ok(())
 }
@@ -291,28 +293,22 @@ async fn restart_backoff_for_failed_init_hook() -> Result<()> {
                                &FIXTURE_ROOT,
                                &hab_root).await?;
 
-    test_sup.ensure_service_started(package_name, service_group, Duration::from_secs(10))
-            .await?;
-
-    test_sup.service_stop(origin_name, package_name).await?;
-    test_sup.ensure_service_stopped(package_name, service_group, Duration::from_secs(10))
-            .await?;
-
-    test_sup.apply_config(package_name, service_group, applied_config)
-            .await?;
-    // We start the service, but don't wait to ensure it is started, because it never will.
-    test_sup.service_start(origin_name, package_name).await?;
-
-    // We give the service time to start and wipe out the previous init log
-    tokio::time::sleep(Duration::from_secs(5)).await;
+    let _pid =
+        test_sup.ensure_service_started(package_name, service_group, Duration::from_secs(10))
+                .await?;
 
     let initial_snapshot =
         FileSystemSnapshot::new(hab_root.svc_dir_path(package_name).as_path()).await?;
     let mut initial_init_log_snapshot = initial_snapshot.file("logs/init.stdout.log")?.clone();
     let mut attempts = 1;
 
+    test_sup.apply_config(package_name, service_group, applied_config)
+            .await?;
+
+    let mut restarts_due_to_update = 0;
     // Observe 10 restarts
     while attempts <= 10 {
+        // We count on the 5 secs init sleep to ensure that we don't miss the first PID.
         let final_init_log_snapshot =
             initial_init_log_snapshot.await_update(Duration::from_secs(60))
                                      .await?;
@@ -321,10 +317,23 @@ async fn restart_backoff_for_failed_init_hook() -> Result<()> {
             test_sup.get_service_state(package_name, service_group, Duration::from_secs(5))
                     .await?;
 
+        // Ignore the restart due to run hook updated
+        if service.last_process_state
+                  .as_ref()
+                  .unwrap()
+                  .termination_reason
+           == ProcessTerminationReason::InitHookUpdated
+        {
+            initial_init_log_snapshot = final_init_log_snapshot;
+            restarts_due_to_update += 1;
+            continue;
+        }
         let duration_between_restarts =
             final_init_log_snapshot.duration_between_modification(&initial_init_log_snapshot)
                                    .unwrap();
 
+        // We might potentially miss the update restart as it could happen super quick
+        assert!(restarts_due_to_update <= 1);
         // We ensure the restart was due to an init failure
         assert_eq!(service.last_process_state
                           .as_ref()
@@ -352,6 +361,7 @@ async fn restart_backoff_for_failed_init_hook() -> Result<()> {
     // Make the application succeed again
     let applied_config = r#"
     init_exit_code = 0
+    init_sleep = 5
     "#;
     test_sup.apply_config(package_name, service_group, applied_config)
             .await?;

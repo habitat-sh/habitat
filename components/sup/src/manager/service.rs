@@ -158,7 +158,9 @@ impl TemplateUpdate {
     /// because they are the only hooks that can impact the execution of the service.
     /// 2. `/config` changed and there is no `reconfigure` hook
     fn needs_restart(&self) -> Option<ProcessTerminationReason> {
-        if self.hooks.run_changed() {
+        if self.hooks.init_changed() {
+            Some(ProcessTerminationReason::InitHookUpdated)
+        } else if self.hooks.run_changed() {
             Some(ProcessTerminationReason::RunHookUpdated)
         } else if self.hooks.post_run_changed() {
             Some(ProcessTerminationReason::PostRunHookUpdated)
@@ -210,6 +212,8 @@ pub enum ProcessTerminationReason {
     RunHookFailed,
     #[serde(rename = "app_config_updated")]
     AppConfigUpdated,
+    #[serde(rename = "init_hook_updated")]
+    InitHookUpdated,
     #[serde(rename = "run_hook_updated")]
     RunHookUpdated,
     #[serde(rename = "post_run_hook_updated")]
@@ -546,35 +550,37 @@ impl Service {
         let config_root = Self::config_root(&pkg, spec.config_from.as_ref());
         let hooks_root = Self::hooks_root(&pkg, spec.config_from.as_ref());
         let cfg = Cfg::new(&pkg, spec.config_from.as_ref())?;
-        let mut service = Service { spec,
-            sys,
-            cfg,
-            config_renderer: CfgRenderer::new(&config_root)?,
-            health_check_result: Arc::new(Mutex::new(HealthCheckResult::Unknown)),
-            hooks: HookTable::load(&pkg.name,
-                                   &hooks_root,
-                                   svc_hooks_path(&service_group.service()),
-                                   feature_flags),
-            last_election_status: ElectionStatus::None,
-            user_config_updated: false,
-            initialization_state:
-                Arc::new(RwLock::new(InitializationState::Uninitialized)),
-            manager_fs_cfg,
-            supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group,
-                                                            pid_source))),
-            pkg,
-            service_group,
-            all_pkg_binds,
-            unsatisfied_binds: HashSet::new(),
-            spec_file,
-            gateway_state,
-            health_check_handle: None,
-            post_run_handle: None,
-            initialize_handle: None };
-        
-        // Update the service gossip from census data. 
-        // We do this to ensure that the data rendered out via the HTTP API through the ServiceProxy class 
-        // always reflects the service configuration data stored within the gossip store.
+        let mut service =
+            Service { spec,
+                      sys,
+                      cfg,
+                      config_renderer: CfgRenderer::new(&config_root)?,
+                      health_check_result: Arc::new(Mutex::new(HealthCheckResult::Unknown)),
+                      hooks: HookTable::load(&pkg.name,
+                                             &hooks_root,
+                                             svc_hooks_path(&service_group.service()),
+                                             feature_flags),
+                      last_election_status: ElectionStatus::None,
+                      user_config_updated: false,
+                      initialization_state:
+                          Arc::new(RwLock::new(InitializationState::Uninitialized)),
+                      manager_fs_cfg,
+                      supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group,
+                                                                      pid_source))),
+                      pkg,
+                      service_group,
+                      all_pkg_binds,
+                      unsatisfied_binds: HashSet::new(),
+                      spec_file,
+                      gateway_state,
+                      health_check_handle: None,
+                      post_run_handle: None,
+                      initialize_handle: None };
+
+        // Update the service gossip from census data.
+        // We do this to ensure that the data rendered out via the HTTP API through the ServiceProxy
+        // class always reflects the service configuration data stored within the gossip
+        // store.
         if let Some(census_group) = census_ring.read().census_group_for(&service.service_group) {
             service.update_gossip(census_group);
         }
@@ -622,6 +628,7 @@ impl Service {
                    .unwrap_or(&package.path)
                    .join("hooks")
     }
+
     #[allow(clippy::too_many_arguments)]
     pub async fn new(sys: Arc<Sys>,
                      spec: ServiceSpec,
@@ -1677,14 +1684,14 @@ mod tests {
         let asys = Arc::new(sys);
         let fscfg = FsCfg::new("/tmp");
         let afs = Arc::new(fscfg);
-
+        let census_ring = Arc::new(RwLock::new(CensusRing::new(asys.member_id.clone())));
         let gs = Arc::default();
         PersistentServiceWrapper::new(Service::with_package(asys,
                               &install,
                               spec,
                               afs,
                               Some("haha"),
-                              None,
+                              census_ring,
                               gs,
                               ServicePidSource::Launcher,
                               FeatureFlag::empty()).await
@@ -1713,7 +1720,7 @@ mod tests {
                                                      ConfigRendering::Redacted);
         let proxies_without_config = vec![proxy_without_config];
         let json_without_config =
-            serde_json::to_string(&proxies_without_config).expect("Expected to convert \
+            serde_json::to_string(&proxies_without_config).expect("Expected  to convert \
                                                                    proxies_without_config to \
                                                                    JSON but failed");
         assert_valid(&json_without_config, "http_gateway_services_schema.json");

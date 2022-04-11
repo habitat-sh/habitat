@@ -1031,14 +1031,14 @@ impl Manager {
         // We do this to ensure that service configuration data is always
         // available via the HTTP API
         self.census_ring
-                .write()
-                .update_from_rumors_rsr_mlr(&self.state.cfg.key_cache,
-                                            &self.butterfly.service_store,
-                                            &self.butterfly.election_store,
-                                            &self.butterfly.update_store,
-                                            &self.butterfly.member_list,
-                                            &self.butterfly.service_config_store,
-                                            &self.butterfly.service_file_store);
+            .write()
+            .update_from_rumors_rsr_mlr(&self.state.cfg.key_cache,
+                                        &self.butterfly.service_store,
+                                        &self.butterfly.election_store,
+                                        &self.butterfly.update_store,
+                                        &self.butterfly.member_list,
+                                        &self.butterfly.service_config_store,
+                                        &self.butterfly.service_file_store);
 
         // This serves to start up any services that need starting
         // (which will be all of them at this point!)
