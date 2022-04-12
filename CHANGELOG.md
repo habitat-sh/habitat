@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.487 -->
-## [1.6.487](https://github.com/habitat-sh/habitat/tree/1.6.487) (2022-04-07)
+<!-- latest_release 1.6.488 -->
+## [1.6.488](https://github.com/habitat-sh/habitat/tree/1.6.488) (2022-04-12)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.121 to 0.2.122 [#8480](https://github.com/habitat-sh/habitat/pull/8480) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump flate2 from 1.0.22 to 1.0.23 [#8482](https://github.com/habitat-sh/habitat/pull/8482) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.477 -->
 ### Changes since 1.6.477 release
 
 #### Merged Pull Requests
+- Bump flate2 from 1.0.22 to 1.0.23 [#8482](https://github.com/habitat-sh/habitat/pull/8482) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.488 -->
 - Bump libc from 0.2.121 to 0.2.122 [#8480](https://github.com/habitat-sh/habitat/pull/8480) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.487 -->
 - Update Habitat Supervisor API Docs - 20220323155103 [#8467](https://github.com/habitat-sh/habitat/pull/8467) ([chef-ci](https://github.com/chef-ci)) <!-- 1.6.486 -->
 - Hab-sup-run arguments modified. [#8464](https://github.com/habitat-sh/habitat/pull/8464) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 1.6.485 -->
