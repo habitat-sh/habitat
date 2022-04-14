@@ -9,6 +9,7 @@ services:
       - bastion
       - alpha
       - beta
+      - gamma
   alpha:
     environment:
       HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
@@ -18,3 +19,17 @@ services:
     environment:
       HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
       HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+
+  gamma:
+    extends:
+      service: sup_base
+    hostname: gamma
+    environment:
+      HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
+      HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
+    networks:
+      default:
+        aliases:
+        - gamma.habitat.dev
+    depends_on:
+      - bastion

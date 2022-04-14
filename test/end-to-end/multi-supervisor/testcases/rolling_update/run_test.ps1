@@ -13,8 +13,9 @@ Describe "Rolling Update and Rollback" {
     hab pkg promote $initialRelease $testChannel
     Load-SupervisorService "habitat-testing/nginx" -Remote "alpha.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
     Load-SupervisorService "habitat-testing/nginx" -Remote "beta.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
+    Load-SupervisorService "habitat-testing/nginx" -Remote "gamma.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
 
-    @("alpha", "beta") | ForEach-Object {
+    @("alpha", "beta", "gamma") | ForEach-Object {
         It "loads initial release on $_" {
             Wait-Release -Ident $initialRelease -Remote $_
         }
@@ -23,7 +24,7 @@ Describe "Rolling Update and Rollback" {
     Context "promote update" {
         hab pkg promote $updatedRelease $testChannel
 
-        @("alpha", "beta") | ForEach-Object {
+        @("alpha", "beta", "gamma") | ForEach-Object {
             It "updates release on $_" {
                 Wait-Release -Ident $updatedRelease -Remote $_
             }
@@ -33,7 +34,7 @@ Describe "Rolling Update and Rollback" {
     Context "promote update to release3" {
         hab pkg promote $release3 $testChannel
 
-        @("alpha", "beta") | ForEach-Object {
+        @("alpha", "beta", "gamma") | ForEach-Object {
             It "updates release on $_" {
                 Wait-Release -Ident $release3 -Remote $_
             }
@@ -43,7 +44,7 @@ Describe "Rolling Update and Rollback" {
     Context "demote update" {
         hab pkg demote $release3 $testChannel
 
-        @("alpha", "beta") | ForEach-Object {
+        @("alpha", "beta", "gamma") | ForEach-Object {
             It "rollback release on $_" {
                 Wait-Release -Ident $updatedRelease -Remote $_
             }
