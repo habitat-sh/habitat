@@ -11,9 +11,9 @@ Describe "Rolling Update and Rollback" {
     $updatedRelease="habitat-testing/nginx/1.17.4/20191115185517"
     $release3="habitat-testing/nginx/1.17.4/20191115185900"
     hab pkg promote $initialRelease $testChannel
-    Load-SupervisorService "habitat-testing/nginx" -Remote "alpha.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
-    Load-SupervisorService "habitat-testing/nginx" -Remote "beta.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
-    Load-SupervisorService "habitat-testing/nginx" -Remote "gamma.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
+    Load-SupervisorService "habitat-testing/nginx" -Remote "alpha.habitat.dev" -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
+    Load-SupervisorService "habitat-testing/nginx" -Remote "beta.habitat.dev" -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
+    Load-SupervisorService "habitat-testing/nginx" -Remote "gamma.habitat.dev" -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
 
     @("alpha", "beta", "gamma") | ForEach-Object {
         It "loads initial release on $_" {
