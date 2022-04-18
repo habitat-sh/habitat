@@ -12,11 +12,13 @@ services:
       - gamma
   alpha:
     environment:
+      RUST_LOG: "warn,habitat_sup::manager::service_updater=debug"
       HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
       HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
 
   beta:
     environment:
+      RUST_LOG: "warn,habitat_sup::manager::service_updater=debug"
       HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
       HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
 
@@ -25,6 +27,7 @@ services:
       service: sup_base
     hostname: gamma
     environment:
+      RUST_LOG: "warn,habitat_sup::manager::service_updater=debug"
       HAB_UPDATE_STRATEGY_FREQUENCY_MS: 3000
       HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK: 1
     networks:
