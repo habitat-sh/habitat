@@ -60,6 +60,7 @@ structopt = { git = "https://github.com/habitat-sh/structopt.git" }
 tempfile = "*"
 termcolor = "*"
 thiserror = "*"
+anyhow = { version = "*", features = ["backtrace"] }
 toml = { version = "*", features = ["preserve_order"]}
 tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
@@ -85,6 +86,10 @@ winapi = { version = "*", features = ["namedpipeapi", "tlhelp32"] }
 habitat_core = { path = "../core" }
 hyper = "*"
 json = "*"
+reqwest = { version = "*", features = ["json"] }
+
+[target.'cfg(not(windows))'.dev-dependencies]
+nix = "*"
 
 [build-dependencies]
 prost-build = "*"

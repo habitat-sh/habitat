@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "$(date): Executing Run Hook with templated value: {{cfg.run_templated_value}}"
+EXIT_CODE='{{#if cfg.run_exit_code}}{{cfg.run_exit_code}}{{else}}0{{/if}}'
+RUN_SLEEP='{{#if cfg.run_sleep}}{{cfg.run_sleep}}{{else}}10000{{/if}}'
+sleep "$RUN_SLEEP"
+exit "$EXIT_CODE"

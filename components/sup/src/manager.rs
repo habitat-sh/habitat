@@ -23,8 +23,10 @@ use self::{action::{ShutdownInput,
                      ConfigRendering,
                      DesiredState,
                      HealthCheckResult,
+                     PersistentServiceWrapper,
                      Service,
                      ServiceProxy,
+                     ServiceRunState,
                      ServiceSpec,
                      Topology},
            service_updater::ServiceUpdater,
@@ -219,9 +221,9 @@ pub struct ShutdownConfig {
 impl ShutdownConfig {
     fn new(shutdown_input: Option<&ShutdownInput>, service: &Service) -> Self {
         let timeout = shutdown_input.and_then(|si| si.timeout).unwrap_or_else(|| {
-                                                                  service.shutdown_timeout()
-                                                               .unwrap_or(service.pkg
-                                                                                 .shutdown_timeout)
+                                                                  service
+                .shutdown_timeout()
+                .unwrap_or(service.pkg.shutdown_timeout)
                                                               });
         Self { timeout,
                #[cfg(not(windows))]
@@ -256,12 +258,45 @@ impl FsCfg {
     }
 }
 
+/// Configuration parameters that control the behaviour of restarts for services
+/// that fail to startup successfully
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub struct ServiceRestartConfig {
+    pub min_backoff_period: Duration,
+    pub max_backoff_period: Duration,
+    /// The amount of time that needs to elapse after a service has restarted to reset the backoff
+    /// state. We need this because health checks are not mandatory, so there is no good way to
+    /// know if a service started successfully other than waiting for some time and checking
+    /// that it does not go down.
+    pub cooldown_period:    Duration,
+}
+
+impl ServiceRestartConfig {
+    pub fn new(min_backoff_period: Duration,
+               max_backoff_period: Duration,
+               restart_cooldown_period: Duration)
+               -> ServiceRestartConfig {
+        ServiceRestartConfig { min_backoff_period,
+                               max_backoff_period,
+                               cooldown_period: restart_cooldown_period }
+    }
+}
+
+impl Default for ServiceRestartConfig {
+    fn default() -> Self {
+        Self { min_backoff_period: Default::default(),
+               max_backoff_period: Default::default(),
+               cooldown_period:    Duration::from_secs(300), }
+    }
+}
+
 #[derive(Clone, Debug, Derivative)]
 #[derivative(PartialEq)]
 pub struct ManagerConfig {
     pub auto_update:                bool,
     pub auto_update_period:         Duration,
     pub service_update_period:      Duration,
+    pub service_restart_config:     ServiceRestartConfig,
     pub custom_state_path:          Option<PathBuf>,
     pub key_cache:                  KeyCache,
     pub update_url:                 String,
@@ -469,14 +504,26 @@ pub(crate) mod sync {
         health_check_data: HashMap<ServiceGroup, HealthCheckResult>,
     }
 
-    type ManagerServicesInner = HashMap<PackageIdent, Service>;
+    type ManagerServicesInner = HashMap<PackageIdent, PersistentServiceWrapper>;
 
     pub struct ManagerServicesReadGuard<'a>(ReadGuard<'a, ManagerServicesInner>);
 
     impl<'a> ManagerServicesReadGuard<'a> {
         fn new(lock: &'a Lock<ManagerServicesInner>) -> Self { Self(lock.read()) }
 
-        pub fn services(&self) -> impl Iterator<Item = &Service> { self.0.values() }
+        pub fn iter(&self) -> impl Iterator<Item = (&PackageIdent, &PersistentServiceWrapper)> {
+            self.0.iter()
+        }
+
+        pub fn get(&self, key: &PackageIdent) -> Option<&PersistentServiceWrapper> {
+            self.0.get(key)
+        }
+
+        pub fn running_services(&self) -> impl Iterator<Item = &Service> {
+            self.0
+                .values()
+                .filter_map(PersistentServiceWrapper::service)
+        }
     }
 
     pub struct ManagerServicesWriteGuard<'a>(WriteGuard<'a, ManagerServicesInner>);
@@ -484,31 +531,44 @@ pub(crate) mod sync {
     impl<'a> ManagerServicesWriteGuard<'a> {
         fn new(lock: &'a Lock<ManagerServicesInner>) -> Self { Self(lock.write()) }
 
-        pub fn iter(&self) -> impl Iterator<Item = (&PackageIdent, &Service)> { self.0.iter() }
+        pub fn iter_mut(&mut self)
+                        -> impl Iterator<Item = (&PackageIdent, &mut PersistentServiceWrapper)>
+        {
+            self.0.iter_mut()
+        }
 
-        pub fn insert(&mut self, key: PackageIdent, value: Service) { self.0.insert(key, value); }
+        pub fn insert(&mut self, key: PackageIdent, value: PersistentServiceWrapper) {
+            if let Some(state) = self.0.get_mut(&key) {
+                state.take_service(value);
+                state.start();
+            } else {
+                self.0.insert(key, value);
+            }
+        }
 
-        pub fn remove(&mut self, key: &PackageIdent) -> Option<Service> { self.0.remove(key) }
+        pub fn remove(&mut self, key: &PackageIdent) -> Option<PersistentServiceWrapper> {
+            self.0.remove(key)
+        }
 
-        pub fn get_mut(&mut self, key: &PackageIdent) -> Option<&mut Service> {
+        pub fn get_mut(&mut self, key: &PackageIdent) -> Option<&mut PersistentServiceWrapper> {
             self.0.get_mut(key)
         }
 
-        pub fn services(&mut self) -> impl Iterator<Item = &mut Service> { self.0.values_mut() }
-
-        pub fn drain_services(&mut self) -> DrainServices<'_> {
-            DrainServices { base: self.0.drain(), }
+        pub fn services(&mut self) -> impl Iterator<Item = &mut PersistentServiceWrapper> {
+            self.0.values_mut()
         }
-    }
 
-    pub struct DrainServices<'a> {
-        base: std::collections::hash_map::Drain<'a, PackageIdent, Service>,
-    }
+        pub fn running_services(&mut self) -> impl Iterator<Item = &mut Service> {
+            self.0
+                .values_mut()
+                .filter_map(PersistentServiceWrapper::service_mut)
+        }
 
-    impl<'a> Iterator for DrainServices<'a> {
-        type Item = Service;
-
-        fn next(&mut self) -> Option<Service> { self.base.next().map(|(_ident, service)| service) }
+        pub fn drain_services(&mut self) -> impl Iterator<Item = Service> + '_ {
+            self.0
+                .drain()
+                .filter_map(|(_, mut state)| state.shutdown(false))
+        }
     }
 
     #[derive(Debug, Default)]
@@ -533,8 +593,11 @@ pub(crate) mod sync {
         /// * `ManagerServices::inner` (read)
         fn suitability_for_msr(&self, service_group: &str) -> u64 {
             self.lock_msr()
-                .services()
-                .find(|svc| svc.service_group.as_ref() == service_group)
+                .iter()
+                .find_map(|(_, svc_state)| {
+                    svc_state.service()
+                             .filter(|svc| svc.service_group.as_ref() == service_group)
+                })
                 .and_then(Service::suitability)
                 .unwrap_or_else(u64::min_value)
         }
@@ -836,6 +899,7 @@ impl Manager {
                                              spec,
                                              self.fs_cfg.clone(),
                                              self.organization.as_deref(),
+                                             self.census_ring.clone(),
                                              self.state.gateway_state.clone(),
                                              self.pid_source,
                                              self.feature_flags).await
@@ -859,7 +923,9 @@ impl Manager {
                 &mut habitat_common::ui::UI::with_sinks(),
                 &package,
                 Path::new(&*FS_ROOT_PATH),
-            ).await {
+            )
+            .await
+            {
                 outputln!("Failed to run install hook for {}, {}", ident, err);
                 return;
             }
@@ -903,7 +969,8 @@ impl Manager {
         self.state
             .services
             .lock_msw()
-            .insert(service.spec_ident(), service);
+            .insert(service.spec_ident(),
+                    PersistentServiceWrapper::new(service, &self.state.cfg.service_restart_config))
     }
 
     // If we ever need to modify this function, it would be an excellent opportunity to
@@ -960,10 +1027,24 @@ impl Manager {
             .start_rsw_mlw_smw_rhw_msr(&Timing::default())?;
         debug!("gossip-listener started");
 
+        // Update the census state from the butterfly service rumours.
+        // We do this to ensure that service configuration data is always
+        // available via the HTTP API
+        self.census_ring
+            .write()
+            .update_from_rumors_rsr_mlr(&self.state.cfg.key_cache,
+                                        &self.butterfly.service_store,
+                                        &self.butterfly.election_store,
+                                        &self.butterfly.update_store,
+                                        &self.butterfly.member_list,
+                                        &self.butterfly.service_config_store,
+                                        &self.butterfly.service_file_store);
+
         // This serves to start up any services that need starting
         // (which will be all of them at this point!)
         self.maybe_spawn_service_futures_rsw_mlw_gsw_rhw_msw().await;
 
+        // Ensure that the updated census state is saved to the gateway
         self.persist_state_rsr_mlr_gsw_msr().await;
         let http_listen_addr = self.sys.http_listen();
         let ctl_gateway_server =
@@ -1196,13 +1277,17 @@ impl Manager {
                 self.persist_state_rsr_mlr_gsw_msr().await;
             }
 
-            for service in self.state.services.lock_msw().services() {
+            for service_state in self.state.services.lock_msw().services() {
                 // time will be recorded automatically by HistogramTimer's drop implementation when
                 // this var goes out of scope
                 #[allow(unused_variables)]
                 let service_timer = service_hist.start_timer();
-                if service.tick(&self.census_ring.read(), &self.launcher) {
-                    self.gossip_latest_service_rumor_rsw_mlw_rhw(service);
+                if service_state.tick(&self.census_ring.read(), &self.launcher) {
+                    self.gossip_latest_service_rumor_rsw_mlw_rhw(service_state.service().expect("Service missing in PersistentServiceWrapper"));
+                }
+                if service_state.is_ready_for_restart() {
+                    debug!("Service ready to restart, setting reconciliation flag");
+                    self.services_need_reconciliation.set()
                 }
             }
 
@@ -1242,8 +1327,8 @@ impl Manager {
         match shutdown_mode {
             ShutdownMode::Restarting => {
                 outputln!("Preparing services for Supervisor restart");
-                for svc in self.state.services.lock_msw().services() {
-                    svc.detach();
+                for service in self.state.services.lock_msw().running_services() {
+                    service.detach()
                 }
             }
             ShutdownMode::Normal | ShutdownMode::Departed => {
@@ -1256,8 +1341,8 @@ impl Manager {
                                                     .services
                                                     .lock_msw()
                                                     .drain_services()
-                                                    .map(|svc| {
-                                                        self.stop_service_future_gsw(svc, None,
+                                                    .map(|service| {
+                                                        self.stop_service_future_gsw(service, None,
                                                                                      None)
                                                     }));
                 // Wait while all services are stopped
@@ -1292,25 +1377,37 @@ impl Manager {
 
         let mut state_services = self.state.services.lock_msw();
         let mut idents_to_restart_and_latest_desired_on_restart = Vec::new();
-        for (ident, service) in state_services.iter() {
-            if let Some(new_ident) = service_updater.has_update(&service.service_group) {
-                outputln!("Restarting {} with package {}", ident, new_ident);
-                event::service_update_started(service, &new_ident);
-                // The supervisor always runs the latest package on disk. When we have an update
-                // ensure that the lastest package on disk is the package we updated to.
-                idents_to_restart_and_latest_desired_on_restart.push((ident.clone(),
-                                                                      Some(new_ident)));
-            } else if service.needs_restart {
-                idents_to_restart_and_latest_desired_on_restart.push((ident.clone(), None));
+        for (ident, service_state) in state_services.iter_mut() {
+            // We need to use this has_update flag due to the borrow checker rules
+            let mut has_update = false;
+            if let Some(service) = service_state.service() {
+                if let Some(new_ident) = service_updater.has_update(&service.service_group) {
+                    outputln!("Restarting {} with package {}", ident, new_ident);
+                    has_update = true;
+                    event::service_update_started(service, &new_ident);
+                    // The supervisor always runs the latest package on disk. When we have an update
+                    // ensure that the lastest package on disk is the package we updated to.
+                    idents_to_restart_and_latest_desired_on_restart.push((ident.clone(),
+                                                                          Some(new_ident)));
+                } else if service_state.should_shutdown_for_restart() {
+                    idents_to_restart_and_latest_desired_on_restart.push((ident.clone(), None));
+                } else {
+                    trace!("No restart required for {}", ident);
+                };
             } else {
-                trace!("No restart required for {}", ident);
-            };
+                trace!("Restart in progress for {}", ident);
+            }
+            if has_update {
+                service_state.mark_for_restart_due_to_update(SystemTime::now());
+            }
         }
 
         for (ident, latest_desired_on_restart) in idents_to_restart_and_latest_desired_on_restart {
             // unwrap is safe because we've to the write lock, and we
             // know there's a value present at this key.
-            let service = state_services.remove(&ident).unwrap();
+            let service = state_services.get_mut(&ident)
+                                        .and_then(|service_state| service_state.shutdown(true))
+                                        .unwrap();
             // TODO (CM): In the future, when service start up is
             // future-based, we'll want to have an actual "restart"
             // future, that queues up the start future after the stop
@@ -1360,9 +1457,9 @@ impl Manager {
     fn check_for_changed_services_msr(&mut self) -> bool {
         let mut service_states = HashMap::new();
         let mut active_services = Vec::new();
-        for service in self.state.services.lock_msr().services() {
-            service_states.insert(service.spec_ident(), service.last_state_change());
-            active_services.push(service.spec_ident());
+        for (ident, service) in self.state.services.lock_msr().iter() {
+            service_states.insert(ident.clone(), service.last_state_change());
+            active_services.push(ident.clone());
         }
 
         for loaded in self.spec_dir
@@ -1432,38 +1529,72 @@ impl Manager {
 
         let service_map = self.state.services.lock_msr();
 
-        #[allow(clippy::needless_collect)]
-        let existing_idents: Vec<PackageIdent> =
-            service_map.services().map(Service::spec_ident).collect();
-
         // Services that are not active but are being watched for changes
         // These would include stopped persistent services or other
         // persistent services that failed to load
         // We cannot use `filter_map` here because futures cannot be awaited in a closure.
         let mut watched_services = Vec::new();
         for spec in self.spec_dir.specs() {
-            if !existing_idents.contains(&spec.ident) {
-                let ident = spec.ident.clone();
-                let result = Service::new(self.sys.clone(),
-                                          spec,
-                                          self.fs_cfg.clone(),
-                                          self.organization.as_deref(),
-                                          self.state.gateway_state.clone(),
-                                          self.pid_source,
-                                          self.feature_flags).await;
-                match result {
-                    Ok(result) => watched_services.push(result),
-                    Err(ref e) => warn!("Failed to create service '{}' from spec: {:?}", ident, e),
+            let ident = spec.ident.clone();
+            if let Some((_, svc_state)) =
+                service_map.iter().find(|(ident, _)| **ident == spec.ident)
+            {
+                // If the service wrapper does not contain a service we create one
+                if svc_state.service().is_none() {
+                    match Service::new(self.sys.clone(),
+                                       spec,
+                                       self.fs_cfg.clone(),
+                                       self.organization.as_deref(),
+                                       self.census_ring.clone(),
+                                       self.state.gateway_state.clone(),
+                                       self.pid_source,
+                                       self.feature_flags).await
+                    {
+                        Ok(service) => {
+                            watched_services.push((service, svc_state.service_run_state().clone()))
+                        }
+                        Err(err) => {
+                            warn!("Failed to create service '{}' from spec: {:?}", ident, err)
+                        }
+                    };
                 }
+            } else {
+                // If there is no wrapper for the service, we create one
+                match Service::new(self.sys.clone(),
+                                   spec,
+                                   self.fs_cfg.clone(),
+                                   self.organization.as_deref(),
+                                   self.census_ring.clone(),
+                                   self.state.gateway_state.clone(),
+                                   self.pid_source,
+                                   self.feature_flags).await
+                {
+                    Ok(service) => {
+                        watched_services.push((service,
+                                               ServiceRunState::new(&self.state
+                                                                         .cfg
+                                                                         .service_restart_config)))
+                    }
+                    Err(err) => warn!("Failed to create service '{}' from spec: {:?}", ident, err),
+                };
             }
         }
         let watched_service_proxies: Vec<ServiceProxy<'_>> =
             watched_services.iter()
-                            .map(|s| ServiceProxy::new(s, config_rendering))
+                            .map(|(service, service_run_state)| {
+                                ServiceProxy::new(service, service_run_state, config_rendering)
+                            })
                             .collect();
         let mut services_to_render: Vec<ServiceProxy<'_>> =
-            service_map.services()
-                       .map(|s| ServiceProxy::new(s, config_rendering))
+            service_map.iter()
+                       .filter_map(|(_, svc_state)| {
+                           if let Some(service) = svc_state.service() {
+                               return Some(ServiceProxy::new(service,
+                                                             svc_state.service_run_state(),
+                                                             config_rendering));
+                           }
+                           None
+                       })
                        .collect();
 
         services_to_render.extend(watched_service_proxies);
@@ -1489,9 +1620,11 @@ impl Manager {
     /// * `GatewayState::inner` (write)
     /// * `ManagerServices::inner` (write)
     fn stop_service_gsw_msw(&mut self, ident: &PackageIdent, shutdown_input: &ShutdownInput) {
-        if let Some(service) = self.remove_service_from_state_msw(ident) {
-            let future = self.stop_service_future_gsw(service, None, Some(shutdown_input));
-            tokio::spawn(future);
+        if let Some(mut service_state) = self.remove_service_from_state_msw(ident) {
+            if let Some(service) = service_state.shutdown(false) {
+                let future = self.stop_service_future_gsw(service, None, Some(shutdown_input));
+                tokio::spawn(future);
+            }
         } else {
             warn!("Tried to stop '{}', but couldn't find it in our list of running services!",
                   ident);
@@ -1623,7 +1756,9 @@ impl Manager {
 
     /// # Locking (see locking.md)
     /// * `ManagerServices::inner` (write)
-    fn remove_service_from_state_msw(&mut self, ident: &PackageIdent) -> Option<Service> {
+    fn remove_service_from_state_msw(&mut self,
+                                     ident: &PackageIdent)
+                                     -> Option<PersistentServiceWrapper> {
         self.state.services.lock_msw().remove(ident)
     }
 
@@ -1647,7 +1782,7 @@ impl Manager {
     {
         for op in ops.into_iter() {
             match op {
-                ServiceOperation::Stop(spec) | ServiceOperation::Restart { to_stop: spec, .. } => {
+                ServiceOperation::Restart { to_stop: spec, .. } | ServiceOperation::Stop(spec) => {
                     // Yes, Stop and Restart both turn into
                     // "stop"... Once we've finished stopping, we'll
                     // end up re-examining the spec file on disk; if
@@ -1658,7 +1793,10 @@ impl Manager {
                     // future; then we could just chain that future
                     // onto the end of the stop one for a *real*
                     // restart future.
-                    if let Some(service) = self.remove_service_from_state_msw(&spec.ident) {
+                    if let Some(service) =
+                        self.remove_service_from_state_msw(&spec.ident)
+                            .and_then(|mut service_state| service_state.shutdown(false))
+                    {
                         tokio::spawn(self.stop_service_future_gsw(service, None, None));
                     } else {
                         // We really don't expect this to happen....
@@ -1668,21 +1806,31 @@ impl Manager {
                     }
                 }
                 ServiceOperation::Start(spec) => {
-                    // Execute the future synchronously
-                    self.add_service_rsw_mlw_rhw_msr(spec).await;
+                    // We need to check if the service is already known, if yes, then is it ready to
+                    // be restarted yet
+                    if self.state
+                           .services
+                           .lock_msr()
+                           .get(&spec.ident)
+                           .map_or(true, PersistentServiceWrapper::is_ready_for_restart)
+                    {
+                        self.add_service_rsw_mlw_rhw_msr(spec).await;
+                    }
                 }
                 ServiceOperation::Update(spec, ops) => {
                     trace!("ServiceOperation::Update! {:?}", spec);
                     let mut services = self.state.services.lock_msw();
                     // Relies on spec.ident not having changed, which
                     // ServiceSpec#reconcile must guarantee.
-                    if let Some(s) = services.get_mut(&spec.ident) {
-                        s.set_spec(spec);
-                        self.gossip_latest_service_rumor_rsw_mlw_rhw(s);
+                    if let Some(service) = services.get_mut(&spec.ident)
+                                                   .and_then(PersistentServiceWrapper::service_mut)
+                    {
+                        service.set_spec(spec);
+                        self.gossip_latest_service_rumor_rsw_mlw_rhw(service);
                         for op in ops {
                             match op {
                                 RefreshOperation::RestartUpdater => {
-                                    self.service_updater.lock().register(s);
+                                    self.service_updater.lock().register(service);
                                 }
                             }
                         }
@@ -1710,7 +1858,7 @@ impl Manager {
     fn compute_service_operations_msr(&mut self) -> Vec<ServiceOperation> {
         // First, figure out what's currently running.
         let service_map = self.state.services.lock_msr();
-        let currently_running_specs = service_map.services().map(Service::spec);
+        let currently_running_specs = service_map.running_services().map(Service::spec);
 
         // Now, figure out what we should compare against, ignoring
         // any services that are currently doing something
@@ -1784,7 +1932,7 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `ManagerServices::inner` (write)
     fn update_running_services_from_user_config_watcher_msw(&mut self) {
-        for service in self.state.services.lock_msw().services() {
+        for service in self.state.services.lock_msw().running_services() {
             if self.user_config_watcher.have_events_for(service) {
                 outputln!("user.toml changes detected for {}", &service.spec_ident());
                 service.user_config_updated = true;
@@ -1938,6 +2086,7 @@ mod test {
             ManagerConfig { auto_update:                false,
                             auto_update_period:         Duration::from_secs(60),
                             service_update_period:      Duration::from_secs(60),
+                            service_restart_config:     ServiceRestartConfig::default(),
                             custom_state_path:          None,
                             key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                             update_url:                 "".to_string(),

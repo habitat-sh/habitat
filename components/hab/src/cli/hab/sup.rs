@@ -232,6 +232,18 @@ pub struct SupRun {
     /// The period of time in seconds between service update checks
     #[structopt(long = "service-update-period", default_value = "60")]
     pub service_update_period: DurationProxy,
+    /// The minimum period of time in seconds to wait before attempting to restart a service
+    /// that failed to start up
+    #[structopt(long = "service-min-backoff-period", default_value = "0")]
+    pub service_min_backoff_period: DurationProxy,
+    /// The maximum period of time in seconds to wait before attempting to restart a service
+    /// that failed to start up
+    #[structopt(long = "service-max-backoff-period", default_value = "0")]
+    pub service_max_backoff_period: DurationProxy,
+    /// The period of time in seconds to wait before assuming that a service started up
+    /// successfully after a restart
+    #[structopt(long = "service-restart-cooldown-period", default_value = "300")]
+    pub service_restart_cooldown_period: DurationProxy,
     /// The private key for HTTP Gateway TLS encryption
     ///
     /// Read the private key from KEY_FILE. This should be an RSA private key or PKCS8-encoded

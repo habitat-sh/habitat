@@ -55,6 +55,7 @@ use std::{convert::TryInto,
                 Ipv4Addr},
           process,
           str::{self}};
+use sup::manager::ServiceRestartConfig;
 use tokio::{self,
             runtime::Builder as RuntimeBuilder};
 
@@ -284,6 +285,11 @@ async fn split_apart_sup_run(sup_run: SupRun,
         ManagerConfig { auto_update: sup_run.auto_update,
                         auto_update_period: sup_run.auto_update_period.into(),
                         service_update_period: sup_run.service_update_period.into(),
+                        service_restart_config:
+                            ServiceRestartConfig::new(sup_run.service_min_backoff_period.into(),
+                                                      sup_run.service_max_backoff_period.into(),
+                                                      sup_run.service_restart_cooldown_period
+                                                             .into()),
                         custom_state_path: None, // remove entirely?
                         key_cache,
                         update_url: bldr_url.clone(),
@@ -451,6 +457,7 @@ mod test {
                   path::PathBuf,
                   str::FromStr,
                   time::Duration};
+        use sup::manager::ServiceRestartConfig;
 
         locked_env_var!(HAB_CACHE_KEY_PATH, lock_var);
 
@@ -718,6 +725,7 @@ gpoVMSncu2jMIDZX63IkQII=
             assert_eq!(ManagerConfig { auto_update:                false,
                                        auto_update_period:         Duration::from_secs(60),
                                        service_update_period:      Duration::from_secs(60),
+                                       service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
@@ -791,6 +799,7 @@ gpoVMSncu2jMIDZX63IkQII=
             assert_eq!(ManagerConfig { auto_update: true,
                                        auto_update_period: Duration::from_secs(90),
                                        service_update_period: Duration::from_secs(30),
+                                       service_restart_config: ServiceRestartConfig::default(),
                                        custom_state_path: None,
                                        key_cache: KeyCache::new(temp_dir_str),
                                        update_url: String::from("https://bldr.habitat.sh"),
@@ -832,6 +841,7 @@ gpoVMSncu2jMIDZX63IkQII=
             assert_eq!(ManagerConfig { auto_update:                false,
                                        auto_update_period:         Duration::from_secs(60),
                                        service_update_period:      Duration::from_secs(60),
+                                       service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new("/cache/key/path"),
                                        update_url:
@@ -870,6 +880,7 @@ gpoVMSncu2jMIDZX63IkQII=
             assert_eq!(ManagerConfig { auto_update:                false,
                                        auto_update_period:         Duration::from_secs(60),
                                        service_update_period:      Duration::from_secs(60),
+                                       service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
@@ -940,6 +951,7 @@ gpoVMSncu2jMIDZX63IkQII=
             assert_eq!(ManagerConfig { auto_update:          false,
                                        auto_update_period:   Duration::from_secs(60),
                                        service_update_period:   Duration::from_secs(60),
+                                       service_restart_config: ServiceRestartConfig::default(),
                                        custom_state_path:    None,
                                        key_cache:       KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
@@ -1120,6 +1132,7 @@ sys_ip_address = "7.8.9.0"
             assert_eq!(ManagerConfig { auto_update: true,
                                        auto_update_period: Duration::from_secs(3600),
                                        service_update_period: Duration::from_secs(1_000),
+                                       service_restart_config: ServiceRestartConfig::default(),
                                        custom_state_path: None,
                                        key_cache: KeyCache::new(temp_dir_str),
                                        update_url: String::from("https://bldr.habitat.sh"),
@@ -1170,6 +1183,7 @@ sys_ip_address = "7.8.9.0"
             assert_eq!(ManagerConfig { auto_update:                false,
                                        auto_update_period:         Duration::from_secs(60),
                                        service_update_period:      Duration::from_secs(60),
+                                       service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new("/cache/key/path"),
                                        update_url:
@@ -1217,6 +1231,7 @@ sys_ip_address = "7.8.9.0"
             assert_eq!(ManagerConfig { auto_update:                false,
                                        auto_update_period:         Duration::from_secs(60),
                                        service_update_period:      Duration::from_secs(60),
+                                       service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
@@ -1322,8 +1337,9 @@ event_stream_server_certificate = "{}"
             meta.insert(String::from("key2"), String::from("val2"));
             meta.insert(String::from("keyA"), String::from("valA"));
             assert_eq!(ManagerConfig { auto_update:          false,
-                auto_update_period:   Duration::from_secs(60),
-                service_update_period:   Duration::from_secs(60),
+                                       auto_update_period:   Duration::from_secs(60),
+                                       service_update_period:   Duration::from_secs(60),
+                                       service_restart_config: ServiceRestartConfig::default(),
                                        custom_state_path:    None,
                                        key_cache:       KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
@@ -1510,6 +1526,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
             assert_eq!(ManagerConfig { auto_update:                false,
                                        auto_update_period:         Duration::from_secs(60),
                                        service_update_period:      Duration::from_secs(60),
+                                       service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:

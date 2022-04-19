@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "$(date): Executing Health Check Hook with templated value: {{cfg.health_check_templated_value}}"
+EXIT_CODE='{{#if cfg.health_check_exit_code}}{{cfg.health_check_exit_code}}{{else}}0{{/if}}'
+exit "$EXIT_CODE"

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "$(date): Executing Post Stop Hook with templated value: {{cfg.post_stop_templated_value}}"
+EXIT_CODE='{{#if cfg.post_stop_exit_code}}{{cfg.post_stop_exit_code}}{{else}}0{{/if}}'
+exit "$EXIT_CODE"

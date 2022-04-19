@@ -534,6 +534,8 @@ impl HookCompileTable {
 
     pub fn reconfigure_changed(&self) -> bool { self.reconfigure }
 
+    pub fn init_changed(&self) -> bool { self.init }
+
     pub fn run_changed(&self) -> bool { self.run }
 
     pub fn post_run_changed(&self) -> bool { self.post_run }

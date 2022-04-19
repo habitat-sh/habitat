@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "$(date): Executing File Updated Hook with templated value: {{cfg.file_updated_templated_value}}"
+EXIT_CODE='{{#if cfg.file_updated_exit_code}}{{cfg.file_updated_exit_code}}{{else}}0{{/if}}'
+exit "$EXIT_CODE"

@@ -321,7 +321,9 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 }
             }
         }
-        Err(e @ ConfigOptError::ConfigGenerated(_)) => e.exit(),
+        Err(e @ ConfigOptError::ConfigGenerated(_) | e @ ConfigOptError::ConfigFile(..)) => {
+            e.exit()
+        }
         Err(_) => {
             // Completely ignore all other errors. They will be caught by the CLI parsing logic
             // below.

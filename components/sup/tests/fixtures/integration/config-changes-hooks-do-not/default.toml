@@ -1,3 +1,0 @@
-# Only change the value of `config_value` in the tests... that's what the test is based on!
-config_value = "default"
-hook_value = "default"
