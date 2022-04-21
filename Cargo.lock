@@ -521,7 +521,7 @@ dependencies = [
  "lazy_static 1.4.0",
  "serde",
  "structopt",
- "toml 0.5.8",
+ "toml 0.5.9",
 ]
 
 [[package]]
@@ -1179,7 +1179,7 @@ dependencies = [
  "termcolor",
  "thiserror",
  "tokio",
- "toml 0.5.8",
+ "toml 0.5.9",
  "url",
  "uuid 0.8.2",
  "walkdir",
@@ -1278,7 +1278,7 @@ dependencies = [
  "tempfile",
  "tokio",
  "tokio-util",
- "toml 0.5.8",
+ "toml 0.5.9",
 ]
 
 [[package]]
@@ -1330,7 +1330,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "threadpool",
- "toml 0.5.8",
+ "toml 0.5.9",
  "uuid 0.8.2",
  "winapi 0.3.9",
  "zmq",
@@ -1372,7 +1372,7 @@ dependencies = [
  "termcolor",
  "thiserror",
  "tokio",
- "toml 0.5.8",
+ "toml 0.5.9",
  "uuid 0.8.2",
  "valico",
  "winapi 0.3.9",
@@ -1420,7 +1420,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-rustls",
- "toml 0.5.8",
+ "toml 0.5.9",
  "typemap",
  "url",
  "webpki 0.22.0",
@@ -1535,7 +1535,7 @@ dependencies = [
  "log 0.4.16",
  "log4rs",
  "mio 0.7.13",
- "nix 0.20.0",
+ "nix 0.23.1",
  "notify",
  "num_cpus",
  "parking_lot 0.12.0",
@@ -1563,7 +1563,7 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tokio-util",
- "toml 0.5.8",
+ "toml 0.5.9",
  "url",
  "uuid 0.8.2",
  "valico",
@@ -3740,7 +3740,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
- "toml 0.5.8",
+ "toml 0.5.9",
 ]
 
 [[package]]
@@ -3963,9 +3963,9 @@ checksum = "736b60249cb25337bc196faa43ee12c705e426f3d55c214d73a4e7be06f92cb4"
 
 [[package]]
 name = "toml"
-version = "0.5.8"
+version = "0.5.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a31142970826733df8241ef35dc040ef98c679ab14d7c3e54d827099b3acecaa"
+checksum = "8d82e1a7758622a465f8cee077614c73484dac5b836c02ff6a40d5d1010324d7"
 dependencies = [
  "indexmap",
  "serde",
