@@ -77,7 +77,7 @@ exit $rc
 File location: `<plan>/hooks/init`. This hook is run when a Chef Habitat topology starts. 
 
 {{< note >}}
-If the init hook fails with a non-zero exit code the service will be restarted with the [configured service backoff]({{< relref "service_restarts" >}}).
+If the init hook fails with a non-zero exit code, the service will be restarted with the [configured service backoff]({{< relref "service_restarts" >}}).
 {{< /note >}}
 
 ### install
