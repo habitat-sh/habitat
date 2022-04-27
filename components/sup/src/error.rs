@@ -58,7 +58,7 @@ pub enum Error {
     InvalidUpdateStrategy(String),
     Io(io::Error),
     TaskJoin(JoinError),
-    Launcher(habitat_launcher_client::Error),
+    LauncherIPCCommand(habitat_launcher_client::IPCCommandError),
     LockFileError(crate::lock_file::Error),
     MissingRequiredBind(Vec<String>),
     MissingRequiredIdent,
@@ -186,7 +186,10 @@ impl fmt::Display for Error {
             Error::InvalidUpdateStrategy(ref s) => format!("Invalid update strategy: {}", s),
             Error::Io(ref err) => err.to_string(),
             Error::TaskJoin(ref err) => err.to_string(),
-            Error::Launcher(ref err) => err.to_string(),
+            Error::LauncherIPCCommand(err) => {
+                format!("Supervisor failed to execute launcher command via IPC: {}",
+                        err)
+            }
             Error::MissingRequiredBind(ref e) => {
                 format!("Missing required bind(s), {}", e.join(", "))
             }
@@ -335,8 +338,10 @@ impl From<env::JoinPathsError> for Error {
     fn from(err: env::JoinPathsError) -> Error { Error::EnvJoinPathsError(err) }
 }
 
-impl From<habitat_launcher_client::Error> for Error {
-    fn from(err: habitat_launcher_client::Error) -> Error { Error::Launcher(err) }
+impl From<habitat_launcher_client::IPCCommandError> for Error {
+    fn from(err: habitat_launcher_client::IPCCommandError) -> Error {
+        Error::LauncherIPCCommand(err)
+    }
 }
 
 impl From<string::FromUtf8Error> for Error {

@@ -82,7 +82,8 @@ use habitat_core::{crypto::keys::{KeyCache,
                    service::ServiceGroup,
                    util::ToI64,
                    ChannelIdent};
-use habitat_launcher_client::LauncherCli;
+use habitat_launcher_client::{LauncherCli,
+                              LauncherStatus};
 use habitat_sup_protocol::{self};
 use parking_lot::{Mutex,
                   RwLock};
@@ -1185,8 +1186,19 @@ impl Manager {
             }
 
             let next_check = Instant::now() + Duration::from_secs(1);
-            if self.launcher.is_stopping() {
-                break ShutdownMode::Normal;
+            match self.launcher.launcher_status() {
+                LauncherStatus::Running => {}
+                LauncherStatus::Unknown => {
+                    error!("Supervisor was unable to determine run status of launcher")
+                }
+                LauncherStatus::GracefullyShutdown => {
+                    outputln!("Supervisor received shutdown signal from launcher");
+                    break ShutdownMode::Normal;
+                }
+                LauncherStatus::Shutdown => {
+                    outputln!("Supervisor shutting down due to launcher exit");
+                    break ShutdownMode::Normal;
+                }
             }
             if self.check_for_departure() {
                 break ShutdownMode::Departed;

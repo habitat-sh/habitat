@@ -69,17 +69,12 @@ pub struct Server {
     services:      ServiceTable,
     tx:            Sender,
     rx:            Receiver,
-    pipe:          String,
     supervisor:    Child,
     args:          Vec<String>,
 }
 
 impl Drop for Server {
-    fn drop(&mut self) {
-        fs::remove_file(&self.pid_file_path).ok();
-        #[cfg(not(windows))]
-        self.remove_pipe();
-    }
+    fn drop(&mut self) { fs::remove_file(&self.pid_file_path).ok(); }
 }
 
 impl Server {
@@ -90,12 +85,11 @@ impl Server {
         let mut pid_file = fs::File::create(&pid_file_path)?;
         write!(&mut pid_file, "{}", process::current_pid())?;
 
-        let ((rx, tx), supervisor, pipe) = Self::init(&args)?;
+        let ((rx, tx), supervisor) = Self::init(&args)?;
         Ok(Server { pid_file_path,
                     services: ServiceTable::default(),
                     tx,
                     rx,
-                    pipe,
                     supervisor,
                     args })
     }
@@ -105,35 +99,21 @@ impl Server {
     /// Passing a value of true to the `clean` argument will force the Supervisor to clean the
     /// Launcher's process LOCK before starting. This is useful when restarting a Supervisor
     /// that terminated gracefully.
-    fn init(args: &[String]) -> Result<((Receiver, Sender), Child, String)> {
+    fn init(args: &[String]) -> Result<((Receiver, Sender), Child)> {
         let (server, pipe) = IpcOneShotServer::new().map_err(Error::OpenPipe)?;
         let supervisor = spawn_supervisor(&pipe, args)?;
         let ipc_channel = setup_connection(server)?;
-        Ok((ipc_channel, supervisor, pipe))
-    }
-
-    #[cfg(not(windows))]
-    fn remove_pipe(&self) {
-        if fs::remove_file(&self.pipe).is_err() {
-            error!("Could not remove old pipe to supervisor {}", self.pipe);
-        } else {
-            debug!("Removed old pipe to supervisor {}", self.pipe);
-        }
+        Ok((ipc_channel, supervisor))
     }
 
     #[allow(unused_must_use)]
     fn reload(&mut self) -> Result<()> {
         self.supervisor.kill();
         self.supervisor.wait();
-        let ((rx, tx), supervisor, pipe) = Self::init(&self.args)?;
+        let ((rx, tx), supervisor) = Self::init(&self.args)?;
         self.tx = tx;
         self.rx = rx;
         self.supervisor = supervisor;
-        // We're connecting to a new supervisor instance, so we need to remove
-        // the socket files for the old pipe to avoid https://github.com/habitat-sh/habitat/issues/4673
-        #[cfg(not(windows))]
-        self.remove_pipe();
-        self.pipe = pipe;
         Ok(())
     }
 
@@ -629,7 +609,7 @@ fn spawn_supervisor(pipe: &str, args: &[String]) -> Result<Child> {
 
     let mut command = Command::new(&binary);
 
-    debug!("Starting Supervisor {:?} with args {:?}, {}={}...",
+    debug!("Starting Supervisor {:?} with args {:?}, {}={}",
            binary,
            args,
            protocol::LAUNCHER_PIPE_ENV,
