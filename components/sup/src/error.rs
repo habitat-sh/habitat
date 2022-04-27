@@ -59,6 +59,7 @@ pub enum Error {
     Io(io::Error),
     TaskJoin(JoinError),
     LauncherIPCCommand(habitat_launcher_client::IPCCommandError),
+    LauncherTryIPCCommand(habitat_launcher_client::TryIPCCommandError),
     LockFileError(crate::lock_file::Error),
     MissingRequiredBind(Vec<String>),
     MissingRequiredIdent,
@@ -188,6 +189,10 @@ impl fmt::Display for Error {
             Error::TaskJoin(ref err) => err.to_string(),
             Error::LauncherIPCCommand(err) => {
                 format!("Supervisor failed to execute launcher command via IPC: {}",
+                        err)
+            }
+            Error::LauncherTryIPCCommand(err) => {
+                format!("Supervisor failed to try executing launcher command via IPC: {}",
                         err)
             }
             Error::MissingRequiredBind(ref e) => {

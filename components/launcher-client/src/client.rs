@@ -181,10 +181,11 @@ impl LauncherCli {
     /// Restart a running process with the same arguments
     pub fn restart(&self, pid: Pid) -> Result<Pid, IPCCommandError> {
         let msg = protocol::Restart { pid: pid.into() };
-        Self::send(&self.tx, &msg).map_err(|err| {
-                                      IPCCommandError::Send(String::from("restart"), err)
-                                  })?;
-        let reply = Self::recv::<protocol::SpawnOk>(&self.rx).map_err(|err| IPCCommandError::Receive(String::from("restart"), err))?;
+        Self::send(&self.tx, &msg).map_err(|err| IPCCommandError::Send("restart", err))?;
+        let reply = Self::recv::<protocol::SpawnOk>(&self.rx).map_err(|err| {
+                                                                 IPCCommandError::Receive("restart",
+                                                                                          err)
+                                                             })?;
         Ok(reply.pid as Pid)
     }
 
@@ -218,10 +219,11 @@ impl LauncherCli {
                                     env,
                                     id: id.to_string() };
 
-        Self::send(&self.tx, &msg).map_err(|err| {
-                                      IPCCommandError::Send(String::from("spawn"), err)
-                                  })?;
-        let reply = Self::recv::<protocol::SpawnOk>(&self.rx).map_err(|err| IPCCommandError::Receive(String::from("spawn"), err))?;
+        Self::send(&self.tx, &msg).map_err(|err| IPCCommandError::Send("spawn", err))?;
+        let reply = Self::recv::<protocol::SpawnOk>(&self.rx).map_err(|err| {
+                                                                 IPCCommandError::Receive("spawn",
+                                                                                          err)
+                                                             })?;
         if reply.pid == 0 {
             warn!(target: "pidfile_tracing", "Spawn operation for {} resulted in a spawned PID of 0, which \
                    should be impossible! (proceeding anyway)",
@@ -234,14 +236,12 @@ impl LauncherCli {
     /// Launcher is aware of it, you'll get `Ok(Some(Pid))`
     pub fn pid_of(&self, service_name: &str) -> Result<Option<Pid>, TryIPCCommandError> {
         let msg = protocol::PidOf { service_name: service_name.to_string(), };
-        Self::send(&self.tx, &msg).map_err(|err| {
-                                      TryIPCCommandError::Send(String::from("pid_of"), err)
-                                  })?;
+        Self::send(&self.tx, &msg).map_err(|err| TryIPCCommandError::Send("pid_of", err))?;
         // This should be a recv_timeout until pidfile-less
         // supervisors are the norm. We only expect to not receive a
         // response when dealing with older Launchers that didn't know
         // how to return PIDs.
-        let reply = Self::recv_timeout::<protocol::PidIs>(&self.rx, self.timeout).map_err(|err| TryIPCCommandError::TryReceive(String::from("pid_of"), err))?;
+        let reply = Self::recv_timeout::<protocol::PidIs>(&self.rx, self.timeout).map_err(|err| TryIPCCommandError::TryReceive("pid_of", err))?;
         // TODO (CM): really, we need to have all our protocol types
         // that use pids actually use a Pid type that's nonzero, with
         // lots of descriptive errors for failures.
@@ -255,22 +255,22 @@ impl LauncherCli {
     /// Launcher is aware of it, you'll get `Ok(u32)`
     pub fn version(&self) -> Result<u32, TryIPCCommandError> {
         let msg = protocol::Version {};
-        Self::send(&self.tx, &msg).map_err(|err| {
-                                      TryIPCCommandError::Send(String::from("version"), err)
-                                  })?;
+        Self::send(&self.tx, &msg).map_err(|err| TryIPCCommandError::Send("version", err))?;
 
         // We only expect to not receive a response when dealing with
         // older Launchers that didn't know how to return its version.
-        let reply = Self::recv_timeout::<protocol::VersionNumber>(&self.rx, self.timeout).map_err(|err| TryIPCCommandError::TryReceive(String::from("version"), err))?;
+        let reply = Self::recv_timeout::<protocol::VersionNumber>(&self.rx, self.timeout).map_err(|err| TryIPCCommandError::TryReceive("version", err))?;
         Ok(reply.version)
     }
 
     pub fn terminate(&self, pid: Pid) -> Result<i32, IPCCommandError> {
         let msg = protocol::Terminate { pid: pid.into() };
-        Self::send(&self.tx, &msg).map_err(|err| {
-                                      IPCCommandError::Send(String::from("terminate"), err)
-                                  })?;
-        let reply = Self::recv::<protocol::TerminateOk>(&self.rx).map_err(|err| IPCCommandError::Receive(String::from("terminate"), err))?;
+        Self::send(&self.tx, &msg).map_err(|err| IPCCommandError::Send("terminate", err))?;
+        let reply =
+            Self::recv::<protocol::TerminateOk>(&self.rx).map_err(|err| {
+                                                             IPCCommandError::Receive("terminate",
+                                                                                      err)
+                                                         })?;
         Ok(reply.exit_code)
     }
 }

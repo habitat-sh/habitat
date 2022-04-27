@@ -21,18 +21,18 @@ pub enum ConnectError {
 #[derive(Debug, Error)]
 pub enum IPCCommandError {
     #[error("Failed to send '{0}' command to launcher")]
-    Send(String, #[source] SendError),
+    Send(&'static str, #[source] SendError),
     #[error("Failed to receive '{0}' command response from launcher")]
-    Receive(String, #[source] ReceiveError),
+    Receive(&'static str, #[source] ReceiveError),
 }
 
 /// Errors that occur when trying to remotely executing a command on the Habitat Launcher
 #[derive(Debug, Error)]
 pub enum TryIPCCommandError {
     #[error("Failed to send '{0}' command to launcher")]
-    Send(String, #[source] SendError),
+    Send(&'static str, #[source] SendError),
     #[error("Failed to try receiving '{0}' command response from launcher")]
-    TryReceive(String, #[source] TryReceiveError),
+    TryReceive(&'static str, #[source] TryReceiveError),
 }
 
 /// Errors that occur when attempting to read an IPC response from the Habitat Launcher
