@@ -51,7 +51,7 @@ impl LauncherCli {
     pub fn connect(pipe_to_launcher: String) -> Result<Self, ConnectError> {
         // Estabish a connection to the launcher's IPC server
         debug!("LauncherCli::connect({})", pipe_to_launcher);
-        let tx = IpcSender::connect(pipe_to_launcher).map_err(ConnectError::LauncherUnavailable)?;
+        let tx = IpcSender::connect(pipe_to_launcher).map_err(ConnectError::LauncherUnreachable)?;
         // Start a IPC server to listen for responses from the launcher
         let (ipc_srv, pipe_to_sup) = IpcServer::new().map_err(ConnectError::IPCServerStartup)?;
         debug!("IpcServer::new() returned pipe_to_sup: {}", pipe_to_sup);

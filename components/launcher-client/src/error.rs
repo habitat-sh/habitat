@@ -6,7 +6,7 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum ConnectError {
     #[error("Failed to establish IPC connection to the launcher")]
-    LauncherUnavailable(#[source] io::Error),
+    LauncherUnreachable(#[source] io::Error),
     #[error("Failed to start IPC server to listen for responses from launcher")]
     IPCServerStartup(#[source] io::Error),
     #[error("Failed to accept incoming IPC connection from the launcher")]

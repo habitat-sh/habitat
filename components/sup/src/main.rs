@@ -105,7 +105,8 @@ fn main() {
 
 fn boot() -> Option<LauncherCli> {
     if crypto::init().is_err() {
-        println!("Crypto initialization failed!");
+        error!("Failed to initialization libsodium, make sure it is available in your runtime \
+                environment");
         process::exit(1);
     }
     match habitat_launcher_client::env_pipe() {
@@ -113,7 +114,8 @@ fn boot() -> Option<LauncherCli> {
             match LauncherCli::connect(pipe) {
                 Ok(launcher) => Some(launcher),
                 Err(err) => {
-                    println!("{}", err);
+                    error!("Failed to connect to launcher: {:?}",
+                           anyhow::Error::new(err));
                     process::exit(1);
                 }
             }

@@ -1198,6 +1198,7 @@ dependencies = [
 name = "habitat-launcher"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "env_logger",
  "habitat-launcher-protocol",
  "habitat_common",
@@ -1208,6 +1209,7 @@ dependencies = [
  "nix 0.23.1",
  "prost",
  "semver 1.0.7",
+ "thiserror",
  "winapi 0.3.9",
 ]
 

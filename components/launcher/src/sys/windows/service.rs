@@ -1,8 +1,8 @@
-use crate::{error::{Error,
-                    Result},
+use crate::{error::ServiceRunError,
             protocol::{self,
                        ShutdownMethod},
             service::Service};
+use anyhow::Result;
 use core::{os::{process::{handle_from_pid,
                           windows_child::{ExitStatus,
                                           Handle}},
@@ -114,7 +114,7 @@ impl Process {
     }
 }
 
-pub fn run(msg: protocol::Spawn) -> Result<Service> {
+pub fn run(msg: protocol::Spawn) -> Result<Service, ServiceRunError> {
     debug!("launcher is spawning {}", msg.binary);
     let ps_cmd = format!("iex $(gc {} | out-string)", &msg.binary);
     let password = msg.svc_password.clone();
@@ -142,7 +142,7 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
             username
         }
         None => {
-            return Err(Error::UserNotFound(String::from("")));
+            return Err(ServiceRunError::UserNotFound(String::from("")));
         }
     };
 
@@ -153,7 +153,7 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
             let process = Process::new(child.handle);
             Ok(Service::new(msg, process, child.stdout, child.stderr))
         }
-        Err(_) => Err(Error::Spawn(io::Error::last_os_error())),
+        Err(_) => Err(ServiceRunError::Spawn(io::Error::last_os_error())),
     }
 }
 

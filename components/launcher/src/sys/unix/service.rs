@@ -1,8 +1,8 @@
-use crate::{error::{Error,
-                    Result},
+use crate::{error::ServiceRunError,
             protocol::{self,
                        ShutdownMethod},
             service::Service};
+use anyhow::Result;
 use habitat_core::os::{self,
                        process::{exec,
                                  signal,
@@ -68,31 +68,41 @@ impl Process {
     pub fn wait(&mut self) -> io::Result<ExitStatus> { self.0.wait() }
 }
 
-pub fn run(msg: protocol::Spawn) -> Result<Service> {
+pub fn run(msg: protocol::Spawn) -> Result<Service, ServiceRunError> {
     debug!("launcher is spawning {}", msg.binary);
 
     // Favor explicitly set UID/GID over names when present
     let user_id = if let Some(suid) = msg.svc_user_id {
         suid
     } else if let Some(suser) = &msg.svc_user {
-        os::users::get_uid_by_name(suser)?.ok_or_else(|| Error::UserNotFound(suser.to_string()))?
+        os::users::get_uid_by_name(suser).map_err(|err| {
+                                             ServiceRunError::GetUid(suser.to_string(), err)
+                                         })?
+                                         .ok_or_else(|| {
+                                             ServiceRunError::UserNotFound(suser.to_string())
+                                         })?
     } else {
-        return Err(Error::UserNotFound(String::from("")));
+        return Err(ServiceRunError::UserNotFound(String::from("")));
     };
     let uid = Uid::from_raw(user_id);
 
     let group_id = if let Some(sgid) = msg.svc_group_id {
         sgid
     } else if let Some(sgroup) = &msg.svc_group {
-        os::users::get_gid_by_name(sgroup)?.ok_or_else(|| Error::GroupNotFound(sgroup.to_string()))?
+        os::users::get_gid_by_name(sgroup).map_err(|err| {
+                                              ServiceRunError::GetGid(sgroup.to_string(), err)
+                                          })?
+                                          .ok_or_else(|| {
+                                              ServiceRunError::GroupNotFound(sgroup.to_string())
+                                          })?
     } else {
-        return Err(Error::GroupNotFound(String::from("")));
+        return Err(ServiceRunError::GroupNotFound(String::from("")));
     };
     let gid = Gid::from_raw(group_id);
 
     let mut cmd = exec::unix::hook_command(&msg.binary, &msg.env, Some((uid, gid)));
 
-    let mut child = cmd.spawn().map_err(Error::Spawn)?;
+    let mut child = cmd.spawn().map_err(ServiceRunError::Spawn)?;
     let stdout = child.stdout.take();
     let stderr = child.stderr.take();
     let process = Process(child);

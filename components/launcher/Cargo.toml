@@ -20,6 +20,8 @@ libc = "*"
 log = "*"
 prost = "*"
 semver = "*"
+thiserror = "*"
+anyhow = { version = "*", features = ["backtrace"] }
 
 [target.'cfg(not(windows))'.dependencies]
 nix = "*"

@@ -20,11 +20,11 @@ use habitat_core::{fs,
                    os::process::{self,
                                  Pid},
                    service::ServiceGroup};
+use habitat_launcher_client::LauncherCli;
 #[cfg(windows)]
 use habitat_launcher_client::{IPCReadError,
                               TryIPCCommandError,
                               TryReceiveError};
-use habitat_launcher_client::LauncherCli;
 #[cfg(windows)]
 use habitat_launcher_protocol as protocol;
 use serde::{ser::SerializeStruct,
