@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.493 -->
-## [1.6.493](https://github.com/habitat-sh/habitat/tree/1.6.493) (2022-04-21)
+<!-- latest_release 1.6.494 -->
+## [1.6.494](https://github.com/habitat-sh/habitat/tree/1.6.494) (2022-04-29)
 
 #### Merged Pull Requests
-- Bump toml from 0.5.8 to 0.5.9 [#8488](https://github.com/habitat-sh/habitat/pull/8488) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Docs updates reflecting hook retry/backoff changes [#8490](https://github.com/habitat-sh/habitat/pull/8490) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.477 -->
 ### Changes since 1.6.477 release
 
 #### Merged Pull Requests
+- Docs updates reflecting hook retry/backoff changes [#8490](https://github.com/habitat-sh/habitat/pull/8490) ([mwrock](https://github.com/mwrock)) <!-- 1.6.494 -->
 - Bump toml from 0.5.8 to 0.5.9 [#8488](https://github.com/habitat-sh/habitat/pull/8488) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.493 -->
 - Bump libc from 0.2.123 to 0.2.124 [#8489](https://github.com/habitat-sh/habitat/pull/8489) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.492 -->
 - Implement advanced behavior for init and run hooks [#8454](https://github.com/habitat-sh/habitat/pull/8454) ([atrniv](https://github.com/atrniv)) <!-- 1.6.491 -->
