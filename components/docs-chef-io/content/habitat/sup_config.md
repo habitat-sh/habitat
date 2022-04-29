@@ -186,9 +186,11 @@ service_min_backoff_period = 10
 service_max_backoff_period = 180
 
 ### The duration of time in seconds to wait before resetting the current backoff duration to the 'service_min_backoff_period'.
-### This is important to ensure the supervisor does not mistake a slow start with a service failure.
+### This is important because it ensures that the supervisor handles potential failures during restart correctly.
+### If the cooldown period is not long enough, a slow service may still be restarting after the cooldown period has passed.
+### If a service fails during restart but after the cooldown period has passed, the service will not backoff correctly before the following restart.
 ###
-### The default value if this config is absent is 300 seconds
+### The default value if this config is absent is 300 seconds.
 service_restart_cooldown_period = 300
 
 ### One or more service groups to bind to a configuration
