@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.494 -->
-## [1.6.494](https://github.com/habitat-sh/habitat/tree/1.6.494) (2022-04-29)
+<!-- latest_release 1.6.495 -->
+## [1.6.495](https://github.com/habitat-sh/habitat/tree/1.6.495) (2022-04-29)
 
 #### Merged Pull Requests
-- Docs updates reflecting hook retry/backoff changes [#8490](https://github.com/habitat-sh/habitat/pull/8490) ([mwrock](https://github.com/mwrock))
+- add documentation for updating a supervisor [#8493](https://github.com/habitat-sh/habitat/pull/8493) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.477 -->
 ### Changes since 1.6.477 release
 
 #### Merged Pull Requests
+- add documentation for updating a supervisor [#8493](https://github.com/habitat-sh/habitat/pull/8493) ([mwrock](https://github.com/mwrock)) <!-- 1.6.495 -->
 - Docs updates reflecting hook retry/backoff changes [#8490](https://github.com/habitat-sh/habitat/pull/8490) ([mwrock](https://github.com/mwrock)) <!-- 1.6.494 -->
 - Bump toml from 0.5.8 to 0.5.9 [#8488](https://github.com/habitat-sh/habitat/pull/8488) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.493 -->
 - Bump libc from 0.2.123 to 0.2.124 [#8489](https://github.com/habitat-sh/habitat/pull/8489) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.492 -->
