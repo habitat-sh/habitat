@@ -30,14 +30,14 @@ use semver::{Version,
              VersionReq};
 #[cfg(unix)]
 use std::{cmp::Ordering,
-          os::unix::process::ExitStatusExt,
-          process::ExitStatus};
+          os::unix::process::ExitStatusExt};
 use std::{collections::HashMap,
           fs,
           io::Write,
           path::PathBuf,
           process::{Child,
                     Command,
+                    ExitStatus,
                     Stdio},
           str::FromStr,
           sync::{Arc,
@@ -183,17 +183,27 @@ impl Server {
                             exit_code))
             }
             None => {
-                match status.signal() {
-                    Some(signal) => {
-                        outputln!("Supervisor process killed by signal {}; shutting everything \
-                                   down now",
-                                  signal);
-                        self.services.kill_all();
-                        Ok(TickState::Exit(0))
+                #[cfg(unix)]
+                {
+                    match status.signal() {
+                        Some(signal) => {
+                            outputln!("Supervisor process killed by signal {}; shutting \
+                                       everything down now",
+                                      signal);
+                            self.services.kill_all();
+                            Ok(TickState::Exit(0))
+                        }
+                        None => {
+                            Err(anyhow!("Supervisor process was terminated in some unknown manner"))
+                        }
                     }
-                    None => {
-                        Err(anyhow!("Supervisor process was terminated in some unknown manner"))
-                    }
+                }
+                // This branch is essentially unreachable as the underlying ExitStatus
+                // implementation for windows will always return some error code.
+                #[cfg(not(unix))]
+                {
+                    self.services.kill_all();
+                    Ok(TickState::Exit(0))
                 }
             }
         }

@@ -132,7 +132,9 @@ pub fn run(msg: protocol::Spawn) -> Result<Service, ServiceRunError> {
             // remove this when we are confident everyone is on a recent supervisor
             // and launcher.
             let mut username = u.to_string();
-            if get_current_username()? == Some("system".to_string()) {
+            if get_current_username().map_err(ServiceRunError::GetCurrentUsername)?
+               == Some("system".to_string())
+            {
                 if let Ok(cn) = env::var("COMPUTERNAME") {
                     if u == &(cn.to_lowercase() + "$") {
                         username = "system".to_string();
