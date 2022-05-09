@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.498 -->
-## [1.6.498](https://github.com/habitat-sh/habitat/tree/1.6.498) (2022-05-03)
+<!-- latest_release 1.6.499 -->
+## [1.6.499](https://github.com/habitat-sh/habitat/tree/1.6.499) (2022-05-09)
 
 #### Merged Pull Requests
-- Bump prost from 0.10.0 to 0.10.1 [#8486](https://github.com/habitat-sh/habitat/pull/8486) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- chore: Included githubactions in the dependabot config [#8499](https://github.com/habitat-sh/habitat/pull/8499) ([naveensrinivasan](https://github.com/naveensrinivasan))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.477 -->
 ### Changes since 1.6.477 release
 
 #### Merged Pull Requests
+- chore: Included githubactions in the dependabot config [#8499](https://github.com/habitat-sh/habitat/pull/8499) ([naveensrinivasan](https://github.com/naveensrinivasan)) <!-- 1.6.499 -->
 - Bump prost from 0.10.0 to 0.10.1 [#8486](https://github.com/habitat-sh/habitat/pull/8486) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.498 -->
 - Bump prost-types from 0.10.0 to 0.10.1 [#8487](https://github.com/habitat-sh/habitat/pull/8487) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.497 -->
 - Update Hugo docs build script [#8495](https://github.com/habitat-sh/habitat/pull/8495) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.496 -->
