@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.499 -->
-## [1.6.499](https://github.com/habitat-sh/habitat/tree/1.6.499) (2022-05-09)
+<!-- latest_release 1.6.500 -->
+## [1.6.500](https://github.com/habitat-sh/habitat/tree/1.6.500) (2022-05-09)
 
 #### Merged Pull Requests
-- chore: Included githubactions in the dependabot config [#8499](https://github.com/habitat-sh/habitat/pull/8499) ([naveensrinivasan](https://github.com/naveensrinivasan))
+- temp fix for multi e2e failures [#8500](https://github.com/habitat-sh/habitat/pull/8500) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.477 -->
 ### Changes since 1.6.477 release
 
 #### Merged Pull Requests
+- temp fix for multi e2e failures [#8500](https://github.com/habitat-sh/habitat/pull/8500) ([mwrock](https://github.com/mwrock)) <!-- 1.6.500 -->
 - chore: Included githubactions in the dependabot config [#8499](https://github.com/habitat-sh/habitat/pull/8499) ([naveensrinivasan](https://github.com/naveensrinivasan)) <!-- 1.6.499 -->
 - Bump prost from 0.10.0 to 0.10.1 [#8486](https://github.com/habitat-sh/habitat/pull/8486) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.498 -->
 - Bump prost-types from 0.10.0 to 0.10.1 [#8487](https://github.com/habitat-sh/habitat/pull/8487) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.497 -->
