@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu@sha256:9101220a875cee98b016668342c489ff0674f247f6ca20dfc91b91c0f28581ae
 
 # Channel from which to install Habitat-related packages
 ARG CHANNEL=stable
