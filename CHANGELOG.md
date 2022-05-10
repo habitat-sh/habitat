@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.504 -->
-## [1.6.504](https://github.com/habitat-sh/habitat/tree/1.6.504) (2022-05-10)
+<!-- latest_release 1.6.505 -->
+## [1.6.505](https://github.com/habitat-sh/habitat/tree/1.6.505) (2022-05-10)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.124 to 0.2.125 [#8505](https://github.com/habitat-sh/habitat/pull/8505) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump semver from 1.0.7 to 1.0.9 [#8507](https://github.com/habitat-sh/habitat/pull/8507) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.500 -->
 ### Changes since 1.6.500 release
 
 #### Merged Pull Requests
+- Bump semver from 1.0.7 to 1.0.9 [#8507](https://github.com/habitat-sh/habitat/pull/8507) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.505 -->
+- Bump httparse from 1.7.0 to 1.7.1 [#8508](https://github.com/habitat-sh/habitat/pull/8508) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.505 -->
+- Bump serde_yaml from 0.8.23 to 0.8.24 [#8506](https://github.com/habitat-sh/habitat/pull/8506) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.505 -->
 - Bump libc from 0.2.124 to 0.2.125 [#8505](https://github.com/habitat-sh/habitat/pull/8505) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.504 -->
 - Bump prost-derive from 0.10.0 to 0.10.1 [#8485](https://github.com/habitat-sh/habitat/pull/8485) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.504 -->
 - Bump serde_test from 1.0.136 to 1.0.137 [#8497](https://github.com/habitat-sh/habitat/pull/8497) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.504 -->
