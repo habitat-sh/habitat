@@ -180,7 +180,7 @@ mod tests {
                 let parsed_key: $t = key_string.parse().unwrap();
                 assert_eq!($key, parsed_key,
                            "Expected to generate the same key from its string representation, \
-                but didn't!");
+                            but didn't!");
             };
         }
 
