@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.503 -->
-## [1.6.503](https://github.com/habitat-sh/habitat/tree/1.6.503) (2022-05-10)
+<!-- latest_release 1.6.504 -->
+## [1.6.504](https://github.com/habitat-sh/habitat/tree/1.6.504) (2022-05-10)
 
 #### Merged Pull Requests
-- Bump thiserror from 1.0.30 to 1.0.31 [#8496](https://github.com/habitat-sh/habitat/pull/8496) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump libc from 0.2.124 to 0.2.125 [#8505](https://github.com/habitat-sh/habitat/pull/8505) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.500 -->
 ### Changes since 1.6.500 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.124 to 0.2.125 [#8505](https://github.com/habitat-sh/habitat/pull/8505) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.504 -->
+- Bump prost-derive from 0.10.0 to 0.10.1 [#8485](https://github.com/habitat-sh/habitat/pull/8485) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.504 -->
+- Bump serde_test from 1.0.136 to 1.0.137 [#8497](https://github.com/habitat-sh/habitat/pull/8497) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.504 -->
+- Update rust-zmq to 0.9.2 [#8498](https://github.com/habitat-sh/habitat/pull/8498) ([atrniv](https://github.com/atrniv)) <!-- 1.6.504 -->
+- Bump serde_json from 1.0.79 to 1.0.81 [#8504](https://github.com/habitat-sh/habitat/pull/8504) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.504 -->
 - Bump thiserror from 1.0.30 to 1.0.31 [#8496](https://github.com/habitat-sh/habitat/pull/8496) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.503 -->
 - Rustfmt and Nightly Rust Bump to nightly-2022-05-10 [#8502](https://github.com/habitat-sh/habitat/pull/8502) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.502 -->
 - update changelog [#8503](https://github.com/habitat-sh/habitat/pull/8503) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.501 -->
