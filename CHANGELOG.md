@@ -1,14 +1,15 @@
 # Habitat CHANGELOG
 
 <!-- latest_release 1.6.500 -->
-## [1.6.500](https://github.com/habitat-sh/habitat/tree/1.6.500) (2022-05-09)
 
-#### Merged Pull Requests
-- temp fix for multi e2e failures [#8500](https://github.com/habitat-sh/habitat/pull/8500) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.477 -->
-### Changes since 1.6.477 release
+<!-- release_rollup since=1.6.500 -->
+### Changes since 1.6.500 release
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.500 -->
+## [1.6.500](https://github.com/habitat-sh/habitat/tree/1.6.500) (2022-05-09)
 
 #### Merged Pull Requests
 - temp fix for multi e2e failures [#8500](https://github.com/habitat-sh/habitat/pull/8500) ([mwrock](https://github.com/mwrock)) <!-- 1.6.500 -->
@@ -36,9 +37,7 @@
 - Bump semver from 1.0.6 to 1.0.7 [#8473](https://github.com/habitat-sh/habitat/pull/8473) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.480 -->
 - Bump async-trait from 0.1.52 to 0.1.53 [#8471](https://github.com/habitat-sh/habitat/pull/8471) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.479 -->
 - update changelog [#8469](https://github.com/habitat-sh/habitat/pull/8469) ([atrniv](https://github.com/atrniv)) <!-- 1.6.478 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release 1.6.477 -->
 ## [1.6.477](https://github.com/habitat-sh/habitat/tree/1.6.477) (2022-03-21)
 
 #### Merged Pull Requests
