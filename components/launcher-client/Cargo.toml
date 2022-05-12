@@ -11,7 +11,7 @@ env_logger = "*"
 habitat_core = { path = "../core" }
 habitat-launcher-protocol = { path = "../launcher-protocol" }
 habitat_common = { path = "../common" }
-ipc-channel = { version = "0.16.0" }
+ipc-channel = { version = "*" }
 libc = "*"
 log = "*"
 prost = "*"
