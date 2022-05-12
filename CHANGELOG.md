@@ -1,16 +1,43 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.493 -->
-## [1.6.493](https://github.com/habitat-sh/habitat/tree/1.6.493) (2022-04-21)
+<!-- latest_release 1.6.507 -->
+## [1.6.507](https://github.com/habitat-sh/habitat/tree/1.6.507) (2022-05-11)
 
 #### Merged Pull Requests
-- Bump toml from 0.5.8 to 0.5.9 [#8488](https://github.com/habitat-sh/habitat/pull/8488) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump nix from 0.23.1 to 0.24.1 [#8509](https://github.com/habitat-sh/habitat/pull/8509) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.477 -->
-### Changes since 1.6.477 release
+<!-- release_rollup since=1.6.500 -->
+### Changes since 1.6.500 release
 
 #### Merged Pull Requests
+- Bump nix from 0.23.1 to 0.24.1 [#8509](https://github.com/habitat-sh/habitat/pull/8509) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.507 -->
+- Bump prost from 0.10.1 to 0.10.3 [#8510](https://github.com/habitat-sh/habitat/pull/8510) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.507 -->
+- Bump serde from 1.0.136 to 1.0.137 [#8511](https://github.com/habitat-sh/habitat/pull/8511) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.506 -->
+- Bump semver from 1.0.7 to 1.0.9 [#8507](https://github.com/habitat-sh/habitat/pull/8507) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.505 -->
+- Bump httparse from 1.7.0 to 1.7.1 [#8508](https://github.com/habitat-sh/habitat/pull/8508) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.505 -->
+- Bump serde_yaml from 0.8.23 to 0.8.24 [#8506](https://github.com/habitat-sh/habitat/pull/8506) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.505 -->
+- Bump libc from 0.2.124 to 0.2.125 [#8505](https://github.com/habitat-sh/habitat/pull/8505) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.504 -->
+- Bump prost-derive from 0.10.0 to 0.10.1 [#8485](https://github.com/habitat-sh/habitat/pull/8485) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.504 -->
+- Bump serde_test from 1.0.136 to 1.0.137 [#8497](https://github.com/habitat-sh/habitat/pull/8497) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.504 -->
+- Update rust-zmq to 0.9.2 [#8498](https://github.com/habitat-sh/habitat/pull/8498) ([atrniv](https://github.com/atrniv)) <!-- 1.6.504 -->
+- Bump serde_json from 1.0.79 to 1.0.81 [#8504](https://github.com/habitat-sh/habitat/pull/8504) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.504 -->
+- Bump thiserror from 1.0.30 to 1.0.31 [#8496](https://github.com/habitat-sh/habitat/pull/8496) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.503 -->
+- Rustfmt and Nightly Rust Bump to nightly-2022-05-10 [#8502](https://github.com/habitat-sh/habitat/pull/8502) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.502 -->
+- update changelog [#8503](https://github.com/habitat-sh/habitat/pull/8503) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.501 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.500 -->
+## [1.6.500](https://github.com/habitat-sh/habitat/tree/1.6.500) (2022-05-09)
+
+#### Merged Pull Requests
+- temp fix for multi e2e failures [#8500](https://github.com/habitat-sh/habitat/pull/8500) ([mwrock](https://github.com/mwrock)) <!-- 1.6.500 -->
+- chore: Included githubactions in the dependabot config [#8499](https://github.com/habitat-sh/habitat/pull/8499) ([naveensrinivasan](https://github.com/naveensrinivasan)) <!-- 1.6.499 -->
+- Bump prost from 0.10.0 to 0.10.1 [#8486](https://github.com/habitat-sh/habitat/pull/8486) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.498 -->
+- Bump prost-types from 0.10.0 to 0.10.1 [#8487](https://github.com/habitat-sh/habitat/pull/8487) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.497 -->
+- Update Hugo docs build script [#8495](https://github.com/habitat-sh/habitat/pull/8495) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.496 -->
+- add documentation for updating a supervisor [#8493](https://github.com/habitat-sh/habitat/pull/8493) ([mwrock](https://github.com/mwrock)) <!-- 1.6.495 -->
+- Docs updates reflecting hook retry/backoff changes [#8490](https://github.com/habitat-sh/habitat/pull/8490) ([mwrock](https://github.com/mwrock)) <!-- 1.6.494 -->
 - Bump toml from 0.5.8 to 0.5.9 [#8488](https://github.com/habitat-sh/habitat/pull/8488) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.493 -->
 - Bump libc from 0.2.123 to 0.2.124 [#8489](https://github.com/habitat-sh/habitat/pull/8489) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.492 -->
 - Implement advanced behavior for init and run hooks [#8454](https://github.com/habitat-sh/habitat/pull/8454) ([atrniv](https://github.com/atrniv)) <!-- 1.6.491 -->
@@ -29,9 +56,7 @@
 - Bump semver from 1.0.6 to 1.0.7 [#8473](https://github.com/habitat-sh/habitat/pull/8473) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.480 -->
 - Bump async-trait from 0.1.52 to 0.1.53 [#8471](https://github.com/habitat-sh/habitat/pull/8471) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.479 -->
 - update changelog [#8469](https://github.com/habitat-sh/habitat/pull/8469) ([atrniv](https://github.com/atrniv)) <!-- 1.6.478 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release 1.6.477 -->
 ## [1.6.477](https://github.com/habitat-sh/habitat/tree/1.6.477) (2022-03-21)
 
 #### Merged Pull Requests

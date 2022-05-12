@@ -17,7 +17,7 @@ const VERSION_TAG_TEMPLATE: &str = "{{pkg_version}}";
 macro_rules! safe {
     ($render_result:expr) => {
         $render_result.expect("We are in control of all inputs to this rendering, and thus the \
-                           result should always be safe to unwrap")
+                               result should always be safe to unwrap")
     };
 }
 
