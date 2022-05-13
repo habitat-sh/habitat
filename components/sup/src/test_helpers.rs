@@ -19,7 +19,7 @@ pub fn assert_valid(json_string: &str, schema: &str) {
         let pretty_json = serde_json::to_string_pretty(&serde_json::from_str::<serde_json::Value>(json_string).expect("JSON should \
                                                                                   parse if we \
                                                                                   get this far")).expect("JSON should serialize if we get this far");
-                                                 
+
         panic!(
                r#"
 JSON does not validate!
