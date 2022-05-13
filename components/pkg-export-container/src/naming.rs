@@ -217,9 +217,9 @@ impl Naming {
     fn render<S>(template: &str, context: &S) -> Result<String>
         where S: Serialize
     {
-        Ok(Handlebars::new().template_render(template, context)
-                            .map_err(|err| anyhow!("{}", err))
-                            .map(|s| s.to_lowercase())?)
+        Handlebars::new().template_render(template, context)
+                         .map_err(|err| anyhow!("{}", err))
+                         .map(|s| s.to_lowercase())
     }
 
     fn rendering_context(ident: &FullyQualifiedPackageIdent,
