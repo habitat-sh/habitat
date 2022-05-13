@@ -8,6 +8,8 @@ use crate::{accounts::{EtcGroupEntry,
             BUSYBOX_IDENT,
             CACERTS_IDENT,
             VERSION};
+#[cfg(not(windows))]
+use anyhow::anyhow;
 use anyhow::Result;
 use clap::{self,
            ArgMatches};
