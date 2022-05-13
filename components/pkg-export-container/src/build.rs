@@ -8,8 +8,7 @@ use crate::{accounts::{EtcGroupEntry,
             BUSYBOX_IDENT,
             CACERTS_IDENT,
             VERSION};
-use anyhow::{anyhow,
-             Result};
+use anyhow::Result;
 use clap::{self,
            ArgMatches};
 use hab::license;
