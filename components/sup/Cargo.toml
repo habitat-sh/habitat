@@ -85,7 +85,6 @@ winapi = { version = "*", features = ["namedpipeapi", "tlhelp32"] }
 [dev-dependencies]
 habitat_core = { path = "../core" }
 hyper = "*"
-json = "*"
 reqwest = { version = "*", features = ["json"] }
 
 [target.'cfg(not(windows))'.dev-dependencies]
