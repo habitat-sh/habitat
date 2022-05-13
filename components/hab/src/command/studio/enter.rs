@@ -155,6 +155,7 @@ mod inner {
                        package::{PackageIdent,
                                  PackageInstall},
                        users};
+    use log::debug;
     use std::{env,
               ffi::OsString,
               path::PathBuf,
