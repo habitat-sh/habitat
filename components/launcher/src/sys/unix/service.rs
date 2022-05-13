@@ -7,6 +7,7 @@ use habitat_core::os::{self,
                        process::{exec,
                                  signal,
                                  Signal}};
+use log::debug;
 use nix::unistd::{Gid,
                   Uid};
 use std::{io,

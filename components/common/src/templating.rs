@@ -17,6 +17,8 @@ use crate::{error::{Error,
 use handlebars::{Handlebars,
                  RenderError,
                  TemplateFileError};
+use lazy_static::lazy_static;
+use log::debug;
 use regex::Regex;
 use serde::Serialize;
 use std::{fmt,

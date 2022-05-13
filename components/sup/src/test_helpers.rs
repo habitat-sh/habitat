@@ -1,4 +1,4 @@
-use crate::json;
+use json;
 use std::{fs::File,
           io::Read,
           path::PathBuf};

@@ -2,6 +2,8 @@ use crate::{error::Error,
             util};
 use clap::ArgMatches;
 use native_tls::Certificate;
+use serde::{Deserialize,
+            Serialize};
 use std::{collections::HashMap,
           fmt,
           fs,

@@ -1,5 +1,5 @@
-use crate::{build::BasePkgIdents,
-            error::Result};
+use crate::build::BasePkgIdents;
+use anyhow::Result;
 use habitat_common::package_graph::PackageGraph;
 use habitat_core::package::{FullyQualifiedPackageIdent,
                             PackageIdent};

@@ -14,6 +14,7 @@ use crate::{error::{Error,
 use habitat_core::{crypto::keys::{KeyCache,
                                   SignedBox},
                    service::ServiceGroup};
+use serde::Serialize;
 use std::{cmp::Ordering,
           fmt,
           mem,

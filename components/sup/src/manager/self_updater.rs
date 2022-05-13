@@ -6,6 +6,9 @@ use habitat_common::command::package::install::InstallSource;
 use habitat_core::{package::{PackageIdent,
                              PackageInstall},
                    ChannelIdent};
+use log::{debug,
+          trace,
+          warn};
 use rand::Rng;
 use std::{borrow::Borrow,
           time::Duration};

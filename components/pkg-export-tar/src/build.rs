@@ -9,7 +9,6 @@ use crate::{common::{self,
                           UIWriter,
                           UI},
                      PROGRAM_NAME},
-            error::Result,
             hcore::{fs::{cache_artifact_path,
                          CACHE_ARTIFACT_PATH,
                          CACHE_KEY_PATH,
@@ -17,6 +16,8 @@ use crate::{common::{self,
                     package::PackageIdent,
                     ChannelIdent},
             rootfs};
+use anyhow::Result;
+use log::debug;
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
 #[cfg(windows)]

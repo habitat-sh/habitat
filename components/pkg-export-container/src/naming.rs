@@ -1,12 +1,13 @@
-use crate::{error::Result,
-            RegistryType};
+use crate::RegistryType;
+use anyhow::{anyhow,
+             Result};
 use clap::ArgMatches;
-use failure::SyncFailure;
 use habitat_core::{package::{FullyQualifiedPackageIdent,
                              Identifiable},
                    ChannelIdent};
 use handlebars::Handlebars;
 use serde::Serialize;
+use serde_json::json;
 
 const DEFAULT_IMAGE_NAME_TEMPLATE: &str = "{{pkg_origin}}/{{pkg_name}}";
 const VERSION_RELEASE_TAG_TEMPLATE: &str = "{{pkg_version}}-{{pkg_release}}";
@@ -217,7 +218,7 @@ impl Naming {
         where S: Serialize
     {
         Ok(Handlebars::new().template_render(template, context)
-                            .map_err(SyncFailure::new)
+                            .map_err(|err| anyhow!("{}", err))
                             .map(|s| s.to_lowercase())?)
     }
 

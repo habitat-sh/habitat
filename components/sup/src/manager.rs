@@ -85,9 +85,18 @@ use habitat_core::{crypto::keys::{KeyCache,
 use habitat_launcher_client::{LauncherCli,
                               LauncherStatus};
 use habitat_sup_protocol::{self};
+use lazy_static::lazy_static;
+use log::{debug,
+          error,
+          info,
+          trace,
+          warn};
 use parking_lot::{Mutex,
                   RwLock};
-use prometheus::{HistogramVec,
+use prometheus::{register_histogram_vec,
+                 register_int_gauge,
+                 register_int_gauge_vec,
+                 HistogramVec,
                  IntGauge,
                  IntGaugeVec};
 use rustls::{internal::pemfile,
@@ -97,6 +106,8 @@ use rustls::{internal::pemfile,
              PrivateKey,
              RootCertStore,
              ServerConfig};
+use serde::{Deserialize,
+            Serialize};
 use std::{collections::{HashMap,
                         HashSet},
           ffi::OsStr,
@@ -2024,7 +2035,9 @@ fn get_fd_count() -> std::io::Result<usize> {
     Ok(fs::read_dir(FD_DIR)?.count())
 }
 
-#[cfg(unix)]
+#[cfg(all(target_family = "unix",
+          target_arch = "x86_64",
+          not(target_os = "macos")))]
 fn track_memory_stats() {
     // We'd like to track some memory stats, but these stats are cached and only refreshed
     // when the epoch is advanced. We manually advance it here to ensure our stats are
@@ -2063,8 +2076,11 @@ fn track_memory_stats() {
                                                          .to_i64());
 }
 
-// This is a no-op on purpose because windows doesn't support jemalloc
-#[cfg(windows)]
+// This is a no-op on purpose because except for x86_64 unix platforms, jemalloc is not fully
+// supported
+#[cfg(not(all(target_family = "unix",
+              target_arch = "x86_64",
+              not(target_os = "macos"))))]
 fn track_memory_stats() {}
 
 #[cfg(test)]

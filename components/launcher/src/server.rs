@@ -26,6 +26,9 @@ use habitat_core::os::process::{Pid,
 use ipc_channel::ipc::{IpcOneShotServer,
                        IpcReceiver,
                        IpcSender};
+use log::{debug,
+          error,
+          warn};
 use semver::{Version,
              VersionReq};
 #[cfg(unix)]

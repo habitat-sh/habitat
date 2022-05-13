@@ -1,6 +1,6 @@
 //! Traps and notifies UNIX signals.
-
 use crate::os::process::SignalCode;
+use log::debug;
 use std::{io,
           mem,
           ptr,

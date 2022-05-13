@@ -2,17 +2,16 @@
 use crate::rootfs;
 use crate::{accounts::{EtcGroupEntry,
                        EtcPasswdEntry},
-            error::{Error,
-                    Result},
+            error::Error,
             graph::Graph,
             util,
             BUSYBOX_IDENT,
             CACERTS_IDENT,
             VERSION};
+use anyhow::{anyhow,
+             Result};
 use clap::{self,
            ArgMatches};
-#[cfg(unix)]
-use failure::SyncFailure;
 use hab::license;
 use habitat_common::{command::package::install::{InstallHookMode,
                                                  InstallMode,
@@ -35,6 +34,7 @@ use habitat_core::{env,
                              PackageInstall},
                    url::default_bldr_url,
                    ChannelIdent};
+use log::debug;
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
 #[cfg(windows)]
@@ -281,7 +281,7 @@ impl BuildSpec {
         let dst = util::bin_path();
         for pkg in user_pkgs.iter() {
             hab::command::pkg::binlink::binlink_all_in_pkg(ui, pkg.as_ref(), dst, rootfs, true)
-                .map_err(SyncFailure::new)?;
+                .map_err(|err| anyhow!("{}", err))?;
         }
         Ok(())
     }
@@ -297,9 +297,9 @@ impl BuildSpec {
                                                                 .as_ref(),
                                                        dst,
                                                        rootfs,
-                                                       true).map_err(SyncFailure::new)?;
+                                                       true).map_err(|err| anyhow!("{}", err))?;
         hab::command::pkg::binlink::start(ui, base_pkgs.hab.as_ref(), "hab", dst, rootfs, true)
-            .map_err(SyncFailure::new)?;
+            .map_err(|err| anyhow!("{}", err))?;
         Ok(())
     }
 

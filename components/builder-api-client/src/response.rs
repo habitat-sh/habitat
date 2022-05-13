@@ -1,8 +1,10 @@
 use crate::error::{Error,
                    Result};
+use log::debug;
 use reqwest::{header::AsHeaderName,
               Response,
               StatusCode};
+use serde::Deserialize;
 use std::fmt;
 
 #[derive(Clone, Deserialize)]

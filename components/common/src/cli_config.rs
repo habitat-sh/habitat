@@ -1,7 +1,6 @@
 //! This file is called `cli_config` and corresponds to the `cli.toml` file. However, it can be used
 //! for more than simply CLI configuration. If the opportunity arose it would be useful to rename
 //! this to convey that it is general configuration.
-
 use crate::types::ResolvedListenCtlAddr;
 use habitat_core::{fs::{am_i_root,
                         FS_ROOT_PATH},
@@ -9,8 +8,11 @@ use habitat_core::{fs::{am_i_root,
                    tls::rustls_wrapper::{CertificateChainCli,
                                          PrivateKeyCli,
                                          RootCertificateStoreCli}};
+use log::debug;
 use rustls::{ClientConfig as TlsClientConfig,
              TLSError};
+use serde::{Deserialize,
+            Serialize};
 use std::{fs,
           io,
           path::{Path,

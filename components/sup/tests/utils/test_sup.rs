@@ -27,6 +27,7 @@ use tokio::{net::{TcpListener,
 
 use super::{test_butterfly,
             test_helpers::assert_valid};
+use lazy_static::lazy_static;
 
 lazy_static! {
     /// Keep track of all TCP ports currently being used by TestSup

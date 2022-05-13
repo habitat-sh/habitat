@@ -1,3 +1,7 @@
+use log::{debug,
+          error,
+          trace,
+          warn};
 use parking_lot::Mutex;
 use std::{collections::HashMap,
           thread::{self,
@@ -276,6 +280,7 @@ fn threads_exited_with_error(statuses: &ThreadStatusMap) -> Vec<NameAndErrorExit
 #[cfg(test)]
 mod test {
     use super::*;
+    use lazy_static::lazy_static;
     use std::sync::{atomic::{AtomicBool,
                              Ordering},
                     Arc};

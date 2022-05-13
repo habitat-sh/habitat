@@ -2,6 +2,7 @@
 
 use habitat_core::package::target::{PackageTarget,
                                     AARCH64_DARWIN};
+use log::debug;
 use notify::{poll::PollWatcher,
              DebouncedEvent,
              RecommendedWatcher,

@@ -1,9 +1,9 @@
 //! Utility functions to standardize reading certificates
-
 use crate::{error::Result,
             fs::cache_ssl_path,
             package::{PackageIdent,
                       PackageInstall}};
+use log::debug;
 use native_tls::Certificate;
 use std::{fs,
           path::{Path,

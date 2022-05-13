@@ -822,28 +822,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9435d864e017c3c6afeac1654189b06cdb491cf2ff73dbf0d73b0f292f42ff8"
 
 [[package]]
-name = "failure"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d32e9bd16cc02eae7db7ef620b392808b89f6a5e16bb3497d159c6b92a0f4f86"
-dependencies = [
- "backtrace",
- "failure_derive",
-]
-
-[[package]]
-name = "failure_derive"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa4da3c766cd7a0db8242e326e9e4e081edd567072893ed320008189715366a4"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
- "synstructure",
-]
-
-[[package]]
 name = "field-offset"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1208,7 +1186,7 @@ dependencies = [
  "log 0.4.16",
  "nix 0.24.1",
  "prost",
- "semver 0.9.0",
+ "semver 1.0.9",
  "thiserror",
  "winapi 0.3.9",
 ]
@@ -1460,11 +1438,10 @@ dependencies = [
 name = "habitat_pkg_export_container"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "base64",
  "clap",
  "env_logger",
- "failure",
- "failure_derive",
  "hab",
  "habitat_common",
  "habitat_core",
@@ -1479,6 +1456,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "termcolor",
+ "thiserror",
  "tokio",
  "url",
 ]
@@ -1487,11 +1465,9 @@ dependencies = [
 name = "habitat_pkg_export_tar"
 version = "0.0.0"
 dependencies = [
- "base64",
+ "anyhow",
  "clap",
  "env_logger",
- "failure",
- "failure_derive",
  "flate2",
  "habitat_common",
  "habitat_core",
@@ -1503,6 +1479,7 @@ dependencies = [
  "serde_json",
  "tar",
  "tempfile",
+ "thiserror",
  "tokio",
  "url",
 ]
@@ -3628,18 +3605,6 @@ checksum = "04066589568b72ec65f42d65a1a52436e954b168773148893c020269563decf2"
 dependencies = [
  "proc-macro2",
  "quote",
- "unicode-xid",
-]
-
-[[package]]
-name = "synstructure"
-version = "0.12.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "474aaa926faa1603c40b7885a9eaea29b444d1cb2850cb7c0e37bb1a4182f4fa"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
  "unicode-xid",
 ]
 

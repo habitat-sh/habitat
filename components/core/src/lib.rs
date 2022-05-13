@@ -1,8 +1,4 @@
 // Convenience importing of `debug!`/`info!` macros for entire crate.
-#[cfg(test)]
-extern crate lazy_static;
-#[macro_use]
-extern crate log;
 
 pub use self::error::{Error,
                       Result};

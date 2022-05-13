@@ -10,6 +10,8 @@ use crate::{common::ui::{UIWriter,
 use habitat_common::cli_config::CliConfig;
 use habitat_core::{package::target::PackageTarget,
                    AUTH_TOKEN_ENVVAR};
+use log::{debug,
+          warn};
 use same_file::is_same_file;
 use std::{env,
           ffi::OsString,

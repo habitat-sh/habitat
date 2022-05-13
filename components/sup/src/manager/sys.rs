@@ -4,6 +4,8 @@ use habitat_common::{outputln,
                      types::{GossipListenAddr,
                              HttpListenAddr,
                              ListenCtlAddr}};
+use serde::{Deserialize,
+            Serialize};
 use std::{net::{IpAddr,
                 SocketAddr},
           str};

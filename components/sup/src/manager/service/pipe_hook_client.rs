@@ -6,6 +6,7 @@ use habitat_common::{error::{Error,
 use habitat_core::{env as henv,
                    util::{self,
                           BufReadLossy}};
+use log::debug;
 use mio::{windows::NamedPipe,
           Events,
           Interest,

@@ -8,6 +8,9 @@
 //! devolve to a single, universal rumor, which when it is received by the winner will result in
 //! the election finishing. There can, in the end, be only one.
 
+use log::debug;
+use serde::Serialize;
+
 pub use crate::protocol::newscast::{election::Status as ElectionStatus,
                                     Election as ProtoElection};
 use crate::{error::{Error,

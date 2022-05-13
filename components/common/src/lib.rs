@@ -1,3 +1,5 @@
+pub use self::error::{Error,
+                      Result};
 use crate::ui::{NullUi,
                 UIWriter};
 use habitat_api_client as api_client;
@@ -7,22 +9,6 @@ use std::{collections::HashMap,
           env,
           ffi::OsStr,
           iter::FromIterator};
-
-extern crate json;
-#[macro_use]
-extern crate log;
-#[macro_use]
-extern crate lazy_static;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-#[cfg_attr(test, macro_use)]
-extern crate serde_json;
-#[cfg(windows)]
-extern crate winapi;
-
-pub use self::error::{Error,
-                      Result};
 
 pub mod cli;
 pub mod cli_config;
@@ -36,6 +22,8 @@ pub mod templating;
 pub mod types;
 pub mod ui;
 pub mod util;
+
+use log::error;
 
 lazy_static::lazy_static! {
     pub static ref PROGRAM_NAME: String = {

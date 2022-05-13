@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate log;
-
 mod client;
 pub mod error;
 

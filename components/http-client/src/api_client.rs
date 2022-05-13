@@ -3,6 +3,8 @@ use crate::error::{Error,
 use habitat_core::{env,
                    package::PackageTarget,
                    util::sys};
+use log::{debug,
+          trace};
 use reqwest::{header::{HeaderValue,
                        CONNECTION,
                        USER_AGENT},

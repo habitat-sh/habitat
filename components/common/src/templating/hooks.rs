@@ -15,6 +15,8 @@ use habitat_core::{crypto::Blake2bHash,
                    fs::svc_hooks_path,
                    package::PackageInstall,
                    util::BufReadLossy};
+use log::{debug,
+          error};
 use serde::{Serialize,
             Serializer};
 #[cfg(unix)]

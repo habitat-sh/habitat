@@ -39,6 +39,8 @@ use crate::{common::ui::{self,
                     users::get_current_username}};
 use chrono::{DateTime,
              Utc};
+use serde::{Deserialize,
+            Serialize};
 use std::{env,
           fs::{self,
                File},

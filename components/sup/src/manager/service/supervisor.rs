@@ -27,6 +27,9 @@ use habitat_launcher_client::{IPCReadError,
                               TryReceiveError};
 #[cfg(windows)]
 use habitat_launcher_protocol as protocol;
+use log::{debug,
+          error,
+          warn};
 use serde::{ser::SerializeStruct,
             Serialize,
             Serializer};

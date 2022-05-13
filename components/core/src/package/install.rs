@@ -14,6 +14,7 @@ use crate::{error::{Error,
             fs,
             os::process::{ShutdownSignal,
                           ShutdownTimeout}};
+use log::debug;
 use serde_derive::{Deserialize,
                    Serialize};
 use std::{cmp::{Ordering,

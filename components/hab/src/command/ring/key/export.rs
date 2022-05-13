@@ -2,6 +2,7 @@ use crate::error::Result;
 use habitat_core::crypto::keys::{Key,
                                  KeyCache,
                                  KeyFile};
+use log::debug;
 use std::io::{self,
               Write};
 

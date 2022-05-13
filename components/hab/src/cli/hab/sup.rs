@@ -42,6 +42,8 @@ use habitat_sup_protocol::types::{BindingMode,
                                   UpdateStrategy};
 use rants::{error::Error as RantsError,
             Address as NatsAddress};
+use serde::{Deserialize,
+            Serialize};
 use std::{fmt,
           net::{IpAddr,
                 SocketAddr},
