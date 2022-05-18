@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.509 -->
-## [1.6.509](https://github.com/habitat-sh/habitat/tree/1.6.509) (2022-05-17)
+<!-- latest_release 1.6.510 -->
+## [1.6.510](https://github.com/habitat-sh/habitat/tree/1.6.510) (2022-05-18)
 
 #### Merged Pull Requests
-- comment change to force a build with refreshed packages [#8515](https://github.com/habitat-sh/habitat/pull/8515) ([mwrock](https://github.com/mwrock))
+- another comment change [#8516](https://github.com/habitat-sh/habitat/pull/8516) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.500 -->
 ### Changes since 1.6.500 release
 
 #### Merged Pull Requests
+- another comment change [#8516](https://github.com/habitat-sh/habitat/pull/8516) ([mwrock](https://github.com/mwrock)) <!-- 1.6.510 -->
 - comment change to force a build with refreshed packages [#8515](https://github.com/habitat-sh/habitat/pull/8515) ([mwrock](https://github.com/mwrock)) <!-- 1.6.509 -->
 - going back to latest ubuntu images [#8514](https://github.com/habitat-sh/habitat/pull/8514) ([mwrock](https://github.com/mwrock)) <!-- 1.6.508 -->
 - Bump nix from 0.23.1 to 0.24.1 [#8509](https://github.com/habitat-sh/habitat/pull/8509) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.507 -->
