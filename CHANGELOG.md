@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.511 -->
-## [1.6.511](https://github.com/habitat-sh/habitat/tree/1.6.511) (2022-05-18)
+<!-- latest_release 1.6.512 -->
+## [1.6.512](https://github.com/habitat-sh/habitat/tree/1.6.512) (2022-05-18)
 
 #### Merged Pull Requests
-- another rebuild [#8517](https://github.com/habitat-sh/habitat/pull/8517) ([mwrock](https://github.com/mwrock))
+- forcing another build [#8519](https://github.com/habitat-sh/habitat/pull/8519) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.500 -->
 ### Changes since 1.6.500 release
 
 #### Merged Pull Requests
+- forcing another build [#8519](https://github.com/habitat-sh/habitat/pull/8519) ([mwrock](https://github.com/mwrock)) <!-- 1.6.512 -->
 - another rebuild [#8517](https://github.com/habitat-sh/habitat/pull/8517) ([mwrock](https://github.com/mwrock)) <!-- 1.6.511 -->
 - another comment change [#8516](https://github.com/habitat-sh/habitat/pull/8516) ([mwrock](https://github.com/mwrock)) <!-- 1.6.510 -->
 - comment change to force a build with refreshed packages [#8515](https://github.com/habitat-sh/habitat/pull/8515) ([mwrock](https://github.com/mwrock)) <!-- 1.6.509 -->
