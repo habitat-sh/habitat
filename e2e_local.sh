@@ -3,7 +3,7 @@
 set -euo pipefail
 
 channel=${1:?You must specify a channel value}
-# If no `$test_name` is specified, after the test setup you will be dropped into an interactive bash
+# If no `$test_name` is specified then after the test setup you will be dropped into an interactive bash
 # prompt. From there you can run `pwsh .expeditor/scripts/end_to_end/run_e2e_test_core.ps1 $test_name`
 # to quickly iterate on tests.
 test_name=${2:-}
