@@ -1,14 +1,16 @@
 # Habitat CHANGELOG
 
 <!-- latest_release 1.6.513 -->
-## [1.6.513](https://github.com/habitat-sh/habitat/tree/1.6.513) (2022-05-19)
 
-#### Merged Pull Requests
-- another empty change to force rebuild and pickup linux2 tar [#8520](https://github.com/habitat-sh/habitat/pull/8520) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.500 -->
-### Changes since 1.6.500 release
+<!-- release_rollup since=1.6.513 -->
+### Changes since 1.6.513 release
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.513 -->
+
+## [1.6.513](https://github.com/habitat-sh/habitat/tree/1.6.513) (2022-05-19)
 
 #### Merged Pull Requests
 - another empty change to force rebuild and pickup linux2 tar [#8520](https://github.com/habitat-sh/habitat/pull/8520) ([mwrock](https://github.com/mwrock)) <!-- 1.6.513 -->
@@ -31,9 +33,7 @@
 - Bump thiserror from 1.0.30 to 1.0.31 [#8496](https://github.com/habitat-sh/habitat/pull/8496) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.503 -->
 - Rustfmt and Nightly Rust Bump to nightly-2022-05-10 [#8502](https://github.com/habitat-sh/habitat/pull/8502) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.502 -->
 - update changelog [#8503](https://github.com/habitat-sh/habitat/pull/8503) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.501 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release 1.6.500 -->
 ## [1.6.500](https://github.com/habitat-sh/habitat/tree/1.6.500) (2022-05-09)
 
 #### Merged Pull Requests
