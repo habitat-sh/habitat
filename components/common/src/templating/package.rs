@@ -9,6 +9,7 @@ use crate::{error::{Error,
                               PackageInstall},
                     util},
             util::path};
+use habitat_core::package::metadata::PackageType;
 use log::debug;
 use serde::{ser::SerializeStruct,
             Deserialize,
@@ -49,20 +50,22 @@ impl Env {
     /// without having to worry much about context.
     pub async fn new(package: &PackageInstall) -> Result<Self> {
         let mut env = package.environment_for_command()?;
-        let path = Self::transform_path(env.get(PATH_KEY)).await?;
+        let path = Self::transform_path(env.get(PATH_KEY), package.package_type()?).await?;
         env.insert(PATH_KEY.to_string(), path);
         Ok(Env(env))
     }
 
     pub fn to_hash_map(&self) -> HashMap<String, String> { self.0.clone().into_iter().collect() }
 
-    async fn transform_path(path: Option<&String>) -> Result<String> {
+    async fn transform_path(path: Option<&String>, package_type: PackageType) -> Result<String> {
         let mut paths: Vec<PathBuf> = match path {
             Some(path) => env::split_paths(&path).collect(),
             None => vec![],
         };
-
-        path::append_interpreter_and_path(&mut paths).await
+        match package_type {
+            PackageType::Standard => path::append_interpreter_and_env_path(&mut paths).await,
+            PackageType::Native => path::append_env_path(&mut paths).await,
+        }
     }
 }
 
