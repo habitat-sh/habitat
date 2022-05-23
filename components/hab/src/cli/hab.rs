@@ -14,7 +14,6 @@ pub mod svc;
 mod tests;
 pub mod user;
 pub mod util;
-
 use self::{bldr::*,
            cli::{CliCompleters,
                  CliSetup,
@@ -108,7 +107,6 @@ pub enum Hab {
     /// Alias for 'pkg install'
     #[structopt(no_version, settings = &[AppSettings::Hidden], aliases = &["i", "in", "ins", "inst", "insta", "instal"])]
     Install(PkgInstall),
-    #[cfg(not(target_os = "macos"))]
     /// Alias for 'sup run'
     #[structopt(no_version, settings = &[AppSettings::Hidden])]
     Run(SupRun),
@@ -121,7 +119,6 @@ pub enum Hab {
     /// Alias for 'svc stop'
     #[structopt(no_version, settings = &[AppSettings::Hidden], aliases = &["sto"])]
     Stop(SvcStop),
-    #[cfg(not(target_os = "macos"))]
     /// Alias for 'sup term'
     #[structopt(no_version, settings = &[AppSettings::Hidden])]
     Term,

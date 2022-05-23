@@ -345,6 +345,7 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The first argument to the script is a Plan context directory, containing a
 # `plan.sh` file
 PLAN_CONTEXT=${1:-.}
+: "${HAB_PLAN_FILENAME:='plan.sh'}"
 # The default Habitat Depot from where to download dependencies. If
 # `HAB_BLDR_URL` is set, this value is overridden.
 : "${HAB_BLDR_URL:=https://bldr.habitat.sh}"
@@ -1565,7 +1566,11 @@ _set_build_path() {
 # about what exactly failed.
 _write_pre_build_file() {
   local plan_owner
-  plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/plan.sh")"
+  if [[ $pkg_target == *darwin ]]; then
+    plan_owner="$(stat -f '%Su:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+  else
+    plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+  fi
   pre_build_file="$pkg_output_path/pre_build.env"
 
   build_line "Writing pre_build file"
@@ -1998,6 +2003,9 @@ _build_metadata() {
   if [[ -f "$PLAN_CONTEXT/hooks/run" || -n "${pkg_svc_run:-}" ]]; then
     _render_metadata_SVC_USER
     _render_metadata_SVC_GROUP
+    if [[ $HAB_PLAN_FILENAME != "plan.sh"  ]]; then
+      _render_metadata_PACKAGE_TYPE
+    fi
   fi
 
   return 0
@@ -2261,7 +2269,7 @@ LD_RUN_PATH: $_ldrunpath_string
 ## Plan Source
 
 \`\`\`bash
-$(cat "$PLAN_CONTEXT"/plan.sh)
+$(cat "$PLAN_CONTEXT"/$HAB_PLAN_FILENAME)
 \`\`\`
 EOT
   return 0
@@ -2286,7 +2294,11 @@ _prepare_build_outputs() {
   local plan_owner
   _pkg_sha256sum=$($_shasum_cmd "$pkg_artifact" | cut -d " " -f 1)
   _pkg_blake2bsum=$($HAB_BIN pkg hash "$pkg_artifact" | cut -d " " -f 1)
-  plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/plan.sh")"
+  if [[ $pkg_target == *darwin ]]; then
+    plan_owner="$(stat -f '%Su:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+  else
+    plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+  fi
 
   mkdir -pv "$pkg_output_path"
   # Attempt to set user/group ownership to the same as the ownership of the
@@ -2467,12 +2479,12 @@ target_paths=()
 paths=()
 final_paths=()
 candidate_target_paths=(
-  "$PLAN_CONTEXT/$pkg_target/plan.sh"
-  "$PLAN_CONTEXT/habitat/$pkg_target/plan.sh"
+  "$PLAN_CONTEXT/$pkg_target/$HAB_PLAN_FILENAME"
+  "$PLAN_CONTEXT/habitat/$pkg_target/$HAB_PLAN_FILENAME"
 )
 candidate_paths=(
-  "$PLAN_CONTEXT/plan.sh"
-  "$PLAN_CONTEXT/habitat/plan.sh"
+  "$PLAN_CONTEXT/$HAB_PLAN_FILENAME"
+  "$PLAN_CONTEXT/habitat/$HAB_PLAN_FILENAME"
 )
 
 # Lets notate all of the existing plan paths
@@ -2489,7 +2501,7 @@ for path in "${candidate_paths[@]}"; do
 done
 
 if [[ ${#paths[@]} -gt 0 && ${#target_paths[@]} -gt 0 ]]; then
-    warn "There is a plan.sh inside $pkg_target and outside as well. Using the plan in $pkg_target."
+    warn "There is a $HAB_PLAN_FILENAME inside $pkg_target and outside as well. Using the plan in $pkg_target."
     warn "It is advisable to either remove the plan that is outside $pkg_target"
     warn "or move that plan to its own target folder if it is intended for a different target."
 fi
@@ -2517,8 +2529,8 @@ fi
 cd "$PLAN_CONTEXT"
 
 # Load the Plan
-build_line "Loading $PLAN_CONTEXT/plan.sh"
-if source "$PLAN_CONTEXT/plan.sh"; then
+build_line "Loading $PLAN_CONTEXT/$HAB_PLAN_FILENAME"
+if source "$PLAN_CONTEXT/$HAB_PLAN_FILENAME"; then
   build_line "Plan loaded"
 else
   ret=$?

@@ -328,6 +328,9 @@ pub struct PkgBuild {
     plan_context:    PathBuf,
     #[structopt(flatten)]
     cache_key_path:  CacheKeyPath,
+    /// Build a native package on the host system without a studio
+    #[structopt(name = "NATIVE_PACKAGE", short = "N", long = "native-package", conflicts_with_all = &["REUSE", "DOCKER"])]
+    native_package:  bool,
     #[cfg(any(target_os = "linux", target_os = "windows"))]
     /// Reuses a previous Studio for the build (default: clean up before building)
     // Only a truly native/local Studio can be reused--the Docker implementation will always be

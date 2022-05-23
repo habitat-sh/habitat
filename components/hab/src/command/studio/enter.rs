@@ -138,9 +138,10 @@ pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     inner::start(ui, args).await
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(target_family = "unix")]
 mod inner {
-    use crate::{command::studio::docker,
+    use crate::{command::studio::{docker,
+                                  native},
                 common::ui::{UIWriter,
                              UI},
                 error::{Error,
@@ -169,6 +170,8 @@ mod inner {
         rerun_with_sudo_if_needed(ui, args)?;
         if is_docker_studio(args) {
             docker::start_docker_studio(ui, args)
+        } else if is_native_studio(args) {
+            native::start_native_studio(ui, args)
         } else {
             let command = match henv::var(STUDIO_CMD_ENVVAR) {
                 Ok(command) => PathBuf::from(command),
@@ -200,7 +203,6 @@ mod inner {
                     command
                 }
             };
-
             if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
                 process::become_command(cmd, args)?;
                 Ok(())
@@ -217,7 +219,16 @@ mod inner {
                 return true;
             }
         }
+        false
+    }
 
+    fn is_native_studio(args: &[OsString]) -> bool {
+        for arg in args.iter() {
+            let str_arg = arg.to_string_lossy();
+            if str_arg == "-N" {
+                return true;
+            }
+        }
         false
     }
 
@@ -257,7 +268,7 @@ mod inner {
     }
 }
 
-#[cfg(not(target_os = "linux"))]
+#[cfg(target_family = "windows")]
 mod inner {
     use crate::{command::studio::docker,
                 common::ui::UI,

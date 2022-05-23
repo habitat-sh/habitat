@@ -53,6 +53,7 @@ toml = { version = "*", features = [ "preserve_order" ] }
 url = { version = "*", features = ["serde"] }
 walkdir = "*"
 webpki = { version = "*", features = ["alloc"] }
+tempfile = "*"
 
 [dependencies.uuid]
 version = "*"
@@ -62,9 +63,6 @@ features = ["v4"]
 widestring = "*"
 winapi = { version = "*", features = ["winuser", "windef"] }
 winreg = "*"
-
-[dev-dependencies]
-tempfile = "*"
 
 [features]
 default = ["supported_targets"]
