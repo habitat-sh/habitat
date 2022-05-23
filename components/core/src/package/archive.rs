@@ -124,22 +124,6 @@ lazy_static::lazy_static! {
             .unwrap(),
         );
         map.insert(
-            MetaFile::Services,
-            Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
-                MetaFile::Services
-            ))
-            .unwrap(),
-        );
-        map.insert(
-            MetaFile::ResolvedServices,
-            Regex::new(&format!(
-                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
-                MetaFile::ResolvedServices
-            ))
-            .unwrap(),
-        );
-        map.insert(
             MetaFile::Manifest,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
@@ -164,10 +148,10 @@ lazy_static::lazy_static! {
             .unwrap(),
         );
         map.insert(
-            MetaFile::Type,
+            MetaFile::PackageType,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
-                MetaFile::Type
+                MetaFile::PackageType
             ))
             .unwrap(),
         );
@@ -287,22 +271,14 @@ impl PackageArchive {
     }
 
     pub fn package_type(&mut self) -> Result<PackageType> {
-        if let Some(data) = self.read_metadata(MetaFile::Type) {
+        if let Some(data) = self.read_metadata(MetaFile::PackageType) {
             PackageType::from_str(data)
         } else {
-            Ok(PackageType::Standalone)
+            Ok(PackageType::Standard)
         }
     }
 
     pub fn path(&mut self) -> Option<&str> { self.read_metadata(MetaFile::Path) }
-
-    pub fn pkg_services(&mut self) -> Result<Vec<PackageIdent>> {
-        self.read_deps(MetaFile::Services)
-    }
-
-    pub fn resolved_services(&mut self) -> Result<Vec<PackageIdent>> {
-        self.read_deps(MetaFile::ResolvedServices)
-    }
 
     pub fn target(&mut self) -> Result<PackageTarget> {
         if let Some(data) = self.read_metadata(MetaFile::Target) {
@@ -341,14 +317,10 @@ impl PackageArchive {
     fn read_deps(&mut self, file: MetaFile) -> Result<Vec<PackageIdent>> {
         let mut deps = vec![];
 
-        // For now, all deps files but SERVICES need fully-qualified
-        // package identifiers
-        let must_be_fully_qualified = { file != MetaFile::Services };
-
         if let Some(body) = self.read_metadata(file) {
             for id in body.lines() {
                 let package = PackageIdent::from_str(id)?;
-                if !package.fully_qualified() && must_be_fully_qualified {
+                if !package.fully_qualified() {
                     return Err(Error::FullyQualifiedPackageIdentRequired(package.to_string()));
                 }
                 deps.push(package);

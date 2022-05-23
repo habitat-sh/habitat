@@ -29,7 +29,7 @@ pub async fn sh() -> Result<()> {
 
 async fn set_path() -> Result<()> {
     let mut paths: Vec<PathBuf> = Vec::new();
-    let new_path = path::append_interpreter_and_path(&mut paths).await?;
+    let new_path = path::append_interpreter_and_env_path(&mut paths).await?;
 
     debug!("Setting the PATH to {}", &new_path);
     env::set_var("PATH", &new_path);

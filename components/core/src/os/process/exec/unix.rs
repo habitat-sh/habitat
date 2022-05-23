@@ -1,4 +1,5 @@
 use crate::os::process::can_run_services_as_svc_user;
+#[cfg(not(target_os = "macos"))]
 use log::warn;
 use nix::unistd::{setgid,
                   setuid,
