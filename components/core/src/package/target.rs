@@ -314,7 +314,7 @@ package_targets! {
     /// [arm-arch]: https://en.wikipedia.org/wiki/ARM_architecture
     ("aarch64-darwin", AARCH64_Darwin, AARCH64_DARWIN, "aarch64", "macos");
 
-    /// **UNSUPPORTED TARGET** Represents a [Linux kernel]-based system running on an
+    /// Represents a [Linux kernel]-based system running on an
     /// [ARM Architecture processor][arm-arch].
     ///
     /// [Linux kernel]: https://en.wikipedia.org/wiki/Linux_kernel
