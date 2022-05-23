@@ -12,6 +12,7 @@ pub async fn start(ui: &mut UI,
                    root: Option<&str>,
                    src: Option<&str>,
                    origins: &[Origin],
+                   native_package: bool,
                    reuse: bool,
                    docker: bool)
                    -> Result<()> {
@@ -35,12 +36,18 @@ pub async fn start(ui: &mut UI,
     }
 
     args.push("build".into());
-    if studio::native_studio_support() && reuse {
-        args.push("-R".into());
-    }
-    args.push(plan_context.into());
-    if studio::native_studio_support() && docker {
-        args.push("-D".into());
+
+    if native_package {
+        args.push("-N".into());
+        args.push(plan_context.into());
+    } else {
+        if studio::docker_studio_support() && reuse {
+            args.push("-R".into());
+        }
+        args.push(plan_context.into());
+        if studio::docker_studio_support() && docker {
+            args.push("-D".into());
+        }
     }
     studio::enter::start(ui, &args).await
 }

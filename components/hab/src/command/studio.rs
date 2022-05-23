@@ -1,4 +1,5 @@
 pub mod docker;
 pub mod enter;
+mod native;
 
-pub fn native_studio_support() -> bool { cfg!(target_os = "linux") || cfg!(target_os = "windows") }
+pub fn docker_studio_support() -> bool { cfg!(target_os = "linux") || cfg!(target_os = "windows") }

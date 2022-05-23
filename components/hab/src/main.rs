@@ -191,7 +191,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         }
                     }
                 }
-                #[cfg(not(target_os = "macos"))]
                 Hab::Run(sup_run) => {
                     ui.warn("'hab run' as an alias for 'hab sup run' is deprecated. Please \
                              update your automation and processes accordingly.")?;
@@ -202,7 +201,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 }
                 Hab::Sup(sup) => {
                     match sup {
-                        #[cfg(not(target_os = "macos"))]
                         HabSup::Sup(sup) => {
                             // These commands are handled by the `hab-sup` or `hab-launch` binaries.
                             // We need to pass the subcommand that was issued to the underlying
@@ -266,7 +264,6 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         }
                     }
                 }
-                #[cfg(not(target_os = "macos"))]
                 Hab::Term => {
                     ui.warn("'hab term' as an alias for 'hab sup term' is deprecated. Please \
                              update your automation and processes accordingly.")?;
@@ -439,7 +436,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
             match matches.subcommand() {
                 ("binds", Some(m)) => sub_pkg_binds(m)?,
                 ("binlink", Some(m)) => sub_pkg_binlink(ui, m)?,
-                ("build", Some(m)) => sub_pkg_build(ui, m).await?,
+                ("build", Some(m)) => sub_pkg_build(ui, m, feature_flags).await?,
                 ("channels", Some(m)) => sub_pkg_channels(ui, m).await?,
                 ("config", Some(m)) => sub_pkg_config(m)?,
                 ("dependencies", Some(m)) => sub_pkg_dependencies(m)?,
@@ -781,7 +778,7 @@ fn hab_key_origins(m: &ArgMatches<'_>) -> Result<Vec<habitat_core::origin::Origi
      .collect()
 }
 
-async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
     let plan_context = required_value_of(m, "PLAN_CONTEXT");
     let root = m.value_of("HAB_STUDIO_ROOT");
     let src = m.value_of("SRC_PATH");
@@ -797,10 +794,29 @@ async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
         }
     }
 
+    let native_package = if m.is_present("NATIVE_PACKAGE") {
+        if !feature_flags.contains(FeatureFlag::NATIVE_PACKAGE_SUPPORT) {
+            return Err(Error::ArgumentError(String::from("`--native-package` is \
+                                                          only available when \
+                                                          `HAB_FEAT_NATIVE_PACKAGE_SUPPORT` \
+                                                          is set")));
+        }
+        true
+    } else {
+        false
+    };
+
     let docker = m.is_present("DOCKER");
     let reuse = m.is_present("REUSE");
 
-    command::pkg::build::start(ui, plan_context, root, src, &origins, reuse, docker).await
+    command::pkg::build::start(ui,
+                               plan_context,
+                               root,
+                               src,
+                               &origins,
+                               native_package,
+                               reuse,
+                               docker).await
 }
 
 fn sub_pkg_config(m: &ArgMatches<'_>) -> Result<()> {

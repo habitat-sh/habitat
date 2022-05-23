@@ -86,7 +86,6 @@ pub enum HabSup {
         #[structopt(flatten)]
         remote_sup: RemoteSup,
     },
-    #[cfg(not(target_os = "macos"))]
     #[structopt(flatten)]
     Sup(Sup),
 }

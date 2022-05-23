@@ -244,6 +244,14 @@ _render_metadata_SVC_USER() {
   echo "$pkg_svc_user" > "$pkg_prefix"/SVC_USER
 }
 
+_render_metadata_PACKAGE_TYPE() {
+  debug "Rendering PACKAGE_TYPE metadata file"
+  # We only ever render this file for native packages right now
+  # Any package without this file is considered a standard package by default
+  # shellcheck disable=2154
+  echo "native" > "$pkg_prefix"/PACKAGE_TYPE
+}
+
 _render_metadata_SHUTDOWN_SIGNAL() {
   if [[ -n "${pkg_shutdown_signal:-}" ]]; then
     debug "Rendering SHUTDOWN_SIGNAL metadata file"
