@@ -53,8 +53,8 @@ use self::{bldr::*,
                   UserKeyGenerate},
            util::{CacheKeyPath,
                   ConfigOptCacheKeyPath}};
-#[cfg(any(target_os = "windows", target_os = "macos", target_arch = "x86_64"))]
-use self::studio::Studio;
+#[cfg(any(target_os = "macos", all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64")))]
+use self::studio::{ConfigOptStudio, Studio};
 use crate::{cli::AFTER_HELP,
             VERSION};
 use configopt::ConfigOpt;
@@ -89,7 +89,7 @@ pub enum Hab {
     Plan(Plan),
     #[structopt(no_version)]
     Ring(Ring),
-    #[cfg(any(target_os = "windows", target_os = "macos", target_arch = "x86_64"))]
+    #[cfg(any(target_os = "macos", all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64")))]
     #[structopt(no_version, aliases = &["stu", "stud", "studi"])]
     Studio(Studio),
     #[structopt(no_version)]
@@ -280,7 +280,7 @@ pub enum Pkg {
     Download(PkgDownload),
     Env(PkgEnv),
     Exec(PkgExec),
-    #[cfg(any(target_os = "windows", target_os = "macos", target_arch = "x86_64"))]
+    #[cfg(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64"))]
     Export(ExportCommand),
     #[structopt(no_version, aliases = &["ha", "has"])]
     Hash(PkgHash),
