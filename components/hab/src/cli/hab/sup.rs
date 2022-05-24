@@ -91,13 +91,13 @@ pub enum HabSup {
 #[allow(clippy::large_enum_variant)]
 pub enum Sup {
     /// Start an interactive Bash-like shell
-    #[cfg(any(target_os = "windows", target_os = "macos", target_arch = "x86_64"))]
+    #[cfg(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64"))]
     #[structopt(no_version, aliases = &["b", "ba", "bas"])]
     Bash,
     #[structopt(no_version, aliases = &["r", "ru"])]
     Run(SupRun),
     /// Start an interactive Bourne-like shell
-    #[cfg(any(target_os = "windows", target_os = "macos", target_arch = "x86_64"))]
+    #[cfg(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64"))]
     #[structopt(no_version)]
     Sh,
     /// Gracefully terminate the Habitat Supervisor and all of its running services
