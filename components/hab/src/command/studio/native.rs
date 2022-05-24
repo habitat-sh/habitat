@@ -3,9 +3,6 @@ use habitat_common::ui::UI;
 use std::{ffi::OsString,
           fs::File,
           io::Write,
-          os::unix::prelude::PermissionsExt,
-          path::{Path,
-                 PathBuf},
           process::Command};
 use tempfile::Builder;
 
@@ -27,6 +24,6 @@ pub fn start_native_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
                                       .arg(args.last().unwrap())
                                       .env("HAB_PLAN_FILENAME", "native-plan.sh")
                                       .spawn()?;
-    let exit_status = cmd.wait()?;
+    let _exit_status = cmd.wait()?;
     Ok(())
 }
