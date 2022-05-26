@@ -1,3 +1,6 @@
+#[cfg(all(any(target_os = "linux", target_os = "windows"),
+              target_arch = "x86_64"))]
+use super::util::ExternalCommandArgs;
 use super::util::{self,
                   AuthToken,
                   BldrUrl,
@@ -11,8 +14,6 @@ use super::util::{self,
                   ExternalCommandArgsWithHelpAndVersion,
                   FullyQualifiedPkgIdent,
                   PkgIdent};
-#[cfg(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64"))]
-use super::util::ExternalCommandArgs;
 use crate::cli::{dir_exists,
                  file_exists,
                  valid_ident_or_toml_file,
@@ -83,7 +84,8 @@ pub enum Pkg {
     Download(PkgDownload),
     Env(PkgEnv),
     Exec(PkgExec),
-    #[cfg(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64"))]
+    #[cfg(all(any(target_os = "linux", target_os = "windows"),
+              target_arch = "x86_64"))]
     Export(ExportCommand),
     Hash(PkgHash),
     Header(PkgHeader),
@@ -523,7 +525,8 @@ pub struct PkgInstall {
 }
 
 /// Exports the package to the specified format
-#[cfg(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64"))]
+#[cfg(all(any(target_os = "linux", target_os = "windows"),
+          target_arch = "x86_64"))]
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "export", aliases = &["e", "ex", "exp", "expo", "expor"], no_version)]
 pub enum ExportCommand {
