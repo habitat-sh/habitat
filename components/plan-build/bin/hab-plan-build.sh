@@ -345,7 +345,8 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The first argument to the script is a Plan context directory, containing a
 # `plan.sh` file
 PLAN_CONTEXT=${1:-.}
-: "${HAB_PLAN_FILENAME:='plan.sh'}"
+# If this is a native package, change the name of the plan file
+[[ -z $HAB_NATIVE_PACKAGE ]] && HAB_PLAN_FILENAME="plan.sh" || HAB_PLAN_FILENAME="native-plan.sh"
 # The default Habitat Depot from where to download dependencies. If
 # `HAB_BLDR_URL` is set, this value is overridden.
 : "${HAB_BLDR_URL:=https://bldr.habitat.sh}"
@@ -2003,7 +2004,8 @@ _build_metadata() {
   if [[ -f "$PLAN_CONTEXT/hooks/run" || -n "${pkg_svc_run:-}" ]]; then
     _render_metadata_SVC_USER
     _render_metadata_SVC_GROUP
-    if [[ $HAB_PLAN_FILENAME != "plan.sh"  ]]; then
+    # We render out the PACKAGE_TYPE metadata file only for native packages.
+    if [[ -z $HAB_NATIVE_PACKAGE ]]; then
       _render_metadata_PACKAGE_TYPE
     fi
   fi
