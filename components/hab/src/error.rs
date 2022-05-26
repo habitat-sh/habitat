@@ -75,6 +75,7 @@ pub enum Error {
     Utf8Error(String),
     WalkDir(walkdir::Error),
     YamlError(serde_yaml::Error),
+    NativeStudioError(anyhow::Error),
 }
 
 impl fmt::Display for Error {
@@ -196,6 +197,9 @@ impl fmt::Display for Error {
             Error::Utf8Error(ref e) => format!("Error processing a string as UTF-8: {}", e),
             Error::WalkDir(ref err) => format!("{}", err),
             Error::YamlError(ref e) => format!("{}", e),
+            Error::NativeStudioError(ref err) => {
+                format!("Error executing native plan build: {:?}", err)
+            }
         };
         write!(f, "{}", msg)
     }
