@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.514 -->
-## [1.6.514](https://github.com/habitat-sh/habitat/tree/1.6.514) (2022-05-24)
+<!-- latest_release 1.6.515 -->
+## [1.6.515](https://github.com/habitat-sh/habitat/tree/1.6.515) (2022-05-26)
 
 #### Merged Pull Requests
-- updated changelog for 1.6.513 [#8521](https://github.com/habitat-sh/habitat/pull/8521) ([mwrock](https://github.com/mwrock))
+- Remove Hugo and go versions from netlify config [#8523](https://github.com/habitat-sh/habitat/pull/8523) ([IanMadd](https://github.com/IanMadd))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.513 -->
 ### Changes since 1.6.513 release
 
 #### Merged Pull Requests
+- Remove Hugo and go versions from netlify config [#8523](https://github.com/habitat-sh/habitat/pull/8523) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.515 -->
 - updated changelog for 1.6.513 [#8521](https://github.com/habitat-sh/habitat/pull/8521) ([mwrock](https://github.com/mwrock)) <!-- 1.6.514 -->
 <!-- release_rollup -->
 
