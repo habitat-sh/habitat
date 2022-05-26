@@ -1,3 +1,6 @@
+#[cfg(all(any(target_os = "linux", target_os = "windows"),
+              target_arch = "x86_64"))]
+use crate::sup::command;
 use crate::sup::{cli::cli,
                  error::{Error,
                          Result},
@@ -7,8 +10,6 @@ use crate::sup::{cli::cli,
                            ManagerConfig,
                            TLSConfig},
                  util};
-#[cfg(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64"))]
-use crate::sup::command;
 use configopt::ConfigOpt;
 use hab::cli::hab::{sup::SupRun,
                     svc};
@@ -154,7 +155,8 @@ async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFlag) -> Resul
         }
     };
     match app_matches.subcommand() {
-        #[cfg(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64"))]
+        #[cfg(all(any(target_os = "linux", target_os = "windows"),
+                  target_arch = "x86_64"))]
         ("bash", Some(_)) => sub_bash().await,
         ("run", Some(_)) => {
             // TODO (DM): This is a little hacky. Essentially, for `hab sup run` we switch to using
@@ -179,14 +181,16 @@ async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFlag) -> Resul
             let launcher = launcher.ok_or(Error::NoLauncher)?;
             sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run, launcher, feature_flags).await
         }
-        #[cfg(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64"))]
+        #[cfg(all(any(target_os = "linux", target_os = "windows"),
+                  target_arch = "x86_64"))]
         ("sh", Some(_)) => sub_sh().await,
         ("term", Some(_)) => sub_term(),
         _ => unreachable!(),
     }
 }
 
-#[cfg(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64"))]
+#[cfg(all(any(target_os = "linux", target_os = "windows"),
+          target_arch = "x86_64"))]
 async fn sub_bash() -> Result<()> { command::shell::bash().await }
 
 /// # Locking (see locking.md)
@@ -222,7 +226,8 @@ async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run: SupRun,
            .await
 }
 
-#[cfg(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64"))]
+#[cfg(all(any(target_os = "linux", target_os = "windows"),
+          target_arch = "x86_64"))]
 async fn sub_sh() -> Result<()> { command::shell::sh().await }
 
 fn sub_term() -> Result<()> {

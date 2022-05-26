@@ -1,5 +1,5 @@
-use crate::{error::{Error,
-                    Result}};
+use crate::error::{Error,
+                   Result};
 use serde_derive::Serialize;
 use std::{self,
           collections::BTreeMap,
