@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.518 -->
-## [1.6.518](https://github.com/habitat-sh/habitat/tree/1.6.518) (2022-06-01)
+<!-- latest_release 1.6.519 -->
+## [1.6.519](https://github.com/habitat-sh/habitat/tree/1.6.519) (2022-06-01)
 
 #### Merged Pull Requests
-- set UPLOAD_AND_PROMOTE var in builds to force upload and promote in release_habitat pipeline [#8530](https://github.com/habitat-sh/habitat/pull/8530) ([mwrock](https://github.com/mwrock))
+- fix release yaml [#8531](https://github.com/habitat-sh/habitat/pull/8531) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.513 -->
 ### Changes since 1.6.513 release
 
 #### Merged Pull Requests
+- fix release yaml [#8531](https://github.com/habitat-sh/habitat/pull/8531) ([mwrock](https://github.com/mwrock)) <!-- 1.6.519 -->
 - set UPLOAD_AND_PROMOTE var in builds to force upload and promote in release_habitat pipeline [#8530](https://github.com/habitat-sh/habitat/pull/8530) ([mwrock](https://github.com/mwrock)) <!-- 1.6.518 -->
 - bump the jemalloc crates to fix hang in epoch advancement [#8527](https://github.com/habitat-sh/habitat/pull/8527) ([mwrock](https://github.com/mwrock)) <!-- 1.6.517 -->
 - fix clippy with refreshed packages [#8529](https://github.com/habitat-sh/habitat/pull/8529) ([mwrock](https://github.com/mwrock)) <!-- 1.6.516 -->
