@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.516 -->
-## [1.6.516](https://github.com/habitat-sh/habitat/tree/1.6.516) (2022-06-01)
+<!-- latest_release 1.6.517 -->
+## [1.6.517](https://github.com/habitat-sh/habitat/tree/1.6.517) (2022-06-01)
 
 #### Merged Pull Requests
-- fix clippy with refreshed packages [#8529](https://github.com/habitat-sh/habitat/pull/8529) ([mwrock](https://github.com/mwrock))
+- bump the jemalloc crates to fix hang in epoch advancement [#8527](https://github.com/habitat-sh/habitat/pull/8527) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.513 -->
 ### Changes since 1.6.513 release
 
 #### Merged Pull Requests
+- bump the jemalloc crates to fix hang in epoch advancement [#8527](https://github.com/habitat-sh/habitat/pull/8527) ([mwrock](https://github.com/mwrock)) <!-- 1.6.517 -->
 - fix clippy with refreshed packages [#8529](https://github.com/habitat-sh/habitat/pull/8529) ([mwrock](https://github.com/mwrock)) <!-- 1.6.516 -->
 - Remove Hugo and go versions from netlify config [#8523](https://github.com/habitat-sh/habitat/pull/8523) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.515 -->
 - updated changelog for 1.6.513 [#8521](https://github.com/habitat-sh/habitat/pull/8521) ([mwrock](https://github.com/mwrock)) <!-- 1.6.514 -->
