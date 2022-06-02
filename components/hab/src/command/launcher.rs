@@ -22,7 +22,7 @@ const LAUNCH_PKG_IDENT: &str = "core/hab-launcher";
 
 pub async fn start(ui: &mut UI, sup_run: SupRun, args: &[OsString]) -> Result<()> {
     init()?;
-    let channel = sup_run.channel;
+    let channel = sup_run.shared_load.channel;
     if henv::var(SUP_CMD_ENVVAR).is_err() {
         let version: Vec<&str> = VERSION.split('/').collect();
         exec::command_from_min_pkg_with_channel(ui,
