@@ -71,10 +71,6 @@ valico = "*"
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
 
-[target.'cfg(target_family = "unix")'.dependencies]
-jemallocator = "*"
-jemalloc-ctl = "*"
-
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
 habitat-launcher-protocol = { path = "../launcher-protocol" }

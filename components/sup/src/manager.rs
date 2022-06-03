@@ -87,8 +87,7 @@ use habitat_sup_protocol::{self};
 use parking_lot::{Mutex,
                   RwLock};
 use prometheus::{HistogramVec,
-                 IntGauge,
-                 IntGaugeVec};
+                 IntGauge};
 use rustls::{internal::pemfile,
              AllowAnyAuthenticatedClient,
              Certificate,
@@ -139,10 +138,6 @@ lazy_static! {
         "hab_sup_open_file_descriptors_total",
         "A count of the total number of open file descriptors. Unix only"
     ).unwrap();
-    static ref MEMORY_STATS: IntGaugeVec =
-        register_int_gauge_vec!("hab_sup_memory_allocations_bytes",
-                                "Memory allocation statistics",
-                                &["category"]).unwrap();
     static ref CPU_TIME: IntGauge = register_int_gauge!("hab_sup_cpu_time_nanoseconds",
                                                         "CPU time of the supervisor process in \
                                                          nanoseconds").unwrap();
@@ -1167,8 +1162,6 @@ impl Manager {
                 Err(e) => error!("Error retrieving open file descriptor count: {:?}", e),
             }
 
-            track_memory_stats();
-
             if self.feature_flags.contains(FeatureFlag::TEST_EXIT) {
                 if let Ok(exit_file_path) = env::var("HAB_FEAT_TEST_EXIT") {
                     if let Ok(mut exit_code_file) = File::open(&exit_file_path) {
@@ -2011,49 +2004,6 @@ fn get_fd_count() -> std::io::Result<usize> {
 
     Ok(fs::read_dir(FD_DIR)?.count())
 }
-
-#[cfg(unix)]
-fn track_memory_stats() {
-    // We'd like to track some memory stats, but these stats are cached and only refreshed
-    // when the epoch is advanced. We manually advance it here to ensure our stats are
-    // fresh.
-    jemalloc_ctl::epoch::mib().unwrap().advance().unwrap();
-
-    MEMORY_STATS.with_label_values(&["active"])
-                .set(jemalloc_ctl::stats::active::mib().unwrap()
-                                                       .read()
-                                                       .unwrap()
-                                                       .to_i64());
-    MEMORY_STATS.with_label_values(&["allocated"])
-                .set(jemalloc_ctl::stats::allocated::mib().unwrap()
-                                                          .read()
-                                                          .unwrap()
-                                                          .to_i64());
-    MEMORY_STATS.with_label_values(&["mapped"])
-                .set(jemalloc_ctl::stats::mapped::mib().unwrap()
-                                                       .read()
-                                                       .unwrap()
-                                                       .to_i64());
-    MEMORY_STATS.with_label_values(&["metadata"])
-                .set(jemalloc_ctl::stats::metadata::mib().unwrap()
-                                                         .read()
-                                                         .unwrap()
-                                                         .to_i64());
-    MEMORY_STATS.with_label_values(&["resident"])
-                .set(jemalloc_ctl::stats::resident::mib().unwrap()
-                                                         .read()
-                                                         .unwrap()
-                                                         .to_i64());
-    MEMORY_STATS.with_label_values(&["retained"])
-                .set(jemalloc_ctl::stats::retained::mib().unwrap()
-                                                         .read()
-                                                         .unwrap()
-                                                         .to_i64());
-}
-
-// This is a no-op on purpose because windows doesn't support jemalloc
-#[cfg(windows)]
-fn track_memory_stats() {}
 
 #[cfg(test)]
 mod test {

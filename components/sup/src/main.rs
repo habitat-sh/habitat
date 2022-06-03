@@ -1,9 +1,5 @@
 extern crate clap;
 extern crate habitat_sup as sup;
-#[cfg(unix)]
-extern crate jemalloc_ctl;
-#[cfg(unix)]
-extern crate jemallocator;
 #[macro_use]
 extern crate log;
 #[cfg(test)]
@@ -61,10 +57,6 @@ use tokio::{self,
 
 /// Our output key
 static LOGKEY: &str = "MN";
-
-#[cfg(unix)]
-#[global_allocator]
-static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 habitat_core::env_config_int!(/// Represents how many threads to start for our main Tokio runtime
                               #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
