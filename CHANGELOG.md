@@ -1,14 +1,16 @@
 # Habitat CHANGELOG
 
 <!-- latest_release 1.6.521 -->
-## [1.6.521](https://github.com/habitat-sh/habitat/tree/1.6.521) (2022-06-03)
 
-#### Merged Pull Requests
-- removing jemalloc and memory stats [#8533](https://github.com/habitat-sh/habitat/pull/8533) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.513 -->
-### Changes since 1.6.513 release
+<!-- release_rollup since=1.6.521 -->
+### Changes since 1.6.521 release
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.521 -->
+
+## [1.6.521](https://github.com/habitat-sh/habitat/tree/1.6.521) (2022-06-03)
 
 #### Merged Pull Requests
 - removing jemalloc and memory stats [#8533](https://github.com/habitat-sh/habitat/pull/8533) ([mwrock](https://github.com/mwrock)) <!-- 1.6.521 -->
@@ -19,9 +21,6 @@
 - fix clippy with refreshed packages [#8529](https://github.com/habitat-sh/habitat/pull/8529) ([mwrock](https://github.com/mwrock)) <!-- 1.6.516 -->
 - Remove Hugo and go versions from netlify config [#8523](https://github.com/habitat-sh/habitat/pull/8523) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.515 -->
 - updated changelog for 1.6.513 [#8521](https://github.com/habitat-sh/habitat/pull/8521) ([mwrock](https://github.com/mwrock)) <!-- 1.6.514 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 1.6.513 -->
 
 ## [1.6.513](https://github.com/habitat-sh/habitat/tree/1.6.513) (2022-05-19)
 
