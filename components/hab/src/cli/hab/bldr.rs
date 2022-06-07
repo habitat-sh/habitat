@@ -8,6 +8,7 @@ use crate::cli::valid_origin;
 use configopt::ConfigOpt;
 use habitat_common::cli::PACKAGE_TARGET_ENVVAR;
 use habitat_core::package::PackageTarget;
+use serde::Serialize;
 use structopt::{clap::ArgGroup,
                 StructOpt};
 

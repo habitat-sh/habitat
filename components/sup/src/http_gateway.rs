@@ -26,15 +26,21 @@ use habitat_common::{self,
 use habitat_core::{crypto,
                    env as henv,
                    service::ServiceGroup};
+use log::{debug,
+          error};
 use manager::sync::GatewayState;
 
+use lazy_static::lazy_static;
 use prometheus::{self,
+                 register_counter_vec,
+                 register_histogram_vec,
                  CounterVec,
                  Encoder,
                  HistogramTimer,
                  HistogramVec,
                  TextEncoder};
 use rustls::ServerConfig;
+use serde::Serialize;
 use serde_json::{self,
                  Value as Json};
 use std::{self,
@@ -494,6 +500,7 @@ mod tests {
                             server::{Server,
                                      ServerProxy,
                                      Suitability}};
+    use lazy_static::lazy_static;
     use std::{fs::File,
               io::Read,
               net::{IpAddr,

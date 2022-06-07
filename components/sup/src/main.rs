@@ -1,17 +1,3 @@
-extern crate clap;
-extern crate habitat_sup as sup;
-#[cfg(unix)]
-extern crate jemalloc_ctl;
-#[cfg(unix)]
-extern crate jemallocator;
-#[macro_use]
-extern crate log;
-#[cfg(test)]
-extern crate lazy_static;
-extern crate rustls;
-extern crate tempfile;
-extern crate url;
-
 use crate::sup::{cli::cli,
                  command,
                  error::{Error,
@@ -46,7 +32,12 @@ use habitat_core::{self,
 use habitat_launcher_client::{LauncherCli,
                               ERR_NO_RETRY_EXCODE,
                               OK_NO_RETRY_EXCODE};
+use habitat_sup as sup;
 use habitat_sup_protocol::{self as sup_proto};
+use log::{debug,
+          error,
+          info,
+          warn};
 use std::{convert::TryInto,
           env,
           io,
@@ -62,7 +53,9 @@ use tokio::{self,
 /// Our output key
 static LOGKEY: &str = "MN";
 
-#[cfg(unix)]
+#[cfg(all(target_family = "unix",
+          target_arch = "x86_64",
+          not(target_os = "macos")))]
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 

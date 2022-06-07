@@ -21,8 +21,10 @@ use crate::{error::{Error,
                        Message},
             rumor::election::ElectionRumor};
 use bytes::BytesMut;
-use prometheus::IntCounterVec;
+use prometheus::{register_int_counter_vec,
+                 IntCounterVec};
 use prost::Message as ProstMessage;
+use serde::Serialize;
 use std::{collections::{hash_map::Entry,
                         HashMap},
           default::Default,
@@ -43,6 +45,7 @@ pub use self::{departure::Departure,
 pub use crate::protocol::newscast::{Rumor as ProtoRumor,
                                     RumorPayload,
                                     RumorType};
+use lazy_static::lazy_static;
 
 lazy_static! {
     static ref IGNORED_RUMOR_COUNT: IntCounterVec =
@@ -524,6 +527,7 @@ mod tests {
                 rumor::{Rumor,
                         RumorKey,
                         RumorType}};
+    use serde::Serialize;
     use uuid::Uuid;
 
     #[derive(Clone, Debug, Serialize)]

@@ -4,6 +4,8 @@ use crate::util::posix_perm::{self,
 #[cfg(windows)]
 use crate::util::win_perm::{self,
                             set_permissions};
+use log::{debug,
+          warn};
 #[cfg(windows)]
 use std::{iter,
           os::windows::ffi::OsStrExt};
@@ -809,6 +811,8 @@ impl AtomicWriter {
     /// the atomocity guarantee.
     #[cfg(unix)]
     fn sync_parent(dest: &Path) -> io::Result<()> {
+        use log::info;
+
         let parent = parent(dest)?;
         let f = fs::File::open(parent)?;
         if let Err(e) = f.sync_all() {

@@ -2,6 +2,7 @@ use crate::{error::{Error,
                     Result},
             origin::Origin,
             package::PackageTarget};
+use log::debug;
 use regex::Regex;
 use serde_derive::{Deserialize,
                    Serialize};

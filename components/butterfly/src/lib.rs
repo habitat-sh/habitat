@@ -26,17 +26,6 @@
 //!
 //! Start exploring the code base by following the thread of execution in the `server` module.
 
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate log;
-#[macro_use]
-extern crate prometheus;
-extern crate prost;
-extern crate prost_derive;
-#[macro_use]
-extern crate serde_derive;
-
 pub mod client;
 pub mod error;
 pub mod member;
@@ -47,6 +36,7 @@ pub mod server;
 pub mod swim;
 
 pub use crate::server::Server;
+use lazy_static::lazy_static;
 use std::cell::UnsafeCell;
 
 lazy_static! {

@@ -1,22 +1,19 @@
 use base64::DecodeError;
 use rusoto_core::RusotoError;
 use rusoto_ecr::GetAuthorizationTokenError;
-use std::result;
+use thiserror::Error;
 
-pub type Result<T> = result::Result<T, failure::Error>;
-
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum Error {
-    #[fail(display = "{}", _0)]
+    #[error(transparent)]
     Base64DecodeError(DecodeError),
-    #[fail(display = "Invalid registry type: {}", _0)]
+    #[error("Invalid registry type: {0}")]
     InvalidRegistryType(String),
-    #[fail(display = "No ECR Tokens returned")]
+    #[error("No ECR Tokens returned")]
     NoECRTokensReturned,
-    #[fail(display = "{}", _0)]
+    #[error(transparent)]
     TokenFetchFailed(RusotoError<GetAuthorizationTokenError>),
-    #[fail(display = "A primary service package could not be determined from: {:?}. At least \
-                      one package with a run hook must be provided.",
-           _0)]
+    #[error("A primary service package could not be determined from: {0:?}. At least one \
+             package with a run hook must be provided.")]
     PrimaryServicePackageNotFound(Vec<String>),
 }

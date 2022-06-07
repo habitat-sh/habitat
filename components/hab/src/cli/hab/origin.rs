@@ -10,6 +10,7 @@ use crate::cli::{valid_origin,
                  KeyType};
 use configopt::ConfigOpt;
 use habitat_core::origin::OriginMemberRole;
+use serde::Serialize;
 use std::path::PathBuf;
 use structopt::{clap::ArgGroup,
                 StructOpt};

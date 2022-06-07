@@ -80,11 +80,15 @@ pub use habitat_sup_protocol::types::{ProcessState,
                                       Topology,
                                       UpdateCondition,
                                       UpdateStrategy};
+use log::{debug,
+          trace};
 use parking_lot::RwLock;
-use prometheus::{HistogramTimer,
+use prometheus::{register_histogram_vec,
+                 HistogramTimer,
                  HistogramVec};
 use serde::{ser::{Error as _,
                   SerializeStruct},
+            Deserialize,
             Serialize,
             Serializer};
 use std::{self,
@@ -101,6 +105,7 @@ use std::{self,
                  SystemTime}};
 
 use super::ServiceRestartConfig;
+use lazy_static::lazy_static;
 
 static LOGKEY: &str = "SR";
 

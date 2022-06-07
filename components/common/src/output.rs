@@ -19,6 +19,7 @@
 //! with ANSI color codes, but does honor the verbose flag.
 
 use crate::PROGRAM_NAME;
+use lazy_static::lazy_static;
 use serde::{ser::SerializeMap,
             Serialize,
             Serializer};

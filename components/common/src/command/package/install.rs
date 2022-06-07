@@ -53,7 +53,10 @@ use habitat_core::{self,
                              PackageInstall,
                              PackageTarget},
                    ChannelIdent};
+use log::debug;
 use reqwest::StatusCode;
+use serde::{Deserialize,
+            Serialize};
 use std::{convert::TryFrom,
           fs::{self,
                File},

@@ -1,9 +1,9 @@
-use crate::protocol;
 #[cfg(windows)]
-use core::os::process::windows_child::{ChildStderr,
-                                       ChildStdout,
-                                       ExitStatus};
-use core::util::BufReadLossy;
+use crate::core::os::process::windows_child::{ChildStderr,
+                                              ChildStdout,
+                                              ExitStatus};
+use crate::{core::util::BufReadLossy,
+            protocol};
 use habitat_common::output::{self,
                              StructuredOutput};
 #[cfg(unix)]

@@ -27,15 +27,7 @@
 //! all protocol files.
 
 use habitat_core as core;
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate log;
-extern crate prost_derive;
-
-#[macro_use]
-extern crate serde_derive;
-
+use lazy_static::lazy_static;
 pub mod butterfly;
 pub mod codec;
 pub mod ctl;

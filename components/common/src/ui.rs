@@ -3,6 +3,7 @@ use crate::{api_client::DisplayProgress,
             error::{Error,
                     Result},
             output};
+use log::debug;
 use std::{env,
           fmt,
           fs::{self,

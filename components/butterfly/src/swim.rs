@@ -10,6 +10,7 @@ use crate::{error::{Error,
                        FromProto}};
 use bytes::BytesMut;
 use prost::Message as ProstMessage;
+use serde::Serialize;
 use std::{fmt,
           str::FromStr};
 

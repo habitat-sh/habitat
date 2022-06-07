@@ -11,6 +11,7 @@ use futures::future::{self,
 use habitat_common::outputln;
 use habitat_core::{package::PackageIdent,
                    service::ServiceGroup};
+use log::debug;
 use parking_lot::{Mutex,
                   RwLock};
 use std::{self,

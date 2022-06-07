@@ -13,6 +13,10 @@ use ipc_channel::ipc::{IpcError,
                        IpcReceiver,
                        IpcSender,
                        TryRecvError};
+use log::{debug,
+          error,
+          trace,
+          warn};
 use std::{collections::BTreeMap,
           path::Path,
           thread,

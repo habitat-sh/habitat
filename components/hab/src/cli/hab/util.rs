@@ -16,6 +16,9 @@ use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                          DEFAULT_BLDR_URL},
                    AUTH_TOKEN_ENVVAR};
 use lazy_static::lazy_static;
+use log::error;
+use serde::{Deserialize,
+            Serialize};
 use std::{ffi::OsString,
           fmt,
           num::ParseIntError,

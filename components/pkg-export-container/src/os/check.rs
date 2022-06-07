@@ -1,5 +1,5 @@
 #[cfg(not(windows))]
-use crate::error::Result;
+use anyhow::Result;
 
 /// Linux Docker daemons currently only run in one mode, so this can
 /// be a no-op.

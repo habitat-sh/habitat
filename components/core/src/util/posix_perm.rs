@@ -2,6 +2,7 @@ use libc::{self,
            c_char,
            c_int,
            mode_t};
+use log::debug;
 use std::{ffi::CString,
           path::Path};
 

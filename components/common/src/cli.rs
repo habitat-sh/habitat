@@ -2,7 +2,6 @@
 //! for use in the clap layer of the application. This is not the final form for defaults.
 //! Eventually this will be composed of fully typed default values. But as a first step we
 //! need a spot to consolidate those values and help simplify some of the logic around them.
-
 use clap::{value_t,
            ArgMatches};
 use habitat_core::{self,
@@ -10,6 +9,7 @@ use habitat_core::{self,
                    os::process::{ShutdownSignal,
                                  ShutdownTimeout},
                    package::PackageIdent};
+use lazy_static::lazy_static;
 use std::{ffi::OsStr,
           path::{Path,
                  PathBuf},

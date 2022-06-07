@@ -14,7 +14,6 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-base64 = "*"
 clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = ["suggestions", "color", "unstable"] }
 env_logger = "*"
 habitat_common = { path = "../common" }
@@ -28,8 +27,8 @@ serde = { version = "*", features = ["rc"] }
 serde_json = { version = "*", features = [ "preserve_order" ] }
 tokio = { version = "*", features = ["full"] }
 url = "*"
-failure = "*"
-failure_derive = "*"
+thiserror = "*"
+anyhow = { version = "*", features = ["backtrace"] }
 tempfile = "*"
 tar = "*"
 flate2 = "*"

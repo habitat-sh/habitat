@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::error::Result;
+use anyhow::Result;
 
 /// Creates a root file system under the given path.
 ///

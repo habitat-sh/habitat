@@ -22,6 +22,7 @@ use habitat_sup_protocol::{self as protocol,
                            net::{self,
                                  ErrCode,
                                  NetResult}};
+use serde::Deserialize;
 use std::{convert::TryFrom,
           fmt,
           result,

@@ -2,6 +2,7 @@ use super::service::spec::ServiceSpec;
 use crate::error::{Error,
                    Result};
 use habitat_common::outputln;
+use log::debug;
 use std::{ffi::OsStr,
           iter::IntoIterator,
           path::{Path,

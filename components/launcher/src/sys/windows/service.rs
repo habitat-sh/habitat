@@ -1,13 +1,15 @@
-use crate::{error::ServiceRunError,
+use crate::{core::{os::{process::{handle_from_pid,
+                                  windows_child::{ExitStatus,
+                                                  Handle}},
+                        users::get_current_username},
+                   util},
+            error::ServiceRunError,
             protocol::{self,
                        ShutdownMethod},
             service::Service};
 use anyhow::Result;
-use core::{os::{process::{handle_from_pid,
-                          windows_child::{ExitStatus,
-                                          Handle}},
-                users::get_current_username},
-           util};
+use log::{debug,
+          error};
 use std::{collections::HashMap,
           env,
           io,

@@ -4,6 +4,8 @@ use crate::{error::{Error,
             manager::debug::{IndentedStructFormatter,
                              IndentedToString}};
 use habitat_common::liveliness_checker;
+use log::{debug,
+          error};
 use notify::{self,
              DebouncedEvent,
              RecursiveMode,
@@ -1576,6 +1578,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
 mod tests {
     use crate::manager::sup_watcher::SupWatcher;
     use habitat_core::locked_env_var;
+    use log::debug;
     use std::{collections::{HashMap,
                             HashSet,
                             VecDeque},
