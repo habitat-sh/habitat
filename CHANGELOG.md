@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.522 -->
-## [1.6.522](https://github.com/habitat-sh/habitat/tree/1.6.522) (2022-06-07)
+<!-- latest_release 1.6.523 -->
+## [1.6.523](https://github.com/habitat-sh/habitat/tree/1.6.523) (2022-06-07)
 
 #### Merged Pull Requests
-- updating changelog for 1.6.521 [#8537](https://github.com/habitat-sh/habitat/pull/8537) ([mwrock](https://github.com/mwrock))
+- Rustfmt and Nightly Rust Bump to nightly-2022-06-07 [#8536](https://github.com/habitat-sh/habitat/pull/8536) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- Rustfmt and Nightly Rust Bump to nightly-2022-06-07 [#8536](https://github.com/habitat-sh/habitat/pull/8536) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.523 -->
 - updating changelog for 1.6.521 [#8537](https://github.com/habitat-sh/habitat/pull/8537) ([mwrock](https://github.com/mwrock)) <!-- 1.6.522 -->
 <!-- release_rollup -->
 
