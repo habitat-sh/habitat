@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.531 -->
-## [1.6.531](https://github.com/habitat-sh/habitat/tree/1.6.531) (2022-06-08)
+<!-- latest_release 1.6.532 -->
+## [1.6.532](https://github.com/habitat-sh/habitat/tree/1.6.532) (2022-06-08)
 
 #### Merged Pull Requests
-- Bump flate2 from 1.0.23 to 1.0.24 [#8541](https://github.com/habitat-sh/habitat/pull/8541) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump prost from 0.10.3 to 0.10.4 [#8542](https://github.com/habitat-sh/habitat/pull/8542) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- Bump prost from 0.10.3 to 0.10.4 [#8542](https://github.com/habitat-sh/habitat/pull/8542) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.532 -->
 - Bump flate2 from 1.0.23 to 1.0.24 [#8541](https://github.com/habitat-sh/habitat/pull/8541) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.531 -->
 - Bump xz2 from 0.1.6 to 0.1.7 [#8540](https://github.com/habitat-sh/habitat/pull/8540) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.530 -->
 - Bump petgraph from 0.6.0 to 0.6.2 [#8538](https://github.com/habitat-sh/habitat/pull/8538) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.529 -->
