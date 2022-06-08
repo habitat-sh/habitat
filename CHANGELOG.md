@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.529 -->
-## [1.6.529](https://github.com/habitat-sh/habitat/tree/1.6.529) (2022-06-08)
+<!-- latest_release 1.6.530 -->
+## [1.6.530](https://github.com/habitat-sh/habitat/tree/1.6.530) (2022-06-08)
 
 #### Merged Pull Requests
-- Bump petgraph from 0.6.0 to 0.6.2 [#8538](https://github.com/habitat-sh/habitat/pull/8538) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump xz2 from 0.1.6 to 0.1.7 [#8540](https://github.com/habitat-sh/habitat/pull/8540) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- Bump xz2 from 0.1.6 to 0.1.7 [#8540](https://github.com/habitat-sh/habitat/pull/8540) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.530 -->
 - Bump petgraph from 0.6.0 to 0.6.2 [#8538](https://github.com/habitat-sh/habitat/pull/8538) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.529 -->
 - fix shellcheck violation [#8539](https://github.com/habitat-sh/habitat/pull/8539) ([mwrock](https://github.com/mwrock)) <!-- 1.6.528 -->
 - Release Notes [#8526](https://github.com/habitat-sh/habitat/pull/8526) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.527 -->
