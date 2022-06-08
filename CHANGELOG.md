@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.528 -->
-## [1.6.528](https://github.com/habitat-sh/habitat/tree/1.6.528) (2022-06-08)
+<!-- latest_release 1.6.529 -->
+## [1.6.529](https://github.com/habitat-sh/habitat/tree/1.6.529) (2022-06-08)
 
 #### Merged Pull Requests
-- fix shellcheck violation [#8539](https://github.com/habitat-sh/habitat/pull/8539) ([mwrock](https://github.com/mwrock))
+- Bump petgraph from 0.6.0 to 0.6.2 [#8538](https://github.com/habitat-sh/habitat/pull/8538) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- Bump petgraph from 0.6.0 to 0.6.2 [#8538](https://github.com/habitat-sh/habitat/pull/8538) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.529 -->
 - fix shellcheck violation [#8539](https://github.com/habitat-sh/habitat/pull/8539) ([mwrock](https://github.com/mwrock)) <!-- 1.6.528 -->
 - Release Notes [#8526](https://github.com/habitat-sh/habitat/pull/8526) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.527 -->
 - Bump openssl-src from 111.15.0+1.1.1k to 111.20.0+1.1.1o [#8535](https://github.com/habitat-sh/habitat/pull/8535) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.526 -->
