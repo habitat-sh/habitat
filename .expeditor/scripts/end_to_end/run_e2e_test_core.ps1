@@ -177,9 +177,11 @@ function Wait-SupervisorServiceUnload($ServiceName, $Timeout = 1) {
     Write-Host "Waiting up to $Timeout seconds for Supervisor to unload $ServiceName ..."
     $testScript = {
         try {
-            Invoke-WebRequest "http://localhost:9631/services/$ServiceName/default" | Out-Null
+            $out = Invoke-WebRequest "http://localhost:9631/services/$ServiceName/default"
+            Write-Host $out
             $false
         } catch {
+            Write-Host "$($_ | Format-List * -Force | Out-String)"
             $statusCode = $_.Exception.Response.StatusCode.value__
             $statusCode -eq 404
         }
