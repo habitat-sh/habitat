@@ -51,7 +51,7 @@ dependencies = [
  "pin-project",
  "pin-project-lite",
  "rand 0.8.5",
- "regex 1.5.5",
+ "regex 1.5.6",
  "serde",
  "sha-1",
  "smallvec",
@@ -78,7 +78,7 @@ dependencies = [
  "bytestring",
  "http",
  "log 0.4.16",
- "regex 1.5.5",
+ "regex 1.5.6",
  "serde",
 ]
 
@@ -117,7 +117,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77f5f9d66a8730d0fae62c26f3424f5751e5518086628a40b7ab6fca4a705034"
 dependencies = [
  "futures-core",
- "paste 1.0.7",
+ "paste",
  "pin-project-lite",
 ]
 
@@ -179,9 +179,9 @@ dependencies = [
  "log 0.4.16",
  "mime",
  "once_cell",
- "paste 1.0.7",
+ "paste",
  "pin-project",
- "regex 1.5.5",
+ "regex 1.5.6",
  "serde",
  "serde_json",
  "serde_urlencoded",
@@ -780,7 +780,7 @@ dependencies = [
  "atty",
  "humantime",
  "log 0.4.16",
- "regex 1.5.5",
+ "regex 1.5.6",
  "termcolor",
 ]
 
@@ -901,12 +901,6 @@ dependencies = [
  "libc",
  "winapi 0.3.9",
 ]
-
-[[package]]
-name = "fs_extra"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2022715d62ab30faffd124d40b76f4134a550a87792276512b18d63272333394"
 
 [[package]]
 name = "fsevent"
@@ -1282,7 +1276,7 @@ dependencies = [
  "pbr",
  "percent-encoding",
  "rand 0.8.5",
- "regex 1.5.5",
+ "regex 1.5.6",
  "reqwest",
  "serde",
  "serde_derive",
@@ -1344,7 +1338,7 @@ dependencies = [
  "parking_lot 0.12.0",
  "pbr",
  "petgraph",
- "regex 1.5.5",
+ "regex 1.5.6",
  "reqwest",
  "retry",
  "rustls",
@@ -1386,12 +1380,12 @@ dependencies = [
  "nix 0.24.1",
  "num_cpus",
  "os_info",
- "paste 1.0.7",
+ "paste",
  "pem 1.0.2",
  "pin-project",
  "rand 0.8.5",
  "rcgen",
- "regex 1.5.5",
+ "regex 1.5.6",
  "reqwest",
  "rustls",
  "serde",
@@ -1511,8 +1505,6 @@ dependencies = [
  "habitat_core",
  "habitat_http_client",
  "hyper",
- "jemalloc-ctl",
- "jemallocator",
  "lazy_static 1.4.0",
  "libc",
  "log 0.4.16",
@@ -1530,7 +1522,7 @@ dependencies = [
  "prost-types",
  "rand 0.8.5",
  "rants",
- "regex 1.5.5",
+ "regex 1.5.6",
  "reqwest",
  "rustls",
  "serde",
@@ -1822,38 +1814,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1aab8fc367588b89dcee83ab0fd66b72b50b72fa1904d7095045ace2b0c81c35"
 
 [[package]]
-name = "jemalloc-ctl"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c502a5ff9dd2924f1ed32ba96e3b65735d837b4bfd978d3161b1702e66aca4b7"
-dependencies = [
- "jemalloc-sys",
- "libc",
- "paste 0.1.18",
-]
-
-[[package]]
-name = "jemalloc-sys"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d3b9f3f5c9b31aa0f5ed3260385ac205db665baa41d49bb8338008ae94ede45"
-dependencies = [
- "cc",
- "fs_extra",
- "libc",
-]
-
-[[package]]
-name = "jemallocator"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43ae63fcfc45e99ab3d1b29a46782ad679e98436c3169d15a167a1108a724b69"
-dependencies = [
- "jemalloc-sys",
- "libc",
-]
-
-[[package]]
 name = "js-sys"
 version = "0.3.52"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1930,9 +1890,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.125"
+version = "0.2.126"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5916d2ae698f6de9bfb891ad7a8d65c09d232dc58cc4ac433c7da3b2fd84bc2b"
+checksum = "349d5a591cd28b49e1d1037471617a32ddcda5731b99419008085f72d5a53836"
 
 [[package]]
 name = "libsodium-sys"
@@ -2020,7 +1980,7 @@ dependencies = [
  "log 0.4.16",
  "log-mdc",
  "parking_lot 0.11.2",
- "regex 1.5.5",
+ "regex 1.5.6",
  "serde",
  "serde-value",
  "serde_json",
@@ -2374,9 +2334,9 @@ checksum = "28988d872ab76095a6e6ac88d99b54fd267702734fd7ffe610ca27f533ddb95a"
 
 [[package]]
 name = "openssl-src"
-version = "111.15.0+1.1.1k"
+version = "111.20.0+1.1.1o"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1a5f6ae2ac04393b217ea9f700cd04fa9bf3d93fae2872069f3d15d908af70a"
+checksum = "92892c4f87d56e376e469ace79f1128fdaded07646ddf73aa0be4706ff712dec"
 dependencies = [
  "cc",
 ]
@@ -2477,28 +2437,9 @@ dependencies = [
 
 [[package]]
 name = "paste"
-version = "0.1.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45ca20c77d80be666aef2b45486da86238fabe33e38306bd3118fe4af33fa880"
-dependencies = [
- "paste-impl",
- "proc-macro-hack",
-]
-
-[[package]]
-name = "paste"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c520e05135d6e763148b6426a837e239041653ba7becd2e538c076c738025fc"
-
-[[package]]
-name = "paste-impl"
-version = "0.1.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d95a7db200b97ef370c8e6de0088252f7e0dfff7d047a28528e47456c0fc98b6"
-dependencies = [
- "proc-macro-hack",
-]
 
 [[package]]
 name = "pbr"
@@ -2520,7 +2461,7 @@ checksum = "fd56cbd21fea48d0c440b41cd69c589faacade08c992d9a54e471b79d0fd13eb"
 dependencies = [
  "base64",
  "once_cell",
- "regex 1.5.5",
+ "regex 1.5.6",
 ]
 
 [[package]]
@@ -2737,7 +2678,7 @@ dependencies = [
  "petgraph",
  "prost",
  "prost-types",
- "regex 1.5.5",
+ "regex 1.5.6",
  "tempfile",
  "which",
 ]
@@ -2957,13 +2898,13 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.5.5"
+version = "1.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a11647b6b25ff05a515cb92c365cec08801e83423a235b51e231e1808747286"
+checksum = "d83f127d94bdbcda4c8cc2e50f6f84f4b611f69c902699ca385a39c3a75f9ff1"
 dependencies = [
  "aho-corasick 0.7.18",
  "memchr",
- "regex-syntax 0.6.25",
+ "regex-syntax 0.6.26",
 ]
 
 [[package]]
@@ -2977,9 +2918,9 @@ dependencies = [
 
 [[package]]
 name = "regex-syntax"
-version = "0.6.25"
+version = "0.6.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
+checksum = "49b3de9ec5dc0a3417da371aab17d729997c15010e7fd24ff707773a33bddb64"
 
 [[package]]
 name = "remove_dir_all"
@@ -4018,7 +3959,7 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bcde98d1fc3f528255b1ecb22fb688ee0d23deb672a8c57127df10b98b4bd18c"
 dependencies = [
- "regex 1.5.5",
+ "regex 1.5.6",
 ]
 
 [[package]]
@@ -4063,7 +4004,7 @@ dependencies = [
  "phf",
  "phf_codegen",
  "publicsuffix",
- "regex 1.5.5",
+ "regex 1.5.6",
  "serde",
  "serde_json",
  "uritemplate-next",

@@ -146,6 +146,22 @@ See:
 - https://github.com/chef/chef-web-docs/blob/master/.expeditor/update_hugo_modules_project_promoted.sh
 - https://github.com/habitat-sh/habitat/pull/7993
 
+## Release Notes
+
+Release notes allow product engineering to communicate the list of features that are shipping in the builds being promoted to `stable`. Remember release notes are not changelogs! The audience is our end-users, not other engineers. If you need a quick primer on what goes into good release notes, take a look at these excellent articles:
+
+- [The Life-Changing Magic of Writing Release Notes](https://medium.com/@DigitalGov/the-life-changing-magic-of-writing-release-notes-4c460970565)
+- [Let’s All Appreciate These Great Release Notes Together](https://www.prodpad.com/blog/writing-release-notes/)
+
+Capture the release notes on the [Pending Release Notes wiki page](https://github.com/habitat-sh/habitat/wiki/Pending-Release-Notes). All edits should be completed and reviewed by a member of the Documentation Team before Habitat is promoted to `stable`. It is the responsibility of the _individual development teams_ to ensure the release notes are updated with any features and breaking changes that ship when Habitat is promoted to the `stable` channel. We encourage teams to make updating these release notes part of their weekly rituals. Whatever is in the wiki page at promotion time is what goes out with the release!
+
+During the promotion to the `stable` channel, the release notes will be extracted from the wiki page and published to an S3 bucket. The published release notes are then available at the following URLs:
+
+```text
+https://docs.chef.io/release_notes_habitat/
+https://packages.chef.io/release-notes/habitat/<VERSION>.md
+```
+
 ## Documentation Feedback
 
 We love getting feedback, questions, or comments.
