@@ -94,7 +94,7 @@ use log::{debug,
 use parking_lot::{Mutex,
                   RwLock};
 use prometheus::{HistogramVec,
-                 IntGauge};
+                 IntGauge, register_histogram_vec, register_int_gauge};
 use rustls::{internal::pemfile,
              AllowAnyAuthenticatedClient,
              Certificate,
