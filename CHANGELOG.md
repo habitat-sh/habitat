@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.533 -->
-## [1.6.533](https://github.com/habitat-sh/habitat/tree/1.6.533) (2022-06-08)
+<!-- latest_release 1.6.534 -->
+## [1.6.534](https://github.com/habitat-sh/habitat/tree/1.6.534) (2022-06-13)
 
 #### Merged Pull Requests
-- Bump async-trait from 0.1.53 to 0.1.56 [#8543](https://github.com/habitat-sh/habitat/pull/8543) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- README: fix master-&gt;main img src [#8545](https://github.com/habitat-sh/habitat/pull/8545) ([dacoffey](https://github.com/dacoffey))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- README: fix master-&gt;main img src [#8545](https://github.com/habitat-sh/habitat/pull/8545) ([dacoffey](https://github.com/dacoffey)) <!-- 1.6.534 -->
 - Bump async-trait from 0.1.53 to 0.1.56 [#8543](https://github.com/habitat-sh/habitat/pull/8543) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.533 -->
 - Bump prost from 0.10.3 to 0.10.4 [#8542](https://github.com/habitat-sh/habitat/pull/8542) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.532 -->
 - Bump flate2 from 1.0.23 to 1.0.24 [#8541](https://github.com/habitat-sh/habitat/pull/8541) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.531 -->
