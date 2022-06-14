@@ -31,8 +31,7 @@ rand = "*"
 regex = "*"
 rcgen = "*"
 rustls = "0.19.1"
-serde = "*"
-serde_derive = "*"
+serde = { version = "*", features = ["derive"] }
 serde_json = { version = "*", features = [ "preserve_order" ] }
 sodiumoxide = "*"
 tabwriter = "*"

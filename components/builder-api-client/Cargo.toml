@@ -19,8 +19,7 @@ percent-encoding = "*"
 rand = "*"
 regex = "*"
 reqwest = { version = "*", features = ["blocking", "json", "stream"] }
-serde = "*"
-serde_derive = "*"
+serde = { version = "*", features = ["derive"] }
 serde_json = { version = "*", features = [ "preserve_order" ] }
 tee = "*"
 tokio = { version = "*", features = ["full"] }

@@ -14,8 +14,8 @@ use crate::{error::{Error,
             os::process::{ShutdownSignal,
                           ShutdownTimeout}};
 use log::debug;
-use serde_derive::{Deserialize,
-                   Serialize};
+use serde::{Deserialize,
+            Serialize};
 use std::{cmp::{Ordering,
                 PartialOrd},
           collections::{BTreeMap,

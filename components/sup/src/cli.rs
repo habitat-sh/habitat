@@ -44,14 +44,12 @@ mod test {
                         "PKG_IDENT_OR_ARTIFACT" => "core/redis");
 
         assert_cli_cmd!(should_handle_multiple_bind_flags,
-                        "hab-sup run --bind test:service.group1 --bind test:service.group2 -- core/redis",
-                        "BIND" => ["test:service.group1", "test:service.group2"],
-                        "PKG_IDENT_OR_ARTIFACT" => "core/redis");
+                        "hab-sup run --bind test:service.group1 --bind test:service.group2",
+                        "BIND" => ["test:service.group1", "test:service.group2"]);
 
         assert_cli_cmd!(should_handle_single_bind_flag_with_multiple_values,
-                        "hab-sup run --bind test:service.group1 test2:service.group2 -- core/redis",
-                        "BIND" => ["test:service.group1", "test2:service.group2"],
-                        "PKG_IDENT_OR_ARTIFACT" => "core/redis");
+                        "hab-sup run --bind test:service.group1 test2:service.group2",
+                        "BIND" => ["test:service.group1", "test2:service.group2"]);
 
         assert_cli_cmd!(should_handle_bind_flag_with_arguments,
                         "hab-sup run --bind test:service.group1 test:service.group2 -- core/redis",

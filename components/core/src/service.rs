@@ -1,8 +1,8 @@
 use crate::error::{Error,
                    Result};
 use regex::Regex;
-use serde_derive::{Deserialize,
-                   Serialize};
+use serde::{Deserialize,
+            Serialize};
 use std::{fmt,
           num::ParseIntError,
           ops::{Deref,

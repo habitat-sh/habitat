@@ -1,7 +1,7 @@
 use crate::error::{Error,
                    Result};
-use serde_derive::{Deserialize,
-                   Serialize};
+use serde::{Deserialize,
+            Serialize};
 use std::io::BufRead;
 
 #[derive(Debug, Deserialize, Serialize)]

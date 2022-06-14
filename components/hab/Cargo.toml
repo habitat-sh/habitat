@@ -40,8 +40,7 @@ reqwest = { version = "*", features = ["blocking", "json", "stream"] }
 retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
 rustls = "*"
 same-file = "*"
-serde = "*"
-serde_derive = "*"
+serde = { version = "*", features = ["derive"] }
 serde_json = { version = "*", features = [ "preserve_order" ] }
 serde_yaml = "*"
 structopt = { git = "https://github.com/habitat-sh/structopt.git" }

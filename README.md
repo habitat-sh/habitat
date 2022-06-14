@@ -37,7 +37,7 @@ See a quick demo of how to build, deploy and manage an application with Habitat:
 Graphics that will help you and your team better understand the concepts and how they fit together into the larger Habitat ecosystem.
 ### Where Habitat Fits
 
-[![Habitat Flow Infographic](https://github.com/habitat-sh/habitat/raw/master/images/habitat-flow-infographic.png)](http://habitat.sh#reference-diagram)
+[![Habitat Flow Infographic](https://github.com/habitat-sh/habitat/raw/main/images/habitat-flow-infographic.png)](http://habitat.sh#reference-diagram)
 
 Try the interactive infographics on the [website](http://habitat.sh#reference-diagram)!
 

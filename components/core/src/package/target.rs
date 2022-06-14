@@ -535,8 +535,8 @@ impl<'a> Iterator for Iter<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use serde_derive::{Deserialize,
-                       Serialize};
+    use serde::{Deserialize,
+                Serialize};
 
     // This test explicitly runs the function which returns the active `PackageTarget` for the
     // binary on the current running system. If compiletime support has not yet been added for this

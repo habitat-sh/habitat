@@ -43,8 +43,7 @@ num_cpus = "*"
 parking_lot = "*"
 pin-project = "*"
 prometheus = "*"
-prost = "*"
-prost-derive = "*"
+prost = { version = "*", features = ["prost-derive"] }
 prost-types = "*"
 rand = "*"
 rants = { git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
@@ -70,10 +69,6 @@ valico = "*"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
-
-[target.'cfg(all(target_family = "unix", target_arch = "x86_64", not(target_os = "macos")))'.dependencies]
-jemallocator = "*"
-jemalloc-ctl = "*"
 
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
