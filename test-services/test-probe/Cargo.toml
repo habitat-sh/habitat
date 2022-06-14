@@ -9,7 +9,6 @@ workspace = "../../"
 actix-rt = "*"
 actix-web = { version = "4.0.0-beta.8", default-features = false, features = [ "rustls" ] }
 clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
-serde = "*"
-serde_derive = "*"
+serde = { version = "*", features = ["derive"] }
 serde_json = "*"
 toml = "*"

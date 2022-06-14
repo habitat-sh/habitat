@@ -4,8 +4,8 @@ use crate::{error::{Error,
             package::PackageTarget};
 use log::debug;
 use regex::Regex;
-use serde_derive::{Deserialize,
-                   Serialize};
+use serde::{Deserialize,
+            Serialize};
 use std::{cmp::{Ordering,
                 PartialOrd},
           convert::TryFrom,

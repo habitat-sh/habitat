@@ -43,8 +43,7 @@ num_cpus = "*"
 parking_lot = "*"
 pin-project = "*"
 prometheus = "*"
-prost = "*"
-prost-derive = "*"
+prost = { version = "*", features = ["prost-derive"] }
 prost-types = "*"
 rand = "*"
 rants = { git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }

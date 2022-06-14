@@ -21,11 +21,9 @@ log = "*"
 lazy_static = "*"
 prometheus = "*"
 parking_lot = "*"
-prost = "*"
-prost-derive = "*"
+prost = { version = "*", features = ["prost-derive"] }
 rand = "*"
-serde = { version = "*", features = ["rc"] }
-serde_derive = "*"
+serde = { version = "*", features = ["derive", "rc"] }
 serde_json = { version = "*", features = [ "preserve_order" ] }
 tempfile = "*"
 threadpool = "*"

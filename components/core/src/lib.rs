@@ -22,8 +22,8 @@ use std::fmt;
 
 pub use crate::os::{filesystem,
                     users};
-use serde_derive::{Deserialize,
-                   Serialize};
+use serde::{Deserialize,
+            Serialize};
 
 pub const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
 
