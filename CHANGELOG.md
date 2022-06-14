@@ -1,16 +1,23 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.527 -->
-## [1.6.527](https://github.com/habitat-sh/habitat/tree/1.6.527) (2022-06-07)
+<!-- latest_release 1.6.534 -->
+## [1.6.534](https://github.com/habitat-sh/habitat/tree/1.6.534) (2022-06-13)
 
 #### Merged Pull Requests
-- Release Notes [#8526](https://github.com/habitat-sh/habitat/pull/8526) ([IanMadd](https://github.com/IanMadd))
+- README: fix master-&gt;main img src [#8545](https://github.com/habitat-sh/habitat/pull/8545) ([dacoffey](https://github.com/dacoffey))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- README: fix master-&gt;main img src [#8545](https://github.com/habitat-sh/habitat/pull/8545) ([dacoffey](https://github.com/dacoffey)) <!-- 1.6.534 -->
+- Bump async-trait from 0.1.53 to 0.1.56 [#8543](https://github.com/habitat-sh/habitat/pull/8543) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.533 -->
+- Bump prost from 0.10.3 to 0.10.4 [#8542](https://github.com/habitat-sh/habitat/pull/8542) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.532 -->
+- Bump flate2 from 1.0.23 to 1.0.24 [#8541](https://github.com/habitat-sh/habitat/pull/8541) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.531 -->
+- Bump xz2 from 0.1.6 to 0.1.7 [#8540](https://github.com/habitat-sh/habitat/pull/8540) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.530 -->
+- Bump petgraph from 0.6.0 to 0.6.2 [#8538](https://github.com/habitat-sh/habitat/pull/8538) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.529 -->
+- fix shellcheck violation [#8539](https://github.com/habitat-sh/habitat/pull/8539) ([mwrock](https://github.com/mwrock)) <!-- 1.6.528 -->
 - Release Notes [#8526](https://github.com/habitat-sh/habitat/pull/8526) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.527 -->
 - Bump openssl-src from 111.15.0+1.1.1k to 111.20.0+1.1.1o [#8535](https://github.com/habitat-sh/habitat/pull/8535) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.526 -->
 - Bump regex from 1.5.5 to 1.5.6 [#8522](https://github.com/habitat-sh/habitat/pull/8522) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.525 -->
