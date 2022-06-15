@@ -1,4 +1,3 @@
-use crate::json;
 use std::{fs::File,
           io::{Read,
                Write},
@@ -37,10 +36,10 @@ pub fn assert_valid(json_string: &str, schema: &str) {
                                  .map(|x| format!("  {:?}", x))
                                  .collect::<Vec<String>>()
                                  .join("\n");
-        let pretty_json = json::stringify_pretty(json::parse(json_string).expect("JSON should \
+        let pretty_json = serde_json::to_string_pretty(&serde_json::from_str::<serde_json::Value>(json_string).expect("JSON should \
                                                                                   parse if we \
-                                                                                  get this far"),
-                                                 2);
+                                                                                  get this far")
+                                                 ).expect("JSON should serialize if we get this far");
         panic!(
                r#"
 JSON does not validate!

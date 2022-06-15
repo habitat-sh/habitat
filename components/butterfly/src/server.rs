@@ -44,7 +44,16 @@ use habitat_common::{liveliness_checker,
                      sync::Lock,
                      FeatureFlag};
 use habitat_core::crypto::keys::RingKey;
-use prometheus::{HistogramTimer,
+use lazy_static::lazy_static;
+use log::{debug,
+          error,
+          info,
+          trace,
+          warn};
+use prometheus::{opts,
+                 register_histogram_vec,
+                 register_int_gauge,
+                 HistogramTimer,
                  HistogramVec,
                  IntGauge};
 use serde::{ser::SerializeStruct,
@@ -109,6 +118,7 @@ pub(crate) mod sync {
     use habitat_common::sync::{Lock,
                                ReadGuard,
                                WriteGuard};
+    use log::debug;
 
     pub struct MyselfReadGuard<'a>(ReadGuard<'a, MyselfInner>);
 
@@ -1362,6 +1372,9 @@ impl<'a> Serialize for ServerProxy<'a> {
 //     RUST_LOG=habitat_butterfly::server::election_trigger=trace
 mod election_trigger {
     use habitat_common::FeatureFlag;
+    use log::{info,
+              trace,
+              warn};
     use std::{fs,
               path::PathBuf};
 

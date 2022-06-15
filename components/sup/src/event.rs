@@ -36,6 +36,8 @@ use habitat_common::types::{EventStreamConnectMethod,
                             EventStreamToken};
 use habitat_core::{package::ident::PackageIdent,
                    service::HealthCheckInterval};
+use lazy_static::lazy_static;
+use log::debug;
 use nats_message_stream::{NatsMessage,
                           NatsMessageStream};
 use prost_types::Duration as ProstDuration;
@@ -234,12 +236,12 @@ fn publish(subject: &'static Subject, mut event: impl EventMessage) {
 mod tests {
     use super::{nats_message_stream::NatsMessageStream,
                 *};
-    use crate::prost::Message;
     use futures::{channel::mpsc as futures_mpsc,
                   stream::StreamExt};
     #[cfg(windows)]
     use habitat_core::os::process::windows_child::ExitStatus;
     use habitat_core::service::HealthCheckInterval;
+    use prost::Message;
     #[cfg(unix)]
     use std::{os::unix::process::ExitStatusExt,
               process::ExitStatus};

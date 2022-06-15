@@ -34,6 +34,8 @@ use habitat_core::{env::Config,
                    util as core_util};
 use rants::{error::Error as RantsError,
             Address as NatsAddress};
+use serde::{Deserialize,
+            Serialize};
 use std::{fmt,
           net::{IpAddr,
                 SocketAddr},

@@ -7,7 +7,7 @@
 fn main() {
     let mut config = prost_build::Config::new();
     config.type_attribute(".",
-                          "#[derive(Serialize, Deserialize)] #[serde(rename_all = \
+                          "#[derive(serde::Serialize, serde::Deserialize)] #[serde(rename_all = \
                            \"kebab-case\")]");
     config.compile_protos(&["protocols/ctl.proto",
                             "protocols/net.proto",

@@ -1,3 +1,6 @@
+use log::{debug,
+          warn};
+
 use crate::{command::studio::enter::{ARTIFACT_PATH_ENVVAR,
                                      CERT_PATH_ENVVAR,
                                      SSL_CERT_FILE_ENVVAR},

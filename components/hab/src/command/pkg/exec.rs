@@ -1,3 +1,5 @@
+use log::debug;
+
 use crate::{error::{Error,
                     Result},
             hcore::{fs::{find_command,

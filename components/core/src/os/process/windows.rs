@@ -1,5 +1,6 @@
 use crate::error::{Error,
                    Result};
+use log::debug;
 use std::{ffi::OsString,
           io,
           path::PathBuf,

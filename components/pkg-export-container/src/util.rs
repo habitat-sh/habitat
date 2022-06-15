@@ -1,4 +1,4 @@
-use crate::error::Result;
+use anyhow::Result;
 use habitat_core::package::{PackageIdent,
                             PackageInstall};
 use std::{fs::{self,

@@ -1,11 +1,9 @@
-#[macro_use]
-extern crate log;
-
+use anyhow::Result;
 use habitat_common::ui::{UIWriter,
                          UI};
 use habitat_pkg_export_container::{cli,
-                                   export_for_cli_matches,
-                                   Result};
+                                   export_for_cli_matches};
+use log::debug;
 
 #[tokio::main]
 async fn main() {

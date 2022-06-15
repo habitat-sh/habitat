@@ -1,13 +1,3 @@
-extern crate clap;
-extern crate habitat_sup as sup;
-#[macro_use]
-extern crate log;
-#[cfg(test)]
-extern crate lazy_static;
-extern crate rustls;
-extern crate tempfile;
-extern crate url;
-
 use crate::sup::{cli::cli,
                  command,
                  error::{Error,
@@ -42,7 +32,12 @@ use habitat_core::{self,
 use habitat_launcher_client::{LauncherCli,
                               ERR_NO_RETRY_EXCODE,
                               OK_NO_RETRY_EXCODE};
+use habitat_sup as sup;
 use habitat_sup_protocol::{self as sup_proto};
+use log::{debug,
+          error,
+          info,
+          warn};
 use std::{convert::TryInto,
           env,
           io,
@@ -97,7 +92,8 @@ fn main() {
 
 fn boot() -> Option<LauncherCli> {
     if crypto::init().is_err() {
-        println!("Crypto initialization failed!");
+        error!("Failed to initialization libsodium, make sure it is available in your runtime \
+                environment");
         process::exit(1);
     }
     match habitat_launcher_client::env_pipe() {
@@ -105,7 +101,8 @@ fn boot() -> Option<LauncherCli> {
             match LauncherCli::connect(pipe) {
                 Ok(launcher) => Some(launcher),
                 Err(err) => {
-                    println!("{}", err);
+                    error!("Failed to connect to launcher: {:?}",
+                           anyhow::Error::new(err));
                     process::exit(1);
                 }
             }

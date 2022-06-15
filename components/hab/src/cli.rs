@@ -11,6 +11,8 @@ use habitat_common::{cli::{file_into_idents,
 use habitat_core::{origin::Origin as CoreOrigin,
                    package::{Identifiable,
                              PackageIdent}};
+use serde::{Deserialize,
+            Serialize};
 use std::{fmt,
           path::Path,
           result,

@@ -8,7 +8,10 @@ use crate::{error::{Error,
             outputln,
             templating::{package::Pkg,
                          TemplateRenderer}};
-use serde::{Serialize,
+use log::{debug,
+          trace};
+use serde::{Deserialize,
+            Serialize,
             Serializer};
 use std::{self,
           borrow::Cow,

@@ -82,11 +82,20 @@ use habitat_core::{crypto::keys::{KeyCache,
                    service::ServiceGroup,
                    util::ToI64,
                    ChannelIdent};
-use habitat_launcher_client::LauncherCli;
+use habitat_launcher_client::{LauncherCli,
+                              LauncherStatus};
 use habitat_sup_protocol::{self};
+use lazy_static::lazy_static;
+use log::{debug,
+          error,
+          info,
+          trace,
+          warn};
 use parking_lot::{Mutex,
                   RwLock};
-use prometheus::{HistogramVec,
+use prometheus::{register_histogram_vec,
+                 register_int_gauge,
+                 HistogramVec,
                  IntGauge};
 use rustls::{internal::pemfile,
              AllowAnyAuthenticatedClient,
@@ -95,6 +104,8 @@ use rustls::{internal::pemfile,
              PrivateKey,
              RootCertStore,
              ServerConfig};
+use serde::{Deserialize,
+            Serialize};
 use std::{collections::{HashMap,
                         HashSet},
           ffi::OsStr,
@@ -1178,8 +1189,19 @@ impl Manager {
             }
 
             let next_check = Instant::now() + Duration::from_secs(1);
-            if self.launcher.is_stopping() {
-                break ShutdownMode::Normal;
+            match self.launcher.launcher_status() {
+                LauncherStatus::Running => {}
+                LauncherStatus::Unknown => {
+                    error!("Supervisor was unable to determine run status of launcher")
+                }
+                LauncherStatus::GracefullyShutdown => {
+                    outputln!("Supervisor received shutdown signal from launcher");
+                    break ShutdownMode::Normal;
+                }
+                LauncherStatus::Shutdown => {
+                    outputln!("Supervisor shutting down due to launcher exit");
+                    break ShutdownMode::Normal;
+                }
             }
             if self.check_for_departure() {
                 break ShutdownMode::Departed;

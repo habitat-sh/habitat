@@ -1,6 +1,8 @@
 use crate::error::{Error,
                    Result};
 use clap::ArgMatches;
+use serde::{Deserialize,
+            Serialize};
 use std::{fs,
           path::PathBuf};
 

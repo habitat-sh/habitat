@@ -12,11 +12,9 @@ bytes = "*"
 habitat_core = { path = "../core" }
 lazy_static = "*"
 log = "*"
-prost = "*"
-prost-derive = "*"
+prost = { version = "*", features = ["prost-derive"] }
 rand = "*"
 serde = {version = "*", features = ["derive"] }
-serde_derive = "*"
 tokio = { version = "*", features = ["full"] }
 tokio-util = { version = "*", features = ["full"] }
 

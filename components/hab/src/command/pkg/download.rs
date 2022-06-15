@@ -59,7 +59,9 @@ use habitat_common::ui::{Glyph,
                          Status,
                          UIWriter};
 
+use log::debug;
 use reqwest::StatusCode;
+use serde::Deserialize;
 
 use crate::error::{Error,
                    Result};

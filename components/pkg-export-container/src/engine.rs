@@ -4,11 +4,12 @@
 //!
 //! This allows us to swap out the `docker` CLI for `buildah` if we
 //! want to create containers as a non-root user, for instance.
-
-use crate::error::Result;
-use clap::{Arg,
+use anyhow::Result;
+use clap::{value_t,
+           Arg,
            ArgMatches};
 use habitat_core::fs::find_command;
+use log::debug;
 use std::{convert::TryFrom,
           path::{Path,
                  PathBuf},
@@ -16,32 +17,31 @@ use std::{convert::TryFrom,
                     ExitStatus},
           result::Result as StdResult,
           str::FromStr};
+use thiserror::Error;
 
 #[cfg(not(windows))]
 mod buildah;
 mod docker;
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 enum EngineError {
-    #[fail(display = "Container image build failed with exit code: {}", _0)]
+    #[error("Container image build failed with exit code: {0}")]
     BuildFailed(ExitStatus),
-    #[fail(display = "Could not find the container engine executable '{}' on the PATH",
-           _0)]
+    #[error("Could not find the container engine executable '{0}' on the PATH")]
     ExecutableNotFound(String),
-    #[fail(display = "Could not determine container image ID for: {}", _0)]
+    #[error("Could not determine container image ID for: {0}")]
     ImageIdNotFound(String),
-    #[fail(display = "Removing local container images failed with exit code: {}",
-           _0)]
+    #[error("Removing local container images failed with exit code: {0}")]
     RemoveFailed(ExitStatus),
-    #[fail(display = "Container image push failed with exit code: {}", _0)]
+    #[error("Container image push failed with exit code: {0}")]
     PushFailed(ExitStatus),
-    #[fail(display = "Unknown Container Engine '{}' was specified.", _0)]
+    #[error("Unknown Container Engine '{0}' was specified.")]
     UnknownEngine(String),
-    #[fail(display = "Cannot use `--engine=buildah` with `--multi-layer` due to https://github.com/containers/buildah/issues/2215. Please use `--engine=docker` or remove `--multi-layer`.")]
+    #[error("Cannot use `--engine=buildah` with `--multi-layer` due to https://github.com/containers/buildah/issues/2215. Please use `--engine=docker` or remove `--multi-layer`.")]
     BuildahIncompatibleWithMultiLayer,
     #[cfg(not(windows))]
-    #[fail(display = "{}", _0)]
-    EngineSpecificError(failure::Error),
+    #[error(transparent)]
+    EngineSpecificError(#[from] anyhow::Error),
 }
 
 /// Due to a bug in Buildah, any layers that we create in a
@@ -126,7 +126,7 @@ Both engines create equivalent container images.
 }
 
 impl TryFrom<&ArgMatches<'_>> for Box<dyn Engine> {
-    type Error = failure::Error;
+    type Error = anyhow::Error;
 
     fn try_from(value: &ArgMatches) -> StdResult<Self, Self::Error> {
         let engine_kind =

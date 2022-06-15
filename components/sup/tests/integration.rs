@@ -1,16 +1,14 @@
 #![cfg(not(windows))]
+/// Integration tests for exercising the hook and config recompilation
+/// behavior of the Supervisor
 use crate::utils::FileSystemSnapshot;
 use anyhow::Result;
 use glob::Pattern;
+use habitat_core as hcore;
 use habitat_sup::manager::service::ProcessTerminationReason;
 use hcore::os::process::Pid;
+use lazy_static::lazy_static;
 use std::time::Duration;
-/// Integration tests for exercising the hook and config recompilation
-/// behavior of the Supervisor
-extern crate habitat_core as hcore;
-
-#[macro_use]
-extern crate lazy_static;
 
 mod utils;
 

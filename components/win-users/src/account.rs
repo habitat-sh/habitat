@@ -3,6 +3,8 @@ use std::{env,
           ptr::{null,
                 null_mut}};
 
+use log::{debug,
+          error};
 use widestring::WideCString;
 use winapi::{shared::{minwindef::{BOOL,
                                   LPDWORD},

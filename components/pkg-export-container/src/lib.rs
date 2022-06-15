@@ -1,12 +1,3 @@
-#[macro_use]
-extern crate clap;
-#[macro_use]
-extern crate failure_derive;
-#[macro_use]
-extern crate log;
-#[macro_use]
-extern crate serde_json;
-
 use crate::naming::Naming;
 pub use crate::{build::BuildSpec,
                 cli::cli,
@@ -14,17 +5,19 @@ pub use crate::{build::BuildSpec,
                             ContainerImage},
                 engine::{fail_if_buildah_and_multilayer,
                          Engine},
-                error::{Error,
-                        Result}};
+                error::Error};
+use anyhow::Result;
 use habitat_common::ui::{Status,
                          UIWriter,
                          UI};
+use log::debug;
 use rusoto_core::{request::HttpClient,
                   Region};
 use rusoto_credential::StaticProvider;
 use rusoto_ecr::{Ecr,
                  EcrClient,
                  GetAuthorizationTokenRequest};
+use serde_json::json;
 use std::{convert::TryFrom,
           env,
           fmt,

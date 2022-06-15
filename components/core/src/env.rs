@@ -1,3 +1,4 @@
+use log::warn;
 use std::{self,
           env::VarError,
           ffi::{OsStr,

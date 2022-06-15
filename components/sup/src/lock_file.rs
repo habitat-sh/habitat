@@ -20,6 +20,7 @@ use fs2::FileExt;
 use habitat_core::{env,
                    os::process::Pid};
 use habitat_launcher_client::LAUNCHER_PID_ENV;
+use log::error;
 use std::{fmt,
           fs::{File,
                OpenOptions},

@@ -15,8 +15,11 @@ use habitat_core::{fs::atomic_write,
                    ChannelIdent};
 use habitat_sup_protocol::{self,
                            net};
+use log::{debug,
+          warn};
 use serde::{self,
-            Deserialize};
+            Deserialize,
+            Serialize};
 use std::{collections::HashSet,
           convert::TryFrom,
           fmt,

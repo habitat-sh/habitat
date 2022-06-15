@@ -4,6 +4,8 @@ use crate::event::{Error,
 use futures::{channel::{mpsc as futures_mpsc,
                         mpsc::UnboundedSender},
               stream::StreamExt};
+use log::{error,
+          trace};
 use rants::{error::Error as RantsError,
             native_tls::TlsConnector,
             Client,

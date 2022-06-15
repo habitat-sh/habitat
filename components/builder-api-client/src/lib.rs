@@ -5,22 +5,12 @@ use habitat_core::{self as hab_core,
                                        TabularText}};
 use habitat_http_client as hab_http;
 
-#[macro_use]
-extern crate log;
-
-#[macro_use]
-extern crate serde_derive;
-#[allow(unused_imports)]
-#[macro_use]
-extern crate serde_json;
-
 pub mod builder;
 pub mod error;
 pub mod response;
 
 use std::str::FromStr;
 
-extern crate regex;
 use regex::Regex;
 
 use std::{fmt,
@@ -30,7 +20,8 @@ use std::{fmt,
 use chrono::{DateTime,
              Utc};
 use reqwest::IntoUrl;
-use serde::Serialize;
+use serde::{Deserialize,
+            Serialize};
 
 use crate::hab_core::package::PackageIdent;
 pub use crate::{builder::{BuilderAPIClient,
@@ -131,6 +122,7 @@ pub struct OriginPrivateSigningKey {
 }
 
 mod json {
+    use serde::Deserialize;
     #[derive(Clone, Deserialize)]
     pub struct PackageIdent {
         pub origin:  String,
@@ -359,6 +351,7 @@ pub struct OriginMemberRoleResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
 
     #[test]
     fn json_round_trip_u64_fields() {

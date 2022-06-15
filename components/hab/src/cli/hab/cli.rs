@@ -1,6 +1,9 @@
 use super::util::{CacheKeyPath,
                   ConfigOptCacheKeyPath};
+use clap::arg_enum;
 use configopt::ConfigOpt;
+use serde::{Deserialize,
+            Serialize};
 use structopt::StructOpt;
 
 arg_enum! {

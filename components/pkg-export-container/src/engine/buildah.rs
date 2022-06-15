@@ -7,7 +7,7 @@ use std::{io::Write,
           process::Command,
           result::Result};
 use tempfile::TempPath;
-
+use thiserror::Error;
 /// Contents of the signature policy file used by Buildah (normally
 /// present at /etc/containers/policy.json.)
 ///
@@ -30,9 +30,9 @@ pub(super) struct BuildahEngine {
     policy: TempPath,
 }
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 enum BuildahError {
-    #[fail(display = "Could not create signature policy file for Buildah: {}", _0)]
+    #[error("Could not create signature policy file for Buildah: {0}")]
     SignaturePolicyError(std::io::Error),
 }
 

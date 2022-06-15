@@ -5,6 +5,7 @@ use habitat_common::{outputln,
 use habitat_core::fs::find_command;
 
 use habitat_core::os::process::become_command;
+use log::debug;
 
 use std::{env,
           path::PathBuf};

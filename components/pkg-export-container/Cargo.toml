@@ -35,8 +35,8 @@ tempfile = "*"
 termcolor = "*"
 tokio = { version = "*", features = ["full"] }
 url = "*"
-failure = "*"
-failure_derive = "*"
+thiserror = "*"
+anyhow = "*"
 
 [features]
 default = []

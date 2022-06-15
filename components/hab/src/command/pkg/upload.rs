@@ -33,6 +33,7 @@ use habitat_core::{crypto::{artifact::get_artifact_header,
                              PackageIdent,
                              PackageTarget},
                    ChannelIdent};
+use log::trace;
 use reqwest::StatusCode;
 use retry::delay;
 use std::path::{Path,

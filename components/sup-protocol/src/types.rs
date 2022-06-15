@@ -355,6 +355,9 @@ impl fmt::Display for UpdateCondition {
 
 #[cfg(test)]
 mod test {
+    use serde::{Deserialize,
+                Serialize};
+
     use super::*;
     use std::str::FromStr;
 

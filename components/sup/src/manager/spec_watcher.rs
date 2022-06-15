@@ -5,10 +5,12 @@
 use crate::{error::{Error,
                     Result},
             manager::{spec_dir::SpecDir,
-                      sup_watcher::SupWatcher},
-            notify::Watcher};
+                      sup_watcher::SupWatcher}};
+use log::{error,
+          trace};
 use notify::{DebouncedEvent,
-             RecursiveMode};
+             RecursiveMode,
+             Watcher};
 use std::{sync::mpsc::{self,
                        Receiver},
           thread::Builder,
@@ -136,6 +138,7 @@ impl SpecWatcher {
 mod tests {
     use super::*;
     use habitat_core::locked_env_var;
+    use log::error;
     use std::{fs::File,
               io::{Error as IoError,
                    Write},

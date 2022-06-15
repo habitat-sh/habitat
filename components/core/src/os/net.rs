@@ -1,3 +1,5 @@
+use log::debug;
+
 #[allow(unused_variables)]
 #[cfg(windows)]
 #[path = "net/windows.rs"]
