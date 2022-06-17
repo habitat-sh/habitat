@@ -9,6 +9,7 @@ use crate::{api_client::Client,
             VERSION};
 use habitat_core::{crypto::keys::KeyCache,
                    origin::Origin};
+use log::debug;
 
 pub async fn start(ui: &mut UI,
                    bldr_url: &str,

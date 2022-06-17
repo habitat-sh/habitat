@@ -4,6 +4,9 @@ use habitat_core::os::process::{handle_from_pid,
                                 windows_child::{ExitStatus,
                                                 Handle},
                                 Pid};
+use log::{debug,
+          error,
+          trace};
 use std::{collections::HashMap,
           io,
           mem,
@@ -21,7 +24,6 @@ use winapi::{shared::minwindef::{DWORD,
                              PROCESSENTRY32W,
                              TH32CS_SNAPPROCESS},
                   wincon}};
-
 const PROCESS_ACTIVE: u32 = 259;
 type ProcessTable = HashMap<DWORD, Vec<DWORD>>;
 

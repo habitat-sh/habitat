@@ -1,7 +1,7 @@
 use crate::{error::Error,
             package::ident::is_valid_origin_name};
-use serde_derive::{Deserialize,
-                   Serialize};
+use serde::{Deserialize,
+            Serialize};
 use std::{fmt,
           result,
           str::FromStr};

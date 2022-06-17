@@ -1,5 +1,5 @@
-use crate::{error::Result,
-            util::write_file};
+use crate::util::write_file;
+use anyhow::Result;
 use std::{fs,
           path::Path};
 

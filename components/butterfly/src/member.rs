@@ -14,7 +14,11 @@ use habitat_common::sync::{Lock,
                            ReadGuard,
                            WriteGuard};
 use habitat_core::util::ToI64;
-use prometheus::IntGaugeVec;
+use lazy_static::lazy_static;
+use log::{debug,
+          trace};
+use prometheus::{register_int_gauge_vec,
+                 IntGaugeVec};
 use rand::{seq::{IteratorRandom,
                  SliceRandom},
            thread_rng};

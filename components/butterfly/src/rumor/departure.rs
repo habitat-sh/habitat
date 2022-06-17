@@ -4,6 +4,8 @@
 //! happens, we ensure that the member can no longer come back into the fold, unless an
 //! administrator reverses the decision.
 
+use serde::Serialize;
+
 use crate::{error::{Error,
                     Result},
             protocol::{self,

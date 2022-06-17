@@ -14,6 +14,8 @@ use crate::error::{Error,
                    Result};
 use habitat_common::templating::hooks::Hook;
 use habitat_core::service::ServiceGroup;
+use log::{debug,
+          error};
 use std::{clone::Clone,
           sync::Arc,
           time::{Duration,

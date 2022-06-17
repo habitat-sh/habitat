@@ -20,12 +20,16 @@ use habitat_core::{fs,
                    os::process::{self,
                                  Pid},
                    service::ServiceGroup};
-#[cfg(windows)]
-use habitat_launcher_client::Error as launcher_error;
 use habitat_launcher_client::LauncherCli;
 #[cfg(windows)]
-use habitat_launcher_protocol::{self as protocol,
-                                Error as launcher_protocol_error};
+use habitat_launcher_client::{IPCReadError,
+                              TryIPCCommandError,
+                              TryReceiveError};
+#[cfg(windows)]
+use habitat_launcher_protocol as protocol;
+use log::{debug,
+          error,
+          warn};
 use serde::{ser::SerializeStruct,
             Serialize,
             Serializer};
@@ -52,6 +56,21 @@ const PIDFILE_PERMISSIONS: Permissions = Permissions::Standard;
 #[cfg(not(windows))]
 const PIDFILE_PERMISSIONS: Permissions = Permissions::Explicit(0o644);
 
+/// Represents an update of the process id
+#[derive(Debug)]
+pub struct PidUpdate {
+    /// The last known pid, will be None if the process was not running
+    pub old_pid:   Option<Pid>,
+    /// The current pid, will be None if the process is not running
+    pub new_pid:   Option<Pid>,
+    /// The time at which the process changed, will be None if there is no change
+    pub timestamp: Option<SystemTime>,
+}
+
+impl PidUpdate {
+    /// Check if the process is still running
+    pub fn is_running(&self) -> bool { self.new_pid.is_some() }
+}
 #[derive(Debug)]
 pub struct Supervisor {
     service_group: ServiceGroup,
@@ -96,8 +115,12 @@ impl Supervisor {
                      pid_file }
     }
 
-    /// Check if the child process is running
-    pub fn check_process(&mut self, launcher: &LauncherCli) -> bool {
+    /// Updates the process state from the pid source and returns a PidUpdate
+    /// object containing the details of the change.
+    pub fn update_process_state(&mut self, launcher: &LauncherCli) -> PidUpdate {
+        let mut pid_update = PidUpdate { old_pid:   self.pid,
+                                         new_pid:   None,
+                                         timestamp: None, };
         self.pid = self.pid
                        .or_else(|| {
                            if self.pid_source == ServicePidSource::Files {
@@ -120,15 +143,14 @@ impl Supervisor {
                                None
                            }
                        });
-
+        pid_update.new_pid = self.pid;
         if self.pid.is_some() {
-            self.change_state(ProcessState::Up);
+            pid_update.timestamp = self.change_state(ProcessState::Up);
         } else {
-            self.change_state(ProcessState::Down);
+            pid_update.timestamp = self.change_state(ProcessState::Down);
             Self::cleanup_pidfile(&self.pid_file);
         }
-
-        self.pid.is_some()
+        pid_update
     }
 
     // NOTE: the &self argument is only used to get access to
@@ -201,21 +223,16 @@ impl Supervisor {
                     // of this comment.
                     Ok(v) if v > 14227 => pkg.svc_user.clone(),
                     Ok(_) => legacy_user,
-                    Err(err @ launcher_error::Timeout) => {
-                        error!("Timeout getting version from launcher: {:?}", err);
+                    Err(err @ TryIPCCommandError::TryReceive(_, TryReceiveError::Timeout)) => {
+                        error!("Timeout getting version from launcher: {}", err);
                         legacy_user
                     }
-                    Err(launcher_error::Protocol(launcher_protocol_error::NetErr(err))) => {
-                        match err.code {
-                            protocol::ErrCode::UnknownMessage => {
-                                error!("Unable to retrieve version from launcher: {:?}", err);
+                    Err(err @ TryIPCCommandError::TryReceive(_, TryReceiveError::IPCRead(IPCReadError::LauncherCommand(protocol::NetErr{ code: protocol::ErrCode::Unknown , ..})))) => {
+                        error!("Launcher does not support the 'version' command: {}", err);
                                 legacy_user
-                            }
-                            _ => return Err(Error::Launcher(launcher_error::Protocol(launcher_protocol_error::NetErr(err)))),
-                        }
                     }
                     Err(err) => {
-                        return Err(Error::Launcher(err));
+                        return Err(Error::LauncherTryIPCCommand(err));
                     }
                 }
             } else {
@@ -341,12 +358,13 @@ impl Supervisor {
         }
     }
 
-    fn change_state(&mut self, state: ProcessState) {
+    fn change_state(&mut self, state: ProcessState) -> Option<SystemTime> {
         if self.state == state {
-            return;
+            return None;
         }
         self.state = state;
         self.state_entered = SystemTime::now();
+        Some(self.state_entered)
     }
 
     pub fn state_entered(&self) -> SystemTime { self.state_entered }
@@ -365,7 +383,7 @@ impl Serialize for Supervisor {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut strukt = serializer.serialize_struct("supervisor", 5)?;
+        let mut strukt = serializer.serialize_struct("supervisor", 3)?;
         strukt.serialize_field("pid", &self.pid)?;
         strukt.serialize_field("state", &self.state)?;
         strukt.serialize_field("state_entered", &self.since_epoch().as_secs())?;

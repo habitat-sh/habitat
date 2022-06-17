@@ -1,8 +1,4 @@
 // Convenience importing of `debug!`/`info!` macros for entire crate.
-#[cfg(test)]
-extern crate lazy_static;
-#[macro_use]
-extern crate log;
 
 pub use self::error::{Error,
                       Result};
@@ -11,6 +7,7 @@ pub mod binlink;
 pub mod crypto;
 pub mod env;
 pub mod error;
+pub mod flowcontrol;
 pub mod fs;
 pub mod locked_env_var;
 pub mod origin;
@@ -25,8 +22,8 @@ use std::fmt;
 
 pub use crate::os::{filesystem,
                     users};
-use serde_derive::{Deserialize,
-                   Serialize};
+use serde::{Deserialize,
+            Serialize};
 
 pub const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
 

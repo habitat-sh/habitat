@@ -1,4 +1,4 @@
-use super::file_watcher::{default_file_watcher_with_no_initial_event,
+use super::file_watcher::{create_file_watcher,
                           Callbacks};
 use crate::manager::service::Service;
 use habitat_common::{liveliness_checker,
@@ -6,6 +6,7 @@ use habitat_common::{liveliness_checker,
                      templating::config::UserConfigPath};
 use habitat_core::{fs::USER_CONFIG_FILE,
                    service::ServiceGroup};
+use log::debug;
 use std::{collections::HashMap,
           io,
           path::{Path,
@@ -197,8 +198,9 @@ impl Worker {
                                        path.display(),);
                                 let callbacks = UserConfigCallbacks { have_events };
                                 let mut file_watcher =
-                                    match default_file_watcher_with_no_initial_event(&path,
-                                                                                     callbacks)
+                                    match create_file_watcher(&path,
+                                                               callbacks,
+                                                               false)
                                     {
                                         Ok(w) => w,
                                         Err(e) => {
@@ -257,7 +259,7 @@ impl Worker {
 #[cfg(test)]
 mod tests {
     use super::*;
-
+    use habitat_core::locked_env_var;
     use std::{fs::{remove_file,
                    File},
               io::Write,
@@ -270,8 +272,13 @@ mod tests {
 
     use tempfile::TempDir;
 
+    locked_env_var!(HAB_STUDIO_HOST_ARCH, lock_env_var);
+
     #[test]
     fn no_events_at_first() {
+        let lock = lock_env_var();
+        lock.unset();
+
         let service = TestService::default();
         let mut ucm = UserConfigWatcher::new();
         ucm.add(&service).expect("adding service");
@@ -280,7 +287,24 @@ mod tests {
     }
 
     #[test]
+    fn no_events_at_first_poll_watcher() {
+        let lock = lock_env_var();
+        lock.set("aarch64-darwin");
+
+        let service = TestService::default();
+        let mut ucm = UserConfigWatcher::new();
+        ucm.add(&service).expect("adding service");
+
+        lock.unset();
+
+        assert!(!ucm.have_events_for(&service));
+    }
+
+    #[test]
     fn events_present_after_adding_config() {
+        let lock = lock_env_var();
+        lock.unset();
+
         let service = TestService::default();
         let mut ucm = UserConfigWatcher::new();
         ucm.add(&service).expect("adding service");
@@ -293,7 +317,28 @@ mod tests {
     }
 
     #[test]
+    fn events_present_after_adding_config_poll_watcher() {
+        let lock = lock_env_var();
+        lock.set("aarch64-darwin");
+
+        let service = TestService::default();
+        let mut ucm = UserConfigWatcher::new();
+        ucm.add(&service).expect("adding service");
+        assert!(wait_for_watcher(&ucm, &service));
+
+        File::create(service.user_config_path().get_path().join(USER_CONFIG_FILE))
+            .expect("creating file");
+
+        lock.unset();
+
+        assert!(wait_for_events(&ucm, &service));
+    }
+
+    #[test]
     fn events_present_after_changing_config() {
+        let lock = lock_env_var();
+        lock.unset();
+
         let service = TestService::default();
         let file_path = service.user_config_path().get_path().join(USER_CONFIG_FILE);
         let mut ucm = UserConfigWatcher::new();
@@ -308,7 +353,30 @@ mod tests {
     }
 
     #[test]
+    fn events_present_after_changing_config_poll_watcher() {
+        let lock = lock_env_var();
+        lock.set("aarch64-darwin");
+
+        let service = TestService::default();
+        let file_path = service.user_config_path().get_path().join(USER_CONFIG_FILE);
+        let mut ucm = UserConfigWatcher::new();
+
+        ucm.add(&service).expect("adding service");
+        assert!(wait_for_watcher(&ucm, &service));
+        let mut file = File::create(&file_path).expect("creating file");
+
+        file.write_all(b"42").expect(USER_CONFIG_FILE);
+
+        lock.unset();
+
+        assert!(wait_for_events(&ucm, &service));
+    }
+
+    #[test]
     fn events_present_after_removing_config() {
+        let lock = lock_env_var();
+        lock.unset();
+
         let service = TestService::default();
         let file_path = service.user_config_path().get_path().join(USER_CONFIG_FILE);
         let mut ucm = UserConfigWatcher::new();
@@ -321,6 +389,29 @@ mod tests {
         wait_for_events(&ucm, &service);
 
         remove_file(&file_path).expect("removing file");
+
+        assert!(wait_for_events(&ucm, &service));
+    }
+
+    #[test]
+    fn events_present_after_removing_config_poll_watcher() {
+        let lock = lock_env_var();
+        lock.set("aarch64-darwin");
+
+        let service = TestService::default();
+        let file_path = service.user_config_path().get_path().join(USER_CONFIG_FILE);
+        let mut ucm = UserConfigWatcher::new();
+
+        ucm.add(&service).expect("adding service");
+        assert!(wait_for_watcher(&ucm, &service));
+        File::create(&file_path).expect("creating file");
+
+        // Allow the watcher to notice that a file was created.
+        wait_for_events(&ucm, &service);
+
+        remove_file(&file_path).expect("removing file");
+
+        lock.unset();
 
         assert!(wait_for_events(&ucm, &service));
     }

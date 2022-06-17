@@ -4,6 +4,9 @@ mod spawn;
 mod terminate;
 mod version;
 
+use log::{error,
+          trace};
+
 pub use self::{pid::*,
                restart::*,
                spawn::*,

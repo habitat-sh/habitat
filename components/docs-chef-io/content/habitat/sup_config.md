@@ -175,6 +175,24 @@ strategy = "at-once"
 ### track-channel: Always run what is at the head of a given channel. This enables service rollback where demoting a package from a channel will cause the package to rollback to an older version of the package. A ramification of enabling this condition is packages newer than the package at the head of the channel will be automatically uninstalled during a service rollback.
 update_condition = "track-channel"
 
+### The minimum duration in seconds to wait before restarting a service due to a init / run hook failure.
+###
+### The default value if this config is absent is 0 seconds to preserve legacy supervisor behavior.
+service_min_backoff_period = 10
+
+### The maximum duration in seconds to wait before restarting a service due to init / run hook failure.
+###
+### The default value if this config is absent is 0 seconds to preserve legacy supervisor behavior.
+service_max_backoff_period = 180
+
+### The duration of time in seconds to wait before resetting the current backoff duration to the 'service_min_backoff_period'.
+### This is important because it ensures that the supervisor handles potential failures during restart correctly.
+### If the cooldown period is not long enough, a slow service may still be restarting after the cooldown period has passed.
+### If a service fails during restart but after the cooldown period has passed, the service will not backoff correctly before the following restart.
+###
+### The default value if this config is absent is 300 seconds.
+service_restart_cooldown_period = 300
+
 ### One or more service groups to bind to a configuration
 bind = ["port:redis.default"]
 

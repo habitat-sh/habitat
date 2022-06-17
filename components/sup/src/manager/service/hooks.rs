@@ -12,6 +12,7 @@ use habitat_common::{error::Result,
                      FeatureFlag};
 #[cfg(windows)]
 use habitat_core::os::process::windows_child::ExitStatus;
+use log::debug;
 use serde::Serialize;
 #[cfg(not(windows))]
 use std::process::ExitStatus;
@@ -533,6 +534,8 @@ impl HookCompileTable {
     pub fn reload_changed(&self) -> bool { self.reload }
 
     pub fn reconfigure_changed(&self) -> bool { self.reconfigure }
+
+    pub fn init_changed(&self) -> bool { self.init }
 
     pub fn run_changed(&self) -> bool { self.run }
 

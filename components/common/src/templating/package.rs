@@ -9,7 +9,9 @@ use crate::{error::{Error,
                               PackageInstall},
                     util},
             util::path};
+use log::debug;
 use serde::{ser::SerializeStruct,
+            Deserialize,
             Serialize,
             Serializer};
 use std::{collections::{BTreeMap,

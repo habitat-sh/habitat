@@ -34,6 +34,7 @@ pub static STR_JOIN: StrJoinHelper = StrJoinHelper;
 #[cfg(test)]
 mod test {
     use super::*;
+    use serde_json::json;
 
     #[test]
     fn test_join_helper() {

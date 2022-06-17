@@ -30,8 +30,15 @@ use habitat_sup_protocol::{self as protocol,
                                  ErrCode,
                                  NetErr,
                                  NetResult}};
+use lazy_static::lazy_static;
+use log::{debug,
+          error,
+          trace,
+          warn};
 use pin_project::pin_project;
-use prometheus::{HistogramTimer,
+use prometheus::{register_histogram_vec,
+                 register_int_counter_vec,
+                 HistogramTimer,
                  HistogramVec,
                  IntCounterVec};
 use rustls::{AllowAnyAuthenticatedClient,

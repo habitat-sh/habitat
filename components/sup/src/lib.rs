@@ -25,32 +25,6 @@
 //! * [The Habitat Command Line Reference](command)
 //! * [The Habitat Supervisor Sidecar; http interface to promises](sidecar)
 
-extern crate clap;
-extern crate cpu_time;
-#[cfg(windows)]
-extern crate ctrlc;
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate log;
-extern crate notify;
-extern crate num_cpus;
-#[macro_use]
-extern crate prometheus;
-extern crate prost;
-extern crate rand;
-extern crate regex;
-extern crate rustls;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-#[allow(unused_imports)]
-#[macro_use]
-extern crate serde_json;
-
-#[cfg(test)]
-extern crate json;
-
 #[cfg(test)]
 #[macro_use]
 pub mod cli_test_helpers;

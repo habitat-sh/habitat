@@ -4,6 +4,7 @@ use super::{metadata::{read_metafile,
             PackageTarget};
 use crate::error::{Error,
                    Result};
+use log::debug;
 use std::{ffi::OsStr,
           fs,
           io,

@@ -7,6 +7,7 @@ use crate::{ctl_gateway::server::CtlCommand,
 use futures::{future::Future,
               task::{Context,
                      Poll}};
+use log::debug;
 use std::{pin::Pin,
           sync::Arc};
 

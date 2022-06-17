@@ -17,6 +17,7 @@ use habitat_core::{self,
                    crypto::keys::KeyCache,
                    package::PackageIdent,
                    service::ServiceGroup};
+use log::warn;
 use serde::{ser::SerializeStruct,
             Serialize,
             Serializer};

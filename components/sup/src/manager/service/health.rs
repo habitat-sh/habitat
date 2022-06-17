@@ -8,7 +8,11 @@ use habitat_common::{outputln,
                      templating::package::Pkg};
 use habitat_core::service::{HealthCheckInterval,
                             ServiceGroup};
+use log::{debug,
+          error,
+          trace};
 use rand::Rng;
+use serde::Serialize;
 use std::{cmp,
           convert::TryFrom,
           fmt,

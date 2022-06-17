@@ -3,6 +3,8 @@ use crate::error::{Error,
                    Result};
 use libc::{self,
            pid_t};
+use log::{debug,
+          error};
 use std::{ffi::OsString,
           io,
           os::unix::process::CommandExt,

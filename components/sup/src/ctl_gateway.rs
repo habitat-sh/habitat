@@ -19,6 +19,7 @@ use habitat_common::{output::{self,
                               StructuredOutput},
                      ui::UIWriter,
                      PROGRAM_NAME};
+use log::warn;
 use std::{fmt,
           fs::{self,
                File},

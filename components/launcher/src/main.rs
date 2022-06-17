@@ -19,7 +19,7 @@ fn main() {
 
     match server::run(args) {
         Err(err) => {
-            error!("Launcher exiting with 1 due to err: {}", err);
+            error!("Launcher exiting with 1 due to err: {:?}", err);
             process::exit(1);
         }
         Ok(code) => {

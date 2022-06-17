@@ -11,6 +11,7 @@ pub mod win_perm;
 use crate::{env as henv,
             error::Result,
             os::process::windows_child::Child};
+use log::error;
 
 #[cfg(windows)]
 use std::{collections::HashMap,

@@ -1,6 +1,8 @@
-use crate::error::Result;
+use anyhow::Result;
 use habitat_core::util::docker;
+use log::debug;
 use std::process::Command;
+use thiserror::Error;
 
 /// Currently when exporting containers on Windows, the Docker daemon
 /// *must* be in Windows mode (i.e., only Windows containers can be
@@ -8,25 +10,24 @@ use std::process::Command;
 ///
 /// If the daemon is in Linux mode, we return an error and should stop
 /// the export process.
-pub(crate) fn ensure_proper_docker_platform() -> Result<()> {
+pub(crate) fn ensure_proper_docker_platform() -> Result<(), Error> {
     match DockerOS::current() {
         DockerOS::Windows => Ok(()),
-        other => Err(Error::DockerNotInWindowsMode(other).into()),
+        other => Err(Error::DockerNotInWindowsMode(other)),
     }
 }
 
-#[derive(Debug, Fail)]
-enum Error {
-    #[fail(display = "Only Windows container export is supported; please set your Docker daemon \
-                      to Windows container mode.\n\nThe Docker daemon is currently set for: {:?}",
-           _0)]
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error("Only Windows container export is supported; please set your Docker daemon to \
+             Windows container mode.\n\nThe Docker daemon is currently set for: {0:?}")]
     DockerNotInWindowsMode(DockerOS),
 }
 
 /// Describes the OS of the containers the Docker daemon is currently
 /// configured to manage.
 #[derive(Clone, Debug)]
-enum DockerOS {
+pub enum DockerOS {
     /// Docker daemon is managing Linux containers
     Linux,
     /// Docker daemon is managing Windows containers

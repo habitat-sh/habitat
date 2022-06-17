@@ -1,13 +1,15 @@
-use crate::{error::{Error,
-                    Result},
+use crate::{core::{os::{process::{handle_from_pid,
+                                  windows_child::{ExitStatus,
+                                                  Handle}},
+                        users::get_current_username},
+                   util},
+            error::ServiceRunError,
             protocol::{self,
                        ShutdownMethod},
             service::Service};
-use core::{os::{process::{handle_from_pid,
-                          windows_child::{ExitStatus,
-                                          Handle}},
-                users::get_current_username},
-           util};
+use anyhow::Result;
+use log::{debug,
+          error};
 use std::{collections::HashMap,
           env,
           io,
@@ -114,7 +116,7 @@ impl Process {
     }
 }
 
-pub fn run(msg: protocol::Spawn) -> Result<Service> {
+pub fn run(msg: protocol::Spawn) -> Result<Service, ServiceRunError> {
     debug!("launcher is spawning {}", msg.binary);
     let ps_cmd = format!("iex $(gc {} | out-string)", &msg.binary);
     let password = msg.svc_password.clone();
@@ -132,7 +134,9 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
             // remove this when we are confident everyone is on a recent supervisor
             // and launcher.
             let mut username = u.to_string();
-            if get_current_username()? == Some("system".to_string()) {
+            if get_current_username().map_err(ServiceRunError::GetCurrentUsername)?
+               == Some("system".to_string())
+            {
                 if let Ok(cn) = env::var("COMPUTERNAME") {
                     if u == &(cn.to_lowercase() + "$") {
                         username = "system".to_string();
@@ -142,7 +146,7 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
             username
         }
         None => {
-            return Err(Error::UserNotFound(String::from("")));
+            return Err(ServiceRunError::UserNotFound(String::from("")));
         }
     };
 
@@ -153,7 +157,7 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
             let process = Process::new(child.handle);
             Ok(Service::new(msg, process, child.stdout, child.stderr))
         }
-        Err(_) => Err(Error::Spawn(io::Error::last_os_error())),
+        Err(_) => Err(ServiceRunError::Spawn(io::Error::last_os_error())),
     }
 }
 

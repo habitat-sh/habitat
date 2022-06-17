@@ -20,6 +20,8 @@ use habitat_core::{os::process::ShutdownTimeout,
                    ChannelIdent};
 use habitat_sup_protocol::{ctl,
                            types::UpdateCondition};
+use log::warn;
+use serde::Deserialize;
 use std::{convert::TryFrom,
           iter::FromIterator,
           path::{Path,

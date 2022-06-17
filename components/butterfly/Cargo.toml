@@ -21,17 +21,15 @@ log = "*"
 lazy_static = "*"
 prometheus = "*"
 parking_lot = "*"
-prost = "*"
-prost-derive = "*"
+prost = { version = "*", features = ["prost-derive"] }
 rand = "*"
-serde = { version = "*", features = ["rc"] }
-serde_derive = "*"
+serde = { version = "*", features = ["derive", "rc"] }
 serde_json = { version = "*", features = [ "preserve_order" ] }
 tempfile = "*"
 threadpool = "*"
 toml = { version = "*", features = [ "preserve_order" ] }
 uuid = { version = "*", features = ["v4"] }
-zmq = { git = "https://github.com/habitat-sh/rust-zmq", branch = "v0.8-symlinks-removed" }
+zmq = { git = "https://github.com/habitat-sh/rust-zmq", branch = "v0.9.2-symlinks-removed" }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "*", features = ["handleapi", "winbase"] }

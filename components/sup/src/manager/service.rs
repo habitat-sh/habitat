@@ -22,7 +22,8 @@ use self::{context::RenderContext,
            hook_runner::HookRunner,
            hooks::{HookCompileTable,
                    HookTable},
-           supervisor::Supervisor};
+           supervisor::{PidUpdate,
+                        Supervisor}};
 pub use self::{health::{HealthCheckBundle,
                         HealthCheckHookStatus,
                         HealthCheckResult},
@@ -60,11 +61,13 @@ use habitat_common::{outputln,
 #[cfg(windows)]
 use habitat_core::os::users;
 use habitat_core::{crypto::Blake2bHash,
+                   flowcontrol::Backoff,
                    fs::{atomic_write,
                         svc_hooks_path,
                         SvcDir,
                         FS_ROOT_PATH},
-                   os::process::ShutdownTimeout,
+                   os::process::{Pid,
+                                 ShutdownTimeout},
                    package::{metadata::Bind,
                              PackageIdent,
                              PackageInstall},
@@ -77,10 +80,15 @@ pub use habitat_sup_protocol::types::{ProcessState,
                                       Topology,
                                       UpdateCondition,
                                       UpdateStrategy};
+use log::{debug,
+          trace};
 use parking_lot::RwLock;
-use prometheus::{HistogramTimer,
+use prometheus::{register_histogram_vec,
+                 HistogramTimer,
                  HistogramVec};
-use serde::{ser::SerializeStruct,
+use serde::{ser::{Error as _,
+                  SerializeStruct},
+            Deserialize,
             Serialize,
             Serializer};
 use std::{self,
@@ -93,7 +101,11 @@ use std::{self,
           result,
           sync::{Arc,
                  Mutex},
-          time::SystemTime};
+          time::{Duration,
+                 SystemTime}};
+
+use super::ServiceRestartConfig;
+use lazy_static::lazy_static;
 
 static LOGKEY: &str = "SR";
 
@@ -147,13 +159,21 @@ impl TemplateUpdate {
     /// Returns `true` if the service needs to be restarted.
     ///
     /// A restart is needed under the following conditions:
-    /// 1. the `run` or `post-run` hooks have changed. A restart is limited to these hooks
+    /// 1. the `init`, `run` or `post-run` hooks have changed. A restart is limited to these hooks
     /// because they are the only hooks that can impact the execution of the service.
     /// 2. `/config` changed and there is no `reconfigure` hook
-    fn needs_restart(&self) -> bool {
-        self.hooks.run_changed()
-        || self.hooks.post_run_changed()
-        || (!self.have_reconfigure_hook && self.config_changed)
+    fn needs_restart(&self) -> Option<ProcessTerminationReason> {
+        if self.hooks.init_changed() {
+            Some(ProcessTerminationReason::InitHookUpdated)
+        } else if self.hooks.run_changed() {
+            Some(ProcessTerminationReason::RunHookUpdated)
+        } else if self.hooks.post_run_changed() {
+            Some(ProcessTerminationReason::PostRunHookUpdated)
+        } else if !self.have_reconfigure_hook && self.config_changed {
+            Some(ProcessTerminationReason::AppConfigUpdated)
+        } else {
+            None
+        }
     }
 
     /// Returns `true` if the service needs to be reconfigured.
@@ -168,8 +188,265 @@ impl TemplateUpdate {
 enum InitializationState {
     Uninitialized,
     Initializing,
+    InitializerFailed(SystemTime),
     InitializerFinished,
     Initialized,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum RestartState {
+    None,
+    NeedsRestart,
+    NeedsImmediateRestart,
+    Restarting,
+    RestartingImmediately,
+    Restarted,
+}
+
+impl Default for RestartState {
+    fn default() -> Self { RestartState::None }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+pub enum ProcessTerminationReason {
+    #[serde(rename = "package_updated")]
+    PackageUpdated,
+    #[serde(rename = "init_hook_failed")]
+    InitHookFailed,
+    #[serde(rename = "run_hook_failed")]
+    RunHookFailed,
+    #[serde(rename = "app_config_updated")]
+    AppConfigUpdated,
+    #[serde(rename = "init_hook_updated")]
+    InitHookUpdated,
+    #[serde(rename = "run_hook_updated")]
+    RunHookUpdated,
+    #[serde(rename = "post_run_hook_updated")]
+    PostRunHookUpdated,
+}
+
+#[derive(Debug, Clone)]
+pub struct LastProcessState {
+    pub pid:                Option<Pid>,
+    pub termination_reason: ProcessTerminationReason,
+    // TODO: Create a new type for SystemTime so we don't have to rely on
+    // a custom serialize implementation for the whole type
+    pub terminated_at:      SystemTime,
+}
+
+impl Serialize for LastProcessState {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = serializer.serialize_struct("last_process_state", 3)?;
+        strukt.serialize_field("pid", &self.pid)?;
+        strukt.serialize_field("termination_reason", &self.termination_reason)?;
+        strukt.serialize_field("terminated_at",
+                               &self.terminated_at
+                                    .duration_since(SystemTime::UNIX_EPOCH)
+                                    .map_err(|err| {
+                                        S::Error::custom(format!("System time should ALWAYS be \
+                                                                  after the UNIX Epoch: {:?}",
+                                                                 err))
+                                    })?
+                                    .as_secs())?;
+        strukt.end()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ServiceRunState {
+    pub restart_count:      u64,
+    pub restart_config:     ServiceRestartConfig,
+    pub last_process_state: Option<LastProcessState>,
+    current_pid:            Option<Pid>,
+    restart_state:          RestartState,
+    restart_backoff:        Backoff,
+    last_updated_at:        SystemTime,
+}
+
+impl ServiceRunState {
+    pub fn new(restart_config: &ServiceRestartConfig) -> ServiceRunState {
+        ServiceRunState { restart_count:      0,
+                          restart_config:     restart_config.clone(),
+                          last_process_state: None,
+                          current_pid:        None,
+                          restart_state:      RestartState::None,
+                          restart_backoff:    Backoff::new(restart_config.min_backoff_period,
+                                                           restart_config.max_backoff_period,
+                                                           3f64),
+                          last_updated_at:    SystemTime::now(), }
+    }
+
+    pub fn mark_for_restart(&mut self,
+                            old_pid: Option<Pid>,
+                            reason: ProcessTerminationReason,
+                            timestamp: SystemTime) {
+        self.restart_state = RestartState::NeedsRestart;
+        self.last_process_state = Some(LastProcessState { pid:                old_pid,
+                                                          terminated_at:      timestamp,
+                                                          termination_reason: reason, });
+        self.last_updated_at = timestamp;
+    }
+
+    pub fn mark_for_immediate_restart(&mut self,
+                                      old_pid: Option<Pid>,
+                                      reason: ProcessTerminationReason,
+                                      timestamp: SystemTime) {
+        self.restart_state = RestartState::NeedsImmediateRestart;
+        self.last_process_state = Some(LastProcessState { pid:                old_pid,
+                                                          terminated_at:      timestamp,
+                                                          termination_reason: reason, });
+        // Immediate restarts wipe out the restart out
+        self.restart_count = 0;
+        self.restart_backoff.reset();
+        self.last_updated_at = timestamp;
+    }
+
+    pub fn reset_backoff(&mut self) {
+        self.restart_backoff.reset();
+        self.last_updated_at = SystemTime::now();
+    }
+}
+
+#[derive(Debug)]
+pub struct PersistentServiceWrapper {
+    run_state: ServiceRunState,
+    inner:     Option<Service>,
+}
+
+impl PersistentServiceWrapper {
+    pub fn new(service: Service,
+               restart_config: &ServiceRestartConfig)
+               -> PersistentServiceWrapper {
+        PersistentServiceWrapper { run_state: ServiceRunState::new(restart_config),
+                                   inner:     Some(service), }
+    }
+
+    /// Takes ownership of a service from another wrapper
+    pub fn take_service(&mut self, mut other: PersistentServiceWrapper) {
+        self.inner = other.inner.take();
+    }
+
+    /// Get the run state of a service
+    pub fn service_run_state(&self) -> &ServiceRunState { &self.run_state }
+
+    pub fn service_run_state_mut(&mut self) -> &ServiceRunState { &mut self.run_state }
+
+    /// Mark this service for an immediate restart
+    pub fn mark_for_restart_due_to_update(&mut self, timestamp: SystemTime) {
+        self.run_state
+            .mark_for_immediate_restart(self.run_state.current_pid,
+                                        ProcessTerminationReason::PackageUpdated,
+                                        timestamp);
+    }
+
+    pub fn service(&self) -> Option<&Service> { self.inner.as_ref() }
+
+    pub fn service_mut(&mut self) -> Option<&mut Service> { self.inner.as_mut() }
+
+    /// Returns the last time the run state or the service's process state
+    /// has changed. This is used to determine when to write the changed state to
+    /// the gateway.
+    pub fn last_state_change(&self) -> SystemTime {
+        if let Some(service) = self.inner.as_ref() {
+            service.last_state_change()
+                   .max(self.run_state.last_updated_at)
+        } else {
+            self.run_state.last_updated_at
+        }
+    }
+
+    pub fn start(&mut self) {
+        if let Some(service) = self.inner.as_ref() {
+            self.run_state.restart_state = match self.run_state.restart_state {
+                RestartState::None => RestartState::None,
+                RestartState::NeedsRestart | RestartState::NeedsImmediateRestart => {
+                    panic!("Start called on service which was not ready to be restarted");
+                }
+                RestartState::RestartingImmediately => {
+                    outputln!(preamble service.service_group, "Restarted");
+                    RestartState::Restarted
+                }
+                RestartState::Restarting => {
+                    outputln!(preamble service.service_group, "Restarted");
+                    self.run_state.restart_backoff.record_attempt_end();
+                    RestartState::Restarted
+                }
+                RestartState::Restarted => {
+                    panic!("Start called on service which was already restarted")
+                }
+            };
+        }
+    }
+
+    pub fn shutdown(&mut self, is_restart: bool) -> Option<Service> {
+        if let Some(service) = &self.inner {
+            if is_restart {
+                self.run_state.restart_state = match self.run_state.restart_state {
+                    RestartState::None => {
+                        panic!("Shutdown called on service which did not need restarting")
+                    }
+                    RestartState::NeedsRestart => {
+                        let restart_duration = self.run_state
+                                                   .restart_backoff
+                                                   .record_attempt_start()
+                                                   .unwrap_or_default();
+                        self.run_state.restart_count += 1;
+                        if restart_duration == Duration::from_secs(0) {
+                            outputln!(preamble service.service_group, "Stopping service, will restart immediately");
+                        } else {
+                            outputln!(preamble service.service_group, "Stopping service, will restart after {:.2} secs", restart_duration.as_secs_f32());
+                        }
+                        RestartState::Restarting
+                    }
+                    RestartState::NeedsImmediateRestart => {
+                        outputln!(preamble service.service_group, "Stopping service, will restart immediately");
+                        RestartState::RestartingImmediately
+                    }
+                    RestartState::Restarting | RestartState::RestartingImmediately => {
+                        panic!("Shutdown called on service which was already restarting")
+                    }
+                    RestartState::Restarted => {
+                        panic!("Shutdown called on service not requiring restart")
+                    }
+                };
+            }
+            self.inner.take()
+        } else {
+            None
+        }
+    }
+
+    pub fn should_shutdown_for_restart(&self) -> bool {
+        match self.run_state.restart_state {
+            RestartState::NeedsRestart | RestartState::NeedsImmediateRestart => true,
+            RestartState::None
+            | RestartState::Restarting
+            | RestartState::RestartingImmediately
+            | RestartState::Restarted => false,
+        }
+    }
+
+    pub fn is_ready_for_restart(&self) -> bool {
+        self.run_state.restart_state == RestartState::RestartingImmediately
+        || (self.run_state.restart_state == RestartState::Restarting
+            && self.run_state
+                   .restart_backoff
+                   .duration_until_next_attempt_start()
+                   .is_none())
+    }
+
+    pub fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> bool {
+        match &mut self.inner {
+            Some(ref mut service) => {
+                trace!("Starting service tick with persistent state: {:?}",
+                       self.run_state);
+                service.tick(&mut self.run_state, census_ring, launcher)
+            }
+            None => false,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -184,9 +461,6 @@ pub struct Service {
     pub pkg:                 Pkg,
     pub sys:                 Arc<Sys>,
     pub user_config_updated: bool,
-    // TODO (DM): This flag is a temporary hack to signal to the `Manager` that this service needs
-    // to be restarted. As we continue refactoring lifecycle hooks this flag should be removed.
-    pub needs_restart:       bool,
     // TODO (DM): The need to track initialization state across ticks would be removed if we
     // migrated away from the event loop architecture to an architecture that had a top level
     // `Service` future. See https://github.com/habitat-sh/habitat/issues/7112
@@ -265,6 +539,7 @@ impl Service {
                           spec: ServiceSpec,
                           manager_fs_cfg: Arc<FsCfg>,
                           organization: Option<&str>,
+                          census_ring: Arc<RwLock<CensusRing>>,
                           gateway_state: Arc<GatewayState>,
                           pid_source: ServicePidSource,
                           feature_flags: FeatureFlag)
@@ -280,32 +555,41 @@ impl Service {
         let config_root = Self::config_root(&pkg, spec.config_from.as_ref());
         let hooks_root = Self::hooks_root(&pkg, spec.config_from.as_ref());
         let cfg = Cfg::new(&pkg, spec.config_from.as_ref())?;
-        Ok(Service { spec,
-                     sys,
-                     cfg,
-                     config_renderer: CfgRenderer::new(&config_root)?,
-                     health_check_result: Arc::new(Mutex::new(HealthCheckResult::Unknown)),
-                     hooks: HookTable::load(&pkg.name,
-                                            &hooks_root,
-                                            svc_hooks_path(&service_group.service()),
-                                            feature_flags),
-                     last_election_status: ElectionStatus::None,
-                     user_config_updated: false,
-                     needs_restart: false,
-                     initialization_state:
-                         Arc::new(RwLock::new(InitializationState::Uninitialized)),
-                     manager_fs_cfg,
-                     supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group,
-                                                                     pid_source))),
-                     pkg,
-                     service_group,
-                     all_pkg_binds,
-                     unsatisfied_binds: HashSet::new(),
-                     spec_file,
-                     gateway_state,
-                     health_check_handle: None,
-                     post_run_handle: None,
-                     initialize_handle: None })
+        let mut service =
+            Service { spec,
+                      sys,
+                      cfg,
+                      config_renderer: CfgRenderer::new(&config_root)?,
+                      health_check_result: Arc::new(Mutex::new(HealthCheckResult::Unknown)),
+                      hooks: HookTable::load(&pkg.name,
+                                             &hooks_root,
+                                             svc_hooks_path(&service_group.service()),
+                                             feature_flags),
+                      last_election_status: ElectionStatus::None,
+                      user_config_updated: false,
+                      initialization_state:
+                          Arc::new(RwLock::new(InitializationState::Uninitialized)),
+                      manager_fs_cfg,
+                      supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group,
+                                                                      pid_source))),
+                      pkg,
+                      service_group,
+                      all_pkg_binds,
+                      unsatisfied_binds: HashSet::new(),
+                      spec_file,
+                      gateway_state,
+                      health_check_handle: None,
+                      post_run_handle: None,
+                      initialize_handle: None };
+
+        // Update the service gossip from census data.
+        // We do this to ensure that the data rendered out via the HTTP API through the ServiceProxy
+        // class always reflects the service configuration data stored within the gossip
+        // store.
+        if let Some(census_group) = census_ring.read().census_group_for(&service.service_group) {
+            service.update_gossip(census_group);
+        }
+        Ok(service)
     }
 
     // And now prepare yourself for a little horribleness...Ready?
@@ -350,10 +634,12 @@ impl Service {
                    .join("hooks")
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn new(sys: Arc<Sys>,
                      spec: ServiceSpec,
                      manager_fs_cfg: Arc<FsCfg>,
                      organization: Option<&str>,
+                     census_ring: Arc<RwLock<CensusRing>>,
                      gateway_state: Arc<GatewayState>,
                      pid_source: ServicePidSource,
                      feature_flags: FeatureFlag)
@@ -366,6 +652,7 @@ impl Service {
                               spec,
                               manager_fs_cfg,
                               organization,
+                              census_ring,
                               gateway_state,
                               pid_source,
                               feature_flags).await?)
@@ -389,7 +676,6 @@ impl Service {
                                 self.spec.svc_encrypted_password.as_deref());
         match result {
             Ok(_) => {
-                self.needs_restart = false;
                 self.start_health_checks();
             }
             Err(e) => {
@@ -491,7 +777,7 @@ impl Service {
     /// See also `Service::reattach`, as these methods should
     /// generally be mirror images of each other.
     pub fn detach(&mut self) {
-        debug!("Detatching service {}", self.pkg.ident);
+        debug!("Detaching service {}", self.pkg.ident);
         self.stop_initialize();
         self.stop_post_run();
         self.stop_health_checks();
@@ -533,7 +819,11 @@ impl Service {
     /// Performs updates and executes hooks.
     ///
     /// Returns `true` if the service was marked to be restarted or reconfigured.
-    pub fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> bool {
+    fn tick(&mut self,
+            run_state: &mut ServiceRunState,
+            census_ring: &CensusRing,
+            launcher: &LauncherCli)
+            -> bool {
         // We may need to block the service from starting until all
         // its binds are satisfied
         if !self.initialized() {
@@ -565,9 +855,7 @@ impl Service {
         }
 
         match self.spec.topology {
-            Topology::Standalone => {
-                self.execute_hooks(launcher, &template_update);
-            }
+            Topology::Standalone => self.execute_hooks(run_state, launcher, &template_update),
             Topology::Leader => {
                 let census_group =
                     census_ring.census_group_for(&self.service_group)
@@ -606,11 +894,11 @@ impl Service {
                                       leader_id.to_string());
                             self.last_election_status = census_group.election_status;
                         }
-                        self.execute_hooks(launcher, &template_update);
+                        self.execute_hooks(run_state, launcher, &template_update)
                     }
                 }
             }
-        }
+        };
         template_data_changed
     }
 
@@ -752,11 +1040,11 @@ impl Service {
     }
 
     /// Updates the process state of the service's supervisor
-    fn check_process(&mut self, launcher: &LauncherCli) -> bool {
+    fn update_process_state(&mut self, launcher: &LauncherCli) -> PidUpdate {
         self.supervisor
             .lock()
             .expect("Couldn't lock supervisor")
-            .check_process(launcher)
+            .update_process_state(launcher)
     }
 
     /// Updates the service configuration with data from a census group if the census group has
@@ -843,12 +1131,13 @@ impl Service {
                         *initialization_state.write() = if exit_value {
                             InitializationState::InitializerFinished
                         } else {
-                            InitializationState::Uninitialized
+                            InitializationState::InitializerFailed(SystemTime::now())
                         };
                     }
                     Err(e) => {
                         outputln!(preamble service_group, "Service initialization failed: {}", e);
-                        *initialization_state_for_err.write() = InitializationState::Uninitialized;
+                        *initialization_state_for_err.write() =
+                            InitializationState::InitializerFailed(SystemTime::now());
                     }
                 }
             };
@@ -1012,8 +1301,15 @@ impl Service {
     }
 
     /// Returns `true` if the service was marked to be restarted or reconfigured.
-    fn execute_hooks(&mut self, launcher: &LauncherCli, template_update: &TemplateUpdate) -> bool {
-        let up = self.check_process(launcher);
+    fn execute_hooks(&mut self,
+                     run_state: &mut ServiceRunState,
+                     launcher: &LauncherCli,
+                     template_update: &TemplateUpdate) {
+        let pid_update = self.update_process_state(launcher);
+        // We copy the current process id to the run state to avoid
+        // having to lock the supervisor for this information.
+        run_state.current_pid = pid_update.new_pid;
+
         // It is ok that we do not hold this lock while we are performing the match. If we
         // transistion states while we are matching, we will catch the new state on the next tick.
         let initialization_state = self.initialization_state.read().clone();
@@ -1022,11 +1318,16 @@ impl Service {
                 // If the service is not initialized and the process is still running, the
                 // Supervisor was restarted and we just have to reattach to the
                 // process.
-                if up {
+                if pid_update.is_running() {
                     self.reattach();
                 } else {
                     self.initialize();
                 }
+            }
+            InitializationState::InitializerFailed(failed_at) => {
+                run_state.mark_for_restart(None,
+                                           ProcessTerminationReason::InitHookFailed,
+                                           failed_at);
             }
             InitializationState::Initializing => {
                 // Wait until the initializer finishes running
@@ -1037,23 +1338,37 @@ impl Service {
                 *self.initialization_state.write() = InitializationState::Initialized;
             }
             InitializationState::Initialized => {
+                let restart_cooldown_period_expired =
+                    run_state.restart_backoff
+                             .duration_elapsed_since_last_attempt_ended()
+                             .map(|duration| -> bool {
+                                 duration > run_state.restart_config.cooldown_period
+                             })
+                             .unwrap_or(false);
                 // If the service is initialized and the process is not running, the process
                 // unexpectedly died and needs to be restarted.
-                if !up || template_update.needs_restart() {
-                    // TODO (DM): This flag is a hack. We have the `TaskExecutor` here. We could
-                    // just schedule the `stop` future, but the `Manager` wraps
-                    // the `stop` future with additional functionality. Can we
-                    // refactor to make this flag unnecessary?
-                    self.needs_restart = true;
-                    return true;
+                if !pid_update.is_running() {
+                    run_state.mark_for_restart(pid_update.old_pid,
+                                               ProcessTerminationReason::RunHookFailed,
+                                               pid_update.timestamp.expect("Process update time \
+                                                                            should be present"));
+                } else if let Some(termination_reason) = template_update.needs_restart() {
+                    run_state.mark_for_immediate_restart(pid_update.new_pid,
+                                                         termination_reason,
+                                                         SystemTime::now());
                 } else if template_update.needs_reconfigure() {
                     // Only reconfigure if we did NOT restart the service
                     self.reconfigure();
-                    return true;
+                } else if run_state.restart_state == RestartState::Restarted
+                          && pid_update.is_running()
+                          && restart_cooldown_period_expired
+                {
+                    // If the service was not restarted for the duration of the cooldown period
+                    // since the last attempt ended we wipe all state associated with restarting.
+                    run_state.reset_backoff();
                 }
             }
         };
-        false
     }
 
     /// Run file-updated hook if present.
@@ -1251,14 +1566,19 @@ pub enum ConfigRendering {
 /// actual Service struct, but this will give us something we can refactor against without
 /// worrying about breaking the data returned to users.
 pub struct ServiceProxy<'a> {
-    service:          &'a Service,
-    config_rendering: ConfigRendering,
+    service:           &'a Service,
+    service_run_state: &'a ServiceRunState,
+    config_rendering:  ConfigRendering,
 }
 
 impl<'a> ServiceProxy<'a> {
-    pub fn new(s: &'a Service, c: ConfigRendering) -> Self {
-        ServiceProxy { service:          s,
-                       config_rendering: c, }
+    pub fn new(service: &'a Service,
+               service_run_state: &'a ServiceRunState,
+               config_rendering: ConfigRendering)
+               -> Self {
+        ServiceProxy { service,
+                       service_run_state,
+                       config_rendering }
     }
 }
 
@@ -1267,9 +1587,9 @@ impl<'a> Serialize for ServiceProxy<'a> {
         where S: Serializer
     {
         let num_fields: usize = if self.config_rendering == ConfigRendering::Full {
-            27
+            31
         } else {
-            26
+            30
         };
 
         let s = &self.service;
@@ -1300,6 +1620,19 @@ impl<'a> Serialize for ServiceProxy<'a> {
                                 .lock()
                                 .expect("Couldn't lock supervisor")
                                 .deref())?;
+        strukt.serialize_field("last_process_state",
+                               &self.service_run_state.last_process_state)?;
+        strukt.serialize_field("next_restart_at",
+                               &self.service_run_state
+                                    .restart_backoff
+                                    .duration_until_next_attempt_start()
+                                    .and_then(|duration| SystemTime::now().checked_add(duration))
+                                    .and_then(|timestamp| {
+                                        timestamp.duration_since(SystemTime::UNIX_EPOCH).ok()
+                                    })
+                                    .map(|duration| duration.as_secs()))?;
+        strukt.serialize_field("restart_count", &self.service_run_state.restart_count)?;
+        strukt.serialize_field("restart_config", &self.service_run_state.restart_config)?;
         strukt.serialize_field("service_group", &s.service_group)?;
         strukt.serialize_field("spec_file", &s.spec_file)?;
         // Deprecated field; use spec_identifier instead
@@ -1327,7 +1660,7 @@ mod tests {
                     Ipv4Addr},
               str::FromStr};
 
-    async fn initialize_test_service() -> Service {
+    async fn initialize_test_service() -> PersistentServiceWrapper {
         let listen_ctl_addr =
             ListenCtlAddr::from_str("127.0.0.1:1234").expect("Can't parse IP into SocketAddr");
         let sys = Sys::new(false,
@@ -1356,26 +1689,29 @@ mod tests {
         let asys = Arc::new(sys);
         let fscfg = FsCfg::new("/tmp");
         let afs = Arc::new(fscfg);
-
+        let census_ring = Arc::new(RwLock::new(CensusRing::new(asys.member_id.clone())));
         let gs = Arc::default();
-        Service::with_package(asys,
+        PersistentServiceWrapper::new(Service::with_package(asys,
                               &install,
                               spec,
                               afs,
                               Some("haha"),
+                              census_ring,
                               gs,
                               ServicePidSource::Launcher,
                               FeatureFlag::empty()).await
                                                    .expect("I wanted a service to load, but it \
-                                                            didn't")
+                                                            didn't"), &ServiceRestartConfig::default())
     }
 
     #[tokio::test]
     async fn service_proxy_conforms_to_the_schema() {
-        let service = initialize_test_service().await;
+        let service_wrapper = initialize_test_service().await;
 
         // With config
-        let proxy_with_config = ServiceProxy::new(&service, ConfigRendering::Full);
+        let proxy_with_config = ServiceProxy::new(service_wrapper.service().unwrap(),
+                                                  service_wrapper.service_run_state(),
+                                                  ConfigRendering::Full);
         let proxies_with_config = vec![proxy_with_config];
         let json_with_config =
             serde_json::to_string(&proxies_with_config).expect("Expected to convert \
@@ -1384,10 +1720,12 @@ mod tests {
         assert_valid(&json_with_config, "http_gateway_services_schema.json");
 
         // Without config
-        let proxy_without_config = ServiceProxy::new(&service, ConfigRendering::Redacted);
+        let proxy_without_config = ServiceProxy::new(service_wrapper.service().unwrap(),
+                                                     service_wrapper.service_run_state(),
+                                                     ConfigRendering::Redacted);
         let proxies_without_config = vec![proxy_without_config];
         let json_without_config =
-            serde_json::to_string(&proxies_without_config).expect("Expected to convert \
+            serde_json::to_string(&proxies_without_config).expect("Expected  to convert \
                                                                    proxies_without_config to \
                                                                    JSON but failed");
         assert_valid(&json_without_config, "http_gateway_services_schema.json");

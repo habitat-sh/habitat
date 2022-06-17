@@ -1,3 +1,5 @@
+use log::debug;
+
 use crate::{command,
             common::ui::UI,
             error::{Error,

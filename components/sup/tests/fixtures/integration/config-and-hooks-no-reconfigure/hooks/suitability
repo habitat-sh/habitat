@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "$(date): Executing Suitability Hook with templated value: {{cfg.suitability_templated_value}}"
+EXIT_CODE='{{#if cfg.suitability_exit_code}}{{cfg.suitability_exit_code}}{{else}}0{{/if}}'
+exit "$EXIT_CODE"

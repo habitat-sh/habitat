@@ -6,11 +6,11 @@ preview_netlify: chef_web_docs
 	cp -R content/* chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io/content
 	cp -R static/* chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io/static
 	cp -R config.toml chef-web-docs/_vendor/github.com/habitat-sh/habitat/components/docs-chef-io/
-	pushd chef-web-docs && make assets; hugo --gc --minify --buildFuture && popd
+	pushd chef-web-docs && make bundle; hugo --gc --minify --buildFuture && popd
 
 serve: chef_web_docs
 	echo "replace github.com/habitat-sh/habitat/components/docs-chef-io => ../" >> chef-web-docs/go.mod
-	pushd chef-web-docs && make assets; hugo server --buildDrafts --buildFuture --noHTTPCache --ignoreVendorPaths "github.com/habitat-sh/habitat/**" && popd
+	pushd chef-web-docs && make bundle; hugo server --buildDrafts --buildFuture --noHTTPCache --ignoreVendorPaths "github.com/habitat-sh/habitat/**" && popd
 
 chef_web_docs:
 	if [ -d "chef-web-docs/" ]; then \

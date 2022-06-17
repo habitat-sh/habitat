@@ -31,8 +31,7 @@ rand = "*"
 regex = "*"
 rcgen = "*"
 rustls = "0.19.1"
-serde = "*"
-serde_derive = "*"
+serde = { version = "*", features = ["derive"] }
 serde_json = { version = "*", features = [ "preserve_order" ] }
 sodiumoxide = "*"
 tabwriter = "*"
@@ -41,7 +40,7 @@ tempfile = "*"
 thiserror = "*"
 tokio = { version = "1.9.0", features = ["full"] }
 tokio-rustls = "0.22.0"
-toml = { version = "0.5.8", features = [ "preserve_order" ] }
+toml = { version = "0.5.9", features = [ "preserve_order" ] }
 typemap = "*"
 url = "*"
 webpki = "*"

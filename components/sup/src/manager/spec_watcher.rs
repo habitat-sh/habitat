@@ -2,14 +2,17 @@
 //! on disk. This is how we know when to start, stop, or restart
 //! services in response to the various `hab svc` commands.
 
-use super::spec_dir::SpecDir;
-use crate::error::{Error,
-                   Result};
+use crate::{error::{Error,
+                    Result},
+            manager::{spec_dir::SpecDir,
+                      sup_watcher::SupWatcher}};
+use log::{error,
+          trace};
 use notify::{DebouncedEvent,
-             RecommendedWatcher,
              RecursiveMode,
              Watcher};
-use std::{sync::mpsc,
+use std::{sync::mpsc::{self,
+                       Receiver},
           thread::Builder,
           time::Duration};
 
@@ -41,8 +44,8 @@ pub struct SpecWatcher {
     // Not actually used; only holding onto it for lifetime / Drop
     // purposes (`Drop` kills the threads that the watcher spawns to do
     // its work).
-    _watcher: RecommendedWatcher,
-    channel:  mpsc::Receiver<DebouncedEvent>,
+    _watcher: SupWatcher,
+    channel:  Receiver<DebouncedEvent>,
 }
 
 impl SpecWatcher {
@@ -86,7 +89,7 @@ impl SpecWatcher {
     fn new(spec_dir: &SpecDir) -> Result<SpecWatcher> {
         let (tx, rx) = mpsc::channel();
         let delay = SpecWatcherDelay::configured_value();
-        let mut watcher = RecommendedWatcher::new(tx, delay.0)?;
+        let mut watcher = SupWatcher::new(tx, delay.0)?;
         watcher.watch(spec_dir, RecursiveMode::NonRecursive)?;
         Ok(SpecWatcher { _watcher: watcher,
                          channel:  rx, })
@@ -135,6 +138,7 @@ impl SpecWatcher {
 mod tests {
     use super::*;
     use habitat_core::locked_env_var;
+    use log::error;
     use std::{fs::File,
               io::{Error as IoError,
                    Write},

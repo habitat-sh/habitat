@@ -17,6 +17,7 @@
           "type": "string"
         }
       },
+      "additionalProperties": false,
       "type": "object"
     },
     "sys_extended": {
@@ -87,6 +88,26 @@
         "permanent",
         "version"
       ],
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "duration": {
+      "description": "A duration of time",
+      "properties": {
+        "secs": {
+          "type": "integer",
+          "description": "The number of seconds in the duration"
+        },
+        "nanos": {
+          "type": "integer",
+          "description": "The number of nano seconds in the duration"
+        }
+      },
+      "required": [
+        "secs",
+        "nanos"
+      ],
+      "additionalProperties": false,
       "type": "object"
     }
   },
@@ -116,6 +137,7 @@
             "exports",
             "service"
           ],
+          "additionalProperties": false,
           "type": "object"
         },
         "type": "array"
@@ -185,6 +207,10 @@
           "Critical",
           "Unknown"
         ]
+      },
+      "health_check_interval": {
+        "description": "The interval at which the health check hook is run",
+        "$ref": "#/definitions/duration"
       },
       "hooks": {
         "description": "A description of the hooks for this service",
@@ -289,6 +315,7 @@
             ]
           }
         },
+        "additionalProperties": false,
         "type": "object"
       },
       "initialized": {
@@ -330,6 +357,7 @@
           "specs_path",
           "sup_root"
         ],
+        "additionalProperties": false,
         "type": "object"
       },
       "pkg": {
@@ -394,8 +422,34 @@
             "description": "The release of this package",
             "type": "string"
           },
+          "shutdown_signal": {
+            "description": "The shutdown signal that the package is specified to shutdown with, defaults to TERM",
+            "enum": [
+              "INT",
+              "ILL",
+              "ABRT",
+              "FPE",
+              "KILL",
+              "SEGV",
+              "TERM",
+              "HUP",
+              "QUIT",
+              "ALRM",
+              "USR1",
+              "USR2",
+              "CHLD"
+            ]
+          },
+          "shutdown_timeout": {
+            "description": "The number of seconds we should wait after send a shutdown signal to a process before we kill it",
+            "type": "integer"
+          },
           "svc_config_path": {
             "description": "The path to this package's configuration",
+            "type": "string"
+          },
+          "svc_config_install_path": {
+            "description": "The path to this package's install configuration directory",
             "type": "string"
           },
           "svc_data_path": {
@@ -461,6 +515,7 @@
           "svc_var_path",
           "version"
         ],
+        "additionalProperties": false,
         "type": "object"
       },
       "process": {
@@ -490,7 +545,82 @@
           "state",
           "state_entered"
         ],
+        "additionalProperties": false,
         "type": "object"
+      },
+      "last_process_state": {
+        "description": "Information about the state of the previous process for this service. Only present in case the service has restarted.",
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "properties": {
+              "pid": {
+                "description": "The PID of the last process. Only present if the service process was actually started up via the run hook.",
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "termination_reason": {
+                "description": "The cause of process termination",
+                "enum": [
+                  "package_updated",
+                  "init_hook_failed",
+                  "run_hook_failed",
+                  "app_config_updated",
+                  "init_hook_updated",
+                  "run_hook_updated",
+                  "post_run_hook_updated"
+                ]
+              },
+              "terminated_at": {
+                "description": "The time at which the termination was initiated, expressed as seconds since epoch",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "pid",
+              "termination_reason",
+              "terminated_at"
+            ],
+            "additionalProperties": false,
+            "type": "object"
+          }
+        ]
+      },
+      "next_restart_at": {
+        "description": "The time at which the service will start up again, expressed as seconds since epoch. This will be non-null only when a service is down for a restart due to init / run hook failures.",
+        "type": ["null", "integer"]
+      },
+      "restart_count": {
+        "description": "The number of times the service has restarted due to a init / run hook failure. This gets reset to 0 whenever the service is restarted intentionally",
+        "type": "integer"
+      },
+      "restart_config": {
+        "description": "The parameters associated with the service restart behaviour",
+        "type": "object",
+        "properties": {
+          "min_backoff_period": {
+            "$ref": "#/definitions/duration",
+            "description": "The minimum duration to wait before restarting a service due to a init / run hook failure"
+          },
+          "max_backoff_period": {
+            "$ref": "#/definitions/duration",
+            "description": "The maximum duration to wait before restarting a service due to init / run hook failure"
+          },
+          "cooldown_period": {
+            "$ref": "#/definitions/duration",
+            "description": "The duration of time to wait before resetting the current backoff duration to the 'min_backoff_period'"
+          }
+        },
+        "required": [
+          "min_backoff_period",
+          "max_backoff_period",
+          "cooldown_period"
+        ],
+        "additionalProperties": false
       },
       "service_group": {
         "description": "The service group of this service",
@@ -534,6 +664,13 @@
           "rolling"
         ]
       },
+      "update_condition": {
+        "description": "The condition that triggers a package to update",
+        "enum": [
+          "latest",
+          "track-channel"
+        ]
+      },
       "user_config_updated": {
         "description": "Did a user update the config",
         "type": "boolean"
@@ -548,12 +685,17 @@
       "config_from",
       "desired_state",
       "health_check",
+      "health_check_interval",
       "hooks",
       "initialized",
       "last_election_status",
       "manager_fs_cfg",
       "pkg",
       "process",
+      "last_process_state",
+      "next_restart_at",
+      "restart_count",
+      "restart_config",
       "service_group",
       "spec_file",
       "spec_ident",
@@ -562,6 +704,7 @@
       "update_strategy",
       "user_config_updated"
     ],
+    "additionalProperties": false,
     "type": "object"
   },
   "type": "array"

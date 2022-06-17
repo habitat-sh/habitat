@@ -43,8 +43,7 @@ num_cpus = "*"
 parking_lot = "*"
 pin-project = "*"
 prometheus = "*"
-prost = "*"
-prost-derive = "*"
+prost = { version = "*", features = ["prost-derive"] }
 prost-types = "*"
 rand = "*"
 rants = { git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
@@ -60,6 +59,7 @@ structopt = { git = "https://github.com/habitat-sh/structopt.git" }
 tempfile = "*"
 termcolor = "*"
 thiserror = "*"
+anyhow = { version = "*", features = ["backtrace"] }
 toml = { version = "*", features = ["preserve_order"]}
 tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
@@ -69,10 +69,6 @@ valico = "*"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
-
-[target.'cfg(target_family = "unix")'.dependencies]
-jemallocator = "*"
-jemalloc-ctl = "*"
 
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
@@ -84,7 +80,10 @@ winapi = { version = "*", features = ["namedpipeapi", "tlhelp32"] }
 [dev-dependencies]
 habitat_core = { path = "../core" }
 hyper = "*"
-json = "*"
+reqwest = { version = "*", features = ["json"] }
+
+[target.'cfg(not(windows))'.dev-dependencies]
+nix = "*"
 
 [build-dependencies]
 prost-build = "*"

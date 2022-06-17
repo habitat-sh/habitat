@@ -1,13 +1,7 @@
 #![recursion_limit = "128"]
 
-#[macro_use]
-extern crate clap;
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate log;
-
-use clap::{ArgMatches,
+use clap::{value_t,
+           ArgMatches,
            ErrorKind as ClapErrorKind,
            Shell};
 use configopt::{ConfigOpt,
@@ -84,6 +78,9 @@ use habitat_sup_protocol::{self as sup_proto,
                            codec::*,
                            net::ErrCode,
                            types::*};
+use lazy_static::lazy_static;
+use log::{debug,
+          warn};
 use std::{collections::HashMap,
           convert::TryFrom,
           env,
@@ -321,7 +318,9 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 }
             }
         }
-        Err(e @ ConfigOptError::ConfigGenerated(_)) => e.exit(),
+        Err(e @ ConfigOptError::ConfigGenerated(_) | e @ ConfigOptError::ConfigFile(..)) => {
+            e.exit()
+        }
         Err(_) => {
             // Completely ignore all other errors. They will be caught by the CLI parsing logic
             // below.

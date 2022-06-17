@@ -61,6 +61,10 @@
     "config_from": null,
     "desired_state": "Up",
     "health_check": "Unknown",
+    "health_check_interval": {
+      "secs": 30,
+      "nanos": 0
+    },
     "hooks": {
       "file_updated": null,
       "health_check": null,
@@ -206,26 +210,50 @@
         "9636"
       ],
       "ident": "habitat/builder-api/7602/20180906202535",
-      "name": "builder-api",
       "origin": "habitat",
-      "path": "/hab/pkgs/habitat/builder-api/7602/20180906202535",
+      "name": "builder-api",
+      "version": "7602",
       "release": "20180906202535",
+      "path": "/hab/pkgs/habitat/builder-api/7602/20180906202535",
+      "svc_path": "/hab/svc/builder-api",
       "svc_config_path": "/hab/svc/builder-api/config",
+      "svc_config_install_path": "/hab/svc/builder-api/config_install",
       "svc_data_path": "/hab/svc/builder-api/data",
       "svc_files_path": "/hab/svc/builder-api/files",
-      "svc_group": "hab",
-      "svc_path": "/hab/svc/builder-api",
+      "svc_static_path": "/hab/svc/builder-api/static",
+      "svc_var_path": "/hab/svc/builder-api/var",
       "svc_pid_file": "/hab/svc/builder-api/PID",
       "svc_run": "/hab/svc/builder-api/run",
-      "svc_static_path": "/hab/svc/builder-api/static",
       "svc_user": "hab",
-      "svc_var_path": "/hab/svc/builder-api/var",
-      "version": "7602"
+      "svc_group": "hab",
+      "shutdown_signal": "TERM",
+      "shutdown_timeout": 8
     },
     "process": {
       "pid": 221,
       "state": "up",
       "state_entered": 1536689926
+    },
+    "last_process_state": {
+      "pid": 219,
+      "termination_reason": "package_updated",
+      "terminated_at": 1536689921
+    },
+    "next_restart_at": null,
+    "restart_count": 0,
+    "restart_config": {
+      "min_backoff_period": {
+        "secs": 0,
+        "nanos": 0
+      },
+      "max_backoff_period": {
+        "secs": 0,
+        "nanos": 0
+      },
+      "cooldown_period": {
+        "secs": 300,
+        "nanos": 0
+      }
     },
     "service_group": "builder-api.default",
     "spec_file": "/hab/sup/default/specs/builder-api.spec",
@@ -251,6 +279,7 @@
     },
     "topology": "standalone",
     "update_strategy": "at-once",
+    "update_condition": "track-channel",
     "user_config_updated": false
   }
 ]

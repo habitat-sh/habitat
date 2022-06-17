@@ -31,6 +31,8 @@ use habitat_core::{crypto::keys::AnonymousBox,
                              PackageTarget},
                    util,
                    ChannelIdent};
+use log::{debug,
+          trace};
 use percent_encoding::{percent_encode,
                        AsciiSet,
                        CONTROLS};
@@ -39,6 +41,9 @@ use reqwest::{header::CONTENT_LENGTH,
               IntoUrl,
               RequestBuilder,
               StatusCode};
+use serde::{Deserialize,
+            Serialize};
+use serde_json::json;
 use std::{fs::{self,
                File},
           future::Future,
@@ -96,6 +101,8 @@ pub struct OriginPrivateSigningKey {
 }
 
 mod json {
+    use serde::Deserialize;
+
     #[derive(Clone, Deserialize)]
     pub struct PackageIdent {
         pub origin:  String,
@@ -1457,7 +1464,7 @@ macro_rules! retry_builder_api {
                 match $api_future.await.into() {
                     Ok(_) => retry::OperationResult::Ok(()),
                     Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
-                        info!("Unsupported package platform or architecture. Skipping!");
+                        log::info!("Unsupported package platform or architecture. Skipping!");
                         retry::OperationResult::Ok(())
                     }
                     Err(api_client::Error::APIError(code, error)) if code.is_client_error() => {

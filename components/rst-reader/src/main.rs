@@ -1,5 +1,3 @@
-extern crate log;
-
 use crate::error::Result;
 use clap::{App,
            Arg};

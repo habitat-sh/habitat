@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate log;
-
 mod api_client;
 mod error;
 

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "$(date): Executing Reconfigure Hook with templated value: {{cfg.reconfigure_templated_value}}"
+EXIT_CODE='{{#if cfg.reconfigure_exit_code}}{{cfg.reconfigure_exit_code}}{{else}}0{{/if}}'
+exit "$EXIT_CODE"

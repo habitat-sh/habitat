@@ -1,6 +1,7 @@
 use crate::{engine,
             RegistryType};
-use clap::{App,
+use clap::{clap_app,
+           App,
            Arg};
 use habitat_common::PROGRAM_NAME;
 use habitat_core::package::PackageIdent;

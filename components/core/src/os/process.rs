@@ -32,8 +32,8 @@ pub use windows::{handle_from_pid,
 
 use crate::{error::Error,
             util};
-use serde_derive::{Deserialize,
-                   Serialize};
+use serde::{Deserialize,
+            Serialize};
 use std::{fmt,
           result,
           str::FromStr,

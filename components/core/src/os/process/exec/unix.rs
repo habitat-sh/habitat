@@ -1,4 +1,5 @@
 use crate::os::process::can_run_services_as_svc_user;
+use log::warn;
 use nix::unistd::{setgid,
                   setuid,
                   Gid,

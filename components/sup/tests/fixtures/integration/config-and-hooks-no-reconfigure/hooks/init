@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "$(date): Executing Init Hook with templated value: {{cfg.init_templated_value}}"
+EXIT_CODE='{{#if cfg.init_exit_code}}{{cfg.init_exit_code}}{{else}}0{{/if}}'
+INIT_SLEEP='{{#if cfg.init_sleep}}{{cfg.init_sleep}}{{else}}0{{/if}}'
+sleep "$INIT_SLEEP"
+exit "$EXIT_CODE"

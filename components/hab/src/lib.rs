@@ -6,25 +6,6 @@ use habitat_core as hcore;
 use habitat_sup_client as sup_client;
 use habitat_sup_protocol as protocol;
 
-#[macro_use]
-extern crate clap;
-
-#[macro_use]
-extern crate log;
-
-#[macro_use]
-extern crate serde_derive;
-
-extern crate serde_json;
-extern crate toml;
-
-#[cfg(windows)]
-extern crate widestring;
-#[cfg(windows)]
-extern crate winapi;
-#[cfg(windows)]
-extern crate winreg;
-
 pub mod cli;
 pub mod command;
 pub mod error;
