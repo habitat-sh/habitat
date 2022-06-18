@@ -139,7 +139,7 @@ pub struct OriginChannelIdent {
 pub struct OriginChannelWithPromotion {
     pub name:        String,
     pub created_at:  String,
-    pub promoted_at: String
+    pub promoted_at: String,
 }
 
 pub struct BuilderAPIClient(ApiClient);
