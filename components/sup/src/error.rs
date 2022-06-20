@@ -189,7 +189,7 @@ impl fmt::Display for Error {
             Error::TaskJoin(ref err) => err.to_string(),
             Error::LauncherIPCCommand(err) => {
                 let mut chain: Vec<String> = vec![format!("{}", err)];
-                let mut root = err.source(); 
+                let mut root = err.source();
                 while let Some(cause) = root {
                     chain.push(format!("{}", cause));
                     root = cause.source();
@@ -199,7 +199,7 @@ impl fmt::Display for Error {
             }
             Error::LauncherTryIPCCommand(err) => {
                 let mut chain: Vec<String> = vec![format!("{}", err)];
-                let mut root = err.source(); 
+                let mut root = err.source();
                 while let Some(cause) = root {
                     chain.push(format!("{}", cause));
                     root = cause.source();
