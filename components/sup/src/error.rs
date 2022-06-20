@@ -188,12 +188,20 @@ impl fmt::Display for Error {
             Error::Io(ref err) => err.to_string(),
             Error::TaskJoin(ref err) => err.to_string(),
             Error::LauncherIPCCommand(err) => {
+                let mut chain: Vec<String> = vec![format!("{}", err)];
+                while let Some(cause) = err.source() {
+                    chain.push(format!("{}", cause));
+                }
                 format!("Supervisor failed to execute launcher command via IPC: {}",
-                        err)
+                        chain.join(", "))
             }
             Error::LauncherTryIPCCommand(err) => {
+                let mut chain: Vec<String> = vec![format!("{}", err)];
+                while let Some(cause) = err.source() {
+                    chain.push(format!("{}", cause));
+                }
                 format!("Supervisor failed to try executing launcher command via IPC: {}",
-                        err)
+                        chain.join(", "))
             }
             Error::MissingRequiredBind(ref e) => {
                 format!("Missing required bind(s), {}", e.join(", "))
