@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.535 -->
-## [1.6.535](https://github.com/habitat-sh/habitat/tree/1.6.535) (2022-06-20)
+<!-- latest_release 1.6.536 -->
+## [1.6.536](https://github.com/habitat-sh/habitat/tree/1.6.536) (2022-06-20)
 
 #### Merged Pull Requests
-- fix launcher exit e2e failure [#8550](https://github.com/habitat-sh/habitat/pull/8550) ([atrniv](https://github.com/atrniv))
+- fix infinite loop in ipc error [#8551](https://github.com/habitat-sh/habitat/pull/8551) ([atrniv](https://github.com/atrniv))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- fix infinite loop in ipc error [#8551](https://github.com/habitat-sh/habitat/pull/8551) ([atrniv](https://github.com/atrniv)) <!-- 1.6.536 -->
 - fix launcher exit e2e failure [#8550](https://github.com/habitat-sh/habitat/pull/8550) ([atrniv](https://github.com/atrniv)) <!-- 1.6.535 -->
 - Update Launcher IPC communication [#8494](https://github.com/habitat-sh/habitat/pull/8494) ([atrniv](https://github.com/atrniv)) <!-- 1.6.534 -->
 - README: fix master-&gt;main img src [#8545](https://github.com/habitat-sh/habitat/pull/8545) ([dacoffey](https://github.com/dacoffey)) <!-- 1.6.534 -->
