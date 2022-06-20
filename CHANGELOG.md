@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.536 -->
-## [1.6.536](https://github.com/habitat-sh/habitat/tree/1.6.536) (2022-06-20)
+<!-- latest_release 1.6.537 -->
+## [1.6.537](https://github.com/habitat-sh/habitat/tree/1.6.537) (2022-06-20)
 
 #### Merged Pull Requests
-- fix infinite loop in ipc error [#8551](https://github.com/habitat-sh/habitat/pull/8551) ([atrniv](https://github.com/atrniv))
+- fixes supervisor - launcher backward compatibility [#8552](https://github.com/habitat-sh/habitat/pull/8552) ([atrniv](https://github.com/atrniv))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- fixes supervisor - launcher backward compatibility [#8552](https://github.com/habitat-sh/habitat/pull/8552) ([atrniv](https://github.com/atrniv)) <!-- 1.6.537 -->
 - fix infinite loop in ipc error [#8551](https://github.com/habitat-sh/habitat/pull/8551) ([atrniv](https://github.com/atrniv)) <!-- 1.6.536 -->
 - fix launcher exit e2e failure [#8550](https://github.com/habitat-sh/habitat/pull/8550) ([atrniv](https://github.com/atrniv)) <!-- 1.6.535 -->
 - Update Launcher IPC communication [#8494](https://github.com/habitat-sh/habitat/pull/8494) ([atrniv](https://github.com/atrniv)) <!-- 1.6.534 -->
