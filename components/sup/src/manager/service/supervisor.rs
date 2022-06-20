@@ -9,6 +9,7 @@ use crate::{error::{Error,
                     Result},
             manager::{ServicePidSource,
                       ShutdownConfig}};
+use anyhow::anyhow;
 use habitat_common::{outputln,
                      templating::package::Pkg,
                      types::UserInfo};
@@ -128,8 +129,9 @@ impl Supervisor {
                            } else {
                                match launcher.pid_of(&self.service_group.to_string()) {
                                    Ok(maybe_pid) => maybe_pid,
-                                   Err(e) => {
-                                       error!("Error getting pid from launcher: {:?}", e);
+                                   Err(err) => {
+                                       error!("Error getting pid from launcher: {:#}",
+                                              anyhow!(err));
                                        None
                                    }
                                }
@@ -224,12 +226,12 @@ impl Supervisor {
                     Ok(v) if v > 14227 => pkg.svc_user.clone(),
                     Ok(_) => legacy_user,
                     Err(err @ TryIPCCommandError::TryReceive(_, TryReceiveError::Timeout)) => {
-                        error!("Timeout getting version from launcher: {}", err);
+                        error!("Timeout getting version from launcher: {:#}", anyhow!(err));
                         legacy_user
                     }
-                    Err(err @ TryIPCCommandError::TryReceive(_, TryReceiveError::IPCRead(IPCReadError::LauncherCommand(protocol::NetErr{ code: protocol::ErrCode::Unknown , ..})))) => {
-                        error!("Launcher does not support the 'version' command: {}", err);
-                                legacy_user
+                    Err(err @ TryIPCCommandError::TryReceive(_, TryReceiveError::IPCRead(IPCReadError::LauncherCommand(protocol::NetErr{ code: protocol::ErrCode::UnknownMessage , ..})))) => {
+                        error!("Launcher does not support the 'version' command: {:#}", anyhow!(err));
+                        legacy_user
                     }
                     Err(err) => {
                         return Err(Error::LauncherTryIPCCommand(err));
