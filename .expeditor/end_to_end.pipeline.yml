@@ -88,7 +88,7 @@ steps:
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_windows_service
     artifact_paths:
-      - "C:/hab/svc/windows-service/logs/*.log"
+      - "/hab/svc/windows-service/logs/*.log"
     expeditor:
       executor:
         docker:
