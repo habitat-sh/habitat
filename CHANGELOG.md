@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
 <!-- latest_release 1.6.534 -->
-## [1.6.534](https://github.com/habitat-sh/habitat/tree/1.6.534) (2022-06-13)
+## [1.6.534](https://github.com/habitat-sh/habitat/tree/1.6.534) (2022-06-15)
 
 #### Merged Pull Requests
-- README: fix master-&gt;main img src [#8545](https://github.com/habitat-sh/habitat/pull/8545) ([dacoffey](https://github.com/dacoffey))
+- Update Launcher IPC communication [#8494](https://github.com/habitat-sh/habitat/pull/8494) ([atrniv](https://github.com/atrniv))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- Update Launcher IPC communication [#8494](https://github.com/habitat-sh/habitat/pull/8494) ([atrniv](https://github.com/atrniv)) <!-- 1.6.534 -->
 - README: fix master-&gt;main img src [#8545](https://github.com/habitat-sh/habitat/pull/8545) ([dacoffey](https://github.com/dacoffey)) <!-- 1.6.534 -->
 - Bump async-trait from 0.1.53 to 0.1.56 [#8543](https://github.com/habitat-sh/habitat/pull/8543) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.533 -->
 - Bump prost from 0.10.3 to 0.10.4 [#8542](https://github.com/habitat-sh/habitat/pull/8542) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.532 -->
