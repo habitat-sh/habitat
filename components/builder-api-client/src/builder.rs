@@ -134,7 +134,6 @@ pub struct OriginChannelIdent {
     pub name: String,
 }
 
-
 #[derive(Clone, Deserialize)]
 pub struct OriginChannelWithPromotion {
     pub name:        String,
