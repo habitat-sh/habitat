@@ -1,6 +1,3 @@
-#[cfg(all(any(target_os = "linux", target_os = "windows"),
-              target_arch = "x86_64"))]
-use super::util::ExternalCommandArgs;
 use super::util::{self,
                   AuthToken,
                   BldrUrl,
@@ -14,6 +11,10 @@ use super::util::{self,
                   ExternalCommandArgsWithHelpAndVersion,
                   FullyQualifiedPkgIdent,
                   PkgIdent};
+#[cfg(all(any(target_os = "linux", target_os = "windows"),
+              target_arch = "x86_64"))]
+use super::util::{ConfigOptExternalCommandArgs,
+                  ExternalCommandArgs};
 use crate::cli::{dir_exists,
                  file_exists,
                  valid_ident_or_toml_file,
