@@ -40,6 +40,7 @@ Describe "Supervisor boot failure" {
         $supPid.ExitCode | Should -Not -Be 0
     }
     It "logs connection failure" {
-        $supLog | Should -FileContentMatch "Unable to accept connection from Supervisor"
+        $supLog | Should -FileContentMatch "Failed to setup launcher IPC connection with supervisor"
+        $supLog | Should -FileContentMatch "Timeout exceeded waiting for IPC connection from supervisor"
     }
 }
