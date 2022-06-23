@@ -790,6 +790,7 @@ fn hab_key_origins(m: &ArgMatches<'_>) -> Result<Vec<habitat_core::origin::Origi
      .collect()
 }
 
+#[allow(unused_variables)]
 async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
     let plan_context = required_value_of(m, "PLAN_CONTEXT");
     let root = m.value_of("HAB_STUDIO_ROOT");
@@ -806,6 +807,7 @@ async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>, feature_flags: FeatureFl
         }
     }
 
+    #[cfg(target_family = "unix")]
     let native_package = if m.is_present("NATIVE_PACKAGE") {
         if !feature_flags.contains(FeatureFlag::NATIVE_PACKAGE_SUPPORT) {
             return Err(Error::ArgumentError(String::from("`--native-package` is \
@@ -817,6 +819,8 @@ async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>, feature_flags: FeatureFl
     } else {
         false
     };
+    #[cfg(target_family = "windows")]
+    let native_package = false;
 
     let docker = m.is_present("DOCKER");
     let reuse = m.is_present("REUSE");
