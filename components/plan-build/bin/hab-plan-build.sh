@@ -585,6 +585,7 @@ _ensure_origin_key_present() {
 # command:
 #
 # * `$_hab_cmd` (hab cli for signing, hashing, and possibly installing)
+# * `$_stat_cmd` (either GNU or BSD stat on system)
 # * `$_wget_cmd` (wget on system)
 # * `$_shasum_cmd` (either gsha256sum or sha256sum on system)
 # * `$_tar_cmd` (GNU version of tar)
@@ -600,6 +601,17 @@ _ensure_origin_key_present() {
 # If the commands are not found, `exit_with` is called and the program is
 # terminated.
 _find_system_commands() {
+  if exists stat; then    
+    if stat -f '%Su:%g' . 2>/dev/null 1>/dev/null; then
+      _stat_variant="bsd"
+    elif stat -c '%u:%g' . 2>/dev/null 1>/dev/null; then
+      _stat_variant="gnu"
+    else
+      exit_with "Failed to determine stat variant, we require GNU or BSD stat to determine user and group owners of files; aborting" 1
+    fi
+  else
+    exit_with "We require GNU or BSD stat to determine user and group owners of files; aborting" 1
+  fi
   if exists wget; then
     _wget_cmd=$(command -v wget)
     if [[ "${HAB_NONINTERACTIVE:-}" == "true" ]]; then
@@ -1567,7 +1579,7 @@ _set_build_path() {
 # about what exactly failed.
 _write_pre_build_file() {
   local plan_owner
-  if [[ $pkg_target == *darwin ]]; then
+  if [[ $_stat_variant == "bsd" ]]; then
     plan_owner="$(stat -f '%Su:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
   else
     plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
@@ -1873,7 +1885,11 @@ do_default_prepare() {
 # Since `build` is one of the most overridden functions, this wrapper makes sure
 # that no matter how it is changed, our `$cwd` is `$SRC_PATH`.
 do_build_wrapper() {
-  build_line "Building"
+  if [[ -z $HAB_NATIVE_PACKAGE ]]; then
+    build_line "Building standard package"
+  else
+    build_line "Building native package"
+  fi
   pushd "$SRC_PATH" > /dev/null
   do_build
   popd > /dev/null
@@ -2005,7 +2021,7 @@ _build_metadata() {
     _render_metadata_SVC_USER
     _render_metadata_SVC_GROUP
     # We render out the PACKAGE_TYPE metadata file only for native packages.
-    if [[ -z $HAB_NATIVE_PACKAGE ]]; then
+    if [[ ! -z $HAB_NATIVE_PACKAGE ]]; then
       _render_metadata_PACKAGE_TYPE
     fi
   fi
@@ -2296,7 +2312,7 @@ _prepare_build_outputs() {
   local plan_owner
   _pkg_sha256sum=$($_shasum_cmd "$pkg_artifact" | cut -d " " -f 1)
   _pkg_blake2bsum=$($HAB_BIN pkg hash "$pkg_artifact" | cut -d " " -f 1)
-  if [[ $pkg_target == *darwin ]]; then
+  if [[ $_stat_variant == "bsd" ]]; then
     plan_owner="$(stat -f '%Su:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
   else
     plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
