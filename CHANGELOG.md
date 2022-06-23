@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.538 -->
-## [1.6.538](https://github.com/habitat-sh/habitat/tree/1.6.538) (2022-06-23)
+<!-- latest_release 1.6.539 -->
+## [1.6.539](https://github.com/habitat-sh/habitat/tree/1.6.539) (2022-06-23)
 
 #### Merged Pull Requests
-- Trigger Build Pipeline Rebuild [#8555](https://github.com/habitat-sh/habitat/pull/8555) ([atrniv](https://github.com/atrniv))
+- Correct the channels response parsing [#8548](https://github.com/habitat-sh/habitat/pull/8548) ([sajjaphani](https://github.com/sajjaphani))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- Correct the channels response parsing [#8548](https://github.com/habitat-sh/habitat/pull/8548) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.539 -->
 - Trigger Build Pipeline Rebuild [#8555](https://github.com/habitat-sh/habitat/pull/8555) ([atrniv](https://github.com/atrniv)) <!-- 1.6.538 -->
 - fixes supervisor - launcher backward compatibility [#8552](https://github.com/habitat-sh/habitat/pull/8552) ([atrniv](https://github.com/atrniv)) <!-- 1.6.537 -->
 - fix infinite loop in ipc error [#8551](https://github.com/habitat-sh/habitat/pull/8551) ([atrniv](https://github.com/atrniv)) <!-- 1.6.536 -->
