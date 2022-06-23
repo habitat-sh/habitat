@@ -9,7 +9,6 @@ use std::{ffi::OsString,
           process::Command};
 use tempfile::Builder;
 
-#[cfg(target_family = "unix")]
 const HAB_PLAN_BUILD_SOURCE_FILES: [(&str, &[u8]); 4] =
     [("environment.bash", include_bytes!("../../../../plan-build/bin/environment.bash")),
      ("shared.bash", include_bytes!("../../../../plan-build/bin/shared.bash")),
