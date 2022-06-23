@@ -319,3 +319,4 @@ if(Test-Path $TestName) {
     $testPath = Join-Path -Path test end-to-end "$($TestName).ps1"
 }
 Invoke-Pester $testPath -EnableExit
+cat C:\hab\svc\windows-service\logs\Habitat.log
