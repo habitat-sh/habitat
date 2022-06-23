@@ -2021,7 +2021,7 @@ _build_metadata() {
     _render_metadata_SVC_USER
     _render_metadata_SVC_GROUP
     # We render out the PACKAGE_TYPE metadata file only for native packages.
-    if [[ ! -z $HAB_NATIVE_PACKAGE ]]; then
+    if [[ -n $HAB_NATIVE_PACKAGE ]]; then
       _render_metadata_PACKAGE_TYPE
     fi
   fi
