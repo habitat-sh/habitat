@@ -134,6 +134,13 @@ pub struct OriginChannelIdent {
     pub name: String,
 }
 
+#[derive(Clone, Deserialize)]
+pub struct OriginChannelWithPromotion {
+    pub name:        String,
+    pub created_at:  String,
+    pub promoted_at: String,
+}
+
 pub struct BuilderAPIClient(ApiClient);
 
 impl BuilderAPIClient {
@@ -915,8 +922,9 @@ impl BuilderAPIClient {
         let encoded = resp.text().await.map_err(Error::BadResponseBody)?;
         trace!(target: "habitat_http_client::api_client::package_channels", "{:?}", encoded);
 
-        Ok(serde_json::from_str::<Vec<String>>(&encoded)?.into_iter()
-                                                         .collect())
+        let results: Vec<OriginChannelWithPromotion> = serde_json::from_str(&encoded)?;
+        let channels = results.into_iter().map(|o| o.name).collect();
+        Ok(channels)
     }
 
     /// Upload a public origin key to a remote Builder.
