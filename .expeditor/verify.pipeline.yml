@@ -8,6 +8,12 @@ steps:
 # Linting!
 #######################################################################
 
+  - label: "[unit] :linux: ARM test"
+    command:
+      - .expeditor/scripts/verify/run_native_cargo_test.sh
+    agents:
+      queue: docker-linux-arm64
+    
   - label: "[lint] :linux: :bash: Shellcheck"
     command:
       - .expeditor/scripts/verify/shellcheck.sh
