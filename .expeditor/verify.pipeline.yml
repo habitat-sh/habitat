@@ -15,7 +15,7 @@ steps:
       queue: docker-linux-arm64
     plugins:
       - docker#v3.13.0:
-        image: "rust:buster"
+          image: "rust:buster"
     
   - label: "[lint] :linux: :bash: Shellcheck"
     command:
