@@ -13,6 +13,9 @@ steps:
       - .expeditor/scripts/verify/run_native_cargo_test.sh
     agents:
       queue: docker-linux-arm64
+    plugins:
+      - docker#v3.13.0:
+        image: "rust:buster"
     
   - label: "[lint] :linux: :bash: Shellcheck"
     command:
