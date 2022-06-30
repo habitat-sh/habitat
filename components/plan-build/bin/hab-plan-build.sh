@@ -2424,6 +2424,7 @@ _do_final_callback_wrapper() {
 
 # # Main Flow
 ########################################################################
+build_line "Using HAB_ROOT_PATH=${HAB_ROOT_PATH}"
 
 # Parse depot flag (-u)
 OPTIND=2

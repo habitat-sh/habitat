@@ -167,47 +167,49 @@ mod inner {
     const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
 
     pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
-        rerun_with_sudo_if_needed(ui, args)?;
-        if is_docker_studio(args) {
-            docker::start_docker_studio(ui, args)
-        } else if is_native_studio(args) {
+        if is_native_studio(args) {
             native::start_native_studio(ui, args)
         } else {
-            let command = match henv::var(STUDIO_CMD_ENVVAR) {
-                Ok(command) => PathBuf::from(command),
-                Err(_) => {
-                    init()?;
-                    let version: Vec<&str> = VERSION.split('/').collect();
-                    let ident = PackageIdent::from_str(&format!("{}/{}",
-                                                                super::STUDIO_PACKAGE_IDENT,
-                                                                version[0]))?;
-                    let command = exec::command_from_min_pkg(ui, STUDIO_CMD, &ident).await?;
-                    // This is a duplicate of the code in `hab pkg exec` and
-                    // should be refactored as part of or after:
-                    // https://github.com/habitat-sh/habitat/issues/6633
-                    // https://github.com/habitat-sh/habitat/issues/6634
-                    let pkg_install = PackageInstall::load(&ident, None)?;
-                    let cmd_env = pkg_install.environment_for_command()?;
-                    for (key, value) in cmd_env.into_iter() {
-                        debug!("Setting: {}='{}'", key, value);
-                        env::set_var(key, value);
-                    }
-
-                    let mut display_args = STUDIO_CMD.to_string();
-                    for arg in args {
-                        display_args.push(' ');
-                        display_args.push_str(arg.to_string_lossy().as_ref());
-                    }
-                    debug!("Running: {}", display_args);
-
-                    command
-                }
-            };
-            if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-                process::become_command(cmd, args)?;
-                Ok(())
+            rerun_with_sudo_if_needed(ui, args)?;
+            if is_docker_studio(args) {
+                docker::start_docker_studio(ui, args)
             } else {
-                Err(Error::ExecCommandNotFound(command))
+                let command = match henv::var(STUDIO_CMD_ENVVAR) {
+                    Ok(command) => PathBuf::from(command),
+                    Err(_) => {
+                        init()?;
+                        let version: Vec<&str> = VERSION.split('/').collect();
+                        let ident = PackageIdent::from_str(&format!("{}/{}",
+                                                                    super::STUDIO_PACKAGE_IDENT,
+                                                                    version[0]))?;
+                        let command = exec::command_from_min_pkg(ui, STUDIO_CMD, &ident).await?;
+                        // This is a duplicate of the code in `hab pkg exec` and
+                        // should be refactored as part of or after:
+                        // https://github.com/habitat-sh/habitat/issues/6633
+                        // https://github.com/habitat-sh/habitat/issues/6634
+                        let pkg_install = PackageInstall::load(&ident, None)?;
+                        let cmd_env = pkg_install.environment_for_command()?;
+                        for (key, value) in cmd_env.into_iter() {
+                            debug!("Setting: {}='{}'", key, value);
+                            env::set_var(key, value);
+                        }
+    
+                        let mut display_args = STUDIO_CMD.to_string();
+                        for arg in args {
+                            display_args.push(' ');
+                            display_args.push_str(arg.to_string_lossy().as_ref());
+                        }
+                        debug!("Running: {}", display_args);
+    
+                        command
+                    }
+                };
+                if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
+                    process::become_command(cmd, args)?;
+                    Ok(())
+                } else {
+                    Err(Error::ExecCommandNotFound(command))
+                }
             }
         }
     }
