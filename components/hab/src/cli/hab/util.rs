@@ -6,7 +6,8 @@ use configopt::{self,
                 ConfigOpt};
 use habitat_common::{cli_config::CliConfig,
                      types::{ListenCtlAddr,
-                             ResolvedListenCtlAddr}};
+                             ResolvedListenCtlAddr,
+                             GossipListenAddr}};
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    env as henv,
                    fs as hab_core_fs,
@@ -25,7 +26,9 @@ use std::{ffi::OsString,
           path::PathBuf,
           result,
           str::FromStr,
-          time::Duration};
+          time::Duration,
+          convert::TryFrom,
+            net::SocketAddr};
 use structopt::{clap::AppSettings,
                 StructOpt};
 use url::{ParseError,
@@ -231,6 +234,35 @@ impl FromStr for DurationProxy {
 impl fmt::Display for DurationProxy {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", u64::from(*self)) }
 }
+
+/// A wrapper around `SocketAddr`
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(from = "String", into = "SocketAddr")]
+pub struct SocketAddrProxy {
+    addr:   SocketAddr,
+}
+
+impl TryFrom<String> for SocketAddrProxy {
+    type Error = Error;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let (domain, addr) =
+            habitat_common::util::resolve_socket_addr_with_default_port(value, GossipListenAddr::DEFAULT_PORT)?;
+        if !domain.is_empty() {
+            Ok(SocketAddrProxy { addr: addr })
+        } else {
+            Err(Error::ResolveSocketAddr)
+        }
+    }
+}
+
+impl From<SocketAddrProxy> for SocketAddr {
+    fn from(s: SocketAddrProxy) -> Self { s.addr }
+}
+
+impl From<SocketAddr> for SocketAddrProxy {
+    fn from(s: SocketAddr) -> Self { Self(s) }
+}
+
 
 // Collect trailing arguments to pass to an external command
 //

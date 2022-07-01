@@ -67,6 +67,7 @@ pub enum Error {
     PathPrefixError(path::StripPrefixError),
     ProvidesError(String),
     RootRequired,
+    ResolveSocketAddr,
     ScheduleStatus(api_client::Error),
     SubcommandNotSupported(String),
     UnsupportedExportFormat(String),
@@ -185,6 +186,9 @@ impl fmt::Display for Error {
             Error::ProvidesError(ref err) => format!("Can't find {}", err),
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation".to_string()
+            }
+            Error::ResolveSocketAddr => {
+                "Failed to resolve socket address.".to_string()
             }
             Error::ScheduleStatus(ref e) => format!("Failed to retrieve job group status: {:?}", e),
             Error::SubcommandNotSupported(ref e) => {

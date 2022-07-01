@@ -289,7 +289,7 @@ async fn split_apart_sup_run(sup_run: SupRun,
                         organization: sup_run.organization,
                         gossip_permanent: sup_run.permanent_peer,
                         ring_key,
-                        gossip_peers: sup_run.peer,
+                        gossip_peers: sup_run.peer.into(),
                         watch_peer_file: sup_run.peer_watch_file
                                                 .map(|p| p.to_string_lossy().to_string()),
                         gossip_listen: if sup_run.local_gossip_mode {

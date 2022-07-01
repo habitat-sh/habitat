@@ -10,6 +10,7 @@ use super::{svc::{SharedLoad,
                    ConfigOptCacheKeyPath,
                    ConfigOptRemoteSup,
                    DurationProxy,
+                   SocketAddrProxy,
                    RemoteSup,
                    SubjectAlternativeName}};
 use crate::{error::Error,
@@ -45,8 +46,7 @@ use rants::{error::Error as RantsError,
 use serde::{Deserialize,
             Serialize};
 use std::{fmt,
-          net::{IpAddr,
-                SocketAddr},
+          net::{IpAddr},
           path::PathBuf,
           str::FromStr};
 use structopt::{clap::AppSettings,
@@ -137,9 +137,32 @@ impl From<EventStreamAddress> for NatsAddress {
     fn from(address: EventStreamAddress) -> Self { address.0 }
 }
 
-fn parse_peer(s: &str) -> Result<SocketAddr, Error> {
-    Ok(habitat_common::util::resolve_socket_addr_with_default_port(s, GossipListenAddr::DEFAULT_PORT)?.1)
+fn parse_peer(s: &str) -> Result<SocketAddrProxy, Error> {
+    let (domain, addr) = habitat_common::util::resolve_socket_addr_with_default_port(s, GossipListenAddr::DEFAULT_PORT)?;
+    Ok(addr.into())
 }
+
+/*fn convert_to_ip<'de, D>(d: D) -> Result<SocketAddr, D::Error>
+    where D: serde::Deserializer<'de>
+{
+    let buf = String::deserialize(d)?;
+
+    let addr: &str = buf.as_ref();
+    let domain;
+    let mut addrs = if let Some(index) = addr.find(':') {
+                        domain = &addr[..index];
+                        addr.to_socket_addrs()
+                    } else {
+                        domain = addr;
+                        (addr, GossipListenAddr::DEFAULT_PORT).to_socket_addrs()
+                    }.map_err(|e| serde::de::Error::custom("Failed to resolve ctl address"))?;
+     addrs.find(std::net::SocketAddr::is_ipv4)
+         .ok_or_else(|| {
+            serde::de::Error::custom("did not resolve to an ipv4 socket address")
+         })
+         .map(|addr| (domain.to_string(), addr))
+
+}*/
 
 /// Run the Habitat Supervisor
 #[configopt_fields]
@@ -199,7 +222,8 @@ pub struct SupRun {
     // https://github.com/serde-rs/serde/issues/723. There are workarounds but they are all ugly.
     // This means that you have to specify the port when setting this with a config file.
     #[structopt(long = "peer", parse(try_from_str = parse_peer))]
-    pub peer: Vec<SocketAddr>,
+    //#[serde(deserialize_with = "convert_to_ip")]
+    pub peer: Vec<SocketAddrProxy>,
     /// Make this Supervisor a permanent peer
     #[structopt(long = "permanent-peer", short = "I")]
     pub permanent_peer: bool,
@@ -441,13 +465,6 @@ impl From<SupRun> for SharedLoad {
       }
     }
 }
-
-/*impl Copy for SupRun {}
-impl Clone for SupRun {
-    fn clone(&self) -> SupRun {
-        *self
-    }
-}*/
 
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(no_version)]
