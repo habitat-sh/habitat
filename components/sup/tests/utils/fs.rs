@@ -3,9 +3,10 @@ use anyhow::{anyhow,
              Context,
              Result};
 use habitat_core::{crypto::Blake2bHash,
-                   package::{PackageInstall,
-                             PackageTarget},
+                   package::{PackageInstall},
                    users};
+#[cfg(not(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64")))]
+use habitat_core::package::PackageTarget;
 use std::{collections::{BinaryHeap,
                         VecDeque},
           path::{Path,
