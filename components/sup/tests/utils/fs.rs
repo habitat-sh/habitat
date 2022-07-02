@@ -3,7 +3,8 @@ use anyhow::{anyhow,
              Context,
              Result};
 use habitat_core::{crypto::Blake2bHash,
-                   package::PackageInstall,
+                   package::{PackageInstall,
+                             PackageTarget},
                    users};
 use std::{collections::{BinaryHeap,
                         VecDeque},
@@ -226,24 +227,6 @@ pub async fn setup_package_files(origin_name: &str,
     let package_name = package_name.to_string();
     let service_group = service_group.to_string();
 
-    // Ensure the directory for the spec files exists
-    let spec_dir = hab_root.spec_dir_path(&service_group);
-    fs::create_dir_all(spec_dir).await
-                                .context("Could not create spec directory")?;
-
-    // Copy the spec file over
-    let spec_source = fixture_root.spec_path(&package_name);
-    let spec_destination = hab_root.spec_path(&package_name, &service_group);
-    if !spec_source.exists() {
-        return Err(anyhow!("Missing a spec file at {}", spec_source.display()));
-    }
-    fs::copy(&spec_source, &spec_destination).await
-                                             .with_context(|| {
-                                                 format!("Failed to copy '{}' to '{}'",
-                                                         spec_source.display(),
-                                                         spec_destination.display())
-                                             })?;
-
     // Copy the expanded package directory over
     let expanded_fixture_dir = fixture_root.expanded_package_dir(&package_name);
     let hab_pkg_path = hab_root.pkg_dir_path(&origin_name, &package_name);
@@ -254,7 +237,10 @@ pub async fn setup_package_files(origin_name: &str,
                                                               expanded_fixture_dir.display(),
                                                               hab_pkg_path.display())
                                                   })?;
-    write_default_svc_user_and_group_metafiles(hab_root, &origin_name, &package_name).await.context("Failed to write default files for service")?;
+    write_default_metafiles(hab_root, &origin_name, &package_name).await
+                                                                  .context("Failed to write \
+                                                                            default files for \
+                                                                            service")?;
 
     let install =
         PackageInstall::load(&hab_root.pkg_ident(&origin_name, &package_name),
@@ -272,8 +258,27 @@ pub async fn setup_package_files(origin_name: &str,
                                                                 fixture_dir.display(),
                                                                 pkg_path.display())
                                                     })?;
+            write_default_metafiles(hab_root, &dependency.origin, &dependency.name).await.context("Failed to write meta files for native package")?;
         }
     }
+
+    // Ensure the directory for the spec files exists
+    let spec_dir = hab_root.spec_dir_path(&service_group);
+    fs::create_dir_all(spec_dir).await
+                                .context("Could not create spec directory")?;
+
+    // Copy the spec file over
+    let spec_source = fixture_root.spec_path(&package_name);
+    let spec_destination = hab_root.spec_path(&package_name, &service_group);
+    if !spec_source.exists() {
+        return Err(anyhow!("Missing a spec file at {}", spec_source.display()));
+    }
+    fs::copy(&spec_source, &spec_destination).await
+                                             .with_context(|| {
+                                                 format!("Failed to copy '{}' to '{}'",
+                                                         spec_source.display(),
+                                                         spec_destination.display())
+                                             })?;
     Ok(())
 }
 
@@ -334,10 +339,10 @@ pub async fn copy_dir<S, D>(source_dir: S, dest_dir: D) -> Result<()>
 /// In an effort to execute a package when running test suites as a non-root user, the current
 /// username and the user's primary groupname will be used. If a fixture contains one or both of
 /// these metafiles, default values will *not* be used.
-async fn write_default_svc_user_and_group_metafiles(hab_root: &HabRoot,
-                                                    pkg_origin: &str,
-                                                    pkg_name: &str)
-                                                    -> Result<()> {
+async fn write_default_metafiles(hab_root: &HabRoot,
+                                 pkg_origin: &str,
+                                 pkg_name: &str)
+                                 -> Result<()> {
     let svc_user_metafile = hab_root.svc_user_path(pkg_origin, pkg_name);
     let svc_group_metafile = hab_root.svc_group_path(pkg_origin, pkg_name);
 
@@ -354,6 +359,20 @@ async fn write_default_svc_user_and_group_metafiles(hab_root: &HabRoot,
                                                      .context("No groupname found")?
                                                      .as_str()).await?;
     }
+
+    // Write metafiles to convert the package to a native package on platforms without package
+    // support
+    #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
+                  target_arch = "x86_64")))]
+    {
+        let target_metafile = hab_root.target_path(pkg_origin, pkg_name);
+        let pkg_type_metafile = hab_root.pkg_type_path(pkg_origin, pkg_name);
+
+        write_metafile(pkg_type_metafile, "native").await?;
+        write_metafile(target_metafile,
+                       PackageTarget::active_target().to_string().as_str()).await?;
+    }
+
     Ok(())
 }
 
@@ -369,5 +388,8 @@ async fn write_metafile<P>(metafile: P, content: &str) -> Result<()>
                                               format!("Failed to write contents to metafile '{}'",
                                                       metafile.as_ref().display())
                                           })?;
+    f.shutdown()
+     .await
+     .with_context(|| format!("Failed to close metafile '{}'", metafile.as_ref().display()))?;
     Ok(())
 }

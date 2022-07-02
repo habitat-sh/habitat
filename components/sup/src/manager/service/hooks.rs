@@ -697,7 +697,8 @@ mod tests {
     use habitat_core::{crypto::keys::KeyCache,
                        fs::CACHE_KEY_PATH,
                        locked_env_var,
-                       package::{PackageIdent,
+                       package::{metadata::MetaFile,
+                                 PackageIdent,
                                  PackageInstall},
                        service::{ServiceBind,
                                  ServiceGroup}};
@@ -755,6 +756,14 @@ mod tests {
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"));
+        // Platforms without standard package support require all packages to be native packages
+        #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
+                      target_arch = "x86_64")))]
+        {
+            create_with_content(pkg_install.installed_path()
+                                           .join(MetaFile::PackageType.to_string()),
+                                "native");
+        }
         Pkg::from_install(&pkg_install).await.unwrap()
     }
 
