@@ -637,8 +637,10 @@ mod tests {
                             context::RenderContext,
                             package::Pkg,
                             test_helpers::*};
-    use habitat_core::{package::{metadata::MetaFile,
-                                 PackageIdent,
+    #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
+                      target_arch = "x86_64")))]
+    use habitat_core::package::metadata::MetaFile;
+    use habitat_core::{package::{PackageIdent,
                                  PackageInstall},
                        service::ServiceGroup};
     use tempfile::TempDir;
