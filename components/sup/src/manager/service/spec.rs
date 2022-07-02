@@ -908,10 +908,19 @@ mod test {
 
     fn testing_package_install() -> PackageInstall {
         let ident = if cfg!(target_os = "linux") {
-            PackageIdent::new("test-bind",
-                              "test-bind",
-                              Some("0.1.0"),
-                              Some("20190219230309"))
+            if cfg!(target_arch = "x86_64") {
+                PackageIdent::new("test-bind",
+                                  "test-bind",
+                                  Some("0.1.0"),
+                                  Some("20190219230309"))
+            } else if cfg!(target_arch = "aarch64") {
+                PackageIdent::new("test-bind-native",
+                                  "test-bind-native-linux-aarch64",
+                                  Some("0.1.0"),
+                                  Some("20220701090436"))
+            } else {
+                panic!("This is being run on a platform that's not currently supported");
+            }
         } else if cfg!(target_os = "windows") {
             PackageIdent::new("test-bind",
                               "test-bind-win",

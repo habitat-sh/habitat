@@ -452,6 +452,7 @@ impl TestSup {
         let hab_exe = find_exe("hab").context("Failed to find 'hab' executable")?;
         let mut cmd = Command::new(&hab_exe);
         cmd.env("FS_ROOT", self.hab_root.display().to_string())
+           .env("HAB_LICENSE", "accept-no-persist")
            .arg("svc")
            .arg("start")
            .arg(format!("{}/{}", origin, package_name))
@@ -478,6 +479,7 @@ impl TestSup {
         let hab_exe = find_exe("hab").context("Failed to find 'hab' executable")?;
         let mut cmd = Command::new(&hab_exe);
         cmd.env("FS_ROOT", self.hab_root.display().to_string())
+           .env("HAB_LICENSE", "accept-no-persist")
            .arg("svc")
            .arg("stop")
            .arg(format!("{}/{}", origin, package_name))

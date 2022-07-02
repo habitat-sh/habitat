@@ -356,7 +356,7 @@ dedupe_path(){
 
     if [ -n "${original_path}" ]; then
       while [ -n "${original_path}" ]; do
-        path_item="${original_path%%${separator}*}"       # the first remaining entry
+        path_item="${original_path%%"${separator}"*}"       # the first remaining entry
         case "${new_path}" in
             *${separator}${path_item})
               ;&
@@ -368,9 +368,9 @@ dedupe_path(){
               new_path="${new_path}${separator}${path_item}"
               ;;    # not there yet
         esac
-        original_path="${original_path#*${separator}}"
+        original_path="${original_path#*"${separator}"}"
       done
-      new_path="${new_path#${separator}}"
+      new_path="${new_path#"${separator}"}"
     fi
 
     echo "${new_path}"

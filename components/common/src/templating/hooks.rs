@@ -637,7 +637,8 @@ mod tests {
                             context::RenderContext,
                             package::Pkg,
                             test_helpers::*};
-    use habitat_core::{package::{PackageIdent,
+    use habitat_core::{package::{metadata::MetaFile,
+                                 PackageIdent,
                                  PackageInstall},
                        service::ServiceGroup};
     use tempfile::TempDir;
@@ -865,6 +866,15 @@ echo "The message is Hola Mundo"
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"));
+
+        // Platforms without standard package support require all packages to be native packages
+        #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
+                      target_arch = "x86_64")))]
+        {
+            create_with_content(pkg_install.installed_path()
+                                           .join(MetaFile::PackageType.to_string()),
+                                "native");
+        }
         let pkg = Pkg::from_install(&pkg_install).await
                                                  .expect("Could not create package!");
 

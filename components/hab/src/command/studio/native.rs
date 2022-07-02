@@ -2,7 +2,6 @@ use crate::error::{Error,
                    Result};
 use anyhow::Context;
 use habitat_common::ui::UI;
-use habitat_core::fs::{am_i_root, ROOT_PATH};
 use log::debug;
 use std::{ffi::OsString,
           fs::File,
@@ -44,10 +43,6 @@ fn start_native_studio_impl(_ui: &mut UI, args: &[OsString]) -> anyhow::Result<(
     cmd.arg(temp_dir.path().join("hab-plan-build.sh"))
        .arg(args.last().unwrap())
        .env("HAB_NATIVE_PACKAGE", "true");
-    
-    if let (false, Some(home_dir)) = (am_i_root(), dirs::home_dir()) {
-        cmd.env("HAB_ROOT_PATH", home_dir.join(format!(".{}", ROOT_PATH)));
-    }
 
     debug!("Executing habitat plan build script with command: [{:?}]",
            cmd);

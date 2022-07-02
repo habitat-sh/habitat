@@ -168,9 +168,10 @@ mod inner {
 
     pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         if is_native_studio(args) {
+            rerun_with_sudo_if_needed(ui, args, true)?;
             native::start_native_studio(ui, args)
         } else {
-            rerun_with_sudo_if_needed(ui, args)?;
+            rerun_with_sudo_if_needed(ui, args, false)?;
             if is_docker_studio(args) {
                 docker::start_docker_studio(ui, args)
             } else {
@@ -193,14 +194,14 @@ mod inner {
                             debug!("Setting: {}='{}'", key, value);
                             env::set_var(key, value);
                         }
-    
+
                         let mut display_args = STUDIO_CMD.to_string();
                         for arg in args {
                             display_args.push(' ');
                             display_args.push_str(arg.to_string_lossy().as_ref());
                         }
                         debug!("Running: {}", display_args);
-    
+
                         command
                     }
                 };
@@ -240,7 +241,10 @@ mod inner {
         Ok(docker_members.map_or(false, |d| d.contains(&current_user)))
     }
 
-    fn rerun_with_sudo_if_needed(ui: &mut UI, args: &[OsString]) -> Result<()> {
+    fn rerun_with_sudo_if_needed(ui: &mut UI,
+                                 args: &[OsString],
+                                 preserve_path: bool)
+                                 -> Result<()> {
         // If I have root permissions or if I am executing a docker studio
         // and have the appropriate group - early return, we are done.
         if am_i_root() || (is_docker_studio(args) && has_docker_group()?) {
@@ -253,6 +257,9 @@ mod inner {
                 let mut args: Vec<OsString> = vec!["-p".into(),
                                                    "[sudo hab-studio] password for %u: ".into(),
                                                    "-E".into(),];
+                if preserve_path {
+                    args.push("--preserve-env=PATH".into());
+                }
                 args.append(&mut env::args_os().collect());
                 process::become_command(sudo_prog, &args)?;
                 Ok(())

@@ -973,9 +973,7 @@ _determine_hab_bin() {
     build_line "NO_INSTALL_DEPS set: no package dependencies will be installed"
   fi
 
-  if [[ -n "${HAB_BIN:-}" ]]; then
-    HAB_BIN=$HAB_BIN
-  else
+  if [[ -z "${HAB_BIN:-}" ]]; then
     HAB_BIN="$_hab_cmd"
   fi
   build_line "Using HAB_BIN=$HAB_BIN for installs, signing, and hashing"
@@ -2082,7 +2080,7 @@ _do_copy_templates() {
     done
     find "$PLAN_CONTEXT/$1" "${find_exclusions[@]}" | while read -r FILE
     do
-      local plan_context_relative_path="$pkg_prefix${FILE#$PLAN_CONTEXT}"
+      local plan_context_relative_path="$pkg_prefix${FILE#"$PLAN_CONTEXT"}"
       if [[ -d "$FILE" ]]; then
         mkdir -p "$plan_context_relative_path"
       else
@@ -2424,7 +2422,6 @@ _do_final_callback_wrapper() {
 
 # # Main Flow
 ########################################################################
-build_line "Using HAB_ROOT_PATH=${HAB_ROOT_PATH}"
 
 # Parse depot flag (-u)
 OPTIND=2
