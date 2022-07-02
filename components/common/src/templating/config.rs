@@ -614,6 +614,8 @@ mod test {
                                   PackageInstall}},
                 templating::{context::RenderContext,
                              test_helpers::*}};
+    #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
+                      target_arch = "x86_64")))]
     use hcore::package::metadata::MetaFile;
     use std::{env,
               fs::{self,
