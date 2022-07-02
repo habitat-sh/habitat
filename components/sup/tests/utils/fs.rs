@@ -2,11 +2,12 @@ use anyhow::{anyhow,
              bail,
              Context,
              Result};
-use habitat_core::{crypto::Blake2bHash,
-                   package::{PackageInstall},
-                   users};
-#[cfg(not(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64")))]
+#[cfg(not(all(any(target_os = "linux", target_os = "windows"),
+                  target_arch = "x86_64")))]
 use habitat_core::package::PackageTarget;
+use habitat_core::{crypto::Blake2bHash,
+                   package::PackageInstall,
+                   users};
 use std::{collections::{BinaryHeap,
                         VecDeque},
           path::{Path,
