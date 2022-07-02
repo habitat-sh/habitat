@@ -59,7 +59,6 @@ impl HabRoot {
             .join(MetaFile::PackageType.to_string())
     }
 
-    
     /// Returns the path to the target metafile for a given package.
     // This is only used on non-x86 platforms
     #[allow(dead_code)]
