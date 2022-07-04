@@ -450,7 +450,6 @@ mod test {
         use std::{collections::HashMap,
                   fs::File,
                   io::Write,
-                  path::PathBuf,
                   str::FromStr,
                   time::Duration};
         use sup::manager::ServiceRestartConfig;
