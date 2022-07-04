@@ -694,11 +694,13 @@ mod tests {
                          types::{GossipListenAddr,
                                  HttpListenAddr,
                                  ListenCtlAddr}};
+    #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
+                      target_arch = "x86_64")))]
+    use habitat_core::package::metadata::MetaFile;
     use habitat_core::{crypto::keys::KeyCache,
                        fs::CACHE_KEY_PATH,
                        locked_env_var,
-                       package::{metadata::MetaFile,
-                                 PackageIdent,
+                       package::{PackageIdent,
                                  PackageInstall},
                        service::{ServiceBind,
                                  ServiceGroup}};

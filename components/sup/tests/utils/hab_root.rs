@@ -52,12 +52,16 @@ impl HabRoot {
     }
 
     /// Returns the path to the package type metafile for a given package.
+    // This is only used on non-x86 platforms
+    #[allow(dead_code)]
     pub fn pkg_type_path(&self, origin: &str, pkg_name: &str) -> PathBuf {
         self.pkg_dir_path(origin, pkg_name)
             .join(MetaFile::PackageType.to_string())
     }
 
     /// Returns the path to the target metafile for a given package.
+    // This is only used on non-x86 platforms
+    #[allow(dead_code)]
     pub fn target_path(&self, origin: &str, pkg_name: &str) -> PathBuf {
         self.pkg_dir_path(origin, pkg_name)
             .join(MetaFile::Target.to_string())
