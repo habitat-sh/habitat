@@ -833,7 +833,7 @@ gpoVMSncu2jMIDZX63IkQII=
         #[test]
         fn test_hab_sup_run_cli_2() {
             let lock = lock_var();
-            lock.set(PathBuf::from("/cache/key/path"));
+            lock.unset();
 
             let args = "hab-sup run --local-gossip-mode";
 
@@ -843,7 +843,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        service_update_period:      Duration::from_secs(60),
                                        service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
-                                       key_cache:                  KeyCache::new("/cache/key/path"),
+                                       key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:             ChannelIdent::default(),
@@ -1170,7 +1170,7 @@ sys_ip_address = "7.8.9.0"
             let temp_dir = TempDir::new().expect("Could not create tempdir");
 
             let lock = lock_var();
-            lock.set(PathBuf::from("/cache/key/path"));
+            lock.unset();
 
             // Setup config file
             let config_contents = r#"local_gossip_mode = true"#;
@@ -1187,7 +1187,7 @@ sys_ip_address = "7.8.9.0"
                                        service_update_period:      Duration::from_secs(60),
                                        service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
-                                       key_cache:                  KeyCache::new("/cache/key/path"),
+                                       key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:             ChannelIdent::default(),
