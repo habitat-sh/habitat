@@ -4,6 +4,9 @@ load 'helpers'
 load "/test/.expeditor/scripts/release_habitat/shared.sh"
 
 setup() {
+    # This is required since git 2.35.2 as the owner of the repo is not the user running the tests.
+    # Reference: https://stackoverflow.com/questions/71901632/fatal-error-unsafe-repository-home-repon-is-owned-by-someone-else
+    git config --global --add safe.directory /test
     TEST_TEMP_DIR="$(temp_make)"
 }
 teardown() {
