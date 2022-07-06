@@ -17,12 +17,6 @@ steps:
       - docker#v3.13.0:
           image: "rust:buster"
   
-  - label: "[:linux: build hab (ARM)]"
-    command:
-      - .expeditor/scripts/release_habitat/package_and_upload_arm_binary.sh
-    agents:
-      queue: docker-linux-arm64
-
   - label: "[lint] :linux: :bash: Shellcheck"
     command:
       - .expeditor/scripts/verify/shellcheck.sh
