@@ -8,9 +8,18 @@ steps:
 # Linting!
 #######################################################################
 
-  - label: "[unit] :linux: ARM test"
+  - label: "[unit] :linux: ARM Platform Support"
     command:
       - .expeditor/scripts/verify/run_native_cargo_test.sh
+    agents:
+      queue: docker-linux-arm64
+    plugins:
+      - docker#v3.13.0:
+          image: "rust:buster"
+  
+  - label: "[:linux: build hab (ARM)]"
+    command:
+      - .expeditor/scripts/release_habitat/build_arm_hab_binary.sh
     agents:
       queue: docker-linux-arm64
     plugins:
