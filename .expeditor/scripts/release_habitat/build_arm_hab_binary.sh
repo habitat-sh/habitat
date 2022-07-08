@@ -21,4 +21,4 @@ strip --strip-debug hab-launch
 strip --strip-debug hab
 
 # Put all the binaries in an archive
-tar -zcf hab-aarch64-linux.tar.gz hab hab-sup hab-launch
+tar -zcf hab-aarch64-linux.tar.gz hab hab-sup hab-launch --transform 's,^,bin/,'
