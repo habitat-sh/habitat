@@ -21,7 +21,7 @@ cp target/release/hab-aarch64-linux.tar.gz "$WORKDIR"
 
 # Import GPG keys for s3 upload
 cd "$WORKDIR"
-import_gpg_keys 
+import_gpg_keys || echo "Failed to import keys"
 
 # Upload to S3
 echo "Version: $(get_version_from_repo)"
