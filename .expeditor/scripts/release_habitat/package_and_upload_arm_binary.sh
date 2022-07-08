@@ -24,4 +24,6 @@ cd "$WORKDIR"
 import_gpg_keys 
 
 # Upload to S3
+echo "Version: $(get_version_from_repo)"
+ls -al
 store_in_s3 "$(get_version_from_repo)" "hab-aarch64-linux.tar.gz"
