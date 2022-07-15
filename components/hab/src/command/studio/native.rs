@@ -44,6 +44,10 @@ fn start_native_studio_impl(_ui: &mut UI, args: &[OsString]) -> anyhow::Result<(
        .arg(args.last().unwrap())
        .env("HAB_NATIVE_PACKAGE", "true");
 
+    if let Some(position) = args.iter().position(|x| x == "-s") {
+        cmd.env("HAB_SRC_PATH", &args[position + 1]); 
+    }
+
     debug!("Executing habitat plan build script with command: [{:?}]",
            cmd);
 
