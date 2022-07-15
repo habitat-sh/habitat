@@ -345,8 +345,8 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The first argument to the script is a Plan context directory, containing a
 # `plan.sh` file
 PLAN_CONTEXT=${1:-.}
-# If this is a native package, change the name of the plan file
-[[ -z $HAB_NATIVE_PACKAGE ]] && HAB_PLAN_FILENAME="plan.sh" || HAB_PLAN_FILENAME="native-plan.sh"
+# The filename of the plan file
+HAB_PLAN_FILENAME="plan.sh"
 # The default Habitat Depot from where to download dependencies. If
 # `HAB_BLDR_URL` is set, this value is overridden.
 : "${HAB_BLDR_URL:=https://bldr.habitat.sh}"
@@ -2470,7 +2470,7 @@ PLAN_CONTEXT="$(abspath "$PLAN_CONTEXT")"
 # Set the initial source root to be the same as the Plan context directory.
 # This assumes that your application source is local and your Plan exists with
 # your code.
-SRC_PATH="$PLAN_CONTEXT"
+SRC_PATH="${HAB_SRC_PATH:=$PLAN_CONTEXT}"
 # Expand the path of this program to an absolute path
 THIS_PROGRAM=$(abspath "$0")
 
