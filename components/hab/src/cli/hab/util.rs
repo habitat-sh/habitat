@@ -5,7 +5,8 @@ use crate::{cli::valid_fully_qualified_ident,
 use configopt::{self,
                 ConfigOpt};
 use habitat_common::{cli_config::CliConfig,
-                     types::{ListenCtlAddr,
+                     types::{GossipListenAddr,
+                             ListenCtlAddr,
                              ResolvedListenCtlAddr}};
 use habitat_core::{crypto::CACHE_KEY_PATH_ENV_VAR,
                    env as henv,
@@ -19,8 +20,10 @@ use lazy_static::lazy_static;
 use log::error;
 use serde::{Deserialize,
             Serialize};
-use std::{ffi::OsString,
+use std::{convert::TryFrom,
+          ffi::OsString,
           fmt,
+          net::SocketAddr,
           num::ParseIntError,
           path::PathBuf,
           result,
@@ -232,6 +235,47 @@ impl fmt::Display for DurationProxy {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", u64::from(*self)) }
 }
 
+/// A wrapper around `SocketAddr`
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(try_from = "String")]
+pub struct SocketAddrProxy(SocketAddr);
+
+impl TryFrom<String> for SocketAddrProxy {
+    type Error = Error;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let (_, addr) = habitat_common::util::resolve_socket_addr_with_default_port(
+            value,
+            GossipListenAddr::DEFAULT_PORT,
+        )?;
+        Ok(SocketAddrProxy(addr))
+    }
+}
+
+impl From<&SocketAddrProxy> for SocketAddr {
+    fn from(s: &SocketAddrProxy) -> Self { s.0 }
+}
+
+impl From<&SocketAddr> for SocketAddrProxy {
+    fn from(s: &SocketAddr) -> Self { Self(*s) }
+}
+
+impl From<&SocketAddrProxy> for String {
+    fn from(s: &SocketAddrProxy) -> Self { toml::to_string(&s.0).unwrap() }
+}
+
+impl FromStr for SocketAddrProxy {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<SocketAddrProxy, Error> {
+        let (_, addr) = habitat_common::util::resolve_socket_addr_with_default_port(
+            s,
+            GossipListenAddr::DEFAULT_PORT,
+        )?;
+        Ok((&addr).into())
+    }
+}
+
 // Collect trailing arguments to pass to an external command
 //
 // This disables help and version flags for the subcommand. Making it easy to check the help or
@@ -284,7 +328,11 @@ impl FromStr for SubjectAlternativeName {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(SubjectAlternativeName(DnsNameRef::try_from_ascii_str(s).map_err(|_| Error::InvalidDnsName(s.to_string()))?.to_owned()))
+        Ok(SubjectAlternativeName(
+            DnsNameRef::try_from_ascii_str(s)
+                .map_err(|_| Error::InvalidDnsName(s.to_string()))?
+                .to_owned(),
+        ))
     }
 }
 

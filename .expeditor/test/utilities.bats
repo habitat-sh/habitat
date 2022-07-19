@@ -16,6 +16,7 @@ teardown() {
 }
 
 @test "get_version_from_repo for real releases" {
+    git config --global --add safe.directory /test
     assert_equal $(get_version_from_repo) $(cat "VERSION")
 }
 
