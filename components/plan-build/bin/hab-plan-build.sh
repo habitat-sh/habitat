@@ -960,6 +960,7 @@ _determine_hab_bin() {
   fi
 
   if [[ -n "${HAB_BIN:-}" ]]; then
+    # shellcheck disable=2269
     HAB_BIN=$HAB_BIN
   else
     HAB_BIN="$_hab_cmd"
@@ -2056,7 +2057,7 @@ _do_copy_templates() {
     done
     find "$PLAN_CONTEXT/$1" "${find_exclusions[@]}" | while read -r FILE
     do
-      local plan_context_relative_path="$pkg_prefix${FILE#$PLAN_CONTEXT}"
+      local plan_context_relative_path="$pkg_prefix${FILE#"$PLAN_CONTEXT"}"
       if [[ -d "$FILE" ]]; then
         mkdir -p "$plan_context_relative_path"
       else
