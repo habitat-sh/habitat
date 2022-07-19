@@ -9,9 +9,9 @@ use super::{svc::{ConfigOptSharedLoad,
                    ConfigOptRemoteSup,
                    DurationProxy,
                    RemoteSup,
+                   SocketAddrProxy,
                    SubjectAlternativeName}};
-use crate::{error::Error,
-            VERSION};
+use crate::VERSION;
 use configopt::{self,
                 configopt_fields,
                 ConfigOpt};
@@ -37,8 +37,7 @@ use rants::{error::Error as RantsError,
 use serde::{Deserialize,
             Serialize};
 use std::{fmt,
-          net::{IpAddr,
-                SocketAddr},
+          net::IpAddr,
           path::PathBuf,
           str::FromStr};
 use structopt::{clap::AppSettings,
@@ -129,10 +128,6 @@ impl From<EventStreamAddress> for NatsAddress {
     fn from(address: EventStreamAddress) -> Self { address.0 }
 }
 
-fn parse_peer(s: &str) -> Result<SocketAddr, Error> {
-    Ok(habitat_common::util::resolve_socket_addr_with_default_port(s, GossipListenAddr::DEFAULT_PORT)?.1)
-}
-
 /// Run the Habitat Supervisor
 #[configopt_fields]
 #[derive(ConfigOpt, StructOpt, Deserialize)]
@@ -187,11 +182,8 @@ pub struct SupRun {
     #[structopt(long = "org")]
     pub organization: Option<String>,
     /// The listen address of one or more initial peers (IP[:PORT])
-    // TODO (DM): Currently there is not a good way to use `parse_peer` when deserializing. Due to
-    // https://github.com/serde-rs/serde/issues/723. There are workarounds but they are all ugly.
-    // This means that you have to specify the port when setting this with a config file.
-    #[structopt(long = "peer", parse(try_from_str = parse_peer))]
-    pub peer: Vec<SocketAddr>,
+    #[structopt(long = "peer")]
+    pub peer: Vec<SocketAddrProxy>,
     /// Make this Supervisor a permanent peer
     #[structopt(long = "permanent-peer", short = "I")]
     pub permanent_peer: bool,
