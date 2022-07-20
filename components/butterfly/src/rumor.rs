@@ -538,7 +538,7 @@ mod tests {
 
     impl Default for FakeRumor {
         fn default() -> FakeRumor {
-            FakeRumor { id:  format!("{}", Uuid::new_v4().to_simple_ref()),
+            FakeRumor { id:  format!("{}", Uuid::new_v4().as_simple()),
                         key: String::from("fakerton"), }
         }
     }
@@ -579,7 +579,7 @@ mod tests {
 
     impl Default for TrumpRumor {
         fn default() -> TrumpRumor {
-            TrumpRumor { id:  format!("{}", Uuid::new_v4().to_simple_ref()),
+            TrumpRumor { id:  format!("{}", Uuid::new_v4().as_simple()),
                          key: String::from("fakerton"), }
         }
     }
