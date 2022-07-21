@@ -51,7 +51,7 @@ dependencies = [
  "pin-project",
  "pin-project-lite",
  "rand 0.8.5",
- "regex 1.5.6",
+ "regex 1.6.0",
  "serde",
  "sha-1",
  "smallvec",
@@ -78,7 +78,7 @@ dependencies = [
  "bytestring",
  "http",
  "log 0.4.17",
- "regex 1.5.6",
+ "regex 1.6.0",
  "serde",
 ]
 
@@ -181,7 +181,7 @@ dependencies = [
  "once_cell",
  "paste",
  "pin-project",
- "regex 1.5.6",
+ "regex 1.6.0",
  "serde",
  "serde_json",
  "serde_urlencoded",
@@ -780,7 +780,7 @@ dependencies = [
  "atty",
  "humantime",
  "log 0.4.17",
- "regex 1.5.6",
+ "regex 1.6.0",
  "termcolor",
 ]
 
@@ -1269,7 +1269,7 @@ dependencies = [
  "pbr",
  "percent-encoding",
  "rand 0.8.5",
- "regex 1.5.6",
+ "regex 1.6.0",
  "reqwest",
  "serde",
  "serde_json",
@@ -1328,7 +1328,7 @@ dependencies = [
  "parking_lot 0.12.0",
  "pbr",
  "petgraph",
- "regex 1.5.6",
+ "regex 1.6.0",
  "reqwest",
  "retry",
  "rustls",
@@ -1374,7 +1374,7 @@ dependencies = [
  "pin-project",
  "rand 0.8.5",
  "rcgen",
- "regex 1.5.6",
+ "regex 1.6.0",
  "reqwest",
  "rustls",
  "serde",
@@ -1509,7 +1509,7 @@ dependencies = [
  "prost-types",
  "rand 0.8.5",
  "rants",
- "regex 1.5.6",
+ "regex 1.6.0",
  "reqwest",
  "rustls",
  "serde",
@@ -2447,7 +2447,7 @@ checksum = "fd56cbd21fea48d0c440b41cd69c589faacade08c992d9a54e471b79d0fd13eb"
 dependencies = [
  "base64",
  "once_cell",
- "regex 1.5.6",
+ "regex 1.6.0",
 ]
 
 [[package]]
@@ -2664,7 +2664,7 @@ dependencies = [
  "petgraph",
  "prost",
  "prost-types",
- "regex 1.5.6",
+ "regex 1.6.0",
  "tempfile",
  "which",
 ]
@@ -2878,13 +2878,13 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.5.6"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d83f127d94bdbcda4c8cc2e50f6f84f4b611f69c902699ca385a39c3a75f9ff1"
+checksum = "4c4eb3267174b8c6c2f654116623910a0fef09c4753f8dd83db29c48a0df988b"
 dependencies = [
  "aho-corasick 0.7.18",
  "memchr",
- "regex-syntax 0.6.26",
+ "regex-syntax 0.6.27",
 ]
 
 [[package]]
@@ -2898,9 +2898,9 @@ dependencies = [
 
 [[package]]
 name = "regex-syntax"
-version = "0.6.26"
+version = "0.6.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49b3de9ec5dc0a3417da371aab17d729997c15010e7fd24ff707773a33bddb64"
+checksum = "a3f87b73ce11b1619a3c6332f45341e0047173771e8b8b73f87bfeefb7b56244"
 
 [[package]]
 name = "remove_dir_all"
@@ -3927,7 +3927,7 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bcde98d1fc3f528255b1ecb22fb688ee0d23deb672a8c57127df10b98b4bd18c"
 dependencies = [
- "regex 1.5.6",
+ "regex 1.6.0",
 ]
 
 [[package]]
@@ -3981,7 +3981,7 @@ dependencies = [
  "phf",
  "phf_codegen",
  "publicsuffix",
- "regex 1.5.6",
+ "regex 1.6.0",
  "serde",
  "serde_json",
  "uritemplate-next",
