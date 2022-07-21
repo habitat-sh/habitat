@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.541 -->
-## [1.6.541](https://github.com/habitat-sh/habitat/tree/1.6.541) (2022-07-21)
+<!-- latest_release 1.6.542 -->
+## [1.6.542](https://github.com/habitat-sh/habitat/tree/1.6.542) (2022-07-21)
 
 #### Merged Pull Requests
-- bump crates [#8565](https://github.com/habitat-sh/habitat/pull/8565) ([sajjaphani](https://github.com/sajjaphani))
+- Remove warning [#8562](https://github.com/habitat-sh/habitat/pull/8562) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- Remove warning [#8562](https://github.com/habitat-sh/habitat/pull/8562) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.542 -->
 - bump crates [#8565](https://github.com/habitat-sh/habitat/pull/8565) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.541 -->
 - SockerAddressProxy type support [#8559](https://github.com/habitat-sh/habitat/pull/8559) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 1.6.540 -->
 - Correct the channels response parsing [#8548](https://github.com/habitat-sh/habitat/pull/8548) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.539 -->
