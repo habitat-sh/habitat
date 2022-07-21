@@ -2810,8 +2810,8 @@ dependencies = [
 
 [[package]]
 name = "rants"
-version = "0.5.0"
-source = "git+https://github.com/habitat-sh/rants.git#1c2c8674f48aab2166c0016eb10fcfc5ebcb6073"
+version = "0.6.0"
+source = "git+https://github.com/habitat-sh/rants.git?branch=v0.6.0#b2f78ff625ec7982e7173e6ff1e9c184856b243e"
 dependencies = [
  "bytes",
  "futures",
@@ -2827,7 +2827,7 @@ dependencies = [
  "tokio-native-tls",
  "tokio-stream",
  "tokio-util",
- "uuid 0.8.2",
+ "uuid 1.1.2",
 ]
 
 [[package]]

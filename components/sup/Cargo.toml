@@ -46,7 +46,7 @@ prometheus = "*"
 prost = { version = "*", features = ["prost-derive"] }
 prost-types = "*"
 rand = "*"
-rants = { git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
+rants = { git = "https://github.com/habitat-sh/rants.git", branch = "v0.6.0", features = ["native-tls"] }
 regex = "*"
 rustls = "*"
 serde = { version = "*", features = ["rc"] }
