@@ -22,29 +22,24 @@ Prerequisites:
 
 ## Role-Based Access Control (RBAC) for Chef Habitat Builder (SaaS and on-prem)
 
-**New in: 1.6.140**
-{{< note >}}
-RBAC improves operational safety by letting you enable specific levels of access to each user of an origin. With this upgrade, existing origins and their users are automatically converted to RBAC. The RBAC upgrade assigns the 'Maintainer' role to existing users with a generic 'Member' role. The differences between 'Member' and 'Maintainer' are detailed below. The origin owner role remains unchanged.
-{{< /note >}}
-
-RBAC membership is a token-based authentication process that works at the origin level. Your membership role defines the level of access that you have to the resources within an origin. When you first join or create an origin, Chef Habitat Builder identifies your personal access token and assigns a membership role to it for that origin. By default, when you join an origin you're assigned the "read-only" role and when you create an an origin you're assigned the 'owner' role. Role access is cumulative and progressive--each RBAC role includes all of the privileges of the previous roles and adds new access privileges.
+Role-Based Access Control (RBAC) membership is a token-based authentication process that works at the origin level. RBAC improves operational safety by letting you enable specific levels of access to each user of an origin. The membership role defines the level of access to resources within an origin. When you first join or create an origin, Chef Habitat Builder identifies your personal access token and assigns a membership role to it for that origin. By default, when you join an origin you're assigned the "read-only" role and when you create an an origin you're assigned the 'owner' role. Role access is cumulative and progressive--each RBAC role includes all of the privileges of the previous roles and adds new access privileges.
 
 RBAC Origin Member Roles:
 
 Read-Only
-: The default membership role for any user joining an origin. 'Read-Only' users can read an origin's packages, channels, origin membership, jobs, keys, integrations, invitations, roles, settings but cannot add to, change, or delete anything in the origin, including uploading packages and inviting users to the origin.
+: The default membership role for any user joining an origin. 'Read-Only' users can read an origin's packages, channels, origin membership, jobs, keys, integrations, invitations, roles, and settings. 'Read-Only' users cannot add to, change, or delete anything in the origin, including uploading packages and inviting users to the origin.
 
 Member
-: In addition to read-only access, an origin 'Member' can upload and build packages in the 'unstable' channel, but they cannot promote packages to other channels.
+: In addition to 'Read-Only' access, an origin 'Member' can upload and build packages in the 'unstable' channel, but they cannot promote packages to other channels.
 
 Maintainer
-: Origin 'Members' from Chef Habitat versions before 1.6.140 are now called 'Maintainers'. This role has full read and write access to packages, channels, origin membership, jobs, integrations, invitations, settings. However, the 'Maintainer' role is more limited than the past role, in that 'Maintainers' only have read access to packages, channels, origin membership, jobs, keys, integrations, and settings. Origin 'Maintainers' can read origin membership roles and see and send invitations, but they cannot otherwise change origin membership--their own or anybody else's. Finally, 'Maintainers' can neither read nor write origin secrets.
+: In addition to 'Member' access, 'Maintainers' can write to packages, origin membership, jobs, integrations, invitations, and promote packages from 'unstable' to other channels. Maintainers can read origin keys and settings, but cannot add, update or delete them. Origin 'Maintainers' can read origin membership roles and see and send invitations, but they cannot otherwise change origin membership--their own or anybody else's. 'Maintainers' can neither read nor write origin secrets.
 
 Administrator
-: In addition to 'Maintainer' access, the 'Administrator' role adds the privileges for writing origin keys and membership roles, as well as for reading and writing origin secrets. Administrators have full read and write access to packages, channels, origin membership, jobs, keys, integrations, invitations, roles, secrets, settings.
+: In addition to 'Maintainer' access, the 'Administrator' role has write access to origin keys and can add, update, and delete origin membership. An 'Administrator' can read and write origin secrets.
 
 Owner
-: As in the past, the origin 'Owner' has full read and write access to the origin. Only Owners can delete the origin or transfer ownership to another member.
+: The origin 'Owner' has full read and write access to all aspects of the origin. Only Owners can delete the origin or transfer ownership to another member.
 
 ## Comparison of RBAC Membership Roles and Actions
 
@@ -86,7 +81,7 @@ Owner
 
 ## Manage Origin Membership
 
-In tandem with the changes to the Builder membership roles, we've also updated the `hab` CLI to support RBAC. We're working on adding role management to the Chef Habitat Builder site, but in the meantime, you'll need to use the CLI for now.
+The `hab` CLI supports RBAC. You need to use the CLI to manage origin roles, you cannot manage origin roles from the Chef Habitat Builder site.
 
 ![Manage origin membership](/images/habitat/origin-members.png)
 
