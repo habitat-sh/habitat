@@ -3,7 +3,8 @@ use crate::error::{Error,
 use anyhow::Context;
 use habitat_common::ui::UI;
 use log::debug;
-use std::{ffi::OsString,
+use std::{env,
+          ffi::OsString,
           fs::File,
           io::Write,
           process::Command};
@@ -45,7 +46,9 @@ fn start_native_studio_impl(_ui: &mut UI, args: &[OsString]) -> anyhow::Result<(
        .env("HAB_NATIVE_PACKAGE", "true");
 
     if let Some(position) = args.iter().position(|x| x == "-s") {
-        cmd.env("HAB_SRC_PATH", &args[position + 1]); 
+        cmd.env("HAB_SRC_PATH", &args[position + 1]);
+    } else {
+        cmd.env("HAB_SRC_PATH", env::current_dir().unwrap());
     }
 
     debug!("Executing habitat plan build script with command: [{:?}]",

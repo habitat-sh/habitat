@@ -323,7 +323,7 @@ pub struct PkgBuild {
     /// Sets the Studio root (default: /hab/studios/<DIR_NAME>)
     #[structopt(name = "HAB_STUDIO_ROOT", short = "r", long = "root")]
     hab_studio_root: Option<PathBuf>,
-    /// Sets the source path (default: <PLAN_CONTEXT>)
+    /// Sets the source path (default: $PWD)
     #[structopt(name = "SRC_PATH", short = "s", long = "src")]
     src_path:        Option<PathBuf>,
     /// A directory containing a plan file or a `habitat/` directory which contains the plan
