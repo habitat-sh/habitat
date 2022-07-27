@@ -47,7 +47,7 @@ use habitat_common::{self as common,
                                   Error as CliConfigError}};
 use habitat_core::{env as henv,
                    tls::rustls_wrapper::TcpOrTlsStream};
-use rustls::TLSError as RustlsError;
+use rustls::Error as RustlsError;
 use std::{error,
           fmt,
           io,

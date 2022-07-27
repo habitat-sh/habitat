@@ -41,9 +41,10 @@ use prometheus::{register_histogram_vec,
                  HistogramTimer,
                  HistogramVec,
                  IntCounterVec};
-use rustls::{AllowAnyAuthenticatedClient,
+use rustls::{self,
+             server::{AllowAnyAuthenticatedClient,
+                      NoClientAuth},
              Certificate,
-             NoClientAuth,
              PrivateKey,
              RootCertStore,
              ServerConfig as TlsServerConfig};
@@ -523,7 +524,7 @@ impl CtlGatewayServer {
                             // We do not always send back an error response because it can lead to
                             // confusing error messages on the client.
                             #[allow(clippy::redundant_closure_for_method_calls)]
-                            if let Some(&rustls::TLSError::CorruptMessage) = e.get_ref().and_then(|e| e.downcast_ref()) {
+                            if let Some(&rustls::Error::CorruptMessage) = e.get_ref().and_then(|e| e.downcast_ref()) {
                                 let mut srv_codec = SrvCodec::new().framed(tcp_stream);
                                 let net_err = net::err(ErrCode::TlsHandshakeFailed, format!("TLS handshake failed, err: {}", e));
                                 if let Err(e) = srv_codec.send(SrvMessage::from(net_err)).await {
@@ -554,15 +555,20 @@ impl CtlGatewayServer {
                         client_certificates: Option<RootCertStore>)
                         -> Option<TlsServerConfig> {
         if let Some(server_key) = server_key {
-            let mut tls_config = if let Some(client_certificates) = client_certificates {
+            let client_auth = if let Some(client_certificates) = client_certificates {
                 debug!("Upgrading ctl-gateway to TLS with client authentication");
-                TlsServerConfig::new(AllowAnyAuthenticatedClient::new(client_certificates))
+                AllowAnyAuthenticatedClient::new(client_certificates)
             } else {
                 debug!("Upgrading ctl-gateway to TLS");
-                TlsServerConfig::new(NoClientAuth::new())
+                NoClientAuth::new()
             };
-            tls_config.set_single_cert(server_certificates.unwrap_or_default(), server_key)
-                      .expect("Could not set certificate for ctl gateway!");
+            let tls_config =
+                TlsServerConfig::builder().with_safe_defaults()
+                                          .with_client_cert_verifier(client_auth)
+                                          .with_single_cert(server_certificates.unwrap_or_default(),
+                                                            server_key)
+                                          .expect("Could not set certificate for ctl gateway!");
+
             Some(tls_config)
         } else {
             None

@@ -16,7 +16,7 @@ doc = false
 
 [dependencies]
 bytes = "*"
-actix-web = { version = "4.0.0-beta.8", default-features = false, features = [ "rustls" ] }
+actix-web = { version = "*", default-features = false, features = [ "rustls" ] }
 actix-rt = "*"
 byteorder = "*"
 clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
@@ -46,9 +46,10 @@ prometheus = "*"
 prost = { version = "*", features = ["prost-derive"] }
 prost-types = "*"
 rand = "*"
-rants = { git = "https://github.com/habitat-sh/rants.git", branch = "v0.6.0", features = ["native-tls"] }
+rants = { git = "https://github.com/habitat-sh/rants.git", branch = "v0.6.1", features = ["native-tls"] }
 regex = "*"
 rustls = "*"
+rustls-pemfile = "*"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = { version = "*", features = [ "preserve_order" ] }

@@ -90,7 +90,7 @@ pub enum Error {
     SpecWatcherGlob(glob::PatternError),
     StrFromUtf8Error(str::Utf8Error),
     StringFromUtf8Error(string::FromUtf8Error),
-    TLSError(rustls::TLSError),
+    TLSError(rustls::Error),
     TomlEncode(toml::ser::Error),
     TryRecvError(mpsc::TryRecvError),
     UnpackFailed,
@@ -295,8 +295,8 @@ impl error::Error for Error {
     }
 }
 
-impl From<rustls::TLSError> for Error {
-    fn from(err: rustls::TLSError) -> Error { Error::TLSError(err) }
+impl From<rustls::Error> for Error {
+    fn from(err: rustls::Error) -> Error { Error::TLSError(err) }
 }
 
 impl From<habitat_api_client::Error> for Error {

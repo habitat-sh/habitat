@@ -97,10 +97,9 @@ use prometheus::{register_histogram_vec,
                  register_int_gauge,
                  HistogramVec,
                  IntGauge};
-use rustls::{internal::pemfile,
-             AllowAnyAuthenticatedClient,
+use rustls::{server::{AllowAnyAuthenticatedClient,
+                      NoClientAuth},
              Certificate,
-             NoClientAuth,
              PrivateKey,
              RootCertStore,
              ServerConfig};
@@ -1962,37 +1961,52 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
     let client_auth = match &config.ca_cert_path {
         Some(path) => {
             let mut root_store = RootCertStore::empty();
-            let ca_file = &mut BufReader::new(File::open(path)?);
-            root_store.add_pem_file(ca_file)
-                      .and_then(|(added, _)| {
-                          if added < 1 {
-                              Err(())
-                          } else {
-                              Ok(AllowAnyAuthenticatedClient::new(root_store))
-                          }
-                      })
-                      .map_err(|_| Error::InvalidCertFile(path.clone()))?
+            let mut ca_file = &mut BufReader::new(File::open(path)?);
+            let certs = &rustls_pemfile::certs(&mut ca_file).map_err(|_| {
+                                                                Error::InvalidCertFile(path.clone())
+                                                            })?;
+            let (added, _) = root_store.add_parsable_certificates(certs);
+            if added < 1 {
+                return Err(Error::InvalidCertFile(path.clone()));
+            } else {
+                AllowAnyAuthenticatedClient::new(root_store)
+            }
         }
         None => NoClientAuth::new(),
     };
 
-    let mut server_config = ServerConfig::new(client_auth);
+    let tls_config = ServerConfig::builder().with_safe_defaults()
+                                            .with_client_cert_verifier(client_auth);
+
     let key_file = &mut BufReader::new(File::open(&config.key_path)?);
     let cert_file = &mut BufReader::new(File::open(&config.cert_path)?);
 
     // Note that we must explicitly map these errors because rustls returns () as the error from
     // both pemfile::certs() as well as pemfile::rsa_private_keys() and we want to return
     // different errors for each.
-    let cert_chain =
-        pemfile::certs(cert_file).and_then(|c| if c.is_empty() { Err(()) } else { Ok(c) })
-                                 .map_err(|_| Error::InvalidCertFile(config.cert_path.clone()))?;
+    let cert_chain = rustls_pemfile::certs(cert_file).and_then(|c| {
+                         if c.is_empty() {
+                             Err(std::io::Error::new(std::io::ErrorKind::Other,
+                                                     "error getting file contents"))
+                         } else {
+                             Ok(c)
+                         }
+                     })
+                     .map_err(|_| Error::InvalidCertFile(config.cert_path.clone()))?;
+    let certs = cert_chain.into_iter().map(Certificate).collect();
 
-    let key = pemfile::rsa_private_keys(key_file).and_then(|mut k| k.pop().ok_or(()))
-                                                 .map_err(|_| {
-                                                     Error::InvalidKeyFile(config.key_path.clone())
-                                                 })?;
+    let key = rustls_pemfile::rsa_private_keys(key_file).and_then(|mut k| {
+                                                            k.pop()
+                   .ok_or_else(|| {
+                       std::io::Error::new(std::io::ErrorKind::Other, "error getting file contents")
+                   })
+                                                        })
+                                                        .map_err(|_| {
+                                                            Error::InvalidKeyFile(config.key_path
+                                                                                        .clone())
+                                                        })?;
 
-    server_config.set_single_cert(cert_chain, key)?;
+    let mut server_config = tls_config.with_single_cert(certs, PrivateKey(key))?;
     server_config.ignore_client_order = true;
     Ok(server_config)
 }

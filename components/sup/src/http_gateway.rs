@@ -2,8 +2,8 @@ use crate::manager::{self,
                      service::{HealthCheckHook,
                                HealthCheckResult}};
 use actix_rt::System;
-use actix_web::{dev::{Body,
-                      Service,
+use actix_web::{body::BoxBody,
+                dev::{Service,
                       ServiceRequest,
                       ServiceResponse},
                 http::{self,
@@ -127,8 +127,8 @@ impl AppState {
 
 fn authentication_middleware<S>(req: ServiceRequest,
                                 srv: &S)
-                                -> impl Future<Output = Result<ServiceResponse<Body>, Error>>
-    where S: Service<ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
+                                -> impl Future<Output = Result<ServiceResponse<BoxBody>, Error>>
+    where S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>
 {
     let current_token = &req.app_data::<Data<AppState>>()
                             .expect("app data")
@@ -170,8 +170,8 @@ fn authentication_middleware<S>(req: ServiceRequest,
 
 fn metrics_middleware<S>(req: ServiceRequest,
                          srv: &S)
-                         -> impl Future<Output = Result<ServiceResponse<Body>, Error>>
-    where S: Service<ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
+                         -> impl Future<Output = Result<ServiceResponse<BoxBody>, Error>>
+    where S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>
 {
     let label_values = &[req.path()];
 
@@ -200,8 +200,8 @@ fn metrics_middleware<S>(req: ServiceRequest,
 
 fn redact_http_middleware<S>(req: ServiceRequest,
                              srv: &S)
-                             -> impl Future<Output = Result<ServiceResponse<Body>, Error>>
-    where S: Service<ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
+                             -> impl Future<Output = Result<ServiceResponse<BoxBody>, Error>>
+    where S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>
 {
     if req.app_data::<Data<AppState>>()
           .expect("app data")
@@ -320,7 +320,7 @@ fn json_response(data: String) -> HttpResponse {
 /// # Locking (see locking.md)
 /// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn butterfly_gsr(state: Data<AppState>) -> HttpResponse {
+async fn butterfly_gsr(state: Data<AppState>) -> HttpResponse {
     let data = state.gateway_state.lock_gsr().butterfly_data().to_string();
     json_response(data)
 }
@@ -328,7 +328,7 @@ fn butterfly_gsr(state: Data<AppState>) -> HttpResponse {
 /// # Locking (see locking.md)
 /// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn census_gsr(state: Data<AppState>) -> HttpResponse {
+async fn census_gsr(state: Data<AppState>) -> HttpResponse {
     let data = state.gateway_state.lock_gsr().census_data().to_string();
     json_response(data)
 }
@@ -336,7 +336,7 @@ fn census_gsr(state: Data<AppState>) -> HttpResponse {
 /// # Locking (see locking.md)
 /// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn services_gsr(state: Data<AppState>) -> HttpResponse {
+async fn services_gsr(state: Data<AppState>) -> HttpResponse {
     let data = state.gateway_state.lock_gsr().services_data().to_string();
     json_response(data)
 }
@@ -346,9 +346,9 @@ fn services_gsr(state: Data<AppState>) -> HttpResponse {
 // Honestly, this doesn't feel great, but it's the pattern builder-api uses, and at the
 // moment, I don't have a better way of doing it.
 #[allow(clippy::needless_pass_by_value)]
-fn config_with_org_gsr(path: Path<(String, String, String)>,
-                       state: Data<AppState>)
-                       -> HttpResponse {
+async fn config_with_org_gsr(path: Path<(String, String, String)>,
+                             state: Data<AppState>)
+                             -> HttpResponse {
     let (svc, group, org) = path.into_inner();
     config_gsr(svc, group, Some(&org), &state)
 }
@@ -356,7 +356,9 @@ fn config_with_org_gsr(path: Path<(String, String, String)>,
 /// # Locking (see locking.md)
 /// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn config_without_org_gsr(path: Path<(String, String)>, state: Data<AppState>) -> HttpResponse {
+async fn config_without_org_gsr(path: Path<(String, String)>,
+                                state: Data<AppState>)
+                                -> HttpResponse {
     let (svc, group) = path.into_inner();
     config_gsr(svc, group, None, &state)
 }
@@ -380,9 +382,9 @@ fn config_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) -
 /// # Locking (see locking.md)
 /// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn health_with_org_gsr(path: Path<(String, String, String)>,
-                       state: Data<AppState>)
-                       -> HttpResponse {
+async fn health_with_org_gsr(path: Path<(String, String, String)>,
+                             state: Data<AppState>)
+                             -> HttpResponse {
     let (svc, group, org) = path.into_inner();
     health_gsr(svc, group, Some(&org), &state)
 }
@@ -390,7 +392,9 @@ fn health_with_org_gsr(path: Path<(String, String, String)>,
 /// # Locking (see locking.md)
 /// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn health_without_org_gsr(path: Path<(String, String)>, state: Data<AppState>) -> HttpResponse {
+async fn health_without_org_gsr(path: Path<(String, String)>,
+                                state: Data<AppState>)
+                                -> HttpResponse {
     let (svc, group) = path.into_inner();
     health_gsr(svc, group, None, &state)
 }
@@ -428,9 +432,9 @@ fn health_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) -
 /// # Locking (see locking.md)
 /// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn service_with_org_gsr(path: Path<(String, String, String)>,
-                        state: Data<AppState>)
-                        -> HttpResponse {
+async fn service_with_org_gsr(path: Path<(String, String, String)>,
+                              state: Data<AppState>)
+                              -> HttpResponse {
     let (svc, group, org) = path.into_inner();
     service_gsr(svc, group, Some(&org), &state)
 }
@@ -438,7 +442,9 @@ fn service_with_org_gsr(path: Path<(String, String, String)>,
 /// # Locking (see locking.md)
 /// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn service_without_org_gsr(path: Path<(String, String)>, state: Data<AppState>) -> HttpResponse {
+async fn service_without_org_gsr(path: Path<(String, String)>,
+                                 state: Data<AppState>)
+                                 -> HttpResponse {
     let (svc, group) = path.into_inner();
     service_gsr(svc, group, None, &state)
 }
@@ -459,7 +465,7 @@ fn service_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) 
     }
 }
 
-fn metrics() -> HttpResponse {
+async fn metrics() -> HttpResponse {
     let encoder = TextEncoder::new();
     let metric_families = prometheus::gather();
     let mut buffer = vec![];
@@ -480,7 +486,7 @@ fn metrics() -> HttpResponse {
                       .body(resp)
 }
 
-fn doc() -> HttpResponse { HttpResponse::Ok().content_type("text/html").body(APIDOCS) }
+async fn doc() -> HttpResponse { HttpResponse::Ok().content_type("text/html").body(APIDOCS) }
 // End route handlers
 
 fn service_from_services(service_group: &ServiceGroup, services_json: &str) -> Option<Json> {
