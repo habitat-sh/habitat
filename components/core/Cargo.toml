@@ -39,9 +39,9 @@ tabwriter = "*"
 tar = "*"
 tempfile = "*"
 thiserror = "*"
-tokio = { version = "1.9.0", features = ["full"] }
+tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
-toml = { version = "0.5.9", features = [ "preserve_order" ] }
+toml = { version = "*", features = [ "preserve_order" ] }
 typemap = "*"
 url = "*"
 webpki = "*"
