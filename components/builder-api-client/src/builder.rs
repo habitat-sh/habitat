@@ -16,7 +16,7 @@ use crate::{error::{Error,
 use broadcast::BroadcastWriter;
 use bytes::BytesMut;
 use futures::{io::AllowStdIo,
-              stream::TryStreamExt};
+              TryStreamExt};
 use habitat_core::{crypto::keys::AnonymousBox,
                    fs::{AtomicWriter,
                         Permissions,
