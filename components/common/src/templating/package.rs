@@ -64,7 +64,7 @@ impl Env {
         };
         match package_type {
             PackageType::Standard => path::append_interpreter_and_env_path(&mut paths).await,
-            PackageType::Native => path::append_env_path(&mut paths).await,
+            PackageType::Native => path::append_env_path(&mut paths),
         }
     }
 }
