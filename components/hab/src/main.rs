@@ -193,6 +193,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         }
                     }
                 }
+                #[cfg(not(target_os = "macos"))]
                 Hab::Run(sup_run) => {
                     ui.warn("'hab run' as an alias for 'hab sup run' is deprecated. Please \
                              update your automation and processes accordingly.")?;
@@ -204,6 +205,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 Hab::Studio(studio) => {
                     return command::studio::enter::start(ui, studio.args()).await;
                 }
+                #[cfg(not(target_os = "macos"))]
                 Hab::Sup(sup) => {
                     match sup {
                         HabSup::Sup(sup) => {
@@ -273,12 +275,14 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         }
                     }
                 }
+                #[cfg(not(target_os = "macos"))]
                 Hab::Term => {
                     ui.warn("'hab term' as an alias for 'hab sup term' is deprecated. Please \
                              update your automation and processes accordingly.")?;
                     return command::sup::start(ui, &args_after_first(1)).await;
                 }
                 Hab::Pkg(pkg) => {
+                    #[allow(clippy::collapsible_match)]
                     match pkg {
                         // package export is not available on platforms that have no package support
                         #[cfg(all(any(target_os = "linux", target_os = "windows"),

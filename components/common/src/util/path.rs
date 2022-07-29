@@ -133,19 +133,11 @@ pub async fn append_interpreter_and_env_path(path_entries: &mut Vec<PathBuf>) ->
     let mut paths = interpreter_paths().await?;
     root_paths(&mut paths);
     path_entries.append(&mut paths);
-    if let Some(val) = env::var_os("PATH") {
-        let mut os_paths = env::split_paths(&val).collect();
-        path_entries.append(&mut os_paths);
-    }
-    let joined = env::join_paths(path_entries)?;
-    let path_str =
-        joined.into_string()
-              .map_err(|s| io::Error::new(io::ErrorKind::InvalidData, s.to_string_lossy()))?;
-    Ok(path_str)
+    append_env_path(path_entries)
 }
 
 /// Append the the environment PATH variable to the provided path entries
-pub async fn append_env_path(path_entries: &mut Vec<PathBuf>) -> Result<String> {
+pub fn append_env_path(path_entries: &mut Vec<PathBuf>) -> Result<String> {
     if let Some(val) = env::var_os("PATH") {
         let mut os_paths = env::split_paths(&val).collect();
         path_entries.append(&mut os_paths);

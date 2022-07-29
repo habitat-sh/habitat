@@ -10,7 +10,7 @@ docker run \
     --init \
     --volume "$(pwd)":/workdir \
     --workdir /workdir \
-    rust:buster \
+    rust:"$(get_toolchain)-buster" \
     /bin/sh -e -c .expeditor/scripts/release_habitat/build_arm_hab_binary.sh
 
 HAB_VERSION=$(get_version_from_repo)
@@ -24,4 +24,4 @@ cd "$WORKDIR"
 import_gpg_keys || echo "Keys imported already"
 
 # Upload to S3
-store_in_s3 "1.6.537" "hab-aarch64-linux.tar.gz"
+store_in_s3 "$HAB_VERSION" "hab-aarch64-linux.tar.gz"

@@ -114,6 +114,7 @@ pub enum Hab {
     #[structopt(no_version, settings = &[AppSettings::Hidden], aliases = &["i", "in", "ins", "inst", "insta", "instal"])]
     Install(PkgInstall),
     /// Alias for 'sup run'
+    #[cfg(not(target_os = "macos"))]
     #[structopt(no_version, settings = &[AppSettings::Hidden])]
     Run(SupRun),
     /// Alias for 'cli setup'
@@ -126,6 +127,7 @@ pub enum Hab {
     #[structopt(no_version, settings = &[AppSettings::Hidden], aliases = &["sto"])]
     Stop(SvcStop),
     /// Alias for 'sup term'
+    #[cfg(not(target_os = "macos"))]
     #[structopt(no_version, settings = &[AppSettings::Hidden])]
     Term,
 }
