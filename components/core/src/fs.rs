@@ -36,6 +36,8 @@ pub const ROOT_PATH: &str = "hab";
 pub const CACHE_PATH: &str = "hab/cache";
 /// The default download root path for package artifacts, used on package installation
 pub const CACHE_ARTIFACT_PATH: &str = "hab/cache/artifacts";
+/// The default path where hab-plan-build scripts are written, used for native package builds
+pub const CACHE_BUILD_PATH: &str = "hab/cache/build";
 /// The default path where cryptographic keys are stored
 pub const CACHE_KEY_PATH_POSTFIX: &str = "hab/cache/keys";
 /// The default path for ctl gateway TLS certificate and keys
@@ -191,6 +193,17 @@ lazy_static::lazy_static! {
         }
     };
 
+    static ref MY_CACHE_BUILD_PATH: PathBuf = {
+        if am_i_root() {
+            PathBuf::from(CACHE_BUILD_PATH)
+        } else {
+            match dirs::home_dir() {
+                Some(home) => home.join(format!(".{}", CACHE_BUILD_PATH)),
+                None => PathBuf::from(CACHE_BUILD_PATH),
+            }
+        }
+    };
+
     static ref MY_CACHE_KEY_PATH_POSTFIX: PathBuf = {
         if am_i_root() {
             PathBuf::from(CACHE_KEY_PATH_POSTFIX)
@@ -244,6 +257,17 @@ pub fn cache_artifact_path<T>(fs_root_path: Option<T>) -> PathBuf
     match fs_root_path {
         Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_ARTIFACT_PATH),
         None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_ARTIFACT_PATH),
+    }
+}
+
+/// Returns the path to the hab-plan-build script files used for native plan builds, optionally
+/// taking a custom filesystem root.
+pub fn cache_build_path<T>(fs_root_path: Option<T>) -> PathBuf
+    where T: AsRef<Path>
+{
+    match fs_root_path {
+        Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_BUILD_PATH),
+        None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_BUILD_PATH),
     }
 }
 
