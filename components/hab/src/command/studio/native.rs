@@ -2,13 +2,14 @@ use crate::error::{Error,
                    Result};
 use anyhow::Context;
 use habitat_common::ui::UI;
+use habitat_core::fs::cache_build_path;
 use log::debug;
 use std::{env,
           ffi::OsString,
-          fs::File,
+          fs::{self,
+               File},
           io::Write,
           process::Command};
-use tempfile::Builder;
 
 const HAB_PLAN_BUILD_SOURCE_FILES: [(&str, &[u8]); 4] =
     [("environment.bash", include_bytes!("../../../../plan-build/bin/environment.bash")),
@@ -21,13 +22,11 @@ pub fn start_native_studio(ui: &mut UI, args: &[OsString]) -> Result<()> {
 }
 
 fn start_native_studio_impl(_ui: &mut UI, args: &[OsString]) -> anyhow::Result<(), anyhow::Error> {
-    let temp_dir =
-        Builder::new().prefix("hab-plan-build-")
-                      .tempdir()
-                      .context("Failed to create a temporary directory for the habitat plan \
-                                build script")?;
+    let build_dir = cache_build_path(None::<&str>);
+    fs::create_dir_all(&build_dir).context("Failed to create cache build directory for the \
+                                            habitat plan build script")?;
     for (source_file_name, source_file_data) in HAB_PLAN_BUILD_SOURCE_FILES {
-        let source_file_path = temp_dir.path().join(source_file_name);
+        let source_file_path = build_dir.join(source_file_name);
         File::create(&source_file_path).with_context(|| {
                                            format!("Failed to create plan build source file '{}'",
                                                    source_file_path.display())
@@ -41,7 +40,7 @@ fn start_native_studio_impl(_ui: &mut UI, args: &[OsString]) -> anyhow::Result<(
     }
     let mut cmd = Command::new("bash");
 
-    cmd.arg(temp_dir.path().join("hab-plan-build.sh"))
+    cmd.arg(build_dir.join("hab-plan-build.sh"))
        .arg(args.last().unwrap())
        .env("HAB_NATIVE_PACKAGE", "true");
 
