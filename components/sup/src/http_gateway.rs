@@ -10,12 +10,12 @@ use actix_web::{body::BoxBody,
                        StatusCode},
                 web::{self,
                       Data,
-                      Path},
+                      Path,
+                      ServiceConfig},
                 App,
                 Error,
                 HttpResponse,
-                HttpServer,
-                Scope};
+                HttpServer};
 use futures::future::{ok,
                       Either,
                       Future};
@@ -223,6 +223,50 @@ pub enum ServerStartup {
     BindFailed,
 }
 
+struct Services {}
+
+impl Services {
+    // Route registration
+    //
+    pub fn register(cfg: &mut ServiceConfig) {
+        cfg.route("/services", web::get().to(services_gsr))
+           .route("/services/{svc}/{group}",
+                  web::get().to(service_without_org_gsr))
+           .route("/services/{svc}/{group}/config",
+                  web::get().to(config_without_org_gsr))
+           .route("/services/{svc}/{group}/health",
+                  web::get().to(health_without_org_gsr))
+           .route("/services/{svc}/{group}/{org}",
+                  web::get().to(service_with_org_gsr))
+           .route("/services/{svc}/{group}/{org}/config",
+                  web::get().to(config_with_org_gsr))
+           .route("/services/{svc}/{group}/{org}/health",
+                  web::get().to(health_with_org_gsr));
+    }
+}
+
+struct Butterfly {}
+
+impl Butterfly {
+    // Route registration
+    //
+    pub fn register(cfg: &mut ServiceConfig) {
+        cfg.service(web::resource("/butterfly").route(web::get().to(butterfly_gsr))
+                                               .wrap_fn(redact_http_middleware));
+    }
+}
+
+struct Census {}
+
+impl Census {
+    // Route registration
+    //
+    pub fn register(cfg: &mut ServiceConfig) {
+        cfg.service(web::resource("/census").route(web::get().to(census_gsr))
+                                            .wrap_fn(redact_http_middleware));
+    }
+}
+
 pub struct Server;
 
 impl Server {
@@ -244,16 +288,19 @@ impl Server {
                 }
                 Err(_) => HTTP_THREAD_COUNT,
             };
-
             let mut server = HttpServer::new(move || {
                                  let app_state =
                                      Data::new(AppState::new(gateway_state.clone(),
                                                              authentication_token.clone(),
                                                              feature_flags));
                                  App::new().app_data(app_state)
-                                           .wrap_fn(authentication_middleware)
-                                           .wrap_fn(metrics_middleware)
-                                           .service(routes())
+                              .wrap_fn(authentication_middleware)
+                              .wrap_fn(metrics_middleware)
+                              .service(web::resource("/").route(web::get().to(doc)))
+                              .configure(Services::register)
+                              .configure(Butterfly::register)
+                              .configure(Census::register)
+                              .service(web::resource("/metrics").route(web::get().to(metrics)))
                              }).workers(thread_count);
 
             server = server.disable_signals();
@@ -284,30 +331,6 @@ impl Server {
             }
         });
     }
-}
-
-fn services_routes() -> Scope {
-    web::scope("/services").route("", web::get().to(services_gsr))
-                           .route("/{svc}/{group}", web::get().to(service_without_org_gsr))
-                           .route("/{svc}/{group}/config",
-                                  web::get().to(config_without_org_gsr))
-                           .route("/{svc}/{group}/health",
-                                  web::get().to(health_without_org_gsr))
-                           .route("/{svc}/{group}/{org}", web::get().to(service_with_org_gsr))
-                           .route("/{svc}/{group}/{org}/config",
-                                  web::get().to(config_with_org_gsr))
-                           .route("/{svc}/{group}/{org}/health",
-                                  web::get().to(health_with_org_gsr))
-}
-
-fn routes() -> Scope {
-    web::scope("/").route("", web::get().to(doc))
-                   .service(services_routes())
-                   .service(web::resource("/butterfly").route(web::get().to(butterfly_gsr))
-                                                       .wrap_fn(redact_http_middleware))
-                   .service(web::resource("/census").route(web::get().to(census_gsr))
-                                                    .wrap_fn(redact_http_middleware))
-                   .route("/metrics", web::get().to(metrics))
 }
 
 fn json_response(data: String) -> HttpResponse {
