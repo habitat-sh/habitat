@@ -2,7 +2,7 @@ use std::{collections::{HashMap,
                         HashSet},
           ffi::OsString,
           fmt::{Debug,
-                Write as _},
+                Write},
           path::PathBuf};
 
 pub trait IndentedToString {

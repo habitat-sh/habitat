@@ -13,7 +13,7 @@ use crate::{core::{self,
                   ErrCode,
                   NetErr}};
 use std::{fmt::{self,
-                Write as _},
+                Write},
           str::FromStr};
 
 include!(concat!(env!("OUT_DIR"), "/sup.types.rs"));
