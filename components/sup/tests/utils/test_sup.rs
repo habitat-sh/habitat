@@ -384,9 +384,9 @@ impl TestSup {
                               service_group: &str,
                               toml_config: &str)
                               -> Result<()> {
-        Ok(self.butterfly_client
-               .apply(package_name, service_group, toml_config)
-               .context("Failed to apply configuration")?)
+        self.butterfly_client
+            .apply(package_name, service_group, toml_config)
+            .context("Failed to apply configuration")
     }
 
     /// Attempt to get state of the service from the API. This does not reattempt to

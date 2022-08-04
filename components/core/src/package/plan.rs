@@ -31,8 +31,8 @@ impl Plan {
                 continue;
             }
 
-            let mut val = parts[1].replace("\"", "");
-            val = val.replace("'", "");
+            let mut val = parts[1].replace('\"', "");
+            val = val.replace('\'', "");
 
             match parts[0] {
                 "pkg_name" | "$pkg_name" => name = Some(val),

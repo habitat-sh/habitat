@@ -301,7 +301,7 @@ impl Cfg {
 
     fn load_environment(package_name: &str) -> Result<Option<toml::value::Table>> {
         let var_name = format!("{}_{}", ENV_VAR_PREFIX, package_name).to_ascii_uppercase()
-                                                                     .replace("-", "_");
+                                                                     .replace('-', "_");
         match env::var(&var_name) {
             Ok(config) => {
                 // If we've got an environment variable, we'll parsing
@@ -967,7 +967,7 @@ mod test {
         env::set_var(env_key, &input_config);
 
         let expected = toml_from_str(expected_config_as_toml);
-        let result = Cfg::load_environment(&package_name.to_string());
+        let result = Cfg::load_environment(package_name);
 
         // Clean up the environment after ourselves
         env::remove_var(env_key);
@@ -1005,7 +1005,7 @@ mod test {
 
         env::set_var(key, &config);
 
-        let result = Cfg::load_environment(&"testing-trash".to_string());
+        let result = Cfg::load_environment("testing-trash");
 
         // Clean up the environment after ourselves
         env::remove_var(key);
@@ -1015,9 +1015,7 @@ mod test {
 
     #[test]
     fn no_environment_config_is_fine() {
-        match Cfg::load_environment(
-            &"omg-there-wont-be-an-environment-variable-for-this".to_string(),
-        ) {
+        match Cfg::load_environment("omg-there-wont-be-an-environment-variable-for-this") {
             Ok(None) => (),
             other => {
                 panic!("Expected Ok(None); got {:?}", other);

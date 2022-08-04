@@ -1103,10 +1103,10 @@ ca_cert_file = "{}"
 keep_latest_packages = 5
 sys_ip_address = "7.8.9.0"
     "#,
-                                          temp_dir_str.replace("\\", "/"),
-                                          key_path_str.replace("\\", "/"),
-                                          cert_path_str.replace("\\", "/"),
-                                          ca_cert_path_str.replace("\\", "/")
+                                          temp_dir_str.replace('\\', "/"),
+                                          key_path_str.replace('\\', "/"),
+                                          cert_path_str.replace('\\', "/"),
+                                          ca_cert_path_str.replace('\\', "/")
             );
             let config_path = temp_dir.path().join("config.toml");
             let config_path_str = config_path.to_str().unwrap();
@@ -1363,7 +1363,7 @@ event_stream_token = "some_token"
 event_meta = ["key1=val1", "key2=val2", "keyA=valA"]
 event_stream_server_certificate = "{}"
 "#,
-                                          certificate_path_str.replace("\\", "/")
+                                          certificate_path_str.replace('\\', "/")
             );
             let config_path = temp_dir.path().join("config.toml");
             let config_path_str = config_path.to_str().unwrap();
@@ -1439,7 +1439,7 @@ health_check_interval = 17
 shutdown_timeout = 12
 pkg_ident_or_artifact = "core/redis"
 "#,
-                                          temp_dir_str.replace("\\", "/")
+                                          temp_dir_str.replace('\\', "/")
             );
             let config_path = temp_dir.path().join("config.toml");
             let config_path_str = config_path.to_str().unwrap();
@@ -1467,7 +1467,7 @@ pkg_ident_or_artifact = "core/redis"
                                                  bldr_channel:
                                                      Some(String::from("my_channel")),
                                                  config_from:
-                                                     Some(temp_dir_str.replace("\\", "/")),
+                                                     Some(temp_dir_str.replace('\\', "/")),
                                                  force:                  Some(true),
                                                  group:
                                                      Some(String::from("MyGroup")),

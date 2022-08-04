@@ -356,7 +356,7 @@ impl BuilderAPIClient {
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
                .append_pair("package_only", &package_only.to_string())
-               .append_pair("target", &target.to_string());
+               .append_pair("target", &target);
         };
 
         let resp = self.0
@@ -910,8 +910,7 @@ impl BuilderAPIClient {
         let path = package_channels_path(ident);
 
         let custom = |url: &mut Url| {
-            url.query_pairs_mut()
-               .append_pair("target", &target.to_string());
+            url.query_pairs_mut().append_pair("target", &target);
         };
 
         let resp = self.maybe_add_authz(self.0.get_with_custom_url(&path, custom), token)
@@ -1146,7 +1145,7 @@ impl BuilderAPIClient {
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
                .append_pair("checksum", &checksum)
-               .append_pair("target", &target.to_string())
+               .append_pair("target", &target)
                .append_pair("forced", &force_upload.to_string());
 
             // Builder uses presence of the `builder` param to disable builds.
@@ -1185,8 +1184,7 @@ impl BuilderAPIClient {
         let path = package_path(ident);
 
         let custom = |url: &mut Url| {
-            url.query_pairs_mut()
-               .append_pair("target", &target.to_string());
+            url.query_pairs_mut().append_pair("target", &target);
         };
 
         response::ok_if_unit(self.0
@@ -1221,8 +1219,7 @@ impl BuilderAPIClient {
         let path = channel_package_promote(channel, ident);
 
         let custom = |url: &mut Url| {
-            url.query_pairs_mut()
-               .append_pair("target", &target.to_string());
+            url.query_pairs_mut().append_pair("target", &target);
         };
 
         response::ok_if_unit(self.0
@@ -1257,8 +1254,7 @@ impl BuilderAPIClient {
         let path = channel_package_demote(channel, ident);
 
         let custom = |url: &mut Url| {
-            url.query_pairs_mut()
-               .append_pair("target", &target.to_string());
+            url.query_pairs_mut().append_pair("target", &target);
         };
 
         response::ok_if_unit(self.0

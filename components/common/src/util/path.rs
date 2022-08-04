@@ -122,7 +122,7 @@ async fn interpreter_paths() -> Result<Vec<PathBuf>> {
     Ok(interpreter_paths)
 }
 
-fn root_paths(paths: &mut Vec<PathBuf>) {
+fn root_paths(paths: &mut [PathBuf]) {
     for path in &mut paths.iter_mut() {
         *path = fs_rooted_path(path, FS_ROOT_PATH.as_ref());
     }

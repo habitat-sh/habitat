@@ -994,7 +994,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("missing");
-                assert!(!result.is_some());
+                assert!(result.is_none());
             }
 
             #[test]
@@ -1003,7 +1003,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("win95_dominator");
-                assert!(!result.is_some());
+                assert!(result.is_none());
             }
         }
 
@@ -1028,7 +1028,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("missing.com");
-                assert!(!result.is_some());
+                assert!(result.is_none());
             }
 
             #[test]
@@ -1037,7 +1037,7 @@ mod test_find_command {
                 let lock = lock_pathext();
                 lock.unset();
                 let result = find_command("bin_with_extension.com");
-                assert!(!result.is_some());
+                assert!(result.is_none());
             }
 
             #[test]

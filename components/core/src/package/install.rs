@@ -689,8 +689,9 @@ mod test {
     use super::*;
     use crate::package::test_support::{fixture_path,
                                        testing_package_install};
-    use std::{fs::File,
-              io::Write};
+    use std::{fmt::Write as FmtWrite,
+              fs::File,
+              io::Write as IoWrite};
     use tempfile::Builder;
 
     /// Write the given contents into the specified metadata file for
@@ -736,7 +737,7 @@ mod test {
     fn set_deps_for(pkg_install: &PackageInstall, deps: &[&PackageInstall]) {
         let mut content = String::new();
         for dep in deps.iter().map(|d| d.ident()) {
-            content.push_str(&format!("{}\n", dep));
+            let _ = writeln!(content, "{}", dep);
         }
         write_metafile(pkg_install, MetaFile::Deps, &content);
     }
@@ -746,7 +747,7 @@ mod test {
     fn set_tdeps_for(pkg_install: &PackageInstall, tdeps: &[&PackageInstall]) {
         let mut content = String::new();
         for tdep in tdeps.iter().map(|d| d.ident()) {
-            content.push_str(&format!("{}\n", tdep));
+            let _ = writeln!(content, "{}", tdep);
         }
         write_metafile(pkg_install, MetaFile::TDeps, &content);
     }
