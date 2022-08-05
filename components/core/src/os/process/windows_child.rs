@@ -674,8 +674,10 @@ impl Handle {
 
     pub fn new_event(manual: bool, init: bool) -> io::Result<Handle> {
         unsafe {
-            let event =
-                synchapi::CreateEventW(ptr::null_mut(), manual as BOOL, init as BOOL, ptr::null());
+            let event = synchapi::CreateEventW(ptr::null_mut(),
+                                               i32::from(manual),
+                                               i32::from(init),
+                                               ptr::null());
             if event.is_null() {
                 Err(io::Error::last_os_error())
             } else {

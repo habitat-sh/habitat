@@ -126,7 +126,6 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     }
     println!("Leader index: {}", leader_index);
 
-    let new_leader_id;
     net.partition(0..2, 2..5);
     assert_wait_for_health_of_mlr!(net, [0..2, 2..5], Health::Confirmed);
     net[0].restart_elections_rsw_mlr_rhw_msr(FeatureFlag::empty());
@@ -142,13 +141,13 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
           .map_rumor(Election::const_id(), |e| {
               println!("OLD: {:#?}", e);
           });
-    new_leader_id = net[2].election_store
-                          .lock_rsr()
-                          .service_group("witcher.prod")
-                          .map_rumor(Election::const_id(), |e| {
-                              println!("NEW: {:#?}", e);
-                              e.member_id.clone()
-                          });
+    let new_leader_id = net[2].election_store
+                              .lock_rsr()
+                              .service_group("witcher.prod")
+                              .map_rumor(Election::const_id(), |e| {
+                                  println!("NEW: {:#?}", e);
+                                  e.member_id.clone()
+                              });
     assert!(leader_id.is_some());
     assert!(leader_id != new_leader_id);
     println!("Leader {:?} New {:?}", leader_id, new_leader_id);

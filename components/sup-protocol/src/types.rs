@@ -12,7 +12,8 @@ use crate::{core::{self,
             net::{self,
                   ErrCode,
                   NetErr}};
-use std::{fmt,
+use std::{fmt::{self,
+                Write},
           str::FromStr};
 
 include!(concat!(env!("OUT_DIR"), "/sup.types.rs"));
@@ -184,7 +185,7 @@ impl fmt::Display for ServiceGroup {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut value = format!("{}.{}", self.service, self.group);
         if let Some(ref organization) = self.organization {
-            value.push_str(&format!("@{}", organization));
+            let _ = write!(value, "@{}", organization);
         }
         write!(f, "{}", value)
     }

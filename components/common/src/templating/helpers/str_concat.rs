@@ -14,7 +14,7 @@ impl HelperDef for StrConcatHelper {
                                  .iter()
                                  .map(handlebars::ContextJson::value)
                                  .filter(|v| !v.is_object())
-                                 .map(|v| v.to_string().replace("\"", ""))
+                                 .map(|v| v.to_string().replace('\"', ""))
                                  .collect();
 
         rc.writer.write_all(list.concat().into_bytes().as_ref())?;

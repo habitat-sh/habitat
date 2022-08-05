@@ -1,7 +1,9 @@
 use pin_project::pin_project;
 use rustls::{ClientConfig as TlsClientConfig,
-             ServerConfig as TlsServerConfig};
-use std::{pin::Pin,
+             ServerConfig as TlsServerConfig,
+             ServerName};
+use std::{convert::TryFrom,
+          pin::Pin,
           sync::Arc,
           task::{Context,
                  Poll}};
@@ -10,8 +12,7 @@ use tokio::{io::{self,
                  AsyncWrite,
                  ReadBuf},
             net::TcpStream};
-use tokio_rustls::{webpki::DNSNameRef,
-                   TlsAcceptor,
+use tokio_rustls::{TlsAcceptor,
                    TlsConnector,
                    TlsStream};
 
@@ -52,7 +53,7 @@ impl TcpOrTlsStream {
         let tls_server_stream = match self {
             Self::TcpStream(stream) => {
                 let tls_acceptor = TlsAcceptor::from(tls_config);
-                let tls_stream = tls_acceptor.accept(stream).into_failable().await?;
+                let tls_stream = tls_acceptor.accept(stream).into_fallible().await?;
                 Self::TlsStream(TlsStream::Server(tls_stream))
             }
             stream @ Self::TlsStream(_) => stream,
@@ -68,16 +69,16 @@ impl TcpOrTlsStream {
         let tls_client_stream = match self {
             Self::TcpStream(stream) => {
                 let tls_connector = TlsConnector::from(tls_config);
-                let domain = match DNSNameRef::try_from_ascii_str(domain) {
-                    Ok(domain) => domain,
+                let server_name = match ServerName::try_from(domain) {
+                    Ok(name) => name,
                     Err(_) => {
                         let error = io::Error::new(io::ErrorKind::InvalidInput,
                                                    format!("invalid DNS name '{}'", domain));
                         return Err((error, stream));
                     }
                 };
-                let tls_stream = tls_connector.connect(domain, stream)
-                                              .into_failable()
+                let tls_stream = tls_connector.connect(server_name, stream)
+                                              .into_fallible()
                                               .await?;
                 Self::TlsStream(TlsStream::Client(tls_stream))
             }

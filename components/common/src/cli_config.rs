@@ -10,7 +10,7 @@ use habitat_core::{fs::{am_i_root,
                                          RootCertificateStoreCli}};
 use log::debug;
 use rustls::{ClientConfig as TlsClientConfig,
-             TLSError};
+             Error as TLSError};
 use serde::{Deserialize,
             Serialize};
 use std::{fs,
@@ -93,14 +93,16 @@ impl CliConfig {
         let server_ca_certificates = self.ctl_server_ca_certificate
                                          .map(RootCertificateStoreCli::into_inner);
         if let Some(server_certificates) = server_ca_certificates {
-            let mut tls_config = TlsClientConfig::new();
-            tls_config.root_store = server_certificates;
+            let tls_config = TlsClientConfig::builder().with_safe_defaults()
+                                                       .with_root_certificates(server_certificates);
             if let Some(client_key) = client_key {
                 debug!("Configuring ctl-gateway TLS with client certificate");
-                tls_config.set_single_client_cert(client_certificates.unwrap_or_default(),
-                                                  client_key)?;
+                let config = tls_config.with_single_cert(client_certificates.unwrap_or_default(),
+                                                         client_key)?;
+                Ok(Some(config))
+            } else {
+                Ok(Some(tls_config.with_no_client_auth()))
             }
-            Ok(Some(tls_config))
         } else {
             Ok(None)
         }

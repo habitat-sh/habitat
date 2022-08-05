@@ -170,9 +170,7 @@ mod storage {
         ///     println!("{:?}", s);
         /// }
         /// ```
-        pub fn rumors(&self) -> impl Iterator<Item = &R> {
-            self.0.iter().map(|m| m.values()).flatten()
-        }
+        pub fn rumors(&self) -> impl Iterator<Item = &R> { self.0.iter().flat_map(|m| m.values()) }
 
         /// Return the result of applying `f` to the rumor in this service_group from
         /// `member_id`, or `None` if no such rumor is present.
@@ -202,9 +200,7 @@ mod storage {
         ///     println!("{:?}", rumor);
         /// }
         /// ```
-        pub fn rumors(&self) -> impl Iterator<Item = &T> {
-            self.values().map(HashMap::values).flatten()
-        }
+        pub fn rumors(&self) -> impl Iterator<Item = &T> { self.values().flat_map(HashMap::values) }
 
         /// Allows iterator access to the rumors in to the `RumorMap` for a particular service group
         /// while holding its lock.

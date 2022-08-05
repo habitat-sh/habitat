@@ -170,7 +170,7 @@ impl FileSnapshot {
 
     /// Reads the current contents of the file into a string
     pub async fn current_file_content(&self) -> Result<String> {
-        Ok(String::from_utf8(fs::read(&self.path).await.context("Failed to read file contents")?).context("File contains non UTF-8 characters")?)
+        String::from_utf8(fs::read(&self.path).await.context("Failed to read file contents")?).context("File contains non UTF-8 characters")
     }
 
     /// Wait for the file to be modified and get the new snapshot

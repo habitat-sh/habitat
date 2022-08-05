@@ -647,15 +647,15 @@ impl Service {
         // The package for a spec should already be installed.
         let fs_root_path = Path::new(&*FS_ROOT_PATH);
         let package = PackageInstall::load(&spec.ident, Some(fs_root_path))?;
-        Ok(Self::with_package(sys,
-                              &package,
-                              spec,
-                              manager_fs_cfg,
-                              organization,
-                              census_ring,
-                              gateway_state,
-                              pid_source,
-                              feature_flags).await?)
+        Self::with_package(sys,
+                           &package,
+                           spec,
+                           manager_fs_cfg,
+                           organization,
+                           census_ring,
+                           gateway_state,
+                           pid_source,
+                           feature_flags).await
     }
 
     /// Create the service path for this package.
@@ -891,7 +891,7 @@ impl Service {
                         if self.last_election_status != census_group.election_status {
                             outputln!(preamble self.service_group,
                                       "Executing hooks; {} is the leader",
-                                      leader_id.to_string());
+                                      leader_id);
                             self.last_election_status = census_group.election_status;
                         }
                         self.execute_hooks(run_state, launcher, &template_update)

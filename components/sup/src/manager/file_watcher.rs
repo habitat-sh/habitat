@@ -700,7 +700,7 @@ impl Paths {
         for component in simplified_abs_path.components() {
             match component {
                 Component::Prefix(_) | Component::RootDir => {
-                    path.push(component.as_os_str().to_owned());
+                    path.push(component.as_os_str());
                 }
                 Component::Normal(c) => path_rest.push_back(c.to_owned()),
                 // Respectively the `.`. and `..` components of a path.
@@ -3159,9 +3159,9 @@ mod tests {
 
             for component in self.root.components() {
                 match component {
-                    Component::Prefix(p) => tmp_path.push(p.as_os_str().to_owned()),
+                    Component::Prefix(p) => tmp_path.push(p.as_os_str()),
                     Component::RootDir | Component::Normal(_) => {
-                        tmp_path.push(component.as_os_str().to_owned());
+                        tmp_path.push(component.as_os_str());
                         additional_dirs.push(tmp_path.clone());
                     }
                     // Respectively the `.`. and `..` components of a path.
@@ -3386,10 +3386,10 @@ mod tests {
             for component in self.root.components() {
                 match component {
                     Component::Prefix(_) | Component::RootDir => {
-                        tmp_path.push(component.as_os_str().to_owned())
+                        tmp_path.push(component.as_os_str())
                     }
                     Component::Normal(c) => {
-                        tmp_path.push(c.to_owned());
+                        tmp_path.push(c);
                         for_paths.push(tmp_path.to_owned());
                     }
                     // Respectively the `.`. and `..` components of a path.
@@ -3417,10 +3417,10 @@ mod tests {
 
         for component in path.components() {
             match component {
-                Component::Prefix(p) => first.push(p.as_os_str().to_owned()),
-                Component::RootDir => first.push(component.as_os_str().to_owned()),
+                Component::Prefix(p) => first.push(p.as_os_str()),
+                Component::RootDir => first.push(component.as_os_str()),
                 Component::Normal(c) => {
-                    first.push(c.to_owned());
+                    first.push(c);
                     break;
                 }
                 // Respectively the `.`. and `..` components of a path.

@@ -69,7 +69,7 @@ impl Graph {
         self.idents_from_base()
             .into_iter()
             .chain(self.user_idents())
-            .map(|ident| {
+            .flat_map(|ident| {
                 let mut pkgs = self.g.owned_ordered_deps(&ident);
                 // We want the most basic dependencies first.
                 pkgs.reverse();
@@ -78,7 +78,6 @@ impl Graph {
                 pkgs.push(ident);
                 pkgs
             })
-            .flatten()
             .fold(LinkedHashMap::new(), |mut acc, ident| {
                 // NOTE: We are using LinkedHashMap here to simulate
                 // an insertion-order-preserving Set. As of this

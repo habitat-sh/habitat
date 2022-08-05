@@ -23,5 +23,5 @@ serde = { version = "*", features = ["derive"] }
 serde_json = { version = "*", features = [ "preserve_order" ] }
 tee = "*"
 tokio = { version = "*", features = ["full"] }
-tokio-util = { version = "*", features = ["compat"] }
+tokio-util = { version = "*", features = ["compat", "codec"] }
 url = "*"

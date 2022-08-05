@@ -890,7 +890,7 @@ mod tests {
             "test-service.default".parse()
                                   .expect("This should be a valid service group");
 
-        let mut census_group = CensusGroup::new(sg, &"live-one".to_string());
+        let mut census_group = CensusGroup::new(sg, "live-one");
         for member in population {
             census_group.population
                         .insert(member.member_id.clone(), member);

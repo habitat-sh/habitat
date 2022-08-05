@@ -238,7 +238,7 @@ impl BuildContext {
                 &PackageIdent::from_str("core/hab")?,
                 ctx.rootfs())?.join("bin/hab")
                 .to_string_lossy()
-                .replace("\\", "/"),
+                .replace('\\', "/"),
             "exposes": ctx.svc_exposes().join(" "),
             "multi_layer": ctx.multi_layer(),
             "primary_svc_ident": ctx.primary_svc_ident().to_string(),

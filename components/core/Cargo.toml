@@ -30,7 +30,8 @@ pin-project = "*"
 rand = "*"
 regex = "*"
 rcgen = "*"
-rustls = "0.19.1"
+rustls = "*"
+rustls-pemfile = "*"
 serde = { version = "*", features = ["derive"] }
 serde_json = { version = "*", features = [ "preserve_order" ] }
 sodiumoxide = "*"
@@ -38,9 +39,9 @@ tabwriter = "*"
 tar = "*"
 tempfile = "*"
 thiserror = "*"
-tokio = { version = "1.9.0", features = ["full"] }
-tokio-rustls = "0.22.0"
-toml = { version = "0.5.9", features = [ "preserve_order" ] }
+tokio = { version = "*", features = ["full"] }
+tokio-rustls = "*"
+toml = { version = "*", features = [ "preserve_order" ] }
 typemap = "*"
 url = "*"
 webpki = "*"

@@ -12,7 +12,8 @@ use std::{collections::BTreeMap,
           path::{Path,
                  PathBuf}};
 #[cfg(windows)]
-use std::{fs::File,
+use std::{fmt::Write,
+          fs::File,
           io::{BufRead,
                BufReader}};
 
@@ -107,7 +108,7 @@ impl Binlink {
             if key == "PATH" {
                 value.push_str(";%PATH%");
             }
-            exports.push_str(&format!("SET {}={}\n", key, value));
+            let _ = writeln!(exports, "SET {}={}\n", key, value);
         }
 
         format!(include_str!("../../../static/template_binstub.bat"),

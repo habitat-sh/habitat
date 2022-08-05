@@ -1,7 +1,8 @@
 use std::{collections::{HashMap,
                         HashSet},
           ffi::OsString,
-          fmt::Debug,
+          fmt::{Debug,
+                Write},
           path::PathBuf};
 
 pub trait IndentedToString {
@@ -64,11 +65,11 @@ impl IndentedStructFormatter {
             capacity += field_indent.len() + pair.0.len() + 4 + pair.1.len();
         }
         let mut str = String::with_capacity(capacity);
-        str.push_str(&format!("{} {{\n", self.name,));
+        let _ = writeln!(str, "{} {{", self.name,);
         for pair in &self.fields {
-            str.push_str(&format!("{}{}: {},\n", field_indent, pair.0, pair.1));
+            let _ = writeln!(str, "{}{}: {},", field_indent, pair.0, pair.1,);
         }
-        str.push_str(&format!("{}}}", indent));
+        let _ = write!(str, "{}}}", indent);
         str
     }
 }
@@ -102,12 +103,13 @@ impl<V: IndentedToString> IndentedToString for HashMap<PathBuf, V> {
         let mut str = String::new();
         str.push_str("{\n");
         for path in paths {
-            str.push_str(&format!("{}{}: {},\n",
-                                  indent,
-                                  path.display(),
-                                  its!(self.get(path).unwrap(), spaces, repeat + 1),));
+            let _ = writeln!(str,
+                             "{}{}: {},",
+                             indent,
+                             path.display(),
+                             its!(self.get(path).unwrap(), spaces, repeat + 1),);
         }
-        str.push_str(&format!("{}}}", spaces.repeat(repeat)));
+        let _ = write!(str, "{}}}", spaces.repeat(repeat));
         str
     }
 }
@@ -120,9 +122,9 @@ impl IndentedToString for HashSet<PathBuf> {
         let mut str = String::new();
         str.push_str("{\n");
         for path in paths {
-            str.push_str(&format!("{}{},\n", indent, path.display(),));
+            let _ = writeln!(str, "{}{},", indent, path.display(),);
         }
-        str.push_str(&format!("{}}}", spaces.repeat(repeat)));
+        let _ = write!(str, "{}}}", spaces.repeat(repeat));
         str
     }
 }

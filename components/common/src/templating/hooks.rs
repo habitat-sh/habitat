@@ -80,7 +80,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
     {
         let file_name = Self::FILE_NAME;
         let deprecated_file_name = if Self::FILE_NAME.contains('-') {
-            Some(Self::FILE_NAME.replace("-", "_"))
+            Some(Self::FILE_NAME.replace('-', "_"))
         } else {
             None
         };
@@ -534,7 +534,7 @@ impl Serialize for RenderPair {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        serializer.serialize_str(&self.path.as_os_str().to_string_lossy().into_owned())
+        serializer.serialize_str(&self.path.as_os_str().to_string_lossy())
     }
 }
 

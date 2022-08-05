@@ -193,6 +193,7 @@ impl Sid {
     // The LogonUser function returns an access token from which the service can extract
     // the logon SID. The service can then use the SID in an ACE that allows the client's
     // logon session to access the interactive window station and desktop.
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     pub fn logon_sid_from_token(token: HANDLE) -> io::Result<Self> {
         unsafe {
             let mut sid: PSID = null_mut();
@@ -238,6 +239,7 @@ impl Sid {
 
     // This code was adapted from much of the C++ code in
     // https://msdn.microsoft.com/en-us/library/windows/desktop/aa379608(v=vs.85).aspx
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     pub fn add_to_user_object(&self,
                               handle: HANDLE,
                               ace_flags: DWORD,

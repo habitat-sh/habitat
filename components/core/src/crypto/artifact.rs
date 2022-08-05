@@ -36,9 +36,9 @@ impl ArtifactHeader {
 }
 
 /// Generate and sign a package
-pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, key: &SecretOriginSigningKey) -> Result<()>
-    where P1: AsRef<Path>,
-          P2: AsRef<Path>
+pub fn sign<P1, P2>(src: &P1, dst: &P2, key: &SecretOriginSigningKey) -> Result<()>
+    where P1: ?Sized + AsRef<Path>,
+          P2: ?Sized + AsRef<Path>
 {
     let signature = key.sign(src)?;
     let output_file = File::create(dst)?;
