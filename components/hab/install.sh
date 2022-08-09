@@ -279,9 +279,9 @@ install_hab() {
           need_cmd mkdir
           need_cmd install
 
-          info "Installing hab into /usr/local/bin"
-          
-          target_dir="/usr/local/bin"
+          target_dir=${INSTALL_DIR:-"/bin"}
+          info "Installing hab into ${target_dir}"
+
           mkdir -pv "$target_dir"
           install -v "${archive_dir}"/hab "${target_dir}/hab"
           install -v "${archive_dir}"/hab-sup "${target_dir}/hab-sup"
@@ -316,13 +316,15 @@ install_hab() {
               echo "Adding HAB_SUP_BINARY environment variable to ${file}"
               printf "export HAB_SUP_BINARY=%s\n" "${target_dir}/hab-sup" >> "${file}"
             else
-              echo "Skipped update of ${file} (HAB_SUP_BINARY environment variable already present)"
+              echo "Updated HAB_SUP_BINARY environment variable to ${file}"
+              sed -i "/export HAB_SUP_BINARY=/c\\export HAB_SUP_BINARY=${target_dir}/hab-sup" "${file}"
             fi
             if ! grep -qc 'HAB_LAUNCH_BINARY' "${file}"; then
               echo "Adding HAB_LAUNCH_BINARY environment variable to ${file}"
               printf "export HAB_LAUNCH_BINARY=%s\n" "${target_dir}/hab-launch" >> "${file}"
             else
-              echo "Skipped update of ${file} (HAB_LAUNCH_BINARY environment variable already present)"
+              echo "Updated HAB_LAUNCH_BINARY environment variable to ${file}"
+              sed -i "/export HAB_LAUNCH_BINARY=/c\\export HAB_LAUNCH_BINARY=${target_dir}/hab-launch" "${file}"
             fi
           done
           ;;
