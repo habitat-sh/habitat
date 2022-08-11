@@ -1,7 +1,7 @@
-use crate::{error::{Error,
-                    Result},
-            package::PackageIdent};
-use serde::Serialize;
+use crate::error::{Error,
+                   Result};
+use serde::{Deserialize,
+            Serialize};
 use std::{self,
           collections::BTreeMap,
           env,
@@ -201,7 +201,7 @@ fn existing_metafile<P: AsRef<Path>>(installed_path: P, file: MetaFile) -> Optio
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub enum PackageType {
     Standard,
     Native,
