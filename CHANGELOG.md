@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.544 -->
-## [1.6.544](https://github.com/habitat-sh/habitat/tree/1.6.544) (2022-08-05)
+<!-- latest_release 1.6.545 -->
+## [1.6.545](https://github.com/habitat-sh/habitat/tree/1.6.545) (2022-08-17)
 
 #### Merged Pull Requests
-- Bump crates and pin the crate versions for rants [#8576](https://github.com/habitat-sh/habitat/pull/8576) ([sajjaphani](https://github.com/sajjaphani))
+- Fixes several Rolling Update bugs [#8564](https://github.com/habitat-sh/habitat/pull/8564) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- Fixes several Rolling Update bugs [#8564](https://github.com/habitat-sh/habitat/pull/8564) ([mwrock](https://github.com/mwrock)) <!-- 1.6.545 -->
 - Bump crates and pin the crate versions for rants [#8576](https://github.com/habitat-sh/habitat/pull/8576) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.544 -->
 - More crate updates [#8571](https://github.com/habitat-sh/habitat/pull/8571) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.543 -->
 - Remove warning [#8562](https://github.com/habitat-sh/habitat/pull/8562) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.542 -->
