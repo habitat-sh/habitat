@@ -1,16 +1,20 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.548 -->
-## [1.6.548](https://github.com/habitat-sh/habitat/tree/1.6.548) (2022-08-17)
+<!-- latest_release 1.6.549 -->
+## [1.6.549](https://github.com/habitat-sh/habitat/tree/1.6.549) (2022-08-17)
 
 #### Merged Pull Requests
-- Bump rustls-pemfile from 1.0.0 to 1.0.1 [#8587](https://github.com/habitat-sh/habitat/pull/8587) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump thiserror from 1.0.31 to 1.0.32 [#8590](https://github.com/habitat-sh/habitat/pull/8590) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- Bump thiserror from 1.0.31 to 1.0.32 [#8590](https://github.com/habitat-sh/habitat/pull/8590) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.549 -->
+- Bump serde_test from 1.0.140 to 1.0.143 [#8588](https://github.com/habitat-sh/habitat/pull/8588) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.549 -->
+- Bump serde_json from 1.0.81 to 1.0.83 [#8581](https://github.com/habitat-sh/habitat/pull/8581) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.549 -->
+- Bump futures from 0.3.21 to 0.3.23 [#8589](https://github.com/habitat-sh/habitat/pull/8589) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.549 -->
 - Bump rustls-pemfile from 1.0.0 to 1.0.1 [#8587](https://github.com/habitat-sh/habitat/pull/8587) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.548 -->
 - Bump bytes from 1.1.0 to 1.2.1 [#8579](https://github.com/habitat-sh/habitat/pull/8579) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.547 -->
 - Bump anyhow from 1.0.58 to 1.0.62 [#8586](https://github.com/habitat-sh/habitat/pull/8586) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.546 -->
