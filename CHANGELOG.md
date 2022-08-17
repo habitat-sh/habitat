@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.551 -->
-## [1.6.551](https://github.com/habitat-sh/habitat/tree/1.6.551) (2022-08-17)
+<!-- latest_release 1.6.552 -->
+## [1.6.552](https://github.com/habitat-sh/habitat/tree/1.6.552) (2022-08-17)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.126 to 0.2.132 [#8593](https://github.com/habitat-sh/habitat/pull/8593) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- ensure hab is installed when building docker images [#8596](https://github.com/habitat-sh/habitat/pull/8596) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- ensure hab is installed when building docker images [#8596](https://github.com/habitat-sh/habitat/pull/8596) ([mwrock](https://github.com/mwrock)) <!-- 1.6.552 -->
 - Bump libc from 0.2.126 to 0.2.132 [#8593](https://github.com/habitat-sh/habitat/pull/8593) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.551 -->
 - Bump async-trait from 0.1.56 to 0.1.57 [#8592](https://github.com/habitat-sh/habitat/pull/8592) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.550 -->
 - Bump thiserror from 1.0.31 to 1.0.32 [#8590](https://github.com/habitat-sh/habitat/pull/8590) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.549 -->
