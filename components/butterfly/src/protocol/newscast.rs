@@ -72,13 +72,14 @@ impl From<CElectionUpdate> for Rumor {
 
 impl From<CService> for Rumor {
     fn from(value: CService) -> Self {
-        let payload = Service { member_id:     Some(value.member_id.clone()),
-                                service_group: Some(value.service_group.to_string()),
-                                incarnation:   Some(value.incarnation),
-                                initialized:   Some(value.initialized),
-                                pkg:           Some(value.pkg),
-                                cfg:           Some(value.cfg),
-                                sys:           Some(value.sys.into()), };
+        let payload = Service { member_id:       Some(value.member_id.clone()),
+                                service_group:   Some(value.service_group.to_string()),
+                                incarnation:     Some(value.incarnation),
+                                initialized:     Some(value.initialized),
+                                pkg:             Some(value.pkg),
+                                pkg_incarnation: Some(value.pkg_incarnation),
+                                cfg:             Some(value.cfg),
+                                sys:             Some(value.sys.into()), };
         Rumor { r#type:  RumorType::Service as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.member_id),

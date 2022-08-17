@@ -315,6 +315,7 @@ pub struct CensusGroup {
     pub service_group:          ServiceGroup,
     pub election_status:        ElectionStatus,
     pub update_election_status: ElectionStatus,
+    pub pkg_incarnation:        u64,
     pub leader_id:              Option<MemberId>,
     pub service_config:         Option<ServiceConfig>,
 
@@ -330,6 +331,7 @@ impl CensusGroup {
         CensusGroup { service_group:          sg,
                       election_status:        ElectionStatus::None,
                       update_election_status: ElectionStatus::None,
+                      pkg_incarnation:        0,
                       local_member_id:        local_member_id.to_string(),
                       population:             BTreeMap::new(),
                       leader_id:              None,
@@ -412,6 +414,14 @@ impl CensusGroup {
 
     fn update_from_service_rumors(&mut self, rumors: &HashMap<String, ServiceRumor>) {
         for (member_id, service_rumor) in rumors.iter() {
+            // The group pkg_incarnation holds the highest incarnation of all of its
+            // members. You might ask, "shouldn't it just take the incarnation of the
+            // update leader?" Fair question! If a leader dies, the new leader may likely
+            // be behind and we would not want to trust its incarnation. In the end, only
+            // the update leader can increment the incarnation of its service rumor.
+            if service_rumor.pkg_incarnation > self.pkg_incarnation {
+                self.pkg_incarnation = service_rumor.pkg_incarnation;
+            }
             // Yeah - we are ourself - we're alive.
             let is_self = member_id == &self.local_member_id;
             let member = self.population
@@ -543,6 +553,7 @@ impl Serialize for CensusGroup {
         strukt.serialize_field("service_group", &self.service_group)?;
         strukt.serialize_field("election_status", &self.election_status)?;
         strukt.serialize_field("update_election_status", &self.update_election_status)?;
+        strukt.serialize_field("pkg_incarnation", &self.pkg_incarnation)?;
         strukt.serialize_field("leader_id", &self.leader_id)?;
         strukt.serialize_field("service_config", &self.service_config)?;
         strukt.serialize_field("local_member_id", &self.local_member_id)?;
@@ -568,6 +579,7 @@ impl Serialize for CensusGroup {
 pub struct CensusMember {
     pub member_id: MemberId,
     pub pkg: PackageIdent,
+    pub pkg_incarnation: u64,
     pub service: String,
     pub group: String,
     pub org: Option<String>,
@@ -606,6 +618,7 @@ impl CensusMember {
             Ok(ident) => self.pkg = ident,
             Err(err) => warn!("Received a bad package ident from gossip data, err={}", err),
         };
+        self.pkg_incarnation = rumor.pkg_incarnation;
         self.sys = rumor.sys.clone();
         self.cfg = toml::from_slice(&rumor.cfg).unwrap_or_default();
     }
@@ -698,6 +711,7 @@ impl<'a> Serialize for CensusMemberProxy<'a> {
         let mut strukt = serializer.serialize_struct("census_member", 24)?;
         strukt.serialize_field("member_id", &self.member_id)?;
         strukt.serialize_field("pkg", &self.pkg)?;
+        strukt.serialize_field("pkg_incarnation", &self.pkg_incarnation)?;
 
         strukt.serialize_field("package", &self.pkg.to_string())?;
         strukt.serialize_field("service", &self.service)?;
@@ -767,6 +781,7 @@ mod tests {
                    "member-b".to_string());
         assert_eq!(census_group_two.update_leader().unwrap().member_id,
                    "member-b".to_string());
+        assert_eq!(census_group_two.pkg_incarnation, 2);
 
         let mut members = census_group_two.members();
         assert_eq!(members.next().unwrap().member_id, "member-a");
@@ -802,16 +817,18 @@ mod tests {
                                             sys_info.clone(),
                                             None);
         let sg_two = ServiceGroup::new("shield", "two", None).unwrap();
-        let service_two = ServiceRumor::new("member-b".to_string(),
-                                            &pg_id,
-                                            sg_two.clone(),
-                                            sys_info.clone(),
-                                            None);
-        let service_three = ServiceRumor::new("member-a".to_string(),
-                                              &pg_id,
-                                              sg_two.clone(),
-                                              sys_info,
-                                              None);
+        let mut service_two = ServiceRumor::new("member-b".to_string(),
+                                                &pg_id,
+                                                sg_two.clone(),
+                                                sys_info.clone(),
+                                                None);
+        service_two.pkg_incarnation = 1;
+        let mut service_three = ServiceRumor::new("member-a".to_string(),
+                                                  &pg_id,
+                                                  sg_two.clone(),
+                                                  sys_info,
+                                                  None);
+        service_three.pkg_incarnation = 2;
 
         service_store.insert_rsw(service_one);
         service_store.insert_rsw(service_two);
@@ -857,6 +874,7 @@ mod tests {
                                                 .expect("valid package ident");
         CensusMember { member_id: id.into(),
                        pkg,
+                       pkg_incarnation: 0,
                        service: "test_service".to_string(),
                        group: "default".to_string(),
                        org: None,

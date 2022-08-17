@@ -1,7 +1,9 @@
+use super::IncarnatedPackageIdent;
 use crate::{manager::service::Service,
             util};
 use habitat_core::{self,
                    package::{FullyQualifiedPackageIdent,
+                             Identifiable,
                              PackageIdent},
                    service::ServiceGroup,
                    ChannelIdent};
@@ -81,41 +83,54 @@ impl PackageUpdateWorker {
     /// If a fully qualified package ident is used, the future will only resolve when that exact
     /// package is found.
     // TODO (DM): The returned package ident should use FullyQualifiedPackageIdent.
-    pub async fn update_to(&self, ident: PackageIdent) -> PackageIdent {
+    pub async fn update_to(&self, ident: IncarnatedPackageIdent) -> IncarnatedPackageIdent {
         let period = PackageUpdateWorkerPeriod::get().unwrap_or(self.period);
-        let splay = Duration::from_secs(rand::thread_rng().gen_range(0..period.as_secs()));
-        debug!("Starting package update worker for {} in {}s",
-               ident,
-               splay.as_secs());
-        time::sleep(splay).await;
         loop {
-            let package_result = match self.update_condition {
-                UpdateCondition::Latest => {
-                    let install_source = ident.clone().into();
-                    util::pkg::install_no_ui(&self.builder_url, &install_source, &self.channel).await
-                }
-                UpdateCondition::TrackChannel => {
-                    util::pkg::install_channel_head(&self.builder_url, &ident, &self.channel).await
+            let install_source = ident.ident.clone().into();
+
+            // Rolling updating followers will always update to a fully qulified ident
+            // if we are fully qualified, just update to that version and do not check
+            // the channel head. The leader already did that. If a package is rolled
+            // back in the middle of an update, this fully qualified version may no longer
+            // be in the channel which can cause this loop to run indefinitely. Just
+            // finish up this update and let the leader roll the followers back when it
+            // determines the new head.
+            let package_result = if ident.ident.fully_qualified() {
+                util::pkg::install_no_ui(&self.builder_url, &install_source, &self.channel).await
+            } else {
+                match self.update_condition {
+                    UpdateCondition::Latest => {
+                        let install_source = ident.ident.clone().into();
+                        util::pkg::install_no_ui(&self.builder_url, &install_source, &self.channel).await
+                    }
+                    UpdateCondition::TrackChannel => {
+                        util::pkg::install_channel_head(&self.builder_url,
+                                                        &ident.ident,
+                                                        &self.channel).await
+                    }
                 }
             };
             match package_result {
                 Ok(package) => {
-                    if &package.ident != self.full_ident.as_ref() {
+                    // while this is likely a very slim edge case, if the fully qualified ident
+                    // happens to be the same as the current service, go ahead and break out of
+                    // the loop otherwise we will remain here forever and ever
+                    if ident.ident.fully_qualified() || &package.ident != self.full_ident.as_ref() {
                         debug!("'{}' package update worker found change from '{}' to '{}' for \
                                 '{}' in channel '{}' using '{}' update condition",
                                self.service_group,
                                self.full_ident,
                                package.ident,
-                               ident,
+                               ident.ident,
                                self.channel,
                                self.update_condition);
-                        break package.ident;
+                        break IncarnatedPackageIdent::new(package.ident, ident.incarnation);
                     }
                     trace!("'{}' package update worker did not find change from '{}' for '{}' in \
                             channel '{}' using '{}' update condition",
                            self.service_group,
                            self.full_ident,
-                           ident,
+                           ident.ident,
                            self.channel,
                            self.update_condition)
                 }
@@ -126,12 +141,27 @@ impl PackageUpdateWorker {
                 }
             }
             trace!("Package update worker for {} delaying for {}s",
-                   ident,
+                   ident.ident,
                    period.as_secs());
             time::sleep(period).await;
         }
     }
 
     /// Use the service spec's package ident to search for packages.
-    pub async fn update(&self) -> PackageIdent { self.update_to(self.ident.clone()).await }
+    /// This function is called by the at-once updater and by a rolling
+    /// update leader. Delay for PackageUpdateWorkerPeriod before performing
+    /// the update. update_to is only called directly by this function and
+    /// rolling update followers where no delay is desired. We want the followers
+    /// to update after the leader ASAP.
+    pub async fn update(&self) -> IncarnatedPackageIdent {
+        let ident = self.ident.clone();
+        let period = PackageUpdateWorkerPeriod::get().unwrap_or(self.period);
+        let splay = Duration::from_secs(rand::thread_rng().gen_range(0..period.as_secs()));
+        debug!("Starting package update worker for {} in {}s",
+               ident,
+               splay.as_secs());
+        time::sleep(splay).await;
+        self.update_to(IncarnatedPackageIdent::new(ident, None))
+            .await
+    }
 }

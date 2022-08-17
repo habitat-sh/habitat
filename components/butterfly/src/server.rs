@@ -1442,13 +1442,14 @@ mod tests {
     fn check_quorum_returns(val: bool) -> impl Fn(&str) -> bool { move |_: &str| val }
 
     fn mock_service(member: &Member) -> Service {
-        Service { member_id:     member.id.clone(),
-                  service_group: ServiceGroup::from_str("group.default").unwrap(),
-                  incarnation:   Default::default(),
-                  initialized:   Default::default(),
-                  pkg:           Default::default(),
-                  cfg:           Default::default(),
-                  sys:           Default::default(), }
+        Service { member_id:       member.id.clone(),
+                  service_group:   ServiceGroup::from_str("group.default").unwrap(),
+                  incarnation:     Default::default(),
+                  pkg_incarnation: Default::default(),
+                  initialized:     Default::default(),
+                  pkg:             Default::default(),
+                  cfg:             Default::default(),
+                  sys:             Default::default(), }
     }
 
     #[test]

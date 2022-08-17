@@ -100,6 +100,10 @@
                     "description": "The identifier of the release the member is running",
                     "$ref": "#/definitions/package_identifier"
                 },
+                "pkg_incarnation": {
+                    "description": "Incarnation number associated with this package update",
+                    "type": "integer"
+                },
                 "package": {
                     "description": "The package identifier",
                     "type": "string"
@@ -194,6 +198,7 @@
                 "update_leader",
                 "update_follower",
                 "pkg",
+                "pkg_incarnation",
                 "sys",
                 "cfg",
                 "persistent",
