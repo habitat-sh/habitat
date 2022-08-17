@@ -2,6 +2,8 @@
 
 #Requires -Version 5
 
+. $PSScriptRoot/shared.ps1
+
 param (
     # The builder channel to install packages from. Defaults to unstable
     [string]$ReleaseChannel="unstable",
@@ -44,13 +46,14 @@ try {
     $env:HAB_BINLINK_DIR = $null
 
     Write-Host "Installing and extracting initial Habitat packages"
+    $baseHabExe=Install-LatestHabitat
     $InstallHarts = @(
         "core/hab-studio",
         "core/hab-sup",
         "core/windows-service --ignore-install-hook"
     )
     $InstallHarts | ForEach-Object {
-        Invoke-Expression "hab pkg install $_ --channel=$ReleaseChannel --url=$BldrUrl"
+        Invoke-Expression "$baseHabExe pkg install $_ --channel=$ReleaseChannel --url=$BldrUrl"
         if ($LASTEXITCODE -ne 0) {
             Write-Error "hab install failed for $_, aborting"
         }
