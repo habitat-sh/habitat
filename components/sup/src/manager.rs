@@ -657,6 +657,7 @@ pub struct Manager {
     // something else (maybe a HashMap?) in order to cleanly manage
     // the different operations.
     busy_services:                Arc<Mutex<HashSet<PackageIdent>>>,
+    updated_services:             Arc<Mutex<HashMap<ServiceGroup, u64>>>,
     services_need_reconciliation: ReconciliationFlag,
 
     feature_flags: FeatureFlag,
@@ -795,6 +796,7 @@ impl Manager {
                      sys: Arc::new(sys),
                      http_disable: cfg.http_disable,
                      busy_services: Arc::default(),
+                     updated_services: Arc::default(),
                      services_need_reconciliation: ReconciliationFlag::new(false),
                      feature_flags: cfg.feature_flags,
                      pid_source,
@@ -952,7 +954,12 @@ impl Manager {
         // write files to them.
         service.write_initial_service_files(&self.census_ring.read());
 
-        self.gossip_latest_service_rumor_rsw_mlw_rhw(&service);
+        // if this service is being started as a result of an update
+        // then we want to pass along the incarnation in updated_services
+        self.gossip_latest_service_rumor_rsw_mlw_rhw(&service,
+                                                     self.updated_services
+                                                         .lock()
+                                                         .remove(&service.service_group));
         if service.topology() == Topology::Leader {
             self.butterfly
                 .start_election_rsw_mlr_rhw_msr(&service.service_group, 0);
@@ -966,8 +973,6 @@ impl Manager {
         }
 
         self.maybe_uninstall_old_packages(&ident).await;
-
-        self.service_updater.lock().register(&service);
 
         event::service_started(&service);
 
@@ -1047,7 +1052,13 @@ impl Manager {
 
         // This serves to start up any services that need starting
         // (which will be all of them at this point!)
-        self.maybe_spawn_service_futures_rsw_mlw_gsw_rhw_msw().await;
+        for ident in self.maybe_spawn_service_futures_rsw_mlw_gsw_rhw_msw().await {
+            if let Some(wrapper) = self.state.services.lock_msr().get(&ident) {
+                if let Some(service) = wrapper.service() {
+                    self.service_updater.lock().register(service);
+                }
+            }
+        }
 
         // Ensure that the updated census state is saved to the gateway
         self.persist_state_rsr_mlr_gsw_msr().await;
@@ -1253,28 +1264,31 @@ impl Manager {
             // directory, as well as whether or not we need to
             // reexamine specs after finishing some asynchronous
             // operation on a service.
-            if self.spec_watcher.has_events() || self.services_need_reconciliation.is_set() {
-                // This call *must* come first. If some other future
-                // happens to complete before we get done spawning our
-                // current batch of futures, it could set the flag to
-                // true, but we wouldn't have taken another look at
-                // its spec file to see if we needed to do anything
-                // else. Thus, we could "lose" that signal if we
-                // toggle *after* spawning these futures.
-                //
-                // This could mean, say, the "start" part of a service
-                // restart could be greatly delayed (until some file
-                // event in the specs directory is registered, or
-                // another service finishes shutting down).
-                self.services_need_reconciliation.toggle_if_set();
-                self.maybe_spawn_service_futures_rsw_mlw_gsw_rhw_msw().await;
-            }
+            let mut updaters_to_register =
+                if self.spec_watcher.has_events() || self.services_need_reconciliation.is_set() {
+                    // This call *must* come first. If some other future
+                    // happens to complete before we get done spawning our
+                    // current batch of futures, it could set the flag to
+                    // true, but we wouldn't have taken another look at
+                    // its spec file to see if we needed to do anything
+                    // else. Thus, we could "lose" that signal if we
+                    // toggle *after* spawning these futures.
+                    //
+                    // This could mean, say, the "start" part of a service
+                    // restart could be greatly delayed (until some file
+                    // event in the specs directory is registered, or
+                    // another service finishes shutting down).
+                    self.services_need_reconciliation.toggle_if_set();
+                    self.maybe_spawn_service_futures_rsw_mlw_gsw_rhw_msw().await
+                } else {
+                    Vec::new()
+                };
 
             self.update_peers_from_watch_file_mlr_imlw()?;
             self.update_running_services_from_user_config_watcher_msw();
 
             // Restart all services that need it
-            self.restart_services_rsw_mlr_rhw_msw();
+            self.restart_services_rsw_mlr_rhw_msw(&mut updaters_to_register);
 
             self.restart_elections_rsw_mlr_rhw_msr(self.feature_flags);
             self.census_ring
@@ -1291,13 +1305,24 @@ impl Manager {
                 self.persist_state_rsr_mlr_gsw_msr().await;
             }
 
+            // we do not want to register the services for updating until the
+            // census is updated from the rumors above. Otherwise the updater
+            // threads may have stale census data
+            for ident in updaters_to_register {
+                if let Some(wrapper) = self.state.services.lock_msr().get(&ident) {
+                    if let Some(service) = wrapper.service() {
+                        self.service_updater.lock().register(service);
+                    }
+                }
+            }
+
             for service_state in self.state.services.lock_msw().services() {
                 // time will be recorded automatically by HistogramTimer's drop implementation when
                 // this var goes out of scope
                 #[allow(unused_variables)]
                 let service_timer = service_hist.start_timer();
                 if service_state.tick(&self.census_ring.read(), &self.launcher) {
-                    self.gossip_latest_service_rumor_rsw_mlw_rhw(service_state.service().expect("Service missing in PersistentServiceWrapper"));
+                    self.gossip_latest_service_rumor_rsw_mlw_rhw(service_state.service().expect("Service missing in PersistentServiceWrapper"), None);
                 }
                 if service_state.is_ready_for_restart() {
                     debug!("Service ready to restart, setting reconciliation flag");
@@ -1386,8 +1411,8 @@ impl Manager {
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (write)
-    fn restart_services_rsw_mlr_rhw_msw(&mut self) {
-        let service_updater = self.service_updater.lock();
+    fn restart_services_rsw_mlr_rhw_msw(&mut self, updaters_to_register: &mut Vec<PackageIdent>) {
+        let mut service_updater = self.service_updater.lock();
 
         let mut state_services = self.state.services.lock_msw();
         let mut idents_to_restart_and_latest_desired_on_restart = Vec::new();
@@ -1396,13 +1421,36 @@ impl Manager {
             let mut has_update = false;
             if let Some(service) = service_state.service() {
                 if let Some(new_ident) = service_updater.has_update(&service.service_group) {
-                    outputln!("Restarting {} with package {}", ident, new_ident);
-                    has_update = true;
-                    event::service_update_started(service, &new_ident);
-                    // The supervisor always runs the latest package on disk. When we have an update
-                    // ensure that the lastest package on disk is the package we updated to.
-                    idents_to_restart_and_latest_desired_on_restart.push((ident.clone(),
-                                                                          Some(new_ident)));
+                    if service.pkg.ident.as_ref() == &new_ident.ident {
+                        // Here a rolling follower got asked to update to the same version it
+                        // already had This is because the leader had a
+                        // higher incarnation but the same ident
+                        // which can happen if a leader was rolled back in the middle uf a rolling
+                        // update before other followers could update. Se
+                        // now we just want to gossip this followers
+                        // new incarnation (which should now be synced with the leader) and spin up
+                        // a new service updater.
+                        self.gossip_latest_service_rumor_rsw_mlw_rhw(service,
+                                                                     new_ident.incarnation);
+                        service_updater.remove(&service.service_group);
+                        // ident here should just be the spec ident origin/pkg
+                        updaters_to_register.push(ident.clone());
+                    } else {
+                        outputln!("Restarting {} with package {}", ident, new_ident.ident);
+                        has_update = true;
+                        // stash this updated service's incarnation for later gossiping
+                        if let Some(incarnation) = new_ident.incarnation {
+                            self.updated_services
+                                .lock()
+                                .insert(service.service_group.clone(), incarnation);
+                        }
+                        event::service_update_started(service, &new_ident.ident);
+                        // The supervisor always runs the latest package on disk. When we have an
+                        // update ensure that the lastest package on disk is
+                        // the package we updated to.
+                        idents_to_restart_and_latest_desired_on_restart.push((ident.clone(),
+                                                                            Some(new_ident.ident)));
+                    }
                 } else if service_state.should_shutdown_for_restart() {
                     idents_to_restart_and_latest_desired_on_restart.push((ident.clone(), None));
                 } else {
@@ -1440,7 +1488,9 @@ impl Manager {
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
     /// * `RumorHeat::inner` (write)
-    fn gossip_latest_service_rumor_rsw_mlw_rhw(&self, service: &Service) {
+    fn gossip_latest_service_rumor_rsw_mlw_rhw(&self,
+                                               service: &Service,
+                                               maybe_incarnation: Option<u64>) {
         let incarnation = self.butterfly
                               .service_store
                               .lock_rsr()
@@ -1449,7 +1499,7 @@ impl Manager {
                               .unwrap_or(1);
 
         self.butterfly
-            .insert_service_rsw_mlw_rhw(service.to_rumor(incarnation));
+            .insert_service_rsw_mlw_rhw(service.to_rumor(incarnation, maybe_incarnation));
     }
 
     fn check_for_departure(&self) -> bool { self.butterfly.is_departed() }
@@ -1762,10 +1812,10 @@ impl Manager {
     /// * `GatewayState::inner` (write)
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (write)
-    async fn maybe_spawn_service_futures_rsw_mlw_gsw_rhw_msw(&mut self) {
+    async fn maybe_spawn_service_futures_rsw_mlw_gsw_rhw_msw(&mut self) -> Vec<PackageIdent> {
         let ops = self.compute_service_operations_msr();
         self.spawn_futures_from_operations_rsw_mlw_gsw_rhw_msw(ops)
-            .await;
+            .await
     }
 
     /// # Locking (see locking.md)
@@ -1791,9 +1841,12 @@ impl Manager {
     /// * `GatewayState::inner` (write)
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (write)
-    async fn spawn_futures_from_operations_rsw_mlw_gsw_rhw_msw<O>(&mut self, ops: O)
+    async fn spawn_futures_from_operations_rsw_mlw_gsw_rhw_msw<O>(&mut self,
+                                                                  ops: O)
+                                                                  -> Vec<PackageIdent>
         where O: IntoIterator<Item = ServiceOperation>
     {
+        let mut services_started = Vec::new();
         for op in ops.into_iter() {
             match op {
                 ServiceOperation::Restart { to_stop: spec, .. } | ServiceOperation::Stop(spec) => {
@@ -1828,7 +1881,8 @@ impl Manager {
                            .get(&spec.ident)
                            .map_or(true, PersistentServiceWrapper::is_ready_for_restart)
                     {
-                        self.add_service_rsw_mlw_rhw_msr(spec).await;
+                        self.add_service_rsw_mlw_rhw_msr(spec.clone()).await;
+                        services_started.push(spec.ident.clone());
                     }
                 }
                 ServiceOperation::Update(spec, ops) => {
@@ -1840,7 +1894,7 @@ impl Manager {
                                                    .and_then(PersistentServiceWrapper::service_mut)
                     {
                         service.set_spec(spec);
-                        self.gossip_latest_service_rumor_rsw_mlw_rhw(service);
+                        self.gossip_latest_service_rumor_rsw_mlw_rhw(service, None);
                         for op in ops {
                             match op {
                                 RefreshOperation::RestartUpdater => {
@@ -1860,6 +1914,7 @@ impl Manager {
                 }
             }
         }
+        services_started
     }
 
     /// Determine what services we need to start, stop, or restart in

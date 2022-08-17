@@ -15,7 +15,9 @@ use log::debug;
 use parking_lot::{Mutex,
                   RwLock};
 use std::{self,
+          cmp::Ordering,
           collections::HashMap,
+          fmt,
           future::Future,
           sync::Arc,
           time::Duration};
@@ -29,13 +31,36 @@ impl Drop for Worker {
     fn drop(&mut self) { self.0.abort(); }
 }
 
+/// A type representing a package ident and possibly an incarnation to update to
+#[derive(Clone)]
+pub struct IncarnatedPackageIdent {
+    pub ident:       PackageIdent,
+    pub incarnation: Option<u64>,
+}
+
+impl IncarnatedPackageIdent {
+    pub fn new(ident: PackageIdent, incarnation: Option<u64>) -> Self {
+        IncarnatedPackageIdent { ident, incarnation }
+    }
+}
+
+impl fmt::Display for IncarnatedPackageIdent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.incarnation.is_some() {
+            write!(f, "{}/{}", self.incarnation.unwrap(), self.ident)
+        } else {
+            write!(f, "{}", self.ident)
+        }
+    }
+}
+
 /// The `ServiceUpdater` is in charge of updating a Service when a change in version of a package
 /// has been published to a depot channel or installed to the local package cache. To use an update
 /// strategy, the supervisor must be configured to watch a depot for new versions.
 pub struct ServiceUpdater {
     butterfly:   habitat_butterfly::Server,
     census_ring: Arc<RwLock<CensusRing>>,
-    updates:     Arc<Mutex<HashMap<ServiceGroup, PackageIdent>>>,
+    updates:     Arc<Mutex<HashMap<ServiceGroup, IncarnatedPackageIdent>>>,
     workers:     HashMap<ServiceGroup, Worker>,
     period:      Duration,
 }
@@ -91,7 +116,7 @@ impl ServiceUpdater {
     /// removed from the `ServiceUpdater`. The expectation is that when an update is detected the
     /// service will be restarted inorder for the update to take effect. As part of this restart,
     /// the service should be removed from the `ServiceUpdater`.
-    pub fn has_update(&self, service_group: &ServiceGroup) -> Option<PackageIdent> {
+    pub fn has_update(&self, service_group: &ServiceGroup) -> Option<IncarnatedPackageIdent> {
         self.updates.lock().get(service_group).cloned()
     }
 
@@ -137,12 +162,16 @@ impl ServiceUpdater {
         }
     }
 
-    fn update_message(new_ident: &PackageIdent, current_ident: &PackageIdent) {
-        if new_ident > current_ident {
-            outputln!("Updating from {} to {}", current_ident, new_ident);
-        } else {
-            outputln!("Rolling back from {} to {}", current_ident, new_ident);
-        }
+    fn update_message(new_ident: &IncarnatedPackageIdent, current_ident: &PackageIdent) {
+        match &new_ident.ident.cmp(current_ident) {
+            Ordering::Greater => outputln!("Updating from {} to {}", current_ident, new_ident),
+            Ordering::Less => outputln!("Rolling back from {} to {}", current_ident, new_ident),
+            Ordering::Equal => {
+                outputln!("New incarnation {} found for {}",
+                          new_ident.incarnation.unwrap_or_default(),
+                          new_ident.ident)
+            }
+        };
     }
 
     /// Make the worker abortable and spawn it

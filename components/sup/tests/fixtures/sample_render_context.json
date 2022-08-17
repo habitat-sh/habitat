@@ -227,6 +227,7 @@
         "release": "20180315155739",
         "version": "0.1.0"
       },
+      "pkg_incarnation": 0,
       "service": "template-probe",
       "suspect": false,
       "sys": {
@@ -270,6 +271,7 @@
         "release": "20180315155739",
         "version": "0.1.0"
       },
+      "pkg_incarnation": 0,
       "service": "template-probe",
       "suspect": false,
       "sys": {
@@ -312,6 +314,7 @@
           "release": "20180315155739",
           "version": "0.1.0"
         },
+        "pkg_incarnation": 0,
         "service": "template-probe",
         "suspect": false,
         "sys": {
@@ -362,6 +365,7 @@
           "release": "20180302152133",
           "version": "7114"
         },
+        "pkg_incarnation": 0,
         "service": "builder-router",
         "suspect": false,
         "sys": {
@@ -404,6 +408,7 @@
             "release": "20180302152133",
             "version": "7114"
           },
+          "pkg_incarnation": 0,
           "service": "builder-router",
           "suspect": false,
           "sys": {

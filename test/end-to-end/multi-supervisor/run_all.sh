@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+docker-compose --version
+
 # TODO (CM): Pass the name of a single test case to run
 
 channel=${1:-stable}

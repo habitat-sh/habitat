@@ -458,6 +458,7 @@ two = 2
         let ident = PackageIdent::new("core", "test_pkg", Some("1.0.0"), Some("20180321150416"));
         let census_member = CensusMember { member_id: "MEMBER_ID".into(),
                                            pkg: ident,
+                                           pkg_incarnation: 0,
                                            service: "foo".into(),
                                            group: "default".into(),
                                            org: None,

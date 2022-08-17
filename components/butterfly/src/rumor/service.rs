@@ -23,13 +23,14 @@ use std::{cmp::Ordering,
 
 #[derive(Debug, Clone)]
 pub struct Service {
-    pub member_id:     String,
-    pub service_group: ServiceGroup,
-    pub incarnation:   u64,
-    pub initialized:   bool,
-    pub pkg:           String,
-    pub cfg:           Vec<u8>,
-    pub sys:           SysInfo,
+    pub member_id:       String,
+    pub service_group:   ServiceGroup,
+    pub incarnation:     u64,
+    pub initialized:     bool,
+    pub pkg:             String,
+    pub pkg_incarnation: u64,
+    pub cfg:             Vec<u8>,
+    pub sys:             SysInfo,
 }
 
 impl fmt::Display for Service {
@@ -50,6 +51,7 @@ impl Serialize for Service {
         strukt.serialize_field("member_id", &self.member_id)?;
         strukt.serialize_field("service_group", &self.service_group)?;
         strukt.serialize_field("package", &self.pkg)?;
+        strukt.serialize_field("package_incarnation", &self.pkg_incarnation)?;
         strukt.serialize_field("incarnation", &self.incarnation)?;
         strukt.serialize_field("cfg", &cfg)?;
         strukt.serialize_field("sys", &self.sys)?;
@@ -98,6 +100,7 @@ impl Service {
                   incarnation: 0,
                   initialized: false,
                   pkg: package.to_string(),
+                  pkg_incarnation: 0,
                   sys,
                   cfg: cfg.map(|v| {
                               // Directly serializing a toml::value::Table can lead to an error
@@ -120,31 +123,33 @@ impl FromProto<newscast::Rumor> for Service {
             RumorPayload::Service(payload) => payload,
             _ => panic!("from-bytes service"),
         };
-        Ok(Service { member_id:     payload.member_id
-                                           .ok_or(Error::ProtocolMismatch("member-id"))?,
+        Ok(Service { member_id:       payload.member_id
+                                             .ok_or(Error::ProtocolMismatch("member-id"))?,
                      service_group:
                          payload.service_group
                                 .ok_or(Error::ProtocolMismatch("service-group"))
                                 .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
-                     incarnation:   payload.incarnation.unwrap_or(0),
-                     initialized:   payload.initialized.unwrap_or(false),
-                     pkg:           payload.pkg.ok_or(Error::ProtocolMismatch("pkg"))?,
-                     cfg:           payload.cfg.unwrap_or_default(),
-                     sys:           payload.sys
-                                           .ok_or(Error::ProtocolMismatch("sys"))
-                                           .and_then(SysInfo::from_proto)?, })
+                     incarnation:     payload.incarnation.unwrap_or(0),
+                     initialized:     payload.initialized.unwrap_or(false),
+                     pkg:             payload.pkg.ok_or(Error::ProtocolMismatch("pkg"))?,
+                     pkg_incarnation: payload.pkg_incarnation.unwrap_or(0),
+                     cfg:             payload.cfg.unwrap_or_default(),
+                     sys:             payload.sys
+                                             .ok_or(Error::ProtocolMismatch("sys"))
+                                             .and_then(SysInfo::from_proto)?, })
     }
 }
 
 impl From<Service> for newscast::Service {
     fn from(value: Service) -> Self {
-        newscast::Service { member_id:     Some(value.member_id),
-                            service_group: Some(value.service_group.to_string()),
-                            incarnation:   Some(value.incarnation),
-                            initialized:   Some(value.initialized),
-                            pkg:           Some(value.pkg),
-                            cfg:           Some(value.cfg),
-                            sys:           Some(value.sys.into()), }
+        newscast::Service { member_id:       Some(value.member_id),
+                            service_group:   Some(value.service_group.to_string()),
+                            incarnation:     Some(value.incarnation),
+                            initialized:     Some(value.initialized),
+                            pkg:             Some(value.pkg),
+                            pkg_incarnation: Some(value.pkg_incarnation),
+                            cfg:             Some(value.cfg),
+                            sys:             Some(value.sys.into()), }
     }
 }
 
