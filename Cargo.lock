@@ -1159,9 +1159,9 @@ dependencies = [
  "ipc-channel",
  "libc",
  "log 0.4.17",
- "nix 0.24.2",
+ "nix 0.25.0",
  "prost",
- "semver 1.0.12",
+ "semver 1.0.13",
  "thiserror",
  "winapi 0.3.9",
 ]
@@ -1307,7 +1307,7 @@ dependencies = [
  "libc",
  "log 0.4.17",
  "native-tls",
- "nix 0.24.2",
+ "nix 0.25.0",
  "owning_ref",
  "parking_lot 0.12.0",
  "pbr",
@@ -1350,7 +1350,7 @@ dependencies = [
  "libc",
  "log 0.4.17",
  "native-tls",
- "nix 0.24.2",
+ "nix 0.25.0",
  "num_cpus",
  "os_info",
  "paste",
@@ -1483,7 +1483,7 @@ dependencies = [
  "log 0.4.17",
  "log4rs",
  "mio 0.8.4",
- "nix 0.24.2",
+ "nix 0.25.0",
  "notify",
  "num_cpus",
  "parking_lot 0.12.0",
@@ -2176,14 +2176,16 @@ dependencies = [
 
 [[package]]
 name = "nix"
-version = "0.24.2"
+version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "195cdbc1741b8134346d515b3a56a1c94b0912758009cfd53f99ea0f57b065fc"
+checksum = "e322c04a9e3440c327fca7b6c8a63e6890a32fa2ad689db972425f07e0d22abb"
 dependencies = [
+ "autocfg",
  "bitflags",
  "cfg-if 1.0.0",
  "libc",
  "memoffset",
+ "pin-utils",
 ]
 
 [[package]]
@@ -2494,18 +2496,18 @@ dependencies = [
 
 [[package]]
 name = "pin-project"
-version = "1.0.11"
+version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78203e83c48cffbe01e4a2d35d566ca4de445d79a85372fc64e378bfc812a260"
+checksum = "ad29a609b6bcd67fee905812e544992d216af9d755757c05ed2d0e15a74c6ecc"
 dependencies = [
  "pin-project-internal",
 ]
 
 [[package]]
 name = "pin-project-internal"
-version = "1.0.11"
+version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "710faf75e1b33345361201d36d04e98ac1ed8909151a017ed384700836104c74"
+checksum = "069bdb1e05adc7a8990dce9cc75370895fbe4e3d58b9b73bf1aee56359344a55"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3026,7 +3028,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bfa0f585226d2e68097d4f95d113b15b83a82e819ab25717ec0590d9584ef366"
 dependencies = [
- "semver 1.0.12",
+ "semver 1.0.13",
 ]
 
 [[package]]
@@ -3137,9 +3139,9 @@ dependencies = [
 
 [[package]]
 name = "semver"
-version = "1.0.12"
+version = "1.0.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2333e6df6d6598f2b1974829f853c2b4c5f4a6e503c10af918081aa6f8564e1"
+checksum = "93f6841e709003d68bb2deee8c343572bf446003ec20a583e76f7b15cebf3711"
 
 [[package]]
 name = "semver-parser"
