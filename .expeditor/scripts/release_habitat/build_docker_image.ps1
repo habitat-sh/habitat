@@ -46,14 +46,14 @@ try {
     $env:HAB_BINLINK_DIR = $null
 
     Write-Host "Installing and extracting initial Habitat packages"
-    $baseHabExe=Install-LatestHabitat
+    Install-Habitat
     $InstallHarts = @(
         "core/hab-studio",
         "core/hab-sup",
         "core/windows-service --ignore-install-hook"
     )
     $InstallHarts | ForEach-Object {
-        Invoke-Expression "$baseHabExe pkg install $_ --channel=$ReleaseChannel --url=$BldrUrl"
+        Invoke-Expression "hab pkg install $_ --channel=$ReleaseChannel --url=$BldrUrl"
         if ($LASTEXITCODE -ne 0) {
             Write-Error "hab install failed for $_, aborting"
         }
