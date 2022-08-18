@@ -2,8 +2,6 @@
 
 #Requires -Version 5
 
-. $PSScriptRoot/shared.ps1
-
 param (
     # The builder channel to install packages from. Defaults to unstable
     [string]$ReleaseChannel="unstable",
@@ -14,6 +12,8 @@ param (
     # the URL for the Builder instance from which to pull packages
     [string]$BldrUrl = "https://bldr.habitat.sh"
 )
+
+. $PSScriptRoot/shared.ps1
 
 # Makes a best attempt to retrieve the appropriate image tag based on
 # https://hub.docker.com/_/microsoft-windows-servercore
