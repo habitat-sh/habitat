@@ -455,6 +455,7 @@ steps:
       executor:
         windows:
           os_version: 2016
+          privileged: true
 
   - label: ":docker: :windows: Upload windows 2019 container to Docker Hub"
     if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
@@ -463,6 +464,7 @@ steps:
       executor:
         windows:
           os_version: 2019
+          privileged: true
 
   - wait
 
