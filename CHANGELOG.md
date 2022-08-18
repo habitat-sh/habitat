@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.555 -->
-## [1.6.555](https://github.com/habitat-sh/habitat/tree/1.6.555) (2022-08-18)
+<!-- latest_release 1.6.556 -->
+## [1.6.556](https://github.com/habitat-sh/habitat/tree/1.6.556) (2022-08-18)
 
 #### Merged Pull Requests
-- try running install script from repo [#8600](https://github.com/habitat-sh/habitat/pull/8600) ([mwrock](https://github.com/mwrock))
+- Bump paste from 1.0.7 to 1.0.8 [#8598](https://github.com/habitat-sh/habitat/pull/8598) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- Bump paste from 1.0.7 to 1.0.8 [#8598](https://github.com/habitat-sh/habitat/pull/8598) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.556 -->
+- Bump nix from 0.24.2 to 0.25.0 [#8591](https://github.com/habitat-sh/habitat/pull/8591) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.556 -->
 - try running install script from repo [#8600](https://github.com/habitat-sh/habitat/pull/8600) ([mwrock](https://github.com/mwrock)) <!-- 1.6.555 -->
 - fix docker build script [#8599](https://github.com/habitat-sh/habitat/pull/8599) ([mwrock](https://github.com/mwrock)) <!-- 1.6.554 -->
 - Bump semver from 1.0.12 to 1.0.13 [#8595](https://github.com/habitat-sh/habitat/pull/8595) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.553 -->
