@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.559 -->
-## [1.6.559](https://github.com/habitat-sh/habitat/tree/1.6.559) (2022-08-19)
+<!-- latest_release 1.6.560 -->
+## [1.6.560](https://github.com/habitat-sh/habitat/tree/1.6.560) (2022-08-19)
 
 #### Merged Pull Requests
-- update hab install to not require admin rights [#8604](https://github.com/habitat-sh/habitat/pull/8604) ([mwrock](https://github.com/mwrock))
+- remove priviliged in the right job dummy [#8605](https://github.com/habitat-sh/habitat/pull/8605) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- remove priviliged in the right job dummy [#8605](https://github.com/habitat-sh/habitat/pull/8605) ([mwrock](https://github.com/mwrock)) <!-- 1.6.560 -->
 - update hab install to not require admin rights [#8604](https://github.com/habitat-sh/habitat/pull/8604) ([mwrock](https://github.com/mwrock)) <!-- 1.6.559 -->
 - Bump pin-project from 1.0.11 to 1.0.12 [#8601](https://github.com/habitat-sh/habitat/pull/8601) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.558 -->
 - run docker build in privileged mode [#8602](https://github.com/habitat-sh/habitat/pull/8602) ([mwrock](https://github.com/mwrock)) <!-- 1.6.557 -->
