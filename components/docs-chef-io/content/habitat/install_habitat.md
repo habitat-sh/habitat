@@ -56,8 +56,7 @@ Once you have downloaded the `hab` CLI, unzip it onto your machine. Unzipping to
 Chef Habitat can also be installed with Homebrew, by running the following commands:
 
 ```bash
-brew tap habitat-sh/habitat
-brew install hab
+brew install habitat-sh/habitat/hab
 ```
 
 ## Chef Habitat for Windows
