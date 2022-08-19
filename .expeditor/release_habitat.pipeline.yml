@@ -464,7 +464,6 @@ steps:
       executor:
         windows:
           os_version: 2019
-          privileged: true
 
   - wait
 
@@ -476,4 +475,3 @@ steps:
     expeditor:
       executor:
         docker:
-          privileged: true

@@ -114,9 +114,15 @@ Function Install-Habitat {
     $folder = (Get-ChildItem (Join-Path ($workdir) "hab-*"))
     Copy-Item "$($folder.FullName)\*" $habPath
     $env:PATH = New-PathString -StartingPath $env:PATH -Path $habPath
-    $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
-    $machinePath = New-PathString -StartingPath $machinePath -Path $habPath
-    [System.Environment]::SetEnvironmentVariable("PATH", $machinePath, "Machine")
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    if($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
+        $machinePath = New-PathString -StartingPath $machinePath -Path $habPath
+        [System.Environment]::SetEnvironmentVariable("PATH", $machinePath, "Machine")
+    } else {
+        Write-Warning "Not running with Administrator privileges. Unable to add $habPath to PATH!"
+        Write-Warning "Either rerun as Administrator or manually add $habPath to your PATH in order to run hab in another shell session."
+    }
     $folder.Name.Replace("hab-","")
 }
 
@@ -126,8 +132,7 @@ Function New-PathString([string]$StartingPath, [string]$Path) {
             [string[]]$PathCollection = "$path;$StartingPath" -split ';'
             $Path = ($PathCollection |
                     Select-Object -Unique |
-                    Where-Object {-not [string]::IsNullOrEmpty($_.trim())} |
-                    Where-Object {Test-Path "$_"}
+                    Where-Object {-not [string]::IsNullOrEmpty($_.trim())}
             ) -join ';'
         }
         $path
