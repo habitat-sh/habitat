@@ -85,11 +85,7 @@ impl RollingUpdateWorker {
             Role::Leader => {
                 // Wait for an update which will trigger follower updates through the census
                 // protocol
-                let mut pkg = self.package_update_worker.update().await;
-                // bump the incarnation of the update that the leader performed
-                // this will eventually get gossiped after the service restarts
-                pkg.incarnation = Some(self.census_group().await.pkg_incarnation + 1);
-                pkg
+                self.update_and_bump_incarnation().await
             }
             Role::Follower => {
                 // Wait till it is our turn to update. It is possible that while we are waiting
@@ -98,7 +94,7 @@ impl RollingUpdateWorker {
                     FollowerUpdateTurnEvent::PromotedToLeader => {
                         // Wait for an update which will trigger follower updates through the
                         // census protocol
-                        self.package_update_worker.update().await
+                        self.update_and_bump_incarnation().await
                     }
                     FollowerUpdateTurnEvent::PromotedToLeaderMidUpdate(new_ident) => {
                         // Update to the same package as the old leader allowing all followers
@@ -112,6 +108,14 @@ impl RollingUpdateWorker {
                 }
             }
         }
+    }
+
+    async fn update_and_bump_incarnation(&self) -> IncarnatedPackageIdent {
+        let mut pkg = self.package_update_worker.update().await;
+        // bump the incarnation of the update that the leader performed
+        // this will eventually get gossiped after the service restarts
+        pkg.incarnation = Some(self.census_group().await.pkg_incarnation + 1);
+        pkg
     }
 
     async fn update_election_suitability(&self, topology: Topology) -> u64 {
