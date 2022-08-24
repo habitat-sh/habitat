@@ -2030,10 +2030,11 @@ _build_metadata() {
   if [[ -f "$PLAN_CONTEXT/hooks/run" || -n "${pkg_svc_run:-}" ]]; then
     _render_metadata_SVC_USER
     _render_metadata_SVC_GROUP
-    # We render out the PACKAGE_TYPE metadata file only for native packages.
-    if [[ -n $HAB_NATIVE_PACKAGE ]]; then
-      _render_metadata_PACKAGE_TYPE
-    fi
+  fi
+
+  # We render out the PACKAGE_TYPE metadata file only for native packages.
+  if [[ -n $HAB_NATIVE_PACKAGE ]]; then
+    _render_metadata_PACKAGE_TYPE
   fi
 
   return 0
