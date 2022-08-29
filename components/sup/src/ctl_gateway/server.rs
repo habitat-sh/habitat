@@ -56,7 +56,8 @@ use std::{error,
           sync::{Arc,
                  Mutex},
           time::Duration};
-use tokio::{net::TcpListener,
+use tokio::{io::AsyncWrite,
+            net::TcpListener,
             task,
             time};
 use tokio_util::codec::Decoder;
@@ -443,6 +444,10 @@ impl Future for SrvHandler {
                 SrvHandlerState::Sent => {
                     if let Some(timer) = self.timer.take() {
                         timer.observe_duration();
+                    }
+                    if let Err(err) = futures::ready!(Pin::new(self.io.get_mut()).poll_shutdown(cx))
+                    {
+                        return Poll::Ready(Err(HandlerError::from(err)));
                     }
                     trace!("OnMessage complete");
                     break;
