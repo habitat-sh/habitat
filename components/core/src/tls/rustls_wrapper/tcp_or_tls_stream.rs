@@ -95,7 +95,23 @@ impl AsyncRead for TcpOrTlsStream {
                  -> Poll<io::Result<()>> {
         match self.project() {
             TcpOrTlsStreamProj::TcpStream(stream) => stream.poll_read(cx, buf),
-            TcpOrTlsStreamProj::TlsStream(stream) => stream.poll_read(cx, buf),
+            TcpOrTlsStreamProj::TlsStream(stream) => {
+                match stream.poll_read(cx, buf) {
+                    // As of rustls 0.20.0, a UnexpectedEof is returned when reading from
+                    // a connection that has not been cleanly closed. The supervisor now
+                    // sends a close_notify by calling poll_shutdown on the stream when
+                    // a message is sent from the ctl-gateway. While that avoids the
+                    // UnexpectedEof, it is possible that a supervisor client in a hab cli
+                    // using rustls > 0.20.0 will be communicating with a < 0.20.0 supervisor.
+                    // For that case, we check here for a UnexpectedEof and return
+                    // Poll::Ready(Ok(())) to mimic the 0.19 rustls behavior. We should
+                    // consider removing this when releasing a habitat 2.0.
+                    Poll::Ready(Err(err)) if err.kind() == io::ErrorKind::UnexpectedEof => {
+                        Poll::Ready(Ok(()))
+                    }
+                    output => output,
+                }
+            }
         }
     }
 }
