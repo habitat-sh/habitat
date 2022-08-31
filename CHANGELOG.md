@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.565 -->
-## [1.6.565](https://github.com/habitat-sh/habitat/tree/1.6.565) (2022-08-30)
+<!-- latest_release 1.6.566 -->
+## [1.6.566](https://github.com/habitat-sh/habitat/tree/1.6.566) (2022-08-31)
 
 #### Merged Pull Requests
-- cleanly close ctl_gateway server stream after message is sent [#8611](https://github.com/habitat-sh/habitat/pull/8611) ([mwrock](https://github.com/mwrock))
+- Bump thiserror from 1.0.32 to 1.0.33 [#8614](https://github.com/habitat-sh/habitat/pull/8614) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- Bump thiserror from 1.0.32 to 1.0.33 [#8614](https://github.com/habitat-sh/habitat/pull/8614) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.566 -->
 - cleanly close ctl_gateway server stream after message is sent [#8611](https://github.com/habitat-sh/habitat/pull/8611) ([mwrock](https://github.com/mwrock)) <!-- 1.6.565 -->
 - Bump futures from 0.3.23 to 0.3.24 [#8612](https://github.com/habitat-sh/habitat/pull/8612) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.564 -->
 - Bump serde_json from 1.0.83 to 1.0.85 [#8610](https://github.com/habitat-sh/habitat/pull/8610) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.563 -->
