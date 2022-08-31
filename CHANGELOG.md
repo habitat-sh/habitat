@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.567 -->
-## [1.6.567](https://github.com/habitat-sh/habitat/tree/1.6.567) (2022-08-31)
+<!-- latest_release 1.6.568 -->
+## [1.6.568](https://github.com/habitat-sh/habitat/tree/1.6.568) (2022-08-31)
 
 #### Merged Pull Requests
-- Bump paste from 1.0.8 to 1.0.9 [#8616](https://github.com/habitat-sh/habitat/pull/8616) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump httparse from 1.7.1 to 1.8.0 [#8619](https://github.com/habitat-sh/habitat/pull/8619) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- Bump httparse from 1.7.1 to 1.8.0 [#8619](https://github.com/habitat-sh/habitat/pull/8619) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.568 -->
+- Bump anyhow from 1.0.62 to 1.0.63 [#8618](https://github.com/habitat-sh/habitat/pull/8618) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.568 -->
 - Bump paste from 1.0.8 to 1.0.9 [#8616](https://github.com/habitat-sh/habitat/pull/8616) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.567 -->
 - handle UnexpectedEof in the case of speaking to an older supervisor [#8613](https://github.com/habitat-sh/habitat/pull/8613) ([mwrock](https://github.com/mwrock)) <!-- 1.6.567 -->
 - this removes the criticaly vulnerable nix dependency by updating ctrlc [#8617](https://github.com/habitat-sh/habitat/pull/8617) ([mwrock](https://github.com/mwrock)) <!-- 1.6.567 -->
