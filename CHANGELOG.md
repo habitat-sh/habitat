@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.566 -->
-## [1.6.566](https://github.com/habitat-sh/habitat/tree/1.6.566) (2022-08-31)
+<!-- latest_release 1.6.567 -->
+## [1.6.567](https://github.com/habitat-sh/habitat/tree/1.6.567) (2022-08-31)
 
 #### Merged Pull Requests
-- Bump thiserror from 1.0.32 to 1.0.33 [#8614](https://github.com/habitat-sh/habitat/pull/8614) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump paste from 1.0.8 to 1.0.9 [#8616](https://github.com/habitat-sh/habitat/pull/8616) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- Bump paste from 1.0.8 to 1.0.9 [#8616](https://github.com/habitat-sh/habitat/pull/8616) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.567 -->
+- handle UnexpectedEof in the case of speaking to an older supervisor [#8613](https://github.com/habitat-sh/habitat/pull/8613) ([mwrock](https://github.com/mwrock)) <!-- 1.6.567 -->
+- this removes the criticaly vulnerable nix dependency by updating ctrlc [#8617](https://github.com/habitat-sh/habitat/pull/8617) ([mwrock](https://github.com/mwrock)) <!-- 1.6.567 -->
 - Bump thiserror from 1.0.32 to 1.0.33 [#8614](https://github.com/habitat-sh/habitat/pull/8614) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.566 -->
 - cleanly close ctl_gateway server stream after message is sent [#8611](https://github.com/habitat-sh/habitat/pull/8611) ([mwrock](https://github.com/mwrock)) <!-- 1.6.565 -->
 - Bump futures from 0.3.23 to 0.3.24 [#8612](https://github.com/habitat-sh/habitat/pull/8612) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.564 -->
