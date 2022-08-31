@@ -239,9 +239,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.62"
+version = "1.0.63"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1485d4d2cc45e7b201ee3767015c96faa5904387c9d87c6efdd0fb511f12d305"
+checksum = "a26fa4d7e3f2eebadf743988fc8aec9fa9a9e82611acafd77c1462ed6262440a"
 dependencies = [
  "backtrace",
 ]
@@ -621,11 +621,11 @@ dependencies = [
 
 [[package]]
 name = "ctrlc"
-version = "3.1.9"
+version = "3.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "232295399409a8b7ae41276757b5a1cc21032848d42bff2352261f958b3ca29a"
+checksum = "1d91974fbbe88ec1df0c24a4f00f99583667a7e2e6272b2b92d294d81e462173"
 dependencies = [
- "nix 0.20.0",
+ "nix",
  "winapi 0.3.9",
 ]
 
@@ -1159,7 +1159,7 @@ dependencies = [
  "ipc-channel",
  "libc",
  "log 0.4.17",
- "nix 0.25.0",
+ "nix",
  "prost",
  "semver 1.0.13",
  "thiserror",
@@ -1307,7 +1307,7 @@ dependencies = [
  "libc",
  "log 0.4.17",
  "native-tls",
- "nix 0.25.0",
+ "nix",
  "owning_ref",
  "parking_lot 0.12.0",
  "pbr",
@@ -1350,7 +1350,7 @@ dependencies = [
  "libc",
  "log 0.4.17",
  "native-tls",
- "nix 0.25.0",
+ "nix",
  "num_cpus",
  "os_info",
  "paste",
@@ -1483,7 +1483,7 @@ dependencies = [
  "log 0.4.17",
  "log4rs",
  "mio 0.8.4",
- "nix 0.25.0",
+ "nix",
  "notify",
  "num_cpus",
  "parking_lot 0.12.0",
@@ -2160,18 +2160,6 @@ dependencies = [
  "cfg-if 0.1.10",
  "libc",
  "winapi 0.3.9",
-]
-
-[[package]]
-name = "nix"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa9b4819da1bc61c0ea48b63b7bc8604064dd43013e7cc325df098d49cd7c18a"
-dependencies = [
- "bitflags",
- "cc",
- "cfg-if 1.0.0",
- "libc",
 ]
 
 [[package]]
