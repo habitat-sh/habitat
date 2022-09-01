@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.571 -->
-## [1.6.571](https://github.com/habitat-sh/habitat/tree/1.6.571) (2022-09-01)
+<!-- latest_release 1.6.572 -->
+## [1.6.572](https://github.com/habitat-sh/habitat/tree/1.6.572) (2022-09-01)
 
 #### Merged Pull Requests
-- fix relese docs script and move docs scripts to the end [#8622](https://github.com/habitat-sh/habitat/pull/8622) ([mwrock](https://github.com/mwrock))
+- bump hyper to avoid vulnerability [#8623](https://github.com/habitat-sh/habitat/pull/8623) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.568 -->
 ### Changes since 1.6.568 release
 
 #### Merged Pull Requests
+- bump hyper to avoid vulnerability [#8623](https://github.com/habitat-sh/habitat/pull/8623) ([mwrock](https://github.com/mwrock)) <!-- 1.6.572 -->
 - fix relese docs script and move docs scripts to the end [#8622](https://github.com/habitat-sh/habitat/pull/8622) ([mwrock](https://github.com/mwrock)) <!-- 1.6.571 -->
 - Rustfmt and Nightly Rust Bump to nightly-2022-09-01 [#8621](https://github.com/habitat-sh/habitat/pull/8621) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.570 -->
 - update changelog for 1.6.568 [#8620](https://github.com/habitat-sh/habitat/pull/8620) ([mwrock](https://github.com/mwrock)) <!-- 1.6.569 -->
