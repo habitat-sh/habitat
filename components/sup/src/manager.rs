@@ -656,7 +656,7 @@ pub struct Manager {
     // that point, we might need / want to change from a HashSet to
     // something else (maybe a HashMap?) in order to cleanly manage
     // the different operations.
-    busy_services:                Arc<Mutex<HashSet<PackageIdent>>>,
+    busy_services: Arc<Mutex<HashSet<PackageIdent>>>,
     updated_services:             Arc<Mutex<HashMap<ServiceGroup, u64>>>,
     services_need_reconciliation: ReconciliationFlag,
 
