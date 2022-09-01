@@ -114,11 +114,11 @@ subscriptions:
       # "curlbash" installers get the right packages.
       - bash:.expeditor/scripts/purge_cdn.sh:
           post_commit: true
+      - trigger_pipeline:finish_release:
+          post_commit: true
       - bash:.expeditor/release_notes/publish-release-notes.sh:
           post_commit: true
       - bash:.expeditor/release_notes/announce-release.sh:
-          post_commit: true
-      - trigger_pipeline:finish_release:
           post_commit: true
 
   # Post release notification workloads

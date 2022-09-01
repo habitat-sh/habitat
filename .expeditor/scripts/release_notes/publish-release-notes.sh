@@ -2,7 +2,9 @@
 
 set -eou pipefail
 
-git clone https://x-access-token:"${GITHUB_TOKEN}"@github.com/habitat-sh/habitat.wiki.git
+source .expeditor/scripts/shared.sh
+
+git clone https://x-access-token:"${GITHUB_TOKEN:-$(chef_ci_github_token)}"@github.com/habitat-sh/habitat.wiki.git
 
 # Download the latest Hab manifest
 aws s3 cp "s3://chef-automate-artifacts/${EXPEDITOR_TARGET_CHANNEL}/latest/habitat/manifest.json" manifest.json --profile chef-cd
