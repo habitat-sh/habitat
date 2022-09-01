@@ -1,14 +1,16 @@
 # Habitat CHANGELOG
 
 <!-- latest_release 1.6.568 -->
-## [1.6.568](https://github.com/habitat-sh/habitat/tree/1.6.568) (2022-08-31)
 
-#### Merged Pull Requests
-- Bump httparse from 1.7.1 to 1.8.0 [#8619](https://github.com/habitat-sh/habitat/pull/8619) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.521 -->
-### Changes since 1.6.521 release
+<!-- release_rollup since=1.6.568 -->
+### Changes since 1.6.568 release
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.568 -->
+
+## [1.6.568](https://github.com/habitat-sh/habitat/tree/1.6.568) (2022-08-31)
 
 #### Merged Pull Requests
 - Bump httparse from 1.7.1 to 1.8.0 [#8619](https://github.com/habitat-sh/habitat/pull/8619) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.568 -->
@@ -68,9 +70,6 @@
 - Bump libc from 0.2.125 to 0.2.126 [#8518](https://github.com/habitat-sh/habitat/pull/8518) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.524 -->
 - Rustfmt and Nightly Rust Bump to nightly-2022-06-07 [#8536](https://github.com/habitat-sh/habitat/pull/8536) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.523 -->
 - updating changelog for 1.6.521 [#8537](https://github.com/habitat-sh/habitat/pull/8537) ([mwrock](https://github.com/mwrock)) <!-- 1.6.522 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 1.6.521 -->
 
 ## [1.6.521](https://github.com/habitat-sh/habitat/tree/1.6.521) (2022-06-03)
 
