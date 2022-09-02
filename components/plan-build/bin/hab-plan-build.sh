@@ -659,12 +659,15 @@ _find_system_commands() {
   fi
   debug "Setting _hab_cmd=$_hab_cmd"
 
-  if exists rq; then
-    _rq_cmd=$(command -v rq)
-  else
-    exit_with "We required rq to build package metadata; aborting" 1
+  # shellcheck disable=2128
+  if (( ${#pkg_exposes[@]} )); then
+    if exists rq; then
+      _rq_cmd=$(command -v rq)
+    else
+      exit_with "We required rq to build package metadata; aborting" 1
+    fi
+    debug "Setting _rq_cmd=$_rq_cmd"
   fi
-  debug "Setting _rq_cmd=$_rq_cmd"
 }
 
 # **Internal** Return the path to the latest release of a package on stdout.
