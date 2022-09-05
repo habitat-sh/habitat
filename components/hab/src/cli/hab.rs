@@ -14,7 +14,11 @@ pub mod svc;
 mod tests;
 pub mod user;
 pub mod util;
-
+#[cfg(any(target_os = "macos",
+              all(any(target_os = "linux", target_os = "windows"),
+                  target_arch = "x86_64")))]
+use self::studio::{ConfigOptStudio,
+                   Studio};
 use self::{bldr::*,
            cli::{CliCompleters,
                  CliSetup,
@@ -40,8 +44,6 @@ use self::{bldr::*,
                   RingKeyExport,
                   RingKeyGenerate,
                   RingKeyImport},
-           studio::{ConfigOptStudio,
-                    Studio},
            sup::{ConfigOptHabSup,
                  ConfigOptSupRun,
                  HabSup,
@@ -90,6 +92,9 @@ pub enum Hab {
     Plan(Plan),
     #[structopt(no_version)]
     Ring(Ring),
+    #[cfg(any(target_os = "macos",
+              all(any(target_os = "linux", target_os = "windows"),
+                  target_arch = "x86_64")))]
     #[structopt(no_version, aliases = &["stu", "stud", "studi"])]
     Studio(Studio),
     #[structopt(no_version)]
@@ -108,8 +113,8 @@ pub enum Hab {
     /// Alias for 'pkg install'
     #[structopt(no_version, settings = &[AppSettings::Hidden], aliases = &["i", "in", "ins", "inst", "insta", "instal"])]
     Install(PkgInstall),
-    #[cfg(not(target_os = "macos"))]
     /// Alias for 'sup run'
+    #[cfg(not(target_os = "macos"))]
     #[structopt(no_version, settings = &[AppSettings::Hidden])]
     Run(SupRun),
     /// Alias for 'cli setup'
@@ -121,8 +126,8 @@ pub enum Hab {
     /// Alias for 'svc stop'
     #[structopt(no_version, settings = &[AppSettings::Hidden], aliases = &["sto"])]
     Stop(SvcStop),
-    #[cfg(not(target_os = "macos"))]
     /// Alias for 'sup term'
+    #[cfg(not(target_os = "macos"))]
     #[structopt(no_version, settings = &[AppSettings::Hidden])]
     Term,
 }
@@ -282,6 +287,8 @@ pub enum Pkg {
     Download(PkgDownload),
     Env(PkgEnv),
     Exec(PkgExec),
+    #[cfg(all(any(target_os = "linux", target_os = "windows"),
+              target_arch = "x86_64"))]
     Export(ExportCommand),
     #[structopt(no_version, aliases = &["ha", "has"])]
     Hash(PkgHash),

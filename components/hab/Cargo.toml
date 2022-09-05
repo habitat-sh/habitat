@@ -48,11 +48,13 @@ tabwriter = "*"
 tar = "*"
 termcolor = "*"
 thiserror = "*"
+anyhow = { version = "*", features = ["backtrace"] }
 tokio = { version = "*", features = ["full"] }
 toml = { version = "*", features = [ "preserve_order" ] }
 url = { version = "*", features = ["serde"] }
 walkdir = "*"
 webpki = { version = "*", features = ["alloc"] }
+tempfile = "*"
 
 [dependencies.uuid]
 version = "*"
@@ -63,11 +65,7 @@ widestring = "*"
 winapi = { version = "*", features = ["winuser", "windef"] }
 winreg = "*"
 
-[dev-dependencies]
-tempfile = "*"
-
 [features]
 default = ["supported_targets"]
 functional = []
 supported_targets = ["habitat_core/supported_targets"]
-aarch64-linux = ["habitat_core/aarch64-linux"]

@@ -51,6 +51,22 @@ impl HabRoot {
         PackageIdent::new(origin, pkg_name, Some("1.0.0"), Some("20170721000000"))
     }
 
+    /// Returns the path to the package type metafile for a given package.
+    // This is only used on non-x86 platforms
+    #[allow(dead_code)]
+    pub fn pkg_type_path(&self, origin: &str, pkg_name: &str) -> PathBuf {
+        self.pkg_dir_path(origin, pkg_name)
+            .join(MetaFile::PackageType.to_string())
+    }
+
+    /// Returns the path to the target metafile for a given package.
+    // This is only used on non-x86 platforms
+    #[allow(dead_code)]
+    pub fn target_path(&self, origin: &str, pkg_name: &str) -> PathBuf {
+        self.pkg_dir_path(origin, pkg_name)
+            .join(MetaFile::Target.to_string())
+    }
+
     /// Returns the path to the service user metafile for a given package.
     pub fn svc_user_path(&self, origin: &str, pkg_name: &str) -> PathBuf {
         self.pkg_dir_path(origin, pkg_name)

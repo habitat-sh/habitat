@@ -5,14 +5,16 @@ use super::util::{self,
                   ConfigOptAuthToken,
                   ConfigOptBldrUrl,
                   ConfigOptCacheKeyPath,
-                  ConfigOptExternalCommandArgs,
                   ConfigOptExternalCommandArgsWithHelpAndVersion,
                   ConfigOptFullyQualifiedPkgIdent,
                   ConfigOptPkgIdent,
-                  ExternalCommandArgs,
                   ExternalCommandArgsWithHelpAndVersion,
                   FullyQualifiedPkgIdent,
                   PkgIdent};
+#[cfg(all(any(target_os = "linux", target_os = "windows"),
+              target_arch = "x86_64"))]
+use super::util::{ConfigOptExternalCommandArgs,
+                  ExternalCommandArgs};
 use crate::cli::{dir_exists,
                  file_exists,
                  valid_ident_or_toml_file,
@@ -83,6 +85,8 @@ pub enum Pkg {
     Download(PkgDownload),
     Env(PkgEnv),
     Exec(PkgExec),
+    #[cfg(all(any(target_os = "linux", target_os = "windows"),
+              target_arch = "x86_64"))]
     Export(ExportCommand),
     Hash(PkgHash),
     Header(PkgHeader),
@@ -328,6 +332,10 @@ pub struct PkgBuild {
     plan_context:    PathBuf,
     #[structopt(flatten)]
     cache_key_path:  CacheKeyPath,
+    /// Build a native package on the host system without a studio
+    #[cfg(target_os = "linux")]
+    #[structopt(name = "NATIVE_PACKAGE", short = "N", long = "native-package", conflicts_with_all = &["REUSE", "DOCKER"])]
+    native_package:  bool,
     #[cfg(any(target_os = "linux", target_os = "windows"))]
     /// Reuses a previous Studio for the build (default: clean up before building)
     // Only a truly native/local Studio can be reused--the Docker implementation will always be
@@ -519,6 +527,8 @@ pub struct PkgInstall {
 }
 
 /// Exports the package to the specified format
+#[cfg(all(any(target_os = "linux", target_os = "windows"),
+          target_arch = "x86_64"))]
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "export", aliases = &["e", "ex", "exp", "expo", "expor"], no_version)]
 pub enum ExportCommand {

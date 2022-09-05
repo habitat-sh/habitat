@@ -614,6 +614,9 @@ mod test {
                                   PackageInstall}},
                 templating::{context::RenderContext,
                              test_helpers::*}};
+    #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
+                      target_arch = "x86_64")))]
+    use hcore::package::metadata::MetaFile;
     use std::{env,
               fs::{self,
                    OpenOptions}};
@@ -1146,6 +1149,13 @@ mod test {
         fs::create_dir_all(&deep_config_dir).expect("create config/dir_a/dir_b");
         create_with_content(deep_config_dir.join("config.txt"),
                             "config message is {{cfg.message}}");
+
+        // Platforms without standard package support require all packages to be native packages
+        #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
+                      target_arch = "x86_64")))]
+        {
+            create_with_content(pkg_dir.join(MetaFile::PackageType.to_string()), "native");
+        }
 
         // Setup context for loading and compiling templates
         let output_dir = root.join("output");

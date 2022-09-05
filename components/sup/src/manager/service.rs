@@ -1707,7 +1707,12 @@ mod tests {
                                                             didn't"), &ServiceRestartConfig::default())
     }
 
+    // We only run this test case for x86 platforms as it is not worth the effort
+    // to test it on other platforms as the schema of a API response is likely to be the same
+    // across all non-x86_64 unix platforms.
     #[tokio::test]
+    #[cfg(all(any(target_os = "linux", target_os = "windows"),
+              target_arch = "x86_64"))]
     async fn service_proxy_conforms_to_the_schema() {
         let service_wrapper = initialize_test_service().await;
 

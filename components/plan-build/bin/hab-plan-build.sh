@@ -345,6 +345,8 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The first argument to the script is a Plan context directory, containing a
 # `plan.sh` file
 PLAN_CONTEXT=${1:-.}
+# The filename of the plan file
+HAB_PLAN_FILENAME="plan.sh"
 # The default Habitat Depot from where to download dependencies. If
 # `HAB_BLDR_URL` is set, this value is overridden.
 : "${HAB_BLDR_URL:=https://bldr.habitat.sh}"
@@ -583,6 +585,7 @@ _ensure_origin_key_present() {
 # command:
 #
 # * `$_hab_cmd` (hab cli for signing, hashing, and possibly installing)
+# * `$_stat_cmd` (either GNU or BSD stat on system)
 # * `$_wget_cmd` (wget on system)
 # * `$_shasum_cmd` (either gsha256sum or sha256sum on system)
 # * `$_tar_cmd` (GNU version of tar)
@@ -598,6 +601,17 @@ _ensure_origin_key_present() {
 # If the commands are not found, `exit_with` is called and the program is
 # terminated.
 _find_system_commands() {
+  if exists stat; then    
+    if stat -f '%Su:%g' . 2>/dev/null 1>/dev/null; then
+      _stat_variant="bsd"
+    elif stat -c '%u:%g' . 2>/dev/null 1>/dev/null; then
+      _stat_variant="gnu"
+    else
+      exit_with "Failed to determine stat variant, we require GNU or BSD stat to determine user and group owners of files; aborting" 1
+    fi
+  else
+    exit_with "We require GNU or BSD stat to determine user and group owners of files; aborting" 1
+  fi
   if exists wget; then
     _wget_cmd=$(command -v wget)
     if [[ "${HAB_NONINTERACTIVE:-}" == "true" ]]; then
@@ -645,12 +659,15 @@ _find_system_commands() {
   fi
   debug "Setting _hab_cmd=$_hab_cmd"
 
-  if exists rq; then
-    _rq_cmd=$(command -v rq)
-  else
-    exit_with "We required rq to build package metadata; aborting" 1
+  # shellcheck disable=2128
+  if (( ${#pkg_exposes[@]} )); then
+    if exists rq; then
+      _rq_cmd=$(command -v rq)
+    else
+      exit_with "We required rq to build package metadata; aborting" 1
+    fi
+    debug "Setting _rq_cmd=$_rq_cmd"
   fi
-  debug "Setting _rq_cmd=$_rq_cmd"
 }
 
 # **Internal** Return the path to the latest release of a package on stdout.
@@ -1490,6 +1507,16 @@ do_default_begin() {
 #    dependency. Further details in the `_populate_dependency_arrays()`
 #    function.
 _resolve_dependencies() {
+  if [[ -n $HAB_NATIVE_PACKAGE ]]; then
+    # shellcheck disable=2128
+    if [[ -n $pkg_build_deps ]]; then
+      exit_with "Native package plans cannot define 'pkg_build_deps'" 2
+    fi
+    # shellcheck disable=2128
+    if [[ -n $pkg_deps ]]; then
+      exit_with "Native package plans cannot define 'pkg_deps'" 2
+    fi
+  fi
   # Create initial package arrays
   _init_dependencies
 
@@ -1565,7 +1592,11 @@ _set_build_path() {
 # about what exactly failed.
 _write_pre_build_file() {
   local plan_owner
-  plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/plan.sh")"
+  if [[ $_stat_variant == "bsd" ]]; then
+    plan_owner="$(stat -f '%Su:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+  else
+    plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+  fi
   pre_build_file="$pkg_output_path/pre_build.env"
 
   build_line "Writing pre_build file"
@@ -1867,7 +1898,11 @@ do_default_prepare() {
 # Since `build` is one of the most overridden functions, this wrapper makes sure
 # that no matter how it is changed, our `$cwd` is `$SRC_PATH`.
 do_build_wrapper() {
-  build_line "Building"
+  if [[ -z $HAB_NATIVE_PACKAGE ]]; then
+    build_line "Building standard package"
+  else
+    build_line "Building native package"
+  fi
   pushd "$SRC_PATH" > /dev/null
   do_build
   popd > /dev/null
@@ -1998,6 +2033,11 @@ _build_metadata() {
   if [[ -f "$PLAN_CONTEXT/hooks/run" || -n "${pkg_svc_run:-}" ]]; then
     _render_metadata_SVC_USER
     _render_metadata_SVC_GROUP
+  fi
+
+  # We render out the PACKAGE_TYPE metadata file only for native packages.
+  if [[ -n $HAB_NATIVE_PACKAGE ]]; then
+    _render_metadata_PACKAGE_TYPE
   fi
 
   return 0
@@ -2261,7 +2301,7 @@ LD_RUN_PATH: $_ldrunpath_string
 ## Plan Source
 
 \`\`\`bash
-$(cat "$PLAN_CONTEXT"/plan.sh)
+$(cat "$PLAN_CONTEXT"/$HAB_PLAN_FILENAME)
 \`\`\`
 EOT
   return 0
@@ -2286,7 +2326,11 @@ _prepare_build_outputs() {
   local plan_owner
   _pkg_sha256sum=$($_shasum_cmd "$pkg_artifact" | cut -d " " -f 1)
   _pkg_blake2bsum=$($HAB_BIN pkg hash "$pkg_artifact" | cut -d " " -f 1)
-  plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/plan.sh")"
+  if [[ $_stat_variant == "bsd" ]]; then
+    plan_owner="$(stat -f '%Su:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+  else
+    plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/$HAB_PLAN_FILENAME")"
+  fi
 
   mkdir -pv "$pkg_output_path"
   # Attempt to set user/group ownership to the same as the ownership of the
@@ -2440,7 +2484,7 @@ PLAN_CONTEXT="$(abspath "$PLAN_CONTEXT")"
 # Set the initial source root to be the same as the Plan context directory.
 # This assumes that your application source is local and your Plan exists with
 # your code.
-SRC_PATH="$PLAN_CONTEXT"
+SRC_PATH="${HAB_SRC_PATH:=$PLAN_CONTEXT}"
 # Expand the path of this program to an absolute path
 THIS_PROGRAM=$(abspath "$0")
 
@@ -2467,12 +2511,12 @@ target_paths=()
 paths=()
 final_paths=()
 candidate_target_paths=(
-  "$PLAN_CONTEXT/$pkg_target/plan.sh"
-  "$PLAN_CONTEXT/habitat/$pkg_target/plan.sh"
+  "$PLAN_CONTEXT/$pkg_target/$HAB_PLAN_FILENAME"
+  "$PLAN_CONTEXT/habitat/$pkg_target/$HAB_PLAN_FILENAME"
 )
 candidate_paths=(
-  "$PLAN_CONTEXT/plan.sh"
-  "$PLAN_CONTEXT/habitat/plan.sh"
+  "$PLAN_CONTEXT/$HAB_PLAN_FILENAME"
+  "$PLAN_CONTEXT/habitat/$HAB_PLAN_FILENAME"
 )
 
 # Lets notate all of the existing plan paths
@@ -2489,7 +2533,7 @@ for path in "${candidate_paths[@]}"; do
 done
 
 if [[ ${#paths[@]} -gt 0 && ${#target_paths[@]} -gt 0 ]]; then
-    warn "There is a plan.sh inside $pkg_target and outside as well. Using the plan in $pkg_target."
+    warn "There is a $HAB_PLAN_FILENAME inside $pkg_target and outside as well. Using the plan in $pkg_target."
     warn "It is advisable to either remove the plan that is outside $pkg_target"
     warn "or move that plan to its own target folder if it is intended for a different target."
 fi
@@ -2517,8 +2561,8 @@ fi
 cd "$PLAN_CONTEXT"
 
 # Load the Plan
-build_line "Loading $PLAN_CONTEXT/plan.sh"
-if source "$PLAN_CONTEXT/plan.sh"; then
+build_line "Loading $PLAN_CONTEXT/$HAB_PLAN_FILENAME"
+if source "$PLAN_CONTEXT/$HAB_PLAN_FILENAME"; then
   build_line "Plan loaded"
 else
   ret=$?

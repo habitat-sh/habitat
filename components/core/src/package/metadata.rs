@@ -1,7 +1,7 @@
-use crate::{error::{Error,
-                    Result},
-            package::PackageIdent};
-use serde::Serialize;
+use crate::error::{Error,
+                   Result};
+use serde::{Deserialize,
+            Serialize};
 use std::{self,
           collections::BTreeMap,
           env,
@@ -58,33 +58,6 @@ impl fmt::Display for Bind {
     }
 }
 
-/// Describes a bind mapping in a composite package.
-#[derive(Debug, PartialEq)]
-pub struct BindMapping {
-    /// The name of the bind of a given service.
-    pub bind_name:          String,
-    /// The identifier of the service within the composite package
-    /// that should satisfy the named bind.
-    pub satisfying_service: PackageIdent,
-}
-
-impl FromStr for BindMapping {
-    type Err = Error;
-
-    fn from_str(line: &str) -> Result<Self> {
-        let mut parts = line.split(':');
-        let bind_name = parts.next()
-                             .map(ToString::to_string)
-                             .ok_or(Error::MetaFileBadBind)?;
-        let satisfying_service = match parts.next() {
-            None => return Err(Error::MetaFileBadBind),
-            Some(satisfying_service) => satisfying_service.parse()?,
-        };
-        Ok(BindMapping { bind_name,
-                         satisfying_service })
-    }
-}
-
 #[derive(Debug, PartialEq)]
 pub struct EnvVar {
     pub key:       String,
@@ -134,7 +107,6 @@ impl IntoIterator for PkgEnv {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub enum MetaFile {
-    BindMap, // Composite-only
     Binds,
     BindsOptional,
     BuildDeps,
@@ -151,24 +123,21 @@ pub enum MetaFile {
     LdRunPath,
     Manifest,
     Path,
-    ResolvedServices, // Composite-only
     RuntimeEnvironment,
     RuntimeEnvironmentPaths,
     RuntimePath,
     ShutdownSignal,
     ShutdownTimeout,
-    Services, // Composite-only
     SvcGroup,
     SvcUser,
     Target,
     TDeps,
-    Type,
+    PackageType,
 }
 
 impl fmt::Display for MetaFile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let id = match *self {
-            MetaFile::BindMap => "BIND_MAP",
             MetaFile::Binds => "BINDS",
             MetaFile::BindsOptional => "BINDS_OPTIONAL",
             MetaFile::BuildDeps => "BUILD_DEPS",
@@ -185,18 +154,16 @@ impl fmt::Display for MetaFile {
             MetaFile::LdRunPath => "LD_RUN_PATH",
             MetaFile::Manifest => "MANIFEST",
             MetaFile::Path => "PATH",
-            MetaFile::ResolvedServices => "RESOLVED_SERVICES",
             MetaFile::RuntimeEnvironment => "RUNTIME_ENVIRONMENT",
             MetaFile::RuntimeEnvironmentPaths => "RUNTIME_ENVIRONMENT_PATHS",
             MetaFile::RuntimePath => "RUNTIME_PATH",
-            MetaFile::Services => "SERVICES",
             MetaFile::ShutdownSignal => "SHUTDOWN_SIGNAL",
             MetaFile::ShutdownTimeout => "SHUTDOWN_TIMEOUT",
             MetaFile::SvcGroup => "SVC_GROUP",
             MetaFile::SvcUser => "SVC_USER",
             MetaFile::Target => "TARGET",
             MetaFile::TDeps => "TDEPS",
-            MetaFile::Type => "TYPE",
+            MetaFile::PackageType => "PACKAGE_TYPE",
         };
         write!(f, "{}", id)
     }
@@ -234,16 +201,17 @@ fn existing_metafile<P: AsRef<Path>>(installed_path: P, file: MetaFile) -> Optio
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub enum PackageType {
-    Standalone,
-    Composite,
+    Standard,
+    Native,
 }
 
 impl fmt::Display for PackageType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let id = match *self {
-            PackageType::Standalone => "Standalone",
-            PackageType::Composite => "Composite",
+            PackageType::Standard => "standard",
+            PackageType::Native => "native",
         };
         write!(f, "{}", id)
     }
@@ -254,8 +222,8 @@ impl FromStr for PackageType {
 
     fn from_str(value: &str) -> Result<Self> {
         match value {
-            "standalone" => Ok(PackageType::Standalone),
-            "composite" => Ok(PackageType::Composite),
+            "standard" => Ok(PackageType::Standard),
+            "native" => Ok(PackageType::Native),
             _ => Err(Error::InvalidPackageType(value.to_string())),
         }
     }
@@ -364,24 +332,6 @@ port=front-end.port
                                      separator: Some(ENV_PATH_SEPARATOR), }];
 
         assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn can_parse_a_valid_bind_mapping() {
-        let input = "my_bind:core/test";
-
-        let output: BindMapping = input.parse().unwrap();
-
-        assert_eq!(output.bind_name, "my_bind");
-        assert_eq!(output.satisfying_service,
-                   PackageIdent::from_str("core/test").unwrap());
-    }
-
-    #[test]
-    fn fails_to_parse_a_bind_mapping_with_an_invalid_service_identifier() {
-        let input = "my_bind:this-is-a-bad-identifier";
-        let output = input.parse::<BindMapping>();
-        assert!(output.is_err());
     }
 
     #[test]

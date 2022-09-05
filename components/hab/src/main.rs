@@ -7,14 +7,16 @@ use clap::{value_t,
 use configopt::{ConfigOpt,
                 Error as ConfigOptError};
 use futures::stream::StreamExt;
+#[cfg(all(any(target_os = "linux", target_os = "windows"),
+              target_arch = "x86_64"))]
+use hab::cli::hab::pkg::ExportCommand as PkgExportCommand;
 use hab::{cli::{self,
                 gateway_util,
                 hab::{license::License,
                       origin::{Rbac,
                                RbacSet,
                                RbacShow},
-                      pkg::{ExportCommand as PkgExportCommand,
-                            PkgExec},
+                      pkg::PkgExec,
                       sup::{HabSup,
                             Secret,
                             Sup},
@@ -197,12 +199,15 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                              update your automation and processes accordingly.")?;
                     return command::launcher::start(ui, sup_run, &args_after_first(1)).await;
                 }
+                #[cfg(any(target_os = "macos",
+                          all(any(target_os = "linux", target_os = "windows"),
+                              target_arch = "x86_64")))]
                 Hab::Studio(studio) => {
                     return command::studio::enter::start(ui, studio.args()).await;
                 }
+                #[cfg(not(target_os = "macos"))]
                 Hab::Sup(sup) => {
                     match sup {
-                        #[cfg(not(target_os = "macos"))]
                         HabSup::Sup(sup) => {
                             // These commands are handled by the `hab-sup` or `hab-launch` binaries.
                             // We need to pass the subcommand that was issued to the underlying
@@ -210,7 +215,11 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                             // command prefix and pass the rest of the args to underlying binary.
                             let args = args_after_first(2);
                             match sup {
-                                Sup::Bash | Sup::Sh | Sup::Term => {
+                                #[cfg(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64"))]
+                                Sup::Bash | Sup::Sh => {
+                                    return command::sup::start(ui, &args).await;
+                                }
+                                Sup::Term => {
                                     return command::sup::start(ui, &args).await;
                                 }
                                 Sup::Run(sup_run) => {
@@ -273,7 +282,11 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                     return command::sup::start(ui, &args_after_first(1)).await;
                 }
                 Hab::Pkg(pkg) => {
+                    #[allow(clippy::collapsible_match)]
                     match pkg {
+                        // package export is not available on platforms that have no package support
+                        #[cfg(all(any(target_os = "linux", target_os = "windows"),
+                                  target_arch = "x86_64"))]
                         Pkg::Export(export) => {
                             match export {
                                 #[cfg(target_os = "linux")]
@@ -439,7 +452,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
             match matches.subcommand() {
                 ("binds", Some(m)) => sub_pkg_binds(m)?,
                 ("binlink", Some(m)) => sub_pkg_binlink(ui, m)?,
-                ("build", Some(m)) => sub_pkg_build(ui, m).await?,
+                ("build", Some(m)) => sub_pkg_build(ui, m, feature_flags).await?,
                 ("channels", Some(m)) => sub_pkg_channels(ui, m).await?,
                 ("config", Some(m)) => sub_pkg_config(m)?,
                 ("dependencies", Some(m)) => sub_pkg_dependencies(m)?,
@@ -781,7 +794,8 @@ fn hab_key_origins(m: &ArgMatches<'_>) -> Result<Vec<habitat_core::origin::Origi
      .collect()
 }
 
-async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+#[allow(unused_variables)]
+async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
     let plan_context = required_value_of(m, "PLAN_CONTEXT");
     let root = m.value_of("HAB_STUDIO_ROOT");
     let src = m.value_of("SRC_PATH");
@@ -797,10 +811,32 @@ async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
         }
     }
 
+    #[cfg(target_family = "unix")]
+    let native_package = if m.is_present("NATIVE_PACKAGE") {
+        if !feature_flags.contains(FeatureFlag::NATIVE_PACKAGE_SUPPORT) {
+            return Err(Error::ArgumentError(String::from("`--native-package` is \
+                                                          only available when \
+                                                          `HAB_FEAT_NATIVE_PACKAGE_SUPPORT` \
+                                                          is set")));
+        }
+        true
+    } else {
+        false
+    };
+    #[cfg(target_family = "windows")]
+    let native_package = false;
+
     let docker = m.is_present("DOCKER");
     let reuse = m.is_present("REUSE");
 
-    command::pkg::build::start(ui, plan_context, root, src, &origins, reuse, docker).await
+    command::pkg::build::start(ui,
+                               plan_context,
+                               root,
+                               src,
+                               &origins,
+                               native_package,
+                               reuse,
+                               docker).await
 }
 
 fn sub_pkg_config(m: &ArgMatches<'_>) -> Result<()> {

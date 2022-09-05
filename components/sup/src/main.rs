@@ -1,5 +1,7 @@
+#[cfg(all(any(target_os = "linux", target_os = "windows"),
+              target_arch = "x86_64"))]
+use crate::sup::command;
 use crate::sup::{cli::cli,
-                 command,
                  error::{Error,
                          Result},
                  event::EventStreamConfig,
@@ -146,6 +148,8 @@ async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFlag) -> Resul
         }
     };
     match app_matches.subcommand() {
+        #[cfg(all(any(target_os = "linux", target_os = "windows"),
+                  target_arch = "x86_64"))]
         ("bash", Some(_)) => sub_bash().await,
         ("run", Some(_)) => {
             // TODO (DM): This is a little hacky. Essentially, for `hab sup run` we switch to using
@@ -170,12 +174,16 @@ async fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFlag) -> Resul
             let launcher = launcher.ok_or(Error::NoLauncher)?;
             sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run, launcher, feature_flags).await
         }
+        #[cfg(all(any(target_os = "linux", target_os = "windows"),
+                  target_arch = "x86_64"))]
         ("sh", Some(_)) => sub_sh().await,
         ("term", Some(_)) => sub_term(),
         _ => unreachable!(),
     }
 }
 
+#[cfg(all(any(target_os = "linux", target_os = "windows"),
+          target_arch = "x86_64"))]
 async fn sub_bash() -> Result<()> { command::shell::bash().await }
 
 /// # Locking (see locking.md)
@@ -211,6 +219,8 @@ async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(sup_run: SupRun,
            .await
 }
 
+#[cfg(all(any(target_os = "linux", target_os = "windows"),
+          target_arch = "x86_64"))]
 async fn sub_sh() -> Result<()> { command::shell::sh().await }
 
 fn sub_term() -> Result<()> {
@@ -440,7 +450,6 @@ mod test {
         use std::{collections::HashMap,
                   fs::File,
                   io::Write,
-                  path::PathBuf,
                   str::FromStr,
                   time::Duration};
         use sup::manager::ServiceRestartConfig;
@@ -823,7 +832,7 @@ gpoVMSncu2jMIDZX63IkQII=
         #[test]
         fn test_hab_sup_run_cli_2() {
             let lock = lock_var();
-            lock.set(PathBuf::from("/cache/key/path"));
+            lock.unset();
 
             let args = "hab-sup run --local-gossip-mode";
 
@@ -833,7 +842,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        service_update_period:      Duration::from_secs(60),
                                        service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
-                                       key_cache:                  KeyCache::new("/cache/key/path"),
+                                       key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:             ChannelIdent::default(),
@@ -1160,7 +1169,7 @@ sys_ip_address = "7.8.9.0"
             let temp_dir = TempDir::new().expect("Could not create tempdir");
 
             let lock = lock_var();
-            lock.set(PathBuf::from("/cache/key/path"));
+            lock.unset();
 
             // Setup config file
             let config_contents = r#"local_gossip_mode = true"#;
@@ -1177,7 +1186,7 @@ sys_ip_address = "7.8.9.0"
                                        service_update_period:      Duration::from_secs(60),
                                        service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
-                                       key_cache:                  KeyCache::new("/cache/key/path"),
+                                       key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
                                            String::from("https://bldr.habitat.sh"),
                                        update_channel:             ChannelIdent::default(),

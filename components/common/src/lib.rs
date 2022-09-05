@@ -71,6 +71,8 @@ bitflags::bitflags! {
         const TEST_BOOT_FAIL             = 0b0000_0000_0100;
         const REDACT_HTTP                = 0b0000_0000_1000;
         const SERVICE_CONFIG_FILES       = 0b0000_0001_0000;
+        #[cfg(target_family = "unix")]
+        const NATIVE_PACKAGE_SUPPORT     = 0b0000_0010_0000;
         const OFFLINE_INSTALL            = 0b0000_0100_0000;
         const IGNORE_LOCAL               = 0b0000_1000_0000;
         const TRIGGER_ELECTION           = 0b0010_0000_0000;
@@ -81,17 +83,19 @@ bitflags::bitflags! {
 
 lazy_static! {
     static ref ENV_VARS: HashMap<FeatureFlag, &'static str> = {
-        let mapping = vec![(FeatureFlag::LIST, "HAB_FEAT_LIST"),
-                           (FeatureFlag::TEST_EXIT, "HAB_FEAT_TEST_EXIT"),
-                           (FeatureFlag::TEST_BOOT_FAIL, "HAB_FEAT_BOOT_FAIL"),
-                           (FeatureFlag::REDACT_HTTP, "HAB_FEAT_REDACT_HTTP"),
-                           (FeatureFlag::OFFLINE_INSTALL, "HAB_FEAT_OFFLINE_INSTALL"),
-                           (FeatureFlag::IGNORE_LOCAL, "HAB_FEAT_IGNORE_LOCAL"),
-                           (FeatureFlag::TRIGGER_ELECTION, "HAB_FEAT_TRIGGER_ELECTION"),
-                           (FeatureFlag::STRUCTOPT_CLI, "HAB_FEAT_STRUCTOPT_CLI"),
-                           (FeatureFlag::NO_NAMED_PIPE_HEALTH_CHECK,
-                            "HAB_FEAT_NO_NAMED_PIPE_HEALTH_CHECK"),
-                           (FeatureFlag::SERVICE_CONFIG_FILES, "HAB_FEAT_SERVICE_CONFIG_FILES"),];
+        let mapping =
+            vec![(FeatureFlag::LIST, "HAB_FEAT_LIST"),
+                 (FeatureFlag::TEST_EXIT, "HAB_FEAT_TEST_EXIT"),
+                 (FeatureFlag::TEST_BOOT_FAIL, "HAB_FEAT_BOOT_FAIL"),
+                 (FeatureFlag::REDACT_HTTP, "HAB_FEAT_REDACT_HTTP"),
+                 (FeatureFlag::OFFLINE_INSTALL, "HAB_FEAT_OFFLINE_INSTALL"),
+                 (FeatureFlag::IGNORE_LOCAL, "HAB_FEAT_IGNORE_LOCAL"),
+                 (FeatureFlag::TRIGGER_ELECTION, "HAB_FEAT_TRIGGER_ELECTION"),
+                 (FeatureFlag::STRUCTOPT_CLI, "HAB_FEAT_STRUCTOPT_CLI"),
+                 (FeatureFlag::NO_NAMED_PIPE_HEALTH_CHECK, "HAB_FEAT_NO_NAMED_PIPE_HEALTH_CHECK"),
+                 (FeatureFlag::SERVICE_CONFIG_FILES, "HAB_FEAT_SERVICE_CONFIG_FILES"),
+                 #[cfg(target_family = "unix")]
+                 (FeatureFlag::NATIVE_PACKAGE_SUPPORT, "HAB_FEAT_NATIVE_PACKAGE_SUPPORT")];
 
         HashMap::from_iter(mapping)
     };

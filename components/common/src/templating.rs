@@ -178,6 +178,9 @@ mod test {
                              FS_ROOT_PATH},
                         package::PackageIdent},
                 templating::test_helpers::*};
+    #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
+                      target_arch = "x86_64")))]
+    use habitat_core::package::metadata::MetaFile;
     use std::{collections::BTreeMap,
               env,
               fs::File,
@@ -417,7 +420,14 @@ test: something
 
         let pkg_install =
             PackageInstall::new_from_parts(pg_id, root.clone(), root.clone(), root.clone());
-
+        // Platforms without standard package support require all packages to be native packages
+        #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
+                      target_arch = "x86_64")))]
+        {
+            create_with_content(pkg_install.installed_path()
+                                           .join(MetaFile::PackageType.to_string()),
+                                "native");
+        }
         let toml_path = root.join("default.toml");
         create_with_content(toml_path, "message = \"Hello\"");
         let hooks_path = root.join("hooks");
