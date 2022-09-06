@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.572 -->
-## [1.6.572](https://github.com/habitat-sh/habitat/tree/1.6.572) (2022-09-05)
+<!-- latest_release 1.6.573 -->
+## [1.6.573](https://github.com/habitat-sh/habitat/tree/1.6.573) (2022-09-06)
 
 #### Merged Pull Requests
-- Native Habitat Packages [#8547](https://github.com/habitat-sh/habitat/pull/8547) ([atrniv](https://github.com/atrniv))
+- Bump thiserror from 1.0.33 to 1.0.34 [#8624](https://github.com/habitat-sh/habitat/pull/8624) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.568 -->
 ### Changes since 1.6.568 release
 
 #### Merged Pull Requests
+- Bump thiserror from 1.0.33 to 1.0.34 [#8624](https://github.com/habitat-sh/habitat/pull/8624) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.573 -->
 - Native Habitat Packages [#8547](https://github.com/habitat-sh/habitat/pull/8547) ([atrniv](https://github.com/atrniv)) <!-- 1.6.572 -->
 - bump hyper to avoid vulnerability [#8623](https://github.com/habitat-sh/habitat/pull/8623) ([mwrock](https://github.com/mwrock)) <!-- 1.6.572 -->
 - fix relese docs script and move docs scripts to the end [#8622](https://github.com/habitat-sh/habitat/pull/8622) ([mwrock](https://github.com/mwrock)) <!-- 1.6.571 -->
