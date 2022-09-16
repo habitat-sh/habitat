@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.575 -->
-## [1.6.575](https://github.com/habitat-sh/habitat/tree/1.6.575) (2022-09-16)
+<!-- latest_release 1.6.576 -->
+## [1.6.576](https://github.com/habitat-sh/habitat/tree/1.6.576) (2022-09-16)
 
 #### Merged Pull Requests
-- Bump url from 2.2.2 to 2.3.0 [#8628](https://github.com/habitat-sh/habitat/pull/8628) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump semver from 1.0.13 to 1.0.14 [#8629](https://github.com/habitat-sh/habitat/pull/8629) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.568 -->
 ### Changes since 1.6.568 release
 
 #### Merged Pull Requests
+- Bump semver from 1.0.13 to 1.0.14 [#8629](https://github.com/habitat-sh/habitat/pull/8629) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.576 -->
 - Bump url from 2.2.2 to 2.3.0 [#8628](https://github.com/habitat-sh/habitat/pull/8628) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.575 -->
 - Bump anyhow from 1.0.63 to 1.0.64 [#8625](https://github.com/habitat-sh/habitat/pull/8625) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.574 -->
 - Bump thiserror from 1.0.33 to 1.0.34 [#8624](https://github.com/habitat-sh/habitat/pull/8624) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.573 -->
