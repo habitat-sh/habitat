@@ -50,5 +50,5 @@ fn raml2html_cmd(dst: PathBuf, src: PathBuf) -> io::Result<ExitStatus> {
 fn generate_event_protobufs() {
     let mut config = prost_build::Config::new();
     config.compile_protos(&["protocols/event.proto"], &["protocols/"])
-          .unwrap()
+          .expect("Couldn't compile protobufs!")
 }

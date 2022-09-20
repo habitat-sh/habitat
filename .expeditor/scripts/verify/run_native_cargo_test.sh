@@ -8,7 +8,7 @@ export FS_ROOT=/tmp/hab-test
 export DEBIAN_FRONTEND=noninteractive
 
 # Ensure all build and test dependencies are installed
-apt-get update && apt-get install -y ca-certificates sudo gcc libc6-dev wget openssl make pkg-config libzmq3-dev curl cmake
+apt-get update && apt-get install -y ca-certificates sudo gcc libc6-dev wget openssl make pkg-config libzmq3-dev curl cmake protobuf-compiler
 
 # Create the test user and fix permissions
 useradd -rm -d /home/$TEST_USER -s /bin/bash -g root -G sudo -u 1001 $TEST_USER
