@@ -1,16 +1,22 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.574 -->
-## [1.6.574](https://github.com/habitat-sh/habitat/tree/1.6.574) (2022-09-06)
+<!-- latest_release 1.6.580 -->
+## [1.6.580](https://github.com/habitat-sh/habitat/tree/1.6.580) (2022-09-20)
 
 #### Merged Pull Requests
-- Bump anyhow from 1.0.63 to 1.0.64 [#8625](https://github.com/habitat-sh/habitat/pull/8625) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump libc from 0.2.132 to 0.2.133 [#8633](https://github.com/habitat-sh/habitat/pull/8633) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.568 -->
 ### Changes since 1.6.568 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.132 to 0.2.133 [#8633](https://github.com/habitat-sh/habitat/pull/8633) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.580 -->
+- Bump anyhow from 1.0.64 to 1.0.65 [#8632](https://github.com/habitat-sh/habitat/pull/8632) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.579 -->
+- Bump url from 2.3.0 to 2.3.1 [#8631](https://github.com/habitat-sh/habitat/pull/8631) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.578 -->
+- Bump thiserror from 1.0.34 to 1.0.35 [#8630](https://github.com/habitat-sh/habitat/pull/8630) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.577 -->
+- Bump semver from 1.0.13 to 1.0.14 [#8629](https://github.com/habitat-sh/habitat/pull/8629) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.576 -->
+- Bump url from 2.2.2 to 2.3.0 [#8628](https://github.com/habitat-sh/habitat/pull/8628) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.575 -->
 - Bump anyhow from 1.0.63 to 1.0.64 [#8625](https://github.com/habitat-sh/habitat/pull/8625) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.574 -->
 - Bump thiserror from 1.0.33 to 1.0.34 [#8624](https://github.com/habitat-sh/habitat/pull/8624) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.573 -->
 - Native Habitat Packages [#8547](https://github.com/habitat-sh/habitat/pull/8547) ([atrniv](https://github.com/atrniv)) <!-- 1.6.572 -->
