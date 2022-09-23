@@ -11,6 +11,10 @@ eval "$(vault-util fetch-secret-env)"
 export HAB_AUTH_TOKEN="${PIPELINE_HAB_AUTH_TOKEN}"
 export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 
+
+echo "--- Executing: brew install protobuf"
+brew install protobuf
+
 channel=$(get_release_channel)
 
 echo "--- Channel: $channel - bldr url: $HAB_BLDR_URL"
