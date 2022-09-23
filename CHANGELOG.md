@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.581 -->
-## [1.6.581](https://github.com/habitat-sh/habitat/tree/1.6.581) (2022-09-21)
+<!-- latest_release 1.6.582 -->
+## [1.6.582](https://github.com/habitat-sh/habitat/tree/1.6.582) (2022-09-23)
 
 #### Merged Pull Requests
-- Update prost crates to 0.11.x versions [#8627](https://github.com/habitat-sh/habitat/pull/8627) ([jasonheath](https://github.com/jasonheath))
+- Bump serde from 1.0.144 to 1.0.145 [#8635](https://github.com/habitat-sh/habitat/pull/8635) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.568 -->
 ### Changes since 1.6.568 release
 
 #### Merged Pull Requests
+- Bump serde from 1.0.144 to 1.0.145 [#8635](https://github.com/habitat-sh/habitat/pull/8635) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.582 -->
 - Update prost crates to 0.11.x versions [#8627](https://github.com/habitat-sh/habitat/pull/8627) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.581 -->
 - Bump libc from 0.2.132 to 0.2.133 [#8633](https://github.com/habitat-sh/habitat/pull/8633) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.580 -->
 - Bump anyhow from 1.0.64 to 1.0.65 [#8632](https://github.com/habitat-sh/habitat/pull/8632) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.579 -->
