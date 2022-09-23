@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.584 -->
-## [1.6.584](https://github.com/habitat-sh/habitat/tree/1.6.584) (2022-09-23)
+<!-- latest_release 1.6.585 -->
+## [1.6.585](https://github.com/habitat-sh/habitat/tree/1.6.585) (2022-09-23)
 
 #### Merged Pull Requests
-- address easy warnings in service.rs of component/sup [#8634](https://github.com/habitat-sh/habitat/pull/8634) ([jasonheath](https://github.com/jasonheath))
+- Address protoc availability during release builds [#8637](https://github.com/habitat-sh/habitat/pull/8637) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.568 -->
 ### Changes since 1.6.568 release
 
 #### Merged Pull Requests
+- Address protoc availability during release builds [#8637](https://github.com/habitat-sh/habitat/pull/8637) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.585 -->
 - address easy warnings in service.rs of component/sup [#8634](https://github.com/habitat-sh/habitat/pull/8634) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.584 -->
 - Bump serde_test from 1.0.144 to 1.0.145 [#8636](https://github.com/habitat-sh/habitat/pull/8636) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.583 -->
 - Bump serde from 1.0.144 to 1.0.145 [#8635](https://github.com/habitat-sh/habitat/pull/8635) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.582 -->
