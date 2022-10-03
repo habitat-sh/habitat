@@ -26,7 +26,8 @@ Describe "Studio build" {
     }
 
     It "does not build plan-in-none" {
-        hab pkg build test/fixtures/plan-in-none
+        Copy-Item "components/studio/bin/hab-studio.sh" "/hab/pkgs/core/hab-studio/1.6.587/20220930210438/bin/hab-studio"
+        write-host $(hab pkg build test/fixtures/plan-in-none)
         $LASTEXITCODE | Should -Not -Be 0
     }
 
