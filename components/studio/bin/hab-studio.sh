@@ -1001,6 +1001,15 @@ try() {
   fi
 }
 
+tryy() {
+  if "$@"; then
+    status=$?
+  else
+    status=$?
+    echo "Warning: '$*' failed with status $status"
+  fi
+}
+
 # **Internal** Kills a Launcher process, if one exists.
 kill_launcher() {
   pid_file="$HAB_STUDIO_ROOT/hab/sup/default/LOCK"
@@ -1019,6 +1028,7 @@ chown_artifacts() {
   && [ -z "${NO_ARTIFACT_PATH}" ] \
   && [ -d "$ARTIFACT_PATH" ]; then
     artifact_path_owner="$("$bb" stat -c '%u:%g' "$ARTIFACT_PATH")"
+    echo "owner is $artifact_path_owner"
     try "$bb" chown -R "$artifact_path_owner" "$ARTIFACT_PATH"
   fi
 }
@@ -1032,6 +1042,7 @@ chown_certs() {
   && [ -z "${NO_CERT_PATH}" ] \
   && [ -d "$CERT_PATH" ]; then
     cert_path_owner="$("$bb" stat -c '%u:%g' "$CERT_PATH")"
+    echo "owner is $cert_path_owner"
     try "$bb" chown -R "$cert_path_owner" "$CERT_PATH"
   fi
 }
