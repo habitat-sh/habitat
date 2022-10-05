@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.587 -->
-## [1.6.587](https://github.com/habitat-sh/habitat/tree/1.6.587) (2022-09-30)
+<!-- latest_release 1.6.588 -->
+## [1.6.588](https://github.com/habitat-sh/habitat/tree/1.6.588) (2022-10-05)
 
 #### Merged Pull Requests
-- Bump thiserror from 1.0.36 to 1.0.37 [#8639](https://github.com/habitat-sh/habitat/pull/8639) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Jah/macos warning cleanup [#8641](https://github.com/habitat-sh/habitat/pull/8641) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.568 -->
 ### Changes since 1.6.568 release
 
 #### Merged Pull Requests
+- Jah/macos warning cleanup [#8641](https://github.com/habitat-sh/habitat/pull/8641) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.588 -->
 - Bump thiserror from 1.0.36 to 1.0.37 [#8639](https://github.com/habitat-sh/habitat/pull/8639) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.587 -->
 - Bump thiserror from 1.0.35 to 1.0.36 [#8638](https://github.com/habitat-sh/habitat/pull/8638) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.586 -->
 - Address protoc availability during release builds [#8637](https://github.com/habitat-sh/habitat/pull/8637) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.585 -->
