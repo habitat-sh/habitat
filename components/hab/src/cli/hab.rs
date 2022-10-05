@@ -45,9 +45,7 @@ use self::{bldr::*,
                   RingKeyGenerate,
                   RingKeyImport},
            sup::{ConfigOptHabSup,
-                 ConfigOptSupRun,
-                 HabSup,
-                 SupRun},
+                 HabSup},
            svc::{ConfigOptSvc,
                  ConfigOptSvcStart,
                  ConfigOptSvcStop,
@@ -63,6 +61,10 @@ use crate::{cli::AFTER_HELP,
 use configopt::ConfigOpt;
 use structopt::{clap::AppSettings,
                 StructOpt};
+
+#[cfg(not(target_os = "macos"))]
+use crate::cli::hab::sup::{ConfigOptSupRun,
+                           SupRun};
 
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "hab",

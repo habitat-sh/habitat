@@ -17,9 +17,6 @@ use hab::{cli::{self,
                                RbacSet,
                                RbacShow},
                       pkg::PkgExec,
-                      sup::{HabSup,
-                            Secret,
-                            Sup},
                       svc::{self,
                             BulkLoad as SvcBulkLoad,
                             Load as SvcLoad,
@@ -71,7 +68,6 @@ use habitat_core::{crypto::{init,
                              PackageIdent,
                              PackageTarget},
                    service::ServiceGroup,
-                   tls::ctl_gateway as ctl_gateway_tls,
                    url::default_bldr_url,
                    ChannelIdent};
 use habitat_sup_client::{SrvClient,
@@ -99,6 +95,14 @@ use std::{collections::HashMap,
           string::ToString,
           thread};
 use tabwriter::TabWriter;
+
+#[cfg(not(target_os = "macos"))]
+use hab::cli::hab::sup::{HabSup,
+                         Secret,
+                         Sup};
+#[cfg(not(target_os = "macos"))]
+use habitat_core::tls::ctl_gateway as ctl_gateway_tls;
+#[cfg(not(target_os = "macos"))]
 use webpki::DnsNameRef;
 
 /// Makes the --org CLI param optional when this env var is set
@@ -1588,6 +1592,7 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     Ok(())
 }
 
+#[cfg(not(target_os = "macos"))]
 async fn sub_sup_depart(member_id: String,
                         remote_sup: Option<&ResolvedListenCtlAddr>)
                         -> Result<()> {
@@ -1617,6 +1622,7 @@ async fn sub_sup_depart(member_id: String,
     Ok(())
 }
 
+#[cfg(not(target_os = "macos"))]
 async fn sub_sup_restart(remote_sup: Option<&ResolvedListenCtlAddr>) -> Result<()> {
     let remote_sup = SrvClient::ctl_addr(remote_sup)?;
     let mut ui = ui::ui();
@@ -1640,6 +1646,7 @@ async fn sub_sup_restart(remote_sup: Option<&ResolvedListenCtlAddr>) -> Result<(
     Ok(())
 }
 
+#[cfg(not(target_os = "macos"))]
 fn sub_sup_secret_generate() -> Result<()> {
     let mut ui = ui::ui();
     let mut buf = String::new();
@@ -1648,6 +1655,7 @@ fn sub_sup_secret_generate() -> Result<()> {
     Ok(())
 }
 
+#[cfg(not(target_os = "macos"))]
 fn sub_sup_secret_generate_key(subject_alternative_name: DnsNameRef, path: PathBuf) -> Result<()> {
     Ok(ctl_gateway_tls::generate_self_signed_certificate_and_key(subject_alternative_name, path)
         .map_err(habitat_core::Error::from)?)

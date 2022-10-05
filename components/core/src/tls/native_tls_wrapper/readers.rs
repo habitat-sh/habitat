@@ -1,17 +1,21 @@
 //! Utility functions to standardize reading certificates
 use crate::{error::Result,
-            fs::cache_ssl_path,
-            package::{PackageIdent,
-                      PackageInstall}};
+            fs::cache_ssl_path};
 use log::debug;
 use native_tls::Certificate;
 use std::{fs,
-          path::{Path,
-                 PathBuf},
-          result::Result as StdResult,
-          str::FromStr};
+          path::Path,
+          result::Result as StdResult};
 
+#[cfg(not(target_os = "macos"))]
+use crate::package::{PackageIdent,
+                     PackageInstall};
+#[cfg(not(target_os = "macos"))]
+use std::{path::PathBuf,
+          str::FromStr};
+#[cfg(not(target_os = "macos"))]
 const CACERTS_PKG_IDENT: &str = "core/cacerts";
+#[cfg(not(target_os = "macos"))]
 const CACERT_PEM: &str = include_str!(concat!(env!("OUT_DIR"), "/cacert.pem"));
 
 /// We need a set of root certificates when connected to SSL/TLS web endpoints.
@@ -58,6 +62,7 @@ pub fn certificates_as_der(fs_root_path: Option<&Path>) -> Result<Vec<Vec<u8>>> 
                                   .collect::<StdResult<_, _>>()?)
 }
 
+#[cfg(not(target_os = "macos"))]
 fn installed_cacerts(fs_root_path: Option<&Path>) -> Result<Option<PathBuf>> {
     let cacerts_ident = PackageIdent::from_str(CACERTS_PKG_IDENT)?;
 
@@ -72,6 +77,7 @@ fn installed_cacerts(fs_root_path: Option<&Path>) -> Result<Option<PathBuf>> {
     }
 }
 
+#[cfg(not(target_os = "macos"))]
 fn populate_cache(cache_path: &Path) -> Result<()> {
     let cached_certs = cache_path.join("cert.pem");
     if !cached_certs.exists() {
