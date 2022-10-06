@@ -379,7 +379,7 @@ new_studio() {
       # Set the default/unset type
       STUDIO_TYPE=default
       ;;
-    busybox|stage1|baseimage|bare)
+    busybox|stage1|baseimage|bare|bootstrap)
       # Confirmed valid types
       ;;
     *)
