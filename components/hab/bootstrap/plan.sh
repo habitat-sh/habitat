@@ -8,7 +8,7 @@ pkg_license=('Apache-2.0')
 # The result is a portable, static binary in a zero-dependency package.
 pkg_deps=(
     core/build-tools-glibc
-    core/build-tools-gcc
+    core/build-tools-gcc-libs
 )
 
 pkg_bin_dirs=(bin)
@@ -65,7 +65,7 @@ do_install() {
         ;;
     esac
     install -v -D "$CARGO_TARGET_DIR"/"$rustc_target"/${build_type#--}/$bin "$pkg_prefix"/bin/$bin
-    patchelf --set-rpath "$(pkg_path_for build-tools-glibc)/lib:$(pkg_path_for build-tools-gcc)/lib64" --set-interpreter "$dynamic_linker" "$pkg_prefix"/bin/$bin
+    patchelf --set-rpath "$(pkg_path_for build-tools-glibc)/lib:$(pkg_path_for build-tools-gcc-libs)/lib" --set-interpreter "$dynamic_linker" "$pkg_prefix"/bin/$bin
 }
 
 do_strip() {
