@@ -1,6 +1,7 @@
 use crate::error::{Error,
                    Result};
-use anyhow::Context;
+use anyhow::{anyhow,
+             Context};
 use habitat_common::ui::UI;
 use habitat_core::fs::cache_build_path;
 use log::debug;
@@ -58,5 +59,9 @@ fn start_native_studio_impl(_ui: &mut UI, args: &[OsString]) -> anyhow::Result<(
         child.wait()
              .context("Failed to wait for hab plan build script to run to completion")?;
     debug!("Habitat plan build script {}", exit_status);
-    Ok(())
+    if exit_status.success() {
+        Ok(())
+    } else {
+        Err(anyhow!("Failed to build native habitat plan"))
+    }
 }
