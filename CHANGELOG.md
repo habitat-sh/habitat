@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.589 -->
-## [1.6.589](https://github.com/habitat-sh/habitat/tree/1.6.589) (2022-10-17)
+<!-- latest_release 1.6.590 -->
+## [1.6.590](https://github.com/habitat-sh/habitat/tree/1.6.590) (2022-10-17)
 
 #### Merged Pull Requests
-- remove use of try when statting in studio [#8642](https://github.com/habitat-sh/habitat/pull/8642) ([mwrock](https://github.com/mwrock))
+- Bump libc from 0.2.133 to 0.2.135 [#8645](https://github.com/habitat-sh/habitat/pull/8645) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.568 -->
 ### Changes since 1.6.568 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.133 to 0.2.135 [#8645](https://github.com/habitat-sh/habitat/pull/8645) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.590 -->
 - remove use of try when statting in studio [#8642](https://github.com/habitat-sh/habitat/pull/8642) ([mwrock](https://github.com/mwrock)) <!-- 1.6.589 -->
 - Jah/macos warning cleanup [#8641](https://github.com/habitat-sh/habitat/pull/8641) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.588 -->
 - Bump thiserror from 1.0.36 to 1.0.37 [#8639](https://github.com/habitat-sh/habitat/pull/8639) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.587 -->
