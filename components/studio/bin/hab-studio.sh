@@ -1018,7 +1018,7 @@ chown_artifacts() {
   if [ -z "${NO_MOUNT}" ] \
   && [ -z "${NO_ARTIFACT_PATH}" ] \
   && [ -d "$ARTIFACT_PATH" ]; then
-    artifact_path_owner="$(try "$bb" stat -c '%u:%g' "$ARTIFACT_PATH")"
+    artifact_path_owner="$("$bb" stat -c '%u:%g' "$ARTIFACT_PATH")" || echo "stat on $ARTIFACT_PATH failed with $?"
     try "$bb" chown -R "$artifact_path_owner" "$ARTIFACT_PATH"
   fi
 }
@@ -1031,7 +1031,7 @@ chown_certs() {
   if [ -z "${NO_MOUNT}" ] \
   && [ -z "${NO_CERT_PATH}" ] \
   && [ -d "$CERT_PATH" ]; then
-    cert_path_owner="$(try "$bb" stat -c '%u:%g' "$CERT_PATH")"
+    cert_path_owner="$("$bb" stat -c '%u:%g' "$CERT_PATH")" || echo "stat on $CERT_PATH failed with $?"
     try "$bb" chown -R "$cert_path_owner" "$CERT_PATH"
   fi
 }
