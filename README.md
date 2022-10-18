@@ -129,7 +129,7 @@ See [BUILDING.md](BUILDING.md) for platform specific info on building Habitat fr
 
 ## Native Packages
 
-See [README.md](https://github.com/habitat-sh/habitat/main/components/hab/src/command/studio/README.md) for info on Native Packages.
+See [README.md](https://github.com/habitat-sh/habitat/blob/main/components/hab/src/command/studio/README.md) for info on Native Packages.
 
 ## Further reference material
 
