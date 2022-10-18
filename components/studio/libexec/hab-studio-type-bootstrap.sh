@@ -152,7 +152,7 @@ PROFILE_ENTER
 
   studio_env_command="$coreutils_path/bin/env"
 
-  if [[ -n "$HAB_PKG_DEPS" ]]; then
+  if [[ -n "${HAB_PKG_DEPS:-}" ]]; then
     echo "Installing additional dependencies"
     deps=$(echo "$HAB_PKG_DEPS" | "$coreutils_path"/bin/tr ":" "\n")
     for dep in $deps; do
