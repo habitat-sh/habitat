@@ -29,6 +29,7 @@ See a quick demo of how to build, deploy and manage an application with Habitat:
 * [Roadmap](#roadmap)
 * [Community and support](#community-and-support)
 * [Building](#building)
+* [Native](#native-packages)
 * [Further reference material](#further-reference-material)
 * [Code of Conduct](#code-of-conduct)
 * [License](#license)
@@ -123,7 +124,12 @@ The Habitat core team's project tracker is also public and on [Github.](https://
 * The Chef Community meeting is every Thursday at 9am Pacific.  More information can be found in the Connect section of [Chef Community](https://community.chef.io/)
 
 ## Building
+
 See [BUILDING.md](BUILDING.md) for platform specific info on building Habitat from source.
+
+## Native Packages
+
+See [README.md](https://github.com/habitat-sh/habitat/main/components/hab/src/command/studio/README.md) for info on Native Packages.
 
 ## Further reference material
 
