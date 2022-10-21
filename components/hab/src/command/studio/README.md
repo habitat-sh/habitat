@@ -47,15 +47,14 @@ hab sup run your-native-package.hart
 
 We also support native packages on the on-prem builder. Following are the key points to note: 
 - A native package can be uploaded onto the builder and can be identified in the UI with the tag "native" next to the package.
-- The "Build latest version" button on the builder for native packages is disabled by default.
 - The type of package (i.e native or standard) cannot change in the subsequent releases. 
 For instance, If a package is uploaded as native, all the future versions throughout its lifetime also have to be native.
 
 #### Configuring native packages support on the builder
 The builder-api service configuration has to be updated to support native packages.
 - The features_enabled key must have "nativepackages".
-- For the SAAS builder, we only allow native packages from the origins mentioned in the allowed_native_package_origins array. 
-User can update their required origins using this template - `allowed_native_package_origins = ["origin1","origin2",...]`
+- We only allow native packages from the origins mentioned in the allowed_native_package_origins array. 
+Users can update their required origins using this template - `allowed_native_package_origins = ["origin1","origin2",...]`
 
-The above configuration updates can be applied to the builder-api service using a user.toml file. Refer [this document](https://github.com/habitat-sh/habitat/blob/main/components/docs-chef-io/content/habitat/service_updates.md#apply-configuration-updates-to-an-individual-service) to know how.
+The above configuration updates can be applied to the builder-api service using a user.toml file. Refer [this document](https://docs.chef.io/habitat/service_updates/#using-a-_usertoml_-file) to know how.
 
