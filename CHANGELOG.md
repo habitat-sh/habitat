@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.602 -->
-## [1.6.602](https://github.com/habitat-sh/habitat/tree/1.6.602) (2022-11-04)
+<!-- latest_release 1.6.603 -->
+## [1.6.603](https://github.com/habitat-sh/habitat/tree/1.6.603) (2022-11-08)
 
 #### Merged Pull Requests
-- Bump num_cpus from 1.13.1 to 1.14.0 [#8659](https://github.com/habitat-sh/habitat/pull/8659) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump regex from 1.6.0 to 1.7.0 [#8662](https://github.com/habitat-sh/habitat/pull/8662) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.568 -->
 ### Changes since 1.6.568 release
 
 #### Merged Pull Requests
+- Bump regex from 1.6.0 to 1.7.0 [#8662](https://github.com/habitat-sh/habitat/pull/8662) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.603 -->
 - Bump num_cpus from 1.13.1 to 1.14.0 [#8659](https://github.com/habitat-sh/habitat/pull/8659) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.602 -->
 - Bump cc from 1.0.73 to 1.0.74 [#8658](https://github.com/habitat-sh/habitat/pull/8658) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.601 -->
 - Bump mio from 0.8.4 to 0.8.5 [#8656](https://github.com/habitat-sh/habitat/pull/8656) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.600 -->
