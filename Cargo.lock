@@ -2121,11 +2121,11 @@ dependencies = [
 
 [[package]]
 name = "mktemp"
-version = "0.4.1"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "975de676448231fcde04b9149d2543077e166b78fc29eae5aa219e7928410da2"
+checksum = "4bdc1f74dd7bb717d39f784f844e490d935b3aa7e383008006dbbf29c1f7820a"
 dependencies = [
- "uuid 0.8.2",
+ "uuid 1.2.1",
 ]
 
 [[package]]
