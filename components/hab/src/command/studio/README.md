@@ -1,24 +1,34 @@
 ## Native Packages
 
-Native Packages are a new experimental Chef Habitat feature. They allow packages to be built outside of a studio environment 
-and are therefore built against the libraries that exist directly on one's Linux distribution. 
-This enables the user to run and manage applications with the Chef Habitat Supervisor on platforms which do not have package support.
+Native Packages are a new experimental Chef Habitat feature. They allow packages to be built outside of a studio environment.
 
-Users can create a package for any unix platform that has support for the Habitat Supervisor. 
-As of now only Linux x86_64 and ARM is supported.
+For clarity we refer to packages that are built inside a studio environment as a Standard Package.
 
-Native Packages have the following limitations:
-- No depedency on other standard or native packages
-- No runtime environment gaurantee. You must ensure that all required libraries and executables are available in the environment 
-where the supervisor runs the package.
-- The pkg_deps and pkg_build_deps plan variables are not allowed.
+Native Packages can directly use dependencies that exist on the build system. They can also use Standard Packages as dependencies.
+This enables users to build and run applications with the Chef Habitat Supervisor even on platforms that do not have any Standard Packages available. 
 
-### Pre-requistes
+Users can create a Native Package for any unix platform that has support for Habitat. 
+As of now the Habitat team only provides pre-built binaries for x86_64-linux and aarch64-linux (ARM) platforms.
+
+Since Native Packages do not use a studio environment while building there is no guarantee that build succeeds on a new system. 
+It is up to the user of the package to ensure that all build time dependencies are available on the system before building the package. 
+
+While this seems limiting, it enables the use of any tool on the build system to build the package without having to first make 
+a package for that build tool and each of it's dependencies.
+
+Runtime portability of a Native Package, similar to a Standard Package, is the responsibility of the package author. The package
+source has to be appropriately patched, configured and built to ensure the binaries can be executed in the final runtime
+environments.
+
+If a Native Package is intended to be used as a build time dependency of a Standard Package, the package author must ensure 
+that the binaries will be able to run inside the studio environment during the build of the Standard Package.
+
+### Pre requisites
 
 Users must have the following tools available in their build environment in order for the Habitat plan builder to be able to
 successfully build a native package.
 
-- [rq](https://github.com/dflemstr/rq/blob/master/doc/installation.md) - Record query
+- [rq](https://github.com/dflemstr/rq/blob/master/doc/installation.md) - Record query (Optional, required only if your plan uses `pkg_exposes`)
 - wget
 - stat
 - tar
