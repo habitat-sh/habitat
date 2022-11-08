@@ -1,16 +1,20 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.603 -->
-## [1.6.603](https://github.com/habitat-sh/habitat/tree/1.6.603) (2022-11-08)
+<!-- latest_release 1.6.604 -->
+## [1.6.604](https://github.com/habitat-sh/habitat/tree/1.6.604) (2022-11-08)
 
 #### Merged Pull Requests
-- Bump regex from 1.6.0 to 1.7.0 [#8662](https://github.com/habitat-sh/habitat/pull/8662) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump prost-types from 0.11.1 to 0.11.2 [#8663](https://github.com/habitat-sh/habitat/pull/8663) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.568 -->
 ### Changes since 1.6.568 release
 
 #### Merged Pull Requests
+- Bump prost-types from 0.11.1 to 0.11.2 [#8663](https://github.com/habitat-sh/habitat/pull/8663) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.604 -->
+- Native Package enhancements to enable package bootstrapping [#8650](https://github.com/habitat-sh/habitat/pull/8650) ([atrniv](https://github.com/atrniv)) <!-- 1.6.604 -->
+- Naive Packages Documentation [#8646](https://github.com/habitat-sh/habitat/pull/8646) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 1.6.604 -->
+- Bump mktemp from 0.4.1 to 0.5.0 [#8661](https://github.com/habitat-sh/habitat/pull/8661) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.604 -->
 - Bump regex from 1.6.0 to 1.7.0 [#8662](https://github.com/habitat-sh/habitat/pull/8662) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.603 -->
 - Bump num_cpus from 1.13.1 to 1.14.0 [#8659](https://github.com/habitat-sh/habitat/pull/8659) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.602 -->
 - Bump cc from 1.0.73 to 1.0.74 [#8658](https://github.com/habitat-sh/habitat/pull/8658) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.601 -->
