@@ -1507,16 +1507,6 @@ do_default_begin() {
 #    dependency. Further details in the `_populate_dependency_arrays()`
 #    function.
 _resolve_dependencies() {
-  if [[ -n $HAB_NATIVE_PACKAGE ]]; then
-    # shellcheck disable=2128
-    if [[ -n $pkg_build_deps ]]; then
-      exit_with "Native package plans cannot define 'pkg_build_deps'" 2
-    fi
-    # shellcheck disable=2128
-    if [[ -n $pkg_deps ]]; then
-      exit_with "Native package plans cannot define 'pkg_deps'" 2
-    fi
-  fi
   # Create initial package arrays
   _init_dependencies
 
