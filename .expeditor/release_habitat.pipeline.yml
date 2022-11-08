@@ -17,7 +17,7 @@ expeditor:
 
 steps:
 
-   Commenting out 2022 container while we wait for expeditor to support
+  #  Commenting out 2022 container while we wait for expeditor to support
   - label: ":docker: :windows: Upload windows 2022 container to Docker Hub"
     command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
     expeditor:
