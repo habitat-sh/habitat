@@ -470,6 +470,14 @@ steps:
         windows:
           os_version: 2019
 
+  - label: ":docker: :windows: Upload windows 2022 container to Docker Hub"
+    if: build.creator.name == 'Chef Expeditor' || build.env("UPLOAD_AND_PROMOTE") == 'true'
+    command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
+    expeditor:
+      executor:
+        windows:
+          os_version: 2022
+
   - wait
 
   - label: "[:habicat: Generate Manifest and promote to dev channel]"
