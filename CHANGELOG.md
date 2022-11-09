@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.606 -->
-## [1.6.606](https://github.com/habitat-sh/habitat/tree/1.6.606) (2022-11-09)
+<!-- latest_release 1.6.607 -->
+## [1.6.607](https://github.com/habitat-sh/habitat/tree/1.6.607) (2022-11-09)
 
 #### Merged Pull Requests
-- Bump cc from 1.0.74 to 1.0.76 [#8664](https://github.com/habitat-sh/habitat/pull/8664) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- support windows 2022 docker images [#8660](https://github.com/habitat-sh/habitat/pull/8660) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.568 -->
 ### Changes since 1.6.568 release
 
 #### Merged Pull Requests
+- support windows 2022 docker images [#8660](https://github.com/habitat-sh/habitat/pull/8660) ([mwrock](https://github.com/mwrock)) <!-- 1.6.607 -->
 - Bump cc from 1.0.74 to 1.0.76 [#8664](https://github.com/habitat-sh/habitat/pull/8664) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.606 -->
 - Bump prost from 0.11.0 to 0.11.2 [#8665](https://github.com/habitat-sh/habitat/pull/8665) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.605 -->
 - Bump prost-types from 0.11.1 to 0.11.2 [#8663](https://github.com/habitat-sh/habitat/pull/8663) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.604 -->
