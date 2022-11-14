@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
 <!-- latest_release 1.6.608 -->
-## [1.6.608](https://github.com/habitat-sh/habitat/tree/1.6.608) (2022-11-10)
+
+<!-- latest_release -->
+
+<!-- release_rollup since=1.6.607 -->
+### Changes since 1.6.607 release
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.607 -->
+
+## [1.6.607](https://github.com/habitat-sh/habitat/tree/1.6.607) (2022-11-10)
 
 #### Merged Pull Requests
 - release notes were pulling from chef-server [#8666](https://github.com/habitat-sh/habitat/pull/8666) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
-
-<!-- release_rollup since=1.6.568 -->
-### Changes since 1.6.568 release
-
-#### Merged Pull Requests
 - release notes were pulling from chef-server [#8666](https://github.com/habitat-sh/habitat/pull/8666) ([mwrock](https://github.com/mwrock)) <!-- 1.6.608 -->
 - support windows 2022 docker images [#8660](https://github.com/habitat-sh/habitat/pull/8660) ([mwrock](https://github.com/mwrock)) <!-- 1.6.607 -->
 - Bump cc from 1.0.74 to 1.0.76 [#8664](https://github.com/habitat-sh/habitat/pull/8664) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.606 -->
@@ -57,9 +60,6 @@
 - fix relese docs script and move docs scripts to the end [#8622](https://github.com/habitat-sh/habitat/pull/8622) ([mwrock](https://github.com/mwrock)) <!-- 1.6.571 -->
 - Rustfmt and Nightly Rust Bump to nightly-2022-09-01 [#8621](https://github.com/habitat-sh/habitat/pull/8621) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.570 -->
 - update changelog for 1.6.568 [#8620](https://github.com/habitat-sh/habitat/pull/8620) ([mwrock](https://github.com/mwrock)) <!-- 1.6.569 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 1.6.568 -->
 
 ## [1.6.568](https://github.com/habitat-sh/habitat/tree/1.6.568) (2022-08-31)
 
