@@ -86,7 +86,7 @@ finish_setup() {
   # easy to create an unstable studio.)
   _hab pkg install "$HAB_STUDIO_BACKLINE_PKG"
 
-  bash_path=$(_pkgpath_for core/build-tools-bash)
+  bash_path=$(_pkgpath_for core/build-tools-bash-static)
   coreutils_path=$(_pkgpath_for core/build-tools-coreutils)
 
   # shellcheck disable=2086,2154
@@ -96,8 +96,8 @@ finish_setup() {
   _hab pkg binlink --dest "$HAB_ROOT_PATH"/bin core/build-tools-hab hab
 
   # Create `/bin/{sh,bash}` for software that hardcodes these shells
-  _hab pkg binlink core/build-tools-bash bash
-  _hab pkg binlink core/build-tools-bash sh
+  _hab pkg binlink core/build-tools-bash-static bash
+  _hab pkg binlink core/build-tools-bash-static sh
 
   # Create a wrapper to `build` so that any calls to it have a super-stripped
   # `$PATH` and not whatever augmented version is currently in use. This should
