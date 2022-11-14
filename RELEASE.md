@@ -217,6 +217,10 @@ channel. Once again, we use the Slack command:
 This will result in the Supervisors in our Production Builder updating
 themselves to the release candidate.
 
+## Update Pending Release Notes
+
+The `Pending Release Notes` on the habitat githib repo's wiki is a placeholder for content that is published to the chef.io release notes and the discource release announcement. The `finish_release` pipeline which runs after promoting habitat to stable in expeditor automates the process of extracting the pending notes and publishing to chef.io and discource. It is important to make sure that the [wiki page](https://github.com/habitat-sh/habitat/wiki/Pending-Release-Notes) is updated before promoting to stable.
+
 ## Promote from Current to Stable
 
 Once you're satisfied with the new Supervisors in Production, you can
@@ -274,11 +278,6 @@ the contents of the `CHANGELOG.md` file for the pattern. You should
 also consult [Expeditor's CHANGELOG
 documentation](https://expeditor.chef.io/docs/reference/changelog/)
 for additional details.
-
-# Release Notification
-
-1. Create new posts in the [Chef Release Announcements](https://discourse.chef.io/c/chef-release) category on the [Chef Discourse server](https://discourse.chef.io).
-1. Tweet a release announcement from `@habitatsh`.
 
 # Release postmortem
 
