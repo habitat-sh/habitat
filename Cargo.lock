@@ -1130,7 +1130,7 @@ dependencies = [
  "tokio",
  "toml 0.5.9",
  "url",
- "uuid 1.2.1",
+ "uuid 1.2.2",
  "walkdir",
  "webpki",
  "widestring 1.0.2",
@@ -1276,7 +1276,7 @@ dependencies = [
  "tempfile",
  "threadpool",
  "toml 0.5.9",
- "uuid 1.2.1",
+ "uuid 1.2.2",
  "winapi 0.3.9",
  "zmq",
 ]
@@ -1316,7 +1316,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml 0.5.9",
- "uuid 1.2.1",
+ "uuid 1.2.2",
  "valico",
  "winapi 0.3.9",
 ]
@@ -1504,7 +1504,7 @@ dependencies = [
  "tokio-util",
  "toml 0.5.9",
  "url",
- "uuid 1.2.1",
+ "uuid 1.2.2",
  "valico",
  "winapi 0.3.9",
 ]
@@ -2125,7 +2125,7 @@ version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4bdc1f74dd7bb717d39f784f844e490d935b3aa7e383008006dbbf29c1f7820a"
 dependencies = [
- "uuid 1.2.1",
+ "uuid 1.2.2",
 ]
 
 [[package]]
@@ -2770,7 +2770,7 @@ dependencies = [
  "tokio-native-tls",
  "tokio-stream",
  "tokio-util",
- "uuid 1.2.1",
+ "uuid 1.2.2",
 ]
 
 [[package]]
@@ -3783,9 +3783,9 @@ dependencies = [
 
 [[package]]
 name = "uuid"
-version = "1.2.1"
+version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "feb41e78f93363bb2df8b0e86a2ca30eed7806ea16ea0c790d757cf93f79be83"
+checksum = "422ee0de9031b5b948b97a8fc04e3aa35230001a722ddd27943e0be31564ce4c"
 dependencies = [
  "getrandom 0.2.3",
 ]
