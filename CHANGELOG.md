@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.612 -->
-## [1.6.612](https://github.com/habitat-sh/habitat/tree/1.6.612) (2022-11-15)
+<!-- latest_release 1.6.613 -->
+## [1.6.613](https://github.com/habitat-sh/habitat/tree/1.6.613) (2022-11-22)
 
 #### Merged Pull Requests
-- Bump uuid from 1.2.1 to 1.2.2 [#8671](https://github.com/habitat-sh/habitat/pull/8671) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump bytes from 1.2.1 to 1.3.0 [#8674](https://github.com/habitat-sh/habitat/pull/8674) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.607 -->
 ### Changes since 1.6.607 release
 
 #### Merged Pull Requests
+- Bump bytes from 1.2.1 to 1.3.0 [#8674](https://github.com/habitat-sh/habitat/pull/8674) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.613 -->
 - Bump uuid from 1.2.1 to 1.2.2 [#8671](https://github.com/habitat-sh/habitat/pull/8671) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.612 -->
 - move release notes scripts to finish_release and document [#8670](https://github.com/habitat-sh/habitat/pull/8670) ([mwrock](https://github.com/mwrock)) <!-- 1.6.611 -->
 - Rustfmt and Nightly Rust Bump to nightly-2022-11-14 [#8667](https://github.com/habitat-sh/habitat/pull/8667) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.610 -->
