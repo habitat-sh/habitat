@@ -95,7 +95,12 @@ RUN `$env:HAB_LICENSE='accept-no-persist'; ``
     &/hab/pkgs/$ident/bin/hab/hab.exe pkg install core/windows-service --channel=$ReleaseChannel --url=$BldrUrl; ``
     (Get-Content /hab/svc/windows-service/HabService.dll.config).replace('--no-color', '') | Set-Content /hab/svc/windows-service/HabService.dll.config; ``
     (Get-Content /hab/svc/windows-service/log4net.xml).replace('%date - ', '') | Set-Content /hab/svc/windows-service/log4net.xml; ``
-    Remove-Item /hab/cache -Recurse -Force
+    Remove-Item /hab/cache -Recurse -Force; ``
+    `$acl = get-acl C:/hab/svc; ``
+    `$new='NT AUTHORITY\SYSTEM','FullControl','ContainerInherit,ObjectInherit','None','Allow'; ``
+    `$accessRule = new-object System.Security.AccessControl.FileSystemAccessRule `$new; ``
+    `$acl.AddAccessRule(`$accessRule); ``
+    `$acl | Set-Acl C:/hab/svc
 ENTRYPOINT ["/hab/pkgs/$ident/bin/powershell/pwsh.exe", "-ExecutionPolicy", "bypass", "-NoLogo", "-file", "/hab/pkgs/$ident/bin/hab-studio.ps1"]
 "@ | Out-File "$tmpRoot/Dockerfile" -Encoding ascii
 
