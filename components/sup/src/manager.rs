@@ -1,11 +1,9 @@
 pub(crate) mod action;
-pub mod service;
-#[macro_use]
-mod debug;
 pub mod commands;
 mod file_watcher;
 mod peer_watcher;
 mod self_updater;
+pub mod service;
 mod service_updater;
 mod spec_dir;
 mod spec_watcher;
