@@ -31,7 +31,7 @@ dependencies = [
  "actix-tls",
  "actix-utils",
  "ahash",
- "base64",
+ "base64 0.13.1",
  "bitflags",
  "bytes",
  "bytestring",
@@ -312,6 +312,12 @@ name = "base64"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
+
+[[package]]
+name = "base64"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ea22880d78093b0cbe17c89f64a7d457941e65759157ec6cb31a31d652b05e5"
 
 [[package]]
 name = "bimap"
@@ -1092,7 +1098,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "atty",
- "base64",
+ "base64 0.20.0",
  "bitflags",
  "chrono",
  "clap",
@@ -1214,7 +1220,7 @@ dependencies = [
 name = "habitat-sup-protocol"
 version = "0.0.0"
 dependencies = [
- "base64",
+ "base64 0.20.0",
  "bytes",
  "habitat_core",
  "lazy_static 1.4.0",
@@ -1325,7 +1331,7 @@ dependencies = [
 name = "habitat_core"
 version = "0.0.0"
 dependencies = [
- "base64",
+ "base64 0.20.0",
  "blake2b_simd",
  "caps",
  "cc",
@@ -1377,7 +1383,7 @@ dependencies = [
 name = "habitat_http_client"
 version = "0.0.0"
 dependencies = [
- "base64",
+ "base64 0.20.0",
  "env_proxy",
  "habitat_core",
  "httparse",
@@ -1396,7 +1402,7 @@ name = "habitat_pkg_export_container"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "base64",
+ "base64 0.20.0",
  "clap",
  "env_logger",
  "hab",
@@ -2432,7 +2438,7 @@ version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "03c64931a1a212348ec4f3b4362585eca7159d0d09cbdf4a7f74f02173596fd4"
 dependencies = [
- "base64",
+ "base64 0.13.1",
 ]
 
 [[package]]
@@ -2879,7 +2885,7 @@ version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "246e9f61b9bb77df069a947682be06e31ac43ea37862e244a69f177694ea6d22"
 dependencies = [
- "base64",
+ "base64 0.13.1",
  "bytes",
  "encoding_rs",
  "futures-core",
@@ -2939,7 +2945,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b4f000e8934c1b4f70adde180056812e7ea6b1a247952db8ee98c94cd3116cc"
 dependencies = [
  "async-trait",
- "base64",
+ "base64 0.13.1",
  "bytes",
  "crc32fast",
  "futures",
@@ -2995,7 +3001,7 @@ version = "0.47.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6264e93384b90a747758bcc82079711eacf2e755c3a8b5091687b5349d870bcc"
 dependencies = [
- "base64",
+ "base64 0.13.1",
  "bytes",
  "chrono",
  "digest 0.9.0",
@@ -3057,7 +3063,7 @@ version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0864aeff53f8c05aa08d86e5ef839d3dfcf07aeba2db32f12db0ef716e87bd55"
 dependencies = [
- "base64",
+ "base64 0.13.1",
 ]
 
 [[package]]
@@ -3823,7 +3829,7 @@ version = "3.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d81a70f930f9e6cd04669d38abcf232f96b193acceb0f4c006427ddec6e08b10"
 dependencies = [
- "base64",
+ "base64 0.13.1",
  "chrono",
  "json-pointer",
  "jsonway",
