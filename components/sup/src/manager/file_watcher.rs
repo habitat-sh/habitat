@@ -1,6 +1,7 @@
 use crate::error::{Error,
                    Result};
 use habitat_common::liveliness_checker;
+use habitat_core::os::ffi::OsStrExt;
 use log::{debug,
           trace};
 use notify::{self,
@@ -18,10 +19,8 @@ use notify::{self,
              RecursiveMode,
              Watcher};
 
-use std::{cell::RefCell,
-          collections::HashSet,
+use std::{collections::HashSet,
           fmt::Debug,
-          os::unix::prelude::OsStrExt,
           path::{Component,
                  Path,
                  PathBuf},
@@ -304,12 +303,12 @@ pub struct FileWatcher<C: Callbacks, W: Watcher> {
     /// The Callback implementation to be used by this FileWatcher
     callbacks:      C,
     /// The Watcher implementation to be used by this FileWatcher.
-    watcher:        RefCell<W>,
+    watcher:        W,
     /// An std::sync::mpsc::channel used to receive events.
     rx:             Receiver<notify::Result<Event>>,
     /// The actual file to be watched.
     watched_file:   WatchedFile,
-    active_watches: RefCell<HashSet<PathBuf>>,
+    active_watches: HashSet<PathBuf>,
 }
 
 /// Convenience function for returning a new FileWatcher
@@ -334,10 +333,10 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         trace!("FileWatcher::new(path,callbacks,{:?})", ignore_initial);
         let (tx, rx) = channel::<notify::Result<Event>>();
         let config = Config::default().with_poll_interval(Duration::from_millis(WATCHER_DELAY_MS));
-        let watcher = RefCell::new(W::new(tx, config).map_err(Error::NotifyCreateError)?);
+        let watcher = W::new(tx, config).map_err(Error::NotifyCreateError)?;
         let p = path.into();
         let watched_file = WatchedFile::new(&p, !ignore_initial)?;
-        let active_watches = RefCell::new(HashSet::new());
+        let active_watches = HashSet::new();
         let mut file_watcher = Self { callbacks,
                                       watcher,
                                       rx,
@@ -362,14 +361,14 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         self.set_new_watches()
     }
 
-    fn set_new_watches(&self) -> Result<()> {
+    fn set_new_watches(&mut self) -> Result<()> {
         trace!("FileWatcher::set_new_watches()");
         match &self.watched_file.state {
             WatchedFileState::ExistentFile => {
-                Ok(self.watch(&self.watched_file.path)
-                       .and(self.watch(&self.watched_file.directory))?)
+                Ok(self.watch(&self.watched_file.path.clone())
+                       .and(self.watch(&self.watched_file.directory.clone()))?)
             }
-            WatchedFileState::ExistentDirectory => Ok(self.watch(&self.watched_file.directory)?),
+            WatchedFileState::ExistentDirectory => Ok(self.watch(&self.watched_file.directory.clone())?),
             WatchedFileState::NonExistent => Ok(()),
             WatchedFileState::Invalid(_) => {
                 let s = self.watched_file
@@ -382,18 +381,17 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         }
     }
 
-    fn watch(&self, path: &Path) -> Result<()> {
+    fn watch(&mut self, path: &Path) -> Result<()> {
         trace!("FileWatcher::watch({:?})", path);
-        self.active_watches.borrow_mut().insert(path.to_path_buf());
+        self.active_watches.insert(path.to_path_buf());
         self.watcher
-            .borrow_mut()
             .watch(path, RecursiveMode::NonRecursive)
             .map_err(Error::NotifyError)
     }
 
-    fn clear_active_watches(&self) -> Result<()> {
+    fn clear_active_watches(&mut self) -> Result<()> {
         trace!("FileWatcher::clear_active_watches()");
-        let mut laws = self.active_watches.borrow_mut();
+        let laws = &mut self.active_watches.clone();
         for aw in laws.iter() {
             if laws.contains(aw) {
                 self.unwatch(aw.as_ref())?;
@@ -403,9 +401,9 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         Ok(())
     }
 
-    fn unwatch(&self, path: &Path) -> Result<()> {
+    fn unwatch(&mut self, path: &Path) -> Result<()> {
         trace!("FileWatcher::unwatch({:?})", path);
-        let r = self.watcher.borrow_mut().unwatch(path);
+        let r = self.watcher.unwatch(path);
         match r {
             Ok(_) => Ok(()),
             Err(e) => {
