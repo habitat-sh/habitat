@@ -475,7 +475,7 @@ dependencies = [
  "lazy_static 1.4.0",
  "serde",
  "structopt",
- "toml 0.5.9",
+ "toml 0.5.10",
 ]
 
 [[package]]
@@ -1134,7 +1134,7 @@ dependencies = [
  "termcolor",
  "thiserror",
  "tokio",
- "toml 0.5.9",
+ "toml 0.5.10",
  "url",
  "uuid 1.2.2",
  "walkdir",
@@ -1232,7 +1232,7 @@ dependencies = [
  "tempfile",
  "tokio",
  "tokio-util",
- "toml 0.5.9",
+ "toml 0.5.10",
 ]
 
 [[package]]
@@ -1281,7 +1281,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "threadpool",
- "toml 0.5.9",
+ "toml 0.5.10",
  "uuid 1.2.2",
  "winapi 0.3.9",
  "zmq",
@@ -1321,7 +1321,7 @@ dependencies = [
  "termcolor",
  "thiserror",
  "tokio",
- "toml 0.5.9",
+ "toml 0.5.10",
  "uuid 1.2.2",
  "valico",
  "winapi 0.3.9",
@@ -1369,7 +1369,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-rustls",
- "toml 0.5.9",
+ "toml 0.5.10",
  "typemap",
  "url",
  "webpki",
@@ -1508,7 +1508,7 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tokio-util",
- "toml 0.5.9",
+ "toml 0.5.10",
  "url",
  "uuid 1.2.2",
  "valico",
@@ -3465,7 +3465,7 @@ dependencies = [
  "clap",
  "serde",
  "serde_json",
- "toml 0.5.9",
+ "toml 0.5.10",
 ]
 
 [[package]]
@@ -3653,9 +3653,9 @@ checksum = "736b60249cb25337bc196faa43ee12c705e426f3d55c214d73a4e7be06f92cb4"
 
 [[package]]
 name = "toml"
-version = "0.5.9"
+version = "0.5.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d82e1a7758622a465f8cee077614c73484dac5b836c02ff6a40d5d1010324d7"
+checksum = "1333c76748e868a4d9d1017b5ab53171dfd095f70c712fdb4653a406547f598f"
 dependencies = [
  "indexmap",
  "serde",
