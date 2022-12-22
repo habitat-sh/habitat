@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.634 -->
-## [1.6.634](https://github.com/habitat-sh/habitat/tree/1.6.634) (2022-12-21)
+<!-- latest_release 1.6.635 -->
+## [1.6.635](https://github.com/habitat-sh/habitat/tree/1.6.635) (2022-12-22)
 
 #### Merged Pull Requests
-- Bump paste from 1.0.10 to 1.0.11 [#8698](https://github.com/habitat-sh/habitat/pull/8698) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_test from 1.0.150 to 1.0.151 [#8699](https://github.com/habitat-sh/habitat/pull/8699) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.607 -->
 ### Changes since 1.6.607 release
 
 #### Merged Pull Requests
+- Bump serde_test from 1.0.150 to 1.0.151 [#8699](https://github.com/habitat-sh/habitat/pull/8699) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.635 -->
 - Bump paste from 1.0.10 to 1.0.11 [#8698](https://github.com/habitat-sh/habitat/pull/8698) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.634 -->
 - Bump prost-types from 0.11.2 to 0.11.5 [#8696](https://github.com/habitat-sh/habitat/pull/8696) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.633 -->
 - Bump prost from 0.11.3 to 0.11.5 [#8697](https://github.com/habitat-sh/habitat/pull/8697) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.632 -->
