@@ -29,6 +29,7 @@ function Get-DefaultTagForHost {
             17134 { "1803" }
             17763 { "ltsc2019" }
             18362 { "1903" }
+            20348 { "ltsc2022" }
             Default { Write-Error "Cannot determine the base image tag for this windows build ${osVersion.Build}" }
         }
     }

@@ -13,6 +13,8 @@ HAB_ORIGIN=throwaway
 
 curlbash_hab "x86_64-darwin"
 
+brew install protobuf
+
 macos_install_bootstrap_package
 macos_use_cert_file_from_linux_cacerts_package
 

@@ -7,13 +7,13 @@ source .expeditor/scripts/shared.sh
 git clone https://x-access-token:"${GITHUB_TOKEN:-$(chef_ci_github_token)}"@github.com/habitat-sh/habitat.wiki.git
 
 # Download the latest Hab manifest
-aws s3 cp "s3://chef-automate-artifacts/${EXPEDITOR_TARGET_CHANNEL}/latest/habitat/manifest.json" manifest.json --profile chef-cd
+aws s3 cp "s3://chef-automate-artifacts/${EXPEDITOR_TARGET_CHANNEL:-stable}/latest/habitat/manifest.json" manifest.json --profile chef-cd
 
 build_version=$(jq -r -c ".version"  manifest.json)
 
-pushd ./chef-server.wiki
+pushd ./habitat.wiki
   # Publish release notes to S3
-  aws s3 cp Pending-Release-Notes.md "s3://chef-automate-artifacts/release-notes/${EXPEDITOR_PROJECT}/${build_version}.md" --acl public-read --content-type "text/plain" --profile chef-cd
+  aws s3 cp Pending-Release-Notes.md "s3://chef-automate-artifacts/release-notes/${EXPEDITOR_PROJECT:-habitat}/${build_version}.md" --acl public-read --content-type "text/plain" --profile chef-cd
 
   # Reset "Stable Release Notes" wiki page
   cat >./Pending-Release-Notes.md <<EOH
@@ -34,5 +34,5 @@ EOH
 popd
 
 # Cleanup
-rm -rf chef-server.wiki
+rm -rf habitat.wiki
 rm manifest.json

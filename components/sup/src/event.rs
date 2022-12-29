@@ -44,7 +44,8 @@ use prost_types::Duration as ProstDuration;
 use rants::{Address,
             Subject};
 use state::Storage;
-use std::{net::SocketAddr,
+use std::{convert::TryFrom,
+          net::SocketAddr,
           time::Duration};
 
 lazy_static! {
@@ -146,13 +147,16 @@ pub fn health_check(metadata: ServiceMetadata,
             maybe_process_output.map(ProcessOutput::standard_streams)
                                 .unwrap_or_default();
 
-        let prost_interval = ProstDuration::from(Duration::from(health_check_interval));
+        let prost_interval =
+            ProstDuration::try_from(Duration::from(health_check_interval)).unwrap_or_default();
 
         publish(&HEALTHCHECK_SUBJECT,
                 HealthCheckEvent { service_metadata: Some(metadata),
                                    event_metadata: None,
                                    result: i32::from(health_check_result),
-                                   execution: maybe_duration.map(Duration::into),
+                                   execution: maybe_duration.map(|x| {
+                                                  ProstDuration::try_from(x).unwrap_or_default()
+                                              }),
                                    exit_status,
                                    stdout,
                                    stderr,
@@ -300,7 +304,8 @@ mod tests {
         assert_eq!(event.stderr, None);
 
         let default_interval = HealthCheckInterval::default();
-        let prost_interval = ProstDuration::from(Duration::from(default_interval));
+        let prost_interval =
+            ProstDuration::try_from(Duration::from(default_interval)).unwrap_or_default();
         let prost_interval_option = Some(prost_interval);
 
         assert_eq!(event.interval, prost_interval_option);

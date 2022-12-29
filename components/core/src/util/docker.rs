@@ -24,9 +24,10 @@ pub fn default_base_tag_for_host() -> Result<&'static str> {
         let info = os_info::get();
 
         if String::from_utf8(result.stdout)?.trim() == "'hyperv'" {
-            // hyperv isolation can build any version so we will default to 2019
-            // if the host supports it, otherwise 2016
-            if *info.version() >= Semantic(10, 0, 17763) {
+            // Match hyperv windows image with host kernel
+            if *info.version() >= Semantic(10, 0, 20348) {
+                Ok("ltsc2022")
+            } else if *info.version() >= Semantic(10, 0, 17763) {
                 Ok("ltsc2019")
             } else {
                 Ok("ltsc2016")
@@ -37,6 +38,7 @@ pub fn default_base_tag_for_host() -> Result<&'static str> {
                 Semantic(10, 0, 17134) => Ok("1803"),
                 Semantic(10, 0, 17763) => Ok("ltsc2019"),
                 Semantic(10, 0, 18362) => Ok("1903"),
+                Semantic(10, 0, 20348) => Ok("ltsc2022"),
                 unsupported_version => {
                     Err(Error::UnsupportedDockerHostKernel(unsupported_version.to_string()))
                 }
