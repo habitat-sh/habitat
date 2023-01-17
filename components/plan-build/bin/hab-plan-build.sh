@@ -590,7 +590,7 @@ _ensure_origin_key_present() {
 # * `$_shasum_cmd` (either gsha256sum or sha256sum on system)
 # * `$_tar_cmd` (GNU version of tar)
 # * `$_mktemp_cmd` (GNU version from coreutils)
-# * `$_rq_cmd`
+# * `$_toml_cmd`
 #
 # Note that all of the commands noted above are considered internal
 # implementation details and are subject to change with little to no notice,
@@ -661,12 +661,12 @@ _find_system_commands() {
 
   # shellcheck disable=2128
   if (( ${#pkg_exposes[@]} )); then
-    if exists rq; then
-      _rq_cmd=$(command -v rq)
+    if exists toml; then
+      _toml_cmd=$(command -v toml)
     else
-      exit_with "We required rq to build package metadata; aborting" 1
+      exit_with "We required toml to build package metadata; aborting" 1
     fi
-    debug "Setting _rq_cmd=$_rq_cmd"
+    debug "Setting _toml_cmd=$_toml_cmd"
   fi
 }
 
