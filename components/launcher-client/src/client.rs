@@ -1,10 +1,11 @@
-use crate::error::{ConnectError,
-                   IPCCommandError,
-                   IPCReadError,
-                   ReceiveError,
-                   SendError,
-                   TryIPCCommandError,
-                   TryReceiveError};
+use crate::{error::{ConnectError,
+                    IPCCommandError,
+                    IPCReadError,
+                    ReceiveError,
+                    SendError,
+                    TryIPCCommandError,
+                    TryReceiveError},
+            IPCError};
 use habitat_common::types::UserInfo;
 use habitat_core::os::process::Pid;
 use habitat_launcher_protocol as protocol;
@@ -93,7 +94,7 @@ impl LauncherCli {
     {
         match rx.recv() {
             Ok(bytes) => Ok(Self::read(&bytes)?),
-            Err(err) => Err(ReceiveError::IPCReceive(err)),
+            Err(err) => Err(ReceiveError::IPCReceive(err.into())),
         }
     }
 
@@ -131,7 +132,7 @@ impl LauncherCli {
                     thread::sleep(Duration::from_millis(5));
                 }
                 Err(TryRecvError::IpcError(err)) => {
-                    return Err(TryReceiveError::IPCReceive(err));
+                    return Err(TryReceiveError::IPCReceive(err.into()));
                 }
             }
             if start_time.elapsed() > timeout {
@@ -160,7 +161,7 @@ impl LauncherCli {
                 Ok(Some(msg))
             }
             Err(TryRecvError::Empty) => Ok(None),
-            Err(TryRecvError::IpcError(err)) => Err(ReceiveError::IPCReceive(err)),
+            Err(TryRecvError::IpcError(err)) => Err(ReceiveError::IPCReceive(err.into())),
         }
     }
 
@@ -171,7 +172,9 @@ impl LauncherCli {
             // Received a shutdown command
             Ok(Some(_)) => LauncherStatus::GracefullyShutdown,
             // Launcher IPC channel was disconnected
-            Err(ReceiveError::IPCReceive(IpcError::Disconnected)) => LauncherStatus::Shutdown,
+            Err(ReceiveError::IPCReceive(IPCError(IpcError::Disconnected))) => {
+                LauncherStatus::Shutdown
+            }
             // Received a bad message, or encountered an IO error while communicating via IPC
             Err(err) => {
                 error!("Unexpected IPC communication error while checking for a shutdown \
