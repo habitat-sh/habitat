@@ -1,5 +1,7 @@
 use habitat_launcher_protocol as protocol;
-use std::io;
+use ipc_channel::ipc::IpcError;
+use std::{fmt,
+          io};
 use thiserror::Error;
 
 /// Errors that occur when attempting to estabish an IPC channel to the Habitat Launcher
@@ -64,7 +66,7 @@ pub enum ReceiveError {
     #[error("Failed to read launcher command response")]
     IPCRead(#[from] IPCReadError),
     #[error("Failed to receive IPC command response from launcher")]
-    IPCReceive(#[from] ipc_channel::ipc::IpcError),
+    IPCReceive(#[from] IPCError),
 }
 
 /// Errors that occur when attempting to non-blocking receive command responses from the Habitat
@@ -74,7 +76,39 @@ pub enum TryReceiveError {
     #[error("Failed to try reading launcher command response")]
     IPCRead(#[from] IPCReadError),
     #[error("Failed to try receiving IPC command response from launcher")]
-    IPCReceive(#[from] ipc_channel::ipc::IpcError),
+    IPCReceive(#[from] IPCError),
     #[error("Timed out trying to receive IPC command response from launcher")]
     Timeout,
+}
+
+// TODO: Remove this wrapper type once we upgrade ipc-channel to 0.16+
+// This is a wrapper type around the ipc_channel::ipc::IpcError that is
+// required because it does not implement std::error::Error prior to
+// version 0.16+. We need an older version of the crate to ensure that
+// habitat works for some of our customers using Windows 7 until Jan 2024.
+#[derive(Debug)]
+pub struct IPCError(pub ipc_channel::ipc::IpcError);
+
+impl From<ipc_channel::ipc::IpcError> for IPCError {
+    fn from(value: ipc_channel::ipc::IpcError) -> Self { IPCError(value) }
+}
+
+impl fmt::Display for IPCError {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        match self.0 {
+            IpcError::Bincode(ref err) => write!(fmt, "bincode error: {}", err),
+            IpcError::Io(ref err) => write!(fmt, "io error: {}", err),
+            IpcError::Disconnected => write!(fmt, "disconnected"),
+        }
+    }
+}
+
+impl std::error::Error for IPCError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self.0 {
+            IpcError::Bincode(ref err) => Some(err),
+            IpcError::Io(ref err) => Some(err),
+            IpcError::Disconnected => None,
+        }
+    }
 }
