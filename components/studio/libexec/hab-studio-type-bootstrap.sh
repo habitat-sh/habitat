@@ -152,9 +152,13 @@ PROFILE_ENTER
 
   studio_env_command="$coreutils_path/bin/env"
 
-  if [[ -n "${HAB_PKG_DEPS:-}" ]]; then
-    echo "Installing additional dependencies"
-    deps=$(echo "$HAB_PKG_DEPS" | "$coreutils_path"/bin/tr ":" "\n")
+  # This installs any additional packages before starting the studio.
+  # It is useful in scenarios where you have a newer version of a package
+  # and want habitat to pick the newer locally installed version during 
+  # a studio build. We do exactly this during the package refresh process.
+  if [ -n "${HAB_STUDIO_INSTALL_PKGS:-}" ]; then
+    echo "Installing additional packages in bootstrap studio"
+    deps=$(echo "$HAB_STUDIO_INSTALL_PKGS" | "$coreutils_path"/bin/tr ":" "\n")
     for dep in $deps; do
       _hab pkg install "$dep"
     done
