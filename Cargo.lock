@@ -315,9 +315,9 @@ checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
 
 [[package]]
 name = "base64"
-version = "0.20.0"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ea22880d78093b0cbe17c89f64a7d457941e65759157ec6cb31a31d652b05e5"
+checksum = "a4a4ddaa51a5bc52a6948f74c06d20aaaddb71924eab79b8c97a8c556e942d6a"
 
 [[package]]
 name = "bimap"
@@ -1098,7 +1098,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "atty",
- "base64 0.20.0",
+ "base64 0.21.0",
  "bitflags",
  "chrono",
  "clap",
@@ -1220,7 +1220,7 @@ dependencies = [
 name = "habitat-sup-protocol"
 version = "0.0.0"
 dependencies = [
- "base64 0.20.0",
+ "base64 0.21.0",
  "bytes",
  "habitat_core",
  "lazy_static 1.4.0",
@@ -1331,7 +1331,7 @@ dependencies = [
 name = "habitat_core"
 version = "0.0.0"
 dependencies = [
- "base64 0.20.0",
+ "base64 0.21.0",
  "blake2b_simd",
  "caps",
  "cc",
@@ -1383,7 +1383,7 @@ dependencies = [
 name = "habitat_http_client"
 version = "0.0.0"
 dependencies = [
- "base64 0.20.0",
+ "base64 0.21.0",
  "env_proxy",
  "habitat_core",
  "httparse",
@@ -1402,7 +1402,7 @@ name = "habitat_pkg_export_container"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "base64 0.20.0",
+ "base64 0.21.0",
  "clap",
  "env_logger",
  "hab",
