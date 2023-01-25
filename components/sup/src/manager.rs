@@ -657,8 +657,8 @@ pub struct Manager {
     // something else (maybe a HashMap?) in order to cleanly manage
     // the different operations.
     busy_services: Arc<Mutex<HashSet<PackageIdent>>>,
-    updated_services:             Arc<Mutex<HashMap<ServiceGroup, u64>>>,
-    services_need_reconciliation: ReconciliationFlag,
+    updated_service_pkg_incarnations: Arc<Mutex<HashMap<ServiceGroup, u64>>>,
+    services_need_reconciliation:     ReconciliationFlag,
 
     feature_flags: FeatureFlag,
     pid_source:    ServicePidSource,
@@ -796,7 +796,7 @@ impl Manager {
                      sys: Arc::new(sys),
                      http_disable: cfg.http_disable,
                      busy_services: Arc::default(),
-                     updated_services: Arc::default(),
+                     updated_service_pkg_incarnations: Arc::default(),
                      services_need_reconciliation: ReconciliationFlag::new(false),
                      feature_flags: cfg.feature_flags,
                      pid_source,
@@ -957,7 +957,7 @@ impl Manager {
         // if this service is being started as a result of an update
         // then we want to pass along the incarnation in updated_services
         self.gossip_latest_service_rumor_rsw_mlw_rhw(&service,
-                                                     self.updated_services
+                                                     self.updated_service_pkg_incarnations
                                                          .lock()
                                                          .remove(&service.service_group));
         if service.topology() == Topology::Leader {
@@ -1440,7 +1440,7 @@ impl Manager {
                         has_update = true;
                         // stash this updated service's incarnation for later gossiping
                         if let Some(incarnation) = new_ident.incarnation {
-                            self.updated_services
+                            self.updated_service_pkg_incarnations
                                 .lock()
                                 .insert(service.service_group.clone(), incarnation);
                         }
@@ -1490,16 +1490,23 @@ impl Manager {
     /// * `RumorHeat::inner` (write)
     fn gossip_latest_service_rumor_rsw_mlw_rhw(&self,
                                                service: &Service,
-                                               maybe_incarnation: Option<u64>) {
-        let incarnation = self.butterfly
-                              .service_store
-                              .lock_rsr()
-                              .service_group(&service.service_group)
-                              .map_rumor(&self.sys.member_id, |rumor| rumor.incarnation + 1)
-                              .unwrap_or(1);
-
+                                               updated_pkg_incarnation: Option<u64>) {
+        let (incarnation, last_pkg_incarnation) = self.butterfly
+                                                      .service_store
+                                                      .lock_rsr()
+                                                      .service_group(&service.service_group)
+                                                      .map_rumor(&self.sys.member_id, |rumor| {
+                                                          (rumor.incarnation + 1,
+                                                           rumor.pkg_incarnation)
+                                                      })
+                                                      .unwrap_or((1, 0));
+        // The package incarnation is either the updated package incarnation if it is
+        // larger than the last package incarnation or the last known package incarnation
+        // from the rumour store.
+        let pkg_incarnation = updated_pkg_incarnation.unwrap_or(0)
+                                                     .max(last_pkg_incarnation);
         self.butterfly
-            .insert_service_rsw_mlw_rhw(service.to_rumor(incarnation, maybe_incarnation));
+            .insert_service_rsw_mlw_rhw(service.to_rumor(incarnation, pkg_incarnation));
     }
 
     fn check_for_departure(&self) -> bool { self.butterfly.is_departed() }

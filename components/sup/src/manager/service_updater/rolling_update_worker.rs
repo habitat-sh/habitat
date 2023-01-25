@@ -135,12 +135,12 @@ impl RollingUpdateWorker {
                         match (census_group.me(), census_group.leader()) {
                             (Some(me), Some(leader)) => {
                                 if me.member_id == leader.member_id {
-                                    trace!("This is the '{}' leader; using the minimum rolling \
+                                    debug!("This is the '{}' leader; using the minimum rolling \
                                             update election suitability",
                                            self.service_group);
                                     break u64::min_value();
                                 } else {
-                                    trace!("This is a '{}' follower; using the maximum rolling \
+                                    debug!("This is a '{}' follower; using the maximum rolling \
                                             update election suitability",
                                            self.service_group);
                                     break u64::max_value();
@@ -217,19 +217,23 @@ impl RollingUpdateWorker {
                         }
 
                         if leader.pkg_incarnation != census_group.pkg_incarnation {
-                            trace!("leader incarnation {} is not caught up with cencus group \
-                                    incarnation {}",
+                            debug!("leader with member id {} has incarnation {} that is not \
+                                    caught up with the census group incarnation {}, waiting for \
+                                    update to start",
+                                   leader.member_id,
                                    leader.pkg_incarnation,
                                    census_group.pkg_incarnation);
                         }
 
                         if leader.pkg_incarnation > me.pkg_incarnation {
                             // The leader has a new package starting a rolling update
-                            debug!("'{}' started a rolling update: leader='{}/{}' \
-                                    follower='{}/{}'",
+                            debug!("'{}' started a rolling update: leader='{}/{}/{}' \
+                                    follower='{}/{}/{}'",
                                    self.service_group,
+                                   leader.member_id,
                                    leader.pkg_incarnation,
                                    leader.pkg,
+                                   me.member_id,
                                    me.pkg_incarnation,
                                    me.pkg);
                             break FollowerUpdateStartEvent::UpdateTo(IncarnatedPackageIdent::new(leader.pkg.clone(),
@@ -237,11 +241,13 @@ impl RollingUpdateWorker {
                         } else {
                             // The leader still has the same package as this follower so an update
                             // has not started
-                            trace!("'{}' is not in a rolling update: leader='{}/{}' \
-                                    follower='{}/{}'",
+                            trace!("'{}' is not in a rolling update: leader='{}/{}/{}' \
+                                    follower='{}/{}/{}'",
                                    self.service_group,
+                                   leader.member_id,
                                    leader.pkg_incarnation,
                                    leader.pkg,
+                                   me.member_id,
                                    me.pkg_incarnation,
                                    me.pkg);
                         }
@@ -283,9 +289,11 @@ impl RollingUpdateWorker {
                         }
 
                         if leader.pkg_incarnation != census_group.pkg_incarnation {
-                            debug!("leader incarnation {} is not caught up with cencus group \
-                                    incarnation {}",
-                                   leader.pkg_incarnation, census_group.pkg_incarnation);
+                            debug!("leader with member id {} has incarnation {} that is not \
+                                    caught up with the census group incarnation {}",
+                                   leader.member_id,
+                                   leader.pkg_incarnation,
+                                   census_group.pkg_incarnation);
                         } else if peer.pkg_incarnation == leader.pkg_incarnation {
                             // It is now this followers turn. The previous peer is done updating.
                             // The first time this condition is true the previous peer is the
@@ -293,12 +301,15 @@ impl RollingUpdateWorker {
                             // will trigger all the followers to start their updates one after
                             // another.
                             debug!("'{}' is in a rolling update and it is this followers turn to \
-                                    update: leader='{}/{}' peer='{}/{}' follower='{}/{}'",
+                                    update: leader='{}/{}/{}' peer='{}/{}/{}' follower='{}/{}/{}'",
                                    self.service_group,
+                                   leader.member_id,
                                    leader.pkg_incarnation,
                                    leader.pkg,
+                                   peer.member_id,
                                    peer.pkg_incarnation,
                                    peer.pkg,
+                                   me.member_id,
                                    me.pkg_incarnation,
                                    me.pkg);
                             break FollowerUpdateTurnEvent::UpdateTo(IncarnatedPackageIdent::new(leader.pkg.clone(),
@@ -307,12 +318,16 @@ impl RollingUpdateWorker {
                             // It is not this followers turn to update. The previous peer has not
                             // updated yet.
                             debug!("'{}' is in a rolling update but it is not this followers \
-                                    turn to update: leader='{}/{}' peer='{}/{}' follower='{}/{}'",
+                                    turn to update: leader='{}/{}/{}' peer='{}/{}/{}' \
+                                    follower='{}/{}/{}'",
                                    self.service_group,
+                                   leader.member_id,
                                    leader.pkg_incarnation,
                                    leader.pkg,
+                                   peer.member_id,
                                    peer.pkg_incarnation,
                                    peer.pkg,
+                                   me.member_id,
                                    me.pkg_incarnation,
                                    me.pkg);
                         }
