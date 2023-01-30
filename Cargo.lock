@@ -315,12 +315,6 @@ checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
 
 [[package]]
 name = "base64"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ea22880d78093b0cbe17c89f64a7d457941e65759157ec6cb31a31d652b05e5"
-
-[[package]]
-name = "base64"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4a4ddaa51a5bc52a6948f74c06d20aaaddb71924eab79b8c97a8c556e942d6a"
@@ -481,7 +475,7 @@ dependencies = [
  "lazy_static 1.4.0",
  "serde",
  "structopt",
- "toml 0.5.10",
+ "toml 0.5.11",
 ]
 
 [[package]]
@@ -1104,7 +1098,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "atty",
- "base64 0.20.0",
+ "base64 0.21.0",
  "bitflags",
  "chrono",
  "clap",
@@ -1140,7 +1134,7 @@ dependencies = [
  "termcolor",
  "thiserror",
  "tokio",
- "toml 0.5.10",
+ "toml 0.7.0",
  "url",
  "uuid 1.2.2",
  "walkdir",
@@ -1226,7 +1220,7 @@ dependencies = [
 name = "habitat-sup-protocol"
 version = "0.0.0"
 dependencies = [
- "base64 0.20.0",
+ "base64 0.21.0",
  "bytes",
  "habitat_core",
  "lazy_static 1.4.0",
@@ -1238,7 +1232,7 @@ dependencies = [
  "tempfile",
  "tokio",
  "tokio-util",
- "toml 0.5.10",
+ "toml 0.7.0",
 ]
 
 [[package]]
@@ -1287,7 +1281,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "threadpool",
- "toml 0.5.10",
+ "toml 0.7.0",
  "uuid 1.2.2",
  "winapi 0.3.9",
  "zmq",
@@ -1327,7 +1321,7 @@ dependencies = [
  "termcolor",
  "thiserror",
  "tokio",
- "toml 0.5.10",
+ "toml 0.7.0",
  "uuid 1.2.2",
  "valico",
  "winapi 0.3.9",
@@ -1337,7 +1331,7 @@ dependencies = [
 name = "habitat_core"
 version = "0.0.0"
 dependencies = [
- "base64 0.20.0",
+ "base64 0.21.0",
  "blake2b_simd",
  "caps",
  "cc",
@@ -1375,7 +1369,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-rustls",
- "toml 0.5.10",
+ "toml 0.7.0",
  "typemap",
  "url",
  "webpki",
@@ -1389,7 +1383,7 @@ dependencies = [
 name = "habitat_http_client"
 version = "0.0.0"
 dependencies = [
- "base64 0.20.0",
+ "base64 0.21.0",
  "env_proxy",
  "habitat_core",
  "httparse",
@@ -1408,7 +1402,7 @@ name = "habitat_pkg_export_container"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "base64 0.20.0",
+ "base64 0.21.0",
  "clap",
  "env_logger",
  "hab",
@@ -1514,7 +1508,7 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tokio-util",
- "toml 0.5.10",
+ "toml 0.7.0",
  "url",
  "uuid 1.2.2",
  "valico",
@@ -1560,12 +1554,6 @@ dependencies = [
  "serde",
  "serde_json",
 ]
-
-[[package]]
-name = "hashbrown"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
 
 [[package]]
 name = "hashbrown"
@@ -1725,12 +1713,12 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "1.7.0"
+version = "1.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc633605454125dec4b66843673f01c7df2b89479b32e0ed634e43a91cff62a5"
+checksum = "1885e79c1fc4b10f0e172c475f458b7f7b93061064d98c3293e98c5ba0c8b399"
 dependencies = [
  "autocfg",
- "hashbrown 0.11.2",
+ "hashbrown",
 ]
 
 [[package]]
@@ -2227,6 +2215,15 @@ checksum = "a8903e5a29a317527874d0402f867152a3d21c908bb0b933e416c65e301d4c36"
 dependencies = [
  "memchr",
  "minimal-lexical",
+]
+
+[[package]]
+name = "nom8"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ae01545c9c7fc4486ab7debaf2aad7003ac19431791868fb2e8066df97fad2f8"
+dependencies = [
+ "memchr",
 ]
 
 [[package]]
@@ -3233,6 +3230,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_spanned"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c68e921cef53841b8925c2abadd27c9b891d9613bdc43d6b823062866df38e8"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "serde_test"
 version = "1.0.152"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3480,7 +3486,7 @@ dependencies = [
  "clap",
  "serde",
  "serde_json",
- "toml 0.5.10",
+ "toml 0.7.0",
 ]
 
 [[package]]
@@ -3653,7 +3659,7 @@ dependencies = [
  "futures-io",
  "futures-sink",
  "futures-util",
- "hashbrown 0.12.3",
+ "hashbrown",
  "pin-project-lite",
  "slab",
  "tokio",
@@ -3668,12 +3674,46 @@ checksum = "736b60249cb25337bc196faa43ee12c705e426f3d55c214d73a4e7be06f92cb4"
 
 [[package]]
 name = "toml"
-version = "0.5.10"
+version = "0.5.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1333c76748e868a4d9d1017b5ab53171dfd095f70c712fdb4653a406547f598f"
+checksum = "f4f7f0dd8d50a853a531c426359045b1998f04219d88799810762cd4ad314234"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "toml"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f560bc7fb3eb31f5eee1340c68a2160cad39605b7b9c9ec32045ddbdee13b85"
 dependencies = [
  "indexmap",
  "serde",
+ "serde_spanned",
+ "toml_datetime",
+ "toml_edit",
+]
+
+[[package]]
+name = "toml_datetime"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "886f31a9b85b6182cabd4d8b07df3b451afcc216563748201490940d2a28ed36"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "toml_edit"
+version = "0.19.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "233d8716cdc5d20ec88a18a839edaf545edc71efa4a5ff700ef4a102c26cd8fa"
+dependencies = [
+ "indexmap",
+ "nom8",
+ "serde",
+ "serde_spanned",
+ "toml_datetime",
 ]
 
 [[package]]
