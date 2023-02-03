@@ -95,7 +95,7 @@ pub trait KeyFile: Key {
         format!("{}\n{}\n\n{}",
                 Self::version(),
                 self.named_revision(),
-                &base64::encode(k))
+                &crate::base64::encode(k))
     }
 }
 
